@@ -7,6 +7,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+import '../offline_banner.dart';
+
 class AboutAirQo extends StatefulWidget {
   const AboutAirQo({super.key});
 
@@ -25,65 +27,67 @@ class _AboutAirQoState extends State<AboutAirQo> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppTopBar(
-        AppLocalizations.of(context)!.about,
-      ),
-      body: AppSafeArea(
-        child: Center(
-          child: Column(
-            children: [
-              const Spacer(),
-              SvgPicture.asset(
-                'assets/icon/airqo_logo.svg',
-                height: 52.86,
-                width: 76.91,
-                semanticsLabel: 'Home',
-              ),
-              const SizedBox(
-                height: 22,
-              ),
-              Text(
-                _packageInfo.appName,
-                style: CustomTextStyle.headline11(context),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              Text(
-                _packageInfo.version,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: CustomColors.appColorBlack.withOpacity(0.5),
-                    ),
-              ),
-              const Spacer(),
-              GestureDetector(
-                onTap: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return WebViewScreen(
-                          url: AirQoUrls.termsUrl,
-                          title:
-                              AppLocalizations.of(context)!.termsPrivacyPolicy,
-                        );
-                      },
-                    ),
-                  );
-                },
-                child: Text(
-                  textAlign: TextAlign.center,
-                  AppLocalizations.of(context)!.termsPrivacyPolicy,
+    return OfflineBanner(
+      child: Scaffold(
+        appBar: AppTopBar(
+          AppLocalizations.of(context)!.about,
+        ),
+        body: AppSafeArea(
+          child: Center(
+            child: Column(
+              children: [
+                const Spacer(),
+                SvgPicture.asset(
+                  'assets/icon/airqo_logo.svg',
+                  height: 52.86,
+                  width: 76.91,
+                  semanticsLabel: 'Home',
+                ),
+                const SizedBox(
+                  height: 22,
+                ),
+                Text(
+                  _packageInfo.appName,
+                  style: CustomTextStyle.headline11(context),
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                Text(
+                  _packageInfo.version,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: CustomColors.appColorBlue,
+                        color: CustomColors.appColorBlack.withOpacity(0.5),
                       ),
                 ),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-            ],
+                const Spacer(),
+                GestureDetector(
+                  onTap: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return WebViewScreen(
+                            url: AirQoUrls.termsUrl,
+                            title: AppLocalizations.of(context)!
+                                .termsPrivacyPolicy,
+                          );
+                        },
+                      ),
+                    );
+                  },
+                  child: Text(
+                    textAlign: TextAlign.center,
+                    AppLocalizations.of(context)!.termsPrivacyPolicy,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: CustomColors.appColorBlue,
+                        ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+              ],
+            ),
           ),
         ),
       ),

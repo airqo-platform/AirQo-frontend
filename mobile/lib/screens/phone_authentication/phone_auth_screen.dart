@@ -14,6 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+import '../offline_banner.dart';
 import '../on_boarding/on_boarding_widgets.dart';
 import '../on_boarding/profile_setup_screen.dart';
 import 'phone_auth_widgets.dart';
@@ -57,162 +58,166 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
   Widget build(BuildContext context) {
     _keyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
 
-    return Scaffold(
-      appBar: const OnBoardingTopBar(backgroundColor: Colors.white),
-      body: WillPopScope(
-        onWillPop: onWillPop,
-        child: AppSafeArea(
-          backgroundColor: Colors.white,
-          horizontalPadding: 24,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const PhoneAuthTitle(),
-              const PhoneAuthSubTitle(),
-              const SizedBox(height: 32),
-              Form(
-                key: _formKey,
-                child: SizedBox(
-                  height: 48,
-                  child: BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
-                    builder: (context, state) {
-                      return Row(
-                        children: [
-                          SizedBox(
-                            width: 64,
-                            child: CountryCodePickerField(
-                              valueChange: (code) {
-                                setState(() => phoneNumber.first =
-                                    code ?? phoneNumber.first);
-                              },
-                              placeholder: phoneNumber.first,
-                              status: state.status,
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 16,
-                          ),
-                          Expanded(
-                            child: TextFormField(
-                              validator: (_) {
-                                if (!phoneNumber.join().isValidPhoneNumber()) {
-                                  context
-                                      .read<PhoneAuthBloc>()
-                                      .add(SetPhoneAuthStatus(
-                                        AuthenticationStatus.error,
-                                        errorMessage:
-                                            AppLocalizations.of(context)!
-                                                .invalidPhoneNumber,
-                                      ));
-
-                                  return '';
-                                }
-
-                                return null;
-                              },
-                              onChanged: (value) {
-                                setState(() => phoneNumber[1] = value);
-                              },
-                              onSaved: (value) {
-                                setState(() => phoneNumber[1] = value!);
-                              },
-                              inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                  RegExp(r'\d'),
-                                ),
-                                PhoneNumberInputFormatter(),
-                              ],
-                              style: inputTextStyle(state.status),
-                              cursorWidth: 1,
-                              autofocus: false,
-                              enabled:
-                                  state.status != AuthenticationStatus.success,
-                              keyboardType: TextInputType.number,
-                              decoration: inputDecoration(
-                                state.status,
-                                hintText: '700 000 000',
-                                prefixText: phoneNumber.first,
-                                suffixIconCallback: () {
-                                  _formKey.currentState?.reset();
-                                  FocusScope.of(context)
-                                      .requestFocus(FocusNode());
+    return OfflineBanner(
+      child: Scaffold(
+        appBar: const OnBoardingTopBar(backgroundColor: Colors.white),
+        body: WillPopScope(
+          onWillPop: onWillPop,
+          child: AppSafeArea(
+            backgroundColor: Colors.white,
+            horizontalPadding: 24,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const PhoneAuthTitle(),
+                const PhoneAuthSubTitle(),
+                const SizedBox(height: 32),
+                Form(
+                  key: _formKey,
+                  child: SizedBox(
+                    height: 48,
+                    child: BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
+                      builder: (context, state) {
+                        return Row(
+                          children: [
+                            SizedBox(
+                              width: 64,
+                              child: CountryCodePickerField(
+                                valueChange: (code) {
+                                  setState(() => phoneNumber.first =
+                                      code ?? phoneNumber.first);
                                 },
+                                placeholder: phoneNumber.first,
+                                status: state.status,
                               ),
                             ),
-                          ),
-                        ],
-                      );
-                    },
+                            const SizedBox(
+                              width: 16,
+                            ),
+                            Expanded(
+                              child: TextFormField(
+                                validator: (_) {
+                                  if (!phoneNumber
+                                      .join()
+                                      .isValidPhoneNumber()) {
+                                    context
+                                        .read<PhoneAuthBloc>()
+                                        .add(SetPhoneAuthStatus(
+                                          AuthenticationStatus.error,
+                                          errorMessage:
+                                              AppLocalizations.of(context)!
+                                                  .invalidPhoneNumber,
+                                        ));
+
+                                    return '';
+                                  }
+
+                                  return null;
+                                },
+                                onChanged: (value) {
+                                  setState(() => phoneNumber[1] = value);
+                                },
+                                onSaved: (value) {
+                                  setState(() => phoneNumber[1] = value!);
+                                },
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                    RegExp(r'\d'),
+                                  ),
+                                  PhoneNumberInputFormatter(),
+                                ],
+                                style: inputTextStyle(state.status),
+                                cursorWidth: 1,
+                                autofocus: false,
+                                enabled: state.status !=
+                                    AuthenticationStatus.success,
+                                keyboardType: TextInputType.number,
+                                decoration: inputDecoration(
+                                  state.status,
+                                  hintText: '700 000 000',
+                                  prefixText: phoneNumber.first,
+                                  suffixIconCallback: () {
+                                    _formKey.currentState?.reset();
+                                    FocusScope.of(context)
+                                        .requestFocus(FocusNode());
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
-              const PhoneAuthErrorMessage(),
-              const PhoneAuthSwitchButton(),
-              const Spacer(),
-              NextButton(
-                buttonColor: phoneNumber.join().isValidPhoneNumber()
-                    ? CustomColors.appColorBlue
-                    : CustomColors.appColorDisabled,
-                callBack: () async {
-                  FocusScope.of(context).requestFocus(FocusNode());
+                const PhoneAuthErrorMessage(),
+                const PhoneAuthSwitchButton(),
+                const Spacer(),
+                NextButton(
+                  buttonColor: phoneNumber.join().isValidPhoneNumber()
+                      ? CustomColors.appColorBlue
+                      : CustomColors.appColorDisabled,
+                  callBack: () async {
+                    FocusScope.of(context).requestFocus(FocusNode());
 
-                  switch (context.read<PhoneAuthBloc>().state.status) {
-                    case AuthenticationStatus.initial:
-                    case AuthenticationStatus.error:
-                      FormState? formState = _formKey.currentState;
-                      if (formState == null) {
-                        return;
-                      }
-
-                      if (formState.validate()) {
-                        await _sendAuthCode();
-                      }
-                      break;
-                    case AuthenticationStatus.success:
-                      if (phoneAuthModel.phoneAuthCredential == null) {
-                        context
-                            .read<PhoneVerificationBloc>()
-                            .add(InitializePhoneVerification(
-                              phoneAuthModel: phoneAuthModel,
-                              authProcedure: context
-                                  .read<PhoneAuthBloc>()
-                                  .state
-                                  .authProcedure,
-                            ));
-                        await verifyPhoneAuthCode(context);
-                      } else {
-                        final AuthProcedure authProcedure =
-                            context.read<PhoneAuthBloc>().state.authProcedure;
-                        if (authProcedure == AuthProcedure.login) {
-                          await Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(builder: (context) {
-                              return const HomePage();
-                            }),
-                            (r) => false,
-                          );
-                        } else {
-                          await Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(builder: (context) {
-                              return const ProfileSetupScreen();
-                            }),
-                            (r) => false,
-                          );
+                    switch (context.read<PhoneAuthBloc>().state.status) {
+                      case AuthenticationStatus.initial:
+                      case AuthenticationStatus.error:
+                        FormState? formState = _formKey.currentState;
+                        if (formState == null) {
+                          return;
                         }
-                      }
-                  }
-                },
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              Visibility(
-                visible: !_keyboardVisible,
-                child: const PhoneAuthButtons(),
-              ),
-            ],
+
+                        if (formState.validate()) {
+                          await _sendAuthCode();
+                        }
+                        break;
+                      case AuthenticationStatus.success:
+                        if (phoneAuthModel.phoneAuthCredential == null) {
+                          context
+                              .read<PhoneVerificationBloc>()
+                              .add(InitializePhoneVerification(
+                                phoneAuthModel: phoneAuthModel,
+                                authProcedure: context
+                                    .read<PhoneAuthBloc>()
+                                    .state
+                                    .authProcedure,
+                              ));
+                          await verifyPhoneAuthCode(context);
+                        } else {
+                          final AuthProcedure authProcedure =
+                              context.read<PhoneAuthBloc>().state.authProcedure;
+                          if (authProcedure == AuthProcedure.login) {
+                            await Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (context) {
+                                return const HomePage();
+                              }),
+                              (r) => false,
+                            );
+                          } else {
+                            await Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (context) {
+                                return const ProfileSetupScreen();
+                              }),
+                              (r) => false,
+                            );
+                          }
+                        }
+                    }
+                  },
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
+                Visibility(
+                  visible: !_keyboardVisible,
+                  child: const PhoneAuthButtons(),
+                ),
+              ],
+            ),
           ),
         ),
       ),

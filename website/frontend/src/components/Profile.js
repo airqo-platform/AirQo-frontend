@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import TwitterIcon from '@mui/icons-material/Twitter';
-import { useIntersectionObserver } from 'utils/customHooks';
+import { useIntersectionObserver } from 'utilities/customHooks';
 import LinkedIn from '../icons/footer/LinkedIn.svg';
 import Modal from './Modal';
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import HomePageMap from 'assets/img/homepage-map.png';
 import MapWrapper from 'assets/img/MapWrapper.png';
-import useWindowSize from 'utils/customHooks';
+import useWindowSize from 'utilities/customHooks';
 import { Link } from 'react-router-dom';
 import { NETMANAGER_URL } from '../../../config/urls';
 

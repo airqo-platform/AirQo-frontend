@@ -11,8 +11,6 @@ const URL_PATTERN = new RegExp(
 export const validateUrl = (url) => URL_PATTERN.test(url);
 
 export const stripTrailingSlash = (url) => {
-  if (url === undefined) {
-    return '';
-  }
-  return url.replace(/\/$/, '');
+  if (url) return url.replace(/\/$/, '');
+  else return url;
 };

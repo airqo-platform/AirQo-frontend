@@ -1,6 +1,7 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart' as config;
 import 'package:app/models/models.dart';
+import 'package:app/screens/offline_banner.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -98,131 +99,133 @@ class _PageScaffoldState extends State<PageScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: const KnowYourAirAppBar(),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Container(
-            color: CustomColors.appBodyColor,
-            height: double.infinity,
-            width: double.infinity,
-          ),
-          FractionallySizedBox(
-            alignment: Alignment.topCenter,
-            widthFactor: 1.0,
-            heightFactor: 0.4,
-            child: Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  fit: BoxFit.cover,
-                  image: CachedNetworkImageProvider(
-                    widget.kyaLesson.imageUrl,
-                    cacheKey: widget.kyaLesson.imageUrlCacheKey(),
-                    cacheManager: CacheManager(
-                      CacheService.cacheConfig(
-                        widget.kyaLesson.imageUrlCacheKey(),
+    return OfflineBanner(
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: const KnowYourAirAppBar(),
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            Container(
+              color: CustomColors.appBodyColor,
+              height: double.infinity,
+              width: double.infinity,
+            ),
+            FractionallySizedBox(
+              alignment: Alignment.topCenter,
+              widthFactor: 1.0,
+              heightFactor: 0.4,
+              child: Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    fit: BoxFit.cover,
+                    image: CachedNetworkImageProvider(
+                      widget.kyaLesson.imageUrl,
+                      cacheKey: widget.kyaLesson.imageUrlCacheKey(),
+                      cacheManager: CacheManager(
+                        CacheService.cacheConfig(
+                          widget.kyaLesson.imageUrlCacheKey(),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-          Align(
-            alignment: AlignmentDirectional.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(
-                bottom: 32,
-                left: 24,
-                right: 24,
-              ),
-              child: NextButton(
-                text: widget.kyaLesson.startButtonText(context),
-                buttonColor: CustomColors.appColorBlue,
-                callBack: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return KyaLessonsPage(widget.kyaLesson);
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: Align(
-              alignment: Alignment.center,
+            Align(
+              alignment: AlignmentDirectional.bottomCenter,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
-                    const Spacer(),
-                    Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(16.0),
-                        ),
+                padding: const EdgeInsets.only(
+                  left: 24,
+                  right: 24,
+                  bottom: 32,
+                ),
+                child: NextButton(
+                  text: widget.kyaLesson.startButtonText(context),
+                  buttonColor: CustomColors.appColorBlue,
+                  callBack: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return KyaLessonsPage(widget.kyaLesson);
+                        },
                       ),
-                      child: Center(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const SizedBox(
-                              height: 48,
-                            ),
-                            Container(
-                              constraints: const BoxConstraints(
-                                maxWidth: 221.46,
-                                maxHeight: 133.39,
-                                minWidth: 221.46,
-                                minHeight: 133.39,
-                              ),
-                              decoration: const BoxDecoration(
-                                // borderRadius: BorderRadius.circular(8.0),
-                                image: DecorationImage(
-                                  fit: BoxFit.cover,
-                                  image: AssetImage(
-                                    'assets/images/kya_stars.png',
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 18,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 40,
-                              ),
-                              child: Text(
-                                widget.kyaLesson.title,
-                                textAlign: TextAlign.center,
-                                style: CustomTextStyle.headline11(context)
-                                    ?.copyWith(
-                                  color: CustomColors.appColorBlack,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 64,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                  ],
+                    );
+                  },
                 ),
               ),
             ),
-          ),
-        ],
+            Positioned.fill(
+              child: Align(
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      const Spacer(),
+                      Container(
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(16.0),
+                          ),
+                        ),
+                        child: Center(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              const SizedBox(
+                                height: 48,
+                              ),
+                              Container(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 221.46,
+                                  maxHeight: 133.39,
+                                  minWidth: 221.46,
+                                  minHeight: 133.39,
+                                ),
+                                decoration: const BoxDecoration(
+                                  // borderRadius: BorderRadius.circular(8.0),
+                                  image: DecorationImage(
+                                    fit: BoxFit.cover,
+                                    image: AssetImage(
+                                      'assets/images/kya_stars.png',
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 18,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 40,
+                                ),
+                                child: Text(
+                                  widget.kyaLesson.title,
+                                  textAlign: TextAlign.center,
+                                  style: CustomTextStyle.headline11(context)
+                                      ?.copyWith(
+                                    color: CustomColors.appColorBlack,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 64,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

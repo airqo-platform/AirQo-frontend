@@ -5,6 +5,8 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
+import 'package:app/screens/kya/kya_widgets.dart';
+import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -22,7 +24,6 @@ import 'package:showcaseview/showcaseview.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
-import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
 
@@ -161,7 +162,12 @@ class _DashboardViewState extends State<DashboardView>
                                 lesson.status == KyaLessonStatus.complete)
                             .take(3)
                             .toList();
-                        final kyaWidgets = completeKyaWidgets(completeLessons);
+                        final completeQuizzes = state.quizzes
+                            .where((quiz) => quiz.status == QuizStatus.complete)
+                            .take(3)
+                            .toList();
+                        final kyaWidgets = completeKyaWidgets(
+                            completeLessons, completeQuizzes);
 
                         return Expanded(
                           child: CustomShowcaseWidget(
@@ -316,6 +322,20 @@ class _DashboardViewState extends State<DashboardView>
                   ),
                   BlocBuilder<KyaBloc, KyaState>(
                     builder: (context, state) {
+                      List<Quiz> inCompleteQuizzes = state.quizzes
+                          .where((quiz) => quiz.status != QuizStatus.complete)
+                          .toList();
+
+                      if (inCompleteQuizzes.isEmpty) {
+                        _kyaExists = false;
+                        return const SizedBox();
+                      }
+                      Quiz displayedQuiz = inCompleteQuizzes.first;
+                      return QuizCard(displayedQuiz);
+                    },
+                  ),
+                  BlocBuilder<KyaBloc, KyaState>(
+                    builder: (context, state) {
                       List<KyaLesson> inCompleteLessons =
                           state.lessons.filterInCompleteLessons();
 
@@ -332,7 +352,7 @@ class _DashboardViewState extends State<DashboardView>
                           descriptionHeight: screenSize.height * 0.14,
                           description: AppLocalizations.of(context)!
                               .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
-                          child: KyaCardWidget(
+                          child: KyaLessonCardWidget(
                             inCompleteLessons.first,
                           ),
                         ),
@@ -481,6 +501,8 @@ class _DashboardViewState extends State<DashboardView>
       case AppLifecycleState.hidden:
       case AppLifecycleState.detached:
         break;
+      case AppLifecycleState.hidden:
+        // TODO: Handle this case.
     }
   }
 

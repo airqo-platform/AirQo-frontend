@@ -323,5 +323,15 @@
   "headsUpYouAreAboutToLogout": "Attention! Vous êtes sur le point de vous déconnecter!",
   "youWillMissOutOnNotificationAndWontBeAbleToSaveFavouritePlaces":"Vous manquerez les notifications et ne pourrez pas enregistrer vos endroits préférés",
   "selectCountry": "Sélectionnez un pays",
-  "phoneNumber":"Numéro de téléphone"
+  "phoneNumber":"Numéro de téléphone",
+  "takeAirQualityQuiz":"Passez le quiz sur la qualité de l'air",
+  "skipThisForLater":"Ignorer cela pour plus tard",
+  "noQuestions":"Pas de questions",
+  "leavingNearBusyRoads":"Vivre près de routes très fréquentées",
+  "takeQuiz": "Passer le quiz",
+  "youHaveCompletedTheQuiz": "Vous avez terminé le quiz!",
+  "airQualityQuiz": "Quiz sur la qualité de l'air",
+  "actualDate":"{date}",
+  "dismiss": "REJETER",
+  "internetConnectionLost": "Connexion Internet perdue"
 }

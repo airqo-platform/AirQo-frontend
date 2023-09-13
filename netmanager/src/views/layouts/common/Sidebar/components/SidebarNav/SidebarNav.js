@@ -141,15 +141,13 @@ const SidebarNav = (props) => {
                       className={
                         (location.pathname.includes(page.href) && classes.buttonActive) ||
                         classes.button
-                      }
-                    >
+                      }>
                       <div className={classes.icon}>{page.icon}</div>
                       {page.title}
                     </Button>
                   }
                   parentMenuOpen={true}
-                  style={{ padding: '0px' }}
-                >
+                  style={{ padding: '0px' }}>
                   {page.nestItems.map((nestPage, key) => (
                     <MenuItem>
                       <Button
@@ -157,8 +155,7 @@ const SidebarNav = (props) => {
                         className={classes.nestButton}
                         component={CustomRouterLink}
                         to={nestPage.href}
-                        key={key}
-                      >
+                        key={key}>
                         {nestPage.title}
                       </Button>
                     </MenuItem>
@@ -175,13 +172,20 @@ const SidebarNav = (props) => {
             return;
           } else {
             return (
-              <ListItem className={classes.item} disableGutters key={page.title}>
+              <ListItem
+                className={classes.item}
+                disableGutters
+                key={page.title}
+                disabled={page.disabled}
+                style={{
+                  cursor: page.disabled ? 'not-allowed' : 'pointer'
+                }}>
                 <Button
+                  disabled={page.disabled}
                   activeClassName={classes.active}
                   className={classes.button}
                   component={CustomRouterLink}
-                  to={page.href}
-                >
+                  to={page.href}>
                   <div className={classes.icon}>{page.icon}</div>
                   {page.title}
                 </Button>

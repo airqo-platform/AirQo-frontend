@@ -1,6 +1,7 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
+import 'package:app/screens/offline_banner.dart';
 import 'package:app/screens/on_boarding/setup_complete_screen.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -23,53 +24,55 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const OnBoardingTopBar(),
-      body: WillPopScope(
-        onWillPop: onWillPop,
-        child: AppSafeArea(
-          verticalPadding: 10,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Spacer(),
-              const OnBoardingLocationIcon(),
-              const SizedBox(
-                height: 26,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 57),
-                child: Text(
-                  AppLocalizations.of(context)!.enableLocations,
-                  textAlign: TextAlign.center,
-                  style: CustomTextStyle.headline7(context),
+    return OfflineBanner(
+      child: Scaffold(
+        appBar: const OnBoardingTopBar(),
+        body: WillPopScope(
+          onWillPop: onWillPop,
+          child: AppSafeArea(
+            verticalPadding: 10,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Spacer(),
+                const OnBoardingLocationIcon(),
+                const SizedBox(
+                  height: 26,
                 ),
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 45),
-                child: Text(
-                  AppLocalizations.of(context)!
-                      .allowAirQoToSendYouLocationAirQualityUpdateForYourWorkPlaceHome,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 57),
+                  child: Text(
+                    AppLocalizations.of(context)!.enableLocations,
+                    textAlign: TextAlign.center,
+                    style: CustomTextStyle.headline7(context),
+                  ),
                 ),
-              ),
-              const Spacer(),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: NextButton(
-                  text: AppLocalizations.of(context)!.yesKeepMeSafe,
-                  buttonColor: CustomColors.appColorBlue,
-                  callBack: () async {
-                    await _allowLocation();
-                  },
+                const SizedBox(
+                  height: 8,
                 ),
-              ),
-              const SkipOnboardScreen(SetUpCompleteScreen()),
-            ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 45),
+                  child: Text(
+                    AppLocalizations.of(context)!
+                        .allowAirQoToSendYouLocationAirQualityUpdateForYourWorkPlaceHome,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+                const Spacer(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: NextButton(
+                    text: AppLocalizations.of(context)!.yesKeepMeSafe,
+                    buttonColor: CustomColors.appColorBlue,
+                    callBack: () async {
+                      await _allowLocation();
+                    },
+                  ),
+                ),
+                const SkipOnboardScreen(SetUpCompleteScreen()),
+              ],
+            ),
           ),
         ),
       ),
