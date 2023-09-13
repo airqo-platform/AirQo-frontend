@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Section, MainHighlight, SubHighlight } from 'src/components/CleanAir';
+import { Section, MainHighlight } from 'src/components/CleanAir';
 import Section1 from 'assets/img/cleanAir/section1.jpg';
 import Section2 from 'assets/img/cleanAir/section2.png';
 import Section3 from 'assets/img/cleanAir/section3.png';
@@ -13,7 +13,7 @@ const Button = ({ className, label, onClick, style }) => (
   </button>
 );
 
-const About = () => {
+const CleanAirAbout = () => {
   return (
     <>
       {/* section 1 */}
@@ -24,7 +24,7 @@ const About = () => {
         <div className="hero-content">
           <div>
             <p className="hero-title">
-              The CLEAN-Air Africa <br /> Network
+              The CLEAN-Air Africa <br className="breaker" /> Network
             </p>
             <p className="hero-sub">
               <span className="fact">An African-led, multi-region network</span> <br />
@@ -52,8 +52,6 @@ const About = () => {
         btnText={'Learn how -->'}
         link="#"
         imgURL={Section2}
-        imgWidth="529px"
-        imgHeight="398px"
         bgColor="#EDF3FF"
         pillBgColor="#FFFFFF"
         pillTextColor="#000000"
@@ -63,8 +61,11 @@ const About = () => {
         pillTitle="CLEAN-Air"
         content="CLEAN-Air, an acronym coined from ‘Championing Liveable urban Environments through African Networks for Air’, brings together stakeholders and researchers in air quality management from over 16 cities across the African continent to share best practices and knowledge on developing and implementing air quality management solutions."
         imgURL={Section3}
-        imgWidth="214px"
-        imgHeight="214px"
+        imageStyle={{
+          width: '214px',
+          height: '214px',
+          objectFit: 'cover'
+        }}
         bgColor="#FFFFFF"
         pillBgColor="#ECF2FF"
         pillTextColor="#135DFF"
@@ -78,15 +79,18 @@ const About = () => {
         link="#"
         btnText={'Get involved -->'}
         imgURL={Section4}
-        imgWidth="517px"
-        imgHeight="393px"
+        imageStyle={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover'
+        }}
         bgColor="#EDF3FF"
         pillBgColor="#FFFFFF"
         pillTextColor="#000000"
       />
       {/* section 5 */}
       <Section
-        pillTitle="CLEAN-Air"
+        pillTitle="CLEAN-Air Goals"
         content={
           <div
             style={{
@@ -135,17 +139,14 @@ const About = () => {
           </div>
         }
         imgURL={Section5}
-        imgWidth="611px"
-        imgHeight="459px"
         bgColor="#FFFFFF"
         pillBgColor="#ECF2FF"
         pillTextColor="#135DFF"
       />
       {/* section 6 */}
       <MainHighlight />
-      <SubHighlight />
     </>
   );
 };
 
-export default About;
+export default CleanAirAbout;

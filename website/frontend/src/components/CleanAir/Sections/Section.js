@@ -13,8 +13,7 @@ const Section = ({
   bgColor,
   pillBgColor,
   pillTextColor,
-  imgWidth,
-  imgHeight
+  imageStyle
 }) => {
   return (
     <div className="cleanAir-section" style={{ backgroundColor: bgColor }}>
@@ -46,7 +45,7 @@ const Section = ({
           )}
         </div>
         <div className="cleanAir-image">
-          <img className="cleanAir-img" src={imgURL} width={imgWidth} height={imgHeight} />
+          <img className="cleanAir-img" src={imgURL} style={imageStyle} />
         </div>
       </div>
     </div>

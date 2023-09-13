@@ -1,9 +1,2 @@
 export { default as Section } from './Sections/Section';
-export { default as TopBarNav } from './TopBarNav/index';
-export { default as Header } from './HomePage/Header';
 export { default as MainHighlight } from './Hightlights/MainHighlight';
-export { default as SubHighlight } from './Hightlights/SubHighlight';
-export { default as About } from './HomePage/About';
-export { default as Memberships } from './HomePage/Memberships';
-export { default as Press } from './HomePage/Press';
-export { default as ForYou } from './HomePage/ForYou';
