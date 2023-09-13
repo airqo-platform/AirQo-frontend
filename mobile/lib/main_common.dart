@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
+import 'package:app/screens/offline_banner.dart';
 import 'package:app/screens/on_boarding/splash_screen.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:app/screens/web_view_page.dart';
@@ -43,6 +44,9 @@ class AirQoApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (BuildContext context) => SearchPageCubit(),
+        ),
+        BlocProvider(
+          create: (BuildContext context) => InternetConnectionBannerCubit(),
         ),
         BlocProvider(
           create: (BuildContext context) => WebViewLoadingCubit(),
@@ -119,7 +123,9 @@ class AirQoApp extends StatelessWidget {
         ],
         title: config.appTitle,
         theme: customTheme(),
-        home: SplashScreen(initialLink),
+        home: OfflineBanner(
+          child: SplashScreen(initialLink),
+        ),
       ),
     );
   }

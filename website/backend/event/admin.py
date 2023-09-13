@@ -36,11 +36,11 @@ class ResourceInline(nested_admin.NestedTabularInline):
 
 @admin.register(Event)
 class EventAdmin(nested_admin.NestedModelAdmin):
-    fields= ('title', 'title_subtext', 'start_date','end_date','start_time','end_time','registration_link','event_tag','event_image','background_image','location_name','location_link','event_details','order','author', 'updated_by')
+    fields= ('title', 'title_subtext', 'start_date','end_date','start_time','end_time','website_category','registration_link','event_tag','event_image','background_image','location_name','location_link','event_details','order','author', 'updated_by')
     readonly_fields = ('id', 'author', 'created', 'updated_by', 'modified')
-    list_display=('title','start_date', 'event_tag','author')
+    list_display=('title','start_date', 'event_tag','website_category','author')
     search_fields =('title','event_tag','location_name')
-    list_filter = ('event_tag','start_date')
+    list_filter = ('website_category','event_tag','start_date',)
     inlines = (ProgramInline, PartnerLogoInline, InquiryInline, ResourceInline,)
     list_per_page = 10
 

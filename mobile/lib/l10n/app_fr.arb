@@ -330,5 +330,8 @@
   "leavingNearBusyRoads":"Vivre près de routes très fréquentées",
   "takeQuiz": "Passer le quiz",
   "youHaveCompletedTheQuiz": "Vous avez terminé le quiz!",
-  "airQualityQuiz": "Quiz sur la qualité de l'air"
+  "airQualityQuiz": "Quiz sur la qualité de l'air",
+  "actualDate":"{date}",
+  "dismiss": "REJETER",
+  "internetConnectionLost": "Connexion Internet perdue"
 }

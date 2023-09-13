@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+import '../offline_banner.dart';
 import 'profile_widgets.dart';
 
 class ProfileEditPage extends StatelessWidget {
@@ -13,79 +14,81 @@ class ProfileEditPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const EditProfileAppBar(),
-      body: AppSafeArea(
-        horizontalPadding: 16,
-        child: BlocBuilder<ProfileBloc, Profile>(
-          builder: (context, profile) {
-            return ListView(
-              physics: const BouncingScrollPhysics(),
-              children: <Widget>[
-                const SizedBox(
-                  height: 26,
-                ),
-                const EditProfilePicSection(),
-                const SizedBox(
-                  height: 40,
-                ),
-                Visibility(
-                  visible: profile.phoneNumber.isNotEmpty,
-                  child: EditCredentialsField(
-                    profile: profile,
-                    authMethod: AuthMethod.phone,
+    return OfflineBanner(
+      child: Scaffold(
+        appBar: const EditProfileAppBar(),
+        body: AppSafeArea(
+          horizontalPadding: 16,
+          child: BlocBuilder<ProfileBloc, Profile>(
+            builder: (context, profile) {
+              return ListView(
+                physics: const BouncingScrollPhysics(),
+                children: <Widget>[
+                  const SizedBox(
+                    height: 26,
                   ),
-                ),
-                Visibility(
-                  visible: profile.emailAddress.isNotEmpty,
-                  child: EditCredentialsField(
-                    profile: profile,
-                    authMethod: AuthMethod.email,
+                  const EditProfilePicSection(),
+                  const SizedBox(
+                    height: 40,
                   ),
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                Text(
-                  AppLocalizations.of(context)!.firstName,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: CustomColors.inactiveColor,
+                  Visibility(
+                    visible: profile.phoneNumber.isNotEmpty,
+                    child: EditCredentialsField(
+                      profile: profile,
+                      authMethod: AuthMethod.phone,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                NameEditField(
-                  value: profile.firstName,
-                  valueChange: (firstName) {
-                    context.read<ProfileBloc>().add(
-                          UpdateProfile(
-                            profile.copyWith(firstName: firstName),
-                          ),
-                        );
-                  },
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  AppLocalizations.of(context)!.lastName,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: CustomColors.inactiveColor,
+                  Visibility(
+                    visible: profile.emailAddress.isNotEmpty,
+                    child: EditCredentialsField(
+                      profile: profile,
+                      authMethod: AuthMethod.email,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                NameEditField(
-                  value: profile.lastName,
-                  valueChange: (lastName) {
-                    context.read<ProfileBloc>().add(
-                          UpdateProfile(
-                            profile.copyWith(lastName: lastName),
-                          ),
-                        );
-                  },
-                ),
-              ],
-            );
-          },
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  Text(
+                    AppLocalizations.of(context)!.firstName,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: CustomColors.inactiveColor,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  NameEditField(
+                    value: profile.firstName,
+                    valueChange: (firstName) {
+                      context.read<ProfileBloc>().add(
+                            UpdateProfile(
+                              profile.copyWith(firstName: firstName),
+                            ),
+                          );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    AppLocalizations.of(context)!.lastName,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: CustomColors.inactiveColor,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  NameEditField(
+                    value: profile.lastName,
+                    valueChange: (lastName) {
+                      context.read<ProfileBloc>().add(
+                            UpdateProfile(
+                              profile.copyWith(lastName: lastName),
+                            ),
+                          );
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );

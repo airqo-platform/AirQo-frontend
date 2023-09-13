@@ -330,5 +330,17 @@
     "leavingNearBusyRoads":"Leaving near busy roads",
     "takeQuiz": "Take Quiz",
     "youHaveCompletedTheQuiz": "You have completed the quiz!",
-    "airQualityQuiz": "Air Quality Quiz"
+    "airQualityQuiz": "Air Quality Quiz",
+    "actualDate":"{date}",
+    "@actualDate":{
+        "description": "Actual date",
+        "placeholders": {
+            "date": {
+                "type": "DateTime",
+                "format":"yMMMMEEEEd"
+            }
+        }
+    },
+    "dismiss": "DISMISS",
+    "internetConnectionLost": "Internet Connection Lost"
 }

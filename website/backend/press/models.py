@@ -14,6 +14,22 @@ class Press(BaseModel):
         "PublisherLogo", overwrite=True, resource_type="image", null=True, blank=True)
     order = models.IntegerField(default=1)
 
+    class WebsiteCategory(models.TextChoices):
+        AirQo = "airqo", "AirQo"
+        CleanAir = "cleanair", "CleanAir"
+
+    website_category = models.CharField(
+        max_length=40, default=WebsiteCategory.AirQo, choices=WebsiteCategory.choices, null=True, blank=True
+    )
+
+    class ArticleTag(models.TextChoices):
+        Untagged = "none", "None"
+        Featured = "featured", "Featured"
+
+    article_tag = models.CharField(
+        max_length=40, default=ArticleTag.Untagged, choices=ArticleTag.choices, null=True, blank=True
+    )
+
     class Meta:
         ordering = ['order', '-id']
 

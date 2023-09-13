@@ -3,9 +3,9 @@ from .models import Press
 
 @admin.register(Press)
 class PressAdmin(admin.ModelAdmin):
-    list_display = ("article_title", "date_published", "logo_preview", "created")
-    list_filter = ("date_published",)
-    list_per_page = 10
+    list_display = ("article_title", "date_published", "logo_preview", "website_category","created")
+    list_filter = ("website_category","date_published",)
+    list_per_page = 12
     search_fields = ("article_title", "date_published")
     readonly_fields = (
         "id",
@@ -18,6 +18,8 @@ class PressAdmin(admin.ModelAdmin):
     fields = (
         "article_title",
         "article_intro",
+        "website_category",
+        "article_tag",
         "article_link",
         "date_published",
         "publisher_logo",
