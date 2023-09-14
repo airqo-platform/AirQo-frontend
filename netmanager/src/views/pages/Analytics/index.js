@@ -136,6 +136,7 @@ const Analytics = () => {
 
   const handleClickOpen = () => {
     setOpen(true);
+    handleCloseMenu();
   };
 
   const handleClose = () => {
@@ -164,70 +165,6 @@ const Analytics = () => {
         );
         handleCloseMenu();
         setLoading(false);
-      })
-      .catch((error) => {
-        const errors = error.response && error.response.data && error.response.data.errors;
-        dispatch(
-          updateMainAlert({
-            show: true,
-            message: error.response && error.response.data && error.response.data.message,
-            severity: 'error',
-            extra: createAlertBarExtraContentFromObject(errors || {})
-          })
-        );
-        setLoading(false);
-      });
-  };
-
-  const handleDeleteGrid = async () => {
-    setLoading(true);
-    await deleteGridApi(activeGrid._id)
-      .then((res) => {
-        setLoading(false);
-        dispatch(
-          updateMainAlert({
-            show: true,
-            message: res.message,
-            severity: 'success'
-          })
-        );
-        handleCloseMenu();
-
-        setTimeout(() => {
-          window.location.reload();
-        }, 3000);
-      })
-      .catch((error) => {
-        const errors = error.response && error.response.data && error.response.data.errors;
-        dispatch(
-          updateMainAlert({
-            show: true,
-            message: error.response && error.response.data && error.response.data.message,
-            severity: 'error',
-            extra: createAlertBarExtraContentFromObject(errors || {})
-          })
-        );
-        setLoading(false);
-      });
-  };
-
-  const handleDeleteCohort = async () => {
-    setLoading(true);
-    await deleteCohortApi(activeCohort._id)
-      .then((res) => {
-        setLoading(false);
-        dispatch(
-          updateMainAlert({
-            show: true,
-            message: res.message,
-            severity: 'success'
-          })
-        );
-        handleCloseMenu();
-
-        setTimeout(() => {
-          window.location.reload();
-        }, 3000);
       })
       .catch((error) => {
         const errors = error.response && error.response.data && error.response.data.errors;
@@ -278,20 +215,6 @@ const Analytics = () => {
                 textTransform: 'initial',
                 height: '44px'
               }}
-              variant="outlined"
-              onClick={handleClickOpen}
-            >
-              <ImportExportIcon /> Add New {isCohort ? 'Cohort' : 'Grid'}
-            </Button>
-            <Box width={'16px'} />
-            <Button
-              margin="dense"
-              color="primary"
-              style={{
-                width: 'auto',
-                textTransform: 'initial',
-                height: '44px'
-              }}
               variant="contained"
               onClick={handleSwitchAirqloudTypeClick}
             >
@@ -302,9 +225,8 @@ const Analytics = () => {
               <MoreDropdown
                 dropdownItems={[
                   {
-                    title: 'Delete Cohort',
-                    onClick: handleDeleteCohort,
-                    loading: loading
+                    title: 'Create New Cohort',
+                    onClick: handleClickOpen
                   }
                 ]}
                 anchorEl={anchorEl}
@@ -321,9 +243,8 @@ const Analytics = () => {
                     loading: loading
                   },
                   {
-                    title: 'Delete Grid',
-                    onClick: handleDeleteGrid,
-                    loading: loading
+                    title: 'Create New Grid',
+                    onClick: handleClickOpen
                   }
                 ]}
                 anchorEl={anchorEl}
