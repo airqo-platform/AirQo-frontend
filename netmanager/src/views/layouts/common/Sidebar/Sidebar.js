@@ -96,6 +96,7 @@ const allMainPages = [
   {
     title: 'Analytics',
     href: '/analytics',
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
     icon: <TimelineIcon />
   },
   {
@@ -316,7 +317,8 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}>
+      variant={variant}
+    >
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />
