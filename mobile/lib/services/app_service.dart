@@ -22,6 +22,7 @@ class AppService {
   static Future<void> postSignInActions(BuildContext context) async {
     context.read<ProfileBloc>().add(const FetchProfile());
     context.read<KyaBloc>().add(const FetchKya());
+    context.read<KyaBloc>().add(const FetchQuizzes());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<NotificationBloc>().add(const SyncNotifications());

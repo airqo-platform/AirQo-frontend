@@ -164,7 +164,8 @@ const allUserManagementPages = [
   {
     title: 'Organisation',
     href: '/organisation',
-    icon: <BusinessIcon />
+    icon: <BusinessIcon />,
+    disabled: true
   },
   {
     title: 'Users',
@@ -315,8 +316,7 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}
-    >
+      variant={variant}>
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />
