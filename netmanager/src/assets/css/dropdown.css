@@ -69,7 +69,8 @@
   font-size: 2rem;
 }
 
-.site {
+.site,
+.airqloud {
   display: flex;
   align-items: left;
   cursor: pointer;
@@ -81,6 +82,18 @@
   color: #0560c9;
   font-size: 1rem;
   font-weight: bold;
+}
+
+.airqloud .name {
+  color: #000000;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.airqloud .count {
+  color: #000;
+  font-size: 1rem;
+  /* font-weight: bold; */
 }
 
 .site-count {

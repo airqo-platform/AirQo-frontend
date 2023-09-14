@@ -56,9 +56,9 @@ const AnalyticsAirqloudsDropDown = ({ isCohort, airqloudsData }) => {
     airqloudsData.map((airqloud) => ({
       value: airqloud,
       label: (
-        <div className="site">
-          <span className="long_name">{airqloud.name}</span>
-          <span className="site-count">
+        <div className="airqloud">
+          <span className="name">{airqloud.name}</span>
+          <span className="count">
             {isCohort
               ? !isEmpty(airqloud.devices)
                 ? airqloud.devices.length + ' devices'
