@@ -1,9 +1,18 @@
-.dropdown-wrapper {
+.dropdown {
   /* display: flex; */
   /* align-items: center; */
   position: relative;
   max-width: 90%;
-  font-weight: #175df5;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.dropdown-wrapper {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  z-index: 1000;
+  width: 100%;
 }
 
 .dropdown-rapper-recall {
@@ -14,8 +23,6 @@
   max-width: 200px;
   font-weight: #175df5;
   margin-bottom: 5px;
-
-
 }
 
 .select-recall-type {

@@ -1,6 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import ReloadIcon from '@material-ui/icons/Replay';
-import { Box, Tooltip, makeStyles } from '@material-ui/core';
+import React, { useState } from 'react';
 import Select from 'react-select';
 import { useDispatch, useSelector } from 'react-redux';
 import 'assets/css/dropdown.css';
@@ -30,13 +28,6 @@ const customStyles = {
     fontWeight: 'bold', // Increase the font weight
     textAlign: 'center',
     justifyContent: 'center'
-  }),
-  indicatorSeparator: (state) => ({
-    display: 'none'
-  }),
-  indicatorsContainer: (provided, state) => ({
-    ...provided,
-    height: '44px'
   })
 };
 
@@ -112,20 +103,15 @@ const AnalyticsAirqloudsDropDown = ({ isCohort, airqloudsData }) => {
           className="basic-single"
           classNamePrefix="select"
         />
-        {/* <Tooltip title="Refresh AirQloud">
-          <div className="dd-reload" onClick={handleAirQloudRefresh}>
-            <ReloadIcon />
-          </div>
-        </Tooltip> */}
       </div>
 
-      {hoveredOption && hoveredOption.value && hoveredOption.value.sites && (
+      {/* {hoveredOption && hoveredOption.value && hoveredOption.value.sites && (
         <div className="site-names">
           {hoveredOption.value.sites.map((site, index) => (
             <span key={index}>{site}</span>
           ))}
         </div>
-      )}
+      )} */}
     </div>
   );
 };
