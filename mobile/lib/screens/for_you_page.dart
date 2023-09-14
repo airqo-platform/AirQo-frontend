@@ -1,8 +1,10 @@
+import 'package:app/blocs/kya/kya_bloc.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/screens/settings/settings_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -146,6 +148,8 @@ class _ForYouPageState extends State<ForYouPage>
     _analyticsTabShowcaseKey = GlobalKey();
     _kyaTabShowcaseKey = GlobalKey();
     WidgetsBinding.instance.addPostFrameCallback((_) => _showcaseToggle());
+    context.read<KyaBloc>().add(const FetchKya());
+    context.read<KyaBloc>().add(const FetchQuizzes());
   }
 
   void _startShowcase() {

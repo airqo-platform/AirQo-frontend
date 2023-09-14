@@ -357,6 +357,7 @@ ThemeData customTheme() {
   /// Theme.of(context).textTheme.headline1
   /// CustomTextStyle.headline10(context)
 
+
   return base.copyWith(
     primaryColor: Colors.white,
     visualDensity: VisualDensity.adaptivePlatformDensity,

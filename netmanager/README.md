@@ -4,7 +4,7 @@ This application is used for monitoring, device registration, location registrat
 
 ## Local Setup
 
-`npm` is our package manager of choice here. Check out setup instructions [here](https://nodejs.org/dist/) if you don't have it installed already. <br/><br/>
+`npm` Is our package manager of choice here. Check out setup instructions [here](https://nodejs.org/dist/) if you don't have it installed already. <br/><br/>
 **Note: This project is currently using node version 14.**
 
 To run the app, enter the project directory <br/>

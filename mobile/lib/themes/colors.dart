@@ -194,6 +194,7 @@ class CustomColors {
   static Color get appColorRed => const Color(0xffFF0000);
 
   static Color get appColorBlack => const Color(0xff121723);
+  static Color get quizColorBlack => const Color(0xff1F232D);
 
   static Color get appColorBlue => const Color(0xff145DFF);
 

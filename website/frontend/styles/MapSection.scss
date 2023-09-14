@@ -32,6 +32,7 @@ $pill-font:$pillFont;
         .map-content{
             @include flex-column();
             margin:75px 0 0 0;
+            min-height: 300px;
             #first-pill{
                 @include flex-row();
                 align-items: center;
@@ -120,9 +121,11 @@ $pill-font:$pillFont;
             padding: 80px 16px 16px 16px;
             margin: 0 auto;
             width: 100%;
+            grid-gap:0px;
 
             .map-content{
                 margin: 0 auto;
+                // height: 400px;
 
                 #first-pill{
                     display: block;
