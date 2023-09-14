@@ -18,11 +18,15 @@ const LocationTracker = ({ countries }) => {
       if (localStorage.getItem('permissionResult')) {
         permissionResult = JSON.parse(localStorage.getItem('permissionResult'));
       } else {
-        permissionResult = await new Promise((resolve) => {
-          geolocation.getCurrentPosition(resolve, () => {
-            console.error('Geolocation permission denied.');
-          });
+        permissionResult = await new Promise((resolve, reject) => {
+          geolocation.getCurrentPosition(resolve, reject);
         });
+
+        if (permissionResult.code === 1) {
+          console.error('Geolocation permission denied.');
+          return;
+        }
+
         localStorage.setItem('permissionResult', JSON.stringify(permissionResult));
       }
 
