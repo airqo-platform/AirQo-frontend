@@ -72,6 +72,9 @@
   },
   "jest": {
     "testEnvironment": "jest-environment-jsdom",
+    "coverageReporters": [
+      "clover", "json", "lcov", "text"
+    ],
     "modulePaths": [
       "node_modules",
       "<rootDir>/frontend/src"
