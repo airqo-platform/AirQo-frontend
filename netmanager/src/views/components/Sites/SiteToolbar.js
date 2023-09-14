@@ -103,12 +103,11 @@ const FormDialog = ({
         {title}
       </DialogTitle>
       <DialogContent>
-        {showError &&
-          errorMessage.map((error) => (
-            <Alert style={{ marginBottom: 10 }} severity="error">
-              {errorMessage}
-            </Alert>
-          ))}
+        {showError && (
+          <Alert style={{ marginBottom: 10 }} severity="error">
+            {errorMessage}
+          </Alert>
+        )}
         <div>{children}</div>
       </DialogContent>
       <DialogActions>
@@ -267,11 +266,17 @@ const SiteToolbar = (props) => {
     setErrors(initErrorData);
   };
 
-  const handleConfirmation = async () => {
-    const { name, latitude, longitude } = siteData;
+  const handleErrors = (error) => {
+    const errorMessage = error.response?.data?.errors?.message;
+    setErrorMessage(errorMessage);
+    setShowError(true);
+  };
 
-    if (!name || !latitude || !longitude) {
-      setErrorMessage(['Please fill all the fields']);
+  const handleConfirmation = async () => {
+    const { name, latitude, longitude, network } = siteData;
+
+    if (!name || !latitude || !longitude || !network) {
+      setErrorMessage('Please fill all the fields');
       setShowError(true);
       return;
     }
@@ -287,12 +292,7 @@ const SiteToolbar = (props) => {
         setOpen(false);
       }
     } catch (error) {
-      setErrorMessage(
-        Array.isArray(error.response.data.errors.message)
-          ? error.response.data.errors.message
-          : [error.response.data.errors.message]
-      );
-      setShowError(true);
+      handleErrors(error);
     } finally {
       setLoading(false);
     }
