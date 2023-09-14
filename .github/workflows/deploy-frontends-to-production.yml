@@ -68,6 +68,7 @@ jobs:
 
       - name: Create .env file
         run: gcloud secrets versions access latest --secret="prod-env-netmanager" > netmanager/.env
+        echo "REACT_APP_MAP_PREVIEW=${{ secrets.REACT_APP_MAP_PREVIEW }}" >> netmanager/.env
 
       - name: NPM Setup and Build
         uses: actions/setup-node@v3
