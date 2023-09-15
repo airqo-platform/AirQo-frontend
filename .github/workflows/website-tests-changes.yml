@@ -3,7 +3,9 @@ name: website-code-tests
 on:
   pull_request:
     branches:
+      - main
       - staging
+      - master
 
 jobs:
   check:
