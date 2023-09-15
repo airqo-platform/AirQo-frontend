@@ -7,7 +7,7 @@
     "serve": "webpack serve --config webpack.dev.config.js --mode development",
     "standalone": "webpack serve --config webpack.fullapp.config.js --mode development",
     "build": "webpack --mode production",
-    "test": "jest --watchAll"
+    "test": "jest"
   },
   "author": "",
   "license": "ISC",
