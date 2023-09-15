@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Section, MainHighlight } from 'src/components/CleanAir';
+import { Section, MainHighlight } from 'components/CleanAir';
 import Section1 from 'assets/img/cleanAir/section1.jpg';
 import Section2 from 'assets/img/cleanAir/section2.png';
 import Section3 from 'assets/img/cleanAir/section3.png';
