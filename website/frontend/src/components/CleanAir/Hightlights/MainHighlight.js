@@ -4,6 +4,48 @@ import Section6 from 'assets/img/cleanAir/section6.png';
 import NewArticle from './NewArticle';
 
 const Highlight = () => {
+  const newsData = [
+    {
+      icon: null,
+      date: 'May 1, 2021',
+      title: 'How we’re measuring air quality in Kampala - and why it works for African cities',
+      url: '#'
+    },
+    {
+      icon: null,
+      date: 'June 1, 2020',
+      title: 'How we’re measuring air quality in Kampala - and why it works for African cities',
+      url: '#'
+    }
+  ];
+
+  const eventData = [
+    {
+      image: Section6,
+      altText: 'Event Image',
+      title: 'Community awareness and engagements',
+      description:
+        'Empowering communities across Africa with accurate, hyperlocal and timely air quality data to drive air pollution mitigation actions.',
+      link: '#',
+      buttonText: 'Register here'
+    },
+    {
+      image: Section6,
+      altText: 'Event Image',
+      title: 'Community ',
+      description:
+        'Empowering communities across Africa with accurate, hyperlocal and timely air quality data to drive air pollution mitigation actions.',
+      link: '#',
+      buttonText: 'Event Details'
+    }
+  ];
+
+  // Get the latest news
+  const latestNews = newsData[0];
+
+  // Get the two latest events
+  const latestEvents = eventData.slice(0, 2);
+
   return (
     <div className="CleanAir-highlights">
       <div className="highlights-wrapper">
@@ -15,12 +57,10 @@ const Highlight = () => {
           </div>
           <div className="news-container">
             <NewArticle
-              icon={null}
-              date={'2021-03-01'}
-              title={
-                'How we’re measuring air quality in Kampala - and why it works for African cities'
-              }
-              url={null}
+              icon={latestNews.icon}
+              date={latestNews.date}
+              title={latestNews.title}
+              url={latestNews.url}
             />
           </div>
         </div>
@@ -30,36 +70,25 @@ const Highlight = () => {
               <p>Latest Events</p>
             </span>
           </div>
-          <div className="event-container">
-            <img src={Section6} alt={'Community awareness and engagements'} />
-            <div className="event-content">
-              <h1>Community awareness and engagements</h1>
-              <p>
-                Empowering communities across Africa with accurate, hyperlocal and timely air
-                quality data to drive air pollution mitigation actions.
-              </p>
-              <div className="event-btn">
-                <Link to="#" target="_blank">
-                  <span>Register here {'-->'}</span>
-                </Link>
+          {latestEvents.map((event, index) => (
+            <div
+              key={index}
+              className="event-container"
+              style={{ marginTop: index > 0 ? '25px' : '0' }}>
+              <img src={event.image} alt={event.altText} />
+              <div className="event-content">
+                <h1>{event.title}</h1>
+                <p>{event.description}</p>
+                <div className="event-btn">
+                  <Link to={event.link} target="_blank">
+                    <span>
+                      {event.buttonText} {'-->'}
+                    </span>
+                  </Link>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="event-container" style={{ marginTop: '25px' }}>
-            <img src={Section6} alt={'Community awareness and engagements'} />
-            <div className="event-content">
-              <h1>Community awareness and engagements</h1>
-              <p>
-                Empowering communities across Africa with accurate, hyperlocal and timely air
-                quality data to drive air pollution mitigation actions.
-              </p>
-              <div className="event-btn">
-                <Link to="#" target="_blank">
-                  <span>Event Details {'-->'}</span>
-                </Link>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
