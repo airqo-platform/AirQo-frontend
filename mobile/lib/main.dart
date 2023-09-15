@@ -52,7 +52,8 @@ void main() async {
         ],
         supportedLocales: const [
           Locale('en'), // English
-          Locale('fr'), // French
+          Locale('fr'),//French
+          Locale('pt'), // Portuguese
         ],
         home: AppCrushWidget(exception, stackTrace),
       ),

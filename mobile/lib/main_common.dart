@@ -114,8 +114,9 @@ class AirQoApp extends StatelessWidget {
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: const [
-          Locale('en'),
-          Locale('fr'),
+          Locale('en'),//English
+          Locale('fr'),//French
+          Locale('pt'),//Portuguese
         ],
         navigatorKey: navigatorKey,
         navigatorObservers: [
