@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Page from '../Page';
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 import BackgroundShape from 'icons/africanCities/background-shape.svg';
 import ArrowRight from 'icons/research/arrow-right.svg';
-import SEO from 'utils/seo';
+import SEO from 'utilities/seo';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import { getAllCities } from '../../../reduxStore/AfricanCities/CitiesSlice';

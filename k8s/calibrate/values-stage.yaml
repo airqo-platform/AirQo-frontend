@@ -2,7 +2,7 @@ replicaCount: 1
 image:
   repository: eu.gcr.io/airqo-250220/airqo-stage-calibrate-app
   pullPolicy: Always
-  tag: stage-c5c4ee34-1689864622
+  tag: stage-91ce4a11-1694603859
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: ''

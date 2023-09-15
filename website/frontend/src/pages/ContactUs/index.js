@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import PageMini from '../PageMini';
-import SEO from 'utils/seo';
+import SEO from 'utilities/seo';
 
 const ContactUs = ({ children, arrow }) => {
     return (

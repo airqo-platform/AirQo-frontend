@@ -11,6 +11,7 @@ import {
   trainAndCalibrateDataApi,
 } from "../apis/calibrateTool";
 import PropTypes from "prop-types";
+import Papa from "papaparse";
 
 // styles
 import "../../styles/calibrate.css";
@@ -183,16 +184,14 @@ const Calibrate = () => {
   }, [selectedFile]);
 
   const downloadCSVData = (filename, data) => {
-    const downloadUrl = window.URL.createObjectURL(data);
-    const link = document.createElement("a");
-
-    link.href = downloadUrl;
-    link.setAttribute("download", filename); //any other extension
-
-    document.body.appendChild(link);
-
-    link.click();
-    link.remove();
+    const csvData = Papa.unparse(data);
+    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   const onSubmit = async (event) => {

@@ -24,6 +24,7 @@ import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import { getUserDetails } from 'redux/Join/actions';
+import { PeopleOutline } from '@material-ui/icons';
 import {
   addCurrentUserRole,
   addUserNetworks,
@@ -127,11 +128,18 @@ const allMainPages = [
     icon: <AddIcon />,
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
   },
+
   {
     title: 'Site Registry',
     href: '/sites',
     icon: <EditLocationIcon />,
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES'
+  },
+  {
+    title: 'Host Registry',
+    href: '/hosts',
+    icon: <PeopleOutline />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
   },
   {
     title: 'AirQloud Registry',
@@ -151,7 +159,8 @@ const allUserManagementPages = [
   {
     title: 'Organisation',
     href: '/organisation',
-    icon: <BusinessIcon />
+    icon: <BusinessIcon />,
+    disabled: true
   },
   {
     title: 'Users',
@@ -202,46 +211,54 @@ const Sidebar = (props) => {
   const dispatch = useDispatch();
   const currentRole = useSelector((state) => state.accessControl.currentRole);
   const userNetworks = useSelector((state) => state.accessControl.userNetworks);
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
     setLoading(true);
-    if (!isEmpty(user)) {
-      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-      getUserDetails(user._id).then((res) => {
-        dispatch(addUserNetworks(res.users[0].networks));
-        localStorage.setItem('userNetworks', JSON.stringify(res.users[0].networks));
-        localStorage.setItem('currentUser', JSON.stringify(res.users[0]));
+    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+    if (!isEmpty(user) && isEmpty(userNetworks)) {
+      getUserDetails(user._id)
+        .then((res) => {
+          dispatch(addUserNetworks(res.users[0].networks));
+          localStorage.setItem('userNetworks', JSON.stringify(res.users[0].networks));
+          localStorage.setItem('currentUser', JSON.stringify(res.users[0]));
 
-        if (isEmpty(activeNetwork)) {
-          res.users[0].networks.map((network) => {
-            if (network.net_name === 'airqo') {
-              localStorage.setItem('activeNetwork', JSON.stringify(network));
-              dispatch(addActiveNetwork(network));
-            }
-          });
-        }
-
-        getRoleDetailsApi(res.users[0].role._id)
-          .then((res) => {
-            dispatch(addCurrentUserRole(res.roles[0]));
-            localStorage.setItem('currentUserRole', JSON.stringify(res.roles[0]));
-            setLoading(false);
-          })
-          .catch((error) => {
-            const errors = error.response && error.response.data && error.response.data.errors;
-            dispatch(
-              updateMainAlert({
-                message: error.response && error.response.data && error.response.data.message,
-                show: true,
-                severity: 'error',
-                extra: createAlertBarExtraContentFromObject(errors || {})
-              })
-            );
-            setLoading(false);
-          });
-      });
+          if (isEmpty(activeNetwork)) {
+            res.users[0].networks.map((network) => {
+              if (network.net_name === 'airqo') {
+                localStorage.setItem('activeNetwork', JSON.stringify(network));
+                dispatch(addActiveNetwork(network));
+                dispatch(addCurrentUserRole(network.role));
+                localStorage.setItem('currentUserRole', JSON.stringify(network.role));
+              }
+            });
+          } else {
+            dispatch(addCurrentUserRole(activeNetwork.role));
+            localStorage.setItem('currentUserRole', JSON.stringify(activeNetwork.role));
+          }
+          setLoading(false);
+        })
+        .catch((error) => {
+          const errors = error.response && error.response.data && error.response.data.errors;
+          dispatch(
+            updateMainAlert({
+              message: error.response && error.response.data && error.response.data.message,
+              show: true,
+              severity: 'error',
+              extra: createAlertBarExtraContentFromObject(errors || {})
+            })
+          );
+          setLoading(false);
+        });
     }
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    if (!isEmpty(activeNetwork)) {
+      dispatch(addCurrentUserRole(activeNetwork.role));
+    }
+  }, [activeNetwork]);
 
   useEffect(() => {
     // check whether user has a role
@@ -272,6 +289,7 @@ const Sidebar = (props) => {
         'Network Monitoring',
         'Location Registry',
         'Device Registry',
+        'Host Registry',
         'Site Registry',
         'AirQloud Registry'
       ]);

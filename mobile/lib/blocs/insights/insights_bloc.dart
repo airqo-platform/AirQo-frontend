@@ -13,6 +13,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
             selectedInsight: Insight.initializeEmpty(DateTime.now()))) {
     on<InitializeInsightsPage>(_onInitializeInsightsPage);
     on<SwitchInsight>(_onSwitchInsight);
+    on<FetchForecast>(_onFetchForecastData);
   }
 
   void _onSwitchInsight(SwitchInsight event, Emitter<InsightsState> emit) {
@@ -65,6 +66,19 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     }
 
     return latestInsights;
+  }
+
+  Future<void> _onFetchForecastData(
+    FetchForecast event,
+    Emitter<InsightsState> emit,
+  ) async {
+    String siteId = event.airQualityReading.referenceSite;
+    List<Forecast> forecast = await HiveService().getForecast(siteId);
+    List<Insight> insights = _onAddForecastData(state.insights, forecast);
+    emit(state.copyWith(
+      selectedInsight: state.selectedInsight,
+      insights: insights.toList(),
+    ));
   }
 
   Future<void> _onInitializeInsightsPage(

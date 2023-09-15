@@ -323,5 +323,24 @@
     "headsUpYouAreAboutToLogout": "Heads up!!!.. you are about to logout!",
     "youWillMissOutOnNotificationAndWontBeAbleToSaveFavouritePlaces":"You will miss out on notifications and won’t be able to save favourite places",
     "selectCountry": "Select Country",
-    "phoneNumber":"Phone Number"
+    "phoneNumber":"Phone Number",
+    "takeAirQualityQuiz":"Take Air Quality Quiz",
+    "skipThisForLater":"Skip this for later",
+    "noQuestions":"No questions",
+    "leavingNearBusyRoads":"Leaving near busy roads",
+    "takeQuiz": "Take Quiz",
+    "youHaveCompletedTheQuiz": "You have completed the quiz!",
+    "airQualityQuiz": "Air Quality Quiz",
+    "actualDate":"{date}",
+    "@actualDate":{
+        "description": "Actual date",
+        "placeholders": {
+            "date": {
+                "type": "DateTime",
+                "format":"yMMMMEEEEd"
+            }
+        }
+    },
+    "dismiss": "DISMISS",
+    "internetConnectionLost": "Internet Connection Lost"
 }

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 import Article from './Article';
 import Page from '../Page';
-import SEO from 'utils/seo';
+import SEO from 'utilities/seo';
 import { loadPressData } from '../../../reduxStore/Press/PressSlice';
 import { isEmpty } from 'underscore';
 import Loadspinner from '../../components/LoadSpinner';

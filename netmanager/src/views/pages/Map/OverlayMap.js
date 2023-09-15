@@ -420,69 +420,67 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
       zoom,
       maxZoom: 20
     });
-    if (heatMapData) {
-      map.on('load', () => {
-        map.addSource('heatmap-data', {
-          type: 'geojson',
-          data: heatMapData
-        });
-        map.addLayer({
-          id: 'sensor-heat',
-          type: 'heatmap',
-          source: 'heatmap-data',
-          paint: heatMapPaint
-        });
-        map.addLayer({
-          id: 'sensor-point',
-          source: 'heatmap-data',
-          type: 'circle',
-          paint: circlePointPaint
-        });
-        map.setLayoutProperty('sensor-heat', 'visibility', showHeatMap ? 'visible' : 'none');
-        map.setLayoutProperty('sensor-point', 'visibility', showHeatMap ? 'visible' : 'none');
-        map.on('mousemove', (e) => {
-          const features = map.queryRenderedFeatures(e.point, {
-            layers: ['sensor-point']
-          });
-          // Change the cursor style as a UI indicator.
-          map.getCanvas().style.cursor = features.length > 0 ? 'pointer' : '';
 
-          if (map.getZoom() < 9) {
-            popup.remove();
-            return;
-          }
-
-          if (!features.length) {
-            popup.remove();
-            return;
-          }
-
-          const reducerFactory = (key) => (accumulator, feature) =>
-            accumulator + parseFloat(feature.properties[key]);
-          let average_predicted_value =
-            features.reduce(reducerFactory('pm2_5'), 0) / features.length;
-
-          let average_confidence_int =
-            features.reduce(reducerFactory('interval'), 0) / features.length;
-
-          popup
-            .setLngLat(e.lngLat)
-            .setHTML(
-              `<table class="popup-table">
-                <tr>
-                    <td><b>Predicted AQI</b></td>
-                    <td>${average_predicted_value.toFixed(4)}</td>
-                </tr>
-                <tr>
-                    <td><b>Confidence Level</b></td>
-                    <td>&#177; ${average_confidence_int.toFixed(4)}</td>
-                </tr>
-            </table>`
-            )
-            .addTo(map);
-        });
+    map.on('load', () => {
+      map.addSource('heatmap-data', {
+        type: 'geojson',
+        data: heatMapData
       });
-    }
+      map.addLayer({
+        id: 'sensor-heat',
+        type: 'heatmap',
+        source: 'heatmap-data',
+        paint: heatMapPaint
+      });
+      map.addLayer({
+        id: 'sensor-point',
+        source: 'heatmap-data',
+        type: 'circle',
+        paint: circlePointPaint
+      });
+      map.setLayoutProperty('sensor-heat', 'visibility', showHeatMap ? 'visible' : 'none');
+      map.setLayoutProperty('sensor-point', 'visibility', showHeatMap ? 'visible' : 'none');
+      map.on('mousemove', (e) => {
+        const features = map.queryRenderedFeatures(e.point, {
+          layers: ['sensor-point']
+        });
+        // Change the cursor style as a UI indicator.
+        map.getCanvas().style.cursor = features.length > 0 ? 'pointer' : '';
+
+        if (map.getZoom() < 9) {
+          popup.remove();
+          return;
+        }
+
+        if (!features.length) {
+          popup.remove();
+          return;
+        }
+
+        const reducerFactory = (key) => (accumulator, feature) =>
+          accumulator + parseFloat(feature.properties[key]);
+        let average_predicted_value = features.reduce(reducerFactory('pm2_5'), 0) / features.length;
+
+        let average_confidence_int =
+          features.reduce(reducerFactory('interval'), 0) / features.length;
+
+        popup
+          .setLngLat(e.lngLat)
+          .setHTML(
+            `<table class="popup-table">
+              <tr>
+                  <td><b>Predicted AQI</b></td>
+                  <td>${average_predicted_value.toFixed(4)}</td>
+              </tr>
+              <tr>
+                  <td><b>Confidence Level</b></td>
+                  <td>&#177; ${average_confidence_int.toFixed(4)}</td>
+              </tr>
+          </table>`
+          )
+          .addTo(map);
+      });
+    });
 
     map.addControl(
       new mapboxgl.FullscreenControl({
@@ -637,16 +635,20 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
   );
 };
 
+const ENVIRONMENT = process.env.REACT_APP_BASE_URL_V2.includes('staging')
+  ? 'staging'
+  : 'production';
+
 const MapContainer = () => {
   const dispatch = useDispatch();
   const heatMapData = usePM25HeatMapData();
   const monitoringSiteData = useEventsMapData();
 
-  // useEffect(() => {
-  //   if (isEmpty(heatMapData.features)) {
-  //     dispatch(loadPM25HeatMapData());
-  //   }
-  // }, [heatMapData]);
+  useEffect(() => {
+    if (isEmpty(heatMapData.features)) {
+      dispatch(loadPM25HeatMapData());
+    }
+  }, [heatMapData]);
 
   useEffect(() => {
     if (isEmpty(monitoringSiteData.features)) {
@@ -669,7 +671,7 @@ const MapContainer = () => {
           <OverlayMap
             center={[22.5600613, 0.8341424]}
             zoom={2.4}
-            // heatMapData={heatMapData}
+            heatMapData={ENVIRONMENT === 'staging' ? heatMapData : []}
             monitoringSiteData={monitoringSiteData}
           />
         ) : (

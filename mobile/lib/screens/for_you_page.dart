@@ -1,14 +1,17 @@
+import 'package:app/blocs/kya/kya_bloc.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/screens/settings/settings_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'analytics/analytics_view.dart';
 import 'kya/know_your_air_view.dart';
+import 'offline_banner.dart';
 
 class ForYouPage extends StatefulWidget {
   const ForYouPage({
@@ -34,95 +37,97 @@ class _ForYouPageState extends State<ForYouPage>
   Widget build(BuildContext context) {
     final Size screenSize = MediaQuery.of(context).size;
 
-    return Scaffold(
-      appBar: AppTopBar(AppLocalizations.of(context)!.forYou),
-      body: AppSafeArea(
-        horizontalPadding: 16,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Material(
-                color: Colors.white,
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(7.0),
-                ),
-                child: ShowCaseWidget(
-                  onStart: (index, key) {
-                    if (key == _kyaTabShowcaseKey) {
-                      _tabController.animateTo(1);
-                      setState(() => _analytics = false);
-                    }
-                  },
-                  onFinish: () async {
-                    final prefs = await SharedPreferences.getInstance();
-                    if (prefs.getBool(Config.restartTourShowcase) == true) {
-                      Future.delayed(
-                        Duration.zero,
-                        () => _appService.navigateShowcaseToScreen(
-                          context,
-                          const SettingsPage(),
-                        ),
-                      );
-                    }
-                  },
-                  builder: Builder(
-                    builder: (context) {
-                      _showcaseContext = context;
-
-                      return TabBar(
-                        controller: _tabController,
-                        indicatorColor: Colors.transparent,
-                        labelColor: Colors.transparent,
-                        unselectedLabelColor: Colors.transparent,
-                        labelPadding: const EdgeInsets.all(3.0),
-                        physics: const NeverScrollableScrollPhysics(),
-                        onTap: (value) {
-                          setState(
-                            () => _analytics = value == 0 ? true : false,
-                          );
-                        },
-                        tabs: <Widget>[
-                          CustomShowcaseWidget(
-                            showcaseKey: _analyticsTabShowcaseKey,
-                            description: AppLocalizations.of(context)!
-                                .thisIsTheAnalyticsTab,
-                            child: TabButton(
-                              text: AppLocalizations.of(context)!.analytics,
-                              index: 0,
-                              tabController: _tabController,
-                            ),
-                          ),
-                          CustomShowcaseWidget(
-                            showcaseKey: _kyaTabShowcaseKey,
-                            descriptionHeight: screenSize.height * 0.16,
-                            descriptionWidth: screenSize.width * 0.3,
-                            description: AppLocalizations.of(context)!
-                                .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
-                            child: TabButton(
-                              text: AppLocalizations.of(context)!.knowYourair,
-                              index: 1,
-                              tabController: _tabController,
-                            ),
-                          ),
-                        ],
-                      );
+    return OfflineBanner(
+      child: Scaffold(
+        appBar: AppTopBar(AppLocalizations.of(context)!.forYou),
+        body: AppSafeArea(
+          horizontalPadding: 16,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Material(
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(7.0),
+                  ),
+                  child: ShowCaseWidget(
+                    onStart: (index, key) {
+                      if (key == _kyaTabShowcaseKey) {
+                        _tabController.animateTo(1);
+                        setState(() => _analytics = false);
+                      }
                     },
+                    onFinish: () async {
+                      final prefs = await SharedPreferences.getInstance();
+                      if (prefs.getBool(Config.restartTourShowcase) == true) {
+                        Future.delayed(
+                          Duration.zero,
+                          () => _appService.navigateShowcaseToScreen(
+                            context,
+                            const SettingsPage(),
+                          ),
+                        );
+                      }
+                    },
+                    builder: Builder(
+                      builder: (context) {
+                        _showcaseContext = context;
+    
+                        return TabBar(
+                          controller: _tabController,
+                          indicatorColor: Colors.transparent,
+                          labelColor: Colors.transparent,
+                          unselectedLabelColor: Colors.transparent,
+                          labelPadding: const EdgeInsets.all(3.0),
+                          physics: const NeverScrollableScrollPhysics(),
+                          onTap: (value) {
+                            setState(
+                              () => _analytics = value == 0 ? true : false,
+                            );
+                          },
+                          tabs: <Widget>[
+                            CustomShowcaseWidget(
+                              showcaseKey: _analyticsTabShowcaseKey,
+                              description: AppLocalizations.of(context)!
+                                  .thisIsTheAnalyticsTab,
+                              child: TabButton(
+                                text: AppLocalizations.of(context)!.analytics,
+                                index: 0,
+                                tabController: _tabController,
+                              ),
+                            ),
+                            CustomShowcaseWidget(
+                              showcaseKey: _kyaTabShowcaseKey,
+                              descriptionHeight: screenSize.height * 0.16,
+                              descriptionWidth: screenSize.width * 0.3,
+                              description: AppLocalizations.of(context)!
+                                  .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
+                              child: TabButton(
+                                text: AppLocalizations.of(context)!.knowYourair,
+                                index: 1,
+                                tabController: _tabController,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
-            ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                physics: const NeverScrollableScrollPhysics(),
-                children: const <Widget>[
-                  AnalyticsView(),
-                  KnowYourAirView(),
-                ],
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: const <Widget>[
+                    AnalyticsView(),
+                    KnowYourAirView(),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -143,6 +148,8 @@ class _ForYouPageState extends State<ForYouPage>
     _analyticsTabShowcaseKey = GlobalKey();
     _kyaTabShowcaseKey = GlobalKey();
     WidgetsBinding.instance.addPostFrameCallback((_) => _showcaseToggle());
+    context.read<KyaBloc>().add(const FetchKya());
+    context.read<KyaBloc>().add(const FetchQuizzes());
   }
 
   void _startShowcase() {
