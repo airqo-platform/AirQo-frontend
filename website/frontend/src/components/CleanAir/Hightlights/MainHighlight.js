@@ -32,18 +32,18 @@ const Highlight = () => {
     {
       image: Section6,
       altText: 'Event Image',
-      title: 'Community ',
+      title: 'Air quality data for policy and decision making ',
       description:
-        'Empowering communities across Africa with accurate, hyperlocal and timely air quality data to drive air pollution mitigation actions.',
+        'Nurturing a community of practice to drive the use of air quality data for policy and decision making in Africa',
       link: '#',
       buttonText: 'Event Details'
     }
   ];
 
-  // Get the latest news
+  // Getting the latest news
   const latestNews = newsData[0];
 
-  // Get the two latest events
+  // Getting the two latest events
   const latestEvents = eventData.slice(0, 2);
 
   return (
