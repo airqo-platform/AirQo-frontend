@@ -1,0 +1,50 @@
+replicaCount: 2
+image:
+  repository: eu.gcr.io/airqo-250220/airqo-platform-frontend
+  tag: prod-57dca30b-1694725646
+  pullPolicy: Always
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: ''
+service:
+  type: NodePort
+  nodePort: 30101
+  targetPort: 80
+  port: 80
+ingress:
+  enabled: false
+nodeSelector: {}
+torelations: {}
+resources:
+  requests:
+    cpu: 5m
+    memory: 60Mi
+  limits:
+    cpu: 100m
+    memory: 150Mi
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 4
+  targetMemoryUtilizationPercentage: 70
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 10
+        preference:
+          matchExpressions:
+            - key: node-type
+              operator: In
+              values:
+                - general-purpose
+      - weight: 1
+        preference:
+          matchExpressions:
+            - key: node-type
+              operator: In
+              values:
+                - high-memory
+app:
+  name: airqo-inventory
+  label: airqo-inventory
+  namespace: production
+  configmap: env-inventory-production
