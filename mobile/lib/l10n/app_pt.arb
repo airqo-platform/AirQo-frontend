@@ -221,9 +221,9 @@
 	"tomorrowsHealthTips":"Conselhos de saúde de amanhã",
 	"thisDatesHealthTips": "Conselhos de saúde de {placeholder}",
 	"hello": "Olá",
-	"goodMorningYourName": "Bom dia.",
-	"goodAfternoonYourName": "Boa tarde.",
-	"goodEveningYourName": "Boa noite.",
+	"goodMorningYourName": "Bom dia",
+	"goodAfternoonYourName": "Boa tarde",
+	"goodEveningYourName": "Boa noite",
 	"helloYourName": "Olá.",
 	"updatedYesterdayAtDateString": "Atualizado ontem em {placeholder}",
 	"updatedTodayAtDateString": "Atualizado hoje em {placeholder}",
@@ -333,5 +333,6 @@
 	"hasBeenAddedToYourFavorites":"{placeholder} foi adicionado aos seus favoritos.",
 	"pleaseSignInToSaveYourFavorites":"Por favor, inicie sessão para guardar os seus favoritos.",
 	"authenticationIsCurrentlyUnavailableYouWillBeAbleToSignupSignInLater":"A autenticação não está disponível de momento. Poderá registar-se/iniciar sessão mais tarde.",
-	"cancel":"Cancelar"	
+	"cancel":"Cancelar"	,
+	"changeLanguage": "Mudar de idioma"
 	}

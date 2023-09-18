@@ -22,10 +22,35 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
-class AirQoApp extends StatelessWidget {
+import 'constants/language_contants.dart';
+
+class AirQoApp extends StatefulWidget {
   const AirQoApp(this.initialLink, {super.key});
 
   final PendingDynamicLinkData? initialLink;
+
+  @override
+  State<AirQoApp> createState() => _AirQoAppState();
+  static void setLocale(BuildContext context, Locale newLocale) {
+    _AirQoAppState? state = context.findAncestorStateOfType<_AirQoAppState>();
+    state?.setLocale(newLocale);
+  }
+}
+
+class _AirQoAppState extends State<AirQoApp> {
+  Locale? _locale;
+
+  setLocale(Locale locale) {
+    setState(() {
+      _locale = locale;
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    getLocale().then((locale) => {setLocale(locale)});
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -114,9 +139,9 @@ class AirQoApp extends StatelessWidget {
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: const [
-          Locale('en'),//English
-          Locale('fr'),//French
-          Locale('pt'),//Portuguese
+          Locale('en'), //English
+          Locale('fr'), //French
+          Locale('pt'), //Portuguese
         ],
         navigatorKey: navigatorKey,
         navigatorObservers: [
@@ -124,8 +149,9 @@ class AirQoApp extends StatelessWidget {
         ],
         title: config.appTitle,
         theme: customTheme(),
+        locale: _locale,
         home: OfflineBanner(
-          child: SplashScreen(initialLink),
+          child: SplashScreen(widget.initialLink),
         ),
       ),
     );

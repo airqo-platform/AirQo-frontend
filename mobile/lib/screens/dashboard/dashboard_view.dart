@@ -1,8 +1,11 @@
+// ignore_for_file: use_build_context_synchronously
 import 'dart:async';
 import 'dart:math';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
+import 'package:app/constants/language_contants.dart';
+import 'package:app/models/language.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/screens/kya/kya_widgets.dart';
@@ -22,6 +25,7 @@ import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 
+import '../../main_common.dart';
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 import '../search/search_page.dart';
@@ -76,6 +80,35 @@ class _DashboardViewState extends State<DashboardView>
           child: AppBar(
             automaticallyImplyLeading: false,
             centerTitle: false,
+            actions: <Widget>[
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: DropdownButton<Language>(
+                  underline: const SizedBox(),
+                  icon:  Icon(
+                    size: 30,
+                    Icons.language,
+                    color: CustomColors.appColorBlue,
+                  ),
+                  onChanged: (Language? language) async {
+                    if (language != null) {
+                      Locale locale = await setLocale(language.languageCode);
+                      AirQoApp.setLocale(context, locale);
+                    }
+                  },
+                  items: Language.languageList()
+                      .map<DropdownMenuItem<Language>>(
+                        (e) => DropdownMenuItem<Language>(
+                          value: e,
+                          child: InkWell(
+                            child: Text(e.name),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+            ],
             title: SvgPicture.asset(
               'assets/icon/airqo_logo.svg',
               height: 40,
@@ -502,7 +535,7 @@ class _DashboardViewState extends State<DashboardView>
       case AppLifecycleState.detached:
         break;
       case AppLifecycleState.hidden:
-        // TODO: Handle this case.
+      // TODO: Handle this case.
     }
   }
 
