@@ -50,7 +50,7 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
           .toList();
     }
 
-    emit(KyaState(lessons: kyaLessons, quizzes: []));
+    emit(KyaState(lessons: kyaLessons, quizzes: const []));
   }
 
   Future<void> _onUpdateKyaProgress(
@@ -82,7 +82,7 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
           .toList();
     }
 
-    emit(KyaState(quizzes: quizzes, lessons: []));
+    emit(KyaState(quizzes: quizzes, lessons: const []));
   }
 
   Future<void> _onUpdateQuizProgress(
