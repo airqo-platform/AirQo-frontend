@@ -38,7 +38,8 @@ import { updateMainAlert } from 'redux/MainAlert/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    padding: theme.spacing(4)
+    padding: theme.spacing(4),
+    position: 'relative'
   }
 }));
 
@@ -108,9 +109,11 @@ const Analytics = () => {
   }, [combinedGridAndCohortsSummary]);
 
   useEffect(() => {
+    setLoading(true);
     if (activeGrid && activeGrid._id) {
       dispatch(loadGridDetails(activeGrid._id));
     }
+    setLoading(false);
   }, [activeGrid]);
 
   useEffect(() => {
@@ -123,6 +126,7 @@ const Analytics = () => {
     setLoading(true);
     if (!isEmpty(activeNetwork)) {
       dispatch(loadDevicesData(activeNetwork.net_name));
+      setLoading(false);
     }
     setLoading(false);
   }, []);
@@ -188,7 +192,6 @@ const Analytics = () => {
           display={'flex'}
           flexDirection={{ xs: 'column', sm: 'column', md: 'row', lg: 'row', xl: 'row' }}
           justifyContent={'space-between'}
-          alignItems={'center'}
           width={'100%'}
         >
           <Box
@@ -213,7 +216,8 @@ const Analytics = () => {
               style={{
                 width: 'auto',
                 textTransform: 'initial',
-                height: '44px'
+                height: '44px',
+                position: 'relative'
               }}
               variant="contained"
               onClick={handleSwitchAirqloudTypeClick}

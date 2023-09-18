@@ -137,6 +137,17 @@ const ExceedancesChart = (props) => {
       };
       fetchAndSetExceedanceData(filter);
     }
+
+    if (isEmpty(averageChartSites)) {
+      setLoading(true);
+
+      setTimeout(() => {
+        setLoading(false);
+        setDataset([]);
+        setLocations([]);
+        setAllLocations([]);
+      }, 1000);
+    }
   }, [averageChartSites]);
 
   let handleSubmit = async (e) => {

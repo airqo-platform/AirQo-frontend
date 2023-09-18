@@ -541,7 +541,24 @@ const AveragesChart = ({ classes, analyticsSites, isGrids }) => {
   };
   useEffect(() => {
     if (!isEmpty(averageChartSites)) {
+      setLoading(true);
       fetchAndSetAverages(pollutant);
+      setLoading(false);
+    }
+
+    if (isEmpty(averageChartSites)) {
+      setLoading(true);
+
+      setTimeout(() => {
+        setLoading(false);
+        setAllLocations([]);
+        setDisplayedLocations([]);
+        setAverages({
+          labels: [],
+          average_values: [],
+          background_colors: []
+        });
+      }, 1000);
     }
   }, [averageChartSites, modalOpen]);
 
