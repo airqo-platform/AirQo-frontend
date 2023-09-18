@@ -168,6 +168,12 @@ export const createSiteApi = async (siteData) => {
     .then((response) => response.data);
 };
 
+export const createSiteMetaDataApi = async (siteData) => {
+  return await axios
+    .post(`${SITES}/metadata`, siteData, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
 export const deleteSiteApi = async (siteId) => {
   return await axios
     .delete(SITES, { params: { id: siteId, token: BASE_AUTH_TOKEN } })

@@ -1,0 +1,44 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row my-4">
+    <div class="col-md-3"></div>
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                Customer Detail Page
+            </div>
+            <div class="row p-3">
+                <div class="col-md-8">
+                    <table class="table table-borderless">
+                        <thead>
+                            <span class="h4">Porfile Information</span class="h4">
+                            <a class="btn btn-info btn-sm float-right" href="#">Edit</a>
+                            <hr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th scope="row">Name</th>
+                                <td>{{ user.username }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Email</th>
+                                <td>{{ user.email }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Phone</th>
+                                <td>{{ user.profile.phone_number }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-4">
+                    <img class="img-thumbnail" src="{{ user.profile.image.url }}" alt="profile-image">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock%}
