@@ -43,8 +43,8 @@ class WidgetData {
       location: airQualityReading.name,
       circularLocation: airQualityReading.name,
       airQuality: Pollutant.pm2_5.airQuality(airQualityReading.pm2_5),
-      date: DateFormat('dd/MM, h:mm a').format(DateTime.now().toLocal()),
-      circularDate: DateFormat('h:mm a').format(DateTime.now().toLocal()),
+      date: DateFormat('dd/MM, h:mm a').format(airQualityReading.dateTime.toLocal()),
+      circularDate: DateFormat('h:mm a').format(airQualityReading.dateTime.toLocal()),
       pmValue: airQualityReading.pm2_5,
       circularPmValue: airQualityReading.pm2_5,
 
