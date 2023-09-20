@@ -355,7 +355,8 @@
     .article {
       padding: 20px;
       margin: 0;
-      width: 449.143px;
+      // width: 449.143px;
+      width: 100%;
       height: auto;
       border-radius: 8px;
       background: linear-gradient(150deg, #f2f1f6 45.54%, #eef7ff 100%);
@@ -524,70 +525,70 @@
         .events-section {
           display: flex;
           flex-direction: column;
-          justify-content: space-between;
           width: 100%;
           height: 100%;
           padding: 0;
-
-          .event-container {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-            padding: 0;
-
-            .event-content {
+          .event-wrapper {
+            .event-container {
               display: flex;
-              flex-direction: column;
+              flex-direction: row;
+              justify-content: center;
               width: 100%;
               height: auto;
-              margin-left: 30px;
-              padding: 0;
+              margin-bottom: 30px;
 
-              h1 {
-                font-size: 26px;
-                font-style: normal;
-                font-weight: 500;
-                line-height: 32px;
-                color: $aq-black-0;
-                margin: 0;
-              }
-              p {
-                color: $aq-black-0;
-                font-size: 16px;
-                font-style: normal;
-                font-weight: 400;
-                line-height: 22px;
-                padding: 12px 0;
-                margin: 0;
-              }
-              .event-btn {
+              .event-content {
                 display: flex;
+                flex-direction: column;
                 width: 100%;
-                justify-content: flex-start;
-                align-items: center;
-                margin-top: 0.5rem;
-                cursor: pointer;
+                height: auto;
+                margin-left: 30px;
+                padding: 0;
 
-                span {
-                  color: $aq-blue-0;
-                  text-align: center;
-                  font-size: 16px;
+                h1 {
+                  font-size: 26px;
                   font-style: normal;
                   font-weight: 500;
-                  line-height: 24px;
+                  line-height: 32px;
+                  color: $aq-black-0;
+                  margin: 0;
+                }
+                p {
+                  color: $aq-black-0;
+                  font-size: 16px;
+                  font-style: normal;
+                  font-weight: 400;
+                  line-height: 22px;
+                  padding: 12px 0;
+                  margin: 0;
+                }
+                .event-btn {
+                  display: flex;
+                  width: 100%;
+                  justify-content: flex-start;
+                  align-items: center;
+                  margin-top: 0.5rem;
+                  cursor: pointer;
+
+                  span {
+                    color: $aq-blue-0;
+                    text-align: center;
+                    font-size: 16px;
+                    font-style: normal;
+                    font-weight: 500;
+                    line-height: 24px;
+                  }
                 }
               }
-            }
 
-            img {
-              width: 115px;
-              height: 115px;
-              position: relative;
-              object-fit: cover;
-              border-radius: 8px;
-              top: 5px;
+              img {
+                width: 115px;
+                height: 115px;
+                position: relative;
+                object-fit: cover;
+                border-radius: 8px;
+                top: 5px;
+              }
             }
           }
         }
@@ -666,31 +667,34 @@
           border-radius: 0;
 
           .events-section {
-            .event-container {
-              flex-direction: column;
+            .event-wrapper {
+              flex-wrap: wrap;
+              .event-container {
+                flex-direction: column;
 
-              .event-content {
-                display: block;
-                margin-left: 0;
-                h1 {
-                  font-size: 20px;
-                  line-height: 20px;
-                }
-                p {
-                  font-size: 14px;
-                  line-height: 14px;
-                }
-                .event-btn {
-                  span {
+                .event-content {
+                  display: block;
+                  margin-left: 0;
+                  h1 {
+                    font-size: 20px;
+                    line-height: 20px;
+                  }
+                  p {
                     font-size: 14px;
                     line-height: 14px;
                   }
+                  .event-btn {
+                    span {
+                      font-size: 14px;
+                      line-height: 14px;
+                    }
+                  }
                 }
-              }
-              img {
-                margin-bottom: 25px;
-                width: 100%;
-                height: 450px;
+                img {
+                  margin-bottom: 25px;
+                  width: 100%;
+                  height: 450px;
+                }
               }
             }
           }
@@ -720,7 +724,7 @@
 
           .tabs {
             margin: 0 16px;
-            overflow-x: scroll;
+            overflow-x: auto;
             overflow-y: hidden;
             white-space: nowrap;
 
@@ -820,15 +824,17 @@
       .CleanAir-highlights {
         .highlights-wrapper {
           .events-section {
-            .event-container {
-              flex-direction: column;
-              img {
-                margin-bottom: 25px;
-                width: 100%;
-                height: 250px;
-              }
-              .event-content {
-                margin-left: 0;
+            .event-wrapper {
+              .event-container {
+                flex-direction: column;
+                img {
+                  margin-bottom: 25px;
+                  width: 100%;
+                  height: 250px;
+                }
+                .event-content {
+                  margin-left: 0;
+                }
               }
             }
           }
