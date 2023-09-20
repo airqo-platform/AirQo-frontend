@@ -13,7 +13,8 @@ const Section = ({
   bgColor,
   pillBgColor,
   pillTextColor,
-  imageStyle
+  imageStyle,
+  showButton
 }) => {
   return (
     <div className="cleanAir-section" style={{ backgroundColor: bgColor }}>
@@ -36,7 +37,7 @@ const Section = ({
           <span className="content-p">
             <p>{content}</p>
           </span>
-          {btnText && link && (
+          {showButton && btnText && link && (
             <Link to={link} target="_blank">
               <span id="second-pill">
                 <p>{btnText}</p>
@@ -63,11 +64,14 @@ Section.propTypes = {
   reverse: PropTypes.bool,
   bgColor: PropTypes.string,
   pillBgColor: PropTypes.string,
-  pillTextColor: PropTypes.string
+  pillTextColor: PropTypes.string,
+  imageStyle: PropTypes.object,
+  showButton: PropTypes.bool
 };
 
 Section.defaultProps = {
   reverse: false,
+  showButton: true,
   bgColor: '#FFFFFF',
   pillBgColor: '#ECF2FF',
   pillTextColor: '#135DFF',

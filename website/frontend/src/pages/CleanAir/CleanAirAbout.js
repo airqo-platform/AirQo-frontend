@@ -31,7 +31,7 @@ const CleanAirAbout = () => {
               bringing together a community of practice for air quality solutions and air quality
               management across Africa.
             </p>
-            <div className="hero-buttons">
+            {/* <div className="hero-buttons">
               <Link to="#" target="_blank">
                 <Button
                   label="Join the Network"
@@ -40,7 +40,7 @@ const CleanAirAbout = () => {
                   }}
                 />
               </Link>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
@@ -50,6 +50,7 @@ const CleanAirAbout = () => {
         title="Our mission is"
         content="To strengthen regional networks for sustained partnerships and enable partners to co-develop solutions that enhance the capacity for air quality monitoring and managements across selected cities in Africa."
         btnText={'Learn how -->'}
+        showButton={false}
         link="#"
         imgURL={Section2}
         bgColor="#EDF3FF"
@@ -70,6 +71,7 @@ const CleanAirAbout = () => {
         pillBgColor="#ECF2FF"
         pillTextColor="#135DFF"
         reverse
+        showButton={false}
       />
       {/* section 4 */}
       <Section
@@ -87,6 +89,7 @@ const CleanAirAbout = () => {
         bgColor="#EDF3FF"
         pillBgColor="#FFFFFF"
         pillTextColor="#000000"
+        showButton={false}
       />
       {/* section 5 */}
       <Section
@@ -142,6 +145,7 @@ const CleanAirAbout = () => {
         bgColor="#FFFFFF"
         pillBgColor="#ECF2FF"
         pillTextColor="#135DFF"
+        showButton={false}
       />
       {/* section 6 */}
       <MainHighlight />
