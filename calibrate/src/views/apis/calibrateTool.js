@@ -13,7 +13,6 @@ export const calibrateDataApi = async (data) => {
       method: "POST",
       data: data,
       headers: { "Content-Type": "multipart/form-data" },
-      responseType: "blob", //important
     })
 
     .then((response) => response.data)
@@ -27,7 +26,6 @@ export const trainAndCalibrateDataApi = async (data) => {
       method: "POST",
       data: data,
       headers: { "Content-Type": "multipart/form-data" },
-      responseType: "blob", //important
     })
     .then((response) => response.data)
     .catch((err) => console.log(err));
