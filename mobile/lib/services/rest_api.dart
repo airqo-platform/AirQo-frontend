@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/retry.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
@@ -347,6 +348,8 @@ class AirqoApiClient {
   }
 
   Future<List<AirQualityReading>> fetchAirQualityReadings() async {
+    final prefs = await SharedPreferences.getInstance();
+    final locale = prefs.getString("language");
     final airQualityReadings = <AirQualityReading>[];
     final queryParams = <String, String>{}
       ..putIfAbsent('recent', () => 'yes')
@@ -363,6 +366,10 @@ class AirqoApiClient {
       ..putIfAbsent('frequency', () => 'hourly')
       ..putIfAbsent('tenant', () => 'airqo')
       ..putIfAbsent('token', () => Config.airqoApiV2Token);
+
+    if (locale == "fr") {
+      queryParams.putIfAbsent('language', () => 'fr');
+    }
     try {
       final body = await _performGetRequest(
         queryParams,
