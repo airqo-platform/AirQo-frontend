@@ -144,8 +144,8 @@ const TopBar = () => {
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
-                  <Link to="/publications">
-                    <h3>Publications</h3>
+                  <Link to="/resources">
+                    <h3>Resources</h3>
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
