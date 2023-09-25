@@ -60,7 +60,7 @@ const App = () => {
             <Route path="/explore-data" element={<ExploreData />} />
             <Route path="/explore-data/download-apps" element={<ExploreApp />} />
             <Route path="/partners/:uniqueTitle" element={<PartnerDetailPage />} />
-            <Route path="/publications" element={<PublicationsPage />} />
+            <Route path="/resources" element={<PublicationsPage />} />
             <Route path="/events" element={<EventsPage />} />
             <Route path="/events/:uniqueTitle" element={<EventsDetailsPage />} />
             <Route path="/products/monitor" element={<MonitorPage />} />
