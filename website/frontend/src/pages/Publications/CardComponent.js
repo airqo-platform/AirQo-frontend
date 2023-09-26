@@ -9,11 +9,13 @@ const CardComponent = ({ title, authors, link, linkTitle, downloadLink }) => {
       </div>
       <div className="sub-title">{authors} </div>
       <div className="cta-links">
-        <a className="link" href={link} target="_blank" rel='noreferrer noopener'>
-          <small>
-            {linkTitle || 'Read More'} {'->'}
-          </small>
-        </a>
+        {link !== null ?
+          <a className="link" href={link} target="_blank" rel='noreferrer noopener'>
+            <small>
+              {linkTitle || 'Read More'} {'->'}
+            </small>
+          </a> : <span />
+        }
         {downloadLink !== null ? (
           <a className="link" href={downloadLink} target="_blank">
             <small>Download <FileDownloadOutlined /> </small>
