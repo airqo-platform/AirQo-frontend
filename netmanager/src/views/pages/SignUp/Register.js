@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import { Button, Grid } from '@material-ui/core';
+import { Button, Grid, LinearProgress } from '@material-ui/core';
 import { Link, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -15,8 +14,21 @@ import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 import Select from 'react-select';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
-
+import { makeStyles } from '@material-ui/core/styles';
 countries.registerLocale(enLocale);
+
+const useStyles = makeStyles({
+  root: {
+    height: '5px',
+    position: 'absolute',
+    left: '0',
+    bottom: '0',
+    width: '100%'
+  },
+  barColorPrimary: {
+    backgroundColor: '#FFCC00'
+  }
+});
 
 const countryObj = countries.getNames('en', { select: 'official' });
 
@@ -56,7 +68,10 @@ const tenantMapper = {
 };
 
 const Register = ({ history, auth, errors, clearErrors, match, registerCandidate }) => {
+  const classes = useStyles();
   const tenant = match.params.tenant || 'airqo';
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [state, setState] = useState({
     firstName: '',
     lastName: '',
@@ -70,6 +85,21 @@ const Register = ({ history, auth, errors, clearErrors, match, registerCandidate
     country: '',
     disabled: false
   });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress((oldProgress) => {
+        if (!loading) {
+          return 100;
+        }
+        return Math.min(oldProgress + 1, 100);
+      });
+    }, 30);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, [loading]);
 
   useEffect(() => {
     if (auth.isAuthenticated) {
@@ -150,9 +180,9 @@ const Register = ({ history, auth, errors, clearErrors, match, registerCandidate
     }));
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
+    setProgress(0);
     e.preventDefault();
-
     try {
       const emptyFields = Object.keys(requiredFields).reduce((errors, field) => {
         if (!state[field]) {
@@ -169,6 +199,7 @@ const Register = ({ history, auth, errors, clearErrors, match, registerCandidate
         throw new Error('Please fill in all the required fields');
       }
 
+      setLoading(true);
       setState((prevState) => ({ ...prevState, disabled: true }));
 
       window.scrollTo({
@@ -181,10 +212,14 @@ const Register = ({ history, auth, errors, clearErrors, match, registerCandidate
         organization: state.long_organization
       };
 
-      registerCandidate(tenant, userData, clearState);
-      setState((prevState) => ({ ...prevState, disabled: false }));
+      await registerCandidate(tenant, userData, clearState);
     } catch (error) {
       console.error(error.message);
+    } finally {
+      setLoading(false);
+      setProgress(0);
+
+      setState((prevState) => ({ ...prevState, disabled: false }));
     }
   };
 
@@ -244,9 +279,17 @@ const Register = ({ history, auth, errors, clearErrors, match, registerCandidate
             style={{
               backgroundColor: '#3067e2',
               height: '15vh',
-              padding: '1em'
-            }}
-          />
+              padding: '1em',
+              position: 'relative'
+            }}>
+            {loading && (
+              <LinearProgress
+                classes={{ barColorPrimary: classes.barColorPrimary, root: classes.root }}
+                variant="determinate"
+                value={progress}
+              />
+            )}
+          </div>
           <div className="offset-s2" style={{ backgroundColor: '#fff', padding: '1em' }}>
             <div className="col s12" style={{ paddingLeft: '11.250px' }}>
               <h4>
