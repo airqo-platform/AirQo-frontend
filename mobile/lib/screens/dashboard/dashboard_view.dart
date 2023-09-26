@@ -331,7 +331,9 @@ class _DashboardViewState extends State<DashboardView>
                         return const SizedBox();
                       }
                       Quiz displayedQuiz = inCompleteQuizzes.first;
-                      return QuizCard(displayedQuiz);
+                      return Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: QuizCard(displayedQuiz));
                     },
                   ),
                   BlocBuilder<KyaBloc, KyaState>(
