@@ -179,17 +179,23 @@ class KyaLessonCardWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 2),
-                  child: AutoSizeText(
-                    kyaLesson.title,
-                    maxLines: 5,
-                    overflow: TextOverflow.ellipsis,
-                    style: CustomTextStyle.headline10(context),
-                  ),
+                Flexible(
+                    flex: 3,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: AutoSizeText(
+                        kyaLesson.title,
+                        maxLines: 5,
+                        overflow: TextOverflow.ellipsis,
+                        style: CustomTextStyle.headline10(context),
+                      ),
+                    )
                 ),
                 const Spacer(),
-                KyaMessageChip(kyaLesson),
+                Flexible(
+                  flex: 1,
+                  child: KyaMessageChip(kyaLesson),
+                ),
                 Visibility(
                   visible: kyaLesson.status != KyaLessonStatus.todo &&
                       kyaLesson.activeTask != 1,
