@@ -193,45 +193,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                           isActive: kyaLesson.activeTask > 1,
                         ),
                       ),
-                      const Spacer(),
-                      SizedBox(
-                        height: 400,
-                        child: AppinioSwiper(
-                          padding: EdgeInsets.zero,
-                          cardsCount: kyaLesson.tasks.length,
-                          cardsBuilder: (BuildContext context, int index) {
-                            return KyaLessonCard(
-                              kyaLesson.tasks[kyaLesson.activeTask - 1],
-                              kyaLesson,
-                            );
-                          },
-                          swipeOptions: const AppinioSwipeOptions.symmetric(
-                            horizontal: true,
-                          ),
-                          allowUnswipe: true,
-                          unlimitedUnswipe: true,
-                          controller: _swipeController,
-                          onSwipe: _onSwipe,
-                          duration: const Duration(milliseconds: 300),
-                          unswipe: _onUnSwipe,
-                          loop: true,
-                        ),
-                      ),
-                      const Spacer(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          GestureDetector(
-                            onTap: () => {
-                              currentLesson > 1
-                                  ? _swipeController.swipeRight()
-                                  : null
-                            },
-                            child: CircularKyaButton(
-                              icon: 'assets/icon/previous_arrow.svg',
-                              isActive: kyaLesson.activeTask > 1,
-                            ),
-                          ),
                           const SizedBox(
                             width: 38,
                           ),
@@ -244,14 +205,10 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                             child: const CircularKyaButton(
                               icon: 'assets/icon/next_arrow.svg',
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 40,
                       ),
                     ],
                   ),
+                  const Spacer(),
                 ],
               );
             },
