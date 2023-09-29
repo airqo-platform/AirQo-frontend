@@ -4,6 +4,7 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import { useDispatch } from 'react-redux';
 import CohortDevicesTable from './DevicesTable';
 import { LargeCircularLoader } from '../../../components/Loader/CircularLoader';
+import { isEmpty } from 'validate.js';
 
 const CohortsDashboardView = ({ cohort, cohortDetails, loading }) => {
   const dispatch = useDispatch();
@@ -15,7 +16,7 @@ const CohortsDashboardView = ({ cohort, cohortDetails, loading }) => {
   });
 
   useEffect(() => {
-    if (cohortDetails) {
+    if (!isEmpty(cohortDetails)) {
       setCohortInfo({
         name: cohortDetails.name,
         numberOfDevices: cohortDetails.numberOfDevices,
@@ -23,22 +24,6 @@ const CohortsDashboardView = ({ cohort, cohortDetails, loading }) => {
       });
     }
   }, [cohortDetails]);
-
-  function appendLeadingZeroes(n) {
-    if (n <= 9) {
-      return '0' + n;
-    }
-    return n;
-  }
-
-  let todaysDate = new Date();
-  const dateValue = appendLeadingZeroes(
-    todaysDate.getDate() +
-      '/' +
-      appendLeadingZeroes(todaysDate.getMonth() + 1) +
-      '/' +
-      todaysDate.getFullYear()
-  );
 
   return (
     <ErrorBoundary>

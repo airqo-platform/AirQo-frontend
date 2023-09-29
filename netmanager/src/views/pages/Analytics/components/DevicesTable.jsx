@@ -1,12 +1,30 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import CustomMaterialTable from '../../../components/Table/CustomMaterialTable';
 import { useHistory } from 'react-router-dom';
 import { updateDeviceDetails } from 'redux/DeviceOverview/OverviewSlice';
 import { useDispatch } from 'react-redux';
+import { isEmpty } from 'validate.js';
 
 const CohortDevicesTable = ({ devices, loading }) => {
   const history = useHistory();
   const dispatch = useDispatch();
+  const [devicesData, setDevicesData] = useState([]);
+
+  useEffect(() => {
+    if (!isEmpty(devices)) {
+      let deviceList = [];
+      devices.map((device) => {
+        deviceList.push({
+          name: device.name,
+          description: device.description,
+          site: device.site,
+          status: device.status,
+          createdAt: device.createdAt
+        });
+      });
+      setDevicesData(devices);
+    }
+  }, [devices]);
 
   return (
     <CustomMaterialTable
@@ -48,7 +66,7 @@ const CohortDevicesTable = ({ devices, loading }) => {
           field: 'createdAt'
         }
       ]}
-      data={devices || []}
+      data={devicesData}
       onRowClick={(event, rowData) => {
         event.preventDefault();
         dispatch(updateDeviceDetails(rowData));
