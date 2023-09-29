@@ -74,6 +74,7 @@ dependencies:
   home_widget: ^0.3.0
   geocoding: ^2.1.0
   rating_dialog: ^2.0.4
+  firebase_remote_config: ^4.2.5
   confetti: ^0.7.0
   animated_text_kit: ^4.2.2
   connectivity_plus: ^4.0.2

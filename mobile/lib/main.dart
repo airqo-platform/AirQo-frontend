@@ -33,6 +33,8 @@ void main() async {
     final PendingDynamicLinkData? initialLink =
         await FirebaseDynamicLinks.instance.getInitialLink();
 
+    await remoteConfigSetup();
+    
     AppConfig configuredApp = AppConfig(
       appTitle: 'AirQo',
       environment: Environment.prod,
