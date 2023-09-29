@@ -333,5 +333,6 @@
   "airQualityQuiz": "Quiz sur la qualité de l'air",
   "actualDate":"{date}",
   "dismiss": "REJETER",
-  "internetConnectionLost": "Connexion Internet perdue"
+  "internetConnectionLost": "Connexion Internet perdue",
+  "changeLanguage": "Changer de langue"
 }

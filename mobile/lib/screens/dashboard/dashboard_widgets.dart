@@ -156,30 +156,33 @@ class DashboardLocationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: () async {
-        await LocationService.requestLocation();
-      },
-      style: OutlinedButton.styleFrom(
-        elevation: 2,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(
-            Radius.circular(13),
+    return Padding(
+      padding: const EdgeInsets.only(bottom:12.0),
+      child: OutlinedButton(
+        onPressed: () async {
+          await LocationService.requestLocation();
+        },
+        style: OutlinedButton.styleFrom(
+          elevation: 2,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(13),
+            ),
+          ),
+          backgroundColor: CustomColors.appColorBlue,
+          padding: const EdgeInsets.symmetric(
+            vertical: 12,
+            horizontal: 14,
           ),
         ),
-        backgroundColor: CustomColors.appColorBlue,
-        padding: const EdgeInsets.symmetric(
-          vertical: 12,
-          horizontal: 14,
+        child: AutoSizeText(
+          maxLines: 2,
+          minFontSize: 1,
+          AppLocalizations.of(context)!.turnOnLocationToGetAirQualityNearYou,
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(color: Colors.white),
         ),
-      ),
-      child: AutoSizeText(
-        maxLines: 2,
-        minFontSize: 1,
-        AppLocalizations.of(context)!.turnOnLocationToGetAirQualityNearYou,
-        textAlign: TextAlign.center,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(color: Colors.white),
       ),
     );
   }
