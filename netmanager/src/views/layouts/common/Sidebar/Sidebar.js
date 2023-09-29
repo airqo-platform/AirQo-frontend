@@ -215,27 +215,22 @@ const Sidebar = (props) => {
 
   useEffect(() => {
     setLoading(true);
-    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-    if (!isEmpty(user) || isEmpty(userNetworks)) {
+
+    if (!isEmpty(user)) {
       getUserDetails(user._id)
         .then((res) => {
           dispatch(addUserNetworks(res.users[0].networks));
           localStorage.setItem('userNetworks', JSON.stringify(res.users[0].networks));
           localStorage.setItem('currentUser', JSON.stringify(res.users[0]));
 
-          if (isEmpty(activeNetwork)) {
-            res.users[0].networks.map((network) => {
-              if (network.net_name === 'airqo') {
-                localStorage.setItem('activeNetwork', JSON.stringify(network));
-                dispatch(addActiveNetwork(network));
-                dispatch(addCurrentUserRole(network.role));
-                localStorage.setItem('currentUserRole', JSON.stringify(network.role));
-              }
-            });
-          } else {
-            dispatch(addCurrentUserRole(activeNetwork.role));
-            localStorage.setItem('currentUserRole', JSON.stringify(activeNetwork.role));
-          }
+          res.users[0].networks.map((network) => {
+            if (network.net_name === 'airqo') {
+              localStorage.setItem('activeNetwork', JSON.stringify(network));
+              dispatch(addActiveNetwork(network));
+              dispatch(addCurrentUserRole(network.role));
+              localStorage.setItem('currentUserRole', JSON.stringify(network.role));
+            }
+          });
           setLoading(false);
         })
         .catch((error) => {
@@ -311,7 +306,8 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}>
+      variant={variant}
+    >
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />

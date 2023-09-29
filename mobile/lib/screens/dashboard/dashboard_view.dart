@@ -503,8 +503,6 @@ class _DashboardViewState extends State<DashboardView>
       case AppLifecycleState.hidden:
       case AppLifecycleState.detached:
         break;
-      case AppLifecycleState.hidden:
-        // TODO: Handle this case.
     }
   }
 
