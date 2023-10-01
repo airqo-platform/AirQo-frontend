@@ -25,6 +25,7 @@ import 'for_you_page.dart';
 import 'map/map_view.dart';
 
 import 'offline_banner.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -58,10 +59,18 @@ class _HomePageState extends State<HomePage> {
               Animation<double> primaryAnimation,
               Animation<double> secondaryAnimation,
             ) {
-              return FadeThroughTransition(
-                animation: primaryAnimation,
-                secondaryAnimation: secondaryAnimation,
-                child: child,
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: Offset.zero,
+                  end: const Offset(1.5, 0.0),
+                ).animate(secondaryAnimation),
+                child: FadeTransition(
+                  opacity: Tween<double>(
+                    begin: 0.0,
+                    end: 1.0,
+                  ).animate(primaryAnimation),
+                  child: child,
+                ),
               );
             },
             child: IndexedStack(
