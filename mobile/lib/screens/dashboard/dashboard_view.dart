@@ -5,6 +5,8 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
+import 'package:app/screens/kya/kya_widgets.dart';
+import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -22,7 +24,6 @@ import 'package:showcaseview/showcaseview.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
-import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
 
@@ -161,7 +162,12 @@ class _DashboardViewState extends State<DashboardView>
                                 lesson.status == KyaLessonStatus.complete)
                             .take(3)
                             .toList();
-                        final kyaWidgets = completeKyaWidgets(completeLessons);
+                        final completeQuizzes = state.quizzes
+                            .where((quiz) => quiz.status == QuizStatus.complete)
+                            .take(3)
+                            .toList();
+                        final kyaWidgets = completeKyaWidgets(
+                            completeLessons, completeQuizzes);
 
                         return Expanded(
                           child: CustomShowcaseWidget(
@@ -199,7 +205,7 @@ class _DashboardViewState extends State<DashboardView>
             SliverPersistentHeader(
               delegate: _SliverAppBarDelegate(
                 child: Text(
-                  AppLocalizations.of(context)!.actualDate(DateTime.now()).toUpperCase(),
+                  DateTime.now().timelineString(context),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.black.withOpacity(0.5),
                       ),
@@ -211,12 +217,14 @@ class _DashboardViewState extends State<DashboardView>
             ),
             SliverPersistentHeader(
               delegate: _SliverAppBarDelegate(
-                child: Text(
+                child: AutoSizeText(
                   AppLocalizations.of(context)!.todayAirQuality,
                   style: CustomTextStyle.headline11(context),
+                  maxLines: 1,
+                  minFontSize: 1,
                 ),
-                minHeight: 40,
-                maxHeight: 40,
+                minHeight: 25,
+                maxHeight: 25,
               ),
             ),
           ],
@@ -314,6 +322,20 @@ class _DashboardViewState extends State<DashboardView>
                   ),
                   BlocBuilder<KyaBloc, KyaState>(
                     builder: (context, state) {
+                      List<Quiz> inCompleteQuizzes = state.quizzes
+                          .where((quiz) => quiz.status != QuizStatus.complete)
+                          .toList();
+
+                      if (inCompleteQuizzes.isEmpty) {
+                        _kyaExists = false;
+                        return const SizedBox();
+                      }
+                      Quiz displayedQuiz = inCompleteQuizzes.first;
+                      return QuizCard(displayedQuiz);
+                    },
+                  ),
+                  BlocBuilder<KyaBloc, KyaState>(
+                    builder: (context, state) {
                       List<KyaLesson> inCompleteLessons =
                           state.lessons.filterInCompleteLessons();
 
@@ -330,7 +352,7 @@ class _DashboardViewState extends State<DashboardView>
                           descriptionHeight: screenSize.height * 0.14,
                           description: AppLocalizations.of(context)!
                               .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
-                          child: KyaCardWidget(
+                          child: KyaLessonCardWidget(
                             inCompleteLessons.first,
                           ),
                         ),
@@ -476,6 +498,7 @@ class _DashboardViewState extends State<DashboardView>
         break;
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
       case AppLifecycleState.detached:
         break;
     }

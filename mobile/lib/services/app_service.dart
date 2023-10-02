@@ -20,8 +20,9 @@ class AppService {
   static final AppService _instance = AppService._internal();
 
   static Future<void> postSignInActions(BuildContext context) async {
-    context.read<ProfileBloc>().add(const SyncProfile());
+    context.read<ProfileBloc>().add(const FetchProfile());
     context.read<KyaBloc>().add(const FetchKya());
+    context.read<KyaBloc>().add(const FetchQuizzes());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<NotificationBloc>().add(const SyncNotifications());
@@ -77,6 +78,11 @@ class AppService {
 
       return false;
     }
+  }
+
+  Future<void> setLocale(String locale) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("language", locale);
   }
 
   Future<void> setShowcase(String key) async {

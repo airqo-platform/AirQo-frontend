@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { TextField } from "@mui/material";
+import { Button, TextField } from "@mui/material";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -11,6 +11,7 @@ import {
   trainAndCalibrateDataApi,
 } from "../apis/calibrateTool";
 import PropTypes from "prop-types";
+import Papa from "papaparse";
 
 // styles
 import "../../styles/calibrate.css";
@@ -183,16 +184,14 @@ const Calibrate = () => {
   }, [selectedFile]);
 
   const downloadCSVData = (filename, data) => {
-    const downloadUrl = window.URL.createObjectURL(data);
-    const link = document.createElement("a");
-
-    link.href = downloadUrl;
-    link.setAttribute("download", filename); //any other extension
-
-    document.body.appendChild(link);
-
-    link.click();
-    link.remove();
+    // Create a link and download the file
+    const blob = new Blob([data], { type: "text/csv;charset=utf-8;" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   const onSubmit = async (event) => {
@@ -213,9 +212,11 @@ const Calibrate = () => {
       }
       const responseData = await trainAndCalibrateDataApi(formData);
       downloadCSVData(filename, responseData);
+      setLoading(false);
     } else {
       const responseData = await calibrateDataApi(formData);
       downloadCSVData(filename, responseData);
+      setLoading(false);
     }
 
     setLoading(false);
@@ -307,15 +308,14 @@ const Calibrate = () => {
           />
         )}
 
-        <LoadingButton
-          loading={loading}
+        <Button
           style={{ marginTop: "30px" }}
           disabled={loading || !checkValid()}
           variant="outlined"
           onClick={onSubmit}
         >
-          Calibrate Data
-        </LoadingButton>
+          {loading ? "Calibrating..." : "Calibrate Data"}
+        </Button>
       </div>
     </div>
   );

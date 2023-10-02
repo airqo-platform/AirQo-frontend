@@ -1,4 +1,4 @@
-# AirQo Website
+# The AirQo Website
 
 ---
 
@@ -313,9 +313,10 @@ Build the application docker image with the command below. Make sure that your `
         --build-arg REACT_APP_BASE_NEWSLETTER_URL=<<enter REACT_APP_BASE_NEWSLETTER_URL value>> \
         --build-arg REACT_APP_WEBSITE_BASE_URL=<<enter REACT_APP_WEBSITE_BASE_URL value>> \
         --build-arg REACT_APP_AUTHORIZATION_TOKEN=<<enter REACT_APP_AUTHORIZATION_TOKEN value>> \
+        --build-arg REACT_APP_GEO_LOCATION_URL=<<enter REACT_APP_GEO_LOCATION_URL value>> \
         --tag <<enter an image tag of choice>>
 
-Run the website application container with the command bellow
+Run the website application container with the command bellow.
 
     docker run -d \
         -p 8080:8080 \

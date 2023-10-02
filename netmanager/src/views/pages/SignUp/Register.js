@@ -1,74 +1,51 @@
-/* eslint-disable */
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Button, Grid, LinearProgress } from '@material-ui/core';
 import { Link, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { clearErrors, registerCandidate } from 'redux/Join/actions';
 import TextField from '@material-ui/core/TextField';
 import categories from 'utils/categories';
-import { Alert, AlertTitle } from '@material-ui/lab';
+import { Alert } from '@material-ui/lab';
 import { withStyles } from '@material-ui/core';
-import { isEmpty, isEqual, values } from 'underscore';
-import { isFormFullyFilled, containsEmptyValues } from './utils';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import AlertMinimal from '../../layouts/AlertsMininal';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 import Select from 'react-select';
-
+import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
+import { makeStyles } from '@material-ui/core/styles';
 countries.registerLocale(enLocale);
+
+const useStyles = makeStyles({
+  root: {
+    height: '5px',
+    position: 'absolute',
+    left: '0',
+    bottom: '0',
+    width: '100%'
+  },
+  barColorPrimary: {
+    backgroundColor: '#FFCC00'
+  }
+});
 
 const countryObj = countries.getNames('en', { select: 'official' });
 
-const countryArr = Object.entries(countryObj).map(([key, value]) => {
-  return {
-    label: value,
-    value: key
-  };
-});
+const countryArr = Object.entries(countryObj).map(([key, value]) => ({
+  label: value,
+  value: key
+}));
 
-// countries
 const countryOptions = countryArr.map(({ label, value }) => ({
   label: label,
   value: value
 }));
 
-// categories
 const categoryOptions = categories.array.map(({ label }) => ({
   label,
   value: label
 }));
-
-// These are custom styles for the select component dropdown
-const customStyles = {
-  control: (base, state) => ({
-    ...base,
-    height: '50px',
-    borderColor: state.isFocused ? '#3f51b5' : '#9a9a9a',
-    '&:hover': {
-      borderColor: state.isFocused ? 'black' : 'black'
-    }
-  }),
-  option: (provided, state) => ({
-    ...provided,
-    borderBottom: '1px dotted pink',
-    color: state.isSelected ? 'white' : 'blue',
-    textAlign: 'left'
-  }),
-  input: (provided, state) => ({
-    ...provided,
-    height: '40px',
-    borderColor: state.isFocused ? '#3f51b5' : 'black'
-  }),
-  placeholder: (provided, state) => ({
-    ...provided,
-    color: '#000'
-  }),
-  menu: (provided, state) => ({
-    ...provided,
-    zIndex: 9999
-  })
-};
 
 const styles = (theme) => ({
   root: {
@@ -83,30 +60,112 @@ const validEmailRegex = RegExp(
   /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i
 );
 
+const validWebsiteRegex = RegExp(/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/);
+
 const tenantMapper = {
   airqo: 'AirQo',
   kcca: 'KCCA'
 };
 
-const validateForm = (errors) => {
-  try {
-    let valid = true;
-    Object.values(errors).forEach(
-      // if we have an error string set valid to false
-      (val) => val && val.length > 0 && (valid = false)
-    );
-    return valid;
-  } catch (e) {
-    console.log('validate form error', e.message);
-  }
-};
+const Register = ({ history, auth, errors, clearErrors, match, registerCandidate }) => {
+  const classes = useStyles();
+  const tenant = match.params.tenant || 'airqo';
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [state, setState] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    jobTitle: '',
+    description: '',
+    long_organization: '',
+    category: '',
+    website: '',
+    errors: {},
+    country: '',
+    disabled: false
+  });
 
-class Register extends Component {
-  constructor(props) {
-    super(props);
-    this.query = new URLSearchParams(this.props.location.search);
-    this.tenant = this.props.match.params.tenant || 'airqo';
-    this.state = {
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress((oldProgress) => {
+        if (!loading) {
+          return 100;
+        }
+        return Math.min(oldProgress + 1, 100);
+      });
+    }, 30);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, [loading]);
+
+  useEffect(() => {
+    if (auth.isAuthenticated) {
+      history.push('/dashboard');
+    }
+    if (auth.registered) {
+      history.push('/login');
+    }
+    if (errors) {
+      setState((prevState) => ({ ...prevState, errors }));
+    }
+  }, [auth.isAuthenticated, auth.registered, errors]);
+
+  const onChangeDropdown = (selected, { name }) => {
+    let updatedErrors = { ...state.errors };
+    if (selected === null) {
+      updatedErrors[name] = 'This field is required';
+      setState((prevState) => ({
+        ...prevState,
+        errors: updatedErrors,
+        [name]: ''
+      }));
+    } else {
+      updatedErrors[name] = '';
+      setState((prevState) => ({
+        ...prevState,
+        errors: updatedErrors,
+        [name]: selected.label
+      }));
+    }
+  };
+
+  const requiredFields = {
+    email: 'This is not a valid email',
+    website: 'This is not a valid website',
+    description: 'Description is required',
+    long_organization: 'Organization name is required',
+    jobTitle: 'Job title is required',
+    firstName: 'First name is required',
+    lastName: 'Last name is required',
+    country: 'Country is required',
+    category: 'Category is required'
+  };
+
+  const onChange = (e) => {
+    const { id, value } = e.target;
+    let updatedErrors = { ...state.errors };
+
+    if (requiredFields[id]) {
+      if (id === 'email') {
+        updatedErrors[id] = validEmailRegex.test(value) ? '' : requiredFields[id];
+      } else if (id === 'website') {
+        updatedErrors[id] = validWebsiteRegex.test(value) ? '' : requiredFields[id];
+      } else {
+        updatedErrors[id] = value.length === 0 ? requiredFields[id] : '';
+      }
+    } else {
+      updatedErrors[id] = '';
+    }
+
+    setState((prevState) => ({ ...prevState, errors: updatedErrors, [id]: value }));
+  };
+
+  const clearState = () => {
+    setState((prevState) => ({
+      ...prevState,
       firstName: '',
       lastName: '',
       email: '',
@@ -116,361 +175,342 @@ class Register extends Component {
       category: '',
       website: '',
       errors: {},
-      isChecked: {},
-      country: ''
-    };
-  }
+      country: '',
+      disabled: false
+    }));
+  };
 
-  componentDidMount() {
-    var anchorElem = document.createElement('link');
-    anchorElem.setAttribute(
-      'href',
-      'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css'
-    );
-    anchorElem.setAttribute('rel', 'stylesheet');
-    anchorElem.setAttribute('id', 'logincdn');
-
-    //document.body.appendChild(anchorElem);
-    document.getElementsByTagName('head')[0].appendChild(anchorElem);
-    // If logged in and user navigates to Login page, should redirect them to dashboard
-    if (this.props.auth.isAuthenticated) {
-      this.props.history.push('/dashboard');
-    }
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.auth.registered) {
-      this.props.history.push('/login'); // push user to the landing page after successfull signup
-    }
-    if (nextProps.errors) {
-      this.setState({
-        errors: nextProps.errors
-      });
-    }
-  }
-
-  onChange = (e) => {
-    // this.setState({ [e.target.id]: e.target.value });
-
+  const onSubmit = async (e) => {
+    setProgress(0);
     e.preventDefault();
-    const { id, value } = e.target;
-    let errors = this.state.errors;
-    if (id === 'email') {
-      if (value.length === 0) errors[id] = 'This field is required';
-      else errors[id] = validEmailRegex.test(value) ? '' : 'This is not a valid email';
-    } else {
-      errors[id] = value.length === 0 ? 'This field is required' : '';
-    }
-    this.setState(
-      {
-        ...this.state,
-        errors,
-        [id]: value
-      },
-      () => {
-        console.log('errors', errors);
-      }
-    );
-  };
-
-  // For handling the select component dropdown selections
-  onChangeDropdown = (selected, { name }) => {
-    const { label } = selected;
-    let errors = this.state.errors;
-    errors[name] = label.length === 0 ? 'This field is required' : '';
-    this.setState(
-      {
-        ...this.state,
-        errors,
-        [name]: label
-      },
-      () => {
-        console.log('errors', errors);
-      }
-    );
-  };
-
-  handleCheck = (event) => {
-    this.state.isChecked = event.target.checked;
-    this.setState({ isChecked: this.state.isChecked });
-  };
-
-  getInitialState = () => {
-    return {
-      firstName: '',
-      lastName: '',
-      email: '',
-      jobTitle: '',
-      description: '',
-      category: '',
-      long_organization: '',
-      website: '',
-      errors: {},
-      isChecked: {},
-      country: ''
-    };
-  };
-
-  clearState = () => {
-    this.setState(this.getInitialState());
-  };
-
-  onSubmit = (e) => {
-    e.preventDefault();
-    if (validateForm(this.state.errors)) {
-      console.info('Valid Form');
-    } else {
-      console.error('Invalid Form');
-    }
-
-    const emptyFields = isFormFullyFilled(this.state, 'This field is required');
-
-    if (!isEmpty(emptyFields)) {
-      this.setState({
-        ...this.state,
-        errors: {
-          ...this.state.errors,
-          ...emptyFields
+    try {
+      const emptyFields = Object.keys(requiredFields).reduce((errors, field) => {
+        if (!state[field]) {
+          errors[field] = requiredFields[field];
         }
+        return errors;
+      }, {});
+
+      if (Object.keys(emptyFields).length > 0) {
+        setState((prevState) => ({
+          ...prevState,
+          errors: { ...prevState.errors, ...emptyFields }
+        }));
+        throw new Error('Please fill in all the required fields');
+      }
+
+      setLoading(true);
+      setState((prevState) => ({ ...prevState, disabled: true }));
+
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
       });
-      return;
-    }
 
-    const { id, value } = e.target;
-    let errors = this.state.errors;
-    // const { errors } = this.state;
+      let userData = {
+        ...state,
+        organization: state.long_organization
+      };
 
-    // THis has been commented out.  Not sure where the mapped errors come from
-    // errors[id] = mappedErrors && mappedErrors.errors[id] || "";
+      await registerCandidate(tenant, userData, clearState);
+    } catch (error) {
+      console.error(error.message);
+    } finally {
+      setLoading(false);
+      setProgress(0);
 
-    if (!containsEmptyValues(errors)) {
-      this.setState(
-        {
-          errors,
-          [id]: value
-        },
-        () => {
-          console.log(errors);
-        }
-      );
-    } else {
-      this.props.registerCandidate(this.tenant, this.state, () => this.clearState());
+      setState((prevState) => ({ ...prevState, disabled: false }));
     }
   };
 
-  tenantLabel = (tenant) => {
-    return tenantMapper[tenant.toLowerCase()];
+  const tenantLabel = (tenant) => {
+    return tenantMapper[tenant] || 'AirQo';
   };
 
-  render() {
-    const { errors } = this.state;
-    const { classes } = this.props;
-    return (
-      <AlertMinimal>
-        <div
-          className="container"
-          style={{
-            maxWidth: '600px',
-            marginTop: '4rem',
-            backgroundColor: '#fff'
-          }}>
-          <div className="row">
-            <div
-              className=" offset-s2"
-              style={{
-                backgroundColor: '#3067e2',
-                height: '15vh',
-                padding: '1em'
-              }}
-            />
-            <div className="offset-s2" style={{ backgroundColor: '#fff', padding: '1em' }}>
-              <div className="col s12" style={{ paddingLeft: '11.250px' }}>
-                <h4>
-                  <b>{this.tenantLabel(this.tenant)} Access Request</b>
-                </h4>
-                <p className="grey-text text-darken-1">
-                  Already have an account? <Link to="/login">Log in</Link>
-                </p>
-              </div>
-              <form noValidate onSubmit={this.onSubmit}>
-                <div
-                  style={
-                    isEmpty((this.props.errors && this.props.errors.data) || {})
-                      ? { display: 'none' }
-                      : {}
-                  }>
-                  <Alert
-                    severity="error"
-                    onClose={() => {
-                      this.props.clearErrors();
-                    }}>
-                    {this.props.errors && this.props.errors.data && this.props.errors.data.message}
-                  </Alert>
-                </div>
+  const { errors: formErrors } = state;
 
-                <div className="col s12">
-                  <TextField
-                    onChange={this.onChange}
-                    value={this.state.firstName}
-                    error={!!errors.firstName}
-                    id="firstName"
-                    label="first Name"
-                    fullWidth
-                    margin="normal"
-                    variant="outlined"
-                    helperText={errors.firstName}
-                  />
-                  <TextField
-                    onChange={this.onChange}
-                    value={this.state.lastName}
-                    error={!!errors.lastName}
-                    id="lastName"
-                    label="Last Name"
-                    fullWidth
-                    margin="normal"
-                    variant="outlined"
-                    helperText={errors.lastName}
-                  />
-                  <TextField
-                    onChange={this.onChange}
-                    value={this.state.email}
-                    error={!!errors.email}
-                    id="email"
-                    label="Official Email"
-                    fullWidth
-                    margin="normal"
-                    variant="outlined"
-                    helperText={errors.email}
-                  />
+  const customStyles = {
+    control: (base, state) => ({
+      ...base,
+      height: '55px',
+      borderColor: state.isFocused
+        ? '#3f51b5'
+        : !!formErrors[state.selectProps.name]
+        ? '#e53935'
+        : '#9a9a9a',
+      boxShadow: state.isFocused ? 0 : null,
+      '&:hover': {
+        borderColor: !!formErrors[state.selectProps.name] ? '#e53935' : 'black'
+      }
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      borderBottom: '1px dotted pink',
+      color: state.isSelected ? 'white' : 'blue',
+      textAlign: 'left'
+    }),
+    input: (provided, state) => ({
+      ...provided,
+      height: '40px',
+      borderColor: state.isFocused ? '#3f51b5' : 'black'
+    }),
+    placeholder: (provided, state) => ({
+      ...provided,
+      color: !!formErrors[state.selectProps.name] ? '#e53935' : 'black'
+    }),
+    menu: (provided, state) => ({
+      ...provided,
+      zIndex: 9999
+    })
+  };
 
-                  <Select
-                    value={countryOptions.find((option) => option.value === this.state.country)}
-                    onChange={this.onChangeDropdown}
-                    options={countryOptions}
-                    isSearchable
-                    placeholder="Choose your country"
-                    name="country"
-                    error={!!errors.country}
-                    styles={customStyles}
-                  />
-
-                  <TextField
-                    onChange={this.onChange}
-                    value={this.state.long_organization}
-                    error={!!errors.long_organization}
-                    id="long_organization"
-                    label="Organization"
-                    fullWidth
-                    margin="normal"
-                    variant="outlined"
-                    helperText={errors.long_organization}
-                  />
-                  <TextField
-                    onChange={this.onChange}
-                    value={this.state.jobTitle}
-                    error={!!errors.jobTitle}
-                    id="jobTitle"
-                    label="Job Title"
-                    fullWidth
-                    margin="normal"
-                    variant="outlined"
-                    helperText={errors.jobTitle}
-                  />
-                  <TextField
-                    onChange={this.onChange}
-                    value={this.state.website}
-                    error={!!errors.website}
-                    id="website"
-                    label="Website"
-                    fullWidth
-                    margin="normal"
-                    variant="outlined"
-                    helperText={errors.website}
-                  />
-
-                  <Select
-                    value={categories.array.find((option) => {
-                      option.value === this.state.category;
-                      this.state.category;
-                    })}
-                    isSearchable={false}
-                    onChange={this.onChangeDropdown}
-                    options={categoryOptions}
-                    placeholder="What best describes you?"
-                    name="category"
-                    error={!!errors.category}
-                    styles={{
-                      ...customStyles,
-                      control: (base, state) => ({
-                        ...base,
-                        height: '55px',
-                        borderColor: state.isFocused ? '#3f51b5' : '#9a9a9a',
-                        '&:hover': {
-                          borderColor: state.isFocused ? 'black' : 'black'
-                        }
-                      })
-                    }}
-                  />
-
-                  <TextField
-                    id="description"
-                    label="Outline in detailed nature your interest in AirQuality"
-                    fullWidth
-                    multiline
-                    rows="5"
-                    rowsMax="10"
-                    value={this.state.description}
-                    onChange={this.onChange}
-                    margin="normal"
-                    variant="outlined"
-                    error={!!errors.description}
-                    helperText={errors.description}
-                    InputLabelProps={{ style: { fontSize: '0.8rem' } }}
-                  />
-                </div>
-
-                <div className="col s12" style={{ paddingLeft: '11.250px' }}>
-                  {this.state.isChecked ? (
-                    <button
-                      style={{
-                        width: '150px',
-                        borderRadius: '3px',
-                        letterSpacing: '1.5px',
-                        margin: '1rem'
-                      }}
-                      type="submit"
-                      className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-                      disabled={
-                        isEqual(this.getInitialState(), {
-                          ...this.state,
-                          errors: {},
-                          isChecked: {}
-                        }) || !validateForm(this.state.errors)
-                      }>
-                      REQUEST
-                    </button>
-                  ) : null}
-                </div>
-                {this.props.auth.newUser && (
-                  <Alert severity="success">
-                    <AlertTitle>Success</AlertTitle>
-                    Your request has been successfully received! — <strong>Thank you!</strong>
-                  </Alert>
-                )}
-              </form>
+  return (
+    <AlertMinimal>
+      <div
+        className="container"
+        style={{
+          maxWidth: '600px',
+          marginTop: '4rem',
+          backgroundColor: '#fff'
+        }}>
+        <div className="row">
+          <div
+            className=" offset-s2"
+            style={{
+              backgroundColor: '#3067e2',
+              height: '15vh',
+              padding: '1em',
+              position: 'relative'
+            }}>
+            {loading && (
+              <LinearProgress
+                classes={{ barColorPrimary: classes.barColorPrimary, root: classes.root }}
+                variant="determinate"
+                value={progress}
+              />
+            )}
+          </div>
+          <div className="offset-s2" style={{ backgroundColor: '#fff', padding: '1em' }}>
+            <div className="col s12" style={{ paddingLeft: '11.250px' }}>
+              <h4>
+                <b>{tenantLabel(tenant)} Access Request</b>
+              </h4>
+              <p className="grey-text text-darken-1">
+                Already have an account? <Link to="/login">Log in</Link>
+              </p>
             </div>
+            <form noValidate>
+              {errors && errors.data && (
+                <Alert severity="error" onClose={clearErrors}>
+                  {errors.data.errors
+                    ? Object.entries(errors.data.errors).map(([key, value], index) => (
+                        <div key={index}>{`${key} - ${value}`}</div>
+                      ))
+                    : createAlertBarExtraContentFromObject(errors.data.errors)}
+                </Alert>
+              )}
+
+              <div className="col s12">
+                <Grid container spacing={1}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      onChange={onChange}
+                      value={state.firstName}
+                      error={!!formErrors.firstName}
+                      id="firstName"
+                      label="First Name"
+                      fullWidth
+                      margin="normal"
+                      variant="outlined"
+                      helperText={formErrors.firstName}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      onChange={onChange}
+                      value={state.lastName}
+                      error={!!formErrors.lastName}
+                      id="lastName"
+                      label="Last Name"
+                      fullWidth
+                      margin="normal"
+                      variant="outlined"
+                      helperText={formErrors.lastName}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      onChange={onChange}
+                      value={state.long_organization}
+                      error={!!formErrors.long_organization}
+                      id="long_organization"
+                      label="Organization"
+                      fullWidth
+                      margin="normal"
+                      variant="outlined"
+                      helperText={formErrors.long_organization}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      onChange={onChange}
+                      value={state.jobTitle}
+                      error={!!formErrors.jobTitle}
+                      id="jobTitle"
+                      label="Job Title"
+                      fullWidth
+                      margin="normal"
+                      variant="outlined"
+                      helperText={formErrors.jobTitle}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      onChange={onChange}
+                      value={state.email}
+                      error={!!formErrors.email}
+                      id="email"
+                      label="Official Email"
+                      fullWidth
+                      margin="normal"
+                      variant="outlined"
+                      helperText={formErrors.email}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      onChange={onChange}
+                      value={state.website}
+                      error={!!formErrors.website}
+                      id="website"
+                      label="Website"
+                      fullWidth
+                      margin="normal"
+                      variant="outlined"
+                      helperText={formErrors.website}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={12}>
+                    <div style={{ marginBottom: '10px' }}>
+                      <Select
+                        value={countryOptions.find((option) => option.value === state.country)}
+                        onChange={onChangeDropdown}
+                        isClearable={true}
+                        options={countryOptions}
+                        isSearchable
+                        placeholder="Choose your country"
+                        name="country"
+                        styles={customStyles}
+                      />
+                      {formErrors.country && (
+                        <div
+                          style={{
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'flex-start',
+                            alignItems: 'center',
+                            color: 'red',
+                            fontSize: '0.8rem',
+                            marginTop: '0.25rem',
+                            marginLeft: '1rem'
+                          }}
+                          className="invalid-feedback">
+                          {formErrors.country}
+                        </div>
+                      )}
+                    </div>
+                  </Grid>
+
+                  <Grid item xs={12} sm={12}>
+                    <div>
+                      <Select
+                        value={categories.array.find((option) => option.value === state.category)}
+                        onChange={onChangeDropdown}
+                        isClearable={true}
+                        options={categoryOptions}
+                        isSearchable={false}
+                        placeholder="What best describes you?"
+                        name="category"
+                        styles={customStyles}
+                      />
+                      {formErrors.category && (
+                        <div
+                          style={{
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'flex-start',
+                            alignItems: 'center',
+                            color: 'red',
+                            fontSize: '0.8rem',
+                            marginTop: '0.25rem',
+                            marginLeft: '1rem'
+                          }}
+                          className="invalid-feedback">
+                          {formErrors.category}
+                        </div>
+                      )}
+                    </div>
+                  </Grid>
+
+                  <Grid item xs={12} sm={12}>
+                    <TextField
+                      id="description"
+                      label="Outline in detailed nature your interest in AirQuality"
+                      fullWidth
+                      multiline
+                      rows="5"
+                      rowsMax="10"
+                      value={state.description}
+                      onChange={onChange}
+                      margin="normal"
+                      variant="outlined"
+                      error={!!formErrors.description}
+                      helperText={formErrors.description}
+                      InputLabelProps={{ style: { fontSize: '0.8rem' } }}
+                    />
+                  </Grid>
+                </Grid>
+              </div>
+
+              <div
+                className="col s12"
+                style={{ paddingLeft: '11.250px', paddingBottom: '20px', paddingTop: '10px' }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={onSubmit}
+                  disabled={state.disabled}
+                  className={`${state.disabled ? 'disabled' : ''}`}
+                  style={{
+                    backgroundColor: state.disabled ? undefined : 'rgb(48, 103, 226)',
+                    padding: '10px 30px' // Increase padding as needed
+                  }}>
+                  REQUEST ACCESS
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
-      </AlertMinimal>
-    );
-  }
-}
+      </div>
+    </AlertMinimal>
+  );
+};
 
 Register.propTypes = {
   registerCandidate: PropTypes.func.isRequired,
   clearErrors: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
-  errors: PropTypes.object.isRequired
+  errors: PropTypes.object.isRequired,
+  classes: PropTypes.object.isRequired,
+  match: PropTypes.object.isRequired,
+  location: PropTypes.object.isRequired,
+  history: PropTypes.object.isRequired
 };
 
 const mapStateToProps = (state) => ({
@@ -478,7 +518,6 @@ const mapStateToProps = (state) => ({
   errors: state.errors
 });
 
-// export default Register;
 export default usersStateConnector(
   connect(mapStateToProps, { registerCandidate, clearErrors })(
     withRouter(withStyles(styles, { withTheme: true })(Register))

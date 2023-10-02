@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
-import useWindowSize from 'utils/customHooks';
+import useWindowSize from 'utilities/customHooks';
 import { Link } from 'react-router-dom';
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 import CloseIcon from '@mui/icons-material/Close';
@@ -48,7 +48,7 @@ const Hero = () => {
       <span>
         <div className="video-container">
           <div className="video-overlay">
-            <video src={vid} autoPlay muted loop id="myVideo" />
+            <video src={vid} autoPlay muted loop />
             <div className="play-button" onClick={openModal}>
               <PlayCircleFilledIcon />
             </div>

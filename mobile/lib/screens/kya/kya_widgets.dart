@@ -9,10 +9,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'kya_title_page.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class CircularKyaButton extends StatelessWidget {
   const CircularKyaButton({
@@ -75,6 +75,9 @@ class KyaMessageChip extends StatelessWidget {
                 color: CustomColors.appColorBlack,
               ),
             ),
+            const TextSpan(
+              text: " ",
+            ),
             TextSpan(
               text: AppLocalizations.of(context)!.forYou,
               style: CustomTextStyle.caption3(context)?.copyWith(
@@ -120,8 +123,8 @@ class KyaMessageChip extends StatelessWidget {
   }
 }
 
-class KyaCardWidget extends StatelessWidget {
-  const KyaCardWidget(this.kyaLesson, {super.key});
+class KyaLessonCardWidget extends StatelessWidget {
+  const KyaLessonCardWidget(this.kyaLesson, {super.key});
 
   final KyaLesson kyaLesson;
 
@@ -197,21 +200,37 @@ class KyaCardWidget extends StatelessWidget {
           ),
           const Spacer(),
           SizedBox(
-            width: MediaQuery.of(context).size.width * 0.05,
+            width: MediaQuery.of(context).size.width * 0.03,
           ),
-          Container(
-            width: MediaQuery.of(context).size.width * 0.3,
-            height: 112,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8.0),
-              image: DecorationImage(
-                fit: BoxFit.cover,
-                image: CachedNetworkImageProvider(
-                  kyaLesson.imageUrl,
-                  cacheKey: kyaLesson.imageUrlCacheKey(),
-                  cacheManager: CacheManager(
-                    CacheService.cacheConfig(
-                      kyaLesson.imageUrlCacheKey(),
+          FittedBox(
+            fit: BoxFit.cover,
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.28,
+              height: 112,
+              child: CachedNetworkImage(
+                imageUrl: kyaLesson.imageUrl,
+                imageBuilder: (context, imageProvider) => Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.0),
+                    image: DecorationImage(
+                      fit: BoxFit.cover,
+                      image: imageProvider,
+                    ),
+                  ),
+                ),
+                placeholder: (context, url) => const ContainerLoadingAnimation(
+                  radius: 8,
+                  height: 112,
+                ),
+                errorWidget: (context, url, error) => Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.0),
+                    color: Colors.grey,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.error,
+                      color: Colors.white,
                     ),
                   ),
                 ),

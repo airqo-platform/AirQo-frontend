@@ -164,8 +164,7 @@ const PollutantSelector = ({ className, onChange, showHeatMap }) => {
               pm2_5: true,
               no2: false,
               pm10: false
-            })}
-          >
+            })}>
             PM<sub>2.5</sub>
           </MenuItem>
           <MenuItem
@@ -173,8 +172,7 @@ const PollutantSelector = ({ className, onChange, showHeatMap }) => {
               pm2_5: false,
               no2: false,
               pm10: true
-            })}
-          >
+            })}>
             PM<sub>10</sub>
           </MenuItem>
           {orgData.name !== 'airqo' && (
@@ -183,8 +181,7 @@ const PollutantSelector = ({ className, onChange, showHeatMap }) => {
                 pm2_5: false,
                 no2: true,
                 pm10: false
-              })}
-            >
+              })}>
               NO<sub>2</sub>
             </MenuItem>
           )}
@@ -192,8 +189,7 @@ const PollutantSelector = ({ className, onChange, showHeatMap }) => {
       }
       open={open}
       placement="left"
-      onClose={() => setOpen(false)}
-    >
+      onClose={() => setOpen(false)}>
       <div style={{ padding: '10px' }}>
         <span className={className} onClick={onHandleClick}>
           {pollutantMapper[pollutant]}
@@ -236,8 +232,7 @@ const MapStyleSelectorPlaceholder = () => {
       className="map-style-placeholder"
       onClick={handleClick}
       onMouseEnter={() => handleHover(true)}
-      onMouseLeave={() => handleHover(false)}
-    >
+      onMouseLeave={() => handleHover(false)}>
       <div className={`map-icon-container${isHovered ? ' map-icon-hovered' : ''}`}>
         <MapIcon className="map-icon" />
       </div>
@@ -292,8 +287,7 @@ const MapStyleSelector = () => {
                   localStorage.mapStyle = style.mapStyle;
                   localStorage.mapMode = style.name;
                   window.location.reload();
-                }}
-              >
+                }}>
                 <span>{style.icon}</span>
                 <span>{style.name} map</span>
               </div>
@@ -338,8 +332,7 @@ const MapSettings = ({
       }
       open={open}
       placement="left"
-      onClose={() => setOpen(false)}
-    >
+      onClose={() => setOpen(false)}>
       <div style={{ padding: '10px' }}>
         <div className="map-settings" onClick={() => setOpen(!open)}>
           <SettingsIcon />
@@ -420,54 +413,55 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
       zoom,
       maxZoom: 20
     });
-    map.on('load', () => {
-      map.addSource('heatmap-data', {
-        type: 'geojson',
-        data: heatMapData
-      });
-      map.addLayer({
-        id: 'sensor-heat',
-        type: 'heatmap',
-        source: 'heatmap-data',
-        paint: heatMapPaint
-      });
-      map.addLayer({
-        id: 'sensor-point',
-        source: 'heatmap-data',
-        type: 'circle',
-        paint: circlePointPaint
-      });
-      map.setLayoutProperty('sensor-heat', 'visibility', showHeatMap ? 'visible' : 'none');
-      map.setLayoutProperty('sensor-point', 'visibility', showHeatMap ? 'visible' : 'none');
-      map.on('mousemove', (e) => {
-        const features = map.queryRenderedFeatures(e.point, {
-          layers: ['sensor-point']
+    if (heatMapData) {
+      map.on('load', () => {
+        map.addSource('heatmap-data', {
+          type: 'geojson',
+          data: heatMapData
         });
-        // Change the cursor style as a UI indicator.
-        map.getCanvas().style.cursor = features.length > 0 ? 'pointer' : '';
+        map.addLayer({
+          id: 'sensor-heat',
+          type: 'heatmap',
+          source: 'heatmap-data',
+          paint: heatMapPaint
+        });
+        map.addLayer({
+          id: 'sensor-point',
+          source: 'heatmap-data',
+          type: 'circle',
+          paint: circlePointPaint
+        });
+        map.setLayoutProperty('sensor-heat', 'visibility', showHeatMap ? 'visible' : 'none');
+        map.setLayoutProperty('sensor-point', 'visibility', showHeatMap ? 'visible' : 'none');
+        map.on('mousemove', (e) => {
+          const features = map.queryRenderedFeatures(e.point, {
+            layers: ['sensor-point']
+          });
+          // Change the cursor style as a UI indicator.
+          map.getCanvas().style.cursor = features.length > 0 ? 'pointer' : '';
 
-        if (map.getZoom() < 9) {
-          popup.remove();
-          return;
-        }
+          if (map.getZoom() < 9) {
+            popup.remove();
+            return;
+          }
 
-        if (!features.length) {
-          popup.remove();
-          return;
-        }
+          if (!features.length) {
+            popup.remove();
+            return;
+          }
 
-        const reducerFactory = (key) => (accumulator, feature) =>
-          accumulator + parseFloat(feature.properties[key]);
-        let average_predicted_value =
-          features.reduce(reducerFactory('pm2_5'), 0) / features.length;
+          const reducerFactory = (key) => (accumulator, feature) =>
+            accumulator + parseFloat(feature.properties[key]);
+          let average_predicted_value =
+            features.reduce(reducerFactory('pm2_5'), 0) / features.length;
 
-        let average_confidence_int =
-          features.reduce(reducerFactory('interval'), 0) / features.length;
+          let average_confidence_int =
+            features.reduce(reducerFactory('interval'), 0) / features.length;
 
-        popup
-          .setLngLat(e.lngLat)
-          .setHTML(
-            `<table class="popup-table">
+          popup
+            .setLngLat(e.lngLat)
+            .setHTML(
+              `<table class="popup-table">
                 <tr>
                     <td><b>Predicted AQI</b></td>
                     <td>${average_predicted_value.toFixed(4)}</td>
@@ -477,10 +471,11 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
                     <td>&#177; ${average_confidence_int.toFixed(4)}</td>
                 </tr>
             </table>`
-          )
-          .addTo(map);
+            )
+            .addTo(map);
+        });
       });
-    });
+    }
 
     map.addControl(
       new mapboxgl.FullscreenControl({
@@ -640,11 +635,11 @@ const MapContainer = () => {
   const heatMapData = usePM25HeatMapData();
   const monitoringSiteData = useEventsMapData();
 
-  useEffect(() => {
-    if (isEmpty(heatMapData.features)) {
-      dispatch(loadPM25HeatMapData());
-    }
-  }, [heatMapData]);
+  // useEffect(() => {
+  //   if (isEmpty(heatMapData.features)) {
+  //     dispatch(loadPM25HeatMapData());
+  //   }
+  // }, [heatMapData]);
 
   useEffect(() => {
     if (isEmpty(monitoringSiteData.features)) {
@@ -663,11 +658,11 @@ const MapContainer = () => {
   return (
     <div>
       <ErrorBoundary>
-        {heatMapData ? (
+        {monitoringSiteData ? (
           <OverlayMap
             center={[22.5600613, 0.8341424]}
             zoom={2.4}
-            heatMapData={heatMapData}
+            // heatMapData={heatMapData}
             monitoringSiteData={monitoringSiteData}
           />
         ) : (

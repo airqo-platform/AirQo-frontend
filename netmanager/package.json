@@ -158,7 +158,7 @@
       "!src/index.js"
     ],
     "coverageReporters": [
-      "text"
+      "clover", "json", "lcov", "text"
     ]
   }
 }

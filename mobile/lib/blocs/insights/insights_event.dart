@@ -13,6 +13,13 @@ class InitializeInsightsPage extends InsightsEvent {
   List<Object> get props => [airQualityReading];
 }
 
+class FetchForecast extends InsightsEvent {
+  const FetchForecast(this.airQualityReading);
+  final AirQualityReading airQualityReading;
+  @override
+  List<Object> get props => [airQualityReading];
+}
+
 class SwitchInsight extends InsightsEvent {
   const SwitchInsight(this.insight);
 

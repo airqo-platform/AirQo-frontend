@@ -10,8 +10,8 @@ import { getAllImpactNumbers } from '../../../reduxStore/ImpactNumbers/ImpactSli
 import { isEmpty } from 'underscore';
 
 const ImpactNumbers = () => {
-  const dispatch = useDispatch()
-  const numbersData = useSelector((state) => state.impactData.numbers)
+  const dispatch = useDispatch();
+  const numbersData = useSelector((state) => state.impactData.numbers);
   const numbers = [
     {
       icon: <NetworkIcon />,
@@ -50,7 +50,7 @@ const ImpactNumbers = () => {
       dispatch(getAllImpactNumbers());
     }
   }, [dispatch]);
-  
+
   return (
     <div className="impact-numbers">
       <div className="impact-numbers-wrapper">

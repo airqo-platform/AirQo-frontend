@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/retry.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
@@ -63,15 +64,17 @@ class AirqoApiClient {
     )
     ..putIfAbsent('Content-Type', () => 'application/json');
 
-  Future<AppStoreVersion?> getAppVersion() async {
+  Future<AppStoreVersion?> getAppVersion({
+    required String currentVersion,
+    String? packageName,
+    String? bundleId,
+  }) async {
     try {
-      final PackageInfo packageInfo = await PackageInfo.fromPlatform();
-
-      Map<String, String> queryParams = {"version": packageInfo.version};
-      if (Platform.isAndroid) {
-        queryParams["packageName"] = packageInfo.packageName;
-      } else if (Platform.isIOS) {
-        queryParams["bundleId"] = packageInfo.packageName;
+      Map<String, String> queryParams = {"version": currentVersion};
+      if (packageName != null) {
+        queryParams["packageName"] = packageName;
+      } else if (bundleId != null) {
+        queryParams["bundleId"] = bundleId;
       }
 
       final body = await _performGetRequest(
@@ -92,6 +95,7 @@ class AirqoApiClient {
   }
 
   Future<String> getCarrier(String phoneNumber) async {
+    // TODO Transfer this to the backend
     try {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.metaData.serviceName;
@@ -344,6 +348,8 @@ class AirqoApiClient {
   }
 
   Future<List<AirQualityReading>> fetchAirQualityReadings() async {
+    final prefs = await SharedPreferences.getInstance();
+    final locale = prefs.getString("language");
     final airQualityReadings = <AirQualityReading>[];
     final queryParams = <String, String>{}
       ..putIfAbsent('recent', () => 'yes')
@@ -360,6 +366,10 @@ class AirqoApiClient {
       ..putIfAbsent('frequency', () => 'hourly')
       ..putIfAbsent('tenant', () => 'airqo')
       ..putIfAbsent('token', () => Config.airqoApiV2Token);
+
+    if (locale == "fr") {
+      queryParams.putIfAbsent('language', () => 'fr');
+    }
     try {
       final body = await _performGetRequest(
         queryParams,
@@ -444,10 +454,69 @@ class AirqoApiClient {
     return false;
   }
 
-  Future<List<FavouritePlace>> fetchFavoritePlaces(String userId) async {
-    final favoritePlaces = <FavouritePlace>[];
+  Future<List<Quiz>> fetchQuizzes(String userId) async {
+    final quizzes = <Quiz>[];
     final queryParams = <String, String>{}
       ..putIfAbsent('tenant', () => 'airqo');
+    String url = "${AirQoUrls.kya}/quizzes/users/$userId";
+    if (userId.isEmpty) {
+      url = "${AirQoUrls.kya}/quizzes";
+    }
+
+    try {
+      final body = await _performGetRequest(
+        queryParams,
+        url,
+        apiService: ApiService.deviceRegistry,
+      );
+
+      for (dynamic quiz in body['kya_quizzes'] as List<dynamic>) {
+        Quiz apiQuiz = Quiz.fromJson(quiz as Map<String, dynamic>);
+        quizzes.add(apiQuiz);
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return quizzes;
+  }
+
+  Future<bool> syncQuizProgress(
+    List<Quiz> quizzes,
+    String userId,
+  ) async {
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.deviceRegistry.serviceName;
+
+      final response = await client.post(
+        Uri.parse(
+          "${AirQoUrls.kya}/quizzes/progress/sync/$userId",
+        ),
+        headers: headers,
+        body: jsonEncode({
+          'kya_quiz_user_progress': quizzes.map((e) => e.toJson()).toList(),
+        }),
+      );
+
+      final responseBody = json.decode(response.body);
+
+      return responseBody['success'] as bool;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return false;
+  }
+
+  Future<List<FavouritePlace>> fetchFavoritePlaces(String userId) async {
+    final favoritePlaces = <FavouritePlace>[];
 
     if (userId.isEmpty) {
       return [];
@@ -455,7 +524,7 @@ class AirqoApiClient {
 
     try {
       final body = await _performGetRequest(
-        queryParams,
+        {},
         "${AirQoUrls.favourites}/users/$userId",
         apiService: ApiService.auth,
       );
@@ -566,7 +635,7 @@ class AirqoApiClient {
         apiService: ApiService.auth,
       );
 
-      for (final history in body['search_history'] as List<dynamic>) {
+      for (final history in body['search_histories'] as List<dynamic>) {
         try {
           searchHistory.add(
             SearchHistory.fromJson(

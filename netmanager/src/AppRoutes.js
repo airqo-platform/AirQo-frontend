@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import PrivateRoute from './views/components/PrivateRoute/PrivateRoute';
 import { useInternetConnectivityCheck, useJiraHelpDesk } from 'utils/customHooks';
@@ -10,6 +10,9 @@ import { Main as MainLayout, Minimal as MinimalLayout } from 'views/layouts/';
 import { NotFound as NotFoundView } from './views/pages/NotFound';
 import { LargeCircularLoader } from 'views/components/Loader/CircularLoader';
 import PermissionDenied from './views/pages/PermissionDenied';
+import { logoutUser } from './redux/Join/actions';
+import { connect } from 'react-redux';
+import ConfirmDialog from './views/containers/ConfirmDialog';
 
 // lazy imports
 const Landing = lazy(() => import('./views/layouts/Landing'));
@@ -45,10 +48,44 @@ const ExportData = lazy(() => import('./views/pages/ExportData'));
 const FaultDetection = lazy(() =>
   import('./views/components/DataDisplay/DeviceManagement/ManagementFaults')
 );
+const HostRegistry = lazy(() => import('./views/components/Hosts/HostRegistry'));
+const HostView = lazy(() => import('./views/components/Hosts/HostView'));
 
-const AppRoutes = () => {
+const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
   useInternetConnectivityCheck();
+
+  const sessionTimeoutInSeconds = 30;
+  let inactivityTimer;
+
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  const resetInactivityTimer = () => {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(() => {
+      setSessionExpired(true);
+      logoutUser();
+    }, sessionTimeoutInSeconds * 60 * 1000);
+  };
+
+  const handleUserActivity = () => {
+    resetInactivityTimer();
+  };
+
+  useEffect(() => {
+    if (auth.isAuthenticated) {
+      resetInactivityTimer();
+      window.addEventListener('mousemove', handleUserActivity);
+      window.addEventListener('keypress', handleUserActivity);
+
+      return () => {
+        clearTimeout(inactivityTimer);
+        window.removeEventListener('mousemove', handleUserActivity);
+        window.removeEventListener('keypress', handleUserActivity);
+      };
+    }
+  }, [auth.isAuthenticated]);
+
   return (
     <Router>
       <div className="App">
@@ -109,6 +146,8 @@ const AppRoutes = () => {
               component={FaultDetection}
               layout={MainLayout}
             />
+            <PrivateRoute exact path="/hosts" component={HostRegistry} layout={MainLayout} />
+            <PrivateRoute exact path="/hosts/:id" component={HostView} layout={MainLayout} />
             <PrivateRoute exact path="/sites" component={SiteRegistry} layout={MainLayout} />
             <PrivateRoute exact path="/sites/:id" component={SiteView} layout={MainLayout} />
             <PrivateRoute
@@ -160,9 +199,24 @@ const AppRoutes = () => {
           }}>
           <div id="jira-help-desk" />
         </div>
+
+        {sessionExpired && (
+          <ConfirmDialog
+            open={sessionExpired}
+            close={() => window.location.replace('/')}
+            title="Session Expired"
+            message="Your session has expired due to inactivity. Please log in again."
+            confirmBtnMsg="Log In"
+            confirm={() => setSessionExpired(false)}
+            error={false}
+          />
+        )}
       </div>
     </Router>
   );
 };
+const mapStateToProps = (state) => ({
+  auth: state.auth
+});
 
-export default AppRoutes;
+export default connect(mapStateToProps, { logoutUser })(AppRoutes);
