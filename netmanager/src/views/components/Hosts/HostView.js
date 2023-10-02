@@ -108,25 +108,28 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
   const dispatch = useDispatch();
   const sites = useSitesSummaryData();
   const classes = useStyles();
-  const [host, setHost] = useState({
+
+  const initialHost = {
     first_name: '',
     last_name: '',
-    phone_number: '',
-    email: '',
+    phone_numbers: ['', '', ''],
     site_id: null
-  });
+  };
+
+  const [host, setHost] = useState(initialHost);
+
   const [errors, setErrors] = useState({
     first_name: false,
     last_name: false,
-    phone_number: false,
-    email: false,
+    phone_numbers: [false, false, false],
     site_id: false
   });
+
   const [errorMessage, setErrorMessage] = useState('');
   const [showError, setShowError] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
-  const [isChanged, setIsChanged] = useState(false);
   const hosts_id = data.map((item) => item._id);
+  const [isChanged, setIsChanged] = useState(false);
   const [reset, setReset] = useState(false);
 
   useEffect(() => {
@@ -135,8 +138,7 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
         setHost({
           first_name: item.first_name,
           last_name: item.last_name,
-          phone_number: item.phone_number,
-          email: item.email,
+          phone_numbers: ['+234 000 000 0000', '+234 000 000 0000'],
           site_id: item.site_id
         });
       });
@@ -153,6 +155,16 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
     }
   }, [errorMessage]);
 
+  useEffect(() => {
+    if (isEmpty(sites)) {
+      setLoading(true);
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadSitesSummary(activeNetwork.net_name));
+      }
+      setLoading(false);
+    }
+  }, []);
+
   const handleHostChange = (prop) => (event) => {
     const updatedHost = { ...host, [prop]: event.target.value };
     setHost(updatedHost);
@@ -168,8 +180,11 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
       const newErrors = {};
       if (!host.first_name) newErrors.first_name = 'First Name is required.';
       if (!host.last_name) newErrors.last_name = 'Last Name is required.';
-      if (!host.phone_number) newErrors.phone_number = 'Phone Number is required.';
-      if (!host.email) newErrors.email = 'Email Address is required.';
+      if (host.phone_numbers.some((phoneNumber) => !phoneNumber)) {
+        newErrors.phone_numbers = host.phone_numbers.map((phoneNumber, index) =>
+          phoneNumber ? '' : `Phone Number ${index + 1} is required.`
+        );
+      }
       if (!host.site_id) newErrors.site_id = 'Site is required.';
       if (selectedOption === null) newErrors.site_id = 'Site is required.';
 
@@ -179,7 +194,10 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
         return;
       }
 
-      const response = await updateDeviceHost(hosts_id, host);
+      const response = await updateDeviceHost(
+        data.map((item) => item._id),
+        host
+      );
       setLoading(false);
       if (response.success === true) {
         onHostEdited();
@@ -204,6 +222,17 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
     }
   };
 
+  const handlePhoneNumbersChange = (index) => (event) => {
+    const updatedPhoneNumbers = [...host.phone_numbers];
+    updatedPhoneNumbers[index] = event.target.value;
+    setHost({ ...host, phone_numbers: updatedPhoneNumbers });
+    const updatedErrors = [...errors.phone_numbers];
+    updatedErrors[index] = '';
+    setErrors({ ...errors, phone_numbers: updatedErrors });
+    setIsChanged(true);
+    setReset(false);
+  };
+
   const onChangeDropdown = (selectedOption, { name }) => {
     setSelectedOption(selectedOption);
     setHost({ ...host, [name]: selectedOption.value });
@@ -211,22 +240,28 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
     setReset(false);
   };
 
-  useEffect(() => {
-    if (isEmpty(sites)) {
-      setLoading(true);
-      if (!isEmpty(activeNetwork)) {
-        dispatch(loadSitesSummary(activeNetwork.net_name));
-      }
-      setLoading(false);
-    }
-  }, []);
+  const renderPhoneNumbers = () => {
+    const defaultPhoneNumbers = ['N/A', 'N/A', 'N/A'];
+
+    return defaultPhoneNumbers.map((phoneNumber, index) => (
+      <Grid item xs={12} sm={index === 2 ? 12 : 6} key={index}>
+        <TextField
+          fullWidth
+          margin="dense"
+          label={`Phone Number ${index + 1}`}
+          variant="outlined"
+          type="tel"
+          value={host.phone_numbers[index] || phoneNumber}
+          onChange={handlePhoneNumbersChange(index)}
+          error={!!errors.phone_numbers[index]}
+          helperText={errors.phone_numbers[index]}
+        />
+      </Grid>
+    ));
+  };
 
   return (
-    <Paper
-      style={{
-        margin: '0 auto',
-        padding: '20px 20px'
-      }}>
+    <Paper style={{ margin: '0 auto', padding: '20px 20px' }}>
       <Typography
         style={{
           margin: '0 0 20px 0',
@@ -272,34 +307,7 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
               helperText={errors.last_name}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              margin="dense"
-              label="Phone Number"
-              variant="outlined"
-              type="tel"
-              value={host.phone_number}
-              onChange={handleHostChange('phone_number')}
-              required
-              error={!!errors.phone_number}
-              helperText={errors.phone_number}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              margin="dense"
-              label="Email Address"
-              variant="outlined"
-              type="email"
-              value={host.email}
-              onChange={handleHostChange('email')}
-              required
-              error={!!errors.email}
-              helperText={errors.email}
-            />
-          </Grid>
+          {renderPhoneNumbers()}
           <Grid item xs={12}>
             <Select
               label="Sites"
@@ -313,9 +321,9 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
                 }
               }
               onChange={onChangeDropdown}
-              styles={customStyles}
               isMulti={false}
               fullWidth
+              styles={customStyles}
               menuPlacement="auto"
               menuPosition="fixed"
               placeholder="Select site"
@@ -357,6 +365,7 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
   const [showError, setShowError] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [host_id, setHostId] = useState([]);
+  const [selectedPhoneNumber, setSelectedPhoneNumber] = useState('');
 
   useEffect(() => {
     if (data) {
@@ -423,6 +432,8 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
     }
   };
 
+  console.log(host_id);
+
   const setError = (message) => {
     setErrorMessage(message);
     setShowError(true);
@@ -444,7 +455,7 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
               {errorMessage}
             </Alert>
           )}
-          <form className={classes.modelWidth}>
+          <div className={classes.modelWidth}>
             <TextField
               autoFocus
               margin="dense"
@@ -456,7 +467,22 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
               fullWidth
               required
             />
-          </form>
+
+            <Select
+              label="Phone Number"
+              name="phone_number"
+              options={[{ value: '256', label: '256' }]}
+              value={selectedPhoneNumber}
+              onChange={(e) => setSelectedPhoneNumber(e.target.value)}
+              isMulti={false}
+              fullWidth
+              styles={customStyles}
+              menuPlacement="auto"
+              menuPosition="fixed"
+              placeholder="Select phone number"
+              required
+            />
+          </div>
         </DialogContent>
         <DialogActions>
           <Grid container alignItems="flex-end" alignContent="flex-end" justify="flex-end">
@@ -487,7 +513,7 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
               {errorMessage}
             </Alert>
           )}
-          <form className={classes.modelWidth}>
+          <div className={classes.modelWidth}>
             {data.map((item) => (
               <div
                 key={item._id}
@@ -498,14 +524,14 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
                 </span>
                 <span className={classes.confirm_field}>
                   <span className={classes.confirm_field_title}>Phone Number:</span>+
-                  {item.phone_number}
+                  {selectedPhoneNumber}
                 </span>
                 <span className={classes.confirm_field}>
                   <span className={classes.confirm_field_title}>Amount:</span>UGX {amount}
                 </span>
               </div>
             ))}
-          </form>
+          </div>
         </DialogContent>
         <DialogActions>
           <Grid container alignItems="flex-end" alignContent="flex-end" justify="flex-end">
