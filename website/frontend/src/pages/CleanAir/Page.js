@@ -27,7 +27,7 @@ const CleanAirPageContainer = ({ children }) => {
         }}
       />
       <div className="page-wrapper page-container">{children}</div>
-      {/* <BottomCTAS /> */}
+      <BottomCTAS />
       <Footer />
     </div>
   );

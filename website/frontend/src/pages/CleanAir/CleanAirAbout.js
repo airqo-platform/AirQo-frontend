@@ -31,8 +31,11 @@ const CleanAirAbout = () => {
               bringing together a community of practice for air quality solutions and air quality
               management across Africa.
             </p>
-            {/* <div className="hero-buttons">
-              <Link to="#" target="_blank">
+            <div className="hero-buttons">
+              <Link
+                to="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
+                target="_blank"
+                rel="noopener noreferrer">
                 <Button
                   label="Join the Network"
                   style={{
@@ -40,7 +43,7 @@ const CleanAirAbout = () => {
                   }}
                 />
               </Link>
-            </div> */}
+            </div>
           </div>
         </div>
       </div>
