@@ -143,6 +143,28 @@ class _SettingsPageState extends State<SettingsPage>
                               );
                             },
                             title: Text(
+                              AppLocalizations.of(context)!.changeLanguage,
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                          ),
+                        ),
+                        divider,
+                        Card(
+                          margin: EdgeInsets.zero,
+                          elevation: 0,
+                          child: ListTile(
+                            tileColor: Colors.white,
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return const FeedbackPage();
+                                  },
+                                ),
+                              );
+                            },
+                            title: Text(
                               AppLocalizations.of(context)!.sendFeedback,
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
