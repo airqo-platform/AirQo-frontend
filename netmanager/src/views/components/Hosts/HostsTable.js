@@ -104,14 +104,20 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
   const [host, setHost] = useState({
     first_name: '',
     last_name: '',
-    phone_numbers: [''],
+    phone_number: '',
+    phone_number_2: '',
+    phone_number_3: '',
+    phone_number_4: '',
     site_id: null,
     network: activeNetwork.net_name
   });
   const [errors, setErrors] = useState({
     first_name: false,
     last_name: false,
-    phone_numbers: [false],
+    phone_number: false,
+    phone_number_2: false,
+    phone_number_3: false,
+    phone_number_4: false,
     site_id: false
   });
   const [errorMessage, setErrorMessage] = useState('');
@@ -123,61 +129,39 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
     setHost({
       first_name: '',
       last_name: '',
-      phone_numbers: [''],
+      phone_number: '',
+      phone_number_2: '',
+      phone_number_3: '',
+      phone_number_4: '',
       site_id: null,
       network: activeNetwork.net_name
     });
   };
 
-  const handleHostChange = (prop, index) => (event) => {
-    if (prop === 'phone_numbers') {
-      const phoneNumbers = [...host.phone_numbers];
-      phoneNumbers[index] = event.target.value;
-      setHost({ ...host, phone_numbers: phoneNumbers });
-    } else {
-      setHost({ ...host, [prop]: event.target.value });
-    }
-    setErrors({ ...errors, [prop]: '' });
-  };
-
-  const addPhoneNumber = () => {
-    if (host.phone_numbers.length < 4) {
-      const phoneNumbers = [...host.phone_numbers, ''];
-      setHost({ ...host, phone_numbers: phoneNumbers });
-      const phoneErrors = [...errors.phone_numbers, false];
-      setErrors({ ...errors, phone_numbers: phoneErrors });
-    }
-  };
-
-  const removePhoneNumber = (index) => {
-    const phoneNumbers = [...host.phone_numbers];
-    phoneNumbers.splice(index, 1);
-    setHost({ ...host, phone_numbers: phoneNumbers });
-    const phoneErrors = [...errors.phone_numbers];
-    phoneErrors.splice(index, 1);
-    setErrors({ ...errors, phone_numbers: phoneErrors });
+  const handleHostChange = (prop) => (event) => {
+    setHost({ ...host, [prop]: event.target.value });
   };
 
   const handleAddHost = async () => {
     try {
       setLoading(true);
 
-      const newErrors = {};
-      if (!host.first_name) newErrors.first_name = 'First Name is required.';
-      if (!host.last_name) newErrors.last_name = 'Last Name is required.';
-      if (!host.site_id) newErrors.site_id = 'Site ID is required.';
-      if (selectedOption === null) newErrors.site_id = 'Site ID is required.';
-      if (!host.network) newErrors.network = 'Network is required.';
+      if (host.phone_number_2) {
+        host.phone_number_2 = host.phone_number_2.trim();
+      } else {
+        delete host.phone_number_2;
+      }
 
-      // Validate phone numbers
-      host.phone_numbers.forEach((phoneNumber, index) => {
-        if (!phoneNumber) newErrors.phone_numbers[index] = 'Phone Number is required.';
-      });
+      if (host.phone_number_3) {
+        host.phone_number_3 = host.phone_number_3.trim();
+      } else {
+        delete host.phone_number_3;
+      }
 
-      if (Object.values(newErrors).some(Boolean)) {
-        setErrors(newErrors);
-        setLoading(false);
-        return;
+      if (host.phone_number_4) {
+        host.phone_number_4 = host.phone_number_4.trim();
+      } else {
+        delete host.phone_number_4;
       }
 
       const response = await createDeviceHost(host);
@@ -209,7 +193,6 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
       [name]: selectedOption.value
     });
     setSelectedOption(selectedOption);
-    setErrors({ ...errors, [name]: '' });
   };
 
   useEffect(() => {
@@ -231,34 +214,6 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
       return () => clearTimeout(timer);
     }
   }, [errorMessage]);
-
-  const renderPhoneNumbers = () => {
-    return host.phone_numbers.map((phoneNumber, index) => (
-      <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
-        <TextField
-          fullWidth
-          margin="dense"
-          label={`Phone Number ${index + 1}`}
-          variant="outlined"
-          type="tel"
-          placeholder='e.g. "+256xxxxxxxxx"'
-          value={phoneNumber}
-          onChange={handleHostChange('phone_numbers', index)}
-          required
-          error={!!errors.phone_numbers[index]}
-          helperText={errors.phone_numbers[index]}
-        />
-        {index > 0 && (
-          <IconButton
-            onClick={() => removePhoneNumber(index)}
-            aria-label="Remove Phone Number"
-            color="primary">
-            <RemoveIcon />
-          </IconButton>
-        )}
-      </div>
-    ));
-  };
 
   return (
     <Dialog
@@ -299,14 +254,55 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
           error={!!errors.last_name}
           helperText={errors.last_name}
         />
-        {renderPhoneNumbers()}
-        {host.phone_numbers.length < 3 && (
-          <Tooltip title="Add Phone Number" aria-label="add" ref={React.createRef()}>
-            <IconButton onClick={addPhoneNumber} aria-label="Add Phone Number" color="primary">
-              <AddIcon />
-            </IconButton>
-          </Tooltip>
-        )}
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Phone Number"
+          variant="outlined"
+          type="tel"
+          placeholder='e.g. "+256xxxxxxxxx"'
+          value={host.phone_number}
+          onChange={handleHostChange('phone_number')}
+          required
+          error={!!errors.phone_number}
+          helperText={errors.phone_number}
+        />
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Phone Number 2"
+          variant="outlined"
+          type="tel"
+          placeholder='e.g. "+256xxxxxxxxx"'
+          value={host.phone_number_2}
+          onChange={handleHostChange('phone_number_2')}
+          error={!!errors.phone_number_2}
+          helperText={errors.phone_number_2}
+        />
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Phone Number 3"
+          variant="outlined"
+          type="tel"
+          placeholder='e.g. "+256xxxxxxxxx"'
+          value={host.phone_number_3}
+          onChange={handleHostChange('phone_number_3')}
+          error={!!errors.phone_number_3}
+          helperText={errors.phone_number_3}
+        />
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Phone Number 4"
+          variant="outlined"
+          type="tel"
+          placeholder='e.g. "+256xxxxxxxxx"'
+          value={host.phone_number_4}
+          onChange={handleHostChange('phone_number_4')}
+          error={!!errors.phone_number_4}
+          helperText={errors.phone_number_4}
+        />
         <Select
           label="Sites"
           name="site_id"
@@ -428,7 +424,7 @@ const HostsTable = () => {
           {
             title: 'Phone Number',
             field: 'phone_number',
-            render: (rowData) => rowData.phone_number[0],
+            render: (rowData) => rowData.phone_number,
             cellStyle: {
               width: '20%',
               minWidth: '20%',
@@ -436,15 +432,6 @@ const HostsTable = () => {
             },
             headerStyle: {
               textAlign: 'center'
-            }
-          },
-          {
-            title: 'Email Address',
-            field: 'email',
-            render: (rowData) => rowData.email,
-            cellStyle: {
-              width: '20%',
-              minWidth: '20%'
             }
           },
           {
