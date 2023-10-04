@@ -51,6 +51,10 @@ const AQSearch = () => {
       return {
         input: inputValue
       };
+    } else {
+      return {
+        input: ''
+      };
     }
   };
 
