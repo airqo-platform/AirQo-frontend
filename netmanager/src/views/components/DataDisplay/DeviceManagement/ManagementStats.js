@@ -39,6 +39,7 @@ import 'assets/css/device-view.css'; // there are some shared styles here too :)
 import { loadUptimeLeaderboardData } from 'redux/DeviceManagement/operations';
 import { withPermission } from '../../../containers/PageAccess';
 import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
+import ScheduleIcon from '@material-ui/icons/Schedule';
 
 function ManagementStat() {
   useInitScrollTop();
@@ -63,7 +64,7 @@ function ManagementStat() {
   const [activeAirqloud, setActiveAirqloud] = useState('');
   const currentAirqloud = useCurrentAirQloudData();
   const [editableStartDate, setEditableStartDate] = useState(
-    roundToStartOfDay(moment(new Date()).subtract(3, 'days').toISOString()).toISOString()
+    roundToStartOfDay(moment(new Date()).subtract(1, 'days').toISOString()).toISOString()
   );
   const [editableEndDate, setEditableEndDate] = useState(
     roundToEndOfDay(new Date().toISOString()).toISOString()
@@ -468,7 +469,13 @@ function ManagementStat() {
                 )}
               </div>
             }
-            footerContent={<div>Time period:</div>}
+            footerContent={
+              <div>
+                <ScheduleIcon />
+                From {moment.utc(editableStartDate).format('DD MMM yyyy HH:mm:ss')} to{' '}
+                {moment.utc(editableEndDate).format('DD MMM yyyy HH:mm:ss')}
+              </div>
+            }
           />
         </div>
       </div>
