@@ -358,6 +358,30 @@ const SiteForm = ({ site }) => {
             fullWidth
           />
         </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="bearing_to_capital_city_center"
+            label="Bearing to Capital City center"
+            variant="outlined"
+            defaultValue={site?.bearing_to_capital_city_center}
+            onChange={handleSiteInfoChange}
+            error={!!errors.bearing_to_capital_city_center}
+            helperText={errors.bearing_to_capital_city_center}
+            fullWidth
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="distance_to_capital_city_center"
+            variant="outlined"
+            label="Distance to Capital City center (km)"
+            defaultValue={site?.distance_to_capital_city_center}
+            onChange={handleSiteInfoChange}
+            error={!!errors.distance_to_capital_city_center}
+            helperText={errors.distance_to_capital_city_center}
+            fullWidth
+          />
+        </Grid>
 
         <Grid xs={12} sm={12} style={gridItemStyle}>
           <Typography variant="h3">Mobile app site details</Typography>
