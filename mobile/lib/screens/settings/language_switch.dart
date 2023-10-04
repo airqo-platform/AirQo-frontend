@@ -45,9 +45,8 @@ class LanguageListState extends State<LanguageList> {
                       child: Card(
                         margin: EdgeInsets.zero,
                         child: ListTile(
-                          leading: Text(
-                              language.flagEmoji), // Display the flag emoji
-                          title: Text(language.name), // Display the flag emoji
+                          leading: Text(language.flagEmoji),
+                          title: Text(language.name),
                           onTap: () async {
                             Locale locale =
                                 await setLocale(language.languageCode);
