@@ -194,14 +194,14 @@ function ManagementStat() {
   }, [networkUptimeData]);
 
   useEffect(() => {
+    if (isEmpty(airqloudUptimeData)) return;
     if (!isEmpty(airqloudUptimeData)) {
       setAirqloudUptime([airqloudUptimeData.downtime, airqloudUptimeData.uptime]);
-    } else {
-      setAirqloudUptime([]);
     }
   }, [airqloudUptimeData]);
 
   useEffect(() => {
+    if (isEmpty(devicesStatusData)) return;
     setPieChartStatusValues([
       devicesStatusData.count_of_offline_devices,
       devicesStatusData.count_of_online_devices
@@ -209,6 +209,7 @@ function ManagementStat() {
   }, [devicesStatusData]);
 
   useEffect(() => {
+    if (isEmpty(leaderboardData)) return;
     setDevicesUptime(patchLeaderboardData(leaderboardData));
     setDevicesUptimeDescending(true);
   }, [leaderboardData, allDevices]);
