@@ -363,7 +363,9 @@ const SiteForm = ({ site }) => {
             id="bearing_to_capital_city_center"
             label="Bearing to Capital City center"
             variant="outlined"
-            defaultValue={site?.bearing_to_capital_city_center}
+            defaultValue={
+              site && site.bearing_to_capital_city_center ? site.bearing_to_capital_city_center : ''
+            }
             onChange={handleSiteInfoChange}
             error={!!errors.bearing_to_capital_city_center}
             helperText={errors.bearing_to_capital_city_center}
@@ -375,7 +377,11 @@ const SiteForm = ({ site }) => {
             id="distance_to_capital_city_center"
             variant="outlined"
             label="Distance to Capital City center (km)"
-            defaultValue={site?.distance_to_capital_city_center}
+            defaultValue={
+              site && site.distance_to_capital_city_center
+                ? site.distance_to_capital_city_center
+                : ''
+            }
             onChange={handleSiteInfoChange}
             error={!!errors.distance_to_capital_city_center}
             helperText={errors.distance_to_capital_city_center}
