@@ -46,12 +46,21 @@ const AQSearch = () => {
     return null;
   };
 
+  const createAutocompleteRequest = (inputValue) => {
+    if (inputValue.length > 4) {
+      return {
+        input: inputValue
+      };
+    }
+  };
+
   return (
     <div>
       <MUIPlacesAutocomplete
         onSuggestionSelected={onSuggestionSelected}
         renderTarget={() => <div />}
         textFieldProps={{ variant: 'outlined', fullWidth: true, type: 'search', autoFocus: true }}
+        createAutocompleteRequest={createAutocompleteRequest}
       />
       <Snackbar
         onClose={onClose}
