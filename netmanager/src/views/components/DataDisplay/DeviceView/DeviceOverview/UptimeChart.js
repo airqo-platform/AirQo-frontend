@@ -31,6 +31,7 @@ const DeviceUptimeChart = ({ deviceUptimeData }) => {
       lastUpdated={deviceUptime.created_at}
       type="area"
       green
+      disableCustomController
     />
   );
 };

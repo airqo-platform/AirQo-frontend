@@ -19,14 +19,15 @@ const ChartContainer = ({
   children,
   loading,
   scrollableYAxis,
-  type
+  customController
 }) => {
   const titleStyle = (blue && 'title-blue') || (green && 'title-green') || 'title-default';
   return (
     <div className={className || 'chart-container-wrapper'}>
       <div className={`chart-title-wrapper ${titleStyle}`}>
         <span className={'chart-title'}>{title}</span>
-        <span className={'chart-control'}>{controller}</span>
+        {controller && <span className={'chart-control'}>{controller}</span>}
+        {customController && <span className={'custom-chart-control'}>{customController}</span>}
       </div>
       <div
         className={`chart-body ${(centerItems && 'chart-flex-center-body') || ''} ${
@@ -68,7 +69,8 @@ ChartContainer.propTypes = {
   centerItems: PropTypes.bool,
   footerContent: PropTypes.any,
   controller: PropTypes.any,
-  children: PropTypes.element
+  children: PropTypes.element,
+  customController: PropTypes.any
 };
 
 export default ChartContainer;

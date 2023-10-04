@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import ReactApexChart from 'react-apexcharts';
 import EditIcon from '@material-ui/icons/Edit';
-import { TextField } from '@material-ui/core';
+import { Box, TextField, Typography } from '@material-ui/core';
 import RichTooltip from 'views/containers/RichToolTip';
 import ChartContainer from './ChartContainer';
 import ApexCharts from 'apexcharts';
@@ -11,6 +11,7 @@ const ApexChart = (props) => {
   const [chartType, setChartType] = useState(props.type);
   const [series, setSeries] = useState(props.series);
   const [open, setOpen] = useState(false);
+  const [openCustomController, setOpenCustomController] = useState(false);
 
   useEffect(() => {
     if (props.series && props.series.length > 0) {
@@ -62,6 +63,12 @@ const ApexChart = (props) => {
     setOpen(false);
     setChartType(value);
   }
+
+  useEffect(() => {
+    if (props.closeController) {
+      setOpenCustomController(false);
+    }
+  }, [props.closeController]);
 
   return (
     <ChartContainer
@@ -127,14 +134,34 @@ const ApexChart = (props) => {
         )
       }
       footerContent={props.footerContent}
+      customController={
+        !props.disableCustomController && (
+          <RichTooltip
+            content={<div style={{ width: '200px' }}>{props.customController}</div>}
+            open={openCustomController}
+            onClose={() => setOpenCustomController(false)}
+            placement="bottom-end"
+          >
+            <EditIcon onClick={() => setOpenCustomController(!openCustomController)} />
+          </RichTooltip>
+        )
+      }
     >
-      <ReactApexChart
-        key={chartType}
-        options={props.options}
-        series={series}
-        type={chartType}
-        height="320px"
-      />
+      {props.loading ? (
+        <Box position={'relative'}>
+          <Typography variant="body1" color="secondary">
+            Loading...
+          </Typography>
+        </Box>
+      ) : (
+        <ReactApexChart
+          key={chartType}
+          options={props.options}
+          series={series}
+          type={chartType}
+          height="320px"
+        />
+      )}
     </ChartContainer>
   );
 };
@@ -151,7 +178,12 @@ ApexChart.propTypes = {
   centerItems: PropTypes.bool,
   footerContent: PropTypes.any,
   disableController: PropTypes.bool,
-  controllerChildren: PropTypes.any
+  controllerChildren: PropTypes.any,
+  customController: PropTypes.any,
+  customControllerChildren: PropTypes.any,
+  disableCustomController: PropTypes.bool,
+  closeController: PropTypes.bool,
+  loading: PropTypes.bool
 };
 
 export default ApexChart;

@@ -3,8 +3,16 @@ import { useHistory, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import moment from 'moment';
 import { isEmpty } from 'underscore';
-import { useDevicesStatusData, useNetworkUptimeData } from 'redux/DeviceManagement/selectors';
-import { loadDevicesStatusData, loadNetworkUptimeData } from 'redux/DeviceManagement/operations';
+import {
+  useDevicesStatusData,
+  useNetworkUptimeData,
+  useAirqloudUptimeData
+} from 'redux/DeviceManagement/selectors';
+import {
+  loadDevicesStatusData,
+  loadNetworkUptimeData,
+  loadAirqloudUptime
+} from 'redux/DeviceManagement/operations';
 import { createBarChartData, ApexTimeSeriesData } from 'utils/charts';
 import { updateDeviceBackUrl } from 'redux/Urls/operations';
 import { loadDevicesData } from 'redux/DeviceRegistry/operations';
@@ -20,7 +28,7 @@ import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
 import { SortAscendingIcon, SortDescendingIcon } from 'assets/img';
 import { useDeviceUptimeLeaderboard, useInitScrollTop } from 'utils/customHooks';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
-import { TextField } from '@material-ui/core';
+import { Button, TextField, Typography } from '@material-ui/core';
 import RichTooltip from 'views/containers/RichToolTip';
 import EditIcon from '@material-ui/icons/Edit';
 
@@ -30,6 +38,7 @@ import 'assets/scss/device-management.sass';
 import 'assets/css/device-view.css'; // there are some shared styles here too :)
 import { loadUptimeLeaderboardData } from 'redux/DeviceManagement/operations';
 import { withPermission } from '../../../containers/PageAccess';
+import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
 
 function ManagementStat() {
   useInitScrollTop();
@@ -37,10 +46,12 @@ function ManagementStat() {
   const location = useLocation();
   const devicesStatusData = useDevicesStatusData();
   const networkUptimeData = useNetworkUptimeData();
+  const airqloudUptimeData = useAirqloudUptimeData();
   const leaderboardData = useDeviceUptimeLeaderboard();
   const allDevices = useDevicesData();
   const dispatch = useDispatch();
   const [devicesUptime, setDevicesUptime] = useState([]);
+  const [airqloudUptime, setAirqloudUptime] = useState([]);
   const [devicesUptimeDescending, setDevicesUptimeDescending] = useState(true);
   const [pieChartStatusValues, setPieChartStatusValues] = useState([]);
   const [networkUptimeDataset, setNetworkUptimeDataset] = useState({
@@ -49,6 +60,17 @@ function ManagementStat() {
   });
   const [leaderboardDateMenu, toggleLeaderboardDateMenu] = useState(false);
   const [leaderboardDateRange, setLeaderboardDateRange] = useState('1');
+  const [activeAirqloud, setActiveAirqloud] = useState('');
+  const currentAirqloud = useCurrentAirQloudData();
+  const [editableStartDate, setEditableStartDate] = useState(
+    roundToStartOfDay(moment(new Date()).subtract(3, 'days').toISOString()).toISOString()
+  );
+  const [editableEndDate, setEditableEndDate] = useState(
+    roundToEndOfDay(new Date().toISOString()).toISOString()
+  );
+  const [disableController, setDisableController] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [airqloudUptimeLoading, setAirqloudUptimeLoading] = useState(false);
 
   const sortLeaderBoardData = (leaderboardData) => {
     const sortByName = (device1, device2) => {
@@ -89,6 +111,12 @@ function ManagementStat() {
   };
 
   useEffect(() => {
+    if (currentAirqloud) {
+      setActiveAirqloud(currentAirqloud._id);
+    }
+  }, []);
+
+  useEffect(() => {
     if (isEmpty(devicesStatusData)) {
       dispatch(
         loadDevicesStatusData({
@@ -109,6 +137,18 @@ function ManagementStat() {
       );
     }
 
+    if (isEmpty(airqloudUptimeData) && activeAirqloud) {
+      dispatch(
+        loadAirqloudUptime({
+          startDateTime: roundToStartOfDay(
+            moment(new Date()).subtract(1, 'days').toISOString()
+          ).toISOString(),
+          endDateTime: roundToEndOfDay(new Date().toISOString()).toISOString(),
+          airqloud: activeAirqloud
+        })
+      );
+    }
+
     if (isEmpty(leaderboardData)) {
       dispatch(
         loadUptimeLeaderboardData({
@@ -121,7 +161,7 @@ function ManagementStat() {
     if (isEmpty(allDevices)) dispatch(loadDevicesData());
 
     dispatch(updateDeviceBackUrl(location.pathname));
-  }, []);
+  }, [activeAirqloud]);
 
   useEffect(() => {
     let lineLabel = [];
@@ -143,6 +183,12 @@ function ManagementStat() {
       bar: { label: barChartData.label, data: barChartData.data }
     });
   }, [networkUptimeData]);
+
+  useEffect(() => {
+    if (!isEmpty(airqloudUptimeData)) {
+      setAirqloudUptime([airqloudUptimeData.downtime, airqloudUptimeData.uptime]);
+    }
+  }, [airqloudUptimeData]);
 
   useEffect(() => {
     setPieChartStatusValues([
@@ -188,6 +234,46 @@ function ManagementStat() {
     }
   };
 
+  const resetAirqloudUptimeChart = () => {
+    setAirqloudUptimeLoading(true);
+    if (editableStartDate && editableEndDate) {
+      if (new Date(editableStartDate) > new Date(editableEndDate)) {
+        setErrorMsg('Error: End date is older than start date. Please adjust.');
+        setTimeout(() => {
+          setErrorMsg('');
+        }, 5000);
+        return;
+      } else {
+        setErrorMsg('');
+      }
+
+      // Check if difference between startDate and endDate is greater than 7 days
+      const diffInDays = Math.floor(
+        (new Date(editableEndDate) - new Date(editableStartDate)) / (1000 * 60 * 60 * 24)
+      );
+      if (diffInDays > 7) {
+        setErrorMsg('Error: Time period should be less than 7 days');
+        setTimeout(() => {
+          setErrorMsg('');
+        }, 5000);
+        return;
+      } else {
+        setErrorMsg('');
+        dispatch(
+          loadAirqloudUptime({
+            startDateTime: roundToEndOfDay(new Date(editableStartDate).toISOString()).toISOString(),
+            endDateTime: roundToEndOfDay(new Date(editableEndDate).toISOString()).toISOString(),
+            airqloud: activeAirqloud
+          })
+        );
+        setDisableController(true);
+        setTimeout(() => {
+          setAirqloudUptimeLoading(false);
+        }, 5000);
+      }
+    }
+  };
+
   return (
     <ErrorBoundary>
       <div className={'container-wrapper'}>
@@ -210,6 +296,7 @@ function ManagementStat() {
             lastUpdated={networkUptimeData.length > 0 && networkUptimeData[0].created_at}
             type="area"
             blue
+            disableCustomController
           />
           <ApexChart
             options={createPieChartOptions(['#FF2E2E', '#00A300'], ['Offline', 'Online'])}
@@ -220,6 +307,7 @@ function ManagementStat() {
             green
             centerItems
             disableController
+            disableCustomController
           />
 
           <ChartContainer
@@ -298,6 +386,90 @@ function ManagementStat() {
               })}
             </div>
           </ChartContainer>
+
+          <ApexChart
+            options={createPieChartOptions(['#FF2E2E', '#00A300'], ['Downtime', 'Uptime'])}
+            series={airqloudUptime}
+            title={
+              currentAirqloud ? `Health status for ${currentAirqloud.long_name}` : 'Health status'
+            }
+            type="pie"
+            blue
+            centerItems
+            disableController={true}
+            closeController={disableController}
+            loading={airqloudUptimeLoading}
+            customController={
+              <div>
+                <TextField
+                  label="Start date"
+                  id="startDate"
+                  fullWidth
+                  style={{ marginTop: '15px' }}
+                  value={editableStartDate}
+                  onChange={(e) => {
+                    setEditableStartDate(e.target.value);
+                  }}
+                  variant="outlined"
+                  InputLabelProps={{ shrink: true }}
+                  type="date"
+                />
+
+                <TextField
+                  label="End date"
+                  id="endDate"
+                  fullWidth
+                  style={{ marginTop: '15px' }}
+                  value={editableEndDate}
+                  onChange={(e) => {
+                    setEditableEndDate(e.target.value);
+                  }}
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  variant="outlined"
+                />
+                {/* <TextField
+              select
+              label="AirQloud"
+              id="activeAirqloud"
+              fullWidth
+              style={{ marginTop: '15px' }}
+              value={minutesAverage}
+              onChange={(e) => {
+                setActiveAirqloud(e.target.value);
+              }}
+              SelectProps={{
+                native: true,
+                style: { width: '100%', height: '40px' }
+              }}
+              variant="outlined"
+            >
+              <option value={""}>All</option>
+              {currentAirqloud && <option value={currentAirqloud._id}>{currentAirqloud.long_name}</option>}
+            </TextField> */}
+                <Button
+                  variant="contained"
+                  color="primary"
+                  style={{ marginTop: '15px' }}
+                  onClick={resetAirqloudUptimeChart}
+                >
+                  Reset chart
+                </Button>
+                {errorMsg && (
+                  <Typography
+                    variant="body1"
+                    style={{
+                      color: 'red',
+                      marginTop: '8px'
+                    }}
+                  >
+                    {errorMsg}
+                  </Typography>
+                )}
+              </div>
+            }
+            footerContent={<div>Time period:</div>}
+          />
         </div>
       </div>
     </ErrorBoundary>
