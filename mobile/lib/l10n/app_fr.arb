@@ -334,6 +334,7 @@
   "actualDate":"{date}",
   "dismiss": "REJETER",
   "internetConnectionLost": "Connexion Internet perdue",
-  "changeLanguage": "Changer de langue"
+  "changeLanguage": "Changer de langue",
+  "languageChangedSuccessfully": "Langue changée avec succès"
 
 }

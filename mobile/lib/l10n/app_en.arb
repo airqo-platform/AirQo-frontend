@@ -343,5 +343,6 @@
     },
     "dismiss": "DISMISS",
     "internetConnectionLost": "Internet Connection Lost",
-    "changeLanguage": "Change Language"
+    "changeLanguage": "Change Language",
+    "languageChangedSuccessfully": "Language changed successfully"
 }

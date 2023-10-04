@@ -334,5 +334,6 @@
 	"pleaseSignInToSaveYourFavorites":"Por favor, inicie sessão para guardar os seus favoritos.",
 	"authenticationIsCurrentlyUnavailableYouWillBeAbleToSignupSignInLater":"A autenticação não está disponível de momento. Poderá registar-se/iniciar sessão mais tarde.",
 	"cancel":"Cancelar"	,
-	"changeLanguage": "Mudar de idioma"
+	"changeLanguage": "Mudar de idioma",
+	"languageChangedSuccessfully": "Idioma alterado com sucesso"
 	}

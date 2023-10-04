@@ -5,6 +5,7 @@ import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/screens/offline_banner.dart';
+import 'package:app/screens/settings/language.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -137,7 +138,7 @@ class _SettingsPageState extends State<SettingsPage>
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) {
-                                    return const FeedbackPage();
+                                    return const LanguageList();
                                   },
                                 ),
                               );
