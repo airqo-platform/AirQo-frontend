@@ -38,7 +38,8 @@ import 'assets/scss/device-management.sass';
 import 'assets/css/device-view.css'; // there are some shared styles here too :)
 import { loadUptimeLeaderboardData } from 'redux/DeviceManagement/operations';
 import { withPermission } from '../../../containers/PageAccess';
-import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
+import { useCurrentAirQloudData, useDashboardAirqloudsData } from 'redux/AirQloud/selectors';
+import { fetchDashboardAirQloudsData } from 'redux/AirQloud/operations';
 import ScheduleIcon from '@material-ui/icons/Schedule';
 
 function ManagementStat() {
@@ -61,8 +62,9 @@ function ManagementStat() {
   });
   const [leaderboardDateMenu, toggleLeaderboardDateMenu] = useState(false);
   const [leaderboardDateRange, setLeaderboardDateRange] = useState('1');
-  const [activeAirqloud, setActiveAirqloud] = useState('');
+  const [activeAirqloud, setActiveAirqloud] = useState({});
   const currentAirqloud = useCurrentAirQloudData();
+  const airqlouds = Object.values(useDashboardAirqloudsData());
   const [editableStartDate, setEditableStartDate] = useState(
     roundToStartOfDay(moment(new Date()).subtract(1, 'days').toISOString()).toISOString()
   );
@@ -113,7 +115,13 @@ function ManagementStat() {
 
   useEffect(() => {
     if (currentAirqloud) {
-      setActiveAirqloud(currentAirqloud._id);
+      setActiveAirqloud(currentAirqloud);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isEmpty(airqlouds)) {
+      dispatch(fetchDashboardAirQloudsData());
     }
   }, []);
 
@@ -138,14 +146,14 @@ function ManagementStat() {
       );
     }
 
-    if (isEmpty(airqloudUptimeData) && activeAirqloud) {
+    if (isEmpty(airqloudUptimeData) && !isEmpty(activeAirqloud)) {
       dispatch(
         loadAirqloudUptime({
           startDateTime: roundToStartOfDay(
             moment(new Date()).subtract(1, 'days').toISOString()
           ).toISOString(),
           endDateTime: roundToEndOfDay(new Date().toISOString()).toISOString(),
-          airqloud: activeAirqloud
+          airqloud: activeAirqloud._id
         })
       );
     }
@@ -188,6 +196,8 @@ function ManagementStat() {
   useEffect(() => {
     if (!isEmpty(airqloudUptimeData)) {
       setAirqloudUptime([airqloudUptimeData.downtime, airqloudUptimeData.uptime]);
+    } else {
+      setAirqloudUptime([]);
     }
   }, [airqloudUptimeData]);
 
@@ -236,6 +246,7 @@ function ManagementStat() {
   };
 
   const resetAirqloudUptimeChart = () => {
+    console.log(activeAirqloud);
     setAirqloudUptimeLoading(true);
     if (editableStartDate && editableEndDate) {
       if (new Date(editableStartDate) > new Date(editableEndDate)) {
@@ -264,7 +275,7 @@ function ManagementStat() {
           loadAirqloudUptime({
             startDateTime: roundToEndOfDay(new Date(editableStartDate).toISOString()).toISOString(),
             endDateTime: roundToEndOfDay(new Date(editableEndDate).toISOString()).toISOString(),
-            airqloud: activeAirqloud
+            airqloud: activeAirqloud._id
           })
         );
         setDisableController(true);
@@ -392,7 +403,7 @@ function ManagementStat() {
             options={createPieChartOptions(['#FF2E2E', '#00A300'], ['Downtime', 'Uptime'])}
             series={airqloudUptime}
             title={
-              currentAirqloud ? `Health status for ${currentAirqloud.long_name}` : 'Health status'
+              activeAirqloud ? `Health status for ${activeAirqloud.long_name}` : 'Health status'
             }
             type="pie"
             blue
@@ -429,25 +440,30 @@ function ManagementStat() {
                   InputLabelProps={{ shrink: true }}
                   variant="outlined"
                 />
-                {/* <TextField
-              select
-              label="AirQloud"
-              id="activeAirqloud"
-              fullWidth
-              style={{ marginTop: '15px' }}
-              value={minutesAverage}
-              onChange={(e) => {
-                setActiveAirqloud(e.target.value);
-              }}
-              SelectProps={{
-                native: true,
-                style: { width: '100%', height: '40px' }
-              }}
-              variant="outlined"
-            >
-              <option value={""}>All</option>
-              {currentAirqloud && <option value={currentAirqloud._id}>{currentAirqloud.long_name}</option>}
-            </TextField> */}
+                <TextField
+                  select
+                  label="Choose airqloud"
+                  id="activeAirqloud"
+                  fullWidth
+                  style={{ marginTop: '15px' }}
+                  defaultValue={activeAirqloud?.long_name}
+                  onChange={(e) => {
+                    setActiveAirqloud(JSON.parse(e.target.value));
+                  }}
+                  SelectProps={{
+                    native: true,
+                    style: { width: '100%', height: '40px' }
+                  }}
+                  variant="outlined"
+                  InputLabelProps={{ shrink: true }}
+                >
+                  <option value="" />
+                  {airqlouds.map((airqloud) => (
+                    <option key={airqloud._id} value={JSON.stringify(airqloud)}>
+                      {airqloud.long_name}
+                    </option>
+                  ))}
+                </TextField>
                 <Button
                   variant="contained"
                   color="primary"
