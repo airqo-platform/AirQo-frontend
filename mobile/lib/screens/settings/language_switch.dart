@@ -8,6 +8,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../constants/language_contants.dart';
 import '../../main_common.dart';
 import '../../models/language.dart';
+import '../../themes/colors.dart';
 
 class LanguageList extends StatefulWidget {
   const LanguageList({Key? key}) : super(key: key);
@@ -46,8 +47,7 @@ class LanguageListState extends State<LanguageList> {
                         child: ListTile(
                           leading: Text(
                               language.flagEmoji), // Display the flag emoji
-                          title: Text(
-                              "${language.name}"), // Display the flag emoji
+                          title: Text(language.name), // Display the flag emoji
                           onTap: () async {
                             Locale locale =
                                 await setLocale(language.languageCode);
@@ -57,11 +57,11 @@ class LanguageListState extends State<LanguageList> {
                         ),
                       ),
                     ),
-                    // include a separator between the list items;
-
-                    // const Divider(
-                    //   height: 1,
-                    // ),
+                    Divider(
+                      height: 1,
+                      thickness: 0,
+                      color: CustomColors.appBodyColor,
+                    )
                   ],
                 );
               },
