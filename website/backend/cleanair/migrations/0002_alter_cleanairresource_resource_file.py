@@ -13,6 +13,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='cleanairresource',
             name='resource_file',
-            field=models.FileField(blank=True, null=True, upload_to='cleanair/resources/'),
+            field=models.FileField(blank=True, null=True,
+                                   upload_to='cleanair/resources/'),
         ),
     ]
