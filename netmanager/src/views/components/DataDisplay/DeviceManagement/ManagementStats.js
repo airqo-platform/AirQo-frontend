@@ -296,8 +296,7 @@ function ManagementStat() {
             flexWrap: 'wrap',
             alignItems: 'center',
             justifyContent: 'center'
-          }}
-        >
+          }}>
           <ApexChart
             options={timeSeriesChartOptions({
               stroke: {
@@ -351,8 +350,7 @@ function ManagementStat() {
                           native: true,
                           style: { width: '100%', height: '40px' }
                         }}
-                        variant="outlined"
-                      >
+                        variant="outlined">
                         <option value={'1'}>Last 24 hours</option>
                         <option value={'2'}>Last 2 days</option>
                         <option value={'3'}>Last 3 days</option>
@@ -363,14 +361,12 @@ function ManagementStat() {
                   }
                   open={leaderboardDateMenu}
                   onClose={() => toggleLeaderboardDateMenu(false)}
-                  placement="bottom-end"
-                >
+                  placement="bottom-end">
                   <EditIcon onClick={() => toggleLeaderboardDateMenu(!leaderboardDateMenu)} />
                 </RichTooltip>
               </div>
             }
-            blue
-          >
+            blue>
             <div style={{ overflow: 'auto', height: '100%' }}>
               <div className={`m-device-uptime-row uptime-table-header`}>
                 <span>device name</span>
@@ -389,8 +385,7 @@ function ManagementStat() {
                   <div
                     className={`m-device-uptime-row`}
                     key={`device-${device_name}-${index}`}
-                    onClick={() => history.push(`/device/${device_name}/overview`)}
-                  >
+                    onClick={() => history.push(`/device/${device_name}/overview`)}>
                     <span>{long_name}</span>
                     <span>{(100 - uptime).toFixed(2)}</span>
                     <span className={`${style}`}>{uptime.toFixed(2)}</span>
@@ -447,20 +442,22 @@ function ManagementStat() {
                   id="activeAirqloud"
                   fullWidth
                   style={{ marginTop: '15px' }}
-                  defaultValue={activeAirqloud?.long_name}
+                  value={activeAirqloud ? activeAirqloud._id : ''}
                   onChange={(e) => {
-                    setActiveAirqloud(JSON.parse(e.target.value));
+                    const selectedAirqloud = airqlouds.find(
+                      (airqloud) => airqloud._id === e.target.value
+                    );
+                    setActiveAirqloud(selectedAirqloud);
                   }}
                   SelectProps={{
                     native: true,
                     style: { width: '100%', height: '40px' }
                   }}
                   variant="outlined"
-                  InputLabelProps={{ shrink: true }}
-                >
+                  InputLabelProps={{ shrink: true }}>
                   <option value="" />
                   {airqlouds.map((airqloud) => (
-                    <option key={airqloud._id} value={JSON.stringify(airqloud)}>
+                    <option key={airqloud._id} value={airqloud._id}>
                       {airqloud.long_name}
                     </option>
                   ))}
@@ -469,8 +466,7 @@ function ManagementStat() {
                   variant="contained"
                   color="primary"
                   style={{ marginTop: '15px' }}
-                  onClick={resetAirqloudUptimeChart}
-                >
+                  onClick={resetAirqloudUptimeChart}>
                   Reset chart
                 </Button>
                 {errorMsg && (
@@ -479,8 +475,7 @@ function ManagementStat() {
                     style={{
                       color: 'red',
                       marginTop: '8px'
-                    }}
-                  >
+                    }}>
                     {errorMsg}
                   </Typography>
                 )}
