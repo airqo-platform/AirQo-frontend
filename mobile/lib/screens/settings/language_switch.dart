@@ -31,56 +31,65 @@ class LanguageListState extends State<LanguageList> {
     return OfflineBanner(
       child: Scaffold(
         appBar: AppTopBar(
-          AppLocalizations.of(context)!.about,
+          AppLocalizations.of(context)!.selectLanguage,
         ),
         body: AppSafeArea(
-          child: Center(
-            child: ListView.builder(
-              itemCount: Language.languageList().length,
-              itemBuilder: (context, index) {
-                final language = Language.languageList()[index];
-                return Column(
-                  children: [
-                    AnimatedPadding(
-                      duration: const Duration(milliseconds: 100),
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      curve: Curves.easeIn,
-                      child: ListTile(
-                        selectedColor: CustomColors.appColorBlue,
-                        trailing: selectedLanguageCode == language.languageCode
-                            ? Icon(
-                                Icons.check,
-                                color: CustomColors.appColorBlue,
-                              )
-                            : null,
-                        leading: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(4),
-                              color: CustomColors.appBodyColor,
-                            ),
-                            child: Text(language.flagEmoji)),
-                        title: Text(language.name),
-                        onTap: () async {
-                          await languageDialog(context, language);
-                          // showSnackBar(
-                          //   context,
-                          //   AppLocalizations.of(context)!
-                          //       .languageChangedSuccessfully(language.name),
-                          // );
-                          setState(() {
-                            selectedLanguageCode = language.languageCode;
-                          });
-                        },
+          child: Container(
+            height: MediaQuery.of(context).size.height*0.6,
+            decoration: BoxDecoration(
+              color: CustomColors.appBodyColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              child: ListView.builder(
+                itemCount: Language.languageList().length,
+                itemBuilder: (context, index) {
+                  final language = Language.languageList()[index];
+                  return Column(
+                    children: [
+                      AnimatedPadding(
+                        duration: const Duration(milliseconds: 100),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        curve: Curves.easeIn,
+                        child: ListTile(
+                          selectedColor: CustomColors.appColorBlue,
+                          trailing:
+                              selectedLanguageCode == language.languageCode
+                                  ? Icon(
+                                      Icons.check,
+                                      color: CustomColors.appColorBlue,
+                                    )
+                                  : null,
+                          leading: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(4),
+                                color: CustomColors.appBodyColor,
+                              ),
+                              child: Text(language.flagEmoji)),
+                          title: Text(language.name),
+                          onTap: () async {
+                            await languageDialog(context, language);
+                            // showSnackBar(
+                            //   context,
+                            //   AppLocalizations.of(context)!
+                            //       .languageChangedSuccessfully(language.name),
+                            // );
+                            setState(() {
+                              selectedLanguageCode = language.languageCode;
+                            });
+                          },
+                        ),
                       ),
-                    ),
-                    Divider(
-                      height: 1,
-                      thickness: 0,
-                      color: CustomColors.appBodyColor,
-                    )
-                  ],
-                );
-              },
+                      Divider(
+                        height: 1,
+                        thickness: 0,
+                        color: CustomColors.appBodyColor,
+                      )
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         ),
