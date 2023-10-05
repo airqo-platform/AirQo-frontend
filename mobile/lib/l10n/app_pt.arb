@@ -335,5 +335,6 @@
 	"authenticationIsCurrentlyUnavailableYouWillBeAbleToSignupSignInLater":"A autenticação não está disponível de momento. Poderá registar-se/iniciar sessão mais tarde.",
 	"cancel":"Cancelar"	,
 	"changeLanguage": "Mudar de idioma",
-	"languageChangedSuccessfully": "Idioma alterado com sucesso"
+	"doYouWantToSwitchToLanguage": "Queres mudar para {placeholder}?",
+	"languageChangedSuccessfully": "Idioma alterado com sucesso {placeholder}"
 	}

@@ -31,7 +31,7 @@ class AirQoApp extends StatefulWidget {
 
   @override
   State<AirQoApp> createState() => _AirQoAppState();
-  static void setLocale(BuildContext context, Locale newLocale) {
+  static Future<void> setLocale(BuildContext context, Locale newLocale) async {
     _AirQoAppState? state = context.findAncestorStateOfType<_AirQoAppState>();
     state?.setLocale(newLocale);
   }

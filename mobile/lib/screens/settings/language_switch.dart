@@ -2,6 +2,7 @@
 
 import 'package:app/screens/offline_banner.dart';
 import 'package:app/widgets/widgets.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -18,9 +19,11 @@ class LanguageList extends StatefulWidget {
 }
 
 class LanguageListState extends State<LanguageList> {
+  String? selectedLanguageCode;
   @override
   void initState() {
     super.initState();
+    selectedLanguageCode = null;
   }
 
   @override
@@ -42,23 +45,32 @@ class LanguageListState extends State<LanguageList> {
                       duration: const Duration(milliseconds: 100),
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       curve: Curves.easeIn,
-                      child: Card(
-                        margin: EdgeInsets.zero,
-                        child: ListTile(
-                          leading: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(4),
-                                color: CustomColors.appBodyColor,
-                              ),
-                              child: Text(language.flagEmoji)),
-                          title: Text(language.name),
-                          onTap: () async {
-                            Locale locale =
-                                await setLocale(language.languageCode);
-                            AirQoApp.setLocale(context, locale);
-                            Navigator.pop(context);
-                          },
-                        ),
+                      child: ListTile(
+                        selectedColor: CustomColors.appColorBlue,
+                        trailing: selectedLanguageCode == language.languageCode
+                            ? Icon(
+                                Icons.check,
+                                color: CustomColors.appColorBlue,
+                              )
+                            : null,
+                        leading: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(4),
+                              color: CustomColors.appBodyColor,
+                            ),
+                            child: Text(language.flagEmoji)),
+                        title: Text(language.name),
+                        onTap: () async {
+                          await languageDialog(context, language);
+                          // showSnackBar(
+                          //   context,
+                          //   AppLocalizations.of(context)!
+                          //       .languageChangedSuccessfully(language.name),
+                          // );
+                          setState(() {
+                            selectedLanguageCode = language.languageCode;
+                          });
+                        },
                       ),
                     ),
                     Divider(
@@ -75,4 +87,58 @@ class LanguageListState extends State<LanguageList> {
       ),
     );
   }
+}
+
+Future<dynamic> languageDialog(BuildContext context, Language language) {
+  return showCupertinoDialog(
+    context: context,
+    builder: (BuildContext context) => CupertinoAlertDialog(
+      title: Text(
+        AppLocalizations.of(context)!.confirm,
+        style: TextStyle(
+          color: CustomColors.appColorBlue,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      content: Text(
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: CustomColors.appColorBlack,
+        ),
+        AppLocalizations.of(context)!
+            .doYouWantToSwitchToLanguage(language.name),
+      ),
+      actions: [
+        CupertinoDialogAction(
+          child: Text(
+            style: TextStyle(
+              color: CustomColors.appColorBlue,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+            AppLocalizations.of(context)!.yes,
+          ),
+          onPressed: () async {
+            Locale locale = await setLocale(language.languageCode);
+            await AirQoApp.setLocale(context, locale);
+            Navigator.pop(context);
+          },
+        ),
+        CupertinoDialogAction(
+          child: Text(
+            style: TextStyle(
+              color: CustomColors.appColorBlue,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+            AppLocalizations.of(context)!.no,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ],
+    ),
+  );
 }

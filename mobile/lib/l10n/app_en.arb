@@ -344,5 +344,6 @@
     "dismiss": "DISMISS",
     "internetConnectionLost": "Internet Connection Lost",
     "changeLanguage": "Change Language",
-    "languageChangedSuccessfully": "Language changed successfully"
+    "doYouWantToSwitchToLanguage": "Do you want to switch to {placeholder}?",
+    "languageChangedSuccessfully": "You have successfully changed  to {placeholder}"
 }
