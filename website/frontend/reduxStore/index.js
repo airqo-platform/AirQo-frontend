@@ -13,7 +13,8 @@ import pressReducer from './Press/PressSlice';
 import EventsNavTabReducer from './EventsNav/NavigationSlice';
 import EventsReducer from './Events/EventSlice';
 import CitiesReducer from './AfricanCities/CitiesSlice';
-import ImpactReducer from './ImpactNumbers/ImpactSlice'
+import ImpactReducer from './ImpactNumbers/ImpactSlice';
+import CleanAirReducer from './CleanAirNetwork/CleanAir';
 
 export default combineReducers({
   airqlouds: airqloudsReducer,
@@ -30,5 +31,6 @@ export default combineReducers({
   eventsNavTab: EventsNavTabReducer,
   eventsData: EventsReducer,
   citiesData: CitiesReducer,
-  impactData: ImpactReducer
+  impactData: ImpactReducer,
+  cleanAirData: CleanAirReducer
 });
