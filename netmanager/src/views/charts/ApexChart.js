@@ -34,7 +34,7 @@ const ApexChart = (props) => {
 
   function updateChartData() {
     const newData = Math.random() * 100;
-    const newSeries = series & (series.length > 0) && series.slice();
+    const newSeries = series && series.length > 0 && series.slice();
 
     const lastDataPoint =
       newSeries[0].data.length > 0 ? newSeries[0].data[newSeries[0].data.length - 1] : null;
