@@ -34,7 +34,21 @@ const ChartContainer = ({
           scrollableYAxis && 'chart-scrollable-yaxis'
         }`}
       >
-        {loading ? <CircularProgress /> : children}
+        {loading ? (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: '100%',
+              height: '100%'
+            }}
+          >
+            <CircularProgress />
+          </div>
+        ) : (
+          children
+        )}
       </div>
       <div className={'chart-footer'}>
         {lastUpdated && (

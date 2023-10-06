@@ -71,9 +71,13 @@ function ManagementStat() {
   const [editableEndDate, setEditableEndDate] = useState(
     roundToEndOfDay(new Date().toISOString()).toISOString()
   );
-  const [disableController, setDisableController] = useState(false);
+  const [closeController, setCloseController] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [airqloudUptimeLoading, setAirqloudUptimeLoading] = useState(false);
+  const [onlineStatusLoading, setOnlineStatusLoading] = useState(false);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [networkUptimeLoading, setNetworkUptimeLoading] = useState(false);
+  const [airqloudsLoading, setAirqloudsLoading] = useState(false);
 
   const sortLeaderBoardData = (leaderboardData) => {
     const sortByName = (device1, device2) => {
@@ -120,13 +124,16 @@ function ManagementStat() {
   }, []);
 
   useEffect(() => {
-    if (isEmpty(airqlouds)) {
-      dispatch(fetchDashboardAirQloudsData());
-    }
+    setAirqloudsLoading(true);
+    dispatch(fetchDashboardAirQloudsData());
+    setTimeout(() => {
+      setAirqloudsLoading(false);
+    }, 10000);
   }, []);
 
   useEffect(() => {
     if (isEmpty(devicesStatusData)) {
+      setOnlineStatusLoading(true);
       dispatch(
         loadDevicesStatusData({
           startDate: roundToStartOfDay(new Date().toISOString()).toISOString(),
@@ -134,8 +141,12 @@ function ManagementStat() {
           limit: 1
         })
       );
+      setTimeout(() => {
+        setOnlineStatusLoading(false);
+      }, 5000);
     }
     if (isEmpty(networkUptimeData)) {
+      setNetworkUptimeLoading(true);
       dispatch(
         loadNetworkUptimeData({
           startDate: roundToStartOfDay(
@@ -144,9 +155,32 @@ function ManagementStat() {
           endDate: roundToEndOfDay(new Date().toISOString()).toISOString()
         })
       );
+      setTimeout(() => {
+        setNetworkUptimeLoading(false);
+      }, 5000);
     }
 
-    if (isEmpty(airqloudUptimeData) && !isEmpty(activeAirqloud)) {
+    if (isEmpty(leaderboardData)) {
+      setLeaderboardLoading(true);
+      dispatch(
+        loadUptimeLeaderboardData({
+          startDate: roundToStartOfDay(new Date().toISOString()).toISOString(),
+          endDate: roundToEndOfDay(new Date().toISOString()).toISOString()
+        })
+      );
+      setTimeout(() => {
+        setLeaderboardLoading(false);
+      }, 5000);
+    }
+
+    if (isEmpty(allDevices)) dispatch(loadDevicesData());
+
+    dispatch(updateDeviceBackUrl(location.pathname));
+  }, []);
+
+  useEffect(() => {
+    if (!isEmpty(activeAirqloud) && isEmpty(airqloudUptimeData)) {
+      setAirqloudUptimeLoading(true);
       dispatch(
         loadAirqloudUptime({
           startDateTime: roundToStartOfDay(
@@ -156,20 +190,12 @@ function ManagementStat() {
           airqloud: activeAirqloud._id
         })
       );
+      setCloseController(true);
+      setTimeout(() => {
+        setAirqloudUptimeLoading(false);
+        setCloseController(false);
+      }, 5000);
     }
-
-    if (isEmpty(leaderboardData)) {
-      dispatch(
-        loadUptimeLeaderboardData({
-          startDate: roundToStartOfDay(new Date().toISOString()).toISOString(),
-          endDate: roundToEndOfDay(new Date().toISOString()).toISOString()
-        })
-      );
-    }
-
-    if (isEmpty(allDevices)) dispatch(loadDevicesData());
-
-    dispatch(updateDeviceBackUrl(location.pathname));
   }, [activeAirqloud]);
 
   useEffect(() => {
@@ -194,7 +220,10 @@ function ManagementStat() {
   }, [networkUptimeData]);
 
   useEffect(() => {
-    if (isEmpty(airqloudUptimeData)) return;
+    if (isEmpty(airqloudUptimeData)) {
+      setAirqloudUptime([]);
+    }
+
     if (!isEmpty(airqloudUptimeData)) {
       setAirqloudUptime([airqloudUptimeData.downtime, airqloudUptimeData.uptime]);
     }
@@ -247,9 +276,8 @@ function ManagementStat() {
   };
 
   const resetAirqloudUptimeChart = () => {
-    console.log(activeAirqloud);
     setAirqloudUptimeLoading(true);
-    if (editableStartDate && editableEndDate) {
+    if (editableStartDate && editableEndDate && activeAirqloud) {
       if (new Date(editableStartDate) > new Date(editableEndDate)) {
         setErrorMsg('Error: End date is older than start date. Please adjust.');
         setTimeout(() => {
@@ -279,9 +307,10 @@ function ManagementStat() {
             airqloud: activeAirqloud._id
           })
         );
-        setDisableController(true);
+        setCloseController(true);
         setTimeout(() => {
           setAirqloudUptimeLoading(false);
+          setCloseController(false);
         }, 5000);
       }
     }
@@ -309,6 +338,7 @@ function ManagementStat() {
             lastUpdated={networkUptimeData.length > 0 && networkUptimeData[0].created_at}
             type="area"
             blue
+            loading={networkUptimeLoading}
             disableCustomController
           />
           <ApexChart
@@ -327,6 +357,7 @@ function ManagementStat() {
             title={`Leaderboard in the last ${
               leaderboardDateRange === '1' ? '24 hours' : `${leaderboardDateRange} days`
             }`}
+            loading={leaderboardLoading}
             controller={
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 {devicesUptimeDescending ? (
@@ -410,7 +441,7 @@ function ManagementStat() {
             blue
             centerItems
             disableController={true}
-            closeController={disableController}
+            closeController={closeController}
             loading={airqloudUptimeLoading}
             customController={
               <div>
@@ -447,7 +478,7 @@ function ManagementStat() {
                   id="activeAirqloud"
                   fullWidth
                   style={{ marginTop: '15px' }}
-                  value={activeAirqloud?.long_name}
+                  value={activeAirqloud ? activeAirqloud._id : ''}
                   onChange={(e) => {
                     const selectedAirqloud = airqlouds.find(
                       (airqloud) => airqloud._id === e.target.value
@@ -461,7 +492,16 @@ function ManagementStat() {
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
                 >
-                  <option value="" />
+                  <option
+                    value={activeAirqloud._id}
+                    style={{
+                      background: 'blue',
+                      color: '#fff'
+                    }}
+                  >
+                    {activeAirqloud.long_name}
+                  </option>
+                  {airqloudsLoading && <option value="">Loading...</option>}
                   {airqlouds.map((airqloud) => (
                     <option key={airqloud._id} value={airqloud._id}>
                       {airqloud.long_name}

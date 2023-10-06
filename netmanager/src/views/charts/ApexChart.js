@@ -6,6 +6,7 @@ import { Box, TextField, Typography } from '@material-ui/core';
 import RichTooltip from 'views/containers/RichToolTip';
 import ChartContainer from './ChartContainer';
 import ApexCharts from 'apexcharts';
+import { isEmpty } from 'validate.js';
 
 const ApexChart = (props) => {
   const [chartType, setChartType] = useState(props.type);
@@ -37,7 +38,9 @@ const ApexChart = (props) => {
     const newSeries = series && series.length > 0 && series.slice();
 
     const lastDataPoint =
-      newSeries[0].data.length > 0 ? newSeries[0].data[newSeries[0].data.length - 1] : null;
+      newSeries && newSeries.length > 0 && newSeries[0].data.length > 0
+        ? newSeries[0].data[newSeries[0].data.length - 1]
+        : null;
     // Fill in missing data with 0 values
     if (lastDataPoint) {
       console.log('filling in');
@@ -78,6 +81,7 @@ const ApexChart = (props) => {
       blue={props.blue}
       green={props.green}
       centerItems={props.centerItems}
+      loading={props.loading}
       controller={
         !props.disableController && (
           <RichTooltip
@@ -147,12 +151,10 @@ const ApexChart = (props) => {
         )
       }
     >
-      {props.loading ? (
-        <Box position={'relative'}>
-          <Typography variant="body1" color="secondary">
-            Loading...
-          </Typography>
-        </Box>
+      {isEmpty(props.series) ? (
+        <Typography variant="body1" color="textSecondary">
+          No data found
+        </Typography>
       ) : (
         <ReactApexChart
           key={chartType}
