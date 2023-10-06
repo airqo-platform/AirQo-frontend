@@ -17,6 +17,8 @@ import { useDashboardSitesData } from 'redux/Dashboard/selectors';
 import { loadSites } from 'redux/Dashboard/operations';
 import { useOrgData } from 'redux/Join/selectors';
 
+import axios from 'axios';
+
 // css
 import 'assets/css/overlay-map.css';
 
@@ -307,15 +309,6 @@ const MapSettings = ({
 }) => {
   const [open, setOpen] = useState(false);
 
-  const isStaging = process.env.REACT_APP_ENVIRONMENT === 'staging';
-
-  // to avoid app crashing if variable is not defined
-  let isEnvironmentDefined = true;
-  if (typeof process.env.REACT_APP_ENVIRONMENT === 'undefined') {
-    console.error('REACT_APP_ENVIRONMENT is not defined');
-    isEnvironmentDefined = false;
-  }
-
   return (
     <RichTooltip
       content={
@@ -323,9 +316,7 @@ const MapSettings = ({
           <MenuItem onClick={() => onSensorChange(!showSensors)}>
             <Checkbox checked={showSensors} color="default" /> Monitors
           </MenuItem>
-          <MenuItem
-            onClick={() => onHeatmapChange(!showHeatmap)}
-            disabled={!isStaging || !isEnvironmentDefined}>
+          <MenuItem onClick={() => onHeatmapChange(!showHeatmap)}>
             <Checkbox checked={showHeatmap} color="default" /> Heatmap
           </MenuItem>
           <Divider />
@@ -643,14 +634,16 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
 
 const HeatMapOverlay = () => {
   const dispatch = useDispatch();
-  const [heatMapData, setHeatMapData] = useState(usePM25HeatMapData());
+  const heatMapData = usePM25HeatMapData();
   const monitoringSiteData = useEventsMapData();
 
   useEffect(() => {
     if (heatMapData && (!heatMapData.features || heatMapData.features.length === 0)) {
-      dispatch(loadPM25HeatMapData());
+      dispatch(loadPM25HeatMapData()).catch((error) => {
+        console.error('Failed to load PM2.5 Heat Map Data:', error);
+      });
     }
-  }, [heatMapData]);
+  }, [heatMapData, dispatch]);
 
   useEffect(() => {
     if (!monitoringSiteData.features || monitoringSiteData.features.length === 0) {
@@ -662,9 +655,11 @@ const HeatMapOverlay = () => {
           frequency: 'hourly',
           active: 'yes'
         })
-      );
+      ).catch((error) => {
+        console.error('Failed to load Map Events Data:', error);
+      });
     }
-  }, [monitoringSiteData]);
+  }, [monitoringSiteData, dispatch]);
 
   if (!monitoringSiteData.features) {
     return (
@@ -680,24 +675,13 @@ const HeatMapOverlay = () => {
     );
   }
 
-  // to avoid app crash if variable is not defined
-  let processedHeatMapData;
-  if (process.env.REACT_APP_ENVIRONMENT) {
-    processedHeatMapData = process.env.REACT_APP_ENVIRONMENT === 'staging' ? heatMapData : [];
-  } else {
-    console.error('REACT_APP_ENVIRONMENT is not defined');
-    processedHeatMapData = [];
-  }
-
   return (
-    <div
-      // test id
-      data-testid="heat-map-overlay">
+    <div data-testid="heat-map-overlay">
       <ErrorBoundary>
         <OverlayMap
           center={[22.5600613, 0.8341424]}
           zoom={2.4}
-          heatMapData={processedHeatMapData}
+          heatMapData={heatMapData}
           monitoringSiteData={monitoringSiteData}
         />
       </ErrorBoundary>
