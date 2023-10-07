@@ -227,36 +227,21 @@ const Sidebar = (props) => {
 
     setLoading(true);
 
-    getUserDetails(user._id)
-      .then((res) => {
-        const { networks } = res.users[0];
-        const activeNetwork = networks.find((network) => network.net_name === 'airqo');
+    const activeNewtork = JSON.parse(localStorage.getItem('activeNetwork'));
 
-        dispatch(addUserNetworks(networks));
-        localStorage.setItem('userNetworks', JSON.stringify(networks));
-        localStorage.setItem('currentUser', JSON.stringify(res.users[0]));
-
-        if (activeNetwork) {
-          localStorage.setItem('activeNetwork', JSON.stringify(activeNetwork));
-          dispatch(addActiveNetwork(activeNetwork));
-          dispatch(addCurrentUserRole(activeNetwork.role));
-          localStorage.setItem('currentUserRole', JSON.stringify(activeNetwork.role));
-        }
-      })
-      .catch((error) => {
-        const errors = error.response?.data?.errors;
-        dispatch(
-          updateMainAlert({
-            message: error.response?.data?.message,
-            show: true,
-            severity: 'error',
-            extra: createAlertBarExtraContentFromObject(errors || {})
-          })
-        );
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    if (!isEmpty(user)) {
+      dispatch(addUserNetworks(user.networks));
+      localStorage.setItem('userNetworks', JSON.stringify(user.networks));
+      const airqoNetwork = user.networks.find((network) => network.net_name === 'airqo');
+      if (!activeNewtork) {
+        localStorage.setItem('activeNetwork', JSON.stringify(airqoNetwork));
+        dispatch(addActiveNetwork(airqoNetwork));
+        dispatch(addCurrentUserRole(airqoNetwork.role));
+        localStorage.setItem('currentUserRole', JSON.stringify(airqoNetwork.role));
+      }
+      setLoading(false);
+    }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -316,7 +301,8 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}>
+      variant={variant}
+    >
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />
