@@ -3,9 +3,6 @@ import { useDispatch } from 'react-redux';
 import moment from 'moment';
 import AirqloudUptimeChart from 'views/components/DataDisplay/DeviceManagement/AirqloudUptimeChart';
 import { renderWithProviders } from '../test_utils';
-import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
-import { fetchDashboardAirQloudsData } from 'redux/AirQloud/operations';
-import { loadAirqloudUptime } from 'redux/DeviceManagement/operations';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

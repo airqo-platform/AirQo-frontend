@@ -3,14 +3,15 @@ import moment from 'moment';
 import { isEmpty } from 'underscore';
 import { useAirqloudUptimeData } from 'redux/DeviceManagement/selectors';
 import { loadAirqloudUptime } from 'redux/DeviceManagement/operations';
-import { useCurrentAirQloudData, useDashboardAirqloudsData } from 'redux/AirQloud/selectors';
-import { fetchDashboardAirQloudsData } from 'redux/AirQloud/operations';
+import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
 import { ApexChart, createPieChartOptions } from 'views/charts';
 import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
 import { Button, TextField, Typography } from '@material-ui/core';
 import ScheduleIcon from '@material-ui/icons/Schedule';
 import { useDispatch } from 'react-redux';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
+import { useAirqloudsSummaryData } from 'redux/AirQloud/selectors';
+import { fetchAirqloudsSummaryData } from 'redux/AirQloud/operations';
 
 const AirqloudUptimeChart = () => {
   const dispatch = useDispatch();
@@ -18,7 +19,7 @@ const AirqloudUptimeChart = () => {
   const [airqloudUptime, setAirqloudUptime] = useState([]);
   const [activeAirqloud, setActiveAirqloud] = useState({});
   const currentAirqloud = useCurrentAirQloudData();
-  const airqlouds = Object.values(useDashboardAirqloudsData());
+  const airqlouds = useAirqloudsSummaryData();
   const [editableStartDate, setEditableStartDate] = useState(
     roundToStartOfDay(moment().subtract(1, 'days').toISOString()).toISOString()
   );
@@ -38,10 +39,10 @@ const AirqloudUptimeChart = () => {
 
   useEffect(() => {
     setAirqloudsLoading(true);
-    dispatch(fetchDashboardAirQloudsData());
+    dispatch(fetchAirqloudsSummaryData());
     setTimeout(() => {
       setAirqloudsLoading(false);
-    }, 10000);
+    }, 3000);
   }, []);
 
   useEffect(() => {
