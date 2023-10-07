@@ -74,6 +74,12 @@ export const getNetworksApi = async () => {
     .then((response) => response.data);
 };
 
+export const updateNetworkApi = async (networkID, data) => {
+  return await axios
+    .put(`${GET_NETWORKS_URI}/${networkID}`, data, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
 export const assignUserNetworkApi = async (networkID, userID) => {
   return await axios
     .put(`${GET_NETWORKS_URI}/${networkID}/assign-user/${userID}`, {
