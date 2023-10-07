@@ -34,9 +34,7 @@ const Section = ({
           )}
 
           {title && <h3 className="content-h">{title}</h3>}
-          <span className="content-p">
-            <p>{content}</p>
-          </span>
+          <span className="content-p">{content}</span>
           {showButton && btnText && link && (
             <Link to={link} target="_blank">
               <span id="second-pill">
@@ -56,10 +54,9 @@ const Section = ({
 Section.propTypes = {
   pillTitle: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
-  content: PropTypes.string.isRequired,
+  content: PropTypes.oneOfType([PropTypes.string, PropTypes.node]).isRequired,
   btnText: PropTypes.string.isRequired,
   link: PropTypes.string.isRequired,
-  btnTarget: PropTypes.string.isRequired,
   imgURL: PropTypes.string.isRequired,
   reverse: PropTypes.bool,
   bgColor: PropTypes.string,
