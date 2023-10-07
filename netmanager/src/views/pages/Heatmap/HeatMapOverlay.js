@@ -17,8 +17,6 @@ import { useDashboardSitesData } from 'redux/Dashboard/selectors';
 import { loadSites } from 'redux/Dashboard/operations';
 import { useOrgData } from 'redux/Join/selectors';
 
-import axios from 'axios';
-
 // css
 import 'assets/css/overlay-map.css';
 
@@ -34,7 +32,7 @@ import StreetModeIcon from '@material-ui/icons/Traffic';
 
 // prettier-ignore
 // eslint-disable-next-line import/no-webpack-loader-syntax
-mapboxgl.workerClass = require("worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker").default;
+// mapboxgl.workerClass = require("worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker").default;
 
 const markerDetailsPM2_5 = {
   0.0: ['marker-good', 'Good'],
@@ -528,7 +526,7 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
   };
 
   return (
-    <div className="overlay-map-container" ref={mapContainerRef}>
+    <div className="overlay-map-container" ref={mapContainerRef} data-testid="overlay-map">
       {showSensors &&
         map &&
         monitoringSiteData.features.length > 0 &&
@@ -638,7 +636,7 @@ const HeatMapOverlay = () => {
   const monitoringSiteData = useEventsMapData();
 
   useEffect(() => {
-    if (heatMapData && (!heatMapData.features || heatMapData.features.length === 0)) {
+    if (heatMapData && (!heatMapData?.features || heatMapData?.features.length === 0)) {
       dispatch(loadPM25HeatMapData()).catch((error) => {
         console.error('Failed to load PM2.5 Heat Map Data:', error);
       });
@@ -646,7 +644,7 @@ const HeatMapOverlay = () => {
   }, [heatMapData, dispatch]);
 
   useEffect(() => {
-    if (!monitoringSiteData.features || monitoringSiteData.features.length === 0) {
+    if (!monitoringSiteData?.features || monitoringSiteData?.features.length === 0) {
       dispatch(
         loadMapEventsData({
           recent: 'yes',
@@ -661,7 +659,7 @@ const HeatMapOverlay = () => {
     }
   }, [monitoringSiteData, dispatch]);
 
-  if (!monitoringSiteData.features) {
+  if (!monitoringSiteData?.features) {
     return (
       <div
         style={{
@@ -676,16 +674,14 @@ const HeatMapOverlay = () => {
   }
 
   return (
-    <div data-testid="heat-map-overlay">
-      <ErrorBoundary>
-        <OverlayMap
-          center={[22.5600613, 0.8341424]}
-          zoom={2.4}
-          heatMapData={heatMapData}
-          monitoringSiteData={monitoringSiteData}
-        />
-      </ErrorBoundary>
-    </div>
+    <ErrorBoundary>
+      <OverlayMap
+        center={[22.5600613, 0.8341424]}
+        zoom={2.4}
+        heatMapData={heatMapData}
+        monitoringSiteData={monitoringSiteData}
+      />
+    </ErrorBoundary>
   );
 };
 
