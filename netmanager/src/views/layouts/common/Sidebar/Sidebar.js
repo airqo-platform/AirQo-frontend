@@ -216,35 +216,19 @@ const Sidebar = (props) => {
   useEffect(() => {
     setLoading(true);
 
-    if (!isEmpty(user)) {
-      getUserDetails(user._id)
-        .then((res) => {
-          dispatch(addUserNetworks(res.users[0].networks));
-          localStorage.setItem('userNetworks', JSON.stringify(res.users[0].networks));
-          localStorage.setItem('currentUser', JSON.stringify(res.users[0]));
+    const activeNewtork = JSON.parse(localStorage.getItem('activeNetwork'));
 
-          res.users[0].networks.map((network) => {
-            if (network.net_name === 'airqo') {
-              localStorage.setItem('activeNetwork', JSON.stringify(network));
-              dispatch(addActiveNetwork(network));
-              dispatch(addCurrentUserRole(network.role));
-              localStorage.setItem('currentUserRole', JSON.stringify(network.role));
-            }
-          });
-          setLoading(false);
-        })
-        .catch((error) => {
-          const errors = error.response && error.response.data && error.response.data.errors;
-          dispatch(
-            updateMainAlert({
-              message: error.response && error.response.data && error.response.data.message,
-              show: true,
-              severity: 'error',
-              extra: createAlertBarExtraContentFromObject(errors || {})
-            })
-          );
-          setLoading(false);
-        });
+    if (!isEmpty(user)) {
+      dispatch(addUserNetworks(user.networks));
+      localStorage.setItem('userNetworks', JSON.stringify(user.networks));
+      const airqoNetwork = user.networks.find((network) => network.net_name === 'airqo');
+      if (!activeNewtork) {
+        localStorage.setItem('activeNetwork', JSON.stringify(airqoNetwork));
+        dispatch(addActiveNetwork(airqoNetwork));
+        dispatch(addCurrentUserRole(airqoNetwork.role));
+        localStorage.setItem('currentUserRole', JSON.stringify(airqoNetwork.role));
+      }
+      setLoading(false);
     }
     setLoading(false);
   }, []);
