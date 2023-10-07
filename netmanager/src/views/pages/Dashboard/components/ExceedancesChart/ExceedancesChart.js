@@ -34,6 +34,7 @@ import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
 import { flattenSiteOptions } from 'utils/sites';
 import OutlinedSelect from 'views/components/CustomSelects/OutlinedSelect';
 import { BASE_AUTH_TOKEN } from 'utils/envVariables';
+import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -53,10 +54,11 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const ExceedancesChart = (props) => {
-  const { className, chartContainer, idSuffix, ...rest } = props;
+  const { className, chartContainer, idSuffix, analyticsSites, isGrids, ...rest } = props;
 
   const classes = useStyles();
 
+  const [averageChartSites, setAverageChartSites] = useState([]);
   const airqloud = useCurrentAirQloudData();
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -112,26 +114,41 @@ const ExceedancesChart = (props) => {
   const [dataset, setDataset] = useState([]);
 
   useEffect(() => {
-    let filter = {
-      pollutant: pollutant.value,
-      standard: standard.value,
-      startDate,
-      endDate,
-      sites: flattenSiteOptions(airqloud.siteOptions)
-    };
-    fetchAndSetExceedanceData(filter);
-  }, []);
+    if (isGrids) {
+      const siteOptions = [];
+      !isEmpty(analyticsSites) &&
+        analyticsSites.map((site) => {
+          siteOptions.push(site._id);
+        });
+      setAverageChartSites(siteOptions);
+    } else {
+      setAverageChartSites(flattenSiteOptions(airqloud.siteOptions));
+    }
+  }, [analyticsSites, airqloud]);
 
   useEffect(() => {
-    let filter = {
-      pollutant: pollutant.value,
-      standard: standard.value,
-      startDate,
-      endDate,
-      sites: flattenSiteOptions(airqloud.siteOptions)
-    };
-    fetchAndSetExceedanceData(filter);
-  }, [airqloud]);
+    if (!isEmpty(averageChartSites)) {
+      let filter = {
+        pollutant: pollutant.value,
+        standard: standard.value,
+        startDate,
+        endDate,
+        sites: averageChartSites
+      };
+      fetchAndSetExceedanceData(filter);
+    }
+
+    if (isEmpty(averageChartSites)) {
+      setLoading(true);
+
+      setTimeout(() => {
+        setLoading(false);
+        setDataset([]);
+        setLocations([]);
+        setAllLocations([]);
+      }, 1000);
+    }
+  }, [averageChartSites]);
 
   let handleSubmit = async (e) => {
     e.preventDefault();
@@ -141,7 +158,7 @@ const ExceedancesChart = (props) => {
       standard: tempStandard.value,
       startDate,
       endDate,
-      sites: flattenSiteOptions(airqloud.siteOptions)
+      sites: averageChartSites
     };
     setAnchorEl(null);
     setOpen(false);
@@ -529,6 +546,17 @@ const ExceedancesChart = (props) => {
                 }}
               >
                 loading...
+              </div>
+            ) : isEmpty(locations) ? (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '30vh'
+                }}
+              >
+                No data found
               </div>
             ) : (
               <Bar

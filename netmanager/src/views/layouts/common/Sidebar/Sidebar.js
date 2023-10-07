@@ -15,6 +15,7 @@ import EditLocationIcon from '@material-ui/icons/EditLocation';
 import AspectRatioIcon from '@material-ui/icons/AspectRatio';
 import SupervisedUserCircleIcon from '@material-ui/icons/SupervisedUserCircle';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import TimelineIcon from '@material-ui/icons/Timeline';
 import AirQloudIcon from '@material-ui/icons/FilterDrama';
 import BubbleChartIcon from '@material-ui/icons/BubbleChart';
 import SupervisorAccountIcon from '@material-ui/icons/SupervisorAccount';
@@ -93,7 +94,12 @@ const allMainPages = [
     href: '/dashboard',
     icon: <DashboardIcon />
   },
-
+  {
+    title: 'Analytics',
+    href: '/analytics',
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
+    icon: <TimelineIcon />
+  },
   {
     title: 'Export data',
     href: '/export-data',

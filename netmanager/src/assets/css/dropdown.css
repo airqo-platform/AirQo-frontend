@@ -1,10 +1,18 @@
-.dropdown-wrapper {
+.dropdown {
   /* display: flex; */
   /* align-items: center; */
   position: relative;
   max-width: 90%;
-  font-weight: #175df5;
+  width: 100%;
+  margin-bottom: 10px;
+}
 
+.dropdown-wrapper {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  z-index: 1000;
+  width: 100%;
 }
 
 .dropdown-rapper-recall {
@@ -15,8 +23,6 @@
   max-width: 200px;
   font-weight: #175df5;
   margin-bottom: 5px;
-
-
 }
 
 .select-recall-type {
@@ -27,27 +33,24 @@
 
 .select {
   color: #175df5;
-
 }
-
 
 .dd-button:hover {
   background-color: #eeeeee;
 }
 
-
 .dd-reload {
   position: absolute;
-  top: 3px;
+  top: 0px;
   right: -55px;
-  height: 40px;
-  width: 40px;
+  height: 44px;
+  width: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: white;
+  border-radius: 8px;
 }
-
 
 .option-label {
   font-weight: bold;
@@ -66,7 +69,8 @@
   font-size: 2rem;
 }
 
-.site {
+.site,
+.airqloud {
   display: flex;
   align-items: left;
   cursor: pointer;
@@ -80,7 +84,19 @@
   font-weight: bold;
 }
 
-.site-count{
+.airqloud .name {
+  color: #000000;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.airqloud .count {
+  color: #000;
+  font-size: 1rem;
+  /* font-weight: bold; */
+}
+
+.site-count {
   color: #008000;
   font-size: 1rem;
   /* font-weight: bold; */

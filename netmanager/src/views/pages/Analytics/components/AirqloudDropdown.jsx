@@ -1,15 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import ReloadIcon from '@material-ui/icons/Replay';
-import { Box, Tooltip, makeStyles } from '@material-ui/core';
+import React, { useState } from 'react';
 import Select from 'react-select';
-import { useDispatch } from 'react-redux';
-import { useCurrentAirQloudData, useAirqloudsSummaryData } from 'redux/AirQloud/selectors';
-import { setCurrentAirQloudData, fetchAirqloudsSummaryData } from 'redux/AirQloud/operations';
-import { resetDefaultGraphData } from 'redux/Dashboard/operations';
-import { refreshAirQloud } from 'redux/AirQloud/operations';
-
+import { useDispatch, useSelector } from 'react-redux';
 import 'assets/css/dropdown.css';
 import { isEmpty } from 'underscore';
+import { setActiveGrid, setActiveCohort } from 'redux/Analytics/operations';
 
 const customStyles = {
   control: (defaultStyles) => ({
@@ -34,47 +28,48 @@ const customStyles = {
     fontWeight: 'bold', // Increase the font weight
     textAlign: 'center',
     justifyContent: 'center'
-  }),
-  indicatorSeparator: (state) => ({
-    display: 'none'
-  }),
-  indicatorsContainer: (provided, state) => ({
-    ...provided,
-    height: '44px'
   })
 };
 
-const AirQloudDropDown = () => {
-  const currentAirqQloud = useCurrentAirQloudData();
+const AnalyticsAirqloudsDropDown = ({ isCohort, airqloudsData }) => {
   const dispatch = useDispatch();
-  const airqlouds = useAirqloudsSummaryData();
+  const activeGrid = useSelector((state) => state.analytics.activeGrid);
+  const activeCohort = useSelector((state) => state.analytics.activeCohort);
 
   const handleAirQloudChange = (selectedOption) => {
-    const airqloud = selectedOption ? selectedOption.value : null;
-    dispatch(setCurrentAirQloudData(airqloud));
-    dispatch(resetDefaultGraphData());
+    if (!isCohort) {
+      dispatch(setActiveGrid(selectedOption.value));
+      localStorage.setItem('activeGrid', JSON.stringify(selectedOption.value));
+    } else {
+      dispatch(setActiveCohort(selectedOption.value));
+      localStorage.setItem('activeCohort', JSON.stringify(selectedOption.value));
+    }
   };
 
   const handleAirQloudRefresh = (event) => {
     event.stopPropagation();
-    dispatch(refreshAirQloud(currentAirqQloud.long_name, currentAirqQloud._id));
+    // dispatch(refreshAirQloud(currentAirqQloud.long_name, currentAirqQloud._id));
   };
 
-  useEffect(() => {
-    if (isEmpty(airqlouds)) {
-      dispatch(fetchAirqloudsSummaryData());
-    }
-  }, []);
-
-  const options = airqlouds.map((airqloud) => ({
-    value: airqloud,
-    label: (
-      <div className="site">
-        <span className="long_name">{airqloud.long_name}</span>
-        <span className="site-count">({airqloud.numberOfSites} sites)</span>
-      </div>
-    )
-  }));
+  const options =
+    !isEmpty(airqloudsData) &&
+    airqloudsData.map((airqloud) => ({
+      value: airqloud,
+      label: (
+        <div className="airqloud">
+          <span className="name">{airqloud.name}</span>
+          <span className="count">
+            {isCohort
+              ? !isEmpty(airqloud.devices)
+                ? airqloud.devices.length + ' devices'
+                : '0 devices'
+              : !isEmpty(airqloud.sites)
+              ? airqloud.sites.length + ' sites'
+              : '0 sites'}
+          </span>
+        </div>
+      )
+    }));
 
   const [hoveredOption, setHoveredOption] = useState(null);
 
@@ -95,7 +90,10 @@ const AirQloudDropDown = () => {
     <div className="dropdown">
       <div className="dropdown-wrapper">
         <Select
-          value={{ value: currentAirqQloud, label: currentAirqQloud.long_name }}
+          value={{
+            value: isCohort ? activeCohort : activeGrid,
+            label: isCohort ? activeCohort.name : activeGrid.name
+          }}
           options={options}
           onChange={handleAirQloudChange}
           isSearchable={true}
@@ -105,22 +103,17 @@ const AirQloudDropDown = () => {
           className="basic-single"
           classNamePrefix="select"
         />
-        <Tooltip title="Refresh AirQloud">
-          <div className="dd-reload" onClick={handleAirQloudRefresh}>
-            <ReloadIcon />
-          </div>
-        </Tooltip>
       </div>
 
-      {hoveredOption && hoveredOption.value && hoveredOption.value.sites && (
+      {/* {hoveredOption && hoveredOption.value && hoveredOption.value.sites && (
         <div className="site-names">
           {hoveredOption.value.sites.map((site, index) => (
             <span key={index}>{site}</span>
           ))}
         </div>
-      )}
+      )} */}
     </div>
   );
 };
 
-export default AirQloudDropDown;
+export default AnalyticsAirqloudsDropDown;

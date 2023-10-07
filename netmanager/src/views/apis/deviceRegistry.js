@@ -25,6 +25,9 @@ import {
 import { DEVICE_MAINTENANCE_LOG_URI } from 'config/urls/deviceMonitoring';
 import { DEVICE_RECENT_FEEDS } from 'config/urls/dataManagement';
 import {
+  COHORTS,
+  GRIDS,
+  GRIDS_COHORTS_COMBINED,
   GET_AIRQLOUDS_SUMMARY,
   GET_DEVICE_IMAGES,
   SOFT_EDIT_DEVICE_IMAGE
@@ -211,6 +214,76 @@ export const QRCodeApi = async (params) => {
 export const refreshAirQloudApi = async (params) => {
   return await axios
     .put(REFRESH_AIRQLOUD, {}, { params: { ...params, token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const createCohortApi = async (cohortData) => {
+  return await axios
+    .post(COHORTS, cohortData, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const getGridsAndCohortsSummaryApi = async (networkID) => {
+  return await axios
+    .get(`${GRIDS_COHORTS_COMBINED}/${networkID}/summary`, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const getGridDetailsApi = async (gridID) => {
+  return await axios
+    .get(`${GRIDS}/${gridID}`, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const getCohortDetailsApi = async (cohortID) => {
+  return await axios
+    .get(`${COHORTS}/${cohortID}`, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const deleteCohortApi = async (cohortID) => {
+  return await axios
+    .delete(`${COHORTS}/${cohortID}`, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const deleteGridApi = async (gridID) => {
+  return await axios
+    .delete(`${GRIDS}/${gridID}`, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const updateCohortApi = async (cohortID, cohortData) => {
+  return await axios
+    .put(`${COHORTS}/${cohortID}`, cohortData, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const updateGridApi = async (gridID, gridData) => {
+  return await axios
+    .put(`${GRIDS}/${gridID}`, gridData, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const assignDevicesToCohort = async (cohortID, deviceIDs) => {
+  return await axios
+    .post(
+      `${COHORTS}/${cohortID}/assign-devices`,
+      { device_ids: deviceIDs },
+      { params: { token: BASE_AUTH_TOKEN } }
+    )
+    .then((response) => response.data);
+};
+
+export const createGridApi = async (gridData) => {
+  return await axios
+    .post(GRIDS, gridData, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const refreshGridApi = async (gridID) => {
+  return await axios
+    .put(`${GRIDS}/refresh/${gridID}`, { params: { token: BASE_AUTH_TOKEN } })
     .then((response) => response.data);
 };
 
