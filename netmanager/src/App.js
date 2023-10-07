@@ -54,10 +54,6 @@ if (localStorage.jwtToken) {
 }
 
 const App = () => {
-  React.useEffect(() => {
-    window.initMap = function () {};
-  }, []);
-
   return (
     <Provider store={store}>
       <ThemeProvider theme={theme}>
