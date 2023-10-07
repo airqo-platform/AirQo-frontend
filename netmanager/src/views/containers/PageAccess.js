@@ -8,7 +8,7 @@ export const withPermission = (Component, requiredPermission) => {
     // Check if the user has the required permission
     const hasPermission =
       currentRole &&
-      currentRole.role_permissions.some(
+      currentRole?.role_permissions?.some(
         (permission) => permission.permission === requiredPermission
       );
 
