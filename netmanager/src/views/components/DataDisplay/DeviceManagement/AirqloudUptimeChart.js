@@ -10,6 +10,7 @@ import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
 import { Button, TextField, Typography } from '@material-ui/core';
 import ScheduleIcon from '@material-ui/icons/Schedule';
 import { useDispatch } from 'react-redux';
+import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 
 const AirqloudUptimeChart = () => {
   const dispatch = useDispatch();
@@ -19,7 +20,7 @@ const AirqloudUptimeChart = () => {
   const currentAirqloud = useCurrentAirQloudData();
   const airqlouds = Object.values(useDashboardAirqloudsData());
   const [editableStartDate, setEditableStartDate] = useState(
-    roundToStartOfDay(moment(new Date()).subtract(1, 'days').toISOString()).toISOString()
+    roundToStartOfDay(moment().subtract(1, 'days').toISOString()).toISOString()
   );
   const [editableEndDate, setEditableEndDate] = useState(
     roundToEndOfDay(new Date().toISOString()).toISOString()
@@ -115,110 +116,112 @@ const AirqloudUptimeChart = () => {
   };
 
   return (
-    <ApexChart
-      options={createPieChartOptions(['#FF2E2E', '#00A300'], ['Downtime', 'Uptime'])}
-      series={airqloudUptime}
-      title={activeAirqloud ? `Health status for ${activeAirqloud.long_name}` : 'Health status'}
-      type="pie"
-      blue
-      centerItems
-      disableController={true}
-      closeController={closeController}
-      loading={airqloudUptimeLoading}
-      customController={
-        <div>
-          <TextField
-            label="Start date"
-            id="startDate"
-            fullWidth
-            style={{ marginTop: '15px' }}
-            value={editableStartDate?.slice(0, 10)}
-            onChange={(e) => {
-              setEditableStartDate(e.target.value);
-            }}
-            variant="outlined"
-            InputLabelProps={{ shrink: true }}
-            type="date"
-          />
+    <ErrorBoundary>
+      <ApexChart
+        options={createPieChartOptions(['#FF2E2E', '#00A300'], ['Downtime', 'Uptime'])}
+        series={airqloudUptime}
+        title={activeAirqloud ? `Health status for ${activeAirqloud.long_name}` : 'Health status'}
+        type="pie"
+        blue
+        centerItems
+        disableController={true}
+        closeController={closeController}
+        loading={airqloudUptimeLoading}
+        customController={
+          <div>
+            <TextField
+              label="Start date"
+              id="startDate"
+              fullWidth
+              style={{ marginTop: '15px' }}
+              value={editableStartDate?.slice(0, 10)}
+              onChange={(e) => {
+                setEditableStartDate(e.target.value);
+              }}
+              variant="outlined"
+              InputLabelProps={{ shrink: true }}
+              type="date"
+            />
 
-          <TextField
-            label="End date"
-            id="endDate"
-            fullWidth
-            style={{ marginTop: '15px' }}
-            value={editableEndDate?.slice(0, 10)}
-            onChange={(e) => {
-              setEditableEndDate(e.target.value);
-            }}
-            type="date"
-            InputLabelProps={{ shrink: true }}
-            variant="outlined"
-          />
-          <TextField
-            select
-            label="Choose airqloud"
-            id="activeAirqloud"
-            fullWidth
-            style={{ marginTop: '15px' }}
-            value={activeAirqloud ? activeAirqloud._id : ''}
-            onChange={(e) => {
-              const selectedAirqloud = airqlouds.find(
-                (airqloud) => airqloud._id === e.target.value
-              );
-              setActiveAirqloud(selectedAirqloud);
-            }}
-            SelectProps={{
-              native: true,
-              style: { width: '100%', height: '40px' }
-            }}
-            variant="outlined"
-            InputLabelProps={{ shrink: true }}
-          >
-            <option
-              value={activeAirqloud._id}
-              style={{
-                background: 'blue',
-                color: '#fff'
+            <TextField
+              label="End date"
+              id="endDate"
+              fullWidth
+              style={{ marginTop: '15px' }}
+              value={editableEndDate?.slice(0, 10)}
+              onChange={(e) => {
+                setEditableEndDate(e.target.value);
               }}
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              variant="outlined"
+            />
+            <TextField
+              select
+              label="Choose airqloud"
+              id="activeAirqloud"
+              fullWidth
+              style={{ marginTop: '15px' }}
+              value={activeAirqloud ? activeAirqloud._id : ''}
+              onChange={(e) => {
+                const selectedAirqloud = airqlouds.find(
+                  (airqloud) => airqloud._id === e.target.value
+                );
+                setActiveAirqloud(selectedAirqloud);
+              }}
+              SelectProps={{
+                native: true,
+                style: { width: '100%', height: '40px' }
+              }}
+              variant="outlined"
+              InputLabelProps={{ shrink: true }}
             >
-              {activeAirqloud.long_name}
-            </option>
-            {airqloudsLoading && <option value="">Loading...</option>}
-            {airqlouds.map((airqloud) => (
-              <option key={airqloud._id} value={airqloud._id}>
-                {airqloud.long_name}
+              <option
+                value={activeAirqloud._id}
+                style={{
+                  background: 'blue',
+                  color: '#fff'
+                }}
+              >
+                {activeAirqloud.long_name}
               </option>
-            ))}
-          </TextField>
-          <Button
-            variant="contained"
-            color="primary"
-            style={{ marginTop: '15px' }}
-            onClick={resetAirqloudUptimeChart}
-          >
-            Reset chart
-          </Button>
-          {errorMsg && (
-            <Typography
-              variant="body1"
-              style={{
-                color: 'red',
-                marginTop: '8px'
-              }}
+              {airqloudsLoading && <option value="">Loading...</option>}
+              {airqlouds.map((airqloud) => (
+                <option key={airqloud._id} value={airqloud._id}>
+                  {airqloud.long_name}
+                </option>
+              ))}
+            </TextField>
+            <Button
+              variant="contained"
+              color="primary"
+              style={{ marginTop: '15px' }}
+              onClick={resetAirqloudUptimeChart}
             >
-              {errorMsg}
-            </Typography>
-          )}
-        </div>
-      }
-      footerContent={
-        <div>
-          <ScheduleIcon />
-          From {moment.utc(editableStartDate).format('DD MMM yyyy HH:mm:ss')} to{' '}
-          {moment.utc(editableEndDate).format('DD MMM yyyy HH:mm:ss')}
-        </div>
-      }
-    />
+              Reset chart
+            </Button>
+            {errorMsg && (
+              <Typography
+                variant="body1"
+                style={{
+                  color: 'red',
+                  marginTop: '8px'
+                }}
+              >
+                {errorMsg}
+              </Typography>
+            )}
+          </div>
+        }
+        footerContent={
+          <div>
+            <ScheduleIcon />
+            From {moment.utc(editableStartDate).format('DD MMM yyyy HH:mm:ss')} to{' '}
+            {moment.utc(editableEndDate).format('DD MMM yyyy HH:mm:ss')}
+          </div>
+        }
+      />
+    </ErrorBoundary>
   );
 };
 
