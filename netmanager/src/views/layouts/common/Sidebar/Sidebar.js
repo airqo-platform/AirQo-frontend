@@ -16,6 +16,7 @@ import AspectRatioIcon from '@material-ui/icons/AspectRatio';
 import SupervisedUserCircleIcon from '@material-ui/icons/SupervisedUserCircle';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import AirQloudIcon from '@material-ui/icons/FilterDrama';
+import BubbleChartIcon from '@material-ui/icons/BubbleChart';
 import SupervisorAccountIcon from '@material-ui/icons/SupervisorAccount';
 import BusinessIcon from '@material-ui/icons/Business';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
@@ -146,6 +147,12 @@ const allMainPages = [
     href: '/airqlouds',
     icon: <AirQloudIcon />,
     permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
+  },
+  {
+    title: 'Heat Map',
+    href: '/heatMap',
+    icon: <BubbleChartIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
   }
 ];
 
@@ -214,6 +221,10 @@ const Sidebar = (props) => {
   const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
+    if (isEmpty(user)) {
+      return;
+    }
+
     setLoading(true);
 
     const activeNewtork = JSON.parse(localStorage.getItem('activeNetwork'));
