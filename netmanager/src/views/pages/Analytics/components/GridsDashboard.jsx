@@ -89,16 +89,18 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
         <Grid container spacing={4}>
           <AveragesChart classes={classes} analyticsSites={gridInfo.sites} isGrids={true} />
 
-          <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-            <ExceedancesChart
-              className={clsx(classes.chartCard)}
-              date={dateValue}
-              chartContainer={classes.chartContainer}
-              idSuffix="exceedances"
-              analyticsSites={gridInfo.sites}
-              isGrids={true}
-            />
-          </Grid>
+          {gridInfo && gridInfo.sites && gridInfo.sites.length > 0 && (
+            <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+              <ExceedancesChart
+                className={clsx(classes.chartCard)}
+                date={dateValue}
+                chartContainer={classes.chartContainer}
+                idSuffix="exceedances"
+                analyticsSites={gridInfo.sites}
+                isGrids={true}
+              />
+            </Grid>
+          )}
 
           <Grid item lg={12} md={12} sm={12} xl={12} xs={12}>
             <GridSitesTable sites={gridInfo.sites} />

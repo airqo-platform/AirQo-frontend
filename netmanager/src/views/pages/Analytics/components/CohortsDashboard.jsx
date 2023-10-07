@@ -43,11 +43,13 @@ const CohortsDashboardView = ({ cohort, cohortDetails, loading }) => {
           </Grid>
         </Box>
 
-        <Grid container spacing={4}>
-          <Grid item lg={12} md={12} sm={12} xl={12} xs={12}>
-            <CohortDevicesTable devices={cohortInfo.devices} loading={loading} />
+        {cohortInfo && cohortInfo.devices && cohortInfo.devices.length > 0 && (
+          <Grid container spacing={4}>
+            <Grid item lg={12} md={12} sm={12} xl={12} xs={12}>
+              <CohortDevicesTable devices={cohortInfo.devices} loading={loading} />
+            </Grid>
           </Grid>
-        </Grid>
+        )}
       </Box>
     </ErrorBoundary>
   );

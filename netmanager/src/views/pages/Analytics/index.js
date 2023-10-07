@@ -193,6 +193,7 @@ const Analytics = () => {
           flexDirection={{ xs: 'column', sm: 'column', md: 'row', lg: 'row', xl: 'row' }}
           justifyContent={'space-between'}
           width={'100%'}
+          position={'relative'}
         >
           <Box
             width={'100%'}
@@ -209,7 +210,13 @@ const Analytics = () => {
               }
             />
           </Box>
-          <Box width={'100%'} display={'flex'} justifyContent={'center'} alignItems={'flex-end'}>
+          <Box
+            width={'100%'}
+            display={'flex'}
+            justifyContent={'center'}
+            alignItems={'flex-end'}
+            marginTop={{ xs: '25px', sm: '25px', md: '0', lg: '0', xl: '0' }}
+          >
             <Button
               margin="dense"
               color="primary"

@@ -22,7 +22,7 @@ const CohortDevicesTable = ({ devices, loading }) => {
           createdAt: device.createdAt
         });
       });
-      setDevicesData(devices);
+      setDevicesData(deviceList);
     }
   }, [devices]);
 
