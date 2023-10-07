@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import clsx from 'clsx';
-import { Box, Button, Grid, Typography, makeStyles } from '@material-ui/core';
+import { Box, Grid, Typography, makeStyles } from '@material-ui/core';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import 'chartjs-plugin-annotation';
 import { AveragesChart, ExceedancesChart } from '../../Dashboard/components';
 import GridSitesTable from './SitesTable';
-import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   chartCard: {},
