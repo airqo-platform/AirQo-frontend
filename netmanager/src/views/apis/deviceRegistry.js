@@ -24,7 +24,11 @@ import {
 } from 'config/urls/deviceRegistry';
 import { DEVICE_MAINTENANCE_LOG_URI } from 'config/urls/deviceMonitoring';
 import { DEVICE_RECENT_FEEDS } from 'config/urls/dataManagement';
-import { GET_DEVICE_IMAGES, SOFT_EDIT_DEVICE_IMAGE } from '../../config/urls/deviceRegistry';
+import {
+  GET_AIRQLOUDS_SUMMARY,
+  GET_DEVICE_IMAGES,
+  SOFT_EDIT_DEVICE_IMAGE
+} from '../../config/urls/deviceRegistry';
 import { BASE_AUTH_TOKEN } from '../../utils/envVariables';
 
 export const getAllDevicesApi = async (networkID) => {
@@ -183,6 +187,12 @@ export const getAirQloudsApi = async (params) => {
 export const getDashboardAirQloudsApi = async (params) => {
   return await axios
     .get(DASHBOARD_AIRQLOUDS, { params: { ...params, token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const getAirqloudsSummaryApi = async (params) => {
+  return await axios
+    .get(GET_AIRQLOUDS_SUMMARY, { params: { ...params, token: BASE_AUTH_TOKEN } })
     .then((response) => response.data);
 };
 

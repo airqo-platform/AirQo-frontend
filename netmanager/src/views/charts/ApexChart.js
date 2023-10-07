@@ -2,15 +2,17 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import ReactApexChart from 'react-apexcharts';
 import EditIcon from '@material-ui/icons/Edit';
-import { TextField } from '@material-ui/core';
+import { Box, TextField, Typography } from '@material-ui/core';
 import RichTooltip from 'views/containers/RichToolTip';
 import ChartContainer from './ChartContainer';
 import ApexCharts from 'apexcharts';
+import { isEmpty } from 'validate.js';
 
 const ApexChart = (props) => {
   const [chartType, setChartType] = useState(props.type);
   const [series, setSeries] = useState(props.series);
   const [open, setOpen] = useState(false);
+  const [openCustomController, setOpenCustomController] = useState(false);
 
   useEffect(() => {
     if (props.series && props.series.length > 0) {
@@ -33,10 +35,12 @@ const ApexChart = (props) => {
 
   function updateChartData() {
     const newData = Math.random() * 100;
-    const newSeries = series & (series.length > 0) && series.slice();
+    const newSeries = series && series.length > 0 && series.slice();
 
     const lastDataPoint =
-      newSeries[0].data.length > 0 ? newSeries[0].data[newSeries[0].data.length - 1] : null;
+      newSeries && newSeries.length > 0 && newSeries[0].data.length > 0
+        ? newSeries[0].data[newSeries[0].data.length - 1]
+        : null;
     // Fill in missing data with 0 values
     if (lastDataPoint) {
       console.log('filling in');
@@ -63,6 +67,12 @@ const ApexChart = (props) => {
     setChartType(value);
   }
 
+  useEffect(() => {
+    if (props.closeController) {
+      setOpenCustomController(false);
+    }
+  }, [props.closeController]);
+
   return (
     <ChartContainer
       className={props.className}
@@ -71,6 +81,7 @@ const ApexChart = (props) => {
       blue={props.blue}
       green={props.green}
       centerItems={props.centerItems}
+      loading={props.loading}
       controller={
         !props.disableController && (
           <RichTooltip
@@ -127,14 +138,32 @@ const ApexChart = (props) => {
         )
       }
       footerContent={props.footerContent}
+      customController={
+        !props.disableCustomController && (
+          <RichTooltip
+            content={<div style={{ width: '200px' }}>{props.customController}</div>}
+            open={openCustomController}
+            onClose={() => setOpenCustomController(false)}
+            placement="bottom-end"
+          >
+            <EditIcon onClick={() => setOpenCustomController(!openCustomController)} />
+          </RichTooltip>
+        )
+      }
     >
-      <ReactApexChart
-        key={chartType}
-        options={props.options}
-        series={series}
-        type={chartType}
-        height="320px"
-      />
+      {isEmpty(props.series) ? (
+        <Typography variant="body1" color="textSecondary">
+          No data found
+        </Typography>
+      ) : (
+        <ReactApexChart
+          key={chartType}
+          options={props.options}
+          series={series}
+          type={chartType}
+          height="320px"
+        />
+      )}
     </ChartContainer>
   );
 };
@@ -151,7 +180,12 @@ ApexChart.propTypes = {
   centerItems: PropTypes.bool,
   footerContent: PropTypes.any,
   disableController: PropTypes.bool,
-  controllerChildren: PropTypes.any
+  controllerChildren: PropTypes.any,
+  customController: PropTypes.any,
+  customControllerChildren: PropTypes.any,
+  disableCustomController: PropTypes.bool,
+  closeController: PropTypes.bool,
+  loading: PropTypes.bool
 };
 
 export default ApexChart;

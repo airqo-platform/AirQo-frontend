@@ -3,16 +3,13 @@ import ReloadIcon from '@material-ui/icons/Replay';
 import { Box, Tooltip, makeStyles } from '@material-ui/core';
 import Select from 'react-select';
 import { useDispatch } from 'react-redux';
-import { useAirQloudsData } from 'utils/customHooks/AirQloudsHooks';
-import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
-import { setCurrentAirQloudData } from 'redux/AirQloud/operations';
+import { useCurrentAirQloudData, useAirqloudsSummaryData } from 'redux/AirQloud/selectors';
+import { setCurrentAirQloudData, fetchAirqloudsSummaryData } from 'redux/AirQloud/operations';
 import { resetDefaultGraphData } from 'redux/Dashboard/operations';
 import { refreshAirQloud } from 'redux/AirQloud/operations';
 
 import 'assets/css/dropdown.css';
-import { useDashboardAirqloudsData } from '../../redux/AirQloud/selectors';
 import { isEmpty } from 'underscore';
-import { fetchDashboardAirQloudsData } from '../../redux/AirQloud/operations';
 
 const customStyles = {
   control: (baseStyles, state) => ({
@@ -39,7 +36,7 @@ const AirQloudDropDown = () => {
   const classes = useStyles();
   const currentAirqQloud = useCurrentAirQloudData();
   const dispatch = useDispatch();
-  const airqlouds = Object.values(useDashboardAirqloudsData());
+  const airqlouds = useAirqloudsSummaryData();
 
   const handleAirQloudChange = (selectedOption) => {
     const airqloud = selectedOption ? selectedOption.value : null;
@@ -54,7 +51,7 @@ const AirQloudDropDown = () => {
 
   useEffect(() => {
     if (isEmpty(airqlouds)) {
-      dispatch(fetchDashboardAirQloudsData());
+      dispatch(fetchAirqloudsSummaryData());
     }
   }, []);
 
@@ -63,7 +60,7 @@ const AirQloudDropDown = () => {
     label: (
       <div className="site">
         <span className="long_name">{airqloud.long_name}</span>
-        <span className="site-count">({airqloud.sites.length} sites)</span>
+        <span className="site-count">({airqloud.numberOfSites} sites)</span>
       </div>
     )
   }));
