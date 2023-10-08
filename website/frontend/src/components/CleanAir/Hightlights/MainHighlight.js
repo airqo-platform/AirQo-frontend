@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { loadPressData } from '../../../../reduxStore/Press/PressSlice';
 import { getAllEvents } from '../../../../reduxStore/Events/EventSlice';
@@ -12,11 +12,15 @@ const Highlight = () => {
   const eventsData = useSelector((state) => state.eventsData.events);
 
   useEffect(() => {
-    if (isEmpty(pressData)) {
-      dispatch(loadPressData());
-    }
-    if (isEmpty(eventsData)) {
-      dispatch(getAllEvents());
+    try {
+      if (isEmpty(pressData)) {
+        dispatch(loadPressData());
+      }
+      if (isEmpty(eventsData)) {
+        dispatch(getAllEvents());
+      }
+    } catch (err) {
+      console.log('Error in loading data', err);
     }
   }, [dispatch, pressData, eventsData]);
 
@@ -28,6 +32,10 @@ const Highlight = () => {
   const latestEvents = eventsData
     .filter((event) => event.website_category === 'cleanair')
     .slice(0, 2);
+
+  if (!latestNewsItem && latestEvents.length === 0) {
+    return null;
+  }
 
   return (
     <div className="CleanAir-highlights">

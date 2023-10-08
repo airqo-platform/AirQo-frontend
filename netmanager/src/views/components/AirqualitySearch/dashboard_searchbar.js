@@ -32,15 +32,19 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     alignItems: 'center',
     width: '100%',
-    borderColor: '#eee'
+    borderColor: '#eee',
+    maxHeight: '44px',
+    height: '44px',
+    padding: '0px',
+    fontSize: '14px'
   },
   input: {
     marginLeft: theme.spacing(1),
-    flex: 1,
+    width: '100%',
     marginBottom: '-4px'
   },
   iconButton: {
-    padding: 10
+    // padding: 10,
   },
   searchFormDialog: {
     padding: theme.spacing(4)

@@ -8,7 +8,9 @@ import {
   LOAD_DASHBOARD_AIRQLOUDS_FAILURE,
   LOAD_SELECTED_AIRQLOUD_SUCCESS,
   LOAD_SELECTED_AIRQLOUD_FAILURE,
-  REMOVE_SELECTED_AIRQLOUD_SUCCESS
+  REMOVE_SELECTED_AIRQLOUD_SUCCESS,
+  LOAD_AIRQLOUDS_SUMMARY_SUCCESS,
+  LOAD_AIRQLOUDS_SUMMARY_FAILURE
 } from './actions';
 import { isEmpty } from 'underscore';
 import {
@@ -19,6 +21,7 @@ import {
 import { transformArray } from '../utils';
 import { createSiteOptions } from 'utils/sites';
 import { updateMainAlert } from '../MainAlert/operations';
+import { getAirqloudsSummaryApi } from '../../views/apis/deviceRegistry';
 
 const createAirqloudSiteOptions = (airqloud) => {
   return { ...airqloud, siteOptions: createSiteOptions(airqloud.sites || []) };
@@ -160,4 +163,20 @@ export const removeAirQloudData = () => (dispatch) => {
     type: REMOVE_SELECTED_AIRQLOUD_SUCCESS,
     payload: {}
   });
+};
+
+export const fetchAirqloudsSummaryData = () => async (dispatch) => {
+  return await getAirqloudsSummaryApi()
+    .then((resData) => {
+      dispatch({
+        type: LOAD_AIRQLOUDS_SUMMARY_SUCCESS,
+        payload: resData.airqlouds
+      });
+    })
+    .catch((err) => {
+      dispatch({
+        type: LOAD_AIRQLOUDS_SUMMARY_FAILURE,
+        payload: err
+      });
+    });
 };
