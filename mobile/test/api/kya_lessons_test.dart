@@ -11,6 +11,10 @@ import 'package:mockito/mockito.dart';
 
 import 'kya_lessons_test.mocks.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
+class MockSharedPreferences extends Mock implements SharedPreferences {}
+
 @GenerateMocks([http.Client])
 Future<void> main() async {
   late MockClient client;
@@ -121,7 +125,7 @@ Future<void> main() async {
       };
       client = MockClient();
     });
-
+    final mockPrefs = MockSharedPreferences();
     test('successfully get mocked user lessons', () async {
       when(
         client.get(
@@ -138,6 +142,21 @@ Future<void> main() async {
 
       AirqoApiClient airqoApiClient = AirqoApiClient(client: client);
       List<KyaLesson> lessons = await airqoApiClient.fetchKyaLessons("");
+
+      expect(lessons, isA<List<KyaLesson>>());
+      expect(lessons.isNotEmpty, true);
+      for (KyaLesson lesson in lessons) {
+        expect(lesson.activeTask, 1);
+        expect(lesson.status, KyaLessonStatus.todo);
+        expect(lesson.tasks.isNotEmpty, true);
+      }
+    });
+
+    test('successfully get translated Kya lessons', () async {
+      when(mockPrefs.getString("language")).thenReturn("fr");
+
+      String userId = "";
+      List<KyaLesson> lessons = await AirqoApiClient().fetchKyaLessons(userId);
 
       expect(lessons, isA<List<KyaLesson>>());
       expect(lessons.isNotEmpty, true);
