@@ -37,7 +37,7 @@ platform :android do
       release_notes_file: "fastlane/release_notes.txt",
       service_credentials_file: "fastlane/firebase-app-distribution.json",
       android_artifact_type: "AAB",
-      groups: "noble-trial",
+      groups: "airqo-team",
       )
   end
 end
