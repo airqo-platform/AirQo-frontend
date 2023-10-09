@@ -78,6 +78,6 @@ jobs:
           cd android/
           echo $MOBILE_ANDROID_PLAYSTORE_SA > play-store-service-account.json
           bundle exec fastlane supply init
-          bundle exec fastlane android production
+          bundle exec fastlane android play_store
         env:
           MOBILE_ANDROID_PLAYSTORE_SA: ${{secrets.MOBILE_ANDROID_PLAYSTORE_SA}}
