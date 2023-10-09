@@ -38,7 +38,9 @@ class _FavouritePlacesPageState extends State<FavouritePlacesPage> {
               return AppRefreshIndicator(
                 sliverChildDelegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    return Padding(
+                    return AnimatedPadding(
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeIn,
                       padding: EdgeInsets.only(
                         top: Config.refreshIndicatorPadding(index),
                       ),
