@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import CustomMaterialTable from '../../../components/Table/CustomMaterialTable';
+import CustomMaterialTable from '../../components/Table/CustomMaterialTable';
 import { useHistory } from 'react-router-dom';
 import { updateDeviceDetails } from 'redux/DeviceOverview/OverviewSlice';
 import { useDispatch } from 'react-redux';
@@ -30,7 +30,6 @@ const CohortDevicesTable = ({ devices, loading }) => {
     <CustomMaterialTable
       title="Cohort devices details"
       userPreferencePaginationKey={'cohortDevices'}
-      loading={loading}
       columns={[
         {
           title: 'Device Name',

@@ -16,7 +16,7 @@ import { useDispatch } from 'react-redux';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { setActiveCohort } from 'redux/Analytics/operations';
 
-const AddCohortToolbar = ({ open, handleClose, deviceOptions, isCohort }) => {
+const AddCohortToolbar = ({ open, handleClose, deviceOptions }) => {
   const dispatch = useDispatch();
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
   const [selectedDevices, setSelectedDevices] = useState([]);
@@ -101,7 +101,7 @@ const AddCohortToolbar = ({ open, handleClose, deviceOptions, isCohort }) => {
   };
   return (
     <Dialog
-      open={open && isCohort}
+      open={open}
       onClose={handleClose}
       aria-labelledby="form-dialog-title"
       maxWidth="sm"

@@ -159,6 +159,12 @@ const allMainPages = [
     href: '/heatMap',
     icon: <BubbleChartIcon />,
     permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
+  },
+  {
+    title: 'Cohorts Registry',
+    href: '/cohorts',
+    icon: <PeopleIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
   }
 ];
 
@@ -244,6 +250,9 @@ const Sidebar = (props) => {
         dispatch(addActiveNetwork(airqoNetwork));
         dispatch(addCurrentUserRole(airqoNetwork.role));
         localStorage.setItem('currentUserRole', JSON.stringify(airqoNetwork.role));
+      } else {
+        dispatch(addCurrentUserRole(activeNewtork.role));
+        localStorage.setItem('currentUserRole', JSON.stringify(activeNewtork.role));
       }
       setLoading(false);
     }
@@ -287,7 +296,8 @@ const Sidebar = (props) => {
         'Device Registry',
         'Host Registry',
         'Site Registry',
-        'AirQloud Registry'
+        'AirQloud Registry',
+        'Cohorts Registry'
       ]);
       const selectedAdminPages = excludePages(allUserManagementPages, [
         'Users',

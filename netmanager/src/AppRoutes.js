@@ -49,6 +49,8 @@ const Analytics = lazy(() => import('./views/pages/Analytics'));
 const HostRegistry = lazy(() => import('./views/components/Hosts/HostRegistry'));
 const HostView = lazy(() => import('./views/components/Hosts/HostView'));
 const HeatMapOverlay = lazy(() => import('./views/pages/Heatmap/HeatMapOverlay'));
+const CohortsRegistry = lazy(() => import('./views/pages/CohortsRegistry'));
+const CohortDetails = lazy(() => import('./views/pages/CohortsRegistry/CohortDetails'));
 
 const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
@@ -172,6 +174,13 @@ const AppRoutes = ({ auth, logoutUser }) => {
             />
             <PrivateRoute exact path="/registry" component={Devices} layout={MainLayout} />
             <PrivateRoute exact path="/logs" component={Logs} layout={MainLayout} />
+            <PrivateRoute exact path="/cohorts" component={CohortsRegistry} layout={MainLayout} />
+            <PrivateRoute
+              exact
+              path="/cohorts/:cohortName"
+              component={CohortDetails}
+              layout={MainLayout}
+            />
             <PrivateRoute
               component={PermissionDenied}
               exact

@@ -15,7 +15,7 @@ import PolygonMap from './PolygonMap';
 import { createGridApi } from 'views/apis/deviceRegistry';
 import Alert from '@material-ui/lab/Alert';
 import { setActiveGrid } from 'redux/Analytics/operations';
-import { refreshGridApi } from '../../../apis/deviceRegistry';
+import { refreshGridApi } from '../../apis/deviceRegistry';
 
 const AddGridToolbar = ({ open, handleClose, isCohort }) => {
   const dispatch = useDispatch();

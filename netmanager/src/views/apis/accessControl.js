@@ -7,8 +7,10 @@ import {
 } from '../../config/urls/analytics';
 import { GET_ACCESS_TOKEN } from '../../config/urls/authService';
 import { BASE_AUTH_TOKEN } from '../../utils/envVariables';
+import { isEmpty } from 'validate.js';
 
-axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
+const jwtToken = localStorage.getItem('jwtToken');
+axios.defaults.headers.common.Authorization = jwtToken;
 
 export const createAccessToken = async (data) => {
   return await axios.post(GET_ACCESS_TOKEN, data).then((response) => response.data);

@@ -1,5 +1,5 @@
 import React from 'react';
-import CustomMaterialTable from '../../../components/Table/CustomMaterialTable';
+import CustomMaterialTable from '../../components/Table/CustomMaterialTable';
 import { useHistory } from 'react-router-dom';
 
 const GridSitesTable = ({ sites }) => {
