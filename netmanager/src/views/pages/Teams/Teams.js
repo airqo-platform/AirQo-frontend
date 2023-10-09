@@ -14,16 +14,14 @@ import {
   DialogTitle,
   TextField,
   Grid,
-  Paper,
-  Typography,
   IconButton
 } from '@material-ui/core';
-import { createTeamApi, getTeamsApi } from '../../apis/accessControl';
+import { createTeamApi } from '../../apis/accessControl';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Tooltip from '@material-ui/core/Tooltip';
 import { getUserDetails } from 'redux/Join/actions';
-import { addUserGroupSummary } from 'redux/AccessControl/operations';
+import { Close as CloseIcon } from '@material-ui/icons';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -89,7 +87,7 @@ const CreateTeam = ({
     setErrors({ ...errors, [name]: '' });
   };
 
-  const handleCreateTeam = () => {
+  const handleCreateTeam = async () => {
     setIsLoading(true);
     setErrors({
       name: team.name ? '' : 'Team Name is required',
@@ -102,29 +100,32 @@ const CreateTeam = ({
         grp_description: team.description
       };
 
-      createTeamApi(teamData)
-        .then((res) => {
-          handleClose();
-          setIsLoading(false);
-          dispatch(
-            updateMainAlert({
-              severity: 'success',
-              message: res.message,
-              show: true
-            })
-          );
-          setRefresh(true);
-        })
-        .catch((err) => {
+      try {
+        const res = await createTeamApi(teamData);
+        handleClose();
+        dispatch(
+          updateMainAlert({
+            severity: 'success',
+            message: 'Team created successfully',
+            show: true
+          })
+        );
+        setRefresh(true);
+      } catch (err) {
+        if (err.response.status === 409) {
           setErrors({
             showError: true,
-            errorMessage: err.message
+            errorMessage: 'Team with this name already exists.'
           });
-          setIsLoading(false);
-        });
-    } else {
-      setIsLoading(false);
+        } else {
+          setErrors({
+            showError: true,
+            errorMessage: 'Something went wrong. Please try again later.'
+          });
+        }
+      }
     }
+    setIsLoading(false);
   };
 
   return (
@@ -138,10 +139,24 @@ const CreateTeam = ({
       </DialogTitle>
       <DialogContent style={{ maxHeight: 'auto' }}>
         {errors.showError && (
-          <Alert style={{ marginBottom: 10 }} severity="error">
+          <Alert
+            style={{ marginBottom: 10 }}
+            severity="error"
+            action={
+              <IconButton
+                aria-label="close"
+                color="inherit"
+                size="small"
+                onClick={() => {
+                  setErrors({ showError: false });
+                }}>
+                <CloseIcon fontSize="inherit" />
+              </IconButton>
+            }>
             {errors.errorMessage}
           </Alert>
         )}
+
         <TextField
           fullWidth
           margin="dense"
@@ -208,7 +223,6 @@ const Teams = () => {
       getUserDetails(currentUser._id)
         .then((res) => {
           setTeams(res.users[0].groups);
-          //   dispatch(addUserGroupSummary(res.users[0].groups));
         })
         .catch((err) => {
           console.error(err);
