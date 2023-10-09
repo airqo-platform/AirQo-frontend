@@ -44,7 +44,9 @@ class _ForYouPageState extends State<ForYouPage>
           horizontalPadding: 16,
           child: Column(
             children: [
-              Padding(
+              AnimatedPadding(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInCirc,
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Material(
                   color: Colors.white,
@@ -73,7 +75,7 @@ class _ForYouPageState extends State<ForYouPage>
                     builder: Builder(
                       builder: (context) {
                         _showcaseContext = context;
-    
+
                         return TabBar(
                           controller: _tabController,
                           indicatorColor: Colors.transparent,

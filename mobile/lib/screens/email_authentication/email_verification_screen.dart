@@ -77,7 +77,9 @@ class _EmailAuthVerificationWidgetState
                     key: _formKey,
                     child: SizedBox(
                       height: 64,
-                      child: Padding(
+                      child: AnimatedPadding(
+                        duration: const Duration(milliseconds: 500),
+                        curve: Curves.easeIn,
                         padding: const EdgeInsets.symmetric(horizontal: 36),
                         child: TextFormField(
                           validator: (value) {

@@ -179,7 +179,9 @@ class KyaLessonCardWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Padding(
+                AnimatedPadding(
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeIn,
                   padding: const EdgeInsets.only(bottom: 2),
                   child: AutoSizeText(
                     kyaLesson.title,

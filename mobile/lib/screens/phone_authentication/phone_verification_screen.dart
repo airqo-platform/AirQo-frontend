@@ -75,7 +75,9 @@ class _PhoneAuthVerificationWidgetState
                   ),
                   Form(
                     key: _formKey,
-                    child: Padding(
+                    child: AnimatedPadding(
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeIn,
                       padding: const EdgeInsets.symmetric(horizontal: 36),
                       child: TextFormField(
                         validator: (value) {

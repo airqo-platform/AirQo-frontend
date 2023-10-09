@@ -235,7 +235,9 @@ class EmptyNotifications extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
+      child: AnimatedPadding(
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeIn,
         padding: const EdgeInsets.symmetric(horizontal: 33),
         child: Column(
           children: [
