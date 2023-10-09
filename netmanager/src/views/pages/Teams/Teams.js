@@ -23,6 +23,7 @@ import { updateMainAlert } from 'redux/MainAlert/operations';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Tooltip from '@material-ui/core/Tooltip';
 import { getUserDetails } from 'redux/Join/actions';
+import { addUserGroupSummary } from 'redux/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -62,7 +63,12 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const CreateTeam = ({ showCreateTeamDialog, setShowCreateTeamDialog, setIsLoading }) => {
+const CreateTeam = ({
+  showCreateTeamDialog,
+  setShowCreateTeamDialog,
+  setIsLoading,
+  setRefresh
+}) => {
   const dispatch = useDispatch();
   const [team, setTeam] = useState({ name: '', description: '' });
   const [errors, setErrors] = useState({
@@ -98,7 +104,6 @@ const CreateTeam = ({ showCreateTeamDialog, setShowCreateTeamDialog, setIsLoadin
 
       createTeamApi(teamData)
         .then((res) => {
-          console.log('res', res);
           handleClose();
           setIsLoading(false);
           dispatch(
@@ -108,6 +113,7 @@ const CreateTeam = ({ showCreateTeamDialog, setShowCreateTeamDialog, setIsLoadin
               show: true
             })
           );
+          setRefresh(true);
         })
         .catch((err) => {
           setErrors({
@@ -182,9 +188,11 @@ const CreateTeam = ({ showCreateTeamDialog, setShowCreateTeamDialog, setIsLoadin
 const Teams = () => {
   const classes = useStyles();
   const history = useHistory();
-  const dispatch = useDispatch();
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [refresh, setRefresh] = useState(false);
+  const dispatch = useDispatch();
   const [showCreateTeamDialog, setShowCreateTeamDialog] = useState(false);
 
   //   get currentUser from localStorage
@@ -200,6 +208,7 @@ const Teams = () => {
       getUserDetails(currentUser._id)
         .then((res) => {
           setTeams(res.users[0].groups);
+          //   dispatch(addUserGroupSummary(res.users[0].groups));
         })
         .catch((err) => {
           console.error(err);
@@ -208,11 +217,11 @@ const Teams = () => {
           setLoading(false);
         });
     }
-  }, []);
+  }, [refresh]);
 
   return (
     <ErrorBoundary>
-      <HorizontalLoader loading={loading} />
+      <HorizontalLoader loading={isLoading} />
       <div className={classes.root}>
         <div
           style={{
@@ -233,21 +242,14 @@ const Teams = () => {
           columns={[
             { id: 'grp_title', label: 'Team title', format: (value, row) => row.grp_title },
             {
-              id: 'grp_status',
+              id: 'status',
               label: 'Status',
               format: (value, row) => {
                 return (
-                  <span style={{ color: row.grp_status === 'ACTIVE' ? 'green' : 'red' }}>
-                    {row.grp_status}
+                  <span style={{ color: row.status === 'ACTIVE' ? 'green' : 'red' }}>
+                    {row.status}
                   </span>
                 );
-              }
-            },
-            {
-              id: 'numberOfGroupUsers',
-              label: 'Members count',
-              format: (value, row) => {
-                return <span>{row.numberOfGroupUsers}</span>;
               }
             },
             {
@@ -281,7 +283,8 @@ const Teams = () => {
         <CreateTeam
           showCreateTeamDialog={showCreateTeamDialog}
           setShowCreateTeamDialog={setShowCreateTeamDialog}
-          setIsLoading={setLoading}
+          setIsLoading={setIsLoading}
+          setRefresh={setRefresh}
         />
       </div>
     </ErrorBoundary>

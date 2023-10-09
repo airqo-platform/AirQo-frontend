@@ -61,7 +61,7 @@ const StyledMenuItem = withStyles((theme) => ({
   }
 }))(MenuItem);
 
-export default function NetworkDropdown({ userNetworks }) {
+export default function NetworkDropdown({ userNetworks, groupData }) {
   const dispatch = useDispatch();
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -74,6 +74,7 @@ export default function NetworkDropdown({ userNetworks }) {
     } else {
       setSelectedItem(userNetworks[0]);
       localStorage.setItem('activeNetwork', JSON.stringify(userNetworks[0]));
+      dispatch(addActiveNetwork(userNetworks[0]));
       dispatch(addActiveNetwork(userNetworks[0]));
       dispatch(loadDevicesData(userNetworks[0].net_name));
       dispatch(loadSitesData(userNetworks[0].net_name));
@@ -93,7 +94,6 @@ export default function NetworkDropdown({ userNetworks }) {
 
   const handleSelect = (item) => {
     setSelectedItem(item);
-    console.log('Selected item:', item);
     localStorage.setItem('activeNetwork', JSON.stringify(item));
     localStorage.setItem('currentUserRole', JSON.stringify(item.role));
     dispatch(loadDevicesData(item.net_name));
@@ -105,29 +105,6 @@ export default function NetworkDropdown({ userNetworks }) {
     window.location.reload();
   };
 
-  const Teams = [
-    {
-      grp_id: '1',
-      grp_name: 'Team 1',
-      role: {
-        id: '1',
-        role_name: 'Admin',
-        role_permissions: []
-      }
-    },
-    {
-      grp_id: '2',
-      grp_name: 'Team 2',
-      role: {
-        id: '2',
-        role_name: 'Admin2',
-        role_permissions: []
-      }
-    }
-  ];
-
-  console.log('selectedItem:', localStorage.getItem('activeNetwork'));
-
   return (
     <>
       <Tooltip title={view === 'networks' ? 'Networks' : 'Teams'} placement="bottom">
@@ -137,9 +114,7 @@ export default function NetworkDropdown({ userNetworks }) {
           onClick={handleClick}
           variant="contained"
           color="primary">
-          {(selectedItem &&
-            (view === 'networks' ? selectedItem.net_name : selectedItem.grp_name)) ||
-            'Select Item'}{' '}
+          {selectedItem && (selectedItem.net_name || selectedItem.grp_title)}
           <ArrowDropDown />
         </Button>
       </Tooltip>
@@ -149,15 +124,12 @@ export default function NetworkDropdown({ userNetworks }) {
         keepMounted
         open={Boolean(anchorEl)}
         onClose={handleClose}>
-        {(view === 'networks' ? userNetworks : Teams).map((item) => (
+        {(view === 'networks' ? userNetworks : groupData).map((item) => (
           <StyledMenuItem
-            key={item.net_id || item.grp_id}
+            key={item._id}
             onClick={() => handleSelect(item)}
-            selected={
-              selectedItem &&
-              (selectedItem.net_id === item.net_id || selectedItem.grp_id === item.grp_id)
-            }>
-            <ListItemText>{view === 'networks' ? item.net_name : item.grp_name}</ListItemText>
+            selected={selectedItem && selectedItem._id === item._id}>
+            <ListItemText>{view === 'networks' ? item.net_name : item.grp_title}</ListItemText>
           </StyledMenuItem>
         ))}
         <MenuItem onClick={() => setView(view === 'networks' ? 'Teams' : 'networks')}>

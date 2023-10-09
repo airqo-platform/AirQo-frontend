@@ -30,7 +30,8 @@ import { PeopleOutline } from '@material-ui/icons';
 import {
   addCurrentUserRole,
   addUserNetworks,
-  addActiveNetwork
+  addActiveNetwork,
+  addUserGroupSummary
 } from 'redux/AccessControl/operations';
 import NetworkDropdown from './components/NetworkDropdown';
 import { getRoleDetailsApi } from '../../../apis/accessControl';
@@ -231,6 +232,7 @@ const Sidebar = (props) => {
   const currentRole = useSelector((state) => state.accessControl.currentRole);
   const userNetworks = useSelector((state) => state.accessControl.userNetworks);
   const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
+  const groupData = useSelector((state) => state.accessControl.groupsSummary);
 
   useEffect(() => {
     if (isEmpty(user)) {
@@ -239,21 +241,32 @@ const Sidebar = (props) => {
 
     setLoading(true);
 
-    const activeNewtork = JSON.parse(localStorage.getItem('activeNetwork'));
-
-    if (!isEmpty(user)) {
-      dispatch(addUserNetworks(user.networks));
-      localStorage.setItem('userNetworks', JSON.stringify(user.networks));
-      const airqoNetwork = user.networks.find((network) => network.net_name === 'airqo');
-      if (!activeNewtork) {
-        localStorage.setItem('activeNetwork', JSON.stringify(airqoNetwork));
-        dispatch(addActiveNetwork(airqoNetwork));
-        dispatch(addCurrentUserRole(airqoNetwork.role));
-        localStorage.setItem('currentUserRole', JSON.stringify(airqoNetwork.role));
+    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+    const fetchUserDetails = async () => {
+      try {
+        const res = await getUserDetails(user._id);
+        dispatch(addUserNetworks(res.users[0].networks));
+        dispatch(addUserGroupSummary(res.users[0].groups));
+        if (!isEmpty(user)) {
+          localStorage.setItem('userNetworks', JSON.stringify(res.users[0].networks));
+          const airqoNetwork = res.users[0].networks.find(
+            (network) => network.net_name === 'airqo'
+          );
+          if (!activeNetwork) {
+            localStorage.setItem('activeNetwork', JSON.stringify(airqoNetwork));
+            dispatch(addActiveNetwork(airqoNetwork));
+            dispatch(addCurrentUserRole(airqoNetwork.role));
+            localStorage.setItem('currentUserRole', JSON.stringify(airqoNetwork.role));
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }
-    setLoading(false);
+    };
+
+    fetchUserDetails();
   }, []);
 
   useEffect(() => {
@@ -313,8 +326,7 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}
-    >
+      variant={variant}>
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />
@@ -358,7 +370,7 @@ const Sidebar = (props) => {
           </>
         ) : (
           <>
-            {userNetworks && <NetworkDropdown userNetworks={userNetworks} />}
+            {userNetworks && <NetworkDropdown userNetworks={userNetworks} groupData={groupData} />}
             <SidebarNav className={classes.nav} pages={userPages} />
             <Divider className={classes.divider} />
             <SidebarNav className={classes.nav} pages={adminPages} />
