@@ -15,7 +15,9 @@ import EditLocationIcon from '@material-ui/icons/EditLocation';
 import AspectRatioIcon from '@material-ui/icons/AspectRatio';
 import SupervisedUserCircleIcon from '@material-ui/icons/SupervisedUserCircle';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import TimelineIcon from '@material-ui/icons/Timeline';
 import AirQloudIcon from '@material-ui/icons/FilterDrama';
+import BubbleChartIcon from '@material-ui/icons/BubbleChart';
 import SupervisorAccountIcon from '@material-ui/icons/SupervisorAccount';
 import BusinessIcon from '@material-ui/icons/Business';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
@@ -92,7 +94,12 @@ const allMainPages = [
     href: '/dashboard',
     icon: <DashboardIcon />
   },
-
+  {
+    title: 'Analytics',
+    href: '/analytics',
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
+    icon: <TimelineIcon />
+  },
   {
     title: 'Export data',
     href: '/export-data',
@@ -145,6 +152,12 @@ const allMainPages = [
     title: 'AirQloud Registry',
     href: '/airqlouds',
     icon: <AirQloudIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
+  },
+  {
+    title: 'Heat Map',
+    href: '/heatMap',
+    icon: <BubbleChartIcon />,
     permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
   }
 ];
@@ -214,37 +227,25 @@ const Sidebar = (props) => {
   const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
+    if (isEmpty(user)) {
+      return;
+    }
+
     setLoading(true);
 
-    if (!isEmpty(user)) {
-      getUserDetails(user._id)
-        .then((res) => {
-          dispatch(addUserNetworks(res.users[0].networks));
-          localStorage.setItem('userNetworks', JSON.stringify(res.users[0].networks));
-          localStorage.setItem('currentUser', JSON.stringify(res.users[0]));
+    const activeNewtork = JSON.parse(localStorage.getItem('activeNetwork'));
 
-          res.users[0].networks.map((network) => {
-            if (network.net_name === 'airqo') {
-              localStorage.setItem('activeNetwork', JSON.stringify(network));
-              dispatch(addActiveNetwork(network));
-              dispatch(addCurrentUserRole(network.role));
-              localStorage.setItem('currentUserRole', JSON.stringify(network.role));
-            }
-          });
-          setLoading(false);
-        })
-        .catch((error) => {
-          const errors = error.response && error.response.data && error.response.data.errors;
-          dispatch(
-            updateMainAlert({
-              message: error.response && error.response.data && error.response.data.message,
-              show: true,
-              severity: 'error',
-              extra: createAlertBarExtraContentFromObject(errors || {})
-            })
-          );
-          setLoading(false);
-        });
+    if (!isEmpty(user)) {
+      dispatch(addUserNetworks(user.networks));
+      localStorage.setItem('userNetworks', JSON.stringify(user.networks));
+      const airqoNetwork = user.networks.find((network) => network.net_name === 'airqo');
+      if (!activeNewtork) {
+        localStorage.setItem('activeNetwork', JSON.stringify(airqoNetwork));
+        dispatch(addActiveNetwork(airqoNetwork));
+        dispatch(addCurrentUserRole(airqoNetwork.role));
+        localStorage.setItem('currentUserRole', JSON.stringify(airqoNetwork.role));
+      }
+      setLoading(false);
     }
     setLoading(false);
   }, []);

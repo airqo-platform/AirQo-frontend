@@ -18,6 +18,7 @@ import accessControlReducer from './AccessControl/reducers';
 import deviceOverviewReducer from './DeviceOverview/OverviewSlice';
 import googlePlacesReducer from './GooglePlaces/reducer';
 import LogsReducer from './Logs/reducer';
+import AnalyticsReducer from './Analytics/reducer';
 
 export default combineReducers({
   auth: authReducer,
@@ -38,5 +39,6 @@ export default combineReducers({
   accessControl: accessControlReducer,
   deviceOverviewData: deviceOverviewReducer,
   googlePlaces: googlePlacesReducer,
-  logs: LogsReducer
+  logs: LogsReducer,
+  analytics: AnalyticsReducer
 });

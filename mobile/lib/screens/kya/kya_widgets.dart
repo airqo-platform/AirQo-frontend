@@ -180,16 +180,16 @@ class KyaLessonCardWidget extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Flexible(
-                    flex: 3,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: AutoSizeText(
-                        kyaLesson.title,
-                        maxLines: 5,
-                        overflow: TextOverflow.ellipsis,
-                        style: CustomTextStyle.headline10(context),
-                      ),
-                    )
+                  flex: 3,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 2),
+                    child: AutoSizeText(
+                      kyaLesson.title,
+                      maxLines: 5,
+                      overflow: TextOverflow.ellipsis,
+                      style: CustomTextStyle.headline10(context),
+                    ),
+                  ),
                 ),
                 const Spacer(),
                 Flexible(

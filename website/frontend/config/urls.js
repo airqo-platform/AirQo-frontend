@@ -64,3 +64,6 @@ export const CITIES_URL = `${WEBSITE_BASE_URL}/african_city/`;
 
 // Impact Number url
 export const IMPACT_URL = `${WEBSITE_BASE_URL}/impact/`;
+
+// Clean Air Network urls
+export const CLEAN_AIR_URL = `${WEBSITE_BASE_URL}/cleanair_resources/`;

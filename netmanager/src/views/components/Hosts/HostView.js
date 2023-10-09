@@ -112,14 +112,18 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
     first_name: '',
     last_name: '',
     phone_number: '',
-    email: '',
+    phone_number_2: '',
+    phone_number_3: '',
+    phone_number_4: '',
     site_id: null
   });
   const [errors, setErrors] = useState({
     first_name: false,
     last_name: false,
     phone_number: false,
-    email: false,
+    phone_number_2: false,
+    phone_number_3: false,
+    phone_number_4: false,
     site_id: false
   });
   const [errorMessage, setErrorMessage] = useState('');
@@ -136,7 +140,9 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
           first_name: item.first_name,
           last_name: item.last_name,
           phone_number: item.phone_number,
-          email: item.email,
+          phone_number_2: item.phone_number_2,
+          phone_number_3: item.phone_number_3,
+          phone_number_4: item.phone_number_4,
           site_id: item.site_id
         });
       });
@@ -164,20 +170,6 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
   const handleEditHost = async () => {
     try {
       setLoading(true);
-
-      const newErrors = {};
-      if (!host.first_name) newErrors.first_name = 'First Name is required.';
-      if (!host.last_name) newErrors.last_name = 'Last Name is required.';
-      if (!host.phone_number) newErrors.phone_number = 'Phone Number is required.';
-      if (!host.email) newErrors.email = 'Email Address is required.';
-      if (!host.site_id) newErrors.site_id = 'Site is required.';
-      if (selectedOption === null) newErrors.site_id = 'Site is required.';
-
-      if (Object.keys(newErrors).length > 0) {
-        setErrors(newErrors);
-        setLoading(false);
-        return;
-      }
 
       const response = await updateDeviceHost(hosts_id, host);
       setLoading(false);
@@ -276,7 +268,7 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
             <TextField
               fullWidth
               margin="dense"
-              label="Phone Number"
+              label="Primary Phone Number"
               variant="outlined"
               type="tel"
               value={host.phone_number}
@@ -290,14 +282,42 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
             <TextField
               fullWidth
               margin="dense"
-              label="Email Address"
+              label="Phone Number 2"
               variant="outlined"
-              type="email"
-              value={host.email}
-              onChange={handleHostChange('email')}
+              type="tel"
+              value={host.phone_number_2}
+              onChange={handleHostChange('phone_number_2')}
               required
-              error={!!errors.email}
-              helperText={errors.email}
+              error={!!errors.phone_number_2}
+              helperText={errors.phone_number_2}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Phone Number 3"
+              variant="outlined"
+              type="tel"
+              value={host.phone_number_3}
+              onChange={handleHostChange('phone_number_3')}
+              required
+              error={!!errors.phone_number_3}
+              helperText={errors.phone_number_3}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Phone Number 4"
+              variant="outlined"
+              type="tel"
+              value={host.phone_number_4}
+              onChange={handleHostChange('phone_number_4')}
+              required
+              error={!!errors.phone_number_4}
+              helperText={errors.phone_number_4}
             />
           </Grid>
           <Grid item xs={12}>
@@ -497,7 +517,7 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
                   {item.first_name} {item.last_name}
                 </span>
                 <span className={classes.confirm_field}>
-                  <span className={classes.confirm_field_title}>Phone Number:</span>+
+                  <span className={classes.confirm_field_title}>Primary Phone Number:</span>+
                   {item.phone_number}
                 </span>
                 <span className={classes.confirm_field}>

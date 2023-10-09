@@ -172,7 +172,9 @@ class AnalyticsCard extends StatelessWidget {
                             airQualityReading.pm2_5,
                           );
                         },
-                        child: Padding(
+                        child: AnimatedPadding(
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.easeIn,
                           padding: const EdgeInsets.only(
                             right: 12,
                             top: 12,

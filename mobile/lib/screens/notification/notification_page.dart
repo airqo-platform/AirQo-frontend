@@ -23,14 +23,16 @@ class NotificationPage extends StatelessWidget {
             builder: (context, state) {
               if (state.isEmpty) {
                 context.read<NotificationBloc>().add(const SyncNotifications());
-    
+
                 return const EmptyNotifications();
               }
-    
+
               return AppRefreshIndicator(
                 sliverChildDelegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    return Padding(
+                    return AnimatedPadding(
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeIn,
                       padding:
                           EdgeInsets.fromLTRB(16, index == 0 ? 24.0 : 4, 16, 4),
                       child: GestureDetector(
@@ -56,7 +58,7 @@ class NotificationPage extends StatelessWidget {
                 ),
                 onRefresh: () {
                   _refresh(context);
-    
+
                   return Future(() => null);
                 },
               );

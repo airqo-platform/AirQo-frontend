@@ -1,12 +1,11 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { isEmpty } from 'underscore';
-import { circlePointPaint, heatMapPaint } from './paints';
 import { getFirstDuration } from 'utils/dateTime';
 import Filter from '../Dashboard/components/Map/Filter';
 import Divider from '@material-ui/core/Divider';
-import { loadPM25HeatMapData, loadMapEventsData } from 'redux/MapData/operations';
-import { usePM25HeatMapData, useEventsMapData } from 'redux/MapData/selectors';
+import { loadMapEventsData } from 'redux/MapData/operations';
+import { useEventsMapData } from 'redux/MapData/selectors';
 import SettingsIcon from '@material-ui/icons/Settings';
 import RichTooltip from '../../containers/RichToolTip';
 import { MenuItem } from '@material-ui/core';
@@ -22,8 +21,6 @@ import 'assets/css/overlay-map.css';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
-import { ErrorEvent } from 'mapbox-gl';
-import BoundaryAlert from '../../ErrorBoundary/Alert';
 import CircularLoader from '../../components/Loader/CircularLoader';
 import { darkMapStyle, lightMapStyle, satelliteMapStyle, streetMapStyle } from './utils';
 import MapIcon from '@material-ui/icons/Map';
@@ -115,7 +112,7 @@ const MapControllerPosition = ({ className, children, position }) => {
   );
 };
 
-const PollutantSelector = ({ className, onChange, showHeatMap }) => {
+const PollutantSelector = ({ className, onChange }) => {
   useInitScrollTop();
   const orgData = useOrgData();
   const [open, setOpen] = useState(false);
@@ -299,14 +296,7 @@ const MapStyleSelector = () => {
   );
 };
 
-const MapSettings = ({
-  showSensors,
-  showHeatmap,
-  showCalibratedValues,
-  onSensorChange,
-  onHeatmapChange,
-  onCalibratedChange
-}) => {
+const MapSettings = ({ showSensors, showCalibratedValues, onSensorChange, onCalibratedChange }) => {
   const [open, setOpen] = useState(false);
   return (
     <RichTooltip
@@ -314,9 +304,6 @@ const MapSettings = ({
         <div>
           <MenuItem onClick={() => onSensorChange(!showSensors)}>
             <Checkbox checked={showSensors} color="default" /> Monitors
-          </MenuItem>
-          <MenuItem onClick={() => onHeatmapChange(!showHeatmap)}>
-            <Checkbox checked={showHeatmap} color="default" /> Heatmap
           </MenuItem>
           <Divider />
           {showSensors ? (
@@ -346,40 +333,31 @@ const CustomMapControl = ({
   className,
   onPollutantChange,
   showSensors,
-  showHeatmap,
   showCalibratedValues,
   onSensorChange,
-  onHeatmapChange,
   onCalibratedChange
 }) => {
   return (
     <MapControllerPosition className={'custom-map-control'} position={'topRight'}>
       <MapSettings
         showSensors={showSensors}
-        showHeatmap={showHeatmap}
         showCalibratedValues={showCalibratedValues}
         onSensorChange={onSensorChange}
-        onHeatmapChange={onHeatmapChange}
         onCalibratedChange={onCalibratedChange}
       />
-      <PollutantSelector
-        className={className}
-        onChange={onPollutantChange}
-        showHeatMap={showHeatmap}
-      />
+      <PollutantSelector className={className} onChange={onPollutantChange} />
       <MapStyleSelectorPlaceholder />
     </MapControllerPosition>
   );
 };
 
-export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) => {
+export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
   const dispatch = useDispatch();
   const sitesData = useDashboardSitesData();
   const MAX_OFFLINE_DURATION = 86400; // 24 HOURS
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState();
   const [showSensors, setShowSensors] = useState(true);
-  const [showHeatMap, setShowHeatMap] = useState(false);
   const [showCalibratedValues, setShowCalibratedValues] = useState(false);
   const [showPollutant, setShowPollutant] = useState({
     pm2_5: localStorage.pollutant === 'pm2_5',
@@ -413,69 +391,6 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
       zoom,
       maxZoom: 20
     });
-    if (heatMapData) {
-      map.on('load', () => {
-        map.addSource('heatmap-data', {
-          type: 'geojson',
-          data: heatMapData
-        });
-        map.addLayer({
-          id: 'sensor-heat',
-          type: 'heatmap',
-          source: 'heatmap-data',
-          paint: heatMapPaint
-        });
-        map.addLayer({
-          id: 'sensor-point',
-          source: 'heatmap-data',
-          type: 'circle',
-          paint: circlePointPaint
-        });
-        map.setLayoutProperty('sensor-heat', 'visibility', showHeatMap ? 'visible' : 'none');
-        map.setLayoutProperty('sensor-point', 'visibility', showHeatMap ? 'visible' : 'none');
-        map.on('mousemove', (e) => {
-          const features = map.queryRenderedFeatures(e.point, {
-            layers: ['sensor-point']
-          });
-          // Change the cursor style as a UI indicator.
-          map.getCanvas().style.cursor = features.length > 0 ? 'pointer' : '';
-
-          if (map.getZoom() < 9) {
-            popup.remove();
-            return;
-          }
-
-          if (!features.length) {
-            popup.remove();
-            return;
-          }
-
-          const reducerFactory = (key) => (accumulator, feature) =>
-            accumulator + parseFloat(feature.properties[key]);
-          let average_predicted_value =
-            features.reduce(reducerFactory('pm2_5'), 0) / features.length;
-
-          let average_confidence_int =
-            features.reduce(reducerFactory('interval'), 0) / features.length;
-
-          popup
-            .setLngLat(e.lngLat)
-            .setHTML(
-              `<table class="popup-table">
-                <tr>
-                    <td><b>Predicted AQI</b></td>
-                    <td>${average_predicted_value.toFixed(4)}</td>
-                </tr>
-                <tr>
-                    <td><b>Confidence Level</b></td>
-                    <td>&#177; ${average_confidence_int.toFixed(4)}</td>
-                </tr>
-            </table>`
-            )
-            .addTo(map);
-        });
-      });
-    }
 
     map.addControl(
       new mapboxgl.FullscreenControl({
@@ -491,18 +406,6 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
     // return () => map.remove();
   }, []);
 
-  useEffect(() => {
-    if (map) {
-      map.getSource('heatmap-data') && map.getSource('heatmap-data').setData(heatMapData);
-    }
-    // if (map) {
-    //   map.getLayer("sensor-point") && map.removeLayer("sensor-point");
-    // }
-    // if (map) {
-    //   map.getLayer("sensor-heat") && map.removeLayer("sensor-heat");
-    // }
-  });
-
   const toggleSensors = () => {
     try {
       const markers = document.getElementsByClassName('marker');
@@ -512,17 +415,6 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
       setShowSensors(!showSensors);
       // eslint-disable-next-line no-empty
     } catch (err) {}
-  };
-
-  const toggleHeatMap = () => {
-    setShowHeatMap(!showHeatMap);
-    try {
-      map.setLayoutProperty('sensor-heat', 'visibility', showHeatMap ? 'none' : 'visible');
-      map.setLayoutProperty('sensor-point', 'visibility', showHeatMap ? 'none' : 'visible');
-      // eslint-disable-next-line no-empty
-    } catch (err) {
-      console.log('Heatmap Load error:', err);
-    }
   };
 
   return (
@@ -617,10 +509,8 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
       {map && (
         <CustomMapControl
           showSensors={showSensors}
-          showHeatmap={showHeatMap}
           showCalibratedValues={showCalibratedValues}
           onSensorChange={toggleSensors}
-          onHeatmapChange={toggleHeatMap}
           onCalibratedChange={setShowCalibratedValues}
           onPollutantChange={setShowPollutant}
           className={'pollutant-selector'}
@@ -632,14 +522,7 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
 
 const MapContainer = () => {
   const dispatch = useDispatch();
-  const heatMapData = usePM25HeatMapData();
   const monitoringSiteData = useEventsMapData();
-
-  // useEffect(() => {
-  //   if (isEmpty(heatMapData.features)) {
-  //     dispatch(loadPM25HeatMapData());
-  //   }
-  // }, [heatMapData]);
 
   useEffect(() => {
     if (isEmpty(monitoringSiteData.features)) {
@@ -662,7 +545,6 @@ const MapContainer = () => {
           <OverlayMap
             center={[22.5600613, 0.8341424]}
             zoom={2.4}
-            // heatMapData={heatMapData}
             monitoringSiteData={monitoringSiteData}
           />
         ) : (

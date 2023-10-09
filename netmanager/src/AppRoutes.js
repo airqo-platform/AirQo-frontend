@@ -45,8 +45,10 @@ const Organisation = lazy(() => import('./views/pages/Organisation'));
 const Logs = lazy(() => import('./views/pages/Logs'));
 const ExportDownloads = lazy(() => import('./views/pages/ExportData/downloads'));
 const ExportData = lazy(() => import('./views/pages/ExportData'));
+const Analytics = lazy(() => import('./views/pages/Analytics'));
 const HostRegistry = lazy(() => import('./views/components/Hosts/HostRegistry'));
 const HostView = lazy(() => import('./views/components/Hosts/HostView'));
+const HeatMapOverlay = lazy(() => import('./views/pages/Heatmap/HeatMapOverlay'));
 
 const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
@@ -99,6 +101,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
               component={AnalyticsDashboard}
               layout={MainLayout}
             />
+            <PrivateRoute exact path="/analytics" component={Analytics} layout={MainLayout} />
             <PrivateRoute
               exact
               path="/admin/users/assigned-users"
@@ -115,6 +118,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <PrivateRoute component={Roles} exact layout={MainLayout} path="/roles" />
             <PrivateRoute component={Settings} exact layout={MainLayout} path="/settings" />
             <PrivateRoute component={Organisation} exact layout={MainLayout} path="/organisation" />
+            <PrivateRoute exact path="/heatMap" component={HeatMapOverlay} layout={MainLayout} />
 
             <PrivateRoute path="/device/:deviceName" component={DeviceView} layout={MainLayout} />
             <PrivateRoute exact path="/locate" component={Map} layout={MainLayout} />
@@ -187,7 +191,8 @@ const AppRoutes = ({ auth, logoutUser }) => {
             right: 0,
             marginRight: '10px',
             marginBottom: '20px'
-          }}>
+          }}
+        >
           <div id="jira-help-desk" />
         </div>
 
