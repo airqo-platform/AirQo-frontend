@@ -3,7 +3,8 @@ import {
   GET_NETWORKS_URI,
   GET_PERMISSIONS_URI,
   GET_ROLES_URI,
-  GENERATE_ACCESS_TOKEN
+  GENERATE_ACCESS_TOKEN,
+  CREATE_TEAM_URI
 } from '../../config/urls/analytics';
 import { GET_ACCESS_TOKEN } from '../../config/urls/authService';
 import { BASE_AUTH_TOKEN } from '../../utils/envVariables';
@@ -134,5 +135,29 @@ export const generateAccessTokenForUserApi = async (userId) => {
 export const getNetworkListSummaryApi = async () => {
   return await axios
     .get(`${GET_NETWORKS_URI}/summary`, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const createTeamApi = async (data) => {
+  return await axios
+    .post(CREATE_TEAM_URI, data, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const getTeamsApi = async () => {
+  return await axios
+    .get(CREATE_TEAM_URI, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const getTeamDetailsApi = async (teamID) => {
+  return await axios
+    .get(`${CREATE_TEAM_URI}/${teamID}`, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const updateTeamApi = async (teamID, data) => {
+  return await axios
+    .put(`${CREATE_TEAM_URI}/${teamID}`, data, { params: { token: BASE_AUTH_TOKEN } })
     .then((response) => response.data);
 };

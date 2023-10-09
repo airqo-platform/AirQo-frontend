@@ -35,6 +35,7 @@ import NetworkDropdown from './components/NetworkDropdown';
 import { getRoleDetailsApi } from '../../../apis/accessControl';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
+import GroupWorkIcon from '@material-ui/icons/GroupWork';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -168,6 +169,11 @@ const allUserManagementPages = [
     href: '/organisation',
     icon: <BusinessIcon />,
     disabled: true
+  },
+  {
+    title: 'Teams',
+    href: '/teams',
+    icon: <GroupWorkIcon />
   },
   {
     title: 'Users',

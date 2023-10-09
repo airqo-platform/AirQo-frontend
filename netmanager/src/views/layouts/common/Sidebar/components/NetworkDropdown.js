@@ -64,14 +64,15 @@ const StyledMenuItem = withStyles((theme) => ({
 export default function NetworkDropdown({ userNetworks }) {
   const dispatch = useDispatch();
   const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedNetwork, setSelectedNetwork] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [view, setView] = useState('networks');
 
   useEffect(() => {
     const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
     if (activeNetwork) {
-      setSelectedNetwork(activeNetwork);
+      setSelectedItem(activeNetwork);
     } else {
-      setSelectedNetwork(userNetworks[0]);
+      setSelectedItem(userNetworks[0]);
       localStorage.setItem('activeNetwork', JSON.stringify(userNetworks[0]));
       dispatch(addActiveNetwork(userNetworks[0]));
       dispatch(loadDevicesData(userNetworks[0].net_name));
@@ -80,7 +81,7 @@ export default function NetworkDropdown({ userNetworks }) {
       dispatch(loadUserRoles(userNetworks[0]._id));
       dispatch(fetchAvailableNetworkUsers(userNetworks[0]._id));
     }
-  }, []);
+  }, [dispatch, userNetworks]);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -90,49 +91,78 @@ export default function NetworkDropdown({ userNetworks }) {
     setAnchorEl(null);
   };
 
-  const handleSelect = (network) => {
-    setSelectedNetwork(network);
-    localStorage.setItem('activeNetwork', JSON.stringify(network));
-    localStorage.setItem('currentUserRole', JSON.stringify(network.role));
-    dispatch(loadDevicesData(network.net_name));
-    dispatch(loadSitesData(network.net_name));
-    dispatch(fetchNetworkUsers(network._id));
-    dispatch(fetchAvailableNetworkUsers(network._id));
-    dispatch(loadUserRoles(network._id));
+  const handleSelect = (item) => {
+    setSelectedItem(item);
+    console.log('Selected item:', item);
+    localStorage.setItem('activeNetwork', JSON.stringify(item));
+    localStorage.setItem('currentUserRole', JSON.stringify(item.role));
+    dispatch(loadDevicesData(item.net_name));
+    dispatch(loadSitesData(item.net_name));
+    dispatch(fetchNetworkUsers(item._id));
+    dispatch(fetchAvailableNetworkUsers(item._id));
+    dispatch(loadUserRoles(item._id));
     handleClose();
     window.location.reload();
   };
 
+  const Teams = [
+    {
+      grp_id: '1',
+      grp_name: 'Team 1',
+      role: {
+        id: '1',
+        role_name: 'Admin',
+        role_permissions: []
+      }
+    },
+    {
+      grp_id: '2',
+      grp_name: 'Team 2',
+      role: {
+        id: '2',
+        role_name: 'Admin2',
+        role_permissions: []
+      }
+    }
+  ];
+
+  console.log('selectedItem:', localStorage.getItem('activeNetwork'));
+
   return (
     <>
-      <Tooltip title="Organizations" placement="bottom">
+      <Tooltip title={view === 'networks' ? 'Networks' : 'Teams'} placement="bottom">
         <Button
-          aria-controls="network-menu"
+          aria-controls="dropdown-menu"
           aria-haspopup="true"
           onClick={handleClick}
           variant="contained"
-          color="primary"
-        >
-          {selectedNetwork && selectedNetwork.net_name} <ArrowDropDown />
+          color="primary">
+          {(selectedItem &&
+            (view === 'networks' ? selectedItem.net_name : selectedItem.grp_name)) ||
+            'Select Item'}{' '}
+          <ArrowDropDown />
         </Button>
       </Tooltip>
       <StyledMenu
-        id="network-menu"
+        id="dropdown-menu"
         anchorEl={anchorEl}
         keepMounted
         open={Boolean(anchorEl)}
-        onClose={handleClose}
-      >
-        {userNetworks &&
-          userNetworks.map((network) => (
-            <StyledMenuItem
-              key={network.net_id}
-              onClick={() => handleSelect(network)}
-              selected={selectedNetwork && selectedNetwork.net_name === network.net_name}
-            >
-              <ListItemText>{network.net_name.toUpperCase()}</ListItemText>
-            </StyledMenuItem>
-          ))}
+        onClose={handleClose}>
+        {(view === 'networks' ? userNetworks : Teams).map((item) => (
+          <StyledMenuItem
+            key={item.net_id || item.grp_id}
+            onClick={() => handleSelect(item)}
+            selected={
+              selectedItem &&
+              (selectedItem.net_id === item.net_id || selectedItem.grp_id === item.grp_id)
+            }>
+            <ListItemText>{view === 'networks' ? item.net_name : item.grp_name}</ListItemText>
+          </StyledMenuItem>
+        ))}
+        <MenuItem onClick={() => setView(view === 'networks' ? 'Teams' : 'networks')}>
+          Switch to {view === 'networks' ? 'Teams' : 'Networks'}
+        </MenuItem>
       </StyledMenu>
     </>
   );
