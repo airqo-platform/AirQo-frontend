@@ -20,6 +20,9 @@ platform :android do
       json_key_data: ENV['MOBILE_ANDROID_PLAYSTORE_SA'],
       package_name:"com.airqo.app",
       aab: "../build/app/outputs/bundle/airqoRelease/app-airqo-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
     )
   end
 
