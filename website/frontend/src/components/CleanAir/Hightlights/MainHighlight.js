@@ -22,7 +22,7 @@ const Highlight = () => {
     } catch (err) {
       console.log('Error in loading data', err);
     }
-  }, [dispatch, pressData, eventsData]);
+  }, []);
 
   // Getting the latest news
   const latestNews = pressData.filter((news) => news.website_category === 'cleanair');
