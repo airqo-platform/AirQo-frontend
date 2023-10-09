@@ -80,7 +80,6 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                 curve: Curves.easeIn,
                 padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
