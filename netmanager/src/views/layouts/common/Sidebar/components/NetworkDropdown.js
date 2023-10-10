@@ -13,6 +13,7 @@ import { loadDevicesData } from 'redux/DeviceRegistry/operations';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { ArrowDropDown } from '@material-ui/icons';
 import 'assets/css/dropdown.css';
+import Slide from '@material-ui/core/Slide';
 
 const StyledMenu = withStyles({
   paper: {
@@ -66,6 +67,7 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
   const [view, setView] = useState('networks');
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
@@ -86,6 +88,7 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
+    setOpen(true);
   };
 
   const handleClose = () => {
@@ -109,19 +112,59 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
     window.location.reload();
   };
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setOpen(false);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [open]);
+
   return (
     <>
-      <Tooltip title={view === 'networks' ? 'Networks' : 'Teams'} placement="bottom">
-        <Button
-          aria-controls="dropdown-menu"
-          aria-haspopup="true"
-          onClick={handleClick}
-          variant="contained"
-          color="primary">
-          {selectedItem && (selectedItem.net_name || selectedItem.grp_title)}
-          <ArrowDropDown />
-        </Button>
-      </Tooltip>
+      <div
+        style={{
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+        {open && (
+          <Slide direction="up" in={open}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'left',
+                marginRight: '10px',
+                position: 'absolute',
+                top: '-20px',
+                left: '0px'
+              }}>
+              <span
+                style={{
+                  color: '#175df5',
+                  fontWeight: 'bold',
+                  fontSize: '13px',
+                  backgroundColor: '#f5e942',
+                  borderTopLeftRadius: '4px',
+                  borderTopRightRadius: '4px',
+                  padding: '2px 5px'
+                }}>
+                {view !== 'networks' ? 'Teams' : 'Networks'}
+              </span>
+            </div>
+          </Slide>
+        )}
+        <Tooltip title={view === 'networks' ? 'Networks' : 'Teams'} placement="bottom">
+          <Button
+            aria-controls="dropdown-menu"
+            aria-haspopup="true"
+            onClick={handleClick}
+            variant="contained"
+            color="primary">
+            {selectedItem && (selectedItem.net_name || selectedItem.grp_title)}
+            <ArrowDropDown />
+          </Button>
+        </Tooltip>
+      </div>
       <StyledMenu
         id="dropdown-menu"
         anchorEl={anchorEl}
@@ -136,7 +179,11 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
             <ListItemText>{view === 'networks' ? item.net_name : item.grp_title}</ListItemText>
           </StyledMenuItem>
         ))}
-        <MenuItem onClick={() => setView(view === 'networks' ? 'Teams' : 'networks')}>
+        <MenuItem
+          onClick={() => {
+            setView(view === 'networks' ? 'Teams' : 'networks');
+            setOpen(true);
+          }}>
           Switch to {view === 'networks' ? 'Teams' : 'Networks'}
         </MenuItem>
       </StyledMenu>
