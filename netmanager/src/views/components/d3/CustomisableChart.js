@@ -106,8 +106,29 @@ const DialogTitle = withStyles(styles)((props) => {
   );
 });
 
+const createSiteOptions = (sites) => {
+  console.log(sites);
+  const options = [];
+  sites.map((site) => {
+    options.push({
+      value: site._id,
+      label: site.name
+    });
+  });
+  return options;
+};
+
 const CustomisableChart = (props) => {
-  const { className, idSuffix, defaultFilter, ...rest } = props;
+  const {
+    className,
+    idSuffix,
+    defaultFilter,
+    isGrids,
+    analyticsSites,
+    isCohorts,
+    analyticsDevices,
+    ...rest
+  } = props;
   const ref = useRef();
   const dispatch = useDispatch();
 
@@ -208,35 +229,67 @@ const CustomisableChart = (props) => {
     clearTempState();
   };
 
-  const sitesOptions = airqloud.siteOptions || [];
+  const [sitesOptions, setSiteOptions] = useState([]);
+  const [deviceOptions, setDeviceOptions] = useState([]);
+
+  useEffect(() => {
+    setSiteOptions(isGrids ? createSiteOptions(analyticsSites) : airqloud.siteOptions || []);
+  }, [analyticsSites, airqloud]);
+
+  useEffect(() => {
+    setDeviceOptions(isCohorts ? createSiteOptions(analyticsDevices) : []);
+  }, [analyticsDevices]);
 
   const siteFilter = (selectedSites) => (site) => {
     return selectedSites.includes(site.value);
   };
 
+  const deviceFilter = (selectedDevices) => (device) => {
+    return selectedDevices.includes(device.value);
+  };
+
   const [values, setReactSelectValue] = useState({
-    selectedOption: sitesOptions.filter(siteFilter(defaultFilter.sites))
+    selectedOption: isCohorts
+      ? deviceOptions && deviceOptions.filter(deviceFilter(defaultFilter.devices))
+      : sitesOptions && sitesOptions.filter(siteFilter(defaultFilter.sites))
   });
 
   const [initialLoad, setInitialLoad] = useState(true);
 
   useEffect(() => {
     const sites = sitesOptions.filter(siteFilter(defaultFilter.sites));
+    const devices = deviceOptions.filter(deviceFilter(defaultFilter.devices));
     setReactSelectValue({
-      selectedOption: sites
+      selectedOption: isCohorts ? devices : sites
     });
-    setTempState({ ...tempState, sites: { selectedOption: sites } });
+    setTempState(
+      isCohorts
+        ? { ...tempState, devices: { selectedOption: devices } }
+        : { ...tempState, sites: { selectedOption: sites } }
+    );
     if (initialLoad && !isEmpty(sites)) {
       setInitialLoad(false);
-      fetchAndSetGraphData({
-        sites: optionToList(sites),
-        startDate: selectedDate.toISOString(),
-        endDate: selectedEndDate.toISOString(),
-        chartType: selectedChart.value,
-        frequency: selectedFrequency.value,
-        pollutant: selectedPollutant.value,
-        organisation_name: 'KCCA'
-      });
+      fetchAndSetGraphData(
+        isCohorts
+          ? {
+              devices: optionToList(devices),
+              startDate: selectedDate.toISOString(),
+              endDate: selectedEndDate.toISOString(),
+              chartType: selectedChart.value,
+              frequency: selectedFrequency.value,
+              pollutant: selectedPollutant.value,
+              organisation_name: 'KCCA'
+            }
+          : {
+              sites: optionToList(sites),
+              startDate: selectedDate.toISOString(),
+              endDate: selectedEndDate.toISOString(),
+              chartType: selectedChart.value,
+              frequency: selectedFrequency.value,
+              pollutant: selectedPollutant.value,
+              organisation_name: 'KCCA'
+            }
+      );
     }
   }, [sitesOptions]);
 
@@ -375,13 +428,23 @@ const CustomisableChart = (props) => {
 
   const [subTitle, setSubTitle] = useState(defaultFilter.chartSubTitle);
 
-  const [tempState, setTempState] = useState({
-    subTitle: subTitle,
-    sites: values,
-    chartType: selectedChart,
-    frequency: selectedFrequency,
-    pollutant: selectedPollutant
-  });
+  const [tempState, setTempState] = useState(
+    isCohorts
+      ? {
+          subTitle: subTitle,
+          devices: values,
+          chartType: selectedChart,
+          frequency: selectedFrequency,
+          pollutant: selectedPollutant
+        }
+      : {
+          subTitle: subTitle,
+          sites: values,
+          chartType: selectedChart,
+          frequency: selectedFrequency,
+          pollutant: selectedPollutant
+        }
+  );
 
   const transferFromTempState = () => {
     setSubTitle(tempState.subTitle);
@@ -392,17 +455,34 @@ const CustomisableChart = (props) => {
   };
 
   const clearTempState = () => {
-    setTempState({
-      subTitle: subTitle,
-      sites: values,
-      chartType: selectedChart,
-      frequency: selectedFrequency,
-      pollutant: selectedPollutant
-    });
+    setTempState(
+      isCohorts
+        ? {
+            subTitle: subTitle,
+            devices: values,
+            chartType: selectedChart,
+            frequency: selectedFrequency,
+            pollutant: selectedPollutant
+          }
+        : {
+            subTitle: subTitle,
+            sites: values,
+            chartType: selectedChart,
+            frequency: selectedFrequency,
+            pollutant: selectedPollutant
+          }
+    );
   };
 
   const handleMultiChange = (selectedOption) => {
-    setTempState({ ...tempState, sites: { selectedOption } });
+    setTempState(
+      isCohorts
+        ? { ...tempState, devices: { selectedOption } }
+        : {
+            ...tempState,
+            sites: { selectedOption }
+          }
+    );
   };
 
   useEffect(() => {
@@ -444,19 +524,33 @@ const CustomisableChart = (props) => {
       endDate: selectedEndDate.toISOString()
     };
 
-    let newFilter = {
-      ...defaultFilter,
-      period: period,
-      sites: optionToList(tempState.sites.selectedOption),
-      startDate: selectedDate.toISOString(),
-      endDate: selectedEndDate.toISOString(),
-      chartType: tempState.chartType.value,
-      frequency: tempState.frequency.value,
-      pollutant: tempState.pollutant.value,
-      chartTitle: title,
-      chartSubTitle: tempState.subTitle,
-      airqloud: airqloud._id
-    };
+    let newFilter = isCohorts
+      ? {
+          ...defaultFilter,
+          period: period,
+          devices: optionToList(tempState.devices.selectedOption),
+          startDate: selectedDate.toISOString(),
+          endDate: selectedEndDate.toISOString(),
+          chartType: tempState.chartType.value,
+          frequency: tempState.frequency.value,
+          pollutant: tempState.pollutant.value,
+          chartTitle: title,
+          chartSubTitle: tempState.subTitle,
+          airqloud: airqloud._id
+        }
+      : {
+          ...defaultFilter,
+          period: period,
+          sites: optionToList(tempState.sites.selectedOption),
+          startDate: selectedDate.toISOString(),
+          endDate: selectedEndDate.toISOString(),
+          chartType: tempState.chartType.value,
+          frequency: tempState.frequency.value,
+          pollutant: tempState.pollutant.value,
+          chartTitle: title,
+          chartSubTitle: tempState.subTitle,
+          airqloud: airqloud._id
+        };
 
     transferFromTempState();
 
@@ -694,17 +788,31 @@ const CustomisableChart = (props) => {
                     />
                   </Grid>
                   <Grid item md={12} xs={12}>
-                    <OutlinedSelect
-                      fullWidth
-                      className="reactSelect"
-                      label="Sites"
-                      value={tempState.sites.selectedOption}
-                      options={sitesOptions}
-                      onChange={handleMultiChange}
-                      isMulti
-                      scrollable
-                      height={'100px'}
-                    />
+                    {isCohorts ? (
+                      <OutlinedSelect
+                        fullWidth
+                        className="reactSelect"
+                        label="Devices"
+                        value={tempState.devices.selectedOption}
+                        options={deviceOptions}
+                        onChange={handleMultiChange}
+                        isMulti
+                        scrollable
+                        height={'100px'}
+                      />
+                    ) : (
+                      <OutlinedSelect
+                        fullWidth
+                        className="reactSelect"
+                        label="Sites"
+                        value={tempState.sites.selectedOption}
+                        options={sitesOptions}
+                        onChange={handleMultiChange}
+                        isMulti
+                        scrollable
+                        height={'100px'}
+                      />
+                    )}
                   </Grid>
 
                   <Grid item md={6} xs={12}>

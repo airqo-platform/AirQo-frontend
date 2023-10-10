@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useDispatch } from "react-redux";
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Button,
   Card,
@@ -9,32 +9,25 @@ import {
   Grid,
   IconButton,
   TextField,
-  MenuItem,
-} from "@material-ui/core";
-import OutlinedSelect from "views/components/CustomSelects/OutlinedSelect";
-import {
-  useDashboardSiteOptions,
-  usePollutantsOptions,
-} from "utils/customHooks";
-import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
-import { updateUserDefaultGraphData } from "redux/Dashboard/operations";
-import { useAuthUser } from "redux/Join/selectors";
-import { createUserChartDefaultsApi } from "views/apis/authService";
-import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
-import { updateMainAlert } from "redux/MainAlert/operations";
-import { isEmpty } from "underscore";
-import Typography from "@material-ui/core/Typography";
-import { Close } from "@material-ui/icons";
-import MuiDialogTitle from "@material-ui/core/DialogTitle";
-import { withStyles } from "@material-ui/styles";
+  MenuItem
+} from '@material-ui/core';
+import OutlinedSelect from 'views/components/CustomSelects/OutlinedSelect';
+import { useDashboardSiteOptions, usePollutantsOptions } from 'utils/customHooks';
+import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
+import { updateUserDefaultGraphData } from 'redux/Dashboard/operations';
+import { useAuthUser } from 'redux/Join/selectors';
+import { createUserChartDefaultsApi } from 'views/apis/authService';
+import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import { isEmpty } from 'underscore';
+import Typography from '@material-ui/core/Typography';
+import { Close } from '@material-ui/icons';
+import MuiDialogTitle from '@material-ui/core/DialogTitle';
+import { withStyles } from '@material-ui/styles';
 
 const generateStartAndEndDates = () => {
   let endDate = new Date();
-  let startDate = new Date(
-    endDate.getFullYear(),
-    endDate.getMonth(),
-    endDate.getDate() - 30
-  );
+  let startDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate() - 30);
 
   return [startDate, endDate];
 };
@@ -48,14 +41,14 @@ const optionToList = (options) => {
 const styles = (theme) => ({
   root: {
     margin: 0,
-    padding: theme.spacing(2),
+    padding: theme.spacing(2)
   },
   closeButton: {
-    position: "absolute",
+    position: 'absolute',
     right: theme.spacing(1),
     top: theme.spacing(1),
-    color: theme.palette.grey[500],
-  },
+    color: theme.palette.grey[500]
+  }
 });
 
 const DialogTitle = withStyles(styles)((props) => {
@@ -64,11 +57,7 @@ const DialogTitle = withStyles(styles)((props) => {
     <MuiDialogTitle disableTypography className={classes.root} {...other}>
       <Typography variant="h6">{title}</Typography>
       {onClose ? (
-        <IconButton
-          aria-label="close"
-          className={classes.closeButton}
-          onClick={onClose}
-        >
+        <IconButton aria-label="close" className={classes.closeButton} onClick={onClose}>
           <Close />
         </IconButton>
       ) : null}
@@ -76,63 +65,106 @@ const DialogTitle = withStyles(styles)((props) => {
   );
 });
 
-const AddChart = ({ className }) => {
+const createSiteOptions = (sites) => {
+  const options = [];
+  sites &&
+    sites.map((site) => {
+      options.push({
+        value: site._id,
+        label: site.name
+      });
+    });
+  return options;
+};
+
+const createDeviceOptions = (devices) => {
+  const options = [];
+  devices &&
+    devices.map((device) => {
+      options.push({
+        value: device._id,
+        label: device.name
+      });
+    });
+  return options;
+};
+
+const AddChart = ({
+  className,
+  isGrids,
+  grid,
+  analyticsSites,
+  isCohorts,
+  analyticsDevices,
+  cohort
+}) => {
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const airqloud = useCurrentAirQloudData();
-  const siteOptions = airqloud.siteOptions;
+  const siteOptions = isGrids ? createSiteOptions(analyticsSites) : airqloud.siteOptions;
+  const deviceOptions = isCohorts ? createDeviceOptions(analyticsDevices) : [];
   const user = useAuthUser();
   const pollutantOptions = usePollutantsOptions();
 
   const [startDate, endDate] = generateStartAndEndDates();
 
-  const initialDefaultsData = {
-    sites: [],
+  const initialData = {
     startDate: roundToStartOfDay(startDate).toISOString(),
     endDate: roundToEndOfDay(endDate).toISOString(),
-    chartType: { value: "line", label: "Line" },
-    frequency: { value: "hourly", label: "Hourly" },
-    pollutant: (pollutantOptions.length > 0 && pollutantOptions[0]) || "",
-    chartSubTitle: "",
-    chartTitle: "default chart title",
+    chartType: { value: 'line', label: 'Line' },
+    frequency: { value: 'hourly', label: 'Hourly' },
+    pollutant: pollutantOptions.length > 0 ? pollutantOptions[0] : '',
+    chartSubTitle: '',
+    chartTitle: 'default chart title',
     period: {
-      value: "Last 30 days",
-      label: "Last 30 days",
+      value: 'Last 30 days',
+      label: 'Last 30 days',
       unitValue: 30,
-      unit: "day",
+      unit: 'day'
     },
     user: user._id,
-    airqloud: airqloud._id,
+    airqloud: isGrids ? grid._id : isCohorts ? cohort._id : airqloud._id
   };
+
+  const initialDefaultsData = isCohorts
+    ? {
+        ...initialData,
+        devices: []
+      }
+    : {
+        ...initialData,
+        sites: []
+      };
+
   const [defaultsData, setDefaultsData] = useState(initialDefaultsData);
   const [errors, setErrors] = useState({});
 
   const frequencyOptions = [
-    { value: "hourly", label: "Hourly" },
-    { value: "daily", label: "Daily" },
-    { value: "monthly", label: "Monthly" },
+    { value: 'hourly', label: 'Hourly' },
+    { value: 'daily', label: 'Daily' },
+    { value: 'monthly', label: 'Monthly' }
   ];
 
   const chartTypeOptions = [
-    { value: "line", label: "Line" },
-    { value: "bar", label: "Bar" },
-    { value: "pie", label: "Pie" },
+    { value: 'line', label: 'Line' },
+    { value: 'bar', label: 'Bar' },
+    { value: 'pie', label: 'Pie' }
   ];
 
   const handleTextFieldChange = (key) => (event) => {
     setDefaultsData({ ...defaultsData, [key]: event.target.value });
     setErrors({
       ...errors,
-      [key]: event.target.value ? "" : "This field is required",
+      [key]: event.target.value ? '' : 'This field is required'
     });
   };
   const handleSelectChange = (key) => (selectedValue) => {
     setDefaultsData({ ...defaultsData, [key]: selectedValue });
     setErrors({
       ...errors,
-      [key]: selectedValue ? "" : "This field is required",
+      [key]: selectedValue ? '' : 'This field is required'
     });
   };
 
@@ -152,24 +184,33 @@ const AddChart = ({ className }) => {
   };
 
   const validateInputData = (data) => {
+    console.log(data);
     const errors = {};
     Object.keys(data).map((key) => {
-      if (isEmpty(data[key])) errors[key] = "This field is required";
+      if (isEmpty(data[key])) errors[key] = 'This field is required';
     });
     return errors;
   };
 
   const handleSubmit = async () => {
-    const data = {
-      ...defaultsData,
-      chartType: defaultsData.chartType.value,
-      frequency: defaultsData.frequency.value,
-      pollutant: defaultsData.pollutant.value,
-      sites: optionToList(defaultsData.sites),
-    };
+    const data = isCohorts
+      ? {
+          ...defaultsData,
+          chartType: defaultsData.chartType.value,
+          frequency: defaultsData.frequency.value,
+          pollutant: defaultsData.pollutant.value,
+          devices: optionToList(defaultsData.devices)
+        }
+      : {
+          ...defaultsData,
+          chartType: defaultsData.chartType.value,
+          frequency: defaultsData.frequency.value,
+          pollutant: defaultsData.pollutant.value,
+          sites: optionToList(defaultsData.sites)
+        };
     const newErrors = validateInputData(data);
     if (!isEmpty(newErrors)) {
-      console.log("new errors", newErrors);
+      console.log('new errors', newErrors);
       setErrors(newErrors);
       return;
     }
@@ -180,8 +221,8 @@ const AddChart = ({ className }) => {
         dispatch(
           updateMainAlert({
             show: true,
-            message: "Successfully created chart",
-            severity: "success",
+            message: 'Successfully created chart',
+            severity: 'success'
           })
         );
         dispatch(updateUserDefaultGraphData(responseData.default));
@@ -191,9 +232,8 @@ const AddChart = ({ className }) => {
         dispatch(
           updateMainAlert({
             show: true,
-            message:
-              err.response && err.response.data && err.response.data.message,
-            severity: "error",
+            message: err.response && err.response.data && err.response.data.message,
+            severity: 'error'
           })
         );
       });
@@ -201,14 +241,14 @@ const AddChart = ({ className }) => {
   };
 
   return (
-    <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+    <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
       <Card className={className}>
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            minHeight: "300px",
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '300px'
           }}
         >
           {!showForm && (
@@ -223,10 +263,7 @@ const AddChart = ({ className }) => {
           )}
 
           {showForm && (
-            <form
-              onSubmit={handleSubmit}
-              style={{ width: "80%", minWidth: "250px" }}
-            >
+            <form onSubmit={handleSubmit} style={{ width: '80%', minWidth: '250px' }}>
               <Grid container spacing={2}>
                 <Grid item md={12} xs={12}>
                   <TextField
@@ -237,35 +274,53 @@ const AddChart = ({ className }) => {
                     value={defaultsData.chartSubTitle}
                     error={!!errors.chartSubTitle}
                     helperText={errors.chartSubTitle}
-                    onChange={handleTextFieldChange("chartSubTitle")}
+                    onChange={handleTextFieldChange('chartSubTitle')}
                     fullWidth
                     required
                   />
                 </Grid>
                 <Grid item md={12} xs={12}>
-                  <OutlinedSelect
-                    fullWidth
-                    label="Sites"
-                    value={defaultsData.sites}
-                    options={siteOptions}
-                    onChange={handleSelectChange("sites")}
-                    error={!!errors.sites}
-                    helperText={errors.sites}
-                    isMulti
-                    variant="outlined"
-                    margin="dense"
-                    required
-                    scrollable
-                    height={"100px"}
-                  />
+                  {isCohorts ? (
+                    <OutlinedSelect
+                      fullWidth
+                      label="Devices"
+                      value={defaultsData.devices}
+                      options={deviceOptions}
+                      onChange={handleSelectChange('devices')}
+                      error={!!errors.devices}
+                      helperText={errors.devices}
+                      isMulti
+                      variant="outlined"
+                      margin="dense"
+                      required
+                      scrollable
+                      height={'100px'}
+                    />
+                  ) : (
+                    <OutlinedSelect
+                      fullWidth
+                      label="Sites"
+                      value={defaultsData.sites}
+                      options={siteOptions}
+                      onChange={handleSelectChange('sites')}
+                      error={!!errors.sites}
+                      helperText={errors.sites}
+                      isMulti
+                      variant="outlined"
+                      margin="dense"
+                      required
+                      scrollable
+                      height={'100px'}
+                    />
+                  )}
                 </Grid>
 
                 <div
                   style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    alignItems: "flex-end",
-                    width: "100%",
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'flex-end',
+                    width: '100%'
                   }}
                 >
                   <Button color="primary" onClick={() => setOpen(true)}>
@@ -274,16 +329,12 @@ const AddChart = ({ className }) => {
                 </div>
 
                 <Grid item md={12} xs={12}>
-                  <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                    <Button
-                      onClick={handleClose}
-                      color="primary"
-                      variant="outlined"
-                    >
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button onClick={handleClose} color="primary" variant="outlined">
                       Cancel
                     </Button>
                     <Button
-                      style={{ marginLeft: "10px" }}
+                      style={{ marginLeft: '10px' }}
                       variant="contained"
                       onClick={handleSubmit}
                       color="primary"
@@ -299,18 +350,11 @@ const AddChart = ({ className }) => {
         </div>
       </Card>
 
-      <Dialog
-        open={open}
-        onClose={handleDialogClose}
-        aria-labelledby="form-dialog-title"
-      >
-        <DialogTitle onClose={handleDialogClose} title={"Add New Chart"} />
+      <Dialog open={open} onClose={handleDialogClose} aria-labelledby="form-dialog-title">
+        <DialogTitle onClose={handleDialogClose} title={'Add New Chart'} />
         <Divider />
         <DialogContent>
-          <form
-            onSubmit={handleSubmit}
-            style={{ width: "100%", minWidth: "250px" }}
-          >
+          <form onSubmit={handleSubmit} style={{ width: '100%', minWidth: '250px' }}>
             <Grid container spacing={2}>
               <Grid item md={12} xs={12}>
                 <TextField
@@ -321,7 +365,7 @@ const AddChart = ({ className }) => {
                   value={defaultsData.chartSubTitle}
                   error={!!errors.chartSubTitle}
                   helperText={errors.chartSubTitle}
-                  onChange={handleTextFieldChange("chartSubTitle")}
+                  onChange={handleTextFieldChange('chartSubTitle')}
                   fullWidth
                   required
                 />
@@ -352,7 +396,7 @@ const AddChart = ({ className }) => {
                   label="Sites"
                   value={defaultsData.sites}
                   options={siteOptions}
-                  onChange={handleSelectChange("sites")}
+                  onChange={handleSelectChange('sites')}
                   error={!!errors.sites}
                   helperText={errors.sites}
                   isMulti
@@ -360,7 +404,7 @@ const AddChart = ({ className }) => {
                   margin="dense"
                   required
                   scrollable
-                  height={"100px"}
+                  height={'100px'}
                 />
               </Grid>
 
@@ -372,7 +416,7 @@ const AddChart = ({ className }) => {
                   placeholder="Chart Type"
                   value={defaultsData.chartType}
                   options={chartTypeOptions}
-                  onChange={handleSelectChange("chartType")}
+                  onChange={handleSelectChange('chartType')}
                   error={!!errors.chartType}
                   helperText={errors.chartType}
                   variant="outlined"
@@ -389,7 +433,7 @@ const AddChart = ({ className }) => {
                   placeholder="Frequency"
                   value={defaultsData.frequency}
                   options={frequencyOptions}
-                  onChange={handleSelectChange("frequency")}
+                  onChange={handleSelectChange('frequency')}
                   error={!!errors.frequency}
                   helperText={errors.frequency}
                   variant="outlined"
@@ -405,7 +449,7 @@ const AddChart = ({ className }) => {
                   placeholder="Pollutant"
                   value={defaultsData.pollutant}
                   options={pollutantOptions}
-                  onChange={handleSelectChange("pollutant")}
+                  onChange={handleSelectChange('pollutant')}
                   error={!!errors.pollutant}
                   helperText={errors.pollutant}
                   variant="outlined"
@@ -414,16 +458,12 @@ const AddChart = ({ className }) => {
                 />
               </Grid>
               <Grid item md={12} xs={12}>
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                  <Button
-                    onClick={handleClose}
-                    color="primary"
-                    variant="outlined"
-                  >
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <Button onClick={handleClose} color="primary" variant="outlined">
                     Cancel
                   </Button>
                   <Button
-                    style={{ marginLeft: "10px" }}
+                    style={{ marginLeft: '10px' }}
                     variant="contained"
                     onClick={handleSubmit}
                     color="primary"

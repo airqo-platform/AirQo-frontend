@@ -33,6 +33,10 @@ import {
   SOFT_EDIT_DEVICE_IMAGE
 } from '../../config/urls/deviceRegistry';
 import { BASE_AUTH_TOKEN } from '../../utils/envVariables';
+import { isEmpty } from 'validate.js';
+
+const jwtToken = localStorage.getItem('jwtToken');
+axios.defaults.headers.common.Authorization = jwtToken;
 
 export const getAllDevicesApi = async (networkID) => {
   return await axios
@@ -235,15 +239,35 @@ export const getGridDetailsApi = async (gridID) => {
     .then((response) => response.data);
 };
 
+export const getGridsApi = async (params) => {
+  return await axios
+    .get(GRIDS, { params: { ...params, token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
 export const getCohortDetailsApi = async (cohortID) => {
   return await axios
     .get(`${COHORTS}/${cohortID}`, { params: { token: BASE_AUTH_TOKEN } })
     .then((response) => response.data);
 };
 
+export const getCohortsApi = async (params) => {
+  return await axios
+    .get(COHORTS, { params: { ...params, token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
 export const deleteCohortApi = async (cohortID) => {
   return await axios
     .delete(`${COHORTS}/${cohortID}`, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const unassignDeviceFromCohortApi = async (cohortID, deviceID) => {
+  return await axios
+    .delete(`${COHORTS}/${cohortID}/unassign-device/${deviceID}`, {
+      params: { token: BASE_AUTH_TOKEN }
+    })
     .then((response) => response.data);
 };
 

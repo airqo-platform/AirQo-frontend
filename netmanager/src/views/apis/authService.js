@@ -12,8 +12,10 @@ import {
   GET_LOGS
 } from 'config/urls/authService';
 import { BASE_AUTH_TOKEN } from '../../utils/envVariables';
+import { isEmpty } from 'validate.js';
 
-axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
+const jwtToken = localStorage.getItem('jwtToken');
+axios.defaults.headers.common.Authorization = jwtToken;
 
 export const updateUserPasswordApi = async (userId, tenant, userData) => {
   return await axios
