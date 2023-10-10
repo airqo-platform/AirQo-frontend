@@ -3,7 +3,6 @@ import { Box, Button, Grid, Typography, makeStyles } from '@material-ui/core';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import { useDispatch } from 'react-redux';
 import CohortDevicesTable from './DevicesTable';
-import { LargeCircularLoader } from '../../../components/Loader/CircularLoader';
 import { isEmpty } from 'validate.js';
 
 const CohortsDashboardView = ({ cohort, cohortDetails, loading }) => {

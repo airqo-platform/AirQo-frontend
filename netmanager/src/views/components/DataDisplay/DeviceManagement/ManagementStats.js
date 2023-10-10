@@ -31,6 +31,7 @@ import 'assets/css/device-view.css'; // there are some shared styles here too :)
 import { loadUptimeLeaderboardData } from 'redux/DeviceManagement/operations';
 import { withPermission } from '../../../containers/PageAccess';
 import AirqloudUptimeChart from './AirqloudUptimeChart';
+import AirqloudUptimeLeaderboard from './AirqloudUptimeLeaderboard';
 
 function ManagementStat() {
   useInitScrollTop();
@@ -323,6 +324,8 @@ function ManagementStat() {
           </ChartContainer>
 
           <AirqloudUptimeChart />
+
+          <AirqloudUptimeLeaderboard />
         </div>
       </div>
     </ErrorBoundary>
