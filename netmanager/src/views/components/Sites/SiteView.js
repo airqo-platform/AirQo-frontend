@@ -111,8 +111,7 @@ const SiteForm = ({ site }) => {
         minHeight: '400px',
         padding: '20px 20px',
         maxWidth: '1500px'
-      }}
-    >
+      }}>
       {/* custome Horizontal loader indicator */}
       <HorizontalLoader loading={loading} />
       <div
@@ -122,15 +121,13 @@ const SiteForm = ({ site }) => {
           fontSize: '1.2rem',
           fontWeight: 'bold',
           margin: '20px 0'
-        }}
-      >
+        }}>
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             padding: '5px'
-          }}
-        >
+          }}>
           <ArrowBackIosRounded
             style={{ color: '#3f51b5', cursor: 'pointer' }}
             onClick={() => history.goBack()}
@@ -428,8 +425,7 @@ const SiteForm = ({ site }) => {
           alignContent="flex-end"
           justify="flex-end"
           xs={12}
-          style={{ margin: '10px 0' }}
-        >
+          style={{ margin: '10px 0' }}>
           <Button variant="contained" onClick={handleCancel}>
             Cancel
           </Button>
@@ -439,8 +435,7 @@ const SiteForm = ({ site }) => {
             color="primary"
             disabled={weightedBool(loading, isEmpty(siteInfo))}
             onClick={handleSubmit}
-            style={{ marginLeft: '10px' }}
-          >
+            style={{ marginLeft: '10px' }}>
             Save Changes
           </Button>
         </Grid>
@@ -469,8 +464,7 @@ const SiteView = (props) => {
       style={{
         width: '96%',
         margin: ' 20px auto'
-      }}
-    >
+      }}>
       <SiteForm site={site} key={`${site._id}`} />
 
       <div>
@@ -479,8 +473,7 @@ const SiteView = (props) => {
             margin: '50px auto',
             // minHeight: "400px",
             maxWidth: '1500px'
-          }}
-        >
+          }}>
           <CustomMaterialTable
             title="Site Devices details"
             userPreferencePaginationKey={'siteDevices'}
