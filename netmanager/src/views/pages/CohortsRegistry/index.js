@@ -5,10 +5,11 @@ import AddCohortToolbar from './AddCohortForm';
 import { getCohortsApi } from '../../apis/deviceRegistry';
 import CohortsTable from './CohortsTable';
 import { loadDevicesData } from '../../../redux/DeviceRegistry/operations';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import BreadCrumb from './breadcrumb';
 import { useDevicesData } from '../../../redux/DeviceRegistry/selectors';
+import { fetchAllCohorts } from '../../../redux/Analytics/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -34,7 +35,7 @@ const CohortsRegistry = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const devices = useDevicesData();
-  const [cohorts, setCohorts] = useState([]);
+  const cohorts = useSelector((state) => state.analytics.cohorts);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [deviceOptions, setDeviceOptions] = useState([]);
@@ -43,15 +44,10 @@ const CohortsRegistry = () => {
   useEffect(() => {
     setLoading(true);
     const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
-    getCohortsApi({ network: activeNetwork.net_name })
-      .then((res) => {
-        setCohorts(res.cohorts);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.log(err);
-        setLoading(false);
-      });
+    dispatch(fetchAllCohorts(activeNetwork.net_name));
+    setTimeout(() => {
+      setLoading(false);
+    }, 5000);
   }, []);
 
   useEffect(() => {

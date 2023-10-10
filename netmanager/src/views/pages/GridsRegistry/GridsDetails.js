@@ -312,6 +312,7 @@ const GridsDetails = (props) => {
           country: site.country,
           region: site.region,
           createdAt: site.createdAt,
+          generated_name: site.generated_name,
           _id: site._id
         });
       });

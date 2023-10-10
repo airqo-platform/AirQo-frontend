@@ -221,30 +221,13 @@ const Analytics = () => {
               }
             />
 
-            {isCohort ? (
-              <MoreDropdown
-                dropdownItems={[
-                  {
-                    title: 'Create New Cohort',
-                    onClick: handleClickOpen
-                  }
-                ]}
-                anchorEl={anchorEl}
-                openMenu={openMenu}
-                handleClickMenu={handleClickMenu}
-                handleCloseMenu={handleCloseMenu}
-              />
-            ) : (
+            {!isCohort && (
               <MoreDropdown
                 dropdownItems={[
                   {
                     title: 'Refresh Grid',
                     onClick: handleRefreshGrid,
                     loading: loading
-                  },
-                  {
-                    title: 'Create New Grid',
-                    onClick: handleClickOpen
                   }
                 ]}
                 anchorEl={anchorEl}

@@ -28,7 +28,7 @@ import Typography from '@material-ui/core/Typography';
 import 'react-leaflet-fullscreen/dist/styles.css';
 import 'assets/css/location-registry.css';
 import { isEmpty, isEqual } from 'underscore';
-import { loadCohortDetails } from '../../../redux/Analytics/operations';
+import { fetchAllCohorts, loadCohortDetails } from '../../../redux/Analytics/operations';
 import { updateDeviceDetails } from '../../../redux/DeviceOverview/OverviewSlice';
 import AddCohortToolbar from './AddCohortForm';
 import {
@@ -165,12 +165,7 @@ const CohortForm = ({ cohort }) => {
         if (device_ids && device_ids.length > 0) {
           assignDevicesToCohort(res.cohort._id, device_ids)
             .then((res) => {
-              // dispatch(
-              //     setActiveCohort({
-              //     name: res.updated_cohort.name,
-              //     _id: res.updated_cohort._id
-              //     })
-              // );
+              dispatch(fetchAllCohorts(activeNetwork.net_name));
               dispatch(
                 updateMainAlert({
                   show: true,
@@ -180,6 +175,7 @@ const CohortForm = ({ cohort }) => {
               );
               clearState();
               setSelectedDevices([]);
+
               setLoading(false);
             })
             .catch((error) => {
@@ -335,6 +331,7 @@ const CohortDetails = (props) => {
   const dispatch = useDispatch();
   const activeCohortDetails = useSelector((state) => state.analytics.activeCohortDetails);
   const [devicesData, setDevicesData] = useState([]);
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
 
   const [loading, setLoading] = useState(false);
 

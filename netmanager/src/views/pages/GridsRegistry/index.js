@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { ErrorBoundary } from '../../ErrorBoundary';
 import { Box, Button, Typography, makeStyles } from '@material-ui/core';
-import { getGridsApi } from '../../apis/deviceRegistry';
-import { useDispatch } from 'react-redux';
-import { isEmpty } from 'underscore';
-import { useDevicesData } from '../../../redux/DeviceRegistry/selectors';
+import { useDispatch, useSelector } from 'react-redux';
 import AddGridToolbar from './AddGridForm';
 import GridsTable from './GridsTable';
 import BreadCrumb from './breadcrumb';
 import { withPermission } from '../../containers/PageAccess';
+import { fetchAllGrids } from '../../../redux/Analytics/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -22,23 +20,17 @@ const useStyles = makeStyles((theme) => ({
 const GridsRegistry = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const devices = useDevicesData();
-  const [grids, setGrids] = useState([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const grids = useSelector((state) => state.analytics.grids);
 
   useEffect(() => {
     setLoading(true);
     const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
-    getGridsApi({ network: activeNetwork.net_name })
-      .then((res) => {
-        setGrids(res.grids);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.log(err);
-        setLoading(false);
-      });
+    dispatch(fetchAllGrids(activeNetwork.net_name));
+    setTimeout(() => {
+      setLoading(false);
+    }, 5000);
   }, []);
 
   const handleClose = () => {
