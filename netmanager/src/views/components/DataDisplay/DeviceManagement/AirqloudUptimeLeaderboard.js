@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ApexChart, ChartContainer } from 'views/charts';
+import { ChartContainer } from 'views/charts';
 import { useAirqloudUptimeData } from 'redux/DeviceManagement/selectors';
 import { SortAscendingIcon, SortDescendingIcon } from 'assets/img';
 import { useHistory } from 'react-router-dom';
@@ -56,9 +56,14 @@ const AirqloudUptimeLeaderboard = () => {
 
   useEffect(() => {
     setAirqloudUptimeLoading(true);
-    if (isEmpty(airqloudUptimeData.devices)) return;
+    if (isEmpty(airqloudUptimeData.devices)) {
+      setDevicesUptime([]);
+      setAirqloudUptimeLoading(false);
+      return;
+    }
     setDevicesUptime(patchLeaderboardData(airqloudUptimeData.devices));
     setDevicesUptimeDescending(true);
+
     setTimeout(() => {
       setAirqloudUptimeLoading(false);
     }, 5000);
@@ -66,7 +71,9 @@ const AirqloudUptimeLeaderboard = () => {
 
   return (
     <ChartContainer
-      title={`Health status leaderboard for ${airqloudUptimeData.airqloud_name}`}
+      title={`Health status leaderboard ${
+        !isEmpty(airqloudUptimeData) ? `for ${airqloudUptimeData.airqloud_name}` : ''
+      }`}
       loading={airqloudUptimeLoading}
       controller={
         <div style={{ display: 'flex', alignItems: 'center' }}>
