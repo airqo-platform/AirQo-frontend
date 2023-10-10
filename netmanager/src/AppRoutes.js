@@ -49,6 +49,13 @@ const Analytics = lazy(() => import('./views/pages/Analytics'));
 const HostRegistry = lazy(() => import('./views/components/Hosts/HostRegistry'));
 const HostView = lazy(() => import('./views/components/Hosts/HostView'));
 const HeatMapOverlay = lazy(() => import('./views/pages/Heatmap/HeatMapOverlay'));
+const CohortsRegistry = lazy(() => import('./views/pages/CohortsRegistry'));
+const CohortDetails = lazy(() => import('./views/pages/CohortsRegistry/CohortDetails'));
+const GridsRegistry = lazy(() => import('./views/pages/GridsRegistry'));
+const GridsDetails = lazy(() => import('./views/pages/GridsRegistry/GridsDetails'));
+const Teams = lazy(() => import('./views/pages/Teams/Teams'));
+const TeamsView = lazy(() => import('./views/pages/Teams/TeamsView'));
+const SimRegistry = lazy(() => import('./views/components/SIM/SimRegistry'));
 
 const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
@@ -118,6 +125,10 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <PrivateRoute component={Roles} exact layout={MainLayout} path="/roles" />
             <PrivateRoute component={Settings} exact layout={MainLayout} path="/settings" />
             <PrivateRoute component={Organisation} exact layout={MainLayout} path="/organisation" />
+            <PrivateRoute component={Teams} exact layout={MainLayout} path="/teams" />
+            <PrivateRoute exact path="/teams/:id" component={TeamsView} layout={MainLayout} />
+
+            <PrivateRoute component={SimRegistry} exact layout={MainLayout} path="/sim" />
             <PrivateRoute exact path="/heatMap" component={HeatMapOverlay} layout={MainLayout} />
 
             <PrivateRoute path="/device/:deviceName" component={DeviceView} layout={MainLayout} />
@@ -172,6 +183,20 @@ const AppRoutes = ({ auth, logoutUser }) => {
             />
             <PrivateRoute exact path="/registry" component={Devices} layout={MainLayout} />
             <PrivateRoute exact path="/logs" component={Logs} layout={MainLayout} />
+            <PrivateRoute exact path="/cohorts" component={CohortsRegistry} layout={MainLayout} />
+            <PrivateRoute
+              exact
+              path="/cohorts/:cohortName"
+              component={CohortDetails}
+              layout={MainLayout}
+            />
+            <PrivateRoute exact path="/grids" component={GridsRegistry} layout={MainLayout} />
+            <PrivateRoute
+              exact
+              path="/grids/:gridName"
+              component={GridsDetails}
+              layout={MainLayout}
+            />
             <PrivateRoute
               component={PermissionDenied}
               exact
@@ -191,8 +216,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
             right: 0,
             marginRight: '10px',
             marginBottom: '20px'
-          }}
-        >
+          }}>
           <div id="jira-help-desk" />
         </div>
 

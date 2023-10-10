@@ -54,11 +54,21 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const ExceedancesChart = (props) => {
-  const { className, chartContainer, idSuffix, analyticsSites, isGrids, ...rest } = props;
+  const {
+    className,
+    chartContainer,
+    idSuffix,
+    analyticsSites,
+    isGrids,
+    isCohorts,
+    analyticsDevices,
+    ...rest
+  } = props;
 
   const classes = useStyles();
 
   const [averageChartSites, setAverageChartSites] = useState([]);
+  const [averageChartDevices, setAverageChartDevices] = useState([]);
   const airqloud = useCurrentAirQloudData();
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -127,39 +137,82 @@ const ExceedancesChart = (props) => {
   }, [analyticsSites, airqloud]);
 
   useEffect(() => {
-    if (!isEmpty(averageChartSites)) {
-      let filter = {
-        pollutant: pollutant.value,
-        standard: standard.value,
-        startDate,
-        endDate,
-        sites: averageChartSites
-      };
-      fetchAndSetExceedanceData(filter);
+    if (isCohorts) {
+      const deviceOptions = [];
+      !isEmpty(analyticsDevices) &&
+        analyticsDevices.map((device) => {
+          deviceOptions.push(device._id);
+        });
+      setAverageChartDevices(deviceOptions);
     }
+  }, [analyticsDevices]);
 
-    if (isEmpty(averageChartSites)) {
-      setLoading(true);
+  useEffect(() => {
+    if (isCohorts) {
+      if (!isEmpty(averageChartDevices)) {
+        let filter = {
+          pollutant: pollutant.value,
+          standard: standard.value,
+          startDate,
+          endDate,
+          devices: averageChartDevices
+        };
+        fetchAndSetExceedanceData(filter);
+      }
 
-      setTimeout(() => {
-        setLoading(false);
-        setDataset([]);
-        setLocations([]);
-        setAllLocations([]);
-      }, 1000);
+      if (isEmpty(averageChartDevices)) {
+        setLoading(true);
+
+        setTimeout(() => {
+          setLoading(false);
+          setDataset([]);
+          setLocations([]);
+          setAllLocations([]);
+        }, 1000);
+      }
+    } else {
+      if (!isEmpty(averageChartSites)) {
+        let filter = {
+          pollutant: pollutant.value,
+          standard: standard.value,
+          startDate,
+          endDate,
+          sites: averageChartSites
+        };
+        fetchAndSetExceedanceData(filter);
+      }
+
+      if (isEmpty(averageChartSites)) {
+        setLoading(true);
+
+        setTimeout(() => {
+          setLoading(false);
+          setDataset([]);
+          setLocations([]);
+          setAllLocations([]);
+        }, 1000);
+      }
     }
-  }, [averageChartSites]);
+  }, [averageChartSites, averageChartDevices]);
 
   let handleSubmit = async (e) => {
     e.preventDefault();
 
-    let filter = {
-      pollutant: tempPollutant.value,
-      standard: tempStandard.value,
-      startDate,
-      endDate,
-      sites: averageChartSites
-    };
+    let filter = isCohorts
+      ? {
+          pollutant: tempPollutant.value,
+          standard: tempStandard.value,
+          startDate,
+          endDate,
+          devices: averageChartDevices
+        }
+      : {
+          pollutant: tempPollutant.value,
+          standard: tempStandard.value,
+          startDate,
+          endDate,
+          sites: averageChartSites
+        };
     setAnchorEl(null);
     setOpen(false);
     fetchAndSetExceedanceData(filter);
@@ -178,14 +231,18 @@ const ExceedancesChart = (props) => {
       `${tempPollutant.label} Exceedances Over the Past 28 Days Based on ${tempStandard.label}`
     );
     try {
-      const response = await axios.post(EXCEEDANCES_URI, filter, {
-        params: { token: BASE_AUTH_TOKEN }
-      });
+      const jwtToken = localStorage.getItem('jwtToken');
+      axios.defaults.headers.common.Authorization = jwtToken;
+      const response = await axios.post(EXCEEDANCES_URI, filter);
       const responseData = response.data;
       const exceedanceData = responseData.data;
       exceedanceData.sort((a, b) => {
-        const a0 = (a.site.name || a.site.description || a.site.generated_name).trim();
-        const b0 = (b.site.name || b.site.description || b.site.generated_name).trim();
+        const a0 = isCohorts
+          ? a.device.name.trim()
+          : (a.site.name || a.site.description || a.site.generated_name).trim();
+        const b0 = isCohorts
+          ? b.device.name.trim()
+          : (b.site.name || b.site.description || b.site.generated_name).trim();
         if (a0 < b0) return -1;
         if (a0 > b0) return 1;
         return 0;
@@ -193,8 +250,10 @@ const ExceedancesChart = (props) => {
 
       const maxLocations = 10; // Set the maximum number of locations on the x-axis
       const myLocations = exceedanceData
-        .map(
-          (element) => element.site.name || element.site.description || element.site.generated_name
+        .map((element) =>
+          isCohorts
+            ? element.device.name
+            : element.site.name || element.site.description || element.site.generated_name
         )
         .slice(0, maxLocations);
 
@@ -231,7 +290,7 @@ const ExceedancesChart = (props) => {
           {
             label: 'Exceedances',
             data: exceedanceData.map((element) => [
-              element.site,
+              isCohorts ? element.device : element.site,
               element.total,
               element.exceedance
             ]),
@@ -246,7 +305,7 @@ const ExceedancesChart = (props) => {
           {
             // label: "Exceedances",
             data: exceedanceData.map((element) => [
-              element.site,
+              isCohorts ? element.device : element.site,
               element.total,
               element.exceedance
             ]),
@@ -730,13 +789,21 @@ const ExceedancesChart = (props) => {
               <Grid container spacing={2}>
                 {' '}
                 {/* Use Grid container */}
-                {dataset.data.map(([site, total, exceedance], index) => (
-                  <Grid key={site.name} item lg={6} md={6} sm={12} xl={6} xs={12}>
-                    {' '}
-                    {/* Use Grid item */}
-                    <Location site={site} exceedance={exceedance} />
-                  </Grid>
-                ))}
+                {isCohorts
+                  ? dataset.data.map(([device, total, exceedance], index) => (
+                      <Grid key={device.name} item lg={6} md={6} sm={12} xl={6} xs={12}>
+                        {' '}
+                        {/* Use Grid item */}
+                        <Location site={device} exceedance={exceedance} />
+                      </Grid>
+                    ))
+                  : dataset.data.map(([site, total, exceedance], index) => (
+                      <Grid key={site.name} item lg={6} md={6} sm={12} xl={6} xs={12}>
+                        {' '}
+                        {/* Use Grid item */}
+                        <Location site={site} exceedance={exceedance} />
+                      </Grid>
+                    ))}
               </Grid>
             </div>
           ))}
