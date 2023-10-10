@@ -254,9 +254,7 @@ const categoriesOptions = CATEGORIES.map((category) => ({
 }));
 
 const CreateDevice = ({ open, setOpen, setIsLoading }) => {
-  const selectedNetwork =
-    JSON.parse(localStorage.getItem('activeNetwork')).net_name ||
-    JSON.parse(localStorage.getItem('activeNetwork')).grp_title;
+  const selectedNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
   const classes = useStyles();
   const dispatch = useDispatch();
   const newDeviceInitState = {
@@ -634,7 +632,7 @@ const DevicesTable = (props) => {
           setDeviceList(Object.values(devices));
           const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
           if (!isEmpty(activeNetwork)) {
-            dispatch(loadDevicesData(activeNetwork.net_name || activeNetwork.grp_title));
+            dispatch(loadDevicesData(activeNetwork.net_name));
           }
           dispatch(
             updateMainAlert({
@@ -669,17 +667,17 @@ const DevicesTable = (props) => {
   useEffect(() => {
     if (isEmpty(devices)) {
       if (!isEmpty(activeNetwork)) {
-        dispatch(loadDevicesData(activeNetwork.net_name || activeNetwork.grp_title));
+        dispatch(loadDevicesData(activeNetwork.net_name));
       }
     }
 
     if (isEmpty(sites)) {
       if (!isEmpty(activeNetwork)) {
-        dispatch(loadSitesData(activeNetwork.net_name || activeNetwork.grp_title));
+        dispatch(loadSitesData(activeNetwork.net_name));
       }
     }
     dispatch(updateDeviceBackUrl(location.pathname));
-  }, []);
+  }, [devices]);
 
   useEffect(() => {
     setDeviceList(Object.values(devices));
@@ -716,6 +714,7 @@ const DevicesTable = (props) => {
               type="submit"
               align="right"
               onClick={() => setRegisterOpen(true)}>
+              {' '}
               Add Device
             </Button>
           )}
@@ -728,13 +727,10 @@ const DevicesTable = (props) => {
             {activeNetwork.net_name === 'airqo' ? 'Soft Add Device' : 'Add Device'}
           </Button>
         </div>
-        <UsersListBreadCrumb
-          category="Device Registry"
-          usersTable={`${activeNetwork.net_name || activeNetwork.grp_title} `}
-        />
+        <UsersListBreadCrumb category="Device Registry" usersTable={`${activeNetwork.net_name}`} />
 
         <CustomMaterialTable
-          title={`Device Registry for ${activeNetwork.net_name || activeNetwork.grp_title}`}
+          title={`Device Registry for ${activeNetwork.net_name}`}
           userPreferencePaginationKey={'devices'}
           columns={deviceColumns}
           data={deviceList.map((x) => Object.assign({}, x))}

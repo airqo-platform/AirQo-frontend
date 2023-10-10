@@ -63,7 +63,7 @@ const SiteForm = ({ site }) => {
   const handleCancel = () => {
     setSiteInfo({});
     if (!isEmpty(activeNetwork)) {
-      dispatch(loadSiteDetails(site._id, activeNetwork.net_name || activeNetwork.grp_title));
+      dispatch(loadSiteDetails(site._id, activeNetwork.net_name));
     }
   };
 
@@ -87,7 +87,7 @@ const SiteForm = ({ site }) => {
         );
         setSiteInfo({});
         if (!isEmpty(activeNetwork)) {
-          dispatch(loadSiteDetails(site._id, activeNetwork.net_name || activeNetwork.grp_title));
+          dispatch(loadSiteDetails(site._id, activeNetwork.net_name));
         }
       })
       .catch((err) => {
@@ -455,7 +455,7 @@ const SiteView = (props) => {
 
   useEffect(() => {
     if (!isEmpty(activeNetwork)) {
-      dispatch(loadSiteDetails(params.id, activeNetwork.net_name || activeNetwork.grp_title));
+      dispatch(loadSiteDetails(params.id, activeNetwork.net_name));
     }
   }, []);
 

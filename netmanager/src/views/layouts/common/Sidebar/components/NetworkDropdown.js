@@ -93,15 +93,18 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
   };
 
   const handleSelect = (item) => {
-    console.log('item', item);
     setSelectedItem(item);
-    localStorage.setItem('activeNetwork', JSON.stringify(item));
-    localStorage.setItem('currentUserRole', JSON.stringify(item.role));
-    dispatch(loadDevicesData(item.net_name));
-    dispatch(loadSitesData(item.net_name));
-    dispatch(fetchNetworkUsers(item._id));
-    dispatch(fetchAvailableNetworkUsers(item._id));
-    dispatch(loadUserRoles(item._id));
+    let newItem = {
+      ...item,
+      net_name: item.net_name || item.grp_title
+    };
+    localStorage.setItem('activeNetwork', JSON.stringify(newItem));
+    localStorage.setItem('currentUserRole', JSON.stringify(newItem.role));
+    dispatch(loadDevicesData(newItem.net_name));
+    dispatch(loadSitesData(newItem.net_name));
+    dispatch(fetchNetworkUsers(newItem._id));
+    dispatch(fetchAvailableNetworkUsers(newItem._id));
+    dispatch(loadUserRoles(newItem._id));
     handleClose();
     window.location.reload();
   };
