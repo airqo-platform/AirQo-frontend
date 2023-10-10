@@ -224,13 +224,13 @@ const SiteToolbar = (props) => {
       const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
       if (!isEmpty(activeNetwork)) {
-        dispatch(loadSitesData(activeNetwork.net_name || activeNetwork.grp_title));
+        dispatch(loadSitesData(activeNetwork.net_name));
       }
 
       dispatch(
         updateMainAlert({
           message: `${resData.message}. ${
-            siteData.network !== activeNetwork.net_name || activeNetwork.grp_title
+            siteData.network !== activeNetwork.net_name
               ? `Switch to the ${siteData.network} organisation to see the new device.`
               : ''
           }`,
