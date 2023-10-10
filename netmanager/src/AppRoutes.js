@@ -51,6 +51,8 @@ const HostView = lazy(() => import('./views/components/Hosts/HostView'));
 const HeatMapOverlay = lazy(() => import('./views/pages/Heatmap/HeatMapOverlay'));
 const CohortsRegistry = lazy(() => import('./views/pages/CohortsRegistry'));
 const CohortDetails = lazy(() => import('./views/pages/CohortsRegistry/CohortDetails'));
+const GridsRegistry = lazy(() => import('./views/pages/GridsRegistry'));
+const GridsDetails = lazy(() => import('./views/pages/GridsRegistry/GridsDetails'));
 
 const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
@@ -179,6 +181,13 @@ const AppRoutes = ({ auth, logoutUser }) => {
               exact
               path="/cohorts/:cohortName"
               component={CohortDetails}
+              layout={MainLayout}
+            />
+            <PrivateRoute exact path="/grids" component={GridsRegistry} layout={MainLayout} />
+            <PrivateRoute
+              exact
+              path="/grids/:gridName"
+              component={GridsDetails}
               layout={MainLayout}
             />
             <PrivateRoute

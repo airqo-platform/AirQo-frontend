@@ -239,6 +239,12 @@ export const getGridDetailsApi = async (gridID) => {
     .then((response) => response.data);
 };
 
+export const getGridsApi = async (params) => {
+  return await axios
+    .get(GRIDS, { params: { ...params, token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
 export const getCohortDetailsApi = async (cohortID) => {
   return await axios
     .get(`${COHORTS}/${cohortID}`, { params: { token: BASE_AUTH_TOKEN } })

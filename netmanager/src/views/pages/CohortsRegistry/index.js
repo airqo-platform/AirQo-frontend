@@ -43,7 +43,7 @@ const CohortsRegistry = () => {
   useEffect(() => {
     setLoading(true);
     const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
-    getCohortsApi({ network: activeNetwork.net_id })
+    getCohortsApi({ network: activeNetwork.net_name })
       .then((res) => {
         setCohorts(res.cohorts);
         setLoading(false);

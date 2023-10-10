@@ -164,7 +164,13 @@ const allMainPages = [
     title: 'Cohorts Registry',
     href: '/cohorts',
     icon: <PeopleIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
+    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
+  },
+  {
+    title: 'Grids Registry',
+    href: '/grids',
+    icon: <PeopleIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
   }
 ];
 
@@ -297,7 +303,8 @@ const Sidebar = (props) => {
         'Host Registry',
         'Site Registry',
         'AirQloud Registry',
-        'Cohorts Registry'
+        'Cohorts Registry',
+        'Grids Registry'
       ]);
       const selectedAdminPages = excludePages(allUserManagementPages, [
         'Users',

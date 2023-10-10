@@ -17,7 +17,7 @@ import Alert from '@material-ui/lab/Alert';
 import { setActiveGrid } from 'redux/Analytics/operations';
 import { refreshGridApi } from '../../apis/deviceRegistry';
 
-const AddGridToolbar = ({ open, handleClose, isCohort }) => {
+const AddGridToolbar = ({ open, handleClose }) => {
   const dispatch = useDispatch();
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
   const polygon = useSelector((state) => state.analytics.polygonShape);
@@ -58,7 +58,6 @@ const AddGridToolbar = ({ open, handleClose, isCohort }) => {
         });
         refreshGridApi(res.grid._id)
           .then(() => {
-            dispatch(setActiveGrid(res.grid));
             setErrorMessage({
               message: res.message,
               severity: 'success'
@@ -94,7 +93,7 @@ const AddGridToolbar = ({ open, handleClose, isCohort }) => {
   };
   return (
     <Dialog
-      open={open & !isCohort}
+      open={open}
       onClose={handleClose}
       aria-labelledby="form-dialog-title"
       fullWidth
