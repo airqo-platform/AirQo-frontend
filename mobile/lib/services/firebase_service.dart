@@ -14,10 +14,18 @@ import 'package:flutter/cupertino.dart';
 
 class CloudAnalytics {
   static Future<bool> logEvent(CloudAnalyticsEvent analyticsEvent) async {
-    await FirebaseAnalytics.instance.logEvent(
-      name: analyticsEvent.snakeCase(),
-    );
+    try {
+      await FirebaseAnalytics.instance.logEvent(
+        name: analyticsEvent.snakeCase(),
+      );
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
 
+      return false;
+    }
     return true;
   }
 
