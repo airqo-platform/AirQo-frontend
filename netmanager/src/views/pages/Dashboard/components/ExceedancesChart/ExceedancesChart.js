@@ -231,9 +231,9 @@ const ExceedancesChart = (props) => {
       `${tempPollutant.label} Exceedances Over the Past 28 Days Based on ${tempStandard.label}`
     );
     try {
-      const response = await axios.post(EXCEEDANCES_URI, filter, {
-        params: { token: BASE_AUTH_TOKEN }
-      });
+      const jwtToken = localStorage.getItem('jwtToken');
+      axios.defaults.headers.common.Authorization = jwtToken;
+      const response = await axios.post(EXCEEDANCES_URI, filter);
       const responseData = response.data;
       const exceedanceData = responseData.data;
       exceedanceData.sort((a, b) => {
