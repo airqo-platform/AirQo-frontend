@@ -351,6 +351,8 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
 
   const fetchAndSetAverages = (pollutant) => {
     setLoading(true);
+    const jwtToken = localStorage.getItem('jwtToken');
+    axios.defaults.headers.common.Authorization = jwtToken;
     axios
       .post(
         DAILY_MEAN_AVERAGES_URI,
@@ -366,8 +368,7 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
               endDate: roundToEndOfDay(endDate).toISOString(),
               pollutant: pollutant.value,
               sites: averageChartSites
-            },
-        { params: { token: BASE_AUTH_TOKEN } }
+            }
       )
       .then((response) => response.data)
       .then((responseData) => {

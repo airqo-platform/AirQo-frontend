@@ -14,19 +14,9 @@ export const heatmapPredictApi = async () => {
   let MAX_PAGES;
   do {
     try {
-      response = await axios.get(GET_HEATMAP_DATA, {
-        params: {
-          token: API_TOKEN
-        }
-      });
+      response = await axios.get(GET_HEATMAP_DATA);
       MAX_PAGES = response.data.pages;
-      allHeatMapData.push(
-        axios.get(`${GET_HEATMAP_DATA}?page=${page}`, {
-          params: {
-            token: API_TOKEN
-          }
-        })
-      );
+      allHeatMapData.push(axios.get(`${GET_HEATMAP_DATA}?page=${page}`));
       let resolvedPromises = await Promise.all(allHeatMapData);
       for (let i = 0; i < resolvedPromises.length; i++) {
         allHeatMapData = resolvedPromises[i];

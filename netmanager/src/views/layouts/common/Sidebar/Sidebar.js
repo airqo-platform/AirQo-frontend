@@ -285,6 +285,7 @@ const Sidebar = (props) => {
   useEffect(() => {
     if (!isEmpty(activeNetwork)) {
       dispatch(addCurrentUserRole(activeNetwork.role));
+      localStorage.setItem('currentUserRole', JSON.stringify(activeNetwork.role));
     }
   }, [activeNetwork]);
 
