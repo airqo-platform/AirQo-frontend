@@ -41,6 +41,7 @@ import GroupWorkIcon from '@material-ui/icons/GroupWork';
 import SimCardIcon from '@material-ui/icons/SimCard';
 import GridOnIcon from '@material-ui/icons/GridOn';
 import GrainIcon from '@material-ui/icons/Grain';
+import GroupAddIcon from '@material-ui/icons/GroupAdd';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -200,7 +201,7 @@ const allUserManagementPages = [
   {
     title: 'Teams',
     href: '/teams',
-    icon: <GroupWorkIcon />
+    icon: <GroupAddIcon />
   },
   {
     title: 'Users',
