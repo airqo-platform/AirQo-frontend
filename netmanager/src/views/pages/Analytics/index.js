@@ -28,8 +28,8 @@ import { isEmpty } from 'underscore';
 import CohortsDashboardView from './components/CohortsDashboard';
 import { loadDevicesData } from 'redux/DeviceRegistry/operations';
 import { useDevicesData } from 'redux/DeviceRegistry/selectors';
-import AddCohortToolbar from './components/AddCohortForm';
-import AddGridToolbar from './components/AddGridForm';
+import AddCohortToolbar from '../CohortsRegistry/AddCohortForm';
+import AddGridToolbar from '../GridsRegistry/AddGridForm';
 import { withPermission } from '../../containers/PageAccess';
 import MoreDropdown from './components/MoreDropdown';
 import { deleteCohortApi, deleteGridApi, refreshGridApi } from '../../apis/deviceRegistry';
@@ -57,7 +57,7 @@ const createDeviceOptions = (devices) => {
 const Analytics = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const [isCohort, setIsCohort] = useState(true);
+  const [isCohort, setIsCohort] = useState(false);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
@@ -113,22 +113,29 @@ const Analytics = () => {
     if (activeGrid && activeGrid._id) {
       dispatch(loadGridDetails(activeGrid._id));
     }
-    setLoading(false);
+    setTimeout(() => {
+      setLoading(false);
+    }, 3000);
   }, [activeGrid]);
 
   useEffect(() => {
+    setLoading(true);
     if (activeCohort && activeCohort._id) {
       dispatch(loadCohortDetails(activeCohort._id));
     }
+    setTimeout(() => {
+      setLoading(false);
+    }, 3000);
   }, [activeCohort]);
 
   useEffect(() => {
     setLoading(true);
     if (!isEmpty(activeNetwork)) {
       dispatch(loadDevicesData(activeNetwork.net_name));
-      setLoading(false);
     }
-    setLoading(false);
+    setTimeout(() => {
+      setLoading(false);
+    }, 3000);
   }, []);
 
   useEffect(() => {
@@ -192,12 +199,16 @@ const Analytics = () => {
           display={'flex'}
           flexDirection={{ xs: 'column', sm: 'column', md: 'row', lg: 'row', xl: 'row' }}
           justifyContent={'space-between'}
+          alignItems={'center'}
           width={'100%'}
           position={'relative'}
         >
           <Box
+            display={'flex'}
+            justifyContent={'space-between'}
+            gap={'16px'}
             width={'100%'}
-            maxWidth={{ xs: 'none', sm: 'none', md: '400px', lg: '400px', xl: '400px' }}
+            maxWidth={'450px'}
             marginBottom={{ xs: '20px', sm: '20px', md: '0', lg: '0', xl: '0' }}
           >
             <AnalyticsAirqloudsDropDown
@@ -209,14 +220,24 @@ const Analytics = () => {
                   : combinedGridAndCohortsSummary.grids)
               }
             />
+
+            {!isCohort && (
+              <MoreDropdown
+                dropdownItems={[
+                  {
+                    title: 'Refresh Grid',
+                    onClick: handleRefreshGrid,
+                    loading: loading
+                  }
+                ]}
+                anchorEl={anchorEl}
+                openMenu={openMenu}
+                handleClickMenu={handleClickMenu}
+                handleCloseMenu={handleCloseMenu}
+              />
+            )}
           </Box>
-          <Box
-            width={'100%'}
-            display={'flex'}
-            justifyContent={'center'}
-            alignItems={'flex-end'}
-            marginTop={{ xs: '25px', sm: '25px', md: '0', lg: '0', xl: '0' }}
-          >
+          <Box width={'auto'} marginTop={{ xs: '25px', sm: '25px', md: '0', lg: '0', xl: '0' }}>
             <Button
               margin="dense"
               color="primary"
@@ -231,39 +252,6 @@ const Analytics = () => {
             >
               <ImportExportIcon /> Switch to {isCohort ? 'Grid View' : 'Cohort View'}
             </Button>
-            <Box width={'16px'} />
-            {isCohort ? (
-              <MoreDropdown
-                dropdownItems={[
-                  {
-                    title: 'Create New Cohort',
-                    onClick: handleClickOpen
-                  }
-                ]}
-                anchorEl={anchorEl}
-                openMenu={openMenu}
-                handleClickMenu={handleClickMenu}
-                handleCloseMenu={handleCloseMenu}
-              />
-            ) : (
-              <MoreDropdown
-                dropdownItems={[
-                  {
-                    title: 'Refresh Grid',
-                    onClick: handleRefreshGrid,
-                    loading: loading
-                  },
-                  {
-                    title: 'Create New Grid',
-                    onClick: handleClickOpen
-                  }
-                ]}
-                anchorEl={anchorEl}
-                openMenu={openMenu}
-                handleClickMenu={handleClickMenu}
-                handleCloseMenu={handleCloseMenu}
-              />
-            )}
           </Box>
         </Box>
 
@@ -310,20 +298,9 @@ const Analytics = () => {
             <Typography variant={'subtitle1'}>Create a new cohorts to get started</Typography>
           </Box>
         )}
-
-        {/* Shows add new cohort dialog */}
-        <AddCohortToolbar
-          open={open}
-          handleClose={handleClose}
-          deviceOptions={deviceOptions}
-          isCohort={isCohort}
-        />
-
-        {/* Shows add new grid dialog */}
-        <AddGridToolbar open={open} handleClose={handleClose} isCohort={isCohort} />
       </div>
     </ErrorBoundary>
   );
 };
 
-export default withPermission(Analytics, 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');
+export default Analytics;

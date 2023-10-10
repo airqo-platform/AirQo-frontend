@@ -53,6 +53,7 @@ function ManagementStat() {
   const [onlineStatusLoading, setOnlineStatusLoading] = useState(false);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [networkUptimeLoading, setNetworkUptimeLoading] = useState(false);
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   const sortLeaderBoardData = (leaderboardData) => {
     const sortByName = (device1, device2) => {
@@ -234,7 +235,7 @@ function ManagementStat() {
           <ApexChart
             options={createPieChartOptions(['#FF2E2E', '#00A300'], ['Offline', 'Online'])}
             series={pieChartStatusValues}
-            title={'online status'}
+            title={`Online status for ${activeNetwork.net_name} Network`}
             lastUpdated={devicesStatusData.created_at}
             type="pie"
             green

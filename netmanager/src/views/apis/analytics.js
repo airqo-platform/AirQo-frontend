@@ -11,6 +11,10 @@ import {
   GENERATE_TOKEN_URI
 } from 'config/urls/analytics';
 import { BASE_AUTH_TOKEN } from 'utils/envVariables';
+import { isEmpty } from 'validate.js';
+
+const jwtToken = localStorage.getItem('jwtToken');
+axios.defaults.headers.common.Authorization = jwtToken;
 
 export const getMonitoringSitesInfoApi = async (pm25Category) => {
   return await axios

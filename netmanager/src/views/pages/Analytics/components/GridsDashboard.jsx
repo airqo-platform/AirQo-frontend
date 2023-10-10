@@ -3,19 +3,40 @@ import clsx from 'clsx';
 import { Box, Grid, Typography, makeStyles } from '@material-ui/core';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import 'chartjs-plugin-annotation';
-import { AveragesChart, ExceedancesChart } from '../../Dashboard/components';
-import GridSitesTable from './SitesTable';
+import { AveragesChart, ExceedancesChart, AddChart } from '../../Dashboard/components';
+import { useUserDefaultGraphsData } from 'redux/Dashboard/selectors';
+import { loadUserDefaultGraphData } from 'redux/Dashboard/operations';
+import D3CustomisableChart from '../../../components/d3/CustomisableChart';
+import { useDispatch } from 'react-redux';
+import { isEmpty } from 'validate.js';
 
 const useStyles = makeStyles((theme) => ({
   chartCard: {},
   chartContainer: {
     minHeight: 250,
     position: 'relative'
+  },
+  customChartCard: {
+    width: '100%',
+    padding: '20px',
+    minHeight: '200px'
+  },
+  differenceIcon: {
+    color: theme.palette.text.secondary
+  },
+  chartContainer: {
+    minHeight: 250,
+    position: 'relative'
+  },
+  actions: {
+    justifyContent: 'flex-end'
   }
 }));
 
 const GridsDashboardView = ({ grid, gridDetails }) => {
   const classes = useStyles();
+  const dispatch = useDispatch();
+  const userDefaultGraphs = useUserDefaultGraphsData();
 
   const [gridInfo, setGridInfo] = useState({
     name: 'N/A',
@@ -61,6 +82,17 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
       todaysDate.getFullYear()
   );
 
+  useEffect(() => {
+    if (isEmpty(userDefaultGraphs)) {
+      dispatch(loadUserDefaultGraphData(true, grid._id));
+    }
+  }, []);
+
+  // componentWillUnmount
+  useEffect(() => {
+    return () => dispatch(loadUserDefaultGraphData(true, grid._id));
+  }, []);
+
   return (
     <ErrorBoundary>
       <Box marginTop={'40px'}>
@@ -101,8 +133,26 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
             </Grid>
           )}
 
-          <Grid item lg={12} md={12} sm={12} xl={12} xs={12}>
-            <GridSitesTable sites={gridInfo.sites} />
+          {userDefaultGraphs &&
+            userDefaultGraphs.map((filter, key) => {
+              return (
+                <D3CustomisableChart
+                  className={clsx(classes.customChartCard)}
+                  defaultFilter={filter}
+                  key={key}
+                  isGrids
+                  analyticsSites={gridInfo.sites}
+                />
+              );
+            })}
+
+          <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+            <AddChart
+              className={classes.customChartCard}
+              isGrids
+              analyticsSites={gridInfo.sites}
+              grid={grid}
+            />
           </Grid>
         </Grid>
       </Box>

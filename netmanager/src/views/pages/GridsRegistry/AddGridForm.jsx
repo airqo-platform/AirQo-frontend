@@ -15,9 +15,10 @@ import PolygonMap from './PolygonMap';
 import { createGridApi } from 'views/apis/deviceRegistry';
 import Alert from '@material-ui/lab/Alert';
 import { setActiveGrid } from 'redux/Analytics/operations';
-import { refreshGridApi } from '../../../apis/deviceRegistry';
+import { refreshGridApi } from '../../apis/deviceRegistry';
+import { fetchAllGrids } from '../../../redux/Analytics/operations';
 
-const AddGridToolbar = ({ open, handleClose, isCohort }) => {
+const AddGridToolbar = ({ open, handleClose }) => {
   const dispatch = useDispatch();
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
   const polygon = useSelector((state) => state.analytics.polygonShape);
@@ -58,11 +59,12 @@ const AddGridToolbar = ({ open, handleClose, isCohort }) => {
         });
         refreshGridApi(res.grid._id)
           .then(() => {
-            dispatch(setActiveGrid(res.grid));
             setErrorMessage({
               message: res.message,
               severity: 'success'
             });
+            const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
+            dispatch(fetchAllGrids(activeNetwork.net_name));
             setTimeout(() => {
               setErrorMessage(null);
               clearState();
@@ -94,7 +96,7 @@ const AddGridToolbar = ({ open, handleClose, isCohort }) => {
   };
   return (
     <Dialog
-      open={open & !isCohort}
+      open={open}
       onClose={handleClose}
       aria-labelledby="form-dialog-title"
       fullWidth

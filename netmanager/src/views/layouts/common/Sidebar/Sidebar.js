@@ -38,6 +38,8 @@ import { getRoleDetailsApi } from '../../../apis/accessControl';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import GroupWorkIcon from '@material-ui/icons/GroupWork';
+import GridOnIcon from '@material-ui/icons/GridOn';
+import GrainIcon from '@material-ui/icons/Grain';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -99,7 +101,6 @@ const allMainPages = [
   {
     title: 'Analytics',
     href: '/analytics',
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
     icon: <TimelineIcon />
   },
   {
@@ -160,6 +161,18 @@ const allMainPages = [
     title: 'Heat Map',
     href: '/heatMap',
     icon: <BubbleChartIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
+  },
+  {
+    title: 'Cohorts Registry',
+    href: '/cohorts',
+    icon: <GroupWorkIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
+  },
+  {
+    title: 'Grids Registry',
+    href: '/grids',
+    icon: <GrainIcon />,
     permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
   }
 ];
@@ -306,7 +319,9 @@ const Sidebar = (props) => {
         'Device Registry',
         'Host Registry',
         'Site Registry',
-        'AirQloud Registry'
+        'AirQloud Registry',
+        'Cohorts Registry',
+        'Grids Registry'
       ]);
       const selectedAdminPages = excludePages(allUserManagementPages, [
         'Users',
@@ -326,7 +341,8 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}>
+      variant={variant}
+    >
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />
