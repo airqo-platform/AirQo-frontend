@@ -10,6 +10,7 @@ import '../../constants/language_contants.dart';
 import '../../main_common.dart';
 import '../../models/language.dart';
 import '../../themes/colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LanguageList extends StatefulWidget {
   const LanguageList({Key? key}) : super(key: key);
@@ -20,10 +21,15 @@ class LanguageList extends StatefulWidget {
 
 class LanguageListState extends State<LanguageList> {
   String? selectedLanguageCode;
+
   @override
   void initState() {
     super.initState();
-    selectedLanguageCode = null;
+    _loadSelectedLanguage().then((value) {
+      setState(() {
+        selectedLanguageCode = value;
+      });
+    });
   }
 
   @override
@@ -70,11 +76,7 @@ class LanguageListState extends State<LanguageList> {
                           title: Text(language.name),
                           onTap: () async {
                             await languageDialog(context, language);
-                            // showSnackBar(
-                            //   context,
-                            //   AppLocalizations.of(context)!
-                            //       .languageChangedSuccessfully(language.name),
-                            // );
+                            await _saveSelectedLanguage(language.languageCode);
                             setState(() {
                               selectedLanguageCode = language.languageCode;
                             });
@@ -96,6 +98,16 @@ class LanguageListState extends State<LanguageList> {
       ),
     );
   }
+}
+
+Future<void> _saveSelectedLanguage(String languageCode) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('selectedLanguage', languageCode);
+}
+
+Future<String?> _loadSelectedLanguage() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('selectedLanguage');
 }
 
 Future<dynamic> languageDialog(BuildContext context, Language language) {
