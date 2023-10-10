@@ -394,13 +394,15 @@ const CustomisableChart = (props) => {
 
     await setCustomisedGraphData({});
 
+    const jwtToken = localStorage.getItem('jwtToken');
+    axios.defaults.headers.common.Authorization = jwtToken;
+
     return await axios
       .post(
         GENERATE_CUSTOMISABLE_CHARTS_URI,
         // JSON.stringify(filter),
         filter,
-        { headers: { 'Content-Type': 'application/json' } },
-        { params: { token: BASE_AUTH_TOKEN } }
+        { headers: { 'Content-Type': 'application/json' } }
       )
       .then((res) => res.data)
       .then((chartData) => {

@@ -71,22 +71,20 @@ export const getUserChartDefaultsApi = async (userID, airqloudID) => {
 };
 
 export const createUserChartDefaultsApi = async (defaultsData) => {
-  return await axios
-    .post(CHART_DEFAULTS_URI, defaultsData, { params: { token: BASE_AUTH_TOKEN } })
-    .then((response) => response.data);
+  return await axios.post(CHART_DEFAULTS_URI, defaultsData).then((response) => response.data);
 };
 
 export const updateUserChartDefaultsApi = async (chartDefaultID, defaultsData) => {
   return await axios
     .put(CHART_DEFAULTS_URI, defaultsData, {
-      params: { id: chartDefaultID, token: BASE_AUTH_TOKEN }
+      params: { id: chartDefaultID }
     })
     .then((response) => response.data);
 };
 
 export const deleteUserChartDefaultsApi = async (chartDefaultID) => {
   return await axios
-    .delete(CHART_DEFAULTS_URI, { params: { id: chartDefaultID, token: BASE_AUTH_TOKEN } })
+    .delete(CHART_DEFAULTS_URI, { params: { id: chartDefaultID } })
     .then((response) => response.data);
 };
 
