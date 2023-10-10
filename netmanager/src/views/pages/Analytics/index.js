@@ -303,4 +303,4 @@ const Analytics = () => {
   );
 };
 
-export default withPermission(Analytics, 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');
+export default Analytics;

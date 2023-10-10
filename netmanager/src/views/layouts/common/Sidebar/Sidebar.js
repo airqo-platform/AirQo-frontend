@@ -38,6 +38,8 @@ import { getRoleDetailsApi } from '../../../apis/accessControl';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import GroupWorkIcon from '@material-ui/icons/GroupWork';
+import GridOnIcon from '@material-ui/icons/GridOn';
+import GrainIcon from '@material-ui/icons/Grain';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -99,7 +101,6 @@ const allMainPages = [
   {
     title: 'Analytics',
     href: '/analytics',
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
     icon: <TimelineIcon />
   },
   {
@@ -165,13 +166,13 @@ const allMainPages = [
   {
     title: 'Cohorts Registry',
     href: '/cohorts',
-    icon: <PeopleIcon />,
+    icon: <GroupWorkIcon />,
     permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
   },
   {
     title: 'Grids Registry',
     href: '/grids',
-    icon: <PeopleIcon />,
+    icon: <GrainIcon />,
     permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
   }
 ];
