@@ -265,8 +265,6 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
     });
   };
 
-  console.log('host', host);
-
   return (
     <Dialog
       open={addHostDialog}

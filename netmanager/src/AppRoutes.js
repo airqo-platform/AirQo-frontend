@@ -49,6 +49,8 @@ const Analytics = lazy(() => import('./views/pages/Analytics'));
 const HostRegistry = lazy(() => import('./views/components/Hosts/HostRegistry'));
 const HostView = lazy(() => import('./views/components/Hosts/HostView'));
 const HeatMapOverlay = lazy(() => import('./views/pages/Heatmap/HeatMapOverlay'));
+const Teams = lazy(() => import('./views/pages/Teams/Teams'));
+const TeamsView = lazy(() => import('./views/pages/Teams/TeamsView'));
 
 const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
@@ -118,6 +120,8 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <PrivateRoute component={Roles} exact layout={MainLayout} path="/roles" />
             <PrivateRoute component={Settings} exact layout={MainLayout} path="/settings" />
             <PrivateRoute component={Organisation} exact layout={MainLayout} path="/organisation" />
+            <PrivateRoute component={Teams} exact layout={MainLayout} path="/teams" />
+            <PrivateRoute exact path="/teams/:id" component={TeamsView} layout={MainLayout} />
             <PrivateRoute exact path="/heatMap" component={HeatMapOverlay} layout={MainLayout} />
 
             <PrivateRoute path="/device/:deviceName" component={DeviceView} layout={MainLayout} />
