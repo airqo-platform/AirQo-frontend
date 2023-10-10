@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Box, Button, Grid, Typography, makeStyles } from '@material-ui/core';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import { useDispatch } from 'react-redux';
-import CohortDevicesTable from './DevicesTable';
 import { isEmpty } from 'validate.js';
 import clsx from 'clsx';
 import 'chartjs-plugin-annotation';
