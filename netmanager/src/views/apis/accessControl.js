@@ -4,7 +4,8 @@ import {
   GET_PERMISSIONS_URI,
   GET_ROLES_URI,
   GENERATE_ACCESS_TOKEN,
-  CREATE_TEAM_URI
+  CREATE_TEAM_URI,
+  GET_SIM_URI
 } from '../../config/urls/analytics';
 import { GET_ACCESS_TOKEN } from '../../config/urls/authService';
 import { BASE_AUTH_TOKEN } from '../../utils/envVariables';
@@ -132,4 +133,22 @@ export const getTeamDetailsApi = async (teamID) => {
 
 export const updateTeamApi = async (teamID, data) => {
   return await axios.put(`${CREATE_TEAM_URI}/${teamID}`, data).then((response) => response.data);
+};
+
+export const createSimApi = async (data) => {
+  return await axios
+    .post(GET_SIM_URI, data, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const getSimsApi = async () => {
+  return await axios
+    .get(GET_SIM_URI, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const checkSimStatusApi = async (simID) => {
+  return await axios
+    .get(`${GET_SIM_URI}/${simID}/status`, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
 };

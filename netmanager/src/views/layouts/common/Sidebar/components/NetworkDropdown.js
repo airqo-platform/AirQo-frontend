@@ -93,6 +93,7 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
   };
 
   const handleSelect = (item) => {
+    console.log('item', item);
     setSelectedItem(item);
     localStorage.setItem('activeNetwork', JSON.stringify(item));
     localStorage.setItem('currentUserRole', JSON.stringify(item.role));

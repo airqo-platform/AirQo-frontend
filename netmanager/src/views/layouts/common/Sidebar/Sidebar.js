@@ -38,8 +38,10 @@ import { getRoleDetailsApi } from '../../../apis/accessControl';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import GroupWorkIcon from '@material-ui/icons/GroupWork';
+import SimCardIcon from '@material-ui/icons/SimCard';
 import GridOnIcon from '@material-ui/icons/GridOn';
 import GrainIcon from '@material-ui/icons/Grain';
+import GroupAddIcon from '@material-ui/icons/GroupAdd';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -152,6 +154,12 @@ const allMainPages = [
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
   },
   {
+    title: 'SIM Registry',
+    href: '/sim',
+    icon: <SimCardIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
+  },
+  {
     title: 'AirQloud Registry',
     href: '/airqlouds',
     icon: <AirQloudIcon />,
@@ -193,7 +201,7 @@ const allUserManagementPages = [
   {
     title: 'Teams',
     href: '/teams',
-    icon: <GroupWorkIcon />
+    icon: <GroupAddIcon />
   },
   {
     title: 'Users',
@@ -265,6 +273,7 @@ const Sidebar = (props) => {
           const airqoNetwork = res.users[0].networks.find(
             (network) => network.net_name === 'airqo'
           );
+          localStorage.setItem('currentUserRole', JSON.stringify(airqoNetwork.role));
           if (!activeNetwork) {
             localStorage.setItem('activeNetwork', JSON.stringify(airqoNetwork));
             dispatch(addActiveNetwork(airqoNetwork));
@@ -342,8 +351,7 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}
-    >
+      variant={variant}>
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />
