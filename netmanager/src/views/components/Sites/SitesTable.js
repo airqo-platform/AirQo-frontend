@@ -38,7 +38,7 @@ const SitesTable = ({ refresh, setRefresh }) => {
     if (isEmpty(sites) || refresh) {
       setIsLoading(true);
       if (!isEmpty(activeNetwork)) {
-        dispatch(loadSitesSummary(activeNetwork.net_name));
+        dispatch(loadSitesSummary(activeNetwork.net_name || activeNetwork.grp_title));
       }
       setIsLoading(false);
       setRefresh(false);
@@ -52,7 +52,7 @@ const SitesTable = ({ refresh, setRefresh }) => {
       .then((resData) => {
         const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
         if (!isEmpty(activeNetwork)) {
-          dispatch(loadSitesData(activeNetwork.net_name));
+          dispatch(loadSitesData(activeNetwork.net_name || activeNetwork.grp_title));
         }
         dispatch(
           updateMainAlert({
@@ -83,7 +83,7 @@ const SitesTable = ({ refresh, setRefresh }) => {
         <CustomMaterialTable
           pointerCursor
           userPreferencePaginationKey={'sites'}
-          title={`Site Registry for ${activeNetwork.net_name}`}
+          title={`Site Registry for ${activeNetwork.net_name || activeNetwork.grp_title}`}
           columns={[
             {
               title: 'Name',

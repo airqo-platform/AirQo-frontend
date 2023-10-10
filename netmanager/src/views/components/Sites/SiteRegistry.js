@@ -33,7 +33,10 @@ const SiteRegistry = () => {
     <ErrorBoundary>
       <div className={classes.root}>
         <SiteToolbar setRefresh={() => setRefresh(!refresh)} />
-        <UsersListBreadCrumb category="Site Registry" usersTable={`${activeNetwork.net_name}`} />
+        <UsersListBreadCrumb
+          category="Site Registry"
+          usersTable={`${activeNetwork.net_name || activeNetwork.grp_title}`}
+        />
         <div className={classes.content}>
           <SitesTable refresh={refresh} setRefresh={setRefresh} />
         </div>

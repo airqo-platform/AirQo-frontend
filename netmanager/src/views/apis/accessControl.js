@@ -142,43 +142,29 @@ export const getNetworkListSummaryApi = async () => {
 };
 
 export const createTeamApi = async (data) => {
-  return await axios
-    .post(CREATE_TEAM_URI, data, { params: { token: BASE_AUTH_TOKEN } })
-    .then((response) => response.data);
+  return await axios.post(CREATE_TEAM_URI, data).then((response) => response.data);
 };
 
 export const getTeamsApi = async () => {
-  return await axios
-    .get(CREATE_TEAM_URI, { params: { token: BASE_AUTH_TOKEN } })
-    .then((response) => response.data);
+  return await axios.get(CREATE_TEAM_URI).then((response) => response.data);
 };
 
 export const getTeamDetailsApi = async (teamID) => {
-  return await axios
-    .get(`${CREATE_TEAM_URI}/${teamID}`, { params: { token: BASE_AUTH_TOKEN } })
-    .then((response) => response.data);
+  return await axios.get(`${CREATE_TEAM_URI}/${teamID}`).then((response) => response.data);
 };
 
 export const updateTeamApi = async (teamID, data) => {
-  return await axios
-    .put(`${CREATE_TEAM_URI}/${teamID}`, data, { params: { token: BASE_AUTH_TOKEN } })
-    .then((response) => response.data);
+  return await axios.put(`${CREATE_TEAM_URI}/${teamID}`, data).then((response) => response.data);
 };
 
 export const createSimApi = async (data) => {
-  return await axios
-    .post(GET_SIM_URI, data, { params: { token: BASE_AUTH_TOKEN } })
-    .then((response) => response.data);
+  return await axios.post(GET_SIM_URI, data).then((response) => response.data);
 };
 
 export const getSimsApi = async () => {
-  return await axios
-    .get(GET_SIM_URI, { params: { token: BASE_AUTH_TOKEN } })
-    .then((response) => response.data);
+  return await axios.get(GET_SIM_URI).then((response) => response.data);
 };
 
 export const checkSimStatusApi = async (simID) => {
-  return await axios
-    .get(`${GET_SIM_URI}/${simID}/status`, { params: { token: BASE_AUTH_TOKEN } })
-    .then((response) => response.data);
+  return await axios.get(`${GET_SIM_URI}/${simID}/status`).then((response) => response.data);
 };

@@ -172,8 +172,7 @@ const createDeviceColumns = (history, setDelState) => [
               className={'underline-hover'}
               onClick={(event) => {
                 event.stopPropagation();
-              }}
-            >
+              }}>
               {data.site && data.site.description}
             </Link>
           )
@@ -203,8 +202,7 @@ const createDeviceColumns = (history, setDelState) => [
               style={{
                 color: deviceStatus === 'deployed' ? 'green' : 'red',
                 textTransform: 'capitalize'
-              }}
-            >
+              }}>
               {deviceStatus}
             </span>
           }
@@ -256,7 +254,9 @@ const categoriesOptions = CATEGORIES.map((category) => ({
 }));
 
 const CreateDevice = ({ open, setOpen, setIsLoading }) => {
-  const selectedNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
+  const selectedNetwork =
+    JSON.parse(localStorage.getItem('activeNetwork')).net_name ||
+    JSON.parse(localStorage.getItem('activeNetwork')).grp_title;
   const classes = useStyles();
   const dispatch = useDispatch();
   const newDeviceInitState = {
@@ -367,8 +367,7 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
       open={open}
       onClose={handleRegisterClose}
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description"
-    >
+      aria-describedby="form-dialog-description">
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Add a device
       </DialogTitle>
@@ -413,8 +412,7 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
             variant="outlined"
             error={!!errors.network}
             helperText={errors.network}
-            disabled
-          ></TextField>
+            disabled></TextField>
         </form>
       </DialogContent>
 
@@ -428,8 +426,7 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
             color="primary"
             type="submit"
             onClick={handleRegisterSubmit}
-            style={{ margin: '0 15px' }}
-          >
+            style={{ margin: '0 15px' }}>
             Register
           </Button>
         </Grid>
@@ -539,8 +536,7 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
       open={open}
       onClose={handleRegisterClose}
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description"
-    >
+      aria-describedby="form-dialog-description">
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Soft add a device
       </DialogTitle>
@@ -583,8 +579,7 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
             variant="outlined"
             error={!!errors.network}
             helperText={errors.network}
-            disabled
-          ></TextField>
+            disabled></TextField>
         </form>
       </DialogContent>
 
@@ -598,8 +593,7 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
             color="primary"
             type="submit"
             onClick={handleRegisterSubmit}
-            style={{ margin: '0 15px' }}
-          >
+            style={{ margin: '0 15px' }}>
             Register
           </Button>
         </Grid>
@@ -640,7 +634,7 @@ const DevicesTable = (props) => {
           setDeviceList(Object.values(devices));
           const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
           if (!isEmpty(activeNetwork)) {
-            dispatch(loadDevicesData(activeNetwork.net_name));
+            dispatch(loadDevicesData(activeNetwork.net_name || activeNetwork.grp_title));
           }
           dispatch(
             updateMainAlert({
@@ -675,17 +669,17 @@ const DevicesTable = (props) => {
   useEffect(() => {
     if (isEmpty(devices)) {
       if (!isEmpty(activeNetwork)) {
-        dispatch(loadDevicesData(activeNetwork.net_name));
+        dispatch(loadDevicesData(activeNetwork.net_name || activeNetwork.grp_title));
       }
     }
 
     if (isEmpty(sites)) {
       if (!isEmpty(activeNetwork)) {
-        dispatch(loadSitesData(activeNetwork.net_name));
+        dispatch(loadSitesData(activeNetwork.net_name || activeNetwork.grp_title));
       }
     }
     dispatch(updateDeviceBackUrl(location.pathname));
-  }, [devices]);
+  }, []);
 
   useEffect(() => {
     setDeviceList(Object.values(devices));
@@ -714,17 +708,14 @@ const DevicesTable = (props) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end'
-          }}
-        >
+          }}>
           {activeNetwork.net_name === 'airqo' && (
             <Button
               variant="contained"
               color="primary"
               type="submit"
               align="right"
-              onClick={() => setRegisterOpen(true)}
-            >
-              {' '}
+              onClick={() => setRegisterOpen(true)}>
               Add Device
             </Button>
           )}
@@ -733,15 +724,17 @@ const DevicesTable = (props) => {
             color="primary"
             type="submit"
             style={{ marginLeft: '20px' }}
-            onClick={() => setSoftRegisterOpen(true)}
-          >
+            onClick={() => setSoftRegisterOpen(true)}>
             {activeNetwork.net_name === 'airqo' ? 'Soft Add Device' : 'Add Device'}
           </Button>
         </div>
-        <UsersListBreadCrumb category="Device Registry" usersTable={`${activeNetwork.net_name}`} />
+        <UsersListBreadCrumb
+          category="Device Registry"
+          usersTable={`${activeNetwork.net_name || activeNetwork.grp_title} `}
+        />
 
         <CustomMaterialTable
-          title={`Device Registry for ${activeNetwork.net_name}`}
+          title={`Device Registry for ${activeNetwork.net_name || activeNetwork.grp_title}`}
           userPreferencePaginationKey={'devices'}
           columns={deviceColumns}
           data={deviceList.map((x) => Object.assign({}, x))}
