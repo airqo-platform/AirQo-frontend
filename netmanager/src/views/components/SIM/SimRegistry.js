@@ -23,8 +23,9 @@ import AddIcon from '@material-ui/icons/Add';
 import Tooltip from '@material-ui/core/Tooltip';
 import DataTable from './Table';
 import CloseIcon from '@material-ui/icons/Close';
-import { getSimsApi, createSimApi } from '../../apis/accessControl';
+import { getSimsApi, createSimApi, checkSimStatusApi } from '../../apis/accessControl';
 import DeleteIcon from '@material-ui/icons/Delete';
+import RefreshIcon from '@material-ui/icons/Refresh';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -256,6 +257,24 @@ const SimRegistry = () => {
       });
   }, [refresh]);
 
+  const checkSimStatus = (id) => {
+    setIsLoading(true);
+    checkSimStatusApi(id)
+      .then((res) => {
+        setIsLoading(false);
+        if (res.success) {
+          dispatch(updateMainAlert({ message: res.message, show: true, severity: 'success' }));
+          setRefresh(true);
+        } else {
+          dispatch(updateMainAlert({ message: res.message, show: true, severity: 'error' }));
+        }
+      })
+      .catch((err) => {
+        setIsLoading(false);
+        dispatch(updateMainAlert({ message: err.message, show: true, severity: 'error' }));
+      });
+  };
+
   const handleDelete = (id) => {};
 
   return (
@@ -312,11 +331,24 @@ const SimRegistry = () => {
               id: 'action',
               label: 'Actions',
               format: (value, row) => (
-                <Tooltip title="Delete" placement="bottom" arrow>
-                  <IconButton onClick={() => handleDelete(row._id)} disabled>
-                    <DeleteIcon />
-                  </IconButton>
-                </Tooltip>
+                <div style={{ display: 'flex' }}>
+                  <Tooltip title="Delete" placement="bottom" arrow>
+                    <IconButton onClick={() => handleDelete(row._id)} disabled>
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip
+                    title="Refresh"
+                    placement="bottom"
+                    arrow
+                    style={{
+                      marginLeft: 10
+                    }}>
+                    <IconButton onClick={() => checkSimStatus(row._id)}>
+                      <RefreshIcon />
+                    </IconButton>
+                  </Tooltip>
+                </div>
               )
             }
           ]}
