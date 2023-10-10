@@ -38,6 +38,7 @@ import { getRoleDetailsApi } from '../../../apis/accessControl';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import GroupWorkIcon from '@material-ui/icons/GroupWork';
+import SimCardIcon from '@material-ui/icons/SimCard';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -151,6 +152,12 @@ const allMainPages = [
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
   },
   {
+    title: 'SIM Registry',
+    href: '/sim',
+    icon: <SimCardIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
+  },
+  {
     title: 'AirQloud Registry',
     href: '/airqlouds',
     icon: <AirQloudIcon />,
@@ -252,6 +259,7 @@ const Sidebar = (props) => {
           const airqoNetwork = res.users[0].networks.find(
             (network) => network.net_name === 'airqo'
           );
+          localStorage.setItem('currentUserRole', JSON.stringify(airqoNetwork.role));
           if (!activeNetwork) {
             localStorage.setItem('activeNetwork', JSON.stringify(airqoNetwork));
             dispatch(addActiveNetwork(airqoNetwork));
