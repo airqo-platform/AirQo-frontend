@@ -254,7 +254,13 @@ const Teams = () => {
             height: 'calc(100vh - 300px)'
           }}
           columns={[
-            { id: 'grp_title', label: 'Team title', format: (value, row) => row.grp_title },
+            {
+              id: 'grp_title',
+              label: 'Team title',
+              format: (value, row) => {
+                return row.grp_title.replace(/_/g, ' ');
+              }
+            },
             {
               id: 'status',
               label: 'Status',
@@ -269,12 +275,11 @@ const Teams = () => {
             {
               id: 'createdAt',
               label: 'Formed on',
-              format: (value) =>
-                new Date(value).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })
+              format: (value, row) => {
+                const date = new Date(row.createdAt);
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                return date.toLocaleDateString('en-US', options);
+              }
             },
             {
               id: 'actions',
