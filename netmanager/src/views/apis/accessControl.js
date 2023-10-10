@@ -136,19 +136,13 @@ export const updateTeamApi = async (teamID, data) => {
 };
 
 export const createSimApi = async (data) => {
-  return await axios
-    .post(GET_SIM_URI, data, { params: { token: BASE_AUTH_TOKEN } })
-    .then((response) => response.data);
+  return await axios.post(GET_SIM_URI, data).then((response) => response.data);
 };
 
 export const getSimsApi = async () => {
-  return await axios
-    .get(GET_SIM_URI, { params: { token: BASE_AUTH_TOKEN } })
-    .then((response) => response.data);
+  return await axios.get(GET_SIM_URI).then((response) => response.data);
 };
 
 export const checkSimStatusApi = async (simID) => {
-  return await axios
-    .get(`${GET_SIM_URI}/${simID}/status`, { params: { token: BASE_AUTH_TOKEN } })
-    .then((response) => response.data);
+  return await axios.get(`${GET_SIM_URI}/${simID}/status`).then((response) => response.data);
 };

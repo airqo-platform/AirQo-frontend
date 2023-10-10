@@ -256,10 +256,7 @@ const Teams = () => {
           columns={[
             {
               id: 'grp_title',
-              label: 'Team title',
-              format: (value, row) => {
-                return row.grp_title.replace(/_/g, ' ');
-              }
+              label: 'Team title'
             },
             {
               id: 'status',
