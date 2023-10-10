@@ -1,5 +1,5 @@
 import React from 'react';
-import CustomMaterialTable from '../../../components/Table/CustomMaterialTable';
+import CustomMaterialTable from '../../components/Table/CustomMaterialTable';
 import { useHistory } from 'react-router-dom';
 
 const GridSitesTable = ({ sites }) => {
@@ -51,8 +51,8 @@ const GridSitesTable = ({ sites }) => {
       options={{
         search: true,
         exportButton: true,
-        searchFieldAlignment: 'left',
-        showTitle: false,
+        searchFieldAlignment: 'right',
+        showTitle: true,
         searchFieldStyle: {
           fontFamily: 'Open Sans'
         },

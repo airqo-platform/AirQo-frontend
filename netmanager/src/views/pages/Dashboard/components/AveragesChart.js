@@ -43,7 +43,7 @@ function appendLeadingZeroes(n) {
   return n;
 }
 
-const AveragesChart = ({ classes, analyticsSites, isGrids }) => {
+const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsDevices }) => {
   const rootContainerId = 'widget-container';
   const iconButton = 'exportIconButton';
   const airqloud = useCurrentAirQloudData();
@@ -51,6 +51,7 @@ const AveragesChart = ({ classes, analyticsSites, isGrids }) => {
   const endDate = moment(new Date()).toISOString();
   const startDate = moment(endDate).subtract(28, 'days').toISOString();
   const [averageChartSites, setAverageChartSites] = useState([]);
+  const [averageChartDevices, setAverageChartDevices] = useState([]);
   const [displayedLocations, setDisplayedLocations] = useState([]);
   const [allLocations, setAllLocations] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -85,6 +86,17 @@ const AveragesChart = ({ classes, analyticsSites, isGrids }) => {
       setAverageChartSites(flattenSiteOptions(airqloud.siteOptions));
     }
   }, [analyticsSites, airqloud]);
+
+  useEffect(() => {
+    if (isCohorts) {
+      const deviceOptions = [];
+      !isEmpty(analyticsDevices) &&
+        analyticsDevices.map((device) => {
+          deviceOptions.push(device._id);
+        });
+      setAverageChartDevices(deviceOptions);
+    }
+  }, [analyticsDevices]);
 
   const handlePollutantChange = (pollutant) => {
     setTempPollutant(pollutant);
@@ -342,12 +354,19 @@ const AveragesChart = ({ classes, analyticsSites, isGrids }) => {
     axios
       .post(
         DAILY_MEAN_AVERAGES_URI,
-        {
-          startDate: roundToStartOfDay(startDate).toISOString(),
-          endDate: roundToEndOfDay(endDate).toISOString(),
-          pollutant: pollutant.value,
-          sites: averageChartSites
-        },
+        isCohorts
+          ? {
+              startDate: roundToStartOfDay(startDate).toISOString(),
+              endDate: roundToEndOfDay(endDate).toISOString(),
+              pollutant: pollutant.value,
+              devices: averageChartDevices
+            }
+          : {
+              startDate: roundToStartOfDay(startDate).toISOString(),
+              endDate: roundToEndOfDay(endDate).toISOString(),
+              pollutant: pollutant.value,
+              sites: averageChartSites
+            },
         { params: { token: BASE_AUTH_TOKEN } }
       )
       .then((response) => response.data)
@@ -540,27 +559,50 @@ const AveragesChart = ({ classes, analyticsSites, isGrids }) => {
     fetchAndSetAverages(tempPollutant);
   };
   useEffect(() => {
-    if (!isEmpty(averageChartSites)) {
-      setLoading(true);
-      fetchAndSetAverages(pollutant);
-      setLoading(false);
-    }
-
-    if (isEmpty(averageChartSites)) {
-      setLoading(true);
-
-      setTimeout(() => {
+    if (isCohorts) {
+      if (!isEmpty(averageChartDevices)) {
+        setLoading(true);
+        fetchAndSetAverages(pollutant);
         setLoading(false);
-        setAllLocations([]);
-        setDisplayedLocations([]);
-        setAverages({
-          labels: [],
-          average_values: [],
-          background_colors: []
-        });
-      }, 1000);
+      }
+
+      if (isEmpty(averageChartDevices)) {
+        setLoading(true);
+
+        setTimeout(() => {
+          setLoading(false);
+          setAllLocations([]);
+          setDisplayedLocations([]);
+          setAverages({
+            labels: [],
+            average_values: [],
+            background_colors: []
+          });
+        }, 1000);
+      }
+    } else {
+      if (!isEmpty(averageChartSites)) {
+        setLoading(true);
+        fetchAndSetAverages(pollutant);
+        setLoading(false);
+      }
+
+      if (isEmpty(averageChartSites)) {
+        setLoading(true);
+
+        setTimeout(() => {
+          setLoading(false);
+          setAllLocations([]);
+          setDisplayedLocations([]);
+          setAverages({
+            labels: [],
+            average_values: [],
+            background_colors: []
+          });
+        }, 1000);
+      }
     }
-  }, [averageChartSites, modalOpen]);
+  }, [averageChartSites, modalOpen, averageChartDevices]);
 
   const handleSeeMoreClick = () => {
     setDisplayedLocations(allLocations);
