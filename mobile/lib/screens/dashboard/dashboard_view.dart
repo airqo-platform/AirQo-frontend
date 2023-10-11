@@ -341,7 +341,6 @@ class _DashboardViewState extends State<DashboardView>
                     ),
                     BlocBuilder<KyaBloc, KyaState>(
                       builder: (context, state) {
-                        _refresh();
                         List<Quiz> inCompleteQuizzes = state.quizzes
                             .where((quiz) => quiz.status != QuizStatus.complete)
                             .toList();
@@ -356,7 +355,6 @@ class _DashboardViewState extends State<DashboardView>
                     ),
                     BlocBuilder<KyaBloc, KyaState>(
                       builder: (context, state) {
-                        _refresh();
                         List<KyaLesson> inCompleteLessons =
                             state.lessons.filterInCompleteLessons();
 
@@ -573,9 +571,6 @@ class _DashboardViewState extends State<DashboardView>
 
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
-    context.read<KyaBloc>().add(const FetchQuizzes());
-    context.read<KyaBloc>().add(const FetchKya());
-    await Future.delayed(const Duration(seconds: 10));
     _updateWidget();
   }
 
