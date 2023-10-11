@@ -112,8 +112,9 @@ export const setDefaultAirQloud = () => async (dispatch, getState) => {
       payload: airqloud
     });
   } else {
-    const { airqlouds } = await getAirQloudsApi({});
-    if (isEmpty(airqlouds)) return;
+    const response = await getAirQloudsApi({});
+    if (!response || isEmpty(response.airqlouds)) return;
+    const { airqlouds } = response;
     const current = airqlouds.filter((airqloud) => airqloud.long_name === 'Uganda');
     dispatch(setCurrentAirQloudData((current.length > 0 && current[0]) || airqlouds[0]));
     dispatch({
