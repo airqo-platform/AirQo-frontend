@@ -149,7 +149,8 @@ export const DeviceToolBar = ({ deviceName }) => {
                 </span>
               </Link>
               <Link
-                onClick={handleDropdownChange(`${match.url}/maintenance-logs`, 'maintenance-logs')}>
+                onClick={handleDropdownChange(`${match.url}/maintenance-logs`, 'maintenance-logs')}
+              >
                 <span>
                   <Update style={iconMiniStyles} /> Maintenance logs
                 </span>
@@ -170,10 +171,11 @@ export const DeviceToolBar = ({ deviceName }) => {
               display: 'flex',
               alignItems: 'center',
               border: '1px solid #eeeeee'
-            }}>
+            }}
+          >
             <ArrowBackIosRounded
               style={{ color: '#3f51b5', cursor: 'pointer' }}
-              onClick={() => history.push(goBackUrl)}
+              onClick={() => history.goBack()}
             />
             <Typography variant="h3" className={classes.title}>
               {deviceName}
@@ -184,7 +186,8 @@ export const DeviceToolBar = ({ deviceName }) => {
               value={value}
               onChange={handleChange}
               textColor="primary"
-              aria-label="nav tabs example">
+              aria-label="nav tabs example"
+            >
               <LinkTab
                 label="Overview"
                 icon={<PageviewOutlined style={iconStyles} />}

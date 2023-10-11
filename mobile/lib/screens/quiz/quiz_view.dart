@@ -85,7 +85,9 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
       );
       return SizedBox(
         height: MediaQuery.of(context).size.height * 0.93,
-        child: Padding(
+        child: AnimatedPadding(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeIn,
           padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
           child: Column(
             mainAxisSize: MainAxisSize.min,

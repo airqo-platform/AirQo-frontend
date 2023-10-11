@@ -134,7 +134,9 @@ class _PageScaffoldState extends State<PageScaffold> {
             ),
             Align(
               alignment: AlignmentDirectional.bottomCenter,
-              child: Padding(
+              child: AnimatedPadding(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeIn,
                 padding: const EdgeInsets.only(
                   left: 24,
                   right: 24,

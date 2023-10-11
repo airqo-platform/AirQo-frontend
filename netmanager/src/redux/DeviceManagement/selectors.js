@@ -1,6 +1,6 @@
 // take a slice of the application state and return some data based on that
-import { useSelector } from "react-redux";
-import uptimeLeaderboard from "./reducers/uptimeLeaderboard";
+import { useSelector } from 'react-redux';
+import uptimeLeaderboard from './reducers/uptimeLeaderboard';
 
 export const useDevicesStatusData = () => {
   return useSelector((state) => state.deviceManagement.deviceStatus);
@@ -15,9 +15,7 @@ export const useDevicesUptimeData = () => {
 };
 
 export const useDeviceUptimeData = (deviceName) => {
-  return useSelector(
-    (state) => state.deviceManagement.devicesUptime[deviceName] || []
-  );
+  return useSelector((state) => state.deviceManagement.devicesUptime[deviceName] || []);
 };
 
 export const useUptimeLeaderboardData = () => {
@@ -34,4 +32,8 @@ export const useManagementFilteredDevicesData = () => {
 
 export const useActiveFiltersData = () => {
   return useSelector((state) => state.deviceManagement.activeFilters);
+};
+
+export const useAirqloudUptimeData = () => {
+  return useSelector((state) => state.deviceManagement.airqloudUptime);
 };

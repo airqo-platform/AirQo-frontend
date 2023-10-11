@@ -9,9 +9,9 @@ import CustomMaterialTable from '../Table/CustomMaterialTable';
 // css
 import 'assets/css/location-registry.css';
 import { isEmpty } from 'underscore';
-import { useDashboardAirqloudsData } from 'redux/AirQloud/selectors';
-import { fetchDashboardAirQloudsData } from 'redux/AirQloud/operations';
 import { useDispatch } from 'react-redux';
+import { fetchAirqloudsSummaryData } from 'redux/AirQloud/operations';
+import { useAirqloudsSummaryData } from 'redux/AirQloud/selectors';
 
 const BLANK_SPACE_HOLDER = '-';
 const renderCell = (field) => (rowData) => <span>{rowData[field] || BLANK_SPACE_HOLDER}</span>;
@@ -28,7 +28,7 @@ const renderBooleanCell = (field) => (rowData) =>
 const AirQloudsTable = () => {
   const history = useHistory();
   const dispatch = useDispatch();
-  const airqlouds = Object.values(useDashboardAirqloudsData());
+  const airqlouds = useAirqloudsSummaryData();
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +36,7 @@ const AirQloudsTable = () => {
   useEffect(() => {
     setIsLoading(true);
     if (isEmpty(airqlouds)) {
-      dispatch(fetchDashboardAirQloudsData());
+      dispatch(fetchAirqloudsSummaryData());
     }
     setIsLoading(false);
   }, []);
@@ -75,7 +75,7 @@ const AirQloudsTable = () => {
             {
               title: 'Site Count',
               field: 'district',
-              render: (rowData) => <span>{(rowData.sites && rowData.sites.length) || 0}</span>,
+              render: renderCell('numberOfSites'),
               cellStyle: { fontFamily: 'Open Sans' }
             },
             {

@@ -87,8 +87,14 @@ class HiveService {
 
   Future<List<Forecast>> getForecast(String siteId) async {
     List<Forecast> forecast = [];
-    final dynamic hiveValue =
-        Hive.box<List<Forecast>>(_forecast).get(siteId, defaultValue: null);
+    final Box<List<Forecast>> forecastBox = Hive.box<List<Forecast>>(_forecast);
+    dynamic hiveValue;
+    try {
+      hiveValue = forecastBox.get(siteId, defaultValue: null);
+    } on TypeError {
+      forecastBox.clear();
+      hiveValue = forecastBox.get(siteId, defaultValue: null);
+    }
 
     if (hiveValue != null) {
       try {

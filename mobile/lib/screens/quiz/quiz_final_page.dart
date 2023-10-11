@@ -44,7 +44,9 @@ Future<dynamic> bottomSheetQuizConffeti(
                       mainAxisAlignment: MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Padding(
+                        AnimatedPadding(
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.easeIn,
                           padding: const EdgeInsets.all(11.0),
                           child: InkWell(
                             onTap: () async {

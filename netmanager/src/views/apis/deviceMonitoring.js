@@ -9,6 +9,10 @@ import {
   DEVICES_UPTIME,
   GENERATE_AIRQLOUD_UPTIME_SUMMARY_URI
 } from 'config/urls/deviceMonitoring';
+import { isEmpty } from 'validate.js';
+
+const jwtToken = localStorage.getItem('jwtToken');
+axios.defaults.headers.common.Authorization = jwtToken;
 
 export const onlineOfflineMaintenanceStatusApi = async () => {
   return await axios.get(GET_ONLINE_OFFLINE_MAINTENANCE_STATUS).then((response) => response.data);

@@ -171,7 +171,9 @@ class SignUpSection extends StatelessWidget {
           const SizedBox(
             height: 48,
           ),
-          Padding(
+          AnimatedPadding(
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeIn,
             padding: const EdgeInsets.symmetric(horizontal: 25.0),
             child: AutoSizeText(
               AppLocalizations.of(context)!.personaliseYourExperience,
@@ -185,7 +187,9 @@ class SignUpSection extends StatelessWidget {
           const SizedBox(
             height: 8,
           ),
-          Padding(
+          AnimatedPadding(
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeIn,
             padding: const EdgeInsets.symmetric(horizontal: 55.0),
             child: AutoSizeText(
               AppLocalizations.of(context)!
@@ -201,9 +205,11 @@ class SignUpSection extends StatelessWidget {
           const SizedBox(
             height: 4,
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32),
-            child: SignUpButton(),
+          AnimatedPadding(
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeIn,
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: const SignUpButton(),
           ),
           const SizedBox(
             height: 40,

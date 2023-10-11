@@ -29,7 +29,9 @@ class PhoneAuthErrorMessage extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        return Padding(
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeIn,
           padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 16),
           child: SizedBox(
             child: Row(
@@ -92,7 +94,9 @@ class PhoneAuthButtons extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        return Padding(
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeIn,
           padding: const EdgeInsets.only(bottom: 12),
           child: context.read<PhoneAuthBloc>().state.authProcedure ==
                   AuthProcedure.login
@@ -125,7 +129,9 @@ class PhoneAuthSubTitle extends StatelessWidget {
             break;
         }
 
-        return Padding(
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeIn,
           padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
           child: AutoSizeText(
             message,
@@ -164,7 +170,9 @@ class PhoneAuthTitle extends StatelessWidget {
             break;
         }
 
-        return Padding(
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeIn,
           padding: const EdgeInsets.only(left: 16, right: 16, top: 10),
           child: AutoSizeText(
             message,
@@ -204,7 +212,9 @@ class PhoneVerificationTitle extends StatelessWidget {
             break;
         }
 
-        return Padding(
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeIn,
           padding: const EdgeInsets.only(left: 16, right: 16, top: 10),
           child: AutoSizeText(
             title,
@@ -241,7 +251,9 @@ class PhoneVerificationSubTitle extends StatelessWidget {
             break;
         }
 
-        return Padding(
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeIn,
           padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
           child: AutoSizeText(
             subtitle,
@@ -277,7 +289,9 @@ class _PhoneVerificationCodeCountDownState
         }
 
         if (state.codeCountDown < 1) {
-          return Padding(
+          return AnimatedPadding(
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeIn,
             padding: const EdgeInsets.only(top: 10.0),
             child: InkWell(
               onTap: () async {
@@ -294,7 +308,9 @@ class _PhoneVerificationCodeCountDownState
           );
         }
 
-        return Padding(
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeIn,
           padding: const EdgeInsets.only(top: 10.0),
           child: Text(
             AppLocalizations.of(context)!
