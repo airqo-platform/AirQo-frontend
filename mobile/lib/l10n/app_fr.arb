@@ -335,7 +335,7 @@
   "dismiss": "REJETER",
   "internetConnectionLost": "Connexion Internet perdue",
   "changeLanguage": "Changer de langue",
-  "doYouWantToSwitchToLanguage": "Voulez-vous passer à {placeholder}?",
+  "doYouWantToSwitchToLanguage": "Voulez-vous changer pour {placeholder} ? L'application redémarrera pour appliquer les modifications",
   "languageChangedSuccessfully": "Langue changée avec succès {placeholder}"
 
 }

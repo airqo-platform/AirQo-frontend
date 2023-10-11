@@ -11,6 +11,7 @@ import '../../main_common.dart';
 import '../../models/language.dart';
 import '../../themes/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:restart_app/restart_app.dart';
 
 class LanguageList extends StatefulWidget {
   const LanguageList({Key? key}) : super(key: key);
@@ -41,7 +42,7 @@ class LanguageListState extends State<LanguageList> {
         ),
         body: AppSafeArea(
           child: Container(
-            height: MediaQuery.of(context).size.height*0.6,
+            height: MediaQuery.of(context).size.height * 0.6,
             decoration: BoxDecoration(
               color: CustomColors.appBodyColor,
               borderRadius: BorderRadius.circular(8),
@@ -143,7 +144,8 @@ Future<dynamic> languageDialog(BuildContext context, Language language) {
           onPressed: () async {
             Locale locale = await setLocale(language.languageCode);
             await AirQoApp.setLocale(context, locale);
-            Navigator.pop(context);
+            //Navigator.pop(context);
+            await Restart.restartApp();
           },
         ),
         CupertinoDialogAction(
