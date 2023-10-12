@@ -61,7 +61,7 @@ class LanguageListState extends State<LanguageList> {
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
-              AppLocalizations.of(context)!.yes,
+              AppLocalizations.of(context)!.ok,
             ),
             onPressed: () async {
               Locale locale = await setLocale(language.languageCode);
@@ -77,19 +77,19 @@ class LanguageListState extends State<LanguageList> {
               await Restart.restartApp();
             },
           ),
-          CupertinoDialogAction(
-            child: Text(
-              style: TextStyle(
-                color: CustomColors.appColorBlue,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-              AppLocalizations.of(context)!.no,
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
+          // CupertinoDialogAction(
+          //   child: Text(
+          //     style: TextStyle(
+          //       color: CustomColors.appColorBlue,
+          //       fontSize: 16,
+          //       fontWeight: FontWeight.w600,
+          //     ),
+          //     AppLocalizations.of(context)!.no,
+          //   ),
+          //   onPressed: () {
+          //     Navigator.pop(context);
+          //   },
+          // ),
         ],
       ),
     );

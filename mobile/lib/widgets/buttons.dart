@@ -1,4 +1,5 @@
 import 'package:app/themes/theme.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
@@ -170,7 +171,7 @@ class TabButton extends StatelessWidget {
         ),
       ),
       child: Tab(
-        child: Text(
+        child: AutoSizeText(
           text,
           style: CustomTextStyle.button1(context)?.copyWith(
             color: tabController?.index == index
