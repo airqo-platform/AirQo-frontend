@@ -60,7 +60,6 @@ const Footer = () => {
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState('');
-  const [trackedCountry, setTrackedCountry] = useState('');
 
   const airqloudSummaries = useAirqloudSummaryData();
   const currentAirqloud = useCurrentAirqloudData();
@@ -107,10 +106,6 @@ const Footer = () => {
     { name: 'Mozambique', flag: <Mozambique /> },
     { name: 'Cameroon', flag: <Cameroon /> }
   ];
-
-  useEffect(() => {
-    dispatch(setCurrentAirQloudData(trackedCountry));
-  }, [dispatch, trackedCountry]);
 
   return (
     <footer className="footer-wrapper">
@@ -243,7 +238,7 @@ const Footer = () => {
           </div>
         </div>
       </div>
-      <LocationTracker countries={countries} setTrackedCountry={setTrackedCountry} />
+      <LocationTracker countries={countries} />
       <Modal open={open} onClose={toggleOpen}>
         <Box sx={style}>
           <div className="modal">
