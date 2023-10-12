@@ -166,6 +166,14 @@
                 "title":"Get involved. Learn about ways you can support our vision.",
                 "cta":"Get Involved"
             }
+        },
+        "newsLetter":{
+            "title": "Get air quality updates",
+            "subText": "Subscribe to our newsletter and learn about the quality of the air you are breathing",
+            "button": "Subscribe",
+            "subscribed":"Thanks for joining",
+            "failed":"Oops! Something went wrong. Please try again!",
+            "placeholder":"Enter your email"
         }
     }
 }

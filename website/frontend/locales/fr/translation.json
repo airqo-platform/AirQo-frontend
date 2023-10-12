@@ -166,6 +166,14 @@
                 "title": "Participez. Découvrez comment vous pouvez soutenir notre vision.",
                 "cta": "S'engager"
             }
+        },
+        "newsLetter": {
+            "title": "Obtenir des mises à jour sur la qualité de l'air",
+            "subText": "Abonnez-vous à notre lettre d'information et renseignez-vous sur la qualité de l'air que vous respirez.",
+            "button": "S'abonner",
+            "subscribed": "Merci de votre participation",
+            "failed": "Oups! Un problème s'est produit. Veuillez réessayer!",
+            "placeholder":"Saisissez votre adresse e-mail"
         }
     }
 }
