@@ -87,14 +87,15 @@ const CohortsRegistry = () => {
         <div className={classes.content}>
           {loading ? (
             <Box
-              height={'100px'}
+              height={'60vh'}
               width={'100%'}
               color="blue"
               display={'flex'}
               justifyContent={'center'}
               alignItems={'center'}
+              fontSize={'20px'}
             >
-              Loading...
+              Fetching cohorts...
             </Box>
           ) : cohorts && cohorts.length > 0 ? (
             <CohortsTable cohortsList={cohorts} />
@@ -106,7 +107,7 @@ const CohortsRegistry = () => {
               justifyContent={'center'}
               alignItems={'center'}
             >
-              <Typography variant="body" color="textSecondary">
+              <Typography variant="body1" color="textSecondary">
                 No devices found
               </Typography>
             </Box>
