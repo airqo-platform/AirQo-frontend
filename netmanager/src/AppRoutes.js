@@ -128,9 +128,6 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <PrivateRoute component={Teams} exact layout={MainLayout} path="/teams" />
             <PrivateRoute exact path="/teams/:id" component={TeamsView} layout={MainLayout} />
 
-            <PrivateRoute component={SimRegistry} exact layout={MainLayout} path="/sim" />
-            <PrivateRoute exact path="/heatMap" component={HeatMapOverlay} layout={MainLayout} />
-
             <PrivateRoute path="/device/:deviceName" component={DeviceView} layout={MainLayout} />
             <PrivateRoute exact path="/locate" component={Map} layout={MainLayout} />
             <Route exact path="/map">
@@ -156,6 +153,9 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <PrivateRoute exact path="/hosts/:id" component={HostView} layout={MainLayout} />
             <PrivateRoute exact path="/sites" component={SiteRegistry} layout={MainLayout} />
             <PrivateRoute exact path="/sites/:id" component={SiteView} layout={MainLayout} />
+            <PrivateRoute exact path="/sim" component={SimRegistry} layout={MainLayout} />
+            <PrivateRoute exact path="/heatMap" component={HeatMapOverlay} layout={MainLayout} />
+
             <PrivateRoute
               exact
               path="/airqlouds"
