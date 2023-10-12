@@ -163,7 +163,7 @@ const CohortsDashboardView = ({ cohort, cohortDetails, loading }) => {
             justifyContent={'center'}
             alignItems={'center'}
           >
-            <Typography variant="body" color="textSecondary">
+            <Typography variant="body1" color="textSecondary">
               No devices found
             </Typography>
           </Box>

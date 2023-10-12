@@ -73,7 +73,7 @@ const GridsRegistry = () => {
               justifyContent={'center'}
               alignItems={'center'}
             >
-              <Typography variant="body" color="textSecondary">
+              <Typography variant="body2" color="textSecondary">
                 No grids found
               </Typography>
             </Box>
