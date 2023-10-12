@@ -12,9 +12,6 @@ const TopBar = () => {
   const dispatch = useDispatch();
   const showModal = () => dispatch(showGetInvolvedModal(true));
 
-  // Translation hook
-  const { t } = useTranslation();
-
   const toggleMenu = () => {
     setOpenItem(null);
     document.getElementById('menu').classList.toggle('toggle_menu_btn');
@@ -51,6 +48,20 @@ const TopBar = () => {
       return;
     }
   };
+  // Translation hook
+  const { t, i18n } = useTranslation();
+  const [language, setLanguage] = useState(null);
+
+  const lngs = {
+    en: { nativeName: 'English' },
+    fr: { nativeName: 'French' }
+  };
+
+  const changeLanguage = (event) => {
+    const optionValue = event.target.value
+    i18n.changeLanguage(optionValue);
+    setLanguage(optionValue);
+  }
 
   return (
     <div className="TopBar">
@@ -59,12 +70,21 @@ const TopBar = () => {
           <Link to="/">
             <AirQo />
           </Link>
+          <div className='language-dropdown'>
+            <select onChange={(e) => changeLanguage(e)} value={language}>
+              {Object.keys(lngs).map((lng) => (
+                <option key={lng} value={lng}>
+                  {lngs[lng].nativeName}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
         <div className="nav-center" id="nav-center">
           <div className="nav-wrapper">
             <div className="nav-dropdown-item">
               <NavTab text={t('navbar.products.title')} onClick={() => handleClick('Products')} />
-              <div className="dropdown" id={openItem === `${t('navbar.products.title')}` ? 'solutions-dropdown' : ''}>
+              <div className="dropdown" id={openItem === 'Products' ? 'solutions-dropdown' : ''}>
                 <h3 className="title">{t('navbar.products.title')}</h3>
                 <div className="dropdown-list">
                   <div className="dropdown-list-item">
@@ -103,7 +123,7 @@ const TopBar = () => {
           </div>
           <div className="nav-dropdown-item">
             <NavTab text={t('navbar.solutions.title')} onClick={() => handleClick('Solutions')} />
-            <div className="dropdown" id={openItem === `${t('navbar.solutions.title')}` ? 'solutions-dropdown' : ''}>
+            <div className="dropdown" id={openItem === 'Solutions' ? 'solutions-dropdown' : ''}>
               <h3 className="title">{t('navbar.solutions.title')}</h3>
               <div className="dropdown-list">
                 <div className="dropdown-list-item">
@@ -129,7 +149,7 @@ const TopBar = () => {
           </div>
           <div className="nav-dropdown-item single-links">
             <NavTab text={t('navbar.about.title')} onClick={() => handleClick('About')} />
-            <div className="dropdown" id={openItem === `${t('navbar.about.title')}` ? 'solutions-dropdown' : ''}>
+            <div className="dropdown" id={openItem === 'About' ? 'solutions-dropdown' : ''}>
               <h3 className="title">{t('navbar.about.title')} AirQo</h3>
               <div className="dropdown-list">
                 <div className="dropdown-list-item">
