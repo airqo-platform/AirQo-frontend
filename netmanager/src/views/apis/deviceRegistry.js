@@ -215,6 +215,12 @@ export const getGridsApi = async (params) => {
   return await axios.get(GRIDS, { params: { ...params } }).then((response) => response.data);
 };
 
+export const getGridsSummaryApi = async (params) => {
+  return await axios
+    .get(`${GRIDS}/summary`, { params: { ...params } })
+    .then((response) => response.data);
+};
+
 export const getCohortDetailsApi = async (cohortID) => {
   return await axios.get(`${COHORTS}/${cohortID}`).then((response) => response.data);
 };
