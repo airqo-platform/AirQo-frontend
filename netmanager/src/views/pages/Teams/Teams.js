@@ -23,6 +23,8 @@ import Tooltip from '@material-ui/core/Tooltip';
 import { getUserDetails } from 'redux/Join/actions';
 import { Close as CloseIcon } from '@material-ui/icons';
 
+import CustomMaterialTable from '../../components/Table/CustomMaterialTable';
+
 const useStyles = makeStyles((theme) => ({
   root: {
     padding: theme.spacing(2),
@@ -210,7 +212,7 @@ const Teams = () => {
   const dispatch = useDispatch();
   const [showCreateTeamDialog, setShowCreateTeamDialog] = useState(false);
 
-  //   get currentUser from localStorage
+  // get currentUser from localStorage
   const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
   const handleDelete = (id) => {
@@ -222,16 +224,22 @@ const Teams = () => {
     if (currentUser) {
       getUserDetails(currentUser._id)
         .then((res) => {
+          if (res.users[0].groups.length === 0) {
+            throw new Error('No teams found');
+          }
           setTeams(res.users[0].groups);
         })
         .catch((err) => {
           console.error(err);
+          alert(err.message);
         })
         .finally(() => {
           setLoading(false);
         });
     }
   }, [refresh]);
+
+  const teams2 = [{}];
 
   return (
     <ErrorBoundary>
@@ -248,40 +256,41 @@ const Teams = () => {
             Create a Team
           </Button>
         </div>
-        <DataTable
+        <CustomMaterialTable
+          pointerCursor
+          userPreferencePaginationKey={'Teams'}
           title="Teams"
-          tableBodyHeight={{
-            height: 'calc(100vh - 300px)'
-          }}
           columns={[
             {
-              id: 'grp_title',
-              label: 'Team title'
+              field: 'grp_title',
+              title: 'Team title'
             },
             {
-              id: 'status',
-              label: 'Status',
-              format: (value, row) => {
-                return (
-                  <span style={{ color: row.status === 'ACTIVE' ? 'green' : 'red' }}>
-                    {row.status}
-                  </span>
-                );
-              }
+              field: 'status',
+              title: 'Status',
+              render: (row) => (
+                <span style={{ color: row.status === 'ACTIVE' ? 'green' : 'red' }}>
+                  {row.status}
+                </span>
+              )
             },
             {
-              id: 'createdAt',
-              label: 'Formed on',
-              format: (value, row) => {
-                const date = new Date(row.createdAt);
-                const options = { year: 'numeric', month: 'long', day: 'numeric' };
-                return date.toLocaleDateString('en-US', options);
-              }
+              field: 'createdAt',
+              title: 'Formed on',
+              render: (row) => (
+                <span>
+                  {new Date(row.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </span>
+              )
             },
             {
-              id: 'actions',
-              label: 'Actions',
-              format: (value, row) => (
+              field: 'actions',
+              title: 'Actions',
+              render: (row) => (
                 <Tooltip title="Delete" placement="bottom" arrow>
                   <IconButton onClick={() => handleDelete(row._id)} disabled>
                     <DeleteIcon />
@@ -290,11 +299,25 @@ const Teams = () => {
               )
             }
           ]}
-          onRowClick={(row) => {
+          onRowClick={(event, row) => {
+            event.preventDefault();
             history.push(`/teams/${row._id}`);
           }}
-          rows={teams}
-          loading={loading}
+          data={teams}
+          options={{
+            search: true,
+            exportButton: false,
+            searchFieldAlignment: 'right',
+            showTitle: true,
+            searchFieldStyle: {
+              fontFamily: 'Open Sans'
+            },
+            headerStyle: {
+              fontFamily: 'Open Sans',
+              fontSize: 16,
+              fontWeight: 600
+            }
+          }}
         />
         <CreateTeam
           showCreateTeamDialog={showCreateTeamDialog}

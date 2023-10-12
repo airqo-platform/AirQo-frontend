@@ -21,7 +21,6 @@ import RemoveIcon from '@material-ui/icons/Remove';
 import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
 import Tooltip from '@material-ui/core/Tooltip';
-import DataTable from './Table';
 import CloseIcon from '@material-ui/icons/Close';
 import { getSimsApi, createSimApi, checkSimStatusApi } from '../../apis/accessControl';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -293,44 +292,52 @@ const SimRegistry = () => {
           </Button>
         </div>
 
-        <DataTable
+        <CustomMaterialTable
+          pointerCursor
+          userPreferencePaginationKey={'SIM'}
           title="SIM Registry"
-          tableBodyHeight={{ height: 'calc(100vh - 300px)' }}
           columns={[
             {
-              id: 'name',
-              label: 'Name',
-              format: (value, row) => (row.name ? row.name : '')
+              field: 'name',
+              title: 'Name',
+              render: (row) => (row.name ? row.name : '')
             },
             {
-              id: 'status',
-              label: 'Status',
-              format: (value, row) => (row.status ? row.status : '')
+              field: 'status',
+              title: 'Status',
+              render: (row) => (row.status ? row.status : '')
             },
             {
-              id: 'plan',
-              label: 'Plan',
-              format: (value, row) => (row.plan ? row.plan : '')
+              field: 'plan',
+              title: 'Plan',
+              render: (row) => (row.plan ? row.plan : '')
             },
             {
-              id: 'msisdn',
-              label: 'MSISDN',
-              format: (value, row) => (row.msisdn ? row.msisdn : '')
+              field: 'msisdn',
+              title: 'MSISDN',
+              render: (row) => (row.msisdn ? row.msisdn : '')
             },
             {
-              id: 'activationDate',
-              label: 'Activation Date',
-              format: (value, row) => (row.activationDate ? row.activationDate : '')
+              field: 'activationDate',
+              title: 'Activation Date',
+              render: (row) =>
+                row.activationDate
+                  ? new Date(row.activationDate).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })
+                  : ''
             },
             {
-              id: 'dataBalanceThreshold',
-              label: 'Data Balance Threshold',
-              format: (value, row) => (row.dataBalanceThreshold ? row.dataBalanceThreshold : '')
+              field: 'dataBalanceThreshold',
+              title: 'Data Balance Threshold',
+              render: (row) => (row.dataBalanceThreshold ? row.dataBalanceThreshold : '')
             },
             {
-              id: 'action',
-              label: 'Actions',
-              format: (value, row) => (
+              field: 'action',
+              title: 'Actions',
+              render: (row) => (
                 <div style={{ display: 'flex' }}>
                   <Tooltip title="Delete" placement="bottom" arrow>
                     <IconButton onClick={() => handleDelete(row._id)} disabled>
@@ -352,11 +359,24 @@ const SimRegistry = () => {
               )
             }
           ]}
-          onRowClick={(row) => {
+          onRowClick={(event, row) => {
             return;
           }}
-          rows={simData}
-          loading={loading}
+          data={simData}
+          options={{
+            search: true,
+            exportButton: false,
+            searchFieldAlignment: 'right',
+            showTitle: true,
+            searchFieldStyle: {
+              fontFamily: 'Open Sans'
+            },
+            headerStyle: {
+              fontFamily: 'Open Sans',
+              fontSize: 16,
+              fontWeight: 600
+            }
+          }}
         />
 
         <RegisterSim

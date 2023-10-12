@@ -167,14 +167,20 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
         keepMounted
         open={Boolean(anchorEl)}
         onClose={handleClose}>
-        {(view === 'networks' ? userNetworks : groupData).map((item) => (
-          <StyledMenuItem
-            key={item._id}
-            onClick={() => handleSelect(item)}
-            selected={selectedItem && selectedItem._id === item._id}>
-            <ListItemText>{view === 'networks' ? item.net_name : item.grp_title}</ListItemText>
+        {(view === 'networks' ? userNetworks : groupData).length > 0 ? (
+          (view === 'networks' ? userNetworks : groupData).map((item) => (
+            <StyledMenuItem
+              key={item._id}
+              onClick={() => handleSelect(item)}
+              selected={selectedItem && selectedItem._id === item._id}>
+              <ListItemText>{view === 'networks' ? item.net_name : item.grp_title}</ListItemText>
+            </StyledMenuItem>
+          ))
+        ) : (
+          <StyledMenuItem style={{ color: 'white', textAlign: 'center' }}>
+            {view === 'networks' ? 'You do not have any networks' : 'You do not have any teams'}
           </StyledMenuItem>
-        ))}
+        )}
         <MenuItem
           onClick={() => {
             setView(view === 'networks' ? 'Teams' : 'networks');
