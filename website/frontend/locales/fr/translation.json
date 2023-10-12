@@ -56,5 +56,14 @@
         },
         "getInvolved": "S'engager",
         "exploreData": "Explorer les Données"
+    },
+    "homepage": {
+        "heroSection": {
+            "title": "De l'air pur pour toutes les villes d'Afrique",
+            "subText": {
+                "fact": "9 personnes sur 10 respirent un air pollué",
+                "desc": "Nous fournissons aux collectivités des données précises, hyperlocales et opportunes sur la qualité de l'air afin qu'elles puissent prendre des mesures d'atténuation de la pollution atmosphérique"
+            }
+        }
     }
 }

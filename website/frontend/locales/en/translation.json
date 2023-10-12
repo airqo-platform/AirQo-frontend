@@ -56,5 +56,14 @@
         },
         "getInvolved": "Get Involved",
         "exploreData": "Explore Data"
+    },
+    "homepage": {
+        "heroSection": {
+            "title": "Clean air for <br/> all African cities",
+            "subText": {
+                "fact": "9 out of 10 people breathe polluted air",
+                "desc": "We empower communities with accurate, hyperlocal and timely air quality data to drive air pollution mitigation actions"
+            }
+        }
     }
 }
