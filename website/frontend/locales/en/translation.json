@@ -115,6 +115,14 @@
                     }
                 }
             }
+        },
+        "impact": {
+            "cities": "African Cities",
+            "champions": "Community Champions",
+            "installs": "Monitor Installations",
+            "records": "Data records",
+            "research": "Research papers",
+            "partners": "Partners"
         }
     }
 }

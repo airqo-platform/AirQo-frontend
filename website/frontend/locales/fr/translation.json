@@ -115,6 +115,14 @@
                     }
                 }
             }
+        },
+        "impact": {
+            "cities": "Villes d'Afrique",
+            "champions": "Champions de la Communauté",
+            "installs": "Installations de Moniteurs",
+            "records": "Enregistrements des Données",
+            "research": "Rapports de Recherche",
+            "partners": "Partenaires"
         }
     }
 }
