@@ -33,6 +33,68 @@ class LanguageListState extends State<LanguageList> {
     });
   }
 
+  Future<dynamic> languageDialog(BuildContext context, Language language) {
+    return showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) => CupertinoAlertDialog(
+        title: Text(
+          AppLocalizations.of(context)!.confirm,
+          style: TextStyle(
+            color: CustomColors.appColorBlue,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        content: Text(
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: CustomColors.appColorBlack,
+          ),
+          AppLocalizations.of(context)!
+              .doYouWantToSwitchToLanguage(language.name),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            child: Text(
+              style: TextStyle(
+                color: CustomColors.appColorBlue,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+              AppLocalizations.of(context)!.yes,
+            ),
+            onPressed: () async {
+              Locale locale = await setLocale(language.languageCode);
+              await AirQoApp.setLocale(context, locale);
+
+              if (selectedLanguageCode != language.languageCode) {
+                setState(() {
+                  selectedLanguageCode = language.languageCode;
+                });
+              }
+
+              Navigator.pop(context);
+              await Restart.restartApp();
+            },
+          ),
+          CupertinoDialogAction(
+            child: Text(
+              style: TextStyle(
+                color: CustomColors.appColorBlue,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+              AppLocalizations.of(context)!.no,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return OfflineBanner(
@@ -109,59 +171,4 @@ Future<void> _saveSelectedLanguage(String languageCode) async {
 Future<String?> _loadSelectedLanguage() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getString('selectedLanguage');
-}
-
-Future<dynamic> languageDialog(BuildContext context, Language language) {
-  return showCupertinoDialog(
-    context: context,
-    builder: (BuildContext context) => CupertinoAlertDialog(
-      title: Text(
-        AppLocalizations.of(context)!.confirm,
-        style: TextStyle(
-          color: CustomColors.appColorBlue,
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      content: Text(
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          color: CustomColors.appColorBlack,
-        ),
-        AppLocalizations.of(context)!
-            .doYouWantToSwitchToLanguage(language.name),
-      ),
-      actions: [
-        CupertinoDialogAction(
-          child: Text(
-            style: TextStyle(
-              color: CustomColors.appColorBlue,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-            AppLocalizations.of(context)!.yes,
-          ),
-          onPressed: () async {
-            Locale locale = await setLocale(language.languageCode);
-            await AirQoApp.setLocale(context, locale);
-            //Navigator.pop(context);
-            await Restart.restartApp();
-          },
-        ),
-        CupertinoDialogAction(
-          child: Text(
-            style: TextStyle(
-              color: CustomColors.appColorBlue,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-            AppLocalizations.of(context)!.no,
-          ),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ],
-    ),
-  );
 }

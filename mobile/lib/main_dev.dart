@@ -10,13 +10,13 @@ import 'firebase_options_dev.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final savedLanguageCode = prefs.getString('selectedLanguage') ?? 'en';
+  final savedLocale = Locale(savedLanguageCode);
   await Firebase.initializeApp(
     name: 'airqo-dev',
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  final prefs = await SharedPreferences.getInstance();
-  final savedLanguageCode = prefs.getString('selectedLanguage') ?? 'en';
-  final savedLocale = Locale(savedLanguageCode);
   await initializeMainMethod();
   final PendingDynamicLinkData? initialLink =
       await FirebaseDynamicLinks.instance.getInitialLink();

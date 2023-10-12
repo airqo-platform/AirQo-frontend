@@ -24,14 +24,14 @@ void callbackDispatcher() {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final savedLanguageCode = prefs.getString('selectedLanguage') ?? 'en';
+  final savedLocale = Locale(savedLanguageCode);
   Workmanager().initialize(callbackDispatcher, isInDebugMode: kDebugMode);
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    final prefs = await SharedPreferences.getInstance();
-    final savedLanguageCode = prefs.getString('selectedLanguage') ?? 'en';
-    final savedLocale = Locale(savedLanguageCode);
     await initializeMainMethod();
     final PendingDynamicLinkData? initialLink =
         await FirebaseDynamicLinks.instance.getInitialLink();
