@@ -6,10 +6,14 @@ import MenuIcon from 'assets/svg/Menu.svg';
 import CloseIcon from 'assets/svg/Close.svg';
 import { Link } from 'react-router-dom';
 import NavTab from './NavTab';
+import { useTranslation } from 'react-i18next';
 
 const TopBar = () => {
   const dispatch = useDispatch();
   const showModal = () => dispatch(showGetInvolvedModal(true));
+
+  // Translation hook
+  const { t } = useTranslation();
 
   const toggleMenu = () => {
     setOpenItem(null);
@@ -59,38 +63,38 @@ const TopBar = () => {
         <div className="nav-center" id="nav-center">
           <div className="nav-wrapper">
             <div className="nav-dropdown-item">
-              <NavTab text="Products" onClick={() => handleClick('Products')} />
-              <div className="dropdown" id={openItem === 'Products' ? 'solutions-dropdown' : ''}>
-                <h3 className="title">Products</h3>
+              <NavTab text={t('navbar.products.title')} onClick={() => handleClick('Products')} />
+              <div className="dropdown" id={openItem === `${t('navbar.products.title')}` ? 'solutions-dropdown' : ''}>
+                <h3 className="title">{t('navbar.products.title')}</h3>
                 <div className="dropdown-list">
                   <div className="dropdown-list-item">
                     <Link to="/products/monitor" style={{ textDecoration: 'none' }}>
-                      <h3>Binos Monitor</h3>
-                      <h4>Built in Africa for African cities</h4>
+                      <h3>{t('navbar.products.subnav.monitor.name')}</h3>
+                      <h4>{t('navbar.products.subnav.monitor.desc')}</h4>
                     </Link>
                   </div>
                   <div className="dropdown-list-item">
                     <Link to="/products/analytics" style={{ textDecoration: 'none' }}>
-                      <h3>Analytics Dashboard</h3>
-                      <h4>Air quality analytics for African Cities</h4>
+                      <h3>{t('navbar.products.subnav.dashboard.name')}</h3>
+                      <h4>{t('navbar.products.subnav.dashboard.desc')}</h4>
                     </Link>
                   </div>
                   <div className="dropdown-list-item">
                     <Link to="/products/mobile-app" style={{ textDecoration: 'none' }}>
-                      <h3>Mobile App</h3>
-                      <h4>Discover the quality of air around you</h4>
+                      <h3>{t('navbar.products.subnav.mobileapp.name')}</h3>
+                      <h4>{t('navbar.products.subnav.mobileapp.desc')}</h4>
                     </Link>
                   </div>
                   <div className="dropdown-list-item">
                     <Link to="/products/api" style={{ textDecoration: 'none' }}>
-                      <h3>Air Quality API</h3>
-                      <h4>Access raw and calibrated data</h4>
+                      <h3>{t('navbar.products.subnav.api.name')}</h3>
+                      <h4>{t('navbar.products.subnav.api.desc')}</h4>
                     </Link>
                   </div>
                   <div className="dropdown-list-item">
                     <Link to="/products/calibrate" style={{ textDecoration: 'none' }}>
-                      <h3>AirQalibrate</h3>
-                      <h4>Calibrate your low-cost sensor data</h4>
+                      <h3>{t('navbar.products.subnav.calibrate.name')}</h3>
+                      <h4>{t('navbar.products.subnav.calibrate.desc')}</h4>
                     </Link>
                   </div>
                 </div>
@@ -98,77 +102,77 @@ const TopBar = () => {
             </div>
           </div>
           <div className="nav-dropdown-item">
-            <NavTab text="Solutions" onClick={() => handleClick('Solutions')} />
-            <div className="dropdown" id={openItem === 'Solutions' ? 'solutions-dropdown' : ''}>
-              <h3 className="title">Solutions</h3>
+            <NavTab text={t('navbar.solutions.title')} onClick={() => handleClick('Solutions')} />
+            <div className="dropdown" id={openItem === `${t('navbar.solutions.title')}` ? 'solutions-dropdown' : ''}>
+              <h3 className="title">{t('navbar.solutions.title')}</h3>
               <div className="dropdown-list">
                 <div className="dropdown-list-item">
                   <Link to="/solutions/african-cities" style={{ textDecoration: 'none' }}>
-                    <h3>For African Cities</h3>
-                    <h4>Advancing air quality management in African Cities</h4>
+                    <h3>{t('navbar.solutions.subnav.cities.name')}</h3>
+                    <h4>{t('navbar.solutions.subnav.cities.desc')}</h4>
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
                   <Link to="/solutions/communities" style={{ textDecoration: 'none' }}>
-                    <h3>For Communities</h3>
-                    <h4>Empowering communities with air quality information</h4>
+                    <h3>{t('navbar.solutions.subnav.communities.name')}</h3>
+                    <h4>{t('navbar.solutions.subnav.communities.desc')}</h4>
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
                   <Link to="/solutions/research" style={{ textDecoration: 'none' }}>
-                    <h3>For Research</h3>
-                    <h4>Free access to air quality analytics</h4>
+                    <h3>{t('navbar.solutions.subnav.research.name')}</h3>
+                    <h4>{t('navbar.solutions.subnav.research.desc')}</h4>
                   </Link>
                 </div>
               </div>
             </div>
           </div>
           <div className="nav-dropdown-item single-links">
-            <NavTab text="About" onClick={() => handleClick('About')} />
-            <div className="dropdown" id={openItem === 'About' ? 'solutions-dropdown' : ''}>
-              <h3 className="title">About AirQo</h3>
+            <NavTab text={t('navbar.about.title')} onClick={() => handleClick('About')} />
+            <div className="dropdown" id={openItem === `${t('navbar.about.title')}` ? 'solutions-dropdown' : ''}>
+              <h3 className="title">{t('navbar.about.title')} AirQo</h3>
               <div className="dropdown-list">
                 <div className="dropdown-list-item">
                   <Link to="/about-us">
-                    <h3>About Us</h3>
+                    <h3>{t('navbar.about.subnav.aboutUs')}</h3>
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
                   <Link to="/clean-air">
-                    <h3>CLEAN-Air Network</h3>
+                    <h3>{t('navbar.about.subnav.cleanAir')}</h3>
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
                   <Link to="/events">
-                    <h3>Events</h3>
+                    <h3>{t('navbar.about.subnav.events')}</h3>
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
                   <Link to="/resources">
-                    <h3>Resources</h3>
+                    <h3>{t('navbar.about.subnav.resources')}</h3>
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
                   <Link to="/press">
-                    <h3>Press</h3>
+                    <h3>{t('navbar.about.subnav.press')}</h3>
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
                   <Link to="/careers">
-                    <h3>Careers</h3>
+                    <h3>{t('navbar.about.subnav.careers')}</h3>
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
                   <Link to="/contact">
-                    <h3>Contact Us</h3>
+                    <h3>{t('navbar.about.subnav.contact')}</h3>
                   </Link>
                 </div>
               </div>
             </div>
           </div>
           {/* <NavTab text="About" path="/about-us" hideArrow /> */}
-          <NavTab text="Get involved" hideArrow colored onClick={showModal} />
-          <NavTab text="Explore data" path="/explore-data" hideArrow filled />
+          <NavTab text={t('navbar.getInvolved')} hideArrow colored onClick={showModal} />
+          <NavTab text={t('navbar.exploreData')} path="/explore-data" hideArrow filled />
         </div>
       </div>
       <MenuIcon className="menu-btn" id="menu" onClick={toggleMenu} />

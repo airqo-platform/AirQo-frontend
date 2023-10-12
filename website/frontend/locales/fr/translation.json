@@ -1,0 +1,60 @@
+{
+    "navbar": {
+        "products": {
+            "title": "Produits",
+            "subnav": {
+                "monitor": {
+                    "name": "Binos Moniteur",
+                    "desc": "Construit en Afrique pour les villes africaines"
+                },
+                "dashboard": {
+                    "name": "Tableau de bord Analytique",
+                    "desc": "Analyse de la qualité de l'air dans les villes africaines"
+                },
+                "mobileapp": {
+                    "name": "Application Mobile",
+                    "desc": "Découvrez la qualité de l'air autour de vous"
+                },
+                "api": {
+                    "name": "Qualité de l'air API",
+                    "desc": "Accès aux données brutes et calibrées"
+                },
+                "calibrate": {
+                    "name": "AirQalibrate",
+                    "desc": "Étalonnez les données de vos capteurs à faible coût"
+                }
+            }
+        },
+        "solutions": {
+            "title": "Solutions",
+            "subnav": {
+                "cities": {
+                    "name": "Pour les Villes Africaines",
+                    "desc": "Faire progresser la gestion de la qualité de l'air dans les villes africaines"
+                },
+                "communities": {
+                    "name": "Pour les Communautés",
+                    "desc": "Donner aux collectivités les moyens de s'informer sur la qualité de l'air"
+                },
+                "research": {
+                    "name": "Pour la Recherche",
+                    "desc": "Accès gratuit aux analyses de la qualité de l'air"
+                }
+            }
+        },
+        "about": {
+            "title": "Sur",
+            "subnav": {
+                "aboutUs": "À propos de nous",
+                "cleanAir": "CLEAN-Air Réseau",
+                "events": "Evénements",
+                "resources": "Ressources",
+                "press": "Presse",
+                "careers": "Carrières",
+                "contact": "Nous Contacter"
+            }
+        },
+        "getInvolved": "S'engager",
+        "exploreData": "Explorer les Données"
+    }
+}

@@ -1,0 +1,60 @@
+{
+    "navbar": {
+        "products": {
+            "title": "Products",
+            "subnav": {
+                "monitor": {
+                    "name": "Binos Monitor",
+                    "desc": "Built in Africa for African cities"
+                },
+                "dashboard": {
+                    "name": "Analytics Dashboard",
+                    "desc": "Air quality analytics for African Cities"
+                },
+                "mobileapp": {
+                    "name": "Mobile App",
+                    "desc": "Discover the quality of air around you"
+                },
+                "api": {
+                    "name": "Air Quality API",
+                    "desc": "Access raw and calibrated data"
+                },
+                "calibrate": {
+                    "name": "AirQalibrate",
+                    "desc": "Calibrate your low-cost sensor data"
+                }
+            }
+        },
+        "solutions": {
+            "title": "Solutions",
+            "subnav": {
+                "cities": {
+                    "name": "For African Cities",
+                    "desc": "Advancing air quality management in African Cities"
+                },
+                "communities": {
+                    "name": "For Communities",
+                    "desc": "Empowering communities with air quality information"
+                },
+                "research": {
+                    "name": "For Research",
+                    "desc": "Free access to air quality analytics"
+                }
+            }
+        },
+        "about": {
+            "title": "About",
+            "subnav": {
+                "aboutUs": "About Us",
+                "cleanAir": "CLEAN-Air Network",
+                "events": "Events",
+                "resources": "Resources",
+                "press": "Press",
+                "careers": "Careers",
+                "contact": "Contact US"
+            }
+        },
+        "getInvolved": "Get Involved",
+        "exploreData": "Explore Data"
+    }
+}
