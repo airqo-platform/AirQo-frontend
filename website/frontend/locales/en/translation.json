@@ -151,6 +151,21 @@
         "appSection": {
             "title": "Download the app",
             "subText": "Discover the quality of the air you are breathing"
+        },
+        "ctaSection":{
+            "leaders":{
+                "title":"Google.org Leaders to Watch 2022",
+                "subText":"From expanding equity in education to addressing environmental issues, this year’s Leaders to Watch are building a better future for everyone.",
+                "cta": "Learn more"
+            },
+            "explore":{
+                "title":"Explore our digital tools. Learn about the quality of air around you.",
+                "cta":"Explore data"
+            },
+            "involved":{
+                "title":"Get involved. Learn about ways you can support our vision.",
+                "cta":"Get Involved"
+            }
         }
     }
 }

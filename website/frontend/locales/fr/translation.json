@@ -151,6 +151,21 @@
         "appSection": {
             "title": "Télécharger l'application",
             "subText": "Découvrez la qualité de l'air que vous respirez"
+        },
+        "ctaSection": {
+            "leaders": {
+                "title": "Google.org Leaders à suivre 2022",
+                "subText": "Qu'il s'agisse d'accroître l'équité dans l'éducation ou de s'attaquer aux problèmes environnementaux, les leaders à suivre de cette année construisent un avenir meilleur pour tous.",
+                "cta": "Plus d'informations"
+            },
+            "explore": {
+                "title": "Explorez nos outils numériques. Renseignez-vous sur la qualité de l'air autour de vous.",
+                "cta": "Explorer les Données"
+            },
+            "involved": {
+                "title": "Participez. Découvrez comment vous pouvez soutenir notre vision.",
+                "cta": "S'engager"
+            }
         }
     }
 }
