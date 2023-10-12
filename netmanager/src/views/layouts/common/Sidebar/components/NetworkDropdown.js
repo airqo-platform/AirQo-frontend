@@ -182,6 +182,7 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
           </StyledMenuItem>
         )}
         <MenuItem
+          disabled
           onClick={() => {
             setView(view === 'networks' ? 'Teams' : 'networks');
             setOpen(true);
