@@ -337,8 +337,8 @@ const SimRegistry = () => {
                   : ''
             },
             {
-              field: 'dataBalanceThreshold',
-              title: 'Data Balance Threshold',
+              field: 'balance',
+              title: 'Balance',
               render: (row) => (row.balance ? row.balance : '')
             },
             {
