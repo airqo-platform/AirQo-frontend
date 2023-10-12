@@ -129,6 +129,12 @@
             "title": "Réseau de surveillance de la qualité de l'air à haute résolution",
             "subText": "Nous déployons un réseau de surveillance de la qualité de l'air à haute résolution dans des zones urbaines ciblées à travers l'Afrique afin d'accroître la sensibilisation et la compréhension de la gestion de la qualité de l'air, de fournir des informations exploitables et de dériver des actions contre la pollution de l'air",
             "cta": "Plus d'informations"
+        },
+        "analytics": {
+            "pill": "Analyse de la qualité de l'air",
+            "title": "Une plateforme interactive d'analyse de la qualité de l'air",
+            "subText": "Accédez et visualisez les informations historiques et en temps réel sur la qualité de l'air en Afrique grâce à notre tableau de bord analytique sur la qualité de l'air, facile à utiliser",
+            "cta": "Plus d'informations"
         }
     }
 }
