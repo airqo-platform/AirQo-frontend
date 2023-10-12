@@ -117,6 +117,13 @@ const GridForm = ({ grid }) => {
     });
   };
 
+  const onChangeInputField = (e) => {
+    setState({
+      ...form,
+      [e.target.id]: e.target.value
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -250,6 +257,7 @@ const GridForm = ({ grid }) => {
               marginBottom: '20px'
             }}
             InputLabelProps={{ shrink: true }}
+            onChange={onChangeInputField}
           />
         </Grid>
 
@@ -313,6 +321,7 @@ const GridsDetails = (props) => {
           region: site.region,
           createdAt: site.createdAt,
           generated_name: site.generated_name,
+          district: site.district,
           _id: site._id
         });
       });

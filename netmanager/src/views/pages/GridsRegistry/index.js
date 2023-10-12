@@ -6,7 +6,8 @@ import AddGridToolbar from './AddGridForm';
 import GridsTable from './GridsTable';
 import BreadCrumb from './breadcrumb';
 import { withPermission } from '../../containers/PageAccess';
-import { fetchAllGrids } from '../../../redux/Analytics/operations';
+import { fetchAllGrids } from 'redux/Analytics/operations';
+import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -27,10 +28,12 @@ const GridsRegistry = () => {
   useEffect(() => {
     setLoading(true);
     const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
-    dispatch(fetchAllGrids(activeNetwork.net_name));
+    if (isEmpty(grids)) {
+      dispatch(fetchAllGrids(activeNetwork.net_name));
+    }
     setTimeout(() => {
       setLoading(false);
-    }, 5000);
+    }, 8000);
   }, []);
 
   const handleClose = () => {
@@ -53,14 +56,15 @@ const GridsRegistry = () => {
         <div className={classes.content}>
           {loading ? (
             <Box
-              height={'100px'}
+              height={'60vh'}
               width={'100%'}
               color="blue"
               display={'flex'}
               justifyContent={'center'}
               alignItems={'center'}
+              fontSize={'20px'}
             >
-              Loading...
+              Fetching grids...
             </Box>
           ) : grids && grids.length > 0 ? (
             <GridsTable gridsList={grids} />
