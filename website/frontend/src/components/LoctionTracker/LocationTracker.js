@@ -17,7 +17,7 @@ const style = {
 const LocationTracker = ({ countries, setTrackedCountry }) => {
   const [country, setCountry] = useState(localStorage.getItem('country') || 'Uganda');
   const [open, setOpen] = useState(false);
-  const API_KEY = process.env.REACT_APP_OPENCAGE_API_KEY;
+  const API_KEY = process.env.REACT_APP_OPENCAGE_API_KEY || 'TestAPIKey';
 
   // function to update the users country
   const updateUserCountry = async (latitude, longitude) => {
