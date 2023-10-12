@@ -141,6 +141,12 @@
             "title": "Amplify air quality impact through our API",
             "subText": "Are you a developer? We invite you to leverage our open-air quality data on your App",
             "cta": "Get Started"
+        },
+        "mapSection": {
+            "pill": "Air Quality Map",
+            "title": "Live air quality insights across Africa",
+            "subText": "Visualize hourly air quality information with a single click, over our growing network across African cities",
+            "cta": "View Map"
         }
     }
 }
