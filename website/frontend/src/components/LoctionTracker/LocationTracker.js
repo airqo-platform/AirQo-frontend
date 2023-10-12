@@ -62,7 +62,11 @@ const LocationTracker = ({ countries, setTrackedCountry }) => {
 
   useEffect(() => {
     if (!localStorage.getItem('country') && !sessionStorage.getItem('permissionDenied')) {
-      setOpen(true);
+      const timer = setTimeout(() => {
+        setOpen(true);
+      }, 5000); //  5 seconds
+
+      return () => clearTimeout(timer);
     }
   }, []);
 
@@ -94,10 +98,10 @@ const LocationTracker = ({ countries, setTrackedCountry }) => {
                   sessionStorage.setItem('permissionDenied', true);
                   handleClose(false);
                 }}>
-                cancel
+                No
               </div>
               <div className="save-btn" onClick={() => handleClose(true)}>
-                save
+                Yes
               </div>
             </div>
           </div>
