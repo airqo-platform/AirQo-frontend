@@ -175,5 +175,21 @@
             "failed":"Oops! Something went wrong. Please try again!",
             "placeholder":"Enter your email"
         }
+    },
+    "footer": {
+        "monitors": "Monitors in",
+        "blog": "Blog",
+        "tos": "Terms of Service",
+        "privacy": "Privacy Policy",
+        "by": "A project by",
+        "modal":{
+            "title":"Country AirQloud",
+            "subTitle":"Our growing network in Africa",
+            "view":"View AirQo developments in your country",
+            "select":"Selected country",
+            "country":"Select country",
+            "cancel":"cancel",
+            "save":"save"
+        }
     }
 }

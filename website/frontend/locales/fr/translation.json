@@ -173,7 +173,23 @@
             "button": "S'abonner",
             "subscribed": "Merci de votre participation",
             "failed": "Oups! Un problème s'est produit. Veuillez réessayer!",
-            "placeholder":"Saisissez votre adresse e-mail"
+            "placeholder": "Saisissez votre adresse e-mail"
+        }
+    },
+    "footer": {
+        "monitors": "Moniteurs en",
+        "blog": "Blog",
+        "tos": "Termes de Service",
+        "privacy": "Politique de Confidentialité",
+        "by": "Un projet de",
+        "modal": {
+            "title": "Pays AirQloud",
+            "subTitle": "Notre réseau en expansion en Afrique",
+            "view": "Voir les développements d'AirQo dans votre pays",
+            "select": "Pays sélectionné",
+            "country": "Sélectionner un pays",
+            "cancel": "annuler",
+            "save": "sauver"
         }
     }
 }
