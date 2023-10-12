@@ -147,6 +147,10 @@
             "title": "Informations en direct sur la qualité de l'air en Afrique",
             "subText": "Visualisez en un seul clic des informations sur la qualité de l'air toutes les heures, grâce à notre réseau croissant de villes africaines",
             "cta": "Voir la Carte"
+        },
+        "appSection": {
+            "title": "Télécharger l'application",
+            "subText": "Découvrez la qualité de l'air que vous respirez"
         }
     }
 }
