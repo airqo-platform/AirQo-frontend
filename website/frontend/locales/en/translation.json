@@ -135,6 +135,12 @@
             "title": "An interactive air quality analytics platform",
             "subText": "Access and visualise real-time and historical air quality information across Africa through our easy-to-use air quality analytics dashboard",
             "cta": "Learn more"
+        },
+        "apiSection":{
+            "pill": "Air Quality API",
+            "title": "Amplify air quality impact through our API",
+            "subText": "Are you a developer? We invite you to leverage our open-air quality data on your App",
+            "cta": "Get Started"
         }
     }
 }

@@ -135,6 +135,12 @@
             "title": "Une plateforme interactive d'analyse de la qualité de l'air",
             "subText": "Accédez et visualisez les informations historiques et en temps réel sur la qualité de l'air en Afrique grâce à notre tableau de bord analytique sur la qualité de l'air, facile à utiliser",
             "cta": "Plus d'informations"
+        },
+        "apiSection": {
+            "pill": "Qualité de l'air API",
+            "title": "Amplifier l'impact sur la qualité de l'air grâce à notre API",
+            "subText": "Vous êtes développeur ? Nous vous invitons à exploiter nos données sur la qualité de l'air dans votre application.",
+            "cta": "Commencer"
         }
     }
 }
