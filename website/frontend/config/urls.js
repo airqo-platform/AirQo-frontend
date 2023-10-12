@@ -69,3 +69,6 @@ export const LOCATIONS_TRACKING_URL = `${BASE_LOCATIONS_TRACKING_URL}country_nam
 
 // Impact Number url
 export const IMPACT_URL = `${WEBSITE_BASE_URL}/impact/`;
+
+// Clean Air Network urls
+export const CLEAN_AIR_URL = `${WEBSITE_BASE_URL}/cleanair_resources/`;

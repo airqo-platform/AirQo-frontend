@@ -1,5 +1,5 @@
 // for representing chained operations using redux-thunk
-import { isEmpty } from "underscore";
+import { isEmpty } from 'underscore';
 import {
   LOAD_DEVICES_STATUS_SUCCESS,
   LOAD_DEVICES_STATUS_FAILURE,
@@ -14,14 +14,17 @@ import {
   LOAD_MANAGEMENT_DEVICES_SUCCESS,
   LOAD_FILTERED_DEVICES_SUCCESS,
   LOAD_ACTIVE_FILTERS_SUCCESS,
-} from "./actions";
+  LOAD_AIRQLOUD_UPTIME_SUCCESS,
+  LOAD_AIRQLOUD_UPTIME_FAILURE
+} from './actions';
 import {
   getDevicesStatusApi,
   getNetworkUptimeApi,
   getAllDevicesUptimeApi,
-  getUptimeLeaderboardApi,
-} from "views/apis/deviceMonitoring";
-import { updateDevices } from "../../utils/deviceStatus";
+  getUptimeLeaderboardApi
+} from 'views/apis/deviceMonitoring';
+import { updateDevices } from '../../utils/deviceStatus';
+import { generateAirQloudUptimeSummaryApi } from '../../views/apis/deviceMonitoring';
 
 export const loadUptimeLeaderboardData = (params) => async (dispatch) => {
   return await getUptimeLeaderboardApi(params)
@@ -29,13 +32,13 @@ export const loadUptimeLeaderboardData = (params) => async (dispatch) => {
       if (isEmpty(responseData.data)) return;
       dispatch({
         type: LOAD_UPTIME_LEADERBOARD_SUCCESS,
-        payload: responseData.data,
+        payload: responseData.data
       });
     })
     .catch((err) => {
       dispatch({
         type: LOAD_UPTIME_LEADERBOARD_FAILURE,
-        payload: err,
+        payload: err
       });
     });
 };
@@ -47,31 +50,31 @@ export const loadDevicesStatusData = (params) => async (dispatch) => {
       try {
         data = responseData.data[0];
       } catch (err) {
-        data = JSON.parse(responseData.data.replace(/\bNaN\b/g, "null"))[0];
+        data = JSON.parse(responseData.data.replace(/\bNaN\b/g, 'null'))[0];
       }
 
       const devices = [
         ...updateDevices(data.offline_devices, { isOnline: false }),
-        ...updateDevices(data.online_devices, { isOnline: true }),
+        ...updateDevices(data.online_devices, { isOnline: true })
       ];
 
       dispatch({
         type: LOAD_DEVICES_STATUS_SUCCESS,
-        payload: data,
+        payload: data
       });
       dispatch({
         type: LOAD_MANAGEMENT_DEVICES_SUCCESS,
-        payload: devices,
+        payload: devices
       });
       dispatch({
         type: LOAD_FILTERED_DEVICES_SUCCESS,
-        payload: devices,
+        payload: devices
       });
     })
     .catch((err) => {
       dispatch({
         type: LOAD_DEVICES_STATUS_FAILURE,
-        payload: err,
+        payload: err
       });
     });
 };
@@ -79,14 +82,14 @@ export const loadDevicesStatusData = (params) => async (dispatch) => {
 export const updateFilteredDevicesData = (filteredDevices) => (dispatch) => {
   return dispatch({
     type: LOAD_FILTERED_DEVICES_SUCCESS,
-    payload: filteredDevices,
+    payload: filteredDevices
   });
 };
 
 export const updateActiveFilters = (filters) => (dispatch) => {
   return dispatch({
     type: LOAD_ACTIVE_FILTERS_SUCCESS,
-    payload: filters,
+    payload: filters
   });
 };
 
@@ -95,13 +98,13 @@ export const loadNetworkUptimeData = (params) => async (dispatch) => {
     .then((responseData) => {
       dispatch({
         type: LOAD_NETWORK_UPTIME_SUCCESS,
-        payload: responseData.data,
+        payload: responseData.data
       });
     })
     .catch((err) => {
       dispatch({
         type: LOAD_NETWORK_UPTIME_FAILURE,
-        payload: err,
+        payload: err
       });
     });
 };
@@ -117,14 +120,14 @@ export const loadDevicesUptimeData = (params) => async (dispatch) => {
 
         dispatch({
           type: LOAD_ALL_DEVICES_UPTIME_SUCCESS,
-          payload: devicesUptime,
+          payload: devicesUptime
         });
       }
     })
     .catch((err) => {
       dispatch({
         type: LOAD_ALL_DEVICES_UPTIME_FAILURE,
-        payload: err,
+        payload: err
       });
     });
 };
@@ -136,13 +139,29 @@ export const loadSingleDeviceUptime = (params) => async (dispatch) => {
       const { _id, values } = (responseData.data && responseData.data[0]) || {};
       dispatch({
         type: LOAD_SINGLE_UPTIME_SUCCESS,
-        payload: { [_id]: values },
+        payload: { [_id]: values }
       });
     })
     .catch((err) => {
       dispatch({
         type: LOAD_SINGLE_UPTIME_FAILURE,
-        payload: err,
+        payload: err
+      });
+    });
+};
+
+export const loadAirqloudUptime = (params) => async (dispatch) => {
+  return await generateAirQloudUptimeSummaryApi(params)
+    .then((responseData) => {
+      dispatch({
+        type: LOAD_AIRQLOUD_UPTIME_SUCCESS,
+        payload: responseData.data
+      });
+    })
+    .catch((err) => {
+      dispatch({
+        type: LOAD_AIRQLOUD_UPTIME_FAILURE,
+        payload: err
       });
     });
 };

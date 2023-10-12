@@ -15,8 +15,8 @@ import {
   EVENTS_URL,
   CITIES_URL,
   PRESS_URL,
-  LOCATIONS_TRACKING_URL,
-  IMPACT_URL
+  IMPACT_URL,
+  CLEAN_AIR_URL
 } from '../config/urls';
 
 const API_TOKEN = process.env.REACT_APP_AUTHORIZATION_TOKEN;
@@ -114,3 +114,7 @@ export const getAllLocationsTrackingApi = async () =>
 // Impact Numbers endpoint
 export const getAllImpactNumbersApi = async () =>
   await axios.get(IMPACT_URL).then((response) => response.data);
+
+// Clean Air endpoints
+export const getAllCleanAirApi = async () =>
+  await axios.get(CLEAN_AIR_URL).then((response) => response.data);

@@ -88,357 +88,386 @@ class _DashboardViewState extends State<DashboardView>
         ),
       ),
       body: AppSafeArea(
+        backgroundColor: CustomColors.appBodyColor,
         horizontalPadding: 16.0,
-        child: NestedScrollView(
-          controller: _scrollController,
-          floatHeaderSlivers: true,
-          headerSliverBuilder: (context, innerBoxScrolled) => [
-            SliverPersistentHeader(
-              delegate: _SliverAppBarDelegate(
-                child: BlocBuilder<ProfileBloc, Profile>(
-                  builder: (context, state) {
-                    return AutoSizeText(
-                      state.greetings(context),
-                      maxLines: 1,
-                      minFontSize: 24,
-                      overflow: TextOverflow.ellipsis,
-                      style: CustomTextStyle.headline7(context),
-                    );
-                  },
+        child: AnimatedPadding(
+          duration: const Duration(milliseconds: 300),
+          padding: const EdgeInsets.all(0.0),
+          child: NestedScrollView(
+            controller: _scrollController,
+            floatHeaderSlivers: true,
+            headerSliverBuilder: (context, innerBoxScrolled) => [
+              SliverPersistentHeader(
+                delegate: _SliverAppBarDelegate(
+                  child: BlocBuilder<ProfileBloc, Profile>(
+                    builder: (context, state) {
+                      return AutoSizeText(
+                        state.greetings(context),
+                        maxLines: 1,
+                        minFontSize: 24,
+                        overflow: TextOverflow.ellipsis,
+                        style: CustomTextStyle.headline7(context),
+                      );
+                    },
+                  ),
+                  minHeight: 0,
+                  maxHeight: 40,
                 ),
-                minHeight: 0,
-                maxHeight: 40,
               ),
-            ),
-            SliverAppBar(
-              titleSpacing: 0,
-              stretch: true,
-              toolbarHeight: 80,
-              backgroundColor: CustomColors.appBodyColor,
-              automaticallyImplyLeading: false,
-              title: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: Row(
-                  children: [
-                    BlocBuilder<FavouritePlaceBloc, List<FavouritePlace>>(
-                      builder: (context, state) {
-                        final favouritePlaces = favouritePlacesWidgets(
-                          state.take(3).toList(),
-                        );
+              SliverAppBar(
+                titleSpacing: 0,
+                stretch: true,
+                toolbarHeight: 80,
+                backgroundColor: CustomColors.appBodyColor,
+                automaticallyImplyLeading: false,
+                title: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: Row(
+                    children: [
+                      BlocBuilder<FavouritePlaceBloc, List<FavouritePlace>>(
+                        builder: (context, state) {
+                          final favouritePlaces = favouritePlacesWidgets(
+                            state.take(3).toList(),
+                          );
 
-                        return Expanded(
-                          child: CustomShowcaseWidget(
-                            showcaseKey: _favoritesShowcaseKey,
-                            descriptionHeight: screenSize.height * 0.12,
-                            description: AppLocalizations.of(context)!
-                                .findTheLatestAirQualityFromYourFavoriteLocations,
-                            child: DashboardTopCard(
-                              toolTipType: ToolTipType.favouritePlaces,
-                              title: AppLocalizations.of(context)!.favorites,
-                              widgetKey: _favToolTipKey,
-                              nextScreenClickHandler: () async {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return const FavouritePlacesPage();
-                                    },
+                          return Flexible(
+                            child: CustomShowcaseWidget(
+                              showcaseKey: _favoritesShowcaseKey,
+                              descriptionHeight: screenSize.height * 0.12,
+                              description: AppLocalizations.of(context)!
+                                  .findTheLatestAirQualityFromYourFavoriteLocations,
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 500),
+                                curve: Curves.easeInOut,
+                                child: DashboardTopCard(
+                                  toolTipType: ToolTipType.favouritePlaces,
+                                  title:
+                                      AppLocalizations.of(context)!.favorites,
+                                  widgetKey: _favToolTipKey,
+                                  nextScreenClickHandler: () async {
+                                    await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) {
+                                          return const FavouritePlacesPage();
+                                        },
+                                      ),
+                                    );
+                                  },
+                                  children: favouritePlaces,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(
+                        width: 16,
+                      ),
+                      BlocBuilder<KyaBloc, KyaState>(
+                        builder: (context, state) {
+                          final completeLessons = state.lessons
+                              .where((lesson) =>
+                                  lesson.status == KyaLessonStatus.complete)
+                              .take(3)
+                              .toList();
+                          final completeQuizzes = state.quizzes
+                              .where(
+                                  (quiz) => quiz.status == QuizStatus.complete)
+                              .take(3)
+                              .toList();
+                          final kyaWidgets = completeKyaWidgets(
+                              completeLessons, completeQuizzes);
+
+                          return Expanded(
+                            child: CustomShowcaseWidget(
+                              showcaseKey: _forYouShowcaseKey,
+                              descriptionWidth: screenSize.width * 0.3,
+                              descriptionHeight: screenSize.height * 0.17,
+                              description: AppLocalizations.of(context)!
+                                  .findAmazingContentSpecificallyDesignedForYouHere,
+                              child: AnimatedContainer(
+                                curve: Curves.easeInOut,
+                                duration: const Duration(milliseconds: 500),
+                                child: DashboardTopCard(
+                                  toolTipType: ToolTipType.forYou,
+                                  title: AppLocalizations.of(context)!.forYou,
+                                  widgetKey: _kyaToolTipKey,
+                                  nextScreenClickHandler: () async {
+                                    await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) {
+                                          return const ForYouPage(
+                                              analytics: false);
+                                        },
+                                      ),
+                                    );
+                                  },
+                                  children: kyaWidgets,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                floating: true,
+                pinned: true,
+              ),
+              SliverPersistentHeader(
+                delegate: _SliverAppBarDelegate(
+                  child: Text(
+                    DateTime.now().timelineString(context),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.black.withOpacity(0.5),
+                        ),
+                  ),
+                  minHeight: 20,
+                  maxHeight: 20,
+                ),
+                floating: true,
+              ),
+              SliverPersistentHeader(
+                delegate: _SliverAppBarDelegate(
+                  child: AutoSizeText(
+                    AppLocalizations.of(context)!.todayAirQuality,
+                    style: CustomTextStyle.headline11(context),
+                    maxLines: 1,
+                    minFontSize: 1,
+                  ),
+                  minHeight: 25,
+                  maxHeight: 25,
+                ),
+              ),
+            ],
+            body: RefreshIndicator(
+              color: CustomColors.appColorBlue,
+              onRefresh: () {
+                _refresh();
+
+                return Future(() => null);
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  children: [
+                    BlocBuilder<NearbyLocationBloc, NearbyLocationState>(
+                      builder: (context, state) {
+                        CurrentLocation? currentLocation =
+                            state.currentLocation;
+                        switch (state.blocStatus) {
+                          case NearbyLocationStatus.searchComplete:
+                            break;
+                          case NearbyLocationStatus.searching:
+                            if (currentLocation == null) {
+                              return const SearchingAirQuality();
+                            }
+                            break;
+                          case NearbyLocationStatus.locationDisabled:
+                            return const Padding(
+                              padding: EdgeInsets.only(top: 16),
+                              child: DashboardLocationButton(),
+                            );
+                        }
+
+                        if (currentLocation == null) {
+                          return state.showErrorMessage
+                              ? Padding(
+                                  padding: const EdgeInsets.only(top: 16),
+                                  child: NoLocationAirQualityMessage(
+                                    AppLocalizations.of(context)!
+                                        .unableToGetCurrentLocation,
                                   ),
-                                );
-                              },
-                              children: favouritePlaces,
+                                )
+                              : Container();
+                        }
+
+                        return ValueListenableBuilder<Box<AirQualityReading>>(
+                          valueListenable: Hive.box<AirQualityReading>(
+                            _hiveService.airQualityReadingsBox,
+                          ).listenable(),
+                          builder: (context, box, widget) {
+                            List<AirQualityReading> airQualityReadings = box
+                                .values
+                                .where((element) =>
+                                    element.referenceSite ==
+                                    currentLocation.referenceSite)
+                                .toList();
+
+                            if (airQualityReadings.isEmpty) {
+                              _nearbyLocationExists = false;
+
+                              return state.showErrorMessage
+                                  ? Padding(
+                                      padding: const EdgeInsets.only(top: 16),
+                                      child: NoLocationAirQualityMessage(
+                                        AppLocalizations.of(context)!
+                                            .unableToGetAirQuality,
+                                      ),
+                                    )
+                                  : Container();
+                            }
+
+                            AirQualityReading airQualityReading =
+                                airQualityReadings.first.copyWith(
+                              name: currentLocation.name,
+                              location: currentLocation.location,
+                            );
+                            context
+                                .read<LocationHistoryBloc>()
+                                .add(AddLocationHistory(airQualityReading));
+
+                            return AnimatedPadding(
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInExpo,
+                              padding: const EdgeInsets.only(top: 16),
+                              child: CustomShowcaseWidget(
+                                showcaseKey: _nearestLocationShowcaseKey,
+                                descriptionHeight: screenSize.height * 0.17,
+                                description: AppLocalizations.of(context)!
+                                    .thisCardShowsTheAirQualityOfYourNearestLocation,
+                                child: AnalyticsCard(
+                                  airQualityReading,
+                                  false,
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    BlocBuilder<KyaBloc, KyaState>(
+                      builder: (context, state) {
+                        List<Quiz> inCompleteQuizzes = state.quizzes
+                            .where((quiz) => quiz.status != QuizStatus.complete)
+                            .toList();
+
+                        if (inCompleteQuizzes.isEmpty) {
+                          _kyaExists = false;
+                          return const SizedBox();
+                        }
+                        Quiz displayedQuiz = inCompleteQuizzes.first;
+                        return QuizCard(displayedQuiz);
+                      },
+                    ),
+                    BlocBuilder<KyaBloc, KyaState>(
+                      builder: (context, state) {
+                        List<KyaLesson> inCompleteLessons =
+                            state.lessons.filterInCompleteLessons();
+
+                        if (inCompleteLessons.isEmpty) {
+                          _kyaExists = false;
+
+                          return const SizedBox();
+                        }
+
+                        return AnimatedPadding(
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.easeInExpo,
+                          padding: const EdgeInsets.only(top: 16),
+                          child: CustomShowcaseWidget(
+                            showcaseKey: _kyaShowcaseKey,
+                            descriptionHeight: screenSize.height * 0.14,
+                            description: AppLocalizations.of(context)!
+                                .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
+                            child: KyaLessonCardWidget(
+                              inCompleteLessons.first,
                             ),
                           ),
                         );
                       },
                     ),
-                    const SizedBox(
-                      width: 16,
-                    ),
-                    BlocBuilder<KyaBloc, KyaState>(
+                    BlocConsumer<DashboardBloc, DashboardState>(
+                      listener: (context, state) {
+                        if (state.scrollToTop) {
+                          _scrollController.animateTo(
+                            0,
+                            duration: const Duration(milliseconds: 800),
+                            curve: Curves.ease,
+                          );
+                        }
+                      },
                       builder: (context, state) {
-                        final completeLessons = state.lessons
-                            .where((lesson) =>
-                                lesson.status == KyaLessonStatus.complete)
-                            .take(3)
-                            .toList();
-                        final completeQuizzes = state.quizzes
-                            .where((quiz) => quiz.status == QuizStatus.complete)
-                            .take(3)
-                            .toList();
-                        final kyaWidgets = completeKyaWidgets(
-                            completeLessons, completeQuizzes);
-
-                        return Expanded(
-                          child: CustomShowcaseWidget(
-                            showcaseKey: _forYouShowcaseKey,
-                            descriptionWidth: screenSize.width * 0.3,
-                            descriptionHeight: screenSize.height * 0.17,
-                            description: AppLocalizations.of(context)!
-                                .findAmazingContentSpecificallyDesignedForYouHere,
-                            child: DashboardTopCard(
-                              toolTipType: ToolTipType.forYou,
-                              title: AppLocalizations.of(context)!.forYou,
-                              widgetKey: _kyaToolTipKey,
-                              nextScreenClickHandler: () async {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return const ForYouPage(analytics: false);
-                                    },
-                                  ),
+                        switch (state.status) {
+                          case DashboardStatus.loaded:
+                          case DashboardStatus.refreshing:
+                            break;
+                          case DashboardStatus.error:
+                            switch (state.error) {
+                              case DashboardError.noAirQuality:
+                                return NoAirQualityDataWidget(
+                                  callBack: () => _refresh(),
                                 );
+                              case DashboardError.noInternetConnection:
+                                return NoInternetConnectionWidget(
+                                  callBack: () => _refresh(),
+                                );
+                              case DashboardError.none:
+                                break;
+                            }
+                            break;
+                          case DashboardStatus.loading:
+                            return const DashboardLoadingWidget();
+                        }
+
+                        return BlocBuilder<NearbyLocationBloc,
+                            NearbyLocationState>(
+                          builder: (context, surroundingSitesState) {
+                            List<AirQualityReading> surroundingSites = List.of(
+                              surroundingSitesState.surroundingSites,
+                            );
+                            surroundingSites =
+                                surroundingSites.take(5).toList();
+                            surroundingSites.shuffle();
+                            surroundingSites.addAll(state.airQualityReadings);
+
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: surroundingSites.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                return (index == 0)
+                                    ? AnimatedPadding(
+                                        duration:
+                                            const Duration(milliseconds: 500),
+                                        curve: Curves.easeInExpo,
+                                        padding: const EdgeInsets.only(top: 16),
+                                        child: CustomShowcaseWidget(
+                                          showcaseKey: _analyticsShowcaseKey,
+                                          descriptionHeight:
+                                              screenSize.height * 0.17,
+                                          customize: ShowcaseOptions.up,
+                                          showLine: false,
+                                          description: AppLocalizations.of(
+                                                  context)!
+                                              .findTheAirQualityOfDifferentLocationsAcrossAfricaHere,
+                                          child: AnalyticsCard(
+                                            surroundingSites[index],
+                                            false,
+                                          ),
+                                        ),
+                                      )
+                                    : AnimatedPadding(
+                                        duration:
+                                            const Duration(milliseconds: 500),
+                                        curve: Curves.easeInExpo,
+                                        padding: const EdgeInsets.only(top: 16),
+                                        child: AnalyticsCard(
+                                          surroundingSites[index],
+                                          false,
+                                        ),
+                                      );
                               },
-                              children: kyaWidgets,
-                            ),
-                          ),
+                            );
+                          },
                         );
                       },
                     ),
                   ],
                 ),
-              ),
-              floating: true,
-              pinned: true,
-            ),
-            SliverPersistentHeader(
-              delegate: _SliverAppBarDelegate(
-                child: Text(
-                  DateTime.now().timelineString(context),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.black.withOpacity(0.5),
-                      ),
-                ),
-                minHeight: 20,
-                maxHeight: 20,
-              ),
-              floating: true,
-            ),
-            SliverPersistentHeader(
-              delegate: _SliverAppBarDelegate(
-                child: AutoSizeText(
-                  AppLocalizations.of(context)!.todayAirQuality,
-                  style: CustomTextStyle.headline11(context),
-                  maxLines: 1,
-                  minFontSize: 1,
-                ),
-                minHeight: 25,
-                maxHeight: 25,
-              ),
-            ),
-          ],
-          body: RefreshIndicator(
-            color: CustomColors.appColorBlue,
-            onRefresh: () {
-              _refresh();
-
-              return Future(() => null);
-            },
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  BlocBuilder<NearbyLocationBloc, NearbyLocationState>(
-                    builder: (context, state) {
-                      CurrentLocation? currentLocation = state.currentLocation;
-                      switch (state.blocStatus) {
-                        case NearbyLocationStatus.searchComplete:
-                          break;
-                        case NearbyLocationStatus.searching:
-                          if (currentLocation == null) {
-                            return const SearchingAirQuality();
-                          }
-                          break;
-                        case NearbyLocationStatus.locationDisabled:
-                          return const Padding(
-                            padding: EdgeInsets.only(top: 16),
-                            child: DashboardLocationButton(),
-                          );
-                      }
-
-                      if (currentLocation == null) {
-                        return state.showErrorMessage
-                            ? Padding(
-                                padding: const EdgeInsets.only(top: 16),
-                                child: NoLocationAirQualityMessage(
-                                  AppLocalizations.of(context)!
-                                      .unableToGetCurrentLocation,
-                                ),
-                              )
-                            : Container();
-                      }
-
-                      return ValueListenableBuilder<Box<AirQualityReading>>(
-                        valueListenable: Hive.box<AirQualityReading>(
-                          _hiveService.airQualityReadingsBox,
-                        ).listenable(),
-                        builder: (context, box, widget) {
-                          List<AirQualityReading> airQualityReadings = box
-                              .values
-                              .where((element) =>
-                                  element.referenceSite ==
-                                  currentLocation.referenceSite)
-                              .toList();
-
-                          if (airQualityReadings.isEmpty) {
-                            _nearbyLocationExists = false;
-
-                            return state.showErrorMessage
-                                ? Padding(
-                                    padding: const EdgeInsets.only(top: 16),
-                                    child: NoLocationAirQualityMessage(
-                                      AppLocalizations.of(context)!
-                                          .unableToGetAirQuality,
-                                    ),
-                                  )
-                                : Container();
-                          }
-
-                          AirQualityReading airQualityReading =
-                              airQualityReadings.first.copyWith(
-                            name: currentLocation.name,
-                            location: currentLocation.location,
-                          );
-                          context
-                              .read<LocationHistoryBloc>()
-                              .add(AddLocationHistory(airQualityReading));
-
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: CustomShowcaseWidget(
-                              showcaseKey: _nearestLocationShowcaseKey,
-                              descriptionHeight: screenSize.height * 0.17,
-                              description: AppLocalizations.of(context)!
-                                  .thisCardShowsTheAirQualityOfYourNearestLocation,
-                              child: AnalyticsCard(
-                                airQualityReading,
-                                false,
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  BlocBuilder<KyaBloc, KyaState>(
-                    builder: (context, state) {
-                      List<Quiz> inCompleteQuizzes = state.quizzes
-                          .where((quiz) => quiz.status != QuizStatus.complete)
-                          .toList();
-
-                      if (inCompleteQuizzes.isEmpty) {
-                        _kyaExists = false;
-                        return const SizedBox();
-                      }
-                      Quiz displayedQuiz = inCompleteQuizzes.first;
-                      return QuizCard(displayedQuiz);
-                    },
-                  ),
-                  BlocBuilder<KyaBloc, KyaState>(
-                    builder: (context, state) {
-                      List<KyaLesson> inCompleteLessons =
-                          state.lessons.filterInCompleteLessons();
-
-                      if (inCompleteLessons.isEmpty) {
-                        _kyaExists = false;
-
-                        return const SizedBox();
-                      }
-
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 16),
-                        child: CustomShowcaseWidget(
-                          showcaseKey: _kyaShowcaseKey,
-                          descriptionHeight: screenSize.height * 0.14,
-                          description: AppLocalizations.of(context)!
-                              .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
-                          child: KyaLessonCardWidget(
-                            inCompleteLessons.first,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  BlocConsumer<DashboardBloc, DashboardState>(
-                    listener: (context, state) {
-                      if (state.scrollToTop) {
-                        _scrollController.animateTo(
-                          0,
-                          duration: const Duration(milliseconds: 800),
-                          curve: Curves.ease,
-                        );
-                      }
-                    },
-                    builder: (context, state) {
-                      switch (state.status) {
-                        case DashboardStatus.loaded:
-                        case DashboardStatus.refreshing:
-                          break;
-                        case DashboardStatus.error:
-                          switch (state.error) {
-                            case DashboardError.noAirQuality:
-                              return NoAirQualityDataWidget(
-                                callBack: () => _refresh(),
-                              );
-                            case DashboardError.noInternetConnection:
-                              return NoInternetConnectionWidget(
-                                callBack: () => _refresh(),
-                              );
-                            case DashboardError.none:
-                              break;
-                          }
-                          break;
-                        case DashboardStatus.loading:
-                          return const DashboardLoadingWidget();
-                      }
-
-                      return BlocBuilder<NearbyLocationBloc,
-                          NearbyLocationState>(
-                        builder: (context, surroundingSitesState) {
-                          List<AirQualityReading> surroundingSites = List.of(
-                            surroundingSitesState.surroundingSites,
-                          );
-                          surroundingSites = surroundingSites.take(5).toList();
-                          surroundingSites.shuffle();
-                          surroundingSites.addAll(state.airQualityReadings);
-
-                          return ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: surroundingSites.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              return (index == 0)
-                                  ? Padding(
-                                      padding: const EdgeInsets.only(top: 16),
-                                      child: CustomShowcaseWidget(
-                                        showcaseKey: _analyticsShowcaseKey,
-                                        descriptionHeight:
-                                            screenSize.height * 0.17,
-                                        customize: ShowcaseOptions.up,
-                                        showLine: false,
-                                        description: AppLocalizations.of(
-                                                context)!
-                                            .findTheAirQualityOfDifferentLocationsAcrossAfricaHere,
-                                        child: AnalyticsCard(
-                                          surroundingSites[index],
-                                          false,
-                                        ),
-                                      ),
-                                    )
-                                  : Padding(
-                                      padding: const EdgeInsets.only(top: 16),
-                                      child: AnalyticsCard(
-                                        surroundingSites[index],
-                                        false,
-                                      ),
-                                    );
-                            },
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ],
               ),
             ),
           ),
@@ -456,7 +485,7 @@ class _DashboardViewState extends State<DashboardView>
           );
         },
         backgroundColor: CustomColors.appColorBlue,
-        child: const Icon(Icons.search),
+        child: const Icon(Icons.search, color: Colors.white),
       ),
     );
   }
@@ -501,8 +530,6 @@ class _DashboardViewState extends State<DashboardView>
       case AppLifecycleState.hidden:
       case AppLifecycleState.detached:
         break;
-      case AppLifecycleState.hidden:
-        // TODO: Handle this case.
     }
   }
 

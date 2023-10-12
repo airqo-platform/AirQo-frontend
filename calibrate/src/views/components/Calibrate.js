@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { TextField } from "@mui/material";
+import { Button, TextField } from "@mui/material";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -184,8 +184,8 @@ const Calibrate = () => {
   }, [selectedFile]);
 
   const downloadCSVData = (filename, data) => {
-    const csvData = Papa.unparse(data);
-    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+    // Create a link and download the file
+    const blob = new Blob([data], { type: "text/csv;charset=utf-8;" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -212,9 +212,11 @@ const Calibrate = () => {
       }
       const responseData = await trainAndCalibrateDataApi(formData);
       downloadCSVData(filename, responseData);
+      setLoading(false);
     } else {
       const responseData = await calibrateDataApi(formData);
       downloadCSVData(filename, responseData);
+      setLoading(false);
     }
 
     setLoading(false);
@@ -306,15 +308,14 @@ const Calibrate = () => {
           />
         )}
 
-        <LoadingButton
-          loading={loading}
+        <Button
           style={{ marginTop: "30px" }}
           disabled={loading || !checkValid()}
           variant="outlined"
           onClick={onSubmit}
         >
-          Calibrate Data
-        </LoadingButton>
+          {loading ? "Calibrating..." : "Calibrate Data"}
+        </Button>
       </div>
     </div>
   );

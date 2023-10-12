@@ -37,6 +37,9 @@ class SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    AppService().setLocale(locale.languageCode);
+    
     return Scaffold(
       body: PageTransitionSwitcher(
         duration: const Duration(seconds: 3),
@@ -65,8 +68,8 @@ class SplashScreenState extends State<SplashScreen> {
         ));
     context.read<SettingsBloc>().add(const InitializeSettings());
     context.read<ProfileBloc>().add(const SyncProfile());
-    context.read<KyaBloc>().add(const FetchKya());
-    context.read<KyaBloc>().add(const FetchQuizzes());
+    context.read<KyaBloc>().add(const ClearKya());
+    context.read<KyaBloc>().add(const ClearQuizzes());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<NotificationBloc>().add(const SyncNotifications());

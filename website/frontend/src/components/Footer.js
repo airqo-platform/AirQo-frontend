@@ -184,7 +184,7 @@ const Footer = () => {
                   <Link to="/about-us">About AirQo</Link>
                 </span>
                 <span>
-                  <Link to="/publications">Publications</Link>
+                  <Link to="/resources">Resources</Link>
                 </span>
                 <span>
                   <Link to="/events">Events</Link>

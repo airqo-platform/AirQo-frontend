@@ -26,7 +26,9 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
     builder: (context) {
       return SizedBox(
         height: MediaQuery.of(context).size.height * 0.8,
-        child: Padding(
+        child: AnimatedPadding(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeIn,
           padding: const EdgeInsets.fromLTRB(0, 2, 2, 10),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -73,10 +75,11 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                 ),
               ),
               const SizedBox(height: 10),
-              Padding(
+              AnimatedPadding(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeIn,
                 padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [

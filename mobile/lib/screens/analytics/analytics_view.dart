@@ -45,7 +45,9 @@ class AnalyticsView extends StatelessWidget {
                 return Container();
               }
 
-              return Padding(
+              return AnimatedPadding(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeIn,
                 padding: EdgeInsets.only(
                   top: Config.refreshIndicatorPadding(
                     index,

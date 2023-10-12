@@ -51,8 +51,9 @@ void main() async {
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: const [
-          Locale('en'), // English
-          Locale('fr'), // French
+          Locale('en'), //English
+          Locale('fr'), //French
+          Locale('pt'), //Portuguese
         ],
         home: AppCrushWidget(exception, stackTrace),
       ),

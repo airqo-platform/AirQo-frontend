@@ -437,7 +437,9 @@ class MapAnalyticsCard extends StatelessWidget {
               },
               child: Column(
                 children: [
-                  Padding(
+                  AnimatedPadding(
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeIn,
                     padding: const EdgeInsets.symmetric(horizontal: 32),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,

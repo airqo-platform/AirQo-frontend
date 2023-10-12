@@ -15,7 +15,8 @@ import {
   LOAD_NETWORK_USERS_FAILURE,
   LOAD_NETWORK_USERS_SUCCESS,
   LOAD_ROLES_SUMMARY_FAILURE,
-  LOAD_ROLES_SUMMARY_SUCCESS
+  LOAD_ROLES_SUMMARY_SUCCESS,
+  LOAD_GROUPS_SUMMARY_SUCCESS
 } from './actions';
 import { isEmpty } from 'underscore';
 import { updateMainAlert } from 'redux/MainAlert/operations';
@@ -106,4 +107,11 @@ export const fetchAvailableNetworkUsers = (networkId) => async (dispatch) => {
         payload: err
       });
     });
+};
+
+export const addUserGroupSummary = (data) => (dispatch) => {
+  return dispatch({
+    type: LOAD_GROUPS_SUMMARY_SUCCESS,
+    payload: data
+  });
 };

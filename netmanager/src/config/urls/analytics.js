@@ -42,3 +42,9 @@ export const CREATE_CLIENT_URI = `${BASE_ANALYTICS_URL_V2}/users/clients`;
 export const GET_CLIENTS_URI = `${BASE_ANALYTICS_URL_V2}/users/clients`;
 
 export const GENERATE_TOKEN_URI = `${BASE_ANALYTICS_URL_V2}/users/tokens`;
+
+// Teams
+export const CREATE_TEAM_URI = `${BASE_ANALYTICS_URL_V2}/users/groups`;
+
+// SIM
+export const GET_SIM_URI = `${BASE_ANALYTICS_URL_V2}/incentives/sims`;

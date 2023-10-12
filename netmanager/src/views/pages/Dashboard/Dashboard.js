@@ -124,13 +124,13 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (isEmpty(userDefaultGraphs)) {
-      dispatch(loadUserDefaultGraphData());
+      dispatch(loadUserDefaultGraphData(false, ''));
     }
   }, []);
 
   // componentWillUnmount
   useEffect(() => {
-    return () => dispatch(loadUserDefaultGraphData());
+    return () => dispatch(loadUserDefaultGraphData(false, ''));
   }, []);
 
   return (
