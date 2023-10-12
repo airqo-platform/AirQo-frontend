@@ -64,6 +64,57 @@
                 "fact": "9 personnes sur 10 respirent un air pollué",
                 "desc": "Nous fournissons aux collectivités des données précises, hyperlocales et opportunes sur la qualité de l'air afin qu'elles puissent prendre des mesures d'atténuation de la pollution atmosphérique"
             }
+        },
+        "airQuality": {
+            "support": "Airqo est soutenu par",
+            "title": "Combler les lacunes en matière de données sur la qualité de l'air en Afrique",
+            "subText": "Nous fournissons des données précises, hyperlocales et opportunes sur la qualité de l'air afin de démontrer l'ampleur et l'étendue de la pollution atmosphérique en Afrique.",
+            "cities": {
+                "first": {
+                    "title": "Réseau à haute résolution",
+                    "list": {
+                        "1": "Nous voulons un air plus pur dans toutes les villes d'Afrique",
+                        "2": "Nous mettons à profit notre compréhension du contexte Africain"
+                    }
+                },
+                "second": {
+                    "title": "Plateformes numériques sur la qualité de l'air",
+                    "list": {
+                        "1": "Nous donnons aux décideurs des villes africaines les moyens d'agir",
+                        "2": "Nous améliorons l'accès aux données sur la qualité de l'air"
+                    }
+                },
+                "third": {
+                    "title": "Engagement politique",
+                    "list": {
+                        "1": "Nous engageons les autorités municipales et les agences gouvernementales",
+                        "2": "Nous donnons aux responsables locaux les moyens de s'informer sur la qualité de l'air"
+                    }
+                }
+            },
+            "community": {
+                "first": {
+                    "title": "AirQommunity Champions",
+                    "list": {
+                        "1": "Un réseau de plus en plus important d'acteurs du changement",
+                        "2": "Se faire le champion des leaders locaux et exiger des actions"
+                    }
+                },
+                "second": {
+                    "title": "Accès gratuit aux informations sur la qualité de l'air",
+                    "list": {
+                        "1": "Nous formons des individus et des communautés",
+                        "2": "Faciliter l'accès aux informations sur la qualité de l'air"
+                    }
+                },
+                "third": {
+                    "title": "AirQo Hôtes",
+                    "list": {
+                        "1": "Nous engageons les habitants à accueillir nos activités de déploiement",
+                        "2": "Nous impliquons les habitants dans nos actions de maintenance"
+                    }
+                }
+            }
         }
     }
 }

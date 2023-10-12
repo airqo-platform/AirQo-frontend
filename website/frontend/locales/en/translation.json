@@ -64,6 +64,57 @@
                 "fact": "9 out of 10 people breathe polluted air",
                 "desc": "We empower communities with accurate, hyperlocal and timely air quality data to drive air pollution mitigation actions"
             }
+        },
+        "airQuality":{
+            "support":"Airqo is supported by",
+            "title":"Closing the air quality data gaps in Africa",
+            "subText":"We provide accurate, hyperlocal, and timely air quality data to provide evidence of the magnitude and scale of air pollution across Africa.",
+            "cities":{
+                "first":{
+                    "title":"High resolution network",
+                    "list":{
+                        "1":"We want cleaner air in all African cities",
+                        "2":"We leverage our understanding of the African context"
+                    }
+                },
+                "second":{
+                    "title":"Digital air quality platforms",
+                    "list":{
+                        "1":"We empower decision-makers in African cities",
+                        "2":"We increase access to air quality data evidence"
+                    }
+                },
+                "third": {
+                    "title": "Policy Engagement",
+                    "list": {
+                        "1": "We engage city authorities and government agencies",
+                        "2": "We empower local leaders with air quality information"
+                    }
+                }
+            },
+            "community": {
+                "first": {
+                    "title": "AirQommunity Champions",
+                    "list": {
+                        "1": "A growing network of individual change makers",
+                        "2": "Championing local leaders and demand action"
+                    }
+                },
+                "second": {
+                    "title": "Free Access To Air Quality Information",
+                    "list": {
+                        "1": "We train individuals and communities",
+                        "2": "Facilitating access to air quality information"
+                    }
+                },
+                "third": {
+                    "title": "AirQo Hosts",
+                    "list": {
+                        "1": "We engage locals host our deployment activities",
+                        "2": "We involve locals in our maintenance drives"
+                    }
+                }
+            }
         }
     }
 }
