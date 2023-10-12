@@ -50,7 +50,7 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
           .toList();
     }
 
-    emit(KyaState(lessons: kyaLessons, quizzes: []));
+    emit(KyaState(lessons: kyaLessons, quizzes: const []));
   }
 
   Future<void> _onUpdateKyaProgress(
@@ -67,6 +67,9 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
       if ((userId.isNotEmpty)) {
         await AirqoApiClient().syncKyaProgress(kyaLessons.toList(), userId);
       }
+      if (kyaLesson.status == KyaLessonStatus.complete) {
+        CloudAnalytics.logEvent(CloudAnalyticsEvent.completeKYA);
+      }
     }
   }
 
@@ -82,7 +85,7 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
           .toList();
     }
 
-    emit(KyaState(quizzes: quizzes, lessons: []));
+    emit(KyaState(quizzes: quizzes, lessons: const []));
   }
 
   Future<void> _onUpdateQuizProgress(
@@ -98,6 +101,9 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
       final userId = CustomAuth.getUserId();
       if ((userId.isNotEmpty)) {
         await AirqoApiClient().syncQuizProgress(quizzes.toList(), userId);
+      }
+      if (quiz.status == QuizStatus.complete) {
+        CloudAnalytics.logEvent(CloudAnalyticsEvent.completeQuiz);
       }
     }
   }

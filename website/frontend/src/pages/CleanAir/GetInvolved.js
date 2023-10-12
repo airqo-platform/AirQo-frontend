@@ -1,9 +1,17 @@
-import React from 'react'
+import React from 'react';
 
 const CleanAirGetInvolved = () => {
   return (
-    <div>CleanAir</div>
-  )
-}
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh'
+      }}>
+      For you
+    </div>
+  );
+};
 
-export default CleanAirGetInvolved
+export default CleanAirGetInvolved;

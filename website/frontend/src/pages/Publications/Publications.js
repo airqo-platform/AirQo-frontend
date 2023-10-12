@@ -53,9 +53,9 @@ const PublicationsPage = () => {
         <div className="page-header">
           <div className="content">
             <div className="title-wrapper">
-              <h2>Publications</h2>
+              <h2>Resources</h2>
               <span className="sub-title">
-                Discover our latest collection of research publications
+                Discover our latest collection of resources
               </span>
             </div>
             <div className="nav">

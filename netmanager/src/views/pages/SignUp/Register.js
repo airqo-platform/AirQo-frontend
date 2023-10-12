@@ -1,22 +1,34 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Button, Grid, LinearProgress } from '@material-ui/core';
 import { Link, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { clearErrors, registerCandidate } from 'redux/Join/actions';
 import TextField from '@material-ui/core/TextField';
 import categories from 'utils/categories';
-import { Alert, AlertTitle } from '@material-ui/lab';
+import { Alert } from '@material-ui/lab';
 import { withStyles } from '@material-ui/core';
-import { isEmpty, isEqual } from 'underscore';
-import { isFormFullyFilled, containsEmptyValues } from './utils';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import AlertMinimal from '../../layouts/AlertsMininal';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 import Select from 'react-select';
-import { getNetworkListSummaryApi } from '../../apis/accessControl';
-
+import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
+import { makeStyles } from '@material-ui/core/styles';
 countries.registerLocale(enLocale);
+
+const useStyles = makeStyles({
+  root: {
+    height: '5px',
+    position: 'absolute',
+    left: '0',
+    bottom: '0',
+    width: '100%'
+  },
+  barColorPrimary: {
+    backgroundColor: '#FFCC00'
+  }
+});
 
 const countryObj = countries.getNames('en', { select: 'official' });
 
@@ -35,51 +47,6 @@ const categoryOptions = categories.array.map(({ label }) => ({
   value: label
 }));
 
-const createNetworkOptions = (networksList) => {
-  const sortedNetworks = networksList.sort((a, b) => {
-    if (a.net_name === 'airqo') return -1; // "airqo" comes first
-    if (b.net_name === 'airqo') return 1; // "airqo" comes second
-    return a.net_name.localeCompare(b.net_name); // Sort alphabetically
-  });
-
-  const options = sortedNetworks.map((network) => ({
-    value: network._id,
-    label: network.net_name
-  }));
-
-  return options;
-};
-
-const customStyles = {
-  control: (base, state) => ({
-    ...base,
-    height: '50px',
-    borderColor: state.isFocused ? '#3f51b5' : '#9a9a9a',
-    '&:hover': {
-      borderColor: state.isFocused ? 'black' : 'black'
-    }
-  }),
-  option: (provided, state) => ({
-    ...provided,
-    borderBottom: '1px dotted pink',
-    color: state.isSelected ? 'white' : 'blue',
-    textAlign: 'left'
-  }),
-  input: (provided, state) => ({
-    ...provided,
-    height: '40px',
-    borderColor: state.isFocused ? '#3f51b5' : 'black'
-  }),
-  placeholder: (provided, state) => ({
-    ...provided,
-    color: '#000'
-  }),
-  menu: (provided, state) => ({
-    ...provided,
-    zIndex: 9999
-  })
-};
-
 const styles = (theme) => ({
   root: {
     width: '100%',
@@ -93,25 +60,18 @@ const validEmailRegex = RegExp(
   /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i
 );
 
+const validWebsiteRegex = RegExp(/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/);
+
 const tenantMapper = {
   airqo: 'AirQo',
   kcca: 'KCCA'
 };
 
-const Register = ({
-  classes,
-  history,
-  auth,
-  errors,
-  registerCandidate,
-  clearErrors,
-  match,
-  location
-}) => {
-  const query = new URLSearchParams(location.search);
+const Register = ({ history, auth, errors, clearErrors, match, registerCandidate }) => {
+  const classes = useStyles();
   const tenant = match.params.tenant || 'airqo';
-  const selectRef = useRef(null);
-
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [state, setState] = useState({
     firstName: '',
     lastName: '',
@@ -122,183 +82,200 @@ const Register = ({
     category: '',
     website: '',
     errors: {},
-    isChecked: {},
     country: '',
-    network_id: ''
+    disabled: false
   });
-  const [networkList, setNetworkList] = useState([]);
-  const [defaultNetwork, setDefaultNetwork] = useState({});
-  const [showAllNetworks, setShowAllNetworks] = useState(false);
-
-  const fetchNetworks = () => {
-    getNetworkListSummaryApi()
-      .then((res) => {
-        const { networks } = res;
-        setNetworkList(createNetworkOptions(networks));
-        setState((prevState) => ({
-          ...prevState,
-          network_id: networks.find((network) => network.net_name === 'airqo')._id,
-          errors: {
-            ...prevState.errors,
-            network: ''
-          }
-        }));
-        setDefaultNetwork({
-          value: networks.find((network) => network.net_name === 'airqo')._id,
-          label: 'airqo'
-        });
-      })
-      .catch((error) => {
-        console.log('error', error);
-      });
-  };
 
   useEffect(() => {
-    const anchorElem = document.createElement('link');
-    anchorElem.setAttribute(
-      'href',
-      'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css'
-    );
-    anchorElem.setAttribute('rel', 'stylesheet');
-    anchorElem.setAttribute('id', 'logincdn');
-    document.getElementsByTagName('head')[0].appendChild(anchorElem);
+    let start = null;
+    let timer = null;
 
+    const animate = (timestamp) => {
+      if (!start) start = timestamp;
+      const elapsed = timestamp - start;
+
+      setProgress((oldProgress) => {
+        if (!loading) {
+          return 100;
+        }
+        const newProgress = Math.min(oldProgress + elapsed / 30, 100);
+        return newProgress;
+      });
+
+      if (loading) {
+        timer = requestAnimationFrame(animate);
+      }
+    };
+
+    timer = requestAnimationFrame(animate);
+
+    return () => {
+      cancelAnimationFrame(timer);
+    };
+  }, [loading]);
+
+  useEffect(() => {
     if (auth.isAuthenticated) {
       history.push('/dashboard');
     }
-  }, [auth.isAuthenticated, history]);
-
-  useEffect(() => {
     if (auth.registered) {
       history.push('/login');
     }
     if (errors) {
-      setState((prevState) => ({
-        ...prevState,
-        errors: errors
-      }));
+      setState((prevState) => ({ ...prevState, errors }));
     }
-  }, [auth.registered, errors, history]);
-
-  useEffect(() => {
-    fetchNetworks();
-  }, []);
-
-  const onChange = (e) => {
-    e.preventDefault();
-    const { id, value } = e.target;
-    let updatedErrors = { ...state.errors };
-    if (id === 'email') {
-      if (value.length === 0) updatedErrors[id] = 'This field is required';
-      else updatedErrors[id] = validEmailRegex.test(value) ? '' : 'This is not a valid email';
-    } else {
-      updatedErrors[id] = value.length === 0 ? 'This field is required' : '';
-    }
-    setState((prevState) => ({
-      ...prevState,
-      errors: updatedErrors,
-      [id]: value
-    }));
-  };
+  }, [auth.isAuthenticated, auth.registered, errors]);
 
   const onChangeDropdown = (selected, { name }) => {
-    if (name === 'network_id') {
-      let updatedErrors = { ...state.errors };
-      updatedErrors[name] = selected.value.length === 0 ? 'This field is required' : '';
+    let updatedErrors = { ...state.errors };
+    if (selected === null) {
+      updatedErrors[name] = 'This field is required';
       setState((prevState) => ({
         ...prevState,
         errors: updatedErrors,
-        [name]: selected.value
+        [name]: ''
       }));
     } else {
-      const { label } = selected;
-      let updatedErrors = { ...state.errors };
-      updatedErrors[name] = label.length === 0 ? 'This field is required' : '';
+      updatedErrors[name] = '';
       setState((prevState) => ({
         ...prevState,
         errors: updatedErrors,
-        [name]: label
+        [name]: selected.label
       }));
     }
   };
 
-  const handleCheck = (event) => {
+  const requiredFields = {
+    email: 'This is not a valid email',
+    website: 'This is not a valid website',
+    description: 'Description is required',
+    long_organization: 'Organization name is required',
+    jobTitle: 'Job title is required',
+    firstName: 'First name is required',
+    lastName: 'Last name is required',
+    country: 'Country is required',
+    category: 'Category is required'
+  };
+
+  const onChange = (e) => {
+    const { id, value } = e.target;
+    let updatedErrors = { ...state.errors };
+
+    if (requiredFields[id]) {
+      if (id === 'email') {
+        updatedErrors[id] = validEmailRegex.test(value) ? '' : requiredFields[id];
+      } else if (id === 'website') {
+        updatedErrors[id] = validWebsiteRegex.test(value) ? '' : requiredFields[id];
+      } else {
+        updatedErrors[id] = value.length === 0 ? requiredFields[id] : '';
+      }
+    } else {
+      updatedErrors[id] = '';
+    }
+
+    setState((prevState) => ({ ...prevState, errors: updatedErrors, [id]: value }));
+  };
+
+  const clearState = () => {
     setState((prevState) => ({
       ...prevState,
-      isChecked: event.target.checked
+      firstName: '',
+      lastName: '',
+      email: '',
+      jobTitle: '',
+      description: '',
+      long_organization: '',
+      category: '',
+      website: '',
+      errors: {},
+      country: '',
+      disabled: false
     }));
   };
 
-  const getInitialState = () => ({
-    firstName: '',
-    lastName: '',
-    email: '',
-    jobTitle: '',
-    description: '',
-    category: '',
-    long_organization: '',
-    website: '',
-    errors: {},
-    isChecked: {},
-    country: '',
-    network_id: ''
-  });
-
-  const clearState = () => {
-    setState(getInitialState());
-  };
-
-  const validateForm = (errors) => {
-    try {
-      let valid = true;
-      Object.values(errors).forEach(
-        // if we have an error string set valid to false
-        (val) => val && val.length > 0 && (valid = false)
-      );
-      return valid;
-    } catch (e) {
-      console.log('validate form error', e.message);
-      return false;
-    }
-  };
-
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-
-    if (validateForm(state.errors)) {
-      console.info('Valid Form');
-    } else {
-      console.error('Invalid Form');
-    }
-
-    const emptyFields = isFormFullyFilled(state, 'This field is required');
-
-    if (!isEmpty(emptyFields)) {
-      setState((prevState) => ({
-        ...prevState,
-        errors: {
-          ...prevState.errors,
-          ...emptyFields
+    try {
+      setProgress(0);
+      const emptyFields = Object.keys(requiredFields).reduce((errors, field) => {
+        if (!state[field]) {
+          errors[field] = requiredFields[field];
         }
-      }));
-      return;
-    }
+        return errors;
+      }, {});
 
-    const updatedErrors = { ...state.errors };
+      if (Object.keys(emptyFields).length > 0) {
+        setState((prevState) => ({
+          ...prevState,
+          errors: { ...prevState.errors, ...emptyFields }
+        }));
+        throw new Error('Please fill in all the required fields');
+      }
 
-    if (!containsEmptyValues(updatedErrors)) {
-      setState((prevState) => ({
-        ...prevState,
-        errors: updatedErrors
-      }));
-    } else {
-      registerCandidate(tenant, state, clearState);
+      setLoading(true);
+      setState((prevState) => ({ ...prevState, disabled: true }));
+
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+
+      let userData = {
+        ...state,
+        organization: state.long_organization
+      };
+
+      await registerCandidate(tenant, userData, clearState);
+    } catch (error) {
+      console.error(error.message);
+    } finally {
+      setLoading(false);
+      setProgress(0);
+
+      setState((prevState) => ({ ...prevState, disabled: false }));
     }
   };
 
-  const tenantLabel = (tenant) => tenantMapper[tenant.toLowerCase()];
+  const tenantLabel = (tenant) => {
+    return tenantMapper[tenant] || 'AirQo';
+  };
 
   const { errors: formErrors } = state;
+
+  const customStyles = {
+    control: (base, state) => ({
+      ...base,
+      height: '55px',
+      borderColor: state.isFocused
+        ? '#3f51b5'
+        : !!formErrors[state.selectProps.name]
+        ? '#e53935'
+        : '#9a9a9a',
+      boxShadow: state.isFocused ? 0 : null,
+      '&:hover': {
+        borderColor: !!formErrors[state.selectProps.name] ? '#e53935' : 'black'
+      }
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      borderBottom: '1px dotted pink',
+      color: state.isSelected ? 'white' : 'blue',
+      textAlign: 'left'
+    }),
+    input: (provided, state) => ({
+      ...provided,
+      height: '40px',
+      borderColor: state.isFocused ? '#3f51b5' : 'black'
+    }),
+    placeholder: (provided, state) => ({
+      ...provided,
+      color: !!formErrors[state.selectProps.name] ? '#e53935' : 'black'
+    }),
+    menu: (provided, state) => ({
+      ...provided,
+      zIndex: 9999
+    })
+  };
 
   return (
     <AlertMinimal>
@@ -308,17 +285,24 @@ const Register = ({
           maxWidth: '600px',
           marginTop: '4rem',
           backgroundColor: '#fff'
-        }}
-      >
+        }}>
         <div className="row">
           <div
             className=" offset-s2"
             style={{
               backgroundColor: '#3067e2',
               height: '15vh',
-              padding: '1em'
-            }}
-          />
+              padding: '1em',
+              position: 'relative'
+            }}>
+            {loading && (
+              <LinearProgress
+                classes={{ barColorPrimary: classes.barColorPrimary, root: classes.root }}
+                variant="determinate"
+                value={progress}
+              />
+            )}
+          </div>
           <div className="offset-s2" style={{ backgroundColor: '#fff', padding: '1em' }}>
             <div className="col s12" style={{ paddingLeft: '11.250px' }}>
               <h4>
@@ -328,197 +312,201 @@ const Register = ({
                 Already have an account? <Link to="/login">Log in</Link>
               </p>
             </div>
-            <form noValidate onSubmit={onSubmit}>
-              <div style={isEmpty((errors && errors.data) || {}) ? { display: 'none' } : {}}>
-                <Alert
-                  severity="error"
-                  onClose={() => {
-                    clearErrors();
-                  }}
-                >
-                  {errors && errors.data && errors.data.message}
-                </Alert>
-              </div>
-
-              <div className="col s12">
-                <TextField
-                  onChange={onChange}
-                  value={state.firstName}
-                  error={!!formErrors.firstName}
-                  id="firstName"
-                  label="First Name"
-                  fullWidth
-                  margin="normal"
-                  variant="outlined"
-                  helperText={formErrors.firstName}
-                />
-                <TextField
-                  onChange={onChange}
-                  value={state.lastName}
-                  error={!!formErrors.lastName}
-                  id="lastName"
-                  label="Last Name"
-                  fullWidth
-                  margin="normal"
-                  variant="outlined"
-                  helperText={formErrors.lastName}
-                />
-                <TextField
-                  onChange={onChange}
-                  value={state.email}
-                  error={!!formErrors.email}
-                  id="email"
-                  label="Official Email"
-                  fullWidth
-                  margin="normal"
-                  variant="outlined"
-                  helperText={formErrors.email}
-                />
-
-                <Select
-                  value={countryOptions.find((option) => option.value === state.country)}
-                  onChange={onChangeDropdown}
-                  options={countryOptions}
-                  isSearchable
-                  placeholder="Choose your country"
-                  name="country"
-                  error={!!formErrors.country}
-                  styles={customStyles}
-                />
-
-                <TextField
-                  onChange={onChange}
-                  value={state.long_organization}
-                  error={!!errors.long_organization}
-                  id="long_organization"
-                  label="Organization"
-                  fullWidth
-                  margin="normal"
-                  variant="outlined"
-                  helperText={errors.long_organization}
-                />
-                <TextField
-                  onChange={onChange}
-                  value={state.jobTitle}
-                  error={!!errors.jobTitle}
-                  id="jobTitle"
-                  label="Job Title"
-                  fullWidth
-                  margin="normal"
-                  variant="outlined"
-                  helperText={errors.jobTitle}
-                />
-                <TextField
-                  onChange={onChange}
-                  value={state.website}
-                  error={!!errors.website}
-                  id="website"
-                  label="Website"
-                  fullWidth
-                  margin="normal"
-                  variant="outlined"
-                  helperText={errors.website}
-                />
-
-                <Select
-                  value={categories.array.find((option) => option.value === state.category)}
-                  isSearchable={false}
-                  onChange={onChangeDropdown}
-                  options={categoryOptions}
-                  placeholder="What best describes you?"
-                  name="category"
-                  error={!!errors.category}
-                  styles={{
-                    ...customStyles,
-                    control: (base, state) => ({
-                      ...base,
-                      height: '55px',
-                      borderColor: state.isFocused ? '#3f51b5' : '#9a9a9a',
-                      '&:hover': {
-                        borderColor: state.isFocused ? 'black' : 'black'
-                      }
-                    })
-                  }}
-                />
-
-                <TextField
-                  id="description"
-                  label="Outline in detailed nature your interest in AirQuality"
-                  fullWidth
-                  multiline
-                  rows="5"
-                  rowsMax="10"
-                  value={state.description}
-                  onChange={onChange}
-                  margin="normal"
-                  variant="outlined"
-                  error={!!errors.description}
-                  helperText={errors.description}
-                  InputLabelProps={{ style: { fontSize: '0.8rem' } }}
-                />
-
-                <div style={{ marginTop: '8px', marginBottom: '15px' }}>
-                  <label style={{ textAlign: 'left', color: '#000' }}>
-                    Choose the organisation you want to request access to
-                  </label>
-                  <Select
-                    ref={selectRef}
-                    value={
-                      showAllNetworks
-                        ? networkList.find((option) => option.value === state.network_id)
-                        : defaultNetwork
-                    }
-                    onChange={onChangeDropdown}
-                    options={showAllNetworks ? networkList : [defaultNetwork]}
-                    isSearchable
-                    name="network_id"
-                    placeholder="Network"
-                    error={!!formErrors.network_id}
-                    styles={customStyles}
-                  />
-                  <small>
-                    <a
-                      onClick={() => {
-                        setShowAllNetworks(true);
-                        selectRef.current.focus();
-                      }}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      Looking for other organizations? Click to view more in the list
-                    </a>
-                  </small>
-                </div>
-              </div>
-
-              <div className="col s12" style={{ paddingLeft: '11.250px' }}>
-                {state.isChecked ? (
-                  <button
-                    style={{
-                      width: '150px',
-                      borderRadius: '3px',
-                      letterSpacing: '1.5px',
-                      margin: '1rem'
-                    }}
-                    type="submit"
-                    className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-                    disabled={
-                      isEqual(getInitialState(), {
-                        ...state,
-                        errors: {},
-                        isChecked: {}
-                      }) || !validateForm(formErrors)
-                    }
-                  >
-                    REQUEST
-                  </button>
-                ) : null}
-              </div>
-              {auth.newUser && (
-                <Alert severity="success">
-                  <AlertTitle>Success</AlertTitle>
-                  Your request has been successfully received! — <strong>Thank you!</strong>
+            <form noValidate>
+              {errors && errors.data && (
+                <Alert severity="error" onClose={clearErrors}>
+                  {errors.data.errors
+                    ? Object.entries(errors.data.errors).map(([key, value], index) => (
+                        <div key={index}>{`${key} - ${value}`}</div>
+                      ))
+                    : createAlertBarExtraContentFromObject(errors.data.errors)}
                 </Alert>
               )}
+
+              <div className="col s12">
+                <Grid container spacing={1}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      onChange={onChange}
+                      value={state.firstName}
+                      error={!!formErrors.firstName}
+                      id="firstName"
+                      label="First Name"
+                      fullWidth
+                      margin="normal"
+                      variant="outlined"
+                      helperText={formErrors.firstName}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      onChange={onChange}
+                      value={state.lastName}
+                      error={!!formErrors.lastName}
+                      id="lastName"
+                      label="Last Name"
+                      fullWidth
+                      margin="normal"
+                      variant="outlined"
+                      helperText={formErrors.lastName}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      onChange={onChange}
+                      value={state.long_organization}
+                      error={!!formErrors.long_organization}
+                      id="long_organization"
+                      label="Organization"
+                      fullWidth
+                      margin="normal"
+                      variant="outlined"
+                      helperText={formErrors.long_organization}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      onChange={onChange}
+                      value={state.jobTitle}
+                      error={!!formErrors.jobTitle}
+                      id="jobTitle"
+                      label="Job Title"
+                      fullWidth
+                      margin="normal"
+                      variant="outlined"
+                      helperText={formErrors.jobTitle}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      onChange={onChange}
+                      value={state.email}
+                      error={!!formErrors.email}
+                      id="email"
+                      label="Official Email"
+                      fullWidth
+                      margin="normal"
+                      variant="outlined"
+                      helperText={formErrors.email}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      onChange={onChange}
+                      value={state.website}
+                      error={!!formErrors.website}
+                      id="website"
+                      label="Website"
+                      fullWidth
+                      margin="normal"
+                      variant="outlined"
+                      helperText={formErrors.website}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={12}>
+                    <div style={{ marginBottom: '10px' }}>
+                      <Select
+                        value={countryOptions.find((option) => option.value === state.country)}
+                        onChange={onChangeDropdown}
+                        isClearable={true}
+                        options={countryOptions}
+                        isSearchable
+                        placeholder="Choose your country"
+                        name="country"
+                        styles={customStyles}
+                      />
+                      {formErrors.country && (
+                        <div
+                          style={{
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'flex-start',
+                            alignItems: 'center',
+                            color: 'red',
+                            fontSize: '0.8rem',
+                            marginTop: '0.25rem',
+                            marginLeft: '1rem'
+                          }}
+                          className="invalid-feedback">
+                          {formErrors.country}
+                        </div>
+                      )}
+                    </div>
+                  </Grid>
+
+                  <Grid item xs={12} sm={12}>
+                    <div>
+                      <Select
+                        value={categories.array.find((option) => option.value === state.category)}
+                        onChange={onChangeDropdown}
+                        isClearable={true}
+                        options={categoryOptions}
+                        isSearchable={false}
+                        placeholder="What best describes you?"
+                        name="category"
+                        styles={customStyles}
+                      />
+                      {formErrors.category && (
+                        <div
+                          style={{
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'flex-start',
+                            alignItems: 'center',
+                            color: 'red',
+                            fontSize: '0.8rem',
+                            marginTop: '0.25rem',
+                            marginLeft: '1rem'
+                          }}
+                          className="invalid-feedback">
+                          {formErrors.category}
+                        </div>
+                      )}
+                    </div>
+                  </Grid>
+
+                  <Grid item xs={12} sm={12}>
+                    <TextField
+                      id="description"
+                      label="Outline in detailed nature your interest in AirQuality"
+                      fullWidth
+                      multiline
+                      rows="5"
+                      rowsMax="10"
+                      value={state.description}
+                      onChange={onChange}
+                      margin="normal"
+                      variant="outlined"
+                      error={!!formErrors.description}
+                      helperText={formErrors.description}
+                      InputLabelProps={{ style: { fontSize: '0.8rem' } }}
+                    />
+                  </Grid>
+                </Grid>
+              </div>
+
+              <div
+                className="col s12"
+                style={{ paddingLeft: '11.250px', paddingBottom: '20px', paddingTop: '10px' }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={onSubmit}
+                  disabled={state.disabled}
+                  className={`${state.disabled ? 'disabled' : ''}`}
+                  style={{
+                    backgroundColor: state.disabled ? undefined : 'rgb(48, 103, 226)',
+                    padding: '10px 30px' // Increase padding as needed
+                  }}>
+                  REQUEST ACCESS
+                </Button>
+              </div>
             </form>
           </div>
         </div>

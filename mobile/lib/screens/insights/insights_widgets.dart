@@ -18,7 +18,9 @@ class InsightAirQualityWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeIn,
       padding: const EdgeInsets.symmetric(
         horizontal: 14,
         vertical: 11,
@@ -369,7 +371,9 @@ class InsightsCalendar extends StatelessWidget {
     return BlocBuilder<InsightsBloc, InsightsState>(
       builder: (context, state) {
         context.read<InsightsBloc>().add(FetchForecast(airQualityReading));
-        return Padding(
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeIn,
           padding: const EdgeInsets.symmetric(horizontal: 15.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,

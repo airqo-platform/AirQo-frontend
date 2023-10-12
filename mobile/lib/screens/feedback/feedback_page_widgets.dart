@@ -25,7 +25,9 @@ class FeedbackStartButton extends StatelessWidget {
           onTap: () {
             context.read<FeedbackBloc>().add(const GoToChannelStep());
           },
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeIn,
             height: 48,
             padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
@@ -251,7 +253,9 @@ class FeedbackCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeIn,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       height: 56,
       decoration: const BoxDecoration(

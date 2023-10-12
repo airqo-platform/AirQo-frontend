@@ -126,7 +126,7 @@ class LanguageListState extends State<LanguageList> {
                           trailing:
                               selectedLanguageCode == language.languageCode
                                   ? Icon(
-                                      Icons.check,
+                                      Icons.check_circle_outlined,
                                       color: CustomColors.appColorBlue,
                                     )
                                   : null,

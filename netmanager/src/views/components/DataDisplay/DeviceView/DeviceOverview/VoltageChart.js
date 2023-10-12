@@ -93,6 +93,7 @@ const DeviceVoltageChart = ({ deviceUptimeData, controllerChildren, controllerCh
         type="line"
         blue
         controllerChildren={controllerChildren}
+        disableCustomController
       />
     </>
   );

@@ -17,13 +17,15 @@ const ReportComponent = ({ title, authors, link, linkTitle, showSecondAuthor, re
           </>
         }
         <div className='resource-links'>
-          <div className="link">
-            <a href={link} target="_blank" rel="noopener noreferrer">
-              <span>
-                {linkTitle || 'Read More'} <ArrowRight />
-              </span>
-            </a>
-          </div>
+          {link !== null ? (
+            <div className="link">
+              <a href={link} target="_blank" rel="noopener noreferrer">
+                <span>
+                  {linkTitle || 'Read More'} <ArrowRight />
+                </span>
+              </a>
+            </div>) : (<span />)
+          }
           {resourceFile !== null ? (
             <div className='link'>
               <a href={resourceFile} target="_blank" rel="noopener noreferrer">

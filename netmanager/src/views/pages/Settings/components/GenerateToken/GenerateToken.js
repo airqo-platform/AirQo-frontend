@@ -237,8 +237,6 @@ const GenerateToken = (props) => {
     setOpen(false);
   };
 
-  console.log('clientData', clientStaffData);
-
   return (
     <>
       {clientData.length === 0 ? (

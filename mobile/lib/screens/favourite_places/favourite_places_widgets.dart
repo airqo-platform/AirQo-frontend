@@ -24,7 +24,9 @@ class FavouritePlaceCard extends StatelessWidget {
           onTap: () async {
             await _navigateToInsights(context, airQualityReading);
           },
-          child: Padding(
+          child: AnimatedPadding(
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeIn,
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Container(
               decoration: const BoxDecoration(
