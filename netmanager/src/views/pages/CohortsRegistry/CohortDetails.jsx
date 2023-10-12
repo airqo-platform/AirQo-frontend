@@ -62,9 +62,7 @@ const AssignCohortDeviceForm = ({ cohortID, cohortDevices, open, handleClose }) 
   useEffect(() => {
     setLoading(true);
     if (!isEmpty(activeNetwork)) {
-      if (isEmpty(allDevices)) {
-        dispatch(loadDevicesData(activeNetwork.net_name));
-      }
+      dispatch(loadDevicesData(activeNetwork.net_name));
     }
     setTimeout(() => {
       setLoading(false);
