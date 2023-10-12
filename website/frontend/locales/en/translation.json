@@ -147,6 +147,10 @@
             "title": "Live air quality insights across Africa",
             "subText": "Visualize hourly air quality information with a single click, over our growing network across African cities",
             "cta": "View Map"
+        },
+        "appSection": {
+            "title": "Download the app",
+            "subText": "Discover the quality of the air you are breathing"
         }
     }
 }
