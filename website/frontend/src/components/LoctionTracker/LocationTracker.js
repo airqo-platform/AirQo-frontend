@@ -64,7 +64,7 @@ const LocationTracker = ({ countries, setTrackedCountry }) => {
     if (!localStorage.getItem('country') && !sessionStorage.getItem('permissionDenied')) {
       const timer = setTimeout(() => {
         setOpen(true);
-      }, 5000); //  5 seconds
+      }, 5000);
 
       return () => clearTimeout(timer);
     }
