@@ -305,7 +305,14 @@ const SimRegistry = () => {
             {
               field: 'status',
               title: 'Status',
-              render: (row) => (row.status ? row.status : '')
+              render: (row) =>
+                row.status ? (
+                  <span style={{ color: row.status === 'active' ? 'green' : 'red' }}>
+                    {row.status}
+                  </span>
+                ) : (
+                  ''
+                )
             },
             {
               field: 'plan',
@@ -332,7 +339,7 @@ const SimRegistry = () => {
             {
               field: 'dataBalanceThreshold',
               title: 'Data Balance Threshold',
-              render: (row) => (row.dataBalanceThreshold ? row.dataBalanceThreshold : '')
+              render: (row) => (row.balance ? row.balance : '')
             },
             {
               field: 'action',
