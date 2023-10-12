@@ -4,6 +4,7 @@ import 'package:app/models/models.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'firebase_options_dev.dart';
 
@@ -13,7 +14,9 @@ void main() async {
     name: 'airqo-dev',
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
+  final prefs = await SharedPreferences.getInstance();
+  final savedLanguageCode = prefs.getString('selectedLanguage') ?? 'en';
+  final savedLocale = Locale(savedLanguageCode);
   await initializeMainMethod();
   final PendingDynamicLinkData? initialLink =
       await FirebaseDynamicLinks.instance.getInitialLink();
@@ -21,7 +24,10 @@ void main() async {
   AppConfig configuredApp = AppConfig(
     appTitle: 'AirQo Dev',
     environment: Environment.dev,
-    child: AirQoApp(initialLink),
+    child: AirQoApp(
+      initialLink,
+      locale: savedLocale,
+    ),
   );
 
   runApp(configuredApp);

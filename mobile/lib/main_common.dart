@@ -25,9 +25,11 @@ import 'package:path_provider/path_provider.dart';
 import 'constants/language_contants.dart';
 
 class AirQoApp extends StatefulWidget {
-  const AirQoApp(this.initialLink, {super.key});
+  const AirQoApp(this.initialLink, {super.key, required this.locale});
 
   final PendingDynamicLinkData? initialLink;
+
+  final Locale locale;
 
   @override
   State<AirQoApp> createState() => _AirQoAppState();
