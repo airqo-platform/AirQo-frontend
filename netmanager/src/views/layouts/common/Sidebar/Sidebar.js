@@ -273,7 +273,7 @@ const Sidebar = (props) => {
           const airqoNetwork = res.users[0].networks.find(
             (network) => network.net_name === 'airqo'
           );
-          localStorage.setItem('currentUserRole', JSON.stringify(airqoNetwork.role));
+
           if (!activeNetwork) {
             localStorage.setItem('activeNetwork', JSON.stringify(airqoNetwork));
             dispatch(addActiveNetwork(airqoNetwork));
