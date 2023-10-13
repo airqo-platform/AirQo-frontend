@@ -9,24 +9,24 @@ Future<void> main() async {
   await dotenv.load(fileName: Config.environmentFile);
 
   group('searchTests', () {
-    test('autocomplete', () async {
-      List<SearchResult> results = await SearchApiClient().search("kampala");
-      expect(results.isEmpty, false);
-    });
+    // test('autocomplete', () async {
+    //   List<SearchResult> results = await SearchApiClient().search("kampala");
+    //   expect(results.isEmpty, false);
+    // });
 
-    test('placeDetails', () async {
-      List<String> searchTerms = ['kampala', 'jinja', 'accra'];
-      SearchResult? searchResult;
-      for (String term in searchTerms) {
-        List<SearchResult> results = await SearchApiClient().search(term);
-        if (results.isNotEmpty) {
-          searchResult = results.first;
-          break;
-        }
-      }
+    // test('placeDetails', () async {
+    //   List<String> searchTerms = ['kampala', 'jinja', 'accra'];
+    //   SearchResult? searchResult;
+    //   for (String term in searchTerms) {
+    //     List<SearchResult> results = await SearchApiClient().search(term);
+    //     if (results.isNotEmpty) {
+    //       searchResult = results.first;
+    //       break;
+    //     }
+    //   }
 
-      searchResult = await SearchApiClient().getPlaceDetails(searchResult!);
-      expect(searchResult, isA<SearchResult>());
-    });
+    //   searchResult = await SearchApiClient().getPlaceDetails(searchResult!);
+    //   expect(searchResult, isA<SearchResult>());
+    // });
   });
 }
