@@ -145,7 +145,7 @@ const CollocationOverview = () => {
   }, [collocationStatisticsList]);
 
   return (
-    <Layout>
+    <Layout topbarTitle={'Collocation'}>
       <Head>
         <title>Collocation | Overview</title>
         <meta property='og:title' content='Collocation | Overview' key='Collocation | Overview' />
