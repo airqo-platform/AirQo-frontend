@@ -72,6 +72,9 @@ import {
 import { setDefaultAirQloud } from '../AirQloud/operations';
 import { fetchNetworkUsers } from '../AccessControl/operations';
 
+const jwtToken = localStorage.getItem('jwtToken');
+axios.defaults.headers.common.Authorization = jwtToken;
+
 /***************************errors ********************************* */
 
 export const clearErrors = () => (dispatch) => {
@@ -97,11 +100,11 @@ export const updateOrganization = (orgData) => (dispatch) => {
 
 /*********************** fetching Candidatess ********************************/
 
-export const fetchCandidates = (id) => {
+export const fetchCandidates = (networkID) => {
   return (dispatch) => {
     dispatch(fetchCandidatesRequest());
     return axios
-      .get(GET_CANDIDATES_URI)
+      .get(GET_CANDIDATES_URI, { params: { network_id: networkID } })
       .then((response) => response.data)
       .then((data) => dispatch(fetchCandidatesSuccess(data.candidates, data.message)))
       .catch((err) => dispatch(fetchCandidatesFailed(err.response.data)));

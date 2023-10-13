@@ -18,6 +18,14 @@ class Event(BaseModel):
     registration_link = models.URLField(null=True, blank=True)
     unique_title = models.CharField(max_length=100, null=True, blank=True)
 
+    class WebsiteCategory(models.TextChoices):
+        AirQo = "airqo", "AirQo"
+        CleanAir = "cleanair", "CleanAir"
+
+    website_category = models.CharField(
+        max_length=40, default=WebsiteCategory.AirQo, choices=WebsiteCategory.choices, null=True, blank=True
+    )
+
     def generate_unique_title(self, postfix_index=0):
         from django.utils.text import slugify
 

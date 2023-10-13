@@ -16,7 +16,7 @@ class AnalyticsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<LocationHistoryBloc, List<LocationHistory>>(
       builder: (context, state) {
-        context.read<LocationHistoryBloc>().add(const SyncLocationHistory());   
+        context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
 
         List<LocationHistory> locationHistory = state;
         locationHistory.sortByDateTime();
@@ -45,7 +45,9 @@ class AnalyticsView extends StatelessWidget {
                 return Container();
               }
 
-              return Padding(
+              return AnimatedPadding(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeIn,
                 padding: EdgeInsets.only(
                   top: Config.refreshIndicatorPadding(
                     index,

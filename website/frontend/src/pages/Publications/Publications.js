@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { useInitScrollTop } from 'utils/customHooks';
-import SEO from 'utils/seo';
+import { useInitScrollTop } from 'utilities/customHooks';
+import SEO from 'utilities/seo';
 import { loadPublicationsData } from '../../../reduxStore/Publications/operations';
 import { usePublicationsData } from '../../../reduxStore/Publications/selectors';
 import Page from '../Page';
@@ -53,9 +53,9 @@ const PublicationsPage = () => {
         <div className="page-header">
           <div className="content">
             <div className="title-wrapper">
-              <h2>Publications</h2>
+              <h2>Resources</h2>
               <span className="sub-title">
-                Discover our latest collection of research publications
+                Discover our latest collection of resources
               </span>
             </div>
             <div className="nav">

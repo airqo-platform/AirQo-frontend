@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">{{item.item_name}} Details</h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="item_name">Item Name : <b>{{item.item_name}}</b></label>
+                    </div>
+                    <div class="form-group">
+                        <label for="stock_in">Stock In : <b>{{item.stock_in}}</b></label>
+                    </div>
+                    <div class="form-group">
+                        <label for="stock_out">Stock Out : <b>{{item.stock_out}}</b></label>
+                    </div>
+                    <div class="form-group">
+                        <label for="stock_in_date">Stock In Date : <b>{{item.stock_in_date}}</b></label>
+                    </div>
+                    <div class="form-group">
+                        <label for="units">Units : <b>{{item.units}}</b></label>
+                    </div>
+                        <div>
+                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#popupFormModal1">
+                                New Stock
+                            </button>
+                        
+                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#popupFormModal2">
+                                Dispense
+                            </button>
+                            
+                            <a href="{% url 'history' item.id %}">
+                                <button type="button" class="btn btn-primary">
+                                    History
+                                </button>
+                            </a>
+                            
+                            <!-- <a class="btn btn-primary btn-sm" href="{% url 'history'  item.id%}">
+                                History
+                            </a> -->
+                        
+                            <!-- The Modal -->
+                            <div class="modal fade" id="popupFormModal1" tabindex="-1" role="dialog" aria-labelledby="popupFormModalLabel1" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="popupFormModalLabel1">New Stock</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <!-- Your form goes here -->
+                                            <form method="post">
+                                                {% csrf_token %}
+                                                {{ newStockForm|crispy }}
+                                            </form>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" name="newStockForm" class="btn btn-primary">Submit</button>
+                                            <!-- Add an additional button if needed -->
+                                            <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        
+                            <div class="modal fade" id="popupFormModal2" tabindex="-1" role="dialog" aria-labelledby="popupFormModalLabel2" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="popupFormModalLabel2">Dispense</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <!-- Your form goes here -->
+                                            <form method="post">
+                                                {% csrf_token %}
+                                                {{ dispenseForm|crispy }}
+                                            </form>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" name="dispenseForm" class="btn btn-primary">Submit</button>
+                                            <!-- Add an additional button if needed -->
+                                            <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // JavaScript to handle the form submission inside the modal
+    const form2SubmitButton = document.querySelector('#popupFormModal2 button[name="dispenseForm"]');
+    const form1SubmitButton = document.querySelector('#popupFormModal1 button[name="newStockForm"]');
+    form2SubmitButton.addEventListener('click', function () {
+        // Submit the form when the "Submit" button is clicked
+        document.querySelector('#popupFormModal2 form').submit();
+    });
+    form1SubmitButton.addEventListener('click', function () {
+        // Submit the form when the "Submit" button is clicked
+        document.querySelector('#popupFormModal1 form').submit();
+    });
+</script>
+
+{% endblock%}

@@ -1,5 +1,6 @@
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
+import 'package:app/screens/offline_banner.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
@@ -18,28 +19,30 @@ class SetUpCompleteScreen extends StatefulWidget {
 class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const OnBoardingTopBar(),
-      body: WillPopScope(
-        onWillPop: _onWillPop,
-        child: AppSafeArea(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.allSet,
-                  textAlign: TextAlign.center,
-                  style: _setUpCompleteTextStyle(),
-                ),
-                Text(
-                  AppLocalizations.of(context)!.breathe,
-                  textAlign: TextAlign.center,
-                  style: _setUpCompleteTextStyle()?.copyWith(
-                    color: CustomColors.appColorBlue,
+    return OfflineBanner(
+      child: Scaffold(
+        appBar: const OnBoardingTopBar(),
+        body: WillPopScope(
+          onWillPop: _onWillPop,
+          child: AppSafeArea(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.allSet,
+                    textAlign: TextAlign.center,
+                    style: _setUpCompleteTextStyle(),
                   ),
-                ),
-              ],
+                  Text(
+                    AppLocalizations.of(context)!.breathe,
+                    textAlign: TextAlign.center,
+                    style: _setUpCompleteTextStyle()?.copyWith(
+                      color: CustomColors.appColorBlue,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

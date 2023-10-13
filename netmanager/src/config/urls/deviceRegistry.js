@@ -36,6 +36,12 @@ export const REFRESH_AIRQLOUD = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/airqloud
 
 export const DASHBOARD_AIRQLOUDS = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/airqlouds/dashboard`;
 
+export const GRIDS_COHORTS_COMBINED = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/airqlouds/combined`;
+
+export const GRIDS = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/grids`;
+
+export const COHORTS = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/cohorts`;
+
 export const DECRYPT = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/decrypt`;
 
 export const QRCODE = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/qrcode`;
@@ -43,3 +49,15 @@ export const QRCODE = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/qrcode`;
 export const SOFT_EDIT_DEVICE_IMAGE = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/photos/soft?tenant=airqo`;
 
 export const GET_DEVICE_IMAGES = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/photos?tenant=airqo`;
+
+export const ALL_DEVICE_HOSTS = `${BASE_DEVICE_REGISTRY_URL_V2}/incentives/hosts`;
+
+export const CREATE_DEVICE_HOST = `${BASE_DEVICE_REGISTRY_URL_V2}/incentives/hosts`;
+
+export const UPDATE_DEVICE_HOST = `${BASE_DEVICE_REGISTRY_URL_V2}/incentives/hosts`;
+
+export const SEND_DEVICE_HOST_MONEY = `${BASE_DEVICE_REGISTRY_URL_V2}/incentives/transactions/hosts`;
+
+export const GET_TRANSACTION_HISTORY = `${BASE_DEVICE_REGISTRY_URL_V2}/incentives/transactions/payments/hosts`;
+
+export const GET_AIRQLOUDS_SUMMARY = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/airqlouds/summary`;

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+import '../quiz/quiz_view.dart';
 import 'kya_title_page.dart';
 import 'kya_widgets.dart';
 
@@ -17,19 +18,22 @@ class KnowYourAirView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<KyaBloc, KyaState>(
       builder: (context, state) {
-        if (state.lessons.isEmpty) {
+        if (state.lessons.isEmpty && state.quizzes.isEmpty) {
           return NoKyaWidget(
             callBack: () {
               context.read<KyaBloc>().add(const FetchKya());
+              context.read<KyaBloc>().add(const FetchQuizzes());
             },
           );
         }
         final completeKya = state.lessons
             .where((lesson) => lesson.status == KyaLessonStatus.complete)
-            .take(3)
+            .toList();
+        final completeQuizzes = state.quizzes
+            .where((quiz) => quiz.status == QuizStatus.complete)
             .toList();
 
-        if (completeKya.isEmpty) {
+        if (completeKya.isEmpty && completeQuizzes.isEmpty) {
           List<KyaLesson> inCompleteLessons =
               state.lessons.filterInCompleteLessons();
           return NoCompleteKyaWidget(
@@ -46,21 +50,47 @@ class KnowYourAirView extends StatelessWidget {
           );
         }
 
+        List<Widget> children = [];
+        children.addAll(completeQuizzes
+            .map(
+              (quiz) => Column(
+                children: [
+                  QuizCard(
+                    quiz,
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ),
+            )
+            .toList());
+        children.addAll(completeKya
+            .map(
+              (lesson) => Column(
+                children: [
+                  KyaLessonCardWidget(
+                    lesson,
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ),
+            )
+            .toList());
+
         return AppRefreshIndicator(
           sliverChildDelegate: SliverChildBuilderDelegate(
-            (context, index) {
+            (context, _) {
               return Padding(
                 padding: EdgeInsets.only(
                   top: Config.refreshIndicatorPadding(
-                    index,
+                    0,
                   ),
                 ),
-                child: KyaCardWidget(
-                  completeKya[index],
+                child: Column(
+                  children: children,
                 ),
               );
             },
-            childCount: completeKya.length,
+            childCount: 1,
           ),
           onRefresh: () {
             _refresh(context);
@@ -74,6 +104,7 @@ class KnowYourAirView extends StatelessWidget {
 
   void _refresh(BuildContext context) {
     context.read<KyaBloc>().add(const FetchKya());
+    context.read<KyaBloc>().add(const FetchQuizzes());
   }
 
   Future<void> _startKyaLessons(BuildContext context, KyaLesson kya) async {

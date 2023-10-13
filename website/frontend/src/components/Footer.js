@@ -152,6 +152,9 @@ const Footer = () => {
                 <span>
                   <Link to="/products/mobile-app">AirQo Mobile App</Link>
                 </span>
+                <span>
+                  <Link to="/products/calibrate">AirQalibrate</Link>
+                </span>
               </div>
             </span>
             <span className="content-tabs middle-tab">
@@ -172,13 +175,10 @@ const Footer = () => {
               <span>About</span>
               <div>
                 <span>
-                  <Link to="/about-us">About</Link>
+                  <Link to="/about-us">About AirQo</Link>
                 </span>
                 <span>
-                  <Link to="/careers">Careers</Link>
-                </span>
-                <span>
-                  <Link to="/publications">Publications</Link>
+                  <Link to="/resources">Resources</Link>
                 </span>
                 <span>
                   <Link to="/events">Events</Link>
@@ -187,7 +187,10 @@ const Footer = () => {
                   <Link to="/press">Press</Link>
                 </span>
                 <span>
-                  <Link to="/contact">Contact</Link>
+                  <Link to="/careers">Careers</Link>
+                </span>
+                <span>
+                  <Link to="/contact">Contact Us</Link>
                 </span>
                 <span>
                   <a target="_blank" href="https://medium.com/@airqo" rel="noreferrer noopener">

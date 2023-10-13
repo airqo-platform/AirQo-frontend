@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    
+    <!--Top Side-->
+    <div class="container">
+        <div class="row mt-4">
+            
+            <!--End Left Top Side-->
+  
+            <!--Right Top Side-->
+            <div class="container">
+              <div class="row mt-4">
+                  <div class="col-md-4">
+                      <div class="card">
+                          <div class="card-header bg-primary text-white">
+                              Information
+                          </div>
+                          <div class="card-body">
+                              <marquee behavior="" direction="">
+                                  <h3 class="my-4">Welcome {{user.username}}</h3>
+                              </marquee>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="col-md-8">
+                      <div class="card">
+                          <div class="card-header bg-primary text-white">
+                              Menu
+                          </div>
+                          <div class="card-body">
+                              <div class="row">
+                                  <div class="col-md-4">
+                                      <a class="text-decoration-none text-dark" href="{% url 'staff' %}">
+                                          <div class="card my-card shadow text-center p-3">
+                                              <h4>Employees <i class="fas fa-users"></i></h4>
+                                          </div>
+                                      </a>
+                                  </div>
+                                  <div class="col-md-4">
+                                      <a class="text-decoration-none text-dark" href="{% url 'products' %}">
+                                          <div class="card my-card shadow text-center p-3">
+                                              <h4>Inventory <i class="fas fa-box"></i></h4>
+                                          </div>
+                                      </a>
+                                  </div>
+                                  <div class="col-md-4">
+                                      <a class="text-decoration-none text-dark" href="{% url 'metadata' %}">
+                                          <div class="card my-card shadow text-center p-3">
+                                              <h4>Reports <i class="fas fa-shipping-fast"></i></h4>
+                                          </div>
+                                      </a>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+            <!--End Right Top Side-->
+  
+        </div>
+    </div>
+    <!--End Top Side-->
+    <!--Table-->
+    <div class="container">
+        <div class="row my-4">
+            <div class="col-md-4">
+                <div class="border bg-white p-3">
+                    <h4>New Entry</h4>
+                    <hr>
+                    <form method="post" action="{% url 'communication_config' %}">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <input class="btn btn-info" type="submit" value="Add batch">
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <table class="table bg-white">
+                    <thead class="bg-primary">
+                        <tr class="text-white">
+                            <th scope="col">#</th>
+                            <th scope="col">Batch Number</th>
+                            <th scope="col">Quantity In</th>
+                            <th scope="col">Quantity Out</th>
+                            <th scope="col">Start Date</th>
+                            <th scope="col">Detial</th>
+                            <th scope="col">Edit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <th scope="row">1</th>
+                            <td>{{ item.batch_number }}</td>
+                            <td>{{ item.quantity_in }}</td>
+                            <td>{{ item.quantity_out }}</td>
+                            <td>{{ item.date_start }}</td>
+                            <td>{{ item.detail }}</td>
+                            <td>
+                                <a class="btn btn-primary btn-sm" href="{% url 'edit_phase2_smt'  item.id%}">Edit</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+  
+    </div>
+  
+  
+  
+    <!--End Table-->
+{% endblock%}

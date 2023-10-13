@@ -120,6 +120,21 @@ extension KyaExt on KyaLesson {
   }
 }
 
+extension QuizExt on Quiz {
+  String getQuizMessage(BuildContext context) {
+    switch (status) {
+      case QuizStatus.todo:
+        return AppLocalizations.of(context)!.takeQuiz;
+      case QuizStatus.inProgress:
+      case QuizStatus.complete:
+        if (activeQuestion == 1) {
+          return AppLocalizations.of(context)!.takeQuiz;
+        }
+        return AppLocalizations.of(context)!.continu;
+    }
+  }
+}
+
 extension KyaListExt on List<KyaLesson> {
   List<KyaLesson> filterInCompleteLessons() {
     List<KyaLesson> inCompleteLessons =
@@ -250,20 +265,16 @@ extension InsightExt on Insight {
 
     if (dateTime.isAFutureDate()) {
       return AppLocalizations.of(context)!
-          .thisDatesHealthTips(dateTime.getWeekday().toTitleCase());
+          .thisDatesHealthTips(dateTime.getWeekday(context).toTitleCase());
     }
 
     return '';
   }
 
   String message(BuildContext context, String name) {
-    AirQuality? airQuality = this.airQuality;
+    AirQuality? airQuality = currentAirQuality;
 
     if (airQuality == null) {
-      if (dateTime.isAFutureDate()) {
-        return AppLocalizations.of(context)!
-            .forecastIsTemporarilyUnavailableWereWorkingToRestoreThisFeatureAsSoonAsPossible;
-      }
       return AppLocalizations.of(context)!
           .wereHavingIssuesWithOurNetworkNoWorriesWellBeBackUpSoon;
     }
@@ -272,8 +283,6 @@ extension InsightExt on Insight {
       case AirQuality.good:
         if (dateTime.isAPastDate()) {
           return AppLocalizations.of(context)!.theAirQualityInCityIsGood(name);
-        } else if (dateTime.isAFutureDate()) {
-          return AppLocalizations.of(context)!.expectConditionsToBeGood;
         } else {
           return AppLocalizations.of(context)!
               .theHourlyAirQualityAverageInCityIsCurrentlyGood(name);
@@ -282,8 +291,6 @@ extension InsightExt on Insight {
         if (dateTime.isAPastDate()) {
           return AppLocalizations.of(context)!
               .theAirQualityInCityWasModerate(name);
-        } else if (dateTime.isAFutureDate()) {
-          return AppLocalizations.of(context)!.expectConditionsToBeModerate;
         } else {
           return AppLocalizations.of(context)!
               .theHourlyAirQualityAverageInCityIsCurrentlyModerate(name);
@@ -292,9 +299,6 @@ extension InsightExt on Insight {
         if (dateTime.isAPastDate()) {
           return AppLocalizations.of(context)!
               .theAirIsAcceptableButSensitiveGroupsMayExperienceSomeHealthEffects;
-        } else if (dateTime.isAFutureDate()) {
-          return AppLocalizations.of(context)!
-              .expectConditionsToBeUnhealthyForSensitiveGroups;
         } else {
           return AppLocalizations.of(context)!
               .theHourlyAirQualityAverageInCityIsCurrentlyUnhealthyForSensitiveGroups(
@@ -304,8 +308,6 @@ extension InsightExt on Insight {
         if (dateTime.isAPastDate()) {
           return AppLocalizations.of(context)!
               .theAirQualityInCityWasUnhealthy(name);
-        } else if (dateTime.isAFutureDate()) {
-          return AppLocalizations.of(context)!.expectConditionsToBeUnhealthy;
         } else {
           return AppLocalizations.of(context)!
               .theHourlyAirQualityAverageInCityIsCurrentlyUnhealthy(name);
@@ -314,9 +316,6 @@ extension InsightExt on Insight {
         if (dateTime.isAPastDate()) {
           return AppLocalizations.of(context)!
               .theAirQualityInCityWasVeryUnhealthy(name);
-        } else if (dateTime.isAFutureDate()) {
-          return AppLocalizations.of(context)!
-              .expectConditionsToBeVeryUnhealthy;
         } else {
           return AppLocalizations.of(context)!
               .theHourlyAirQualityAverageInCityIsCurrentlyVeryUnhealthy(name);
@@ -325,8 +324,6 @@ extension InsightExt on Insight {
         if (dateTime.isAPastDate()) {
           return AppLocalizations.of(context)!
               .theAirQualityInCityWasHazardous(name);
-        } else if (dateTime.isAFutureDate()) {
-          return AppLocalizations.of(context)!.expectConditionsToBeHazardous;
         } else {
           return AppLocalizations.of(context)!
               .theHourlyAirQualityAverageInCityIsCurrentlyHazardous(name);
@@ -334,7 +331,7 @@ extension InsightExt on Insight {
     }
   }
 
-  String forecastMessage(BuildContext context, String name) {
+  String forecastMessage(BuildContext context) {
     AirQuality? airQuality = forecastAirQuality;
 
     if (airQuality == null) {
@@ -413,8 +410,10 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
     );
   }
 
-  List<AirQualityReading> removeInvalidData() =>
-      where((element) => element.dateTime.isAfterOrEqualToYesterday()).toList();
+  List<AirQualityReading> removeInvalidData() => toSet()
+      .toList()
+      .where((element) => element.dateTime.isAfterOrEqualToYesterday())
+      .toList();
 }
 
 extension ProfileExt on Profile {
@@ -484,6 +483,16 @@ extension ProfileExt on Profile {
 
     return AppLocalizations.of(context)!.helloName(firstName.trim());
   }
+
+  bool requiresRating() {
+    DateTime? lastRated = this.lastRated;
+
+    if (lastRated == null) {
+      return false;
+    }
+    DateTime now = DateTime.now().getDate();
+    return nextRatingDate.isBefore(now);
+  }
 }
 
 extension DateTimeExt on DateTime {
@@ -500,16 +509,16 @@ extension DateTimeExt on DateTime {
           .updatedYesterdayAtDateString(dateString);
     } else if (isToday()) {
       return AppLocalizations.of(context)!.updatedTodayAtDateString(dateString);
-    } else if (isTomorrow()) {
-      return AppLocalizations.of(context)!.tomorrowDateString(dateString);
     } else {
       return DateFormat(dateTimeFormat).format(this);
     }
   }
 
   String timelineString(BuildContext context) {
-    return AppLocalizations.of(context)!.tomorrowDateString(
-        '${getWeekday()} ${DateFormat('d, MMMM').format(this)}'.toUpperCase());
+    final locale = Localizations.localeOf(context);
+    final monthFormat = DateFormat.MMMM(locale.toString());
+    return '${getWeekday(context)} $day, ${monthFormat.format(this)}'
+        .toUpperCase();
   }
 
   DateTime getDateOfFirstDayOfWeek() {
@@ -551,52 +560,19 @@ extension DateTimeExt on DateTime {
     return lastDate.getDateOfFirstHourOfDay();
   }
 
-  String getMonthString({bool abbreviate = false}) {
-    final months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    if (month < 1 || month > 12) {
-      throw UnimplementedError(
-        '$month does not have a month string implementation',
-      );
-    }
-    final monthString = months[month - 1];
-
-    return abbreviate ? monthString.substring(0, 3) : monthString;
-  }
-
   int getUtcOffset() {
     return timeZoneOffset.inHours;
   }
 
-  String getWeekday() {
-    final weekdays = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-    if (weekday < 1 || weekday > 7) {
-      throw UnimplementedError(
-        '$weekday does not have a weekday string implementation',
-      );
-    }
+  String getWeekday(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    final dateFormat = DateFormat.EEEE(locale.toString());
+    return dateFormat.format(this);
+  }
 
-    return weekdays[weekday - 1];
+  DateTime getDate() {
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    return formatter.parse(formatter.format(this));
   }
 
   bool isWithInCurrentWeek() {

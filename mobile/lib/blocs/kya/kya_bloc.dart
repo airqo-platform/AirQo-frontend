@@ -11,10 +11,22 @@ part 'kya_event.dart';
 part 'kya_state.dart';
 
 class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
-  KyaBloc() : super(const KyaState(lessons: [])) {
+  KyaBloc() : super(const KyaState(lessons: [], quizzes: [])) {
     on<UpdateKyaProgress>(_onUpdateKyaProgress);
     on<ClearKya>(_onClearKya);
     on<FetchKya>(_onFetchKya);
+    on<FetchQuizzes>(_onFetchQuizzes);
+    on<UpdateQuizProgress>(_onUpdateQuizProgress);
+    on<ClearQuizzes>(_onClearQuizzes);
+  }
+
+  Future<void> _onFetchQuizzes(
+    FetchQuizzes _,
+    Emitter<KyaState> emit,
+  ) async {
+    final userId = CustomAuth.getUserId();
+    List<Quiz> quizzes = await AirqoApiClient().fetchQuizzes(userId);
+    emit(state.copyWith(quizzes: quizzes));
   }
 
   Future<void> _onFetchKya(
@@ -38,7 +50,7 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
           .toList();
     }
 
-    emit(KyaState(lessons: kyaLessons));
+    emit(KyaState(lessons: kyaLessons, quizzes: const []));
   }
 
   Future<void> _onUpdateKyaProgress(
@@ -54,6 +66,44 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
       final userId = CustomAuth.getUserId();
       if ((userId.isNotEmpty)) {
         await AirqoApiClient().syncKyaProgress(kyaLessons.toList(), userId);
+      }
+      if (kyaLesson.status == KyaLessonStatus.complete) {
+        CloudAnalytics.logEvent(CloudAnalyticsEvent.completeKYA);
+      }
+    }
+  }
+
+  Future<void> _onClearQuizzes(ClearQuizzes _, Emitter<KyaState> emit) async {
+    final userId = CustomAuth.getUserId();
+    List<Quiz> quizzes = await AirqoApiClient().fetchQuizzes(userId);
+    if (quizzes.isEmpty) {
+      quizzes = state.quizzes
+          .map((e) => e.copyWith(
+                status: QuizStatus.todo,
+                activeQuestion: 1,
+              ))
+          .toList();
+    }
+
+    emit(KyaState(quizzes: quizzes, lessons: const []));
+  }
+
+  Future<void> _onUpdateQuizProgress(
+    UpdateQuizProgress event,
+    Emitter<KyaState> emit,
+  ) async {
+    Quiz quiz = event.quiz;
+    Set<Quiz> quizzes = state.quizzes.toSet();
+    quizzes.remove(quiz);
+    quizzes.add(quiz);
+    emit(state.copyWith(quizzes: quizzes.toList()));
+    if (event.updateRemote) {
+      final userId = CustomAuth.getUserId();
+      if ((userId.isNotEmpty)) {
+        await AirqoApiClient().syncQuizProgress(quizzes.toList(), userId);
+      }
+      if (quiz.status == QuizStatus.complete) {
+        CloudAnalytics.logEvent(CloudAnalyticsEvent.completeQuiz);
       }
     }
   }

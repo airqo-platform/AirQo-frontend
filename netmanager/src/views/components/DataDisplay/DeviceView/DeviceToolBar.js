@@ -1,9 +1,9 @@
-import React, { useEffect } from "react";
-import { useHistory, useRouteMatch, useLocation } from "react-router-dom";
-import { makeStyles } from "@material-ui/styles";
-import Typography from "@material-ui/core/Typography";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
+import React, { useEffect } from 'react';
+import { useHistory, useRouteMatch, useLocation } from 'react-router-dom';
+import { makeStyles } from '@material-ui/styles';
+import Typography from '@material-ui/core/Typography';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
 import {
   ArrowBackIosRounded,
   Update,
@@ -13,64 +13,64 @@ import {
   PageviewOutlined,
   PhotoOutlined,
   ExpandLess,
-  ExpandMore,
-} from "@material-ui/icons";
-import Collapse from "@material-ui/core/Collapse";
-import Link from "@material-ui/core/Link";
-import Hidden from "@material-ui/core/Hidden";
-import { useDeviceOverviewBackUrlsData } from "redux/Urls/selectors";
-import { last } from "underscore";
+  ExpandMore
+} from '@material-ui/icons';
+import Collapse from '@material-ui/core/Collapse';
+import Link from '@material-ui/core/Link';
+import Hidden from '@material-ui/core/Hidden';
+import { useDeviceOverviewBackUrlsData } from 'redux/Urls/selectors';
+import { last } from 'underscore';
 
 const a11yProps = (index) => {
   return {
     id: `nav-tab-${index}`,
-    "aria-controls": `nav-tabpanel-${index}`,
+    'aria-controls': `nav-tabpanel-${index}`
   };
 };
 
 const useStyles = makeStyles((theme) => ({
   root: {
     backgroundColor: theme.palette.background.paper,
-    position: "sticky",
-    top: "64px",
-    zIndex: 1001,
+    position: 'sticky',
+    top: '64px',
+    zIndex: 1001
   },
   wrapper: {
-    flexDirection: "row",
+    flexDirection: 'row'
   },
   margin: {
-    width: "100%",
+    width: '100%'
   },
   marginToolbarContainer: {
-    width: "99%",
+    width: '99%'
   },
   appBar: {
-    position: "relative",
-    zIndex: 20,
+    position: 'relative',
+    zIndex: 20
   },
   tabs: {
-    width: "100%",
-    margin: "0 auto",
+    width: '100%',
+    margin: '0 auto'
   },
   tab: {
-    width: "220px",
-    fontSize: "12px",
-    minHeight: "50px",
-    height: "50px",
+    width: '220px',
+    fontSize: '12px',
+    minHeight: '50px',
+    height: '50px'
   },
   title: {
-    color: "#3f51b5",
-    width: "20%",
-    textTransform: "uppercase",
-  },
+    color: '#3f51b5',
+    width: '20%',
+    textTransform: 'uppercase'
+  }
 }));
 
 const iconStyles = {
-  marginRight: "2px",
+  marginRight: '2px'
 };
 
 const iconMiniStyles = {
-  marginRight: "10px",
+  marginRight: '10px'
 };
 
 const LinkTab = (props) => {
@@ -80,7 +80,7 @@ const LinkTab = (props) => {
     <Tab
       classes={{
         root: classes.tab,
-        wrapper: classes.wrapper,
+        wrapper: classes.wrapper
       }}
       component="a"
       wrapped
@@ -96,9 +96,7 @@ export const DeviceToolBar = ({ deviceName }) => {
   const history = useHistory();
   const goBackUrl = useDeviceOverviewBackUrlsData();
   const [value, setValue] = React.useState(history.location.pathname);
-  const [miniValue, setMiniValue] = React.useState(
-    last(history.location.pathname.split("/"))
-  );
+  const [miniValue, setMiniValue] = React.useState(last(history.location.pathname.split('/')));
   const [show, setShow] = React.useState(false);
 
   const { pathname } = useLocation();
@@ -106,15 +104,15 @@ export const DeviceToolBar = ({ deviceName }) => {
   const iconMapper = {
     overview: <PageviewOutlined style={iconMiniStyles} />,
     edit: <EditOutlined style={iconMiniStyles} />,
-    "maintenance-logs": <Update style={iconMiniStyles} />,
-    "deploy-status": <CloudUploadOutlined style={iconMiniStyles} />,
+    'maintenance-logs': <Update style={iconMiniStyles} />,
+    'deploy-status': <CloudUploadOutlined style={iconMiniStyles} />,
     components: <AddOutlined style={iconMiniStyles} />,
-    photos: <PhotoOutlined style={iconMiniStyles} />,
+    photos: <PhotoOutlined style={iconMiniStyles} />
   };
 
   useEffect(() => {
     setValue(pathname);
-    setMiniValue(last(pathname.split("/")));
+    setMiniValue(last(pathname.split('/')));
   }, [pathname]);
 
   const handleChange = (event, newValue) => {
@@ -131,46 +129,33 @@ export const DeviceToolBar = ({ deviceName }) => {
   return (
     <div className={`${classes.root} ${classes.margin}`}>
       <Hidden lgUp>
-        <div className={"device-dropdown"}>
-          <div
-            className={"device-dropdown-title"}
-            onClick={() => setShow(!show)}
-          >
-            <span style={{ display: "flex", alignItems: "center" }}>
-              {iconMapper[miniValue]} {miniValue.replace("-", " ")}
+        <div className={'device-dropdown'}>
+          <div className={'device-dropdown-title'} onClick={() => setShow(!show)}>
+            <span style={{ display: 'flex', alignItems: 'center' }}>
+              {iconMapper[miniValue]} {miniValue.replace('-', ' ')}
             </span>
             {show ? <ExpandLess /> : <ExpandMore />}
           </div>
           <Collapse in={show} timeout="auto" unmountOnExit>
-            <div className={"device-dropdown-list"}>
-              <Link
-                onClick={handleDropdownChange(
-                  `${match.url}/overview`,
-                  "overview"
-                )}
-              >
+            <div className={'device-dropdown-list'}>
+              <Link onClick={handleDropdownChange(`${match.url}/overview`, 'overview')}>
                 <span>
                   <PageviewOutlined style={iconMiniStyles} /> Overview
                 </span>
               </Link>
-              <Link onClick={handleDropdownChange(`${match.url}/edit`, "edit")}>
+              <Link onClick={handleDropdownChange(`${match.url}/edit`, 'edit')}>
                 <span>
                   <EditOutlined style={iconMiniStyles} /> Edit
                 </span>
               </Link>
               <Link
-                onClick={handleDropdownChange(
-                  `${match.url}/maintenance-logs`,
-                  "maintenance-logs"
-                )}
+                onClick={handleDropdownChange(`${match.url}/maintenance-logs`, 'maintenance-logs')}
               >
                 <span>
                   <Update style={iconMiniStyles} /> Maintenance logs
                 </span>
               </Link>
-              <Link
-                onClick={handleDropdownChange(`${match.url}/photos`, "photos")}
-              >
+              <Link onClick={handleDropdownChange(`${match.url}/photos`, 'photos')}>
                 <span>
                   <PhotoOutlined style={iconMiniStyles} /> Photos
                 </span>
@@ -183,14 +168,14 @@ export const DeviceToolBar = ({ deviceName }) => {
         <div>
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              border: "1px solid #eeeeee",
+              display: 'flex',
+              alignItems: 'center',
+              border: '1px solid #eeeeee'
             }}
           >
             <ArrowBackIosRounded
-              style={{ color: "#3f51b5", cursor: "pointer" }}
-              onClick={() => history.push(goBackUrl)}
+              style={{ color: '#3f51b5', cursor: 'pointer' }}
+              onClick={() => history.goBack()}
             />
             <Typography variant="h3" className={classes.title}>
               {deviceName}

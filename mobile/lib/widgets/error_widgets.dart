@@ -1,16 +1,13 @@
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/widgets/buttons.dart';
-import 'package:app/widgets/custom_shimmer.dart';
-import 'package:app/widgets/custom_widgets.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../screens/home_page.dart';
 import '../screens/search/search_page.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class NoSearchResultsWidget extends StatelessWidget {
   const NoSearchResultsWidget({super.key, this.message});
@@ -150,14 +147,10 @@ class NoAirQualityDataWidget extends StatelessWidget {
             const SizedBox(
               height: 30,
             ),
-            InkWell(
-              onTap: () {
-                callBack();
-              },
-              child: ActionButton(
-                icon: Icons.refresh_outlined,
-                text: actionButtonText ?? AppLocalizations.of(context)!.reload,
-              ),
+            ActionButton(
+              callBack: callBack,
+              icon: Icons.refresh_outlined,
+              text: actionButtonText ?? AppLocalizations.of(context)!.reload,
             ),
           ],
         ),
@@ -194,7 +187,7 @@ class NoFavouritePlacesWidget extends StatelessWidget {
             textAlign: TextAlign.center,
             text: TextSpan(children: [
               TextSpan(
-                text: AppLocalizations.of(context)!.tapThe,
+                text: "${AppLocalizations.of(context)!.tapThe} ",
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
               WidgetSpan(
@@ -206,8 +199,8 @@ class NoFavouritePlacesWidget extends StatelessWidget {
                 ),
               ),
               TextSpan(
-                text: AppLocalizations.of(context)!
-                    .favoriteIconOnAnyLocationToAddItToYourFavorites,
+                text:
+                    " ${AppLocalizations.of(context)!.favoriteIconOnAnyLocationToAddItToYourFavorites}",
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             ]),
@@ -215,8 +208,8 @@ class NoFavouritePlacesWidget extends StatelessWidget {
           const SizedBox(
             height: 30,
           ),
-          InkWell(
-            onTap: () async {
+          ActionButton(
+            callBack: () async {
               await Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -226,10 +219,8 @@ class NoFavouritePlacesWidget extends StatelessWidget {
                 ),
               );
             },
-            child: ActionButton(
-              icon: Icons.add,
-              text: AppLocalizations.of(context)!.addFavorites,
-            ),
+            icon: Icons.add,
+            text: AppLocalizations.of(context)!.addFavorites,
           ),
           const Spacer(),
         ],
@@ -273,14 +264,10 @@ class NoAnalyticsWidget extends StatelessWidget {
           const SizedBox(
             height: 30,
           ),
-          InkWell(
-            onTap: () {
-              callBack();
-            },
-            child: ActionButton(
-              icon: Icons.location_on_outlined,
-              text: AppLocalizations.of(context)!.turnOnLocation,
-            ),
+          ActionButton(
+            callBack: callBack,
+            icon: Icons.location_on_outlined,
+            text: AppLocalizations.of(context)!.turnOnLocation,
           ),
           const Spacer(),
         ],
@@ -324,13 +311,10 @@ class NoCompleteKyaWidget extends StatelessWidget {
           const SizedBox(
             height: 30,
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: NextButton(
-              buttonColor: CustomColors.appColorBlue,
-              text: AppLocalizations.of(context)!.startLearning,
-              callBack: callBack,
-            ),
+          NextButton(
+            buttonColor: CustomColors.appColorBlue,
+            text: AppLocalizations.of(context)!.startLearning,
+            callBack: callBack,
           ),
           const Spacer(),
         ],
@@ -374,14 +358,10 @@ class NoKyaWidget extends StatelessWidget {
           const SizedBox(
             height: 30,
           ),
-          InkWell(
-            onTap: () {
-              callBack();
-            },
-            child: ActionButton(
-              icon: Icons.refresh_outlined,
-              text: AppLocalizations.of(context)!.reload,
-            ),
+          ActionButton(
+            callBack: callBack,
+            icon: Icons.refresh_outlined,
+            text: AppLocalizations.of(context)!.reload,
           ),
           const Spacer(),
         ],
@@ -429,14 +409,10 @@ class NoInternetConnectionWidget extends StatelessWidget {
             const SizedBox(
               height: 30,
             ),
-            InkWell(
-              onTap: () {
-                callBack();
-              },
-              child: ActionButton(
-                icon: Icons.refresh_outlined,
-                text: actionButtonText ?? 'Refresh',
-              ),
+            ActionButton(
+              callBack: callBack,
+              icon: Icons.refresh_outlined,
+              text: actionButtonText ?? AppLocalizations.of(context)!.refresh,
             ),
           ],
         ),
@@ -502,14 +478,10 @@ class AppErrorWidget extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            InkWell(
-              onTap: () {
-                callBack();
-              },
-              child: ActionButton(
-                icon: Icons.refresh_outlined,
-                text: AppLocalizations.of(context)!.refresh,
-              ),
+            ActionButton(
+              callBack: callBack,
+              icon: Icons.refresh_outlined,
+              text: AppLocalizations.of(context)!.refresh,
             ),
           ],
         ),
@@ -526,6 +498,9 @@ class AppCrushWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    AppService().setLocale(locale.languageCode);
+    
     return Scaffold(
       appBar: null,
       body: AppSafeArea(
@@ -578,8 +553,8 @@ class AppCrushWidget extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            InkWell(
-              onTap: () async {
+            ActionButton(
+              callBack: () async {
                 loadingScreen(context);
                 await AirqoApiClient.sendErrorToSlack(exception, stackTrace)
                     .then((_) {
@@ -591,10 +566,8 @@ class AppCrushWidget extends StatelessWidget {
                   );
                 });
               },
-              child: ActionButton(
-                icon: Icons.error_outline_rounded,
-                text: AppLocalizations.of(context)!.reportError,
-              ),
+              icon: Icons.error_outline_rounded,
+              text: AppLocalizations.of(context)!.reportError,
             ),
           ],
         ),

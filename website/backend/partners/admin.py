@@ -11,17 +11,18 @@ class PartnerDescriptionInline(nested_admin.NestedTabularInline):
 
 @admin.register(Partner)
 class PartnerAdmin(nested_admin.NestedModelAdmin):
-    list_display = ('id', 'partner_name','type', 'logo_preview', 'image_preview')
-    readonly_fields = ('id', 'author', 'created', 'updated_by', 'modified')
+    list_display = ('partner_name','website_category','type', 'logo_preview', 'image_preview')
+    readonly_fields = ('author', 'created', 'updated_by', 'modified')
+    list_filter = ('website_category','type',)
 
-    fields = ('id','partner_name','type', 'partner_logo','partner_image','partner_link','order','author', 'created', 'updated_by', 'modified')
+    fields = ('partner_name','website_category','type','partner_logo','partner_image','partner_link','order','author', 'created', 'updated_by', 'modified')
     list_per_page = 10
     search_fields = ('partner_name','type')
 
     inlines = (PartnerDescriptionInline,)
 
     def logo_preview(self, obj):
-        width, height = 100, 80
+        width, height = 65, 50
         from django.utils.html import escape, format_html
 
         return format_html(f'<img src="{escape(obj.partner_logo.url)}" width="{width}" height="{height}" />')

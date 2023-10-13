@@ -68,6 +68,10 @@ class HiveService {
     List<Forecast> forecast,
     String siteId,
   ) async {
+    if (forecast.isEmpty) {
+      return;
+    }
+
     try {
       await Hive.box<List<Forecast>>(_forecast).put(
         siteId,
@@ -83,18 +87,24 @@ class HiveService {
 
   Future<List<Forecast>> getForecast(String siteId) async {
     List<Forecast> forecast = [];
+    final Box<List<Forecast>> forecastBox = Hive.box<List<Forecast>>(_forecast);
+    dynamic hiveValue;
     try {
-      forecast = Hive.box<List<Forecast>>(
-        _forecast,
-      ).get(
-        siteId,
-        defaultValue: [],
-      ) as List<Forecast>;
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
+      hiveValue = forecastBox.get(siteId, defaultValue: null);
+    } on TypeError {
+      forecastBox.clear();
+      hiveValue = forecastBox.get(siteId, defaultValue: null);
+    }
+
+    if (hiveValue != null) {
+      try {
+        forecast = (hiveValue as List<dynamic>).cast<Forecast>().toList();
+      } catch (exception, stackTrace) {
+        await logException(
+          exception,
+          stackTrace,
+        );
+      }
     }
 
     return forecast.removeInvalidData();

@@ -11,6 +11,7 @@ import NestedMenuItem from 'material-ui-nested-menu-item';
 import Switch from 'views/components/Switch';
 import { useUserPreferenceData } from 'redux/UserPreference/selectors';
 import { updateUserPreferenceData } from 'redux/UserPreference/operators';
+import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -119,57 +120,78 @@ const SidebarNav = (props) => {
   const classes = useStyles();
   const { pages, className, ...rest } = props;
   const location = useLocation();
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   return (
     <List {...rest} className={clsx(classes.root, className)}>
       {pages &&
         pages.map((page) => {
           if (page.nested) {
-            return (
-              <NestedMenuItem
-                label={
-                  <Button
-                    className={
-                      (location.pathname.includes(page.href) && classes.buttonActive) ||
-                      classes.button
-                    }
-                  >
-                    <div className={classes.icon}>{page.icon}</div>
-                    {page.title}
-                  </Button>
-                }
-                parentMenuOpen={true}
-                style={{ padding: '0px' }}
-              >
-                {page.nestItems.map((nestPage, key) => (
-                  <MenuItem>
+            if (
+              !isEmpty(activeNetwork) &&
+              activeNetwork.net_name !== 'airqo' &&
+              page.title === 'Network Monitoring'
+            ) {
+              return;
+            } else {
+              return (
+                <NestedMenuItem
+                  label={
                     <Button
-                      activeClassName={classes.active}
-                      className={classes.nestButton}
-                      component={CustomRouterLink}
-                      to={nestPage.href}
-                      key={key}
-                    >
-                      {nestPage.title}
+                      className={
+                        (location.pathname.includes(page.href) && classes.buttonActive) ||
+                        classes.button
+                      }>
+                      <div className={classes.icon}>{page.icon}</div>
+                      {page.title}
                     </Button>
-                  </MenuItem>
-                ))}
-              </NestedMenuItem>
+                  }
+                  parentMenuOpen={true}
+                  style={{ padding: '0px' }}>
+                  {page.nestItems.map((nestPage, key) => (
+                    <MenuItem>
+                      <Button
+                        activeClassName={classes.active}
+                        className={classes.nestButton}
+                        component={CustomRouterLink}
+                        to={nestPage.href}
+                        key={key}>
+                        {nestPage.title}
+                      </Button>
+                    </MenuItem>
+                  ))}
+                </NestedMenuItem>
+              );
+            }
+          }
+          if (
+            !isEmpty(activeNetwork) &&
+            activeNetwork.net_name !== 'airqo' &&
+            (page.title === 'Logs' || page.title === 'AirQloud Registry')
+          ) {
+            return;
+          } else {
+            return (
+              <ListItem
+                className={classes.item}
+                disableGutters
+                key={page.title}
+                disabled={page.disabled}
+                style={{
+                  cursor: page.disabled ? 'not-allowed' : 'pointer'
+                }}>
+                <Button
+                  disabled={page.disabled}
+                  activeClassName={classes.active}
+                  className={classes.button}
+                  component={CustomRouterLink}
+                  to={page.href}>
+                  <div className={classes.icon}>{page.icon}</div>
+                  {page.title}
+                </Button>
+              </ListItem>
             );
           }
-          return (
-            <ListItem className={classes.item} disableGutters key={page.title}>
-              <Button
-                activeClassName={classes.active}
-                className={classes.button}
-                component={CustomRouterLink}
-                to={page.href}
-              >
-                <div className={classes.icon}>{page.icon}</div>
-                {page.title}
-              </Button>
-            </ListItem>
-          );
         })}
     </List>
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import AirQommunities from 'assets/img/community/AirQommunities.png';
 import Blob from 'assets/img/community/AirQo_blob_fill.svg';
@@ -15,7 +15,7 @@ import AirQoQuotes from 'assets/img/community/AirQo_quotes.png';
 import Page from '../Page';
 import { useDispatch } from 'react-redux';
 import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
-import SEO from 'utils/seo';
+import SEO from 'utilities/seo';
 
 const CommunityPage = () => {
   useInitScrollTop();

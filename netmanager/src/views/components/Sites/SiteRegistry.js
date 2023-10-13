@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { SiteToolbar, SitesTable } from './index';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
@@ -6,6 +6,7 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 // styles
 import 'assets/css/location-registry.css';
 import { withPermission } from '../../containers/PageAccess';
+import UsersListBreadCrumb from '../../pages/UserList/components/Breadcrumb';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -25,13 +26,16 @@ const useStyles = makeStyles((theme) => ({
 
 const SiteRegistry = () => {
   const classes = useStyles();
+  const [refresh, setRefresh] = useState(false);
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   return (
     <ErrorBoundary>
       <div className={classes.root}>
-        <SiteToolbar />
+        <SiteToolbar setRefresh={() => setRefresh(!refresh)} />
+        <UsersListBreadCrumb category="Site Registry" usersTable={`${activeNetwork.net_name}`} />
         <div className={classes.content}>
-          <SitesTable />
+          <SitesTable refresh={refresh} setRefresh={setRefresh} />
         </div>
       </div>
     </ErrorBoundary>

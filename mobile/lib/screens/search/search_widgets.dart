@@ -314,41 +314,46 @@ class SearchSection extends StatelessWidget {
     }
 
     return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            maxLines: 4,
-            overflow: TextOverflow.ellipsis,
-            style: CustomTextStyle.headline8(context)?.copyWith(
-              color: CustomColors.appColorBlack.withOpacity(0.3),
+      child: AnimatedPadding(
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInCirc,
+        padding: const EdgeInsets.all(0.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+              style: CustomTextStyle.headline8(context)?.copyWith(
+                color: CustomColors.appColorBlack.withOpacity(0.3),
+              ),
             ),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemBuilder: (_, index) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: InkWell(
-                  onTap: () async {
-                    await navigateToInsights(context, data[index]);
-                  },
-                  child: SearchPageAirQualityTile(data[index]),
-                ),
-              );
-            },
-            itemCount: data.length,
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-        ],
+            const SizedBox(
+              height: 8,
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (_, index) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: InkWell(
+                    onTap: () async {
+                      await navigateToInsights(context, data[index]);
+                    },
+                    child: SearchPageAirQualityTile(data[index]),
+                  ),
+                );
+              },
+              itemCount: data.length,
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+          ],
+        ),
       ),
     );
   }

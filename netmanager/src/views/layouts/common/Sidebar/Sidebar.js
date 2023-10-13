@@ -15,7 +15,9 @@ import EditLocationIcon from '@material-ui/icons/EditLocation';
 import AspectRatioIcon from '@material-ui/icons/AspectRatio';
 import SupervisedUserCircleIcon from '@material-ui/icons/SupervisedUserCircle';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import TimelineIcon from '@material-ui/icons/Timeline';
 import AirQloudIcon from '@material-ui/icons/FilterDrama';
+import BubbleChartIcon from '@material-ui/icons/BubbleChart';
 import SupervisorAccountIcon from '@material-ui/icons/SupervisorAccount';
 import BusinessIcon from '@material-ui/icons/Business';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
@@ -24,15 +26,22 @@ import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import { getUserDetails } from 'redux/Join/actions';
+import { PeopleOutline } from '@material-ui/icons';
 import {
   addCurrentUserRole,
   addUserNetworks,
-  addActiveNetwork
+  addActiveNetwork,
+  addUserGroupSummary
 } from 'redux/AccessControl/operations';
 import NetworkDropdown from './components/NetworkDropdown';
 import { getRoleDetailsApi } from '../../../apis/accessControl';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
+import GroupWorkIcon from '@material-ui/icons/GroupWork';
+import SimCardIcon from '@material-ui/icons/SimCard';
+import GridOnIcon from '@material-ui/icons/GridOn';
+import GrainIcon from '@material-ui/icons/Grain';
+import GroupAddIcon from '@material-ui/icons/GroupAdd';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -91,7 +100,11 @@ const allMainPages = [
     href: '/dashboard',
     icon: <DashboardIcon />
   },
-
+  {
+    title: 'Analytics',
+    href: '/analytics',
+    icon: <TimelineIcon />
+  },
   {
     title: 'Export data',
     href: '/export-data',
@@ -127,6 +140,7 @@ const allMainPages = [
     icon: <AddIcon />,
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
   },
+
   {
     title: 'Site Registry',
     href: '/sites',
@@ -134,9 +148,39 @@ const allMainPages = [
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES'
   },
   {
+    title: 'Host Registry',
+    href: '/hosts',
+    icon: <PeopleOutline />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
+  },
+  {
+    title: 'SIM Registry',
+    href: '/sim',
+    icon: <SimCardIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
+  },
+  {
     title: 'AirQloud Registry',
     href: '/airqlouds',
     icon: <AirQloudIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
+  },
+  {
+    title: 'Heat Map',
+    href: '/heatMap',
+    icon: <BubbleChartIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
+  },
+  {
+    title: 'Cohorts Registry',
+    href: '/cohorts',
+    icon: <GroupWorkIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
+  },
+  {
+    title: 'Grids Registry',
+    href: '/grids',
+    icon: <GrainIcon />,
     permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
   }
 ];
@@ -151,7 +195,13 @@ const allUserManagementPages = [
   {
     title: 'Organisation',
     href: '/organisation',
-    icon: <BusinessIcon />
+    icon: <BusinessIcon />,
+    disabled: true
+  },
+  {
+    title: 'Teams',
+    href: '/teams',
+    icon: <GroupAddIcon />
   },
   {
     title: 'Users',
@@ -202,46 +252,51 @@ const Sidebar = (props) => {
   const dispatch = useDispatch();
   const currentRole = useSelector((state) => state.accessControl.currentRole);
   const userNetworks = useSelector((state) => state.accessControl.userNetworks);
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
+  const groupData = useSelector((state) => state.accessControl.groupsSummary);
 
   useEffect(() => {
-    setLoading(true);
-    if (!isEmpty(user)) {
-      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-      getUserDetails(user._id).then((res) => {
-        dispatch(addUserNetworks(res.users[0].networks));
-        localStorage.setItem('userNetworks', JSON.stringify(res.users[0].networks));
-        localStorage.setItem('currentUser', JSON.stringify(res.users[0]));
-
-        if (isEmpty(activeNetwork)) {
-          res.users[0].networks.map((network) => {
-            if (network.net_name === 'airqo') {
-              localStorage.setItem('activeNetwork', JSON.stringify(network));
-              dispatch(addActiveNetwork(network));
-            }
-          });
-        }
-
-        getRoleDetailsApi(res.users[0].role._id)
-          .then((res) => {
-            dispatch(addCurrentUserRole(res.roles[0]));
-            localStorage.setItem('currentUserRole', JSON.stringify(res.roles[0]));
-            setLoading(false);
-          })
-          .catch((error) => {
-            const errors = error.response && error.response.data && error.response.data.errors;
-            dispatch(
-              updateMainAlert({
-                message: error.response && error.response.data && error.response.data.message,
-                show: true,
-                severity: 'error',
-                extra: createAlertBarExtraContentFromObject(errors || {})
-              })
-            );
-            setLoading(false);
-          });
-      });
+    if (isEmpty(user)) {
+      return;
     }
+
+    setLoading(true);
+
+    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+    const fetchUserDetails = async () => {
+      try {
+        const res = await getUserDetails(user._id);
+        dispatch(addUserNetworks(res.users[0].networks));
+        dispatch(addUserGroupSummary(res.users[0].groups));
+        if (!isEmpty(user)) {
+          localStorage.setItem('userNetworks', JSON.stringify(res.users[0].networks));
+          const airqoNetwork = res.users[0].networks.find(
+            (network) => network.net_name === 'airqo'
+          );
+
+          if (!activeNetwork) {
+            localStorage.setItem('activeNetwork', JSON.stringify(airqoNetwork));
+            dispatch(addActiveNetwork(airqoNetwork));
+            dispatch(addCurrentUserRole(airqoNetwork.role));
+            localStorage.setItem('currentUserRole', JSON.stringify(airqoNetwork.role));
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserDetails();
   }, []);
+
+  useEffect(() => {
+    if (!isEmpty(activeNetwork)) {
+      dispatch(addCurrentUserRole(activeNetwork.role));
+      localStorage.setItem('currentUserRole', JSON.stringify(activeNetwork.role));
+    }
+  }, [activeNetwork]);
 
   useEffect(() => {
     // check whether user has a role
@@ -272,8 +327,11 @@ const Sidebar = (props) => {
         'Network Monitoring',
         'Location Registry',
         'Device Registry',
+        'Host Registry',
         'Site Registry',
-        'AirQloud Registry'
+        'AirQloud Registry',
+        'Cohorts Registry',
+        'Grids Registry'
       ]);
       const selectedAdminPages = excludePages(allUserManagementPages, [
         'Users',
@@ -293,8 +351,7 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}
-    >
+      variant={variant}>
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />
@@ -338,7 +395,7 @@ const Sidebar = (props) => {
           </>
         ) : (
           <>
-            {userNetworks && <NetworkDropdown userNetworks={userNetworks} />}
+            {userNetworks && <NetworkDropdown userNetworks={userNetworks} groupData={groupData} />}
             <SidebarNav className={classes.nav} pages={userPages} />
             <Divider className={classes.divider} />
             <SidebarNav className={classes.nav} pages={adminPages} />

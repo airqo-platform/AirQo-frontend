@@ -35,6 +35,7 @@ import Select from 'react-select';
 
 // horizontal loader
 import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+import UsersListBreadCrumb from '../../pages/UserList/components/Breadcrumb';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -697,6 +698,7 @@ const DevicesTable = (props) => {
     <ErrorBoundary>
       {/* custome Horizontal loader indicator */}
       <HorizontalLoader loading={isLoading} />
+
       <div className={classes.root}>
         <br />
         <div
@@ -725,10 +727,10 @@ const DevicesTable = (props) => {
             {activeNetwork.net_name === 'airqo' ? 'Soft Add Device' : 'Add Device'}
           </Button>
         </div>
-        <br />
+        <UsersListBreadCrumb category="Device Registry" usersTable={`${activeNetwork.net_name}`} />
 
         <CustomMaterialTable
-          title="Device Registry"
+          title={`Device Registry for ${activeNetwork.net_name}`}
           userPreferencePaginationKey={'devices'}
           columns={deviceColumns}
           data={deviceList.map((x) => Object.assign({}, x))}
@@ -741,8 +743,8 @@ const DevicesTable = (props) => {
           options={{
             search: true,
             exportButton: true,
-            searchFieldAlignment: 'left',
-            showTitle: false,
+            searchFieldAlignment: 'right',
+            showTitle: true,
             searchFieldStyle: {
               fontFamily: 'Open Sans'
             },

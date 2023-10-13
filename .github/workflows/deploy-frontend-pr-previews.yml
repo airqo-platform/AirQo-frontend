@@ -99,6 +99,7 @@ jobs:
 
       - name: Create .env file
         run: gcloud secrets versions access latest --secret="sta-env-netmanager" > netmanager/.env
+          
 
       - name: npm Install and Build
         uses: actions/setup-node@v2
@@ -462,10 +463,13 @@ jobs:
           docker build . \
           --build-arg REACT_WEB_STATIC_HOST=${{ secrets.WEBSITE_DEV_REACT_WEB_STATIC_HOST }} \
           --build-arg REACT_NETMANAGER_BASE_URL=${{ secrets.WEBSITE_STAGE_REACT_NETMANAGER_BASE_URL }} \
+          --build-arg REACT_APP_NETMANAGER_URL=${{ secrets.STAGE_REACT_APP_NETMANAGER_URL }} \
           --build-arg REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.WEBSITE_REACT_APP_BASE_AIRQLOUDS_URL }} \
           --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }} \
           --build-arg REACT_APP_WEBSITE_BASE_URL=${{ secrets.WEBSITE_DEV_REACT_APP_WEBSITE_BASE_URL }} \
           --build-arg REACT_APP_AUTHORIZATION_TOKEN=${{ secrets.WEBSITE_STAGE_REACT_APP_AUTHORIZATION_TOKEN }} \
+          --build-arg REACT_APP_GEO_LOCATION_URL=${{ secrets.WEBSITE_REACT_APP_GEO_LOCATION_URL }} \
+          --build-arg REACT_APP_OPENCAGE_API_KEY=${{ secrets.REACT_APP_OPENCAGE_API_KEY }} \
           --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
           docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
 
