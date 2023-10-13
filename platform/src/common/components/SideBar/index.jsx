@@ -110,11 +110,11 @@ const SideBar = () => {
             <SideBarItem label='Other tools' Icon={GridIcon} /> */}
           </div>
         </div>
-        {/* <AnnouncementCard />
+        {/* <AnnouncementCard /> */}
         <div className='mx-2'>
-          <SideBarItem label='Get Support' Icon={SupportIcon} />
-          <SideBarItem label='Settings' Icon={SettingsIcon} />
-        </div> */}
+          {/* <SideBarItem label='Get Support' Icon={SupportIcon} /> */}
+          <SideBarItem label='Settings' Icon={SettingsIcon} navPath='/settings' />
+        </div>
       </div>
       <div
         className='lg:hidden fixed top-5 right-10 z-30'

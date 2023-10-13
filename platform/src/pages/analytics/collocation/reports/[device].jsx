@@ -114,7 +114,7 @@ const Reports = () => {
   };
 
   return (
-    <Layout>
+    <Layout topbarTitle={'Collocation'}>
       <Head>
         <title>Collocation Reports</title>
         <meta property='og:title' content='Collocation Reports' key='Collocation Reports' />

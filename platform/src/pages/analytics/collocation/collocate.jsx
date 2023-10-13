@@ -59,7 +59,7 @@ const Collocate = () => {
   }, [refetch]);
 
   return (
-    <Layout>
+    <Layout topbarTitle={'Collocation'}>
       <Head>
         <title>Collocate | Collocation</title>
         <meta property='og:title' content='Collocate | Collocation' key='Collocate | Collocation' />
