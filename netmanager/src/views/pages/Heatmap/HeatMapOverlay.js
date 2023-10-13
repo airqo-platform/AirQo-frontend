@@ -113,7 +113,7 @@ const MapControllerPosition = ({ className, children, position }) => {
   );
 };
 
-const PollutantSelector = ({ className, onChange, showHeatMap }) => {
+const PollutantSelector = ({ className, onChange }) => {
   useInitScrollTop();
   const orgData = useOrgData();
   const [open, setOpen] = useState(false);
@@ -406,15 +406,19 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
 
   useEffect(() => {
     const addLayer = (id, type, paint, visibility) => {
-      if (!map.getLayer(id)) {
-        map.addLayer({
-          id,
-          type,
-          source: 'heatmap-data',
-          paint
-        });
+      try {
+        if (!map.getLayer(id)) {
+          map.addLayer({
+            id,
+            type,
+            source: 'heatmap-data',
+            paint
+          });
+        }
+        map.setLayoutProperty(id, 'visibility', visibility);
+      } catch (err) {
+        console.error(`Error adding layer: ${err.message}`);
       }
-      map.setLayoutProperty(id, 'visibility', visibility);
     };
 
     const map = new mapboxgl.Map({
@@ -485,10 +489,18 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
 
     return () => {
       ['sensor-heat', 'sensor-point'].forEach((layer) => {
-        if (map.getLayer(layer)) map.removeLayer(layer);
+        try {
+          if (map.getLayer(layer)) map.removeLayer(layer);
+        } catch (err) {
+          console.error(`Error removing layer: ${err.message}`);
+        }
       });
-      if (map.getSource('heatmap-data')) map.removeSource('heatmap-data');
-      map.remove();
+      try {
+        if (map.getSource('heatmap-data')) map.removeSource('heatmap-data');
+        map.remove();
+      } catch (err) {
+        console.error(`Error removing source or map: ${err.message}`);
+      }
     };
   }, []);
 

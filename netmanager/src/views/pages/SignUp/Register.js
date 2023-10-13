@@ -87,17 +87,30 @@ const Register = ({ history, auth, errors, clearErrors, match, registerCandidate
   });
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    let start = null;
+    let timer = null;
+
+    const animate = (timestamp) => {
+      if (!start) start = timestamp;
+      const elapsed = timestamp - start;
+
       setProgress((oldProgress) => {
         if (!loading) {
           return 100;
         }
-        return Math.min(oldProgress + 1, 100);
+        const newProgress = Math.min(oldProgress + elapsed / 30, 100);
+        return newProgress;
       });
-    }, 30);
+
+      if (loading) {
+        timer = requestAnimationFrame(animate);
+      }
+    };
+
+    timer = requestAnimationFrame(animate);
 
     return () => {
-      clearInterval(timer);
+      cancelAnimationFrame(timer);
     };
   }, [loading]);
 
@@ -181,9 +194,9 @@ const Register = ({ history, auth, errors, clearErrors, match, registerCandidate
   };
 
   const onSubmit = async (e) => {
-    setProgress(0);
     e.preventDefault();
     try {
+      setProgress(0);
       const emptyFields = Object.keys(requiredFields).reduce((errors, field) => {
         if (!state[field]) {
           errors[field] = requiredFields[field];

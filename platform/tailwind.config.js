@@ -28,6 +28,7 @@ module.exports = {
         blue: {
           200: '#2DB6F11A',
           300: '#1C7398',
+          600: '#145FFF',
           900: '#135DFF',
           950: '#145DFF',
           950: '#0F4ACC',
@@ -74,6 +75,10 @@ module.exports = {
         },
         orange: {
           450: '#FE9E35',
+        },
+        'neutral-light': {
+          400: '#6F87A1',
+          800: '#3C4555',
         },
       },
     },

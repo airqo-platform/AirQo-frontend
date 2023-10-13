@@ -24,6 +24,7 @@ import Cameroon from 'icons/africanCities/countries/cameroon.svg';
 import { useAirqloudSummaryData, useCurrentAirqloudData } from 'reduxStore/AirQlouds/selectors';
 import { setCurrentAirQloudData } from 'reduxStore/AirQlouds/operations';
 import { useTranslation, Trans } from 'react-i18next';
+import LocationTracker from './LoctionTracker/LocationTracker';
 
 const style = {
   position: 'absolute',
@@ -241,6 +242,7 @@ const Footer = () => {
           </div>
         </div>
       </div>
+      <LocationTracker countries={countries} />
       <Modal open={open} onClose={toggleOpen}>
         <Box sx={style}>
           <div className="modal">
