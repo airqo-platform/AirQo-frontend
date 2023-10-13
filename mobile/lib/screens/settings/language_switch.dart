@@ -1,4 +1,3 @@
-
 import 'package:app/screens/offline_banner.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/cupertino.dart';
