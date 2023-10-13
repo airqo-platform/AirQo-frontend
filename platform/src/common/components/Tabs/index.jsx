@@ -5,7 +5,7 @@ function Tabs({ children }) {
   const childrenArray = React.Children.toArray(children);
 
   return (
-    <div>
+    <div data-testid='tabs'>
       <div className='px-4 lg:px-16 mb-4 border-b border-grey-200'>
         <ul className='flex flex-wrap gap-6 text-sm font-medium text-center'>
           {childrenArray.map((child, index) => (

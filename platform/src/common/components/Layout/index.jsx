@@ -2,7 +2,7 @@ import SideBar from '@/components/SideBar';
 import TopBar from '@/components/TopBar';
 
 const Layout = ({ children, topbarTitle, noBorderBottom }) => (
-  <div className=' w-screen h-screen  overflow-x-hidden'>
+  <div className=' w-screen h-screen  overflow-x-hidden' data-testid='layout'>
     <div className=' lg:flex w-screen h-screen'>
       <div>
         <SideBar />

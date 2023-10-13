@@ -8,10 +8,10 @@ const Settings = () => {
     <Layout topbarTitle={'Settings'} noBorderBottom>
       <Tabs>
         <Tab label='Password'>
-          <div>One</div>
+          <div data-testid='tab-content'>One</div>
         </Tab>
         <Tab label='Team'>
-          <div>One</div>
+          <div data-testid='tab-content'>Two</div>
         </Tab>
       </Tabs>
     </Layout>
