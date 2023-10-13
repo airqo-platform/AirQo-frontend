@@ -26,6 +26,10 @@ const testComponentRendering = (Component) => {
     );
 };
 
+jest.mock('react-redux', () => ({
+    useDispatch: () => jest.fn()
+}));
+
 // Testing if each component renders without crashing
 test('renders TopBar without crashing', () => {
     testComponentRendering(TopBar);
@@ -61,6 +65,30 @@ test('renders MapSection without crashing', () => {
 
 test('renders GetApp without crashing', () => {
     testComponentRendering(GetApp);
+});
+
+describe('ImpactSection', () => {
+    it('renders impact section without crashing', () => {
+        render(
+            <ImpactNumbers/>
+        );
+    });
+});
+
+describe('HighlightsSection', () => {
+    it('renders highlights section without crashing', () => {
+        render(
+            <HighlightsSection />
+        );
+    });
+});
+
+describe('Footer', () => {
+    it('renders footer without crashing', () => {
+        render(
+            <Footer />
+        );
+    });
 });
 
 // Test video files
