@@ -1,9 +1,19 @@
 import Layout from '@/components/Layout';
+import ContentBox from '@/components/Layout/content_box';
+import Tabs from '@/components/Tabs';
+import Tab from '@/components/Tabs/Tab';
 
 const Settings = () => {
   return (
     <Layout topbarTitle={'Settings'} noBorderBottom>
-      <h1>Settings</h1>
+      <Tabs>
+        <Tab label='Password'>
+          <div>One</div>
+        </Tab>
+        <Tab label='Team'>
+          <div>One</div>
+        </Tab>
+      </Tabs>
     </Layout>
   );
 };
