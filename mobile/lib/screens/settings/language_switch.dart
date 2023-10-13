@@ -1,4 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
 
 import 'package:app/screens/offline_banner.dart';
 import 'package:app/widgets/widgets.dart';
