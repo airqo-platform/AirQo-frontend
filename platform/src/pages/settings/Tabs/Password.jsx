@@ -53,7 +53,7 @@ const Password = () => {
 
     try {
       setIsDisabled(true);
-      const response = await updateUserPasswordApi('652141179ba2220019e5027e', 'airqo', pwdData);
+      const response = await updateUserPasswordApi(userId, tenant, pwdData);
 
       if (response.success) {
         setPasswords({
