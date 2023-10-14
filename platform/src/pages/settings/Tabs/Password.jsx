@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
 import Lock from '@/icons/Settings/lock.svg';
-import Toast from '@/components/Toast';
 import { updateUserPasswordApi } from '@/core/apis/Settings';
+import { useSelector } from 'react-redux';
+import AlertBox from '@/components/AlertBox';
 
 const Password = () => {
-  const [isError, setIsError] = useState(false);
+  const userInfo = useSelector((state) => state.login.userInfo);
+  const [isDisabled, setIsDisabled] = useState(false);
+  const [isError, setIsError] = useState({
+    isError: false,
+    message: '',
+    type: '',
+  });
   const [passwords, setPasswords] = useState({
     currentPassword: '',
     newPassword: '',
@@ -17,15 +24,60 @@ const Password = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const userId = null;
-    const tenant = null;
+    const userId = userInfo._id;
+    const tenant = userInfo.organization;
+    const { newPassword, currentPassword, confirmNewPassword } = passwords;
+
+    if (!newPassword || !currentPassword || !confirmNewPassword) {
+      setIsError({
+        isError: true,
+        message: 'Please fill in all fields.',
+        type: 'error',
+      });
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setIsError({
+        isError: true,
+        message: 'New password and confirmation password do not match.',
+        type: 'error',
+      });
+      return;
+    }
+
     const pwdData = {
-      currentPassword: passwords.currentPassword,
-      newPassword: passwords.newPassword,
-      confirmNewPassword: passwords.confirmNewPassword,
+      password: newPassword,
+      old_password: currentPassword,
     };
 
-    const response = await updateUserPasswordApi(userId, tenant, pwdData);
+    try {
+      setIsDisabled(true);
+      const response = await updateUserPasswordApi('652141179ba2220019e5027e', 'airqo', pwdData);
+
+      if (response.success) {
+        setPasswords({
+          currentPassword: '',
+          newPassword: '',
+          confirmNewPassword: '',
+        });
+        setIsError({
+          isError: true,
+          message: 'Password updated successfully.',
+          type: 'success',
+        });
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {
+      setIsError({
+        isError: true,
+        message: error.message || 'An error occurred while updating the password.',
+        type: 'error',
+      });
+    } finally {
+      setIsDisabled(false);
+    }
   };
 
   const handleReset = () => {
@@ -38,13 +90,20 @@ const Password = () => {
 
   return (
     <>
-      {isError && (
-        <Toast
-          type={'success'}
-          timeout={5000}
-          message={'Uh-oh! Server error. Please try again later.'}
+      <div className='px-3 lg:px-16 -mb-6' data-testid='alert-box'>
+        <AlertBox
+          message={isError.message}
+          type={isError.type}
+          show={isError.isError}
+          hide={() =>
+            setIsError({
+              isError: false,
+              message: '',
+              type: '',
+            })
+          }
         />
-      )}
+      </div>
       <div
         data-testid='tab-content'
         className='px-3 lg:px-16 py-8 flex justify-start flex-col md:grid md:grid-cols-3 gap-4 items-start'>
@@ -57,7 +116,7 @@ const Password = () => {
         <div className='md:col-span-2 w-full'>
           <div className='border-[0.5px] rounded-lg border-grey-150'>
             <div className='flex flex-col w-full'>
-              <form onSubmit={handleSubmit} className='flex flex-col gap-4 p-6'>
+              <form className='flex flex-col gap-4 p-6'>
                 {['currentPassword', 'newPassword', 'confirmNewPassword'].map((field) => (
                   <div key={field}>
                     <label
@@ -93,8 +152,15 @@ const Password = () => {
                   Cancel
                 </button>
                 <button
-                  type='submit'
-                  className='bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded focus:outline-none focus:shadow-outline'>
+                  type='button'
+                  data-testid='save-button'
+                  onClick={handleSubmit}
+                  disabled={isDisabled}
+                  className={`text-white text-sm font-medium py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
+                    isDisabled
+                      ? 'bg-blue-300 opacity-50 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  }`}>
                   Save
                 </button>
               </div>
