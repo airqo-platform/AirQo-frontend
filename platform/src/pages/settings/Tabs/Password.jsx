@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Lock from '@/icons/Settings/lock.svg';
 import Toast from '@/components/Toast';
+import { updateUserPasswordApi } from '@/core/apis/Settings';
 
 const Password = () => {
   const [isError, setIsError] = useState(false);
@@ -14,9 +15,17 @@ const Password = () => {
     setPasswords({ ...passwords, [e.target.id]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add your submit logic here
+    const userId = null;
+    const tenant = null;
+    const pwdData = {
+      currentPassword: passwords.currentPassword,
+      newPassword: passwords.newPassword,
+      confirmNewPassword: passwords.confirmNewPassword,
+    };
+
+    const response = await updateUserPasswordApi(userId, tenant, pwdData);
   };
 
   const handleReset = () => {
