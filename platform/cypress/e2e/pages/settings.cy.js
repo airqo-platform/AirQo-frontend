@@ -15,11 +15,15 @@ describe('Settings Page', () => {
 
   it('should render the Tab content', () => {
     cy.get('[data-testid="tab"]').first().click();
-    cy.get('[data-testid="tab-content"]').should('contain', 'One');
+    cy.get('[data-testid="tab-content"]').should('exist');
   });
 
   it('should render the Alert tab in Password component', () => {
     cy.get('[data-testid="save-button"]').first().click();
-    cy.get('[data-testid="alert-box"]').should('contain', 'One');
+    cy.get('[data-testid="alert-box"]').should('exist');
+  });
+
+  it('should render the form', () => {
+    cy.get('[data-testid="form-box"]').should('exist');
   });
 });

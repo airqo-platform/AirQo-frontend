@@ -38,6 +38,7 @@ const AlertBox = ({ message, type, show, hide }) => {
 
   return (
     <div
+      data-testid='alert-box'
       className={`flex items-center p-4 mb-4 text-sm text-${color}-800 border border-${color}-300 rounded-lg bg-${color}-50 dark:bg-gray-800 dark:text-${color}-400 dark:border-${color}-800`}
       role='alert'>
       <svg
@@ -49,9 +50,9 @@ const AlertBox = ({ message, type, show, hide }) => {
         <path
           d={icon}
           stroke={color}
-          stroke-width='1.5'
-          stroke-linecap='round'
-          stroke-linejoin='round'
+          strokeWidth='1.5'
+          strokeLinecap='round'
+          strokeLinejoin='round'
         />
       </svg>
       <span className='sr-only'>{type.charAt(0).toUpperCase() + type.slice(1)} alert: </span>
@@ -71,9 +72,9 @@ const AlertBox = ({ message, type, show, hide }) => {
           <path
             d='M11 1L1 11M1 1L11 11'
             stroke={color}
-            stroke-width='1.5'
-            stroke-linecap='round'
-            stroke-linejoin='round'
+            strokeWidth='1.5'
+            strokeLinecap='round'
+            strokeLinejoin='round'
           />
         </svg>
       </button>
