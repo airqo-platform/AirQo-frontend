@@ -72,7 +72,7 @@ const Password = () => {
     } catch (error) {
       setIsError({
         isError: true,
-        message: 'Incorrect current password. Please try again.',
+        message: error.message || 'Something went wrong. Please try again later.'
         type: 'error',
       });
     } finally {
