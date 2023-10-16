@@ -76,9 +76,17 @@ module.exports = {
         orange: {
           450: '#FE9E35',
         },
-        'neutral-light': {
+        'secondary-neutral-light': {
+          25: '#F9FAFB',
+          50: '#F3F6F8',
+          100: '#E1E7EC',
           400: '#6F87A1',
+          500: '#536A87',
           800: '#3C4555',
+        },
+        success: {
+          50: '#ECFDF3',
+          700: '#057747',
         },
       },
     },
