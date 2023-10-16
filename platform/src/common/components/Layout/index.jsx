@@ -7,6 +7,7 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
   return (
     <div className=' w-screen h-screen  overflow-x-hidden' data-testid='layout'>
       <div className=' lg:flex w-screen h-screen'>
+        {/* checks */}
         <div>{!token ? <SideBar /> : <AuthenticatedSideBar />}</div>
         <div className='w-full overflow-x-hidden'>
           <TopBar topbarTitle={topbarTitle} noBorderBottom={noBorderBottom} />
