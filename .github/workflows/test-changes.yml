@@ -84,7 +84,7 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          directory: platform/coverage/
+          directory: platform
 
   ### test docs changes ###
   docs:
