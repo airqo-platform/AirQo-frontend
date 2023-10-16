@@ -20,6 +20,7 @@ import { useState } from 'react';
 import Layout from '@/components/Layout';
 import withAuth from '@/core/utils/protectedRoute';
 import Head from 'next/head';
+import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;
@@ -139,8 +140,7 @@ const AddMonitor = () => {
                     : 'opacity-40 cursor-not-allowed'
                 }`}
                 onClick={handleCollocation}
-                dataTestId={'collocation-schedule-button'}
-              >
+                dataTestId={'collocation-schedule-button'}>
                 Start collocation
               </Button>
             </div>

@@ -17,4 +17,8 @@ describe('Settings Page', () => {
     cy.get('[data-testid="tab"]').first().click();
     cy.get('[data-testid="tab-content"]').should('contain', 'One');
   });
+
+  it('should render the Sidebar component', () => {
+    cy.get('[data-testid="sidebar-component"]').should('exist');
+  });
 });

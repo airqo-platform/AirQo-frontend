@@ -47,12 +47,11 @@ const SideBar = () => {
   }, [collocationOpen, analyticsOpen]);
 
   return (
-    <div className='w-64'>
+    <div className='w-64' data-testid='sidebar-component'>
       <div
         className={`${
           size.width >= 1024 ? 'flex' : sideBarDisplayStyle
-        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200`}
-      >
+        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200`}>
         <div>
           <div
             className='
@@ -60,8 +59,7 @@ const SideBar = () => {
               flex
               flex-row
               justify-between
-            '
-          >
+            '>
             <AirqoLogo className='invisible md:visible lg:visible w-[46.56px] h-8 flex flex-col flex-1' />
             <CollapseIcon className='pt-1 h-full flex flex-col flex-3' />
           </div>
@@ -94,8 +92,7 @@ const SideBar = () => {
               Icon={CollocationIcon}
               dropdown
               toggleMethod={() => setCollocationOpen(!collocationOpen)}
-              toggleState={collocationOpen}
-            >
+              toggleState={collocationOpen}>
               <SideBarDropdownItem
                 itemLabel='Overview'
                 itemPath='/analytics/collocation/overview'
@@ -121,8 +118,7 @@ const SideBar = () => {
         role='button'
         tabIndex={0}
         onKeyDown={() => setToggleDrawer(!toggleDrawer)}
-        onClick={() => setToggleDrawer(!toggleDrawer)}
-      >
+        onClick={() => setToggleDrawer(!toggleDrawer)}>
         <MenuBarIcon />
       </div>
     </div>

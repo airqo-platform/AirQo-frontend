@@ -2,6 +2,7 @@ import Layout from '@/components/Layout';
 import ContentBox from '@/components/Layout/content_box';
 import Tabs from '@/components/Tabs';
 import Tab from '@/components/Tabs/Tab';
+import withAuth from '@/core/utils/protectedRoute';
 
 const Settings = () => {
   return (
@@ -18,4 +19,4 @@ const Settings = () => {
   );
 };
 
-export default Settings;
+export default withAuth(Settings);

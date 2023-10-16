@@ -44,7 +44,7 @@ const AuthenticatedSideBar = () => {
   }, [collocationOpen, analyticsOpen]);
 
   return (
-    <div className='w-64'>
+    <div className='w-64' data-testid='sidebar-component'>
       <div
         className={`${
           size.width >= 1024 ? 'flex' : sideBarDisplayStyle
@@ -89,10 +89,7 @@ const AuthenticatedSideBar = () => {
                 itemLabel='Collocate'
                 itemPath='/analytics/collocation/collocate'
               />
-              <SideBarDropdownItem
-                itemLabel='Reports'
-                itemPath='/analytics/collocation/reports'
-              />
+              <SideBarDropdownItem itemLabel='Reports' itemPath='/analytics/collocation/reports' />
             </SideBarItem>
             <SideBarItem label='Sites' Icon={SiteIcon} />
             <SideBarItem label='Other tools' Icon={GridIcon} />
@@ -100,7 +97,7 @@ const AuthenticatedSideBar = () => {
         </div>
         <div className='mx-2'>
           <SideBarItem label='Get Support' Icon={SupportIcon} />
-          <SideBarItem label='Settings' Icon={SettingsIcon} />
+          <SideBarItem label='Settings' Icon={SettingsIcon} navPath={'/settings'} />
         </div>
       </div>
       <div
