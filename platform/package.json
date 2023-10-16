@@ -60,8 +60,9 @@
   "engines": {
     "node": ">=14.x <=16.x"
   },
-  "nyc": {
-    "reporter": ["text", "lcov"]
-  },
+    "nyc": {
+      "report-dir": "cypress-coverage",
+      "reporter": ["lcov", "text"]
+    },
   "packageManager": "yarn@3.2.3"
 }
