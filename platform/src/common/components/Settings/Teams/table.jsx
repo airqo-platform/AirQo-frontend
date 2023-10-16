@@ -80,7 +80,7 @@ const TeamsTable = ({ users, onEdit, onDelete, isLoading }) => {
                     </td>
                     <td scope='row' className='w-[175px] px-4 py-3'>
                       <div
-                        className={`px-2 py-[2px] rounded-2xl w-auto flex justify-center items-center ${
+                        className={`px-2 py-[2px] rounded-2xl w-auto inline-flex justify-center items-center mx-auto ${
                           user.status.toLowerCase() === 'active'
                             ? 'bg-success-50 text-success-700'
                             : 'bg-secondary-neutral-light-50 text-secondary-neutral-light-500'
