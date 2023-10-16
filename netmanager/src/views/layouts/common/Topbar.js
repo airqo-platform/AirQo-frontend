@@ -15,7 +15,8 @@ import {
   Menu,
   ListItemIcon,
   ListItemText,
-  Tooltip
+  Tooltip,
+  Button
 } from '@material-ui/core';
 import { AppsOutlined } from '@material-ui/icons';
 import NotificationsIcon from '@material-ui/icons/NotificationsOutlined';
@@ -73,6 +74,32 @@ const useStyles = makeStyles((theme) => ({
     width: ' 100%',
     maxWidth: '240px',
     marginBottom: '12px'
+  },
+  root2: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgb(48, 103, 226)',
+    padding: theme.spacing(1)
+  },
+  link: {
+    color: '#fff',
+    fontSize: '15px',
+    marginRight: theme.spacing(1),
+    textDecoration: 'none'
+  },
+  registerBtn: {
+    color: '#3067e2',
+    fontSize: '15px',
+    textDecoration: 'none',
+    marginLeft: theme.spacing(2),
+    backgroundColor: '#fff',
+    borderRadius: '5px',
+    padding: '5px 10px',
+    '&:hover': {
+      backgroundColor: '#fff',
+      color: '#3067e2'
+    }
   }
 }));
 
@@ -257,8 +284,7 @@ const Topbar = (props) => {
             marginLeft: '10px',
             fontSize: 20,
             fontWeight: 'bold'
-          }}
-        >
+          }}>
           {activeNetwork && activeNetwork.net_name}
         </div>
 
@@ -274,8 +300,7 @@ const Topbar = (props) => {
             <IconButton
               className={classes.signOutButton}
               color="inherit"
-              onClick={handleAppsMenuOpen}
-            >
+              onClick={handleAppsMenuOpen}>
               <Tooltip title={'AirQo Apps'}>
                 <AppsOutlined />
               </Tooltip>
@@ -295,8 +320,7 @@ const Topbar = (props) => {
               }}
               getContentAnchorEl={null}
               open={openAppsMenu}
-              onClose={handleAppsMenuClose}
-            >
+              onClose={handleAppsMenuClose}>
               <div style={{ width: '300px', height: '300px' }}>
                 <div style={{ height: '100%', padding: '10px' }}>
                   <a
@@ -312,8 +336,7 @@ const Topbar = (props) => {
                     }}
                     href={CALIBRATE_APP_URL}
                     target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                    rel="noopener noreferrer">
                     <img
                       alt="airqo.net"
                       style={{ width: '50px', height: 'auto' }}
@@ -329,8 +352,7 @@ const Topbar = (props) => {
               <IconButton
                 className={classes.signOutButton}
                 color="inherit"
-                onClick={handleOpenMenu}
-              >
+                onClick={handleOpenMenu}>
                 <MoreVertIcon />
               </IconButton>
               <Menu
@@ -346,8 +368,7 @@ const Topbar = (props) => {
                   horizontal: 'right'
                 }}
                 open={open}
-                onClose={handleCloseMenu}
-              >
+                onClose={handleCloseMenu}>
                 <MenuItem onClick={handleDocsClick}>
                   <ListItemIcon>
                     <HelpIcon />
@@ -386,8 +407,7 @@ const Topbar = (props) => {
               <IconButton
                 color="inherit"
                 href="https://docs.airqo.net/airqo-handbook/-MHlrqORW-vI38ybYLVC/"
-                target="_blank"
-              >
+                target="_blank">
                 <Badge badgeContent={notifications.length} color="primary" variant="dot">
                   <Tooltip title={'Documentation'}>
                     <HelpIcon />
@@ -405,8 +425,7 @@ const Topbar = (props) => {
               <IconButton
                 className={classes.signOutButton}
                 color="inherit"
-                onClick={handleOpenMenu}
-              >
+                onClick={handleOpenMenu}>
                 <Tooltip title={'Manage account'}>
                   <InputIcon />
                 </Tooltip>
@@ -424,8 +443,7 @@ const Topbar = (props) => {
                   horizontal: 'right'
                 }}
                 open={open}
-                onClose={handleCloseMenu}
-              >
+                onClose={handleCloseMenu}>
                 <MenuItem onClick={handleSettingsClick}>
                   <ListItemIcon>
                     <SettingsIcon />
@@ -449,54 +467,13 @@ const Topbar = (props) => {
             </Hidden>
           </div>
         ) : (
-          <div>
-            <IconButton
-              className={classes.signOutButton}
-              color="inherit"
-              aria-controls="create-account-menu"
-              aria-haspopup="true"
-              onClick={handleAppsMenuOpen}
-            >
-              <AppsOutlined />
-            </IconButton>
-            <Menu
-              id="create-account-menu"
-              anchorEl={appsAnchorEl}
-              keepMounted
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'left'
-              }}
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'left'
-              }}
-              getContentAnchorEl={null}
-              open={openAppsMenu}
-              onClose={handleAppsMenuClose}
-            >
-              <div className={classes.menuContentWrapper}>
-                <img alt="airqo.net" style={logo_style} src={AirqoLogo} />
-                <h1 className={classes.menuTitle}>
-                  Sign up to see more air quality insights from around Africa!
-                </h1>
-                <p className={classes.menuContentText}>
-                  Access and export realtime air quality visualisations with data collected from
-                  different places in Africa.
-                </p>
-                <Link
-                  to="/request-access"
-                  style={{
-                    borderRadius: '3px',
-                    marginBottom: '15px'
-                  }}
-                  className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-                >
-                  Let's start!
-                </Link>
-                <Link to="/login">Already have an account? Log in here</Link>
-              </div>
-            </Menu>
+          <div className={classes.root2}>
+            <Link to="/login" className={classes.link}>
+              Login
+            </Link>
+            <Link to="/request-access" className={classes.registerBtn}>
+              Register
+            </Link>
           </div>
         )}
       </Toolbar>

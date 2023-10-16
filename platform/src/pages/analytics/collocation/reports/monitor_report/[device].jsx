@@ -148,7 +148,7 @@ const MonitorReport = () => {
   };
 
   return (
-    <Layout>
+    <Layout topbarTitle={'Collocation'}>
       <Head>
         <title>Collocation Monitor Report</title>
         <meta

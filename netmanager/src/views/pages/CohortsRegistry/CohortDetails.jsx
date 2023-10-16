@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import PropTypes from 'prop-types';
 import { useHistory, useParams } from 'react-router-dom';
 import { ArrowBackIosRounded } from '@material-ui/icons';
 import DeleteIcon from '@material-ui/icons/DeleteOutlineOutlined';
@@ -9,51 +8,32 @@ import {
   Grid,
   Paper,
   TextField,
-  Card,
-  CardContent,
-  CardHeader,
-  CardActions,
-  Divider,
-  CircularProgress,
   Tooltip,
-  Box
+  Box,
+  DialogActions,
+  Dialog,
+  DialogTitle,
+  DialogContent
 } from '@material-ui/core';
 import CustomMaterialTable from '../../components/Table/CustomMaterialTable';
 import { useInitScrollTop } from 'utils/customHooks';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
-import clsx from 'clsx';
-import { makeStyles } from '@material-ui/styles';
-import Typography from '@material-ui/core/Typography';
 // css
 import 'react-leaflet-fullscreen/dist/styles.css';
 import 'assets/css/location-registry.css';
-import { isEmpty, isEqual } from 'underscore';
-import { fetchAllCohorts, loadCohortDetails } from '../../../redux/Analytics/operations';
-import { updateDeviceDetails } from '../../../redux/DeviceOverview/OverviewSlice';
-import AddCohortToolbar from './AddCohortForm';
+import { isEmpty } from 'underscore';
+import { loadCohortDetails } from 'redux/Analytics/operations';
+import { updateDeviceDetails } from 'redux/DeviceOverview/OverviewSlice';
 import {
   assignDevicesToCohort,
   unassignDeviceFromCohortApi,
   updateCohortApi
 } from '../../apis/deviceRegistry';
-import Select from 'react-select';
-import { useDevicesData } from '../../../redux/DeviceRegistry/selectors';
-import { loadDevicesData } from '../../../redux/DeviceRegistry/operations';
-import { updateMainAlert } from '../../../redux/MainAlert/operations';
-
-const useStyles = makeStyles((theme) => ({
-  root: {
-    padding: theme.spacing(4)
-  },
-  cardTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textTransform: 'capitalize'
-  },
-  titleSpacing: {
-    marginBottom: theme.spacing(2)
-  }
-}));
+import { useDevicesData } from 'redux/DeviceRegistry/selectors';
+import { loadDevicesData } from 'redux/DeviceRegistry/operations';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import OutlinedSelect from '../../components/CustomSelects/OutlinedSelect';
+import { createAlertBarExtraContent } from '../../../utils/objectManipulators';
 
 const gridItemStyle = {
   padding: '5px',
@@ -71,31 +51,13 @@ const createDeviceOptions = (devices) => {
   return options;
 };
 
-const CohortForm = ({ cohort }) => {
-  const history = useHistory();
+const AssignCohortDeviceForm = ({ cohortID, cohortDevices, open, handleClose }) => {
   const dispatch = useDispatch();
-  const devices = useDevicesData();
   const [selectedDevices, setSelectedDevices] = useState([]);
   const [deviceOptions, setDeviceOptions] = useState([]);
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
-
-  const initialState = {
-    name: '',
-    network: activeNetwork.net_name,
-    visibility: false
-  };
-  const [form, setState] = useState(initialState);
+  const allDevices = useDevicesData();
   const [loading, setLoading] = useState(false);
-  const clearState = () => {
-    setState({ ...initialState });
-  };
-
-  const onChange = (e) => {
-    setState({
-      ...form,
-      [e.target.id]: e.target.value
-    });
-  };
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
 
   useEffect(() => {
     setLoading(true);
@@ -108,6 +70,129 @@ const CohortForm = ({ cohort }) => {
   }, []);
 
   useEffect(() => {
+    if (!isEmpty(allDevices) && !isEmpty(cohortDevices)) {
+      const deviceOptions = createDeviceOptions(Object.values(allDevices));
+      const nonCohortDevices = deviceOptions.filter((device) => {
+        return !cohortDevices.some((cohortDevice) => cohortDevice._id === device.value);
+      });
+
+      setDeviceOptions(nonCohortDevices);
+    }
+  }, [allDevices]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    const device_ids = selectedDevices.map((device) => device.value);
+
+    assignDevicesToCohort(cohortID, device_ids)
+      .then((res) => {
+        setLoading(false);
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: res.message,
+            severity: 'success'
+          })
+        );
+        dispatch(loadCohortDetails(res.updated_cohort._id));
+        handleClose();
+        setSelectedDevices([]);
+      })
+      .catch((error) => {
+        const errors = error.response && error.response.data && error.response.data.errors;
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: error.response && error.response.data && error.response.data.message,
+            severity: 'error',
+            extra: createAlertBarExtraContent(errors || {})
+          })
+        );
+        setLoading(false);
+      });
+  };
+
+  const clearState = () => {
+    setSelectedDevices([]);
+    handleClose();
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      fullWidth
+      maxWidth="sm"
+      aria-labelledby="form-dialog-title"
+      aria-describedby="form-dialog-description"
+    >
+      <DialogTitle>Assign devices to cohort</DialogTitle>
+      <DialogContent style={{ height: '20vh' }}>
+        <OutlinedSelect
+          fullWidth
+          name="devices"
+          label="Device(s)"
+          placeholder="Select Devices(s)"
+          value={selectedDevices}
+          options={deviceOptions}
+          onChange={(options) => setSelectedDevices(options)}
+          isMulti
+          variant="outlined"
+          margin="dense"
+          required
+          style={{
+            marginBottom: '20px',
+            height: '38px'
+          }}
+          autoFocus
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button
+          variant="outlined"
+          onClick={clearState}
+          color="primary"
+          style={{ marginLeft: '10px' }}
+          disabled={loading}
+        >
+          Cancel
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+          style={{ marginLeft: '10px' }}
+          disabled={loading}
+        >
+          {loading ? 'Loading..' : 'Save Changes'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+const CohortForm = ({ cohort }) => {
+  const history = useHistory();
+  const dispatch = useDispatch();
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
+  const [openDrawer, setOpenDrawer] = useState(false);
+  const initialState = {
+    name: '',
+    network: activeNetwork.net_name,
+    visibility: false
+  };
+  const [form, setState] = useState(initialState);
+  const [loading, setLoading] = useState(false);
+  const clearState = () => {
+    setState({ ...initialState });
+  };
+
+  const handleCloseDrawer = () => {
+    setOpenDrawer(false);
+  };
+
+  useEffect(() => {
     if (cohort) {
       let cohortData = {
         name: cohort.name,
@@ -115,17 +200,8 @@ const CohortForm = ({ cohort }) => {
         visibility: cohort.visibility
       };
       setState(cohortData);
-      const deviceArr = cohort.devices ? createDeviceOptions(cohort.devices) : [];
-      setSelectedDevices(deviceArr);
     }
   }, [cohort]);
-
-  useEffect(() => {
-    if (!isEmpty(devices)) {
-      const deviceOptions = createDeviceOptions(Object.values(devices));
-      setDeviceOptions(deviceOptions);
-    }
-  }, [devices]);
 
   const handleCancel = () => {
     setState({
@@ -133,8 +209,6 @@ const CohortForm = ({ cohort }) => {
       network: activeNetwork.net_name,
       visibility: cohort.visibility
     });
-    const deviceArr = cohort.devices ? createDeviceOptions(cohort.devices) : [];
-    setSelectedDevices(deviceArr);
   };
 
   const handleSelectFieldChange = (field) => (event) => {
@@ -155,41 +229,17 @@ const CohortForm = ({ cohort }) => {
 
     await updateCohortApi(cohort._id, cohortData)
       .then((res) => {
-        const uniqueDevices = selectedDevices.filter((device) => {
-          return !cohort.devices.some((cohortDevice) => cohortDevice._id === device.value);
-        });
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: res.message,
+            severity: 'success'
+          })
+        );
+        dispatch(loadCohortDetails(cohort._id));
+        clearState();
 
-        const device_ids = uniqueDevices.map((device) => device.value);
-        console.log(device_ids);
-
-        if (device_ids && device_ids.length > 0) {
-          assignDevicesToCohort(res.cohort._id, device_ids)
-            .then((res) => {
-              dispatch(fetchAllCohorts(activeNetwork.net_name));
-              dispatch(
-                updateMainAlert({
-                  show: true,
-                  message: res.message,
-                  severity: 'success'
-                })
-              );
-              clearState();
-              setSelectedDevices([]);
-
-              setLoading(false);
-            })
-            .catch((error) => {
-              const errors = error.response && error.response.data && error.response.data.errors;
-              dispatch(
-                updateMainAlert({
-                  show: true,
-                  message: error.response && error.response.data && error.response.data.message,
-                  severity: 'error'
-                })
-              );
-              setLoading(false);
-            });
-        }
+        setLoading(false);
       })
       .catch((error) => {
         const errors = error.response && error.response.data && error.response.data.errors;
@@ -197,7 +247,8 @@ const CohortForm = ({ cohort }) => {
           updateMainAlert({
             show: true,
             message: error.response && error.response.data && error.response.data.message,
-            severity: 'error'
+            severity: 'error',
+            extra: createAlertBarExtraContent(errors || {})
           })
         );
         setLoading(false);
@@ -212,32 +263,43 @@ const CohortForm = ({ cohort }) => {
         maxWidth: '1500px'
       }}
     >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          fontSize: '1.2rem',
-          fontWeight: 'bold',
-          margin: '20px 0'
-        }}
-      >
+      <Box display="flex" width="100%" justifyContent={'space-between'} alignItems={'center'}>
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            padding: '5px'
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            margin: '20px 0',
+            width: 'auto'
           }}
         >
-          <ArrowBackIosRounded
-            style={{ color: '#3f51b5', cursor: 'pointer' }}
-            onClick={() => {
-              history.push('/cohorts');
-              // dispatch(removeAirQloudData());
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '5px'
             }}
-          />
+          >
+            <ArrowBackIosRounded
+              style={{ color: '#3f51b5', cursor: 'pointer' }}
+              onClick={() => {
+                history.push('/cohorts');
+                // dispatch(removeAirQloudData());
+              }}
+            />
+          </div>
+          Cohort Details
         </div>
-        Cohort Details
-      </div>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => setOpenDrawer(true)}
+          disabled={loading}
+        >
+          Add new devices
+        </Button>
+      </Box>
       <Grid container spacing={1}>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
           <TextField
@@ -275,28 +337,6 @@ const CohortForm = ({ cohort }) => {
           </TextField>
         </Grid>
 
-        <Grid items xs={12} sm={6} lg={12} style={gridItemStyle}></Grid>
-        <Grid items xs={12} sm={12} lg={12} style={gridItemStyle}>
-          <Typography variant="h3">Edit cohort devices</Typography>
-          <Select
-            fullWidth
-            name="devices"
-            label="Device(s)"
-            placeholder="Select Devices(s)"
-            value={selectedDevices}
-            options={deviceOptions}
-            onChange={(options) => setSelectedDevices(options)}
-            isMulti
-            variant="outlined"
-            margin="dense"
-            required
-            style={{
-              marginBottom: '20px',
-              height: '38px'
-            }}
-            autoFocus
-          />
-        </Grid>
         <Grid
           container
           alignItems="flex-end"
@@ -305,7 +345,7 @@ const CohortForm = ({ cohort }) => {
           xs={12}
           style={{ margin: '10px 0' }}
         >
-          <Button variant="contained" onClick={handleCancel}>
+          <Button variant="contained" onClick={handleCancel} disabled={loading}>
             Reset
           </Button>
 
@@ -314,11 +354,19 @@ const CohortForm = ({ cohort }) => {
             color="primary"
             onClick={handleSubmit}
             style={{ marginLeft: '10px' }}
+            disabled={loading}
           >
-            Save Changes
+            {loading ? 'Laoding...' : 'Save Changes'}
           </Button>
         </Grid>
       </Grid>
+
+      <AssignCohortDeviceForm
+        cohortID={cohort._id}
+        cohortDevices={cohort.devices}
+        open={openDrawer}
+        handleClose={handleCloseDrawer}
+      />
     </Paper>
   );
 };
@@ -331,7 +379,6 @@ const CohortDetails = (props) => {
   const dispatch = useDispatch();
   const activeCohortDetails = useSelector((state) => state.analytics.activeCohortDetails);
   const [devicesData, setDevicesData] = useState([]);
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
 
   const [loading, setLoading] = useState(false);
 
