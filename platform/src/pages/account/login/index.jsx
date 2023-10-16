@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AccountPageLayout from '@/components/Account/Layout';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
-import { setUserName, setUserPassword, loginUser } from '@/lib/store/services/account/LoginSlice';
+import { setUserName, setUserPassword } from '@/lib/store/services/account/LoginSlice';
 import { postUserLoginDetails } from '../../../core/apis/Account';
 import setAuthToken from '@/core/utils/setAuthToken';
 import jwt_decode from 'jwt-decode';
@@ -17,40 +17,25 @@ const UserLogin = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    try{
-      await postUserLoginDetails(postData.userData)
+    await postUserLoginDetails(postData.userData)
       .then((res) => {
-          const { token } = res;
-          localStorage.setItem('token', token);
-          setAuthToken(token);
-          // Decode token to get user data
-          const decoded = jwt_decode(token);
-          localStorage.setItem('loggedUser', JSON.stringify(decoded));
-          dispatch(setUserInfo(decoded))
-          dispatch(setSuccess(true))
-          router.push('/analytics')
+        const { token } = res;
+        localStorage.setItem('token', token);
+        setAuthToken(token);
+        // Decode token to get user data
+        const decoded = jwt_decode(token);
+        localStorage.setItem('loggedUser', JSON.stringify(decoded));
+        dispatch(setUserInfo(decoded));
+        dispatch(setSuccess(true));
+        router.push('/analytics');
       })
       .catch((error) => {
-          dispatch(setSuccess(false))
-          dispatch(setFailure(error.message))
-          setErrors(true)
-          setError(error.message);
-      })
-    }catch(error){
-        alert(error)
-    }
+        dispatch(setSuccess(false));
+        dispatch(setFailure(error?.response?.data.message));
+        setErrors(true);
+        setError(error?.response?.data.message);
+      });
   };
-
-  const handleErrors = () => {
-    if (errors) {
-      setError(false);
-      setErrors();
-    }
-  };
-
-  useEffect(() => {
-    setErrors(false);
-  }, []);
 
   return (
     <AccountPageLayout>
@@ -79,13 +64,14 @@ const UserLogin = () => {
               />
               <div>
                 {errors && (
-                  <div className='text-sm text-red-600 py-2'>{error || 'Please Retry'}</div>
+                  <div className='text-sm text-red-600 py-2 capitalize'>
+                    {error || 'Please Retry'}
+                  </div>
                 )}
               </div>
               <button
                 className='mt-6 btn bg-blue-900 rounded-none w-full text-sm outline-none border-none hover:bg-blue-950'
-                type='submit'
-                onClick={handleErrors}>
+                type='submit'>
                 Login
               </button>
             </div>
