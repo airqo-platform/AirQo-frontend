@@ -9,11 +9,18 @@ import {
   setUserPassword,
 } from '@/lib/store/services/account/CreationSlice';
 import { useRouter } from 'next/router';
+import HintIcon from '@/icons/Actions/exclamation.svg';
+import VisibilityOffIcon from '@/icons/Account/visibility_off.svg';
+import VisibilityOnIcon from '@/icons/Account/visibility_on.svg';
 
 const AccountCreationPage2 = () => {
-  const [firstName, setFirstName] = useState();
-  const [lastName, setLastName] = useState();
-  const [password, setPassword] = useState();
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [checked, setChecked] = useState(false);
+  const [password, setPassword] = useState('');
+  const [passwordType, setPasswordType] = useState('password');
+  const [passwordWordErrors, setPasswordWordErrors] = useState(false);
+  let passwordRegex = new RegExp('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&.*,]).{6,}$');
 
   const dispatch = useDispatch();
   const router = useRouter();
@@ -25,15 +32,35 @@ const AccountCreationPage2 = () => {
     dispatch(setUserLastName(lastName));
     dispatch(setUserPassword(password));
     try {
-      await dispatch(createUser({email:userEmail, firstName, lastName}));
+      await dispatch(createUser({ email: userEmail, firstName, lastName }));
       router.push('/account/creation/step3');
     } catch (err) {
       return err;
     }
   };
 
+  const validatePassword = (password) => {
+    if (passwordRegex.test(password)) {
+      setPasswordWordErrors(false);
+    } else setPasswordWordErrors(true);
+  };
+
+  const showPassword = () => {
+    if (passwordType === 'password') {
+      setPasswordType('text');
+    } else {
+      setPasswordType('password');
+    }
+  };
+
+  const toggleChecked = (e) => {
+    if (checked) {
+      setChecked(false);
+    } else setChecked(true);
+  };
+
   return (
-    <AccountPageLayout>
+    <AccountPageLayout childrenHeight={'lg:h-[580]'}>
       <div className='w-full'>
         <h2 className='text-3xl text-black-700 font-medium'>Lets get started</h2>
         <p className='text-xl text-black-700 font-normal mt-3'>
@@ -45,62 +72,132 @@ const AccountCreationPage2 = () => {
               <div className='w-full'>
                 <div className='text-xs'>First name*</div>
                 <div className='mt-2 w-11/12'>
-                  <input
-                    onChange={(e) => {
-                      setFirstName(e.target.value);
-                    }}
-                    type='text'
-                    placeholder='e.g. Greta'
-                    className='input w-full rounded-none bg-form-input focus:outline-form-input focus:outline-none focus:outline-offset-0'
-                    required
-                  />
+                  {firstName.length >= 3 ? (
+                    <input
+                      onChange={(e) => {
+                        setFirstName(e.target.value);
+                      }}
+                      type='text'
+                      placeholder='e.g. Greta'
+                      className='input w-full h-16 rounded-lg bg-form-input border-input-outline focus:border-input-outline'
+                      pattern='[A-Za-z]{3,}'
+                      required
+                    />
+                  ) : (
+                    <input
+                      onChange={(e) => {
+                        setFirstName(e.target.value);
+                      }}
+                      type='text'
+                      placeholder='e.g. Greta'
+                      className='input w-full h-16 rounded-lg bg-form-input border-none'
+                      pattern='[A-Za-z]{3,}'
+                      required
+                    />
+                  )}
                 </div>
               </div>
               <div className='w-full'>
                 <div className='text-xs'>Last name*</div>
-                <div className='mt-2 w-full'>
-                  <input
-                    onChange={(e) => {
-                      setLastName(e.target.value);
-                    }}
-                    type='text'
-                    placeholder='e.g. Nagawa'
-                    className='input w-full rounded-none bg-form-input focus:outline-form-input focus:outline-none focus:outline-offset-0'
-                    required
-                  />
-                </div>
+                {lastName.length >= 2 ? (
+                  <div className='mt-2 w-full'>
+                    <input
+                      onChange={(e) => {
+                        setLastName(e.target.value);
+                      }}
+                      type='text'
+                      placeholder='e.g. Nagawa'
+                      className='input w-full h-16 rounded-lg bg-form-input border-input-outline focus:border-input-outline'
+                      pattern='[A-Za-z]{2,}'
+                      required
+                    />
+                  </div>
+                ) : (
+                  <div className='mt-2 w-full'>
+                    <input
+                      onChange={(e) => {
+                        setLastName(e.target.value);
+                      }}
+                      type='text'
+                      placeholder='e.g. Nagawa'
+                      className='input w-full h-16 rounded-lg bg-form-input border-none'
+                      pattern='[A-Za-z]{2,}'
+                      required
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>
           <div className='mt-6'>
-            <div className='w-full'>
-              <div className='text-xs'>Password*</div>
-              <div className='mt-2 w-full'>
-                <input
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                  }}
-                  pattern='^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&]).{8,}$'
-                  title='Password should include an uppercase letter, lowercase letter, a number and special character(#?!@$^&)'
-                  minLength={'8'}
-                  maxLength={'20'}
-                  type='password'
-                  className='input w-full rounded-none bg-form-input focus:outline-form-input focus:outline-none focus:outline-offset-0'
-                  required
-                />
+            {firstName.length >= 3 && lastName.length >= 3 ? (
+              <div className='w-full'>
+                <div className='text-xs'>Password*</div>
+                <div className='mt-2 flex flex-row justify-between'>
+                  <div className='w-11/12'>
+                    {passwordWordErrors ? (
+                      <>
+                        <input
+                          onChange={(e) => {
+                            setPassword(e.target.value);
+                            validatePassword(e.target.value);
+                          }}
+                          pattern='^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&]).{8,}$'
+                          minLength={'6'}
+                          maxLength={'20'}
+                          type={passwordType}
+                          className={`input w-full h-16 rounded-lg bg-form-input focus:border-red-600 border-red-600`}
+                          required
+                        />
+                        <div className='flex flex-row items-start text-xs text-red-600 py-2'>
+                          <HintIcon className='w-8 h-8 mr-2' />{' '}
+                          <span>
+                            Password must be more than 6 characters and contain an uppercase
+                            letter(A-Z), lowercase letter(a-z), a number(0-9) and special
+                            character(#?!@$%^&.*,)
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <input
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          validatePassword(e.target.value);
+                        }}
+                        pattern='^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&]).{8,}$'
+                        minLength={'6'}
+                        maxLength={'20'}
+                        type={passwordType}
+                        className={`input w-full h-16 rounded-lg bg-form-input focus:border-input-outline border-input-outline`}
+                        required
+                      />
+                    )}
+                  </div>
+                  <div className='w-16 h-16 flex items-center p-4 justify-center hover:cursor-pointer'>
+                    <div onClick={showPassword}>
+                      {passwordType === 'password' && <VisibilityOffIcon />}
+                      {passwordType === 'text' && (
+                        <VisibilityOnIcon className='stroke-1 stroke-svg-green' />
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              <></>
+            )}
           </div>
           <div className='mt-6'>
             <div className='flex flex-row items-center'>
               <div>
                 <input
                   type='checkbox'
-                  className='checkbox rounded border-2 border-check-box'
+                  className='default:bg-white h-6 w-6 rounded border border-check-box checked:bg-blue-900 focus:border-check-box hover:cursor-pointer'
+                  onChange={(event) => toggleChecked(event)}
                   required
                 />
               </div>
-              <div className='ml-4'>
+              <div className='ml-3'>
                 <p className='text-xs'>
                   I agree to the{' '}
                   <a href='#' className='underline'>
@@ -123,14 +220,25 @@ const AccountCreationPage2 = () => {
                   </button>
                 </Link>
               </div>
-              <div className='w-full md:w-1/3'>
-                <button
-                  type='submit'
-                  onClick={handleSubmit}
-                  className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
-                  Continue
-                </button>
-              </div>
+              {password !== '' && !passwordWordErrors && checked ? (
+                <div className='w-full md:w-1/3'>
+                  <button
+                    type='submit'
+                    onClick={handleSubmit}
+                    className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
+                    Continue
+                  </button>
+                </div>
+              ) : (
+                <div className='w-full md:w-1/3'>
+                  <button
+                    type='submit'
+                    onClick={handleSubmit}
+                    className='w-full btn btn-disabled bg-white rounded-none text-sm outline-none border-none'>
+                    Continue
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </form>
