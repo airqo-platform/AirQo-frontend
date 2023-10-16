@@ -2,11 +2,18 @@ import Layout from '@/components/Layout';
 import ContentBox from '@/components/Layout/content_box';
 import Tabs from '@/components/Tabs';
 import Tab from '@/components/Tabs/Tab';
-import TeamsTable from '../../common/components/Settings/Teams/table';
+import TeamsTable from '@/components/Settings/Teams/table';
 import Button from '@/components/Button';
 import AddIcon from '@/icons/Actions/plus.svg';
+import TeamInviteForm from '@/components/Settings/Teams/InviteForm';
+import { useState } from 'react';
 
 const Settings = () => {
+  const [open, setOpen] = useState(false);
+  const handleClose = () => {
+    setOpen(false);
+  };
+
   return (
     <Layout topbarTitle={'Settings'} noBorderBottom>
       <Tabs>
@@ -20,7 +27,10 @@ const Settings = () => {
                 <h3 className='text-secondary-neutral-light-800 font-medium text-lg'>
                   Team members
                 </h3>
-                <Button className='flex justify-center items-center gap-2 rounded py-3 px-4 bg-blue-600 text-white text-sm font-medium'>
+                <Button
+                  onClick={() => setOpen(!open)}
+                  className='flex justify-center items-center gap-2 rounded py-3 px-4 bg-blue-600 text-white text-sm font-medium'
+                >
                   <AddIcon /> Invite member
                 </Button>
               </div>
@@ -69,6 +79,7 @@ const Settings = () => {
           </div>
         </Tab>
       </Tabs>
+      <TeamInviteForm open={open} closeModal={handleClose} />
     </Layout>
   );
 };
