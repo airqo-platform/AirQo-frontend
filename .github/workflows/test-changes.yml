@@ -84,7 +84,7 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          directory: platform/
+          directory: platform/cypress-coverage
 
   ### test docs changes ###
   docs:
