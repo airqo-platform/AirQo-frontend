@@ -31,7 +31,7 @@ const Toast = ({ message, type, timeout, dataTestId, size }) => {
     >
       <div className={containerStyles}>
         {type === 'error' && <WarningCircleIcon fillColor='#FFF' />}
-        <p className='ml-2'>{message}</p>
+        <p className='ml-2 capitalize'>{message}</p>
       </div>
     </div>
   ) : null;
