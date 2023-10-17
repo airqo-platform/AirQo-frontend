@@ -1,10 +1,62 @@
 import { isEmpty } from 'underscore';
 import DetailCard from './detail_card';
 import { useRouter } from 'next/router';
+import Button from '@/components/Button';
+import { useEffect, useState } from 'react';
+import { useGetCollocationBatchResultsQuery } from '@/lib/store/services/collocation';
+import { saveAs } from 'file-saver';
+import ReactPDF, {
+  PDFViewer,
+  Document,
+  Page,
+  Text,
+  View,
+  PDFDownloadLink,
+  pdf,
+} from '@react-pdf/renderer';
+import ExportStatusReport from '../../BatchReport';
+import dynamic from 'next/dynamic';
+
+const DynamicPDFDownloadLink = dynamic(
+  () => import('@react-pdf/renderer').then((module) => module.PDFDownloadLink),
+  { ssr: false },
+);
 
 const ReportDetailCard = ({ deviceName, batchId, data, open, closeModal }) => {
   const router = useRouter();
-  // Adjust correlation & offset functionality
+  const [skip, setSkip] = useState(true);
+  const [collocationBatchId, setCollocationBatchId] = useState('');
+  const [exportData, setExportData] = useState([]);
+
+  const {
+    isLoading,
+    isError,
+    isSuccess,
+    data: collocationBatchResults,
+  } = useGetCollocationBatchResultsQuery(collocationBatchId, { skip: skip });
+  const collocationBatchResultsData = collocationBatchResults ? collocationBatchResults.data : null;
+  const [fileBlob, setFileBlob] = useState(null);
+
+  const downloadBatchReport = (batchId) => () => {
+    if (batchId !== '') {
+      setCollocationBatchId(batchId);
+      setSkip(false);
+    }
+  };
+
+  //   useEffect(() => {
+  //   if (collocationBatchResultsData && isSuccess) {
+  //     console.log(fileBlob);
+  //     if(fileBlob) {
+
+  //     saveAs(fileBlob, 'collocation_report.pdf');
+  //     };
+
+  //     setSkip(true);
+  //     setCollocationBatchId('');
+  //   }
+  // }, [collocationBatchResultsData, isSuccess]);
+
   return (
     <dialog id='report_detail_popup' className={`modal ${open && 'modal-open'} w-screen h-screen`}>
       <form
@@ -13,9 +65,24 @@ const ReportDetailCard = ({ deviceName, batchId, data, open, closeModal }) => {
       >
         <div className='flex justify-between items-center p-5 border-b border-b-gray-200'>
           <div className='text-black text-base font-medium'>Status summary</div>
-          <button onClick={closeModal} className='btn btn-sm btn-circle btn-ghost'>
-            ✕
-          </button>
+          <span className='flex items-center gap-3'>
+            {/* <DynamicPDFDownloadLink document={<ExportStatusReport batchData={[]} />} fileName="collocation_report.pdf">
+        {({ blob, url, loading, error }) => {
+          setFileBlob(blob);
+          return loading ? 'Loading document...' : 'Download now!'
+        }}
+      </DynamicPDFDownloadLink> */}
+            {/* <Button
+              className={`bg-blue-900 text-white text-sm ${isEmpty(data) && 'opacity-50'}}`}
+              onClick={downloadBatchReport(batchId)}
+              disabled={isEmpty(data)}
+            >
+              Download batch report
+            </Button> */}
+            <button onClick={closeModal} className='btn btn-sm btn-circle btn-ghost'>
+              ✕
+            </button>
+          </span>
         </div>
         <div className='self-stretch px-5 pt-4 sm:pb-20 pb-10 flex-col items-start gap-3.5 flex h-full overflow-y-auto'>
           {!isEmpty(data) ? (

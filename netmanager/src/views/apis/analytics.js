@@ -21,6 +21,7 @@ export const getMonitoringSitesInfoApi = async (pm25Category) => {
 };
 
 export const getSitesApi = async () => {
+  axios.defaults.headers.common.Authorization = jwtToken;
   return await axios.get(GET_SITES).then((response) => response.data);
 };
 

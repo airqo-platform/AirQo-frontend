@@ -328,6 +328,7 @@ const Sidebar = (props) => {
         'Location Registry',
         'Device Registry',
         'Host Registry',
+        'SIM Registry',
         'Site Registry',
         'AirQloud Registry',
         'Cohorts Registry',
