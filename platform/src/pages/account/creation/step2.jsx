@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import AccountPageLayout from '@/components/Account/Layout';
 import Link from 'next/link';
-import { useDispatch, useSelector } from 'react-redux';
-import { createUser } from '@/lib/store/services/account/CreationSlice';
+import { useDispatch } from 'react-redux';
 import {
+  createUser,
   setUserFirstName,
   setUserLastName,
   setUserPassword,
-  setUserEmail
+  setUserEmail,
 } from '@/lib/store/services/account/CreationSlice';
 import { useRouter } from 'next/router';
 import HintIcon from '@/icons/Actions/exclamation.svg';
@@ -45,7 +45,7 @@ const AccountCreationPage2 = () => {
 
     try {
       const response = await dispatch(
-        createUser({ email, firstName, lastName, password }),
+        createUser({ email, firstName, lastName, password, category: 'individual' }),
       );
       if (!response.payload.success) {
         setCreationErrors({
