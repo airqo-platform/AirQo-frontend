@@ -1,6 +1,6 @@
 import React from 'react';
 
-const RadioComponent = ({ text, width, bgColor, padding, border }) => {
+const RadioComponent = ({ text, width, bgColor, padding, border, subText }) => {
   return (
     <div
       className={`${bgColor ? bgColor : 'bg-white'} ${padding ? padding : 'p-7'} ${
@@ -14,8 +14,9 @@ const RadioComponent = ({ text, width, bgColor, padding, border }) => {
             className='border rounded-2xl default:border-radio-border h-5 w-5 default:bg-white checked:bg-blue-900 active:border-blue-900'
           />
         </div>
-        <div className='ml-2'>{text}</div>
+        <div className='ml-3 text-xl font-semibold'>{text}</div>
       </div>
+      <div className='mt-2 text-sm'>{subText}</div>
     </div>
   );
 };
