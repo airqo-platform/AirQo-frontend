@@ -39,7 +39,7 @@ const UserDesignation = () => {
           <p className='text-xl text-black-700 font-normal mt-3'>
             We'll streamline your setup experience accordingly
           </p>
-          <div className='mt-6'>
+          <div className='mt-10'>
             <div className='w-full grid grid-cols-1 gap-y-8'>
               {userRoles.map((role, index) => (
                 <div
