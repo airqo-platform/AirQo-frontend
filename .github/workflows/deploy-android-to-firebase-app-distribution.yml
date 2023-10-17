@@ -6,8 +6,8 @@ on:
       android:
         description: "Deploy android to firebase app distribution"
         required: false
-        type: boolean  
-        
+        type: boolean
+
 jobs:
   android:
     name: android build
@@ -18,18 +18,18 @@ jobs:
         working-directory: mobile
     steps:
       - name: Checkout
-        uses: 'actions/checkout@v3'
+        uses: "actions/checkout@v4"
 
-      - name: set up JDK 
+      - name: set up JDK
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: '17'  
+          distribution: "temurin"
+          java-version: "17"
 
       - name: Install Flutter
-        uses: subosito/flutter-action@v2.8.0
+        uses: subosito/flutter-action@v2.10.0
         with:
-          channel: 'stable'
+          channel: "stable"
 
       - name: Google login
         uses: google-github-actions/auth@v1.0.0
@@ -41,7 +41,7 @@ jobs:
 
       - name: Add google-services.json for Firebase
         run: gcloud secrets versions access latest --secret="sta-key-mobile-android-firebase-json" > android/app/google-services.json
-        
+
       - name: Add  keystore and key.properties files
         run: |
           cd android/
@@ -71,16 +71,16 @@ jobs:
         with:
           ruby-version: "2.6"
           working-directory: mobile/android
-      
+
       - name: Install bundle
         run: |
           cd android/
           bundle config path vendor/bundle
           bundle install --jobs 4 --retry 3
-          
+
       - name: Deploy to app distribution
-        run: | 
+        run: |
           cd android/
-          bundle exec fastlane android distribute
+          bundle exec fastlane android app_distribution
         env:
           MOBILE_ANDROID_ID_FIREBASE: ${{secrets.MOBILE_ANDROID_ID_FIREBASE}}

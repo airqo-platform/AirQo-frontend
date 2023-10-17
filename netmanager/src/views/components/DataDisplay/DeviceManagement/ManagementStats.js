@@ -30,6 +30,8 @@ import 'assets/scss/device-management.sass';
 import 'assets/css/device-view.css'; // there are some shared styles here too :)
 import { loadUptimeLeaderboardData } from 'redux/DeviceManagement/operations';
 import { withPermission } from '../../../containers/PageAccess';
+import AirqloudUptimeChart from './AirqloudUptimeChart';
+import AirqloudUptimeLeaderboard from './AirqloudUptimeLeaderboard';
 
 function ManagementStat() {
   useInitScrollTop();
@@ -49,6 +51,10 @@ function ManagementStat() {
   });
   const [leaderboardDateMenu, toggleLeaderboardDateMenu] = useState(false);
   const [leaderboardDateRange, setLeaderboardDateRange] = useState('1');
+  const [onlineStatusLoading, setOnlineStatusLoading] = useState(false);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [networkUptimeLoading, setNetworkUptimeLoading] = useState(false);
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   const sortLeaderBoardData = (leaderboardData) => {
     const sortByName = (device1, device2) => {
@@ -90,6 +96,7 @@ function ManagementStat() {
 
   useEffect(() => {
     if (isEmpty(devicesStatusData)) {
+      setOnlineStatusLoading(true);
       dispatch(
         loadDevicesStatusData({
           startDate: roundToStartOfDay(new Date().toISOString()).toISOString(),
@@ -97,8 +104,12 @@ function ManagementStat() {
           limit: 1
         })
       );
+      setTimeout(() => {
+        setOnlineStatusLoading(false);
+      }, 5000);
     }
     if (isEmpty(networkUptimeData)) {
+      setNetworkUptimeLoading(true);
       dispatch(
         loadNetworkUptimeData({
           startDate: roundToStartOfDay(
@@ -107,15 +118,22 @@ function ManagementStat() {
           endDate: roundToEndOfDay(new Date().toISOString()).toISOString()
         })
       );
+      setTimeout(() => {
+        setNetworkUptimeLoading(false);
+      }, 5000);
     }
 
     if (isEmpty(leaderboardData)) {
+      setLeaderboardLoading(true);
       dispatch(
         loadUptimeLeaderboardData({
           startDate: roundToStartOfDay(new Date().toISOString()).toISOString(),
           endDate: roundToEndOfDay(new Date().toISOString()).toISOString()
         })
       );
+      setTimeout(() => {
+        setLeaderboardLoading(false);
+      }, 5000);
     }
 
     if (isEmpty(allDevices)) dispatch(loadDevicesData());
@@ -145,6 +163,7 @@ function ManagementStat() {
   }, [networkUptimeData]);
 
   useEffect(() => {
+    if (isEmpty(devicesStatusData)) return;
     setPieChartStatusValues([
       devicesStatusData.count_of_offline_devices,
       devicesStatusData.count_of_online_devices
@@ -152,6 +171,7 @@ function ManagementStat() {
   }, [devicesStatusData]);
 
   useEffect(() => {
+    if (isEmpty(leaderboardData)) return;
     setDevicesUptime(patchLeaderboardData(leaderboardData));
     setDevicesUptimeDescending(true);
   }, [leaderboardData, allDevices]);
@@ -210,22 +230,27 @@ function ManagementStat() {
             lastUpdated={networkUptimeData.length > 0 && networkUptimeData[0].created_at}
             type="area"
             blue
+            loading={networkUptimeLoading}
+            disableCustomController
           />
           <ApexChart
             options={createPieChartOptions(['#FF2E2E', '#00A300'], ['Offline', 'Online'])}
             series={pieChartStatusValues}
-            title={'online status'}
+            title={`Online status for ${activeNetwork.net_name} Network`}
             lastUpdated={devicesStatusData.created_at}
             type="pie"
             green
             centerItems
             disableController
+            disableCustomController
+            loading={onlineStatusLoading}
           />
 
           <ChartContainer
             title={`Leaderboard in the last ${
               leaderboardDateRange === '1' ? '24 hours' : `${leaderboardDateRange} days`
             }`}
+            loading={leaderboardLoading}
             controller={
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 {devicesUptimeDescending ? (
@@ -298,6 +323,10 @@ function ManagementStat() {
               })}
             </div>
           </ChartContainer>
+
+          <AirqloudUptimeChart />
+
+          <AirqloudUptimeLeaderboard />
         </div>
       </div>
     </ErrorBoundary>

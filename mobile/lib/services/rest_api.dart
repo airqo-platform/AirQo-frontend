@@ -349,7 +349,7 @@ class AirqoApiClient {
 
   Future<List<AirQualityReading>> fetchAirQualityReadings() async {
     final prefs = await SharedPreferences.getInstance();
-    final locale = prefs.getString("language");
+    final locale = prefs.getString("language") ?? "en";
     final airQualityReadings = <AirQualityReading>[];
     final queryParams = <String, String>{}
       ..putIfAbsent('recent', () => 'yes')
@@ -367,8 +367,8 @@ class AirqoApiClient {
       ..putIfAbsent('tenant', () => 'airqo')
       ..putIfAbsent('token', () => Config.airqoApiV2Token);
 
-    if (locale == "fr") {
-      queryParams.putIfAbsent('language', () => 'fr');
+    if (locale != "en") {
+      queryParams.putIfAbsent('language', () => locale);
     }
     try {
       final body = await _performGetRequest(
@@ -395,9 +395,15 @@ class AirqoApiClient {
   }
 
   Future<List<KyaLesson>> fetchKyaLessons(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final locale = prefs.getString("language") ?? "en";
     final lessons = <KyaLesson>[];
     final queryParams = <String, String>{}
       ..putIfAbsent('tenant', () => 'airqo');
+    if (locale != "en") {
+      queryParams.putIfAbsent('language', () => locale);
+    }
+    
     String url = "${AirQoUrls.kya}/lessons/users/$userId";
     if (userId.isEmpty) {
       url = "${AirQoUrls.kya}/lessons";
@@ -455,9 +461,14 @@ class AirqoApiClient {
   }
 
   Future<List<Quiz>> fetchQuizzes(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final locale = prefs.getString("language") ?? "en";
     final quizzes = <Quiz>[];
     final queryParams = <String, String>{}
       ..putIfAbsent('tenant', () => 'airqo');
+    if (locale != "en") {
+      queryParams.putIfAbsent('language', () => locale);
+    }
     String url = "${AirQoUrls.kya}/quizzes/users/$userId";
     if (userId.isEmpty) {
       url = "${AirQoUrls.kya}/quizzes";
@@ -718,8 +729,9 @@ class AirqoApiClient {
           .timeout(timeout ?? const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
-        // TODO : use advanced decoding
-        return json.decode(response.body);
+        final decodedResponse =
+            utf8.decode(response.bodyBytes, allowMalformed: true);
+        return json.decode(decodedResponse);
       }
     } catch (exception, stackTrace) {
       await logException(

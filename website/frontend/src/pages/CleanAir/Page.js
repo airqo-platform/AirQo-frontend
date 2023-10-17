@@ -8,11 +8,11 @@ import Loadspinner from 'components/LoadSpinner';
 
 const CleanAirPageContainer = ({ children }) => {
   const { pressDataLoading, eventsDataLoading } = useSelector((state) => ({
-    pressDataLoading: state.pressData.loading,
-    eventsDataLoading: state.eventsData.loading
+    pressDataLoading: state?.pressData?.loading,
+    eventsDataLoading: state?.eventsData?.loading
   }));
 
-  if (pressDataLoading || eventsDataLoading) {
+  if (pressDataLoading && eventsDataLoading) {
     return <Loadspinner />;
   }
 

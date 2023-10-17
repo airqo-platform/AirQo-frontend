@@ -37,7 +37,9 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Padding(
+                  AnimatedPadding(
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeIn,
                     padding: const EdgeInsets.only(right: 16.0),
                     child: GestureDetector(
                       onTap: () async {

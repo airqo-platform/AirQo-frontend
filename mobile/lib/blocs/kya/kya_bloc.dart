@@ -67,6 +67,9 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
       if ((userId.isNotEmpty)) {
         await AirqoApiClient().syncKyaProgress(kyaLessons.toList(), userId);
       }
+      if (kyaLesson.status == KyaLessonStatus.complete) {
+        CloudAnalytics.logEvent(CloudAnalyticsEvent.completeKYA);
+      }
     }
   }
 
@@ -98,6 +101,9 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
       final userId = CustomAuth.getUserId();
       if ((userId.isNotEmpty)) {
         await AirqoApiClient().syncQuizProgress(quizzes.toList(), userId);
+      }
+      if (quiz.status == QuizStatus.complete) {
+        CloudAnalytics.logEvent(CloudAnalyticsEvent.completeQuiz);
       }
     }
   }

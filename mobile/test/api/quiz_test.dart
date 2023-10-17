@@ -11,12 +11,15 @@ import 'package:mockito/annotations.dart';
 
 import 'package:mockito/mockito.dart';
 import 'api.mocks.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // import 'quiz_test.mocks.dart';
 
 // import 'api.mocks.dart';
 
 ///@GenerateNiceMocks([MockSpec<Quiz>()])
 
+
+class MockSharedPreferences extends Mock implements SharedPreferences {}
 @GenerateMocks([http.Client])
 Future<void> main() async {
   late MockClient client;
@@ -346,8 +349,9 @@ Future<void> main() async {
       };
       client = MockClient();
     });
+    final mockPrefs = MockSharedPreferences();
 
-    test('successfully get mocked user lessons', () async {
+    test('successfully get mocked kya Quizzes', () async {
       when(
         client.get(
           Uri.parse(
@@ -360,11 +364,26 @@ Future<void> main() async {
           200,
         ),
       );
+      
+      when(mockPrefs.getString("language")).thenReturn("en");
 
       AirqoApiClient airqoApiClient = AirqoApiClient(client: client);
       List<Quiz> quizzes = await airqoApiClient.fetchQuizzes("");
 
-      expect(quizzes.length, 1); // Expect a single Quiz object
+      expect(quizzes.length, 1);
+      Quiz quiz = quizzes[0];
+      expect(quiz.activeQuestion, 1);
+      expect(quiz.status, QuizStatus.todo);
+      expect(quiz.questions.isNotEmpty, true);
+    });
+
+    test('successfully get translated kya Quizzes', () async {
+      when(mockPrefs.getString("language")).thenReturn("fr");
+
+      String userId = "";
+      List<Quiz> quizzes = await AirqoApiClient().fetchQuizzes(userId);
+
+      expect(quizzes.length, 1);
       Quiz quiz = quizzes[0];
       expect(quiz.activeQuestion, 1);
       expect(quiz.status, QuizStatus.todo);

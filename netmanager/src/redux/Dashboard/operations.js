@@ -35,10 +35,10 @@ export const loadSites = (networkID) => async (dispatch) => {
     });
 };
 
-export const loadUserDefaultGraphData = () => {
+export const loadUserDefaultGraphData = (isGrids, gridID) => {
   return async (dispatch, getState) => {
     const userID = getState().auth.user._id;
-    const airQloudID = getState().airqloudRegistry.currentAirQloud._id;
+    const airQloudID = isGrids ? gridID : getState().airqloudRegistry.currentAirQloud._id;
 
     return await getUserChartDefaultsApi(userID, airQloudID)
       .then(async (userDefaultsData) => {
