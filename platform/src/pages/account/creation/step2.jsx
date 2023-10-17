@@ -7,6 +7,7 @@ import {
   setUserFirstName,
   setUserLastName,
   setUserPassword,
+  setUserEmail
 } from '@/lib/store/services/account/CreationSlice';
 import { useRouter } from 'next/router';
 import HintIcon from '@/icons/Actions/exclamation.svg';
