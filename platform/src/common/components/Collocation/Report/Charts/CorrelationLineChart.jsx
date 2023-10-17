@@ -49,7 +49,7 @@ const CorrelationChart = ({
           key={`${device}_${sensorKey1}`}
           type='monotone'
           dataKey={`${device}.${sensorKey1}`}
-          name='Sensor 01'
+          name={`Sensor 01 ${device}`}
           stroke={color}
           dot={false}
           strokeWidth='1.5'
@@ -62,7 +62,7 @@ const CorrelationChart = ({
           key={`${device}_${sensorKey2}`}
           type='monotone'
           dataKey={`${device}.${sensorKey2}`}
-          name='Sensor 02'
+          name={`Sensor 02 ${device}`}
           stroke={color}
           dot={false}
           strokeWidth='1.5'
@@ -102,7 +102,7 @@ const CorrelationChart = ({
             strokeWidth={0.5}
             tickMargin='-30'
           />
-          <Tooltip formatter={(value) => value.toFixed(2)} wrapperClassName='text-base' />
+          <Tooltip formatter={(value) => value.toFixed(2)} wrapperClassName='text-xs' />
 
           {renderLines()}
         </LineChart>

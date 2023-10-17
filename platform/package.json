@@ -12,6 +12,8 @@
     "cypress:open": "cypress open"
   },
   "dependencies": {
+    "@david.kucsai/react-pdf-table": "^0.4.1",
+    "@react-pdf/renderer": "^3.1.12",
     "@reduxjs/toolkit": "^1.9.2",
     "@svgr/webpack": "^6.4.0",
     "@tailwindcss/typography": "^0.5.9",
@@ -20,6 +22,7 @@
     "daisyui": "^2.47.0",
     "date-fns": "^2.29.3",
     "dayjs": "^1.11.7",
+    "file-saver": "^2.0.5",
     "flowbite": "^1.6.3",
     "flowbite-react": "^0.3.8",
     "jwt-decode": "^3.1.2",
