@@ -12,10 +12,12 @@ import { useRouter } from 'next/router';
 import HintIcon from '@/icons/Actions/exclamation.svg';
 import VisibilityOffIcon from '@/icons/Account/visibility_off.svg';
 import VisibilityOnIcon from '@/icons/Account/visibility_on.svg';
+import Toast from '@/components/Toast';
 
 const AccountCreationPage2 = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
   const [checked, setChecked] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordType, setPasswordType] = useState('password');
@@ -24,16 +26,34 @@ const AccountCreationPage2 = () => {
 
   const dispatch = useDispatch();
   const router = useRouter();
-  const userEmail = useSelector((state) => state.creation.userData.email);
+  const [creationErrors, setCreationErrors] = useState({
+    state: false,
+    message: '',
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    dispatch(setUserEmail(email));
     dispatch(setUserFirstName(firstName));
     dispatch(setUserLastName(lastName));
     dispatch(setUserPassword(password));
+    setCreationErrors({
+      state: false,
+      message: '',
+    });
+
     try {
-      await dispatch(createUser({ email: userEmail, firstName, lastName }));
-      router.push('/account/creation/step3');
+      const response = await dispatch(
+        createUser({ email, firstName, lastName, password }),
+      );
+      if (!response.payload.success) {
+        setCreationErrors({
+          state: true,
+          message: response.payload.errors,
+        });
+      } else {
+        router.push('/account/creation/step3');
+      }
     } catch (err) {
       return err;
     }
@@ -60,13 +80,56 @@ const AccountCreationPage2 = () => {
   };
 
   return (
-    <AccountPageLayout childrenHeight={'lg:h-[580]'}>
+    <AccountPageLayout childrenHeight={'lg:h-[680]'} childrenTop={'mt-16'}>
       <div className='w-full'>
-        <h2 className='text-3xl text-black-700 font-medium'>Lets get started</h2>
+        <h2 className='text-3xl text-black-700 font-medium'>Let's get started</h2>
         <p className='text-xl text-black-700 font-normal mt-3'>
           Get access to air quality analytics across Africa
         </p>
+        {creationErrors.state && (
+          <Toast
+            type={'error'}
+            timeout={5000}
+            message={`${
+              creationErrors.message.email ||
+              creationErrors.message.message ||
+              creationErrors.message.password ||
+              creationErrors.message.firstName ||
+              creationErrors.message.lastName
+            }`}
+          />
+        )}
         <form onSubmit={handleSubmit}>
+          <div className='mt-6'>
+            <div className='w-full'>
+              <div className='text-xs'>Email address*</div>
+              <div className='mt-2 w-full'>
+                {email.length >= 3 && !email.includes('@') ? (
+                  <>
+                    <input
+                      onChange={(e) => setEmail(e.target.value)}
+                      type='email'
+                      placeholder='e.g. greta.nagawa@gmail.com'
+                      className='input w-full h-16 rounded-lg bg-form-input border-red-600'
+                      required
+                    />
+                    <div className='flex flex-row items-start text-xs text-red-600 py-2'>
+                      <HintIcon className='w-8 h-8 mr-2' />
+                      <span>Please provide a valid email address!</span>
+                    </div>
+                  </>
+                ) : (
+                  <input
+                    onChange={(e) => setEmail(e.target.value)}
+                    type='email'
+                    placeholder='e.g. greta.nagawa@gmail.com'
+                    className='input w-full h-16 rounded-lg bg-form-input focus:border-input-outline border-input-outline'
+                    required
+                  />
+                )}
+              </div>
+            </div>
+          </div>
           <div className='mt-6'>
             <div className='flex flex-row justify-between'>
               <div className='w-full'>
@@ -211,7 +274,14 @@ const AccountCreationPage2 = () => {
               </div>
             </div>
           </div>
-          <div className='mt-14'>
+          <div className='mt-8'>
+            <span className='text-sm text-grey-300'>Already have an account?</span>
+            <span className='text-sm text-blue-900 font-medium'>
+              {' '}
+              <Link href='/account/login'>Log in</Link>
+            </span>
+          </div>
+          <div className='mt-10'>
             <div className='flex flex-col-reverse md:flex-row items-center justify-start md:justify-between'>
               <div className='w-full md:w-1/3 mt-6 lg:mt-0'>
                 <Link href='/account/creation'>
