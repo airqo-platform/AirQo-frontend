@@ -55,7 +55,7 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
                 <TopBarItem Icon={Avatar} dropdown />
               </button>
               {dropdownVisible && (
-                <div className='dropdown-menu w-48 h-auto border border-gray-200 absolute bg-white right-0 shadow-lg rounded-lg'>
+                <div className='dropdown-menu w-60 h-auto border border-gray-200 absolute bg-white right-0 shadow-lg rounded-lg'>
                   <div className='user-info flex p-2 gap-4'>
                     <img
                       src={userInfo.profilePicture}
