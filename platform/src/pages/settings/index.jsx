@@ -8,6 +8,7 @@ import AddIcon from '@/icons/Actions/plus.svg';
 import TeamInviteForm from '@/components/Settings/Teams/InviteForm';
 import { useState } from 'react';
 import Password from './Tabs/Password';
+import withAuth from '@/core/utils/protectedRoute';
 
 const Settings = () => {
   const [open, setOpen] = useState(false);
@@ -85,4 +86,4 @@ const Settings = () => {
   );
 };
 
-export default Settings;
+export default withAuth(Settings);

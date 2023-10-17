@@ -1,12 +1,12 @@
 import React from 'react';
-import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import illustration from '@/icons/Home/illustration.jpg';
 import Image from 'next/image';
 import withAuth from '@/core/utils/protectedRoute';
+import Layout from '@/components/Layout';
 
 const AuthenticatedHomePage = () => {
   return (
-    <AuthenticatedLayout>
+    <Layout topbarTitle={'Home'}>
       <section>
         <div className='flex p-4 flex-row gap-4 self-stretch rounded-lg border border-gray-100 bg-white mt-6 mx-12 '>
           <div className='flex flex-col items-start gap-4'>
@@ -25,7 +25,7 @@ const AuthenticatedHomePage = () => {
           </div>
         </div>
       </section>
-    </AuthenticatedLayout>
+    </Layout>
   );
 };
 
