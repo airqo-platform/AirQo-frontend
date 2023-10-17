@@ -15,7 +15,7 @@ const AccountPageLayout = ({ children, rightImage, childrenTop, childrenHeight, 
 
   return (
     <div className='grid md:grid-cols-1 lg:grid-cols-11 w-full h-screen'>
-      <div className='lg:col-span-5 lg:py-16 lg:px-20 py-8 px-6'>
+      <div className='lg:col-span-5 lg:py-12 lg:px-20 py-8 px-6'>
         <div>
           <SmallLogo />
         </div>
