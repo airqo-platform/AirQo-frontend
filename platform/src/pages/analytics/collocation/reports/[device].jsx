@@ -162,8 +162,7 @@ const Reports = () => {
                 console.log('I am an event');
               },
             },
-          ]}
-        >
+          ]}>
           <div className='flex flex-col justify-start w-full' data-testid='intra-correlation-chart'>
             <PollutantDropdown
               pollutantValue={pmConcentration}
@@ -212,4 +211,4 @@ const Reports = () => {
   );
 };
 
-export default Reports;
+export default withAuth(Reports);

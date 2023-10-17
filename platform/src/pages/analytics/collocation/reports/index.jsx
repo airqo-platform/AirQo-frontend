@@ -17,12 +17,10 @@ const CollocationReports = () => {
       <div className='grid grid-cols-2'>
         <Box
           title={'Intra Sensor Correlation'}
-          subtitle='Detailed comparison of data between two sensors that are located within the same device.'
-        ></Box>
+          subtitle='Detailed comparison of data between two sensors that are located within the same device.'></Box>
         <Box
           title={'Inter Sensor Correlation'}
-          subtitle='Detailed comparison of data between two sensors that are located within the same device.'
-        ></Box>
+          subtitle='Detailed comparison of data between two sensors that are located within the same device.'></Box>
       </div>
       <ContentBox>
         <table className='border-collapse text-xs text-left w-full mb-6'>
@@ -60,4 +58,4 @@ const CollocationReports = () => {
   );
 };
 
-export default CollocationReports;
+export default withAuth(CollocationReports);
