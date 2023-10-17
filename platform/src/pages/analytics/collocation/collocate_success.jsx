@@ -21,8 +21,7 @@ const CollocationSuccess = () => {
               <Button
                 path='/analytics/collocation/collocate'
                 className='text-blue-900 text-xl cursor-pointer'
-                dataTestId='collocation-view-device-status-button'
-              >
+                dataTestId='collocation-view-device-status-button'>
                 View device status, here {'-->'}
               </Button>
             </div>
@@ -33,4 +32,4 @@ const CollocationSuccess = () => {
   );
 };
 
-export default CollocationSuccess;
+export default withAuth(CollocationSuccess);

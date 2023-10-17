@@ -2,6 +2,7 @@ import Layout from '@/components/Layout';
 import Tabs from '@/components/Tabs';
 import Tab from '@/components/Tabs/Tab';
 import Password from './Tabs/Password';
+import withAuth from '@/core/utils/protectedRoute';
 
 const Settings = () => {
   return (
@@ -18,4 +19,4 @@ const Settings = () => {
   );
 };
 
-export default Settings;
+export default withAuth(Settings);

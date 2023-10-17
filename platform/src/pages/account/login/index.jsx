@@ -7,6 +7,7 @@ import { postUserLoginDetails } from '../../../core/apis/Account';
 import setAuthToken from '@/core/utils/setAuthToken';
 import jwt_decode from 'jwt-decode';
 import { setFailure, setSuccess, setUserInfo } from '@/lib/store/services/account/LoginSlice';
+import Spinner from '@/components/Spinner';
 
 const UserLogin = () => {
   const [errors, setErrors] = useState(false);
@@ -14,14 +15,17 @@ const UserLogin = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const postData = useSelector((state) => state.login);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
     await postUserLoginDetails(postData.userData)
       .then((res) => {
         const { token } = res;
         localStorage.setItem('token', token);
         setAuthToken(token);
+        setLoading(false);
         // Decode token to get user data
         const decoded = jwt_decode(token);
         localStorage.setItem('loggedUser', JSON.stringify(decoded));
@@ -30,10 +34,14 @@ const UserLogin = () => {
         router.push('/analytics');
       })
       .catch((error) => {
+        console.log(error);
         dispatch(setSuccess(false));
-        dispatch(setFailure(error?.response?.data.message));
+        dispatch(
+          setFailure(error?.response?.data.message || 'Something went wrong, please try again'),
+        );
         setErrors(true);
-        setError(error?.response?.data.message);
+        setError(error?.response?.data.message || 'Something went wrong, please try again');
+        setLoading(false);
       });
   };
 
@@ -63,16 +71,12 @@ const UserLogin = () => {
                 required
               />
               <div>
-                {errors && (
-                  <div className='text-sm text-red-600 py-2 capitalize'>
-                    {error || 'Please Retry'}
-                  </div>
-                )}
+                {errors && <div className='text-sm text-red-600 py-2 capitalize'>{error}</div>}
               </div>
               <button
                 className='mt-6 btn bg-blue-900 rounded-none w-full text-sm outline-none border-none hover:bg-blue-950'
                 type='submit'>
-                Login
+                {loading ? <Spinner width={25} height={25} /> : 'Login'}
               </button>
             </div>
           </div>

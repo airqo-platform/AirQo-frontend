@@ -196,4 +196,4 @@ const MonitorReport = () => {
   );
 };
 
-export default MonitorReport;
+export default withAuth(MonitorReport);

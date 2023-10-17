@@ -1,4 +1,5 @@
 import Layout from '@/components/Layout';
+import withAuth from '@/core/utils/protectedRoute';
 
 const AirQlouds = () => (
   <Layout>
@@ -6,4 +7,4 @@ const AirQlouds = () => (
   </Layout>
 );
 
-export default AirQlouds;
+export default withAuth(AirQlouds);
