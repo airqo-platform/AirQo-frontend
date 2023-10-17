@@ -338,7 +338,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         display={visible}
         handleConfirm={deleteBatch}
         closeModal={() => setVisible(false)}
-        description='Are you sure you want to delete this collocation batch?'
+        description={`Are you sure you want to delete this collocation batch ${collocationInput.batchId}?`}
         confirmButton='Delete'
       />
 
@@ -356,7 +356,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         display={visibleDeleteDevice}
         handleConfirm={deleteDevice}
         closeModal={() => setVisibleDeleteDevice(false)}
-        description='Are you sure you want to delete this device from the collocation batch?'
+        description={`Are you sure you want to delete ${collocationInput.device} from the collocation batch?`}
         confirmButton='Delete'
       />
     </div>
