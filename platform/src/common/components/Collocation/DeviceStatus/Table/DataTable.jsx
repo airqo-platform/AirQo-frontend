@@ -334,31 +334,43 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
       </table>
 
       {/* delete device/batch modal */}
-      <Modal
-        display={visible}
-        handleConfirm={deleteBatch}
-        closeModal={() => setVisible(false)}
-        description={`Are you sure you want to delete this collocation batch ${collocationInput.batchId}?`}
-        confirmButton='Delete'
-      />
+      {visible && (
+        <div data-testid='delete_modal'>
+          <Modal
+            display={visible}
+            handleConfirm={deleteBatch}
+            closeModal={() => setVisible(false)}
+            description={`Are you sure you want to delete this collocation batch ${collocationInput.batchId}?`}
+            confirmButton='Delete'
+          />
+        </div>
+      )}
 
       {/* detailed report modal */}
-      <ReportDetailCard
-        data={statusSummary}
-        deviceName={selectedReportDeviceName}
-        batchId={selectedReportBatchId}
-        open={openStatusSummaryModal}
-        closeModal={() => setOpenStatusSummaryModal(false)}
-      />
+      {openStatusSummaryModal && (
+        <div data-testid='status_summary_report_popup'>
+          <ReportDetailCard
+            data={statusSummary}
+            deviceName={selectedReportDeviceName}
+            batchId={selectedReportBatchId}
+            open={openStatusSummaryModal}
+            closeModal={() => setOpenStatusSummaryModal(false)}
+          />
+        </div>
+      )}
 
       {/* delete device modal */}
-      <Modal
-        display={visibleDeleteDevice}
-        handleConfirm={deleteDevice}
-        closeModal={() => setVisibleDeleteDevice(false)}
-        description={`Are you sure you want to delete ${collocationInput.device} from the collocation batch?`}
-        confirmButton='Delete'
-      />
+      {visibleDeleteDevice && (
+        <div data-testid='delete_modal'>
+          <Modal
+            display={visibleDeleteDevice}
+            handleConfirm={deleteDevice}
+            closeModal={() => setVisibleDeleteDevice(false)}
+            description={`Are you sure you want to delete ${collocationInput.device} from the collocation batch?`}
+            confirmButton='Delete'
+          />
+        </div>
+      )}
     </div>
   );
 };
