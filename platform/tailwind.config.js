@@ -24,10 +24,13 @@ module.exports = {
         'link-blue': '#2E72D2',
         'form-input': '#F3F4F7',
         'check-box': '#D1D2D2',
-        'radio-input': '#1C1B1F',
+        'radio-input': '#DADEE7',
+        'input-outline':'#209464',
+        'svg-green':'#209464',
         blue: {
           200: '#2DB6F11A',
           300: '#1C7398',
+          600: '#145FFF',
           900: '#135DFF',
           950: '#145DFF',
           950: '#0F4ACC',
@@ -59,6 +62,7 @@ module.exports = {
         },
         green: {
           50: '#C6FFE4',
+          150: '#EBF5FF',
           200: '#AEE9D1',
           550: '#0CE87E',
         },
@@ -74,6 +78,10 @@ module.exports = {
         },
         orange: {
           450: '#FE9E35',
+        },
+        'neutral-light': {
+          400: '#6F87A1',
+          800: '#3C4555',
         },
       },
     },

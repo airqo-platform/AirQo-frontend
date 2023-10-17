@@ -14,7 +14,8 @@ const EventDetails = () => {
   const { uniqueTitle } = useParams();
   const dispatch = useDispatch();
 
-  const eventData = useSelector((state) => state.eventsData.events);
+  const allEventsData = useSelector((state) => state.eventsData.events);
+  const eventData = allEventsData.filter((event) => event.website_category === 'airqo');
   const eventDetails = eventData.filter((event) => event.unique_title === uniqueTitle) || {};
   const loading = useSelector((state) => state.eventsData.loading);
 
@@ -180,13 +181,15 @@ const EventDetails = () => {
                         {event.resource.map((res) => (
                           <div key={res.id}>
                             {res.link || res.resource ? (
-                              <a href={res.link || res.resource} target="_blank" rel="noreferrer noopener" download>
+                              <a
+                                href={res.link || res.resource}
+                                target="_blank"
+                                rel="noreferrer noopener"
+                                download>
                                 {res.title}
                               </a>
                             ) : (
-                              <span className='no-link'>
-                                {res.title}
-                              </span>
+                              <span className="no-link">{res.title}</span>
                             )}
                           </div>
                         ))}

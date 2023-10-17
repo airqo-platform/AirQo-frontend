@@ -10,8 +10,8 @@ import {
   getDeviceStatusSummary,
   getRunningQueriesThunk,
 } from '@/lib/store/services/collocation';
-import Tabs from '@/components/Collocation/DeviceStatus/Tabs';
-import Tab from '@/components/Collocation/DeviceStatus/Tabs/Tab';
+import Tabs from '@/components/Tabs';
+import Tab from '@/components/Tabs/Tab';
 import Table from '@/components/Collocation/DeviceStatus/Table';
 import Toast from '@/components/Toast';
 import { wrapper } from '@/lib/store';
@@ -59,7 +59,7 @@ const Collocate = () => {
   }, [refetch]);
 
   return (
-    <Layout>
+    <Layout topbarTitle={'Collocation'}>
       <Head>
         <title>Collocate | Collocation</title>
         <meta property='og:title' content='Collocate | Collocation' key='Collocate | Collocation' />

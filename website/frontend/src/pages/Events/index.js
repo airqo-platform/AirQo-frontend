@@ -22,7 +22,9 @@ const EventsPage = () => {
 
   const navTabs = ['upcoming events', 'past events'];
   const selectedNavTab = useSelector((state) => state.eventsNavTab.tab);
-  const eventsApiData = useSelector((state) => state.eventsData.events);
+  const allEventsData = useSelector((state) => state.eventsData.events);
+
+  const eventsApiData = allEventsData.filter((event) => event.website_category === 'airqo');
 
   const featuredEvents = eventsApiData.filter((event) => event.event_tag === 'featured');
   const upcomingEvents = eventsApiData.filter((event) => {

@@ -37,6 +37,7 @@ import NetworkDropdown from './components/NetworkDropdown';
 import { getRoleDetailsApi } from '../../../apis/accessControl';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
+import TapAndPlayIcon from '@material-ui/icons/TapAndPlay';
 import GroupWorkIcon from '@material-ui/icons/GroupWork';
 import SimCardIcon from '@material-ui/icons/SimCard';
 import GridOnIcon from '@material-ui/icons/GridOn';
@@ -157,7 +158,7 @@ const allMainPages = [
     title: 'SIM Registry',
     href: '/sim',
     icon: <SimCardIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES'
   },
   {
     title: 'AirQloud Registry',
@@ -168,8 +169,7 @@ const allMainPages = [
   {
     title: 'Heat Map',
     href: '/heatMap',
-    icon: <BubbleChartIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
+    icon: <BubbleChartIcon />
   },
   {
     title: 'Cohorts Registry',
@@ -193,9 +193,9 @@ const allUserManagementPages = [
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS'
   },
   {
-    title: 'Organisation',
-    href: '/organisation',
-    icon: <BusinessIcon />,
+    title: 'Networks',
+    href: '/networks',
+    icon: <TapAndPlayIcon />,
     disabled: true
   },
   {
