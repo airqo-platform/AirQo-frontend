@@ -31,7 +31,7 @@ const UserLogin = () => {
         localStorage.setItem('loggedUser', JSON.stringify(decoded));
         dispatch(setUserInfo(decoded));
         dispatch(setSuccess(true));
-        router.push('/analytics');
+        router.push('/analytics/collocation/overview');
       })
       .catch((error) => {
         console.log(error);

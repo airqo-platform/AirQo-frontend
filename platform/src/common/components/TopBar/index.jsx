@@ -12,6 +12,8 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
   const userInfo = useSelector((state) => state.login.userInfo);
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
+  const PlaceholderImage = `https://ui-avatars.com/api/?name=${userInfo.firstName}+${userInfo.lastName}&background=random`;
+
   const handleDropdown = (event) => {
     event.stopPropagation();
     setDropdownVisible(!dropdownVisible);
@@ -58,9 +60,11 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
                 <div className='dropdown-menu w-60 h-auto border border-gray-200 absolute bg-white right-0 shadow-lg rounded-lg'>
                   <div className='user-info flex p-2 gap-4'>
                     <img
-                      src={userInfo.profilePicture}
+                      src={userInfo.profilePicture || PlaceholderImage}
                       alt=''
-                      className='profile-pic rounded-full w-15 h-15'
+                      width={50}
+                      height={40}
+                      className='profile-pic rounded-full'
                     />
                     <span>
                       <h1 className='username text-lg text-gray-500 font-medium capitalize'>
