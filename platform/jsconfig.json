@@ -8,7 +8,8 @@
       "@/styles/*": ["src/common/styles/*"],
       "@/icons/*": ["public/icons/*"],
       "@/components/*": ["src/common/components/*"],
-      "@/pages/*": ["src/pages/*"]
+      "@/pages/*": ["src/pages/*"],
+      "@/images/*":["public/images/*"]
     }
   },
   "exclude": ["node_modules", ".next"],

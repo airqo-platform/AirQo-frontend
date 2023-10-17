@@ -25,6 +25,7 @@ import CloseIcon from '@material-ui/icons/Close';
 import { getSimsApi, createSimApi, checkSimStatusApi } from '../../apis/accessControl';
 import DeleteIcon from '@material-ui/icons/Delete';
 import RefreshIcon from '@material-ui/icons/Refresh';
+import { withPermission } from '../../containers/PageAccess';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -397,4 +398,4 @@ const SimRegistry = () => {
   );
 };
 
-export default SimRegistry;
+export default withPermission(SimRegistry, 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES');

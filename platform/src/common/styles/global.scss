@@ -4,7 +4,7 @@
 
 /* Remove border click effect for Daisy UI input */
 input:focus {
-  border-color: transparent !important;
+  border-color: transparent;
   box-shadow: none !important;
   outline: none !important;
 }

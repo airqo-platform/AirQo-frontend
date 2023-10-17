@@ -7,6 +7,7 @@ import Button from '@/components/Button';
 import AddIcon from '@/icons/Actions/plus.svg';
 import TeamInviteForm from '@/components/Settings/Teams/InviteForm';
 import { useState } from 'react';
+import Password from './Tabs/Password';
 
 const Settings = () => {
   const [open, setOpen] = useState(false);
@@ -18,7 +19,7 @@ const Settings = () => {
     <Layout topbarTitle={'Settings'} noBorderBottom>
       <Tabs>
         <Tab label='Password'>
-          <div data-testid='tab-content'>One</div>
+          <Password />
         </Tab>
         <Tab label='Team'>
           <div data-testid='tab-content'>
