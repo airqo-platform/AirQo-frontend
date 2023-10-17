@@ -93,7 +93,7 @@ const Collocate = () => {
                 <div className='mr-[10px]'>
                   <BoxedAddIcon />
                 </div>
-                Test monitor
+                Add monitors
               </Button>
             </div>
           ))}
