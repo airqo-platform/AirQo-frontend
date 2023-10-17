@@ -29,6 +29,10 @@ const UserDesignation = () => {
   const routeToIndividualCreation = () => {
     router.push('/account/creation/step2');
   };
+
+  const routeToOrganisationCreation = () => {
+    router.push('/account/creation/organisation');
+  };
   return (
     <AccountPageLayout childrenHeight={'lg:h-[580]'}>
       {clickedRole === '' && (
@@ -58,6 +62,7 @@ const UserDesignation = () => {
         </div>
       )}
       {clickedRole === 'Individual' && routeToIndividualCreation()}
+      {clickedRole === 'Organisation' && routeToOrganisationCreation()}
     </AccountPageLayout>
   );
 };
