@@ -136,26 +136,31 @@ export const getEventsApi = async (params) => {
 };
 
 export const getSitesApi = async (params) => {
+  axios.defaults.headers.common.Authorization = jwtToken;
   return await axios.get(SITES, { params: { ...params } }).then((response) => response.data);
 };
 
 export const getSitesSummaryApi = async (params) => {
+  axios.defaults.headers.common.Authorization = jwtToken;
   return await axios
     .get(`${SITES}/summary`, { params: { ...params } })
     .then((response) => response.data);
 };
 
 export const getSiteDetailsApi = async (site_id) => {
+  axios.defaults.headers.common.Authorization = jwtToken;
   return await axios.get(SITES, { params: { id: site_id } }).then((response) => response.data);
 };
 
 export const updateSiteApi = async (site_id, siteData) => {
+  axios.defaults.headers.common.Authorization = jwtToken;
   return await axios
     .put(SITES, siteData, { params: { id: site_id } })
     .then((response) => response.data);
 };
 
 export const createSiteApi = async (siteData) => {
+  axios.defaults.headers.common.Authorization = jwtToken;
   return await axios.post(SITES, siteData).then((response) => response.data);
 };
 
