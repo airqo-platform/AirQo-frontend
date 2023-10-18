@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import AccountPageLayout from '@/components/Account/Layout';
 import RadioComponent from '@/components/Account/RadioComponent';
+import { updateUserCreationDetails } from '@/core/apis/Account';
 
-const AccountCreationPage4 = () => {
+const IndividualAccountInterest = () => {
+  const router = useRouter();
+  const { id, token } = router.query;
+  sessionStorage.setItem('identifier', id);
+  sessionStorage.setitem('token', token);
+
   const radioButtonText = [
     'Education related',
     'Business related',
@@ -12,6 +18,16 @@ const AccountCreationPage4 = () => {
     'Others',
   ];
   const [clickedButton, setClickedButton] = useState('');
+  const [userData, setUserData] = useState({});
+
+  const handleUpdate = async () => {
+    try {
+      const update = await updateUserCreationDetails(userData, id, token);
+      console.log(update);
+    } catch (error) {
+      return error;
+    }
+  };
 
   return (
     <AccountPageLayout>
@@ -64,4 +80,4 @@ const AccountCreationPage4 = () => {
   );
 };
 
-export default AccountCreationPage4;
+export default IndividualAccountInterest;

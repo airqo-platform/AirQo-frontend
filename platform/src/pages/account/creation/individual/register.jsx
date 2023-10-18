@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
+import AccountPageLayout from '@/components/Account/Layout';
 import Link from 'next/link';
 import { useDispatch } from 'react-redux';
-import AccountPageLayout from '@/components/Account/Layout';
 import {
   createUser,
   setUserFirstName,
@@ -9,14 +9,13 @@ import {
   setUserPassword,
   setUserEmail,
 } from '@/lib/store/services/account/CreationSlice';
+import { useRouter } from 'next/router';
 import HintIcon from '@/icons/Actions/exclamation.svg';
 import VisibilityOffIcon from '@/icons/Account/visibility_off.svg';
 import VisibilityOnIcon from '@/icons/Account/visibility_on.svg';
 import Toast from '@/components/Toast';
-import { useRouter } from 'next/router';
-import SideImage from '@/images/Account/OrganisationSideQuote.png';
 
-const OrganisationIndividualAccountCreation = () => {
+const IndividualAccountRegistration = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -28,6 +27,7 @@ const OrganisationIndividualAccountCreation = () => {
 
   const dispatch = useDispatch();
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [creationErrors, setCreationErrors] = useState({
     state: false,
     message: '',
@@ -35,6 +35,7 @@ const OrganisationIndividualAccountCreation = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     dispatch(setUserEmail(email));
     dispatch(setUserFirstName(firstName));
     dispatch(setUserLastName(lastName));
@@ -46,7 +47,7 @@ const OrganisationIndividualAccountCreation = () => {
 
     try {
       const response = await dispatch(
-        createUser({ email, firstName, lastName, password, category: 'organisation' }),
+        createUser({ email, firstName, lastName, password, category: 'individual' }),
       );
       if (!response.payload.success) {
         setCreationErrors({
@@ -54,11 +55,12 @@ const OrganisationIndividualAccountCreation = () => {
           message: response.payload.errors,
         });
       } else {
-        router.push('/account/creation/step3');
+        router.push('/account/creation/individual/verify-email');
       }
     } catch (err) {
       return err;
     }
+    setLoading(false);
   };
 
   const validatePassword = (password) => {
@@ -80,8 +82,9 @@ const OrganisationIndividualAccountCreation = () => {
       setChecked(false);
     } else setChecked(true);
   };
+
   return (
-    <AccountPageLayout childrenHeight={'lg:h-[680]'} childrenTop={'mt-20'} rightImage={SideImage}>
+    <AccountPageLayout childrenHeight={'lg:h-[680]'} childrenTop={'mt-16'}>
       <div className='w-full'>
         <h2 className='text-3xl text-black-700 font-medium'>Let's get started</h2>
         <p className='text-xl text-black-700 font-normal mt-3'>
@@ -296,8 +299,12 @@ const OrganisationIndividualAccountCreation = () => {
                   <button
                     type='submit'
                     onClick={handleSubmit}
-                    className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
-                    Continue
+                    className='w-full btn bg-blue-900 rounded-none text-white text-sm outline-none border-none hover:bg-blue-950'>
+                    {loading ? (
+                      <span className='loading loading-spinner'></span>
+                    ) : (
+                      <span>Continue</span>
+                    )}
                   </button>
                 </div>
               ) : (
@@ -318,4 +325,4 @@ const OrganisationIndividualAccountCreation = () => {
   );
 };
 
-export default OrganisationIndividualAccountCreation;
+export default IndividualAccountRegistration;

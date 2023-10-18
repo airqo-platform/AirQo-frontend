@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createUser } from '@/lib/store/services/account/CreationSlice';
 import Toast from '@/components/Toast';
 
-const AccountCreationPage3 = () => {
+const IndividualAccountVerification = () => {
   const userData = useSelector((state) => state.creation.userData);
   const errors = useSelector((state) => state.creation.errors);
   const success = useSelector((state) => state.creation.success);
@@ -54,4 +54,4 @@ const AccountCreationPage3 = () => {
   );
 };
 
-export default AccountCreationPage3;
+export default IndividualAccountVerification;

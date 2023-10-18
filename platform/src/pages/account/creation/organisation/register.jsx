@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import AccountPageLayout from '@/components/Account/Layout';
 import Link from 'next/link';
 import { useDispatch } from 'react-redux';
+import AccountPageLayout from '@/components/Account/Layout';
 import {
   createUser,
   setUserFirstName,
@@ -9,13 +9,14 @@ import {
   setUserPassword,
   setUserEmail,
 } from '@/lib/store/services/account/CreationSlice';
-import { useRouter } from 'next/router';
 import HintIcon from '@/icons/Actions/exclamation.svg';
 import VisibilityOffIcon from '@/icons/Account/visibility_off.svg';
 import VisibilityOnIcon from '@/icons/Account/visibility_on.svg';
 import Toast from '@/components/Toast';
+import { useRouter } from 'next/router';
+import SideImage from '@/images/Account/OrganisationSideQuote.png';
 
-const AccountCreationPage2 = () => {
+const OrganisationIndividualAccountCreation = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -27,6 +28,7 @@ const AccountCreationPage2 = () => {
 
   const dispatch = useDispatch();
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [creationErrors, setCreationErrors] = useState({
     state: false,
     message: '',
@@ -45,7 +47,7 @@ const AccountCreationPage2 = () => {
 
     try {
       const response = await dispatch(
-        createUser({ email, firstName, lastName, password, category: 'individual' }),
+        createUser({ email, firstName, lastName, password, category: 'organisation' }),
       );
       if (!response.payload.success) {
         setCreationErrors({
@@ -79,9 +81,8 @@ const AccountCreationPage2 = () => {
       setChecked(false);
     } else setChecked(true);
   };
-
   return (
-    <AccountPageLayout childrenHeight={'lg:h-[680]'} childrenTop={'mt-16'}>
+    <AccountPageLayout childrenHeight={'lg:h-[680]'} childrenTop={'mt-20'} rightImage={SideImage}>
       <div className='w-full'>
         <h2 className='text-3xl text-black-700 font-medium'>Let's get started</h2>
         <p className='text-xl text-black-700 font-normal mt-3'>
@@ -297,7 +298,11 @@ const AccountCreationPage2 = () => {
                     type='submit'
                     onClick={handleSubmit}
                     className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
-                    Continue
+                    {loading ? (
+                      <span className='loading loading-spinner'></span>
+                    ) : (
+                      <span>Continue</span>
+                    )}
                   </button>
                 </div>
               ) : (
@@ -318,4 +323,4 @@ const AccountCreationPage2 = () => {
   );
 };
 
-export default AccountCreationPage2;
+export default OrganisationIndividualAccountCreation;

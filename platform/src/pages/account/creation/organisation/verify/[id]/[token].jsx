@@ -1,7 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import VerifiedIcon from '@/icons/Account/verified.svg';
+import { useRouter } from 'next/router';
 
 const UserCreationSuccess = () => {
+  const router = useRouter();
+  useEffect(() => {
+    setTimeout(() => {
+      router.push('/account/creation/organisation');
+    }, 2000);
+  }, []);
+  
   return (
     <div className='w-full h-screen flex flex-col items-center justify-center'>
       <div>

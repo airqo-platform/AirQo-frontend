@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
 import AccountPageLayout from '@/components/Account/Layout';
-import Link from 'next/link';
-import { useDispatch, useSelector } from 'react-redux';
-import { setUserEmail } from '@/lib/store/services/account/CreationSlice';
 import { useRouter } from 'next/router';
 import GoogleLogo from '@/icons/Common/google_logo.svg';
 import { getGoogleAuthDetails } from '@/core/apis/Account';
 import RadioComponent from '@/components/Account/RadioComponent';
-import HintIcon from '@/icons/Actions/exclamation.svg';
 
 const userRoles = [
   {
@@ -27,11 +23,11 @@ const UserDesignation = () => {
   const router = useRouter();
 
   const routeToIndividualCreation = () => {
-    router.push('/account/creation/step2');
+    router.push('/account/creation/individual/register');
   };
 
   const routeToOrganisationCreation = () => {
-    router.push('/account/creation/organisation');
+    router.push('/account/creation/organisation/register');
   };
   return (
     <AccountPageLayout childrenHeight={'lg:h-[580]'}>
