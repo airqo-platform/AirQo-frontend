@@ -147,7 +147,6 @@ class KyaLessonCardWidget extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
       ),
       onPressed: () async {
-        
         await Navigator.push(
           context,
           MaterialPageRoute(
@@ -187,7 +186,33 @@ class KyaLessonCardWidget extends StatelessWidget {
                 Visibility(
                   visible: kyaLesson.status != KyaLessonStatus.todo &&
                       kyaLesson.activeTask != 1,
-                  child: KyaLessonProgressBar(kyaLesson),
+                  child: Row(
+                    children: [
+                      ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.35,
+                            maxHeight: 4,
+                          ),
+                          child: KyaLessonProgressBar(kyaLesson)),
+                      Container(
+                        height: 19,
+                        width: 19,
+                        padding: const EdgeInsets.all(3.0),
+                        margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                        decoration: BoxDecoration(
+                          color: CustomColors.appColorBlue.withOpacity(0.24),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          "${kyaLesson.activeTask}/${kyaLesson.tasks.length}",
+                          style: TextStyle(
+                            color: CustomColors.appColorBlue,
+                            fontSize: 7,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
