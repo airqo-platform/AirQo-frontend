@@ -12,7 +12,7 @@ import DownloadIcon from 'assets/svg/explore/download.svg';
 import AirQo from 'icons/nav/AirQo';
 import AppleBtn from 'assets/svg/apple_app_store.svg';
 import GoogleplayBtn from 'assets/svg/android_play_store.svg';
-import QRcode from 'assets/svg/QR code.svg';
+import QR_code from 'assets/img/QR_code.jpg';
 import ManDownloadingApp from 'assets/img/explore/man-download-app.png';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
@@ -65,7 +65,9 @@ export const ExploreApp = () => (
       <h2>Get the AirQo app</h2>
       <p>Discover the quality of air you are breathing.</p>
       <div className="wrapper">
-        <QRcode />
+        <div className="img-wrapper">
+          <img src={QR_code} width={200} alt="QR_code" />
+        </div>
         <hr />
         <div className="btn-group" style={{}}>
           <a
