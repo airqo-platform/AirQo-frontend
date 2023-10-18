@@ -30,8 +30,6 @@ enum KyaLessonStatus {
   todo,
   @JsonValue("IN_PROGRESS")
   inProgress,
-  @JsonValue("PENDING_COMPLETION")
-  pendingCompletion,
   @JsonValue("COMPLETE")
   complete;
 }

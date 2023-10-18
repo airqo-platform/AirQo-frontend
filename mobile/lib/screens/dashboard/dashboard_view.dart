@@ -346,40 +346,41 @@ class _DashboardViewState extends State<DashboardView>
                             .toList();
 
                         if (inCompleteQuizzes.isEmpty) {
-                          _kyaExists = false;
+                          // _kyaExists 
+                          // h= false;
                           return const SizedBox();
                         }
                         Quiz displayedQuiz = inCompleteQuizzes.first;
                         return QuizCard(displayedQuiz);
                       },
                     ),
-                    BlocBuilder<KyaBloc, KyaState>(
-                      builder: (context, state) {
-                        List<KyaLesson> inCompleteLessons =
-                            state.lessons.filterInCompleteLessons();
+                    // BlocBuilder<KyaBloc, KyaState>(
+                    //   builder: (context, state) {
+                    //     List<KyaLesson> inCompleteLessons =
+                    //         state.lessons.filterInCompleteLessons();
 
-                        if (inCompleteLessons.isEmpty) {
-                          _kyaExists = false;
+                    //     if (inCompleteLessons.isEmpty) {
+                    //       _kyaExists = false;
 
-                          return const SizedBox();
-                        }
+                    //       return const SizedBox();
+                    //     }
 
-                        return AnimatedPadding(
-                          duration: const Duration(milliseconds: 500),
-                          curve: Curves.easeInExpo,
-                          padding: const EdgeInsets.only(top: 16),
-                          child: CustomShowcaseWidget(
-                            showcaseKey: _kyaShowcaseKey,
-                            descriptionHeight: screenSize.height * 0.14,
-                            description: AppLocalizations.of(context)!
-                                .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
-                            child: KyaLessonCardWidget(
-                              inCompleteLessons.first,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                    //     return AnimatedPadding(
+                    //       duration: const Duration(milliseconds: 500),
+                    //       curve: Curves.easeInExpo,
+                    //       padding: const EdgeInsets.only(top: 16),
+                    //       child: CustomShowcaseWidget(
+                    //         showcaseKey: _kyaShowcaseKey,
+                    //         descriptionHeight: screenSize.height * 0.14,
+                    //         description: AppLocalizations.of(context)!
+                    //             .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
+                    //         child: KyaLessonCardWidget(
+                    //           inCompleteLessons.first,
+                    //         ),
+                    //       ),
+                    //     );
+                    //   },
+                    // ),
                     BlocConsumer<DashboardBloc, DashboardState>(
                       listener: (context, state) {
                         if (state.scrollToTop) {

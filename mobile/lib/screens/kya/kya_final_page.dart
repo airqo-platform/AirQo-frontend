@@ -105,11 +105,12 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
           UpdateKyaProgress(
             widget.kyaLesson.copyWith(
               activeTask: 1,
-              status: KyaLessonStatus.pendingCompletion,
+              status: KyaLessonStatus.complete,
             ),
             updateRemote: true,
           ),
         );
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       List<KyaLesson> completeLessons =
           context.read<KyaBloc>().state.lessons.filterInCompleteLessons();

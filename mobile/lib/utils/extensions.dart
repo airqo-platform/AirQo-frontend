@@ -110,8 +110,6 @@ extension KyaExt on KyaLesson {
     switch (status) {
       case KyaLessonStatus.todo:
         return AppLocalizations.of(context)!.startLearning;
-      case KyaLessonStatus.pendingCompletion:
-        return AppLocalizations.of(context)!.completeMoveToForYou;
       case KyaLessonStatus.inProgress:
       case KyaLessonStatus.complete:
         if (activeTask == 1) return AppLocalizations.of(context)!.startLearning;
@@ -138,16 +136,9 @@ extension QuizExt on Quiz {
 extension KyaListExt on List<KyaLesson> {
   List<KyaLesson> filterInCompleteLessons() {
     List<KyaLesson> inCompleteLessons =
-        where((lesson) => lesson.status == KyaLessonStatus.pendingCompletion)
+        where((lesson) => lesson.status == KyaLessonStatus.inProgress)
             .take(3)
             .toList();
-
-    if (inCompleteLessons.isEmpty) {
-      inCompleteLessons =
-          where((lesson) => lesson.status == KyaLessonStatus.inProgress)
-              .take(3)
-              .toList();
-    }
 
     if (inCompleteLessons.isEmpty) {
       inCompleteLessons =
@@ -155,6 +146,13 @@ extension KyaListExt on List<KyaLesson> {
               .take(3)
               .toList();
     }
+
+    // if (inCompleteLessons.isEmpty) {
+    //   inCompleteLessons =
+    //       where((lesson) => lesson.status == KyaLessonStatus.todo)
+    //           .take(3)
+    //           .toList();
+    // }
 
     return inCompleteLessons;
   }

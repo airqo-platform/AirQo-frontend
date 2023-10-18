@@ -1,4 +1,4 @@
-import 'package:app/blocs/blocs.dart';
+// import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -7,9 +7,8 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+// import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'kya_title_page.dart';
@@ -63,31 +62,31 @@ class KyaMessageChip extends StatelessWidget {
         color: CustomColors.appColorBlue,
       ),
     );
-    if (kya.status == KyaLessonStatus.pendingCompletion) {
-      widget = RichText(
-        textAlign: TextAlign.start,
-        overflow: TextOverflow.ellipsis,
-        text: TextSpan(
-          children: [
-            TextSpan(
-              text: AppLocalizations.of(context)!.completeMoveTo,
-              style: CustomTextStyle.caption3(context)?.copyWith(
-                color: CustomColors.appColorBlack,
-              ),
-            ),
-            const TextSpan(
-              text: " ",
-            ),
-            TextSpan(
-              text: AppLocalizations.of(context)!.forYou,
-              style: CustomTextStyle.caption3(context)?.copyWith(
-                color: CustomColors.appColorBlue,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+    // if (kya.status == KyaLessonStatus.inProgress) {
+    //   widget = RichText(
+    //     textAlign: TextAlign.start,
+    //     overflow: TextOverflow.ellipsis,
+    //     text: TextSpan(
+    //       children: [
+    //         TextSpan(
+    //           text: AppLocalizations.of(context)!.completeMoveTo,
+    //           style: CustomTextStyle.caption3(context)?.copyWith(
+    //             color: CustomColors.appColorBlack,
+    //           ),
+    //         ),
+    //         const TextSpan(
+    //           text: " ",
+    //         ),
+    //         TextSpan(
+    //           text: AppLocalizations.of(context)!.forYou,
+    //           style: CustomTextStyle.caption3(context)?.copyWith(
+    //             color: CustomColors.appColorBlue,
+    //           ),
+    //         ),
+    //       ],
+    //     ),
+    //   );
+    // }
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -148,26 +147,15 @@ class KyaLessonCardWidget extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
       ),
       onPressed: () async {
-        if (kyaLesson.status == KyaLessonStatus.pendingCompletion) {
-          context.read<KyaBloc>().add(
-                UpdateKyaProgress(
-                  kyaLesson.copyWith(
-                    status: KyaLessonStatus.complete,
-                    activeTask: 1,
-                  ),
-                  updateRemote: true,
-                ),
-              );
-        } else {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) {
-                return KyaTitlePage(kyaLesson);
-              },
-            ),
-          );
-        }
+        
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return KyaTitlePage(kyaLesson);
+            },
+          ),
+        );
       },
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,

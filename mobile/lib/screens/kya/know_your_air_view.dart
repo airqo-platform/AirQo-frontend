@@ -26,14 +26,25 @@ class KnowYourAirView extends StatelessWidget {
             },
           );
         }
-        final completeKya = state.lessons
+        List<KyaLesson> completedKya = state.lessons
             .where((lesson) => lesson.status == KyaLessonStatus.complete)
             .toList();
+
+        List<KyaLesson> inProgressKya = state.lessons
+            .where((lesson) => lesson.status == KyaLessonStatus.inProgress)
+            .toList();
+
+        List<KyaLesson> todoKya = state.lessons
+            .where((lesson) => lesson.status == KyaLessonStatus.todo)
+            .toList();
+
+        List<KyaLesson> kyaListToShow;
+        final kya = state.lessons.toList();
         final completeQuizzes = state.quizzes
             .where((quiz) => quiz.status == QuizStatus.complete)
             .toList();
 
-        if (completeKya.isEmpty && completeQuizzes.isEmpty) {
+        if (kya.isEmpty && completeQuizzes.isEmpty) {
           List<KyaLesson> inCompleteLessons =
               state.lessons.filterInCompleteLessons();
           return NoCompleteKyaWidget(
@@ -43,9 +54,10 @@ class KnowYourAirView extends StatelessWidget {
                   context,
                   AppLocalizations.of(context)!.oopsNoLessonsAtTheMoment,
                 );
-              } else {
-                await _startKyaLessons(context, inCompleteLessons.first);
               }
+              // else {
+              //   await _startKyaLessons(context, inCompleteLessons.first);
+              // }
             },
           );
         }
@@ -63,7 +75,15 @@ class KnowYourAirView extends StatelessWidget {
               ),
             )
             .toList());
-        children.addAll(completeKya
+        if (completedKya.isNotEmpty) {
+          kyaListToShow = completedKya;
+        } else if (inProgressKya.isNotEmpty) {
+          kyaListToShow = inProgressKya;
+        } else {
+          kyaListToShow = todoKya;
+        }
+
+        children.addAll(kyaListToShow
             .map(
               (lesson) => Column(
                 children: [
@@ -75,6 +95,18 @@ class KnowYourAirView extends StatelessWidget {
               ),
             )
             .toList());
+        // children.addAll(kya
+        //     .map(
+        //       (lesson) => Column(
+        //         children: [
+        //           KyaLessonCardWidget(
+        //             lesson,
+        //           ),
+        //           const SizedBox(height: 10),
+        //         ],
+        //       ),
+        //     )
+        //     .toList());
 
         return AppRefreshIndicator(
           sliverChildDelegate: SliverChildBuilderDelegate(

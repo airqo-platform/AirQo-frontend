@@ -34,7 +34,6 @@ Map<String, dynamic> _$KyaLessonToJson(KyaLesson instance) => <String, dynamic>{
 const _$KyaLessonStatusEnumMap = {
   KyaLessonStatus.todo: 'TODO',
   KyaLessonStatus.inProgress: 'IN_PROGRESS',
-  KyaLessonStatus.pendingCompletion: 'PENDING_COMPLETION',
   KyaLessonStatus.complete: 'COMPLETE',
 };
 
