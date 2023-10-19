@@ -55,9 +55,7 @@ class KnowYourAirView extends StatelessWidget {
                   AppLocalizations.of(context)!.oopsNoLessonsAtTheMoment,
                 );
               }
-              // else {
-              //   await _startKyaLessons(context, inCompleteLessons.first);
-              // }
+              
             },
           );
         }

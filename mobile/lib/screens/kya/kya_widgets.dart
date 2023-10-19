@@ -199,7 +199,7 @@ class KyaLessonCardWidget extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                         child: Text(
-                          "${kyaLesson.activeTask}/${kyaLesson.tasks.length}",
+                          "${kyaLesson.activeTask == 1 ? 0 : kyaLesson.activeTask}/${kyaLesson.tasks.length}",
                           style: TextStyle(
                             color: CustomColors.appColorBlue,
                             fontSize: 7,
