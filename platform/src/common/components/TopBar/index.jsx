@@ -14,6 +14,10 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
 
   const PlaceholderImage = `https://ui-avatars.com/api/?name=${userInfo.firstName}+${userInfo.lastName}&background=random`;
 
+  const handleDropdownClick = (event) => {
+    event.stopPropagation();
+  };
+
   const handleDropdown = (event) => {
     event.stopPropagation();
     setDropdownVisible(!dropdownVisible);
@@ -42,6 +46,7 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
 
   return (
     <nav
+      data-cy='topbar'
       className={`sticky top-0 z-10 bg-white w-full px-4 py-4 lg:py-0 h-[76px] lg:px-16 ${
         !noBorderBottom && 'border-b-[1px] border-b-grey-750'
       }`}>
@@ -53,32 +58,60 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
           <div className='flex w-auto'>
             <TopBarItem Icon={SearchMdIcon} />
             <div className='relative'>
-              <button className='focus:outline-none' type='button' onClick={handleDropdown}>
-                <TopBarItem Icon={Avatar} dropdown />
+              <button
+                data-cy='profile-btn'
+                className='focus:outline-none'
+                type='button'
+                onClick={handleDropdown}>
+                <TopBarItem Image={userInfo.profilePicture || PlaceholderImage} dropdown />
               </button>
               {dropdownVisible && (
-                <div className='dropdown-menu w-60 h-auto border border-gray-200 absolute bg-white right-0 shadow-lg rounded-lg'>
-                  <div className='user-info flex p-2 gap-4'>
-                    <img
-                      src={userInfo.profilePicture || PlaceholderImage}
-                      alt=''
-                      width={50}
-                      height={40}
-                      className='profile-pic rounded-full'
-                    />
-                    <span>
-                      <h1 className='username text-lg text-gray-500 font-medium capitalize'>
+                <div
+                  data-cy='topbar-dropdown-menu'
+                  onClick={handleDropdownClick}
+                  className='dropdown-menu w-60 h-auto border border-gray-200 absolute bg-white mt-1 right-0 shadow-lg rounded-lg overflow-hidden'>
+                  <div class='flex items-center space-x-4 p-2'>
+                    <div class='relative'>
+                      <img
+                        class='w-10 h-10 rounded-full'
+                        src={userInfo.profilePicture || PlaceholderImage}
+                        alt=''
+                      />
+                      <span class='bottom-0 left-7 absolute  w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full'></span>
+                    </div>
+                    <div
+                      class='font-medium dark:text-white'
+                      style={{ overflowWrap: 'break-word', wordWrap: 'break-word' }}>
+                      <div
+                        className='capitalize'
+                        style={{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          maxWidth: '14ch',
+                        }}>
                         {userInfo?.firstName + ' ' + userInfo?.lastName}
-                      </h1>
-                      <p className='email text-sm text-gray-500'>{userInfo?.email}</p>
-                    </span>
+                      </div>
+
+                      <div
+                        style={{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          maxWidth: '21ch',
+                        }}
+                        class='text-xs text-gray-500 dark:text-gray-400 w-full'>
+                        {userInfo?.email}
+                      </div>
+                    </div>
                   </div>
+
                   <hr className='dropdown-divider border-b border-gray-200 dark:border-gray-700' />
                   <ul className='dropdown-list p-2'>
                     <li
                       onClick={handleLogout}
-                      className='logout-option text-red-500 hover:text-red-600 cursor-pointer p-2'>
-                      Logout
+                      className='logout-option text-gray-500 hover:text-gray-600 cursor-pointer p-2'>
+                      Log out
                     </li>
                   </ul>
                 </div>
