@@ -15,7 +15,7 @@ import {
 } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import { createSiteApi, createSiteMetaDataApi } from 'views/apis/deviceRegistry';
-import { loadSitesData } from 'redux/SiteRegistry/operations';
+import { loadSitesData, loadSitesSummary } from 'redux/SiteRegistry/operations';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { isEmpty } from 'underscore';
@@ -225,6 +225,7 @@ const SiteToolbar = (props) => {
 
       if (!isEmpty(activeNetwork)) {
         dispatch(loadSitesData(activeNetwork.net_name));
+        dispatch(loadSitesSummary(activeNetwork.net_name));
       }
 
       dispatch(
@@ -238,7 +239,6 @@ const SiteToolbar = (props) => {
           severity: 'success'
         })
       );
-
       setRefresh();
     } catch (error) {
       const errors = error.response?.data?.errors;
