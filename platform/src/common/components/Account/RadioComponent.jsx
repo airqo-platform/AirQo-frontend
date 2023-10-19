@@ -1,6 +1,27 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
-const RadioComponent = ({ text, width, bgColor, padding, border, subText }) => {
+const RadioComponent = ({
+  text,
+  width,
+  bgColor,
+  padding,
+  border,
+  subText,
+  titleFont,
+  checked,
+  onChangeFunc,
+}) => {
+  RadioComponent.propTypes = {
+    text: PropTypes.string,
+    width: PropTypes.string,
+    bgColor: PropTypes.string,
+    border: PropTypes.string,
+    subText: PropTypes.string,
+    titleFont: PropTypes.string,
+    checked: PropTypes.bool,
+    onChangeFunc: PropTypes.func,
+  };
   return (
     <div
       className={`${bgColor ? bgColor : 'bg-white'} ${padding ? padding : 'p-7'} ${
@@ -11,12 +32,13 @@ const RadioComponent = ({ text, width, bgColor, padding, border, subText }) => {
           <input
             type='checkbox'
             name={text}
-            className='border rounded-2xl border-radio-border h-5 w-5 bg-white checked:bg-blue-900 '
+            className='border rounded-2xl border-radio-border h-5 w-5 bg-white checked:bg-blue-900'
+            defaultChecked={checked ? checked : false}
           />
         </div>
-        <div className='ml-3 text-xl font-semibold'>{text}</div>
+        <div className={`ml-3 ${titleFont ? titleFont : 'text-xl font-semibold'}`}>{text}</div>
       </div>
-      <div className='mt-2 text-sm'>{subText}</div>
+      {subText ? <div className='mt-2 text-sm'>{subText}</div> : <></>}
     </div>
   );
 };
