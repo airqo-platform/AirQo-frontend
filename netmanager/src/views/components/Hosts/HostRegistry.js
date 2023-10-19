@@ -32,4 +32,4 @@ const HostRegistry = () => {
   );
 };
 
-export default withPermission(HostRegistry, 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES');
+export default withPermission(HostRegistry, 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');

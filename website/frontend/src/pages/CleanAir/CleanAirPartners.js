@@ -1,12 +1,17 @@
-import React from 'react'
-import CleanAirPageContainer from './Page'
+import React from 'react';
 
 const CleanAirPartners = () => {
-    return (
-        <CleanAirPageContainer>
-            <div>Partners</div>
-        </CleanAirPageContainer>
-    )
-}
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh'
+      }}>
+      partners
+    </div>
+  );
+};
 
-export default CleanAirPartners
+export default CleanAirPartners;

@@ -1,12 +1,17 @@
-import React from 'react'
-import CleanAirPageContainer from './Page'
+import React from 'react';
 
 const CleanAirPress = () => {
-    return (
-        <CleanAirPageContainer>
-            <div>Press</div>
-        </CleanAirPageContainer>
-    )
-}
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh'
+      }}>
+      Press
+    </div>
+  );
+};
 
-export default CleanAirPress
+export default CleanAirPress;

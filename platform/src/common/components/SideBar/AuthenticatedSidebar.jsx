@@ -61,10 +61,10 @@ const AuthenticatedSideBar = () => {
             <CollapseIcon className='pt-1 h-full flex flex-col flex-3' />
           </div>
           <div className='mt-3 mx-2'>
-            <SideBarItem label='Home' Icon={HomeSmileIcon} navPath='/Home/home' />
+            {/* <SideBarItem label='Home' Icon={HomeSmileIcon} navPath='/Home/home' />
             <SideBarItem label='Learn' Icon={BookOpenIcon} />
-            <SideBarItem label='Notification' Icon={NotificationIcon} />
-            <SideBarItem
+            <SideBarItem label='Notification' Icon={NotificationIcon} /> */}
+            {/* <SideBarItem
               label='Analytics'
               Icon={BarChartSqIcon}
               dropdown
@@ -74,7 +74,7 @@ const AuthenticatedSideBar = () => {
               <SideBarDropdownItem itemLabel='AirQlouds' itemPath='/analytics/airqlouds' />
               <SideBarDropdownItem itemLabel='Map view' itemPath='' />
             </SideBarItem>
-            <hr className='my-3 h-[0.5px] bg-grey-150' />
+            <hr className='my-3 h-[0.5px] bg-grey-150' /> */}
             <SideBarItem
               label='Collocation'
               Icon={CollocationIcon}
@@ -89,18 +89,15 @@ const AuthenticatedSideBar = () => {
                 itemLabel='Collocate'
                 itemPath='/analytics/collocation/collocate'
               />
-              <SideBarDropdownItem
-                itemLabel='Reports'
-                itemPath='/analytics/collocation/reports'
-              />
+              {/* <SideBarDropdownItem itemLabel='Reports' itemPath='/analytics/collocation/reports' /> */}
             </SideBarItem>
-            <SideBarItem label='Sites' Icon={SiteIcon} />
-            <SideBarItem label='Other tools' Icon={GridIcon} />
+            {/* <SideBarItem label='Sites' Icon={SiteIcon} />
+            <SideBarItem label='Other tools' Icon={GridIcon} /> */}
           </div>
         </div>
         <div className='mx-2'>
-          <SideBarItem label='Get Support' Icon={SupportIcon} />
-          <SideBarItem label='Settings' Icon={SettingsIcon} />
+          {/* <SideBarItem label='Get Support' Icon={SupportIcon} /> */}
+          <SideBarItem label='Settings' Icon={SettingsIcon} navPath={'/settings'} />
         </div>
       </div>
       <div

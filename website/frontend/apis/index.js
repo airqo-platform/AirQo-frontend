@@ -15,45 +15,56 @@ import {
   EVENTS_URL,
   CITIES_URL,
   PRESS_URL,
-  IMPACT_URL
+  IMPACT_URL,
+  CLEAN_AIR_URL
 } from '../config/urls';
 
-const API_TOKEN = process.env.REACT_APP_AUTHORIZATION_TOKEN
+const API_TOKEN = process.env.REACT_APP_AUTHORIZATION_TOKEN;
 
 export const getAirQloudSummaryApi = async () =>
-  await axios.get(AIRQLOUD_SUMMARY, {
-    params: {
-      token: API_TOKEN
-    }
-  }).then((response) => response.data);
+  await axios
+    .get(AIRQLOUD_SUMMARY, {
+      params: {
+        token: API_TOKEN
+      }
+    })
+    .then((response) => response.data);
 
 export const newsletterSubscriptionApi = async (data) =>
-  await axios.post(NEWSLETTER_SUBSCRIPTION, data, {
-    params: {
-      token: API_TOKEN
-    }
-  }).then((response) => response.data);
+  await axios
+    .post(NEWSLETTER_SUBSCRIPTION, data, {
+      params: {
+        token: API_TOKEN
+      }
+    })
+    .then((response) => response.data);
 
 export const contactUsApi = async (data) =>
-  await axios.post(INQUIRY_URL, data, {
-    params: {
-      token: API_TOKEN
-    }
-  }).then((response) => response.data);
+  await axios
+    .post(INQUIRY_URL, data, {
+      params: {
+        token: API_TOKEN
+      }
+    })
+    .then((response) => response.data);
 
 export const sendInquiryApi = async (data) =>
-  await axios.post(INQUIRY_URL, data, {
-    params: {
-      token: API_TOKEN
-    }
-  }).then((response) => response.data);
+  await axios
+    .post(INQUIRY_URL, data, {
+      params: {
+        token: API_TOKEN
+      }
+    })
+    .then((response) => response.data);
 
 export const requestDataAccessApi = async (data) =>
-  await axios.post(EXPLORE_DATA_URL, data, {
-    params: {
-      token: API_TOKEN
-    }
-  }).then((response) => response.data);
+  await axios
+    .post(EXPLORE_DATA_URL, data, {
+      params: {
+        token: API_TOKEN
+      }
+    })
+    .then((response) => response.data);
 
 // Careers endpoints
 export const getAllCareersApi = async () =>
@@ -97,4 +108,9 @@ export const getAllCitiesApi = async () =>
   await axios.get(CITIES_URL).then((response) => response.data);
 
 // Impact Numbers endpoint
-export const getAllImpactNumbersApi = async () => await axios.get(IMPACT_URL).then(response => response.data)
+export const getAllImpactNumbersApi = async () =>
+  await axios.get(IMPACT_URL).then((response) => response.data);
+
+// Clean Air endpoints
+export const getAllCleanAirApi = async () =>
+  await axios.get(CLEAN_AIR_URL).then((response) => response.data);

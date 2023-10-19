@@ -48,8 +48,17 @@ const ExportData = lazy(() => import('./views/pages/ExportData'));
 const FaultDetection = lazy(() =>
   import('./views/components/DataDisplay/DeviceManagement/ManagementFaults')
 );
+const Analytics = lazy(() => import('./views/pages/Analytics'));
 const HostRegistry = lazy(() => import('./views/components/Hosts/HostRegistry'));
 const HostView = lazy(() => import('./views/components/Hosts/HostView'));
+const HeatMapOverlay = lazy(() => import('./views/pages/Heatmap/HeatMapOverlay'));
+const CohortsRegistry = lazy(() => import('./views/pages/CohortsRegistry'));
+const CohortDetails = lazy(() => import('./views/pages/CohortsRegistry/CohortDetails'));
+const GridsRegistry = lazy(() => import('./views/pages/GridsRegistry'));
+const GridsDetails = lazy(() => import('./views/pages/GridsRegistry/GridsDetails'));
+const Teams = lazy(() => import('./views/pages/Teams/Teams'));
+const TeamsView = lazy(() => import('./views/pages/Teams/TeamsView'));
+const SimRegistry = lazy(() => import('./views/components/SIM/SimRegistry'));
 
 const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
@@ -102,6 +111,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
               component={AnalyticsDashboard}
               layout={MainLayout}
             />
+            <PrivateRoute exact path="/analytics" component={Analytics} layout={MainLayout} />
             <PrivateRoute
               exact
               path="/admin/users/assigned-users"
@@ -117,7 +127,9 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <PrivateRoute component={CandidateList} exact layout={MainLayout} path="/candidates" />
             <PrivateRoute component={Roles} exact layout={MainLayout} path="/roles" />
             <PrivateRoute component={Settings} exact layout={MainLayout} path="/settings" />
-            <PrivateRoute component={Organisation} exact layout={MainLayout} path="/organisation" />
+            <PrivateRoute component={Organisation} exact layout={MainLayout} path="/networks" />
+            <PrivateRoute component={Teams} exact layout={MainLayout} path="/teams" />
+            <PrivateRoute exact path="/teams/:id" component={TeamsView} layout={MainLayout} />
 
             <PrivateRoute path="/device/:deviceName" component={DeviceView} layout={MainLayout} />
             <PrivateRoute exact path="/locate" component={Map} layout={MainLayout} />
@@ -150,6 +162,9 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <PrivateRoute exact path="/hosts/:id" component={HostView} layout={MainLayout} />
             <PrivateRoute exact path="/sites" component={SiteRegistry} layout={MainLayout} />
             <PrivateRoute exact path="/sites/:id" component={SiteView} layout={MainLayout} />
+            <PrivateRoute exact path="/sim" component={SimRegistry} layout={MainLayout} />
+            <PrivateRoute exact path="/heatMap" component={HeatMapOverlay} layout={MainLayout} />
+
             <PrivateRoute
               exact
               path="/airqlouds"
@@ -177,6 +192,20 @@ const AppRoutes = ({ auth, logoutUser }) => {
             />
             <PrivateRoute exact path="/registry" component={Devices} layout={MainLayout} />
             <PrivateRoute exact path="/logs" component={Logs} layout={MainLayout} />
+            <PrivateRoute exact path="/cohorts" component={CohortsRegistry} layout={MainLayout} />
+            <PrivateRoute
+              exact
+              path="/cohorts/:cohortName"
+              component={CohortDetails}
+              layout={MainLayout}
+            />
+            <PrivateRoute exact path="/grids" component={GridsRegistry} layout={MainLayout} />
+            <PrivateRoute
+              exact
+              path="/grids/:gridName"
+              component={GridsDetails}
+              layout={MainLayout}
+            />
             <PrivateRoute
               component={PermissionDenied}
               exact

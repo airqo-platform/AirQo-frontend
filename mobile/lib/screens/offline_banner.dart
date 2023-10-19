@@ -74,7 +74,9 @@ class _OfflineBannerState extends State<OfflineBanner> {
                 right: 0,
                 child: SizedBox(
                   height: 53,
-                  child: Container(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInExpo,
                     color: CustomColors.offlineBannerColor,
                     child: Padding(
                       padding: const EdgeInsets.only(top: 25),

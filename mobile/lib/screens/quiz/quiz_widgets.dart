@@ -17,9 +17,10 @@ class QuizSkipButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return IntrinsicWidth(
+        child: Container(
       height: 44,
-      width: 196,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: const BoxDecoration(
         color: Color.fromARGB(0, 0, 0, 0),
         borderRadius: BorderRadius.all(
@@ -43,6 +44,7 @@ class QuizSkipButton extends StatelessWidget {
           ),
         ],
       ),
+    )
     );
   }
 }
@@ -56,9 +58,10 @@ class QuizActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return IntrinsicWidth(
+        child: Container(
       height: 44,
-      width: 196,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         color: CustomColors.appColorBlue,
         borderRadius: const BorderRadius.all(
@@ -82,6 +85,7 @@ class QuizActionButton extends StatelessWidget {
           ),
         ],
       ),
+    )
     );
   }
 }

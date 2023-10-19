@@ -10,8 +10,8 @@ import {
   getDeviceStatusSummary,
   getRunningQueriesThunk,
 } from '@/lib/store/services/collocation';
-import Tabs from '@/components/Collocation/DeviceStatus/Tabs';
-import Tab from '@/components/Collocation/DeviceStatus/Tabs/Tab';
+import Tabs from '@/components/Tabs';
+import Tab from '@/components/Tabs/Tab';
 import Table from '@/components/Collocation/DeviceStatus/Table';
 import Toast from '@/components/Toast';
 import { wrapper } from '@/lib/store';
@@ -59,7 +59,7 @@ const Collocate = () => {
   }, [refetch]);
 
   return (
-    <Layout>
+    <Layout topbarTitle={'Collocation'}>
       <Head>
         <title>Collocate | Collocation</title>
         <meta property='og:title' content='Collocate | Collocation' key='Collocate | Collocation' />
@@ -78,8 +78,7 @@ const Collocate = () => {
               <Button
                 className={
                   'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium text-sm'
-                }
-              >
+                }>
                 <div className='mr-[10px]'>
                   <UploadIcon />
                 </div>
@@ -90,12 +89,11 @@ const Collocate = () => {
                 className={
                   'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
                 }
-                path='/analytics/collocation/add_monitor'
-              >
+                path='/analytics/collocation/add_monitor'>
                 <div className='mr-[10px]'>
                   <BoxedAddIcon />
                 </div>
-                Test monitor
+                Add monitors
               </Button>
             </div>
           ))}
@@ -135,4 +133,4 @@ const Collocate = () => {
   );
 };
 
-export default Collocate;
+export default withAuth(Collocate);

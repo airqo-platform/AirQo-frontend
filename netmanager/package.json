@@ -158,7 +158,13 @@
       "!src/index.js"
     ],
     "coverageReporters": [
-      "clover", "json", "lcov", "text"
+      "clover",
+      "json",
+      "lcov",
+      "text"
+    ],
+    "setupFilesAfterEnv": [
+      "/setupTests.js"
     ]
   }
 }
