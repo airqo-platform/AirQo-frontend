@@ -5,8 +5,10 @@ import {
   LOGIN_URL,
   USERS_URL,
   GROUPS_URL,
+  UPDATE_USER_DETAILS_URL,
 } from '../urls/authentication';
 import axios from 'axios';
+import { NEXT_PUBLIC_API_TOKEN } from '../../lib/envConstants';
 
 let jwtToken;
 if (typeof window !== 'undefined') {
@@ -44,5 +46,11 @@ export const inviteUserToGroupTeam = async (groupID, userEmails) => {
 export const acceptGroupTeamInvite = async (body) => {
   return await axios
     .post(`${USERS_URL}/requests/emails/accept`, body)
+    .then((response) => response.data);
+};
+
+export const updateUserCreationDetails = async (data, identifier) => {
+  await axios
+    .put(`${UPDATE_USER_DETAILS_URL}/${identifier}?token=${NEXT_PUBLIC_API_TOKEN}`, data)
     .then((response) => response.data);
 };

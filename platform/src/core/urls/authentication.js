@@ -14,3 +14,5 @@ export const UPDATE_PWD_URL = `${BASE_AUTH_URL}/users/updatePassword`;
 export const USERS_URL = `${BASE_AUTH_URL}/users`;
 
 export const GROUPS_URL = `${BASE_AUTH_URL}/users/groups`;
+
+export const UPDATE_USER_DETAILS_URL = USERS_URL;
