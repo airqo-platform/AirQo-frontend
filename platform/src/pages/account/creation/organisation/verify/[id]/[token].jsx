@@ -6,7 +6,7 @@ const UserCreationSuccess = () => {
   const router = useRouter();
   useEffect(() => {
     setTimeout(() => {
-      router.push('/account/creation/organisation');
+      router.push('/account/creation/organisation/create-org/details');
     }, 2000);
   }, []);
   
