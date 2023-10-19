@@ -1,6 +1,6 @@
 replicaCount: 2
 image:
-  repository: eu.gcr.io/airqo-250220/airqo-stage-platform-frontend
+  repository: eu.gcr.io/airqo-250220/airqo-stage-inventory
   tag: stage-31008d21-1694723919
   pullPolicy: Always
 imagePullSecrets: []
@@ -8,9 +8,9 @@ nameOverride: ''
 fullnameOverride: ''
 service:
   type: NodePort
-  nodePort: 31101
-  targetPort: 80
-  port: 80
+  nodePort: 31108
+  targetPort: 8000
+  port: 8000
 ingress:
   enabled: false
 nodeSelector: {}
