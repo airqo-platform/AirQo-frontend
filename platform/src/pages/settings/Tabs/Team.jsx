@@ -5,7 +5,7 @@ import Button from '@/components/Button';
 import AddIcon from '@/icons/Actions/plus.svg';
 import TeamInviteForm from '@/components/Settings/Teams/InviteForm';
 
-const Team = ({ users }) => {
+const Team = ({ users, loading }) => {
   const [teamMembers, setTeamMembers] = useState([]);
   const [open, setOpen] = useState(false);
   const handleClose = () => {
@@ -30,7 +30,7 @@ const Team = ({ users }) => {
             <AddIcon /> Invite member
           </Button>
         </div>
-        <TeamsTable users={teamMembers} isLoading={false} />
+        <TeamsTable users={teamMembers} isLoading={loading} />
       </ContentBox>
       <TeamInviteForm open={open} closeModal={handleClose} />
     </div>

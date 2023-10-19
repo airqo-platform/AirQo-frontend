@@ -8,11 +8,13 @@ import {
   UPDATE_USER_DETAILS_URL,
 } from '../urls/authentication';
 import axios from 'axios';
-import { NEXT_PUBLIC_API_TOKEN } from '../../lib/envConstants';
+import { NEXT_PUBLIC_AUTHORISATION } from '../../lib/envConstants';
 
 let jwtToken;
 if (typeof window !== 'undefined') {
   jwtToken = window.localStorage.getItem('token');
+} else {
+  jwtToken = NEXT_PUBLIC_AUTHORISATION;
 }
 axios.defaults.headers.common.Authorization = jwtToken;
 
@@ -51,6 +53,6 @@ export const acceptGroupTeamInvite = async (body) => {
 
 export const updateUserCreationDetails = async (data, identifier) => {
   await axios
-    .put(`${UPDATE_USER_DETAILS_URL}/${identifier}?token=${NEXT_PUBLIC_API_TOKEN}`, data)
+    .put(`${UPDATE_USER_DETAILS_URL}/${identifier}`, data)
     .then((response) => response.data);
 };

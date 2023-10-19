@@ -9,14 +9,18 @@ import { getAssignedGroupMembers } from '@/core/apis/Account';
 
 const Settings = () => {
   const [teamMembers, setTeamMembers] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
     getAssignedGroupMembers('64f54e357516f7001307a113')
       .then((response) => {
         setTeamMembers(response.group_members);
+        setLoading(false);
       })
       .catch((error) => {
         console.error(`Error fetching user details: ${error}`);
+        setLoading(false);
       });
   }, []);
 
@@ -27,7 +31,7 @@ const Settings = () => {
           <Password />
         </Tab>
         <Tab label='Team'>
-          <Team users={teamMembers} />
+          <Team users={teamMembers} loading={loading} />
         </Tab>
       </Tabs>
     </Layout>
