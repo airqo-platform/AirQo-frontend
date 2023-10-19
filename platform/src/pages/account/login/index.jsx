@@ -31,6 +31,16 @@ const UserLogin = () => {
         getUserDetails(decoded._id)
           .then((response) => {
             localStorage.setItem('loggedUser', JSON.stringify(response.users[0]));
+            if (response.users[0].groups && !response.users[0].groups[0].grp_title) {
+              dispatch(setSuccess(false));
+              dispatch(
+                setFailure('Servor error. Contact support to add you to the AirQo org team'),
+              );
+              setErrors(true);
+              setError('Servor error. Contact support to add you to the AirQo org team');
+              setLoading(false);
+              return;
+            }
             // find airqo group in the users groups and set it as the active group
             const airqoGroup = response.users[0].groups.find(
               (group) => group.grp_title === 'airqo',
