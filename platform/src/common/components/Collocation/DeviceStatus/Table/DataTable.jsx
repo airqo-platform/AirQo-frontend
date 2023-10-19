@@ -9,9 +9,9 @@ import moment from 'moment';
 import { useRouter } from 'next/router';
 import Toast from '@/components/Toast';
 import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation';
-import Dropdown from '../../../Dropdowns/Dropdown';
+import Dropdown from '@/components/Dropdowns/Dropdown';
 import InfoIcon from '@/icons/Common/info_circle.svg';
-import Modal from '../../../Modal/Modal';
+import Modal from '@/components/Modal/Modal';
 import axios from 'axios';
 import { DELETE_COLLOCATION_DEVICE } from '@/core/urls/deviceMonitoring';
 import ReportDetailCard from '../ReportDetailPopup';
@@ -35,9 +35,12 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const [openStatusSummaryModal, setOpenStatusSummaryModal] = useState(false);
   const [selectedReportDeviceName, setSelectedReportDeviceName] = useState(null);
   const [selectedReportBatchId, setSelectedReportBatchId] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   // state to handle modal visibility
   const [visible, setVisible] = useState(false);
+  const [visibleDeleteDevice, setVisibleDeleteDevice] = useState(false);
 
   const [collocationInput, setCollocationInput] = useState({
     devices: null,
@@ -97,26 +100,44 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     const { device, batchId } = collocationInput;
     const data = {
       batchId: batchId,
+    };
+
+    axios
+      .delete(DELETE_COLLOCATION_DEVICE, { params: data })
+      .then((response) => {
+        setVisible(false);
+        setSuccessMessage(`Succesfully deleted batch ${batchId}`);
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      })
+      .catch((error) => {
+        setVisible(false);
+        setErrorMessage(error.response.data.message);
+      });
+  };
+
+  // This function is to delete device
+  const deleteDevice = async () => {
+    const { device, batchId } = collocationInput;
+    const data = {
+      batchId: batchId,
       devices: device,
     };
 
-    try {
-      const response = await axios.delete(DELETE_COLLOCATION_DEVICE, { params: data });
-      if (response.status === 200) {
-        setVisible(false);
-        setSkip(true);
-        dispatch(removeDevices([device]));
-      }
-    } catch (error) {
-      console.log('delete batch', error);
-    }
-
-    setCollocationInput({
-      devices: null,
-      batchId: '',
-    });
-
-    router.reload();
+    axios
+      .delete(DELETE_COLLOCATION_DEVICE, { params: data })
+      .then((response) => {
+        setVisibleDeleteDevice(false);
+        setSuccessMessage(`Succesfully deleted device ${device}`);
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      })
+      .catch((error) => {
+        setVisibleDeleteDevice(false);
+        setErrorMessage(error.response.data.message);
+      });
   };
 
   useEffect(() => {
@@ -141,6 +162,10 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
       id: 2,
       name: 'Delete batch',
     },
+    {
+      id: 3,
+      name: 'Delete device',
+    },
   ]);
 
   const handleItemClick = (id, device, index) => {
@@ -151,6 +176,13 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         break;
       case 2:
         setVisible(true);
+        setCollocationInput({
+          device: device_name,
+          batchId: batch_id,
+        });
+        break;
+      case 3:
+        setVisibleDeleteDevice(true);
         setCollocationInput({
           device: device_name,
           batchId: batch_id,
@@ -170,6 +202,11 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
           message={'Uh-oh! Server error. Please try again later.'}
         />
       )}
+
+      {errorMessage && <Toast type={'error'} timeout={5000} message={errorMessage} />}
+
+      {successMessage && <Toast type={'success'} timeout={5000} message={successMessage} />}
+
       <table
         className='border-collapse text-xs text-left w-full mb-6'
         data-testid='collocation-device-status-summary'
@@ -191,6 +228,9 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
             </th>
             <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
               Batch name
+            </th>
+            <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
+              Date added
             </th>
             <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
               Added by
@@ -237,6 +277,9 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     </td>
                     <td scope='row' className='w-[175px] px-4 py-3 uppercase'>
                       {device.batch_name}
+                    </td>
+                    <td scope='row' className='w-[175px] px-4 py-3'>
+                      {moment(device.date_added).format('MMM DD, YYYY')}
                     </td>
                     <td scope='row' className='w-[175px] px-4 py-3'>
                       {device.added_by || ' '}
@@ -291,22 +334,43 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
       </table>
 
       {/* delete device/batch modal */}
-      <Modal
-        display={visible}
-        handleConfirm={deleteBatch}
-        closeModal={() => setVisible(false)}
-        description='Are you sure you want to delete this batch?'
-        confirmButton='Delete'
-      />
+      {visible && (
+        <div data-testid='delete_modal'>
+          <Modal
+            display={visible}
+            handleConfirm={deleteBatch}
+            closeModal={() => setVisible(false)}
+            description={`Are you sure you want to delete this collocation batch ${collocationInput.batchId}?`}
+            confirmButton='Delete'
+          />
+        </div>
+      )}
 
       {/* detailed report modal */}
-      <ReportDetailCard
-        data={statusSummary}
-        deviceName={selectedReportDeviceName}
-        batchId={selectedReportBatchId}
-        open={openStatusSummaryModal}
-        closeModal={() => setOpenStatusSummaryModal(false)}
-      />
+      {openStatusSummaryModal && (
+        <div data-testid='status_summary_report_popup'>
+          <ReportDetailCard
+            data={statusSummary}
+            deviceName={selectedReportDeviceName}
+            batchId={selectedReportBatchId}
+            open={openStatusSummaryModal}
+            closeModal={() => setOpenStatusSummaryModal(false)}
+          />
+        </div>
+      )}
+
+      {/* delete device modal */}
+      {visibleDeleteDevice && (
+        <div data-testid='delete_modal'>
+          <Modal
+            display={visibleDeleteDevice}
+            handleConfirm={deleteDevice}
+            closeModal={() => setVisibleDeleteDevice(false)}
+            description={`Are you sure you want to delete ${collocationInput.device} from the collocation batch?`}
+            confirmButton='Delete'
+          />
+        </div>
+      )}
     </div>
   );
 };

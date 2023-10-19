@@ -7,7 +7,7 @@ const initialState = {
   startDate: null,
   endDate: null,
   scheduledBatchName: '',
-  scheduledBatchDataCompletenessThreshold: 0.8,
+  scheduledBatchDataCompletenessThreshold: 80,
   scheduledBatchInterCorrelationThreshold: 0.98,
   scheduledBatchIntraCorrelationThreshold: 0.98,
   scheduledBatchDifferencesThreshold: 5,

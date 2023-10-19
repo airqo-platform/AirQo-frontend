@@ -21,6 +21,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:workmanager/workmanager.dart' as workmanager;
+import 'package:app/screens/favourite_places/favourite_places_page.dart';
 
 import '../screens/insights/insights_page.dart';
 import '../screens/kya/kya_title_page.dart';
@@ -203,6 +204,17 @@ class ShareService {
           (r) => false,
         );
         break;
+
+      case 'favorites':
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) {
+            return const FavouritePlacesPage();
+          }),
+          (r) => false,
+        );
+        break;
+
       default:
         Navigator.push(
           context,

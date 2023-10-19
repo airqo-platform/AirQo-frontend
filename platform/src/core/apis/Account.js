@@ -11,10 +11,11 @@ export const getGoogleAuthDetails = async () => {
 
 export const postUserLoginDetails = async (data) => {
   try {
-    const response = await axios.post(LOGIN_URL, data)
-    return response.data
+    const response = await axios.post(LOGIN_URL, data);
+    return response.data;
   } catch (error) {
-    return error;
+    console.error(`Error posting user login details: ${error}`);
+    throw error;
   }
 }
 
