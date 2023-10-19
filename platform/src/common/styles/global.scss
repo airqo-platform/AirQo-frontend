@@ -9,7 +9,12 @@ input:focus {
   outline: none !important;
 }
 textarea:focus {
-  border-color: transparent !important;
+  border-color: transparent;
+  box-shadow: none !important;
+  outline: none !important;
+}
+select:focus {
+  border-color: transparent;
   box-shadow: none !important;
   outline: none !important;
 }

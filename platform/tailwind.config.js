@@ -27,6 +27,8 @@ module.exports = {
         'radio-input': '#DADEE7',
         'input-outline':'#209464',
         'svg-green':'#209464',
+        'input-light-outline':'#E1E7EC',
+        'pill-grey':'#F3F2FF',
         blue: {
           200: '#2DB6F11A',
           300: '#1C7398',
@@ -41,6 +43,7 @@ module.exports = {
           200: '#00000014',
           250: '#0000000A',
           300: '#6D7175',
+          350:'#667085',
           400: '#B0B0B0',
           700: '#DDDDDD',
           750: '#E8E8E8',

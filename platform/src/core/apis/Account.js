@@ -1,5 +1,6 @@
-import { AUTH_URL, GOOGLE_AUTH_URL, LOGIN_URL } from '../urls/authentication';
+import { AUTH_URL, GOOGLE_AUTH_URL, LOGIN_URL, BASE_AUTH_URL, UPDATE_USER_DETAILS_URL } from '../urls/authentication';
 import axios from 'axios';
+import { NEXT_PUBLIC_API_TOKEN } from '../../lib/envConstants';
 
 export const postUserCreationDetails = async (data) =>
   await axios.post(AUTH_URL, data).then((response) => response.data);
@@ -16,4 +17,8 @@ export const postUserLoginDetails = async (data) => {
     console.error(`Error posting user login details: ${error}`);
     throw error;
   }
-};
+}
+
+export const updateUserCreationDetails = async (data, identifier) => {
+  await axios.put(`${UPDATE_USER_DETAILS_URL}/${identifier}?token=${NEXT_PUBLIC_API_TOKEN}`, data).then(response => response.data)
+}
