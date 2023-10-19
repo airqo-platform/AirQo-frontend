@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import Skeleton from '../../Collocation/DeviceStatus/Table/Skeleton';
 import moment from 'moment';
+import Image from 'next/image';
 
-const TeamsTable = ({ users, onEdit, onDelete, isLoading }) => {
+const TeamsTable = ({ users, isLoading }) => {
   const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
   const [focusedRowIndex, setFocusedRowIndex] = useState(null);
 
@@ -10,20 +11,10 @@ const TeamsTable = ({ users, onEdit, onDelete, isLoading }) => {
     <div className='overflow-x-scroll md:overflow-x-hidden'>
       <table
         className='border-collapse text-xs text-left w-full mb-6'
-        data-testid='collocation-device-status-summary'
+        data-testid='settings-team-table'
       >
         <thead>
           <tr className='text-black text-xs border-y border-y-secondary-neutral-light-100 bg-secondary-neutral-light-25'>
-            <th scope='col' className='font-normal w-[61px] py-[10px] px-[21px]'>
-              <input
-                type='checkbox'
-                // checked={
-                //   collocationDevices.length > 0 &&
-                //   selectedCollocateDevices.length === collocationDevices.length
-                // }
-                // onChange={handleSelectAllDevices}
-              />
-            </th>
             <th scope='col' className='font-medium w-[175px] px-4 py-3 opacity-40'>
               Name
             </th>
@@ -34,13 +25,10 @@ const TeamsTable = ({ users, onEdit, onDelete, isLoading }) => {
               Date joined
             </th>
             <th scope='col' className='font-medium w-[175px] px-4 py-3 opacity-40'>
-              Last seen
+              Job title
             </th>
             <th scope='col' className='font-medium w-[175px] px-4 py-3 opacity-40'>
               Role
-            </th>
-            <th scope='col' className='font-medium w-[175px] px-4 py-3 opacity-40'>
-              Organisation
             </th>
           </tr>
         </thead>
@@ -62,26 +50,37 @@ const TeamsTable = ({ users, onEdit, onDelete, isLoading }) => {
                     onFocus={() => setFocusedRowIndex(index)}
                     onBlur={() => setFocusedRowIndex(null)}
                   >
-                    <td scope='row' className='w-[61px] py-[10px] px-[21px]'>
-                      <input
-                        type='checkbox'
-                        // checked={selectedCollocateDevices.includes(device.device_name)}
-                        value={user}
-                        onChange={(e) => handleSelectDevice(e, user)}
-                      />
-                    </td>
                     <td scope='row' className='w-[175px] px-4 py-3'>
-                      <div className='font-medium text-sm leading-5 text-secondary-neutral-light-800'>
-                        {user.firstName + ' ' + user.lastName}
-                      </div>
-                      <div className='font-normal text-sm leading-5 text-secondary-neutral-light-400'>
-                        {user.email}
+                      <div className='flex gap-3'>
+                        <>
+                          {user.profileImage ? (
+                            <Image
+                              src={user.profileImage}
+                              width='40'
+                              height='40'
+                              layout='responsive'
+                            />
+                          ) : (
+                            <div className='flex justify-center items-center w-10 h-10 rounded-full bg-gray-200'>
+                              {user.firstName.charAt(0).toUpperCase() +
+                                user.lastName.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </>
+                        <div>
+                          <div className='font-medium text-sm leading-5 text-secondary-neutral-light-800'>
+                            {user.firstName + ' ' + user.lastName}
+                          </div>
+                          <div className='font-normal text-sm leading-5 text-secondary-neutral-light-400'>
+                            {user.email}
+                          </div>
+                        </div>
                       </div>
                     </td>
                     <td scope='row' className='w-[175px] px-4 py-3'>
                       <div
                         className={`px-2 py-[2px] rounded-2xl w-auto inline-flex justify-center items-center mx-auto ${
-                          user.status.toLowerCase() === 'active'
+                          user.status && user.status.toLowerCase() === 'active'
                             ? 'bg-success-50 text-success-700'
                             : 'bg-secondary-neutral-light-50 text-secondary-neutral-light-500'
                         }`}
@@ -99,27 +98,14 @@ const TeamsTable = ({ users, onEdit, onDelete, isLoading }) => {
                       scope='row'
                       className='w-[175px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
                     >
-                      {moment(user.lastSeen).format('MMM DD, YYYY')}
+                      {user.jobTitle}
                     </td>
                     <td
                       scope='row'
                       className='w-[175px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
                     >
-                      {user.role.role_name}
+                      {user.role_name}
                     </td>
-                    <td
-                      scope='row'
-                      className='w-[175px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
-                    >
-                      {user.organisation}
-                    </td>
-                    {/* <td scope='row' className='w-[75px] px-4 py-3'>
-                      <Dropdown
-                        menu={menu}
-                        length={index === collocationDevices.length - 1 ? 'last' : ''}
-                        onItemClick={(id) => handleItemClick(id, device, index)}
-                      />
-                    </td> */}
                   </tr>
                 );
               })

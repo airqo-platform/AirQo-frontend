@@ -4,22 +4,20 @@ import Tab from '@/components/Tabs/Tab';
 import Password from './Tabs/Password';
 import withAuth from '@/core/utils/protectedRoute';
 import Team from './Tabs/Team';
-import { useEffect } from 'react';
-import { getUserDetails } from '@/core/apis/Account';
-import { isEmpty } from 'underscore';
+import { useEffect, useState } from 'react';
+import { getAssignedGroupMembers } from '@/core/apis/Account';
 
 const Settings = () => {
+  const [teamMembers, setTeamMembers] = useState([]);
+
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('loggedUser'));
-    if (!isEmpty(user)) {
-      getUserDetails(user._id)
-        .then((response) => {
-          console.log(response);
-        })
-        .catch((error) => {
-          console.error(`Error fetching user details: ${error}`);
-        });
-    }
+    getAssignedGroupMembers('64f54e357516f7001307a113')
+      .then((response) => {
+        setTeamMembers(response.group_members);
+      })
+      .catch((error) => {
+        console.error(`Error fetching user details: ${error}`);
+      });
   }, []);
 
   return (
@@ -29,7 +27,7 @@ const Settings = () => {
           <Password />
         </Tab>
         <Tab label='Team'>
-          <Team />
+          <Team users={teamMembers} />
         </Tab>
       </Tabs>
     </Layout>

@@ -3,7 +3,7 @@ import AccountPageLayout from '@/components/Account/Layout';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 import { setUserName, setUserPassword } from '@/lib/store/services/account/LoginSlice';
-import { postUserLoginDetails } from '../../../core/apis/Account';
+import { postUserLoginDetails, getUserDetails } from '@/core/apis/Account';
 import setAuthToken from '@/core/utils/setAuthToken';
 import jwt_decode from 'jwt-decode';
 import { setFailure, setSuccess, setUserInfo } from '@/lib/store/services/account/LoginSlice';
@@ -25,13 +25,32 @@ const UserLogin = () => {
         const { token } = res;
         localStorage.setItem('token', token);
         setAuthToken(token);
-        setLoading(false);
         // Decode token to get user data
         const decoded = jwt_decode(token);
-        localStorage.setItem('loggedUser', JSON.stringify(decoded));
-        dispatch(setUserInfo(decoded));
-        dispatch(setSuccess(true));
-        router.push('/analytics/collocation/overview');
+
+        getUserDetails(decoded._id)
+          .then((response) => {
+            localStorage.setItem('loggedUser', JSON.stringify(response.users[0]));
+            // find airqo group in the users groups and set it as the active group
+            const airqoGroup = response.users[0].groups.find(
+              (group) => group.grp_title === 'airqo',
+            );
+            localStorage.setItem('activeGroup', JSON.stringify(airqoGroup));
+            dispatch(setUserInfo(response.users[0]));
+            dispatch(setSuccess(true));
+            setLoading(false);
+            router.push('/analytics/collocation/overview');
+          })
+          .catch((error) => {
+            console.error(`Error fetching user details: ${error}`);
+            dispatch(setSuccess(false));
+            dispatch(
+              setFailure(error?.response?.data.message || 'Something went wrong, please try again'),
+            );
+            setErrors(true);
+            setError(error?.response?.data.message || 'Something went wrong, please try again');
+            setLoading(false);
+          });
       })
       .catch((error) => {
         console.log(error);
@@ -78,7 +97,8 @@ const UserLogin = () => {
               <button
                 data-testid='login-btn'
                 className='mt-6 btn bg-blue-900 rounded-none w-full text-sm outline-none border-none hover:bg-blue-950'
-                type='submit'>
+                type='submit'
+              >
                 {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Login'}
               </button>
             </div>

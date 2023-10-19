@@ -83,7 +83,6 @@ const Password = () => {
       }
     } catch (error) {
       console.log(error);
-      // console.log(error.errors.map((err) => err.message));
       setIsError({
         isError: true,
         message: error.message || 'Something went wrong. Please try again later.',
@@ -132,7 +131,8 @@ const Password = () => {
                     <div key={field}>
                       <label
                         htmlFor={field}
-                        className='block mb-2 text-sm font-medium text-gray-500 dark:text-white'>
+                        className='block mb-2 text-sm font-medium text-gray-500 dark:text-white'
+                      >
                         {field
                           .replace(/([a-z])([A-Z])/g, '$1 $2')
                           .replace(/^\w/, (c) => c.toUpperCase())}
@@ -159,7 +159,8 @@ const Password = () => {
                   <button
                     type='button'
                     onClick={handleReset}
-                    className='bg-white text-gray-500 border border-gray-200 text-sm font-medium py-3 px-4 rounded focus:outline-none focus:shadow-outline'>
+                    className='bg-white text-gray-500 border border-gray-200 text-sm font-medium py-3 px-4 rounded focus:outline-none focus:shadow-outline'
+                  >
                     Cancel
                   </button>
                   <button
@@ -171,7 +172,8 @@ const Password = () => {
                       isDisabled
                         ? 'bg-blue-300 opacity-50 cursor-not-allowed'
                         : 'bg-blue-600 hover:bg-blue-700'
-                    }`}>
+                    }`}
+                  >
                     {isDisabled ? (
                       <div className='flex'>
                         <span className='mb-1 mr-1'>

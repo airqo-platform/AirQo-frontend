@@ -4,10 +4,19 @@ import PlusIcon from '@/icons/Settings/plus.svg';
 import Button from '@/components/Button';
 import { useState } from 'react';
 import { isEmpty } from 'underscore';
+import { inviteUserToGroupTeam } from '@/core/apis/Account';
+import Spinner from '../../Spinner';
+import AlertBox from '../../AlertBox';
 
 const TeamInviteForm = ({ open, closeModal }) => {
   const [emails, setEmails] = useState(['']);
   const [emailErrors, setEmailErrors] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isError, setIsError] = useState({
+    isError: false,
+    message: '',
+    type: '',
+  });
 
   const handleEmailChange = (index, value) => {
     const updatedEmails = [...emails];
@@ -51,10 +60,53 @@ const TeamInviteForm = ({ open, closeModal }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Perform validation checks on the emails before submitting the form
+
+    if (emails[0] === '') {
+      setIsError({
+        isError: true,
+        message: 'Please enter an email',
+        type: 'error',
+      });
+      return;
+    }
+
+    setLoading(true);
     const isValid = emails.every((email) => isValidEmail(email));
+
     if (isValid) {
-      // Submit the form
+      try {
+        const activeGroup = JSON.parse(localStorage.getItem('activeGroup'));
+        if (!activeGroup) {
+          throw new Error('No active group found');
+        }
+        inviteUserToGroupTeam(activeGroup._id, emails)
+          .then((response) => {
+            setIsError({
+              isError: true,
+              message: response.message,
+              type: 'success',
+            });
+
+            setTimeout(() => {
+              setLoading(false);
+              setEmails(['']);
+              setEmailErrors([]);
+              closeModal();
+            }, 3000);
+          })
+          .catch((error) => {
+            setIsError({
+              isError: true,
+              message: error?.response?.data?.errors?.message,
+              type: 'error',
+            });
+            setLoading(false);
+          });
+      } catch (error) {
+        console.error(error);
+        setLoading(false);
+        return;
+      }
     } else {
       // Display an error message or handle invalid emails
       console.log('Invalid emails:', emailErrors);
@@ -67,6 +119,18 @@ const TeamInviteForm = ({ open, closeModal }) => {
         method='dialog'
         className='modal-box p-6 overflow-y-scroll rounded max-w-[400px] max-h-[449px] w-full h-full shadow border border-slate-100'
       >
+        <AlertBox
+          message={isError.message}
+          type={isError.type}
+          show={isError.isError}
+          hide={() =>
+            setIsError({
+              isError: false,
+              message: '',
+              type: '',
+            })
+          }
+        />
         <div className='flex justify-between items-start mb-5'>
           <div className='w-14 h-14 rounded-[28px] flex justify-center items-center bg-primary-100'>
             <PersonIcon />
@@ -85,7 +149,7 @@ const TeamInviteForm = ({ open, closeModal }) => {
 
           <div className='flex flex-col gap-3 justify-start'>
             {emails.map((email, index) => (
-              <>
+              <div key={index}>
                 <div className='relative' key={index}>
                   <input
                     type='text'
@@ -111,7 +175,7 @@ const TeamInviteForm = ({ open, closeModal }) => {
                     <span className='text-xs text-red-500'>{emailErrors[index]}</span>
                   </div>
                 )}
-              </>
+              </div>
             ))}
 
             <div>
@@ -127,14 +191,16 @@ const TeamInviteForm = ({ open, closeModal }) => {
               <Button
                 className='text-sm font-medium text-secondary-neutral-light-600 leading-5 w-[170px] h-[44px] border border-secondary-neutral-light-100 rounded'
                 onClick={handleCancel}
+                disabled={loading}
               >
                 Cancel
               </Button>
               <Button
-                className='text-sm font-medium bg-primary-600 text-white leading-5 w-[170px] h-[44px] rounded'
+                className='text-sm font-medium bg-primary-600 text-white leading-5 w-[170px] h-[44px] rounded disabled:bg-gray-400 disabled:text-gray-800'
                 onClick={handleSubmit}
+                disabled={loading}
               >
-                Send invites
+                {loading ? <Spinner /> : 'Send invites'}
               </Button>
             </div>
           </div>
