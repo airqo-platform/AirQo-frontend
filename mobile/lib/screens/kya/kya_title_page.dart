@@ -88,7 +88,7 @@ class _PageScaffoldState extends State<PageScaffold> {
       context.read<KyaBloc>().add(
             UpdateKyaProgress(
               widget.kyaLesson.copyWith(
-                activeTask: 1,
+                activeTask: 0,
                 status: KyaLessonStatus.inProgress,
               ),
               updateRemote: true,

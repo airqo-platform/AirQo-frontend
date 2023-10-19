@@ -158,8 +158,7 @@ void main() {
           return;
         }
 
-        kyaLesson =
-            kyaLesson.copyWith(status: KyaLessonStatus.pendingCompletion);
+        
 
         final message = kyaLesson.getKyaMessage(buildContext);
 

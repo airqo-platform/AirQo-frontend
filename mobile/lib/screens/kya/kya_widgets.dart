@@ -172,33 +172,28 @@ class KyaLessonCardWidget extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 2),
                     child: AutoSizeText(
                       kyaLesson.title,
-                      maxLines: 5,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: CustomTextStyle.headline10(context),
                     ),
                   ),
                 ),
                 const Spacer(),
-                Flexible(
-                  flex: 1,
-                  child: KyaMessageChip(kyaLesson),
-                ),
                 Visibility(
-                  visible: kyaLesson.status != KyaLessonStatus.todo &&
-                      kyaLesson.activeTask != 1,
+                  visible: kyaLesson.status == KyaLessonStatus.todo ||
+                      kyaLesson.activeTask >= 1,
                   child: Row(
                     children: [
                       ConstrainedBox(
                           constraints: BoxConstraints(
-                            maxWidth: MediaQuery.of(context).size.width * 0.35,
+                            maxWidth: MediaQuery.of(context).size.width * 0.44,
                             maxHeight: 4,
                           ),
                           child: KyaLessonProgressBar(kyaLesson)),
                       Container(
                         height: 19,
                         width: 19,
-                        padding: const EdgeInsets.all(3.0),
-                        margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                        padding: const EdgeInsets.fromLTRB(3, 5, 3, 1),
                         decoration: BoxDecoration(
                           color: CustomColors.appColorBlue.withOpacity(0.24),
                           shape: BoxShape.circle,
@@ -213,6 +208,10 @@ class KyaLessonCardWidget extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+                Flexible(
+                  flex: 1,
+                  child: KyaMessageChip(kyaLesson),
                 ),
               ],
             ),

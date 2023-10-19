@@ -218,7 +218,7 @@
     "toTurnOnNotificationsGoToSettingsAirQoNotifications":"turn on notifications, go to\nSettings > AirQo > Notifications",
     "toTurnOffNotificationsGoToSettingsAirQoNotifications":"To turn off notifications, go to\nSettings > AirQo > Notifications",
     "completeMoveToForYou" : "Complete! Move to For You",
-    "continu" : "Continue",
+    "continueLearning" : "Continue learning",
     "yesterday": "Yesterday",
     "lastWeek": "Last Week",
     "nextWeek": "Next Week",
@@ -343,5 +343,6 @@
     },
     "dismiss": "DISMISS",
     "internetConnectionLost": "Internet Connection Lost",
-    "changeLanguage": "Change Language"
+    "changeLanguage": "Change Language",
+    "reDOLesson": "Re-do lesson"
 }

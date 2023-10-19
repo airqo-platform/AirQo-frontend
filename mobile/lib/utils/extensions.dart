@@ -112,8 +112,8 @@ extension KyaExt on KyaLesson {
         return AppLocalizations.of(context)!.startLearning;
       case KyaLessonStatus.inProgress:
       case KyaLessonStatus.complete:
-        if (activeTask == 1) return AppLocalizations.of(context)!.startLearning;
-        return AppLocalizations.of(context)!.continu;
+        if (activeTask == 1) return AppLocalizations.of(context)!.reDOLesson;
+        return AppLocalizations.of(context)!.continueLearning;
     }
   }
 }
@@ -128,7 +128,7 @@ extension QuizExt on Quiz {
         if (activeQuestion == 1) {
           return AppLocalizations.of(context)!.takeQuiz;
         }
-        return AppLocalizations.of(context)!.continu;
+        return AppLocalizations.of(context)!.continueLearning;
     }
   }
 }
