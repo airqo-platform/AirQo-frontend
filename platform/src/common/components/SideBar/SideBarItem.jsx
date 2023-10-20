@@ -12,6 +12,7 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
     e.preventDefault();
     router.push(itemPath);
   };
+
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 768px)');
     const handleMediaQueryChange = (e) => {
@@ -26,7 +27,6 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
     };
   }, []);
 
-
   return (
     <a href={itemPath} onClick={changePath}>
       <span
@@ -34,9 +34,8 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
           itemPath
             ? 'hover:bg-light-blue hover:text-blue'
             : 'hover:bg-grey-900 hover:opacity-50 hover:cursor-not-allowed'
-        }`}
-      >
-        {!isMediumDevice && (
+        }`}>
+        {(!isMediumDevice || itemLabel) && (
           <h3 className={`text-sm text-grey leading-[21px]`}>{itemLabel}</h3>
         )}
       </span>
@@ -66,8 +65,7 @@ const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, t
       className={`cursor-pointer ${toggleState && 'bg-sidebar-blue rounded'}`}
       role='button'
       tabIndex={0}
-      onClick={dropdown && toggleMethod}
-    >
+      onClick={dropdown && toggleMethod}>
       <Link href={navPath || '#'}>
         <div className={`flex items-center justify-between w-full h-12 hover:cursor-pointer mt-2`}>
           <div className='flex items-center'>
@@ -75,16 +73,15 @@ const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, t
               <Icon />
             </div>
 
-              <h3
-                className={`text-base font-normal text-black-900 ${
-                  toggleState && 'text-blue font-medium'
-                }`}
-              >
-                {label}
-              </h3>
+            <h3
+              className={`text-base font-normal text-black-900 ${
+                toggleState && 'text-blue font-medium mr-3'
+              }`}>
+              {label}
+            </h3>
           </div>
-          {dropdown &&(
-            <div className='mr-6'>
+          {dropdown && (
+            <div className='mr-4'>
               <ArrowDropDownIcon fillColor={toggleState && theme.extend.colors.blue[900]} />
             </div>
           )}

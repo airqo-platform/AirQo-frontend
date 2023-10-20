@@ -5,8 +5,11 @@ import TopBarItem from './TopBarItem';
 import { useRouter } from 'next/router';
 import { resetStore } from '@/lib/store/services/account/LoginSlice';
 import { useSelector, useDispatch } from 'react-redux';
+import MenuBarIcon from '@/icons/menu_bar';
+import CloseIcon from '@/icons/close_icon';
+import AirqoLogo from '@/icons/airqo_logo.svg';
 
-const TopBar = ({ topbarTitle, noBorderBottom }) => {
+const TopBar = ({ topbarTitle, noBorderBottom, toggleDrawer, setToggleDrawer }) => {
   const router = useRouter();
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.login.userInfo);
@@ -45,16 +48,17 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
   }, [dropdownVisible]);
 
   return (
-    <nav
-      data-cy='topbar'
-      className={`sticky top-0 z-10 bg-white w-full px-4 py-4 lg:py-0 h-[76px] lg:px-16 ${
-        !noBorderBottom && 'border-b-[1px] border-b-grey-750'
-      }`}>
+    <nav className='sticky top-0 z-10 bg-white w-full px-6 lg:py-0 h-[76px] lg:px-16 border-b-[1px] border-b-grey-750'>
       <div className='justify-between items-center flex bg-white py-4'>
+        <div className='lg:hidden relative flex items-center justify-start  z-10 w-full'>
+          <AirqoLogo className=' w-[46.56px] h-8' />
+        </div>
+
         <div className='font-medium invisible lg:visible text-2xl text-neutral-light-800'>
           {topbarTitle}
         </div>
-        <div className='invisible lg:visible sm:flex justify-end md:justify-between items-center '>
+
+        <div className='invisible lg:visible sm:flex justify-end md:justify-between items-center'>
           <div className='flex w-auto'>
             <TopBarItem Icon={SearchMdIcon} />
             <div className='relative'>
@@ -70,17 +74,17 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
                   data-cy='topbar-dropdown-menu'
                   onClick={handleDropdownClick}
                   className='dropdown-menu w-60 h-auto border border-gray-200 absolute bg-white mt-1 right-0 shadow-lg rounded-lg overflow-hidden'>
-                  <div class='flex items-center space-x-4 p-2'>
-                    <div class='relative'>
+                  <div className='flex items-center space-x-4 p-2'>
+                    <div className='relative'>
                       <img
-                        class='w-10 h-10 rounded-full'
+                        className='w-10 h-10 rounded-full'
                         src={userInfo.profilePicture || PlaceholderImage}
                         alt=''
                       />
-                      <span class='bottom-0 left-7 absolute  w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full'></span>
+                      <span className='bottom-0 left-7 absolute  w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full'></span>
                     </div>
                     <div
-                      class='font-medium dark:text-white'
+                      className='font-medium dark:text-white'
                       style={{ overflowWrap: 'break-word', wordWrap: 'break-word' }}>
                       <div
                         className='capitalize'
@@ -100,7 +104,7 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
                           textOverflow: 'ellipsis',
                           maxWidth: '21ch',
                         }}
-                        class='text-xs text-gray-500 dark:text-gray-400 w-full'>
+                        className='text-xs text-gray-500 dark:text-gray-400 w-full'>
                         {userInfo?.email}
                       </div>
                     </div>
@@ -119,6 +123,15 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
             </div>
           </div>
         </div>
+
+        {/* Hamburger menu */}
+        <button
+          className='lg:hidden relative flex items-center justify-end z-10 w-auto focus:outline-none border border-gray-200 rounded-md'
+          onClick={() => setToggleDrawer(!toggleDrawer)}>
+          <span role='button' className='p-2'>
+            {toggleDrawer ? <CloseIcon /> : <MenuBarIcon />}
+          </span>
+        </button>
       </div>
     </nav>
   );
