@@ -16,7 +16,7 @@ const TopBar = () => {
     document.getElementById('menu').classList.toggle('toggle_menu_btn');
     document.getElementById('close-menu').classList.toggle('toggle_close_menu_btn');
     document.getElementById('nav-center').classList.toggle('toggle_nav_center');
-    document.getElementById('nav-right').classList.toggle('toggle_nav_right');
+    // document.getElementById('nav-right').classList.toggle('toggle_nav_right');
   };
 
   const toggleCloseMenu = () => {
@@ -24,7 +24,7 @@ const TopBar = () => {
     document.getElementById('close-menu').classList.remove('toggle_close_menu_btn');
     document.getElementById('menu').classList.remove('toggle_menu_btn');
     document.getElementById('nav-center').classList.remove('toggle_nav_center');
-    document.getElementById('nav-right').classList.remove('toggle_nav_right');
+    // document.getElementById('nav-right').classList.remove('toggle_nav_right');
   };
 
   // tracking the current open item

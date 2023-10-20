@@ -1,8 +1,27 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useSelector } from 'react-redux';
-import { useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { resetStore } from '@/lib/store/services/account/LoginSlice';
+
+// Custom hook to handle user inactivity
+const useIdleTimer = (action, idleTime) => {
+  useEffect(() => {
+    let timer;
+    const handleUserActivity = () => {
+      clearTimeout(timer);
+      timer = setTimeout(action, idleTime);
+    };
+
+    window.addEventListener('mousemove', handleUserActivity);
+    window.addEventListener('keydown', handleUserActivity);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('mousemove', handleUserActivity);
+      window.removeEventListener('keydown', handleUserActivity);
+    };
+  }, [action, idleTime]);
+};
 
 export default function withAuth(Component) {
   return () => {
@@ -10,16 +29,14 @@ export default function withAuth(Component) {
     const router = useRouter();
     const userCredentials = useSelector((state) => state.login);
 
-    // session timeout after 30 minutes
-    useEffect(() => {
-      if (userCredentials.success) {
-        setTimeout(() => {
-          localStorage.clear();
-          dispatch(resetStore());
-          router.push('/account/login');
-        }, 1800000); // 30 minutes
-      }
-    }, [userCredentials]);
+    const logout = () => {
+      localStorage.clear();
+      dispatch(resetStore());
+      router.push('/account/login');
+    };
+
+    // Use custom hook to handle user inactivity
+    useIdleTimer(logout, 1800000);
 
     useEffect(() => {
       if (!userCredentials.success) {

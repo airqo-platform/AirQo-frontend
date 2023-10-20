@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import AccountPageLayout from '@/components/Account/Layout';
 import Link from 'next/link';
-import { useDispatch, useSelector } from 'react-redux';
-import { createUser } from '@/lib/store/services/account/CreationSlice';
+import { useDispatch } from 'react-redux';
 import {
+  createUser,
   setUserFirstName,
   setUserLastName,
   setUserPassword,
-  setUserEmail
+  setUserEmail,
 } from '@/lib/store/services/account/CreationSlice';
 import { useRouter } from 'next/router';
 import HintIcon from '@/icons/Actions/exclamation.svg';
@@ -15,7 +15,7 @@ import VisibilityOffIcon from '@/icons/Account/visibility_off.svg';
 import VisibilityOnIcon from '@/icons/Account/visibility_on.svg';
 import Toast from '@/components/Toast';
 
-const AccountCreationPage2 = () => {
+const IndividualAccountRegistration = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -27,6 +27,7 @@ const AccountCreationPage2 = () => {
 
   const dispatch = useDispatch();
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [creationErrors, setCreationErrors] = useState({
     state: false,
     message: '',
@@ -34,6 +35,7 @@ const AccountCreationPage2 = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     dispatch(setUserEmail(email));
     dispatch(setUserFirstName(firstName));
     dispatch(setUserLastName(lastName));
@@ -45,7 +47,7 @@ const AccountCreationPage2 = () => {
 
     try {
       const response = await dispatch(
-        createUser({ email, firstName, lastName, password }),
+        createUser({ email, firstName, lastName, password, category: 'individual' }),
       );
       if (!response.payload.success) {
         setCreationErrors({
@@ -53,11 +55,12 @@ const AccountCreationPage2 = () => {
           message: response.payload.errors,
         });
       } else {
-        router.push('/account/creation/step3');
+        router.push('/account/creation/individual/verify-email');
       }
     } catch (err) {
       return err;
     }
+    setLoading(false);
   };
 
   const validatePassword = (password) => {
@@ -296,8 +299,12 @@ const AccountCreationPage2 = () => {
                   <button
                     type='submit'
                     onClick={handleSubmit}
-                    className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
-                    Continue
+                    className='w-full btn bg-blue-900 rounded-none text-white text-sm outline-none border-none hover:bg-blue-950'>
+                    {loading ? (
+                      <span className='loading loading-spinner'></span>
+                    ) : (
+                      <span>Continue</span>
+                    )}
                   </button>
                 </div>
               ) : (
@@ -318,4 +325,4 @@ const AccountCreationPage2 = () => {
   );
 };
 
-export default AccountCreationPage2;
+export default IndividualAccountRegistration;
