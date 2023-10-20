@@ -5,15 +5,19 @@ import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../quiz/quiz_view.dart';
 import 'kya_title_page.dart';
 import 'kya_widgets.dart';
 
-class KnowYourAirView extends StatelessWidget {
+class KnowYourAirView extends StatefulWidget {
   const KnowYourAirView({super.key});
 
+  @override
+  State<KnowYourAirView> createState() => _KnowYourAirViewState();
+}
+
+class _KnowYourAirViewState extends State<KnowYourAirView> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<KyaBloc, KyaState>(
@@ -26,85 +30,53 @@ class KnowYourAirView extends StatelessWidget {
             },
           );
         }
-        List<KyaLesson> completedKya = state.lessons
+
+        final inCompleteLessons =
+            state.lessons.filterInCompleteLessons().toList();
+        final completeKya = state.lessons
             .where((lesson) => lesson.status == KyaLessonStatus.complete)
             .toList();
-
-        List<KyaLesson> inProgressKya = state.lessons
-            .where((lesson) => lesson.status == KyaLessonStatus.inProgress)
-            .toList();
-
-        List<KyaLesson> todoKya = state.lessons
-            .where((lesson) => lesson.status == KyaLessonStatus.todo)
-            .toList();
-
-        List<KyaLesson> kyaListToShow;
-        final kya = state.lessons.toList();
         final completeQuizzes = state.quizzes
             .where((quiz) => quiz.status == QuizStatus.complete)
             .toList();
 
-        if (kya.isEmpty && completeQuizzes.isEmpty) {
-          List<KyaLesson> inCompleteLessons =
-              state.lessons.filterInCompleteLessons();
-          return NoCompleteKyaWidget(
-            callBack: () async {
-              if (inCompleteLessons.isEmpty) {
-                showSnackBar(
-                  context,
-                  AppLocalizations.of(context)!.oopsNoLessonsAtTheMoment,
-                );
-              }
-              
-            },
-          );
-        }
-
         List<Widget> children = [];
-        children.addAll(completeQuizzes
-            .map(
-              (quiz) => Column(
-                children: [
-                  QuizCard(
-                    quiz,
-                  ),
-                  const SizedBox(height: 10),
-                ],
-              ),
-            )
-            .toList());
-        if (completedKya.isNotEmpty) {
-          kyaListToShow = completedKya;
-        } else if (inProgressKya.isNotEmpty) {
-          kyaListToShow = inProgressKya;
-        } else {
-          kyaListToShow = todoKya;
+
+        if (completeQuizzes.isNotEmpty) {
+          children.addAll(completeQuizzes
+              .map(
+                (quiz) => Column(
+                  children: [
+                    QuizCard(
+                      quiz,
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              )
+              .toList());
         }
 
-        children.addAll(kyaListToShow
-            .map(
-              (lesson) => Column(
-                children: [
-                  KyaLessonCardWidget(
-                    lesson,
-                  ),
-                  const SizedBox(height: 10),
-                ],
-              ),
-            )
-            .toList());
-        // children.addAll(kya
-        //     .map(
-        //       (lesson) => Column(
-        //         children: [
-        //           KyaLessonCardWidget(
-        //             lesson,
-        //           ),
-        //           const SizedBox(height: 10),
-        //         ],
-        //       ),
-        //     )
-        //     .toList());
+        if (completeKya.isNotEmpty) {
+          children.addAll(completeKya
+              .map(
+                (lesson) => Column(
+                  children: [
+                    KyaLessonCardWidget(
+                      key: kyaLessonCardWidgetKey,
+                      lesson,
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              )
+              .toList());
+        } else if (inCompleteLessons.isNotEmpty) {
+          children.add(KyaLessonCardWidget(
+            key: kyaLessonCardWidgetKey,
+            inCompleteLessons.first,
+          ));
+        }
 
         return AppRefreshIndicator(
           sliverChildDelegate: SliverChildBuilderDelegate(

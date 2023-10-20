@@ -121,12 +121,18 @@ class KyaMessageChip extends StatelessWidget {
     );
   }
 }
+final GlobalKey<_KyaLessonCardWidgetState> kyaLessonCardWidgetKey = GlobalKey();
 
-class KyaLessonCardWidget extends StatelessWidget {
+class KyaLessonCardWidget extends StatefulWidget {
   const KyaLessonCardWidget(this.kyaLesson, {super.key});
 
   final KyaLesson kyaLesson;
 
+  @override
+  State<KyaLessonCardWidget> createState() => _KyaLessonCardWidgetState();
+}
+
+class _KyaLessonCardWidgetState extends State<KyaLessonCardWidget> {
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
@@ -151,7 +157,7 @@ class KyaLessonCardWidget extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) {
-              return KyaTitlePage(kyaLesson);
+              return KyaTitlePage(widget.kyaLesson);
             },
           ),
         );
@@ -171,7 +177,7 @@ class KyaLessonCardWidget extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 2),
                     child: AutoSizeText(
-                      kyaLesson.title,
+                      widget.kyaLesson.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: CustomTextStyle.headline10(context),
@@ -180,8 +186,8 @@ class KyaLessonCardWidget extends StatelessWidget {
                 ),
                 const Spacer(),
                 Visibility(
-                  visible: kyaLesson.status == KyaLessonStatus.todo ||
-                      kyaLesson.activeTask >= 1,
+                  visible: widget.kyaLesson.status == KyaLessonStatus.todo ||
+                      widget.kyaLesson.activeTask >= 1,
                   child: Row(
                     children: [
                       ConstrainedBox(
@@ -189,7 +195,7 @@ class KyaLessonCardWidget extends StatelessWidget {
                             maxWidth: MediaQuery.of(context).size.width * 0.44,
                             maxHeight: 4,
                           ),
-                          child: KyaLessonProgressBar(kyaLesson)),
+                          child: KyaLessonProgressBar(widget.kyaLesson)),
                       Container(
                         height: 19,
                         width: 19,
@@ -198,20 +204,36 @@ class KyaLessonCardWidget extends StatelessWidget {
                           color: CustomColors.appColorBlue.withOpacity(0.24),
                           shape: BoxShape.circle,
                         ),
-                        child: Text(
-                          "${kyaLesson.activeTask == 1 ? 0 : kyaLesson.activeTask}/${kyaLesson.tasks.length}",
-                          style: TextStyle(
-                            color: CustomColors.appColorBlue,
-                            fontSize: 7,
-                          ),
-                        ),
+                        child: widget.kyaLesson.activeTask >= 7
+                            ? CircleAvatar(
+                                radius: 9.5,
+                                backgroundColor:
+                                    CustomColors.appColorBlue.withOpacity(0.24),
+                                child: Icon(Icons.check_circle_rounded,
+                                    color: CustomColors.appColorBlue, size: 8),
+                              )
+                            : Text(
+                                "${widget.kyaLesson.activeTask == 1 ? 0 : widget.kyaLesson.activeTask}/${widget.kyaLesson.tasks.length}",
+                                style: TextStyle(
+                                  color: CustomColors.appColorBlue,
+                                  fontSize: 7,
+                                ),
+                                // child: Text(
+                                //   "${kyaLesson.activeTask == 1 ? 0 : kyaLesson.activeTask}/${kyaLesson.tasks.length}",
+                                //   style: TextStyle(
+                                //     color: CustomColors.appColorBlue,
+                                //     fontSize: 7,
+                                //   ),
+                                // ),
+                              ),
+                        // child: Text(
                       ),
                     ],
                   ),
                 ),
                 Flexible(
                   flex: 1,
-                  child: KyaMessageChip(kyaLesson),
+                  child: KyaMessageChip(widget.kyaLesson),
                 ),
               ],
             ),
@@ -226,7 +248,7 @@ class KyaLessonCardWidget extends StatelessWidget {
               width: MediaQuery.of(context).size.width * 0.28,
               height: 112,
               child: CachedNetworkImage(
-                imageUrl: kyaLesson.imageUrl,
+                imageUrl: widget.kyaLesson.imageUrl,
                 imageBuilder: (context, imageProvider) => Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.0),
