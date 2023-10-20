@@ -15,6 +15,7 @@ import VisibilityOnIcon from '@/icons/Account/visibility_on.svg';
 import Toast from '@/components/Toast';
 import { useRouter } from 'next/router';
 import SideImage from '@/images/Account/OrganisationSideQuote.png';
+import Spinner from '@/components/Spinner';
 
 const OrganisationIndividualAccountCreation = () => {
   const [firstName, setFirstName] = useState('');
@@ -298,11 +299,7 @@ const OrganisationIndividualAccountCreation = () => {
                     type='submit'
                     onClick={handleSubmit}
                     className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
-                    {loading ? (
-                      <span className='loading loading-spinner'></span>
-                    ) : (
-                      <span>Continue</span>
-                    )}
+                    {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
                   </button>
                 </div>
               ) : (
