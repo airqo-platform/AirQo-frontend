@@ -4,12 +4,13 @@ import { useRouter } from 'next/router';
 
 const UserCreationSuccess = () => {
   const router = useRouter();
+  const { id } = router.query;
   useEffect(() => {
     setTimeout(() => {
-      router.push('/account/creation/organisation/create-org/details');
+      router.push(`/account/creation/organisation/verify/${id}/create-org/details`);
     }, 2000);
   }, []);
-  
+
   return (
     <div className='w-full h-screen flex flex-col items-center justify-center'>
       <div>
