@@ -188,8 +188,8 @@ const SitesTable = () => {
               'distance_to_nearest_unclassified_road',
               'distance_to_nearest_residential_road',
               'distance_to_nearest_secondary_road',
-              'distance_to_kampala_center',
-              'bearing_to_kampala_center'
+              'distance_to_capital_city_center',
+              'bearing_to_capital_city_center'
             ];
             const json2csvParser = new Parser({ fields });
             const csv = json2csvParser.parse(data);
