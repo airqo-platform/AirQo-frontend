@@ -4,19 +4,23 @@ import ProgressComponent from '@/components/Account/ProgressComponent';
 import HintIcon from '@/icons/Actions/exclamation.svg';
 import { useDispatch } from 'react-redux';
 import SearchIcon from '@/icons/Actions/search.svg';
+import Spinner from '@/components/Spinner';
+import { useRouter } from 'next/router';
 
 const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
+  const router = useRouter();
+  const { id } = router.query;
   const [orgName, setOrgName] = useState('');
   const [orgWebsite, setOrgWebsite] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = () => {};
   return (
-    <div>
+    <div className='lg:mb-3 md:mb-5'>
       <ProgressComponent colorFirst={true} />
       <div className='w-full'>
         <h2 className='text-3xl text-black font-semibold lg:w-10/12 md:mt-20 lg:mt-2'>
-          Tell us about your organization
+          Tell us about your organisation
         </h2>
         <form>
           <div className='mt-6'>
@@ -92,7 +96,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
               </div>
             </div>
           </div>
-          <div className='mt-10'>
+          <div className='mt-6'>
             {orgName !== '' ? (
               <div className='w-full'>
                 <button
@@ -102,11 +106,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
                     handleComponentSwitch();
                   }}
                   className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
-                  {loading ? (
-                    <span className='loading loading-spinner'></span>
-                  ) : (
-                    <span>Continue</span>
-                  )}
+                  {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
                 </button>
               </div>
             ) : (
@@ -179,11 +179,7 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
                   handleComponentSwitch();
                 }}
                 className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
-                {loading ? (
-                  <span className='loading loading-spinner'></span>
-                ) : (
-                  <span>Continue</span>
-                )}
+                {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
               </button>
             </div>
           </div>
@@ -235,7 +231,7 @@ const CreateOrganisationDetails = () => {
   }, []);
 
   return (
-    <AccountPageLayout childrenHeight={'lg:h-[500]'}>
+    <AccountPageLayout childrenHeight={'lg:h-[500]'} childrenTop={'mt-8'}>
       {nextComponent === 'pageOne' && (
         <CreateOrganisationDetailsPageOne handleComponentSwitch={() => handleSwitchTo('pageTwo')} />
       )}
