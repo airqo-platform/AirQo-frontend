@@ -29,7 +29,7 @@ const UserLogin = () => {
         // Decode token to get user data
         const decoded = jwt_decode(token);
 
-        getUserDetails(decoded._id)
+        getUserDetails(decoded._id, token)
           .then((response) => {
             localStorage.setItem('loggedUser', JSON.stringify(response.users[0]));
             if (response.users[0].groups && !response.users[0].groups[0].grp_title) {

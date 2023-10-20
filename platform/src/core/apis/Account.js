@@ -7,14 +7,12 @@ import {
   UPDATE_USER_DETAILS_URL,
 } from '../urls/authentication';
 import axios from 'axios';
-import { NEXT_PUBLIC_AUTHORISATION } from '../../lib/envConstants';
 
 let jwtToken;
 if (typeof window !== 'undefined') {
   jwtToken = window.localStorage.getItem('token');
-} else {
-  jwtToken = NEXT_PUBLIC_AUTHORISATION;
 }
+
 axios.defaults.headers.common.Authorization = jwtToken;
 
 // Register User Details
@@ -29,8 +27,8 @@ export const postUserLoginDetails = async (data) => {
   return await axios.post(LOGIN_URL, data).then((response) => response.data);
 };
 
-// Update [Individual]User Details
-export const getUserDetails = async (userID) => {
+export const getUserDetails = async (userID, token) => {
+  axios.defaults.headers.common.Authorization = token;
   return await axios.get(`${USERS_URL}/${userID}`).then((response) => response.data);
 };
 

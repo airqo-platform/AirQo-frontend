@@ -604,7 +604,6 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
 const DevicesTable = (props) => {
   const { className, users, ...rest } = props;
   const classes = useStyles();
-
   const history = useHistory();
   const location = useLocation();
   const dispatch = useDispatch();
@@ -612,87 +611,58 @@ const DevicesTable = (props) => {
   const sites = useSitesData();
   const [deviceList, setDeviceList] = useState(Object.values(devices));
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-
   const [delDevice, setDelDevice] = useState({ open: false, name: '' });
-
   const deviceColumns = createDeviceColumns(history, setDelDevice);
-
-  // setting the loading state
   const [loading, setLoading] = useState(true);
-
-  // for horizontal loader
   const [isLoading, setIsLoading] = useState(false);
-
-  const handleDeleteDevice = async () => {
-    if (delDevice.name) {
-      setIsLoading(true);
-      deleteDeviceApi(delDevice.name)
-        .then(() => {
-          delete devices[delDevice.name];
-          setDeviceList(Object.values(devices));
-          const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-          if (!isEmpty(activeNetwork)) {
-            dispatch(loadDevicesData(activeNetwork.net_name));
-          }
-          dispatch(
-            updateMainAlert({
-              show: true,
-              message: `device ${delDevice.name} deleted successfully`,
-              severity: 'success'
-            })
-          );
-        })
-        .catch((err) => {
-          let msg = `deletion of  ${delDevice.name} failed`;
-          if (err.response && err.response.data) {
-            msg = err.response.data.message || msg;
-          }
-          dispatch(
-            updateMainAlert({
-              show: true,
-              message: msg,
-              severity: 'error'
-            })
-          );
-        })
-        .finally(() => setIsLoading(false));
-    }
-    setDelDevice({ open: false, name: '' });
-  };
-
   const [registerOpen, setRegisterOpen] = useState(false);
-
   const [softRegisterOpen, setSoftRegisterOpen] = useState(false);
 
   useEffect(() => {
-    if (isEmpty(devices)) {
+    if (isEmpty(devices) || isEmpty(sites)) {
       if (!isEmpty(activeNetwork)) {
         dispatch(loadDevicesData(activeNetwork.net_name));
-      }
-    }
-
-    if (isEmpty(sites)) {
-      if (!isEmpty(activeNetwork)) {
         dispatch(loadSitesData(activeNetwork.net_name));
       }
     }
     dispatch(updateDeviceBackUrl(location.pathname));
-  }, [devices]);
-
-  useEffect(() => {
     setDeviceList(Object.values(devices));
+    setLoading(isEmpty(devices));
   }, [devices]);
 
-  // for handling the loading state
-  useEffect(() => {
-    if (isEmpty(devices)) {
-      setTimeout(() => {
-        setLoading(false);
-      }, 1500);
-    } else {
-      setLoading(false);
+  const handleDeleteDevice = async () => {
+    if (delDevice.name) {
+      setIsLoading(true);
+      try {
+        await deleteDeviceApi(delDevice.name);
+        delete devices[delDevice.name];
+        setDeviceList(Object.values(devices));
+        dispatch(loadDevicesData(activeNetwork.net_name));
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: `device ${delDevice.name} deleted successfully`,
+            severity: 'success'
+          })
+        );
+      } catch (err) {
+        let msg = `deletion of ${delDevice.name} failed`;
+        if (err.response && err.response.data) {
+          msg = err.response.data.message || msg;
+        }
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: msg,
+            severity: 'error'
+          })
+        );
+      } finally {
+        setIsLoading(false);
+      }
     }
-  }, [devices]);
+    setDelDevice({ open: false, name: '' });
+  };
 
   return (
     <ErrorBoundary>
