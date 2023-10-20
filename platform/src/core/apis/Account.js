@@ -28,7 +28,7 @@ export const postUserLoginDetails = async (data) => {
 };
 
 export const getUserDetails = async (userID, token) => {
-  axios.defaults.headers.common.Authorization = jwtToken;
+  axios.defaults.headers.common.Authorization = token;
   return await axios.get(`${USERS_URL}/${userID}`).then((response) => response.data);
 };
 
