@@ -8,8 +8,16 @@ import { useSelector, useDispatch } from 'react-redux';
 import MenuBarIcon from '@/icons/menu_bar';
 import CloseIcon from '@/icons/close_icon';
 import AirqoLogo from '@/icons/airqo_logo.svg';
+import ExpandIcon from '@/icons/SideBar/expand.svg';
 
-const TopBar = ({ topbarTitle, noBorderBottom, toggleDrawer, setToggleDrawer }) => {
+const TopBar = ({
+  topbarTitle,
+  noBorderBottom,
+  toggleDrawer,
+  setToggleDrawer,
+  collapsed,
+  setCollapsed,
+}) => {
   const router = useRouter();
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.login.userInfo);
@@ -55,6 +63,14 @@ const TopBar = ({ topbarTitle, noBorderBottom, toggleDrawer, setToggleDrawer }) 
         </div>
 
         <div className='font-medium invisible lg:visible text-2xl text-neutral-light-800'>
+          {collapsed ? (
+            <button
+              type='button'
+              onClick={() => setCollapsed(!collapsed)}
+              className='focus:outline-none relative -left-14'>
+              <ExpandIcon className='inline-block mr-2' />
+            </button>
+          ) : null}
           {topbarTitle}
         </div>
 

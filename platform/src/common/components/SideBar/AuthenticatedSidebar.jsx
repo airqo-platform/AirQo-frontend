@@ -9,15 +9,14 @@ import GridIcon from '@/icons/SideBar/grid_01.svg';
 import SettingsIcon from '@/icons/SideBar/settings_02.svg';
 import BarChartSqIcon from '@/icons/SideBar/bar_chart.svg';
 import { useWindowSize } from '@/lib/windowSize';
-import SideBarItem, { SideBarDropdownItem } from './SideBarItem';
+import SideBarItem, { SideBarDropdownItem, SidebarIconItem } from './SideBarItem';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 
 import CollocationIcon from '@/icons/Collocation/collocation.svg';
 
-const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer }) => {
+const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCollapsed }) => {
   const sideBarDisplayStyle = toggleDrawer ? 'flex fixed left-0 z-50' : 'hidden';
   const size = useWindowSize();
-  const [collapsed, setCollapsed] = useState(false);
 
   // Toggle Dropdown open and close
   const [collocationOpen, setCollocationOpen] = useState(true);
@@ -68,7 +67,7 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer }) => {
           <div className='p-4 justify-between items-center flex'>
             <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
             <button type='button' onClick={() => setCollapsed(!collapsed)}>
-              <CollapseIcon className='invisible md:visible lg:visible pt-1 h-full flex flex-col flex-3' />
+              <CollapseIcon className='invisible md:invisible lg:visible pt-1 h-full flex flex-col flex-3' />
             </button>
           </div>
           <div className='mt-3 mx-2'>
@@ -113,7 +112,7 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer }) => {
       </div>
     </div>
   ) : (
-    <div className='w-[88px]' ref={sidebarRef}>
+    <div className='w-[88px]'>
       <div
         className={`${
           size.width >= 1024 ? 'flex' : sideBarDisplayStyle
@@ -123,13 +122,13 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer }) => {
             <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
           </div>
           <div className='mt-3 mx-2'>
-            <HomeSmileIcon />
+            <SidebarIconItem IconComponent={HomeSmileIcon} isActive={true} navPath='#' />
             <hr className='my-3 h-[0.5px] bg-grey-150' />
-            <CollocationIcon />
+            <SidebarIconItem IconComponent={CollocationIcon} isActive={false} navPath='#' />
           </div>
         </div>
         <div className='mx-2 mb-2 flex items-center justify-center'>
-          <SettingsIcon />
+          <SidebarIconItem IconComponent={SettingsIcon} isActive={false} navPath='/settings' />
         </div>
       </div>
     </div>

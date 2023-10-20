@@ -43,6 +43,18 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
   );
 };
 
+export const SidebarIconItem = ({ IconComponent, isActive, navPath }) => (
+  <Link href={navPath}>
+    <a
+      className={`relative flex items-center p-4 rounded cursor-pointer ${
+        isActive ? 'bg-light-blue' : ''
+      } hover:bg-gray-200`}>
+      {isActive && <span className='bg-blue-600 w-1 h-1/2 mr-2 absolute rounded-xl -left-2'></span>}
+      <IconComponent />
+    </a>
+  </Link>
+);
+
 const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, toggleState }) => {
   const [isMediumDevice, setIsMediumDevice] = useState(false);
 
