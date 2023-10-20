@@ -335,5 +335,7 @@
 	"authenticationIsCurrentlyUnavailableYouWillBeAbleToSignupSignInLater":"A autenticação não está disponível de momento. Poderá registar-se/iniciar sessão mais tarde.",
 	"cancel":"Cancelar"	,
 	"changeLanguage": "Mudar de idioma",
-	"reDOLesson": "Repetir a lição"
+	"reDOLesson": "Repetir a lição",
+	"reDoQuiz": "Repetir o teste"
+
 	}

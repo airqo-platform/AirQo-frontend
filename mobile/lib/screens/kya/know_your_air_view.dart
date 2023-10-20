@@ -63,7 +63,6 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
                 (lesson) => Column(
                   children: [
                     KyaLessonCardWidget(
-                      key: kyaLessonCardWidgetKey,
                       lesson,
                     ),
                     const SizedBox(height: 10),
@@ -73,7 +72,6 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
               .toList());
         } else if (inCompleteLessons.isNotEmpty) {
           children.add(KyaLessonCardWidget(
-            key: kyaLessonCardWidgetKey,
             inCompleteLessons.first,
           ));
         }

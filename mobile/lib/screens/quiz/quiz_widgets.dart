@@ -97,7 +97,7 @@ class QuizDraggingHandle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 4,
-      width: 100,
+      width: 130,
       decoration: BoxDecoration(
         color: Colors.grey[200],
         borderRadius: BorderRadius.circular(16),

@@ -344,5 +344,6 @@
     "dismiss": "DISMISS",
     "internetConnectionLost": "Internet Connection Lost",
     "changeLanguage": "Change Language",
-    "reDOLesson": "Re-do lesson"
+    "reDOLesson": "Re-do lesson",
+    "reDoQuiz": "Re-do quiz"
 }

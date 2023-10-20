@@ -335,6 +335,7 @@
   "dismiss": "REJETER",
   "internetConnectionLost": "Connexion Internet perdue",
   "changeLanguage": "Changer de langue",
-  "reDOLesson": "Refaire la leçon"
+  "reDOLesson": "Refaire la leçon",
+  "reDoQuiz": "Refaire le quiz"
 
 }

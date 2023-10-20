@@ -23,6 +23,7 @@ import 'package:showcaseview/showcaseview.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
+import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
 
@@ -335,16 +336,12 @@ class _DashboardViewState extends State<DashboardView>
                     ),
                     BlocBuilder<KyaBloc, KyaState>(
                       builder: (context, state) {
-                        List<Quiz> inCompleteQuizzes = state.quizzes
-                            .where((quiz) => quiz.status != QuizStatus.complete)
-                            .toList();
+                        List<Quiz> quizzes = state.quizzes;
 
-                        if (inCompleteQuizzes.isEmpty) {
-                          // _kyaExists
-                          // h= false;
+                        if (quizzes.isEmpty) {
                           return const SizedBox();
                         }
-                        Quiz displayedQuiz = inCompleteQuizzes.first;
+                        Quiz displayedQuiz = quizzes.first;
                         return QuizCard(displayedQuiz);
                       },
                     ),

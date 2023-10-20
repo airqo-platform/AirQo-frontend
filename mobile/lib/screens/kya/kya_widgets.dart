@@ -121,7 +121,6 @@ class KyaMessageChip extends StatelessWidget {
     );
   }
 }
-final GlobalKey<_KyaLessonCardWidgetState> kyaLessonCardWidgetKey = GlobalKey();
 
 class KyaLessonCardWidget extends StatefulWidget {
   const KyaLessonCardWidget(this.kyaLesson, {super.key});
@@ -191,11 +190,12 @@ class _KyaLessonCardWidgetState extends State<KyaLessonCardWidget> {
                   child: Row(
                     children: [
                       ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth: MediaQuery.of(context).size.width * 0.44,
-                            maxHeight: 4,
-                          ),
-                          child: KyaLessonProgressBar(widget.kyaLesson)),
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.44,
+                          maxHeight: 4,
+                        ),
+                        child: KyaLessonProgressBar(widget.kyaLesson),
+                      ),
                       Container(
                         height: 19,
                         width: 19,
@@ -204,7 +204,7 @@ class _KyaLessonCardWidgetState extends State<KyaLessonCardWidget> {
                           color: CustomColors.appColorBlue.withOpacity(0.24),
                           shape: BoxShape.circle,
                         ),
-                        child: widget.kyaLesson.activeTask >= 7
+                        child: widget.kyaLesson.activeTask >= 6
                             ? CircleAvatar(
                                 radius: 9.5,
                                 backgroundColor:
@@ -213,18 +213,11 @@ class _KyaLessonCardWidgetState extends State<KyaLessonCardWidget> {
                                     color: CustomColors.appColorBlue, size: 8),
                               )
                             : Text(
-                                "${widget.kyaLesson.activeTask == 1 ? 0 : widget.kyaLesson.activeTask}/${widget.kyaLesson.tasks.length}",
+                                "${widget.kyaLesson.activeTask == 1 ? 0 : widget.kyaLesson.activeTask - 1}/${widget.kyaLesson.tasks.length - 1}",
                                 style: TextStyle(
                                   color: CustomColors.appColorBlue,
                                   fontSize: 7,
                                 ),
-                                // child: Text(
-                                //   "${kyaLesson.activeTask == 1 ? 0 : kyaLesson.activeTask}/${kyaLesson.tasks.length}",
-                                //   style: TextStyle(
-                                //     color: CustomColors.appColorBlue,
-                                //     fontSize: 7,
-                                //   ),
-                                // ),
                               ),
                         // child: Text(
                       ),

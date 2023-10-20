@@ -126,7 +126,7 @@ extension QuizExt on Quiz {
       case QuizStatus.inProgress:
       case QuizStatus.complete:
         if (activeQuestion == 1) {
-          return AppLocalizations.of(context)!.takeQuiz;
+          return AppLocalizations.of(context)!.reDoQuiz;
         }
         return AppLocalizations.of(context)!.continueLearning;
     }
