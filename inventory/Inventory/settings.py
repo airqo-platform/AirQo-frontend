@@ -79,7 +79,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
-        }, 
+        },
     },
 ]
 
@@ -96,10 +96,14 @@ DATABASES = {
         'USER': config("DB_USER"),
         'PASSWORD': config("DB_PASSWORD"),
         'HOST': config("DB_HOST"),
+        'PORT': '5432',
     }
 }
 
 
+# DATABASES = {
+#     'default' : dj_database_url.parse(os.environ.get('DATABASE_URL'))
+# }
 
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
@@ -146,7 +150,7 @@ STATIC_URL = 'static/'
 #     BASE_DIR / "static",
 # ]
 
-# STATIC_ROOT = (BASE_DIR/"assets/")
+STATIC_ROOT = (BASE_DIR/"assets/")
 
 # MEDIA_ROOT = (BASE_DIR/'media/')
 
