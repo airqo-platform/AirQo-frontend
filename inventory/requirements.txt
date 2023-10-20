@@ -41,7 +41,7 @@ psycopg2==2.9.6
 psycopg2-binary==2.9.6
 ptyprocess==0.7.0
 pypng==0.20220715.0
-pyproject_hooks==1.0.0
+pyproject_hooks==1.0.0 
 pywin32-ctypes==0.2.2
 qrcode==7.4.2
 rapidfuzz==2.15.1

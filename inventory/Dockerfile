@@ -9,3 +9,4 @@ COPY requirements.txt /inventoryapp/
 RUN pip install -r requirements.txt
 
 COPY . /inventoryapp/
+ 
