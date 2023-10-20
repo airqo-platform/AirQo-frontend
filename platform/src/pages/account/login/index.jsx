@@ -8,6 +8,7 @@ import setAuthToken from '@/core/utils/setAuthToken';
 import jwt_decode from 'jwt-decode';
 import { setFailure, setSuccess, setUserInfo } from '@/lib/store/services/account/LoginSlice';
 import Spinner from '@/components/Spinner';
+import Link from 'next/link';
 
 const UserLogin = () => {
   const [errors, setErrors] = useState(false);
@@ -34,10 +35,10 @@ const UserLogin = () => {
             if (response.users[0].groups && !response.users[0].groups[0].grp_title) {
               dispatch(setSuccess(false));
               dispatch(
-                setFailure('Servor error. Contact support to add you to the AirQo org team'),
+                setFailure('Server error. Contact support to add you to the AirQo Organisation'),
               );
               setErrors(true);
-              setError('Servor error. Contact support to add you to the AirQo org team');
+              setError('Server error. Contact support to add you to the AirQo Organisation');
               setLoading(false);
               return;
             }
@@ -107,13 +108,19 @@ const UserLogin = () => {
               <button
                 data-testid='login-btn'
                 className='mt-6 btn bg-blue-900 rounded-none w-full text-sm outline-none border-none hover:bg-blue-950'
-                type='submit'
-              >
+                type='submit'>
                 {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Login'}
               </button>
             </div>
           </div>
         </form>
+        <div className='mt-8'>
+          <span className='text-sm text-grey-300'>Don't have an account?</span>
+          <span className='text-sm text-blue-900 font-medium'>
+            {' '}
+            <Link href='/account/creation'>Register here</Link>
+          </span>
+        </div>
       </div>
     </AccountPageLayout>
   );
