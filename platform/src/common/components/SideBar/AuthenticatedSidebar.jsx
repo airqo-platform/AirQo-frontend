@@ -17,6 +17,7 @@ import CollocationIcon from '@/icons/Collocation/collocation.svg';
 const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer }) => {
   const sideBarDisplayStyle = toggleDrawer ? 'flex fixed left-0 z-50' : 'hidden';
   const size = useWindowSize();
+  const [collapsed, setCollapsed] = useState(false);
 
   // Toggle Dropdown open and close
   const [collocationOpen, setCollocationOpen] = useState(true);
@@ -57,7 +58,7 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer }) => {
     };
   }, [sidebarRef]);
 
-  return (
+  return !collapsed ? (
     <div className='w-64' ref={sidebarRef}>
       <div
         className={`${
@@ -66,7 +67,9 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer }) => {
         <div>
           <div className='p-4 justify-between items-center flex'>
             <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
-            <CollapseIcon className='invisible md:visible lg:visible pt-1 h-full flex flex-col flex-3' />
+            <button type='button' onClick={() => setCollapsed(!collapsed)}>
+              <CollapseIcon className='invisible md:visible lg:visible pt-1 h-full flex flex-col flex-3' />
+            </button>
           </div>
           <div className='mt-3 mx-2'>
             {/* <SideBarItem label='Home' Icon={HomeSmileIcon} navPath='/Home/home' />
@@ -106,6 +109,27 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer }) => {
         <div className='mx-2'>
           {/* <SideBarItem label='Get Support' Icon={SupportIcon} /> */}
           <SideBarItem label='Settings' Icon={SettingsIcon} navPath={'/settings'} />
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div className='w-[88px]' ref={sidebarRef}>
+      <div
+        className={`${
+          size.width >= 1024 ? 'flex' : sideBarDisplayStyle
+        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200`}>
+        <div className='flex flex-col items-center justify-center'>
+          <div className='p-4 justify-between items-center flex'>
+            <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
+          </div>
+          <div className='mt-3 mx-2'>
+            <HomeSmileIcon />
+            <hr className='my-3 h-[0.5px] bg-grey-150' />
+            <CollocationIcon />
+          </div>
+        </div>
+        <div className='mx-2 mb-2 flex items-center justify-center'>
+          <SettingsIcon />
         </div>
       </div>
     </div>

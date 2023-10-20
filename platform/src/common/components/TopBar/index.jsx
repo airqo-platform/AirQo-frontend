@@ -126,11 +126,10 @@ const TopBar = ({ topbarTitle, noBorderBottom, toggleDrawer, setToggleDrawer }) 
 
         {/* Hamburger menu */}
         <button
+          type='button'
           className='lg:hidden relative flex items-center justify-end z-10 w-auto focus:outline-none border border-gray-200 rounded-md'
           onClick={() => setToggleDrawer(!toggleDrawer)}>
-          <span role='button' className='p-2'>
-            {toggleDrawer ? <CloseIcon /> : <MenuBarIcon />}
-          </span>
+          <span className='p-2'>{toggleDrawer ? <CloseIcon /> : <MenuBarIcon />}</span>
         </button>
       </div>
     </nav>
