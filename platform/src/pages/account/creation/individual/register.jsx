@@ -308,7 +308,6 @@ const IndividualAccountRegistration = () => {
                 <div className='w-full md:w-1/3'>
                   <button
                     type='submit'
-                    onClick={handleSubmit}
                     className='w-full btn btn-disabled bg-white rounded-none text-sm outline-none border-none'>
                     Continue
                   </button>
