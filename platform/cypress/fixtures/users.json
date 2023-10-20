@@ -1,0 +1,38 @@
+[
+  {
+    "firstName": "John",
+    "lastName": "Doe",
+    "createdAt": "2022-01-01",
+    "lastSeen": "2022-02-01",
+    "role": {
+      "role_name": "Admin"
+    },
+    "organisation": "ABC Company",
+    "email": "johndoe@gmail.com",
+    "status": "Active"
+  },
+  {
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "createdAt": "2022-03-01",
+    "lastSeen": "2022-04-01",
+    "role": {
+      "role_name": "User"
+    },
+    "organisation": "XYZ Corporation",
+    "email": "johndoe@gmail.com",
+    "status": "Active"
+  },
+  {
+    "firstName": "Mike",
+    "lastName": "Johnson",
+    "createdAt": "2022-05-01",
+    "lastSeen": "2022-06-01",
+    "role": {
+      "role_name": "Can view"
+    },
+    "organisation": "ABC Company",
+    "email": "johndoe@gmail.com",
+    "status": "Pending"
+  }
+]
