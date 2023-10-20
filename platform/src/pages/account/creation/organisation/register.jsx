@@ -92,7 +92,7 @@ const OrganisationIndividualAccountCreation = () => {
         {creationErrors.state && (
           <Toast
             type={'error'}
-            timeout={5000}
+            timeout={8000}
             message={`${
               creationErrors.message.email ||
               creationErrors.message.message ||
