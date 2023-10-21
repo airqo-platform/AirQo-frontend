@@ -78,7 +78,7 @@ jobs:
           cd android/
           echo $MOBILE_ANDROID_PLAYSTORE_SA > play-store-service-account.json
           bundle exec fastlane supply init
-          cat release_notes.txt > fastlane/metadata/android/en-US/changelogs/default.txt
+          cat fastlane/release_notes.txt > fastlane/metadata/android/en-US/changelogs/default.txt
           bundle exec fastlane android play_store
         env:
           MOBILE_ANDROID_PLAYSTORE_SA: ${{secrets.MOBILE_ANDROID_PLAYSTORE_SA}}
