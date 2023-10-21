@@ -7,6 +7,7 @@ import { postUserLoginDetails, getUserDetails } from '@/core/apis/Account';
 import setAuthToken from '@/core/utils/setAuthToken';
 import jwt_decode from 'jwt-decode';
 import { setFailure, setSuccess, setUserInfo } from '@/lib/store/services/account/LoginSlice';
+import Link from 'next/link';
 import Spinner from '@/components/Spinner';
 
 const UserLogin = () => {
@@ -107,11 +108,18 @@ const UserLogin = () => {
               <button
                 data-testid='login-btn'
                 className='mt-6 btn bg-blue-900 rounded-none w-full text-sm outline-none border-none hover:bg-blue-950'
-                type='submit'
-              >
+                type='submit'>
                 {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Login'}
               </button>
             </div>
+            <span className='text-sm text-black-700 mt-6 block'>
+              Don’t have an account?
+              <span className='text-blue-900 hover:underline ml-2'>
+                <Link data-testid='signup-link' href='/account/creation'>
+                  Sign up
+                </Link>
+              </span>
+            </span>
           </div>
         </form>
       </div>
