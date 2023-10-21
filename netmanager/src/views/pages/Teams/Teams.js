@@ -303,6 +303,7 @@ const Teams = () => {
             event.preventDefault();
             history.push(`/teams/${row._id}`);
           }}
+          isLoading={loading}
           data={teams}
           options={{
             search: true,
