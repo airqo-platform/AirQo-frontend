@@ -56,7 +56,10 @@ const TopBar = ({
   }, [dropdownVisible]);
 
   return (
-    <nav className='sticky top-0 z-10 bg-white w-full px-6 lg:py-0 h-[76px] lg:px-16 border-b-[1px] border-b-grey-750'>
+    <nav
+      className={`sticky top-0 z-10 bg-white w-full px-6 lg:py-0 h-[76px] lg:px-16 ${
+        !noBorderBottom && 'border-b-[1px] border-b-grey-750'
+      }`}>
       <div className='justify-between items-center flex bg-white py-4'>
         <div className='lg:hidden relative flex items-center justify-start  z-10 w-full'>
           <AirqoLogo className=' w-[46.56px] h-8' />
