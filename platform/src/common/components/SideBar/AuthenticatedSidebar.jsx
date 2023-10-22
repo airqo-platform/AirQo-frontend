@@ -11,7 +11,7 @@ import BarChartSqIcon from '@/icons/SideBar/bar_chart.svg';
 import { useWindowSize } from '@/lib/windowSize';
 import SideBarItem, { SideBarDropdownItem, SidebarIconItem } from './SideBarItem';
 import AirqoLogo from '@/icons/airqo_logo.svg';
-
+import CloseIcon from '@/icons/close_icon';
 import CollocationIcon from '@/icons/Collocation/collocation.svg';
 
 const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCollapsed }) => {
@@ -68,6 +68,12 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
             <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
             <button type='button' onClick={() => setCollapsed(!collapsed)}>
               <CollapseIcon className='invisible md:invisible lg:visible pt-1 h-full flex flex-col flex-3' />
+            </button>
+            <button
+              type='button'
+              className='lg:hidden relative flex items-center justify-end z-10 w-auto focus:outline-none border border-gray-200 rounded-md'
+              onClick={() => setToggleDrawer(!toggleDrawer)}>
+              <CloseIcon />
             </button>
           </div>
           <div className='mt-3 mx-2'>

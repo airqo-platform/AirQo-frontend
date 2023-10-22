@@ -61,9 +61,15 @@ const TopBar = ({
         !noBorderBottom && 'border-b-[1px] border-b-grey-750'
       }`}>
       <div className='justify-between items-center flex bg-white py-4'>
-        <div className='lg:hidden relative flex items-center justify-start  z-10 w-full'>
-          <AirqoLogo className=' w-[46.56px] h-8' />
-        </div>
+        {/* Hamburger menu */}
+        <button
+          type='button'
+          className='lg:hidden relative flex items-center justify-start z-10 w-auto focus:outline-none border border-gray-200 rounded-md'
+          onClick={() => setToggleDrawer(!toggleDrawer)}>
+          <span className='p-2'>
+            <MenuBarIcon />
+          </span>
+        </button>
 
         <div className='font-medium invisible lg:visible text-2xl text-neutral-light-800'>
           {collapsed ? (
@@ -77,7 +83,7 @@ const TopBar = ({
           {topbarTitle}
         </div>
 
-        <div className='invisible lg:visible sm:flex justify-end md:justify-between items-center'>
+        <div className='visible sm:flex justify-end md:justify-between items-center'>
           <div className='flex w-auto'>
             <TopBarItem Icon={SearchMdIcon} />
             <div className='relative'>
@@ -143,13 +149,9 @@ const TopBar = ({
           </div>
         </div>
 
-        {/* Hamburger menu */}
-        <button
-          type='button'
-          className='lg:hidden relative flex items-center justify-end z-10 w-auto focus:outline-none border border-gray-200 rounded-md'
-          onClick={() => setToggleDrawer(!toggleDrawer)}>
-          <span className='p-2'>{toggleDrawer ? <CloseIcon /> : <MenuBarIcon />}</span>
-        </button>
+        {/* <div className='lg:hidden relative flex items-center justify-end  z-10 w-full'>
+          <AirqoLogo className=' w-[46.56px] h-8' />
+        </div> */}
       </div>
     </nav>
   );
