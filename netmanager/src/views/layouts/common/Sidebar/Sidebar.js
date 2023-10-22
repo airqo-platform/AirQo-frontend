@@ -104,7 +104,8 @@ const allMainPages = [
   {
     title: 'Analytics',
     href: '/analytics',
-    icon: <TimelineIcon />
+    icon: <TimelineIcon />,
+    isNew: true
   },
   {
     title: 'Export data',
@@ -133,7 +134,8 @@ const allMainPages = [
       { title: 'Network Map', href: '/manager/map' },
       { title: 'Network Statistics', href: '/manager/stats' },
       { title: 'Network Activity Logs', href: '/manager/activities' }
-    ]
+    ],
+    isNew: true
   },
   {
     title: 'Device Registry',
@@ -152,13 +154,15 @@ const allMainPages = [
     title: 'Host Registry',
     href: '/hosts',
     icon: <PeopleOutline />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
+    isNew: true
   },
   {
     title: 'SIM Registry',
     href: '/sim',
     icon: <SimCardIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES'
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES',
+    isNew: true
   },
   {
     title: 'AirQloud Registry',
@@ -175,13 +179,15 @@ const allMainPages = [
     title: 'Cohorts Registry',
     href: '/cohorts',
     icon: <GroupWorkIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
+    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS',
+    isNew: true
   },
   {
     title: 'Grids Registry',
     href: '/grids',
     icon: <GrainIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
+    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS',
+    isNew: true
   }
 ];
 
