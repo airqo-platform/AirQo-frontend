@@ -173,7 +173,8 @@ const allMainPages = [
   {
     title: 'Heat Map',
     href: '/heatMap',
-    icon: <BubbleChartIcon />
+    icon: <BubbleChartIcon />,
+    isNew: true
   },
   {
     title: 'Cohorts Registry',
@@ -207,7 +208,8 @@ const allUserManagementPages = [
   {
     title: 'Teams',
     href: '/teams',
-    icon: <GroupAddIcon />
+    icon: <GroupAddIcon />,
+    isNew: true
   },
   {
     title: 'Users',
