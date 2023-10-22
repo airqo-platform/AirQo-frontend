@@ -53,7 +53,6 @@ const UserLogin = () => {
             router.push('/analytics/collocation/overview');
           })
           .catch((error) => {
-            console.error(`Error fetching user details: ${error}`);
             dispatch(setSuccess(false));
             dispatch(
               setFailure(error?.response?.data.message || 'Something went wrong, please try again'),
@@ -64,7 +63,6 @@ const UserLogin = () => {
           });
       })
       .catch((error) => {
-        console.log(error);
         dispatch(setSuccess(false));
         dispatch(
           setFailure(error?.response?.data.message || 'Something went wrong, please try again'),

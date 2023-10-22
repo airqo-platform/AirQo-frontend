@@ -14,6 +14,8 @@ if (typeof window !== 'undefined') {
   jwtToken = window.localStorage.getItem('token');
 }
 
+const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN;
+
 axios.defaults.headers.common.Authorization = jwtToken;
 
 export const postUserCreationDetails = async (data) =>
@@ -28,8 +30,16 @@ export const postUserLoginDetails = async (data) => {
 };
 
 export const getUserDetails = async (userID, token) => {
-  axios.defaults.headers.common.Authorization = token;
-  return await axios.get(`${USERS_URL}/${userID}`).then((response) => response.data);
+  return await axios
+    .get(`${USERS_URL}/${userID}`, {
+      headers: {
+        Authorization: token,
+      },
+      params: {
+        token: API_TOKEN,
+      },
+    })
+    .then((response) => response.data);
 };
 
 export const getAssignedGroupMembers = async (groupID) => {
