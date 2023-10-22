@@ -1,6 +1,6 @@
 /* eslint-disable react/no-multi-comp */
 /* eslint-disable react/display-name */
-import React, { forwardRef, useState } from 'react';
+import React, { forwardRef, useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { NavLink as RouterLink, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
@@ -81,6 +81,29 @@ const useStyles = makeStyles((theme) => ({
     '& $icon': {
       color: theme.palette.primary.main
     }
+  },
+  disabledItem: {
+    opacity: 0.5,
+    cursor: 'not-allowed'
+  },
+  newLabel: {
+    marginLeft: 'auto',
+    color: theme.palette.white,
+    backgroundColor: theme.palette.secondary.light,
+    borderRadius: '2px',
+    padding: '2px 4px',
+    fontSize: '0.6rem',
+    fontWeight: '500',
+    animation: '$flash 1s infinite'
+  },
+  '@keyframes flash': {
+    '0%': { backgroundColor: theme.palette.secondary.light },
+    '50%': { backgroundColor: theme.palette.secondary.dark },
+    '100%': { backgroundColor: theme.palette.secondary.light }
+  },
+  align: {
+    display: 'flex',
+    alignItems: 'center'
   }
 }));
 
@@ -116,10 +139,106 @@ export const SidebarWidgets = ({ className, ...rest }) => {
   );
 };
 
+const NestedMenuItemComponent = ({ page }) => {
+  const classes = useStyles();
+  const location = useLocation();
+
+  const [isNewClicked, setIsNewClicked] = useState(
+    localStorage.getItem(`isNewClicked-${page.title}`) === 'true'
+  );
+
+  useEffect(() => {
+    setIsNewClicked(localStorage.getItem(`isNewClicked-${page.title}`) === 'true');
+  }, [page.title]);
+
+  const handleClick = () => {
+    if (page.isNew) {
+      localStorage.setItem(`isNewClicked-${page.title}`, 'true');
+      setIsNewClicked(true);
+    }
+  };
+
+  return (
+    <NestedMenuItem
+      label={
+        <Button
+          className={
+            (location.pathname.includes(page.href) && classes.buttonActive) || classes.button
+          }>
+          <div className={classes.icon}>{page.icon}</div>
+          {page.title}
+          {page.isNew && !isNewClicked && (
+            <div className={classes.newLabel}>
+              <span>New</span>
+            </div>
+          )}
+        </Button>
+      }
+      parentMenuOpen={true}
+      style={{ padding: '0px' }}>
+      {page.nestItems.map((nestPage, key) => (
+        <MenuItem key={key}>
+          <Button
+            onClick={handleClick}
+            activeClassName={classes.active}
+            className={classes.nestButton}
+            component={CustomRouterLink}
+            to={nestPage.href}
+            key={key}>
+            {nestPage.title}
+          </Button>
+        </MenuItem>
+      ))}
+    </NestedMenuItem>
+  );
+};
+
+const SidebarNavItem = ({ page }) => {
+  const classes = useStyles();
+
+  const [isNewClicked, setIsNewClicked] = useState(
+    localStorage.getItem(`isNewClicked-${page.title}`) === 'true'
+  );
+
+  useEffect(() => {
+    setIsNewClicked(localStorage.getItem(`isNewClicked-${page.title}`) === 'true');
+  }, [page.title]);
+
+  const handleClick = () => {
+    if (page.isNew) {
+      localStorage.setItem(`isNewClicked-${page.title}`, 'true');
+      setIsNewClicked(true);
+    }
+  };
+
+  return (
+    <ListItem
+      className={`${classes.item} ${page.disabled ? classes.disabledItem : ''}`}
+      disableGutters
+      key={page.title}
+      disabled={page.disabled}>
+      <Button
+        disabled={page.disabled}
+        activeClassName={classes.active}
+        className={classes.button}
+        component={CustomRouterLink}
+        to={page.href}
+        onClick={handleClick}>
+        <div className={classes.icon}>{page.icon}</div>
+        <div style={{ marginRight: page.isNew && !isNewClicked ? '2px' : '0px' }}>{page.title}</div>
+        {page.isNew && !isNewClicked && (
+          <div className={classes.newLabel}>
+            <span>New</span>
+          </div>
+        )}
+      </Button>
+    </ListItem>
+  );
+};
+
 const SidebarNav = (props) => {
   const classes = useStyles();
   const { pages, className, ...rest } = props;
-  const location = useLocation();
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   return (
@@ -132,65 +251,20 @@ const SidebarNav = (props) => {
               activeNetwork.net_name !== 'airqo' &&
               page.title === 'Network Monitoring'
             ) {
-              return;
+              return null;
             } else {
-              return (
-                <NestedMenuItem
-                  label={
-                    <Button
-                      className={
-                        (location.pathname.includes(page.href) && classes.buttonActive) ||
-                        classes.button
-                      }>
-                      <div className={classes.icon}>{page.icon}</div>
-                      {page.title}
-                    </Button>
-                  }
-                  parentMenuOpen={true}
-                  style={{ padding: '0px' }}>
-                  {page.nestItems.map((nestPage, key) => (
-                    <MenuItem>
-                      <Button
-                        activeClassName={classes.active}
-                        className={classes.nestButton}
-                        component={CustomRouterLink}
-                        to={nestPage.href}
-                        key={key}>
-                        {nestPage.title}
-                      </Button>
-                    </MenuItem>
-                  ))}
-                </NestedMenuItem>
-              );
+              return <NestedMenuItemComponent page={page} />;
             }
           }
+
           if (
             !isEmpty(activeNetwork) &&
             activeNetwork.net_name !== 'airqo' &&
             (page.title === 'Logs' || page.title === 'AirQloud Registry')
           ) {
-            return;
+            return null;
           } else {
-            return (
-              <ListItem
-                className={classes.item}
-                disableGutters
-                key={page.title}
-                disabled={page.disabled}
-                style={{
-                  cursor: page.disabled ? 'not-allowed' : 'pointer'
-                }}>
-                <Button
-                  disabled={page.disabled}
-                  activeClassName={classes.active}
-                  className={classes.button}
-                  component={CustomRouterLink}
-                  to={page.href}>
-                  <div className={classes.icon}>{page.icon}</div>
-                  {page.title}
-                </Button>
-              </ListItem>
-            );
+            return <SidebarNavItem page={page} />;
           }
         })}
     </List>
