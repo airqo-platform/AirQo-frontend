@@ -28,7 +28,7 @@ const EmptyState = () => (
           <div className='mr-[10px]'>
             <BoxedAddIcon />
           </div>
-          Test monitor
+          Add monitors
         </Button>
         <div className='mr-[14px]'></div>
         <Button

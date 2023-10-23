@@ -15,7 +15,7 @@ function Tabs({ children }) {
               className={`${
                 activeTab === index
                   ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent opacity-40 hover:text-grey hover:border-grey-200 text-neutral-light-400'
+                  : 'border-transparent opacity-40 hover:text-grey hover:border-grey-200 text-secondary-neutral-light-400'
               } whitespace-nowrap py-2 border-b-2 rounded-tl-full rounded-tr-full font-medium text-sm focus:outline-none mr-2 cursor-pointer`}
               onClick={() => setActiveTab(index)}
             >

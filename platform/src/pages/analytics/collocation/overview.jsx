@@ -235,14 +235,22 @@ const CollocationOverview = () => {
                 <>
                   <GraphCard
                     data={[deviceStatistics[0]]}
-                    batch={allmatchingDevices[activeIndex]}
+                    batch={
+                      allmatchingDevices &&
+                      allmatchingDevices.length > 0 &&
+                      allmatchingDevices[activeIndex]
+                    }
                     device={selectedBatch[0]}
                     selectedBatch={selectedBatch}
                   />
                   <GraphCard
                     data={[deviceStatistics[1]]}
                     secondGraph={true}
-                    batch={allmatchingDevices[activeIndex]}
+                    batch={
+                      allmatchingDevices &&
+                      allmatchingDevices.length > 0 &&
+                      allmatchingDevices[activeIndex]
+                    }
                     device={selectedBatch[1]}
                     selectedBatch={selectedBatch}
                   />
@@ -254,7 +262,11 @@ const CollocationOverview = () => {
                     <GraphCard
                       data={[deviceStatistics[0]]}
                       secondGraph={true}
-                      batch={allmatchingDevices[activeIndex]}
+                      batch={
+                        allmatchingDevices &&
+                        allmatchingDevices.length > 0 &&
+                        allmatchingDevices[activeIndex]
+                      }
                       device={selectedBatch[0]}
                       selectedBatch={selectedBatch}
                     />
@@ -302,4 +314,4 @@ const CollocationOverview = () => {
   );
 };
 
-export default CollocationOverview;
+export default withAuth(CollocationOverview);

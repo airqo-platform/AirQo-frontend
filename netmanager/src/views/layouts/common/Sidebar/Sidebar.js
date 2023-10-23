@@ -37,6 +37,7 @@ import NetworkDropdown from './components/NetworkDropdown';
 import { getRoleDetailsApi } from '../../../apis/accessControl';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
+import TapAndPlayIcon from '@material-ui/icons/TapAndPlay';
 import GroupWorkIcon from '@material-ui/icons/GroupWork';
 import SimCardIcon from '@material-ui/icons/SimCard';
 import GridOnIcon from '@material-ui/icons/GridOn';
@@ -103,7 +104,8 @@ const allMainPages = [
   {
     title: 'Analytics',
     href: '/analytics',
-    icon: <TimelineIcon />
+    icon: <TimelineIcon />,
+    isNew: true
   },
   {
     title: 'Export data',
@@ -132,7 +134,8 @@ const allMainPages = [
       { title: 'Network Map', href: '/manager/map' },
       { title: 'Network Statistics', href: '/manager/stats' },
       { title: 'Network Activity Logs', href: '/manager/activities' }
-    ]
+    ],
+    isNew: true
   },
   {
     title: 'Device Registry',
@@ -151,13 +154,15 @@ const allMainPages = [
     title: 'Host Registry',
     href: '/hosts',
     icon: <PeopleOutline />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
+    isNew: true
   },
   {
     title: 'SIM Registry',
     href: '/sim',
     icon: <SimCardIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES',
+    isNew: true
   },
   {
     title: 'AirQloud Registry',
@@ -169,19 +174,21 @@ const allMainPages = [
     title: 'Heat Map',
     href: '/heatMap',
     icon: <BubbleChartIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
+    isNew: true
   },
   {
     title: 'Cohorts Registry',
     href: '/cohorts',
     icon: <GroupWorkIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
+    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS',
+    isNew: true
   },
   {
     title: 'Grids Registry',
     href: '/grids',
     icon: <GrainIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
+    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS',
+    isNew: true
   }
 ];
 
@@ -193,15 +200,16 @@ const allUserManagementPages = [
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS'
   },
   {
-    title: 'Organisation',
-    href: '/organisation',
-    icon: <BusinessIcon />,
+    title: 'Networks',
+    href: '/networks',
+    icon: <TapAndPlayIcon />,
     disabled: true
   },
   {
     title: 'Teams',
     href: '/teams',
-    icon: <GroupAddIcon />
+    icon: <GroupAddIcon />,
+    isNew: true
   },
   {
     title: 'Users',
@@ -328,6 +336,7 @@ const Sidebar = (props) => {
         'Location Registry',
         'Device Registry',
         'Host Registry',
+        'SIM Registry',
         'Site Registry',
         'AirQloud Registry',
         'Cohorts Registry',

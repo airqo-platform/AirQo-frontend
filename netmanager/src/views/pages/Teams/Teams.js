@@ -117,7 +117,8 @@ const CreateTeam = ({
         if (err.response.status === 409) {
           setErrors({
             showError: true,
-            errorMessage: 'Team with this name already exists.'
+            errorMessage:
+              'There is a duplicate record. Please try again or contact your Network administrator.'
           });
         } else {
           setErrors({
@@ -303,6 +304,7 @@ const Teams = () => {
             event.preventDefault();
             history.push(`/teams/${row._id}`);
           }}
+          isLoading={loading}
           data={teams}
           options={{
             search: true,

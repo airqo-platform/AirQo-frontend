@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useRef } from 'react';
 import HomeSmileIcon from '@/icons/SideBar/home_smile.svg';
 import CollapseIcon from '@/icons/SideBar/Collapse.svg';
 import BookOpenIcon from '@/icons/SideBar/book_open_01.svg';
@@ -7,22 +8,22 @@ import SiteIcon from '@/icons/SideBar/Sites.svg';
 import GridIcon from '@/icons/SideBar/grid_01.svg';
 import SettingsIcon from '@/icons/SideBar/settings_02.svg';
 import BarChartSqIcon from '@/icons/SideBar/bar_chart.svg';
-import MenuBarIcon from '@/icons/menu_bar';
-import { useEffect, useState } from 'react';
 import { useWindowSize } from '@/lib/windowSize';
-import SideBarItem, { SideBarDropdownItem } from './SideBarItem';
+import SideBarItem, { SideBarDropdownItem, SidebarIconItem } from './SideBarItem';
 import AirqoLogo from '@/icons/airqo_logo.svg';
-
+import CloseIcon from '@/icons/close_icon';
 import CollocationIcon from '@/icons/Collocation/collocation.svg';
 
-const AuthenticatedSideBar = () => {
-  const [toggleDrawer, setToggleDrawer] = useState(false);
-  const sideBarDisplayStyle = toggleDrawer ? 'flex fixed top-16 left-0 z-10' : 'hidden';
+const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCollapsed }) => {
+  const sideBarDisplayStyle = toggleDrawer ? 'flex fixed left-0 z-50' : 'hidden';
   const size = useWindowSize();
 
   // Toggle Dropdown open and close
   const [collocationOpen, setCollocationOpen] = useState(true);
   const [analyticsOpen, setAnalyticsOpen] = useState(true);
+
+  // Create a ref for the sidebar
+  const sidebarRef = useRef();
 
   useEffect(() => {
     const collocationOpenState = localStorage.getItem('collocationOpen');
@@ -43,28 +44,43 @@ const AuthenticatedSideBar = () => {
     localStorage.setItem('analyticsOpen', JSON.stringify(analyticsOpen));
   }, [collocationOpen, analyticsOpen]);
 
-  return (
-    <div className='w-64'>
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+        setToggleDrawer(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [sidebarRef]);
+
+  return !collapsed ? (
+    <div className='w-64' ref={sidebarRef}>
       <div
         className={`${
           size.width >= 1024 ? 'flex' : sideBarDisplayStyle
         } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200`}>
         <div>
-          <div
-            className='
-              p-4
-              flex
-              flex-row
-              justify-between
-            '>
-            <AirqoLogo className='invisible md:visible lg:visible w-[46.56px] h-8 flex flex-col flex-1' />
-            <CollapseIcon className='pt-1 h-full flex flex-col flex-3' />
+          <div className='p-4 justify-between items-center flex'>
+            <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
+            <button type='button' onClick={() => setCollapsed(!collapsed)}>
+              <CollapseIcon className='invisible md:invisible lg:visible pt-1 h-full flex flex-col flex-3' />
+            </button>
+            <button
+              type='button'
+              className='lg:hidden relative flex items-center justify-end z-10 w-auto focus:outline-none border border-gray-200 rounded-md'
+              onClick={() => setToggleDrawer(!toggleDrawer)}>
+              <CloseIcon />
+            </button>
           </div>
           <div className='mt-3 mx-2'>
-            <SideBarItem label='Home' Icon={HomeSmileIcon} navPath='/Home/home' />
+            {/* <SideBarItem label='Home' Icon={HomeSmileIcon} navPath='/Home/home' />
             <SideBarItem label='Learn' Icon={BookOpenIcon} />
-            <SideBarItem label='Notification' Icon={NotificationIcon} />
-            <SideBarItem
+            <SideBarItem label='Notification' Icon={NotificationIcon} /> */}
+            {/* <SideBarItem
               label='Analytics'
               Icon={BarChartSqIcon}
               dropdown
@@ -74,7 +90,7 @@ const AuthenticatedSideBar = () => {
               <SideBarDropdownItem itemLabel='AirQlouds' itemPath='/analytics/airqlouds' />
               <SideBarDropdownItem itemLabel='Map view' itemPath='' />
             </SideBarItem>
-            <hr className='my-3 h-[0.5px] bg-grey-150' />
+            <hr className='my-3 h-[0.5px] bg-grey-150' /> */}
             <SideBarItem
               label='Collocation'
               Icon={CollocationIcon}
@@ -89,27 +105,37 @@ const AuthenticatedSideBar = () => {
                 itemLabel='Collocate'
                 itemPath='/analytics/collocation/collocate'
               />
-              <SideBarDropdownItem
-                itemLabel='Reports'
-                itemPath='/analytics/collocation/reports'
-              />
+              {/* <SideBarDropdownItem itemLabel='Reports' itemPath='/analytics/collocation/reports' /> */}
             </SideBarItem>
-            <SideBarItem label='Sites' Icon={SiteIcon} />
-            <SideBarItem label='Other tools' Icon={GridIcon} />
+            {/* <SideBarItem label='Sites' Icon={SiteIcon} />
+            <SideBarItem label='Other tools' Icon={GridIcon} /> */}
           </div>
         </div>
         <div className='mx-2'>
-          <SideBarItem label='Get Support' Icon={SupportIcon} />
-          <SideBarItem label='Settings' Icon={SettingsIcon} />
+          {/* <SideBarItem label='Get Support' Icon={SupportIcon} /> */}
+          <SideBarItem label='Settings' Icon={SettingsIcon} navPath={'/settings'} />
         </div>
       </div>
+    </div>
+  ) : (
+    <div className='w-[88px]'>
       <div
-        className='lg:hidden fixed top-5 right-10 z-30'
-        role='button'
-        tabIndex={0}
-        onKeyDown={() => setToggleDrawer(!toggleDrawer)}
-        onClick={() => setToggleDrawer(!toggleDrawer)}>
-        <MenuBarIcon />
+        className={`${
+          size.width >= 1024 ? 'flex' : sideBarDisplayStyle
+        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200`}>
+        <div className='flex flex-col items-center justify-center'>
+          <div className='p-4 justify-between items-center flex'>
+            <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
+          </div>
+          <div className='mt-3 mx-2'>
+            <SidebarIconItem IconComponent={HomeSmileIcon} isActive={true} navPath='#' />
+            <hr className='my-3 h-[0.5px] bg-grey-150' />
+            <SidebarIconItem IconComponent={CollocationIcon} isActive={false} navPath='#' />
+          </div>
+        </div>
+        <div className='mx-2 mb-2 flex items-center justify-center'>
+          <SidebarIconItem IconComponent={SettingsIcon} isActive={false} navPath='/settings' />
+        </div>
       </div>
     </div>
   );
