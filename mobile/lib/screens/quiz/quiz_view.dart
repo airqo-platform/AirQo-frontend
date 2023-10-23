@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
@@ -350,24 +352,40 @@ class QuizCard extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
       ),
       onPressed: () async {
-        dynamic response;
-        if (quiz.status == QuizStatus.todo) {
-          context
-              .read<CurrentQuizQuestionCubit>()
-              .setQuestion(quiz.questions.first);
-          response = await bottomSheetQuizTitle(quiz, context);
-          if (response == true && quiz.status != QuizStatus.complete) {
-            response = await bottomSheetQuizQuestion(quiz, context);
+        if (quiz.status != QuizStatus.todo) {
+          dynamic response = await bottomSheetQuizQuestion(quiz, context);
+          if (response != null && response == true) {
+            response = await bottomSheetQuizConffeti(quiz, context);
             context.read<KyaBloc>().add(
                   UpdateQuizProgress(
                     quiz.copyWith(
-                      status: QuizStatus.inProgress,
+                      activeQuestion: 1,
+                      status: QuizStatus.complete,
                     ),
                     updateRemote: true,
                   ),
                 );
+            context
+                .read<CurrentQuizQuestionCubit>()
+                .setQuestion(quiz.questions.first);
+          }
+        } else {
+          context
+              .read<CurrentQuizQuestionCubit>()
+              .setQuestion(quiz.questions.first);
+          dynamic response = await bottomSheetQuizTitle(quiz, context);
+          if (response != null &&
+              response == true &&
+              quiz.status != QuizStatus.complete) {
+            context.read<KyaBloc>().add(
+                  UpdateQuizProgress(
+                      quiz.copyWith(
+                        status: QuizStatus.inProgress,
+                      ),
+                      updateRemote: true),
+                );
             response = await bottomSheetQuizQuestion(quiz, context);
-            if (response == true) {
+            if (response != null && response == true) {
               response = await bottomSheetQuizConffeti(quiz, context);
               context.read<KyaBloc>().add(
                     UpdateQuizProgress(
@@ -383,34 +401,69 @@ class QuizCard extends StatelessWidget {
                   .setQuestion(quiz.questions.first);
             }
           }
-        } else if (quiz.status == QuizStatus.inProgress) {
-          context
-              .read<CurrentQuizQuestionCubit>()
-              .setQuestion(quiz.questions.first);
-          response = await bottomSheetQuizTitle(quiz, context);
-          if (response == true) {
-            response = await bottomSheetQuizQuestion(quiz, context);
-            context.read<KyaBloc>().add(
-                  UpdateQuizProgress(
-                    quiz.copyWith(
-                      activeQuestion: 1,
-                      status: QuizStatus.inProgress,
-                    ),
-                    updateRemote: true,
-                  ),
-                );
-            await bottomSheetQuizQuestion(quiz, context);
-          }
-        } else if (quiz.status == QuizStatus.complete) {
-          response = await bottomSheetQuizQuestion(quiz, context);
-          if (response == true) {
-            context
-                .read<CurrentQuizQuestionCubit>()
-                .setQuestion(quiz.questions.first);
-            await bottomSheetQuizConffeti(quiz, context);
-          }
         }
       },
+      //   dynamic response;
+      //   if (quiz.status == QuizStatus.todo) {
+      //     context
+      //         .read<CurrentQuizQuestionCubit>()
+      //         .setQuestion(quiz.questions.first);
+      //     response = await bottomSheetQuizTitle(quiz, context);
+      //     if (response == true && quiz.status != QuizStatus.complete) {
+      //       response = await bottomSheetQuizQuestion(quiz, context);
+      //       context.read<KyaBloc>().add(
+      //             UpdateQuizProgress(
+      //               quiz.copyWith(
+      //                 status: QuizStatus.inProgress,
+      //               ),
+      //               updateRemote: true,
+      //             ),
+      //           );
+      //       response = await bottomSheetQuizQuestion(quiz, context);
+      //       if (response == true) {
+      //         response = await bottomSheetQuizConffeti(quiz, context);
+      //         context.read<KyaBloc>().add(
+      //               UpdateQuizProgress(
+      //                 quiz.copyWith(
+      //                   activeQuestion: 1,
+      //                   status: QuizStatus.complete,
+      //                 ),
+      //                 updateRemote: true,
+      //               ),
+      //             );
+      //         context
+      //             .read<CurrentQuizQuestionCubit>()
+      //             .setQuestion(quiz.questions.first);
+      //       }
+      //     }
+      //   } else if (quiz.status == QuizStatus.inProgress) {
+      //     context
+      //         .read<CurrentQuizQuestionCubit>()
+      //         .setQuestion(quiz.questions.first);
+      //     response = await bottomSheetQuizTitle(quiz, context);
+      //     if (response == true) {
+      //       response = await bottomSheetQuizQuestion(quiz, context);
+      //       context.read<KyaBloc>().add(
+      //             UpdateQuizProgress(
+      //               quiz.copyWith(
+      //                 activeQuestion: 1,
+      //                 status: QuizStatus.inProgress,
+      //               ),
+      //               updateRemote: true,
+      //             ),
+      //           );
+      //       await bottomSheetQuizQuestion(quiz, context);
+      //     }
+      //   } else if (quiz.status == QuizStatus.complete) {
+      //     response = await bottomSheetQuizQuestion(quiz, context);
+      //     if (response == true) {
+      //       context
+      //           .read<CurrentQuizQuestionCubit>()
+      //           .setQuestion(quiz.questions.first);
+      //       await bottomSheetQuizConffeti(quiz, context);
+      //     }
+      //   }
+      // },
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
