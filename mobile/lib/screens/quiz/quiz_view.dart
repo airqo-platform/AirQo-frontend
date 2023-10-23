@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:async';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
@@ -359,6 +357,7 @@ class QuizCard extends StatelessWidget {
               .setQuestion(quiz.questions.first);
           response = await bottomSheetQuizTitle(quiz, context);
           if (response == true && quiz.status != QuizStatus.complete) {
+            response = await bottomSheetQuizQuestion(quiz, context);
             context.read<KyaBloc>().add(
                   UpdateQuizProgress(
                     quiz.copyWith(
@@ -390,6 +389,7 @@ class QuizCard extends StatelessWidget {
               .setQuestion(quiz.questions.first);
           response = await bottomSheetQuizTitle(quiz, context);
           if (response == true) {
+            response = await bottomSheetQuizQuestion(quiz, context);
             context.read<KyaBloc>().add(
                   UpdateQuizProgress(
                     quiz.copyWith(
@@ -402,12 +402,12 @@ class QuizCard extends StatelessWidget {
             await bottomSheetQuizQuestion(quiz, context);
           }
         } else if (quiz.status == QuizStatus.complete) {
-          response = await bottomSheetQuizConffeti(quiz, context);
+          response = await bottomSheetQuizQuestion(quiz, context);
           if (response == true) {
             context
                 .read<CurrentQuizQuestionCubit>()
                 .setQuestion(quiz.questions.first);
-            await bottomSheetQuizTitle(quiz, context);
+            await bottomSheetQuizConffeti(quiz, context);
           }
         }
       },
@@ -441,34 +441,42 @@ class QuizCard extends StatelessWidget {
                           maxWidth: MediaQuery.of(context).size.width * 0.44,
                           maxHeight: 4,
                         ),
-                        child: QuizProgressBar(
+                        child: QuizCardProgressBar(
                             quiz.activeQuestion, quiz.questions.length),
                       ),
-                      Container(
-                        height: 19,
-                        width: 19,
-                        padding: const EdgeInsets.fromLTRB(3, 5, 3, 1),
-                        decoration: BoxDecoration(
-                          color: CustomColors.appColorBlue.withOpacity(0.24),
-                          shape: BoxShape.circle,
-                        ),
-                        child: quiz.activeQuestion >= 7
-                            ? CircleAvatar(
-                                radius: 9.5,
-                                backgroundColor:
+                      quiz.activeQuestion >= quiz.questions.length
+                          ? Container(
+                              height: 19,
+                              width: 19,
+                              padding: const EdgeInsets.fromLTRB(1, 1, 1, 1),
+                              decoration: BoxDecoration(
+                                color:
                                     CustomColors.appColorBlue.withOpacity(0.24),
-                                child: Icon(Icons.check_circle_rounded,
-                                    color: CustomColors.appColorBlue, size: 8),
-                              )
-                            : Text(
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.check_circle_rounded,
+                                color: CustomColors.appColorBlue,
+                                size: 17,
+                              ),
+                            )
+                          : Container(
+                              height: 19,
+                              width: 19,
+                              padding: const EdgeInsets.fromLTRB(3, 5, 3, 1),
+                              decoration: BoxDecoration(
+                                color:
+                                    CustomColors.appColorBlue.withOpacity(0.24),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
                                 "${quiz.activeQuestion == 1 ? 0 : quiz.activeQuestion - 1}/${quiz.questions.length - 1}",
                                 style: TextStyle(
                                   color: CustomColors.appColorBlue,
                                   fontSize: 7,
                                 ),
                               ),
-                        // child: Text(
-                      ),
+                            ),
                     ],
                   ),
                 ),

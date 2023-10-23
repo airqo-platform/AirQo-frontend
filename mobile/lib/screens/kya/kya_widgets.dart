@@ -194,33 +194,42 @@ class _KyaLessonCardWidgetState extends State<KyaLessonCardWidget> {
                           maxWidth: MediaQuery.of(context).size.width * 0.44,
                           maxHeight: 4,
                         ),
-                        child: KyaLessonProgressBar(widget.kyaLesson),
+                        child: KyaLessonCardProgressBar(widget.kyaLesson),
                       ),
-                      Container(
-                        height: 19,
-                        width: 19,
-                        padding: const EdgeInsets.fromLTRB(3, 5, 3, 1),
-                        decoration: BoxDecoration(
-                          color: CustomColors.appColorBlue.withOpacity(0.24),
-                          shape: BoxShape.circle,
-                        ),
-                        child: widget.kyaLesson.activeTask >= 6
-                            ? CircleAvatar(
-                                radius: 9.5,
-                                backgroundColor:
+                      widget.kyaLesson.activeTask ==
+                              widget.kyaLesson.tasks.length
+                          ? Container(
+                              height: 19,
+                              width: 19,
+                              padding: const EdgeInsets.fromLTRB(1, 1, 1, 1),
+                              decoration: BoxDecoration(
+                                color:
                                     CustomColors.appColorBlue.withOpacity(0.24),
-                                child: Icon(Icons.check_circle_rounded,
-                                    color: CustomColors.appColorBlue, size: 8),
-                              )
-                            : Text(
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.check_circle_rounded,
+                                color: CustomColors.appColorBlue,
+                                size: 17,
+                              ),
+                            )
+                          : Container(
+                              height: 19,
+                              width: 19,
+                              padding: const EdgeInsets.fromLTRB(3, 5, 3, 1),
+                              decoration: BoxDecoration(
+                                color:
+                                    CustomColors.appColorBlue.withOpacity(0.24),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
                                 "${widget.kyaLesson.activeTask == 1 ? 0 : widget.kyaLesson.activeTask - 1}/${widget.kyaLesson.tasks.length - 1}",
                                 style: TextStyle(
                                   color: CustomColors.appColorBlue,
                                   fontSize: 7,
                                 ),
                               ),
-                        // child: Text(
-                      ),
+                            ),
                     ],
                   ),
                 ),
@@ -289,7 +298,33 @@ class KyaLessonProgressBar extends StatelessWidget {
         borderRadius: const BorderRadius.all(Radius.circular(10)),
         child: LinearProgressIndicator(
           color: CustomColors.appColorBlue,
-          value: kyaLesson.activeTask / kyaLesson.tasks.length,
+          value: kyaLesson.activeTask == 1
+              ? 0
+              : kyaLesson.activeTask / kyaLesson.tasks.length,
+          backgroundColor: CustomColors.appColorBlue.withOpacity(0.24),
+          valueColor: AlwaysStoppedAnimation<Color>(CustomColors.appColorBlue),
+        ),
+      ),
+    );
+  }
+}
+
+class KyaLessonCardProgressBar extends StatelessWidget {
+  const KyaLessonCardProgressBar(this.kyaLesson, {super.key});
+
+  final KyaLesson kyaLesson;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: kyaLesson.tasks.length.toDouble(),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
+        child: LinearProgressIndicator(
+          color: CustomColors.appColorBlue,
+          value: kyaLesson.activeTask == 1
+              ? 0
+              : kyaLesson.activeTask / kyaLesson.tasks.length,
           backgroundColor: CustomColors.appColorBlue.withOpacity(0.24),
           valueColor: AlwaysStoppedAnimation<Color>(CustomColors.appColorBlue),
         ),
