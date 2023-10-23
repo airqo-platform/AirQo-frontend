@@ -63,15 +63,8 @@ const CohortsDashboardView = ({ cohort, cohortDetails, loading }) => {
   }, [cohortDetails]);
 
   useEffect(() => {
-    if (isEmpty(userDefaultGraphs)) {
-      dispatch(loadUserDefaultGraphData(true, cohort._id));
-    }
-  }, []);
-
-  // componentWillUnmount
-  useEffect(() => {
-    return () => dispatch(loadUserDefaultGraphData(true, cohort._id));
-  }, []);
+    dispatch(loadUserDefaultGraphData(true, cohort._id));
+  }, [cohort]);
 
   function appendLeadingZeroes(n) {
     if (n <= 9) {
