@@ -7,7 +7,7 @@ import { useWindowSize } from '@/lib/windowSize';
 import SideBarItem, { SideBarDropdownItem, SidebarIconItem } from './SideBarItem';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import CloseIcon from '@/icons/close_icon';
-import CollocationIcon from '@/icons/Collocation/collocation.svg';
+import CollocationIcon from '@/icons/SideBar/collocation.svg';
 
 const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCollapsed }) => {
   const sideBarDisplayStyle = toggleDrawer ? 'flex fixed left-0 z-50' : 'hidden';

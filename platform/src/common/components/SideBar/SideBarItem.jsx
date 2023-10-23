@@ -79,22 +79,37 @@ const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, t
     >
       <Link href={navPath || '#'}>
         <div className={`flex items-center justify-between w-full h-12 hover:cursor-pointer mt-2`}>
-          <div className='flex items-center'>
+          <div className={`flex items-center w-full`}>
+            {isCurrentRoute && <div className='w-1 h-5 bg-blue-600 mr-1 rounded-3xl' />}
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center mr-4 ${
-                isCurrentRoute && 'stroke-blue-600'
+              className={`flex items-center py-3 px-4 w-full ${
+                isCurrentRoute && 'bg-primary-50 rounded'
               }`}
             >
-              <Icon className={`${isCurrentRoute && 'stroke-inherit'}`} />
-            </div>
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center mr-4 ${
+                  isCurrentRoute && 'text-blue-600'
+                }`}
+              >
+                <Icon
+                  className={`${
+                    isCurrentRoute
+                      ? 'stroke-[1.5px] stroke-blue-600'
+                      : 'stroke-[1.5px] stroke-secondary-neutral-light-400'
+                  }`}
+                />
+              </div>
 
-            <h3
-              className={`text-base font-medium ${
-                isCurrentRoute ? 'text-blue-600 mr-3' : 'font-normal text-black-900'
-              }`}
-            >
-              {label}
-            </h3>
+              <h3
+                className={`text-base font-medium ${
+                  isCurrentRoute
+                    ? 'text-blue-600 mr-3'
+                    : 'font-normal text-secondary-neutral-light-800'
+                }`}
+              >
+                {label}
+              </h3>
+            </div>
           </div>
           {dropdown && (
             <div className='mr-4'>
