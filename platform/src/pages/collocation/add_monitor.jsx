@@ -139,7 +139,8 @@ const AddMonitor = () => {
                     : 'opacity-40 cursor-not-allowed'
                 }`}
                 onClick={handleCollocation}
-                dataTestId={'collocation-schedule-button'}>
+                dataTestId={'collocation-schedule-button'}
+              >
                 Start collocation
               </Button>
             </div>

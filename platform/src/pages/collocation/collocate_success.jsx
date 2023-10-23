@@ -19,9 +19,10 @@ const CollocationSuccess = () => {
                 You’ve successfully scheduled your first device for collocation
               </p>
               <Button
-                path='/analytics/collocation/collocate'
+                path='/collocation/collocate'
                 className='text-blue-900 text-xl cursor-pointer'
-                dataTestId='collocation-view-device-status-button'>
+                dataTestId='collocation-view-device-status-button'
+              >
                 View device status, here {'-->'}
               </Button>
             </div>
