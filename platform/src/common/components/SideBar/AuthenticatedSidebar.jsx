@@ -1,11 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import HomeSmileIcon from '@/icons/SideBar/home_smile.svg';
 import CollapseIcon from '@/icons/SideBar/Collapse.svg';
-import BookOpenIcon from '@/icons/SideBar/book_open_01.svg';
-import NotificationIcon from '@/icons/SideBar/notification_box.svg';
-import SupportIcon from '@/icons/SideBar/life_buoy_02.svg';
-import SiteIcon from '@/icons/SideBar/Sites.svg';
-import GridIcon from '@/icons/SideBar/grid_01.svg';
 import SettingsIcon from '@/icons/SideBar/settings_02.svg';
 import BarChartSqIcon from '@/icons/SideBar/bar_chart.svg';
 import { useWindowSize } from '@/lib/windowSize';
@@ -79,20 +74,7 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
             </button>
           </div>
           <div className='mt-3 mx-2'>
-            {/* <SideBarItem label='Home' Icon={HomeSmileIcon} navPath='/Home/home' />
-            <SideBarItem label='Learn' Icon={BookOpenIcon} />
-            <SideBarItem label='Notification' Icon={NotificationIcon} /> */}
-            {/* <SideBarItem
-              label='Analytics'
-              Icon={BarChartSqIcon}
-              dropdown
-              toggleMethod={() => setAnalyticsOpen(!analyticsOpen)}
-              toggleState={analyticsOpen}>
-              <SideBarDropdownItem itemLabel='Overview' itemPath='' />
-              <SideBarDropdownItem itemLabel='AirQlouds' itemPath='/analytics/airqlouds' />
-              <SideBarDropdownItem itemLabel='Map view' itemPath='' />
-            </SideBarItem>
-            <hr className='my-3 h-[0.5px] bg-grey-150' /> */}
+            <SideBarItem label='Analytics' Icon={BarChartSqIcon} navPath='/analytics' />
             <SideBarItem
               label='Collocation'
               Icon={CollocationIcon}
@@ -102,14 +84,10 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
             >
               <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
               <SideBarDropdownItem itemLabel='Collocate' itemPath='/collocation/collocate' />
-              {/* <SideBarDropdownItem itemLabel='Reports' itemPath='/analytics/collocation/reports' /> */}
             </SideBarItem>
-            {/* <SideBarItem label='Sites' Icon={SiteIcon} />
-            <SideBarItem label='Other tools' Icon={GridIcon} /> */}
           </div>
         </div>
         <div className='mx-2'>
-          {/* <SideBarItem label='Get Support' Icon={SupportIcon} /> */}
           <SideBarItem label='Settings' Icon={SettingsIcon} navPath={'/settings'} />
         </div>
       </div>

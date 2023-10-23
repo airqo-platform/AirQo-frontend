@@ -7,6 +7,10 @@ import { useEffect, useState } from 'react';
 export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
   const router = useRouter();
   const [isMediumDevice, setIsMediumDevice] = useState(false);
+  // get current route
+  const currentRoute = router.pathname;
+  // check if current route contains navPath
+  const isCurrentRoute = currentRoute.includes(itemPath);
 
   const changePath = (e) => {
     e.preventDefault();
@@ -34,9 +38,12 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
           itemPath
             ? 'hover:bg-light-blue hover:text-blue'
             : 'hover:bg-grey-900 hover:opacity-50 hover:cursor-not-allowed'
-        }`}>
+        }`}
+      >
         {(!isMediumDevice || itemLabel) && (
-          <h3 className={`text-sm text-grey leading-[21px]`}>{itemLabel}</h3>
+          <h3 className={`text-sm text-grey leading-[21px] ${isCurrentRoute && 'text-blue-600'}`}>
+            {itemLabel}
+          </h3>
         )}
       </span>
     </a>
@@ -48,7 +55,8 @@ export const SidebarIconItem = ({ IconComponent, isActive, navPath }) => (
     <a
       className={`relative flex items-center p-4 rounded cursor-pointer ${
         isActive ? 'bg-light-blue' : ''
-      } hover:bg-gray-200`}>
+      } hover:bg-gray-200`}
+    >
       {isActive && <span className='bg-blue-600 w-1 h-1/2 mr-2 absolute rounded-xl -left-2'></span>}
       <IconComponent />
     </a>
@@ -56,39 +64,35 @@ export const SidebarIconItem = ({ IconComponent, isActive, navPath }) => (
 );
 
 const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, toggleState }) => {
-  const [isMediumDevice, setIsMediumDevice] = useState(false);
-
-  // useEffect(() => {
-  //   const mediaQuery = window.matchMedia('(max-width: 768px)');
-  //   const handleMediaQueryChange = (e) => {
-  //     setIsMediumDevice(e.matches);
-  //   };
-
-  //   setIsMediumDevice(mediaQuery.matches);
-  //   mediaQuery.addListener(handleMediaQueryChange);
-
-  //   return () => {
-  //     mediaQuery.removeListener(handleMediaQueryChange);
-  //   };
-  // }, []);
+  const router = useRouter();
+  // get current route
+  const currentRoute = router.pathname;
+  // check if current route contains navPath
+  const isCurrentRoute = currentRoute.includes(navPath);
 
   return (
     <div
       className={`cursor-pointer ${toggleState && 'bg-sidebar-blue rounded'}`}
       role='button'
       tabIndex={0}
-      onClick={dropdown && toggleMethod}>
+      onClick={dropdown && toggleMethod}
+    >
       <Link href={navPath || '#'}>
         <div className={`flex items-center justify-between w-full h-12 hover:cursor-pointer mt-2`}>
           <div className='flex items-center'>
-            <div className='w-8 h-8 rounded-full flex items-center justify-center mr-4'>
-              <Icon />
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center mr-4 ${
+                isCurrentRoute && 'stroke-blue-600'
+              }`}
+            >
+              <Icon className={`${isCurrentRoute && 'stroke-inherit'}`} />
             </div>
 
             <h3
-              className={`text-base font-normal text-black-900 ${
-                toggleState && 'text-blue font-medium mr-3'
-              }`}>
+              className={`text-base font-medium ${
+                isCurrentRoute ? 'text-blue-600 mr-3' : 'font-normal text-black-900'
+              }`}
+            >
               {label}
             </h3>
           </div>
