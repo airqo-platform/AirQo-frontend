@@ -1,4 +1,6 @@
-export { default as Section } from './Sections/Section';
+export { default as SingleSection } from './Sections/SingleSection';
+export { default as SplitSection } from './Sections/SplitSection';
+export { default as ButtonCTA } from './CTAs/ButtonCTA';
 export { default as SecondaryNav } from './SecondaryNav';
 export { default as MainHighlight } from './Hightlights/MainHighlight';
 export { default as Article } from './Hightlights/NewArticle';

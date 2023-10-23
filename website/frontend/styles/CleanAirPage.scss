@@ -347,6 +347,57 @@
       }
     }
 
+    .single-section {
+      width: 100%;
+      height: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto;
+      padding: 80px 0;
+      background-color: $aq-blue-1;
+
+      .content {
+        width: auto;
+        height: auto;
+        display: flex;
+        max-width: $maxWidth;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+        padding: 0;
+
+        .content-h {
+          color: $aq-black-0;
+          font-weight: 500;
+          font-size: $headingFont;
+          margin-bottom: 24px;
+          padding: 0;
+        }
+        .content-p {
+          text-align: center;
+          margin-bottom: 50px;
+          color: $aq-black-0;
+          font-weight: 400;
+          font-size: $subTextFont;
+          line-height: 28px;
+          margin: 0;
+        }
+
+        .button {
+          width: 100%;
+          height: auto;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-top: 62px;
+          padding: 0;
+        }
+      }
+    }
+
     .article {
       padding: 20px;
       margin: 0;
@@ -586,6 +637,67 @@
               }
             }
           }
+        }
+      }
+    }
+
+    .partners {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto;
+      padding: 0;
+      width: 100%;
+      height: auto;
+      overflow: hidden;
+
+      .partners-wrapper {
+        max-width: $maxWidth;
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        margin: 10px auto;
+        padding: 0 16px;
+
+        .partners-intro {
+          font-size: 36px;
+          font-weight: 500;
+          line-height: 44px;
+          color: $aq-black-5;
+          font-style: normal;
+          margin-top: 70px;
+        }
+
+        .partners-list {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
+          height: auto;
+          margin: 0 auto;
+          padding: 0;
+
+          .partner-img {
+            width: calc(25% - 52px);
+            height: auto;
+            padding: 50px;
+            box-sizing: border-box;
+
+            img {
+              width: 100%;
+              height: auto;
+              object-fit: contain;
+            }
+          }
+        }
+
+        .separator-1 {
+          width: 100%;
+          border: 16px solid $aq-blue-3;
+          margin-top: 40px;
+          margin-bottom: 0;
         }
       }
     }

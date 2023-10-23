@@ -1,8 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import PropTypes from 'prop-types';
 
-const Section = ({
+const SplitSection = ({
   pillTitle,
   title,
   content,
@@ -51,22 +50,7 @@ const Section = ({
   );
 };
 
-Section.propTypes = {
-  pillTitle: PropTypes.string.isRequired,
-  title: PropTypes.string.isRequired,
-  content: PropTypes.oneOfType([PropTypes.string, PropTypes.node]).isRequired,
-  btnText: PropTypes.string.isRequired,
-  link: PropTypes.string.isRequired,
-  imgURL: PropTypes.string.isRequired,
-  reverse: PropTypes.bool,
-  bgColor: PropTypes.string,
-  pillBgColor: PropTypes.string,
-  pillTextColor: PropTypes.string,
-  imageStyle: PropTypes.object,
-  showButton: PropTypes.bool
-};
-
-Section.defaultProps = {
+SplitSection.defaultProps = {
   reverse: false,
   showButton: true,
   bgColor: '#FFFFFF',
@@ -75,4 +59,4 @@ Section.defaultProps = {
   btnText: 'Read here -->'
 };
 
-export default Section;
+export default SplitSection;
