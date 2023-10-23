@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
 import AirQo from 'icons/nav/AirQo';
 import MenuIcon from 'assets/svg/Menu.svg';
@@ -7,6 +7,7 @@ import CloseIcon from 'assets/svg/Close.svg';
 import { Link } from 'react-router-dom';
 import NavTab from './NavTab';
 import { useTranslation } from 'react-i18next';
+import { setLanguageTab } from '../../../reduxStore/EventsNav/NavigationSlice';
 
 const TopBar = () => {
   const dispatch = useDispatch();
@@ -51,7 +52,8 @@ const TopBar = () => {
   };
   // Translation hook
   const { t, i18n } = useTranslation();
-  const [language, setLanguage] = useState(null);
+  const languageTab = useSelector((state) => state.eventsNavTab.languageTab)
+  const [language, setLanguage] = useState(languageTab);
 
   const lngs = {
     en: { nativeName: 'English' },
@@ -62,6 +64,7 @@ const TopBar = () => {
     const optionValue = event.target.value
     i18n.changeLanguage(optionValue);
     setLanguage(optionValue);
+    dispatch(setLanguageTab(optionValue))
   }
 
   return (
