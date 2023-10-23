@@ -1,30 +1,16 @@
 import React from 'react';
-import illustration from '@/icons/Home/illustration.jpg';
-import Image from 'next/image';
+import Tabs from '@/components/Tabs';
+import Tab from '@/components/Tabs/Tab';
 import withAuth from '@/core/utils/protectedRoute';
 import Layout from '@/components/Layout';
 
 const AuthenticatedHomePage = () => {
   return (
-    <Layout topbarTitle={'Home'}>
-      <section>
-        <div className='flex p-4 flex-row gap-4 self-stretch rounded-lg border border-gray-100 bg-white mt-6 mx-12 '>
-          <div className='flex flex-col items-start gap-4'>
-            <div className='flex items-center pt-12 w-303 h-92 '>
-              <div
-                className=' flex items-center justify-center border border-gray-100 '
-                style={{ width: '303px', height: '92px' }}>
-                Welcome to AirQo Analytics
-              </div>
-            </div>
-          </div>
-          <div className='flex flex-1 flex-col items-start justify-end'>
-            <div className='flex items-start ml-auto '>
-              <Image src={illustration} alt='Home' width='450px' height='216px' />
-            </div>
-          </div>
-        </div>
-      </section>
+    <Layout topbarTitle={'Analytics'} noBorderBottom>
+      <Tabs>
+        <Tab label='Overview'>{/* content goes here */}</Tab>
+        <Tab label='Explore'>{/* content goes here */}</Tab>
+      </Tabs>
     </Layout>
   );
 };
