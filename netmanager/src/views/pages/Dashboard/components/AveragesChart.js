@@ -75,6 +75,7 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
     if (isGrids) {
       const siteOptions = [];
       !isEmpty(analyticsSites) &&
@@ -85,9 +86,11 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
     } else {
       setAverageChartSites(flattenSiteOptions(airqloud.siteOptions));
     }
+    setLoading(false);
   }, [analyticsSites, airqloud]);
 
   useEffect(() => {
+    setLoading(true);
     if (isCohorts) {
       const deviceOptions = [];
       !isEmpty(analyticsDevices) &&
@@ -96,6 +99,7 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
         });
       setAverageChartDevices(deviceOptions);
     }
+    setLoading(false);
   }, [analyticsDevices]);
 
   const handlePollutantChange = (pollutant) => {
@@ -559,48 +563,35 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
     handleModalClose();
     fetchAndSetAverages(tempPollutant);
   };
+
   useEffect(() => {
     if (isCohorts) {
       if (!isEmpty(averageChartDevices)) {
-        setLoading(true);
         fetchAndSetAverages(pollutant);
-        setLoading(false);
       }
 
       if (isEmpty(averageChartDevices)) {
-        setLoading(true);
-
-        setTimeout(() => {
-          setLoading(false);
-          setAllLocations([]);
-          setDisplayedLocations([]);
-          setAverages({
-            labels: [],
-            average_values: [],
-            background_colors: []
-          });
-        }, 1000);
+        setAllLocations([]);
+        setDisplayedLocations([]);
+        setAverages({
+          labels: [],
+          average_values: [],
+          background_colors: []
+        });
       }
     } else {
       if (!isEmpty(averageChartSites)) {
-        setLoading(true);
         fetchAndSetAverages(pollutant);
-        setLoading(false);
       }
 
       if (isEmpty(averageChartSites)) {
-        setLoading(true);
-
-        setTimeout(() => {
-          setLoading(false);
-          setAllLocations([]);
-          setDisplayedLocations([]);
-          setAverages({
-            labels: [],
-            average_values: [],
-            background_colors: []
-          });
-        }, 1000);
+        setAllLocations([]);
+        setDisplayedLocations([]);
+        setAverages({
+          labels: [],
+          average_values: [],
+          background_colors: []
+        });
       }
     }
   }, [averageChartSites, modalOpen, averageChartDevices]);
