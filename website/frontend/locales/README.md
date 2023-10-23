@@ -1,13 +1,13 @@
 # How to Translate Website content to different languages
 This is how language translation is being handled in this website application.
 
-The packages being used for internalisation are:
+The packages being used for internationalisation are:
 - `i18next`
 - `i18next-browser-languagedetector`
 - `i18next-http-backend`
 - `react-i18next`
 
-Internalisation by `i18next` documentation: [Docs](https://www.i18next.com/)
+Internationalisation by `i18next` documentation: [Docs](https://www.i18next.com/)
 
 ## Detailed Steps
 ### 1. Install Packages
@@ -35,7 +35,7 @@ In the `i18n.init()` hook, you'll see the configuration of the language resource
 
 In this `resources` list is where you'll configure the `JSON` file paths to your translation files for each language in the languages array. The shorthand used in the languages array should be the same one used when configuring resources.
 
-Now `i18n` knows how to internalise the app.
+Now `i18n` knows how to internationalise the app.
 
 ### 3. Bundling the app with the i18next package
 The configuration file is imported into the `index.js` file to be bundled upon the app starting.
@@ -150,4 +150,4 @@ The language toggle is configured in the `TopBar.js` file. To add a new language
 ## Conclusion
 The translation process is quite manual as described but one can always find methods to make it easier especially in terms of readability and writability.
 
-For more internalisation information, make sure to visit the i18next [documentation](https://www.i18next.com/) site.
+For more internationalisation information, make sure to visit the i18next [documentation](https://www.i18next.com/) site.
