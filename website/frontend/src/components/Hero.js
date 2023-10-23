@@ -9,7 +9,8 @@ import { Modal, Box, IconButton } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import vid from '../assets/video/opening.mov';
 import ReactPlayer from 'react-player/lazy';
-import { border, borderRadius } from '@mui/system';
+import { useTranslation, Trans } from 'react-i18next';
+
 const VideoURL = 'https://youtu.be/2NebAd1F8x8';
 
 const breakPoint = 580;
@@ -43,6 +44,7 @@ const Hero = () => {
   const openModal = () => setModalVisible(true);
   const closeModal = () => setModalVisible(false);
 
+  const { t } = useTranslation();
   return (
     <div className="Hero">
       <span>
@@ -58,19 +60,20 @@ const Hero = () => {
       <div className="hero-content">
         <div>
           <p className="hero-title">
-            Clean air for <br />
-            all African cities
+            <Trans i18nKey="homepage.heroSection.title">
+              Clean air for <br /> all African cities
+            </Trans>
           </p>
           <p className="hero-sub">
-            <span className="fact">“9 out of 10 people breathe polluted air”</span> <br />
-            We empower communities with accurate, hyperlocal and timely air quality data to drive
-            air pollution mitigation actions
+            <span className="fact">“{t("homepage.heroSection.subText.fact")}”</span> <br />
+            {t("homepage.heroSection.subText.desc")}
+
           </p>
           <div className="hero-buttons">
             <Link to="/explore-data">
-              <Button label="Explore data" />
+              <Button label={t('navbar.exploreData')} />
             </Link>
-            <Button className="button-get-involved" label="Get Involved" onClick={showModal} />
+            <Button className="button-get-involved" label={t('navbar.getInvolved')} onClick={showModal} />
           </div>
         </div>
       </div>

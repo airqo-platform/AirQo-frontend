@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import LocationTracker from '../../src/components/LoctionTracker/LocationTracker';
+import LocationTracker from '../../components/LoctionTracker/LocationTracker';
 
 // Mock redux store data
 jest.mock('react-redux', () => ({
