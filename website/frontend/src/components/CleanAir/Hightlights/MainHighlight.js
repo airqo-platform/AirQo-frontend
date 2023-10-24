@@ -11,21 +11,8 @@ const Highlight = () => {
   const pressData = useSelector((state) => state.pressData.pressData);
   const eventsData = useSelector((state) => state.eventsData.events);
 
-  useEffect(() => {
-    try {
-      if (isEmpty(pressData)) {
-        dispatch(loadPressData());
-      }
-      if (isEmpty(eventsData)) {
-        dispatch(getAllEvents());
-      }
-    } catch (err) {
-      console.log('Error in loading data', err);
-    }
-  }, [pressData, eventsData]);
-
   // Getting the latest news
-  const latestNews = pressData.length > 0 ? pressData.filter((news) => news.website_category === 'cleanair') : [];
+  const latestNews = pressData.filter((news) => news.website_category === 'cleanair') || [];
   const latestNewsItem = latestNews.length > 0 ? latestNews[0] : undefined;
 
   // Getting the two latest events
@@ -36,6 +23,15 @@ const Highlight = () => {
   if (!latestNewsItem && latestEvents.length === 0) {
     return null;
   }
+
+  useEffect(() => {
+    if (isEmpty(pressData)) {
+      dispatch(loadPressData());
+    }
+    if (isEmpty(eventsData)) {
+      dispatch(getAllEvents());
+    }
+  }, [pressData, eventsData]);
 
   return (
     <div className="CleanAir-highlights">
@@ -99,7 +95,7 @@ const Highlight = () => {
         ) : <span />}
       </div>
     </div>
-  );
+  )
 };
 
 export default Highlight;
