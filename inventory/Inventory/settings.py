@@ -89,20 +89,21 @@ WSGI_APPLICATION = 'Inventory.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME':  'AirQoHardWare',
-#         'USER': 'postgres',
-#         'PASSWORD': '',
-#         'HOST': 'localhost'
-#     }
-# }
-
-
 DATABASES = {
-    'default' : dj_database_url.parse(os.environ.get('DATABASE_URL'))
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME':  config("DB_NAME"),
+        'USER': config("DB_USER"),
+        'PASSWORD': config("DB_PASSWORD"),
+        'HOST': config("DB_HOST"),
+        'PORT': '5432',
+    }
 }
+
+
+# DATABASES = {
+#     'default' : dj_database_url.parse(os.environ.get('DATABASE_URL'))
+# }
 
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
@@ -149,7 +150,7 @@ STATIC_URL = 'static/'
 #     BASE_DIR / "static",
 # ]
 
-# STATIC_ROOT = (BASE_DIR/"assets/")
+STATIC_ROOT = (BASE_DIR/"assets/")
 
 # MEDIA_ROOT = (BASE_DIR/'media/')
 
