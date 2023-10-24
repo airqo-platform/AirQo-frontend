@@ -124,6 +124,7 @@ const ExceedancesChart = (props) => {
   const [dataset, setDataset] = useState([]);
 
   useEffect(() => {
+    setLoading(true);
     if (isGrids) {
       const siteOptions = [];
       !isEmpty(analyticsSites) &&
@@ -134,9 +135,11 @@ const ExceedancesChart = (props) => {
     } else {
       setAverageChartSites(flattenSiteOptions(airqloud.siteOptions));
     }
+    setLoading(false);
   }, [analyticsSites, airqloud]);
 
   useEffect(() => {
+    setLoading(true);
     if (isCohorts) {
       const deviceOptions = [];
       !isEmpty(analyticsDevices) &&
@@ -145,6 +148,7 @@ const ExceedancesChart = (props) => {
         });
       setAverageChartDevices(deviceOptions);
     }
+    setLoading(false);
   }, [analyticsDevices]);
 
   useEffect(() => {
@@ -161,14 +165,9 @@ const ExceedancesChart = (props) => {
       }
 
       if (isEmpty(averageChartDevices)) {
-        setLoading(true);
-
-        setTimeout(() => {
-          setLoading(false);
-          setDataset([]);
-          setLocations([]);
-          setAllLocations([]);
-        }, 1000);
+        setDataset([]);
+        setLocations([]);
+        setAllLocations([]);
       }
     } else {
       if (!isEmpty(averageChartSites)) {
@@ -183,14 +182,10 @@ const ExceedancesChart = (props) => {
       }
 
       if (isEmpty(averageChartSites)) {
-        setLoading(true);
-
-        setTimeout(() => {
-          setLoading(false);
-          setDataset([]);
-          setLocations([]);
-          setAllLocations([]);
-        }, 1000);
+        setLoading(false);
+        setDataset([]);
+        setLocations([]);
+        setAllLocations([]);
       }
     }
   }, [averageChartSites, averageChartDevices]);

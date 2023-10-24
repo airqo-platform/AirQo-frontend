@@ -83,15 +83,8 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
   );
 
   useEffect(() => {
-    if (isEmpty(userDefaultGraphs)) {
-      dispatch(loadUserDefaultGraphData(true, grid._id));
-    }
-  }, []);
-
-  // componentWillUnmount
-  useEffect(() => {
-    return () => dispatch(loadUserDefaultGraphData(true, grid._id));
-  }, []);
+    dispatch(loadUserDefaultGraphData(true, grid._id));
+  }, [grid]);
 
   return (
     <ErrorBoundary>

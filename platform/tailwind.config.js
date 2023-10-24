@@ -97,6 +97,7 @@ module.exports = {
           700: '#057747',
         },
         primary: {
+          50: '#EBF5FF',
           100: '#D6E9FF',
           600: '#145FFF',
         },
