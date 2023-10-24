@@ -38,13 +38,14 @@ h4 {
       margin-left: 32px;
       select {
         outline: none;
-        min-width: 80px;
-        border: 0.5px solid $aq-grey-4;
+        min-width: 95px;
+        border: none;
         border-bottom: 2px solid $aq-blue-9;
         font-weight: 500;
         font-size: 14px;
-        padding: 3px 2px;
+        padding: 5px 5px;
         box-shadow: 3px 2px 5px $aq-blue-9;
+        border-radius: 3px;
       }
     }
 
