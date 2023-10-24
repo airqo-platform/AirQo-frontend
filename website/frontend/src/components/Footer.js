@@ -23,6 +23,7 @@ import Cameroon from 'icons/africanCities/countries/cameroon.svg';
 
 import { useAirqloudSummaryData, useCurrentAirqloudData } from 'reduxStore/AirQlouds/selectors';
 import { setCurrentAirQloudData } from 'reduxStore/AirQlouds/operations';
+import { useTranslation, Trans } from 'react-i18next';
 import LocationTracker from './LoctionTracker/LocationTracker';
 
 const style = {
@@ -64,6 +65,7 @@ const Footer = () => {
   const airqloudSummaries = useAirqloudSummaryData();
   const currentAirqloud = useCurrentAirqloudData();
   const [selectedAirqloud, setSelectedAirqloud] = useState(currentAirqloud);
+  const { t } = useTranslation();
 
   const currentAirqloudData = airqloudSummaries[currentAirqloud] || { numberOfSites: 0 };
 
@@ -114,7 +116,9 @@ const Footer = () => {
           <div className="logo">
             <AirQo />
             <div className="logo-text">
-              Clean air for all <br /> African Cities!
+              <Trans i18nKey="homepage.heroSection.title">
+                Clean air for <br /> all African cities
+              </Trans>
             </div>
             <div className="social-links">
               <a target="_blank" href="https://www.facebook.com/AirQo" rel="noreferrer">
@@ -139,19 +143,19 @@ const Footer = () => {
           </div>
           <div className="content">
             <span className="content-tabs middle-tab">
-              <span>Products</span>
+              <span>{t('navbar.products.title')}</span>
               <div>
                 <span>
-                  <Link to="/products/monitor">Air quality Monitor</Link>
+                  <Link to="/products/monitor">{t('navbar.products.subnav.monitor.name')}</Link>
                 </span>
                 <span>
-                  <Link to="/products/analytics">Air quality Analytics</Link>
+                  <Link to="/products/analytics">{t('navbar.products.subnav.dashboard.name')}</Link>
                 </span>
                 <span>
-                  <Link to="/products/api">Air quality API</Link>
+                  <Link to="/products/api">{t('navbar.products.subnav.api.name')}</Link>
                 </span>
                 <span>
-                  <Link to="/products/mobile-app">AirQo Mobile App</Link>
+                  <Link to="/products/mobile-app">{t('navbar.products.subnav.mobileapp.name')}</Link>
                 </span>
                 <span>
                   <Link to="/products/calibrate">AirQalibrate</Link>
@@ -159,43 +163,43 @@ const Footer = () => {
               </div>
             </span>
             <span className="content-tabs middle-tab">
-              <span>Solutions</span>
+              <span>{t('navbar.solutions.title')}</span>
               <div>
                 <span>
-                  <Link to="/solutions/african-cities">For African cities</Link>
+                  <Link to="/solutions/african-cities">{t('navbar.solutions.subnav.cities.name')}</Link>
                 </span>
                 <span>
-                  <Link to="/solutions/communities">For Communities</Link>
+                  <Link to="/solutions/communities">{t('navbar.solutions.subnav.communities.name')}</Link>
                 </span>
                 <span>
-                  <Link to="/solutions/research">For Research</Link>
+                  <Link to="/solutions/research">{t('navbar.solutions.subnav.research.name')}</Link>
                 </span>
               </div>
             </span>
             <span className="content-tabs">
-              <span>About</span>
+              <span>{t('navbar.about.title')}</span>
               <div>
                 <span>
-                  <Link to="/about-us">About AirQo</Link>
+                  <Link to="/about-us">{t('navbar.about.title')}  AirQo</Link>
                 </span>
                 <span>
-                  <Link to="/resources">Resources</Link>
+                  <Link to="/resources">{t('navbar.about.subnav.resources')}</Link>
                 </span>
                 <span>
-                  <Link to="/events">Events</Link>
+                  <Link to="/events">{t('navbar.about.subnav.events')}</Link>
                 </span>
                 <span>
-                  <Link to="/press">Press</Link>
+                  <Link to="/press">{t('navbar.about.subnav.press')}</Link>
                 </span>
                 <span>
-                  <Link to="/careers">Careers</Link>
+                  <Link to="/careers">{t('navbar.about.subnav.careers')}</Link>
                 </span>
                 <span>
-                  <Link to="/contact">Contact Us</Link>
+                  <Link to="/contact">{t('navbar.about.subnav.contact')}</Link>
                 </span>
                 <span>
                   <a target="_blank" href="https://medium.com/@airqo" rel="noreferrer noopener">
-                    Blog
+                    {t('footer.blog')}
                   </a>
                 </span>
               </div>
@@ -213,7 +217,7 @@ const Footer = () => {
                   <span key={key}>{value}</span>
                 ))}
               </span>{' '}
-              <span className="count-text">Monitors in {currentAirqloud}</span>
+              <span className="count-text">{t('footer.monitors')} <span className='airqloud-name'>{currentAirqloud}</span></span>
             </div>
           </div>
         </div>
@@ -222,17 +226,17 @@ const Footer = () => {
             <div className="text-copyright">© {new Date().getFullYear()} AirQo</div>
             <div className="terms-section">
               <span className="text-terms mr-24">
-                <Link to="/legal">Terms of Service</Link>
+                <Link to="/legal">{t('footer.tos')}</Link>
               </span>
               <span className="text-terms mr-24">
-                <Link to="/legal">Privacy Policy</Link>
+                <Link to="/legal">{t('footer.privacy')}</Link>
               </span>
               {/* <span className="text-terms mr-24">Sustainability</span> */}
             </div>
           </div>
           <div className="project-container mb-24">
             <div className="project">
-              <div className="project-text">A project by</div>
+              <div className="project-text">{t('footer.by')}</div>
               <MakText />
             </div>
           </div>
@@ -243,19 +247,19 @@ const Footer = () => {
         <Box sx={style}>
           <div className="modal">
             <div className="modal-title">
-              <span>Country AirQloud</span>
+              <span>{t('footer.modal.title')}</span>
               <CancelIcon className="modal-cancel" onClick={toggleOpen} />
             </div>
             <div className="divider" />
-            <div className="title">Our growing network in Africa</div>
-            <div className="sub-title">View AirQo developments in your country</div>
-            <div className="category-label">Selected country</div>
+            <div className="title">{t('footer.modal.subTitle')}</div>
+            <div className="sub-title">{t('footer.modal.view')}</div>
+            <div className="category-label">{t('footer.modal.select')}</div>
             <CountryTab
               className="tab tab-selected tab-margin"
               flag={flagMapper[selectedAirqloud.toLowerCase()]}
               name={selectedAirqloud}
             />
-            <div className="category-label">Select country</div>
+            <div className="category-label">{t('footer.modal.country')}</div>
             <div className="countries">
               {/* The country list displayed here */}
               {countries.map((country) => (
@@ -271,10 +275,10 @@ const Footer = () => {
             <div className="divider" />
             <div className="btns">
               <div className="cancel-btn" onClick={onCancel}>
-                cancel
+                {t('footer.modal.cancel')}
               </div>
               <div className="save-btn" onClick={onSave}>
-                save
+                {t('footer.modal.save')}
               </div>
             </div>
           </div>

@@ -17,10 +17,10 @@
         font-weight: 500;
         line-height: 52px;
         text-align: center;
-        max-width: 566px;
+        max-width: 656px;
       }
       p {
-        max-width: 722px;
+        max-width: 792px;
         font-size: $subTextFont;
         font-weight: 400;
         line-height: 28px;
@@ -32,7 +32,7 @@
         align-items: center;
         justify-content: space-between;
         border-radius: 16px;
-        width: 360px;
+        min-width: 360px;
         height: 56px;
         margin: 60px 0 0 0;
         background-color: #e9edf5a3;
@@ -124,10 +124,11 @@
           justify-content: space-evenly;
         }
         .tab {
-          font-size: 16px;
+          font-size: 15px;
         }
         .tab.tab-selected {
-          padding: 14px 4vw;
+          display: flex;
+          padding: 12px 16px;
         }
       }
       .content {
@@ -147,8 +148,9 @@
             ol {
               li {
                 margin-left: -40px;
+                line-height: 18px;
                 small {
-                  font-size: 11px;
+                  font-size: 12px;
                 }
               }
             }

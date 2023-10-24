@@ -175,7 +175,7 @@ const CustomisableChart = (props) => {
 
   const [selectedPeriod, setSelectedPeriod] = useState(initialPeriod());
   const [disableDatePickers, setDisableDatePickers] = useState(true);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const isCustomPeriod = (period) => {
     return period.label.toLowerCase() === 'Custom range'.toLowerCase();
@@ -502,10 +502,15 @@ const CustomisableChart = (props) => {
 
     setCustomisedGraphData([]);
 
-    return await loadD3ChartDataApi(filter).then((res) => {
-      setLoading(false);
-      setCustomisedGraphData(res.data);
-    });
+    return await loadD3ChartDataApi(filter)
+      .then((res) => {
+        setLoading(false);
+        setCustomisedGraphData(res.data);
+      })
+      .catch((err) => {
+        console.log('err', err);
+        setLoading(false);
+      });
   };
 
   const fetchAndSetGraphData = (filter) => {
