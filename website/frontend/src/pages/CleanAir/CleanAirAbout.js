@@ -155,7 +155,7 @@ const CleanAirAbout = () => {
         </div>
       </Section>
       {/* section 6 */}
-      {/* <MainHighlight /> */}
+      <MainHighlight />
     </>
   );
 };
