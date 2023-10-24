@@ -22,16 +22,16 @@ const Highlight = () => {
     } catch (err) {
       console.log('Error in loading data', err);
     }
-  }, []);
+  }, [pressData, eventsData]);
 
   // Getting the latest news
-  const latestNews = pressData.filter((news) => news.website_category === 'cleanair');
-  const latestNewsItem = latestNews.length > 0 ? latestNews[0] : null;
+  const latestNews = pressData.length > 0 ? pressData.filter((news) => news.website_category === 'cleanair') : [];
+  const latestNewsItem = latestNews.length > 0 ? latestNews[0] : undefined;
 
   // Getting the two latest events
-  const latestEvents = eventsData
+  const latestEvents = eventsData.length > 0 ? eventsData
     .filter((event) => event.website_category === 'cleanair')
-    .slice(0, 2);
+    .slice(0, 2) : [];
 
   if (!latestNewsItem && latestEvents.length === 0) {
     return null;
@@ -44,7 +44,7 @@ const Highlight = () => {
         style={{
           display: latestNewsItem && latestEvents.length > 0 ? '' : 'flex'
         }}>
-        {latestNewsItem && (
+        {latestNewsItem !== undefined ? (
           <div className="news-section">
             <div className="pill-con">
               <span id="first-pill">
@@ -61,8 +61,8 @@ const Highlight = () => {
               />
             </div>
           </div>
-        )}
-        {latestEvents.length > 0 && (
+        ) : <span />}
+        {latestEvents.length > 0 ? (
           <div className="events-section">
             <div className="pill-con">
               <span id="first-pill">
@@ -96,7 +96,7 @@ const Highlight = () => {
               ))}
             </div>
           </div>
-        )}
+        ) : <span />}
       </div>
     </div>
   );
