@@ -13,7 +13,11 @@ const Settings = () => {
 
   useEffect(() => {
     setLoading(true);
-    getAssignedGroupMembers('64f54e357516f7001307a113')
+    const activeGroupId = JSON.parse(localStorage.getItem('activeGroup'))._id;
+
+    if (!activeGroupId) return setLoading(false);
+
+    getAssignedGroupMembers(activeGroupId)
       .then((response) => {
         setTeamMembers(response.group_members);
         setLoading(false);
