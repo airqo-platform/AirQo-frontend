@@ -1,4 +1,3 @@
-// import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -7,7 +6,6 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -62,32 +60,6 @@ class KyaMessageChip extends StatelessWidget {
         color: CustomColors.appColorBlue,
       ),
     );
-    // if (kya.status == KyaLessonStatus.inProgress) {
-    //   widget = RichText(
-    //     textAlign: TextAlign.start,
-    //     overflow: TextOverflow.ellipsis,
-    //     text: TextSpan(
-    //       children: [
-    //         TextSpan(
-    //           text: AppLocalizations.of(context)!.completeMoveTo,
-    //           style: CustomTextStyle.caption3(context)?.copyWith(
-    //             color: CustomColors.appColorBlack,
-    //           ),
-    //         ),
-    //         const TextSpan(
-    //           text: " ",
-    //         ),
-    //         TextSpan(
-    //           text: AppLocalizations.of(context)!.forYou,
-    //           style: CustomTextStyle.caption3(context)?.copyWith(
-    //             color: CustomColors.appColorBlue,
-    //           ),
-    //         ),
-    //       ],
-    //     ),
-    //   );
-    // }
-
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -196,7 +168,7 @@ class _KyaLessonCardWidgetState extends State<KyaLessonCardWidget> {
                         ),
                         child: KyaLessonCardProgressBar(widget.kyaLesson),
                       ),
-                      widget.kyaLesson.activeTask ==
+                      widget.kyaLesson.activeTask >=
                               widget.kyaLesson.tasks.length
                           ? Container(
                               height: 19,
@@ -298,9 +270,7 @@ class KyaLessonProgressBar extends StatelessWidget {
         borderRadius: const BorderRadius.all(Radius.circular(10)),
         child: LinearProgressIndicator(
           color: CustomColors.appColorBlue,
-          value: kyaLesson.activeTask == 1
-              ? 0
-              : kyaLesson.activeTask / kyaLesson.tasks.length,
+          value: kyaLesson.activeTask / kyaLesson.tasks.length,
           backgroundColor: CustomColors.appColorBlue.withOpacity(0.24),
           valueColor: AlwaysStoppedAnimation<Color>(CustomColors.appColorBlue),
         ),

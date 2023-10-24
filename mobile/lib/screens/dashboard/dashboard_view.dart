@@ -23,7 +23,6 @@ import 'package:showcaseview/showcaseview.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
-import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
 
@@ -345,33 +344,6 @@ class _DashboardViewState extends State<DashboardView>
                         return QuizCard(displayedQuiz);
                       },
                     ),
-                    // BlocBuilder<KyaBloc, KyaState>(
-                    //   builder: (context, state) {
-                    //     List<KyaLesson> inCompleteLessons =
-                    //         state.lessons.filterInCompleteLessons();
-
-                    //     if (inCompleteLessons.isEmpty) {
-                    //       _kyaExists = false;
-
-                    //       return const SizedBox();
-                    //     }
-
-                    //     return AnimatedPadding(
-                    //       duration: const Duration(milliseconds: 500),
-                    //       curve: Curves.easeInExpo,
-                    //       padding: const EdgeInsets.only(top: 16),
-                    //       child: CustomShowcaseWidget(
-                    //         showcaseKey: _kyaShowcaseKey,
-                    //         descriptionHeight: screenSize.height * 0.14,
-                    //         description: AppLocalizations.of(context)!
-                    //             .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
-                    //         child: KyaLessonCardWidget(
-                    //           inCompleteLessons.first,
-                    //         ),
-                    //       ),
-                    //     );
-                    //   },
-                    // ),
                     BlocConsumer<DashboardBloc, DashboardState>(
                       listener: (context, state) {
                         if (state.scrollToTop) {

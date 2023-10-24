@@ -360,7 +360,7 @@ class QuizCard extends StatelessWidget {
                   UpdateQuizProgress(
                     quiz.copyWith(
                       activeQuestion: 1,
-                      status: QuizStatus.complete,
+                      status: QuizStatus.inProgress,
                     ),
                     updateRemote: true,
                   ),
@@ -373,7 +373,7 @@ class QuizCard extends StatelessWidget {
           context
               .read<CurrentQuizQuestionCubit>()
               .setQuestion(quiz.questions.first);
-          dynamic response = await bottomSheetQuizTitle(quiz, context);
+          dynamic response = await bottomSheetQuizQuestion(quiz, context);
           if (response != null &&
               response == true &&
               quiz.status != QuizStatus.complete) {
