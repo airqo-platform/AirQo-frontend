@@ -6,6 +6,7 @@ import withAuth from '@/core/utils/protectedRoute';
 import Team from './Tabs/Team';
 import { useEffect, useState } from 'react';
 import { getAssignedGroupMembers } from '@/core/apis/Account';
+import Profile from './Tabs/Profile';
 
 const Settings = () => {
   const [teamMembers, setTeamMembers] = useState([]);
@@ -31,6 +32,9 @@ const Settings = () => {
   return (
     <Layout topbarTitle={'Settings'} noBorderBottom>
       <Tabs>
+        <Tab label='My profile'>
+          <Profile />
+        </Tab>
         <Tab label='Password'>
           <Password />
         </Tab>
