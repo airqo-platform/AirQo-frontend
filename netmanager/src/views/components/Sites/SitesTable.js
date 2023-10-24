@@ -37,8 +37,9 @@ const SitesTable = () => {
       if (!isEmpty(activeNetwork)) {
         dispatch(loadSitesSummary(activeNetwork.net_name));
       }
+    } else {
+      setLoading(false);
     }
-    setLoading(isEmpty(sites));
   }, [sites]);
 
   const handleDeleteSite = async () => {

@@ -1,35 +1,34 @@
 import React, { useState } from 'react';
 import AfricanCities from './AfricanCities';
 import Communities from './Communities';
+import { useTranslation } from 'react-i18next';
 
 const AirQuality = () => {
   const [selectedTab, setSelectedTab] = useState('AfricanCities');
   const onClickTabItem = (tab) => setSelectedTab(tab);
+  const { t } = useTranslation();
 
   return (
     <div className="airquality-section">
       <div className="backdrop">
         <div className="header">
-          <h2>Closing the air quality data gaps in Africa </h2>
+          <h2>{t("homepage.airQuality.title")} </h2>
           <p>
-            We provide accurate, hyperlocal, and timely air quality data to provide evidence of the
-            magnitude and scale of air pollution across Africa.
+            {t("homepage.airQuality.subText")}
           </p>
           <div className="tabs">
-            <div>
+            <div className={selectedTab === 'AfricanCities' ? 'tab tab-selected' : 'tab'}>
               <span
-                className={selectedTab === 'AfricanCities' ? 'tab tab-selected' : 'tab'}
                 name="AfricanCities"
                 onClick={() => onClickTabItem('AfricanCities')}>
-                For African Cities
+                {t('navbar.solutions.subnav.cities.name')}
               </span>
             </div>
-            <div>
+            <div className={selectedTab === 'Communities' ? 'tab tab-selected' : 'tab'}>
               <span
-                className={selectedTab === 'Communities' ? 'tab tab-selected' : 'tab'}
                 name="Communities"
                 onClick={() => onClickTabItem('Communities')}>
-                For Communities
+                {t('navbar.solutions.subnav.communities.name')}
               </span>
             </div>
           </div>

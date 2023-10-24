@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 
-function Tabs({ children }) {
+function Tabs({ children, childrenRight }) {
   const [activeTab, setActiveTab] = useState(0);
   const childrenArray = React.Children.toArray(children);
 
   return (
     <div data-testid='tabs'>
-      <div className='px-4 lg:px-16 mb-4 border-b border-grey-200'>
+      <div
+        className={`px-4 lg:px-16 mb-4 border-b border-grey-200 ${
+          childrenRight && 'flex justify-between'
+        }`}
+      >
         <ul className='flex flex-wrap gap-6 text-sm font-medium text-center'>
           {childrenArray.map((child, index) => (
             <li
@@ -23,6 +27,7 @@ function Tabs({ children }) {
             </li>
           ))}
         </ul>
+        {childrenRight && childrenRight[activeTab] && childrenRight[activeTab].children}
       </div>
       <div>{children[activeTab]}</div>
     </div>

@@ -462,7 +462,7 @@ const HostsTable = () => {
           event.preventDefault();
           history.push(`/hosts/${data._id}`);
         }}
-        data={hosts || []}
+        data={hosts}
         isLoading={isLoading}
         options={{
           search: true,

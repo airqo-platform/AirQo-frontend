@@ -174,19 +174,10 @@ export const deleteSiteApi = async (siteId) => {
 
 export const getAirQloudsApi = async (params) => {
   try {
-    const response = await axios.get(AIRQLOUDS, { params: { ...params } });
-    return response.data;
+    const { data } = await axios.get(AIRQLOUDS, { params });
+    return data;
   } catch (error) {
-    if (error.response) {
-      console.error(error.response.data);
-      console.error(error.response.status);
-      console.error(error.response.headers);
-    } else if (error.request) {
-      console.error(error.request);
-    } else {
-      console.error('Error', error.message);
-    }
-    console.error(error.config);
+    console.error(error);
   }
 };
 

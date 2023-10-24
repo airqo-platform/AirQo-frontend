@@ -2,6 +2,7 @@ import axios from 'axios';
 import { GET_HEATMAP_DATA, GET_GEOCOORDINATES_DATA } from 'config/urls/predict';
 
 const jwtToken = localStorage.getItem('jwtToken');
+const token = process.env.REACT_APP_AUTH_TOKEN;
 
 export const heatmapPredictApi = async () => {
   let allHeatMapData = [];
@@ -11,15 +12,12 @@ export const heatmapPredictApi = async () => {
   do {
     try {
       axios.defaults.headers.common.Authorization = jwtToken;
-      response = await axios.get(GET_HEATMAP_DATA);
+      response = await axios.get(GET_HEATMAP_DATA, { params: { page: page, token: token } });
       MAX_PAGES = response.data.pages;
-      allHeatMapData.push(axios.get(`${GET_HEATMAP_DATA}?page=${page}`));
-      let resolvedPromises = await Promise.all(allHeatMapData);
-      for (let i = 0; i < resolvedPromises.length; i++) {
-        allHeatMapData = resolvedPromises[i];
-      }
+      allHeatMapData.push(response.data);
       page++;
     } catch (error) {
+      console.error(error);
       break;
     }
   } while (page <= MAX_PAGES);

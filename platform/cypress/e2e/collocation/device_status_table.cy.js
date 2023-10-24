@@ -1,6 +1,6 @@
 describe('DataTable', () => {
   beforeEach(() => {
-    cy.visit('/analytics/collocation/collocate');
+    cy.visit('/collocation/collocate');
   });
 
   it('displays the table headers', () => {

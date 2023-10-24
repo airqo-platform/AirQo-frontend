@@ -153,7 +153,7 @@ const Reports = () => {
             {
               type: 'path',
               label: 'View monitor report',
-              link: `/analytics/collocation/reports/monitor_report/${device}?device=${device}&batchId=${batchId}`,
+              link: `/collocation/reports/monitor_report/${device}?device=${device}&batchId=${batchId}`,
             },
             {
               type: 'event',
@@ -162,7 +162,8 @@ const Reports = () => {
                 console.log('I am an event');
               },
             },
-          ]}>
+          ]}
+        >
           <div className='flex flex-col justify-start w-full' data-testid='intra-correlation-chart'>
             <PollutantDropdown
               pollutantValue={pmConcentration}
