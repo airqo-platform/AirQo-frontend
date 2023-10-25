@@ -3,6 +3,7 @@ import Tabs from '@/components/Tabs';
 import Tab from '@/components/Tabs/Tab';
 import withAuth from '@/core/utils/protectedRoute';
 import Layout from '@/components/Layout';
+import OverView from './tabs/OverView';
 
 const AuthenticatedHomePage = () => {
   const renderChildrenRight = () => {
@@ -20,7 +21,9 @@ const AuthenticatedHomePage = () => {
   return (
     <Layout topbarTitle={'Analytics'} noBorderBottom>
       <Tabs childrenRight={renderChildrenRight()}>
-        <Tab label='Overview'>{/* content goes here */}</Tab>
+        <Tab label='Overview'>
+          <OverView />
+        </Tab>
         <Tab label='Explore'>{/* content goes here */}</Tab>
       </Tabs>
     </Layout>
