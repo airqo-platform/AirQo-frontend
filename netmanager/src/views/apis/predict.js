@@ -1,11 +1,8 @@
 import axios from 'axios';
 import { GET_HEATMAP_DATA, GET_GEOCOORDINATES_DATA } from 'config/urls/predict';
-import { isEmpty } from 'validate.js';
 
 const jwtToken = localStorage.getItem('jwtToken');
-axios.defaults.headers.common.Authorization = jwtToken;
-
-const API_TOKEN = process.env.REACT_APP_API_TOKEN;
+const token = process.env.REACT_APP_AUTH_TOKEN;
 
 export const heatmapPredictApi = async () => {
   let allHeatMapData = [];
@@ -14,15 +11,13 @@ export const heatmapPredictApi = async () => {
   let MAX_PAGES;
   do {
     try {
-      response = await axios.get(GET_HEATMAP_DATA);
+      axios.defaults.headers.common.Authorization = jwtToken;
+      response = await axios.get(GET_HEATMAP_DATA, { params: { page: page, token: token } });
       MAX_PAGES = response.data.pages;
-      allHeatMapData.push(axios.get(`${GET_HEATMAP_DATA}?page=${page}`));
-      let resolvedPromises = await Promise.all(allHeatMapData);
-      for (let i = 0; i < resolvedPromises.length; i++) {
-        allHeatMapData = resolvedPromises[i];
-      }
+      allHeatMapData.push(response.data);
       page++;
     } catch (error) {
+      console.error(error);
       break;
     }
   } while (page <= MAX_PAGES);
@@ -30,5 +25,6 @@ export const heatmapPredictApi = async () => {
 };
 
 export const geocoordinatesPredictApi = async (params) => {
+  axios.defaults.headers.common.Authorization = jwtToken;
   return await axios.get(GET_GEOCOORDINATES_DATA, { params }).then((response) => response.data);
 };

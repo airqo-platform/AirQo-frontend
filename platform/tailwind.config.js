@@ -24,7 +24,11 @@ module.exports = {
         'link-blue': '#2E72D2',
         'form-input': '#F3F4F7',
         'check-box': '#D1D2D2',
-        'radio-input': '#1C1B1F',
+        'radio-input': '#DADEE7',
+        'input-outline': '#209464',
+        'svg-green': '#209464',
+        'input-light-outline': '#E1E7EC',
+        'pill-grey': '#F3F2FF',
         blue: {
           200: '#2DB6F11A',
           300: '#1C7398',
@@ -39,6 +43,7 @@ module.exports = {
           200: '#00000014',
           250: '#0000000A',
           300: '#6D7175',
+          350: '#667085',
           400: '#B0B0B0',
           700: '#DDDDDD',
           750: '#E8E8E8',
@@ -60,6 +65,7 @@ module.exports = {
         },
         green: {
           50: '#C6FFE4',
+          150: '#EBF5FF',
           200: '#AEE9D1',
           550: '#0CE87E',
         },
@@ -76,9 +82,24 @@ module.exports = {
         orange: {
           450: '#FE9E35',
         },
-        'neutral-light': {
+        'secondary-neutral-light': {
+          25: '#F9FAFB',
+          50: '#F3F6F8',
+          100: '#E1E7EC',
+          300: '#9EB0C2',
           400: '#6F87A1',
+          500: '#536A87',
+          600: '#485972',
           800: '#3C4555',
+        },
+        success: {
+          50: '#ECFDF3',
+          700: '#057747',
+        },
+        primary: {
+          50: '#EBF5FF',
+          100: '#D6E9FF',
+          600: '#145FFF',
         },
       },
     },
