@@ -16,9 +16,9 @@ const SplitSection = ({
   showButton
 }) => {
   return (
-    <div className="cleanAir-section" style={{ backgroundColor: bgColor }}>
+    <div className="splitSection-section" style={{ backgroundColor: bgColor }}>
       <div className={` ${reverse ? 'backdrop-rev' : 'backdrop'}`}>
-        <div className="cleanAir-content">
+        <div className="splitSection-content">
           {pillTitle && (
             <div
               style={{
@@ -42,8 +42,8 @@ const SplitSection = ({
             </Link>
           )}
         </div>
-        <div className="cleanAir-image">
-          <img className="cleanAir-img" src={imgURL} style={imageStyle} />
+        <div className="splitSection-image">
+          <img className="splitSection-img" src={imgURL} style={imageStyle} />
         </div>
       </div>
     </div>

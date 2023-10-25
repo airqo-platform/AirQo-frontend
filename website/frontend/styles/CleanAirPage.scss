@@ -6,6 +6,7 @@
   height: 100%;
   position: relative;
   overflow: hidden;
+  margin: 0 auto;
 
   .header-wrapper {
     width: 100%;
@@ -146,7 +147,7 @@
       }
     }
 
-    .cleanAir-section {
+    .splitSection-section {
       display: grid;
       grid-template-columns: $gridColumn;
       padding: 80px 0;
@@ -160,7 +161,7 @@
         padding: 5px;
         height: auto;
 
-        .cleanAir-content {
+        .splitSection-content {
           display: flex;
           flex-direction: column;
           flex-wrap: nowrap;
@@ -231,7 +232,7 @@
           }
         }
 
-        .cleanAir-image {
+        .splitSection-image {
           width: 100%;
           height: 100%;
           margin: 0;
@@ -241,7 +242,7 @@
           align-content: center;
           align-items: center;
 
-          .cleanAir-img {
+          .splitSection-img {
             float: right;
             width: 517px;
             height: 398px;
@@ -258,7 +259,7 @@
         padding: 5px;
         height: auto;
 
-        .cleanAir-image {
+        .splitSection-image {
           order: 1;
           margin: 0;
           padding: 0;
@@ -267,14 +268,14 @@
           align-content: center;
           align-items: center;
 
-          .cleanAir-img {
+          .splitSection-img {
             width: 517px;
             height: 398px;
             float: left;
           }
         }
 
-        .cleanAir-content {
+        .splitSection-content {
           order: 2;
           display: flex;
           flex-direction: column;
@@ -348,6 +349,7 @@
     }
 
     .single-section {
+      position: relative;
       width: 100%;
       height: auto;
       display: flex;
@@ -378,11 +380,11 @@
         }
         .content-p {
           text-align: center;
-          margin-bottom: 50px;
-          color: $aq-black-0;
+          padding: 20px 48px;
+          color: #353e52;
           font-weight: 400;
-          font-size: $subTextFont;
-          line-height: 28px;
+          font-size: $miniHeadingFont;
+          line-height: 48px;
           margin: 0;
         }
 
@@ -390,12 +392,19 @@
           width: 100%;
           height: auto;
           display: flex;
+          align-self: center;
           justify-content: center;
           align-items: center;
-          margin-top: 62px;
           padding: 0;
         }
       }
+    }
+
+    .separator-1 {
+      max-width: $maxWidth;
+      border: 16px solid $aq-blue-3;
+      margin-top: 40px;
+      margin-bottom: 0;
     }
 
     .article {
@@ -642,18 +651,19 @@
     }
 
     .partners {
+      position: relative;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       margin: 0 auto;
       padding: 0;
-      width: 100%;
+      max-width: $maxWidth;
       height: auto;
       overflow: hidden;
 
       .partners-wrapper {
-        max-width: $maxWidth;
+        position: relative;
         width: 100%;
         display: flex;
         flex-wrap: wrap;
@@ -680,7 +690,7 @@
           padding: 0;
 
           .partner-img {
-            width: calc(25% - 52px);
+            width: 200px;
             height: auto;
             padding: 50px;
             box-sizing: border-box;
@@ -691,13 +701,6 @@
               object-fit: contain;
             }
           }
-        }
-
-        .separator-1 {
-          width: 100%;
-          border: 16px solid $aq-blue-3;
-          margin-top: 40px;
-          margin-bottom: 0;
         }
       }
     }
@@ -714,7 +717,20 @@
         height: auto;
       }
 
-      .cleanAir-section {
+      .single-section {
+        .content {
+          .content-h {
+            font-size: 24px;
+            line-height: 32px;
+          }
+          .content-p {
+            font-size: 24px;
+            line-height: 32px;
+          }
+        }
+      }
+
+      .splitSection-section {
         padding: 0;
         margin: 0;
         margin-top: 40px;
@@ -726,11 +742,11 @@
           padding: 16px;
           height: auto;
 
-          .cleanAir-image {
+          .splitSection-image {
             height: auto;
             width: 100%;
 
-            .cleanAir-img {
+            .splitSection-img {
               float: none;
               width: 100%;
               max-height: 450px;
@@ -747,12 +763,12 @@
           padding: 16px;
           justify-items: center;
 
-          .cleanAir-image {
+          .splitSection-image {
             margin: 0;
             padding: 0;
             height: auto;
 
-            .cleanAir-img {
+            .splitSection-img {
               float: none;
               height: auto;
               width: 100%;
@@ -877,7 +893,7 @@
         display: none;
       }
 
-      .cleanAir-section {
+      .splitSection-section {
         width: 100%;
         padding: 0;
         margin: 0;
@@ -891,14 +907,14 @@
           padding: 16px;
           height: auto;
 
-          .cleanAir-image {
+          .splitSection-image {
             margin: 0;
             padding: 0;
             display: block;
             height: auto;
             width: 100%;
 
-            .cleanAir-img {
+            .splitSection-img {
               float: none;
               height: auto;
               width: 100%;
@@ -909,7 +925,7 @@
 
         // Reverse the backdrop
         .backdrop-rev {
-          .cleanAir-image {
+          .splitSection-image {
             margin: 0;
             padding: 0;
             display: flex;
@@ -918,7 +934,7 @@
             height: auto;
             width: 100%;
 
-            .cleanAir-img {
+            .splitSection-img {
               float: none;
               height: 200px;
               width: 100%;
@@ -944,6 +960,24 @@
                 }
               }
             }
+          }
+        }
+      }
+
+      .single-section {
+        padding: 40px 0;
+        .content {
+          .content-p {
+            padding: 20px 25px;
+          }
+        }
+      }
+
+      .partners {
+        .partners-wrapper {
+          .partners-intro {
+            font-size: 24px;
+            line-height: 32px;
           }
         }
       }
@@ -1004,7 +1038,7 @@
 
   @media (min-width: 500px) and (max-width: 580px) {
     .page-container {
-      .cleanAir-section {
+      .splitSection-section {
         .backdrop {
           display: grid;
           grid-template-columns: 1fr;

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import SEO from '../../../utilities/seo';
+import { useInitScrollTop } from 'utilities/customHooks';
 import { SplitSection, MainHighlight, ButtonCTA } from 'components/CleanAir';
 import Section1 from 'assets/img/cleanAir/section1.jpg';
 import Section2 from 'assets/img/cleanAir/section2.png';
@@ -8,8 +9,14 @@ import Section4 from 'assets/img/cleanAir/section4.png';
 import Section5 from 'assets/img/cleanAir/section5.png';
 
 const CleanAirAbout = () => {
+  useInitScrollTop();
   return (
     <>
+      <SEO
+        title="CLEAN-Air Africa Network | About Us"
+        siteTitle="CLEAN-Air Africa Network"
+        description="Discover CLEAN-Air Africa Network, an African-led initiative dedicated to improving air quality across the continent. Join our community of practice for innovative air quality solutions and effective air quality management strategies."
+      />
       {/* section 1 */}
       <div className="Hero">
         <span className="image-container">
@@ -68,7 +75,7 @@ const CleanAirAbout = () => {
       <SplitSection
         pillTitle="CLEAN-Air Membership"
         title="A Synergy for air quality in Africa"
-        content="Are you an organisation or individual interested in air quality in Africa? We implore you to join the CLEAN-Air Africa Network."
+        content="Are you an organization or individual interested in air quality in Africa? We implore you to join the CLEAN-Air Africa Network."
         link="#"
         btnText={'Get involved -->'}
         imgURL={Section4}

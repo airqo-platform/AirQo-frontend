@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { isEmpty } from 'underscore';
+import SEO from '../../../utilities/seo';
+import { useInitScrollTop } from 'utilities/customHooks';
 import { useDispatch } from 'react-redux';
 import { SplitSection, SingleSection } from 'components/CleanAir';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +12,7 @@ import Partner2 from 'assets/img/cleanAir/partners-sec2.png';
 import Partner3 from 'assets/img/cleanAir/partners-sec3.png';
 
 const CleanAirPartners = () => {
+  useInitScrollTop();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const partnersData = usePartnersData();
@@ -30,21 +33,36 @@ const CleanAirPartners = () => {
 
   const supportPartners = cleanAirPartners.filter((partner) => partner.type === 'support');
 
-  const partnerDataGroup = partnersData
-    .map((e, i) => {
-      return i % 4 === 0 ? partnersData.slice(i, i + 4) : null;
-    })
-    .filter((e) => {
-      return e;
-    });
+  const generatePartnerDataGroup = (partners) => {
+    return partners
+      .map((e, i) => {
+        return i % 4 === 0 ? partners.slice(i, i + 4) : null;
+      })
+      .filter((e) => {
+        return e;
+      });
+  };
+
+  const supportPartnerDataGroup = generatePartnerDataGroup(supportPartners);
+  const policyPartnerDataGroup = generatePartnerDataGroup(policyPartners);
 
   const onLogoClick = (uniqueTitle) => (event) => {
     event.preventDefault();
-    navigate(`/partners/${uniqueTitle}/`);
+    if (uniqueTitle.descriptions.length > 0) {
+      navigate(`/partners/${uniqueTitle.unique_title}`);
+    } else if (uniqueTitle.partner_link) {
+      window.open(uniqueTitle.partner_link, '_blank');
+    }
   };
 
   return (
     <div>
+      <SEO
+        title="Partners | CLEAN-Air Africa Network"
+        siteTitle="CLEAN-Air Africa Network"
+        description="Meet the partners of CLEAN-Air Africa Network, a diverse group of organizations and individuals dedicated to improving air quality across Africa. Join us in our mission to foster innovative air quality solutions and effective air quality management strategies."
+      />
+
       <div className="partners">
         <div className="partners-wrapper">
           <h2 className="partners-intro">
@@ -54,10 +72,10 @@ const CleanAirPartners = () => {
             parts of the world, reflecting the multi-disciplinary tackling the air pollution
             challenge.
           </h2>
-
-          <hr className="separator-1" />
         </div>
       </div>
+
+      <hr className="separator-1" />
 
       <SplitSection
         content={
@@ -85,11 +103,12 @@ const CleanAirPartners = () => {
         <div className="partners">
           <div className="partners-wrapper">
             <div className="partners-list">
-              {partnersData.map((networkPartner) => (
+              {networkPartners.map((networkPartner) => (
                 <div
+                  style={{ cursor: 'pointer' }}
                   className="partner-img"
                   key={networkPartner.id}
-                  onClick={() => navigate(`/partners/${networkPartner.unique_title}`)}>
+                  onClick={onLogoClick(networkPartner)}>
                   <img src={networkPartner.partner_logo} alt={networkPartner.partner_name} />
                 </div>
               ))}
@@ -100,14 +119,7 @@ const CleanAirPartners = () => {
 
       <SingleSection
         content={
-          <p
-            style={{
-              padding: '0 49px',
-              fontSize: '40px',
-              fontWeight: 400,
-              lineHeight: '48px',
-              color: '#353E52'
-            }}>
+          <p>
             Individuals actively involved in air quality work in Africa are strongly recommended to
             join the CLEAN-Air Africa Network.
           </p>
@@ -138,28 +150,29 @@ const CleanAirPartners = () => {
         reverse
       />
 
-      <div className="AboutUsPage ">
-        <div className="wrapper ">
-          <div className="partner-logos" id="logo-table">
-            <table>
-              <tbody>
-                {partnersData.length > 0 &&
-                  partnerDataGroup.slice(0, 3).map((partnerGroup, key) => (
+      {policyPartners.length > 0 && (
+        <div className="AboutUsPage ">
+          <div className="wrapper ">
+            <div className="partner-logos" id="logo-table">
+              <table>
+                <tbody>
+                  {policyPartnerDataGroup.slice(0, 3).map((partnerGroup, key) => (
                     <tr key={key}>
                       {partnerGroup.map((partner) => (
-                        <td key={partner.id} onClick={onLogoClick(partner.unique_title)}>
+                        <td key={partner.id} onClick={() => onLogoClick(partner)}>
                           <img src={partner.partner_logo} alt={partner.partner_name} />
                         </td>
                       ))}
                     </tr>
                   ))}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
-
-          <hr className="separator-1" />
         </div>
-      </div>
+      )}
+
+      <hr className="separator-1" />
 
       <SplitSection
         content={
@@ -181,26 +194,27 @@ const CleanAirPartners = () => {
         reverse
       />
 
-      <div className="AboutUsPage ">
-        <div className="wrapper ">
-          <div className="partner-logos" id="logo-table">
-            <table>
-              <tbody>
-                {partnersData.length > 0 &&
-                  partnerDataGroup.slice(0, 3).map((partnerGroup, key) => (
+      {supportPartners.length > 0 && (
+        <div className="AboutUsPage ">
+          <div className="wrapper ">
+            <div className="partner-logos" id="logo-table">
+              <table>
+                <tbody>
+                  {supportPartnerDataGroup.slice(0, 3).map((partnerGroup, key) => (
                     <tr key={key}>
                       {partnerGroup.map((partner) => (
-                        <td key={partner.id} onClick={onLogoClick(partner.unique_title)}>
+                        <td key={partner.id} onClick={() => onLogoClick(partner)}>
                           <img src={partner.partner_logo} alt={partner.partner_name} />
                         </td>
                       ))}
                     </tr>
                   ))}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
