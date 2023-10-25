@@ -6,7 +6,6 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:app/blocs/kya/kya_bloc.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/quiz/quiz_final_page.dart';
-import 'package:app/screens/quiz/quiz_title_page.dart';
 import 'package:app/screens/quiz/quiz_widgets.dart';
 import 'package:app/themes/app_theme.dart';
 import 'package:app/themes/colors.dart';
