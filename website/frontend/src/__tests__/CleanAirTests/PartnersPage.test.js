@@ -16,6 +16,7 @@ const testComponentRendering = (Component) => {
   );
 };
 
+// testing if the page renders
 test('renders CleanAir membership page without crashing', () => {
   testComponentRendering(CleanAirMembership);
 });
