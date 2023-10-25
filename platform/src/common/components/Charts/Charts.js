@@ -84,7 +84,7 @@ const CustomTooltipLineGraph = ({ active, payload }) => {
                 {hoveredPoint.name}
               </div>
               <div className='text-xs font-medium leading-[14px] text-gray-600'>
-                {hoveredPoint.value}
+                {hoveredPoint.value + ' μg/m3'}
               </div>
             </p>
             <div className='flex justify-between items-center w-full'>
@@ -103,7 +103,7 @@ const CustomTooltipLineGraph = ({ active, payload }) => {
                   {point.name}
                 </div>
                 <div className='text-xs font-medium leading-[14px] text-gray-400'>
-                  {point.value}
+                  {point.value + ' μg/m3'}
                 </div>
               </p>
             ))}
@@ -166,7 +166,7 @@ const CustomTooltipBarGraph = ({ active, payload }) => {
                 {hoveredPoint.name}
               </div>
               <div className='text-xs font-medium leading-[14px] text-gray-600'>
-                {hoveredPoint.value}
+                {hoveredPoint.value + ' μg/m3'}
               </div>
             </p>
             <div className='flex justify-between items-center w-full'>
@@ -296,7 +296,15 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
             content={renderCustomizedLegend}
             wrapperStyle={{ bottom: 0, right: 0, position: 'absolute' }}
           />
-          <Tooltip content={<CustomTooltipLineGraph />} />
+          <Tooltip
+            content={<CustomTooltipLineGraph />}
+            cursor={{
+              stroke: '#aaa',
+              strokeOpacity: 0.3,
+              strokeWidth: 2,
+              strokeDasharray: '3 3',
+            }}
+          />
         </LineChart>
       );
     } else if (chartType === 'bar') {
@@ -335,8 +343,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
           />
           <Tooltip
             content={<CustomTooltipBarGraph />}
-            // use className to make the bg transparent
-            className='bg-transparent'
+            cursor={{ fill: '#eee', fillOpacity: 0.3 }}
           />
         </BarChart>
       );
