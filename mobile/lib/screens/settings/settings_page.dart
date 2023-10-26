@@ -19,7 +19,6 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 
-import '../feedback/feedback_page.dart';
 import 'about_page.dart';
 import 'delete_account_screen.dart';
 
@@ -124,28 +123,6 @@ class _SettingsPageState extends State<SettingsPage>
                                 );
                               },
                               value: state.notifications,
-                            ),
-                          ),
-                        ),
-                        divider,
-                        Card(
-                          margin: EdgeInsets.zero,
-                          elevation: 0,
-                          child: ListTile(
-                            tileColor: Colors.white,
-                            onTap: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const LanguageList();
-                                  },
-                                ),
-                              );
-                            },
-                            title: Text(
-                              AppLocalizations.of(context)!.changeLanguage,
-                              style: Theme.of(context).textTheme.bodyLarge,
                             ),
                           ),
                         ),

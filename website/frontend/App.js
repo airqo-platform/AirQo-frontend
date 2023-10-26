@@ -1,6 +1,8 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
+import { I18nextProvider } from 'react-i18next';
+import i18n from './i18n';
 
 import Loadspinner from './src/components/LoadSpinner';
 
@@ -26,7 +28,7 @@ const MobileAppPage = React.lazy(() => import('src/pages/OurProducts/MobileAppPa
 const APIPage = React.lazy(() => import('src/pages/OurProducts/ApiPage'));
 const CalibrationPage = React.lazy(() => import('src/pages/OurProducts/CalibrationPage'));
 const QRCodeRedirectPage = React.lazy(() => import('src/pages/ExploreData/Redirect'));
-const CleanAirPage = React.lazy(()=>import('src/pages/CleanAir'))
+const CleanAirPage = React.lazy(() => import('src/pages/CleanAir'))
 const CleanAirEventsPage = React.lazy(() => import('src/pages/CleanAir/CleanAirEvents'))
 const CleanAirPartnersPage = React.lazy(() => import('src/pages/CleanAir/CleanAirPartners'))
 const CleanAirPressPage = React.lazy(() => import('src/pages/CleanAir/CleanAirPress'))
@@ -42,41 +44,43 @@ store.dispatch(loadAirQloudSummaryData());
 const App = () => {
   return (
     <Provider store={store}>
-      <Router>
-        <Suspense fallback={<Loadspinner />}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/solutions/research" element={<ResearchPage />} />
-            <Route path="/solutions/communities" element={<CommunityPage />} />
-            <Route path="/solutions/african-cities" element={<AfricanCitiesPage />} />
-            <Route path="/careers" element={<CareerPage />} />
-            <Route path="/careers/:uniqueTitle" element={<CareerDetailPage />} />
-            <Route path="/about-us" element={<AboutUsPage />} />
-            <Route path="/press" element={<Press />} />
-            <Route path="/legal" element={<LegalPage />} />
-            <Route path="/contact" element={<ContactUsPage />} />
-            <Route path="/contact/form" element={<ContactForm />} />
-            <Route path="/contact/sent" element={<Feedback />} />
-            <Route path="/explore-data" element={<ExploreData />} />
-            <Route path="/explore-data/download-apps" element={<ExploreApp />} />
-            <Route path="/partners/:uniqueTitle" element={<PartnerDetailPage />} />
-            <Route path="/resources" element={<PublicationsPage />} />
-            <Route path="/events" element={<EventsPage />} />
-            <Route path="/events/:uniqueTitle" element={<EventsDetailsPage />} />
-            <Route path="/products/monitor" element={<MonitorPage />} />
-            <Route path="/products/analytics" element={<AnalyticsPage />} />
-            <Route path="/products/mobile-app" element={<MobileAppPage />} />
-            <Route path="/products/api" element={<APIPage />} />
-            <Route path="/download-apps" element={<QRCodeRedirectPage />} />
-            <Route path="/products/calibrate" element={<CalibrationPage />} />
-            <Route path="/clean-air" element={<CleanAirPage />}/>
-            <Route path='/clean-air/events' element={<CleanAirEventsPage />} />
-            <Route path='/clean-air/partners' element={<CleanAirPartnersPage />} />
-            <Route path='/clean-air/press' element={<CleanAirPressPage />} />
-            <Route path="*" element={<Error404 />} />
-          </Routes>
-        </Suspense>
-      </Router>
+      <I18nextProvider i18n={i18n}>
+        <Router>
+          <Suspense fallback={<Loadspinner />}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/solutions/research" element={<ResearchPage />} />
+              <Route path="/solutions/communities" element={<CommunityPage />} />
+              <Route path="/solutions/african-cities" element={<AfricanCitiesPage />} />
+              <Route path="/careers" element={<CareerPage />} />
+              <Route path="/careers/:uniqueTitle" element={<CareerDetailPage />} />
+              <Route path="/about-us" element={<AboutUsPage />} />
+              <Route path="/press" element={<Press />} />
+              <Route path="/legal" element={<LegalPage />} />
+              <Route path="/contact" element={<ContactUsPage />} />
+              <Route path="/contact/form" element={<ContactForm />} />
+              <Route path="/contact/sent" element={<Feedback />} />
+              <Route path="/explore-data" element={<ExploreData />} />
+              <Route path="/explore-data/download-apps" element={<ExploreApp />} />
+              <Route path="/partners/:uniqueTitle" element={<PartnerDetailPage />} />
+              <Route path="/resources" element={<PublicationsPage />} />
+              <Route path="/events" element={<EventsPage />} />
+              <Route path="/events/:uniqueTitle" element={<EventsDetailsPage />} />
+              <Route path="/products/monitor" element={<MonitorPage />} />
+              <Route path="/products/analytics" element={<AnalyticsPage />} />
+              <Route path="/products/mobile-app" element={<MobileAppPage />} />
+              <Route path="/products/api" element={<APIPage />} />
+              <Route path="/download-apps" element={<QRCodeRedirectPage />} />
+              <Route path="/products/calibrate" element={<CalibrationPage />} />
+              <Route path="/clean-air" element={<CleanAirPage />} />
+              <Route path='/clean-air/events' element={<CleanAirEventsPage />} />
+              <Route path='/clean-air/partners' element={<CleanAirPartnersPage />} />
+              <Route path='/clean-air/press' element={<CleanAirPressPage />} />
+              <Route path="*" element={<Error404 />} />
+            </Routes>
+          </Suspense>
+        </Router>
+      </I18nextProvider>
     </Provider>
   );
 };

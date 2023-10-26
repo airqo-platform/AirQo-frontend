@@ -144,6 +144,7 @@ class _AirQoAppState extends State<AirQoApp> {
           Locale('en'), //English
           Locale('fr'), //French
           Locale('pt'), //Portuguese
+          Locale('sw'), //Swahili
         ],
         navigatorKey: navigatorKey,
         navigatorObservers: [

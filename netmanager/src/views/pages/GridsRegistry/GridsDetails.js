@@ -17,58 +17,26 @@ import {
   Tooltip,
   Box
 } from '@material-ui/core';
-import CustomMaterialTable from '../../components/Table/CustomMaterialTable';
 import { useInitScrollTop } from 'utils/customHooks';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
-import clsx from 'clsx';
-import { makeStyles } from '@material-ui/styles';
-import Typography from '@material-ui/core/Typography';
 // css
 import 'react-leaflet-fullscreen/dist/styles.css';
 import 'assets/css/location-registry.css';
-import { isEmpty, isEqual } from 'underscore';
-import { loadGridDetails } from '../../../redux/Analytics/operations';
-import Select from 'react-select';
-import { useDevicesData } from '../../../redux/DeviceRegistry/selectors';
-import { updateMainAlert } from '../../../redux/MainAlert/operations';
+import { isEmpty } from 'underscore';
+import { loadGridDetails } from 'redux/Analytics/operations';
+import { updateMainAlert } from 'redux/MainAlert/operations';
 import GridSitesTable from './SitesTable';
 import { updateGridApi } from '../../apis/deviceRegistry';
 import { withPermission } from '../../containers/PageAccess';
-
-const useStyles = makeStyles((theme) => ({
-  root: {
-    padding: theme.spacing(4)
-  },
-  cardTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textTransform: 'capitalize'
-  },
-  titleSpacing: {
-    marginBottom: theme.spacing(2)
-  }
-}));
 
 const gridItemStyle = {
   padding: '5px',
   margin: '5px 0'
 };
 
-const createDeviceOptions = (devices) => {
-  const options = [];
-  devices.map((device) => {
-    options.push({
-      value: device._id,
-      label: device.name
-    });
-  });
-  return options;
-};
-
 const GridForm = ({ grid }) => {
   const history = useHistory();
   const dispatch = useDispatch();
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
 
   const initialState = {
     name: '',
@@ -114,6 +82,13 @@ const GridForm = ({ grid }) => {
     setState({
       ...form,
       [field]: event.target.value
+    });
+  };
+
+  const onChangeInputField = (e) => {
+    setState({
+      ...form,
+      [e.target.id]: e.target.value
     });
   };
 
@@ -182,7 +157,6 @@ const GridForm = ({ grid }) => {
             style={{ color: '#3f51b5', cursor: 'pointer' }}
             onClick={() => {
               history.push('/grids');
-              // dispatch(removeAirQloudData());
             }}
           />
         </div>
@@ -250,6 +224,7 @@ const GridForm = ({ grid }) => {
               marginBottom: '20px'
             }}
             InputLabelProps={{ shrink: true }}
+            onChange={onChangeInputField}
           />
         </Grid>
 
@@ -313,6 +288,7 @@ const GridsDetails = (props) => {
           region: site.region,
           createdAt: site.createdAt,
           generated_name: site.generated_name,
+          district: site.district,
           _id: site._id
         });
       });

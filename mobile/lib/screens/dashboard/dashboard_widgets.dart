@@ -254,7 +254,7 @@ class DashboardTopCard extends StatelessWidget {
               width: 8,
             ),
             AutoSizeText(
-              maxLines: 2,
+              maxLines: 3,
               minFontSize: 1,
               title,
               style: CustomTextStyle.bodyText4(context)?.copyWith(

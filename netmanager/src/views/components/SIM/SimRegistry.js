@@ -25,6 +25,7 @@ import CloseIcon from '@material-ui/icons/Close';
 import { getSimsApi, createSimApi, checkSimStatusApi } from '../../apis/accessControl';
 import DeleteIcon from '@material-ui/icons/Delete';
 import RefreshIcon from '@material-ui/icons/Refresh';
+import { withPermission } from '../../containers/PageAccess';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -256,22 +257,21 @@ const SimRegistry = () => {
       });
   }, [refresh]);
 
-  const checkSimStatus = (id) => {
+  const checkSimStatus = async (id) => {
     setIsLoading(true);
-    checkSimStatusApi(id)
-      .then((res) => {
-        setIsLoading(false);
-        if (res.success) {
-          dispatch(updateMainAlert({ message: res.message, show: true, severity: 'success' }));
-          setRefresh(true);
-        } else {
-          dispatch(updateMainAlert({ message: res.message, show: true, severity: 'error' }));
-        }
-      })
-      .catch((err) => {
-        setIsLoading(false);
-        dispatch(updateMainAlert({ message: err.message, show: true, severity: 'error' }));
-      });
+    try {
+      const res = await checkSimStatusApi(id);
+      setIsLoading(false);
+      if (res.success) {
+        dispatch(updateMainAlert({ message: res.message, show: true, severity: 'success' }));
+        setRefresh(true);
+      } else {
+        dispatch(updateMainAlert({ message: res.message, show: true, severity: 'error' }));
+      }
+    } catch (err) {
+      setIsLoading(false);
+      dispatch(updateMainAlert({ message: err.message, show: true, severity: 'error' }));
+    }
   };
 
   const handleDelete = (id) => {};
@@ -295,6 +295,7 @@ const SimRegistry = () => {
         <CustomMaterialTable
           pointerCursor
           userPreferencePaginationKey={'SIM'}
+          isLoading={loading}
           title="SIM Registry"
           columns={[
             {
@@ -397,4 +398,4 @@ const SimRegistry = () => {
   );
 };
 
-export default SimRegistry;
+export default withPermission(SimRegistry, 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES');

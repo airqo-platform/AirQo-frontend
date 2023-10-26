@@ -73,6 +73,16 @@ export const collocateApi = createApi({
         };
       },
     }),
+    getCollocationBatchResults: builder.query({
+      query: (batchId) => {
+        return {
+          url: `/results?token=${NEXT_PUBLIC_API_TOKEN}`,
+          params: {
+            batchId,
+          },
+        };
+      },
+    }),
   }),
 });
 
@@ -84,6 +94,7 @@ export const {
   useGetIntraSensorCorrelationQuery,
   useGetCollocationStatisticsQuery,
   useGetInterSensorCorrelationQuery,
+  useGetCollocationBatchResultsQuery,
   util: { getRunningQueriesThunk },
 } = collocateApi;
 
@@ -96,4 +107,5 @@ export const {
   getIntraSensorCorrelation,
   getInterSensorCorrelation,
   getCollocationStatistics,
+  getCollocationBatchResults,
 } = collocateApi.endpoints;

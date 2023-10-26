@@ -98,6 +98,61 @@ class _SignOutButtonState extends State<SignOutButton> {
   }
 }
 
+class GuestFeedbackButton extends StatelessWidget {
+  const GuestFeedbackButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return const FeedbackPage();
+            },
+          ),
+        );
+      },
+      style: OutlinedButton.styleFrom(
+        elevation: 0,
+        side: const BorderSide(
+          color: Colors.transparent,
+        ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(8),
+          ),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: CustomColors.appColorBlue,
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+      ),
+      child: ListTile(
+        leading: Container(
+          height: 40,
+          width: 40,
+          decoration: BoxDecoration(
+            color: CustomColors.appColorBlue.withOpacity(0.15),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Icon(
+              Icons.chat,
+              color: CustomColors.appColorBlue,
+            ),
+          ),
+        ),
+        title: AutoSizeText(
+          AppLocalizations.of(context)!.sendFeedback,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+      ),
+    );
+  }
+}
+
 class SignUpSection extends StatelessWidget {
   const SignUpSection({super.key});
 
@@ -965,13 +1020,17 @@ class GuestProfileView extends StatelessWidget {
         child: Column(
           children: <Widget>[
             SizedBox(
-              height: 24,
+              height: 8,
             ),
             SignUpSection(),
             SizedBox(
               height: 16,
             ),
             SettingsButton(),
+            SizedBox(
+              height: 8,
+            ),
+            GuestFeedbackButton(),
             Spacer(),
           ],
         ),
