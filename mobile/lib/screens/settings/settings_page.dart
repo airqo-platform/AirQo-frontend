@@ -137,13 +137,13 @@ class _SettingsPageState extends State<SettingsPage>
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) {
-                                    return const FeedbackPage();
+                                    return const LanguageList();
                                   },
                                 ),
                               );
                             },
                             title: Text(
-                              AppLocalizations.of(context)!.sendFeedback,
+                              AppLocalizations.of(context)!.changeLanguage,
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                           ),
