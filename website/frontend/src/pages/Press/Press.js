@@ -11,7 +11,8 @@ import Loadspinner from '../../components/LoadSpinner';
 const Press = () => {
   useInitScrollTop();
   const dispatch = useDispatch();
-  const pressData = useSelector((state) => state.pressData.pressData);
+  const allPressData = useSelector((state) => state.pressData.pressData);
+  const pressData = allPressData.filter((event) => event.website_category === 'airqo');
   const loading = useSelector((state) => state.pressData.loading);
   const [numArticlesToShow, setNumArticlesToShow] = useState(5);
 

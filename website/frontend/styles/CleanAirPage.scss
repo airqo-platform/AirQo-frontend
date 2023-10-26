@@ -190,7 +190,7 @@
           .content-h {
             color: $aq-black-0;
             font-weight: 500;
-            font-size: $h2-font;
+            font-size: $headingFont;
             margin-bottom: 24px;
             padding: 0;
           }
@@ -198,13 +198,11 @@
           .content-p {
             margin-bottom: 50px;
 
-            p {
-              color: $aq-black-0;
-              font-weight: 400;
-              font-size: $p-font;
-              line-height: 28px;
-              margin: 0;
-            }
+            color: $aq-black-0;
+            font-weight: 400;
+            font-size: $subTextFont;
+            line-height: 28px;
+            margin: 0;
           }
 
           #second-pill {
@@ -307,21 +305,18 @@
           .content-h {
             color: $aq-black-0;
             font-weight: 500;
-            font-size: $h2-font;
+            font-size: $headingFont;
             margin-bottom: 24px;
             padding: 0;
           }
 
           .content-p {
             margin-bottom: 50px;
-
-            p {
-              color: $aq-black-0;
-              font-weight: 400;
-              font-size: $p-font;
-              line-height: 28px;
-              margin: 0;
-            }
+            color: $aq-black-0;
+            font-weight: 400;
+            font-size: $subTextFont;
+            line-height: 28px;
+            margin: 0;
           }
 
           #second-pill {

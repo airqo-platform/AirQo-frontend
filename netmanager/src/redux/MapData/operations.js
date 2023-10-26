@@ -13,26 +13,25 @@ import { transformDataToGeoJson } from 'views/pages/Map/utils';
 import { getEventsApi } from 'views/apis/deviceRegistry';
 
 export const loadPM25HeatMapData = () => async (dispatch) => {
-  return await heatmapPredictApi()
-    .then((responseData) => {
-      if (responseData.data.predictions) {
-        const res = responseData.data.predictions;
-        const payload = res;
-        dispatch({
-          type: LOAD_PM25_HEATMAP_DATA_SUCCESS,
-          payload
-        });
-      } else {
-        dispatch({
-          type: LOAD_PM25_HEATMAP_DATA_FAILURE
-        });
-      }
-    })
-    .catch(() => {
+  try {
+    const responseData = await heatmapPredictApi();
+    if (responseData.length > 0 && responseData[0].predictions) {
+      const res = responseData[0].predictions;
+      dispatch({
+        type: LOAD_PM25_HEATMAP_DATA_SUCCESS,
+        payload: res
+      });
+    } else {
       dispatch({
         type: LOAD_PM25_HEATMAP_DATA_FAILURE
       });
+    }
+  } catch (error) {
+    console.error(error);
+    dispatch({
+      type: LOAD_PM25_HEATMAP_DATA_FAILURE
     });
+  }
 };
 
 export const loadPM25SensorData = () => async (dispatch) => {

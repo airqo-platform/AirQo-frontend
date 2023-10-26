@@ -103,8 +103,10 @@ const AddGridToolbar = ({ open, handleClose }) => {
       maxWidth="lg"
       scroll="paper"
     >
-      <DialogTitle id="form-dialog-title">Add New Grid</DialogTitle>
-      <DialogContent dividers={'paper'}>
+      <DialogTitle id="form-dialog-title" data-testid="add-grid-form-title">
+        Add New Grid
+      </DialogTitle>
+      <DialogContent dividers={true}>
         {errorMessage && (
           <Box paddingBottom={'12px'}>
             <Alert severity={errorMessage.severity}>{errorMessage.message}</Alert>

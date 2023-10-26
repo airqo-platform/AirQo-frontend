@@ -162,6 +162,9 @@
       "json",
       "lcov",
       "text"
+    ],
+    "setupFilesAfterEnv": [
+      "/setupTests.js"
     ]
   }
 }

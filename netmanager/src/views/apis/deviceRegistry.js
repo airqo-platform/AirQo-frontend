@@ -136,26 +136,31 @@ export const getEventsApi = async (params) => {
 };
 
 export const getSitesApi = async (params) => {
+  axios.defaults.headers.common.Authorization = jwtToken;
   return await axios.get(SITES, { params: { ...params } }).then((response) => response.data);
 };
 
 export const getSitesSummaryApi = async (params) => {
+  axios.defaults.headers.common.Authorization = jwtToken;
   return await axios
     .get(`${SITES}/summary`, { params: { ...params } })
     .then((response) => response.data);
 };
 
 export const getSiteDetailsApi = async (site_id) => {
+  axios.defaults.headers.common.Authorization = jwtToken;
   return await axios.get(SITES, { params: { id: site_id } }).then((response) => response.data);
 };
 
 export const updateSiteApi = async (site_id, siteData) => {
+  axios.defaults.headers.common.Authorization = jwtToken;
   return await axios
     .put(SITES, siteData, { params: { id: site_id } })
     .then((response) => response.data);
 };
 
 export const createSiteApi = async (siteData) => {
+  axios.defaults.headers.common.Authorization = jwtToken;
   return await axios.post(SITES, siteData).then((response) => response.data);
 };
 
@@ -169,19 +174,10 @@ export const deleteSiteApi = async (siteId) => {
 
 export const getAirQloudsApi = async (params) => {
   try {
-    const response = await axios.get(AIRQLOUDS, { params: { ...params } });
-    return response.data;
+    const { data } = await axios.get(AIRQLOUDS, { params });
+    return data;
   } catch (error) {
-    if (error.response) {
-      console.error(error.response.data);
-      console.error(error.response.status);
-      console.error(error.response.headers);
-    } else if (error.request) {
-      console.error(error.request);
-    } else {
-      console.error('Error', error.message);
-    }
-    console.error(error.config);
+    console.error(error);
   }
 };
 
@@ -227,6 +223,12 @@ export const getGridDetailsApi = async (gridID) => {
 
 export const getGridsApi = async (params) => {
   return await axios.get(GRIDS, { params: { ...params } }).then((response) => response.data);
+};
+
+export const getGridsSummaryApi = async (params) => {
+  return await axios
+    .get(`${GRIDS}/summary`, { params: { ...params } })
+    .then((response) => response.data);
 };
 
 export const getCohortDetailsApi = async (cohortID) => {
