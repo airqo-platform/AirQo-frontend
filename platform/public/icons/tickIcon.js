@@ -11,9 +11,9 @@ const tickIcon = ({ width, height, fill }) => {
       <path
         d='M20 6L9 17L4 12'
         stroke={fill || '#4B5563'}
-        stroke-width='1.5'
-        stroke-linecap='round'
-        stroke-linejoin='round'
+        strokeWidth='1.5'
+        strokeLinecap='round'
+        strokeLinejoin='round'
       />
     </svg>
   );

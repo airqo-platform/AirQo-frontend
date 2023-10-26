@@ -5,35 +5,27 @@ import withAuth from '@/core/utils/protectedRoute';
 import Layout from '@/components/Layout';
 import OverView from './tabs/OverView';
 import Explore from './tabs/Explore';
+import CustomCalendar from '@/components/Calendar/CustomCalendar';
 import TabButtons from '@/components/Button/TabButtons';
-import CalendarIcon from '@/icons/calendar.svg';
 import SettingsIcon from '@/icons/settings.svg';
-import Datepicker from 'react-tailwindcss-datepicker';
 
 const AuthenticatedHomePage = () => {
-  const [value, setValue] = useState({
-    startDate: null,
-    endDate: null,
-  });
-
-  const [showDatepicker, setShowDatepicker] = useState(false);
-
-  const handleValueChange = (newValue) => {
-    console.log('newValue:', newValue);
-    setValue(newValue);
-  };
-
   const renderChildrenRight = () => {
     return [
       {
         label: 'Overview',
         children: (
-          <div className='flex mb-2 space-x-3'>
-            <TabButtons
-              Icon={CalendarIcon}
-              btnText='Last 7 days'
+          <div className='flex space-x-3 mt-2 md:mt-0 lg:mt-0'>
+            <CustomCalendar
+              initialStartDate={new Date()}
+              initialEndDate={new Date()}
+              id='datepicker'
+              position={
+                window.innerWidth <= 768
+                  ? { top: '40px', left: '0px' }
+                  : { top: '40px', right: '0px' }
+              }
               dropdown
-              onClick={() => setShowDatepicker(true)}
             />
             <TabButtons Icon={SettingsIcon} btnText='Customize' />
           </div>
@@ -55,11 +47,8 @@ const AuthenticatedHomePage = () => {
           <Explore />
         </Tab>
       </Tabs>
-      {showDatepicker && (
-        <Datepicker value={value} onChange={handleValueChange} showShortcuts={true} />
-      )}
     </Layout>
   );
 };
 
-export default withAuth(AuthenticatedHomePage);
+export default AuthenticatedHomePage;
