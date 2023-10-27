@@ -3,7 +3,11 @@ import { postUserCreationDetails, createOrganisation } from '@/core/apis/Account
 
 const initialState = {
   userData: { firstName: '', lastName: '', email: '', },
-  orgData: {},
+  orgData: {
+    orgIndustry:'',
+    orgCountry:'',
+    locations:[]
+  },
   password: '',
   errors: null,
   success: false,
@@ -31,7 +35,19 @@ export const createUser = createAsyncThunk('account/creation', async (postData, 
 export const postOrganisationCreationDetails = createAsyncThunk('/organisation/creation', async (postData, { rejectWithValue }) => {
   try {
     const response = await createOrganisation(postData);
-    console.log(response);
+    return response;
+  }
+  catch (error) {
+    if (!error.response) {
+      throw error
+    }
+    return rejectWithValue(error.response)
+  }
+})
+
+export const updateOrganisationDetails = createAsyncThunk('/organisation/update', async (postData, id, { rejectWithValue }) => {
+  try {
+    const response = await createOrganisation(postData, id);
     return response;
   }
   catch (error) {
