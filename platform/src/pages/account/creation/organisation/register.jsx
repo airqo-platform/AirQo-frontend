@@ -56,7 +56,7 @@ const OrganisationIndividualAccountCreation = () => {
           message: response.payload.errors,
         });
       } else {
-        router.push('/account/creation/step3');
+        router.push('/account/creation/organisation/verify-email');
       }
     } catch (err) {
       return err;
