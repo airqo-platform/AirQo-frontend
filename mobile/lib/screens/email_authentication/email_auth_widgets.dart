@@ -39,7 +39,7 @@ class EmailAuthErrorMessage extends StatelessWidget {
                   width: 5,
                 ),
                 Expanded(
-                  child: Text(
+                  child: AutoSizeText(
                     state.errorMessage,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -295,7 +295,7 @@ class _EmailVerificationCodeCountDownState
 
         return Padding(
           padding: const EdgeInsets.only(top: 10.0),
-          child: Text(
+          child: AutoSizeText(
             AppLocalizations.of(context)!
                 .theCodeShouldArrive(state.codeCountDown),
             textAlign: TextAlign.center,
