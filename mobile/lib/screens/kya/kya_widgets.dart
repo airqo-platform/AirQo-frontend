@@ -145,7 +145,7 @@ class KyaLessonCardWidget extends StatelessWidget {
           ),
         ),
         backgroundColor: Colors.white,
-        padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
+        padding: const EdgeInsets.fromLTRB(16.0, 8.0, 4.0, 8.0),
       ),
       onPressed: () async {
         if (kyaLesson.status == KyaLessonStatus.pendingCompletion) {
@@ -173,7 +173,7 @@ class KyaLessonCardWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SizedBox(
-            width: MediaQuery.of(context).size.width * 0.5,
+            width: MediaQuery.of(context).size.width * 0.5375,
             height: 104,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,7 +206,7 @@ class KyaLessonCardWidget extends StatelessWidget {
           ),
           const Spacer(),
           SizedBox(
-            width: MediaQuery.of(context).size.width * 0.03,
+            width: MediaQuery.of(context).size.width * 0.02,
           ),
           FittedBox(
             fit: BoxFit.cover,
