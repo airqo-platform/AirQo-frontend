@@ -9,6 +9,7 @@ import { collocateApi } from './services/collocation';
 import collocationDataReducer from './services/collocation/collocationDataSlice';
 import { createAccountSlice } from './services/account/CreationSlice';
 import { userLoginSlice } from './services/account/LoginSlice';
+import { gridsSlice } from './services/deviceRegistry/GridsSlice';
 
 const persistConfig = {
   key: 'root',
@@ -22,6 +23,7 @@ const rootReducer = combineReducers({
   collocationData: collocationDataReducer,
   [createAccountSlice.name]: createAccountSlice.reducer,
   [userLoginSlice.name]: userLoginSlice.reducer,
+  [gridsSlice.name]: gridsSlice.reducer
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
