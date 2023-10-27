@@ -13,7 +13,7 @@ const UserCreationSuccess = () => {
     dispatch(setUserId(id))
     setTimeout(() => {
       router.push(`/account/creation/organisation/verify/${id}/create-org/details`);
-    }, 3000);
+    }, 4000);
   }, [router, id]);
 
   return (
