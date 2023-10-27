@@ -56,7 +56,7 @@ class KyaMessageChip extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget widget = AutoSizeText(
       kya.getKyaMessage(context),
-      maxLines: 1,
+      maxLines: 2,
       overflow: TextOverflow.ellipsis,
       textAlign: TextAlign.center,
       style: CustomTextStyle.caption3(context)?.copyWith(

@@ -6,7 +6,6 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../constants/language_contants.dart';
 import '../../main_common.dart';
-import '../../models/language.dart';
 import '../../themes/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:restart_app/restart_app.dart';
@@ -31,8 +30,8 @@ class LanguageListState extends State<LanguageList> {
     });
   }
 
-  Future<dynamic> languageDialog(BuildContext context, Language language) {
-    return showCupertinoDialog(
+  Future<bool> languageDialog(BuildContext context, Language language) {
+    return showCupertinoDialog<bool>(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
         title: Text(
@@ -65,19 +64,27 @@ class LanguageListState extends State<LanguageList> {
               Locale locale = await setLocale(language.languageCode);
               await AirQoApp.setLocale(context, locale);
 
-              if (selectedLanguageCode != language.languageCode) {
-                setState(() {
-                  selectedLanguageCode = language.languageCode;
-                });
-              }
-
-              Navigator.pop(context);
+              Navigator.pop(context, true);
               await Restart.restartApp();
+            },
+          ),
+          CupertinoDialogAction(
+            child: Text(
+              style: TextStyle(
+                color: CustomColors.appColorBlue,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+              AppLocalizations.of(context)!.cancel,
+            ),
+            onPressed: () {
+              Navigator.pop(context, false);
             },
           ),
         ],
       ),
-    );
+      barrierDismissible: true,
+    ).then((value) => value ?? false);
   }
 
   @override
@@ -106,29 +113,40 @@ class LanguageListState extends State<LanguageList> {
                         duration: const Duration(milliseconds: 100),
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         curve: Curves.easeIn,
-                        child: ListTile(
-                          selectedColor: CustomColors.appColorBlue,
-                          trailing:
-                              selectedLanguageCode == language.languageCode
-                                  ? Icon(
-                                      Icons.check_circle_outlined,
-                                      color: CustomColors.appColorBlue,
-                                    )
-                                  : null,
-                          leading: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(4),
-                                color: CustomColors.appBodyColor,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: ListTile(
+                            selectedColor: CustomColors.appColorBlue,
+                            trailing:
+                                selectedLanguageCode == language.languageCode
+                                    ? Icon(
+                                        Icons.check,
+                                        color: CustomColors.aqiGreenTextColor,
+                                      )
+                                    : null,
+                            leading: Padding(
+                              padding: const EdgeInsets.fromLTRB(0, 9, 8, 8),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(4),
+                                  color: CustomColors.appBodyColor,
+                                ),
+                                child: language.flag,
                               ),
-                              child: Text(language.flagEmoji)),
-                          title: Text(language.name),
-                          onTap: () async {
-                            await languageDialog(context, language);
-                            await _saveSelectedLanguage(language.languageCode);
-                            setState(() {
-                              selectedLanguageCode = language.languageCode;
-                            });
-                          },
+                            ),
+                            title: Text(language.name),
+                            onTap: () async {
+                              final shouldChangeLanguage =
+                                  await languageDialog(context, language);
+                              if (shouldChangeLanguage) {
+                                await _saveSelectedLanguage(
+                                    language.languageCode);
+                                setState(() {
+                                  selectedLanguageCode = language.languageCode;
+                                });
+                              }
+                            },
+                          ),
                         ),
                       ),
                       Divider(
@@ -150,10 +168,10 @@ class LanguageListState extends State<LanguageList> {
 
 Future<void> _saveSelectedLanguage(String languageCode) async {
   final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('selectedLanguage', languageCode);
+  await prefs.setString('language', languageCode);
 }
 
 Future<String?> _loadSelectedLanguage() async {
   final prefs = await SharedPreferences.getInstance();
-  return prefs.getString('selectedLanguage');
+  return prefs.getString('language');
 }

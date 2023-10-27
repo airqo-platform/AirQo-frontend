@@ -337,5 +337,6 @@
 	"changeLanguage": "Mudar de idioma",
 	"doYouWantToSwitchToLanguage": "Você quer mudar para {placeholder}? O aplicativo será reiniciado para efetuar as alterações",
 	"languageChangedSuccessfully": "Idioma alterado com sucesso {placeholder}",
-	"ok": "OK"
+	"ok": "OK",
+	"languages": "Idiomas"
 	}

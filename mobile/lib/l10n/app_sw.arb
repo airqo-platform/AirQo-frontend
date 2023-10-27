@@ -337,5 +337,7 @@
     "changeLanguage": "Badilisha Lugha",
     "doYouWantToSwitchToLanguage": "unataka kubadili {placeholder}? programu itaanza upya ili kufanya mabadiliko",
     "languageChangedSuccessfully": "Lugha imebadilishwa kwa mafanikio {placeholder}",
-    "ok": "Sawa"
+    "ok": "Sawa",
+    "languages": "Lugha"
+
 }

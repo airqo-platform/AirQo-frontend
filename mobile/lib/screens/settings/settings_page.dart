@@ -143,7 +143,7 @@ class _SettingsPageState extends State<SettingsPage>
                               );
                             },
                             title: Text(
-                              AppLocalizations.of(context)!.changeLanguage,
+                              AppLocalizations.of(context)!.languages,
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                           ),
