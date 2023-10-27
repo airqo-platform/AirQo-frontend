@@ -16,6 +16,7 @@ import AnalyticsAirqloudsDropDown from './components/AirqloudDropdown';
 import ImportExportIcon from '@material-ui/icons/ImportExport';
 import GridsDashboardView from './components/GridsDashboard';
 import AnalyticsBreadCrumb from './components/Breadcrumb';
+import Tooltip from '@material-ui/core/Tooltip';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   loadGridsAndCohortsSummary,
@@ -40,7 +41,12 @@ const useStyles = makeStyles((theme) => ({
   root: {
     padding: theme.spacing(4),
     position: 'relative'
-  }
+  },
+  customTooltip: {
+    fontSize: '16px', 
+    backgroundColor: 'blue', 
+    color: 'white', 
+  },
 }));
 
 const createDeviceOptions = (devices) => {
@@ -238,20 +244,25 @@ const Analytics = () => {
             )}
           </Box>
           <Box width={'auto'} marginTop={{ xs: '25px', sm: '25px', md: '0', lg: '0', xl: '0' }}>
-            <Button
-              margin="dense"
-              color="primary"
-              style={{
-                width: 'auto',
-                textTransform: 'initial',
-                height: '44px',
-                position: 'relative'
-              }}
-              variant="contained"
-              onClick={handleSwitchAirqloudTypeClick}
-            >
-              <ImportExportIcon /> Switch to {isCohort ? 'Grid View' : 'Cohort View'}
-            </Button>
+          <Tooltip
+            title={isCohort ? 'Switch to Grid View' : 'Switch to Cohort View'}
+            classes={{ tooltip: classes.customTooltip }} 
+          >
+              <Button
+                margin="dense"
+                color="primary"
+                style={{
+                  width: 'auto',
+                  textTransform: 'initial',
+                  height: '44px',
+                  position: 'relative'
+                }}
+                variant="contained"
+                onClick={handleSwitchAirqloudTypeClick}
+              >
+                <ImportExportIcon /> Switch to {isCohort ? 'Grid View' : 'Cohort View'}
+              </Button>
+            </Tooltip>
           </Box>
         </Box>
 
