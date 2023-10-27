@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 
-function Tabs({ children, childrenRight }) {
+function Tabs({ children, childrenRight, positionFixed }) {
   const [activeTab, setActiveTab] = useState(0);
   const childrenArray = React.Children.toArray(children);
 
   return (
-    <div data-testid='tabs'>
+    <div data-testid='tabs' className='relative w-full'>
       <div
-        className={`px-4 lg:px-16 mb-4 border-b border-grey-200 ${
-          childrenRight && 'flex justify-between'
+        className={`${
+          positionFixed && 'fixed'
+        } w-full h-14 bg-white px-4 lg:px-16 border-b border-grey-200 flex items-end z-20 ${
+          childrenRight && 'justify-between'
         }`}
       >
         <ul className='flex flex-wrap gap-6 text-sm font-medium text-center'>
@@ -29,7 +31,8 @@ function Tabs({ children, childrenRight }) {
         </ul>
         {childrenRight && childrenRight[activeTab] && childrenRight[activeTab].children}
       </div>
-      <div>{children[activeTab]}</div>
+      <div className='h-14' />
+      <div className='relative'>{children[activeTab]}</div>
     </div>
   );
 }
