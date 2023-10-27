@@ -38,7 +38,7 @@ const IndividualAccountInterest = () => {
     });
     try {
       await updateUserCreationDetails(userData, id);
-      router.push('/account/creation/individual/get-started');
+      router.push('/account/creation/get-started');
     } catch (error) {
       setUpdateError({
         state: true,
