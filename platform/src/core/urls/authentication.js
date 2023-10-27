@@ -11,8 +11,8 @@ export const LOGIN_URL = `${BASE_AUTH_URL}/users/loginUser`;
 
 export const UPDATE_PWD_URL = `${BASE_AUTH_URL}/users/updatePassword`;
 
-export const USERS_URL = `${BASE_AUTH_URL}/users`;
+export const USERS_URL = AUTH_URL;
 
-export const GROUPS_URL = `${BASE_AUTH_URL}/users/groups`;
+export const GROUPS_URL = `${AUTH_URL}/groups`;
 
-export const UPDATE_USER_DETAILS_URL = USERS_URL;
+export const UPDATE_USER_DETAILS_URL = AUTH_URL;
