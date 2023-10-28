@@ -15,8 +15,8 @@ import { getEventsApi } from 'views/apis/deviceRegistry';
 export const loadPM25HeatMapData = () => async (dispatch) => {
   try {
     const responseData = await heatmapPredictApi();
-    if (responseData.length > 0 && responseData[0].predictions) {
-      const res = responseData[0].predictions;
+    if (responseData.length > 0 && responseData[0].data.predictions) {
+      const res = responseData[0].data.predictions;
       dispatch({
         type: LOAD_PM25_HEATMAP_DATA_SUCCESS,
         payload: res

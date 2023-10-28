@@ -7,8 +7,13 @@ import clsx from 'clsx';
 import Select from 'react-select';
 import DateFnsUtils from '@date-io/date-fns';
 import {MuiPickersUtilsProvider, KeyboardTimePicker, KeyboardDatePicker} from '@material-ui/pickers';
-import axios from 'axios';
+import createAxiosInstance from './axiosConfig';;
 import constants from 'config/constants'
+
+
+const jwtToken = localStorage.getItem('jwtToken');
+const accessToken = process.env.REACT_APP_AUTH_TOKEN;
+
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(3)
@@ -55,6 +60,7 @@ const Graphs = props => {
   const [backgroundColors, setBackgroundColors] = useState([]);
 
   const [selectedDate, setSelectedStartDate] = useState(new Date('2020-04-16T21:11:54'));
+  axios.defaults.headers.common.Authorization = jwtToken;
 
   const handleDateChange = (date) => {
     setSelectedStartDate(date);
@@ -69,12 +75,14 @@ const Graphs = props => {
   const [filterLocations,setFilterLocations] = useState([]);
 
   useEffect(() => {
-    fetch(constants.GET_MONITORING_SITES_LOCATIONS_URI)
-      .then(res => res.json())
-      .then((filterLocationsData) => {
-        setFilterLocations(filterLocationsData.airquality_monitoring_sites)
-      })
-      .catch(console.log)
+    // createAxiosInstance().get(constants.GET_MONITORING_SITES_LOCATIONS_URI, {
+    //   params: { token: accessToken }
+    // })
+    //   .then(res => res.json())
+    //   .then((filterLocationsData) => {
+    //     setFilterLocations(filterLocationsData.airquality_monitoring_sites)
+    //   })
+    //   .catch(console.log)
   },[]);
 
   const filterLocationsOptions = filterLocations
@@ -135,7 +143,7 @@ const Graphs = props => {
     }
     console.log(JSON.stringify(filter));
 
-    axios.post(
+    createAxiosInstance().post(
       constants.GENERATE_DEVICE_GRAPH_URI, 
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }

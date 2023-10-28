@@ -1,4 +1,5 @@
 /* eslint-disable */
+import createAxiosInstance from '../../views/apis/axiosConfig';
 import axios from 'axios';
 import setAuthToken from '../../utils/setAuthToken';
 import jwt_decode from 'jwt-decode';
@@ -71,9 +72,6 @@ import {
 } from 'config/urls/authService';
 import { setDefaultAirQloud } from '../AirQloud/operations';
 import { fetchNetworkUsers } from '../AccessControl/operations';
-
-const jwtToken = localStorage.getItem('jwtToken');
-axios.defaults.headers.common.Authorization = jwtToken;
 
 /***************************errors ********************************* */
 
@@ -479,7 +477,7 @@ export const verifyToken = async (token) => {
 
 // Get user details
 export const getUserDetails = async (userId) => {
-  const response = await axios.get(`${GET_USERS_URI}/${userId}`);
+  const response = await createAxiosInstance().get(`${GET_USERS_URI}/${userId}`);
   return response.data;
 };
 
