@@ -385,7 +385,7 @@ export const registrationSuccess = (data) => {
 /************************* Login a new User  *********************************/
 export const loginUser = (userData) => (dispatch) => {
   const tenant = userData.organization;
-  axios
+  createAxiosInstance()
     .post(LOGIN_USER_URI, userData, { params: { tenant } })
     .then((res) => {
       try {
