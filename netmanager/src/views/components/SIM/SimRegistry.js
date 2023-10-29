@@ -253,7 +253,6 @@ const SimRegistry = () => {
       })
       .catch((err) => {
         setLoading(false);
-        dispatch(updateMainAlert({ message: err.message, show: true, severity: 'error' }));
       });
   }, [refresh]);
 

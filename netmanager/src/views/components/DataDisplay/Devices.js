@@ -619,7 +619,7 @@ const DevicesTable = (props) => {
   const [softRegisterOpen, setSoftRegisterOpen] = useState(false);
 
   useEffect(() => {
-    if (isEmpty(devices) || isEmpty(sites)) {
+    if (isEmpty(devices)) {
       if (!isEmpty(activeNetwork)) {
         dispatch(loadDevicesData(activeNetwork.net_name));
         dispatch(loadSitesData(activeNetwork.net_name));
