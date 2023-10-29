@@ -11,7 +11,7 @@ import L from 'leaflet';
 import { GET_MONITORING_SITES_URI, GET_DATA_MAP } from 'config/urls/analytics';
 import Filter from './Filter';
 import moment from 'moment-timezone';
-import createAxiosInstance from '../../../../apis/axiosConfig';
+import createAxiosInstance from 'views/apis/axiosConfig';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -41,7 +41,6 @@ const useStyles = makeStyles((theme) => ({
     marginTop: theme.spacing(3)
   }
 }));
-//const { BaseLayer, Overlay } = LayersControl;
 
 const Map = (props) => {
   const { className, ...rest } = props;
@@ -72,7 +71,6 @@ const Map = (props) => {
   }, []);
 
   let fetchFilteredData = (magnitude) => {
-    //this.setState({ isLoaded: false }, () => {
     createAxiosInstance()
       .get(GET_DATA_MAP + magnitude)
       .then((res) => res.json())
@@ -80,7 +78,6 @@ const Map = (props) => {
         setContacts(contactData.airquality_monitoring_sites);
       });
   };
-  //classify marker colors based on AQI value
 
   let getPm25CategoryColorClass = (aqi) => {
     return aqi > 250.4

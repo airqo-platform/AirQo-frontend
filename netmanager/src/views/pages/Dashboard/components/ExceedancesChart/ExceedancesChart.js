@@ -20,7 +20,7 @@ import {
 } from '@material-ui/core';
 import { MoreHoriz } from '@material-ui/icons';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
-import createAxiosInstance from '../../../../apis/axiosConfig';
+import createAxiosInstance from 'views/apis/axiosConfig';
 import palette from 'theme/palette';
 import { EXCEEDANCES_URI } from 'config/urls/analytics';
 import Menu from '@material-ui/core/Menu';

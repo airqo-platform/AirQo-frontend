@@ -18,10 +18,8 @@ import { loadPM25HeatMapData, loadPM25SensorData } from './redux/MapData/operati
 
 // Check for token to keep user logged in
 if (localStorage.jwtToken) {
-  // Set auth token header auth
   const token = localStorage.jwtToken;
   setAuthToken(token);
-  // Decode token and get user info and exp
   const decoded = jwt_decode(token);
   let currentUser = decoded;
 
@@ -33,11 +31,10 @@ if (localStorage.jwtToken) {
   // Set user and isAuthenticated
   store.dispatch(setCurrentUser(currentUser));
   // Check for expired token
-  const currentTime = Date.now() / 1000; // to get in milliseconds
+  const currentTime = Date.now() / 1000;
   if (decoded.exp < currentTime) {
-    // Logout user
     store.dispatch(logoutUser());
-    // Redirect to the landing page
+
     window.location.href = './';
   }
   store.dispatch(setOrganization());
@@ -47,8 +44,6 @@ if (localStorage.jwtToken) {
   store.dispatch(loadPM25SensorData());
 } else {
   store.dispatch(setOrganization());
-  // store.dispatch(setDefaultAirQloud());
-  // store.dispatch(loadSites());
   store.dispatch(loadPM25HeatMapData());
   store.dispatch(loadPM25SensorData());
 }

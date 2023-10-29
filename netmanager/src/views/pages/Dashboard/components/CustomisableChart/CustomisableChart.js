@@ -22,7 +22,7 @@ import {
   KeyboardTimePicker,
   KeyboardDatePicker
 } from '@material-ui/pickers';
-import createAxiosInstance from '../../../../apis/axiosConfig';
+import createAxiosInstance from 'views/apis/axiosConfig';
 import 'chartjs-plugin-annotation';
 import { CustomDisplayChart } from '../index';
 import palette from 'theme/palette';

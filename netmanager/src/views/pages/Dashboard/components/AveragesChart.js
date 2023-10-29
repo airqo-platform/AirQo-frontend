@@ -24,7 +24,7 @@ import { Bar } from 'react-chartjs-2';
 import domtoimage from 'dom-to-image';
 import JsPDF from 'jspdf';
 import palette from 'theme/palette';
-import createAxiosInstance from '../../../apis/axiosConfig';
+import createAxiosInstance from 'views/apis/axiosConfig';
 import { DAILY_MEAN_AVERAGES_URI } from 'config/urls/analytics';
 import { roundToEndOfDay, roundToStartOfDay } from 'utils/dateTime';
 import { isEmpty, unzip, zip } from 'underscore';
