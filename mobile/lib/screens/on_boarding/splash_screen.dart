@@ -38,7 +38,7 @@ class SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context);
-    AppService().setLocale(locale.languageCode);
+    AppService.setLocale(locale.languageCode);
     
     return Scaffold(
       body: PageTransitionSwitcher(
