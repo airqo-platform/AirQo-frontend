@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
-import axios from 'axios';
+import createAxiosInstance from '../../apis/axiosConfig';
 import { Link, useHistory, useLocation } from 'react-router-dom';
 import { makeStyles } from '@material-ui/styles';
 import { isEmpty } from 'underscore';
@@ -318,7 +318,7 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
 
         return;
       } else {
-        axios
+        createAxiosInstance()
           .post(REGISTER_DEVICE_URI, dropEmpty(newDevice), {
             headers: { 'Content-Type': 'application/json' }
           })
@@ -619,7 +619,7 @@ const DevicesTable = (props) => {
   const [softRegisterOpen, setSoftRegisterOpen] = useState(false);
 
   useEffect(() => {
-    if (isEmpty(devices) || isEmpty(sites)) {
+    if (isEmpty(devices)) {
       if (!isEmpty(activeNetwork)) {
         dispatch(loadDevicesData(activeNetwork.net_name));
         dispatch(loadSitesData(activeNetwork.net_name));

@@ -6,12 +6,12 @@ import { isEmpty } from 'underscore';
 import Tooltip from '@material-ui/core/Tooltip';
 import DeleteIcon from '@material-ui/icons/DeleteOutlineOutlined';
 import { Parser } from 'json2csv';
-import { loadSitesData, loadSitesSummary } from 'redux/SiteRegistry/operations';
-import { useSitesSummaryData } from 'redux/SiteRegistry/selectors';
+import { loadSitesData } from 'redux/SiteRegistry/operations';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
 import ConfirmDialog from '../../containers/ConfirmDialog';
 import { deleteSiteApi } from 'views/apis/deviceRegistry';
 import { updateMainAlert } from 'redux/MainAlert/operations';
+import { getSitesSummaryApi } from 'views/apis/deviceRegistry';
 
 // css
 import 'assets/css/location-registry.css';
@@ -26,21 +26,27 @@ const renderCell = (field) => (rowData) => <span>{rowData[field] || BLANK_SPACE_
 const SitesTable = () => {
   const history = useHistory();
   const dispatch = useDispatch();
-  const sites = useSitesSummaryData();
+  const [sites, setSites] = useState([]);
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [delState, setDelState] = useState({ open: false, name: '', id: '' });
 
   useEffect(() => {
-    if (isEmpty(sites)) {
-      if (!isEmpty(activeNetwork)) {
-        dispatch(loadSitesSummary(activeNetwork.net_name));
-      }
-    } else {
-      setLoading(false);
+    if (!isEmpty(activeNetwork)) {
+      setLoading(true);
+      getSitesSummaryApi({ network: activeNetwork.net_name })
+        .then((responseData) => {
+          setSites(responseData.sites || []);
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     }
-  }, [sites]);
+  }, []);
 
   const handleDeleteSite = async () => {
     setDelState({ open: false, name: '', id: '' });
