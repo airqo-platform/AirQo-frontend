@@ -12,13 +12,13 @@ import {
 import createAxiosInstance from './axiosConfig';
 
 export const getMonitoringSitesInfoApi = async (pm25Category) => {
-  return await createAxiosInstance()
+  return await createAxiosInstance(false)
     .get(GET_DATA_MAP, pm25Category)
     .then((response) => response.data);
 };
 
 export const getSitesApi = async () => {
-  return await createAxiosInstance()
+  return await createAxiosInstance(false)
     .get(GET_SITES)
     .then((response) => response.data);
 };
