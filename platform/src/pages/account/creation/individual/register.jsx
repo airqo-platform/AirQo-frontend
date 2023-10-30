@@ -14,6 +14,7 @@ import HintIcon from '@/icons/Actions/exclamation.svg';
 import VisibilityOffIcon from '@/icons/Account/visibility_off.svg';
 import VisibilityOnIcon from '@/icons/Account/visibility_on.svg';
 import Toast from '@/components/Toast';
+import Spinner from '@/components/Spinner';
 
 const IndividualAccountRegistration = () => {
   const [firstName, setFirstName] = useState('');
@@ -90,20 +91,20 @@ const IndividualAccountRegistration = () => {
         <p className='text-xl text-black-700 font-normal mt-3'>
           Get access to air quality analytics across Africa
         </p>
-        {creationErrors.state && (
-          <Toast
-            type={'error'}
-            timeout={5000}
-            message={`${
-              creationErrors.message.email ||
-              creationErrors.message.message ||
-              creationErrors.message.password ||
-              creationErrors.message.firstName ||
-              creationErrors.message.lastName
-            }`}
-          />
-        )}
         <form onSubmit={handleSubmit}>
+          {creationErrors.state && (
+            <Toast
+              type={'error'}
+              timeout={8000}
+              message={`${
+                creationErrors.message.email ||
+                creationErrors.message.message ||
+                creationErrors.message.password ||
+                creationErrors.message.firstName ||
+                creationErrors.message.lastName
+              }`}
+            />
+          )}
           <div className='mt-6'>
             <div className='w-full'>
               <div className='text-xs'>Email address*</div>
@@ -139,7 +140,7 @@ const IndividualAccountRegistration = () => {
               <div className='w-full'>
                 <div className='text-xs'>First name*</div>
                 <div className='mt-2 w-11/12'>
-                  {firstName.length >= 3 ? (
+                  {firstName.length >= 2 ? (
                     <input
                       onChange={(e) => {
                         setFirstName(e.target.value);
@@ -197,7 +198,7 @@ const IndividualAccountRegistration = () => {
             </div>
           </div>
           <div className='mt-6'>
-            {firstName.length >= 3 && lastName.length >= 3 ? (
+            {firstName.length >= 2 && lastName.length >= 2 ? (
               <div className='w-full'>
                 <div className='text-xs'>Password*</div>
                 <div className='mt-2 flex flex-row justify-between'>
@@ -285,9 +286,9 @@ const IndividualAccountRegistration = () => {
               <Link href='/account/login'>Log in</Link>
             </span>
           </div>
-          <div className='mt-10'>
+          <div className='mt-10 mb-3'>
             <div className='flex flex-col-reverse md:flex-row items-center justify-start md:justify-between'>
-              <div className='w-full md:w-1/3 mt-6 lg:mt-0'>
+              <div className='w-full md:w-1/3 sm:mt-6 md:mt-0'>
                 <Link href='/account/creation'>
                   <button className='w-full text-sm btn bg-white rounded-none outline-none border-2 border-check-box hover:bg-gray-100 hover:border-inherit focus:border-inherit'>
                     <span style={{ color: '#353E52' }}>Back</span>
@@ -300,18 +301,13 @@ const IndividualAccountRegistration = () => {
                     type='submit'
                     onClick={handleSubmit}
                     className='w-full btn bg-blue-900 rounded-none text-white text-sm outline-none border-none hover:bg-blue-950'>
-                    {loading ? (
-                      <span className='loading loading-spinner'></span>
-                    ) : (
-                      <span>Continue</span>
-                    )}
+                    {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
                   </button>
                 </div>
               ) : (
                 <div className='w-full md:w-1/3'>
                   <button
                     type='submit'
-                    onClick={handleSubmit}
                     className='w-full btn btn-disabled bg-white rounded-none text-sm outline-none border-none'>
                     Continue
                   </button>

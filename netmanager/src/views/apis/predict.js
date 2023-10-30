@@ -1,8 +1,5 @@
-import axios from 'axios';
 import { GET_HEATMAP_DATA, GET_GEOCOORDINATES_DATA } from 'config/urls/predict';
-
-const jwtToken = localStorage.getItem('jwtToken');
-const token = process.env.REACT_APP_AUTH_TOKEN;
+import createAxiosInstance from './axiosConfig';
 
 export const heatmapPredictApi = async () => {
   let allHeatMapData = [];
@@ -11,10 +8,9 @@ export const heatmapPredictApi = async () => {
   let MAX_PAGES;
   do {
     try {
-      axios.defaults.headers.common.Authorization = jwtToken;
-      response = await axios.get(GET_HEATMAP_DATA, { params: { page: page, token: token } });
+      response = await createAxiosInstance().get(GET_HEATMAP_DATA, { params: { page: page } });
       MAX_PAGES = response.data.pages;
-      allHeatMapData.push(response.data);
+      allHeatMapData.push(response);
       page++;
     } catch (error) {
       console.error(error);
@@ -25,6 +21,7 @@ export const heatmapPredictApi = async () => {
 };
 
 export const geocoordinatesPredictApi = async (params) => {
-  axios.defaults.headers.common.Authorization = jwtToken;
-  return await axios.get(GET_GEOCOORDINATES_DATA, { params }).then((response) => response.data);
+  return await createAxiosInstance()
+    .get(GET_GEOCOORDINATES_DATA, { params })
+    .then((response) => response.data);
 };
