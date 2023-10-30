@@ -1,4 +1,3 @@
-import { data } from 'autoprefixer';
 import {
   AUTH_URL,
   GOOGLE_AUTH_URL,
@@ -16,13 +15,14 @@ if (typeof window !== 'undefined') {
 
 axios.defaults.headers.common.Authorization = jwtToken;
 
+// Register User Details
 export const postUserCreationDetails = async (data) =>
   await axios.post(AUTH_URL, data).then((response) => response.data);
 
 export const getGoogleAuthDetails = async () => {
   await axios.get(GOOGLE_AUTH_URL);
 };
-
+// User Login
 export const postUserLoginDetails = async (data) => {
   return await axios.post(LOGIN_URL, data).then((response) => response.data);
 };
@@ -50,8 +50,14 @@ export const acceptGroupTeamInvite = async (body) => {
     .then((response) => response.data);
 };
 
+// Update [Individual]User Details
 export const updateUserCreationDetails = async (data, identifier) => {
   await axios
     .put(`${UPDATE_USER_DETAILS_URL}/${identifier}`, data)
     .then((response) => response.data);
 };
+
+// Create Organisation
+export const createOrganisation = async (data) => {
+  await axios.post(`${GROUPS_URL}`, data).then((response) => response.data)
+}

@@ -3,6 +3,7 @@ import 'package:app/models/models.dart';
 import 'package:app/screens/insights/insights_page.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -133,7 +134,7 @@ class FavouritePlaceCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8.0),
-                        Text(
+                        AutoSizeText(
                           AppLocalizations.of(context)!.viewMoreInsights,
                           style: CustomTextStyle.caption3(context)?.copyWith(
                             color: appColors.appColorBlue,
@@ -384,7 +385,7 @@ class FavouritePlaceCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8.0),
-                          Text(
+                          AutoSizeText(
                             AppLocalizations.of(context)!.viewMoreInsights,
                             style: CustomTextStyle.caption3(context)?.copyWith(
                               color: appColors.appColorBlue,
