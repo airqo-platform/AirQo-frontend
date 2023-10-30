@@ -6,8 +6,8 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../constants/language_contants.dart';
 import '../../main_common.dart';
+import '../../services/app_service.dart';
 import '../../themes/colors.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:restart_app/restart_app.dart';
 
 class LanguageList extends StatefulWidget {
@@ -23,7 +23,7 @@ class LanguageListState extends State<LanguageList> {
   @override
   void initState() {
     super.initState();
-    _loadSelectedLanguage().then((value) {
+    AppService().getLocale().then((value) {
       setState(() {
         selectedLanguageCode = value;
       });
@@ -63,7 +63,6 @@ class LanguageListState extends State<LanguageList> {
             onPressed: () async {
               Locale locale = await setLocale(language.languageCode);
               await AirQoApp.setLocale(context, locale);
-
               Navigator.pop(context, true);
               await Restart.restartApp();
             },
@@ -139,8 +138,7 @@ class LanguageListState extends State<LanguageList> {
                               final shouldChangeLanguage =
                                   await languageDialog(context, language);
                               if (shouldChangeLanguage) {
-                                await _saveSelectedLanguage(
-                                    language.languageCode);
+                                AppService().setLocale(language.languageCode);
                                 setState(() {
                                   selectedLanguageCode = language.languageCode;
                                 });
@@ -164,14 +162,4 @@ class LanguageListState extends State<LanguageList> {
       ),
     );
   }
-}
-
-Future<void> _saveSelectedLanguage(String languageCode) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('language', languageCode);
-}
-
-Future<String?> _loadSelectedLanguage() async {
-  final prefs = await SharedPreferences.getInstance();
-  return prefs.getString('language');
 }

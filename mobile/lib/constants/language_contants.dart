@@ -12,6 +12,7 @@ const String swahili = 'sw';
 Future<Locale> setLocale(String languageCode) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.setString(LANGUAGE_CODE, languageCode);
+  print(_locale(languageCode));
   return _locale(languageCode);
 }
 
