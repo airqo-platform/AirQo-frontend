@@ -22,8 +22,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'constants/language_contants.dart';
-
 class AirQoApp extends StatefulWidget {
   const AirQoApp(this.initialLink, {super.key, required this.locale});
 
@@ -50,7 +48,7 @@ class _AirQoAppState extends State<AirQoApp> {
 
   @override
   void didChangeDependencies() {
-    getLocale().then((locale) => {setLocale(locale)});
+    AppService().getLocale().then((locale) => {setLocale(locale as Locale)});
     super.didChangeDependencies();
   }
 

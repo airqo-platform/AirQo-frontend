@@ -1,4 +1,5 @@
 import 'package:app/screens/offline_banner.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +7,6 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../constants/language_contants.dart';
 import '../../main_common.dart';
-import '../../services/app_service.dart';
 import '../../themes/colors.dart';
 import 'package:restart_app/restart_app.dart';
 
@@ -61,8 +61,9 @@ class LanguageListState extends State<LanguageList> {
               AppLocalizations.of(context)!.ok,
             ),
             onPressed: () async {
-              Locale locale = await setLocale(language.languageCode);
-              await AirQoApp.setLocale(context, locale);
+              String locale =
+                  await AppService().setLocale(language.languageCode);
+              await AirQoApp.setLocale(context, Locale(locale));
               Navigator.pop(context, true);
               await Restart.restartApp();
             },

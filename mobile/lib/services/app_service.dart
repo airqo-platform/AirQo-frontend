@@ -80,9 +80,10 @@ class AppService {
     }
   }
 
-  Future<void> setLocale(String locale) async {
+  Future<String> setLocale(String locale) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString("language", locale);
+    return locale;
   }
 
   Future<String> getLocale() async {
