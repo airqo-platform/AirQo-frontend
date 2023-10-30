@@ -1,13 +1,13 @@
+import 'package:app/constants/constants.dart';
+import 'package:app/main_common.dart';
 import 'package:app/screens/offline_banner.dart';
 import 'package:app/services/app_service.dart';
+import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-import '../../constants/language_contants.dart';
-import '../../main_common.dart';
-import '../../themes/colors.dart';
 import 'package:restart_app/restart_app.dart';
 
 class LanguageList extends StatefulWidget {
