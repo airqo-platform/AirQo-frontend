@@ -101,3 +101,4 @@ flutter:
     - assets/lottie/
     - .env.dev
     - .env.prod
+    - shorebird.yaml
