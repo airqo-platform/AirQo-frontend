@@ -29,7 +29,6 @@ import LightModeIcon from '@material-ui/icons/Highlight';
 import SatelliteIcon from '@material-ui/icons/Satellite';
 import DarkModeIcon from '@material-ui/icons/NightsStay';
 import StreetModeIcon from '@material-ui/icons/Traffic';
-import Axios from 'axios';
 
 // prettier-ignore
 // eslint-disable-next-line import/no-webpack-loader-syntax
@@ -421,10 +420,24 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
       maxZoom: 20
     });
 
-    // Add heatmap data if available
-    if (heatMapData) {
-      map.on('load', () => {
-        try {
+    // Add controls to the map
+    map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+    map.addControl(new mapboxgl.FullscreenControl(), 'bottom-right');
+
+    setMap(map);
+
+    // Clean up on unmount
+    return () => map.remove();
+  }, []);
+
+  // Update heatmap data when available
+  useEffect(() => {
+    if (map && heatMapData && heatMapData.type === 'FeatureCollection') {
+      map.on('style.load', () => {
+        if (map.getSource('heatmap-data')) {
+          // Update heatmap data
+          map.getSource('heatmap-data').setData(heatMapData);
+        } else {
           // Add heatmap source and layers
           map.addSource('heatmap-data', {
             type: 'geojson',
@@ -442,96 +455,37 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
             type: 'circle',
             paint: circlePointPaint
           });
-
-          // Set visibility based on showHeatMap state
-          map.setLayoutProperty('sensor-heat', 'visibility', showHeatMap ? 'visible' : 'none');
-          map.setLayoutProperty('sensor-point', 'visibility', showHeatMap ? 'visible' : 'none');
-
-          // Add mousemove event listener
-          map.on('mousemove', (e) => {
-            const features = map.queryRenderedFeatures(e.point, {
-              layers: ['sensor-point']
-            });
-
-            // Change the cursor style as a UI indicator.
-            map.getCanvas().style.cursor = features.length > 0 ? 'pointer' : '';
-
-            if (map.getZoom() < 9 || !features.length) {
-              popup.remove();
-              return;
-            }
-
-            const reducerFactory = (key) => (accumulator, feature) =>
-              accumulator + parseFloat(feature.properties[key]);
-
-            let average_predicted_value =
-              features.reduce(reducerFactory('pm2_5'), 0) / features.length;
-
-            let average_confidence_int =
-              features.reduce(reducerFactory('interval'), 0) / features.length;
-
-            popup
-              .setLngLat(e.lngLat)
-              .setHTML(
-                `<table class="popup-table">
-                  <tr>
-                      <td><b>Predicted AQI</b></td>
-                      <td>${average_predicted_value.toFixed(4)}</td>
-                  </tr>
-                  <tr>
-                      <td><b>Confidence Level</b></td>
-                      <td>± ${average_confidence_int.toFixed(4)}</td>
-                  </tr>
-                </table>`
-              )
-              .addTo(map);
-          });
-        } catch (error) {
-          console.error('Error adding heatmap data to the map:', error);
         }
+
+        // Set visibility based on showHeatMap state
+        const visibility = showHeatMap ? 'visible' : 'none';
+        ['sensor-heat', 'sensor-point'].forEach((id) =>
+          map.setLayoutProperty(id, 'visibility', visibility)
+        );
       });
     }
+  }, [map, heatMapData, showHeatMap]);
 
-    // Add controls to the map
-    try {
-      map.addControl(
-        new mapboxgl.FullscreenControl({
-          container: mapContainerRef.current
-        }),
-        'bottom-right'
-      );
-      map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
-    } catch (error) {
-      console.error('Error adding controls to the map:', error);
-    }
-
-    setMap(map);
-
-    // Clean up on unmount
-    return () => map.remove();
-  }, []);
-
-  if (map) {
-    if (map.getSource('heatmap-data')) {
-      try {
-        // Parse heatMapData if it's a string
-        const data = typeof heatMapData === 'string' ? JSON.parse(heatMapData) : heatMapData;
-
-        // Check if data is a valid GeoJSON object
-        if (data && data.type === 'FeatureCollection' && Array.isArray(data.features)) {
-          map.getSource('heatmap-data').setData(data);
-        } else {
-          console.error('Invalid GeoJSON object:', data);
+  useEffect(() => {
+    if (map) {
+      if (map.getSource('heatmap-data')) {
+        try {
+          // Check if data is a valid GeoJSON object
+          if (
+            heatMapData &&
+            heatMapData.type === 'FeatureCollection' &&
+            Array.isArray(heatMapData.features)
+          ) {
+            map.getSource('heatmap-data').setData(heatMapData);
+          } else {
+            console.error('Invalid GeoJSON object:', heatMapData);
+          }
+        } catch (error) {
+          console.error('Error setting heatmap data:', error);
         }
-      } catch (error) {
-        console.error('Error setting heatmap data:', error);
       }
-    } else {
-      console.log('heatmap-data source does not exist');
     }
-  } else {
-    console.log('Map does not exist');
-  }
+  }, [map, heatMapData]);
 
   const toggleSensors = () => {
     try {
