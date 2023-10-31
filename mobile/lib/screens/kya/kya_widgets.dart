@@ -56,7 +56,7 @@ class KyaMessageChip extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget widget = AutoSizeText(
       kya.getKyaMessage(context),
-      maxLines: 1,
+      maxLines: 2,
       overflow: TextOverflow.ellipsis,
       textAlign: TextAlign.center,
       style: CustomTextStyle.caption3(context)?.copyWith(
@@ -206,12 +206,12 @@ class KyaLessonCardWidget extends StatelessWidget {
           ),
           const Spacer(),
           SizedBox(
-            width: MediaQuery.of(context).size.width * 0.03,
+            width: MediaQuery.of(context).size.width * 0.04,
           ),
           FittedBox(
             fit: BoxFit.cover,
             child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.28,
+              width: MediaQuery.of(context).size.width * 0.27,
               height: 112,
               child: CachedNetworkImage(
                 imageUrl: kyaLesson.imageUrl,

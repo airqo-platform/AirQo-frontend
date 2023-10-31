@@ -46,7 +46,6 @@ const AddGridToolbar = ({ open, handleClose }) => {
     setLoading(true);
     const gridData = {
       name: form.name,
-      network: form.network,
       admin_level: form.admin_level,
       shape: polygon
     };

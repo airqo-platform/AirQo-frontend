@@ -17,7 +17,7 @@ const SecondaryNavComponent = ({ disabledTabs }) => {
     }
   };
 
-  const tabs = ['About', 'Membership', 'Press', 'For You'];
+  const tabs = ['About', 'Membership'];
 
   return (
     <div className="header-subnav">

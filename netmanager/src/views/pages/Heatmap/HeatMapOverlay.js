@@ -13,8 +13,6 @@ import { MenuItem } from '@material-ui/core';
 import Checkbox from '@material-ui/core/Checkbox';
 import { useInitScrollTop } from 'utils/customHooks';
 import { ErrorBoundary } from '../../ErrorBoundary';
-import { useDashboardSitesData } from 'redux/Dashboard/selectors';
-import { loadSites } from 'redux/Dashboard/operations';
 import { useOrgData } from 'redux/Join/selectors';
 
 // css
@@ -29,7 +27,6 @@ import LightModeIcon from '@material-ui/icons/Highlight';
 import SatelliteIcon from '@material-ui/icons/Satellite';
 import DarkModeIcon from '@material-ui/icons/NightsStay';
 import StreetModeIcon from '@material-ui/icons/Traffic';
-import Axios from 'axios';
 
 // prettier-ignore
 // eslint-disable-next-line import/no-webpack-loader-syntax
@@ -163,7 +160,8 @@ const PollutantSelector = ({ className, onChange }) => {
               pm2_5: true,
               no2: false,
               pm10: false
-            })}>
+            })}
+          >
             PM<sub>2.5</sub>
           </MenuItem>
           <MenuItem
@@ -171,7 +169,8 @@ const PollutantSelector = ({ className, onChange }) => {
               pm2_5: false,
               no2: false,
               pm10: true
-            })}>
+            })}
+          >
             PM<sub>10</sub>
           </MenuItem>
           {orgData.name !== 'airqo' && (
@@ -180,7 +179,8 @@ const PollutantSelector = ({ className, onChange }) => {
                 pm2_5: false,
                 no2: true,
                 pm10: false
-              })}>
+              })}
+            >
               NO<sub>2</sub>
             </MenuItem>
           )}
@@ -188,7 +188,8 @@ const PollutantSelector = ({ className, onChange }) => {
       }
       open={open}
       placement="left"
-      onClose={() => setOpen(false)}>
+      onClose={() => setOpen(false)}
+    >
       <div style={{ padding: '10px' }}>
         <span className={className} onClick={onHandleClick}>
           {pollutantMapper[pollutant]}
@@ -231,7 +232,8 @@ const MapStyleSelectorPlaceholder = () => {
       className="map-style-placeholder"
       onClick={handleClick}
       onMouseEnter={() => handleHover(true)}
-      onMouseLeave={() => handleHover(false)}>
+      onMouseLeave={() => handleHover(false)}
+    >
       <div className={`map-icon-container${isHovered ? ' map-icon-hovered' : ''}`}>
         <MapIcon className="map-icon" />
       </div>
@@ -286,7 +288,8 @@ const MapStyleSelector = () => {
                   localStorage.mapStyle = style.mapStyle;
                   localStorage.mapMode = style.name;
                   window.location.reload();
-                }}>
+                }}
+              >
                 <span>{style.icon}</span>
                 <span>{style.name} map</span>
               </div>
@@ -332,7 +335,8 @@ const MapSettings = ({
       }
       open={open}
       placement="left"
-      onClose={() => setOpen(false)}>
+      onClose={() => setOpen(false)}
+    >
       <div style={{ padding: '10px' }}>
         <div className="map-settings" onClick={() => setOpen(!open)}>
           <SettingsIcon />
@@ -375,7 +379,6 @@ const CustomMapControl = ({
 export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) => {
   const dispatch = useDispatch();
   const MAX_OFFLINE_DURATION = 86400; // 24 HOURS
-  const sitesData = useDashboardSitesData();
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState();
   const [showSensors, setShowSensors] = useState(true);
@@ -404,13 +407,6 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
     });
   }, [localStorage.getItem('pollutant')]);
 
-  // Load sites if sitesData is empty
-  useEffect(() => {
-    if (isEmpty(sitesData)) {
-      dispatch(loadSites());
-    }
-  }, [sitesData, dispatch]);
-
   useEffect(() => {
     // Initialize map
     const map = new mapboxgl.Map({
@@ -421,10 +417,24 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
       maxZoom: 20
     });
 
-    // Add heatmap data if available
-    if (heatMapData) {
-      map.on('load', () => {
-        try {
+    // Add controls to the map
+    map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+    map.addControl(new mapboxgl.FullscreenControl(), 'bottom-right');
+
+    setMap(map);
+
+    // Clean up on unmount
+    return () => map.remove();
+  }, []);
+
+  // Update heatmap data when available
+  useEffect(() => {
+    if (map && heatMapData && heatMapData.type === 'FeatureCollection') {
+      map.on('style.load', () => {
+        if (map.getSource('heatmap-data')) {
+          // Update heatmap data
+          map.getSource('heatmap-data').setData(heatMapData);
+        } else {
           // Add heatmap source and layers
           map.addSource('heatmap-data', {
             type: 'geojson',
@@ -442,96 +452,37 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
             type: 'circle',
             paint: circlePointPaint
           });
-
-          // Set visibility based on showHeatMap state
-          map.setLayoutProperty('sensor-heat', 'visibility', showHeatMap ? 'visible' : 'none');
-          map.setLayoutProperty('sensor-point', 'visibility', showHeatMap ? 'visible' : 'none');
-
-          // Add mousemove event listener
-          map.on('mousemove', (e) => {
-            const features = map.queryRenderedFeatures(e.point, {
-              layers: ['sensor-point']
-            });
-
-            // Change the cursor style as a UI indicator.
-            map.getCanvas().style.cursor = features.length > 0 ? 'pointer' : '';
-
-            if (map.getZoom() < 9 || !features.length) {
-              popup.remove();
-              return;
-            }
-
-            const reducerFactory = (key) => (accumulator, feature) =>
-              accumulator + parseFloat(feature.properties[key]);
-
-            let average_predicted_value =
-              features.reduce(reducerFactory('pm2_5'), 0) / features.length;
-
-            let average_confidence_int =
-              features.reduce(reducerFactory('interval'), 0) / features.length;
-
-            popup
-              .setLngLat(e.lngLat)
-              .setHTML(
-                `<table class="popup-table">
-                  <tr>
-                      <td><b>Predicted AQI</b></td>
-                      <td>${average_predicted_value.toFixed(4)}</td>
-                  </tr>
-                  <tr>
-                      <td><b>Confidence Level</b></td>
-                      <td>± ${average_confidence_int.toFixed(4)}</td>
-                  </tr>
-                </table>`
-              )
-              .addTo(map);
-          });
-        } catch (error) {
-          console.error('Error adding heatmap data to the map:', error);
         }
+
+        // Set visibility based on showHeatMap state
+        const visibility = showHeatMap ? 'visible' : 'none';
+        ['sensor-heat', 'sensor-point'].forEach((id) =>
+          map.setLayoutProperty(id, 'visibility', visibility)
+        );
       });
     }
+  }, [map, heatMapData, showHeatMap]);
 
-    // Add controls to the map
-    try {
-      map.addControl(
-        new mapboxgl.FullscreenControl({
-          container: mapContainerRef.current
-        }),
-        'bottom-right'
-      );
-      map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
-    } catch (error) {
-      console.error('Error adding controls to the map:', error);
-    }
-
-    setMap(map);
-
-    // Clean up on unmount
-    return () => map.remove();
-  }, []);
-
-  if (map) {
-    if (map.getSource('heatmap-data')) {
-      try {
-        // Parse heatMapData if it's a string
-        const data = typeof heatMapData === 'string' ? JSON.parse(heatMapData) : heatMapData;
-
-        // Check if data is a valid GeoJSON object
-        if (data && data.type === 'FeatureCollection' && Array.isArray(data.features)) {
-          map.getSource('heatmap-data').setData(data);
-        } else {
-          console.error('Invalid GeoJSON object:', data);
+  useEffect(() => {
+    if (map) {
+      if (map.getSource('heatmap-data')) {
+        try {
+          // Check if data is a valid GeoJSON object
+          if (
+            heatMapData &&
+            heatMapData.type === 'FeatureCollection' &&
+            Array.isArray(heatMapData.features)
+          ) {
+            map.getSource('heatmap-data').setData(heatMapData);
+          } else {
+            console.error('Invalid GeoJSON object:', heatMapData);
+          }
+        } catch (error) {
+          console.error('Error setting heatmap data:', error);
         }
-      } catch (error) {
-        console.error('Error setting heatmap data:', error);
       }
-    } else {
-      console.log('heatmap-data source does not exist');
     }
-  } else {
-    console.log('Map does not exist');
-  }
+  }, [map, heatMapData]);
 
   const toggleSensors = () => {
     try {
@@ -613,14 +564,7 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
                   `<div class="popup-body">
                     <div>
                       <span class="popup-title">
-                        <b>${
-                          (sitesData[feature.properties.site_id] &&
-                            sitesData[feature.properties.site_id].name) ||
-                          (sitesData[feature.properties.site_id] &&
-                            sitesData[feature.properties.site_id].description) ||
-                          feature.properties.device ||
-                          feature.properties._id
-                        }</b>
+                      <b>${feature.properties.siteDetails.description}</b>
                       </span>
                     </div>
                     <div class="${`popup-aqi ${markerClass}`}"> 
@@ -675,15 +619,7 @@ const HeatMapOverlay = () => {
 
   useEffect(() => {
     if (!monitoringSiteData?.features || monitoringSiteData?.features.length === 0) {
-      dispatch(
-        loadMapEventsData({
-          recent: 'yes',
-          external: 'no',
-          metadata: 'site_id',
-          frequency: 'hourly',
-          active: 'yes'
-        })
-      ).catch((error) => {
+      dispatch(loadMapEventsData()).catch((error) => {
         console.error('Failed to load Map Events Data:', error);
       });
     }
@@ -697,7 +633,8 @@ const HeatMapOverlay = () => {
           justifyContent: 'center',
           alignItems: 'center',
           height: '100vh'
-        }}>
+        }}
+      >
         <CircularLoader loading={true} />
       </div>
     );

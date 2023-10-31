@@ -12,8 +12,6 @@ import { MenuItem } from '@material-ui/core';
 import Checkbox from '@material-ui/core/Checkbox';
 import { useInitScrollTop } from 'utils/customHooks';
 import { ErrorBoundary } from '../../ErrorBoundary';
-import { useDashboardSitesData } from 'redux/Dashboard/selectors';
-import { loadSites } from 'redux/Dashboard/operations';
 import { useOrgData } from 'redux/Join/selectors';
 
 // css
@@ -161,7 +159,8 @@ const PollutantSelector = ({ className, onChange }) => {
               pm2_5: true,
               no2: false,
               pm10: false
-            })}>
+            })}
+          >
             PM<sub>2.5</sub>
           </MenuItem>
           <MenuItem
@@ -169,7 +168,8 @@ const PollutantSelector = ({ className, onChange }) => {
               pm2_5: false,
               no2: false,
               pm10: true
-            })}>
+            })}
+          >
             PM<sub>10</sub>
           </MenuItem>
           {orgData.name !== 'airqo' && (
@@ -178,7 +178,8 @@ const PollutantSelector = ({ className, onChange }) => {
                 pm2_5: false,
                 no2: true,
                 pm10: false
-              })}>
+              })}
+            >
               NO<sub>2</sub>
             </MenuItem>
           )}
@@ -186,7 +187,8 @@ const PollutantSelector = ({ className, onChange }) => {
       }
       open={open}
       placement="left"
-      onClose={() => setOpen(false)}>
+      onClose={() => setOpen(false)}
+    >
       <div style={{ padding: '10px' }}>
         <span className={className} onClick={onHandleClick}>
           {pollutantMapper[pollutant]}
@@ -229,7 +231,8 @@ const MapStyleSelectorPlaceholder = () => {
       className="map-style-placeholder"
       onClick={handleClick}
       onMouseEnter={() => handleHover(true)}
-      onMouseLeave={() => handleHover(false)}>
+      onMouseLeave={() => handleHover(false)}
+    >
       <div className={`map-icon-container${isHovered ? ' map-icon-hovered' : ''}`}>
         <MapIcon className="map-icon" />
       </div>
@@ -284,7 +287,8 @@ const MapStyleSelector = () => {
                   localStorage.mapStyle = style.mapStyle;
                   localStorage.mapMode = style.name;
                   window.location.reload();
-                }}>
+                }}
+              >
                 <span>{style.icon}</span>
                 <span>{style.name} map</span>
               </div>
@@ -319,7 +323,8 @@ const MapSettings = ({ showSensors, showCalibratedValues, onSensorChange, onCali
       }
       open={open}
       placement="left"
-      onClose={() => setOpen(false)}>
+      onClose={() => setOpen(false)}
+    >
       <div style={{ padding: '10px' }}>
         <div className="map-settings" onClick={() => setOpen(!open)}>
           <SettingsIcon />
@@ -353,7 +358,6 @@ const CustomMapControl = ({
 
 export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
   const dispatch = useDispatch();
-  const sitesData = useDashboardSitesData();
   const MAX_OFFLINE_DURATION = 86400; // 24 HOURS
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState();
@@ -376,12 +380,6 @@ export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
       pm10: localStorage.pollutant === 'pm10'
     });
   }, [localStorage.pollutant]);
-
-  useEffect(() => {
-    if (isEmpty(sitesData)) {
-      dispatch(loadSites());
-    }
-  }, [sitesData]);
 
   useEffect(() => {
     const map = new mapboxgl.Map({
@@ -471,14 +469,7 @@ export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
                   `<div class="popup-body">
                     <div>
                       <span class="popup-title">
-                        <b>${
-                          (sitesData[feature.properties.site_id] &&
-                            sitesData[feature.properties.site_id].name) ||
-                          (sitesData[feature.properties.site_id] &&
-                            sitesData[feature.properties.site_id].description) ||
-                          feature.properties.device ||
-                          feature.properties._id
-                        }</b>
+                        <b>${feature.properties.siteDetails.description}</b>
                       </span>
                     </div>
                     <div class="${`popup-aqi ${markerClass}`}"> 
@@ -526,15 +517,7 @@ const MapContainer = () => {
 
   useEffect(() => {
     if (isEmpty(monitoringSiteData.features)) {
-      dispatch(
-        loadMapEventsData({
-          recent: 'yes',
-          external: 'no',
-          metadata: 'site_id',
-          frequency: 'hourly',
-          active: 'yes'
-        })
-      );
+      dispatch(loadMapEventsData());
     }
   }, [monitoringSiteData]);
 

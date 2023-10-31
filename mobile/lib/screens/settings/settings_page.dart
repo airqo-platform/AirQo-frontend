@@ -5,6 +5,7 @@ import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/screens/offline_banner.dart';
+import 'package:app/screens/settings/language_switch.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -122,6 +123,28 @@ class _SettingsPageState extends State<SettingsPage>
                                 );
                               },
                               value: state.notifications,
+                            ),
+                          ),
+                        ),
+                        divider,
+                        Card(
+                          margin: EdgeInsets.zero,
+                          elevation: 0,
+                          child: ListTile(
+                            tileColor: Colors.white,
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return const LanguageList();
+                                  },
+                                ),
+                              );
+                            },
+                            title: Text(
+                              AppLocalizations.of(context)!.languages,
+                              style: Theme.of(context).textTheme.bodyLarge,
                             ),
                           ),
                         ),

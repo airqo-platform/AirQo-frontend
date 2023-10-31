@@ -334,5 +334,9 @@
   "actualDate":"{date}",
   "dismiss": "REJETER",
   "internetConnectionLost": "Connexion Internet perdue",
-  "changeLanguage": "Changer de langue"
-}
+  "changeLanguage": "Changer de langue",
+  "doYouWantToSwitchToLanguage": "Voulez-vous changer pour {placeholder} ? L'application redémarrera pour appliquer les modifications",
+  "languageChangedSuccessfully": "Langue changée avec succès {placeholder}",
+  "ok": "d'accord",
+  "languages": "Langues"
+  }
