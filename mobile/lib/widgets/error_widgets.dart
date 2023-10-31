@@ -499,8 +499,8 @@ class AppCrushWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context);
-    AppService.setLocale(locale.languageCode);
-
+    AppService().setLocale(locale.languageCode);
+    
     return Scaffold(
       appBar: null,
       body: AppSafeArea(

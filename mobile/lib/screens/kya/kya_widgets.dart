@@ -206,12 +206,12 @@ class KyaLessonCardWidget extends StatelessWidget {
           ),
           const Spacer(),
           SizedBox(
-            width: MediaQuery.of(context).size.width * 0.03,
+            width: MediaQuery.of(context).size.width * 0.04,
           ),
           FittedBox(
             fit: BoxFit.cover,
             child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.28,
+              width: MediaQuery.of(context).size.width * 0.27,
               height: 112,
               child: CachedNetworkImage(
                 imageUrl: kyaLesson.imageUrl,

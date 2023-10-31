@@ -80,6 +80,17 @@ class AppService {
     }
   }
 
+  Future<String> setLocale(String locale) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("language", locale);
+    return locale;
+  }
+
+  Future<String> getLocale() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString("language") ?? "en";
+  }
+
   Future<void> setShowcase(String key) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(key, true);
@@ -95,40 +106,6 @@ class AppService {
     await prefs.remove(Config.homePageShowcase);
     await prefs.remove(Config.forYouPageShowcase);
     await prefs.remove(Config.settingsPageShowcase);
-  }
-
-  static const String LANGUAGE_CODE = 'languageCode';
-  static const String english = 'en';
-  static const String french = 'fr';
-  static const String portuguese = 'pt';
-  static const String swahili = 'sw';
-
-  static Future<Locale> setLocale(String languageCode) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString(LANGUAGE_CODE, languageCode);
-    return _locale(languageCode);
-  }
-
-  static Future<Locale> getLocale() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String languageCode = prefs.getString(LANGUAGE_CODE) ?? english;
-    return _locale(languageCode);
-  }
-
-  static Locale _locale(String languageCode) {
-    switch (languageCode) {
-      case english:
-        return const Locale(english, '');
-      case french:
-        return const Locale(french, "");
-      case portuguese:
-        return const Locale(portuguese, "");
-      case swahili:
-        return const Locale(swahili, '');
-
-      default:
-        return const Locale(english, '');
-    }
   }
 
   Future<void> navigateShowcaseToScreen(

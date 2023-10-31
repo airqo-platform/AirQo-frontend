@@ -48,7 +48,7 @@ class _AirQoAppState extends State<AirQoApp> {
 
   @override
   void didChangeDependencies() {
-    AppService.getLocale().then((locale) => {setLocale(locale)});
+    getLocale().then((locale) => {setLocale(locale)});
     super.didChangeDependencies();
   }
 
