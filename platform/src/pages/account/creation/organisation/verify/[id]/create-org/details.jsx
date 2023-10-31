@@ -8,7 +8,9 @@ import Spinner from '@/components/Spinner';
 import { useRouter } from 'next/router';
 import {
   setOrgDetails,
+  setOrgUpdateDetails,
   postOrganisationCreationDetails,
+  updateOrganisationDetails,
 } from '@/lib/store/services/account/CreationSlice';
 import Toast from '@/components/Toast';
 import Link from 'next/link';
@@ -48,6 +50,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
     });
     try {
       const response = await dispatch(postOrganisationCreationDetails(orgData));
+      console.log('Response creation', response)
       if (!response.payload.data.success) {
         setCreationErrors({
           state: true,
@@ -187,7 +190,10 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
   const [orgIndustry, setOrgIndustry] = useState('');
   const [orgCountry, setOrgCountry] = useState('');
   const [loading, setLoading] = useState(false);
-  const gridLocationsData = useSelector((state) => state.grids.gridsLocations) || [];
+  const [creationErrors, setCreationErrors] = useState({
+    state: false,
+    message: '',
+  });
   const industryList = [
     'Textiles',
     'Transport',
@@ -224,27 +230,33 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
   ];
 
   const handleSubmit = async (e) => {
-    setLoading(true);
     e.preventDefault();
-    dispatch(setOrgDetails({ orgIndustry, orgCountry }));
+    setLoading(true);
+    setCreationErrors({
+      state: false,
+      message: '',
+    });
+    const orgData = {
+      grp_industry: orgIndustry,
+      grp_country: orgCountry,
+    };
+    dispatch(setOrgUpdateDetails(orgData));
     try {
-      const response = await updateOrganisationDetails(
-        { grp_industry: orgIndustry, grp_country: orgCountry },
-        id,
-      );
+      const response = await dispatch(updateOrganisationDetails(orgData, id));
+      console.log('Response', response);
+      if (!response.payload.data.success) {
+        setCreationErrors({
+          state: true,
+          message: response.payload.data.message,
+        });
+      } else {
+        handleComponentSwitch();
+      } 
     } catch (error) {
       return error;
     }
     setLoading(false);
-    handleComponentSwitch();
   };
-
-  useEffect(() => {
-    if (gridLocationsData.length <= 0) {
-      dispatch(getAllGridLocations());
-      console.log('Grid locations', gridLocationsData);
-    }
-  }, [gridLocationsData]);
 
   return (
     <div className='sm:ml-3 lg:ml-1'>
@@ -254,11 +266,16 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
           Tell us about your organization
         </h2>
         <form onSubmit={handleSubmit}>
+          {creationErrors.state && (
+            <Toast type={'error'} timeout={7000} message={creationErrors.message} />
+          )}
           <div className='mt-6'>
             <div className='lg:w-10/12 sm:w-full md:w-11/12'>
               <div className='text-sm'>Industry</div>
               <div className='mt-2 w-full'>
-                <select className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'>
+                <select
+                  className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'
+                  onChange={(e) => setOrgCountry(e.target.value)}>
                   {industryList.map((country, key) => (
                     <option key={key} value={country}>
                       {country}
@@ -272,7 +289,9 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
             <div className='lg:w-10/12 sm:w-full md:w-11/12'>
               <div className='text-sm'>Country</div>
               <div className='mt-2 w-full flex flex-row'>
-                <select className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'>
+                <select
+                  className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'
+                  onChange={(e) => setOrgIndustry(e.target.value)}>
                   {countryList.map((country, key) => (
                     <option key={key} value={country}>
                       {country}
@@ -510,10 +529,10 @@ const CreateOrganisationDetails = () => {
 
   return (
     <AccountPageLayout childrenHeight={'lg:h-[500]'} childrenTop={'mt-8'}>
-      {nextComponent === 'pageTwo' && (
+      {nextComponent === 'pageOne' && (
         <CreateOrganisationDetailsPageOne handleComponentSwitch={() => handleSwitchTo('pageTwo')} />
       )}
-      {nextComponent === 'pageOne' && (
+      {nextComponent === 'pageTwo' && (
         <CreateOrganisationDetailsPageTwo
           handleComponentSwitch={() => handleSwitchTo('pageThree')}
         />
