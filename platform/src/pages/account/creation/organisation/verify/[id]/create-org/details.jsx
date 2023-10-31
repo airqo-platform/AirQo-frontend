@@ -607,7 +607,7 @@ const CreateOrganisationDetails = () => {
 
   return (
     <AccountPageLayout childrenHeight={'lg:h-[500]'} childrenTop={'mt-8'}>
-      {nextComponent === 'pageThree' && (
+      {nextComponent === 'pageOne' && (
         <CreateOrganisationDetailsPageOne handleComponentSwitch={() => handleSwitchTo('pageTwo')} />
       )}
       {nextComponent === 'pageTwo' && (
@@ -615,7 +615,7 @@ const CreateOrganisationDetails = () => {
           handleComponentSwitch={() => handleSwitchTo('pageThree')}
         />
       )}
-      {nextComponent === 'pageOne' && <CreateOrganisationDetailsPageThree />}
+      {nextComponent === 'pageThree' && <CreateOrganisationDetailsPageThree />}
     </AccountPageLayout>
   );
 };
