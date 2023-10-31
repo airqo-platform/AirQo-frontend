@@ -326,49 +326,49 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
 
 const CreateOrganisationDetailsPageThree = () => {
   const dispatch = useDispatch();
-  const gridLocationsData = useSelector((state) => state.grids.gridsLocations) || [];
-  // const gridLocationsData = [
-  //   {
-  //     _id: '6527d02625739700178e1d8b',
-  //     name: 'hellosss',
-  //   },
-  //   {
-  //     _id: '60d058c8048305120d2d6165',
-  //     name: 'Nansana west ward, Wakiso',
-  //   },
-  //   {
-  //     _id: '60d058c8048305120d2d6160',
-  //     name: 'Nansana east ward, Wakiso',
-  //   },
-  //   {
-  //     _id: '60d058c8048305120d2d617e',
-  //     name: 'Kawempe Industrial, Kawempe',
-  //   },
-  //   {
-  //     _id: '61092bd2ea763ff8bb8e3894',
-  //     name: 'Kawempe',
-  //   },
-  //   {
-  //     _id: '60d058c8048305120d2d614f',
-  //     name: 'Rubaga, Kampala',
-  //   },
-  //   {
-  //     _id: '60d058c8048305120d2d6154',
-  //     name: 'Kasubi, Rubaga',
-  //   },
-  //   {
-  //     _id: '60d058c8048305120d2d6157',
-  //     name: 'Seguku, Makindye-Ssabagabo',
-  //   },
-  //   {
-  //     _id: '60d058c8048305120d2d615b',
-  //     name: 'Mutundwe, Makindye Ssabagabo',
-  //   },
-  //   {
-  //     _id: '60d058c8048305120d2d616c',
-  //     name: 'Kasenge, Wakiso',
-  //   },
-  // ];
+  // const gridLocationsData = useSelector((state) => state.grids.gridsLocations) || [];
+  const gridLocationsData = [
+    {
+      _id: '6527d02625739700178e1d8b',
+      name: 'hellosss',
+    },
+    {
+      _id: '60d058c8048305120d2d6165',
+      name: 'Nansana west ward, Wakiso',
+    },
+    {
+      _id: '60d058c8048305120d2d6160',
+      name: 'Nansana east ward, Wakiso',
+    },
+    {
+      _id: '60d058c8048305120d2d617e',
+      name: 'Kawempe Industrial, Kawempe',
+    },
+    {
+      _id: '61092bd2ea763ff8bb8e3894',
+      name: 'Kawempe',
+    },
+    {
+      _id: '60d058c8048305120d2d614f',
+      name: 'Rubaga, Kampala',
+    },
+    {
+      _id: '60d058c8048305120d2d6154',
+      name: 'Kasubi, Rubaga',
+    },
+    {
+      _id: '60d058c8048305120d2d6157',
+      name: 'Seguku, Makindye-Ssabagabo',
+    },
+    {
+      _id: '60d058c8048305120d2d615b',
+      name: 'Mutundwe, Makindye Ssabagabo',
+    },
+    {
+      _id: '60d058c8048305120d2d616c',
+      name: 'Kasenge, Wakiso',
+    },
+  ];
   const [location, setLocation] = useState(undefined);
   const [inputSelect, setInputSelect] = useState(false);
   const [locationArray, setLocationArray] = useState([]);
