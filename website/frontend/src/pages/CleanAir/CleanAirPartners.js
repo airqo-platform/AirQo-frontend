@@ -124,8 +124,8 @@ const CleanAirPartners = () => {
             join the CLEAN-Air Africa Network.
           </p>
         }
-        btnText={'Register your interest'}
-        link="#"
+        // btnText={'Register your interest'}
+        // link="#"
         bgColor="#F2F1F6"
         btnStyle={{ width: 'auto' }}
       />

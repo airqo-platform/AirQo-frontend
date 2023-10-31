@@ -7,6 +7,7 @@ import Section2 from 'assets/img/cleanAir/section2.png';
 import Section3 from 'assets/img/cleanAir/section3.png';
 import Section4 from 'assets/img/cleanAir/section4.png';
 import Section5 from 'assets/img/cleanAir/section5.png';
+import T1 from 'assets/img/cleanAir/6.jpg';
 
 const CleanAirAbout = () => {
   useInitScrollTop();
@@ -20,7 +21,7 @@ const CleanAirAbout = () => {
       {/* section 1 */}
       <div className="Hero">
         <span className="image-container">
-          <img src={Section1} />
+          <img src={T1} />
         </span>
         <div className="hero-content">
           <div>
