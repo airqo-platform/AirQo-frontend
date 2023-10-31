@@ -37,6 +37,7 @@ const OrganisationIndividualAccountCreation = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     dispatch(setUserEmail(email));
     dispatch(setUserFirstName(firstName));
     dispatch(setUserLastName(lastName));
@@ -56,11 +57,12 @@ const OrganisationIndividualAccountCreation = () => {
           message: response.payload.errors,
         });
       } else {
-        router.push('/account/creation/step3');
+        router.push('/account/creation/organisation/verify-email');
       }
     } catch (err) {
       return err;
     }
+    setLoading(false);
   };
 
   const validatePassword = (password) => {

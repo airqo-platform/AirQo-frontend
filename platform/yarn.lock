@@ -5472,9 +5472,9 @@ react-smooth@^2.0.2:
     react-transition-group "2.9.0"
 
 react-tailwindcss-datepicker@^1.4.2:
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/react-tailwindcss-datepicker/-/react-tailwindcss-datepicker-1.4.2.tgz#c721beb7c912af231b4ac69d4cc5bce741f3241f"
-  integrity sha512-w5KZkmTebV1IpU89xy7yBKcFnAGpcyJ4BGPuLPvthXTJk85NgRZ+3Q1PHxYFlWHR2qmLMuq6Pv9F8MYPL3QxvA==
+  version "1.6.6"
+  resolved "https://registry.yarnpkg.com/react-tailwindcss-datepicker/-/react-tailwindcss-datepicker-1.6.6.tgz#b6afe0ff8efacf8fa4eaf02e6dadd5fe4719963d"
+  integrity sha512-kHSUonRO86PoYQQWPqpaSw2JeEn9OafdLsLBG85zO5Sfs23Ku8Ixt/YO+Is3TCBcFeOKnZgzhGLmP3NAXVlFkA==
 
 react-transition-group@2.9.0:
   version "2.9.0"

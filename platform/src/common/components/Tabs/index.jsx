@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { setChartTab } from '@/lib/store/services/charts/ChartSlice';
 
 function Tabs({ children, childrenRight, positionFixed }) {
-  const [activeTab, setActiveTab] = useState(0);
+  const dispatch = useDispatch();
+  const chartData = useSelector((state) => state?.chart);
   const childrenArray = React.Children.toArray(children);
 
   return (
@@ -19,20 +22,23 @@ function Tabs({ children, childrenRight, positionFixed }) {
               key={index}
               role='presentation'
               className={`${
-                activeTab === index
+                chartData.chartTab === index
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent opacity-40 hover:text-grey hover:border-grey-200 text-secondary-neutral-light-400'
               } whitespace-nowrap py-2 border-b-2 rounded-tl-full rounded-tr-full font-medium text-sm focus:outline-none mr-2 cursor-pointer`}
-              onClick={() => setActiveTab(index)}
+              onClick={() => dispatch(setChartTab(index))}
             >
               {child.props.label}
             </li>
           ))}
         </ul>
-        {childrenRight && childrenRight[activeTab] && childrenRight[activeTab].children}
+        <div className='mb-2'>
+          {childrenRight &&
+            childrenRight[chartData.chartTab] &&
+            childrenRight[chartData.chartTab].children}
+        </div>
       </div>
-      <div className='h-8' />
-      <div className='relative'>{children[activeTab]}</div>
+      <div>{children[chartData.chartTab]}</div>
     </div>
   );
 }

@@ -1,14 +1,14 @@
 /* eslint-disable */
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
 import usrsStateConnector from 'views/stateConnectors/usersStateConnector';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { isEmpty } from 'underscore';
 import { withPermission } from '../../containers/PageAccess';
 import AvailableUsersTable from './components/UsersTable/AvailableUsersTable';
-import { fetchAvailableNetworkUsers } from 'redux/AccessControl/operations';
+import { getAvailableNetworkUsersListApi } from 'views/apis/accessControl';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -22,13 +22,29 @@ const useStyles = makeStyles((theme) => ({
 const AvailableUserList = (props) => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const users = useSelector((state) => state.accessControl.availableUsers);
+  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState([]);
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   useEffect(() => {
     if (!isEmpty(activeNetwork)) {
-      // fetch available users
-      dispatch(fetchAvailableNetworkUsers(activeNetwork._id));
+      setLoading(true);
+      getAvailableNetworkUsersListApi(activeNetwork._id)
+        .then((res) => {
+          setUsers(res.available_users);
+        })
+        .catch((error) => {
+          dispatch(
+            updateMainAlert({
+              message: error.response?.data?.message,
+              show: true,
+              severity: 'error'
+            })
+          );
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     }
   }, []);
 
@@ -36,7 +52,7 @@ const AvailableUserList = (props) => {
     <ErrorBoundary>
       <div className={classes.root}>
         <div className={classes.content}>
-          <AvailableUsersTable users={users} />
+          <AvailableUsersTable users={users} loadData={loading} />
         </div>
       </div>
     </ErrorBoundary>

@@ -1,13 +1,27 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { postUserCreationDetails, createOrganisation } from '@/core/apis/Account';
+import { postUserCreationDetails, createOrganisation, updateOrganisationApi } from '@/core/apis/Account';
 
 const initialState = {
   userData: { firstName: '', lastName: '', email: '', },
-  orgData: {},
+  orgData: {
+    grp_title: '',
+    grp_website: '',
+    grp_description: '',
+    user_id: ''
+  },
+  orgUpdate: {
+    grp_industry: '',
+    grp_country: '',
+    grp_timezone: '',
+    grp_locations: [],
+    grp_id:''
+  },
   password: '',
   errors: null,
   success: false,
-  user_id: undefined
+  user_id: undefined,
+  org_creation_response: [],
+  org_update_response: []
 };
 
 export const createUser = createAsyncThunk('account/creation', async (postData, { rejectWithValue }) => {
@@ -31,7 +45,6 @@ export const createUser = createAsyncThunk('account/creation', async (postData, 
 export const postOrganisationCreationDetails = createAsyncThunk('/organisation/creation', async (postData, { rejectWithValue }) => {
   try {
     const response = await createOrganisation(postData);
-    console.log(response);
     return response;
   }
   catch (error) {
@@ -40,6 +53,13 @@ export const postOrganisationCreationDetails = createAsyncThunk('/organisation/c
     }
     return rejectWithValue(error.response)
   }
+})
+
+export const updateOrganisationDetails = createAsyncThunk('/organisation/update', async (postData, id) => {
+  const response = await updateOrganisationApi(postData, id);
+  return response;
+
+
 })
 
 export const createAccountSlice = createSlice({
@@ -61,6 +81,9 @@ export const createAccountSlice = createSlice({
     setOrgDetails: (state, action) => {
       state.orgData = action.payload;
     },
+    setOrgUpdateDetails: (state, action) => {
+      state.orgUpdate = action.payload;
+    },
     setUserId: (state, action) => {
       state.user_id = action.payload;
     }
@@ -79,8 +102,8 @@ export const createAccountSlice = createSlice({
         state.success = action.payload.success;
       })
       .addCase(postOrganisationCreationDetails.fulfilled, (state, action) => {
-        state.orgData = action.meta.arg;
-        state.success = true;
+        state.org_creation_response = action.payload.created_group;
+        state.success = action.payload.success;
       })
       .addCase(postOrganisationCreationDetails.pending, (state, action) => {
         state.success = false;
@@ -88,11 +111,22 @@ export const createAccountSlice = createSlice({
       .addCase(postOrganisationCreationDetails.rejected, (state, action) => {
         state.errors = action.payload.errors;
         state.success = action.payload.success;
+      })
+      .addCase(updateOrganisationDetails.fulfilled, (state, action) => {
+        state.org_update_response = action.payload;
+        state.success = true;
+      })
+      .addCase(updateOrganisationDetails.pending, (state) => {
+        state.success = false;
+      })
+      .addCase(updateOrganisationDetails.rejected, (state, action) => {
+        state.errors = action.payload;
+        state.success = false;
       });
   },
 });
 
-export const { setUserEmail, setUserFirstName, setUserLastName, setUserPassword, setOrgDetails, setUserId } =
+export const { setUserEmail, setUserFirstName, setUserLastName, setUserPassword, setOrgDetails, setUserId, setOrgUpdateDetails } =
   createAccountSlice.actions;
 
 export default createAccountSlice.reducer;

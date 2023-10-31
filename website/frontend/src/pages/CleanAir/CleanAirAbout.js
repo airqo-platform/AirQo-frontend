@@ -6,6 +6,7 @@ import Section2 from 'assets/img/cleanAir/section2.png';
 import Section3 from 'assets/img/cleanAir/section3.png';
 import Section4 from 'assets/img/cleanAir/section4.png';
 import Section5 from 'assets/img/cleanAir/section5.png';
+import SEO from 'utilities/seo';
 
 const Button = ({ className, label, onClick, style }) => (
   <button className={className || 'button-hero'} onClick={onClick} style={style}>
@@ -16,6 +17,11 @@ const Button = ({ className, label, onClick, style }) => (
 const CleanAirAbout = () => {
   return (
     <>
+      <SEO
+        title="CLEAN-Air Africa Network"
+        siteTitle="AirQo"
+        description="An African led, multi-region network bringing together a community of practice for air quality solutions and air quality management across Africa."
+      />
       {/* section 1 */}
       <div className="Hero">
         <span className="image-container">
@@ -80,7 +86,7 @@ const CleanAirAbout = () => {
       <Section
         pillTitle="CLEAN-Air Membership"
         title="A Synergy for air quality in Africa"
-        content="Are you an organisation or individual interested in air quality in Africa? We implore you to join the CLEAN-Air Africa Network."
+        content="Are you an organisation or individual interested in air quality in Africa? We implore you to join the CLEAN-Air Africa Network. <br/> <br/> The CLEAN-Air network is supported by development partners and philanthropic organisations, including the U.S. Department of State, Google.org, which have an established history of pioneering continuous air quality monitoring in data-hungry cities through the U.S. Embassies across Africa."
         link="#"
         btnText={'Get involved -->'}
         imgURL={Section4}
@@ -97,59 +103,57 @@ const CleanAirAbout = () => {
       {/* section 5 */}
       <Section
         pillTitle="CLEAN-Air Goals"
-        content={
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr',
-              gap: '1rem'
-            }}>
-            <div>
-              <span
-                style={{
-                  fontWeight: 'bold',
-                  fontSize: '1.5rem',
-                  color: '#135DFF'
-                }}>
-                Enhancing Regional Capacity
-              </span>
-              :  We are dedicated to improving capacity in air quality monitoring, modeling, data
-              management and access through scaling up of ongoing localized initiatives in African
-              Cities.
-            </div>
-            <div>
-              <span
-                style={{
-                  fontWeight: 'bold',
-                  fontSize: '1.5rem',
-                  color: '#135DFF'
-                }}>
-                Driving awareness
-              </span>
-              :  We are committed to fostering a deeper understanding, awareness and appreciation of
-              air quality issues through evidence-informed and participatory advocacy approaches.
-            </div>
-            <div>
-              <span
-                style={{
-                  fontWeight: 'bold',
-                  fontSize: '1.5rem',
-                  color: '#135DFF'
-                }}>
-                Building clean air solutions
-              </span>
-              :  We are not just a network; we are a nexus for developing tangible clean air
-              solutions and comprehensive frameworks that cater specifically to the unique
-              challenges faced by African cities.
-            </div>
-          </div>
-        }
         imgURL={Section5}
         bgColor="#FFFFFF"
         pillBgColor="#ECF2FF"
         pillTextColor="#135DFF"
         showButton={false}
-      />
+      ><div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr',
+          gap: '1rem'
+        }}>
+          <div>
+            <span
+              style={{
+                fontWeight: 'bold',
+                fontSize: '1.5rem',
+                color: '#135DFF'
+              }}>
+              Enhancing Regional Capacity
+            </span>
+            :  We are dedicated to improving capacity in air quality monitoring, modeling, data
+            management and access through scaling up of ongoing localized initiatives in African
+            Cities.
+          </div>
+          <div>
+            <span
+              style={{
+                fontWeight: 'bold',
+                fontSize: '1.5rem',
+                color: '#135DFF'
+              }}>
+              Driving awareness
+            </span>
+            :  We are committed to fostering a deeper understanding, awareness and appreciation of
+            air quality issues through evidence-informed and participatory advocacy approaches.
+          </div>
+          <div>
+            <span
+              style={{
+                fontWeight: 'bold',
+                fontSize: '1.5rem',
+                color: '#135DFF'
+              }}>
+              Building clean air solutions
+            </span>
+            :  We are not just a network; we are a nexus for developing tangible clean air
+            solutions and comprehensive frameworks that cater specifically to the unique
+            challenges faced by African cities.
+          </div>
+        </div>
+      </Section>
       {/* section 6 */}
       <MainHighlight />
     </>

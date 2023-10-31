@@ -50,10 +50,9 @@ const UserLogin = () => {
             dispatch(setUserInfo(response.users[0]));
             dispatch(setSuccess(true));
             setLoading(false);
-            router.push('/collocation/overview');
+            router.push('/analytics');
           })
           .catch((error) => {
-            console.error(`Error fetching user details: ${error}`);
             dispatch(setSuccess(false));
             dispatch(
               setFailure(error?.response?.data.message || 'Something went wrong, please try again'),
@@ -64,7 +63,6 @@ const UserLogin = () => {
           });
       })
       .catch((error) => {
-        console.log(error);
         dispatch(setSuccess(false));
         dispatch(
           setFailure(error?.response?.data.message || 'Something went wrong, please try again'),
@@ -113,14 +111,6 @@ const UserLogin = () => {
                 {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Login'}
               </button>
             </div>
-            <span className='text-sm text-black-700 mt-6 block'>
-              Don’t have an account?
-              <span className='text-blue-900 hover:underline ml-2'>
-                <Link data-testid='signup-link' href='/account/creation'>
-                  Sign up
-                </Link>
-              </span>
-            </span>
           </div>
         </form>
         <div className='mt-8'>
