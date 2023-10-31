@@ -27,7 +27,7 @@ const Explore = () => {
           <CustomCalendar
             initialStartDate={new Date()}
             initialEndDate={new Date()}
-            id='datepicker2'
+            id='datePicker2'
             position={{ top: '40px', left: '0px' }}
             dropdown
           />

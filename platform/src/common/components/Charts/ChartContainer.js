@@ -2,8 +2,11 @@ import React from 'react';
 import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
 import Chart from './Charts';
 import DotMenuIcon from '@/icons/Actions/three-dots-menu.svg';
+import { useDispatch } from 'react-redux';
+import { setChartTab } from '@/lib/store/services/charts/ChartSlice';
 
 const ChartContainer = ({ chartType, chartTitle, menuBtn }) => {
+  const dispatch = useDispatch();
   return (
     <div className='border-[0.5px] rounded-lg border-grey-150 shadow-[0px_0px_0px_0px_rgba(83,106,135,0.00)]'>
       <div className='flex flex-col items-start gap-1 w-auto h-auto p-4'>
@@ -28,10 +31,7 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn }) => {
               </a>
             </CustomDropdown>
           ) : (
-            <button
-              onClick={() => {
-                console.log('More clicked');
-              }}>
+            <button onClick={() => dispatch(setChartTab(1))}>
               <span className='text-sm font-medium text-blue-600 hover:text-blue-700 cursor-pointer'>
                 More
               </span>
@@ -39,7 +39,7 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn }) => {
           )}
         </div>
         <div
-          className='mt-6 -ml-[27px]'
+          className='mt-6 -ml-[27px] relative'
           style={{
             width: '100%',
             height: 496,

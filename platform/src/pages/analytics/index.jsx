@@ -19,7 +19,7 @@ const AuthenticatedHomePage = () => {
             <CustomCalendar
               initialStartDate={new Date()}
               initialEndDate={new Date()}
-              id='datepicker'
+              id='datePicker'
               position={
                 window.innerWidth <= 768
                   ? { top: '40px', left: '0px' }
@@ -51,4 +51,4 @@ const AuthenticatedHomePage = () => {
   );
 };
 
-export default AuthenticatedHomePage;
+export default withAuth(AuthenticatedHomePage);

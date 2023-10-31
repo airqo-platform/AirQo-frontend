@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   LineChart,
   Line,
@@ -11,7 +11,6 @@ import {
   ResponsiveContainer,
   Label,
   Legend,
-  Rectangle,
 } from 'recharts';
 import GoodAir from '@/icons/Charts/GoodAir';
 import Hazardous from '@/icons/Charts/Hazardous';
@@ -19,18 +18,19 @@ import Moderate from '@/icons/Charts/Moderate';
 import Unhealthy from '@/icons/Charts/Unhealthy';
 import UnhealthySG from '@/icons/Charts/UnhealthySG';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
-
-const data = [
-  { date: '2023-10-18', Kampala: 35, Jinja: 18, Gulu: 22, Mbarara: 30 },
-  { date: '2023-10-19', Kampala: 40, Jinja: 25, Gulu: 20, Mbarara: 32 },
-  { date: '2023-10-20', Kampala: 38, Jinja: 27, Gulu: 23, Mbarara: 31 },
-  { date: '2023-10-21', Kampala: 36, Jinja: 26, Gulu: 21, Mbarara: 33 },
-  { date: '2023-10-22', Kampala: 37, Jinja: 28, Gulu: 22, Mbarara: 34 },
-  { date: '2023-10-23', Kampala: 39, Jinja: 29, Gulu: 24, Mbarara: 35 },
-  { date: '2023-10-24', Kampala: 35, Jinja: 30, Gulu: 25, Mbarara: 36 },
-];
+import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
+import { useSelector } from 'react-redux';
+import Spinner from '@/components/Spinner';
 
 const colors = ['#11225A', '#0A46EB', '#297EFF', '#B8D9FF'];
+
+const reduceDecimalPlaces = (num) => {
+  return Math.round((num + Number.EPSILON) * 10000) / 10000;
+};
+
+const truncate = (str) => {
+  return str.length > 10 ? str.substr(0, 10 - 1) + '...' : str;
+};
 
 const CustomTooltipLineGraph = ({ active, payload }) => {
   if (active && payload && payload.length) {
@@ -72,7 +72,7 @@ const CustomTooltipLineGraph = ({ active, payload }) => {
         <div className='flex flex-col space-y-1'>
           <div className='flex flex-col items-start justify-between w-full h-auto p-2'>
             <span className='text-sm text-gray-300'>
-              {new Date(hoveredPoint.payload.date).toLocaleDateString('en-US', {
+              {new Date(hoveredPoint.payload.time).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
@@ -84,7 +84,7 @@ const CustomTooltipLineGraph = ({ active, payload }) => {
                 {hoveredPoint.name}
               </div>
               <div className='text-xs font-medium leading-[14px] text-gray-600'>
-                {hoveredPoint.value + ' μg/m3'}
+                {reduceDecimalPlaces(hoveredPoint.value) + ' μg/m3'}
               </div>
             </p>
             <div className='flex justify-between items-center w-full'>
@@ -103,7 +103,7 @@ const CustomTooltipLineGraph = ({ active, payload }) => {
                   {point.name}
                 </div>
                 <div className='text-xs font-medium leading-[14px] text-gray-400'>
-                  {point.value + ' μg/m3'}
+                  {reduceDecimalPlaces(point.value) + ' μg/m3'}
                 </div>
               </p>
             ))}
@@ -154,7 +154,7 @@ const CustomTooltipBarGraph = ({ active, payload }) => {
         <div className='flex flex-col space-y-1'>
           <div className='flex flex-col items-start justify-between w-full h-auto p-2'>
             <span className='text-sm text-gray-300'>
-              {new Date(hoveredPoint.payload.date).toLocaleDateString('en-US', {
+              {new Date(hoveredPoint.payload.time).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
@@ -166,7 +166,7 @@ const CustomTooltipBarGraph = ({ active, payload }) => {
                 {hoveredPoint.name}
               </div>
               <div className='text-xs font-medium leading-[14px] text-gray-600'>
-                {hoveredPoint.value + ' μg/m3'}
+                {reduceDecimalPlaces(hoveredPoint.value) + ' μg/m3'}
               </div>
             </p>
             <div className='flex justify-between items-center w-full'>
@@ -235,7 +235,7 @@ const renderCustomizedLegend = (props) => {
           <div
             className='w-[10px] h-[10px] rounded-xl mr-1'
             style={{ backgroundColor: entry.color }}></div>
-          {entry.value}
+          {truncate(entry.value)}
         </div>
       ))}
     </div>
@@ -243,11 +243,91 @@ const renderCustomizedLegend = (props) => {
 };
 
 const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
+  const chartData = useSelector((state) => state?.chart);
+  const [analyticsData, setAnalyticsData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const body = {
+      sites: [
+        '64a7b5637d31df001e6b7dae',
+        '64a5755320511a001d1b4a3e',
+        '64a2737f682da700297f9d5c',
+        '64a0f81beb6f7700296cfeff',
+      ],
+      startDate: new Date(chartData.chartDataRange.startDate).toISOString(),
+      endDate: new Date(chartData.chartDataRange.endDate).toISOString(),
+      chartType: chartData.chartType,
+      frequency: chartData.timeFrame,
+      pollutant: 'pm2_5',
+      organisation_name: 'airqo',
+    };
+
+    const getAnalytics = async () => {
+      // Check if all properties of body are set and not null
+      const allPropertiesSet = Object.values(body).every(
+        (property) => property !== undefined && property !== null,
+      );
+
+      if (allPropertiesSet) {
+        setIsLoading(true);
+        try {
+          const response = await getAnalyticsData(body);
+          if (response.data.length > 0) {
+            setAnalyticsData(response.data);
+          } else {
+            setAnalyticsData(null);
+          }
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    getAnalytics();
+  }, [chartData]);
+
+  if (isLoading) {
+    return (
+      <div className='ml-10 flex justify-center items-center w-full h-full'>
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (analyticsData === null) {
+    return (
+      <div className='ml-10 flex justify-center items-center w-full h-full'>
+        No data for this time range
+      </div>
+    );
+  }
+
+  const transformedData = analyticsData.reduce((acc, curr) => {
+    if (!acc[curr.time]) {
+      acc[curr.time] = {
+        time: curr.time,
+      };
+    }
+    acc[curr.time][curr.name] = curr.value;
+    return acc;
+  }, {});
+
+  const dataForChart = Object.values(transformedData);
+
+  let allKeys = new Set();
+  if (dataForChart.length > 0) {
+    allKeys = new Set(Object.keys(dataForChart[0]));
+  }
+
+  console.log(analyticsData, 'dataForChart');
+
   const renderChart = () => {
     if (chartType === 'line') {
       return (
         <LineChart
-          data={data}
+          data={dataForChart}
           width={width}
           height={height}
           style={{ cursor: 'pointer' }}
@@ -255,24 +335,22 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
             top: 38,
             right: 10,
           }}>
-          {Object.keys(data[0]).map((key, index) => {
-            if (key !== 'date') {
-              return (
-                <Line
-                  key={index}
-                  type='monotone'
-                  dataKey={key}
-                  stroke={colors[index]}
-                  strokeWidth={3}
-                  dot={<CustomDot />}
-                  activeDot={{ r: 8 }}
-                />
-              );
-            }
-          })}
+          {Array.from(allKeys)
+            .filter((key) => key !== 'time')
+            .map((key, index) => (
+              <Line
+                key={key}
+                dataKey={key}
+                type='monotone'
+                stroke={colors[index % colors.length]}
+                strokeWidth={2}
+                dot={<CustomDot />}
+                activeDot={{ r: 6 }}
+              />
+            ))}
           <CartesianGrid stroke='#ccc' strokeDasharray='5 5' vertical={false} />
           <XAxis
-            dataKey='date'
+            dataKey='time'
             tick={<CustomizedAxisTick />}
             tickLine={false}
             axisLine={false}
@@ -311,7 +389,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
     } else if (chartType === 'bar') {
       return (
         <BarChart
-          data={data}
+          data={dataForChart}
           width={width}
           height={height}
           style={{ cursor: 'pointer' }}
@@ -319,13 +397,13 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
             top: 38,
             right: 10,
           }}>
-          {Object.keys(data[0])
-            .filter((key) => key !== 'date')
+          {Array.from(allKeys)
+            .filter((key) => key !== 'time')
             .map((key, index) => (
-              <Bar key={index} dataKey={key} fill={colors[index]} barSize={15} />
+              <Bar key={key} dataKey={key} fill={colors[index % colors.length]} barSize={15} />
             ))}
           <CartesianGrid stroke='#ccc' strokeDasharray='5 5' vertical={false} />
-          <XAxis dataKey='date' tickLine={false} tick={<CustomizedAxisTick />} axisLine={false} />
+          <XAxis dataKey='time' tickLine={false} tick={<CustomizedAxisTick />} axisLine={false} />
           <YAxis
             axisLine={false}
             fontSize={12}

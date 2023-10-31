@@ -3,8 +3,12 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   chartType: 'line',
   timeFrame: 'Hourly',
-  chartDataRange: 'last 7 days',
-  chartData: [],
+  chartDataRange: {
+    startDate: new Date(),
+    endDate: new Date(),
+    label: 'Today',
+  },
+  chartTab: 0,
 };
 
 export const chartSlice = createSlice({
@@ -14,8 +18,8 @@ export const chartSlice = createSlice({
     setChartType: (state, action) => {
       state.chartType = action.payload;
     },
-    setChartData: (state, action) => {
-      state.chartData = action.payload;
+    setChartTab: (state, action) => {
+      state.chartTab = action.payload;
     },
     setTimeFrame: (state, action) => {
       state.timeFrame = action.payload;
@@ -26,6 +30,6 @@ export const chartSlice = createSlice({
   },
 });
 
-export const { setChartType, setChartData, setTimeFrame, setChartDataRange } = chartSlice.actions;
+export const { setChartType, setChartTab, setTimeFrame, setChartDataRange } = chartSlice.actions;
 
 export default chartSlice.reducer;
