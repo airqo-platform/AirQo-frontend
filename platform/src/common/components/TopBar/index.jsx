@@ -107,7 +107,7 @@ const TopBar = ({
                   <div className='flex items-center space-x-4 p-2'>
                     <div className='relative'>
                       <img
-                        className='w-10 h-10 rounded-full'
+                        className='w-10 h-10 rounded-full object-cover'
                         src={userInfo.profilePicture || PlaceholderImage}
                         alt=''
                       />

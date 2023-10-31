@@ -3,14 +3,15 @@ import ContentBox from '@/components/Layout/content_box';
 import Button from '@/components/Button';
 import Modal from '@/components/Modal/Modal';
 import { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { updateUserDetails } from '@/core/apis/Account';
-import ReactCountryFlag from 'react-country-flag';
 import ClockIcon from '@/icons/Settings/clock.svg';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
 import timeZones from 'timezones.json';
+import TextInputField from '@/components/TextInputField';
+import { setUserInfo } from '@/lib/store/services/account/LoginSlice';
 countries.registerLocale(enLocale);
 
 const countryObj = countries.getNames('en', { select: 'official' });
@@ -60,11 +61,16 @@ const Profile = () => {
   const [isLoading, setLoading] = useState(false);
   const [profileUploading, setProfileUploading] = useState(false);
   const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
+  const userInfo = useSelector((state) => state.login.userInfo);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('loggedUser'));
 
     if (user) {
+      if (!userInfo) {
+        dispatch(setUserInfo(user));
+      }
+
       setUserData({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
@@ -76,6 +82,8 @@ const Profile = () => {
         description: user.description || '',
         profilePicture: user.profilePicture || '',
       });
+    } else {
+      console.log('Missing user info');
     }
   }, []);
 
@@ -95,6 +103,7 @@ const Profile = () => {
       updateUserDetails(userID, userData)
         .then((response) => {
           localStorage.setItem('loggedUser', JSON.stringify({ _id: userID, ...response.user }));
+          dispatch(setUserInfo({ _id: userID, ...response.user }));
           setLoading(false);
         })
         .catch((error) => {
@@ -198,14 +207,12 @@ const Profile = () => {
       setProfileUploading(true);
       await cloudinaryImageUpload(formData)
         .then(async (responseData) => {
+          setUserData({ ...userData, profilePicture: responseData.secure_url });
           const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
-          const updateData = { profilePicture: responseData.secure_url };
-          return await updateUserDetails(userID, updateData)
+          return await updateUserDetails(userID, { profilePicture: responseData.secure_url })
             .then((responseData) => {
-              localStorage.setItem(
-                'loggedUser',
-                JSON.stringify({ _id: userID, ...responseData.user }),
-              );
+              localStorage.setItem('loggedUser', JSON.stringify({ _id: userID, ...userData }));
+              dispatch(setUserInfo({ _id: userID, ...userData }));
               // updated user alert
               setUpdatedProfilePicture('');
               setProfileUploading(false);
@@ -235,6 +242,7 @@ const Profile = () => {
           'loggedUser',
           JSON.stringify({ ...userData, profilePicture: '', _id: userID }),
         );
+        dispatch(setUserInfo({ ...userData, profilePicture: '', _id: userID }));
         setShowDeleteProfileModal(false);
       })
       .catch((error) => {
@@ -287,73 +295,62 @@ const Profile = () => {
                       className={`text-sm font-medium ${
                         !updatedProfilePicture
                           ? 'text-secondary-neutral-light-500'
-                          : 'text-blue-600'
+                          : 'text-blue-600 bg-blue-50 rounded'
                       }`}
                       onClick={handleProfileImageUpdate}
                       disabled={!updatedProfilePicture}
                     >
-                      Update
+                      {updatedProfilePicture && !profileUploading
+                        ? 'Save photo'
+                        : profileUploading
+                        ? 'Uploading...'
+                        : 'Update'}
                     </Button>
                   </div>
                 </div>
                 <form className='grid grid-cols-2 gap-6'>
-                  <div className='relative flex flex-col gap-[6px] md:col-span-1 col-span-full'>
-                    <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
-                      First name
-                    </label>
-                    <input
-                      type='text'
+                  <div className='gap-[6px] col-span-full'>
+                    <TextInputField
                       id='firstName'
                       value={userData.firstName}
                       onChange={handleChange}
-                      className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full p-3 dark:placeholder-white-400 dark:text-white'
-                      required
+                      label='First name'
+                      type='text'
                     />
                   </div>
-                  <div className='relative flex flex-col gap-[6px] md:col-span-1 col-span-full'>
-                    <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
-                      Last name
-                    </label>
-                    <input
-                      type='text'
+
+                  <div className='gap-[6px] col-span-full'>
+                    <TextInputField
                       id='lastName'
                       value={userData.lastName}
                       onChange={handleChange}
-                      className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full p-3 dark:placeholder-white-400 dark:text-white'
-                      required
+                      label='Last name'
+                      type='text'
                     />
                   </div>
-                  <div className='relative flex flex-col gap-[6px] col-span-full'>
-                    <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
-                      Email
-                    </label>
-                    <input
-                      type='email'
+                  <div className='gap-[6px] col-span-full'>
+                    <TextInputField
                       id='email'
                       value={userData.email}
                       onChange={handleChange}
-                      className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full p-3 dark:placeholder-white-400 dark:text-white'
-                      required
+                      label='Email'
+                      type='email'
                     />
                   </div>
-                  <div className='relative flex flex-col gap-[6px] col-span-full'>
-                    <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
-                      Job title
-                    </label>
-                    <input
-                      type='text'
+                  <div className='gap-[6px] col-span-full'>
+                    <TextInputField
                       id='jobTitle'
                       value={userData.jobTitle}
                       onChange={handleChange}
-                      className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full p-3 dark:placeholder-white-400 dark:text-white'
-                      required
+                      label='Job title'
+                      type='text'
                     />
                   </div>
+
                   <div className='relative flex flex-col gap-[6px] md:col-span-1 col-span-full'>
                     <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
                       Country
                     </label>
-                    {/* input select field to select country and country flag on the left */}
                     <div className='relative'>
                       <select
                         type='text'
@@ -396,6 +393,7 @@ const Profile = () => {
                       ))}
                     </select>
                   </div>
+
                   <div className='relative flex flex-col gap-[6px] col-span-full'>
                     <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
                       Bio
