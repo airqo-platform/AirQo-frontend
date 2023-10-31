@@ -37,6 +37,10 @@ export const getUserDetails = async (userID, token) => {
     .then((response) => response.data);
 };
 
+export const updateUserDetails = async (userID, data) => {
+  return await axios.put(`${USERS_URL}/${userID}`, data).then((response) => response.data);
+};
+
 export const getAssignedGroupMembers = async (groupID) => {
   return await createAxiosInstance(false)
     .get(`${GROUPS_URL}/${groupID}/assigned-users`)

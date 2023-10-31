@@ -6,6 +6,7 @@ import withAuth from '@/core/utils/protectedRoute';
 import Team from './Tabs/Team';
 import { useEffect, useState } from 'react';
 import { getAssignedGroupMembers } from '@/core/apis/Account';
+import Profile from './Tabs/Profile';
 
 const Settings = () => {
   const [teamMembers, setTeamMembers] = useState([]);
@@ -13,7 +14,11 @@ const Settings = () => {
 
   useEffect(() => {
     setLoading(true);
-    getAssignedGroupMembers('64f54e357516f7001307a113')
+    const activeGroupId = JSON.parse(localStorage.getItem('activeGroup'))._id;
+
+    if (!activeGroupId) return setLoading(false);
+
+    getAssignedGroupMembers(activeGroupId)
       .then((response) => {
         setTeamMembers(response.group_members);
         setLoading(false);
@@ -27,6 +32,9 @@ const Settings = () => {
   return (
     <Layout topbarTitle={'Settings'} noBorderBottom>
       <Tabs>
+        <Tab label='My profile'>
+          <Profile />
+        </Tab>
         <Tab label='Password'>
           <Password />
         </Tab>

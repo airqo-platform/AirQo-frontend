@@ -10,7 +10,7 @@ module.exports = {
   theme: {
     extend: {
       gridTemplateColumns: {
-        'account':'1fr minmax(0, 1480px) 1fr'
+        account: '1fr minmax(0, 1480px) 1fr',
       },
       fontFamily: {
         sans: ['Inter', ...defaultTheme.fontFamily.sans],
@@ -48,7 +48,10 @@ module.exports = {
           300: '#6D7175',
           350: '#667085',
           400: '#B0B0B0',
+          500: '#667085',
           700: '#DDDDDD',
+          710: '#344054',
+          720: '#344054',
           750: '#E8E8E8',
           800: '#8C9196',
           900: '#808080',

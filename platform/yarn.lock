@@ -5402,6 +5402,11 @@ react-calendar@^4.0.0:
     get-user-locale "^1.2.0"
     prop-types "^15.6.0"
 
+react-country-flag@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/react-country-flag/-/react-country-flag-3.1.0.tgz#f0c4c332934a77d3e894ba4800634f7a887e53d4"
+  integrity sha512-JWQFw1efdv9sTC+TGQvTKXQg1NKbDU2mBiAiRWcKM9F1sK+/zjhP2yGmm8YDddWyZdXVkR8Md47rPMJmo4YO5g==
+
 react-dom@^18.2.0:
   version "18.2.0"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-18.2.0.tgz#22aaf38708db2674ed9ada224ca4aa708d821e3d"
@@ -6145,6 +6150,11 @@ through@^2.3.8:
   version "2.3.8"
   resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
   integrity sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==
+
+timezones.json@^1.7.1:
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/timezones.json/-/timezones.json-1.7.1.tgz#65d69330e1b60dc7755bdeb677eda5acfa7ae5cd"
+  integrity sha512-4dB58ulcrRWfiGufzlofLG45RIoalCTZiFUc7tnj0g8za0CpNTyIOVlspg1JD7OFyDeW5up3ntlkukizwB0IJA==
 
 tiny-inflate@^1.0.0, tiny-inflate@^1.0.3:
   version "1.0.3"
