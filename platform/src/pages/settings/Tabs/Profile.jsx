@@ -341,20 +341,12 @@ const Profile = () => {
                     </label>
                     {/* input select field to select country and country flag on the left */}
                     <div className='relative'>
-                      <div className='absolute left-0 top-3 w-10 h-full flex items-center justify-center'>
-                        {userData && userData.country && (
-                          <ReactCountryFlag
-                            countryCode={() => retrieveCountryCode(userData.country)}
-                            svg
-                          />
-                        )}
-                      </div>
                       <select
                         type='text'
                         id='country'
                         value={userData.country}
                         onChange={handleChange}
-                        className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm w-full rounded pl-10 pr-3 py-3 dark:placeholder-white-400 dark:text-white'
+                        className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm w-full rounded p-3 dark:placeholder-white-400 dark:text-white'
                         required
                       >
                         <option value='' disabled></option>
