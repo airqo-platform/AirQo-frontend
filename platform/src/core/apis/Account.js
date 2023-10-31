@@ -9,14 +9,16 @@ import {
 import createAxiosInstance from './axiosConfig';
 
 // Register User Details
-export const postUserCreationDetails = async (data) =>
-  await createAxiosInstance()
+export const postUserCreationDetails = async (data) => {
+  return await createAxiosInstance()
     .post(AUTH_URL, data)
     .then((response) => response.data);
+};
 
 export const getGoogleAuthDetails = async () => {
-  await createAxiosInstance().get(GOOGLE_AUTH_URL);
+  return await createAxiosInstance().get(GOOGLE_AUTH_URL);
 };
+
 // User Login
 export const postUserLoginDetails = async (data) => {
   return await createAxiosInstance()
@@ -26,19 +28,8 @@ export const postUserLoginDetails = async (data) => {
 
 export const getUserDetails = async (userID, token) => {
   return await createAxiosInstance()
-    .get(`${USERS_URL}/${userID}`, {
-      headers: {
-        Authorization: token,
-      },
-      params: {
-        token: API_TOKEN,
-      },
-    })
+    .get(`${USERS_URL}/${userID}`)
     .then((response) => response.data);
-};
-
-export const updateUserDetails = async (userID, data) => {
-  return await axios.put(`${USERS_URL}/${userID}`, data).then((response) => response.data);
 };
 
 export const getAssignedGroupMembers = async (groupID) => {
@@ -61,7 +52,7 @@ export const acceptGroupTeamInvite = async (body) => {
 
 // Update [Individual]User Details
 export const updateUserCreationDetails = async (data, identifier) => {
-  await createAxiosInstance()
+  return await createAxiosInstance()
     .put(`${UPDATE_USER_DETAILS_URL}/${identifier}`, data)
     .then((response) => response.data);
 };
