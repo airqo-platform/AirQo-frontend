@@ -56,7 +56,6 @@ const Profile = () => {
     description: '',
     profilePicture: '',
   });
-  const [userID, setUserID] = useState('');
   const [updatedProfilePicture, setUpdatedProfilePicture] = useState('');
   const [isLoading, setLoading] = useState(false);
   const [profileUploading, setProfileUploading] = useState(false);
@@ -77,7 +76,6 @@ const Profile = () => {
         description: user.description || '',
         profilePicture: user.profilePicture || '',
       });
-      setUserID(user._id);
     }
   }, []);
 
@@ -88,11 +86,15 @@ const Profile = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
-    if (!userID) return;
+    const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
+    if (!userID) {
+      setLoading(false);
+      return;
+    }
     try {
       updateUserDetails(userID, userData)
         .then((response) => {
-          localStorage.setItem('loggedUser', JSON.stringify(response.user));
+          localStorage.setItem('loggedUser', JSON.stringify({ _id: userID, ...response.user }));
           setLoading(false);
         })
         .catch((error) => {
@@ -196,21 +198,29 @@ const Profile = () => {
       setProfileUploading(true);
       await cloudinaryImageUpload(formData)
         .then(async (responseData) => {
+          const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
           const updateData = { profilePicture: responseData.secure_url };
           return await updateUserDetails(userID, updateData)
             .then((responseData) => {
-              localStorage.setItem('loggedUser', JSON.stringify(responseData.user));
+              localStorage.setItem(
+                'loggedUser',
+                JSON.stringify({ _id: userID, ...responseData.user }),
+              );
               // updated user alert
+              setUpdatedProfilePicture('');
+              setProfileUploading(false);
             })
             .catch((err) => {
               // updated user failure alert
+              setUpdatedProfilePicture('');
+              setProfileUploading(false);
             });
         })
         .catch(() => {
           // unable to save image error
+          setUpdatedProfilePicture('');
+          setProfileUploading(false);
         });
-      setUpdatedProfilePicture('');
-      setProfileUploading(false);
     }
   };
 
@@ -218,9 +228,13 @@ const Profile = () => {
     setUpdatedProfilePicture('');
     setUserData({ ...userData, profilePicture: '' });
 
+    const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
     updateUserDetails(userID, { profilePicture: '' })
       .then((response) => {
-        localStorage.setItem('loggedUser', JSON.stringify({ ...userData, profilePicture: '' }));
+        localStorage.setItem(
+          'loggedUser',
+          JSON.stringify({ ...userData, profilePicture: '', _id: userID }),
+        );
         setShowDeleteProfileModal(false);
       })
       .catch((error) => {
