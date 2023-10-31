@@ -13,8 +13,6 @@ import { MenuItem } from '@material-ui/core';
 import Checkbox from '@material-ui/core/Checkbox';
 import { useInitScrollTop } from 'utils/customHooks';
 import { ErrorBoundary } from '../../ErrorBoundary';
-import { useDashboardSitesData } from 'redux/Dashboard/selectors';
-import { loadSites } from 'redux/Dashboard/operations';
 import { useOrgData } from 'redux/Join/selectors';
 
 // css
@@ -162,7 +160,8 @@ const PollutantSelector = ({ className, onChange }) => {
               pm2_5: true,
               no2: false,
               pm10: false
-            })}>
+            })}
+          >
             PM<sub>2.5</sub>
           </MenuItem>
           <MenuItem
@@ -170,7 +169,8 @@ const PollutantSelector = ({ className, onChange }) => {
               pm2_5: false,
               no2: false,
               pm10: true
-            })}>
+            })}
+          >
             PM<sub>10</sub>
           </MenuItem>
           {orgData.name !== 'airqo' && (
@@ -179,7 +179,8 @@ const PollutantSelector = ({ className, onChange }) => {
                 pm2_5: false,
                 no2: true,
                 pm10: false
-              })}>
+              })}
+            >
               NO<sub>2</sub>
             </MenuItem>
           )}
@@ -187,7 +188,8 @@ const PollutantSelector = ({ className, onChange }) => {
       }
       open={open}
       placement="left"
-      onClose={() => setOpen(false)}>
+      onClose={() => setOpen(false)}
+    >
       <div style={{ padding: '10px' }}>
         <span className={className} onClick={onHandleClick}>
           {pollutantMapper[pollutant]}
@@ -230,7 +232,8 @@ const MapStyleSelectorPlaceholder = () => {
       className="map-style-placeholder"
       onClick={handleClick}
       onMouseEnter={() => handleHover(true)}
-      onMouseLeave={() => handleHover(false)}>
+      onMouseLeave={() => handleHover(false)}
+    >
       <div className={`map-icon-container${isHovered ? ' map-icon-hovered' : ''}`}>
         <MapIcon className="map-icon" />
       </div>
@@ -285,7 +288,8 @@ const MapStyleSelector = () => {
                   localStorage.mapStyle = style.mapStyle;
                   localStorage.mapMode = style.name;
                   window.location.reload();
-                }}>
+                }}
+              >
                 <span>{style.icon}</span>
                 <span>{style.name} map</span>
               </div>
@@ -331,7 +335,8 @@ const MapSettings = ({
       }
       open={open}
       placement="left"
-      onClose={() => setOpen(false)}>
+      onClose={() => setOpen(false)}
+    >
       <div style={{ padding: '10px' }}>
         <div className="map-settings" onClick={() => setOpen(!open)}>
           <SettingsIcon />
@@ -374,7 +379,6 @@ const CustomMapControl = ({
 export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) => {
   const dispatch = useDispatch();
   const MAX_OFFLINE_DURATION = 86400; // 24 HOURS
-  const sitesData = useDashboardSitesData();
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState();
   const [showSensors, setShowSensors] = useState(true);
@@ -402,13 +406,6 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
       pm10: pollutant === 'pm10'
     });
   }, [localStorage.getItem('pollutant')]);
-
-  // Load sites if sitesData is empty
-  useEffect(() => {
-    if (isEmpty(sitesData)) {
-      dispatch(loadSites());
-    }
-  }, [sitesData, dispatch]);
 
   useEffect(() => {
     // Initialize map
@@ -567,14 +564,7 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
                   `<div class="popup-body">
                     <div>
                       <span class="popup-title">
-                        <b>${
-                          (sitesData[feature.properties.site_id] &&
-                            sitesData[feature.properties.site_id].name) ||
-                          (sitesData[feature.properties.site_id] &&
-                            sitesData[feature.properties.site_id].description) ||
-                          feature.properties.device ||
-                          feature.properties._id
-                        }</b>
+                      <b>${feature.properties.siteDetails.description}</b>
                       </span>
                     </div>
                     <div class="${`popup-aqi ${markerClass}`}"> 
@@ -651,7 +641,8 @@ const HeatMapOverlay = () => {
           justifyContent: 'center',
           alignItems: 'center',
           height: '100vh'
-        }}>
+        }}
+      >
         <CircularLoader loading={true} />
       </div>
     );
