@@ -14,7 +14,8 @@ const Section = ({
   pillBgColor,
   pillTextColor,
   imageStyle,
-  showButton
+  showButton,
+  children
 }) => {
   return (
     <div className="cleanAir-section" style={{ backgroundColor: bgColor }}>
@@ -23,7 +24,7 @@ const Section = ({
           {pillTitle && (
             <div
               style={{
-                display: 'inline-flex',
+                display: '  -flex',
                 flexDirection: 'row',
                 alignItems: 'center'
               }}>
@@ -34,7 +35,10 @@ const Section = ({
           )}
 
           {title && <h3 className="content-h">{title}</h3>}
-          <span className="content-p">{content}</span>
+          {content ? <span className="content-p" dangerouslySetInnerHTML={{ __html: content }}></span> : <span />}
+          {
+            children ? <span className='content-p'>{children}</span> : <span />
+          }
           {showButton && btnText && link && (
             <Link to={link} target="_blank">
               <span id="second-pill">
@@ -54,7 +58,7 @@ const Section = ({
 Section.propTypes = {
   pillTitle: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
-  content: PropTypes.oneOfType([PropTypes.string, PropTypes.node]).isRequired,
+  content: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
   btnText: PropTypes.string.isRequired,
   link: PropTypes.string.isRequired,
   imgURL: PropTypes.string.isRequired,
@@ -63,7 +67,8 @@ Section.propTypes = {
   pillBgColor: PropTypes.string,
   pillTextColor: PropTypes.string,
   imageStyle: PropTypes.object,
-  showButton: PropTypes.bool
+  showButton: PropTypes.bool,
+  children: PropTypes.any
 };
 
 Section.defaultProps = {

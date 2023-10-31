@@ -61,3 +61,8 @@ export const updateUserCreationDetails = async (data, identifier) => {
 export const createOrganisation = async (data) => {
   await axios.post(`${GROUPS_URL}`, data).then((response) => response.data)
 }
+
+// Update Organisation
+export const updateOrganisationApi = async (data, identifier) => {
+  await axios.post(`${GROUPS_URL}/${identifier}`, data).then((response) => response.data)
+}

@@ -90,6 +90,7 @@ dev_dependencies:
   dart_code_metrics: ^5.5.0
   hive_generator: ^2.0.0
   bloc_test: ^9.1.1
+  restart_app: ^1.2.1
 
 flutter:
   uses-material-design: true

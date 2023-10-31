@@ -24,10 +24,11 @@ const AboutUsPage = () => {
   useInitScrollTop();
   const dispatch = useDispatch();
   const teamData = useTeamData();
-  const partnersData = usePartnersData();
+  const allPartnersData = usePartnersData();
   const boardData = useBoardData();
   const navigate = useNavigate();
   const showModal = () => dispatch(showGetInvolvedModal(true));
+  const partnersData = allPartnersData.filter((partner) => partner.website_category === 'airqo')
 
   const [togglePartnersDisplay, setTogglePartnersDisplay] = useState(false);
 
@@ -55,7 +56,7 @@ const AboutUsPage = () => {
     if (isEmpty(teamData)) dispatch(loadTeamData());
     if (isEmpty(partnersData)) dispatch(loadPartnersData());
     if (isEmpty(boardData)) dispatch(loadBoardData());
-  }, []);
+  }, [partnersData, teamData]);
   return (
     <Page>
       <div className="AboutUsPage">
