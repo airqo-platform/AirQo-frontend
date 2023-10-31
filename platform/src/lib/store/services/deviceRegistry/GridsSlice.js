@@ -9,8 +9,7 @@ const initialState = {
 }
 
 export const getAllGridLocations = createAsyncThunk('/get/grids', async () => {
-    const response = await getAllGridLocationsApi()
-    console.log('Response', response);
+    const response = await getAllGridLocationsApi();
     return response;
 })
 
@@ -25,15 +24,15 @@ export const gridsSlice = createSlice({
     extraReducers: (builder) => {
         builder
             .addCase(getAllGridLocations.fulfilled, (state, action) => {
-                state.gridLocations = action.payload;
-                state.success = true;
+                state.gridLocations = action.payload.grids;
+                state.success = action.payload.success;
             })
             .addCase(getAllGridLocations.pending, (state) => {
                 state.success = false;
             })
             .addCase(getAllGridLocations.rejected, (state, action) => {
                 state.errors = action.payload;
-                state.success = false;
+                state.success = action.payload.success;
             })
     }
 })
