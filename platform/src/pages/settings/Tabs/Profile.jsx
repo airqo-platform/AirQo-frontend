@@ -3,6 +3,7 @@ import ContentBox from '@/components/Layout/content_box';
 import Button from '@/components/Button';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { updateUserDetails } from '@/core/apis/Account';
 import ReactCountryFlag from 'react-country-flag';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
@@ -46,9 +47,13 @@ const Profile = () => {
     description: '',
     profilePicture: '',
   });
+  const [userID, setUserID] = useState('');
+  const [updatedProfilePicture, setUpdatedProfilePicture] = useState('');
+  const [isLoading, setLoading] = useState(false);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('loggedUser'));
+
     if (user) {
       setUserData({
         firstName: user.firstName || '',
@@ -61,11 +66,76 @@ const Profile = () => {
         description: user.description || '',
         profilePicture: user.profilePicture || '',
       });
+      setUserID(user._id);
     }
   }, []);
 
   const handleChange = (e) => {
     setUserData({ ...userData, [e.target.id]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setLoading(true);
+    if (!userID) return;
+    try {
+      updateUserDetails(userID, userData)
+        .then((response) => {
+          localStorage.setItem('loggedUser', JSON.stringify(response.user));
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error(`Error updating user details: ${error}`);
+          setLoading(false);
+        });
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    const user = JSON.parse(localStorage.getItem('loggedUser'));
+    setUserData({
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      email: user.email || '',
+      phone: user.phone || '',
+      jobTitle: user.jobTitle || '',
+      country: user.country || '',
+      timezone: user.timezone || '',
+      description: user.description || '',
+      profilePicture: user.profilePicture || '',
+    });
+  };
+
+  const handleAvatarClick = () => {
+    // Open file dialog to select an image
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (event) => {
+      const file = event.target.files[0];
+      // Perform any necessary validation on the selected file
+      // Save the selected image as the user's profile picture
+      setUpdatedProfilePicture(URL.createObjectURL(file));
+      setUserData({ ...userData, profilePicture: URL.createObjectURL(file) });
+    };
+    input.click();
+  };
+
+  const handleProfileImageUpdate = () => {
+    // Logic to update the profile image
+    // This could involve prompting the user to select a new image file,
+    // uploading it to a server, and updating the `userData.profilePicture` property
+
+    // Example implementation:
+    const newProfilePicture = prompt('Please select a new profile image');
+    if (newProfilePicture) {
+      // Assuming `userData` is a state variable
+
+      setUserData({ ...userData, profilePicture: newProfilePicture });
+    }
   };
 
   return (
@@ -81,12 +151,16 @@ const Profile = () => {
             <>
               <div className='w-full p-6'>
                 <div className='flex items-center gap-6 w-full mb-6'>
-                  <div className='w-16 h-16 bg-secondary-neutral-light-25 rounded-full flex justify-center items-center'>
+                  <div
+                    className='w-16 h-16 bg-secondary-neutral-light-25 rounded-full flex justify-center items-center cursor-pointer'
+                    onClick={handleAvatarClick}
+                    title='Tap to change profile image'
+                  >
                     {userData.profilePicture ? (
                       <img
                         src={userData.profilePicture}
                         alt={`${userData.firstName + ' ' + userData.lastName} profile image`}
-                        className='w-full h-full rounded-full'
+                        className='w-full h-full rounded-full object-cover'
                       />
                     ) : (
                       <h3 className='text-center text-2xl leading-8 font-medium text-blue-600'>
@@ -98,7 +172,17 @@ const Profile = () => {
                     <Button className='text-sm font-medium text-secondary-neutral-light-500'>
                       Delete
                     </Button>
-                    <Button className='text-sm font-medium text-blue-600'>Update</Button>
+                    <Button
+                      className={`text-sm font-medium ${
+                        !updatedProfilePicture
+                          ? 'text-secondary-neutral-light-500'
+                          : 'text-blue-600'
+                      }`}
+                      onClick={handleProfileImageUpdate}
+                      disabled={!updatedProfilePicture}
+                    >
+                      Update
+                    </Button>
                   </div>
                 </div>
                 <form className='grid grid-cols-2 gap-6'>
@@ -217,11 +301,19 @@ const Profile = () => {
                 </form>
               </div>
               <div className='col-span-full flex justify-end gap-3 border-t border-t-secondary-neutral-light-100 w-full px-3 py-4'>
-                <Button className='text-sm font-medium leading-5 text-secondary-neutral-light-600 py-3 px-4 rounded border border-secondary-neutral-light-100 bg-white'>
+                <Button
+                  onClick={handleCancel}
+                  className='text-sm font-medium leading-5 text-secondary-neutral-light-600 py-3 px-4 rounded border border-secondary-neutral-light-100 bg-white'
+                  disabled={isLoading}
+                >
                   Cancel
                 </Button>
-                <Button className='text-sm font-medium leading-5 text-white py-3 px-4 rounded bg-blue-600'>
-                  Save
+                <Button
+                  onClick={handleSubmit}
+                  className='text-sm font-medium leading-5 text-white py-3 px-4 rounded bg-blue-600'
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Loading...' : 'Save'}
                 </Button>
               </div>
             </>

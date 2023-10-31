@@ -32,6 +32,10 @@ export const getUserDetails = async (userID, token) => {
   return await axios.get(`${USERS_URL}/${userID}`).then((response) => response.data);
 };
 
+export const updateUserDetails = async (userID, data) => {
+  return await axios.put(`${USERS_URL}/${userID}`, data).then((response) => response.data);
+};
+
 export const getAssignedGroupMembers = async (groupID) => {
   return await axios
     .get(`${GROUPS_URL}/${groupID}/assigned-users`)
@@ -59,5 +63,5 @@ export const updateUserCreationDetails = async (data, identifier) => {
 
 // Create Organisation
 export const createOrganisation = async (data) => {
-  await axios.post(`${GROUPS_URL}`, data).then((response) => response.data)
-}
+  await axios.post(`${GROUPS_URL}`, data).then((response) => response.data);
+};
