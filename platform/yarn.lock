@@ -6151,6 +6151,11 @@ through@^2.3.8:
   resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
   integrity sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==
 
+timezones.json@^1.7.1:
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/timezones.json/-/timezones.json-1.7.1.tgz#65d69330e1b60dc7755bdeb677eda5acfa7ae5cd"
+  integrity sha512-4dB58ulcrRWfiGufzlofLG45RIoalCTZiFUc7tnj0g8za0CpNTyIOVlspg1JD7OFyDeW5up3ntlkukizwB0IJA==
+
 tiny-inflate@^1.0.0, tiny-inflate@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/tiny-inflate/-/tiny-inflate-1.0.3.tgz#122715494913a1805166aaf7c93467933eea26c4"

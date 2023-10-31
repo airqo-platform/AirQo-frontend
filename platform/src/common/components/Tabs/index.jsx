@@ -31,7 +31,7 @@ function Tabs({ children, childrenRight, positionFixed }) {
         </ul>
         {childrenRight && childrenRight[activeTab] && childrenRight[activeTab].children}
       </div>
-      <div className='h-14' />
+      <div className='h-8' />
       <div className='relative'>{children[activeTab]}</div>
     </div>
   );
