@@ -66,7 +66,7 @@ class LanguageListState extends State<LanguageList> {
               Locale locale = await setLocale(language.languageCode);
               await AirQoApp.setLocale(context, locale);
               Navigator.pop(context, true);
-              //await Restart.restartApp();
+              await Restart.restartApp();
             },
           ),
           CupertinoDialogAction(
