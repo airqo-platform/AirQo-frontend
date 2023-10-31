@@ -619,15 +619,7 @@ const HeatMapOverlay = () => {
 
   useEffect(() => {
     if (!monitoringSiteData?.features || monitoringSiteData?.features.length === 0) {
-      dispatch(
-        loadMapEventsData({
-          recent: 'yes',
-          external: 'no',
-          metadata: 'site_id',
-          frequency: 'hourly',
-          active: 'yes'
-        })
-      ).catch((error) => {
+      dispatch(loadMapEventsData()).catch((error) => {
         console.error('Failed to load Map Events Data:', error);
       });
     }
