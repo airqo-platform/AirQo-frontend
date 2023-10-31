@@ -11,12 +11,6 @@ import {
 } from 'config/urls/analytics';
 import createAxiosInstance from './axiosConfig';
 
-export const getMonitoringSitesInfoApi = async (pm25Category) => {
-  return await createAxiosInstance()
-    .get(GET_DATA_MAP, pm25Category)
-    .then((response) => response.data);
-};
-
 export const getSitesApi = async () => {
   return await createAxiosInstance()
     .get(GET_SITES)

@@ -1,25 +1,17 @@
-import { LOGOUT_USER_SUCCESS } from "redux/Join/types";
-import {
-  LOAD_PM25_HEATMAP_DATA_SUCCESS,
-  LOAD_PM25_SENSOR_DATA_SUCCESS,
-  LOAD_MAP_EVENTS_SUCCESS,
-} from "./actions";
-import { transformDataToGeoJson } from "views/pages/Map/utils";
+import { LOGOUT_USER_SUCCESS } from 'redux/Join/types';
+import { LOAD_PM25_HEATMAP_DATA_SUCCESS, LOAD_MAP_EVENTS_SUCCESS } from './actions';
+import { transformDataToGeoJson } from 'views/pages/Map/utils';
 
 const initialState = {
   // pm25HeatMapData: transformDataToGeoJson([], {
   //   longitude: "longitude",
   //   latitude: "latitude",
   // }),
-  pm25HeatMapData:[],
-  pm25SensorData: transformDataToGeoJson([], {
-    longitude: "Longitude",
-    latitude: "Latitude",
-  }),
+  pm25HeatMapData: [],
   eventsData: transformDataToGeoJson([], {
-    longitude: "Longitude",
-    latitude: "Latitude",
-  }),
+    longitude: 'Longitude',
+    latitude: 'Latitude'
+  })
 };
 
 export default function (state = initialState, action) {
@@ -29,9 +21,6 @@ export default function (state = initialState, action) {
 
     case LOAD_PM25_HEATMAP_DATA_SUCCESS:
       return { ...state, pm25HeatMapData: action.payload };
-
-    case LOAD_PM25_SENSOR_DATA_SUCCESS:
-      return { ...state, pm25SensorData: action.payload };
 
     case LOAD_MAP_EVENTS_SUCCESS:
       return { ...state, eventsData: action.payload };
