@@ -626,8 +626,6 @@ const DevicesTable = (props) => {
   const [registerOpen, setRegisterOpen] = useState(false);
   const [softRegisterOpen, setSoftRegisterOpen] = useState(false);
 
-  console.log(deviceList);
-
   useEffect(() => {
     setLoading(true);
     if (isEmpty(devices)) {
