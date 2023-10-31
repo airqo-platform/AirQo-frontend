@@ -1,5 +1,4 @@
 import React from 'react';
-import SEO from '../../../utilities/seo';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { SplitSection, MainHighlight, ButtonCTA } from 'components/CleanAir';
 import Section1 from 'assets/img/cleanAir/section1.jpg';

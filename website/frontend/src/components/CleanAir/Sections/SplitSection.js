@@ -23,7 +23,7 @@ const SplitSection = ({
           {pillTitle && (
             <div
               style={{
-                display: '  -flex',
+                display: 'flex',
                 flexDirection: 'row',
                 alignItems: 'center'
               }}>
@@ -37,9 +37,9 @@ const SplitSection = ({
           {content ? (
             <span className="content-p" dangerouslySetInnerHTML={{ __html: content }}></span>
           ) : (
-            <span />
+            ''
           )}
-          {children ? <span className="content-p">{children}</span> : <span />}
+          {children ? <span className="content-p">{children}</span> : ''}
           {showButton && btnText && link && (
             <Link to={link} target="_blank">
               <span id="second-pill">
@@ -49,30 +49,14 @@ const SplitSection = ({
           )}
         </div>
         <div className="splitSection-image">
-          <img className="splitSection-img" src={imgURL} style={imageStyle} />
+          <img className="splitSection-img" src={imgURL} style={imageStyle} alt="" />
         </div>
       </div>
     </div>
   );
 };
 
-Section.propTypes = {
-  pillTitle: PropTypes.string.isRequired,
-  title: PropTypes.string.isRequired,
-  content: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
-  btnText: PropTypes.string.isRequired,
-  link: PropTypes.string.isRequired,
-  imgURL: PropTypes.string.isRequired,
-  reverse: PropTypes.bool,
-  bgColor: PropTypes.string,
-  pillBgColor: PropTypes.string,
-  pillTextColor: PropTypes.string,
-  imageStyle: PropTypes.object,
-  showButton: PropTypes.bool,
-  children: PropTypes.any
-};
-
-Section.defaultProps = {
+SplitSection.defaultProps = {
   reverse: false,
   showButton: true,
   bgColor: '#FFFFFF',

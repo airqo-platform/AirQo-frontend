@@ -78,8 +78,7 @@ const CleanAirPartners = () => {
       <hr className="separator-1" />
 
       <SplitSection
-        content={
-          <p
+        content="  <p
             style={{
               color: '#353E52',
               fontSize: '24px',
@@ -91,8 +90,7 @@ const CleanAirPartners = () => {
             with primary roles on air quality, organize and host activities, participate in
             CLEAN-Air Network annual meetings and may provide logistical/or funding support to
             members.
-          </p>
-        }
+          </p>"
         showButton={false}
         imgURL={Partner1}
         bgColor="#FFFFFF"
@@ -118,12 +116,9 @@ const CleanAirPartners = () => {
       )}
 
       <SingleSection
-        content={
-          <p>
-            Individuals actively involved in air quality work in Africa are strongly recommended to
-            join the CLEAN-Air Africa Network.
-          </p>
-        }
+        content="
+        Individuals actively involved in air quality work in Africa are strongly recommended to
+        join the CLEAN-Air Africa Network."
         // btnText={'Register your interest'}
         // link="#"
         bgColor="#F2F1F6"
@@ -131,7 +126,7 @@ const CleanAirPartners = () => {
       />
 
       <SplitSection
-        content={
+        content="
           <p
             style={{
               color: '#353E52',
@@ -142,8 +137,8 @@ const CleanAirPartners = () => {
             }}>
             Our Policy Forum includes any city in Africa interested in implementing an air quality
             programme.
-          </p>
-        }
+        </p>
+        "
         showButton={false}
         imgURL={Partner2}
         bgColor="#FFFFFF"
@@ -175,8 +170,7 @@ const CleanAirPartners = () => {
       <hr className="separator-1" />
 
       <SplitSection
-        content={
-          <p
+        content="<p
             style={{
               color: '#353E52',
               fontSize: '24px',
@@ -186,8 +180,7 @@ const CleanAirPartners = () => {
             }}>
             Supporting Partners provide logistical and/or funding support to network members, and
             may participate in the annual CLEAN-Air Network meetings.
-          </p>
-        }
+          </p>"
         showButton={false}
         imgURL={Partner3}
         bgColor="#FFFFFF"
