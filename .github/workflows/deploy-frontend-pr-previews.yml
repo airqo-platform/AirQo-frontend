@@ -29,6 +29,7 @@ jobs:
       run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }} # analytics platform
       run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
       run_website: ${{ steps.check_files.outputs.run_website }} # website
+      run_inventory: ${{ steps.check_files.outputs.run_inventory }} # inventory
 
     runs-on: ubuntu-latest
     steps:
@@ -50,7 +51,8 @@ jobs:
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
           echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
           echo "run_docs=false" >>$GITHUB_OUTPUT    
-          echo "run_website=false" >>$GITHUB_OUTPUT    
+          echo "run_website=false" >>$GITHUB_OUTPUT
+          echo "run_inventory=false" >>$GITHUB_OUTPUT    
 
           while IFS= read -r file
           do
@@ -74,6 +76,10 @@ jobs:
             if [[ $file == website/* ]]; then
               echo "run_website=true" >>$GITHUB_OUTPUT
             fi
+
+            if [[ $file == inventory/* ]]; then
+              echo "run_inventory=true" >>$GITHUB_OUTPUT
+            fi 
 
           done < files.txt
 
@@ -327,6 +333,84 @@ jobs:
               repo: context.repo.repo,
               body: 'New next-platform changes available for preview [here](${{ needs.analytics-platform.outputs.url }})'
             })
+
+     ### deploy inventory preview ###
+  inventory:
+    name: build-push-deploy-inventory-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.run_inventory == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.preview-url.outputs.url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Google login
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
+
+      - name: Setup Cloud SDK(gcloud)
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Create .env file
+        run: gcloud secrets versions access latest --secret="sta-env-inventory" > inventory/.env
+
+      - name: Login to GCR
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCP_SA_CREDENTIALS }}
+
+      - name: Build and Push Image
+        run: |
+          cd platform/
+          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:${{ github.sha }} .
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:${{ github.sha }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:latest
+
+      - name: Deploy to Cloud Run
+        run: |-
+          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-inventory-preview \
+            --region=${{ secrets.REGION }} \
+            --max-instances=10 \
+            --timeout=60 \
+            --concurrency=10 \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:${{ github.sha }} \
+            --port=3000 \
+            --cpu=1000m \
+            --memory=256Mi \
+            --update-secrets=/etc/env/.env=sta-env-inventory-app:latest \
+            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; python manage.py runserver 0.0.0.0:8000" \            
+            --allow-unauthenticated
+
+      - name: Get preview service url
+        id: preview-url
+        run: |
+          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-inventory-preview \
+            --format='value(status.url)' \
+            --platform managed \
+            --region ${{ secrets.REGION }})
+          echo "url=${service_url}" >>$GITHUB_OUTPUT
+
+  inventory-pr-comment:
+    name: inventory-preview-link-comment
+    if: needs.check.outputs.run_inventory == 'true'
+    needs: [inventory]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'New inventory changes available for preview [here](${{ needs.inventory.outputs.url }})'
+            })         
 
   ### deploy docs preview ###
   docs:
