@@ -8,7 +8,6 @@ import { useRouter } from 'next/router';
 
 const VerifyUserEmail = () => {
   const dispatch = useDispatch();
-  const router = useRouter();
   const userEmail = useSelector((state) => state.creation.userData.email);
   const userData = useSelector((state) => state.creation.userData);
   const errors = useSelector((state) => state.creation.errors);
@@ -20,8 +19,6 @@ const VerifyUserEmail = () => {
       const res = await dispatch(createUser(userData));
       if (!success) {
         setVerificationErrors(true);
-      }else{
-        router.push('/account/creation/organisation/user-success')
       }
       return res;
     } catch (err) {

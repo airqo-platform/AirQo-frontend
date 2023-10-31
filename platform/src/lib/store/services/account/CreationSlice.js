@@ -6,17 +6,22 @@ const initialState = {
   orgData: {
     grp_title: '',
     grp_website: '',
-    grp_description: ''
+    grp_description: '',
+    user_id: ''
   },
   orgUpdate: {
     grp_industry: '',
     grp_country: '',
-    grp_locations: []
+    grp_timezone: '',
+    grp_locations: [],
+    grp_id:''
   },
   password: '',
   errors: null,
   success: false,
-  user_id: undefined
+  user_id: undefined,
+  org_creation_response: [],
+  org_update_response: []
 };
 
 export const createUser = createAsyncThunk('account/creation', async (postData, { rejectWithValue }) => {
@@ -50,17 +55,11 @@ export const postOrganisationCreationDetails = createAsyncThunk('/organisation/c
   }
 })
 
-export const updateOrganisationDetails = createAsyncThunk('/organisation/update', async (postData, id, { rejectWithValue }) => {
-  try {
-    const response = await updateOrganisationApi(postData, id);
-    return response;
-  }
-  catch (error) {
-    if (!error.response) {
-      throw error
-    }
-    return rejectWithValue(error.response)
-  }
+export const updateOrganisationDetails = createAsyncThunk('/organisation/update', async (postData, id) => {
+  const response = await updateOrganisationApi(postData, id);
+  return response;
+
+
 })
 
 export const createAccountSlice = createSlice({
@@ -103,8 +102,8 @@ export const createAccountSlice = createSlice({
         state.success = action.payload.success;
       })
       .addCase(postOrganisationCreationDetails.fulfilled, (state, action) => {
-        state.orgData = action.payload;
-        state.success = true;
+        state.org_creation_response = action.payload.created_group;
+        state.success = action.payload.success;
       })
       .addCase(postOrganisationCreationDetails.pending, (state, action) => {
         state.success = false;
@@ -114,15 +113,15 @@ export const createAccountSlice = createSlice({
         state.success = action.payload.success;
       })
       .addCase(updateOrganisationDetails.fulfilled, (state, action) => {
-        state.orgUpdate = action.payload;
+        state.org_update_response = action.payload;
         state.success = true;
       })
-      .addCase(updateOrganisationDetails.pending, (state, action) => {
+      .addCase(updateOrganisationDetails.pending, (state) => {
         state.success = false;
       })
       .addCase(updateOrganisationDetails.rejected, (state, action) => {
-        state.errors = action.payload.errors;
-        state.success = action.payload.success;
+        state.errors = action.payload;
+        state.success = false;
       });
   },
 });
