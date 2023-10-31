@@ -10,12 +10,14 @@ const IndividualAccountInterest = () => {
   const { id } = router.query;
 
   const radioButtonText = [
-    'Education related',
-    'Business related',
-    'Personal related',
-    'Non-profit related',
-    'Government related',
-    'Others',
+    'Health Professional',
+    'Software Developer',
+    'Community Champion',
+    'Environmental Scientist',
+    'Student',
+    'Policy Maker',
+    'Researcher',
+    'Air Quality Partner',
   ];
   const [clickedButton, setClickedButton] = useState('');
   const [interest, setInterest] = useState(null);
@@ -36,7 +38,7 @@ const IndividualAccountInterest = () => {
     });
     try {
       await updateUserCreationDetails(userData, id);
-      router.push('/analytics');
+      router.push('/account/creation/get-started');
     } catch (error) {
       setUpdateError({
         state: true,
@@ -51,7 +53,7 @@ const IndividualAccountInterest = () => {
       {updateError.state && <Toast type={'error'} timeout={5000} message={updateError.message} />}
       <div className='w-full'>
         <h2 className='text-3xl text-black-700 font-medium'>
-          What brings you to the AirQo Analytics Dashboard?
+          Help us understand your interest
         </h2>
         <p className='text-xl text-black-700 font-normal mt-3'>
           We will help you get started based on your response

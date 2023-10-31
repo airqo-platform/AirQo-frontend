@@ -9,7 +9,6 @@ import jwt_decode from 'jwt-decode';
 import { setFailure, setSuccess, setUserInfo } from '@/lib/store/services/account/LoginSlice';
 import Link from 'next/link';
 import Spinner from '@/components/Spinner';
-import Link from 'next/link';
 
 const UserLogin = () => {
   const [errors, setErrors] = useState(false);
@@ -113,14 +112,6 @@ const UserLogin = () => {
                 {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Login'}
               </button>
             </div>
-            <span className='text-sm text-black-700 mt-6 block'>
-              Don’t have an account?
-              <span className='text-blue-900 hover:underline ml-2'>
-                <Link data-testid='signup-link' href='/account/creation'>
-                  Sign up
-                </Link>
-              </span>
-            </span>
           </div>
         </form>
         <div className='mt-8'>
