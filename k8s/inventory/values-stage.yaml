@@ -1,0 +1,50 @@
+replicaCount: 2
+image:
+  repository: eu.gcr.io/airqo-250220/airqo-stage-inventory
+  tag: stage-31008d21-1694723919
+  pullPolicy: Always
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: ''
+service:
+  type: NodePort
+  nodePort: 31108
+  targetPort: 8000
+  port: 8000
+ingress:
+  enabled: false
+nodeSelector: {}
+torelations: {}
+resources:
+  requests:
+    cpu: 5m
+    memory: 20Mi
+  limits:
+    cpu: 50m
+    memory: 80Mi
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 3
+  targetMemoryUtilizationPercentage: 80
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 10
+        preference:
+          matchExpressions:
+            - key: node-type
+              operator: In
+              values:
+                - general-purpose
+      - weight: 1
+        preference:
+          matchExpressions:
+            - key: node-type
+              operator: In
+              values:
+                - high-memory
+app:
+  name: airqo-stage-inventory
+  label: airqo-inventory
+  namespace: staging
+  configmap: env-inventory-staging
