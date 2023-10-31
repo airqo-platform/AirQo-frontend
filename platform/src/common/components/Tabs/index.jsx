@@ -4,7 +4,7 @@ import { setChartTab } from '@/lib/store/services/charts/ChartSlice';
 
 function Tabs({ children, childrenRight }) {
   const dispatch = useDispatch();
-  const chartData = useSelector((state) => state.chart);
+  const chartData = useSelector((state) => state?.chart);
   const childrenArray = React.Children.toArray(children);
 
   return (

@@ -19,7 +19,7 @@ import Unhealthy from '@/icons/Charts/Unhealthy';
 import UnhealthySG from '@/icons/Charts/UnhealthySG';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import Spinner from '@/components/Spinner';
 
 const colors = ['#11225A', '#0A46EB', '#297EFF', '#B8D9FF'];
@@ -41,27 +41,27 @@ const CustomTooltipLineGraph = ({ active, payload }) => {
     let AirQualityIcon = null;
     let airQualityColor = '';
 
-    if (hoveredPoint.value <= 12) {
+    if (hoveredPoint.value >= 0 && hoveredPoint.value <= 12) {
       airQualityText = 'Air Quality is Good';
       AirQualityIcon = GoodAir;
       airQualityColor = 'text-green-500';
-    } else if (hoveredPoint.value <= 35.4) {
+    } else if (hoveredPoint.value > 12 && hoveredPoint.value <= 35.4) {
       airQualityText = 'Air Quality is Moderate';
       AirQualityIcon = Moderate;
       airQualityColor = 'text-yellow-500';
-    } else if (hoveredPoint.value <= 55.4) {
+    } else if (hoveredPoint.value > 35.4 && hoveredPoint.value <= 55.4) {
       airQualityText = 'Air Quality is Unhealthy for Sensitive Groups';
       AirQualityIcon = UnhealthySG;
       airQualityColor = 'text-orange-500';
-    } else if (hoveredPoint.value <= 150.4) {
+    } else if (hoveredPoint.value > 55.4 && hoveredPoint.value <= 150.4) {
       airQualityText = 'Air Quality is Unhealthy';
       AirQualityIcon = Unhealthy;
       airQualityColor = 'text-red-500';
-    } else if (hoveredPoint.value <= 250.4) {
+    } else if (hoveredPoint.value > 150.4 && hoveredPoint.value <= 250.4) {
       airQualityText = 'Air Quality is Very Unhealthy';
       AirQualityIcon = VeryUnhealthy;
       airQualityColor = 'text-purple-500';
-    } else {
+    } else if (hoveredPoint.value > 250.4 && hoveredPoint.value <= 500) {
       airQualityText = 'Air Quality is Hazardous';
       AirQualityIcon = Hazardous;
       airQualityColor = 'text-gray-500';
@@ -81,7 +81,7 @@ const CustomTooltipLineGraph = ({ active, payload }) => {
             <p className='flex justify-between w-full mb-1 mt-2'>
               <div className='flex items-center text-xs font-medium leading-[14px] text-gray-600'>
                 <div className='w-[10px] h-[10px] bg-blue-700 rounded-xl mr-2'></div>
-                {hoveredPoint.name}
+                {truncate(hoveredPoint.name)}
               </div>
               <div className='text-xs font-medium leading-[14px] text-gray-600'>
                 {reduceDecimalPlaces(hoveredPoint.value) + ' μg/m3'}
@@ -100,7 +100,7 @@ const CustomTooltipLineGraph = ({ active, payload }) => {
               <p key={index} className='flex justify-between w-full mb-1'>
                 <div className='flex items-center text-xs font-medium leading-[14px] text-gray-400'>
                   <div className='w-[10px] h-[10px] bg-gray-400 rounded-xl mr-2'></div>
-                  {point.name}
+                  {truncate(point.name)}
                 </div>
                 <div className='text-xs font-medium leading-[14px] text-gray-400'>
                   {reduceDecimalPlaces(point.value) + ' μg/m3'}
@@ -123,27 +123,27 @@ const CustomTooltipBarGraph = ({ active, payload }) => {
     let AirQualityIcon = null;
     let airQualityColor = '';
 
-    if (hoveredPoint.value <= 12) {
+    if (hoveredPoint.value >= 0 && hoveredPoint.value <= 12) {
       airQualityText = 'Air Quality is Good';
       AirQualityIcon = GoodAir;
       airQualityColor = 'text-green-500';
-    } else if (hoveredPoint.value <= 35.4) {
+    } else if (hoveredPoint.value > 12 && hoveredPoint.value <= 35.4) {
       airQualityText = 'Air Quality is Moderate';
       AirQualityIcon = Moderate;
       airQualityColor = 'text-yellow-500';
-    } else if (hoveredPoint.value <= 55.4) {
+    } else if (hoveredPoint.value > 35.4 && hoveredPoint.value <= 55.4) {
       airQualityText = 'Air Quality is Unhealthy for Sensitive Groups';
       AirQualityIcon = UnhealthySG;
       airQualityColor = 'text-orange-500';
-    } else if (hoveredPoint.value <= 150.4) {
+    } else if (hoveredPoint.value > 55.4 && hoveredPoint.value <= 150.4) {
       airQualityText = 'Air Quality is Unhealthy';
       AirQualityIcon = Unhealthy;
       airQualityColor = 'text-red-500';
-    } else if (hoveredPoint.value <= 250.4) {
+    } else if (hoveredPoint.value > 150.4 && hoveredPoint.value <= 250.4) {
       airQualityText = 'Air Quality is Very Unhealthy';
       AirQualityIcon = VeryUnhealthy;
       airQualityColor = 'text-purple-500';
-    } else {
+    } else if (hoveredPoint.value > 250.4 && hoveredPoint.value <= 500) {
       airQualityText = 'Air Quality is Hazardous';
       AirQualityIcon = Hazardous;
       airQualityColor = 'text-gray-500';
@@ -163,7 +163,7 @@ const CustomTooltipBarGraph = ({ active, payload }) => {
             <p className='flex justify-between w-full mb-1 mt-2'>
               <div className='flex items-center text-xs font-medium leading-[14px] text-gray-600'>
                 <div className='w-[10px] h-[10px] bg-blue-700 rounded-xl mr-2'></div>
-                {hoveredPoint.name}
+                {truncate(hoveredPoint.name)}
               </div>
               <div className='text-xs font-medium leading-[14px] text-gray-600'>
                 {reduceDecimalPlaces(hoveredPoint.value) + ' μg/m3'}
@@ -226,14 +226,14 @@ const renderCustomizedLegend = (props) => {
   });
 
   return (
-    <div className='p-2 md:p-0 flex flex-col md:flex-row md:justify-end mt-2 space-y-2 md:space-y-0 md:space-x-4'>
+    <div className='p-2 md:p-0 flex flex-wrap flex-col md:flex-row md:justify-end mt-2 space-y-2 md:space-y-0 md:space-x-4'>
       {sortedPayload.map((entry, index) => (
         <div
           key={`item-${index}`}
           style={{ color: entry.color }}
           className='flex space-x-2 items-center text-sm'>
           <div
-            className='w-[10px] h-[10px] rounded-xl mr-1'
+            className='w-[10px] h-[10px] rounded-xl mr-1 ml-1'
             style={{ backgroundColor: entry.color }}></div>
           {truncate(entry.value)}
         </div>
@@ -243,18 +243,21 @@ const renderCustomizedLegend = (props) => {
 };
 
 const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
+  const dispatch = useDispatch();
   const chartData = useSelector((state) => state?.chart);
   const [analyticsData, setAnalyticsData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const defaultSites = [
+      '64a7b5637d31df001e6b7dae',
+      '64a5755320511a001d1b4a3e',
+      '64a2737f682da700297f9d5c',
+      '64a0f81beb6f7700296cfeff',
+    ];
+
     const body = {
-      sites: [
-        '64a7b5637d31df001e6b7dae',
-        '64a5755320511a001d1b4a3e',
-        '64a2737f682da700297f9d5c',
-        '64a0f81beb6f7700296cfeff',
-      ],
+      sites: chartData.sites && chartData.sites.length > 0 ? chartData.sites : defaultSites,
       startDate: new Date(chartData.chartDataRange.startDate).toISOString(),
       endDate: new Date(chartData.chartDataRange.endDate).toISOString(),
       chartType: chartData.chartType,
@@ -320,8 +323,6 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
   if (dataForChart.length > 0) {
     allKeys = new Set(Object.keys(dataForChart[0]));
   }
-
-  console.log(analyticsData, 'dataForChart');
 
   const renderChart = () => {
     if (chartType === 'line') {

@@ -13,57 +13,67 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, id, Icon, dropdown, 
     endDate: initialEndDate,
   });
 
+  console.log('chartData', chartData);
+
   const handleValueChange = (newValue) => {
-    const startDate = new Date(newValue.startDate);
-    const endDate = new Date(newValue.endDate);
-    const computedValue = computeDaysBetweenDates(startDate, endDate);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+    const computeDaysBetweenDates = (startDate, endDate) => {
+      const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+      return Math.round(Math.abs((startDate.getTime() - endDate.getTime()) / oneDay));
+    };
 
-    let label = 'last 365 days';
-    if (computedValue <= 7) {
-      label = 'last 7 days';
-    } else if (computedValue <= 30) {
-      label = 'last 30 days';
-    } else if (computedValue <= 90) {
-      label = 'last 90 days';
-    } else if (computedValue <= 365) {
-      label = 'This year';
-    }
+    const isSameDay = (date1, date2) =>
+      date1.getDate() === date2.getDate() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getFullYear() === date2.getFullYear();
 
-    if (isSameDay(startDate, endDate)) {
-      label = 'today';
-    } else if (isSameDay(startDate, yesterday) && isSameDay(endDate, yesterday)) {
-      label = 'yesterday';
-    }
+    const getLabel = (computedValue, startDate, endDate, today, yesterday) => {
+      if (isSameDay(startDate, yesterday) && isSameDay(endDate, yesterday)) {
+        return 'Yesterday';
+      } else if (isSameDay(startDate, endDate)) {
+        return 'Today';
+      } else if (computedValue <= 7) {
+        return 'Last 7 days';
+      } else if (computedValue <= 30) {
+        return 'Last 30 days';
+      } else if (computedValue <= 90) {
+        return 'Last 90 days';
+      } else if (computedValue <= 365) {
+        return 'This year';
+      }
+    };
 
-    // include also for This month and Last month
-    const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-    const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-    const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+    const handleDateChange = (newValue) => {
+      const startDate = new Date(newValue.startDate);
+      const endDate = new Date(newValue.endDate);
 
-    if (isSameDay(startDate, thisMonthStart) && isSameDay(endDate, today)) {
-      label = 'this month';
-    } else if (isSameDay(startDate, lastMonthStart) && isSameDay(endDate, lastMonthEnd)) {
-      label = 'last month';
-    }
+      const today = new Date();
 
-    dispatch(setChartDataRange({ startDate, endDate, label }));
-    setValue(newValue);
-  };
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setHours(0, 0, 0, 0);
 
-  const isSameDay = (date1, date2) =>
-    date1.getDate() === date2.getDate() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getFullYear() === date2.getFullYear();
+      const computedValue = computeDaysBetweenDates(startDate, endDate);
 
-  const computeDaysBetweenDates = (startDate, endDate) => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+      let label = getLabel(computedValue, startDate, endDate, today, yesterday);
 
-    const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
-    return Math.round(Math.abs((start.getTime() - end.getTime()) / oneDay));
+      // include also for This month and Last month
+      const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+      const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+
+      const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+
+      if (isSameDay(startDate, thisMonthStart) && isSameDay(endDate, today)) {
+        label = 'This month';
+      } else if (isSameDay(startDate, lastMonthStart) && isSameDay(endDate, lastMonthEnd)) {
+        label = 'Last month';
+      }
+
+      dispatch(setChartDataRange({ startDate, endDate, label }));
+      setValue(newValue);
+    };
+
+    handleDateChange(newValue);
   };
 
   const DatePickerHiddenInput = () => (

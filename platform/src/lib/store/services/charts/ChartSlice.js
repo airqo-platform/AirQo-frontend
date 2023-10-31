@@ -1,13 +1,17 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+const startDate = new Date();
+startDate.setDate(startDate.getDate() - 7);
+
 const initialState = {
   chartType: 'line',
-  timeFrame: 'Hourly',
+  timeFrame: 'Daily',
   chartDataRange: {
-    startDate: new Date(),
+    startDate: startDate,
     endDate: new Date(),
-    label: 'Today',
+    label: 'Last 7 days',
   },
+  chartSites: [],
   chartTab: 0,
 };
 
