@@ -38,6 +38,7 @@ function Tabs({ children, childrenRight, positionFixed }) {
             childrenRight[chartData.chartTab].children}
         </div>
       </div>
+      <div className='h-8' />
       <div>{children[chartData.chartTab]}</div>
     </div>
   );
