@@ -517,15 +517,7 @@ const MapContainer = () => {
 
   useEffect(() => {
     if (isEmpty(monitoringSiteData.features)) {
-      dispatch(
-        loadMapEventsData({
-          recent: 'yes',
-          external: 'no',
-          metadata: 'site_id',
-          frequency: 'hourly',
-          active: 'yes'
-        })
-      );
+      dispatch(loadMapEventsData());
     }
   }, [monitoringSiteData]);
 
