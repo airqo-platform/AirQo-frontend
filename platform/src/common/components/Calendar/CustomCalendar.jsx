@@ -13,8 +13,6 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, id, Icon, dropdown, 
     endDate: initialEndDate,
   });
 
-  console.log('chartData', chartData);
-
   const handleValueChange = (newValue) => {
     const computeDaysBetweenDates = (startDate, endDate) => {
       const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds

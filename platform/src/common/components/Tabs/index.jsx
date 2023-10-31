@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setChartTab } from '@/lib/store/services/charts/ChartSlice';
 
@@ -6,6 +6,10 @@ function Tabs({ children, childrenRight }) {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state?.chart);
   const childrenArray = React.Children.toArray(children);
+
+  useEffect(() => {
+    dispatch(setChartTab(0));
+  }, []);
 
   return (
     <div data-testid='tabs'>
@@ -28,7 +32,7 @@ function Tabs({ children, childrenRight }) {
             </li>
           ))}
         </ul>
-        <div className='mb-2'>
+        <div>
           {childrenRight &&
             childrenRight[chartData.chartTab] &&
             childrenRight[chartData.chartTab].children}
