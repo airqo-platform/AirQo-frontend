@@ -134,9 +134,9 @@ export const deleteDevicePhotos = async (deviceId, urls) => {
     .then((response) => response.data);
 };
 
-export const getEventsApi = async (params) => {
+export const getEventsApi = async () => {
   return await createAxiosInstance(false)
-    .get(EVENTS, { params: { ...params } })
+    .get(EVENTS)
     .then((response) => response.data);
 };
 
