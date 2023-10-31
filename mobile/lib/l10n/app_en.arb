@@ -344,5 +344,9 @@
     },
     "dismiss": "DISMISS",
     "internetConnectionLost": "Internet Connection Lost",
-    "changeLanguage": "Change Language"
+    "changeLanguage": "Change Language",
+    "doYouWantToSwitchToLanguage": "Do you want to switch to {placeholder}?    The app will restart to effect the changes",
+    "languageChangedSuccessfully": "You have successfully changed  to {placeholder}",
+    "ok": "OK",
+    "languages": "Languages"
 }
