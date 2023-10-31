@@ -7,6 +7,6 @@ export const getAllGridLocationsApi = async () => {
         return response.data
     }
     catch(error){
-        return error;
+        throw error;
     }
 }
