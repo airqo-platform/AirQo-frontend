@@ -373,7 +373,7 @@ const Profile = () => {
                   </div>
                 </div>
                 <form className='grid grid-cols-2 gap-6'>
-                  <div className='gap-[6px] col-span-full'>
+                  <div className='gap-[6px] col-span-1'>
                     <TextInputField
                       id='firstName'
                       value={userData.firstName}
@@ -383,7 +383,7 @@ const Profile = () => {
                     />
                   </div>
 
-                  <div className='gap-[6px] col-span-full'>
+                  <div className='gap-[6px] col-span-1'>
                     <TextInputField
                       id='lastName'
                       value={userData.lastName}
