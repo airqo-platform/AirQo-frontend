@@ -3,9 +3,12 @@ import createAxiosInstance from './axiosConfig';
 import { SITES_URL, ANALYTICS_URL, GRIDS_URL } from '../urls/deviceRegistry';
 
 export const getAllGridLocationsApi = async () => {
-  await axios.get(`${GRIDS_URL}`).then((response) => {
+  try {
+    const response = await axios.get(`${GRIDS_URL}`);
     return response.data;
-  });
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const getSiteSummaryDetails = async () => {

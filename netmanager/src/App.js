@@ -14,7 +14,7 @@ import { setOrganization } from './redux/Join/actions';
 import { setDefaultAirQloud } from './redux/AirQloud/operations';
 import { loadSites } from './redux/Dashboard/operations';
 import AppRoutes from './AppRoutes';
-import { loadPM25HeatMapData, loadPM25SensorData } from './redux/MapData/operations';
+import { loadPM25HeatMapData } from './redux/MapData/operations';
 
 // Check for token to keep user logged in
 if (localStorage.jwtToken) {
@@ -41,11 +41,9 @@ if (localStorage.jwtToken) {
   store.dispatch(setDefaultAirQloud());
   store.dispatch(loadSites());
   store.dispatch(loadPM25HeatMapData());
-  store.dispatch(loadPM25SensorData());
 } else {
   store.dispatch(setOrganization());
   store.dispatch(loadPM25HeatMapData());
-  store.dispatch(loadPM25SensorData());
 }
 
 const App = () => {

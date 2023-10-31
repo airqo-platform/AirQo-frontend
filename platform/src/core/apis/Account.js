@@ -69,10 +69,20 @@ export const updateUserCreationDetails = async (data, identifier) => {
 
 // Create Organisation
 export const createOrganisation = async (data) => {
-  await axios.post(`${GROUPS_URL}`, data).then((response) => response.data)
+  try {
+    const response = await axios.post(`${GROUPS_URL}`, data)
+    return response.data;
+  } catch (error) {
+    return error
+  }
 }
 
 // Update Organisation
 export const updateOrganisationApi = async (data, identifier) => {
-  await axios.post(`${GROUPS_URL}/${identifier}`, data).then((response) => response.data)
+  try {
+    const response = await axios.put(`${GROUPS_URL}/${data.grp_id}`, data)
+    return response.data;
+  } catch (error) {
+    return error
+  }
 }
