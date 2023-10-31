@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateUserDetails } from '@/core/apis/Account';
 import ClockIcon from '@/icons/Settings/clock.svg';
+import AlertBox from '@/components/AlertBox';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
@@ -43,8 +44,11 @@ const timeZonesArr = timeZones.map((timeZone) => ({
 retrieveCountryCode('Uganda');
 
 const Profile = () => {
-  const [errors, setErrors] = useState(false);
-  const [error, setError] = useState();
+  const [isError, setIsError] = useState({
+    isError: false,
+    message: '',
+    type: '',
+  });
   const dispatch = useDispatch();
   const [userData, setUserData] = useState({
     firstName: '',
@@ -83,7 +87,11 @@ const Profile = () => {
         profilePicture: user.profilePicture || '',
       });
     } else {
-      console.log('Missing user info');
+      setIsError({
+        isError: true,
+        message: 'Hmm, no user details found!',
+        type: 'error',
+      });
     }
   }, []);
 
@@ -105,13 +113,28 @@ const Profile = () => {
           localStorage.setItem('loggedUser', JSON.stringify({ _id: userID, ...response.user }));
           dispatch(setUserInfo({ _id: userID, ...response.user }));
           setLoading(false);
+          setIsError({
+            isError: true,
+            message: 'User details successfully updated',
+            type: 'success',
+          });
         })
         .catch((error) => {
           console.error(`Error updating user details: ${error}`);
+          setIsError({
+            isError: true,
+            message: error.message,
+            type: 'error',
+          });
           setLoading(false);
         });
     } catch (error) {
-      console.error(error);
+      console.error(`Error updating user cloudinary photo: ${error}`);
+      setIsError({
+        isError: true,
+        message: error.message,
+        type: 'error',
+      });
       setLoading(false);
     }
   };
@@ -193,7 +216,11 @@ const Profile = () => {
         setUserData({ ...userData, profilePicture: croppedUrl });
       })
       .catch((error) => {
-        console.error(error);
+        setIsError({
+          isError: true,
+          message: 'Something went wrong',
+          type: 'error',
+        });
       });
   };
 
@@ -214,19 +241,34 @@ const Profile = () => {
               localStorage.setItem('loggedUser', JSON.stringify({ _id: userID, ...userData }));
               dispatch(setUserInfo({ _id: userID, ...userData }));
               // updated user alert
+              setIsError({
+                isError: true,
+                message: 'Profile image successfully added',
+                type: 'success',
+              });
               setUpdatedProfilePicture('');
               setProfileUploading(false);
             })
             .catch((err) => {
               // updated user failure alert
+              setIsError({
+                isError: true,
+                message: err.message,
+                type: 'error',
+              });
               setUpdatedProfilePicture('');
               setProfileUploading(false);
             });
         })
-        .catch(() => {
+        .catch((err) => {
           // unable to save image error
           setUpdatedProfilePicture('');
           setProfileUploading(false);
+          setIsError({
+            isError: true,
+            message: err.message,
+            type: 'error',
+          });
         });
     }
   };
@@ -244,9 +286,19 @@ const Profile = () => {
         );
         dispatch(setUserInfo({ ...userData, profilePicture: '', _id: userID }));
         setShowDeleteProfileModal(false);
+        setIsError({
+          isError: true,
+          message: 'Profile image successfully deleted',
+          type: 'success',
+        });
       })
       .catch((error) => {
         console.error(`Error updating user details: ${error}`);
+        setIsError({
+          isError: true,
+          message: error.message,
+          type: 'error',
+        });
       });
   };
 
@@ -256,6 +308,18 @@ const Profile = () => {
 
   return (
     <BorderlessContentBox>
+      <AlertBox
+        message={isError.message}
+        type={isError.type}
+        show={isError.isError}
+        hide={() =>
+          setIsError({
+            isError: false,
+            message: '',
+            type: '',
+          })
+        }
+      />
       <div className='block lg:flex justify-start lg:gap-8 w-full'>
         <div className='mb-6'>
           <h3 className='text-sm font-medium leading-5 text-grey-710'>Personal information</h3>
