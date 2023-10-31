@@ -50,10 +50,9 @@ const UserLogin = () => {
             dispatch(setUserInfo(response.users[0]));
             dispatch(setSuccess(true));
             setLoading(false);
-            router.push('/collocation/overview');
+            router.push('/analytics');
           })
           .catch((error) => {
-            console.error(`Error fetching user details: ${error}`);
             dispatch(setSuccess(false));
             dispatch(
               setFailure(error?.response?.data.message || 'Something went wrong, please try again'),
@@ -64,7 +63,6 @@ const UserLogin = () => {
           });
       })
       .catch((error) => {
-        console.log(error);
         dispatch(setSuccess(false));
         dispatch(
           setFailure(error?.response?.data.message || 'Something went wrong, please try again'),

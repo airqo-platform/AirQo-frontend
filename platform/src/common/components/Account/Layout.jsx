@@ -34,7 +34,7 @@ const AccountPageLayout = ({ children, rightImage, childrenTop, childrenHeight, 
             className={`lg:col-span-6 ${
               sideBackgroundColor ? sideBackgroundColor : 'bg-green-150'
             } flex items-center justify-center max-h-[900px] relative overflow-hidden`}>
-            <Image src={rightImage ? rightImage : SideImage} fill={true} />
+            <Image src={rightImage ? rightImage : SideImage} />
           </div>
         )}
       </div>

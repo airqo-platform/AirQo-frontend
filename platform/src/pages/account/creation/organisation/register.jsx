@@ -37,6 +37,7 @@ const OrganisationIndividualAccountCreation = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     dispatch(setUserEmail(email));
     dispatch(setUserFirstName(firstName));
     dispatch(setUserLastName(lastName));
@@ -61,6 +62,7 @@ const OrganisationIndividualAccountCreation = () => {
     } catch (err) {
       return err;
     }
+    setLoading(false);
   };
 
   const validatePassword = (password) => {

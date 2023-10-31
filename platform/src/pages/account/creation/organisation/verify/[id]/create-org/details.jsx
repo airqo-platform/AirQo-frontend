@@ -20,6 +20,8 @@ import {
   setSelectedLocations,
   getAllGridLocations,
 } from '@/lib/store/services/deviceRegistry/GridsSlice';
+import countries from 'i18n-iso-countries';
+import englishLocale from 'i18n-iso-countries/langs/en.json';
 
 const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
   const router = useRouter();
@@ -50,16 +52,17 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
     });
     try {
       const response = await dispatch(postOrganisationCreationDetails(orgData));
-      console.log('Response creation', response)
-      if (!response.payload.data.success) {
+      if (!response.payload.success) {
         setCreationErrors({
           state: true,
-          message: response.payload.data.message,
+          message: response.payload.response.data.message,
         });
+        setLoading(false);
       } else {
         handleComponentSwitch();
       }
     } catch (err) {
+      setLoading(false);
       return err;
     }
     setLoading(false);
@@ -185,15 +188,18 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
 
 const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
   const dispatch = useDispatch();
-  const router = useRouter();
-  const { id } = router.query;
   const [orgIndustry, setOrgIndustry] = useState('');
   const [orgCountry, setOrgCountry] = useState('');
+  const [orgTimeZone, setOrgTimeZone] = useState('');
   const [loading, setLoading] = useState(false);
   const [creationErrors, setCreationErrors] = useState({
     state: false,
     message: '',
   });
+  const orgDetails = useSelector((state) => state.creation.org_creation_response);
+  const organisationId = orgDetails._id
+  console.log(organisationId)
+  countries.registerLocale(englishLocale);
   const industryList = [
     'Textiles',
     'Transport',
@@ -209,24 +215,104 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
     'Food and Catering',
     'Media & Journalism',
   ];
-  const countryList = [
-    'Uganda',
-    'Kenya',
-    'Mozambique',
-    'Zimbabwe',
-    'Tanzania',
-    'Rwanda',
-    'Burundi',
-    'South Sudan',
-    'Ghana',
-    'Nigeria',
-    'Botswana',
-    'South Africa',
-    'Ethiopia',
-    'USA',
-    'Europe',
-    'Asia',
-    'Australia',
+  const countryList = countries.getNames('en', { select: 'official' });
+  const timeZoneList = [
+    '(UTC-12:00) International Date Line West',
+    '(UTC-11:00) Coordinated Universal Time-11',
+    '(UTC-10:00) Hawaii',
+    '(UTC-09:00) Alaska',
+    '(UTC-08:00) Baja California',
+    '(UTC-08:00) Pacific Time (US and Canada)',
+    '(UTC-07:00) Chihuahua, La Paz, Mazatlan',
+    '(UTC-07:00) Arizona',
+    '(UTC-07:00) Mountain Time (US and Canada)',
+    '(UTC-06:00) Central America',
+    '(UTC-06:00) Central Time (US and Canada)',
+    '(UTC-06:00) Saskatchewan',
+    '(UTC-06:00) Guadalajara, Mexico City, Monterey',
+    '(UTC-05:00) Bogota, Lima, Quito',
+    '(UTC-05:00) Indiana (East)',
+    '(UTC-05:00) Eastern Time (US and Canada)',
+    '(UTC-04:30) Caracas',
+    '(UTC-04:00) Atlantic Time (Canada)',
+    '(UTC-04:00) Asuncion',
+    '(UTC-04:00) Georgetown, La Paz, Manaus, San Juan',
+    '(UTC-04:00) Cuiaba',
+    '(UTC-04:00) Santiago',
+    '(UTC-03:30) Newfoundland',
+    '(UTC-03:00) Brasilia',
+    '(UTC-03:00) Greenland',
+    '(UTC-03:00) Cayenne, Fortaleza',
+    '(UTC-03:00) Buenos Aires',
+    '(UTC-03:00) Montevideo',
+    '(UTC-02:00) Coordinated Universal Time-2',
+    '(UTC-01:00) Cape Verde',
+    '(UTC-01:00) Azores',
+    '(UTC+00:00) Casablanca',
+    '(UTC+00:00) Monrovia, Reykjavik',
+    '(UTC+00:00) Dublin, Edinburgh, Lisbon, London',
+    '(UTC+00:00) Coordinated Universal Time',
+    '(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna',
+    '(UTC+01:00) Brussels, Copenhagen, Madrid, Paris',
+    '(UTC+01:00) West Central Africa',
+    '(UTC+01:00) Belgrade, Bratislava, Budapest, Ljubljana, Prague',
+    '(UTC+01:00) Sarajevo, Skopje, Warsaw, Zagreb',
+    '(UTC+01:00) Windhoek',
+    '(UTC+02:00) Athens, Bucharest, Istanbul',
+    '(UTC+02:00) Helsinki, Kyiv, Riga, Sofia, Tallinn, Vilnius',
+    '(UTC+02:00) Cairo',
+    '(UTC+02:00) Damascus',
+    '(UTC+02:00) Amman',
+    '(UTC+02:00) Harare, Pretoria',
+    '(UTC+02:00) Jerusalem',
+    '(UTC+02:00) Beirut',
+    '(UTC+03:00) Baghdad',
+    '(UTC+03:00) Minsk',
+    '(UTC+03:00) Kuwait, Riyadh',
+    '(UTC+03:00) Nairobi',
+    '(UTC+03:30) Tehran',
+    '(UTC+04:00) Moscow, St. Petersburg, Volgograd',
+    '(UTC+04:00) Tbilisi',
+    '(UTC+04:00) Yerevan',
+    '(UTC+04:00) Abu Dhabi, Muscat',
+    '(UTC+04:00) Baku',
+    '(UTC+04:00) Port Louis',
+    '(UTC+04:30) Kabul',
+    '(UTC+05:00) Tashkent',
+    '(UTC+05:00) Islamabad, Karachi',
+    '(UTC+05:30) Sri Jayewardenepura Kotte',
+    '(UTC+05:30) Chennai, Kolkata, Mumbai, New Delhi',
+    '(UTC+05:45) Kathmandu',
+    '(UTC+06:00) Astana',
+    '(UTC+06:00) Dhaka',
+    '(UTC+06:00) Yekaterinburg',
+    '(UTC+06:30) Yangon',
+    '(UTC+07:00) Bangkok, Hanoi, Jakarta',
+    '(UTC+07:00) Novosibirsk',
+    '(UTC+08:00) Krasnoyarsk',
+    '(UTC+08:00) Ulaanbaatar',
+    '(UTC+08:00) Beijing, Chongqing, Hong Kong, Urumqi',
+    '(UTC+08:00) Perth',
+    '(UTC+08:00) Kuala Lumpur, Singapore',
+    '(UTC+08:00) Taipei',
+    '(UTC+09:00) Irkutsk',
+    '(UTC+09:00) Seoul',
+    '(UTC+09:00) Osaka, Sapporo, Tokyo',
+    '(UTC+09:30) Darwin',
+    '(UTC+09:30) Adelaide',
+    '(UTC+10:00) Hobart',
+    '(UTC+10:00) Yakutsk',
+    '(UTC+10:00) Brisbane',
+    '(UTC+10:00) Guam, Port Moresby',
+    '(UTC+10:00) Canberra, Melbourne, Sydney',
+    '(UTC+11:00) Vladivostok',
+    '(UTC+11:00) Solomon Islands, New Caledonia',
+    '(UTC+12:00) Coordinated Universal Time+12',
+    '(UTC+12:00) Fiji, Marshall Islands',
+    '(UTC+12:00) Magadan',
+    '(UTC+12:00) Auckland, Wellington',
+    '(UTC+13:00) Nuku’alofa',
+    '(UTC+13:00) Samoa',
   ];
 
   const handleSubmit = async (e) => {
@@ -239,21 +325,23 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
     const orgData = {
       grp_industry: orgIndustry,
       grp_country: orgCountry,
+      grp_timezone: orgTimeZone,
+      grp_id:organisationId
     };
     dispatch(setOrgUpdateDetails(orgData));
     try {
-      const response = await dispatch(updateOrganisationDetails(orgData, id));
-      console.log('Response', response);
-      if (!response.payload.data.success) {
+      const response = await dispatch(updateOrganisationDetails(orgData, organisationId));
+      if (!response.payload.success) {
         setCreationErrors({
           state: true,
-          message: response.payload.data.message,
+          message: response.payload.response.data.message,
         });
+        setLoading(false);
       } else {
         handleComponentSwitch();
-      } 
+      }
     } catch (error) {
-      return error;
+      throw error;
     }
     setLoading(false);
   };
@@ -292,9 +380,25 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
                 <select
                   className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'
                   onChange={(e) => setOrgIndustry(e.target.value)}>
-                  {countryList.map((country, key) => (
-                    <option key={key} value={country}>
+                  {Object.entries(countryList).map(([code, country], key) => (
+                    <option key={code} value={country}>
                       {country}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+          <div className='mt-6'>
+            <div className='lg:w-10/12 sm:w-full md:w-11/12'>
+              <div className='text-sm'>Timezone</div>
+              <div className='mt-2 w-full'>
+                <select
+                  className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'
+                  onChange={(e) => setOrgTimeZone(e.target.value)}>
+                  {timeZoneList.map((zone, key) => (
+                    <option key={key} value={zone}>
+                      {zone}
                     </option>
                   ))}
                 </select>
@@ -326,49 +430,9 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
 
 const CreateOrganisationDetailsPageThree = () => {
   const dispatch = useDispatch();
-  // const gridLocationsData = useSelector((state) => state.grids.gridsLocations) || [];
-  const gridLocationsData = [
-    {
-      _id: '6527d02625739700178e1d8b',
-      name: 'hellosss',
-    },
-    {
-      _id: '60d058c8048305120d2d6165',
-      name: 'Nansana west ward, Wakiso',
-    },
-    {
-      _id: '60d058c8048305120d2d6160',
-      name: 'Nansana east ward, Wakiso',
-    },
-    {
-      _id: '60d058c8048305120d2d617e',
-      name: 'Kawempe Industrial, Kawempe',
-    },
-    {
-      _id: '61092bd2ea763ff8bb8e3894',
-      name: 'Kawempe',
-    },
-    {
-      _id: '60d058c8048305120d2d614f',
-      name: 'Rubaga, Kampala',
-    },
-    {
-      _id: '60d058c8048305120d2d6154',
-      name: 'Kasubi, Rubaga',
-    },
-    {
-      _id: '60d058c8048305120d2d6157',
-      name: 'Seguku, Makindye-Ssabagabo',
-    },
-    {
-      _id: '60d058c8048305120d2d615b',
-      name: 'Mutundwe, Makindye Ssabagabo',
-    },
-    {
-      _id: '60d058c8048305120d2d616c',
-      name: 'Kasenge, Wakiso',
-    },
-  ];
+  const router = useRouter();
+  const gridLocationsData = useSelector((state) => state.grids.gridLocations);
+  const grp_id = useSelector((state)=>state.creation.orgUpdate.grp_id)
   const [location, setLocation] = useState(undefined);
   const [inputSelect, setInputSelect] = useState(false);
   const [locationArray, setLocationArray] = useState([]);
@@ -385,7 +449,7 @@ const CreateOrganisationDetailsPageThree = () => {
     const query = e.target.value;
     let locationList = [...gridLocationsData];
     locationList = locationList.filter((location) => {
-      return location.name.toLowerCase().indexOf(query.toLowerCase()) !== -1;
+      return location.long_name.toLowerCase().indexOf(query.toLowerCase()) !== -1;
     });
     setFilteredLocations(locationList);
   };
@@ -402,19 +466,34 @@ const CreateOrganisationDetailsPageThree = () => {
     setLocationArray(locationArray.filter((location) => location !== name));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
     setLoading(true);
     dispatch(setSelectedLocations(locationArray));
+    const data={
+      grp_locations:locationArray,
+      grp_id
+    }
+    try {
+      const response = await dispatch(updateOrganisationDetails(data));
+      if (!response.payload.success) {
+        setCreationErrors({
+          state: true,
+          message: response.payload.response.data.message,
+        });
+        setLoading(false);
+      } else {
+        router.push('/account/creation/get-started')
+      }
+    } catch (error) {
+      throw error;
+    }
     setLoading(false);
   };
 
   useEffect(() => {
-    if (gridLocationsData.length <= 0) {
-      dispatch(getAllGridLocations());
-      console.log('Grid locations', gridLocationsData);
-    }
-  }, [gridLocationsData]);
+    dispatch(getAllGridLocations());
+  }, []);
 
   return (
     <div className='sm:ml-3 lg:ml-1'>
@@ -447,15 +526,14 @@ const CreateOrganisationDetailsPageThree = () => {
                   }`}>
                   {filteredLocations.length > 0 ? (
                     filteredLocations.map((location) => (
-                      <div className='flex flex-row justify-start items-center mb-0.5 text-sm w-full'>
+                      <div
+                        className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer'
+                        onClick={() => {
+                          handleLocationSelect(location.long_name);
+                        }}>
                         <LocationIcon />
-                        <div
-                          key={location._id}
-                          className='text-sm ml-1 text-black hover:cursor-pointer'
-                          onClick={() => {
-                            handleLocationSelect(location.name);
-                          }}>
-                          {location.name}
+                        <div key={location._id} className='text-sm ml-1 text-black capitalize'>
+                          {location.long_name}
                         </div>
                       </div>
                     ))
@@ -471,7 +549,7 @@ const CreateOrganisationDetailsPageThree = () => {
             <div className='mt-4 flex flex-row flex-wrap'>
               {locationArray.length > 0 ? (
                 locationArray.map((location) => (
-                  <div className='bg-green-150 flex flex-row items-center mr-2 px-2 py-1 rounded-xl mb-2'>
+                  <div className='bg-green-150 flex flex-row items-center mr-2 px-3 py-1 rounded-xl mb-2'>
                     <span className='text-sm text-blue-600 font-semibold mr-1'>{location}</span>
                     <div onClick={() => removeLocation(location)} className='hover:cursor-pointer'>
                       <CloseIcon style={{ margin: '0 3px' }} />
