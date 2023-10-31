@@ -250,6 +250,77 @@ class AirqoApiClient {
     return null;
   }
 
+  Future<void> syncPlatformAccount() async {
+    try {
+      await Future.delayed(const Duration(minutes: 5));
+      final user = await CloudStore.getProfile();
+      String url = addQueryParameters({}, AirQoUrls.syncPlatformAccount);
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
+      if (user.emailAddress != "") {
+        final requestBody = {
+          "firebase_uid": user.userId,
+          "email": user.emailAddress,
+        };
+        if (user.phoneNumber != "") {
+          requestBody["phoneNumber"] = user.phoneNumber;
+        }
+
+        if (user.firstName != "") {
+          requestBody["firstName"] = user.firstName;
+        }
+
+        if (user.lastName != "") {
+          requestBody["lastName"] = user.lastName;
+        }
+        var response = await client.post(
+          Uri.parse(url),
+          headers: headers,
+          body: jsonEncode(requestBody),
+        );
+        final responseBody = json.decode(response.body);
+
+        if (responseBody['success'] == true) {
+          Profile userToUpdate = user.copyWith(
+            analyticsMongoID: responseBody['user']['_id'] as String,
+          );
+
+          if (responseBody['syncOperation'] == "update") {
+            if (user.phoneNumber == "") {
+              userToUpdate = userToUpdate.copyWith(
+                phoneNumber: responseBody['user']['phoneNumber'] as String,
+              );
+            }
+
+            if (user.firstName == "") {
+              userToUpdate = userToUpdate.copyWith(
+                firstName: responseBody['user']['firstName'] as String,
+              );
+            }
+
+            if (user.lastName == "") {
+              userToUpdate = userToUpdate.copyWith(
+                lastName: responseBody['user']['lastName'] as String,
+              );
+            }
+          }
+
+          await CloudStore.updateProfile(userToUpdate);
+        }
+
+        return;
+      } else {}
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return;
+  }
+
   Future<List<LocationHistory>> fetchLocationHistory(String userId) async {
     final locationHistory = <LocationHistory>[];
     final queryParams = <String, String>{}
