@@ -117,6 +117,7 @@ class AirQoApp extends StatelessWidget {
           Locale('en'), //English
           Locale('fr'), //French
           Locale('pt'), //Portuguese
+          Locale('sw'), //Swahili
         ],
         navigatorKey: navigatorKey,
         navigatorObservers: [

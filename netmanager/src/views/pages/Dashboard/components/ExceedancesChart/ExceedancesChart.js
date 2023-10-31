@@ -20,7 +20,7 @@ import {
 } from '@material-ui/core';
 import { MoreHoriz } from '@material-ui/icons';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
-import axios from 'axios';
+import createAxiosInstance from 'views/apis/axiosConfig';
 import palette from 'theme/palette';
 import { EXCEEDANCES_URI } from 'config/urls/analytics';
 import Menu from '@material-ui/core/Menu';
@@ -227,8 +227,7 @@ const ExceedancesChart = (props) => {
     );
     try {
       const jwtToken = localStorage.getItem('jwtToken');
-      axios.defaults.headers.common.Authorization = jwtToken;
-      const response = await axios.post(EXCEEDANCES_URI, filter);
+      const response = await createAxiosInstance().post(EXCEEDANCES_URI, filter);
       const responseData = response.data;
       const exceedanceData = responseData.data;
       exceedanceData.sort((a, b) => {
@@ -508,8 +507,7 @@ const ExceedancesChart = (props) => {
           borderRadius: '4px',
           marginBottom: '10px',
           borderRadius: '4px'
-        }}
-      >
+        }}>
         <CardHeader
           title={site.name || site.description || site.generated_name}
           style={{
@@ -544,13 +542,11 @@ const ExceedancesChart = (props) => {
     setAnchorEl(null);
   };
 
-  const handleExportCustomChart =
-    ({ action }) =>
-    () => {
-      const chart = document.querySelector(`#${rootCustomChartContainerId}`);
-      handleClose();
-      action(chart);
-    };
+  const handleExportCustomChart = ({ action }) => () => {
+    const chart = document.querySelector(`#${rootCustomChartContainerId}`);
+    handleClose();
+    action(chart);
+  };
 
   const openMenu = Boolean(anchorEl);
 
@@ -564,16 +560,14 @@ const ExceedancesChart = (props) => {
               color="primary"
               id={iconButton}
               onClick={handleClick}
-              className={classes.chartSaveButton}
-            >
+              className={classes.chartSaveButton}>
               <MoreHoriz />
             </IconButton>
             <Menu
               anchorEl={anchorEl}
               open={openMenu}
               onClose={handleMenuClose}
-              PaperProps={paperProps}
-            >
+              PaperProps={paperProps}>
               {menuOptions.map((option) => (
                 <MenuItem key={option.key} onClick={handleExportCustomChart(option)}>
                   {option.text}
@@ -597,8 +591,7 @@ const ExceedancesChart = (props) => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   height: '30vh'
-                }}
-              >
+                }}>
                 loading...
               </div>
             ) : isEmpty(locations) ? (
@@ -608,8 +601,7 @@ const ExceedancesChart = (props) => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   height: '30vh'
-                }}
-              >
+                }}>
                 No data found
               </div>
             ) : (
@@ -708,8 +700,7 @@ const ExceedancesChart = (props) => {
             classes={{ paper: classes.dialogPaper }}
             open={open}
             onClose={handleClose}
-            aria-labelledby="form-dialog-title"
-          >
+            aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title" onClose={handleClose}>
               Customise Chart by Selecting the Various Options
             </DialogTitle>
@@ -763,8 +754,7 @@ const ExceedancesChart = (props) => {
             margin: '10px',
             borderRadius: '8px'
           }
-        }}
-      >
+        }}>
         <DialogContent>
           {allLocations.map((dataset) => (
             <div key={dataset.label}>
@@ -777,8 +767,7 @@ const ExceedancesChart = (props) => {
                   fontWeight: 'bold',
                   padding: '6px',
                   fontSize: '20px'
-                }}
-              >
+                }}>
                 {dataset.label}
               </h5>
               <Grid container spacing={2}>
@@ -814,8 +803,7 @@ const ExceedancesChart = (props) => {
         style={{
           justifyContent: 'flex-end',
           marginTop: '-20px'
-        }}
-      >
+        }}>
         <Button
           variant="outlined"
           color="primary"
@@ -830,8 +818,7 @@ const ExceedancesChart = (props) => {
             boxShadow: 'none',
             background: 'transparent',
             border: 'none'
-          }}
-        >
+          }}>
           View all Exceedances <ArrowForwardIcon />
         </Button>
       </CardActions>

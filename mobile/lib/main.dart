@@ -54,6 +54,7 @@ void main() async {
           Locale('en'), //English
           Locale('fr'), //French
           Locale('pt'), //Portuguese
+          Locale('sw'), //Swahili
         ],
         home: AppCrushWidget(exception, stackTrace),
       ),
