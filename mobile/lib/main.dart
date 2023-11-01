@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 import 'firebase_options.dart';
@@ -23,12 +24,14 @@ void callbackDispatcher() {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final savedLanguageCode = prefs.getString('selectedLanguage') ?? 'en';
+  final savedLocale = Locale(savedLanguageCode);
   Workmanager().initialize(callbackDispatcher, isInDebugMode: kDebugMode);
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-
     await initializeMainMethod();
     final PendingDynamicLinkData? initialLink =
         await FirebaseDynamicLinks.instance.getInitialLink();
@@ -36,7 +39,7 @@ void main() async {
     AppConfig configuredApp = AppConfig(
       appTitle: 'AirQo',
       environment: Environment.prod,
-      child: AirQoApp(initialLink),
+      child: AirQoApp(initialLink, locale: savedLocale),
     );
     runApp(configuredApp);
   } catch (exception, stackTrace) {
@@ -51,7 +54,7 @@ void main() async {
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: const [
-          Locale('en'), //English
+          Locale('en'), // English
           Locale('fr'), //French
           Locale('pt'), //Portuguese
           Locale('sw'), //Swahili

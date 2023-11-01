@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import NavTab from './NavTab';
 import { useTranslation } from 'react-i18next';
 import { setLanguageTab } from '../../../reduxStore/EventsNav/NavigationSlice';
+import PublicIcon from '@mui/icons-material/Public';
 
 const TopBar = () => {
   const dispatch = useDispatch();
@@ -162,11 +163,6 @@ const TopBar = () => {
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
-                  <Link to="/clean-air">
-                    <h3>{t('navbar.about.subnav.cleanAir')}</h3>
-                  </Link>
-                </div>
-                <div className="dropdown-list-item">
                   <Link to="/events">
                     <h3>{t('navbar.about.subnav.events')}</h3>
                   </Link>
@@ -186,6 +182,9 @@ const TopBar = () => {
                     <h3>{t('navbar.about.subnav.careers')}</h3>
                   </Link>
                 </div>
+                <div className="dropdown-list-item" onClick={showModal}>
+                  <h3>{t('navbar.getInvolved')}</h3>
+                </div>
                 <div className="dropdown-list-item">
                   <Link to="/contact">
                     <h3>{t('navbar.about.subnav.contact')}</h3>
@@ -195,13 +194,19 @@ const TopBar = () => {
             </div>
           </div>
           {/* <NavTab text="About" path="/about-us" hideArrow /> */}
-          <NavTab text={t('navbar.getInvolved')} hideArrow colored onClick={showModal} />
+          {/* <NavTab text={t('navbar.getInvolved')} hideArrow colored onClick={showModal} /> */}
+          <Link to='/clean-air' className='clean-air-tab'>
+            <div>
+              <PublicIcon />
+              <h3>{t('navbar.about.subnav.cleanAir')}</h3>
+            </div>
+          </Link>
           <NavTab text={t('navbar.exploreData')} path="/explore-data" hideArrow filled />
         </div>
       </div>
       <MenuIcon className="menu-btn" id="menu" onClick={toggleMenu} />
       <CloseIcon className="close-menu-btn" id="close-menu" onClick={toggleCloseMenu} />
-    </div>
+    </div >
   );
 };
 

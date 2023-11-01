@@ -232,7 +232,6 @@ const Teams = () => {
         })
         .catch((err) => {
           console.error(err);
-          alert(err.message);
         })
         .finally(() => {
           setLoading(false);

@@ -334,5 +334,10 @@
     "actualDate":"{date}",
     "dismiss": "FUTA",
     "internetConnectionLost": "Uunganisho wa Intaneti Umepotea",
-    "changeLanguage": "Badilisha Lugha"
+    "changeLanguage": "Badilisha Lugha",
+    "doYouWantToSwitchToLanguage": "unataka kubadili {placeholder}? programu itaanza upya ili kufanya mabadiliko",
+    "languageChangedSuccessfully": "Lugha imebadilishwa kwa mafanikio {placeholder}",
+    "ok": "Sawa",
+    "languages": "Lugha"
+
 }
