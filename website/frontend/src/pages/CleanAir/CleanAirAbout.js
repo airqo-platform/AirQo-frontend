@@ -77,18 +77,8 @@ const CleanAirAbout = () => {
         content=" The CLEAN-Air network is supported by development partners and philanthropic organizations, including the U.S. Department of State, Google.org, which have an established history of pioneering continuous air quality monitoring in data-hungry cities through the U.S. Embassies across Africa.<br/> <br/>
         Are you an organization or individual interested in air quality in Africa? We implore you to join the CLEAN-Air Africa Network. 
         "
-        link="#"
-        btnText={'Get involved -->'}
-        customBtn={
-          <ButtonCTA
-            label="Join the Network"
-            link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
-            style={{
-              width: '200px',
-              marginTop: '2rem'
-            }}
-          />
-        }
+        link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
+        btnText={'Join the Network -->'}
         imgURL={Section4}
         imageStyle={{
           width: '100%',

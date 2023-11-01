@@ -45,7 +45,7 @@ const SplitSection = ({
             (customBtn ? (
               customBtn
             ) : (
-              <Link to={link} target="_blank">
+              <Link to={link} target="_blank" style={{ marginTop: '15px' }}>
                 <span id="second-pill">
                   <p>{btnText}</p>
                 </span>
