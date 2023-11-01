@@ -400,7 +400,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          cd platform/
+          cd inventory/
           docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-inventory:${{ needs.image-tag.outputs.build_id }} .
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-inventory:${{ needs.image-tag.outputs.build_id }}
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-inventory:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-inventory:latest
