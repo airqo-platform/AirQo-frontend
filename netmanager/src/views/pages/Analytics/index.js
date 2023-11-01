@@ -39,7 +39,10 @@ import { updateMainAlert } from 'redux/MainAlert/operations';
 const useStyles = makeStyles((theme) => ({
   root: {
     padding: theme.spacing(4),
-    position: 'relative'
+    position: 'relative',
+    [theme.breakpoints.down('sm')]: {
+      padding: theme.spacing(2)
+    }
   }
 }));
 
@@ -237,7 +240,25 @@ const Analytics = () => {
               />
             )}
           </Box>
-          <Box width={'auto'} marginTop={{ xs: '25px', sm: '25px', md: '0', lg: '0', xl: '0' }}>
+          <Box
+            width={'auto'}
+            marginTop={{ xs: '25px', sm: '25px', md: '0', lg: '0', xl: '0' }}
+            display={'flex'}
+            gridGap="12px"
+          >
+            <Button
+              margin="dense"
+              color="primary"
+              style={{
+                width: 'auto',
+                textTransform: 'initial',
+                height: '44px',
+                position: 'relative'
+              }}
+              variant="outlined"
+            >
+              Download data
+            </Button>
             <Button
               margin="dense"
               color="primary"
