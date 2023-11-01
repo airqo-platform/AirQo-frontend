@@ -1,35 +1,31 @@
 replicaCount: 1
 image:
-  repository: eu.gcr.io/airqo-250220/airqo-stage-next-platform
+  repository: eu.gcr.io/airqo-250220/pr-previews/inventory-pr-previews
+  tag: latest
   pullPolicy: Always
-  tag: stage-eec2ec02-1698832495
 imagePullSecrets: []
-nameOverride: ''
-fullnameOverride: ''
-podAnnotations: {}
-podSecurityContext: {}
-securityContext: {}
+nameOverride: ""
+fullnameOverride: ""
 service:
   type: NodePort
-  port: 3000
-  protocol: TCP
-  targetPort: 3000
-  nodePort: 31107
+  nodePort: 31108
+  targetPort: 8000
+  port: 8000
 ingress:
   enabled: false
+nodeSelector: {}
+torelations: {}
 resources:
-  limits:
-    cpu: 200m
-    memory: 700Mi
   requests:
-    cpu: 100m
-    memory: 250Mi
+    cpu: 5m
+    memory: 20Mi
+  limits:
+    cpu: 50m
+    memory: 80Mi
 autoscaling:
   minReplicas: 1
-  maxReplicas: 3
-  targetCPUUtilizationPercentage: 80
-nodeSelector: {}
-tolerations: []
+  maxReplicas: 2
+  targetMemoryUtilizationPercentage: 90
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
@@ -48,7 +44,7 @@ affinity:
               values:
                 - high-memory
 app:
-  name: airqo-stage-next-platform
-  label: sta-next-platform
-  namespace: staging
-  configmap: env-next-platform-staging
+  name: airqo-dev-inventory
+  label: dev-inventoy
+  namespace: development
+  configmap: env-inventory-development
