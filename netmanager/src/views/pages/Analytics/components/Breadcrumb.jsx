@@ -4,13 +4,16 @@ import DashboardSearchBar from '../../../components/AirqualitySearch/dashboard_s
 
 const AnalyticsBreadCrumb = ({ isCohort }) => {
   return (
-    <Box
-      display={'flex'}
-      flexDirection={{ xs: 'column-reverse', sm: 'column', md: 'row', lg: 'row', xl: 'row' }}
-      alignItems={{ xs: 'flex-start', sm: 'flex-start', md: 'center', lg: 'center', xl: 'center' }}
-      justifyContent={'space-between'}
-      flexWrap={'wrap'}
-    >
+    <Box display={'flex'} flexDirection={'column'} alignItems={'flex-start'} flexWrap={'wrap'}>
+      <Box
+        display={'flex'}
+        justifyContent={'center'}
+        width={{ xs: '100%', sm: '100%', lg: '70%' }}
+        marginBottom={'20px'}
+        mx="auto"
+      >
+        <DashboardSearchBar />
+      </Box>
       <Box
         display={'flex'}
         alignItems={'center'}
@@ -25,10 +28,6 @@ const AnalyticsBreadCrumb = ({ isCohort }) => {
           {'>'}
         </Box>
         <Box>{isCohort ? 'Cohorts' : 'Grids'}</Box>
-      </Box>
-
-      <Box width={{ xs: '100%', sm: '100%', lg: '50%' }} marginBottom={'20px'}>
-        <DashboardSearchBar />
       </Box>
     </Box>
   );
