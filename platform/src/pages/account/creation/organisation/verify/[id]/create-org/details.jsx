@@ -538,7 +538,12 @@ const CreateOrganisationDetailsPageThree = () => {
                       </div>
                     ))
                   ) : (
-                    <span />
+                    <div className='flex flex-row justify-start items-center mb-0.5 text-sm w-full'>
+                      <LocationIcon />
+                      <div className='text-sm ml-1 text-black font-medium capitalize'>
+                        Location not found
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
