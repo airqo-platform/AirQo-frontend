@@ -492,6 +492,7 @@ const CreateOrganisationDetailsPageThree = () => {
   };
 
   const toggleInputSelect = () => {
+    setFilteredLocations(gridLocationsData);
     inputSelect ? setInputSelect(false) : setInputSelect(true);
   };
 
