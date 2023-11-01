@@ -33,7 +33,7 @@ export const getUserDetails = async (userID, token) => {
 };
 
 export const getAssignedGroupMembers = async (groupID) => {
-  return await createAxiosInstance(false)
+  return await createAxiosInstance()
     .get(`${GROUPS_URL}/${groupID}/assigned-users`)
     .then((response) => response.data);
 };
