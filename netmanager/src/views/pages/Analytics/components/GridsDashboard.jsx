@@ -49,7 +49,7 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
   useEffect(() => {
     if (gridDetails && gridDetails.sites && gridDetails.sites.length > 0) {
       setGridInfo({
-        name: gridDetails.name,
+        name: gridDetails.long_name,
         admin_level: gridDetails.admin_level,
         numberOfSites: gridDetails.numberOfSites,
         visibility: gridDetails.visibility,
@@ -94,18 +94,18 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
             <Grid item lg={3} sm={6} xl={3} xs={12}>
               <Typography variant="subtitle2">Grid name</Typography>
               <Typography variant="h2" style={{ textTransform: 'capitalize' }}>
-                {grid.name}
+                {gridInfo.name}
               </Typography>
             </Grid>
             <Grid item lg={3} sm={6} xl={3} xs={12}>
               <Typography variant="subtitle2">Admin level</Typography>
               <Typography variant="h2" style={{ textTransform: 'capitalize' }}>
-                {grid.admin_level}
+                {gridInfo.admin_level}
               </Typography>
             </Grid>
             <Grid item lg={3} sm={6} xl={3} xs={12}>
               <Typography variant="subtitle2">Number of sites</Typography>
-              <Typography variant="h2">{grid.numberOfSites}</Typography>
+              <Typography variant="h2">{gridInfo.numberOfSites}</Typography>
             </Grid>
           </Grid>
         </Box>
