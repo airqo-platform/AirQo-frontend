@@ -1,31 +1,53 @@
-import React from 'react';
-import AuthenticatedLayout from '@/components/AuthenticatedLayout';
-import illustration from '@/icons/Home/illustration.jpg';
-import Image from 'next/image';
+import React, { useState } from 'react';
+import Tabs from '@/components/Tabs';
+import Tab from '@/components/Tabs/Tab';
 import withAuth from '@/core/utils/protectedRoute';
+import Layout from '@/components/Layout';
+import OverView from './tabs/OverView';
+import Explore from './tabs/Explore';
+import CustomCalendar from '@/components/Calendar/CustomCalendar';
+import TabButtons from '@/components/Button/TabButtons';
+import SettingsIcon from '@/icons/settings.svg';
 
 const AuthenticatedHomePage = () => {
+  const renderChildrenRight = () => {
+    return [
+      {
+        label: 'Overview',
+        children: (
+          <div className='flex space-x-3 mt-2 md:mt-0 lg:mt-0'>
+            <CustomCalendar
+              initialStartDate={new Date()}
+              initialEndDate={new Date()}
+              id='datePicker'
+              position={
+                window.innerWidth <= 768
+                  ? { top: '40px', left: '0px' }
+                  : { top: '40px', right: '0px' }
+              }
+              dropdown
+            />
+            <TabButtons Icon={SettingsIcon} btnText='Customize' />
+          </div>
+        ),
+      },
+      {
+        label: 'Explore',
+        children: <div className='flex'>{/* code goes here */}</div>,
+      },
+    ];
+  };
   return (
-    <AuthenticatedLayout>
-      <section>
-        <div className='flex p-4 flex-row gap-4 self-stretch rounded-lg border border-gray-100 bg-white mt-6 mx-12 '>
-          <div className='flex flex-col items-start gap-4'>
-            <div className='flex items-center pt-12 w-303 h-92 '>
-              <div
-                className=' flex items-center justify-center border border-gray-100 '
-                style={{ width: '303px', height: '92px' }}>
-                Welcome to AirQo Analytics
-              </div>
-            </div>
-          </div>
-          <div className='flex flex-1 flex-col items-start justify-end'>
-            <div className='flex items-start ml-auto '>
-              <Image src={illustration} alt='Home' width='450px' height='216px' />
-            </div>
-          </div>
-        </div>
-      </section>
-    </AuthenticatedLayout>
+    <Layout topbarTitle={'Analytics'} noBorderBottom>
+      <Tabs childrenRight={renderChildrenRight()}>
+        <Tab label='Overview'>
+          <OverView />
+        </Tab>
+        <Tab label='Explore'>
+          <Explore />
+        </Tab>
+      </Tabs>
+    </Layout>
   );
 };
 

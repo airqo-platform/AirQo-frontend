@@ -169,7 +169,7 @@ class SignUpSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(
-            height: 48,
+            height: 15,
           ),
           AnimatedPadding(
             duration: const Duration(milliseconds: 500),
@@ -212,7 +212,7 @@ class SignUpSection extends StatelessWidget {
             child: const SignUpButton(),
           ),
           const SizedBox(
-            height: 40,
+            height: 30,
           ),
         ],
       ),
@@ -995,7 +995,7 @@ class GuestProfileView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(
-              height: 20,
+              height: 15,
             ),
             const Row(
               children: [
@@ -1019,12 +1019,9 @@ class GuestProfileView extends StatelessWidget {
         horizontalPadding: 16.0,
         child: Column(
           children: <Widget>[
-            SizedBox(
-              height: 8,
-            ),
             SignUpSection(),
             SizedBox(
-              height: 16,
+              height: 8,
             ),
             SettingsButton(),
             SizedBox(

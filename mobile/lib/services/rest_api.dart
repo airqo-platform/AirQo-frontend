@@ -403,7 +403,7 @@ class AirqoApiClient {
     if (locale != "en") {
       queryParams.putIfAbsent('language', () => locale);
     }
-    
+
     String url = "${AirQoUrls.kya}/lessons/users/$userId";
     if (userId.isEmpty) {
       url = "${AirQoUrls.kya}/lessons";

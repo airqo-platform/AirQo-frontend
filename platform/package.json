@@ -12,6 +12,9 @@
     "cypress:open": "cypress open"
   },
   "dependencies": {
+    "@cypress/react": "^8.0.0",
+    "@david.kucsai/react-pdf-table": "^0.4.1",
+    "@react-pdf/renderer": "^3.1.12",
     "@reduxjs/toolkit": "^1.9.2",
     "@svgr/webpack": "^6.4.0",
     "@tailwindcss/typography": "^0.5.9",
@@ -20,8 +23,10 @@
     "daisyui": "^2.47.0",
     "date-fns": "^2.29.3",
     "dayjs": "^1.11.7",
+    "file-saver": "^2.0.5",
     "flowbite": "^1.6.3",
     "flowbite-react": "^0.3.8",
+    "i18n-iso-countries": "^7.7.0",
     "jwt-decode": "^3.1.2",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.40",
@@ -30,14 +35,17 @@
     "postcss": "^8.4.16",
     "react": "^18.2.0",
     "react-calendar": "^4.0.0",
+    "react-country-flag": "^3.1.0",
     "react-dom": "^18.2.0",
     "react-redux": "^8.0.5",
     "react-tailwindcss-datepicker": "^1.4.2",
     "recharts": "^2.5.0",
     "redux": "^4.2.1",
+    "redux-persist": "^6.0.0",
     "redux-thunk": "^2.4.2",
     "sass": "^1.54.3",
     "tailwindcss": "^3.1.8",
+    "timezones.json": "^1.7.1",
     "underscore": "^1.13.6"
   },
   "devDependencies": {

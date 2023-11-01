@@ -205,10 +205,10 @@
 	"theAirQualityIndexColorsCanbBeUsedToShowHowPollutedTheAirIs": "As cores do Índice de Qualidade do Ar (IQA) podem ser utilizadas para mostrar o grau de poluição do ar. ",
 	"complete": "Completa",
 	"welcome": "Bem-vindo",
-	"toTurnOnNotificationsGoToAppInfoNotifications": "Para ativar as notificações, vai a\\nInformação da aplicação > Notificações",
-	"toTurnOffNotificationsGoToAppInfoNotifications": "Para desativar as notificações, vai a\\nInformação da aplicação > Notificações",
-	"toTurnOnNotificationsGoToSettingsAirQoNotifications": "para ativar as notificações, vai a\\nDefinições > AirQo > Notificações",
-	"toTurnOffNotificationsGoToSettingsAirQoNotifications": "Para desativar as notificações, vai a\\nDefinições > AirQo > Notificações",
+	"toTurnOnNotificationsGoToAppInfoNotifications": "Para ativar as notificações, vai a\nApp Info > Notifications",
+	"toTurnOffNotificationsGoToAppInfoNotifications": "Para desativar as notificações, vai a\nApp Info > Notifications",
+	"toTurnOnNotificationsGoToSettingsAirQoNotifications": "para ativar as notificações, vai a\nSettings > AirQo > Notifications",
+	"toTurnOffNotificationsGoToSettingsAirQoNotifications": "Para desativar as notificações, vai a\nSettings > AirQo > Notifications",
 	"completeMoveToForYou": "Completa! Mudar para Para ti",
 	"continueLearning": "Continua a aprender",
 	"yesterday": "Ontem",
@@ -336,6 +336,9 @@
 	"cancel":"Cancelar"	,
 	"changeLanguage": "Mudar de idioma",
 	"reDOLesson": "Repetir a lição",
-	"reDoQuiz": "Repetir o teste"
-
+	"reDoQuiz": "Repetir o teste",
+	"doYouWantToSwitchToLanguage": "Você quer mudar para {placeholder}? O aplicativo será reiniciado para efetuar as alterações",
+	"languageChangedSuccessfully": "Idioma alterado com sucesso {placeholder}",
+	"ok": "OK",
+	"languages": "Idiomas"
 	}

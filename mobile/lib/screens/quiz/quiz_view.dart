@@ -1,11 +1,10 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:async';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:app/blocs/kya/kya_bloc.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/quiz/quiz_final_page.dart';
+import 'package:app/screens/quiz/quiz_title_page.dart';
 import 'package:app/screens/quiz/quiz_widgets.dart';
 import 'package:app/themes/app_theme.dart';
 import 'package:app/themes/colors.dart';
@@ -351,41 +350,45 @@ class QuizCard extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
       ),
       onPressed: () async {
-        if (quiz.status != QuizStatus.todo) {
-          dynamic response = await bottomSheetQuizQuestion(quiz, context);
-          if (response != null && response == true) {
-            response = await bottomSheetQuizConffeti(quiz, context);
-            context.read<KyaBloc>().add(
-                  UpdateQuizProgress(
-                    quiz.copyWith(
-                      activeQuestion: 1,
-                      status: QuizStatus.inProgress,
-                    ),
-                    updateRemote: true,
-                  ),
-                );
+        switch (quiz.status) {
+          case QuizStatus.todo:
             context
                 .read<CurrentQuizQuestionCubit>()
                 .setQuestion(quiz.questions.first);
-          }
-        } else {
-          context
-              .read<CurrentQuizQuestionCubit>()
-              .setQuestion(quiz.questions.first);
-          dynamic response = await bottomSheetQuizQuestion(quiz, context);
-          if (response != null &&
-              response == true &&
-              quiz.status != QuizStatus.complete) {
-            context.read<KyaBloc>().add(
-                  UpdateQuizProgress(
+            dynamic response = await bottomSheetQuizTitle(quiz, context);
+            if (response != null && response == true) {
+              context.read<KyaBloc>().add(
+                    UpdateQuizProgress(
                       quiz.copyWith(
                         status: QuizStatus.inProgress,
                       ),
-                      updateRemote: true),
-                );
-            response = await bottomSheetQuizQuestion(quiz, context);
+                      updateRemote: true,
+                    ),
+                  );
+              response = await bottomSheetQuizQuestion(quiz, context);
+
+              if (response != null && response == true) {
+                context.read<KyaBloc>().add(
+                      UpdateQuizProgress(
+                        quiz.copyWith(
+                          activeQuestion: 1,
+                          status: QuizStatus.complete,
+                        ),
+                        updateRemote: true,
+                      ),
+                    );
+                context
+                    .read<CurrentQuizQuestionCubit>()
+                    .setQuestion(quiz.questions.first);
+                await bottomSheetQuizConffeti(quiz, context);
+                response;
+              }
+            }
+            break;
+          case QuizStatus.inProgress:
+            var response = await bottomSheetQuizQuestion(quiz, context);
+
             if (response != null && response == true) {
-              response = await bottomSheetQuizConffeti(quiz, context);
               context.read<KyaBloc>().add(
                     UpdateQuizProgress(
                       quiz.copyWith(
@@ -398,71 +401,100 @@ class QuizCard extends StatelessWidget {
               context
                   .read<CurrentQuizQuestionCubit>()
                   .setQuestion(quiz.questions.first);
+              await bottomSheetQuizConffeti(quiz, context);
             }
-          }
+            break;
+          case QuizStatus.complete:
+            context.read<KyaBloc>().add(
+                  UpdateQuizProgress(
+                    quiz.copyWith(
+                      status: QuizStatus.todo,
+                      activeQuestion: 1,
+                    ),
+                  ),
+                );
+            context
+                .read<CurrentQuizQuestionCubit>()
+                .setQuestion(quiz.questions.first);
+            dynamic response = await bottomSheetQuizTitle(quiz, context);
+            if (response != null && response == true) {
+              context.read<KyaBloc>().add(
+                    UpdateQuizProgress(
+                        quiz.copyWith(
+                          status: QuizStatus.inProgress,
+                        ),
+                        updateRemote: true),
+                  );
+              response = await bottomSheetQuizQuestion(quiz, context);
+
+              if (response != null && response == true) {
+                context.read<KyaBloc>().add(
+                      UpdateQuizProgress(
+                        quiz.copyWith(
+                          activeQuestion: 1,
+                          status: QuizStatus.complete,
+                        ),
+                        updateRemote: true,
+                      ),
+                    );
+                context
+                    .read<CurrentQuizQuestionCubit>()
+                    .setQuestion(quiz.questions.first);
+                await bottomSheetQuizConffeti(quiz, context);
+              }
+            }
         }
+        // if (quiz.status != QuizStatus.todo) {
+        //   dynamic response = await bottomSheetQuizQuestion(quiz, context);
+        //   if (response != null && response == true) {
+        //     response = await bottomSheetQuizConffeti(quiz, context);
+        //     context.read<KyaBloc>().add(
+        //           UpdateQuizProgress(
+        //             quiz.copyWith(
+        //               activeQuestion: 1,
+        //               status: QuizStatus.complete,
+        //             ),
+        //             updateRemote: true,
+        //           ),
+        //         );
+        //     context
+        //         .read<CurrentQuizQuestionCubit>()
+        //         .setQuestion(quiz.questions.first);
+        //   }
+        // } else {
+        //   context
+        //       .read<CurrentQuizQuestionCubit>()
+        //       .setQuestion(quiz.questions.first);
+        //   dynamic response = await bottomSheetQuizTitle(quiz, context);
+        //   if (response != null &&
+        //       response == true &&
+        //       quiz.status != QuizStatus.complete) {
+        //     context.read<KyaBloc>().add(
+        //           UpdateQuizProgress(
+        //               quiz.copyWith(
+        //                 status: QuizStatus.inProgress,
+        //               ),
+        //               updateRemote: true),
+        //         );
+        //     response = await bottomSheetQuizQuestion(quiz, context);
+        //     if (response != null && response == true) {
+        //       context.read<KyaBloc>().add(
+        //             UpdateQuizProgress(
+        //               quiz.copyWith(
+        //                 activeQuestion: 1,
+        //                 status: QuizStatus.complete,
+        //               ),
+        //               updateRemote: true,
+        //             ),
+        //           );
+        //       context
+        //           .read<CurrentQuizQuestionCubit>()
+        //           .setQuestion(quiz.questions.first);
+        //       await bottomSheetQuizConffeti(quiz, context);
+        //     }
+        //   }
+        // }
       },
-      //   dynamic response;
-      //   if (quiz.status == QuizStatus.todo) {
-      //     context
-      //         .read<CurrentQuizQuestionCubit>()
-      //         .setQuestion(quiz.questions.first);
-      //     response = await bottomSheetQuizTitle(quiz, context);
-      //     if (response == true && quiz.status != QuizStatus.complete) {
-      //       response = await bottomSheetQuizQuestion(quiz, context);
-      //       context.read<KyaBloc>().add(
-      //             UpdateQuizProgress(
-      //               quiz.copyWith(
-      //                 status: QuizStatus.inProgress,
-      //               ),
-      //               updateRemote: true,
-      //             ),
-      //           );
-      //       response = await bottomSheetQuizQuestion(quiz, context);
-      //       if (response == true) {
-      //         response = await bottomSheetQuizConffeti(quiz, context);
-      //         context.read<KyaBloc>().add(
-      //               UpdateQuizProgress(
-      //                 quiz.copyWith(
-      //                   activeQuestion: 1,
-      //                   status: QuizStatus.complete,
-      //                 ),
-      //                 updateRemote: true,
-      //               ),
-      //             );
-      //         context
-      //             .read<CurrentQuizQuestionCubit>()
-      //             .setQuestion(quiz.questions.first);
-      //       }
-      //     }
-      //   } else if (quiz.status == QuizStatus.inProgress) {
-      //     context
-      //         .read<CurrentQuizQuestionCubit>()
-      //         .setQuestion(quiz.questions.first);
-      //     response = await bottomSheetQuizTitle(quiz, context);
-      //     if (response == true) {
-      //       response = await bottomSheetQuizQuestion(quiz, context);
-      //       context.read<KyaBloc>().add(
-      //             UpdateQuizProgress(
-      //               quiz.copyWith(
-      //                 activeQuestion: 1,
-      //                 status: QuizStatus.inProgress,
-      //               ),
-      //               updateRemote: true,
-      //             ),
-      //           );
-      //       await bottomSheetQuizQuestion(quiz, context);
-      //     }
-      //   } else if (quiz.status == QuizStatus.complete) {
-      //     response = await bottomSheetQuizQuestion(quiz, context);
-      //     if (response == true) {
-      //       context
-      //           .read<CurrentQuizQuestionCubit>()
-      //           .setQuestion(quiz.questions.first);
-      //       await bottomSheetQuizConffeti(quiz, context);
-      //     }
-      //   }
-      // },
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -483,61 +515,12 @@ class QuizCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
+                QuizMessageChip(quiz),
                 Visibility(
-                  visible: quiz.status == QuizStatus.todo ||
-                      quiz.activeQuestion >= 1,
-                  child: Row(
-                    children: [
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width * 0.44,
-                          maxHeight: 4,
-                        ),
-                        child: QuizCardProgressBar(
-                            quiz.activeQuestion, quiz.questions.length),
-                      ),
-                      quiz.activeQuestion >= quiz.questions.length
-                          ? Container(
-                              height: 19,
-                              width: 19,
-                              padding: const EdgeInsets.fromLTRB(1, 1, 1, 1),
-                              decoration: BoxDecoration(
-                                color:
-                                    CustomColors.appColorBlue.withOpacity(0.24),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.check_circle_rounded,
-                                color: CustomColors.appColorBlue,
-                                size: 17,
-                              ),
-                            )
-                          : Container(
-                              height: 19,
-                              width: 19,
-                              padding: const EdgeInsets.fromLTRB(3, 5, 3, 1),
-                              decoration: BoxDecoration(
-                                color:
-                                    CustomColors.appColorBlue.withOpacity(0.24),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Text(
-                                "${quiz.activeQuestion == 1 ? 0 : quiz.activeQuestion - 1}/${quiz.questions.length - 1}",
-                                style: TextStyle(
-                                  color: CustomColors.appColorBlue,
-                                  fontSize: 7,
-                                ),
-                              ),
-                            ),
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Flexible(
-                  flex: 1,
-                  child: QuizMessageChip(quiz),
+                  visible: quiz.status != QuizStatus.todo &&
+                      quiz.activeQuestion != 1,
+                  child: QuizProgressBar(
+                      quiz.activeQuestion, quiz.questions.length),
                 ),
               ],
             ),

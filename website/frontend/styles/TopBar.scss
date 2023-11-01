@@ -27,8 +27,25 @@ h4 {
     align-items: center;
 
     .logo {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
       svg {
         height: 48px;
+      }
+    }
+    .language-dropdown {
+      margin-left: 32px;
+      select {
+        outline: none;
+        min-width: 95px;
+        border: none;
+        border-bottom: 2px solid $aq-blue-9;
+        font-weight: 500;
+        font-size: 14px;
+        padding: 5px 5px;
+        box-shadow: 3px 2px 5px $aq-blue-9;
+        border-radius: 3px;
       }
     }
 
@@ -130,6 +147,30 @@ h4 {
             margin-bottom: 14px;
           }
         }
+      }
+    }
+  }
+
+  .clean-air-tab {
+    width: 19%;
+    border: 1px solid $aq-blue-0;
+    box-shadow: 0px 0px 2px $aq-blue-9;
+    div {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 0px 5px;
+      svg {
+        color: $aq-blue-9;
+      }
+      h3 {
+        font-size: 15px;
+        color: $aq-blue-0;
+        font-weight: 600;
+        margin-left: 10px;
+        line-height: 20px;
+        padding: 2px 0px;
       }
     }
   }
@@ -247,6 +288,34 @@ h4 {
       position: absolute;
       right: 32px;
     }
+
+    .clean-air-tab {
+      margin: 0px 20px 2px 20px;
+      box-shadow: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: auto;
+      height:48px;
+      div {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        // padding: 0px 5px;
+        svg {
+          color: $aq-blue-9;
+        }
+        h3 {
+          font-size: 16px;
+          color: $aq-blue-0;
+          font-weight: 600;
+          margin-left: 10px;
+          line-height: 20px;
+          padding: 2px 0px;
+        }
+      }
+    }
   }
 }
 
@@ -256,9 +325,17 @@ h4 {
 
     .wrapper {
       padding: 0 24px;
+      .language-dropdown {
+        margin-left: 12px;
+        select {
+          min-width: 60px;
+          font-size: 14px;
+          padding: 3px 2px;
+        }
+      }
 
       .nav-center {
-        margin: 0 auto;
+        // margin: 0 auto;
         transition: all 0.5s ease;
         width: 100%;
         .nav-dropdown-item {
@@ -274,6 +351,11 @@ h4 {
           }
         }
       }
+    }
+
+    .clean-air-tab {
+      margin: 0 0 2px 0;
+      box-shadow: none;
     }
   }
 }

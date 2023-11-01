@@ -253,26 +253,24 @@ const SimRegistry = () => {
       })
       .catch((err) => {
         setLoading(false);
-        dispatch(updateMainAlert({ message: err.message, show: true, severity: 'error' }));
       });
   }, [refresh]);
 
-  const checkSimStatus = (id) => {
+  const checkSimStatus = async (id) => {
     setIsLoading(true);
-    checkSimStatusApi(id)
-      .then((res) => {
-        setIsLoading(false);
-        if (res.success) {
-          dispatch(updateMainAlert({ message: res.message, show: true, severity: 'success' }));
-          setRefresh(true);
-        } else {
-          dispatch(updateMainAlert({ message: res.message, show: true, severity: 'error' }));
-        }
-      })
-      .catch((err) => {
-        setIsLoading(false);
-        dispatch(updateMainAlert({ message: err.message, show: true, severity: 'error' }));
-      });
+    try {
+      const res = await checkSimStatusApi(id);
+      setIsLoading(false);
+      if (res.success) {
+        dispatch(updateMainAlert({ message: res.message, show: true, severity: 'success' }));
+        setRefresh(true);
+      } else {
+        dispatch(updateMainAlert({ message: res.message, show: true, severity: 'error' }));
+      }
+    } catch (err) {
+      setIsLoading(false);
+      dispatch(updateMainAlert({ message: err.message, show: true, severity: 'error' }));
+    }
   };
 
   const handleDelete = (id) => {};
@@ -296,6 +294,7 @@ const SimRegistry = () => {
         <CustomMaterialTable
           pointerCursor
           userPreferencePaginationKey={'SIM'}
+          isLoading={loading}
           title="SIM Registry"
           columns={[
             {

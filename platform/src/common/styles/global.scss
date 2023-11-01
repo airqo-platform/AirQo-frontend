@@ -4,12 +4,17 @@
 
 /* Remove border click effect for Daisy UI input */
 input:focus {
-  border-color: transparent !important;
+  border-color: transparent;
   box-shadow: none !important;
   outline: none !important;
 }
 textarea:focus {
-  border-color: transparent !important;
+  border-color: transparent;
+  box-shadow: none !important;
+  outline: none !important;
+}
+select:focus {
+  border-color: transparent;
   box-shadow: none !important;
   outline: none !important;
 }
@@ -21,12 +26,12 @@ textarea:focus {
 
 /* Track */
 ::-webkit-scrollbar-track {
-  background-color: #F3F6F8;
+  background-color: #f3f6f8;
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background-color: #9EB0C2;
+  background-color: #9eb0c2;
   border-radius: 4px;
 }
 

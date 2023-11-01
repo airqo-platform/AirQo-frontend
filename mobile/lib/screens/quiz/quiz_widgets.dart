@@ -119,7 +119,7 @@ class QuizProgressBar extends StatelessWidget {
         borderRadius: const BorderRadius.all(Radius.circular(10)),
         child: LinearProgressIndicator(
           color: CustomColors.appColorBlue,
-          value: activeQuestion == 1 ? 0 : activeQuestion / totalQuestions,
+          value: activeQuestion / totalQuestions,
           backgroundColor: CustomColors.appColorBlue.withOpacity(0.24),
           valueColor: AlwaysStoppedAnimation<Color>(CustomColors.appColorBlue),
         ),

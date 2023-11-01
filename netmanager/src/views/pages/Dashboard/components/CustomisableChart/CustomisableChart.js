@@ -22,7 +22,7 @@ import {
   KeyboardTimePicker,
   KeyboardDatePicker
 } from '@material-ui/pickers';
-import axios from 'axios';
+import createAxiosInstance from 'views/apis/axiosConfig';
 import 'chartjs-plugin-annotation';
 import { CustomDisplayChart } from '../index';
 import palette from 'theme/palette';
@@ -395,9 +395,8 @@ const CustomisableChart = (props) => {
     await setCustomisedGraphData({});
 
     const jwtToken = localStorage.getItem('jwtToken');
-    axios.defaults.headers.common.Authorization = jwtToken;
 
-    return await axios
+    return await createAxiosInstance()
       .post(
         GENERATE_CUSTOMISABLE_CHARTS_URI,
         // JSON.stringify(filter),
@@ -701,13 +700,11 @@ const CustomisableChart = (props) => {
     setAnchorEl(null);
   };
 
-  const handleExportCustomChart =
-    ({ action }) =>
-    () => {
-      const chart = document.querySelector(`#${rootCustomChartContainerId}`);
-      handleClose();
-      action(chart);
-    };
+  const handleExportCustomChart = ({ action }) => () => {
+    const chart = document.querySelector(`#${rootCustomChartContainerId}`);
+    handleClose();
+    action(chart);
+  };
 
   const openMenu = Boolean(anchorEl);
 
@@ -728,8 +725,7 @@ const CustomisableChart = (props) => {
       xl={6}
       xs={12}
       key={`userDefaultGraphs-${props.key}`}
-      style={hidden ? { display: 'none' } : {}}
-    >
+      style={hidden ? { display: 'none' } : {}}>
       <Card {...rest} className={className} id={rootCustomChartContainerId}>
         <CardHeader
           action={
@@ -739,16 +735,14 @@ const CustomisableChart = (props) => {
                 color="primary"
                 id={iconButton}
                 onClick={handleClick}
-                className={classes.chartSaveButton}
-              >
+                className={classes.chartSaveButton}>
                 <MoreHoriz />
               </IconButton>
               <Menu
                 anchorEl={anchorEl}
                 open={openMenu}
                 onClose={handleMenuClose}
-                PaperProps={paperProps}
-              >
+                PaperProps={paperProps}>
                 {menuOptions.map((option) => (
                   <MenuItem key={option.key} onClick={handleExportCustomChart(option)}>
                     {option.text}
@@ -951,8 +945,7 @@ const CustomisableChart = (props) => {
                     // onClick={handleClose}
                     color="primary"
                     type="submit" //set the buttom type is submit
-                    form="customisable-form"
-                  >
+                    form="customisable-form">
                     Customise
                   </Button>
                 </DialogActions>

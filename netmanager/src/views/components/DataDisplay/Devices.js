@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
-import axios from 'axios';
+import createAxiosInstance from '../../apis/axiosConfig';
 import { Link, useHistory, useLocation } from 'react-router-dom';
 import { makeStyles } from '@material-ui/styles';
 import { isEmpty } from 'underscore';
@@ -172,7 +172,8 @@ const createDeviceColumns = (history, setDelState) => [
               className={'underline-hover'}
               onClick={(event) => {
                 event.stopPropagation();
-              }}>
+              }}
+            >
               {data.site && data.site.description}
             </Link>
           )
@@ -202,7 +203,8 @@ const createDeviceColumns = (history, setDelState) => [
               style={{
                 color: deviceStatus === 'deployed' ? 'green' : 'red',
                 textTransform: 'capitalize'
-              }}>
+              }}
+            >
               {deviceStatus}
             </span>
           }
@@ -318,7 +320,7 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
 
         return;
       } else {
-        axios
+        createAxiosInstance()
           .post(REGISTER_DEVICE_URI, dropEmpty(newDevice), {
             headers: { 'Content-Type': 'application/json' }
           })
@@ -365,7 +367,8 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
       open={open}
       onClose={handleRegisterClose}
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description">
+      aria-describedby="form-dialog-description"
+    >
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Add a device
       </DialogTitle>
@@ -410,7 +413,8 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
             variant="outlined"
             error={!!errors.network}
             helperText={errors.network}
-            disabled></TextField>
+            disabled
+          ></TextField>
         </form>
       </DialogContent>
 
@@ -424,7 +428,8 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
             color="primary"
             type="submit"
             onClick={handleRegisterSubmit}
-            style={{ margin: '0 15px' }}>
+            style={{ margin: '0 15px' }}
+          >
             Register
           </Button>
         </Grid>
@@ -534,7 +539,8 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
       open={open}
       onClose={handleRegisterClose}
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description">
+      aria-describedby="form-dialog-description"
+    >
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Soft add a device
       </DialogTitle>
@@ -577,7 +583,8 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
             variant="outlined"
             error={!!errors.network}
             helperText={errors.network}
-            disabled></TextField>
+            disabled
+          ></TextField>
         </form>
       </DialogContent>
 
@@ -591,7 +598,8 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
             color="primary"
             type="submit"
             onClick={handleRegisterSubmit}
-            style={{ margin: '0 15px' }}>
+            style={{ margin: '0 15px' }}
+          >
             Register
           </Button>
         </Grid>
@@ -604,7 +612,6 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
 const DevicesTable = (props) => {
   const { className, users, ...rest } = props;
   const classes = useStyles();
-
   const history = useHistory();
   const location = useLocation();
   const dispatch = useDispatch();
@@ -612,87 +619,61 @@ const DevicesTable = (props) => {
   const sites = useSitesData();
   const [deviceList, setDeviceList] = useState(Object.values(devices));
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-
   const [delDevice, setDelDevice] = useState({ open: false, name: '' });
-
   const deviceColumns = createDeviceColumns(history, setDelDevice);
-
-  // setting the loading state
   const [loading, setLoading] = useState(true);
-
-  // for horizontal loader
   const [isLoading, setIsLoading] = useState(false);
-
-  const handleDeleteDevice = async () => {
-    if (delDevice.name) {
-      setIsLoading(true);
-      deleteDeviceApi(delDevice.name)
-        .then(() => {
-          delete devices[delDevice.name];
-          setDeviceList(Object.values(devices));
-          const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-          if (!isEmpty(activeNetwork)) {
-            dispatch(loadDevicesData(activeNetwork.net_name));
-          }
-          dispatch(
-            updateMainAlert({
-              show: true,
-              message: `device ${delDevice.name} deleted successfully`,
-              severity: 'success'
-            })
-          );
-        })
-        .catch((err) => {
-          let msg = `deletion of  ${delDevice.name} failed`;
-          if (err.response && err.response.data) {
-            msg = err.response.data.message || msg;
-          }
-          dispatch(
-            updateMainAlert({
-              show: true,
-              message: msg,
-              severity: 'error'
-            })
-          );
-        })
-        .finally(() => setIsLoading(false));
-    }
-    setDelDevice({ open: false, name: '' });
-  };
-
   const [registerOpen, setRegisterOpen] = useState(false);
-
   const [softRegisterOpen, setSoftRegisterOpen] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
     if (isEmpty(devices)) {
       if (!isEmpty(activeNetwork)) {
         dispatch(loadDevicesData(activeNetwork.net_name));
-      }
-    }
-
-    if (isEmpty(sites)) {
-      if (!isEmpty(activeNetwork)) {
         dispatch(loadSitesData(activeNetwork.net_name));
       }
     }
     dispatch(updateDeviceBackUrl(location.pathname));
-  }, [devices]);
-
-  useEffect(() => {
     setDeviceList(Object.values(devices));
+    setTimeout(() => {
+      setLoading(false);
+    }, 3000);
   }, [devices]);
 
-  // for handling the loading state
-  useEffect(() => {
-    if (isEmpty(devices)) {
-      setTimeout(() => {
-        setLoading(false);
-      }, 1500);
-    } else {
-      setLoading(false);
+  const handleDeleteDevice = async () => {
+    if (delDevice.name) {
+      setIsLoading(true);
+      try {
+        await deleteDeviceApi(delDevice.name);
+        delete devices[delDevice.name];
+        setDeviceList(Object.values(devices));
+        dispatch(loadDevicesData(activeNetwork.net_name));
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: `device ${delDevice.name} deleted successfully`,
+            severity: 'success'
+          })
+        );
+      } catch (err) {
+        let msg = `deletion of ${delDevice.name} failed`;
+        if (err.response && err.response.data) {
+          msg = err.response.data.message || msg;
+        }
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: msg,
+            severity: 'error'
+          })
+        );
+      } finally {
+        setIsLoading(false);
+      }
     }
-  }, [devices]);
+    setDelDevice({ open: false, name: '' });
+  };
 
   return (
     <ErrorBoundary>
@@ -706,14 +687,16 @@ const DevicesTable = (props) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end'
-          }}>
+          }}
+        >
           {activeNetwork.net_name === 'airqo' && (
             <Button
               variant="contained"
               color="primary"
               type="submit"
               align="right"
-              onClick={() => setRegisterOpen(true)}>
+              onClick={() => setRegisterOpen(true)}
+            >
               {' '}
               Add Device
             </Button>
@@ -723,7 +706,8 @@ const DevicesTable = (props) => {
             color="primary"
             type="submit"
             style={{ marginLeft: '20px' }}
-            onClick={() => setSoftRegisterOpen(true)}>
+            onClick={() => setSoftRegisterOpen(true)}
+          >
             {activeNetwork.net_name === 'airqo' ? 'Soft Add Device' : 'Add Device'}
           </Button>
         </div>

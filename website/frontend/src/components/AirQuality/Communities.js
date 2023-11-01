@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import AirQualityImg from 'assets/img/ForCommunities.png';
+import { useTranslation } from 'react-i18next';
+
 
 const Accordion = ({ children, title, selected, onClick }) => {
   return (
@@ -13,40 +15,41 @@ const Accordion = ({ children, title, selected, onClick }) => {
 const Communities = () => {
   const [selectedCard, setSelectedCard] = useState('card1');
   const onClickCardItem = (card) => setSelectedCard(card);
+  const { t } = useTranslation();
   return (
     <>
       <div className="content-container">
         <Accordion
-          title="AirQommunity champions"
+          title={`${t("homepage.airQuality.community.first.title")}`}
           selected={selectedCard === 'card1'}
           onClick={() => onClickCardItem('card1')}>
           <li>
-            <small>A growing network of individual change makers </small>
+            <small>{t("homepage.airQuality.community.first.list.1")} </small>
           </li>
           <li>
-            <small>Championing local leaders and demand action</small>
+            <small>{t("homepage.airQuality.community.first.list.2")}</small>
           </li>
         </Accordion>
         <Accordion
-          title="Free access to air quality information"
+          title={`${t("homepage.airQuality.community.second.title")}`}
           selected={selectedCard === 'card2'}
           onClick={() => onClickCardItem('card2')}>
           <li>
-            <small>We train individuals and communities</small>
+            <small>{t("homepage.airQuality.community.second.list.1")}</small>
           </li>
           <li>
-            <small>Facilitating access to air quality information </small>
+            <small>{t("homepage.airQuality.community.second.list.2")}</small>
           </li>
         </Accordion>
         <Accordion
-          title="AirQo hosts"
+          title={`${t("homepage.airQuality.community.third.title")}`}
           selected={selectedCard === 'card3'}
           onClick={() => onClickCardItem('card3')}>
           <li>
-            <small>We engage locals host our deployment activities</small>
+            <small>{t("homepage.airQuality.community.third.list.1")}</small>
           </li>
           <li>
-            <small>We involve locals in our maintainance drives</small>
+            <small>{t("homepage.airQuality.community.third.list.2")}</small>
           </li>
         </Accordion>
       </div>
