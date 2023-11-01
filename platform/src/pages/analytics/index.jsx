@@ -15,7 +15,7 @@ const AuthenticatedHomePage = () => {
       {
         label: 'Overview',
         children: (
-          <div className='flex space-x-3 mt-2 md:mt-0 lg:mt-0'>
+          <div className='flex space-x-3 mt-2 md:mt-0 lg:mt-0 mb-2'>
             <CustomCalendar
               initialStartDate={new Date()}
               initialEndDate={new Date()}
