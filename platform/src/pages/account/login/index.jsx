@@ -134,7 +134,7 @@ const UserLogin = () => {
               </div>
             </div>
           </div>
-          <div className='mt-6'>
+          <div className='mt-10'>
             <button
               data-testid='login-btn'
               className='w-full btn bg-blue-900 rounded-none text-white text-sm outline-none border-none hover:bg-blue-950'
