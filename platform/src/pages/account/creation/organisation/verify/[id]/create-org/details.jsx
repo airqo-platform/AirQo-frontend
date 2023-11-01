@@ -491,6 +491,10 @@ const CreateOrganisationDetailsPageThree = () => {
     setLoading(false);
   };
 
+  const toggleInputSelect = () => {
+    inputSelect ? setInputSelect(false) : setInputSelect(true);
+  };
+
   useEffect(() => {
     dispatch(getAllGridLocations());
   }, []);
@@ -514,6 +518,7 @@ const CreateOrganisationDetailsPageThree = () => {
                   onChange={(e) => {
                     handleLocationEntry(e);
                   }}
+                  onClick={() => toggleInputSelect()}
                   value={location}
                   placeholder='Search locations'
                   className='input text-sm w-full h-12 rounded-lg bg-white border-l-0 rounded-l-none border-input-light-outline focus:border-input-light-outline'
