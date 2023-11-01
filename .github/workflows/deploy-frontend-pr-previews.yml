@@ -366,7 +366,7 @@ jobs:
 
       - name: Build and Push Image
         run: |
-          cd platform/
+          cd inventory/
           docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:${{ github.sha }} .
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:${{ github.sha }}
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:latest
@@ -382,9 +382,7 @@ jobs:
             --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:${{ github.sha }} \
             --port=3000 \
             --cpu=1000m \
-            --memory=256Mi \
-            --update-secrets=/etc/env/.env=sta-env-inventory-app:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; python manage.py runserver 0.0.0.0:8000" \            
+            --memory=256Mi \            
             --allow-unauthenticated
 
       - name: Get preview service url
