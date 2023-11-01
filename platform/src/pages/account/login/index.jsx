@@ -49,7 +49,7 @@ const UserLogin = () => {
             dispatch(setUserInfo(response.users[0]));
             dispatch(setSuccess(true));
             setLoading(false);
-            router.push('/Home');
+            router.push('/analytics');
           })
           .catch((error) => {
             dispatch(setSuccess(false));
