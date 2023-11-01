@@ -51,7 +51,6 @@ const CleanAirAbout = () => {
         showButton={false}
         link="#"
         imageStyle={{
-          borderRadius: '8px',
           objectFit: 'cover'
         }}
         imgURL={Section2}
@@ -65,6 +64,9 @@ const CleanAirAbout = () => {
         pillTitle="CLEAN-Air"
         content="CLEAN-Air, an acronym coined from ‘Championing Liveable urban Environments through African Networks for Air’, brings together stakeholders and researchers in air quality management from over 16 cities across the African continent to share best practices and knowledge on developing and implementing air quality management solutions."
         imgURL={Section3}
+        imageStyle={{
+          objectFit: 'cover'
+        }}
         bgColor="#FFFFFF"
         pillBgColor="#ECF2FF"
         pillTextColor="#135DFF"
@@ -81,8 +83,6 @@ const CleanAirAbout = () => {
         btnText={'Join the Network -->'}
         imgURL={Section4}
         imageStyle={{
-          width: '100%',
-          height: '100%',
           objectFit: 'cover'
         }}
         bgColor="#EDF3FF"
@@ -99,7 +99,6 @@ const CleanAirAbout = () => {
         pillTextColor="#135DFF"
         reverse
         imageStyle={{
-          borderRadius: '8px',
           objectFit: 'cover'
         }}
         showButton={false}>
