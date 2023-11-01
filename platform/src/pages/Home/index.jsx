@@ -18,6 +18,12 @@ const StepProgress = ({ step, totalSteps }) => {
   return (
     <div className='flex items-center justify-end'>
       <svg height={radius * 2} width={radius * 2}>
+        <defs>
+          <mask id='round'>
+            <rect width='100%' height='100%' fill='#fff' />
+            <circle cx={radius} cy={radius} r={normalizedRadius - stroke / 2} fill='#000' />
+          </mask>
+        </defs>
         <circle
           stroke='#E1E7EC'
           fill='transparent'
@@ -35,6 +41,7 @@ const StepProgress = ({ step, totalSteps }) => {
           r={normalizedRadius}
           cx={radius}
           cy={radius}
+          mask='url(#round)'
         />
         <text x='50%' y='50%' textAnchor='middle' fill='#536A87' fontSize='18px' dy='.4em'>
           {step}/{totalSteps}
@@ -102,7 +109,8 @@ const Home = () => {
           {steps.map((step, index) => (
             <div
               key={index}
-              className='w-full h-[250px] flex flex-col justify-between items-start border-[0.5px] rounded-xl border-grey-150 py-5 px-3 space-y-5'>
+              className='w-full h-[250px] flex flex-col justify-between items-start border-[0.5px] rounded-xl border-grey-150 py-5 px-3 space-y-5 focus:outline-blue-600 focus:ring-2 focus:shadow-lg focus:border-blue-600'
+              tabIndex={0}>
               <div className='w-full'>
                 {step.completed ? (
                   <div className='w-14 h-14 flex justify-center items-center rounded-full bg-blue-900'>
