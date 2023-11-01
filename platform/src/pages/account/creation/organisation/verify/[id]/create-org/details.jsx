@@ -3,7 +3,7 @@ import AccountPageLayout from '@/components/Account/Layout';
 import ProgressComponent from '@/components/Account/ProgressComponent';
 import HintIcon from '@/icons/Actions/exclamation.svg';
 import { useDispatch, useSelector } from 'react-redux';
-import SearchIcon from '@/icons/Actions/search.svg';
+import SearchIcon from '@/icons/Common/search_md.svg';
 import Spinner from '@/components/Spinner';
 import { useRouter } from 'next/router';
 import {
