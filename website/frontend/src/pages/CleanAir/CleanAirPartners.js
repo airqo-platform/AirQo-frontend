@@ -119,8 +119,8 @@ const CleanAirPartners = () => {
         content="
         Individuals actively involved in air quality work in Africa are strongly recommended to
         join the CLEAN-Air Africa Network."
-        // btnText={'Register your interest'}
-        // link="#"
+        btnText={'Register your interest'}
+        link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
         bgColor="#F2F1F6"
         btnStyle={{ width: 'auto' }}
       />

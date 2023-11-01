@@ -1,19 +1,12 @@
 import React from 'react';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { SplitSection, MainHighlight, ButtonCTA } from 'components/CleanAir';
-import Section1 from 'assets/img/cleanAir/section1.jpg';
-import Section2 from 'assets/img/cleanAir/section2.png';
-import Section3 from 'assets/img/cleanAir/section3.png';
-import Section4 from 'assets/img/cleanAir/section4.png';
-import Section5 from 'assets/img/cleanAir/section5.png';
-import T1 from 'assets/img/cleanAir/6.jpg';
+import Section1 from 'assets/img/cleanAir/clean.jpeg';
+import Section2 from 'assets/img/cleanAir/mission.jpeg';
+import Section3 from 'assets/img/cleanAir/acronym.jpg';
+import Section4 from 'assets/img/cleanAir/synergy.jpg';
+import Section5 from 'assets/img/cleanAir/goals.JPG';
 import SEO from 'utilities/seo';
-
-const Button = ({ className, label, onClick, style }) => (
-  <button className={className || 'button-hero'} onClick={onClick} style={style}>
-    {label}
-  </button>
-);
 
 const CleanAirAbout = () => {
   useInitScrollTop();
@@ -27,7 +20,7 @@ const CleanAirAbout = () => {
       {/* section 1 */}
       <div className="Hero">
         <span className="image-container">
-          <img src={T1} />
+          <img src={Section1} />
         </span>
         <div className="hero-content">
           <div>
@@ -57,34 +50,45 @@ const CleanAirAbout = () => {
         btnText={'Learn how -->'}
         showButton={false}
         link="#"
+        imageStyle={{
+          borderRadius: '8px',
+          objectFit: 'cover'
+        }}
         imgURL={Section2}
         bgColor="#EDF3FF"
         pillBgColor="#FFFFFF"
         pillTextColor="#000000"
+        reverse
       />
       {/* section 3 */}
       <SplitSection
         pillTitle="CLEAN-Air"
         content="CLEAN-Air, an acronym coined from ‘Championing Liveable urban Environments through African Networks for Air’, brings together stakeholders and researchers in air quality management from over 16 cities across the African continent to share best practices and knowledge on developing and implementing air quality management solutions."
         imgURL={Section3}
-        imageStyle={{
-          width: '214px',
-          height: '214px',
-          objectFit: 'cover'
-        }}
         bgColor="#FFFFFF"
         pillBgColor="#ECF2FF"
         pillTextColor="#135DFF"
-        reverse
         showButton={false}
       />
       {/* section 4 */}
       <SplitSection
         pillTitle="CLEAN-Air Membership"
         title="A Synergy for air quality in Africa"
-        content="Are you an organization or individual interested in air quality in Africa? We implore you to join the CLEAN-Air Africa Network. <br/> <br/> The CLEAN-Air network is supported by development partners and philanthropic organizations, including the U.S. Department of State, Google.org, which have an established history of pioneering continuous air quality monitoring in data-hungry cities through the U.S. Embassies across Africa."
+        content=" The CLEAN-Air network is supported by development partners and philanthropic organizations, including the U.S. Department of State, Google.org, which have an established history of pioneering continuous air quality monitoring in data-hungry cities through the U.S. Embassies across Africa.<br/> <br/>
+        Are you an organization or individual interested in air quality in Africa? We implore you to join the CLEAN-Air Africa Network. 
+        "
         link="#"
         btnText={'Get involved -->'}
+        customBtn={
+          <ButtonCTA
+            label="Join the Network"
+            link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
+            style={{
+              width: '200px',
+              marginTop: '2rem'
+            }}
+          />
+        }
         imgURL={Section4}
         imageStyle={{
           width: '100%',
@@ -94,7 +98,7 @@ const CleanAirAbout = () => {
         bgColor="#EDF3FF"
         pillBgColor="#FFFFFF"
         pillTextColor="#000000"
-        showButton={false}
+        showButton={true}
       />
       {/* section 5 */}
       <SplitSection
@@ -103,6 +107,11 @@ const CleanAirAbout = () => {
         bgColor="#FFFFFF"
         pillBgColor="#ECF2FF"
         pillTextColor="#135DFF"
+        reverse
+        imageStyle={{
+          borderRadius: '8px',
+          objectFit: 'cover'
+        }}
         showButton={false}>
         <div
           style={{

@@ -14,7 +14,8 @@ const SplitSection = ({
   pillTextColor,
   imageStyle,
   showButton,
-  children
+  children,
+  customBtn
 }) => {
   return (
     <div className="splitSection-section" style={{ backgroundColor: bgColor }}>
@@ -40,13 +41,16 @@ const SplitSection = ({
             ''
           )}
           {children ? <span className="content-p">{children}</span> : ''}
-          {showButton && btnText && link && (
-            <Link to={link} target="_blank">
-              <span id="second-pill">
-                <p>{btnText}</p>
-              </span>
-            </Link>
-          )}
+          {showButton &&
+            (customBtn ? (
+              customBtn
+            ) : (
+              <Link to={link} target="_blank">
+                <span id="second-pill">
+                  <p>{btnText}</p>
+                </span>
+              </Link>
+            ))}
         </div>
         <div className="splitSection-image">
           <img className="splitSection-img" src={imgURL} style={imageStyle} alt="" />
