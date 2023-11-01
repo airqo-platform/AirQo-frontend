@@ -8,8 +8,14 @@ import Explore from './tabs/Explore';
 import CustomCalendar from '@/components/Calendar/CustomCalendar';
 import TabButtons from '@/components/Button/TabButtons';
 import SettingsIcon from '@/icons/settings.svg';
+import CustomiseLocationsComponent from '@/components/Customise';
 
 const AuthenticatedHomePage = () => {
+  const [customise, setCustomise] = useState(false);
+
+  const toggleCustomise = () => {
+    customise ? setCustomise(false) : setCustomise(true);
+  };
   const renderChildrenRight = () => {
     return [
       {
@@ -27,7 +33,7 @@ const AuthenticatedHomePage = () => {
               }
               dropdown
             />
-            <TabButtons Icon={SettingsIcon} btnText='Customize' />
+            <TabButtons Icon={SettingsIcon} btnText='Customize' onClick={() => toggleCustomise()} />
           </div>
         ),
       },
@@ -47,6 +53,7 @@ const AuthenticatedHomePage = () => {
           <Explore />
         </Tab>
       </Tabs>
+      {customise && <CustomiseLocationsComponent toggleCustomise={toggleCustomise} />}
     </Layout>
   );
 };
