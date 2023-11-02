@@ -90,7 +90,9 @@ const Home = () => {
     <Layout noBorderBottom>
       <div className='px-3 lg:px-16 py-3 space-y-5'>
         <div className='w-full mb-4 md:mb-10'>
-          <h1 className='text-[32px] leading-10 font-medium'>Welcome, {userData?.firstName} 👋</h1>
+          <h1 className='text-[32px] leading-10 font-medium'>
+            Welcome, <span className='capitalize'>{userData?.firstName}</span> 👋
+          </h1>
         </div>
 
         <div className='w-full flex justify-between items-center'>
