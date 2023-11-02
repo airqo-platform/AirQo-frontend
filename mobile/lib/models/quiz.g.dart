@@ -37,6 +37,7 @@ const _$QuizStatusEnumMap = {
   QuizStatus.todo: 'TODO',
   QuizStatus.inProgress: 'IN_PROGRESS',
   QuizStatus.complete: 'COMPLETE',
+  QuizStatus.redo: 'REDO',
 };
 
 QuizQuestion _$QuizQuestionFromJson(Map<String, dynamic> json) => QuizQuestion(

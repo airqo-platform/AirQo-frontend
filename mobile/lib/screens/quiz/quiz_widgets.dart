@@ -8,6 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
+import 'package:app/models/models.dart';
+
+import 'package:app/themes/app_theme.dart';
+import 'package:app/themes/colors.dart';
+
 class QuizSkipButton extends StatelessWidget {
   const QuizSkipButton({
     super.key,
@@ -129,25 +134,41 @@ class QuizProgressBar extends StatelessWidget {
 }
 
 class QuizCardProgressBar extends StatelessWidget {
-  const QuizCardProgressBar(this.activeQuestion, this.totalQuestions,
+  const QuizCardProgressBar(this.activeQuestion, this.totalQuestions, this.quiz,
       {super.key});
   final int activeQuestion;
   final int totalQuestions;
+  final Quiz quiz;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 6,
       width: MediaQuery.of(context).size.width * 0.87,
+      // child: ClipRRect(
+      //   borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
+      //   child: LinearProgressIndicator(
+      //     color: CustomColors.appColorBlue,
+      //     value: activeQuestion == 1 ? 0 : activeQuestion / totalQuestions,
+      //     backgroundColor: CustomColors.appColorBlue.withOpacity(0.24),
+      //     valueColor: AlwaysStoppedAnimation<Color>(CustomColors.appColorBlue),
+      //   ),
       child: ClipRRect(
         borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
         child: LinearProgressIndicator(
-          color: CustomColors.appColorBlue,
-          value: activeQuestion == 1 ? 0 : activeQuestion / totalQuestions,
+          color: quiz.status == QuizStatus.redo
+              ? CustomColors.appColorBlue.withOpacity(0.50)
+              : CustomColors.appColorBlue,
+          value: quiz.status == QuizStatus.redo
+              ? 1.0
+              : quiz.activeQuestion == 1
+                  ? 0
+                  : quiz.activeQuestion / quiz.questions.length,
           backgroundColor: CustomColors.appColorBlue.withOpacity(0.24),
           valueColor: AlwaysStoppedAnimation<Color>(CustomColors.appColorBlue),
         ),
       ),
+      // ),
     );
   }
 }

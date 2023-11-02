@@ -351,6 +351,7 @@ class QuizCard extends StatelessWidget {
       ),
       onPressed: () async {
         switch (quiz.status) {
+          case QuizStatus.redo:
           case QuizStatus.todo:
             context
                 .read<CurrentQuizQuestionCubit>()
@@ -380,7 +381,21 @@ class QuizCard extends StatelessWidget {
                 context
                     .read<CurrentQuizQuestionCubit>()
                     .setQuestion(quiz.questions.first);
-                await bottomSheetQuizConffeti(quiz, context);
+                response = await bottomSheetQuizConffeti(quiz, context);
+              }
+              if (response != null && response == true) {
+                context.read<KyaBloc>().add(
+                      UpdateQuizProgress(
+                        quiz.copyWith(
+                          status: QuizStatus.redo,
+                        ),
+                        updateRemote: true,
+                      ),
+                    );
+                context
+                    .read<CurrentQuizQuestionCubit>()
+                    .setQuestion(quiz.questions.first);
+                await bottomSheetQuizTitle(quiz, context);
                 response;
               }
             }
@@ -408,7 +423,7 @@ class QuizCard extends StatelessWidget {
             context.read<KyaBloc>().add(
                   UpdateQuizProgress(
                     quiz.copyWith(
-                      status: QuizStatus.todo,
+                      status: QuizStatus.redo,
                       activeQuestion: 1,
                     ),
                   ),
@@ -441,59 +456,11 @@ class QuizCard extends StatelessWidget {
                     .read<CurrentQuizQuestionCubit>()
                     .setQuestion(quiz.questions.first);
                 await bottomSheetQuizConffeti(quiz, context);
+                response;
+                
               }
             }
         }
-        // if (quiz.status != QuizStatus.todo) {
-        //   dynamic response = await bottomSheetQuizQuestion(quiz, context);
-        //   if (response != null && response == true) {
-        //     response = await bottomSheetQuizConffeti(quiz, context);
-        //     context.read<KyaBloc>().add(
-        //           UpdateQuizProgress(
-        //             quiz.copyWith(
-        //               activeQuestion: 1,
-        //               status: QuizStatus.complete,
-        //             ),
-        //             updateRemote: true,
-        //           ),
-        //         );
-        //     context
-        //         .read<CurrentQuizQuestionCubit>()
-        //         .setQuestion(quiz.questions.first);
-        //   }
-        // } else {
-        //   context
-        //       .read<CurrentQuizQuestionCubit>()
-        //       .setQuestion(quiz.questions.first);
-        //   dynamic response = await bottomSheetQuizTitle(quiz, context);
-        //   if (response != null &&
-        //       response == true &&
-        //       quiz.status != QuizStatus.complete) {
-        //     context.read<KyaBloc>().add(
-        //           UpdateQuizProgress(
-        //               quiz.copyWith(
-        //                 status: QuizStatus.inProgress,
-        //               ),
-        //               updateRemote: true),
-        //         );
-        //     response = await bottomSheetQuizQuestion(quiz, context);
-        //     if (response != null && response == true) {
-        //       context.read<KyaBloc>().add(
-        //             UpdateQuizProgress(
-        //               quiz.copyWith(
-        //                 activeQuestion: 1,
-        //                 status: QuizStatus.complete,
-        //               ),
-        //               updateRemote: true,
-        //             ),
-        //           );
-        //       context
-        //           .read<CurrentQuizQuestionCubit>()
-        //           .setQuestion(quiz.questions.first);
-        //       await bottomSheetQuizConffeti(quiz, context);
-        //     }
-        //   }
-        // }
       },
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -515,47 +482,99 @@ class QuizCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                QuizMessageChip(quiz),
                 Visibility(
-                  visible: quiz.status != QuizStatus.todo &&
-                      quiz.activeQuestion != 1,
-                  child: QuizProgressBar(
-                      quiz.activeQuestion, quiz.questions.length),
+                  visible: quiz.status == QuizStatus.todo ||
+                      quiz.activeQuestion >= 1,
+                  child: Row(
+                    children: [
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.44,
+                          maxHeight: 4,
+                        ),
+                        child: QuizCardProgressBar(
+                          quiz.activeQuestion,
+                          quiz.questions.length,
+                          quiz,
+                        ),
+                      ),
+                      (quiz.status == QuizStatus.redo)
+                          ? Container(
+                              height: 19,
+                              width: 19,
+                              padding: const EdgeInsets.fromLTRB(1, 1, 1, 1),
+                              decoration: BoxDecoration(
+                                color:
+                                    CustomColors.appColorBlue.withOpacity(0.24),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.check_circle_rounded,
+                                color: CustomColors.appColorBlue,
+                                size: 17,
+                              ),
+                            )
+                          : Container(
+                              height: 19,
+                              width: 19,
+                              padding: const EdgeInsets.fromLTRB(3, 5, 3, 1),
+                              decoration: BoxDecoration(
+                                color:
+                                    CustomColors.appColorBlue.withOpacity(0.24),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                "${quiz.activeQuestion == 1 ? 0 : quiz.activeQuestion - 1}/${quiz.questions.length - 1}",
+                                style: TextStyle(
+                                  color: CustomColors.appColorBlue,
+                                  fontSize: 7,
+                                ),
+                              ),
+                            ),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  flex: 1,
+                  child: QuizMessageChip(quiz),
                 ),
               ],
             ),
           ),
           const Spacer(),
           SizedBox(
-            width: MediaQuery.of(context).size.width * 0.05,
+            width: MediaQuery.of(context).size.width * 0.04,
           ),
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.27,
-            height: 112,
-            child: CachedNetworkImage(
-              imageUrl: quiz.imageUrl,
-              imageBuilder: (context, imageProvider) => Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8.0),
-                  image: DecorationImage(
-                    fit: BoxFit.cover,
-                    image: imageProvider,
+          FittedBox(
+            fit: BoxFit.cover,
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.27,
+              height: 112,
+              child: CachedNetworkImage(
+                imageUrl: quiz.imageUrl,
+                imageBuilder: (context, imageProvider) => Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.0),
+                    image: DecorationImage(
+                      fit: BoxFit.cover,
+                      image: imageProvider,
+                    ),
                   ),
                 ),
-              ),
-              placeholder: (context, url) => const ContainerLoadingAnimation(
-                radius: 8,
-                height: 112,
-              ),
-              errorWidget: (context, url, error) => Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8.0),
-                  color: Colors.grey,
+                placeholder: (context, url) => const ContainerLoadingAnimation(
+                  radius: 8,
+                  height: 112,
                 ),
-                child: const Center(
-                  child: Icon(
-                    Icons.error,
-                    color: Colors.white,
+                errorWidget: (context, url, error) => Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.0),
+                    color: Colors.grey,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.error,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
