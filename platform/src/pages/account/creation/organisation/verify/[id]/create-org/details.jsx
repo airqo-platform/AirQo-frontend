@@ -198,7 +198,6 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
   });
   const orgDetails = useSelector((state) => state.creation.org_creation_response);
   const organisationId = orgDetails._id
-  console.log(organisationId)
   countries.registerLocale(englishLocale);
   const industryList = [
     'Textiles',
@@ -363,7 +362,7 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
               <div className='mt-2 w-full'>
                 <select
                   className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'
-                  onChange={(e) => setOrgCountry(e.target.value)}>
+                  onChange={(e) => setOrgIndustry(e.target.value)}>
                   {industryList.map((country, key) => (
                     <option key={key} value={country}>
                       {country}
@@ -379,7 +378,7 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
               <div className='mt-2 w-full flex flex-row'>
                 <select
                   className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'
-                  onChange={(e) => setOrgIndustry(e.target.value)}>
+                  onChange={(e) => setOrgCountry(e.target.value)}>
                   {Object.entries(countryList).map(([code, country], key) => (
                     <option key={code} value={country}>
                       {country}
@@ -433,7 +432,7 @@ const CreateOrganisationDetailsPageThree = () => {
   const router = useRouter();
   const gridLocationsData = useSelector((state) => state.grids.gridLocations);
   const grp_id = useSelector((state)=>state.creation.orgUpdate.grp_id)
-  const [location, setLocation] = useState(undefined);
+  const [location, setLocation] = useState('');
   const [inputSelect, setInputSelect] = useState(false);
   const [locationArray, setLocationArray] = useState([]);
   const [filteredLocations, setFilteredLocations] = useState(gridLocationsData);
@@ -454,16 +453,16 @@ const CreateOrganisationDetailsPageThree = () => {
     setFilteredLocations(locationList);
   };
 
-  const handleLocationSelect = (name) => {
-    locationArray.includes(name)
-      ? setLocationArray(locationArray.filter((location) => location !== name))
-      : setLocationArray((locations) => [...locations, name]);
+  const handleLocationSelect = (item) => {
+    locationArray.includes(item)
+      ? setLocationArray(locationArray.filter((location) => location._id !== item._id))
+      : setLocationArray((locations) => [...locations, item]);
     setInputSelect(true);
     setLocation('');
   };
 
-  const removeLocation = (name) => {
-    setLocationArray(locationArray.filter((location) => location !== name));
+  const removeLocation = (item) => {
+    setLocationArray(locationArray.filter((location) => location._id !== item._id));
   };
 
   const handleSubmit = async(e) => {
@@ -525,20 +524,20 @@ const CreateOrganisationDetailsPageThree = () => {
                   className='input text-sm w-full h-12 rounded-lg bg-white border-l-0 rounded-l-none border-input-light-outline focus:border-input-light-outline'
                 />
               </div>
-              {location !== undefined && (
+              {location !== '' && (
                 <div
                   className={`bg-white max-h-48 overflow-y-scroll px-3 pt-2 pr-1 my-1 border border-input-light-outline rounded-md ${
                     inputSelect ? 'hidden' : 'relative'
                   }`}>
                   {filteredLocations.length > 0 ? (
-                    filteredLocations.map((location) => (
+                    filteredLocations.map((location, key) => (
                       <div
                         className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer'
                         onClick={() => {
-                          handleLocationSelect(location.long_name);
-                        }}>
+                          handleLocationSelect(location);
+                        }} key={key}>
                         <LocationIcon />
-                        <div key={location._id} className='text-sm ml-1 text-black capitalize'>
+                        <div className='text-sm ml-1 text-black capitalize'>
                           {location.long_name}
                         </div>
                       </div>
@@ -559,9 +558,9 @@ const CreateOrganisationDetailsPageThree = () => {
           {inputSelect && (
             <div className='mt-4 flex flex-row flex-wrap'>
               {locationArray.length > 0 ? (
-                locationArray.map((location) => (
-                  <div className='bg-green-150 flex flex-row items-center mr-2 px-3 py-1 rounded-xl mb-2'>
-                    <span className='text-sm text-blue-600 font-semibold mr-1'>{location}</span>
+                locationArray.map((location, key) => (
+                  <div className='bg-green-150 flex flex-row items-center mr-2 px-3 py-1 rounded-xl mb-2' key={key}>
+                    <span className='text-sm text-blue-600 font-semibold mr-1'>{location.long_name}</span>
                     <div onClick={() => removeLocation(location)} className='hover:cursor-pointer'>
                       <CloseIcon style={{ margin: '0 3px' }} />
                     </div>
@@ -618,7 +617,7 @@ const CreateOrganisationDetails = () => {
 
   return (
     <AccountPageLayout childrenHeight={'lg:h-[500]'} childrenTop={'mt-8'}>
-      {nextComponent === 'pageOne' && (
+      {nextComponent === 'pageThree' && (
         <CreateOrganisationDetailsPageOne handleComponentSwitch={() => handleSwitchTo('pageTwo')} />
       )}
       {nextComponent === 'pageTwo' && (
@@ -626,7 +625,7 @@ const CreateOrganisationDetails = () => {
           handleComponentSwitch={() => handleSwitchTo('pageThree')}
         />
       )}
-      {nextComponent === 'pageThree' && <CreateOrganisationDetailsPageThree />}
+      {nextComponent === 'pageOne' && <CreateOrganisationDetailsPageThree />}
     </AccountPageLayout>
   );
 };
