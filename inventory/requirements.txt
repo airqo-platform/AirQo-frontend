@@ -37,7 +37,6 @@ platformdirs==3.9.1
 poetry==1.5.1
 poetry-core==1.6.1
 poetry-plugin-export==1.4.0
-psycopg2==2.9.6
 psycopg2-binary==2.9.6
 ptyprocess==0.7.0
 pypng==0.20220715.0
