@@ -4,7 +4,7 @@ import Button from '@/components/Button';
 import Modal from '@/components/Modal/Modal';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateUserDetails } from '@/core/apis/Account';
+import { updateUserCreationDetails } from '@/core/apis/Account';
 import ClockIcon from '@/icons/Settings/clock.svg';
 import AlertBox from '@/components/AlertBox';
 import countries from 'i18n-iso-countries';
@@ -108,7 +108,7 @@ const Profile = () => {
       return;
     }
     try {
-      updateUserDetails(userID, userData)
+      updateUserCreationDetails(userData, userID)
         .then((response) => {
           localStorage.setItem('loggedUser', JSON.stringify({ _id: userID, ...response.user }));
           dispatch(setUserInfo({ _id: userID, ...response.user }));
@@ -236,7 +236,10 @@ const Profile = () => {
         .then(async (responseData) => {
           setUserData({ ...userData, profilePicture: responseData.secure_url });
           const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
-          return await updateUserDetails(userID, { profilePicture: responseData.secure_url })
+          return await updateUserCreationDetails(
+            { profilePicture: responseData.secure_url },
+            userID,
+          )
             .then((responseData) => {
               localStorage.setItem('loggedUser', JSON.stringify({ _id: userID, ...userData }));
               dispatch(setUserInfo({ _id: userID, ...userData }));
@@ -278,7 +281,7 @@ const Profile = () => {
     setUserData({ ...userData, profilePicture: '' });
 
     const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
-    updateUserDetails(userID, { profilePicture: '' })
+    updateUserCreationDetails({ profilePicture: '' }, userID)
       .then((response) => {
         localStorage.setItem(
           'loggedUser',
