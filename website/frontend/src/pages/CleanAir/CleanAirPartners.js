@@ -65,13 +65,17 @@ const CleanAirPartners = () => {
 
       <div className="partners">
         <div className="partners-wrapper">
-          <h2 className="partners-intro">
-            The CLEAN-Air Network is a multi-regional network, strengthening cross-regional air
-            quality networks and fostering partnerships to enable collective learning and knowledge
-            sharing. We have a growing list of partners from diverse disciplines across different
-            parts of the world, reflecting the multi-disciplinary tackling the air pollution
-            challenge.
-          </h2>
+          <div className="partners-intro">
+            <p>
+              The CLEAN-Air Network is a multi-regional network, strengthening cross-regional air
+              quality networks and fostering partnerships to enable collective learning and
+              knowledge sharing.
+            </p>
+            <p>
+              We have a growing list of partners from diverse disciplines across different parts of
+              the world, reflecting the multi-disciplinary tackling the air pollution challenge.
+            </p>
+          </div>
         </div>
       </div>
 
