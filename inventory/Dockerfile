@@ -5,6 +5,7 @@ FROM python:3.11.4-slim-buster
 WORKDIR /app
 
 # Copy the current directory contents into the container at /app
+COPY .env /app
 COPY . /app
 
 # Install any needed packages specified in requirements.txt
