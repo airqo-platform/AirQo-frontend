@@ -31,7 +31,7 @@ env.read_env()
 SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env("DEBUG", default=False, cast=bool)
+DEBUG = env.bool("DEBUG", default=False)
 
 ALLOWED_HOSTS = ['*']
 
@@ -95,7 +95,7 @@ DATABASES = {
         'USER': env("DB_USER"),
         'PASSWORD': env("DB_PASSWORD"),
         'HOST': env("DB_HOST"),
-        'PORT': '5432',
+        'PORT': env("DB_PORT"),
     }
 }
 
