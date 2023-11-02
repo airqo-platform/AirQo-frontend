@@ -32,7 +32,7 @@ class Stock(models.Model):
 
 class StockHistory(models.Model):
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE, null=True)
-    item_name = models.CharField(null=True)
+    item_name = models.CharField(null=True, max_length=100)
     stock_in = models.PositiveIntegerField(null=True)
     stock_out = models.PositiveIntegerField(null=True)
     stock_in_date = models.DateField(null=True)
@@ -55,7 +55,7 @@ class Casing (models.Model):
 
 class Production (models.Model):
     batch_number = models.CharField(max_length=100)
-    phase = models.CharField(choices=PHASES,null=True)
+    phase = models.CharField(choices=PHASES,null=True, max_length=100)
     quantity_in = models.PositiveIntegerField(null=True)
     quantity_out = models.PositiveIntegerField(null=True)
     date_start = models.DateField(auto_now_add=True)
