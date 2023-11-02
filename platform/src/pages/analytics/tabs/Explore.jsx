@@ -21,7 +21,7 @@ const Explore = () => {
   ];
 
   return (
-    <div className='px-3 lg:px-16 py-3 space-y-4'>
+    <div className='px-3 lg:px-16 pb-3 space-y-4'>
       <div className='flex justify-between items-center flex-wrap space-y-2'>
         <div className='flex space-x-3'>
           <CustomCalendar
@@ -38,7 +38,8 @@ const Explore = () => {
               window.innerWidth <= 768
                 ? { top: '36px', zIndex: 9999, right: '0px' }
                 : { top: '36px', zIndex: 9999, left: '0px' }
-            }>
+            }
+          >
             {timeOptions.map((option) => (
               <span
                 key={option}
@@ -47,7 +48,8 @@ const Explore = () => {
                 }}
                 className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                   chartData.timeFrame === option ? 'bg-gray-100' : ''
-                }`}>
+                }`}
+              >
                 <span className='flex items-center space-x-2'>
                   <span>{option.charAt(0).toUpperCase() + option.slice(1)}</span>
                 </span>
@@ -64,7 +66,8 @@ const Explore = () => {
               window.innerWidth <= 768
                 ? { top: '36px', zIndex: 9999, left: '0px' }
                 : { top: '36px', zIndex: 9999, right: '0px' }
-            }>
+            }
+          >
             {chartOptions.map((option) => (
               <span
                 key={option.id}
@@ -73,7 +76,8 @@ const Explore = () => {
                 }}
                 className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                   chartData.chartType === option.id ? 'bg-gray-100' : ''
-                }`}>
+                }`}
+              >
                 <span className='flex items-center space-x-2'>
                   {option.icon}
                   <span>{option.name}</span>
