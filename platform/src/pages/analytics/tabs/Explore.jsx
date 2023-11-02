@@ -34,11 +34,7 @@ const Explore = () => {
           <CustomDropdown
             trigger={<TabButtons btnText={chartData.timeFrame} dropdown />}
             id='days'
-            dropStyle={
-              window.innerWidth <= 768
-                ? { top: '36px', zIndex: 9999, right: '0px' }
-                : { top: '36px', zIndex: 9999, left: '0px' }
-            }
+            dropStyle={{ top: '36px', zIndex: 9999, left: '0px' }}
           >
             {timeOptions.map((option) => (
               <span
@@ -62,11 +58,7 @@ const Explore = () => {
           <CustomDropdown
             trigger={<TabButtons Icon={BarChart} btnText='Chart' dropdown />}
             id='charts'
-            dropStyle={
-              window.innerWidth <= 768
-                ? { top: '36px', zIndex: 9999, left: '0px' }
-                : { top: '36px', zIndex: 9999, right: '0px' }
-            }
+            dropStyle={{ top: '36px', zIndex: 9999, right: '0px' }}
           >
             {chartOptions.map((option) => (
               <span

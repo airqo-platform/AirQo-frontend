@@ -31,8 +31,8 @@ export const loadPM25HeatMapData = () => async (dispatch) => {
   }
 };
 
-export const loadMapEventsData = (params) => async (dispatch) => {
-  return await getEventsApi(params)
+export const loadMapEventsData = () => async (dispatch) => {
+  return await getEventsApi()
     .then((responseData) => {
       if (responseData.measurements) {
         const payload = transformDataToGeoJson(
@@ -42,8 +42,8 @@ export const loadMapEventsData = (params) => async (dispatch) => {
             latitude: 'Latitude'
           },
           (feature) => [
-            feature.siteDetails && feature.siteDetails.longitude,
-            feature.siteDetails && feature.siteDetails.latitude
+            feature.siteDetails && feature.siteDetails.approximate_longitude,
+            feature.siteDetails && feature.siteDetails.approximate_latitude
           ]
         );
 

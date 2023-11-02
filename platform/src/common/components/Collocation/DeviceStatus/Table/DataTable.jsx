@@ -12,7 +12,7 @@ import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation'
 import Dropdown from '@/components/Dropdowns/Dropdown';
 import InfoIcon from '@/icons/Common/info_circle.svg';
 import Modal from '@/components/Modal/Modal';
-import axios from 'axios';
+import createAxiosInstance from '@/core/apis/axiosConfig';
 import { DELETE_COLLOCATION_DEVICE } from '@/core/urls/deviceMonitoring';
 import ReportDetailCard from '../ReportDetailPopup';
 
@@ -102,7 +102,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
       batchId: batchId,
     };
 
-    axios
+    createAxiosInstance()
       .delete(DELETE_COLLOCATION_DEVICE, { params: data })
       .then((response) => {
         setVisible(false);
@@ -125,7 +125,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
       devices: device,
     };
 
-    axios
+    createAxiosInstance()
       .delete(DELETE_COLLOCATION_DEVICE, { params: data })
       .then((response) => {
         setVisibleDeleteDevice(false);
@@ -209,8 +209,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
 
       <table
         className='border-collapse text-xs text-left w-full mb-6'
-        data-testid='collocation-device-status-summary'
-      >
+        data-testid='collocation-device-status-summary'>
         <thead>
           <tr className='border-b border-b-slate-300 text-black'>
             <th scope='col' className='font-normal w-[61px] py-[10px] px-[21px]'>
@@ -262,8 +261,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     onMouseEnter={() => setHoveredRowIndex(index)}
                     onMouseLeave={() => setHoveredRowIndex(null)}
                     onFocus={() => setFocusedRowIndex(index)}
-                    onBlur={() => setFocusedRowIndex(null)}
-                  >
+                    onBlur={() => setFocusedRowIndex(null)}>
                     <td scope='row' className='w-[61px] py-[10px] px-[21px]'>
                       <input
                         type='checkbox'
@@ -300,8 +298,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                         }}
                         className={`max-w-[96px] h-5 pl-2 pr-0.5 py-0.5 ${
                           STATUS_COLOR_CODES[device.status.toLowerCase()]
-                        } rounded-lg justify-start items-center gap-1 inline-flex cursor-pointer`}
-                      >
+                        } rounded-lg justify-start items-center gap-1 inline-flex cursor-pointer`}>
                         <div className='text-center text-neutral-800 capitalize'>
                           {device.status.toLowerCase()}
                         </div>
