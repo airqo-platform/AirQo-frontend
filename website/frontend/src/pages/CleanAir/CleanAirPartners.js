@@ -63,6 +63,7 @@ const CleanAirPartners = () => {
         description="Meet the partners of CLEAN-Air Africa Network, a diverse group of organizations and individuals dedicated to improving air quality across Africa. Join us in our mission to foster innovative air quality solutions and effective air quality management strategies."
       />
 
+      {/* intro */}
       <div className="partners">
         <div className="partners-wrapper">
           <div className="partners-intro">
