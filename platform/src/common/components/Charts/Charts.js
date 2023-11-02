@@ -20,7 +20,15 @@ import UnhealthySG from '@/icons/Charts/UnhealthySG';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
 import { useSelector, useDispatch } from 'react-redux';
+import { getUserDefaults } from '@/core/apis/Account';
+import {
+  setChartSites,
+  setChartDataRange,
+  setTimeFrame,
+  setChartType,
+} from '@/lib/store/services/charts/ChartSlice';
 import Spinner from '@/components/Spinner';
+import { resetChartStore } from '@/lib/store/services/charts/ChartSlice';
 
 const colors = ['#11225A', '#0A46EB', '#297EFF', '#B8D9FF'];
 
@@ -269,28 +277,68 @@ const renderCustomizedLegend = (props) => {
 const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state?.chart);
+  const userInfo = useSelector((state) => state?.login?.userInfo);
   const [analyticsData, setAnalyticsData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const defaultSites = [
-      '64a7b5637d31df001e6b7dae',
-      '64a5755320511a001d1b4a3e',
-      '64a2737f682da700297f9d5c',
-      '64a0f81beb6f7700296cfeff',
-    ];
+    const getDefaults = async () => {
+      try {
+        const response = await getUserDefaults();
+        const defaults = response.defaults;
+        const userDefaults = defaults.find((item) => item.user === userInfo._id);
 
-    const body = {
-      sites: chartData.sites && chartData.sites.length > 0 ? chartData.sites : defaultSites,
-      startDate: new Date(chartData.chartDataRange.startDate).toISOString(),
-      endDate: new Date(chartData.chartDataRange.endDate).toISOString(),
-      chartType: chartData.chartType,
-      frequency: chartData.timeFrame,
-      pollutant: 'pm2_5',
-      organisation_name: 'airqo',
+        if (userDefaults) {
+          updateChart(userDefaults);
+        }
+      } catch (error) {
+        console.error(`Error getting user defaults: ${error}`);
+        dispatch(resetChartStore());
+      }
     };
 
+    const updateChart = (userDefaults) => {
+      const { chartType, frequency, startDate, endDate, period, sites } = userDefaults;
+
+      if (chartType) {
+        dispatch(setChartType(chartType));
+      }
+      if (frequency) {
+        dispatch(setTimeFrame(frequency));
+      }
+      if (startDate && endDate && period && period.label) {
+        dispatch(
+          setChartDataRange({
+            startDate: new Date(startDate),
+            endDate: new Date(endDate),
+            label: period.label,
+          }),
+        );
+      }
+      if (sites) {
+        dispatch(setChartSites(sites));
+      }
+    };
+
+    getDefaults();
+  }, []);
+
+  useEffect(() => {
+    let isCancelled = false;
+
     const getAnalytics = async () => {
+      if (!chartData) return;
+
+      const body = {
+        sites: chartData.chartSites,
+        startDate: new Date(chartData.chartDataRange.startDate).toISOString(),
+        endDate: new Date(chartData.chartDataRange.endDate).toISOString(),
+        chartType: chartData.chartType,
+        frequency: chartData.timeFrame,
+        pollutant: 'pm2_5',
+        organisation_name: 'airqo',
+      };
+
       // Check if all properties of body are set and not null
       const allPropertiesSet = Object.values(body).every(
         (property) => property !== undefined && property !== null,
@@ -300,21 +348,29 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
         setIsLoading(true);
         try {
           const response = await getAnalyticsData(body);
-          if (response.data.length > 0) {
-            setAnalyticsData(response.data);
-          } else {
-            setAnalyticsData(null);
+          if (!isCancelled) {
+            setAnalyticsData(response.data.length > 0 ? response.data : null);
           }
         } catch (error) {
-          console.error(error);
+          if (!isCancelled) {
+            console.error(`Error getting analytics data: ${error}`);
+          }
         } finally {
-          setIsLoading(false);
+          if (!isCancelled) {
+            setIsLoading(false);
+          }
         }
       }
     };
+
     getAnalytics();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [chartData]);
 
+  // Loading
   if (isLoading) {
     return (
       <div className='ml-10 flex justify-center items-center w-full h-full'>
@@ -323,6 +379,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
     );
   }
 
+  // No data for this time range
   if (analyticsData === null) {
     return (
       <div className='ml-10 flex justify-center items-center w-full h-full'>
