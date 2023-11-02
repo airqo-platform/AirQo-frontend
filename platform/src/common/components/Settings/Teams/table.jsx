@@ -18,16 +18,19 @@ const TeamsTable = ({ users, isLoading }) => {
             <th scope='col' className='font-medium w-[175px] px-4 py-3 opacity-40'>
               Name
             </th>
-            <th scope='col' className='font-medium w-[175px] px-4 py-3 opacity-40'>
+            <th scope='col' className='font-medium w-[118px] px-4 py-3 opacity-40'>
               Status
             </th>
-            <th scope='col' className='font-medium w-[175px] px-4 py-3 opacity-40'>
+            <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
               Date joined
             </th>
-            <th scope='col' className='font-medium w-[175px] px-4 py-3 opacity-40'>
+            <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
+              Last seen
+            </th>
+            <th scope='col' className='font-medium w-[140px] px-4 py-3 opacity-40'>
               Job title
             </th>
-            <th scope='col' className='font-medium w-[175px] px-4 py-3 opacity-40'>
+            <th scope='col' className='font-medium w-[110px] px-4 py-3 opacity-40'>
               Role
             </th>
           </tr>
@@ -50,7 +53,7 @@ const TeamsTable = ({ users, isLoading }) => {
                     onFocus={() => setFocusedRowIndex(index)}
                     onBlur={() => setFocusedRowIndex(null)}
                   >
-                    <td scope='row' className='w-[175px] px-4 py-3'>
+                    <td scope='row' className='w-[322px] px-4 py-3'>
                       <div className='flex gap-3'>
                         <>
                           {user.profileImage ? (
@@ -77,32 +80,38 @@ const TeamsTable = ({ users, isLoading }) => {
                         </div>
                       </div>
                     </td>
-                    <td scope='row' className='w-[175px] px-4 py-3'>
+                    <td scope='row' className='w-[118px] px-4 py-3'>
                       <div
-                        className={`px-2 py-[2px] rounded-2xl w-auto inline-flex justify-center items-center mx-auto ${
-                          user.status && user.status.toLowerCase() === 'active'
+                        className={`px-2 py-[2px] rounded-2xl w-auto inline-flex justify-center text-sm items-center mx-auto ${
+                          user.isActive === 'active'
                             ? 'bg-success-50 text-success-700'
                             : 'bg-secondary-neutral-light-50 text-secondary-neutral-light-500'
                         }`}
                       >
-                        {user.status}
+                        {user.isActive === 'active' ? 'Active' : 'Pending'}
                       </div>
                     </td>
                     <td
                       scope='row'
-                      className='w-[175px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
+                      className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
                     >
                       {moment(user.createdAt).format('MMM DD, YYYY')}
                     </td>
                     <td
                       scope='row'
-                      className='w-[175px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
+                      className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
+                    >
+                      {user.isActive && moment(user.lastLogin).format('MMM DD, YYYY')}
+                    </td>
+                    <td
+                      scope='row'
+                      className='w-[140px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400 capitalize'
                     >
                       {user.jobTitle}
                     </td>
                     <td
                       scope='row'
-                      className='w-[175px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
+                      className='w-[110px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
                     >
                       {user.role_name}
                     </td>

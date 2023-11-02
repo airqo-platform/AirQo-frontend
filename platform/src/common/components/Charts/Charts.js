@@ -206,12 +206,37 @@ const CustomDot = (props) => {
   return <circle cx={cx} cy={cy} r={6} fill={fill} />;
 };
 
+const CustomTooltip = ({ tooltipText, children, direction, themeClass }) => {
+  const [visible, setVisible] = useState(false);
+
+  const tooltipClass = {
+    top: 'bottom-full mb-3',
+    bottom: 'top-full mt-3',
+  }[direction];
+
+  return (
+    <div
+      className='relative'
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}>
+      {children}
+      {visible && (
+        <div
+          className={`absolute ${tooltipClass} ${
+            themeClass ? themeClass : 'bg-white text-center text-gray-700'
+          } p-2 w-48 rounded-md shadow-lg z-10`}>
+          <p className='text-sm'>{tooltipText}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const renderCustomizedLegend = (props) => {
   const { payload } = props;
 
   // Sort the payload array from darkest to lightest color
   const sortedPayload = payload.sort((a, b) => {
-    // Convert color to grayscale for comparison
     const colorToGrayscale = (color) => {
       if (color) {
         const hex = color.replace('#', '');
@@ -228,15 +253,14 @@ const renderCustomizedLegend = (props) => {
   return (
     <div className='p-2 md:p-0 flex flex-wrap flex-col md:flex-row md:justify-end mt-2 space-y-2 md:space-y-0 md:space-x-4'>
       {sortedPayload.map((entry, index) => (
-        <div
-          key={`item-${index}`}
-          style={{ color: entry.color }}
-          className='flex space-x-2 items-center text-sm'>
-          <div
-            className='w-[10px] h-[10px] rounded-xl mr-1 ml-1'
-            style={{ backgroundColor: entry.color }}></div>
-          {truncate(entry.value)}
-        </div>
+        <CustomTooltip key={`item-${index}`} tooltipText={entry.value} direction='top'>
+          <div style={{ color: entry.color }} className='flex space-x-2 items-center text-sm'>
+            <div
+              className='w-[10px] h-[10px] rounded-xl mr-1 ml-1'
+              style={{ backgroundColor: entry.color }}></div>
+            {truncate(entry.value)}
+          </div>
+        </CustomTooltip>
       ))}
     </div>
   );

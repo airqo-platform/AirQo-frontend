@@ -20,11 +20,7 @@ const AuthenticatedHomePage = () => {
               initialStartDate={new Date()}
               initialEndDate={new Date()}
               id='datePicker'
-              position={
-                window.innerWidth <= 768
-                  ? { top: '40px', left: '0px' }
-                  : { top: '40px', right: '0px' }
-              }
+              position={window.innerWidth <= 768 ? { left: '60px' } : { right: '0px' }}
               dropdown
             />
             <TabButtons Icon={SettingsIcon} btnText='Customize' />
