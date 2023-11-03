@@ -5,6 +5,7 @@ import {
   USERS_URL,
   GROUPS_URL,
   UPDATE_USER_DETAILS_URL,
+  USER_DEFAULTS_URL,
 } from '../urls/authentication';
 import createAxiosInstance from './axiosConfig';
 
@@ -75,4 +76,20 @@ export const updateOrganisationApi = async (data, identifier) => {
   } catch (error) {
     return error;
   }
+};
+
+export const getUserDefaults = async () => {
+  return await createAxiosInstance()
+    .get(USER_DEFAULTS_URL)
+    .then((response) => response.data);
+};
+
+export const updateUserDefaults = async (userId, defaults) => {
+  return await createAxiosInstance()
+    .put(USER_DEFAULTS_URL, defaults, {
+      params: {
+        id: userId,
+      },
+    })
+    .then((response) => response.data);
 };
