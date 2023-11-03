@@ -20,21 +20,8 @@ import UnhealthySG from '@/icons/Charts/UnhealthySG';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
 import { useSelector, useDispatch } from 'react-redux';
-import {
-  fetchUserDefaults,
-  clearChartStore,
-  updateDefaults,
-} from '@/lib/store/services/charts/userDefaultsSlice';
-import {
-  setChartSites,
-  setChartDataRange,
-  setTimeFrame,
-  setChartType,
-  setPollutant,
-  setDefaultID,
-} from '@/lib/store/services/charts/ChartSlice';
 import Spinner from '@/components/Spinner';
-import { resetChartStore } from '@/lib/store/services/charts/ChartSlice';
+import { setChartData } from '@/lib/store/services/charts/ChartSlice';
 
 const colors = ['#11225A', '#0A46EB', '#297EFF', '#B8D9FF'];
 
@@ -282,77 +269,10 @@ const renderCustomizedLegend = (props) => {
 
 // Custom hook to fetch analytics data
 const useAnalytics = () => {
-  const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
-  const userInfo = useSelector((state) => state.login.userInfo);
-
   const [analyticsData, setAnalyticsData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  const updateChart = useCallback(
-    (userDefaults) => {
-      const { chartType, frequency, startDate, endDate, period, sites, pollutant, _id } =
-        userDefaults;
-
-      if (_id) {
-        dispatch(setDefaultID(_id));
-      }
-      if (chartType) {
-        dispatch(setChartType(chartType));
-      }
-      if (frequency) {
-        dispatch(setTimeFrame(frequency));
-      }
-      if (pollutant) {
-        dispatch(setPollutant(pollutant));
-      }
-      if (startDate && endDate && period && period.label) {
-        dispatch(
-          setChartDataRange({
-            startDate: new Date(startDate),
-            endDate: new Date(endDate),
-            label: period.label,
-          }),
-        );
-      }
-      if (sites) {
-        dispatch(setChartSites(sites));
-      }
-    },
-    [dispatch],
-  );
-
-  // useEffect(() => {
-  //   if (userInfo?._id) {
-  //     dispatch(fetchUserDefaults(userInfo._id));
-  //   }
-  // }, [dispatch, userInfo]);
-
-  // const userDefaults = useSelector((state) => state.userDefaults.defaults);
-  // const status = useSelector((state) => state.userDefaults.status);
-  // const error = useSelector((state) => state.userDefaults.error);
-
-  // useEffect(() => {
-  //   if (status === 'succeeded' && userDefaults) {
-  //     dispatch(
-  //       updateDefaults({
-  //         defaultId: userDefaults._id,
-  //         defaults: {
-  //           chartType: chartData.chartType,
-  //           frequency: chartData.timeFrame,
-  //           startDate: chartData.chartDataRange.startDate,
-  //           endDate: chartData.chartDataRange.endDate,
-  //           period: { label: chartData.chartDataRange.label },
-  //         },
-  //       }),
-  //     );
-  //     updateChart(userDefaults);
-  //   } else if (status === 'failed') {
-  //     console.error(`Error getting user defaults: ${error}`);
-  //     dispatch(resetChartStore());
-  //     dispatch(clearChartStore());
-  //   }
-  // }, [status, error, userInfo]);
+  const [currentAccount, setCurrentAccount] = useState(chartData.userDefaultID);
 
   useEffect(() => {
     let isCancelled = false;
@@ -379,7 +299,7 @@ const useAnalytics = () => {
         setIsLoading(true);
         try {
           const response = await getAnalyticsData(body);
-          if (!isCancelled) {
+          if (!isCancelled && currentAccount === chartData.userDefaultID) {
             setAnalyticsData(response.data.length > 0 ? response.data : null);
           }
         } catch (error) {
@@ -399,7 +319,11 @@ const useAnalytics = () => {
     return () => {
       isCancelled = true;
     };
-  }, [chartData]);
+  }, [chartData, currentAccount]);
+
+  useEffect(() => {
+    setCurrentAccount(chartData.userDefaultID);
+  }, [chartData.userDefaultID]);
 
   return { analyticsData, isLoading };
 };

@@ -25,6 +25,7 @@ const initialState = {
   },
   chartSites: defaultChartSites,
   userDefaultID: null,
+  chartAnalyticsData: [],
   chartTab: 0,
 };
 
@@ -56,12 +57,16 @@ export const chartSlice = createSlice({
     setDefaultID: (state, action) => {
       state.userDefaultID = action.payload;
     },
+    setChartData: (state, action) => {
+      state.chartAnalyticsData = action.payload;
+    },
     resetChartStore: (state) => {
       state.chartType = 'line';
-      state.timeFrame = 'Daily';
+      state.timeFrame = 'daily';
       state.pollutionType = 'pm2_5';
       state.organizationName = 'airqo';
       state.userDefaultID = null;
+      state.chartAnalyticsData = [];
       state.chartDataRange = {
         startDate: getStartDate(),
         endDate: new Date(),
@@ -82,6 +87,7 @@ export const {
   setPollutant,
   setOrganizationName,
   setDefaultID,
+  setChartData,
 } = chartSlice.actions;
 
 export default chartSlice.reducer;
