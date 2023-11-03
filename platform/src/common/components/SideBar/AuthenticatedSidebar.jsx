@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import HomeSmileIcon from '@/icons/SideBar/home_smile.svg';
 import CollapseIcon from '@/icons/SideBar/Collapse.svg';
-import SettingsIcon from '@/icons/SideBar/settings_02.svg';
-import BarChartSqIcon from '@/icons/SideBar/bar_chart.svg';
 import { useWindowSize } from '@/lib/windowSize';
 import SideBarItem, { SideBarDropdownItem, SidebarIconItem } from './SideBarItem';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import CloseIcon from '@/icons/close_icon';
-import CollocationIcon from '@/icons/SideBar/collocation.svg';
+import HomeIcon from '@/icons/SideBar/HomeIcon';
+import SettingsIcon from '@/icons/SideBar/SettingsIcon';
+import BarChartIcon from '@/icons/SideBar/BarChartIcon';
+import CollocateIcon from '@/icons/SideBar/CollocateIcon';
 
 const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCollapsed }) => {
   const sideBarDisplayStyle = toggleDrawer ? 'flex fixed left-0 z-50' : 'hidden';
@@ -57,8 +57,7 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
       <div
         className={`${
           size.width >= 1024 ? 'flex' : sideBarDisplayStyle
-        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200`}
-      >
+        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200`}>
         <div>
           <div className='p-4 justify-between items-center flex'>
             <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
@@ -68,26 +67,25 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
             <button
               type='button'
               className='lg:hidden relative flex items-center justify-end z-10 w-auto focus:outline-none border border-gray-200 rounded-md'
-              onClick={() => setToggleDrawer(!toggleDrawer)}
-            >
+              onClick={() => setToggleDrawer(!toggleDrawer)}>
               <CloseIcon />
             </button>
           </div>
           <div className='mt-3 mx-2'>
-            <SideBarItem label='Analytics' Icon={BarChartSqIcon} navPath='/analytics' />
+            <SideBarItem label='Home' Icon={HomeIcon} navPath='/Home' />
+            <SideBarItem label='Analytics' Icon={BarChartIcon} navPath='/analytics' />
             <SideBarItem
               label='Collocation'
-              Icon={CollocationIcon}
+              Icon={CollocateIcon}
               dropdown
               toggleMethod={() => setCollocationOpen(!collocationOpen)}
-              toggleState={collocationOpen}
-            >
+              toggleState={collocationOpen}>
               <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
               <SideBarDropdownItem itemLabel='Collocate' itemPath='/collocation/collocate' />
             </SideBarItem>
           </div>
         </div>
-        <div className='mx-2'>
+        <div className='mx-2 mb-3'>
           <SideBarItem label='Settings' Icon={SettingsIcon} navPath={'/settings'} />
         </div>
       </div>
@@ -97,20 +95,20 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
       <div
         className={`${
           size.width >= 1024 ? 'flex' : sideBarDisplayStyle
-        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200`}
-      >
+        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200`}>
         <div className='flex flex-col items-center justify-center'>
           <div className='p-4 justify-between items-center flex'>
             <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
           </div>
           <div className='mt-3 mx-2'>
-            <SidebarIconItem IconComponent={HomeSmileIcon} isActive={true} navPath='#' />
+            <SidebarIconItem IconComponent={HomeIcon} navPath='/Home' />
+            <SidebarIconItem IconComponent={BarChartIcon} navPath='/analytics' />
             <hr className='my-3 h-[0.5px] bg-grey-150' />
-            <SidebarIconItem IconComponent={CollocationIcon} isActive={false} navPath='#' />
+            <SidebarIconItem IconComponent={CollocateIcon} navPath='#' />
           </div>
         </div>
         <div className='mx-2 mb-2 flex items-center justify-center'>
-          <SidebarIconItem IconComponent={SettingsIcon} isActive={false} navPath='/settings' />
+          <SidebarIconItem IconComponent={SettingsIcon} navPath='/settings' />
         </div>
       </div>
     </div>

@@ -24,6 +24,7 @@ Profile _$ProfileFromJson(Map<String, dynamic> json) => Profile(
       lastRated: json['last_rated'] == null
           ? null
           : DateTime.parse(json['last_rated'] as String),
+      analyticsMongoID: json['analyticsMongoID'] as String? ?? '',
     );
 
 Map<String, dynamic> _$ProfileToJson(Profile instance) => <String, dynamic>{
@@ -42,4 +43,5 @@ Map<String, dynamic> _$ProfileToJson(Profile instance) => <String, dynamic>{
       'isAnonymous': instance.isAnonymous,
       'isSignedIn': instance.isSignedIn,
       'last_rated': instance.lastRated?.toIso8601String(),
+      'analyticsMongoID': instance.analyticsMongoID,
     };

@@ -4,7 +4,13 @@ import TopBar from '@/components/TopBar';
 
 const Layout = ({ children, topbarTitle, noBorderBottom }) => {
   const [toggleDrawer, setToggleDrawer] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(
+    () => JSON.parse(localStorage.getItem('collapsed')) || false,
+  );
+
+  useEffect(() => {
+    localStorage.setItem('collapsed', collapsed);
+  }, [collapsed]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 1024px)');
