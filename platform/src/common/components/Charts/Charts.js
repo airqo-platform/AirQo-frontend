@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   LineChart,
   Line,
@@ -20,12 +20,18 @@ import UnhealthySG from '@/icons/Charts/UnhealthySG';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
 import { useSelector, useDispatch } from 'react-redux';
-import { getUserDefaults } from '@/core/apis/Account';
+import {
+  fetchUserDefaults,
+  clearChartStore,
+  updateDefaults,
+} from '@/lib/store/services/charts/userDefaultsSlice';
 import {
   setChartSites,
   setChartDataRange,
   setTimeFrame,
   setChartType,
+  setPollutant,
+  setDefaultID,
 } from '@/lib/store/services/charts/ChartSlice';
 import Spinner from '@/components/Spinner';
 import { resetChartStore } from '@/lib/store/services/charts/ChartSlice';
@@ -274,37 +280,31 @@ const renderCustomizedLegend = (props) => {
   );
 };
 
-const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
+// Custom hook to fetch analytics data
+const useAnalytics = () => {
   const dispatch = useDispatch();
-  const chartData = useSelector((state) => state?.chart);
-  const userInfo = useSelector((state) => state?.login?.userInfo);
+  const chartData = useSelector((state) => state.chart);
+  const userInfo = useSelector((state) => state.login.userInfo);
+
   const [analyticsData, setAnalyticsData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const getDefaults = async () => {
-      try {
-        const response = await getUserDefaults();
-        const defaults = response.defaults;
-        const userDefaults = defaults.find((item) => item.user === userInfo._id);
+  const updateChart = useCallback(
+    (userDefaults) => {
+      const { chartType, frequency, startDate, endDate, period, sites, pollutant, _id } =
+        userDefaults;
 
-        if (userDefaults) {
-          updateChart(userDefaults);
-        }
-      } catch (error) {
-        console.error(`Error getting user defaults: ${error}`);
-        dispatch(resetChartStore());
+      if (_id) {
+        dispatch(setDefaultID(_id));
       }
-    };
-
-    const updateChart = (userDefaults) => {
-      const { chartType, frequency, startDate, endDate, period, sites } = userDefaults;
-
       if (chartType) {
         dispatch(setChartType(chartType));
       }
       if (frequency) {
         dispatch(setTimeFrame(frequency));
+      }
+      if (pollutant) {
+        dispatch(setPollutant(pollutant));
       }
       if (startDate && endDate && period && period.label) {
         dispatch(
@@ -318,10 +318,41 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
       if (sites) {
         dispatch(setChartSites(sites));
       }
-    };
+    },
+    [dispatch],
+  );
 
-    getDefaults();
-  }, []);
+  // useEffect(() => {
+  //   if (userInfo?._id) {
+  //     dispatch(fetchUserDefaults(userInfo._id));
+  //   }
+  // }, [dispatch, userInfo]);
+
+  // const userDefaults = useSelector((state) => state.userDefaults.defaults);
+  // const status = useSelector((state) => state.userDefaults.status);
+  // const error = useSelector((state) => state.userDefaults.error);
+
+  // useEffect(() => {
+  //   if (status === 'succeeded' && userDefaults) {
+  //     dispatch(
+  //       updateDefaults({
+  //         defaultId: userDefaults._id,
+  //         defaults: {
+  //           chartType: chartData.chartType,
+  //           frequency: chartData.timeFrame,
+  //           startDate: chartData.chartDataRange.startDate,
+  //           endDate: chartData.chartDataRange.endDate,
+  //           period: { label: chartData.chartDataRange.label },
+  //         },
+  //       }),
+  //     );
+  //     updateChart(userDefaults);
+  //   } else if (status === 'failed') {
+  //     console.error(`Error getting user defaults: ${error}`);
+  //     dispatch(resetChartStore());
+  //     dispatch(clearChartStore());
+  //   }
+  // }, [status, error, userInfo]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -335,8 +366,8 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
         endDate: new Date(chartData.chartDataRange.endDate).toISOString(),
         chartType: chartData.chartType,
         frequency: chartData.timeFrame,
-        pollutant: 'pm2_5',
-        organisation_name: 'airqo',
+        pollutant: chartData.pollutionType,
+        organisation_name: chartData.organizationName,
       };
 
       // Check if all properties of body are set and not null
@@ -369,6 +400,12 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
       isCancelled = true;
     };
   }, [chartData]);
+
+  return { analyticsData, isLoading };
+};
+
+const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
+  const { analyticsData, isLoading } = useAnalytics();
 
   // Loading
   if (isLoading) {
