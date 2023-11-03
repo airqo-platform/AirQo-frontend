@@ -277,7 +277,7 @@ export const deleteUser = (userToDelete) => {
     const id = userToDelete._id;
 
     dispatch(deleteUserRequest(userToDelete));
-    return axios
+    return createAxiosInstance()
       .delete(GET_USERS_URI, { params: { id } })
       .then((response) => response.data)
       .then((data) => {
@@ -330,7 +330,7 @@ export const deleteUserFailed = (error) => {
 /************************* Register a new User  *****************************/
 export const registerCandidate = (tenant, userData, callback) => (dispatch) => {
   return (
-    axios
+    createAxiosInstance(false)
       .post(REGISTER_CANDIDATE_URI, userData, { params: { tenant } })
       .then((res) => {
         if (res.data.success) {
@@ -384,7 +384,7 @@ export const registrationSuccess = (data) => {
 /************************* Login a new User  *********************************/
 export const loginUser = (userData) => (dispatch) => {
   const tenant = userData.organization;
-  createAxiosInstance()
+  createAxiosInstance(false)
     .post(LOGIN_USER_URI, userData, { params: { tenant } })
     .then((res) => {
       try {
@@ -425,7 +425,7 @@ export const loginUser = (userData) => (dispatch) => {
 
 // Login - forgot password
 export const forgotPassword = (userData) => (dispatch) => {
-  createAxiosInstance()
+  createAxiosInstance(false)
     .post(FORGOT_PWD_URI, userData)
     .then((response) => {
       if (response.data === 'email not recognized') {
@@ -602,11 +602,8 @@ export const updatePassword = (userData) => (dispatch, getState) => {
 
 export const updateProfile = (userData) => (dispatch) => {
   dispatch({ type: UPDATE_PROFILE_REQUEST });
-  return axios({
-    method: 'put',
-    url: GET_USERS_URI,
-    data: userData
-  })
+  return createAxiosInstance()
+    .put(GET_USERS_URI, userData)
     .then((response) => {
       if (response) {
         dispatch({
@@ -665,7 +662,7 @@ export const setDefaultsFailed = (error) => {
 export const fetchDefaults = (userId) => {
   return (dispatch) => {
     dispatch(fetchDefaultsRequest());
-    return axios
+    return createAxiosInstance()
       .get(`${DEFAULTS_URI}/${userId}`)
       .then((response) => response.data)
       .then((responseData) => {
