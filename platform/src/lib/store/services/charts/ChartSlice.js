@@ -1,10 +1,10 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const defaultChartSites = [
-  '64a7b5637d31df001e6b7dae',
-  '64a5755320511a001d1b4a3e',
-  '64a2737f682da700297f9d5c',
-  '64a0f81beb6f7700296cfeff',
+  '647f3a5d69df500029a2fc93',
+  '6461df90dab86000293ba49f',
+  '64aafb1843e5f70029a059c4',
+  '6373928b7c737c001e78554f',
 ];
 
 const getStartDate = () => {
