@@ -300,7 +300,7 @@ const UsersTable = (props) => {
                       Update
                     </Button>
 
-                    <Button style={{ color: 'red' }} onClick={() => showDeleteDialog(user)}>
+                    <Button disabled={true} color="info" onClick={() => showDeleteDialog(user)}>
                       Delete
                     </Button>
                   </div>
