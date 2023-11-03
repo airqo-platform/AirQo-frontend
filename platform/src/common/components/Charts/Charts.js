@@ -329,6 +329,7 @@ const useAnalytics = () => {
 };
 
 const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
+  const chartData = useSelector((state) => state.chart);
   const { analyticsData, isLoading } = useAnalytics();
 
   // Loading
@@ -412,7 +413,13 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
                 return tick;
               }
             }}>
-            <Label value='PM2.5' position='insideTopRight' offset={0} fontSize={12} dy={-35} />
+            <Label
+              value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
+              position='insideTopRight'
+              offset={0}
+              fontSize={12}
+              dy={-35}
+            />
           </YAxis>
           <Legend
             content={renderCustomizedLegend}
@@ -460,7 +467,13 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
                 return tick;
               }
             }}>
-            <Label value='PM2.5' position='insideTopRight' offset={0} fontSize={12} dy={-35} />
+            <Label
+              value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
+              position='insideTopRight'
+              offset={0}
+              fontSize={12}
+              dy={-35}
+            />
           </YAxis>
           <Legend
             content={renderCustomizedLegend}

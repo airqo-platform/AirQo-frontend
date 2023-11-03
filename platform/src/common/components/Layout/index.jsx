@@ -23,32 +23,29 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
   const SUCCEEDED = 'succeeded';
   const FAILED = 'failed';
 
-  // Redux hooks
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.login.userInfo);
   const userDefaults = useSelector((state) => state.userDefaults.defaults);
   const status = useSelector((state) => state.userDefaults.status);
   const error = useSelector((state) => state.userDefaults.error);
-
-  // State hooks
   const [toggleDrawer, setToggleDrawer] = useState(false);
   const [collapsed, setCollapsed] = useState(
     () => JSON.parse(localStorage.getItem('collapsed')) || false,
   );
 
-  // Effect hook for fetching user defaults
+  // fetching user defaults
   useEffect(() => {
     if (userInfo?._id) {
       dispatch(fetchUserDefaults(userInfo._id));
     }
   }, [dispatch, userInfo]);
 
-  // Effect hook for setting collapsed state in local storage
+  // setting collapsed state in local storage
   useEffect(() => {
     localStorage.setItem('collapsed', collapsed);
   }, [collapsed]);
 
-  // Effect hook for handling media query change
+  // handling media query change
   useEffect(() => {
     const mediaQuery = window.matchMedia(MAX_WIDTH);
     const handleMediaQueryChange = (e) => {
