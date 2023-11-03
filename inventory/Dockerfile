@@ -16,7 +16,6 @@ RUN pip install python-decouple
 EXPOSE 8000
 
 # Start the Django development server
-CMD python manage.py makemigrations && \
-    python manage.py migrate && \
+CMD python manage.py migrate && \
     python manage.py collectstatic --noinput && \
-    gunicorn --bind=0.0.0.0:8000 Inventory.wsgi
+    gunicorn --bind=0.0.0.0:8080 Inventory.wsgi
