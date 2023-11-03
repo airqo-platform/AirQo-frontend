@@ -26,7 +26,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
           return NoKyaWidget(
             callBack: () {
               context.read<KyaBloc>().add(const FetchKya());
-              context.read<KyaBloc>().add(const FetchQuizzes());
+              //context.read<KyaBloc>().add(const FetchQuizzes());
             },
           );
         }
@@ -36,14 +36,22 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
         final completeKya = state.lessons
             .where((lesson) => lesson.status == KyaLessonStatus.complete)
             .toList();
-        final completeQuizzes = state.quizzes
-            .where((quiz) => quiz.status == QuizStatus.complete)
-            .toList();
+        // final completeQuizzes = state.quizzes
+        //     .where((quiz) => quiz.status == QuizStatus.complete)
+        //     .toList();
+
+        // final inCompleteQuizzes = state.quizzes
+        //     .where((quiz) =>
+        //         (quiz.status == QuizStatus.inProgress) ||
+        //         (quiz.status == QuizStatus.todo) ||
+        //         (quiz.status == QuizStatus.redo))
+        //     .toList();
+        final allQuizzes = state.quizzes.toList();
 
         List<Widget> children = [];
 
-        if (completeQuizzes.isNotEmpty) {
-          children.addAll(completeQuizzes
+        if (allQuizzes.isNotEmpty) {
+          children.addAll(allQuizzes
               .map(
                 (quiz) => Column(
                   children: [
@@ -56,6 +64,22 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
               )
               .toList());
         }
+        // else if (completeQuizzes.isNotEmpty) {
+        //   children.addAll(completeQuizzes
+        //       .map(
+        //         (quiz) => Column(
+        //           children: [
+        //             QuizCard(quiz),
+        //             const SizedBox(height: 10),
+        //           ],
+        //         ),
+        //       )
+        //       .toList());
+        // } else if (inCompleteQuizzes.isNotEmpty) {
+        //   children.add(QuizCard(
+        //     inCompleteQuizzes.first,
+        //   ));
+        // }
 
         if (completeKya.isNotEmpty) {
           children.addAll(completeKya

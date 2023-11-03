@@ -156,10 +156,9 @@ class QuizCardProgressBar extends StatelessWidget {
       child: ClipRRect(
         borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
         child: LinearProgressIndicator(
-          color: quiz.status == QuizStatus.redo
-              ? CustomColors.appColorBlue.withOpacity(0.50)
-              : CustomColors.appColorBlue,
-          value: quiz.status == QuizStatus.redo
+          color: CustomColors.appColorBlue,
+          value: (quiz.hasCompleted == true && quiz.activeQuestion >= 1 && quiz.status==QuizStatus.todo) ||
+                  quiz.status == QuizStatus.complete
               ? 1.0
               : quiz.activeQuestion == 1
                   ? 0
@@ -168,6 +167,7 @@ class QuizCardProgressBar extends StatelessWidget {
           valueColor: AlwaysStoppedAnimation<Color>(CustomColors.appColorBlue),
         ),
       ),
+
       // ),
     );
   }

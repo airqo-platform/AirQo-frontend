@@ -81,6 +81,7 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
           .map((e) => e.copyWith(
                 status: QuizStatus.todo,
                 activeQuestion: 1,
+                hasCompleted: false,
               ))
           .toList();
     }

@@ -120,16 +120,12 @@ extension KyaExt on KyaLesson {
 
 extension QuizExt on Quiz {
   String getQuizMessage(BuildContext context) {
-    switch (status) {
-      case QuizStatus.todo:
-        return AppLocalizations.of(context)!.takeQuiz;
-      case QuizStatus.inProgress:
-      case QuizStatus.complete:
-      case QuizStatus.redo:
-        if (activeQuestion == 1) {
-          return AppLocalizations.of(context)!.reDoQuiz;
-        }
-        return AppLocalizations.of(context)!.continueLearning;
+    if (!hasCompleted) {
+      return AppLocalizations.of(context)!.takeQuiz;
+    } else if (activeQuestion == 1 ) {
+      return AppLocalizations.of(context)!.reDoQuiz;
+    } else {
+      return AppLocalizations.of(context)!.continueLearning;
     }
   }
 }
