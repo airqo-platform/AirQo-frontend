@@ -19,9 +19,8 @@ import Unhealthy from '@/icons/Charts/Unhealthy';
 import UnhealthySG from '@/icons/Charts/UnhealthySG';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import Spinner from '@/components/Spinner';
-import { setChartData } from '@/lib/store/services/charts/ChartSlice';
 
 const colors = ['#11225A', '#0A46EB', '#297EFF', '#B8D9FF'];
 

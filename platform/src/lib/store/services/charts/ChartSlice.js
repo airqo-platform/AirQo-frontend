@@ -13,20 +13,27 @@ const getStartDate = () => {
   return startDate;
 };
 
+const defaultChartTab = 0;
+const defaultChartType = 'line';
+const defaultTimeFrame = 'daily';
+const defaultPollutionType = 'pm2_5';
+const defaultOrganizationName = 'airqo';
+const defaultChartDataRange = {
+  startDate: getStartDate(),
+  endDate: new Date(),
+  label: 'Last 7 days',
+};
+
 const initialState = {
-  chartType: 'line',
-  timeFrame: 'daily',
-  pollutionType: 'pm2_5',
-  organizationName: 'airqo',
-  chartDataRange: {
-    startDate: getStartDate(),
-    endDate: new Date(),
-    label: 'Last 7 days',
-  },
+  chartType: defaultChartType,
+  timeFrame: defaultTimeFrame,
+  pollutionType: defaultPollutionType,
+  organizationName: defaultOrganizationName,
+  chartDataRange: defaultChartDataRange,
   chartSites: defaultChartSites,
   userDefaultID: null,
   chartAnalyticsData: [],
-  chartTab: 0,
+  chartTab: defaultChartTab,
 };
 
 export const chartSlice = createSlice({
@@ -61,18 +68,15 @@ export const chartSlice = createSlice({
       state.chartAnalyticsData = action.payload;
     },
     resetChartStore: (state) => {
-      state.chartType = 'line';
-      state.timeFrame = 'daily';
-      state.pollutionType = 'pm2_5';
-      state.organizationName = 'airqo';
+      state.chartType = defaultChartType;
+      state.timeFrame = defaultTimeFrame;
+      state.pollutionType = defaultPollutionType;
+      state.organizationName = defaultOrganizationName;
+      state.chartDataRange = defaultChartDataRange;
+      state.chartSites = defaultChartSites;
       state.userDefaultID = null;
       state.chartAnalyticsData = [];
-      state.chartDataRange = {
-        startDate: getStartDate(),
-        endDate: new Date(),
-        label: 'Last 7 days',
-      };
-      state.chartSites = defaultChartSites;
+      state.chartTab = defaultChartTab;
     },
   },
 });
