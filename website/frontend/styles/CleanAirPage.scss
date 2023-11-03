@@ -6,6 +6,7 @@
   height: 100%;
   position: relative;
   overflow: hidden;
+  margin: 0 auto;
 
   .header-wrapper {
     width: 100%;
@@ -43,7 +44,7 @@
         padding-top: 126px;
         span {
           color: $aq-white-0;
-          font-size: 14px;
+          font-size: 20px;
           font-weight: 400;
           line-height: 28px;
         }
@@ -146,7 +147,7 @@
       }
     }
 
-    .cleanAir-section {
+    .splitSection-section {
       display: grid;
       grid-template-columns: $gridColumn;
       padding: 80px 0;
@@ -159,12 +160,13 @@
         grid-gap: 50px;
         padding: 5px;
         height: auto;
+        align-items: center;
 
-        .cleanAir-content {
+        .splitSection-content {
           display: flex;
           flex-direction: column;
           flex-wrap: nowrap;
-          margin: 75px 0 0 0;
+          // margin: 75px 0 0 0;
 
           #first-pill {
             display: inline-flex;
@@ -231,9 +233,9 @@
           }
         }
 
-        .cleanAir-image {
+        .splitSection-image {
           width: 100%;
-          height: 100%;
+          height: auto;
           margin: 0;
           padding: 0;
           display: flex;
@@ -241,7 +243,7 @@
           align-content: center;
           align-items: center;
 
-          .cleanAir-img {
+          .splitSection-img {
             float: right;
             width: 517px;
             height: 398px;
@@ -257,8 +259,9 @@
         grid-gap: 50px;
         padding: 5px;
         height: auto;
+        align-items: center;
 
-        .cleanAir-image {
+        .splitSection-image {
           order: 1;
           margin: 0;
           padding: 0;
@@ -266,20 +269,23 @@
           justify-content: center;
           align-content: center;
           align-items: center;
+          width: 100%;
+          height: auto;
 
-          .cleanAir-img {
+          .splitSection-img {
             width: 517px;
             height: 398px;
             float: left;
+            border-radius: 8px;
           }
         }
 
-        .cleanAir-content {
+        .splitSection-content {
           order: 2;
           display: flex;
           flex-direction: column;
           flex-wrap: nowrap;
-          margin: 75px 0 0 0;
+          // margin: 75px 0 0 0;
 
           #first-pill {
             display: inline-flex;
@@ -345,6 +351,65 @@
           }
         }
       }
+    }
+
+    .single-section {
+      position: relative;
+      width: 100%;
+      height: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto;
+      padding: 80px 0;
+      background-color: $aq-blue-1;
+
+      .content {
+        width: auto;
+        height: auto;
+        display: flex;
+        max-width: $maxWidth;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+        padding: 0;
+
+        .content-h {
+          color: $aq-black-0;
+          font-weight: 500;
+          font-size: $headingFont;
+          margin-bottom: 24px;
+          padding: 0;
+        }
+        .content-p {
+          text-align: center;
+          padding: 20px 48px;
+          color: #353e52;
+          font-weight: 400;
+          font-size: $miniHeadingFont;
+          line-height: 48px;
+          margin: 0;
+        }
+
+        .button {
+          width: 100%;
+          height: auto;
+          display: flex;
+          align-self: center;
+          justify-content: center;
+          align-items: center;
+          padding: 0;
+        }
+      }
+    }
+
+    .separator-1 {
+      max-width: $maxWidth;
+      border: 16px solid $aq-blue-3;
+      margin-top: 40px;
+      margin-bottom: 0;
     }
 
     .article {
@@ -589,6 +654,61 @@
         }
       }
     }
+
+    .partners {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto;
+      padding: 0;
+      max-width: $maxWidth;
+      height: auto;
+      overflow: hidden;
+
+      .partners-wrapper {
+        position: relative;
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        margin: 10px auto;
+        padding: 0 16px;
+
+        .partners-intro {
+          font-size: 36px;
+          font-weight: 500;
+          line-height: 44px;
+          color: $aq-black-5;
+          font-style: normal;
+          margin-top: 70px;
+        }
+
+        .partners-list {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
+          height: auto;
+          margin: 0 auto;
+          padding: 0;
+
+          .partner-img {
+            width: 200px;
+            height: auto;
+            padding: 50px;
+            box-sizing: border-box;
+
+            img {
+              width: 100%;
+              height: auto;
+              object-fit: contain;
+            }
+          }
+        }
+      }
+    }
   }
 
   /****************************************************/
@@ -602,7 +722,20 @@
         height: auto;
       }
 
-      .cleanAir-section {
+      .single-section {
+        .content {
+          .content-h {
+            font-size: 24px;
+            line-height: 32px;
+          }
+          .content-p {
+            font-size: 24px;
+            line-height: 32px;
+          }
+        }
+      }
+
+      .splitSection-section {
         padding: 0;
         margin: 0;
         margin-top: 40px;
@@ -614,11 +747,11 @@
           padding: 16px;
           height: auto;
 
-          .cleanAir-image {
+          .splitSection-image {
             height: auto;
             width: 100%;
 
-            .cleanAir-img {
+            .splitSection-img {
               float: none;
               width: 100%;
               max-height: 450px;
@@ -635,17 +768,19 @@
           padding: 16px;
           justify-items: center;
 
-          .cleanAir-image {
+          .splitSection-image {
             margin: 0;
             padding: 0;
+            width: 100%;
             height: auto;
 
-            .cleanAir-img {
+            .splitSection-img {
               float: none;
-              height: auto;
+              height: 100%;
               width: 100%;
               max-height: 450px;
               object-fit: contain;
+              border-radius: 8px;
             }
           }
         }
@@ -765,7 +900,7 @@
         display: none;
       }
 
-      .cleanAir-section {
+      .splitSection-section {
         width: 100%;
         padding: 0;
         margin: 0;
@@ -779,14 +914,14 @@
           padding: 16px;
           height: auto;
 
-          .cleanAir-image {
+          .splitSection-image {
             margin: 0;
             padding: 0;
             display: block;
             height: auto;
             width: 100%;
 
-            .cleanAir-img {
+            .splitSection-img {
               float: none;
               height: auto;
               width: 100%;
@@ -797,7 +932,7 @@
 
         // Reverse the backdrop
         .backdrop-rev {
-          .cleanAir-image {
+          .splitSection-image {
             margin: 0;
             padding: 0;
             display: flex;
@@ -806,11 +941,12 @@
             height: auto;
             width: 100%;
 
-            .cleanAir-img {
+            .splitSection-img {
               float: none;
-              height: 200px;
+              height: 100%;
               width: 100%;
               object-fit: contain;
+              border-radius: 8px;
             }
           }
         }
@@ -832,6 +968,24 @@
                 }
               }
             }
+          }
+        }
+      }
+
+      .single-section {
+        padding: 40px 0;
+        .content {
+          .content-p {
+            padding: 20px 25px;
+          }
+        }
+      }
+
+      .partners {
+        .partners-wrapper {
+          .partners-intro {
+            font-size: 24px;
+            line-height: 32px;
           }
         }
       }
@@ -892,7 +1046,7 @@
 
   @media (min-width: 500px) and (max-width: 580px) {
     .page-container {
-      .cleanAir-section {
+      .splitSection-section {
         .backdrop {
           display: grid;
           grid-template-columns: 1fr;
