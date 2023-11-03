@@ -22,7 +22,7 @@ export const REJECT_USER_URI = `${BASE_AUTH_SERVICE_URL_V2}/users/deny`;
 
 export const ACCEPT_USER_URI = `${BASE_AUTH_SERVICE_URL_V2}/users/accept`;
 
-export const GET_USERS_URI = `${BASE_AUTH_SERVICE_URL_V2}/users/`;
+export const GET_USERS_URI = `${BASE_AUTH_SERVICE_URL_V2}/users`;
 
 export const GET_CANDIDATES_URI = `${BASE_AUTH_SERVICE_URL_V2}/users/candidates`;
 
