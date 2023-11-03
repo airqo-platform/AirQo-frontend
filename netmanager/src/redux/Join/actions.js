@@ -330,7 +330,7 @@ export const deleteUserFailed = (error) => {
 /************************* Register a new User  *****************************/
 export const registerCandidate = (tenant, userData, callback) => (dispatch) => {
   return (
-    createAxiosInstance(false)
+    createAxiosInstance()
       .post(REGISTER_CANDIDATE_URI, userData, { params: { tenant } })
       .then((res) => {
         if (res.data.success) {
@@ -384,7 +384,7 @@ export const registrationSuccess = (data) => {
 /************************* Login a new User  *********************************/
 export const loginUser = (userData) => (dispatch) => {
   const tenant = userData.organization;
-  createAxiosInstance(false)
+  createAxiosInstance()
     .post(LOGIN_USER_URI, userData, { params: { tenant } })
     .then((res) => {
       try {
@@ -425,7 +425,7 @@ export const loginUser = (userData) => (dispatch) => {
 
 // Login - forgot password
 export const forgotPassword = (userData) => (dispatch) => {
-  createAxiosInstance(false)
+  createAxiosInstance()
     .post(FORGOT_PWD_URI, userData)
     .then((response) => {
       if (response.data === 'email not recognized') {
