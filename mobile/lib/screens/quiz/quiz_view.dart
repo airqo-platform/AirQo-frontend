@@ -606,8 +606,7 @@ class QuizCard extends StatelessWidget {
                           quiz,
                         ),
                       ),
-                      (quiz.hasCompleted == true &&
-                                  quiz.status == QuizStatus.complete) ||
+                      (quiz.status == QuizStatus.complete) ||
                               quiz.hasCompleted == true &&
                                   quiz.status == QuizStatus.todo &&
                                   quiz.activeQuestion == 1

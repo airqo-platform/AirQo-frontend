@@ -31,38 +31,25 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
           );
         }
 
-        final inCompleteLessons =
-            state.lessons.filterInCompleteLessons().toList();
-        final completeKya = state.lessons
-            .where((lesson) => lesson.status == KyaLessonStatus.complete)
-            .toList();
-        // final completeQuizzes = state.quizzes
-        //     .where((quiz) => quiz.status == QuizStatus.complete)
-        //     .toList();
-
-        // final inCompleteQuizzes = state.quizzes
-        //     .where((quiz) =>
-        //         (quiz.status == QuizStatus.inProgress) ||
-        //         (quiz.status == QuizStatus.todo) ||
-        //         (quiz.status == QuizStatus.redo))
-        //     .toList();
         final allQuizzes = state.quizzes.toList();
-
+        final allLessons = state.lessons.toList();
         List<Widget> children = [];
 
         if (allQuizzes.isNotEmpty) {
-          children.addAll(allQuizzes
-              .map(
-                (quiz) => Column(
-                  children: [
-                    QuizCard(
-                      quiz,
-                    ),
-                    const SizedBox(height: 10),
-                  ],
-                ),
-              )
-              .toList());
+          children.addAll(
+            allQuizzes
+                .map(
+                  (quiz) => Column(
+                    children: [
+                      QuizCard(
+                        quiz,
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                )
+                .toList(),
+          );
         }
         // else if (completeQuizzes.isNotEmpty) {
         //   children.addAll(completeQuizzes
@@ -81,8 +68,8 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
         //   ));
         // }
 
-        if (completeKya.isNotEmpty) {
-          children.addAll(completeKya
+        if (allLessons.isNotEmpty) {
+          children.addAll(allLessons
               .map(
                 (lesson) => Column(
                   children: [
@@ -94,10 +81,6 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
                 ),
               )
               .toList());
-        } else if (inCompleteLessons.isNotEmpty) {
-          children.add(KyaLessonCardWidget(
-            inCompleteLessons.first,
-          ));
         }
 
         return AppRefreshIndicator(
