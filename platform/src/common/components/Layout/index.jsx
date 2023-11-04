@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import TopBar from '@/components/TopBar';
-import {
-  fetchUserDefaults,
-  clearChartStore,
-  updateDefaults,
-} from '@/lib/store/services/charts/userDefaultsSlice';
+import { fetchUserDefaults, clearChartStore } from '@/lib/store/services/charts/userDefaultsSlice';
 import {
   setChartSites,
   setChartDataRange,
@@ -33,13 +29,6 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
     () => JSON.parse(localStorage.getItem('collapsed')) || false,
   );
 
-  // fetching user defaults
-  useEffect(() => {
-    if (userInfo?._id) {
-      dispatch(fetchUserDefaults(userInfo._id));
-    }
-  }, [dispatch, userInfo]);
-
   // setting collapsed state in local storage
   useEffect(() => {
     localStorage.setItem('collapsed', collapsed);
@@ -60,9 +49,17 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
     };
   }, []);
 
-  // Function to update chart
+  // fetching user defaults
+  useEffect(() => {
+    if (userInfo?._id) {
+      dispatch(fetchUserDefaults(userInfo._id));
+    }
+  }, [dispatch, userInfo]);
+
+  // Function to update chart options
   const updateChart = useCallback(
     ({ chartType, frequency, startDate, endDate, period, sites, pollutant, _id }) => {
+      dispatch(clearChartStore());
       if (_id) {
         dispatch(setDefaultID(_id));
       }
@@ -97,13 +94,11 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
       updateChart(userDefaults);
     } else if (status === SUCCEEDED && !userDefaults) {
       dispatch(resetChartStore());
-      dispatch(clearChartStore());
     } else if (status === FAILED) {
       console.error(`Error getting user defaults: ${error}`);
       dispatch(resetChartStore());
-      dispatch(clearChartStore());
     }
-  }, [status, error, userInfo, userDefaults, dispatch, updateChart]);
+  }, [status, error, userDefaults, dispatch]);
 
   return (
     <div className=' w-screen h-screen  overflow-x-hidden' data-testid='layout'>
