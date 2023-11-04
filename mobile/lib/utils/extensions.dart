@@ -147,13 +147,6 @@ extension KyaListExt on List<KyaLesson> {
               .toList();
     }
 
-    // if (inCompleteLessons.isEmpty) {
-    //   inCompleteLessons =
-    //       where((lesson) => lesson.status == KyaLessonStatus.todo)
-    //           .take(3)
-    //           .toList();
-    // }
-
     return inCompleteLessons;
   }
 }
