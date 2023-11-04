@@ -269,15 +269,15 @@ const renderCustomizedLegend = (props) => {
 // Custom hook to fetch analytics data
 const useAnalytics = () => {
   const chartData = useSelector((state) => state.chart);
+  const status = useSelector((state) => state.userDefaults.status);
   const [analyticsData, setAnalyticsData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentAccount, setCurrentAccount] = useState(chartData.userDefaultID);
 
   useEffect(() => {
     let isCancelled = false;
 
-    const getAnalytics = async () => {
-      if (!chartData) return;
+    const fetchData = async () => {
+      if (!chartData || status === 'loading') return;
 
       const body = {
         sites: chartData.chartSites,
@@ -289,7 +289,6 @@ const useAnalytics = () => {
         organisation_name: chartData.organizationName,
       };
 
-      // Check if all properties of body are set and not null
       const allPropertiesSet = Object.values(body).every(
         (property) => property !== undefined && property !== null,
       );
@@ -298,7 +297,7 @@ const useAnalytics = () => {
         setIsLoading(true);
         try {
           const response = await getAnalyticsData(body);
-          if (!isCancelled && currentAccount === chartData.userDefaultID) {
+          if (!isCancelled) {
             setAnalyticsData(response.data.length > 0 ? response.data : null);
           }
         } catch (error) {
@@ -313,16 +312,12 @@ const useAnalytics = () => {
       }
     };
 
-    getAnalytics();
+    fetchData();
 
     return () => {
       isCancelled = true;
     };
-  }, [chartData, currentAccount]);
-
-  useEffect(() => {
-    setCurrentAccount(chartData.userDefaultID);
-  }, [chartData.userDefaultID]);
+  }, [chartData, status]);
 
   return { analyticsData, isLoading };
 };
@@ -331,7 +326,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
   const chartData = useSelector((state) => state.chart);
   const { analyticsData, isLoading } = useAnalytics();
 
-  // Loading
+  // Loading state
   if (isLoading) {
     return (
       <div className='ml-10 flex justify-center items-center w-full h-full'>
