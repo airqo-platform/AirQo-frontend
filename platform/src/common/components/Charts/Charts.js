@@ -326,7 +326,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
   const chartData = useSelector((state) => state.chart);
   const { analyticsData, isLoading } = useAnalytics();
 
-  // Loading
+  // Loading state
   if (isLoading) {
     return (
       <div className='ml-10 flex justify-center items-center w-full h-full'>

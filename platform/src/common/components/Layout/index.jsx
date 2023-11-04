@@ -56,7 +56,7 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
     }
   }, [dispatch, userInfo]);
 
-  // Function to update chart
+  // Function to update chart options
   const updateChart = useCallback(
     ({ chartType, frequency, startDate, endDate, period, sites, pollutant, _id }) => {
       dispatch(clearChartStore());

@@ -84,11 +84,11 @@ export const getUserDefaults = async () => {
     .then((response) => response.data);
 };
 
-export const updateUserDefaults = async (userId, defaults) => {
+export const updateUserDefaults = async (defaultsId, defaults) => {
   return await createAxiosInstance()
     .put(USER_DEFAULTS_URL, defaults, {
       params: {
-        id: userId,
+        id: defaultsId,
       },
     })
     .then((response) => response.data);
