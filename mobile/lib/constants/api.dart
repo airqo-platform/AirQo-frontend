@@ -34,6 +34,9 @@ class AirQoUrls {
 
   static String get searchHistory =>
       '${Config.airqoApi}/v2/users/searchHistory';
+
+  static String get syncPlatformAccount =>
+      '${Config.airqoApi}/v2/users/syncAnalyticsAndMobile';
 }
 
 enum ApiService {

@@ -4,6 +4,7 @@ import Avatar from '@/icons/Topbar/avatar.svg';
 import TopBarItem from './TopBarItem';
 import { useRouter } from 'next/router';
 import { resetStore } from '@/lib/store/services/account/LoginSlice';
+import { resetChartStore } from '@/lib/store/services/charts/ChartSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import MenuBarIcon from '@/icons/menu_bar';
 import CloseIcon from '@/icons/close_icon';
@@ -18,8 +19,11 @@ const TopBar = ({
   collapsed,
   setCollapsed,
 }) => {
+  // check if current route contains navPath
   const router = useRouter();
   const dispatch = useDispatch();
+  const currentRoute = router.pathname;
+  const isCurrentRoute = currentRoute.includes('/Home');
   const userInfo = useSelector((state) => state.login.userInfo);
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
@@ -38,6 +42,7 @@ const TopBar = ({
     event.preventDefault();
     localStorage.clear();
     dispatch(resetStore());
+    dispatch(resetChartStore());
     router.push('/account/login');
   };
 
@@ -59,15 +64,13 @@ const TopBar = ({
     <nav
       className={`sticky top-0 z-10 bg-white w-full px-6 lg:py-0 h-[76px] lg:px-16 ${
         !noBorderBottom && 'border-b-[1px] border-b-grey-750'
-      }`}
-    >
+      }`}>
       <div className='justify-between items-center flex bg-white py-4'>
         {/* Hamburger menu */}
         <button
           type='button'
           className='lg:hidden relative flex items-center justify-start z-10 w-auto focus:outline-none border border-gray-200 rounded-md'
-          onClick={() => setToggleDrawer(!toggleDrawer)}
-        >
+          onClick={() => setToggleDrawer(!toggleDrawer)}>
           <span className='p-2'>
             <MenuBarIcon />
           </span>
@@ -78,8 +81,7 @@ const TopBar = ({
             <button
               type='button'
               onClick={() => setCollapsed(!collapsed)}
-              className='focus:outline-none relative -left-14'
-            >
+              className='focus:outline-none relative -left-14'>
               <ExpandIcon className='inline-block mr-2' />
             </button>
           ) : null}
@@ -88,22 +90,20 @@ const TopBar = ({
 
         <div className='visible sm:flex justify-end md:justify-between items-center'>
           <div className='flex w-auto'>
-            <TopBarItem Icon={SearchMdIcon} />
+            {isCurrentRoute ? null : <TopBarItem Icon={SearchMdIcon} />}
             <div className='relative'>
               <button
                 data-cy='profile-btn'
                 className='focus:outline-none'
                 type='button'
-                onClick={handleDropdown}
-              >
+                onClick={handleDropdown}>
                 <TopBarItem Image={userInfo.profilePicture || PlaceholderImage} dropdown />
               </button>
               {dropdownVisible && (
                 <div
                   data-cy='topbar-dropdown-menu'
                   onClick={handleDropdownClick}
-                  className='dropdown-menu w-60 h-auto border border-gray-200 absolute bg-white mt-1 right-0 shadow-lg rounded-lg overflow-hidden'
-                >
+                  className='dropdown-menu w-60 h-auto border border-gray-200 absolute bg-white mt-1 right-0 shadow-lg rounded-lg overflow-hidden'>
                   <div className='flex items-center space-x-4 p-2'>
                     <div className='relative'>
                       <img
@@ -115,8 +115,7 @@ const TopBar = ({
                     </div>
                     <div
                       className='font-medium dark:text-white'
-                      style={{ overflowWrap: 'break-word', wordWrap: 'break-word' }}
-                    >
+                      style={{ overflowWrap: 'break-word', wordWrap: 'break-word' }}>
                       <div
                         className='capitalize'
                         style={{
@@ -124,8 +123,7 @@ const TopBar = ({
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           maxWidth: '14ch',
-                        }}
-                      >
+                        }}>
                         {userInfo?.firstName + ' ' + userInfo?.lastName}
                       </div>
 
@@ -136,8 +134,7 @@ const TopBar = ({
                           textOverflow: 'ellipsis',
                           maxWidth: '21ch',
                         }}
-                        className='text-xs text-gray-500 dark:text-gray-400 w-full'
-                      >
+                        className='text-xs text-gray-500 dark:text-gray-400 w-full'>
                         {userInfo?.email}
                       </div>
                     </div>
@@ -147,8 +144,7 @@ const TopBar = ({
                   <ul className='dropdown-list p-2'>
                     <li
                       onClick={handleLogout}
-                      className='logout-option text-gray-500 hover:text-gray-600 cursor-pointer p-2'
-                    >
+                      className='logout-option text-gray-500 hover:text-gray-600 cursor-pointer p-2'>
                       Log out
                     </li>
                   </ul>
