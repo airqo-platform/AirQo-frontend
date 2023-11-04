@@ -17,6 +17,7 @@ KyaLesson _$KyaLessonFromJson(Map<String, dynamic> json) => KyaLesson(
       status: $enumDecodeNullable(_$KyaLessonStatusEnumMap, json['status']) ??
           KyaLessonStatus.todo,
       completionMessage: json['completion_message'] as String,
+      hasCompleted: json['hasCompleted'] as bool? ?? false,
       shareLink: json['share_link'] as String? ?? '',
     );
 
@@ -28,6 +29,7 @@ Map<String, dynamic> _$KyaLessonToJson(KyaLesson instance) => <String, dynamic>{
       'tasks': instance.tasks.map((e) => e.toJson()).toList(),
       'active_task': instance.activeTask,
       'status': _$KyaLessonStatusEnumMap[instance.status]!,
+      'hasCompleted': instance.hasCompleted,
       'share_link': instance.shareLink,
     };
 

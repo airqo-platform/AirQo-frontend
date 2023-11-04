@@ -109,12 +109,13 @@ extension KyaExt on KyaLesson {
   String getKyaMessage(BuildContext context) {
     switch (status) {
       case KyaLessonStatus.todo:
-        return AppLocalizations.of(context)!.startLearning;
+        if (!hasCompleted) return AppLocalizations.of(context)!.startLearning;
       case KyaLessonStatus.inProgress:
-      case KyaLessonStatus.complete:
-        if (activeTask == 1) return AppLocalizations.of(context)!.reDOLesson;
         return AppLocalizations.of(context)!.continueLearning;
+      case KyaLessonStatus.complete:
+        if (hasCompleted) return AppLocalizations.of(context)!.reDOLesson;
     }
+    return AppLocalizations.of(context)!.reDOLesson;
   }
 }
 
@@ -131,17 +132,6 @@ extension QuizExt on Quiz {
     return AppLocalizations.of(context)!.reDoQuiz;
   }
 }
-// extension QuizExt on Quiz {
-//   String getQuizMessage(BuildContext context) {
-//     if (!hasCompleted) {
-//       return AppLocalizations.of(context)!.takeQuiz;
-//     } else if (activeQuestion == 1 ) {
-//       return AppLocalizations.of(context)!.reDoQuiz;
-//     } else {
-//       return AppLocalizations.of(context)!.continueLearning;
-//     }
-//   }
-// }
 
 extension KyaListExt on List<KyaLesson> {
   List<KyaLesson> filterInCompleteLessons() {

@@ -168,8 +168,11 @@ class _KyaLessonCardWidgetState extends State<KyaLessonCardWidget> {
                         ),
                         child: KyaLessonCardProgressBar(widget.kyaLesson),
                       ),
-                      widget.kyaLesson.activeTask >=
-                              widget.kyaLesson.tasks.length
+                      (widget.kyaLesson.status == KyaLessonStatus.complete ||
+                              widget.kyaLesson.hasCompleted == true &&
+                                  widget.kyaLesson.activeTask >= 1 &&
+                                  widget.kyaLesson.status ==
+                                      KyaLessonStatus.todo)
                           ? Container(
                               height: 19,
                               width: 19,
@@ -257,28 +260,6 @@ class _KyaLessonCardWidgetState extends State<KyaLessonCardWidget> {
   }
 }
 
-class KyaLessonProgressBar extends StatelessWidget {
-  const KyaLessonProgressBar(this.kyaLesson, {super.key});
-
-  final KyaLesson kyaLesson;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: kyaLesson.tasks.length.toDouble(),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.all(Radius.circular(10)),
-        child: LinearProgressIndicator(
-          color: CustomColors.appColorBlue,
-          value: kyaLesson.activeTask / kyaLesson.tasks.length,
-          backgroundColor: CustomColors.appColorBlue.withOpacity(0.24),
-          valueColor: AlwaysStoppedAnimation<Color>(CustomColors.appColorBlue),
-        ),
-      ),
-    );
-  }
-}
-
 class KyaLessonCardProgressBar extends StatelessWidget {
   const KyaLessonCardProgressBar(this.kyaLesson, {super.key});
 
@@ -290,6 +271,36 @@ class KyaLessonCardProgressBar extends StatelessWidget {
       height: kyaLesson.tasks.length.toDouble(),
       child: ClipRRect(
         borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
+        child: LinearProgressIndicator(
+          color: CustomColors.appColorBlue,
+          value: (kyaLesson.hasCompleted == true &&
+                      kyaLesson.activeTask >= 1 &&
+                      kyaLesson.status == KyaLessonStatus.todo) ||
+                  kyaLesson.status == KyaLessonStatus.complete
+              ? 1.0
+              : kyaLesson.activeTask == 1
+                  ? 0
+                  : kyaLesson.activeTask / kyaLesson.tasks.length,
+          backgroundColor: CustomColors.appColorBlue.withOpacity(0.24),
+          valueColor: AlwaysStoppedAnimation<Color>(CustomColors.appColorBlue),
+        ),
+      ),
+    );
+  }
+}
+
+class KyaLessonProgressBar extends StatelessWidget {
+  const KyaLessonProgressBar(this.kyaLesson, {super.key});
+
+  final KyaLesson kyaLesson;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: kyaLesson.tasks.length.toDouble(),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.horizontal(
+            left: Radius.circular(10), right: Radius.circular(10)),
         child: LinearProgressIndicator(
           color: CustomColors.appColorBlue,
           value: kyaLesson.activeTask == 1

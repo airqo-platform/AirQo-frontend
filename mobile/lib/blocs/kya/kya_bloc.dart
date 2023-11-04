@@ -62,7 +62,18 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
     Set<KyaLesson> kyaLessons = state.lessons.toSet();
     kyaLessons.remove(kyaLesson);
     kyaLessons.add(kyaLesson);
-    emit(state.copyWith(lessons: kyaLessons.toList()));
+
+    final updatedHasCompleted = Map<String, bool>.from(state.hasCompleted);
+    for (var lesson in kyaLessons) {
+      updatedHasCompleted[lesson.id] =
+          lesson.status == KyaLessonStatus.complete;
+    }
+
+    emit(state.copyWith(
+      lessons: kyaLessons.toList(),
+      hasCompleted: updatedHasCompleted,
+    ));
+
     if (event.updateRemote) {
       final userId = CustomAuth.getUserId();
       if ((userId.isNotEmpty)) {

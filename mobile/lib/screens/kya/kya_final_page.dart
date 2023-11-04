@@ -106,6 +106,7 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
             widget.kyaLesson.copyWith(
               activeTask: 1,
               status: KyaLessonStatus.complete,
+              hasCompleted: true,
             ),
             updateRemote: true,
           ),

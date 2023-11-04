@@ -1,13 +1,10 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
-import 'package:app/models/models.dart';
-import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../quiz/quiz_view.dart';
-import 'kya_title_page.dart';
 import 'kya_widgets.dart';
 
 class KnowYourAirView extends StatefulWidget {
@@ -51,23 +48,6 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
                 .toList(),
           );
         }
-        // else if (completeQuizzes.isNotEmpty) {
-        //   children.addAll(completeQuizzes
-        //       .map(
-        //         (quiz) => Column(
-        //           children: [
-        //             QuizCard(quiz),
-        //             const SizedBox(height: 10),
-        //           ],
-        //         ),
-        //       )
-        //       .toList());
-        // } else if (inCompleteQuizzes.isNotEmpty) {
-        //   children.add(QuizCard(
-        //     inCompleteQuizzes.first,
-        //   ));
-        // }
-
         if (allLessons.isNotEmpty) {
           children.addAll(allLessons
               .map(
@@ -114,14 +94,14 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
     context.read<KyaBloc>().add(const FetchQuizzes());
   }
 
-  Future<void> _startKyaLessons(BuildContext context, KyaLesson kya) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          return KyaTitlePage(kya);
-        },
-      ),
-    );
-  }
+//   Future<void> _startKyaLessons(BuildContext context, KyaLesson kya) async {
+//     await Navigator.push(
+//       context,
+//       MaterialPageRoute(
+//         builder: (context) {
+//           return KyaTitlePage(kya);
+//         },
+//       ),
+//     );
+//   }
 }

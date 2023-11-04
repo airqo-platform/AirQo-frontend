@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'package:app/models/quiz.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -9,9 +8,6 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'package:app/models/models.dart';
-
-import 'package:app/themes/app_theme.dart';
-import 'package:app/themes/colors.dart';
 
 class QuizSkipButton extends StatelessWidget {
   const QuizSkipButton({
@@ -145,19 +141,13 @@ class QuizCardProgressBar extends StatelessWidget {
     return SizedBox(
       height: 6,
       width: MediaQuery.of(context).size.width * 0.87,
-      // child: ClipRRect(
-      //   borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
-      //   child: LinearProgressIndicator(
-      //     color: CustomColors.appColorBlue,
-      //     value: activeQuestion == 1 ? 0 : activeQuestion / totalQuestions,
-      //     backgroundColor: CustomColors.appColorBlue.withOpacity(0.24),
-      //     valueColor: AlwaysStoppedAnimation<Color>(CustomColors.appColorBlue),
-      //   ),
       child: ClipRRect(
         borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
         child: LinearProgressIndicator(
           color: CustomColors.appColorBlue,
-          value: (quiz.hasCompleted == true && quiz.activeQuestion >= 1 && quiz.status==QuizStatus.todo) ||
+          value: (quiz.hasCompleted == true &&
+                      quiz.activeQuestion >= 1 &&
+                      quiz.status == QuizStatus.todo) ||
                   quiz.status == QuizStatus.complete
               ? 1.0
               : quiz.activeQuestion == 1
@@ -248,7 +238,6 @@ class _ConfettiState extends State<Confetti> {
 
   Path drawStar(Size size) {
     //TODO draw custom shapes
-    // Method to convert degree to radians
     double degToRad(double deg) => deg * (pi / 180.0);
 
     const numberOfPoints = 5;
