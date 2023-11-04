@@ -23,7 +23,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
           return NoKyaWidget(
             callBack: () {
               context.read<KyaBloc>().add(const FetchKya());
-              //context.read<KyaBloc>().add(const FetchQuizzes());
+              context.read<KyaBloc>().add(const FetchQuizzes());
             },
           );
         }
@@ -93,15 +93,4 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
     context.read<KyaBloc>().add(const FetchKya());
     context.read<KyaBloc>().add(const FetchQuizzes());
   }
-
-//   Future<void> _startKyaLessons(BuildContext context, KyaLesson kya) async {
-//     await Navigator.push(
-//       context,
-//       MaterialPageRoute(
-//         builder: (context) {
-//           return KyaTitlePage(kya);
-//         },
-//       ),
-//     );
-//   }
 }
