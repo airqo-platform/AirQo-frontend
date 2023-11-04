@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
@@ -539,10 +541,11 @@ class QuizCard extends StatelessWidget {
             if (response != null && response == true) {
               context.read<KyaBloc>().add(
                     UpdateQuizProgress(
-                        quiz.copyWith(
-                          status: QuizStatus.inProgress,
-                        ),
-                        updateRemote: true),
+                      quiz.copyWith(
+                        status: QuizStatus.inProgress,
+                      ),
+                      updateRemote: true,
+                    ),
                   );
               response = await bottomSheetQuizQuestion(quiz, context);
 
