@@ -4,7 +4,6 @@ import Avatar from '@/icons/Topbar/avatar.svg';
 import TopBarItem from './TopBarItem';
 import { useRouter } from 'next/router';
 import { resetStore } from '@/lib/store/services/account/LoginSlice';
-import { resetChartStore } from '@/lib/store/services/charts/ChartSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import MenuBarIcon from '@/icons/menu_bar';
 import CloseIcon from '@/icons/close_icon';
@@ -42,7 +41,6 @@ const TopBar = ({
     event.preventDefault();
     localStorage.clear();
     dispatch(resetStore());
-    dispatch(resetChartStore());
     router.push('/account/login');
   };
 

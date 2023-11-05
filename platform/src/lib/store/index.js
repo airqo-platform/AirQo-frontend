@@ -12,9 +12,15 @@ import { userLoginSlice } from './services/account/LoginSlice';
 import { chartSlice } from './services/charts/ChartSlice';
 import { gridsSlice } from './services/deviceRegistry/GridsSlice';
 import userDefaultsReducer from './services/charts/userDefaultsSlice';
+import { cardSlice } from './services/checklists/CheckList';
+
+let userData;
+if (typeof window !== 'undefined') {
+  userData = JSON.parse(localStorage.getItem('loggedUser'));
+}
 
 const persistConfig = {
-  key: 'root',
+  key: `root-${userData?._id}`,
   storage,
 };
 
@@ -27,6 +33,7 @@ const rootReducer = combineReducers({
   [userLoginSlice.name]: userLoginSlice.reducer,
   [chartSlice.name]: chartSlice.reducer,
   [gridsSlice.name]: gridsSlice.reducer,
+  [cardSlice.name]: cardSlice.reducer,
   userDefaults: userDefaultsReducer,
 });
 
