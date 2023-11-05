@@ -14,13 +14,8 @@ import { gridsSlice } from './services/deviceRegistry/GridsSlice';
 import userDefaultsReducer from './services/charts/userDefaultsSlice';
 import { cardSlice } from './services/checklists/CheckList';
 
-let userData;
-if (typeof window !== 'undefined') {
-  userData = JSON.parse(localStorage.getItem('loggedUser'));
-}
-
 const persistConfig = {
-  key: `root-${userData?._id}`,
+  key: 'root',
   storage,
 };
 
