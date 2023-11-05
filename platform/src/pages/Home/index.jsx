@@ -11,7 +11,7 @@ import CloseIcon from '@/icons/close_icon';
 import Spinner from '@/components/Spinner';
 import AnalyticsVideo from '../../../public/videos/analytics.mp4';
 import { useSelector, useDispatch } from 'react-redux';
-import { startTask, completeTask, resetTask } from '@/lib/store/services/checklists/CheckList';
+import { startTask, completeTask } from '@/lib/store/services/checklists/CheckList';
 
 const StepProgress = ({ step, totalSteps }) => {
   const radius = 50;
@@ -62,7 +62,6 @@ const CustomModal = ({ open, setOpen, videoUrl }) => {
   const backdropRef = useRef(null);
   const videoRef = useRef(null);
   const [loading, setLoading] = useState(true);
-  const userId = useSelector((state) => state.login.userInfo._id);
 
   const handleClickOutside = (event) => {
     if (backdropRef.current && !backdropRef.current.contains(event.target)) {
@@ -74,14 +73,14 @@ const CustomModal = ({ open, setOpen, videoUrl }) => {
     if (open) {
       modalRef.current.focus();
       document.addEventListener('mousedown', handleClickOutside);
-      const savedTime = localStorage.getItem(`videoTime-${userId}`);
+      const savedTime = localStorage.getItem('videoTime');
       if (savedTime) {
         videoRef.current.currentTime = savedTime;
       }
     } else {
       document.removeEventListener('mousedown', handleClickOutside);
       if (videoRef.current) {
-        localStorage.setItem(`videoTime-${userId}`, videoRef.current.currentTime);
+        localStorage.setItem('videoTime', videoRef.current.currentTime);
       }
     }
     return () => {
@@ -89,17 +88,17 @@ const CustomModal = ({ open, setOpen, videoUrl }) => {
     };
   }, [open]);
 
+  const handleVideoLoad = () => {
+    setLoading(false);
+  };
+
   const handleVideoPause = () => {
-    localStorage.setItem(`videoTime-${userId}`, videoRef.current.currentTime);
+    localStorage.setItem('videoTime', videoRef.current.currentTime);
   };
 
   const handleVideoEnd = () => {
-    localStorage.setItem(`videoTime-${userId}`, 0);
+    localStorage.setItem('videoTime', 0);
     dispatch(completeTask(1));
-  };
-
-  const handleVideoLoad = () => {
-    setLoading(false);
   };
 
   return (
@@ -150,9 +149,8 @@ const CustomModal = ({ open, setOpen, videoUrl }) => {
 
 const Home = () => {
   const dispatch = useDispatch();
-  const userId = useSelector((state) => state.login.userInfo._id);
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
-  const userData = useSelector((state) => state.login.userInfo);
+  const userData = JSON.parse(localStorage.getItem('loggedUser'));
   const [open, setOpen] = useState(false);
 
   const [step, setStep] = useState(0);
@@ -171,6 +169,9 @@ const Home = () => {
         case 'notStarted':
           dispatch(startTask(1));
           break;
+        // case 'Completed':
+        //   dispatch(completeTask(1));
+        //   break;
         default:
           return;
       }
