@@ -171,7 +171,15 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
     try {
       setLoading(true);
 
-      const response = await updateDeviceHost(hosts_id, host);
+      const updatedHost = {
+        ...host,
+        phone_number: host.phone_number ? '+' + host.phone_number : host.phone_number,
+        phone_number_2: host.phone_number_2 ? '+' + host.phone_number_2 : host.phone_number_2,
+        phone_number_3: host.phone_number_3 ? '+' + host.phone_number_3 : host.phone_number_3,
+        phone_number_4: host.phone_number_4 ? '+' + host.phone_number_4 : host.phone_number_4
+      };
+
+      const response = await updateDeviceHost(hosts_id, updatedHost);
       setLoading(false);
       if (response.success === true) {
         onHostEdited();
