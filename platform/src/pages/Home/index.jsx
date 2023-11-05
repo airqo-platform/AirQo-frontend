@@ -66,7 +66,7 @@ const Home = () => {
   const steps = [
     {
       label: 'Introduction AirQo Analytics demo video',
-      completed: true,
+      completed: false,
       time: '2 min',
     },
     {
@@ -107,7 +107,7 @@ const Home = () => {
           </div>
         </div>
 
-        <div className='w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2'>
+        <div className='w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5'>
           {steps.map((step, index) => (
             <div
               key={index}
