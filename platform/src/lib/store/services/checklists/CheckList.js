@@ -7,6 +7,7 @@ const initialState = {
     { id: 3, status: 'notStarted' },
     { id: 4, status: 'notStarted' },
   ],
+  videoTime: 0,
 };
 
 export const cardSlice = createSlice({
@@ -36,9 +37,13 @@ export const cardSlice = createSlice({
         card.status = 'notStarted';
       });
     },
+    setVideoTime: (state, action) => {
+      state.videoTime = action.payload;
+    },
   },
 });
 
-export const { startTask, completeTask, resetTask, resetAllTasks } = cardSlice.actions;
+export const { startTask, completeTask, resetTask, resetAllTasks, setVideoTime } =
+  cardSlice.actions;
 
 export default cardSlice.reducer;

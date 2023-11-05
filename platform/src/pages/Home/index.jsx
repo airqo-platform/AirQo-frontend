@@ -12,6 +12,7 @@ import Spinner from '@/components/Spinner';
 import AnalyticsVideo from '../../../public/videos/analytics.mp4';
 import { useSelector, useDispatch } from 'react-redux';
 import { startTask, completeTask } from '@/lib/store/services/checklists/CheckList';
+import { updateDefaults } from '@/lib/store/services/charts/userDefaultsSlice';
 
 const StepProgress = ({ step, totalSteps }) => {
   const radius = 50;
@@ -150,6 +151,7 @@ const CustomModal = ({ open, setOpen, videoUrl }) => {
 const Home = () => {
   const dispatch = useDispatch();
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
+  const userDefaults = useSelector((state) => state.userDefaults.defaults);
   const userData = JSON.parse(localStorage.getItem('loggedUser'));
   const [open, setOpen] = useState(false);
 
@@ -169,9 +171,6 @@ const Home = () => {
         case 'notStarted':
           dispatch(startTask(1));
           break;
-        // case 'Completed':
-        //   dispatch(completeTask(1));
-        //   break;
         default:
           return;
       }

@@ -10,6 +10,7 @@ import MenuBarIcon from '@/icons/menu_bar';
 import CloseIcon from '@/icons/close_icon';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import ExpandIcon from '@/icons/SideBar/expand.svg';
+import { resetAllTasks } from '@/lib/store/services/checklists/CheckList';
 
 const TopBar = ({
   topbarTitle,
@@ -43,6 +44,7 @@ const TopBar = ({
     localStorage.clear();
     dispatch(resetStore());
     dispatch(resetChartStore());
+    dispatch(resetAllTasks());
     router.push('/account/login');
   };
 
