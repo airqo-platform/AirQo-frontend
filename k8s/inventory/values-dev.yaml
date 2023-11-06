@@ -9,7 +9,7 @@ fullnameOverride: ""
 service:
   type: NodePort
   nodePort: 31108
-  targetPort: 80
+  targetPort: 8000
   port: 8000
 ingress:
   enabled: false
