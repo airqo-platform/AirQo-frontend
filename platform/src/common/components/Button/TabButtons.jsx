@@ -10,9 +10,9 @@ const TabButtons = ({ Icon, btnText, dropdown, onClick }) => {
       {Icon ? (
         <Icon />
       ) : (
-        <span className='inline-block sm:hidden text-sm font-medium'>{btnText}</span>
+        <span className='inline-block sm:hidden text-sm font-medium capitalize'>{btnText}</span>
       )}
-      <span className='hidden sm:inline-block text-sm font-medium'>{btnText}</span>
+      <span className='hidden sm:inline-block text-sm font-medium capitalize'>{btnText}</span>
       {dropdown && <ChevronDownIcon />}
     </button>
   );

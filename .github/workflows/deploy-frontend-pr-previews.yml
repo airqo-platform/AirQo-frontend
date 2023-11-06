@@ -380,9 +380,11 @@ jobs:
             --timeout=60 \
             --concurrency=10 \
             --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:${{ github.sha }} \
-            --port=3000 \
+            --port=8000 \
             --cpu=1000m \
-            --memory=256Mi \            
+            --memory=256Mi \
+            --update-secrets=/etc/env/.env=sta-env-inventory:latest \
+            --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; gunicorn --bind=0.0.0.0:8000 Inventory.wsgi" \
             --allow-unauthenticated
 
       - name: Get preview service url

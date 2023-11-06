@@ -16,3 +16,5 @@ export const USERS_URL = AUTH_URL;
 export const GROUPS_URL = `${AUTH_URL}/groups`;
 
 export const UPDATE_USER_DETAILS_URL = AUTH_URL;
+
+export const USER_DEFAULTS_URL = `${BASE_AUTH_URL}/users/defaults`;

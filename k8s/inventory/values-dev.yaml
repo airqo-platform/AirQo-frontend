@@ -45,6 +45,6 @@ affinity:
                 - high-memory
 app:
   name: airqo-dev-inventory
-  label: dev-inventoy
+  label: dev-inventory
   namespace: development
   configmap: env-inventory-development
