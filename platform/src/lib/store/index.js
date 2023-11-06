@@ -11,6 +11,7 @@ import { createAccountSlice } from './services/account/CreationSlice';
 import { userLoginSlice } from './services/account/LoginSlice';
 import { chartSlice } from './services/charts/ChartSlice';
 import { gridsSlice } from './services/deviceRegistry/GridsSlice';
+import { defaultsSlice } from './services/account/UserDefaultsSlice';
 
 const persistConfig = {
   key: 'root',
@@ -26,6 +27,7 @@ const rootReducer = combineReducers({
   [userLoginSlice.name]: userLoginSlice.reducer,
   [chartSlice.name]: chartSlice.reducer,
   [gridsSlice.name]: gridsSlice.reducer,
+  [defaultsSlice.name]: defaultsSlice.reducer
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
