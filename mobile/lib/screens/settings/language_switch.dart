@@ -66,22 +66,22 @@ class LanguageListState extends State<LanguageList> {
               Locale locale = await setLocale(language.languageCode);
               await AirQoApp.setLocale(context, locale);
               Navigator.pop(context, true);
-              await Restart.restartApp();
+              //await Restart.restartApp();
             },
           ),
-          CupertinoDialogAction(
-            child: Text(
-              style: TextStyle(
-                color: CustomColors.appColorBlue,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-              AppLocalizations.of(context)!.cancel,
-            ),
-            onPressed: () {
-              Navigator.pop(context, false);
-            },
-          ),
+          // CupertinoDialogAction(
+          //   child: Text(
+          //     style: TextStyle(
+          //       color: CustomColors.appColorBlue,
+          //       fontSize: 16,
+          //       fontWeight: FontWeight.w600,
+          //     ),
+          //     AppLocalizations.of(context)!.cancel,
+          //   ),
+          //   onPressed: () {
+          //     Navigator.pop(context, false);
+          //   },
+          // ),
         ],
       ),
       barrierDismissible: true,
