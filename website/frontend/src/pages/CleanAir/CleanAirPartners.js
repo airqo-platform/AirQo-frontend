@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { isEmpty } from 'underscore';
-import SEO from '../../../utilities/seo';
+import SEO from 'utilities/seo';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { useDispatch } from 'react-redux';
 import { SplitSection, SingleSection } from 'components/CleanAir';
@@ -27,7 +27,7 @@ const CleanAirPartners = () => {
     (partner) => partner.website_category === 'cleanair'
   );
 
-  const networkPartners = cleanAirPartners.filter((partner) => partner.type === 'network');
+  const implementingPartners = cleanAirPartners.filter((partner) => partner.type === 'network');
 
   const policyPartners = cleanAirPartners.filter((partner) => partner.type === 'policy');
 
@@ -55,6 +55,18 @@ const CleanAirPartners = () => {
     }
   };
 
+  const [itemsToShow, setItemsToShow] = useState(10);
+  const [itemsToShowPolicy, setItemsToShowPolicy] = useState(3);
+  const [itemsToShowSupport, setItemsToShowSupport] = useState(3);
+
+  const showMoreItems = (setItems, increment) => {
+    setItems((prevState) => prevState + increment);
+  };
+
+  const showLessItems = (setItems, decrement, minItems) => {
+    setItems((prevState) => (prevState > minItems ? prevState - decrement : minItems));
+  };
+
   return (
     <div>
       <SEO
@@ -63,7 +75,6 @@ const CleanAirPartners = () => {
         description="Meet the partners of CLEAN-Air Africa Network, a diverse group of organizations and individuals dedicated to improving air quality across Africa. Join us in our mission to foster innovative air quality solutions and effective air quality management strategies."
       />
 
-      {/* intro */}
       <div className="partners">
         <div className="partners-wrapper">
           <p className="partners-intro">
@@ -89,10 +100,7 @@ const CleanAirPartners = () => {
               fontWeight: 400,
               fontStyle: 'normal'
             }}>
-            Our Network Partners have active interest in air quality work in Africa, have personnel
-            with primary roles on air quality, organize and host activities, participate in
-            CLEAN-Air Network annual meetings and may provide logistical/or funding support to
-            members.
+            Our implementing partners have active interest in air quality work in Africa, have personnel with primary roles on air quality, organizes and host activities, participate in CLEAN-Air Network annual meetings and may provide logistical/or funding support to members.
           </p>"
         showButton={false}
         imgURL={Partner1}
@@ -100,11 +108,11 @@ const CleanAirPartners = () => {
         reverse
       />
 
-      {networkPartners.length > 0 && (
-        <div className="partners">
-          <div className="partners-wrapper">
+      {implementingPartners.length > 0 && (
+        <div className="partners AboutUsPage">
+          <div className="partners-wrapper wrapper">
             <div className="partners-list">
-              {networkPartners.map((networkPartner) => (
+              {implementingPartners.slice(0, itemsToShow).map((networkPartner) => (
                 <div
                   style={{ cursor: 'pointer' }}
                   className="partner-img"
@@ -114,19 +122,25 @@ const CleanAirPartners = () => {
                 </div>
               ))}
             </div>
+            <div className="partner-logos" id="logo-table">
+              {itemsToShow < implementingPartners.length && (
+                <button
+                  className="partners-toggle-button"
+                  onClick={() => showMoreItems(setItemsToShow, 10)}>
+                  Show More
+                </button>
+              )}
+              {itemsToShow > 10 && (
+                <button
+                  className="partners-toggle-button"
+                  onClick={() => showLessItems(setItemsToShow, 10, 10)}>
+                  Show Less
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
-
-      <SingleSection
-        content="
-        Individuals actively involved in air quality work in Africa are strongly recommended to
-        join the CLEAN-Air Africa Network."
-        btnText={'Register your interest'}
-        link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
-        bgColor="#F2F1F6"
-        btnStyle={{ width: 'auto' }}
-      />
 
       <SplitSection
         content="
@@ -138,8 +152,7 @@ const CleanAirPartners = () => {
               fontWeight: 400,
               fontStyle: 'normal'
             }}>
-            Our Policy Forum includes any city in Africa interested in implementing an air quality
-            programme.
+            Our Policy Forum includes any city in Africa interested in implementing an air quality programme.
         </p>
         "
         showButton={false}
@@ -149,12 +162,12 @@ const CleanAirPartners = () => {
       />
 
       {policyPartners.length > 0 && (
-        <div className="AboutUsPage ">
-          <div className="wrapper ">
+        <div className="AboutUsPage">
+          <div className="wrapper">
             <div className="partner-logos" id="logo-table">
               <table>
                 <tbody>
-                  {policyPartnerDataGroup.slice(0, 3).map((partnerGroup, key) => (
+                  {policyPartnerDataGroup.slice(0, itemsToShowPolicy).map((partnerGroup, key) => (
                     <tr key={key}>
                       {partnerGroup.map((partner) => (
                         <td key={partner.id} onClick={() => onLogoClick(partner)}>
@@ -165,12 +178,24 @@ const CleanAirPartners = () => {
                   ))}
                 </tbody>
               </table>
+              {itemsToShowPolicy < policyPartnerDataGroup.length && (
+                <button
+                  className="partners-toggle-button"
+                  onClick={() => showMoreItems(setItemsToShowPolicy, 3)}>
+                  Show More
+                </button>
+              )}
+              {itemsToShowPolicy > 3 && (
+                <button
+                  className="partners-toggle-button"
+                  onClick={() => showLessItems(setItemsToShowPolicy, 3, 3)}>
+                  Show Less
+                </button>
+              )}
             </div>
           </div>
         </div>
       )}
-
-      <hr className="separator-1" />
 
       <SplitSection
         content="<p
@@ -181,8 +206,7 @@ const CleanAirPartners = () => {
               fontWeight: 400,
               fontStyle: 'normal'
             }}>
-            Supporting Partners provide logistical and/or funding support to network members, and
-            may participate in the annual CLEAN-Air Network meetings.
+            Supporting Partners provide logistical and/or funding support to network members, and may participate in the annual CLEAN-Air Network meetings.
           </p>"
         showButton={false}
         imgURL={Partner3}
@@ -191,12 +215,12 @@ const CleanAirPartners = () => {
       />
 
       {supportPartners.length > 0 && (
-        <div className="AboutUsPage ">
-          <div className="wrapper ">
+        <div className="AboutUsPage">
+          <div className="wrapper">
             <div className="partner-logos" id="logo-table">
               <table>
                 <tbody>
-                  {supportPartnerDataGroup.slice(0, 3).map((partnerGroup, key) => (
+                  {supportPartnerDataGroup.slice(0, itemsToShowSupport).map((partnerGroup, key) => (
                     <tr key={key}>
                       {partnerGroup.map((partner) => (
                         <td key={partner.id} onClick={() => onLogoClick(partner)}>
@@ -207,10 +231,33 @@ const CleanAirPartners = () => {
                   ))}
                 </tbody>
               </table>
+              {itemsToShowSupport < supportPartnerDataGroup.length && (
+                <button
+                  className="partners-toggle-button"
+                  onClick={() => showMoreItems(setItemsToShowSupport, 3)}>
+                  Show More
+                </button>
+              )}
+              {itemsToShowSupport > 3 && (
+                <button
+                  className="partners-toggle-button"
+                  onClick={() => showLessItems(setItemsToShowSupport, 3, 3)}>
+                  Show Less
+                </button>
+              )}
             </div>
           </div>
         </div>
       )}
+
+      <SingleSection
+        content="
+        Individuals actively involved in air quality work in Africa are welcome to join the CLEAN-Air Africa Network."
+        btnText={'Register your interest'}
+        link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
+        bgColor="#F2F1F6"
+        btnStyle={{ width: 'auto' }}
+      />
     </div>
   );
 };

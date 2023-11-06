@@ -28,10 +28,9 @@ const MobileAppPage = React.lazy(() => import('src/pages/OurProducts/MobileAppPa
 const APIPage = React.lazy(() => import('src/pages/OurProducts/ApiPage'));
 const CalibrationPage = React.lazy(() => import('src/pages/OurProducts/CalibrationPage'));
 const QRCodeRedirectPage = React.lazy(() => import('src/pages/ExploreData/Redirect'));
-const CleanAirPage = React.lazy(() => import('src/pages/CleanAir'))
-const CleanAirEventsPage = React.lazy(() => import('src/pages/CleanAir/CleanAirEvents'))
-const CleanAirPartnersPage = React.lazy(() => import('src/pages/CleanAir/CleanAirPartners'))
-const CleanAirPressPage = React.lazy(() => import('src/pages/CleanAir/CleanAirPress'))
+const CleanAirPage = React.lazy(() => import('src/pages/CleanAir'));
+const CleanAirEventsPage = React.lazy(() => import('src/pages/CleanAir/CleanAirEvents'));
+const CleanAirPartnersPage = React.lazy(() => import('src/pages/CleanAir/CleanAirPartners'));
 
 import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
 import store from './store';
@@ -73,9 +72,8 @@ const App = () => {
               <Route path="/download-apps" element={<QRCodeRedirectPage />} />
               <Route path="/products/calibrate" element={<CalibrationPage />} />
               <Route path="/clean-air" element={<CleanAirPage />} />
-              <Route path='/clean-air/events' element={<CleanAirEventsPage />} />
-              <Route path='/clean-air/partners' element={<CleanAirPartnersPage />} />
-              <Route path='/clean-air/press' element={<CleanAirPressPage />} />
+              <Route path="/clean-air/events" element={<CleanAirEventsPage />} />
+              <Route path="/clean-air/partners" element={<CleanAirPartnersPage />} />
               <Route path="*" element={<Error404 />} />
             </Routes>
           </Suspense>

@@ -4,7 +4,6 @@ import CleanAirPageContainer from './Page';
 import CleanAirAbout from './CleanAirAbout';
 import CleanAirPartners from './CleanAirPartners';
 import CleanAirEvents from './CleanAirEvents';
-import CleanAirPress from './CleanAirPress';
 import GetInvolved from './GetInvolved';
 
 const CleanAirPage = () => {
@@ -14,7 +13,7 @@ const CleanAirPage = () => {
     <CleanAirPageContainer>
       {activeTab === 0 && <CleanAirAbout />}
       {activeTab === 1 && <CleanAirPartners />}
-      {activeTab === 2 && <CleanAirPress />}
+      {activeTab === 2 && <CleanAirEvents />}
       {activeTab === 3 && <GetInvolved />}
     </CleanAirPageContainer>
   );
