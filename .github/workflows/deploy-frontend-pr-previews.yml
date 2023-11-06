@@ -389,7 +389,7 @@ jobs:
             --cpu=1000m \
             --memory=256Mi \
             --update-secrets=/etc/env/.env=sta-env-netmanager:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; gunicorn --bind=0.0.0.0:8080 Inventory.wsgi" \
+            --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; gunicorn --bind=0.0.0.0:8000 Inventory.wsgi" \
             --allow-unauthenticated
 
       - name: Get preview service url
