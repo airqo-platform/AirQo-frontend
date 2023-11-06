@@ -27,7 +27,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('inventory/', include('dashboard.urls')),
     path('register/',include('user.urls')),
-    path('login/', auth_views.LoginView.as_view(template_name = 'user/login.html'),name='login'),
+    path('logininventory/', auth_views.LoginView.as_view(template_name = 'user/login.html'),name='login'),
 ] + staticfiles_urlpatterns()
 
 #urlpatterns +=  
