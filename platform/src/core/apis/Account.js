@@ -5,8 +5,10 @@ import {
   USERS_URL,
   GROUPS_URL,
   UPDATE_USER_DETAILS_URL,
+  USER_DEFAULTS_URL,
 } from '../urls/authentication';
 import axios from 'axios';
+import createAxiosInstance from './axiosConfig';
 
 let jwtToken;
 if (typeof window !== 'undefined') {
@@ -82,7 +84,7 @@ export const createOrganisation = async (data) => {
 };
 
 // Update Organisation
-export const updateOrganisationApi = async (data, identifier) => {
+export const updateOrganisationApi = async (data) => {
   try {
     const response = await axios.put(`${GROUPS_URL}/${data.grp_id}`, data);
     return response.data;
@@ -90,3 +92,29 @@ export const updateOrganisationApi = async (data, identifier) => {
     return error;
   }
 };
+
+// Post User Defaults
+export const postUserDefaultsApi = async (data) => {
+  try {
+    const response = await createAxiosInstance().post(`${USER_DEFAULTS_URL}`, data);
+    return response.data;
+  }
+  catch (error) {
+    throw error;
+  }
+}
+
+// Update User Defaults
+export const updateUserDefaultsApi = async (data) => {
+  try {
+    const response = await createAxiosInstance().put(`${USER_DEFAULTS_URL}`, data.sites, {
+      params: {
+        id: data.user_id
+      }
+    });
+    return response.data;
+  }
+  catch (error) {
+    throw error;
+  }
+}
