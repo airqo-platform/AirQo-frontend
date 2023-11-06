@@ -385,7 +385,7 @@ jobs:
             --timeout=60 \
             --concurrency=10 \
             --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:${{ github.sha }} \
-            --port=8000 \
+            --port=80 \
             --cpu=1000m \
             --memory=256Mi \
             --update-secrets=/etc/env/.env=sta-env-netmanager:latest \
