@@ -61,27 +61,6 @@ const CleanAirEvents = () => {
     }
   }, [selectedNavTab]);
 
-  // pagination styles
-  const styleCon = {
-    container: {
-      marginTop: '30px',
-      marginBottom: '30px',
-      width: '100%',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center'
-    },
-    button: {
-      background: 'none',
-      border: 'none',
-      outline: 'none',
-      fontSize: '25px',
-      fontWeight: 'bold',
-      cursor: 'pointer',
-      padding: '0 10px'
-    }
-  };
-
   return (
     <div>
       <SEO
@@ -176,21 +155,27 @@ const CleanAirEvents = () => {
             <div className="no-events">There are currently no events</div>
           ) : null}
           {eventsToShow.length > ITEMS_PER_PAGE && (
-            <div style={styleCon.container}>
-              <button
-                style={styleCon.button}
-                onClick={() => handlePageChange('prev')}
-                disabled={currentPage === 1}>
-                {'<'}
-              </button>
-              <span>{currentPage}</span>
-              <button
-                style={styleCon.button}
-                onClick={() => handlePageChange('next')}
-                disabled={currentPage === totalPages}>
-                {'>'}
-              </button>
-            </div>
+            <ul className="pagination">
+              <li className="page-item">
+                <a
+                  disabled={currentPage === 1}
+                  className="page-link"
+                  onClick={() => handlePageChange('prev')}>
+                  {'<'}
+                </a>
+              </li>
+              <li className="page-item">
+                <a className={'page-link page-number active'}>{currentPage}</a>
+              </li>
+              <li className="page-item">
+                <a
+                  disabled={currentPage === totalPages}
+                  className="page-link"
+                  onClick={() => handlePageChange('next')}>
+                  {'>'}
+                </a>
+              </li>
+            </ul>
           )}
         </div>
       </div>
