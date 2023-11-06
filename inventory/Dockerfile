@@ -12,9 +12,6 @@ RUN pip install -r requirements.txt
 # Install python-decouple to load environment variables from .env file
 RUN pip install python-decouple
 
-# Expose port 8000 for the Django development server
-EXPOSE 8000
-
 # Start the Django development server
 CMD python manage.py migrate && \
     python manage.py collectstatic --noinput && \
