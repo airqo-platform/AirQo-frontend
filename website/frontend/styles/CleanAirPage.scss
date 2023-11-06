@@ -686,6 +686,16 @@
         margin: 10px auto;
         padding: 0 16px;
 
+        .event-intro-image {
+          padding: 80px 0;
+          .events-image {
+            width: 100%;
+            height: auto;
+            max-height: 450px;
+            object-fit: contain;
+          }
+        }
+
         .pagination-con {
           width: 100%;
           display: flex;
@@ -792,6 +802,14 @@
   /****************************************************/
   @media (max-width: $tabBreakPoint) {
     .page-container {
+      .partners {
+        .partners-wrapper {
+          .event-intro-image {
+            padding: 40px 0;
+          }
+        }
+      }
+
       .article {
         position: relative;
         width: 100%;
