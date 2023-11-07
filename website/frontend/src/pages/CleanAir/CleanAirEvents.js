@@ -72,12 +72,13 @@ const CleanAirEvents = () => {
       <div className="partners">
         <div className="partners-wrapper">
           <p className="partners-intro">
-            As the CLEAN-Air Africa Network, we are all about creating engagement around air quality
-            management across Africa.
+            The CLEAN-Air Network provides a platform that unites organizations and individuals
+            committed to air quality management. The platform provides a launchpad for your
+            engagement activities, from conferences and webinars to workshops.
             <br />
             <br />
-            We promote sustainability activities, provide handy resources, connect a wide pool of
-            experts and feature events.
+             Members will also have access to a diverse pool of experts who can be invited to
+            participate in different engagement activities, either as speakers or co-organizers.
           </p>
         </div>
       </div>

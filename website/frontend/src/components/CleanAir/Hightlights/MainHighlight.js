@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllEvents } from '../../../../reduxStore/Events/EventSlice';
 import { isEmpty } from 'underscore';
+import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { AccessTimeOutlined, CalendarMonth } from '@mui/icons-material';
 import { format } from 'date-fns';
 
 const Highlight = () => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const eventsData = useSelector((state) => state.eventsData.events);
 
@@ -72,9 +74,14 @@ const Highlight = () => {
                   </div>
                   {/* time */}
                   <div className="event-btn">
-                    <Link to={featuredEvent.location_link} target="_blank">
-                      <button>Read More {' -->'}</button>
-                    </Link>
+                    <div>
+                      <button
+                        type="button"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => navigate(`/events/${featuredEvent.unique_title}/`)}>
+                        Read More {' -->'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
