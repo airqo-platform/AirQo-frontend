@@ -8,6 +8,7 @@ import { getAllEvents } from '../../../reduxStore/Events/EventSlice';
 import { format } from 'date-fns';
 import Loadspinner from '../../components/LoadSpinner';
 import PageMini from '../PageMini';
+import { setActiveTab } from '../../../reduxStore/CleanAirNetwork/CleanAir';
 
 const EventDetails = () => {
   useInitScrollTop();
@@ -48,7 +49,11 @@ const EventDetails = () => {
                   <div className="content">
                     <div className="breadcrumb">
                       <span>
-                        <a href="/events">Events</a>
+                        {event.website_category === 'cleanair' ? (
+                          <a href="/clean-air">Clean Air Events</a>
+                        ) : (
+                          <a href="/events">Events</a>
+                        )}
                       </span>
                       <span style={{ fontFamily: 'monospace' }}>{'>'}</span>
                       <span style={{ color: '#A8B2C7' }}>{event.title}</span>
