@@ -14,7 +14,7 @@ const Explore = () => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
 
-  const timeOptions = ['Hourly', 'Daily', 'Weekly', 'Monthly'];
+  const timeOptions = ['hourly', 'daily', 'weekly', 'monthly'];
   const chartOptions = [
     { id: 'bar', name: 'Bar chart', icon: <BarChart /> },
     { id: 'line', name: 'Line chart', icon: <LineChart /> },
