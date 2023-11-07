@@ -23,7 +23,7 @@ export const getAnalyticsData = async (body) => {
 };
 
 export const getEventsData = async (params) => {
-  return await createAxiosInstance()
+  return await createAxiosInstance(false)
     .get(`${DEVICES}/events`, { params })
     .then((response) => response.data);
 };

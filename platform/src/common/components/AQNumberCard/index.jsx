@@ -6,7 +6,7 @@ import UnhealthySG from '@/icons/Charts/UnhealthySG';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import WindIcon from '@/icons/Common/wind.svg';
 
-const AQNumberCard = ({ reading, location }) => {
+const AQNumberCard = ({ reading, location, keyValue }) => {
   let airQualityText = '';
   let AirQualityIcon = null;
   let airQualityColor = '';
@@ -38,7 +38,10 @@ const AQNumberCard = ({ reading, location }) => {
   }
 
   return (
-    <div className='min-w-max lg:max-w-[249px] sm:max-w-full h-[164.48px] bg-white rounded-lg border border-gray-200 flex-col justify-start items-center inline-flex overflow-hidden'>
+    <div
+      className='min-w-max lg:max-w-[249px] sm:max-w-full h-[164.48px] bg-white rounded-lg border border-gray-200 flex-col justify-start items-center inline-flex overflow-hidden'
+      key={keyValue}
+    >
       <div className='self-stretch w-full h-[68.48px] px-4 pt-3.5 pb-[10.48px] bg-white border-b border-b-gray-200 flex-col justify-start items-start flex'>
         <div className='self-stretch justify-between items-center inline-flex'>
           <div className='flex-col justify-start items-start inline-flex'>
@@ -46,16 +49,10 @@ const AQNumberCard = ({ reading, location }) => {
               className='text-gray-700 text-base font-medium leading-normal overflow-hidden whitespace-nowrap overflow-ellipsis'
               title={location}
             >
-              {location.length > 7 ? location.slice(0, 7) + '...' : location}
+              {location.length > 14 ? location.slice(0, 14) + '...' : location}
             </div>
             <div className='text-slate-400 text-sm font-medium leading-tight'>Daily Avg.</div>
           </div>
-          {/* <div className='pl-1 pr-2 bg-red-50 rounded-full justify-start items-center gap-0.5 flex'>
-            <div className='p-1 bg-red-50 rounded-[900px] justify-start items-center gap-1 flex'>
-              <div className='w-3.5 h-3.5 relative' />
-            </div>
-            <div className='text-red-500 text-sm font-medium leading-tight'>32%</div>
-          </div> */}
         </div>
       </div>
       <div className='self-stretch w-full pl-4 pr-5 py-4 bg-white justify-between items-center inline-flex gap-4'>

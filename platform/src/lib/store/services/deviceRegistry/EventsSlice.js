@@ -10,7 +10,7 @@ const initialState = {
 export const fetchEventsData = createAsyncThunk('/get/events', async () => {
   try {
     const response = await getEventsData();
-    return response.data;
+    return response.measurements;
   } catch (error) {
     throw error;
   }

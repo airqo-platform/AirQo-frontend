@@ -1,10 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ChartContainer from '@/components/Charts/ChartContainer';
 import AQNumberCard from '@/components/AQNumberCard';
 import BorderlessContentBox from '@/components/Layout/borderless_content_box';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchEventsData } from '@/lib/store/services/deviceRegistry/EventsSlice';
 
 const OverView = () => {
-  // get data from events api redux
+  // events hook
+  const dispatch = useDispatch();
+  const siteEvents = useSelector((state) => state.events.eventsData);
+
+  useEffect(() => {
+    dispatch(fetchEventsData());
+  }, []);
 
   return (
     <BorderlessContentBox>
@@ -12,10 +20,9 @@ const OverView = () => {
         className='mb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 grid-flow-col-dense'
         style={{ gridAutoFlow: 'dense' }}
       >
-        <AQNumberCard location='Jinja city council hq' reading={'230'} />
-        <AQNumberCard location='Nairobi' reading={'44'} />
-        <AQNumberCard location='Kishasha' reading={'7'} />
-        <AQNumberCard location='London' reading={'89'} />
+        {siteEvents.slice(0, 4).map((event, index) => (
+          <AQNumberCard keyValue={index} location={event.device} reading={event.pm2_5.value} />
+        ))}
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <ChartContainer chartType='line' chartTitle='Air quality over time' />
