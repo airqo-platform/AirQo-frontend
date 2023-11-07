@@ -8,14 +8,16 @@ const CleanAirPublications = () => {
   useInitScrollTop();
   const dispatch = useDispatch();
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh'
-      }}>
-      work in progress
+    <div>
+      <SEO
+        title="CLEAN-Air Africa Network | Partners"
+        siteTitle="CLEAN-Air Africa Network"
+        description="CLEAN-Air Africa Network is a network of African cities and partners committed to improving air quality and reducing carbon emissions through knowledge sharing and capacity building."
+      />
+
+      <div className="partners">
+        <div className="partners-wrapper">hello</div>
+      </div>
     </div>
   );
 };

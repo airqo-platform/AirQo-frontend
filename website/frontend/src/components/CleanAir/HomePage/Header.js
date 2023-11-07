@@ -18,7 +18,7 @@ const HeaderComponent = ({ title, pageTitle, style }) => {
         <div className="heading-title">
           <h1>{title}</h1>
         </div>
-        <SecondaryNavComponent />
+        <SecondaryNavComponent disabledTabs={[3]} />
       </div>
     </div>
   );
