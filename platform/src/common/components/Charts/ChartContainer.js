@@ -3,7 +3,7 @@ import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
 import Chart from './Charts';
 import DotMenuIcon from '@/icons/Actions/three-dots-menu.svg';
 import { useDispatch } from 'react-redux';
-import { setChartTab } from '@/lib/store/services/charts/ChartSlice';
+import { setChartTab, setChartType } from '@/lib/store/services/charts/ChartSlice';
 
 const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width }) => {
   const dispatch = useDispatch();
@@ -37,7 +37,11 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width }) => {
               </a>
             </CustomDropdown>
           ) : (
-            <button onClick={() => dispatch(setChartTab(1))}>
+            <button
+              onClick={() => {
+                dispatch(setChartTab(1));
+                dispatch(setChartType(chartType));
+              }}>
               <span className='text-sm font-medium text-blue-600 hover:text-blue-700 cursor-pointer'>
                 More
               </span>

@@ -153,8 +153,7 @@ h4 {
 
   .clean-air-tab {
     width: 19%;
-    border: 1px solid $aq-blue-0;
-    box-shadow: 0px 0px 2px $aq-blue-9;
+    background: $aq-blue-5;
     div {
       display: flex;
       flex-direction: row;
@@ -296,7 +295,7 @@ h4 {
       align-items: center;
       justify-content: center;
       width: auto;
-      height:48px;
+      height: 48px;
       div {
         display: flex;
         flex-direction: row;

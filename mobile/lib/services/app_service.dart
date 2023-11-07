@@ -29,6 +29,7 @@ class AppService {
     context.read<SearchHistoryBloc>().add(const SyncSearchHistory());
     Profile profile = context.read<ProfileBloc>().state;
     await CloudAnalytics.logSignInEvents(profile);
+    await AirqoApiClient().syncPlatformAccount();
   }
 
   static Future<void> postSignOutActions(

@@ -1,6 +1,5 @@
 /* eslint-disable */
 import createAxiosInstance from '../../views/apis/axiosConfig';
-import axios from 'axios';
 import setAuthToken from '../../utils/setAuthToken';
 import jwt_decode from 'jwt-decode';
 import {
@@ -101,7 +100,7 @@ export const updateOrganization = (orgData) => (dispatch) => {
 export const fetchCandidates = (networkID) => {
   return (dispatch) => {
     dispatch(fetchCandidatesRequest());
-    return axios
+    return createAxiosInstance()
       .get(GET_CANDIDATES_URI, { params: { network_id: networkID } })
       .then((response) => response.data)
       .then((data) => dispatch(fetchCandidatesSuccess(data.candidates, data.message)))
@@ -135,7 +134,7 @@ export const fetchCandidatesFailed = (error) => {
 export const addNewUser = (user) => {
   return (dispatch) => {
     dispatch(addNewUserRequest(user));
-    axios
+    createAxiosInstance()
       .post(REGISTER_USER_URI, user)
       .then((res) => {
         const { savedData, message } = res.data;
@@ -204,7 +203,7 @@ export const editUser = (userToEdit) => (dispatch) => {
   dispatch(editUserRequest(userToEdit));
 
   const id = userToEdit.id;
-  return axios
+  return createAxiosInstance()
     .put(GET_USERS_URI, userToEdit, { params: { id } })
     .then((response) => {
       if (response) {
@@ -278,7 +277,7 @@ export const deleteUser = (userToDelete) => {
     const id = userToDelete._id;
 
     dispatch(deleteUserRequest(userToDelete));
-    return axios
+    return createAxiosInstance()
       .delete(GET_USERS_URI, { params: { id } })
       .then((response) => response.data)
       .then((data) => {
@@ -331,7 +330,7 @@ export const deleteUserFailed = (error) => {
 /************************* Register a new User  *****************************/
 export const registerCandidate = (tenant, userData, callback) => (dispatch) => {
   return (
-    axios
+    createAxiosInstance()
       .post(REGISTER_CANDIDATE_URI, userData, { params: { tenant } })
       .then((res) => {
         if (res.data.success) {
@@ -426,7 +425,7 @@ export const loginUser = (userData) => (dispatch) => {
 
 // Login - forgot password
 export const forgotPassword = (userData) => (dispatch) => {
-  axios
+  createAxiosInstance()
     .post(FORGOT_PWD_URI, userData)
     .then((response) => {
       if (response.data === 'email not recognized') {
@@ -452,7 +451,7 @@ export const forgotPassword = (userData) => (dispatch) => {
 //Reset Password - verify Token
 
 export const verifyToken = async (token) => {
-  await axios
+  await createAxiosInstance()
     .get(VERIFY_TOKEN_URI, token)
     .then((response) => {
       if (response.data.message === 'password reset link a-ok') {
@@ -553,7 +552,7 @@ export const hideConfirmDialog = () => {
 
 export const confirmUser = (userToConfirm) => (dispatch) => {
   dispatch(confirmUserRequest(userToConfirm));
-  return axios
+  return createAxiosInstance()
     .post(GET_USERS_URI, userToConfirm)
     .then((response) => {
       if (response) {
@@ -592,7 +591,7 @@ export const confirmUserFailed = (error) => {
 /**********************update the user password  ***********************************/
 export const updatePassword = (userData) => (dispatch, getState) => {
   const id = getState().auth.user._id;
-  axios
+  createAxiosInstance()
     .put(UPDATE_PWD_IN_URI, userData, { params: { id } })
     .then((response) => response.data)
     .then((data) => dispatch({ type: UPDATE_PASSWORD_SUCCESS, payload: data.result }))
@@ -603,11 +602,8 @@ export const updatePassword = (userData) => (dispatch, getState) => {
 
 export const updateProfile = (userData) => (dispatch) => {
   dispatch({ type: UPDATE_PROFILE_REQUEST });
-  return axios({
-    method: 'put',
-    url: GET_USERS_URI,
-    data: userData
-  })
+  return createAxiosInstance()
+    .put(GET_USERS_URI, userData)
     .then((response) => {
       if (response) {
         dispatch({
@@ -627,7 +623,7 @@ export const updateProfile = (userData) => (dispatch) => {
 //*********************************** default settings ************************************/
 export const setDefaults = (values, id) => (dispatch) => {
   dispatch(setDefaultsRequest(values));
-  return axios
+  return createAxiosInstance()
     .put(DEFAULTS_URI + '/' + `${values.id}`, values)
     .then((response) => {
       if (response) {
@@ -666,7 +662,7 @@ export const setDefaultsFailed = (error) => {
 export const fetchDefaults = (userId) => {
   return (dispatch) => {
     dispatch(fetchDefaultsRequest());
-    return axios
+    return createAxiosInstance()
       .get(`${DEFAULTS_URI}/${userId}`)
       .then((response) => response.data)
       .then((responseData) => {
@@ -701,7 +697,7 @@ export const fetchDefaultsFailed = (error) => {
 export const updateAuthenticatedUser = (newData) => (dispatch, getState) => {
   dispatch(updateAuthenticatedUserRequest());
   const id = getState().auth.user._id;
-  return axios
+  return createAxiosInstance()
     .put(GET_USERS_URI, newData, { params: { id } })
     .then((response) => {
       if (response) {

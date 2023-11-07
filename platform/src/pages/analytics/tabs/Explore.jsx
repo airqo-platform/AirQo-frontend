@@ -14,7 +14,7 @@ const Explore = () => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
 
-  const timeOptions = ['Hourly', 'Daily', 'Weekly', 'Monthly'];
+  const timeOptions = ['hourly', 'daily', 'weekly', 'monthly'];
   const chartOptions = [
     { id: 'bar', name: 'Bar chart', icon: <BarChart /> },
     { id: 'line', name: 'Line chart', icon: <LineChart /> },
@@ -35,11 +35,7 @@ const Explore = () => {
           <CustomDropdown
             trigger={<TabButtons btnText={chartData.timeFrame} dropdown />}
             id='days'
-            dropStyle={
-              window.innerWidth <= 768
-                ? { top: '36px', zIndex: 9999, right: '0px' }
-                : { top: '36px', zIndex: 9999, left: '0px' }
-            }>
+            dropStyle={{ top: '36px', zIndex: 9999, left: '0px' }}>
             {timeOptions.map((option) => (
               <span
                 key={option}
@@ -61,11 +57,7 @@ const Explore = () => {
           <CustomDropdown
             trigger={<TabButtons Icon={BarChart} btnText='Chart' dropdown />}
             id='charts'
-            dropStyle={
-              window.innerWidth <= 768
-                ? { top: '36px', zIndex: 9999, left: '0px' }
-                : { top: '36px', zIndex: 9999, right: '0px' }
-            }>
+            dropStyle={{ top: '36px', zIndex: 9999, right: '0px' }}>
             {chartOptions.map((option) => (
               <span
                 key={option.id}

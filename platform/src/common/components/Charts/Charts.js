@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   LineChart,
   Line,
@@ -19,7 +19,7 @@ import Unhealthy from '@/icons/Charts/Unhealthy';
 import UnhealthySG from '@/icons/Charts/UnhealthySG';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import Spinner from '@/components/Spinner';
 
 const colors = ['#11225A', '#0A46EB', '#297EFF', '#B8D9FF'];
@@ -206,12 +206,37 @@ const CustomDot = (props) => {
   return <circle cx={cx} cy={cy} r={6} fill={fill} />;
 };
 
+const CustomTooltip = ({ tooltipText, children, direction, themeClass }) => {
+  const [visible, setVisible] = useState(false);
+
+  const tooltipClass = {
+    top: 'bottom-full mb-3',
+    bottom: 'top-full mt-3',
+  }[direction];
+
+  return (
+    <div
+      className='relative'
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}>
+      {children}
+      {visible && (
+        <div
+          className={`absolute ${tooltipClass} ${
+            themeClass ? themeClass : 'bg-white text-center text-gray-700'
+          } p-2 w-48 rounded-md shadow-lg z-10`}>
+          <p className='text-sm'>{tooltipText}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const renderCustomizedLegend = (props) => {
   const { payload } = props;
 
   // Sort the payload array from darkest to lightest color
   const sortedPayload = payload.sort((a, b) => {
-    // Convert color to grayscale for comparison
     const colorToGrayscale = (color) => {
       if (color) {
         const hex = color.replace('#', '');
@@ -228,46 +253,42 @@ const renderCustomizedLegend = (props) => {
   return (
     <div className='p-2 md:p-0 flex flex-wrap flex-col md:flex-row md:justify-end mt-2 space-y-2 md:space-y-0 md:space-x-4'>
       {sortedPayload.map((entry, index) => (
-        <div
-          key={`item-${index}`}
-          style={{ color: entry.color }}
-          className='flex space-x-2 items-center text-sm'>
-          <div
-            className='w-[10px] h-[10px] rounded-xl mr-1 ml-1'
-            style={{ backgroundColor: entry.color }}></div>
-          {truncate(entry.value)}
-        </div>
+        <CustomTooltip key={`item-${index}`} tooltipText={entry.value} direction='top'>
+          <div style={{ color: entry.color }} className='flex space-x-2 items-center text-sm'>
+            <div
+              className='w-[10px] h-[10px] rounded-xl mr-1 ml-1'
+              style={{ backgroundColor: entry.color }}></div>
+            {truncate(entry.value)}
+          </div>
+        </CustomTooltip>
       ))}
     </div>
   );
 };
 
-const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
-  const dispatch = useDispatch();
-  const chartData = useSelector((state) => state?.chart);
+// Custom hook to fetch analytics data
+const useAnalytics = () => {
+  const chartData = useSelector((state) => state.chart);
+  const status = useSelector((state) => state.userDefaults.status);
   const [analyticsData, setAnalyticsData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const defaultSites = [
-      '64a7b5637d31df001e6b7dae',
-      '64a5755320511a001d1b4a3e',
-      '64a2737f682da700297f9d5c',
-      '64a0f81beb6f7700296cfeff',
-    ];
+    let isCancelled = false;
 
-    const body = {
-      sites: chartData.sites && chartData.sites.length > 0 ? chartData.sites : defaultSites,
-      startDate: new Date(chartData.chartDataRange.startDate).toISOString(),
-      endDate: new Date(chartData.chartDataRange.endDate).toISOString(),
-      chartType: chartData.chartType,
-      frequency: chartData.timeFrame,
-      pollutant: 'pm2_5',
-      organisation_name: 'airqo',
-    };
+    const fetchData = async () => {
+      if (!chartData || status === 'loading') return;
 
-    const getAnalytics = async () => {
-      // Check if all properties of body are set and not null
+      const body = {
+        sites: chartData.chartSites,
+        startDate: new Date(chartData.chartDataRange.startDate).toISOString(),
+        endDate: new Date(chartData.chartDataRange.endDate).toISOString(),
+        chartType: chartData.chartType,
+        frequency: chartData.timeFrame,
+        pollutant: chartData.pollutionType,
+        organisation_name: chartData.organizationName,
+      };
+
       const allPropertiesSet = Object.values(body).every(
         (property) => property !== undefined && property !== null,
       );
@@ -276,21 +297,36 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
         setIsLoading(true);
         try {
           const response = await getAnalyticsData(body);
-          if (response.data.length > 0) {
-            setAnalyticsData(response.data);
-          } else {
-            setAnalyticsData(null);
+          if (!isCancelled) {
+            setAnalyticsData(response.data.length > 0 ? response.data : null);
           }
         } catch (error) {
-          console.error(error);
+          if (!isCancelled) {
+            console.error(`Error getting analytics data: ${error}`);
+          }
         } finally {
-          setIsLoading(false);
+          if (!isCancelled) {
+            setIsLoading(false);
+          }
         }
       }
     };
-    getAnalytics();
-  }, [chartData]);
 
+    fetchData();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [chartData, status]);
+
+  return { analyticsData, isLoading };
+};
+
+const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
+  const chartData = useSelector((state) => state.chart);
+  const { analyticsData, isLoading } = useAnalytics();
+
+  // Loading state
   if (isLoading) {
     return (
       <div className='ml-10 flex justify-center items-center w-full h-full'>
@@ -299,6 +335,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
     );
   }
 
+  // No data for this time range
   if (analyticsData === null) {
     return (
       <div className='ml-10 flex justify-center items-center w-full h-full'>
@@ -368,7 +405,13 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
                 return tick;
               }
             }}>
-            <Label value='PM2.5' position='insideTopRight' offset={0} fontSize={12} dy={-35} />
+            <Label
+              value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
+              position='insideTopRight'
+              offset={0}
+              fontSize={12}
+              dy={-35}
+            />
           </YAxis>
           <Legend
             content={renderCustomizedLegend}
@@ -414,7 +457,13 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
                 return tick;
               }
             }}>
-            <Label value='PM2.5' position='insideTopRight' offset={0} fontSize={12} dy={-35} />
+            <Label
+              value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
+              position='insideTopRight'
+              offset={0}
+              fontSize={12}
+              dy={-35}
+            />
           </YAxis>
           <Legend
             content={renderCustomizedLegend}

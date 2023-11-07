@@ -105,7 +105,9 @@ const CustomCalendar = ({
         type='button'
         className='relative border border-grey-750 w-15 h-10 rounded-lg flex items-center justify-between gap-2 p-[10px]'>
         {Icon ? <Icon /> : <CalendarIcon />}
-        <span className='text-sm font-medium'>{chartData.chartDataRange.label}</span>
+        <span className='hidden sm:inline-block text-sm font-medium'>
+          {chartData.chartDataRange.label}
+        </span>
         {dropdown && <ChevronDownIcon />}
       </button>
       <div className={`absolute top-10 ${className}`}>
