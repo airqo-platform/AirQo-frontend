@@ -39,7 +39,7 @@ const AQNumberCard = ({ reading, location, keyValue }) => {
 
   return (
     <div
-      className='min-w-max lg:max-w-[249px] sm:max-w-full h-[164.48px] bg-white rounded-lg border border-gray-200 flex-col justify-start items-center inline-flex overflow-hidden'
+      className='relative min-w-max lg:max-w-[249px] sm:max-w-full h-[164.48px] bg-white rounded-lg border border-gray-200 flex-col justify-start items-center inline-flex'
       key={keyValue}
     >
       <div className='self-stretch w-full h-[68.48px] px-4 pt-3.5 pb-[10.48px] bg-white border-b border-b-gray-200 flex-col justify-start items-start flex'>
@@ -67,8 +67,13 @@ const AQNumberCard = ({ reading, location, keyValue }) => {
             <div className='text-gray-700 text-[28px] font-extrabold leading-7'>{reading}</div>
           </div>
         </div>
-        <div className='w-16 h-16  justify-center items-center flex'>
-          {AirQualityIcon && <AirQualityIcon />}
+        <div>
+          <div
+            data-tip={airQualityText}
+            className='tooltip tooltip-left lg:tooltip-top before:max-w-[12rem] before:content-[attr(data-tip)] w-16 h-16 justify-center items-center flex text-xs font-medium leading-[14px] absolute right-5 bottom-4 z-50'
+          >
+            {AirQualityIcon && <AirQualityIcon />}
+          </div>
         </div>
       </div>
     </div>
