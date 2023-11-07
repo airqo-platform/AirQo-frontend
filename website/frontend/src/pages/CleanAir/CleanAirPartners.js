@@ -101,7 +101,7 @@ const CleanAirPartners = () => {
               fontWeight: 400,
               fontStyle: 'normal'
             }}>
-            Our implementing partners have active interest in air quality work in Africa, have personnel with primary roles on air quality, organizes and host activities, participate in CLEAN-Air Network annual meetings and may provide logistical/or funding support to members.
+            Our implementing partners have active interest in air quality work in Africa, have personnel with primary roles on air quality, organize and host activities, participate in CLEAN-Air Network annual meetings and may provide logistical/or funding support to members.
           </p>"
         showButton={false}
         imgURL={Partner1}

@@ -15,7 +15,7 @@ const CleanAirPublications = () => {
         alignItems: 'center',
         height: '100vh'
       }}>
-      For you
+      work in progress
     </div>
   );
 };

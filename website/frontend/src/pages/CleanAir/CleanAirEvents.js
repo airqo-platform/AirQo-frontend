@@ -102,7 +102,7 @@ const CleanAirEvents = () => {
               fontWeight: 400,
               fontStyle: 'normal'
             }}>
-            Join us here, share initiatives and let’s make your engagements and activities a success! Whether it’s workshops, conferences, webinars, trainings, meetings or camps - let us help you get the recognition they deserve!
+            Increase your event's visibility. Register your workshops, conferences, webinars, trainings, roundtable meetings, outdoor campaigns etc and tap into invaluable networking prospects.
           </p>"
         showButton={true}
         customBtn={
