@@ -27,11 +27,11 @@ const CleanAirPartners = () => {
     (partner) => partner.website_category === 'cleanair'
   );
 
-  const implementingPartners = cleanAirPartners.filter((partner) => partner.type === 'network');
+  const implementingPartners = cleanAirPartners.filter((partner) => partner.type === 'ca-network');
 
-  const policyPartners = cleanAirPartners.filter((partner) => partner.type === 'policy');
+  const policyPartners = cleanAirPartners.filter((partner) => partner.type === 'ca-forum');
 
-  const supportPartners = cleanAirPartners.filter((partner) => partner.type === 'support');
+  const supportPartners = cleanAirPartners.filter((partner) => partner.type === 'ca-support');
 
   const generatePartnerDataGroup = (partners) => {
     return partners

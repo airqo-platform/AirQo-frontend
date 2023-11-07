@@ -15,7 +15,9 @@ const EventDetails = () => {
   const dispatch = useDispatch();
 
   const allEventsData = useSelector((state) => state.eventsData.events);
-  const eventData = allEventsData.filter((event) => event.website_category === 'airqo');
+  const eventData = allEventsData.filter(
+    (event) => event.website_category === 'airqo' || event.website_category === 'cleanair'
+  );
   const eventDetails = eventData.filter((event) => event.unique_title === uniqueTitle) || {};
   const loading = useSelector((state) => state.eventsData.loading);
 

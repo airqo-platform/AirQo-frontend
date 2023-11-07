@@ -77,7 +77,7 @@ const CleanAirEvents = () => {
             engagement activities, from conferences and webinars to workshops.
             <br />
             <br />
-             Members will also have access to a diverse pool of experts who can be invited to
+            Members will also have access to a diverse pool of experts who can be invited to
             participate in different engagement activities, either as speakers or co-organizers.
           </p>
         </div>
