@@ -26,7 +26,6 @@
     "file-saver": "^2.0.5",
     "flowbite": "^1.6.3",
     "flowbite-react": "^0.3.8",
-    "html-to-image": "^1.11.11",
     "html2canvas": "^1.4.1",
     "i18n-iso-countries": "^7.7.0",
     "jspdf": "^2.5.1",
