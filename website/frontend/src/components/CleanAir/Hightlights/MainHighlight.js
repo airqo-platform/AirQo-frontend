@@ -24,6 +24,8 @@ const Highlight = () => {
         )
       : [];
 
+  const featuredEvent = latestEvents[0];
+
   if (latestEvents.length === 0) {
     return null;
   }
@@ -39,44 +41,43 @@ const Highlight = () => {
               </span>
             </div>
             <div className="event-wrapper">
-              {latestEvents.map((event, index) => (
-                <div key={index} className="event-container">
-                  <img src={event.event_image} alt={event.unique_title} />
-                  <div className="event-content">
-                    <h1>{event.title}</h1>
-                    <p>{event.title_subtext}</p>
-                    <div className="time">
-                      <span className="item">
-                        <CalendarMonth />
-                        {event.end_date !== null ? (
-                          <span>
-                            {format(new Date(event.start_date), 'do')} -{' '}
-                            {format(new Date(event.end_date), 'do MMMM yyyy')}
-                          </span>
-                        ) : (
-                          <span>{format(new Date(event.start_date), 'do MMMM yyyy')}</span>
-                        )}
-                      </span>
-                      <span className="item">
-                        <AccessTimeOutlined />
-                        {event.end_time !== null ? (
-                          <span>
-                            {event.start_time.slice(0, -3)} - {event.end_time.slice(0, -3)}
-                          </span>
-                        ) : (
-                          <span>All Day</span>
-                        )}
-                      </span>
-                    </div>
-                    {/* time */}
-                    <div className="event-btn">
-                      <Link to={event.location_link} target="_blank">
-                        <button>Read More {' -->'}</button>
-                      </Link>
-                    </div>
+              <div className="event-container">
+                <img src={featuredEvent.event_image} alt={featuredEvent.unique_title} />
+                <div className="event-content">
+                  <h1>{featuredEvent.title}</h1>
+                  <p>{featuredEvent.title_subtext}</p>
+                  <div className="time">
+                    <span className="item">
+                      <CalendarMonth />
+                      {featuredEvent.end_date !== null ? (
+                        <span>
+                          {format(new Date(featuredEvent.start_date), 'do')} -{' '}
+                          {format(new Date(featuredEvent.end_date), 'do MMMM yyyy')}
+                        </span>
+                      ) : (
+                        <span>{format(new Date(featuredEvent.start_date), 'do MMMM yyyy')}</span>
+                      )}
+                    </span>
+                    <span className="item">
+                      <AccessTimeOutlined />
+                      {featuredEvent.end_time !== null ? (
+                        <span>
+                          {featuredEvent.start_time.slice(0, -3)} -{' '}
+                          {featuredEvent.end_time.slice(0, -3)}
+                        </span>
+                      ) : (
+                        <span>All Day</span>
+                      )}
+                    </span>
+                  </div>
+                  {/* time */}
+                  <div className="event-btn">
+                    <Link to={featuredEvent.location_link} target="_blank">
+                      <button>Read More {' -->'}</button>
+                    </Link>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         ) : (
