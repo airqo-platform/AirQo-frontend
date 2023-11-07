@@ -32,22 +32,6 @@ const CustomCalendar = ({
       date1.getMonth() === date2.getMonth() &&
       date1.getFullYear() === date2.getFullYear();
 
-    const getLabel = (computedValue, startDate, endDate, today, yesterday) => {
-      if (isSameDay(startDate, yesterday) && isSameDay(endDate, yesterday)) {
-        return 'Yesterday';
-      } else if (isSameDay(startDate, endDate)) {
-        return 'Today';
-      } else if (computedValue <= 7) {
-        return 'Last 7 days';
-      } else if (computedValue <= 30) {
-        return 'Last 30 days';
-      } else if (computedValue <= 90) {
-        return 'Last 90 days';
-      } else if (computedValue <= 365) {
-        return 'This year';
-      }
-    };
-
     const handleDateChange = (newValue) => {
       const startDate = new Date(newValue.startDate);
       const endDate = new Date(newValue.endDate);
@@ -60,7 +44,21 @@ const CustomCalendar = ({
 
       const computedValue = computeDaysBetweenDates(startDate, endDate);
 
-      let label = getLabel(computedValue, startDate, endDate, today, yesterday);
+      let label = `Last ${computedValue} days`;
+
+      if (isSameDay(startDate, yesterday) && isSameDay(endDate, yesterday)) {
+        label = 'Yesterday';
+      } else if (isSameDay(startDate, endDate)) {
+        label = 'Today';
+      } else if (computedValue === 7 || computedValue === 6) {
+        label = 'Last 7 days';
+      } else if (computedValue === 30 || computedValue === 29) {
+        label = 'Last 30 days';
+      } else if (computedValue === 90 || computedValue === 89) {
+        label = 'Last 90 days';
+      } else if (computedValue === 365 || computedValue === 364) {
+        label = 'This year';
+      }
 
       // include also for This month and Last month
       const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
