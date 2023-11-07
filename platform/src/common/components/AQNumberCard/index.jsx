@@ -12,7 +12,7 @@ const AQNumberCard = ({ reading, location, keyValue }) => {
   let airQualityText = '';
   let AirQualityIcon = null;
   let airQualityColor = '';
-  const window = useWindowSize();
+  const window = useWindowSize().width;
 
   if (reading >= 0 && reading <= 12) {
     airQualityText = 'Air Quality is Good';
