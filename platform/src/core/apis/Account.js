@@ -68,9 +68,13 @@ export const acceptGroupTeamInvite = async (body) => {
 
 // Update [Individual]User Details
 export const updateUserCreationDetails = async (data, identifier) => {
-  await axios
-    .put(`${UPDATE_USER_DETAILS_URL}/${identifier}`, data)
-    .then((response) => response.data);
+  try {
+    const response = await axios
+      .put(`${UPDATE_USER_DETAILS_URL}/${identifier}`, data)
+    return response.data;
+  } catch (error) {
+    return error;
+  }
 };
 
 // Create Organisation
