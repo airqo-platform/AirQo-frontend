@@ -1,5 +1,5 @@
 import createAxiosInstance from './axiosConfig';
-import { SITES_URL, ANALYTICS_URL, GRIDS_URL } from '../urls/deviceRegistry';
+import { SITES_URL, ANALYTICS_URL, GRIDS_URL, DEVICES } from '../urls/deviceRegistry';
 
 export const getAllGridLocationsApi = async () => {
   try {
@@ -19,5 +19,11 @@ export const getSiteSummaryDetails = async () => {
 export const getAnalyticsData = async (body) => {
   return await createAxiosInstance()
     .post(ANALYTICS_URL, body)
+    .then((response) => response.data);
+};
+
+export const getEventsData = async (params) => {
+  return await createAxiosInstance()
+    .get(`${DEVICES}/events`, { params })
     .then((response) => response.data);
 };

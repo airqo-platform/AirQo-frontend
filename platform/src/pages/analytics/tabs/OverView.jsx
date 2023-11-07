@@ -4,6 +4,8 @@ import AQNumberCard from '@/components/AQNumberCard';
 import BorderlessContentBox from '@/components/Layout/borderless_content_box';
 
 const OverView = () => {
+  // get data from events api redux
+
   return (
     <BorderlessContentBox>
       <div
