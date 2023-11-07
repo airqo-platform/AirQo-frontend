@@ -19,12 +19,9 @@ const AuthenticatedHomePage = () => {
             <CustomCalendar
               initialStartDate={new Date()}
               initialEndDate={new Date()}
-              id='datePicker'
-              position={
-                window.innerWidth <= 768
-                  ? { top: '40px', left: '0px' }
-                  : { top: '40px', right: '0px' }
-              }
+              id='datePicker1'
+              position='down'
+              className='left-[60px] md:right-0 lg:right-0'
               dropdown
             />
             <TabButtons Icon={SettingsIcon} btnText='Customize' />

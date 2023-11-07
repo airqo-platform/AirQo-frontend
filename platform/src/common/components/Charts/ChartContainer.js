@@ -5,7 +5,7 @@ import DotMenuIcon from '@/icons/Actions/three-dots-menu.svg';
 import { useDispatch } from 'react-redux';
 import { setChartTab } from '@/lib/store/services/charts/ChartSlice';
 
-const ChartContainer = ({ chartType, chartTitle, menuBtn }) => {
+const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width }) => {
   const dispatch = useDispatch();
   return (
     <div className='border-[0.5px] rounded-lg border-grey-150 shadow-[0px_0px_0px_0px_rgba(83,106,135,0.00)]'>
@@ -24,10 +24,16 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn }) => {
               id='options'
               dropStyle={{ top: '21px', right: '0', zIndex: 999 }}>
               <a href='#' className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'>
-                option 1
+                Export as an Excel file
               </a>
               <a href='#' className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'>
-                option 2
+                Export as CSV
+              </a>
+              <a href='#' className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'>
+                Export as PDF
+              </a>
+              <a href='#' className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'>
+                Export as PNG
               </a>
             </CustomDropdown>
           ) : (
@@ -41,10 +47,10 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn }) => {
         <div
           className='mt-6 -ml-[27px] relative'
           style={{
-            width: '100%',
-            height: 496,
+            width: width || '100%',
+            height: height,
           }}>
-          <Chart chartType={chartType} width={'100%'} height={'100%'} />
+          <Chart chartType={chartType} width={width} height={height} />
         </div>
       </div>
     </div>

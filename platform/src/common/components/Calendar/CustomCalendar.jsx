@@ -5,7 +5,15 @@ import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
 import { useSelector, useDispatch } from 'react-redux';
 import { setChartDataRange } from '@/lib/store/services/charts/ChartSlice';
 
-const CustomCalendar = ({ initialStartDate, initialEndDate, id, Icon, dropdown, position }) => {
+const CustomCalendar = ({
+  initialStartDate,
+  initialEndDate,
+  id,
+  Icon,
+  dropdown,
+  position,
+  className,
+}) => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
   const [value, setValue] = useState({
@@ -80,6 +88,7 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, id, Icon, dropdown, 
       showShortcuts
       showFooter
       inputId={id}
+      popoverDirection={position}
       inputClassName='absolute opacity-0 pointer-events-none w-0 h-0 z-[-1]'
       toggleClassName='absolute opacity-0 pointer-events-none w-0 h-0 z-[-1]'
     />
@@ -99,7 +108,7 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, id, Icon, dropdown, 
         <span className='text-sm font-medium'>{chartData.chartDataRange.label}</span>
         {dropdown && <ChevronDownIcon />}
       </button>
-      <div className='absolute' style={position}>
+      <div className={`absolute top-10 ${className}`}>
         <DatePickerHiddenInput />
       </div>
     </div>
