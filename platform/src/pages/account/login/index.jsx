@@ -96,7 +96,7 @@ const UserLogin = () => {
         <form onSubmit={handleLogin} data-testid='login-form'>
           <div className='mt-6'>
             <div className='w-full'>
-              <div className='text-sm'>Username</div>
+              <div className='text-sm'>Email Address</div>
               <div className='mt-2 w-full'>
                 <input
                   type='text'
