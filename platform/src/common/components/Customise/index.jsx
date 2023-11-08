@@ -46,6 +46,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
           </div>
         </div>
         {selectedTab === 'locations' && <LocationsContentComponent />}
+        {/* TODO: Pollutant component and post selection to user defaults */}
       </div>
       <div className='absolute w-full lg:w-3/12 bg-white z-30 bottom-0 right-0 border-t border-input-light-outline py-4 px-6'>
         <div className='flex flex-row justify-end items-center'>

@@ -22,7 +22,13 @@ import {
 } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import countries from 'i18n-iso-countries';
 import englishLocale from 'i18n-iso-countries/langs/en.json';
+import {
+  setCustomisedLocations,
+  updateUserDefaults,
+  postUserDefaults
+} from '@/lib/store/services/account/UserDefaultsSlice';
 
+// TODO: Create user default on organisation creation
 const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -50,6 +56,9 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
       state: false,
       message: '',
     });
+    const userDefaults = {
+      user: id, 
+    };
     try {
       const response = await dispatch(postOrganisationCreationDetails(orgData));
       if (!response.payload.success) {
@@ -57,13 +66,24 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
           state: true,
           message: response.payload.response.data.message,
         });
-        setLoading(false);
-      } else {
-        handleComponentSwitch();
+      }else{
+        try {
+          const response = await dispatch(postUserDefaults(userDefaults));
+          console.log(response);
+          if (response.payload.success) {
+            handleComponentSwitch();
+          } else {
+            setUpdateError({
+              state: true,
+              message: response.payload.message,
+            });
+          }
+        } catch (error) {
+          throw error;
+        }
       }
-    } catch (err) {
-      setLoading(false);
-      return err;
+    } catch (error) {
+      throw err;
     }
     setLoading(false);
   };
@@ -197,7 +217,7 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
     message: '',
   });
   const orgDetails = useSelector((state) => state.creation.org_creation_response);
-  const organisationId = orgDetails._id
+  const organisationId = orgDetails._id;
   countries.registerLocale(englishLocale);
   const industryList = [
     'Textiles',
@@ -325,7 +345,7 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
       grp_industry: orgIndustry,
       grp_country: orgCountry,
       grp_timezone: orgTimeZone,
-      grp_id:organisationId
+      grp_id: organisationId,
     };
     dispatch(setOrgUpdateDetails(orgData));
     try {
@@ -427,11 +447,15 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
   );
 };
 
+// TODO: Post selected locations to user defaults/sites
 const CreateOrganisationDetailsPageThree = () => {
   const dispatch = useDispatch();
   const router = useRouter();
-  const gridLocationsData = useSelector((state) => state.grids.gridLocations);
-  const grp_id = useSelector((state)=>state.creation.orgUpdate.grp_id)
+  const gridLocationsState = useSelector((state) => state.grids.gridLocations);
+  const gridSitesLocations = gridLocationsState.map((grid) => grid.sites);
+  const gridLocationsData = [].concat(...gridSitesLocations);
+  // const grp_id = useSelector((state)=>state.creation.orgUpdate.grp_id)
+  const { id } = router.query;
   const [location, setLocation] = useState('');
   const [inputSelect, setInputSelect] = useState(false);
   const [locationArray, setLocationArray] = useState([]);
@@ -448,7 +472,7 @@ const CreateOrganisationDetailsPageThree = () => {
     const query = e.target.value;
     let locationList = [...gridLocationsData];
     locationList = locationList.filter((location) => {
-      return location.long_name.toLowerCase().indexOf(query.toLowerCase()) !== -1;
+      return location.name.toLowerCase().indexOf(query.toLowerCase()) !== -1;
     });
     setFilteredLocations(locationList);
   };
@@ -465,25 +489,27 @@ const CreateOrganisationDetailsPageThree = () => {
     setLocationArray(locationArray.filter((location) => location._id !== item._id));
   };
 
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    dispatch(setSelectedLocations(locationArray));
-    const data={
-      grp_locations:locationArray,
-      grp_id
-    }
+    const data = {
+      user_id: id,
+      sites: locationArray,
+    };
+    dispatch(setCustomisedLocations(data));
     try {
-      const response = await dispatch(updateOrganisationDetails(data));
-      if (!response.payload.success) {
-        setCreationErrors({
-          state: true,
-          message: response.payload.response.data.message,
-        });
-        setLoading(false);
-      } else {
-        router.push('/account/creation/get-started')
-      }
+      const response = await dispatch(updateUserDefaults(data));
+      console.log(response)
+      // const success = useSelector((state) => state.defaults.success);
+      // if (!response.payload.success) {
+      //   setCreationErrors({
+      //     state: true,
+      //     message: response.payload.response.data.message,
+      //   });
+      //   setLoading(false);
+      // } else {
+      //   router.push('/account/creation/get-started');
+      // }
     } catch (error) {
       throw error;
     }
@@ -535,11 +561,10 @@ const CreateOrganisationDetailsPageThree = () => {
                         className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer'
                         onClick={() => {
                           handleLocationSelect(location);
-                        }} key={key}>
+                        }}
+                        key={key}>
                         <LocationIcon />
-                        <div className='text-sm ml-1 text-black capitalize'>
-                          {location.long_name}
-                        </div>
+                        <div className='text-sm ml-1 text-black capitalize'>{location.name}</div>
                       </div>
                     ))
                   ) : (
@@ -559,8 +584,12 @@ const CreateOrganisationDetailsPageThree = () => {
             <div className='mt-4 flex flex-row flex-wrap'>
               {locationArray.length > 0 ? (
                 locationArray.map((location, key) => (
-                  <div className='bg-green-150 flex flex-row items-center mr-2 px-3 py-1 rounded-xl mb-2' key={key}>
-                    <span className='text-sm text-blue-600 font-semibold mr-1'>{location.long_name}</span>
+                  <div
+                    className='bg-green-150 flex flex-row items-center mr-2 px-3 py-1 rounded-xl mb-2'
+                    key={key}>
+                    <span className='text-sm text-blue-600 font-semibold mr-1'>
+                      {location.name}
+                    </span>
                     <div onClick={() => removeLocation(location)} className='hover:cursor-pointer'>
                       <CloseIcon style={{ margin: '0 3px' }} />
                     </div>
@@ -617,7 +646,7 @@ const CreateOrganisationDetails = () => {
 
   return (
     <AccountPageLayout childrenHeight={'lg:h-[500]'} childrenTop={'mt-8'}>
-      {nextComponent === 'pageThree' && (
+      {nextComponent === 'pageOne' && (
         <CreateOrganisationDetailsPageOne handleComponentSwitch={() => handleSwitchTo('pageTwo')} />
       )}
       {nextComponent === 'pageTwo' && (
@@ -625,7 +654,7 @@ const CreateOrganisationDetails = () => {
           handleComponentSwitch={() => handleSwitchTo('pageThree')}
         />
       )}
-      {nextComponent === 'pageOne' && <CreateOrganisationDetailsPageThree />}
+      {nextComponent === 'pageThree' && <CreateOrganisationDetailsPageThree />}
     </AccountPageLayout>
   );
 };

@@ -59,6 +59,8 @@ const LocationsContentComponent = () => {
     setUnSelectedLocations((locations) => [...locations, item]);
   };
 
+  // TODO: HandleSubmit function that updates user defaults endpoint with the selected locations 
+
   useEffect(() => {
     dispatch(getAllGridLocations());
   }, []);
