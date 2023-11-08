@@ -24,10 +24,10 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 #from user import views as user_view
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('inventory/admin/', admin.site.urls),
     path('inventory/', include('dashboard.urls')),
-    path('register/',include('user.urls')),
-    path('logininventory/', auth_views.LoginView.as_view(template_name = 'user/login.html'),name='login'),
+    path('inventory/user/',include('user.urls')),
+    path('inventory/login/', auth_views.LoginView.as_view(template_name = 'user/login.html'),name='login'),
 ] + staticfiles_urlpatterns()
 
 #urlpatterns +=  

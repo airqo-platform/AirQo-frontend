@@ -28,7 +28,8 @@ const Explore = () => {
             initialStartDate={new Date()}
             initialEndDate={new Date()}
             id='datePicker2'
-            position={{ top: '40px', left: '0px' }}
+            className='left-0'
+            position='down'
             dropdown
           />
           <CustomDropdown
@@ -82,6 +83,7 @@ const Explore = () => {
           menuBtn
           chartType={chartData.chartType}
           chartTitle='Air quality over time'
+          height={450}
         />
       </div>
     </div>

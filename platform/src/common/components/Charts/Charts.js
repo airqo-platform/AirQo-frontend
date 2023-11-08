@@ -366,8 +366,6 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
       return (
         <LineChart
           data={dataForChart}
-          width={width}
-          height={height}
           style={{ cursor: 'pointer' }}
           margin={{
             top: 38,
@@ -434,8 +432,6 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
       return (
         <BarChart
           data={dataForChart}
-          width={width}
-          height={height}
           style={{ cursor: 'pointer' }}
           margin={{
             top: 38,
