@@ -25,7 +25,7 @@ import domtoimage from 'dom-to-image';
 import JsPDF from 'jspdf';
 import palette from 'theme/palette';
 import createAxiosInstance from 'views/apis/axiosConfig';
-import { DAILY_MEAN_AVERAGES_URI } from 'config/urls/analytics';
+import { DAILY_MEAN_AVERAGES_URI, DEVICE_MEAN_AVERAGES_URI } from 'config/urls/analytics';
 import { roundToEndOfDay, roundToStartOfDay } from 'utils/dateTime';
 import { isEmpty, unzip, zip } from 'underscore';
 import moment from 'moment';
@@ -34,7 +34,6 @@ import { flattenSiteOptions } from 'utils/sites';
 import { usePollutantsOptions } from 'utils/customHooks';
 import OutlinedSelect from '../../../components/CustomSelects/OutlinedSelect';
 import PropTypes from 'prop-types';
-import { BASE_AUTH_TOKEN } from 'utils/envVariables';
 
 function appendLeadingZeroes(n) {
   if (n <= 9) {
@@ -241,11 +240,13 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
     { key: 'PDF', action: exportToPdf, text: 'Save as PDF' }
   ];
 
-  const handleExport = ({ action }) => () => {
-    const chart = document.querySelector(`#${rootContainerId}`);
-    handleClose();
-    action(chart);
-  };
+  const handleExport =
+    ({ action }) =>
+    () => {
+      const chart = document.querySelector(`#${rootContainerId}`);
+      handleClose();
+      action(chart);
+    };
 
   const locationsGraphData = {
     labels: displayedLocations.map(([location]) => location),
@@ -356,7 +357,7 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
     const jwtToken = localStorage.getItem('jwtToken');
     createAxiosInstance()
       .post(
-        DAILY_MEAN_AVERAGES_URI,
+        isCohorts ? DEVICE_MEAN_AVERAGES_URI : DAILY_MEAN_AVERAGES_URI,
         isCohorts
           ? {
               startDate: roundToStartOfDay(startDate).toISOString(),
@@ -442,7 +443,8 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
           border: '1px solid #ccc',
           borderRadius: '4px',
           marginBottom: '10px'
-        }}>
+        }}
+      >
         <span id="location" style={locationStyle}>
           {location}
         </span>
@@ -451,7 +453,8 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
           id="value"
           style={{
             fontWeight: 'bold'
-          }}>
+          }}
+        >
           {value}
         </span>
       </div>
@@ -487,7 +490,8 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
         style={{
           width: '100%',
           height: '100%'
-        }}>
+        }}
+      >
         <CardContent>
           <div>
             {barRanges.map(({ label }, index) => {
@@ -507,7 +511,8 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
                       marginBottom: '5px',
                       justifyContent: 'space-between',
                       marginTop: '5px'
-                    }}>
+                    }}
+                  >
                     {label}
                     <span
                       style={{
@@ -515,7 +520,8 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
                         alignItems: 'center',
                         paddingLeft: '10px',
                         fontWeight: 'bold'
-                      }}>
+                      }}
+                    >
                       {count} Locations{' '}
                     </span>
                   </div>
@@ -527,13 +533,15 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
                       height: '5px',
                       backgroundColor: 'lightgray',
                       marginBottom: '20px'
-                    }}>
+                    }}
+                  >
                     <div
                       style={{
                         width: `${barPercentage}%`,
                         height: '100%',
                         backgroundColor: '#175df5'
-                      }}></div>
+                      }}
+                    ></div>
                   </div>
                 </div>
               );
@@ -604,14 +612,16 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
                 color="primary"
                 id={iconButton}
                 onClick={handleClick}
-                className={classes.chartSaveButton}>
+                className={classes.chartSaveButton}
+              >
                 <MoreHoriz />
               </IconButton>
               <Menu
                 anchorEl={anchorEl}
                 open={openMenu}
                 onClose={handleClose}
-                PaperProps={paperProps}>
+                PaperProps={paperProps}
+              >
                 {options.map((option) => (
                   <MenuItem key={option.key} onClick={handleExport(option)}>
                     {option.text}
@@ -631,7 +641,8 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
                   alignItems: 'center',
                   justifyContent: 'center',
                   height: '30vh'
-                }}>
+                }}
+              >
                 loading...
               </div>
             ) : isEmpty(locationsGraphData.labels) ? (
@@ -641,7 +652,8 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
                   alignItems: 'center',
                   justifyContent: 'center',
                   height: '30vh'
-                }}>
+                }}
+              >
                 No data found
               </div>
             ) : (
@@ -654,7 +666,8 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
           style={{
             justifyContent: 'flex-end',
             marginTop: '-20px'
-          }}>
+          }}
+        >
           <Button
             variant="outlined"
             color="primary"
@@ -669,7 +682,8 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
               boxShadow: 'none',
               background: 'transparent',
               border: 'none'
-            }}>
+            }}
+          >
             View all Locations <ArrowForwardIcon />
           </Button>
         </CardActions>
@@ -678,7 +692,8 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
         // classes={{ paper: classes.dialogPaper }}
         open={open}
         onClose={handleModalClose}
-        aria-labelledby="form-dialog-title">
+        aria-labelledby="form-dialog-title"
+      >
         <DialogTitle id="form-dialog-title" onClose={handleClose}>
           Customise Chart by Selecting the Various Options
         </DialogTitle>
@@ -721,7 +736,8 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
             margin: '10px',
             borderRadius: '8px'
           }
-        }}>
+        }}
+      >
         <h5
           style={{
             display: 'flex',
@@ -731,7 +747,8 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
             fontWeight: 'bold',
             padding: '20px',
             fontSize: '20px'
-          }}>
+          }}
+        >
           {customChartTitle}
         </h5>
         <DialogContent>
@@ -747,7 +764,8 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
                     overflow: 'auto',
                     // borderRadius: '2px',
                     marginBottom: '2px'
-                  }}>
+                  }}
+                >
                   {allLocations.map(([location, value, color]) => (
                     <Location key={location} location={location} value={value} />
                   ))}
