@@ -1,0 +1,228 @@
+<!--TODO: Currently disabled, implement later-->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/widget_bg"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/widget_bg">
+
+    <TextView
+        android:id="@+id/location"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="20dp"
+        android:fontFamily="@font/roboto_medium"
+        android:letterSpacing="0.005"
+        android:maxWidth="150dp"
+        android:text="@string/location"
+        android:textAppearance="@style/location"
+        android:textFontWeight="500"
+        android:textStyle="normal"
+        tools:targetApi="p" />
+
+
+    <TextView
+        android:id="@+id/date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/location"
+        android:layout_marginStart="15dp"
+        android:fontFamily="@font/roboto"
+        android:text="@string/date"
+        android:textAppearance="@style/date" />
+
+    <ImageView
+        android:id="@+id/refresh_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/location"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="5dp"
+        android:layout_toEndOf="@+id/date"
+        android:src="@drawable/refresh" />
+
+    <ImageView
+        android:id="@+id/air_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="70dp"
+        android:layout_marginTop="20dp"
+        android:layout_toEndOf="@+id/refresh_icon"
+        android:src="@drawable/air" />
+
+    <RelativeLayout
+        android:id="@+id/index_color"
+        android:layout_width="109dp"
+        android:layout_height="99dp"
+        android:layout_below="@+id/date"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/green_circle">
+
+
+        <TextView
+            android:id="@+id/pm_scale"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerInParent="true"
+            android:fontFamily="@font/roboto_mono_medium"
+            android:paddingTop="15dp"
+            android:paddingBottom="5dp"
+            android:text="@string/pm_scale"
+            android:textAppearance="@style/pm_scale" />
+
+        <TextView
+            android:id="@+id/pm_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:fontFamily="@font/roboto_mono_medium"
+            android:gravity="center"
+            android:text="@string/pm_value"
+            android:textAppearance="@style/pm_value"
+            android:textFontWeight="600"
+            tools:targetApi="p" />
+
+        <TextView
+            android:id="@+id/pm_unit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerInParent="true"
+            android:fontFamily="@font/roboto_mono_medium"
+            android:paddingTop="3dp"
+            android:paddingBottom="12dp"
+            android:text="@string/pmUnit"
+            android:textAppearance="@style/pm_unit" />
+
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/date"
+        android:layout_marginStart="35dp"
+        android:layout_marginTop="60dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="20dp"
+        android:layout_toEndOf="@+id/index_color">
+
+        <LinearLayout
+            android:id="@+id/forecast1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/forecast_value1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto_bold"
+                android:gravity="top"
+                android:text="@string/forecast_value1"
+                android:textAppearance="@style/forecast_value"
+                android:textStyle="normal" />
+
+            <TextView
+                android:id="@+id/pm_unit2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto_bold"
+                android:gravity="top"
+                android:text="@string/pmUnit"
+                android:textAppearance="@style/pm_unit2" />
+
+            <TextView
+                android:id="@+id/forecast_time1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:fontFamily="@font/roboto_bold"
+                android:gravity="bottom"
+                android:text="@string/forecast_time1"
+                android:textAppearance="@style/time"
+                android:textStyle="normal" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/forecast2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_toEndOf="@+id/forecast1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/forecast_value2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto_bold"
+                android:text="@string/forecast_value2"
+                android:textAppearance="@style/forecast_value" />
+
+            <TextView
+                android:id="@+id/pm_unit3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto_bold"
+                android:gravity="top"
+                android:text="@string/pmUnit"
+                android:textAppearance="@style/pm_unit2" />
+
+            <TextView
+                android:id="@+id/forecast_time2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:fontFamily="@font/roboto_bold"
+                android:text="@string/forecast_time2"
+                android:textAppearance="@style/time"
+                android:textStyle="normal"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/forecast3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_toEndOf="@+id/forecast2"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/forecast_value3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto_bold"
+                android:text="@string/forecast_value3"
+                android:textAppearance="@style/forecast_value"
+                android:textStyle="normal" />
+
+            <TextView
+                android:id="@+id/pm_unit4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto_bold"
+                android:text="@string/pmUnit"
+                android:textAppearance="@style/pm_unit2" />
+
+            <TextView
+                android:id="@+id/forecast_time3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:fontFamily="@font/roboto_bold"
+                android:gravity="bottom"
+                android:text="@string/forecast_time3"
+                android:textAppearance="@style/time"
+                android:textStyle="normal" />
+        </LinearLayout>
+
+
+    </RelativeLayout>
+
+</RelativeLayout>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:description="@string/app_widget_description"
+    android:initialKeyguardLayout="@layout/air_qo_home_screen_widget"
+    android:initialLayout="@layout/air_qo_home_screen_widget"
+   android:minWidth="400dp"
+    android:minHeight="400dp"
+    android:previewImage="@drawable/airqo_widget_preview"
+    android:previewLayout="@layout/air_qo_home_screen_widget"
+    android:targetCellWidth="3"
+    android:targetCellHeight="3"
+    android:updatePeriodMillis="1800000"
+    android:widgetCategory="home_screen"
+    tools:targetApi="s" />
