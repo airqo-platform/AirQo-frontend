@@ -128,7 +128,19 @@
     z-index: 1;
     position: relative;
 
+    .page-wrapper {
+      > * + * {
+        padding-top: 80px;
+      }
+
+      > :last-child {
+        padding-bottom: 80px;
+      }
+    }
+
     .Hero {
+      padding-top: 80px;
+      padding-bottom: 0;
       .hero-content {
         .hero-title {
           font-size: 42px;
@@ -371,7 +383,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      margin: 60px auto;
+      margin: 0px auto;
       padding: 20px 0;
       background-color: $aq-blue-1;
 
@@ -418,7 +430,7 @@
     .separator-1 {
       max-width: $maxWidth;
       border: 16px solid $aq-blue-3;
-      margin-top: 40px;
+      margin-top: 0px;
       margin-bottom: 0;
     }
 
@@ -780,12 +792,6 @@
       }
     }
 
-    .page-wrapper {
-      > * + * {
-        padding: 80px 0;
-      }
-    }
-
     .partners {
       position: relative;
       display: flex;
@@ -808,7 +814,6 @@
         padding: 0 16px;
 
         .event-intro-image {
-          padding: 80px 0;
           .events-image {
             width: 100%;
             height: auto;
@@ -1064,7 +1069,7 @@
       }
 
       .single-section {
-        margin: 40px auto;
+        margin: 0px auto;
         .content {
           .content-h {
             font-size: 24px;

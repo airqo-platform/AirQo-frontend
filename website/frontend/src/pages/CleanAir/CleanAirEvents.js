@@ -109,8 +109,9 @@ const CleanAirEvents = () => {
         <hr className="separator-1" />
       </div>
 
-      <SplitSection
-        content="  <p
+      <div>
+        <SplitSection
+          content="  <p
             style={{
               color: '#353E52',
               fontSize: '24px',
@@ -120,21 +121,22 @@ const CleanAirEvents = () => {
             }}>
             Increase your event's visibility. Register your workshops, conferences, webinars, trainings, roundtable meetings, outdoor campaigns etc and tap into invaluable networking prospects.
           </p>"
-        showButton={true}
-        customBtn={
-          <ButtonCTA
-            label="Register Event"
-            link="https://docs.google.com/forms/d/14jKDs2uCtMy2a_hzyCiJnu9i0GbxITX_DJxVB4GGP5c/edit"
-            style={{
-              width: '200px',
-              marginTop: '10px'
-            }}
-          />
-        }
-        imgURL={event2}
-        bgColor="#FFFFFF"
-        reverse
-      />
+          showButton={true}
+          customBtn={
+            <ButtonCTA
+              label="Register Event"
+              link="https://docs.google.com/forms/d/14jKDs2uCtMy2a_hzyCiJnu9i0GbxITX_DJxVB4GGP5c/edit"
+              style={{
+                width: '200px',
+                marginTop: '10px'
+              }}
+            />
+          }
+          imgURL={event2}
+          bgColor="#FFFFFF"
+          reverse
+        />
+      </div>
 
       <div className="list-page events">
         <div className="page-body" id="top_body">

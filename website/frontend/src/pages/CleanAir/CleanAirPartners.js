@@ -108,17 +108,18 @@ const CleanAirPartners = () => {
         <hr className="separator-1" />
       </div>
 
-      <div className="partners">
-        <div className="partners-wrapper">
-          <h2 className="extra-content">
-            Leveraging the unique expertise and resources of implementing partners to advance air
-            quality monitoring in Africa.
-          </h2>
+      <div>
+        <div className="partners">
+          <div className="partners-wrapper">
+            <h2 className="extra-content">
+              Leveraging the unique expertise and resources of implementing partners to advance air
+              quality monitoring in Africa.
+            </h2>
+          </div>
         </div>
-      </div>
 
-      <SplitSection
-        content="  <p
+        <SplitSection
+          content="  <p
             style={{
               color: '#353E52',
               fontSize: '24px',
@@ -128,61 +129,63 @@ const CleanAirPartners = () => {
             }}>
             Our implementing partners have active interest in air quality work in Africa, have personnel with primary roles on air quality, organize and host activities, participate in CLEAN-Air Network annual meetings and may provide logistical/or funding support to members.
           </p>"
-        showButton={false}
-        imgURL={Partner1}
-        bgColor="#FFFFFF"
-        reverse
-      />
+          showButton={false}
+          imgURL={Partner1}
+          bgColor="#FFFFFF"
+          reverse
+        />
 
-      {implementingPartners.length > 0 && (
-        <div className="partners AboutUsPage">
-          <div className="partners-wrapper wrapper">
-            <div className="partners-list">
-              {implementingPartners.slice(0, itemsToShow).map((networkPartner) => (
-                <div
-                  style={{ cursor: 'pointer' }}
-                  className="partner-img"
-                  key={networkPartner.id}
-                  onClick={onLogoClick(networkPartner)}>
-                  <img src={networkPartner.partner_logo} alt={networkPartner.partner_name} />
-                </div>
-              ))}
-            </div>
-            <div className="partner-logos" id="logo-table">
-              {itemsToShow < implementingPartners.length && (
-                <button
-                  className="partners-toggle-button"
-                  onClick={() => showMoreItems(setItemsToShow, 10)}>
-                  Show More
-                </button>
-              )}
-              {itemsToShow > 10 && (
-                <button
-                  className="partners-toggle-button"
-                  onClick={() => showLessItems(setItemsToShow, 10, 10)}>
-                  Show Less
-                </button>
-              )}
+        {implementingPartners.length > 0 && (
+          <div className="partners AboutUsPage">
+            <div className="partners-wrapper wrapper">
+              <div className="partners-list">
+                {implementingPartners.slice(0, itemsToShow).map((networkPartner) => (
+                  <div
+                    style={{ cursor: 'pointer' }}
+                    className="partner-img"
+                    key={networkPartner.id}
+                    onClick={onLogoClick(networkPartner)}>
+                    <img src={networkPartner.partner_logo} alt={networkPartner.partner_name} />
+                  </div>
+                ))}
+              </div>
+              <div className="partner-logos" id="logo-table">
+                {itemsToShow < implementingPartners.length && (
+                  <button
+                    className="partners-toggle-button"
+                    onClick={() => showMoreItems(setItemsToShow, 10)}>
+                    Show More
+                  </button>
+                )}
+                {itemsToShow > 10 && (
+                  <button
+                    className="partners-toggle-button"
+                    onClick={() => showLessItems(setItemsToShow, 10, 10)}>
+                    Show Less
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <div>
         <hr className="separator-1" />
       </div>
 
-      <div className="partners">
-        <div className="partners-wrapper">
-          <h2 className="extra-content ">
-            Effective air quality management, rooted in evidence-informed decision-making is
-            imperative for air quality management.
-          </h2>
+      <div>
+        <div className="partners">
+          <div className="partners-wrapper">
+            <h2 className="extra-content ">
+              Effective air quality management, rooted in evidence-informed decision-making is
+              imperative for air quality management.
+            </h2>
+          </div>
         </div>
-      </div>
 
-      <SplitSection
-        content="
+        <SplitSection
+          content="
           <p
             style={{
               color: '#353E52',
@@ -194,63 +197,65 @@ const CleanAirPartners = () => {
             Our Policy Forum includes any city in Africa interested in implementing an air quality programme.
         </p>
         "
-        showButton={false}
-        imgURL={Partner2}
-        bgColor="#FFFFFF"
-        reverse
-      />
+          showButton={false}
+          imgURL={Partner2}
+          bgColor="#FFFFFF"
+          reverse
+        />
 
-      {policyPartners.length > 0 && (
-        <div className="AboutUsPage">
-          <div className="wrapper">
-            <div className="partner-logos" id="logo-table">
-              <table>
-                <tbody>
-                  {policyPartnerDataGroup.slice(0, itemsToShowPolicy).map((partnerGroup, key) => (
-                    <tr key={key}>
-                      {partnerGroup.map((partner) => (
-                        <td key={partner.id} onClick={() => onLogoClick(partner)}>
-                          <img src={partner.partner_logo} alt={partner.partner_name} />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {itemsToShowPolicy < policyPartnerDataGroup.length && (
-                <button
-                  className="partners-toggle-button"
-                  onClick={() => showMoreItems(setItemsToShowPolicy, 3)}>
-                  Show More
-                </button>
-              )}
-              {itemsToShowPolicy > 3 && (
-                <button
-                  className="partners-toggle-button"
-                  onClick={() => showLessItems(setItemsToShowPolicy, 3, 3)}>
-                  Show Less
-                </button>
-              )}
+        {policyPartners.length > 0 && (
+          <div className="AboutUsPage">
+            <div className="wrapper">
+              <div className="partner-logos" id="logo-table">
+                <table>
+                  <tbody>
+                    {policyPartnerDataGroup.slice(0, itemsToShowPolicy).map((partnerGroup, key) => (
+                      <tr key={key}>
+                        {partnerGroup.map((partner) => (
+                          <td key={partner.id} onClick={() => onLogoClick(partner)}>
+                            <img src={partner.partner_logo} alt={partner.partner_name} />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {itemsToShowPolicy < policyPartnerDataGroup.length && (
+                  <button
+                    className="partners-toggle-button"
+                    onClick={() => showMoreItems(setItemsToShowPolicy, 3)}>
+                    Show More
+                  </button>
+                )}
+                {itemsToShowPolicy > 3 && (
+                  <button
+                    className="partners-toggle-button"
+                    onClick={() => showLessItems(setItemsToShowPolicy, 3, 3)}>
+                    Show Less
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <div>
         <hr className="separator-1" />
       </div>
 
-      <div className="partners">
-        <div className="partners-wrapper">
-          <h2 className="extra-content ">
-            Championing the power of collective action and collaboration in air quality management
-            to enable collective learning and knowledge sharing.
-          </h2>
+      <div>
+        <div className="partners">
+          <div className="partners-wrapper">
+            <h2 className="extra-content ">
+              Championing the power of collective action and collaboration in air quality management
+              to enable collective learning and knowledge sharing.
+            </h2>
+          </div>
         </div>
-      </div>
 
-      <SplitSection
-        content="<p
+        <SplitSection
+          content="<p
             style={{
               color: '#353E52',
               fontSize: '24px',
@@ -260,56 +265,61 @@ const CleanAirPartners = () => {
             }}>
             Supporting Partners provide logistical and/or funding support to network members, and may participate in the annual CLEAN-Air Network meetings.
           </p>"
-        showButton={false}
-        imgURL={Partner3}
-        bgColor="#FFFFFF"
-        reverse
-      />
+          showButton={false}
+          imgURL={Partner3}
+          bgColor="#FFFFFF"
+          reverse
+        />
 
-      {supportPartners.length > 0 && (
-        <div className="AboutUsPage">
-          <div className="wrapper">
-            <div className="partner-logos" id="logo-table">
-              <table>
-                <tbody>
-                  {supportPartnerDataGroup.slice(0, itemsToShowSupport).map((partnerGroup, key) => (
-                    <tr key={key}>
-                      {partnerGroup.map((partner) => (
-                        <td key={partner.id} onClick={() => onLogoClick(partner)}>
-                          <img src={partner.partner_logo} alt={partner.partner_name} />
-                        </td>
+        {supportPartners.length > 0 && (
+          <div className="AboutUsPage">
+            <div className="wrapper">
+              <div className="partner-logos" id="logo-table">
+                <table>
+                  <tbody>
+                    {supportPartnerDataGroup
+                      .slice(0, itemsToShowSupport)
+                      .map((partnerGroup, key) => (
+                        <tr key={key}>
+                          {partnerGroup.map((partner) => (
+                            <td key={partner.id} onClick={() => onLogoClick(partner)}>
+                              <img src={partner.partner_logo} alt={partner.partner_name} />
+                            </td>
+                          ))}
+                        </tr>
                       ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {itemsToShowSupport < supportPartnerDataGroup.length && (
-                <button
-                  className="partners-toggle-button"
-                  onClick={() => showMoreItems(setItemsToShowSupport, 3)}>
-                  Show More
-                </button>
-              )}
-              {itemsToShowSupport > 3 && (
-                <button
-                  className="partners-toggle-button"
-                  onClick={() => showLessItems(setItemsToShowSupport, 3, 3)}>
-                  Show Less
-                </button>
-              )}
+                  </tbody>
+                </table>
+                {itemsToShowSupport < supportPartnerDataGroup.length && (
+                  <button
+                    className="partners-toggle-button"
+                    onClick={() => showMoreItems(setItemsToShowSupport, 3)}>
+                    Show More
+                  </button>
+                )}
+                {itemsToShowSupport > 3 && (
+                  <button
+                    className="partners-toggle-button"
+                    onClick={() => showLessItems(setItemsToShowSupport, 3, 3)}>
+                    Show Less
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      <SingleSection
-        content="
+      <div>
+        <SingleSection
+          content="
         Individuals actively involved in air quality work in Africa are welcome to join the CLEAN-Air Africa Network."
-        btnText={'Register your interest'}
-        link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
-        bgColor="#F2F1F6"
-        btnStyle={{ width: 'auto' }}
-      />
+          btnText={'Register your interest'}
+          link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
+          bgColor="#F2F1F6"
+          btnStyle={{ width: 'auto' }}
+        />
+      </div>
     </div>
   );
 };
