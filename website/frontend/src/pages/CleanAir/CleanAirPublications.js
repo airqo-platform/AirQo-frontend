@@ -10,10 +10,16 @@ import ListIcon from '@mui/icons-material/List';
 import CloseIcon from '@mui/icons-material/Close';
 import useWindowSize from 'utilities/customHooks';
 
-const ResourceMenuItem = ({ activeResource, resource, dispatch }) => {
+const ResourceMenuItem = ({ activeResource, resource, dispatch, setToggle }) => {
+  const { width } = useWindowSize();
   const isActive = activeResource === resource;
   const className = isActive ? 'active' : 'resource-menu-item-link';
-  const onClick = () => dispatch(setActiveResource(resource));
+  const onClick = () => {
+    dispatch(setActiveResource(resource));
+    if (width < 1081) {
+      setToggle();
+    }
+  };
 
   return (
     <li className={className} onClick={onClick}>
@@ -232,6 +238,7 @@ const CleanAirPublications = () => {
                         activeResource={activeResource}
                         resource={resource}
                         dispatch={dispatch}
+                        setToggle={handleToggle}
                       />
                     ))}
                   </ul>
