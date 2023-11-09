@@ -108,7 +108,7 @@ const CleanAirPublications = () => {
 
               <div className="resource-body">
                 {activeResource === 'toolkits' && (
-                  <CardComponent
+                  <ReportComponent
                     title="Air Quality Management in Africa: A Guide for Practitioners"
                     authors="In this example, all list items except the first one will have a top margin of 10px. You can adjust the value as needed to suit your design. This is a simple and effective way to apply styles to middle items in a list. Note that this will also apply the margin to the last item. If you want to exclude the last item as well, you"
                     link="https://www.cleanairafrica.org/wp-content/uploads/2021/09/"
@@ -137,7 +137,7 @@ const CleanAirPublications = () => {
                   />
                 )}
                 {activeResource === 'research publications' && (
-                  <CardComponent
+                  <ReportComponent
                     title="Nairobi Air Quality Management Plan (2019-2024)"
                     authors="Nairobi City County"
                     link="https://www.cleanairafrica.org/wp-content/uploads/2021/09/Air-Quality-Management-in-Africa-A-Guide-for-Practitioners.pdf"
