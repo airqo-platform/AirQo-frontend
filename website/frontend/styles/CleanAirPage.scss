@@ -746,6 +746,7 @@
       }
       .resource-links {
         display: flex;
+        flex-wrap: wrap;
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
@@ -905,6 +906,7 @@
       display: grid;
       width: 100%;
       height: auto;
+      justify-content: center;
       grid-template-columns: 1fr 3fr;
       gap: 15px;
       padding: 0;
@@ -928,56 +930,70 @@
             color: #0e4dff;
           }
         }
-        .resource-menu-item {
-          padding: 0;
-          margin: 0;
-          border-right: 1px solid #353e52a3;
-          list-style: none;
-          width: 100%;
-          height: auto;
+        .menu-wrapper {
+          display: block;
+          .resource-menu-item {
+            padding: 0;
+            margin: 0;
+            border-right: 1px solid #353e52a3;
+            list-style: none;
+            width: 100%;
+            height: auto;
 
-          .active {
-            font-size: 24px;
-            font-weight: 500;
-            font-style: normal;
-            line-height: 32px;
-            padding: 10px 20px 6px 21px;
-            justify-content: center;
-            align-items: center;
-            color: $aq-white-0;
-            border-radius: 100px 0px 0px 100px;
-            border: 1px solid rgba(19, 93, 255, 0.2);
-            background: #145dff;
-            text-transform: capitalize;
-            cursor: pointer;
+            .active {
+              font-size: 24px;
+              font-weight: 500;
+              font-style: normal;
+              line-height: 32px;
+              padding: 10px 20px 6px 21px;
+              justify-content: center;
+              align-items: center;
+              color: $aq-white-0;
+              border-radius: 100px 0px 0px 100px;
+              border: 1px solid rgba(19, 93, 255, 0.2);
+              background: #145dff;
+              text-transform: capitalize;
+              cursor: pointer;
 
-            &:not(:first-child) {
-              margin-top: 25px;
+              &:not(:first-child) {
+                margin-top: 25px;
+              }
+            }
+
+            .resource-menu-item-link {
+              display: flex;
+              cursor: pointer;
+              text-transform: capitalize;
+              flex-direction: row;
+              align-items: center;
+              justify-content: flex-start;
+              padding: 15px 22px;
+              color: #353e52a3;
+              font-size: 24px;
+              font-weight: 500;
+              font-style: normal;
+              line-height: 32px;
+
+              &:not(:first-child) {
+                margin-top: 25px;
+              }
+
+              &:hover {
+                color: #1c1f2bd2;
+              }
             }
           }
-
-          .resource-menu-item-link {
-            display: flex;
-            cursor: pointer;
-            text-transform: capitalize;
-            flex-direction: row;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 15px 22px;
-            color: #353e52a3;
-            font-size: 24px;
-            font-weight: 500;
-            font-style: normal;
-            line-height: 32px;
-
-            &:not(:first-child) {
-              margin-top: 25px;
-            }
-
-            &:hover {
-              color: #1c1f2bd2;
-            }
-          }
+        }
+        .resource-menu-icon {
+          border: 1px solid #353e52a3;
+          border-radius: 8px;
+          padding: 10px;
+          display: none;
+          justify-content: center;
+          align-items: center;
+          cursor: pointer;
+          width: 50px;
+          height: 50px;
         }
       }
       .resource-body {
@@ -1010,6 +1026,20 @@
         gap: 15px;
         padding: 0;
         margin-top: 40px;
+        .resource-menu {
+          .title-wrapper {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .resource-menu-icon {
+            display: flex;
+          }
+          .menu-wrapper {
+            display: none;
+          }
+        }
       }
 
       .article {
@@ -1178,6 +1208,10 @@
         .image-container {
           margin-bottom: 20px;
         }
+      }
+
+      .report-card {
+        padding: 60px 20px;
       }
 
       .article {

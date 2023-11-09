@@ -1,10 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import SEO from 'utilities/seo';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { isEmpty } from 'underscore';
 import { useDispatch, useSelector } from 'react-redux';
 import { setActiveResource } from 'reduxStore/CleanAirNetwork/CleanAir';
 import { CardComponent, ReportComponent } from 'components/CleanAir';
+import { getAllCleanAirApi } from 'apis/index.js';
+import ListIcon from '@mui/icons-material/List';
+import CloseIcon from '@mui/icons-material/Close';
+import useWindowSize from 'utilities/customHooks';
 
 const ResourceMenuItem = ({ activeResource, resource, dispatch }) => {
   const isActive = activeResource === resource;
@@ -20,9 +24,49 @@ const ResourceMenuItem = ({ activeResource, resource, dispatch }) => {
 
 const CleanAirPublications = () => {
   useInitScrollTop();
+  const menuRef = useRef(null);
   const dispatch = useDispatch();
+  const [toggle, setToggle] = useState(false);
+  const [cleanAirResources, setCleanAirResources] = useState([]);
   const activeResource = useSelector((state) => state.cleanAirData.activeResource);
   const resources = ['toolkits', 'technical reports', 'workshop reports', 'research publications'];
+
+  useEffect(() => {
+    if (isEmpty(activeResource)) {
+      dispatch(setActiveResource('toolkits'));
+    }
+  }, [activeResource]);
+
+  // useEffect(() => {
+  //   getAllCleanAirApi()
+  //     .then((response) => {
+  //       console.log(response);
+  //       // const { data } = response;
+  //       // setCleanAirResources(data);
+  //     })
+  //     .catch((error) => console.log(error));
+  // }, []);
+
+  const { width } = useWindowSize();
+
+  useEffect(() => {
+    const resourceMenuItem = document.querySelector('.menu-wrapper');
+    if (width < 1081) {
+      resourceMenuItem.style.display = 'none';
+    } else {
+      resourceMenuItem.style.display = 'block';
+    }
+  }, [width]);
+
+  const handleToggle = () => {
+    setToggle(!toggle);
+    const resourceMenuItem = document.querySelector('.menu-wrapper');
+    if (toggle) {
+      resourceMenuItem.style.display = 'none';
+    } else {
+      resourceMenuItem.style.display = 'block';
+    }
+  };
 
   return (
     <div>
@@ -36,21 +80,29 @@ const CleanAirPublications = () => {
         <div className="partners-wrapper">
           <div className="resources-container">
             <div className="resource-menu">
-              <h1 className="resource-menu-title">
-                RESOURCE
-                <br />
-                <span>CENTER</span>
-              </h1>
-              <ul className="resource-menu-item">
-                {resources.map((resource) => (
-                  <ResourceMenuItem
-                    key={resource}
-                    activeResource={activeResource}
-                    resource={resource}
-                    dispatch={dispatch}
-                  />
-                ))}
-              </ul>
+              <div className="title-wrapper">
+                <h1 className="resource-menu-title">
+                  RESOURCE
+                  <br />
+                  <span>CENTER</span>
+                </h1>
+
+                <div className="resource-menu-icon" onClick={handleToggle}>
+                  {toggle ? <CloseIcon fontSize="large" /> : <ListIcon fontSize="large" />}
+                </div>
+              </div>
+              <div className="menu-wrapper" ref={menuRef}>
+                <ul className="resource-menu-item">
+                  {resources.map((resource) => (
+                    <ResourceMenuItem
+                      key={resource}
+                      activeResource={activeResource}
+                      resource={resource}
+                      dispatch={dispatch}
+                    />
+                  ))}
+                </ul>
+              </div>
             </div>
             <div className="resource-body">
               {activeResource === 'toolkits' && (
