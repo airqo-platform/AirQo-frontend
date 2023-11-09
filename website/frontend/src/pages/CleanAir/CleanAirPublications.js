@@ -30,6 +30,7 @@ const CleanAirPublications = () => {
   const [cleanAirResources, setCleanAirResources] = useState([]);
   const activeResource = useSelector((state) => state.cleanAirData.activeResource);
   const resources = ['toolkits', 'technical reports', 'workshop reports', 'research publications'];
+  const { width } = useWindowSize();
 
   useEffect(() => {
     if (isEmpty(activeResource)) {
@@ -44,8 +45,6 @@ const CleanAirPublications = () => {
       })
       .catch((error) => console.log(error));
   }, []);
-
-  const { width } = useWindowSize();
 
   useEffect(() => {
     const resourceMenuItem = document.querySelector('.menu-wrapper');
@@ -81,7 +80,7 @@ const CleanAirPublications = () => {
 
   const ITEMS_PER_PAGE = 4;
 
-  const renderData = (data) => {
+  const renderData = (data, showSecondAuthor) => {
     const indexOfLastItem = activePage * ITEMS_PER_PAGE;
     const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
     const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
@@ -117,7 +116,7 @@ const CleanAirPublications = () => {
           authors={resource.resource_authors}
           link={resource.resource_link}
           linkTitle={resource.linkTitle}
-          showSecondAuthor={false}
+          showSecondAuthor={showSecondAuthor}
           resourceFile={resource.resource_file}
         />
       </div>
@@ -240,9 +239,9 @@ const CleanAirPublications = () => {
               </div>
 
               <div className="resource-body">
-                {activeResource === 'toolkits' && renderData(toolkitData)}
-                {activeResource === 'technical reports' && renderData(technicalReportData)}
-                {activeResource === 'workshop reports' && renderData(workshopReportData)}
+                {activeResource === 'toolkits' && renderData(toolkitData, false)}
+                {activeResource === 'technical reports' && renderData(technicalReportData, true)}
+                {activeResource === 'workshop reports' && renderData(workshopReportData, true)}
                 {activeResource === 'research publications' && renderData(researchPublicationData)}
                 {renderPagination(activeResource)}
               </div>
