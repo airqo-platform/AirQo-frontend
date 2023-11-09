@@ -31,7 +31,7 @@ const customStyles = {
   })
 };
 
-const formatString = (string) => {
+export const formatString = (string) => {
   return string
     .replace(/_/g, ' ')
     .replace(/\w\S*/g, (txt) => {

@@ -3,12 +3,21 @@ import clsx from 'clsx';
 import { Box, Grid, Typography, makeStyles } from '@material-ui/core';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import 'chartjs-plugin-annotation';
-import { AveragesChart, ExceedancesChart, AddChart } from '../../Dashboard/components';
+import {
+  AveragesChart,
+  ExceedancesChart,
+  AddChart,
+  PollutantCategory
+} from '../../Dashboard/components';
 import { useUserDefaultGraphsData } from 'redux/Dashboard/selectors';
 import { loadUserDefaultGraphData } from 'redux/Dashboard/operations';
 import D3CustomisableChart from '../../../components/d3/CustomisableChart';
 import { useDispatch } from 'react-redux';
 import { isEmpty } from 'validate.js';
+import { PM_25_CATEGORY } from '../../../../utils/categories';
+import { loadMapEventsData } from 'redux/MapData/operations';
+import { useEventsMapData } from 'redux/MapData/selectors';
+import { formatString } from './AirqloudDropdown';
 
 const useStyles = makeStyles((theme) => ({
   chartCard: {},
@@ -37,6 +46,7 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const userDefaultGraphs = useUserDefaultGraphsData();
+  const [loading, setLoading] = useState(false);
 
   const [gridInfo, setGridInfo] = useState({
     name: 'N/A',
@@ -46,7 +56,62 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
     sites: []
   });
 
+  const [pm2_5SiteCount, setPm2_5SiteCount] = useState({
+    Good: 0,
+    Moderate: 0,
+    UHFSG: 0,
+    Unhealthy: 0,
+    VeryUnhealthy: 0,
+    Hazardous: 0
+  });
+  const recentEventsData = useEventsMapData();
+
   useEffect(() => {
+    if (isEmpty(recentEventsData.features)) dispatch(loadMapEventsData());
+  }, []);
+
+  useEffect(() => {
+    const initialCount = {
+      Good: [],
+      Moderate: [],
+      UHFSG: [],
+      Unhealthy: [],
+      VeryUnhealthy: [],
+      Hazardous: []
+    };
+
+    if (gridInfo && gridInfo.sites && gridInfo.sites.length > 0) {
+      const gridSites = gridInfo.sites;
+      const gridSitesObj = gridSites.reduce((acc, curr) => {
+        acc[curr._id] = curr;
+        return acc;
+      }, {});
+
+      recentEventsData.features &&
+        recentEventsData.features.forEach((feature) => {
+          const siteId = feature.properties.site_id;
+          if (gridSitesObj[siteId]) {
+            const pm2_5Value =
+              feature.properties.pm2_5.calibratedValue || feature.properties.pm2_5.value;
+            Object.keys(PM_25_CATEGORY).forEach((key) => {
+              const { min, max } = PM_25_CATEGORY[key];
+              if (pm2_5Value >= min && pm2_5Value <= max) {
+                initialCount[key].push({
+                  site: gridSitesObj[siteId].site_name,
+                  siteId,
+                  pm2_5: pm2_5Value
+                });
+              }
+            });
+          }
+        });
+    }
+    // console.log(initialCount);
+    setPm2_5SiteCount(initialCount);
+  }, [recentEventsData, gridInfo]);
+
+  useEffect(() => {
+    setLoading(true);
     if (gridDetails && gridDetails.sites && gridDetails.sites.length > 0) {
       setGridInfo({
         name: gridDetails.long_name,
@@ -64,6 +129,7 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
         sites: []
       });
     }
+    setLoading(false);
   }, [gridDetails]);
 
   function appendLeadingZeroes(n) {
@@ -91,24 +157,69 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
       <Box marginTop={'40px'}>
         <Box marginBottom={'20px'}>
           <Grid container spacing={4} alignItems="center" justify="center">
-            <Grid item lg={3} sm={6} xl={3} xs={12}>
+            <Grid item lg={4} sm={6} xl={3} xs={12}>
               <Typography variant="subtitle2">Grid name</Typography>
               <Typography variant="h2" style={{ textTransform: 'capitalize' }}>
-                {gridInfo.name}
+                {loading ? '...' : formatString(grid.name || gridInfo.name)}
               </Typography>
             </Grid>
-            <Grid item lg={3} sm={6} xl={3} xs={12}>
+            <Grid item lg={4} sm={6} xl={3} xs={12}>
               <Typography variant="subtitle2">Admin level</Typography>
               <Typography variant="h2" style={{ textTransform: 'capitalize' }}>
-                {gridInfo.admin_level}
+                {loading ? '...' : formatString(gridInfo.admin_level)}
               </Typography>
             </Grid>
-            <Grid item lg={3} sm={6} xl={3} xs={12}>
+            <Grid item lg={4} sm={6} xl={3} xs={12}>
               <Typography variant="subtitle2">Number of sites</Typography>
-              <Typography variant="h2">{gridInfo.numberOfSites}</Typography>
+              <Typography variant="h2">
+                {loading ? '...' : grid.numberOfSites || gridInfo.numberOfSites}
+              </Typography>
             </Grid>
           </Grid>
         </Box>
+
+        <Grid container spacing={4}>
+          <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <PollutantCategory pm25level="Good" sites={pm2_5SiteCount.Good} iconClass="pm25Good" />
+          </Grid>
+          <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <PollutantCategory
+              pm25level="Moderate"
+              sites={pm2_5SiteCount.Moderate}
+              iconClass="pm25Moderate"
+            />
+          </Grid>
+          <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <PollutantCategory
+              pm25level="UHFSG"
+              sites={pm2_5SiteCount.UHFSG}
+              iconClass="pm25UH4SG"
+            />
+          </Grid>
+
+          <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <PollutantCategory
+              pm25level="Unhealthy"
+              sites={pm2_5SiteCount.Unhealthy}
+              iconClass="pm25UnHealthy"
+            />
+          </Grid>
+
+          <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <PollutantCategory
+              pm25level="Very Unhealthy"
+              sites={pm2_5SiteCount.VeryUnhealthy}
+              iconClass="pm25VeryUnHealthy"
+            />
+          </Grid>
+          <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <PollutantCategory
+              pm25level="Hazardous"
+              sites={pm2_5SiteCount.Hazardous}
+              iconClass="pm25Harzadous"
+            />
+          </Grid>
+        </Grid>
 
         <Grid container spacing={4}>
           <AveragesChart classes={classes} analyticsSites={gridInfo.sites} isGrids={true} />

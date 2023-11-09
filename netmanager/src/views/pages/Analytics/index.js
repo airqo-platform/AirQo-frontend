@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   Divider,
+  Grid,
   IconButton,
   ListItemIcon,
   ListItemText,
@@ -49,12 +50,23 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const createDeviceOptions = (devices) => {
+export const createDeviceOptions = (devices) => {
   const options = [];
   devices.map((device) => {
     options.push({
       value: device._id,
       label: device.name
+    });
+  });
+  return options;
+};
+
+export const createSiteOptions = (sites) => {
+  const options = [];
+  sites.map((site) => {
+    options.push({
+      value: site._id,
+      label: site.site_name
     });
   });
   return options;
@@ -110,7 +122,6 @@ const Analytics = () => {
   const activeGridDetails = useSelector((state) => state.analytics.activeGridDetails);
   const activeCohort = useSelector((state) => state.analytics.activeCohort);
   const activeCohortDetails = useSelector((state) => state.analytics.activeCohortDetails);
-
   const [anchorEl, setAnchorEl] = useState(null);
   const openMenu = Boolean(anchorEl);
 
