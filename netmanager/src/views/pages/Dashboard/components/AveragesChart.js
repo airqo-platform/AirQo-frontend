@@ -153,15 +153,15 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
 
   const annotationMapper = {
     pm2_5: {
-      value: 25,
+      value: 15,
       label_content: 'WHO AQG'
     },
     pm10: {
-      value: 50,
+      value: 45,
       label_content: 'WHO AQG'
     },
     no2: {
-      value: 40,
+      value: 25,
       label_content: 'WHO AQG'
     }
   };
