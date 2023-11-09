@@ -160,8 +160,6 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
 
   const handleAddHost = async () => {
     try {
-      setLoading(true);
-
       const hostCopy = {
         first_name: host.first_name,
         last_name: host.last_name,
@@ -172,6 +170,18 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
         phone_number_3: host.phone_numbers[2],
         phone_number_4: host.phone_numbers[3]
       };
+
+      if (
+        !hostCopy.first_name ||
+        !hostCopy.last_name ||
+        !hostCopy.site_id ||
+        !hostCopy.network ||
+        !hostCopy.phone_number
+      ) {
+        throw new Error('One or more required fields are empty. Please fill them before sending.');
+      }
+
+      setLoading(true);
 
       ['phone_number_2', 'phone_number_3', 'phone_number_4'].forEach((key) => {
         if (!hostCopy[key]) {
@@ -192,11 +202,10 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
         );
         onHostAdded();
       } else {
-        setErrorMessage(response.errors.message || 'An error occurred. Please try again.');
-        setShowError(true);
+        throw new Error(response.errors.message || 'An error occurred. Please try again.');
       }
     } catch (error) {
-      console.error(error);
+      setLoading(false);
       setErrorMessage(error.message || 'An error occurred. Please try again.');
       setShowError(true);
     }
