@@ -37,15 +37,13 @@ const CleanAirPublications = () => {
     }
   }, [activeResource]);
 
-  // useEffect(() => {
-  //   getAllCleanAirApi()
-  //     .then((response) => {
-  //       console.log(response);
-  //       // const { data } = response;
-  //       // setCleanAirResources(data);
-  //     })
-  //     .catch((error) => console.log(error));
-  // }, []);
+  useEffect(() => {
+    getAllCleanAirApi()
+      .then((response) => {
+        setCleanAirResources(response);
+      })
+      .catch((error) => console.log(error));
+  }, []);
 
   const { width } = useWindowSize();
 
@@ -68,6 +66,141 @@ const CleanAirPublications = () => {
     }
   };
 
+  const toolkitData = cleanAirResources.filter(
+    (resource) => resource.resource_category === 'toolkit'
+  );
+  const technicalReportData = cleanAirResources.filter(
+    (resource) => resource.resource_category === 'technical_report'
+  );
+  const workshopReportData = cleanAirResources.filter(
+    (resource) => resource.resource_category === 'workshop_report'
+  );
+  const researchPublicationData = cleanAirResources.filter(
+    (resource) => resource.resource_category === 'research_publication'
+  );
+
+  const ITEMS_PER_PAGE = 4;
+
+  const renderData = (data) => {
+    const indexOfLastItem = activePage * ITEMS_PER_PAGE;
+    const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
+    const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
+
+    if (currentItems.length === 0 && data.length === 0) {
+      return (
+        <div
+          style={{
+            display: 'flex',
+            width: '100%',
+            height: '100%',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: '50px'
+          }}>
+          Loading...
+        </div>
+      );
+    }
+
+    if (currentItems.length === 0) {
+      return (
+        <div className="no-data">
+          <h1>No Data</h1>
+        </div>
+      );
+    }
+
+    return currentItems.map((resource, index) => (
+      <div key={index}>
+        <ReportComponent
+          title={resource.resource_title}
+          authors={resource.resource_authors}
+          link={resource.resource_link}
+          linkTitle={resource.linkTitle}
+          showSecondAuthor={false}
+          resourceFile={resource.resource_file}
+        />
+      </div>
+    ));
+  };
+
+  const [activePage, setActivePage] = useState(1);
+
+  const handlePageChange = (pageNumber) => {
+    setActivePage(pageNumber);
+  };
+
+  useEffect(() => {
+    setActivePage(1);
+  }, [activeResource]);
+
+  const renderPagination = () => {
+    let data;
+    switch (activeResource) {
+      case 'toolkits':
+        data = toolkitData;
+        break;
+      case 'technical reports':
+        data = technicalReportData;
+        break;
+      case 'workshop reports':
+        data = workshopReportData;
+        break;
+      case 'research publications':
+        data = researchPublicationData;
+        break;
+      default:
+        data = [];
+    }
+
+    if (data.length <= ITEMS_PER_PAGE) {
+      return null;
+    }
+
+    const pageNumbers = [];
+    for (let i = 1; i <= Math.ceil(data.length / ITEMS_PER_PAGE); i++) {
+      pageNumbers.push(i);
+    }
+
+    const handlePrevPage = () => {
+      if (activePage > 1) {
+        setActivePage(activePage - 1);
+      }
+      document.getElementById('top-menu-sec').scrollIntoView();
+    };
+
+    const handleNextPage = () => {
+      if (activePage < pageNumbers.length) {
+        setActivePage(activePage + 1);
+      }
+      document.getElementById('top-menu-sec').scrollIntoView();
+    };
+
+    return (
+      <nav className="list-page events">
+        <ul className="pagination">
+          <li className="page-item">
+            <a onClick={handlePrevPage} className="page-link">
+              {'<'}
+            </a>
+          </li>
+          {pageNumbers.map((number) => (
+            <li key={number} className="page-item">
+              <a onClick={() => handlePageChange(number)} className="page-link">
+                {number}
+              </a>
+            </li>
+          ))}
+          <li className="page-item">
+            <a onClick={handleNextPage} className="page-link">
+              {'>'}
+            </a>
+          </li>
+        </ul>
+      </nav>
+    );
+  };
+
   return (
     <div className="page-wrapper">
       <SEO
@@ -80,7 +213,7 @@ const CleanAirPublications = () => {
         <div className="partners">
           <div className="partners-wrapper" style={{ marginTop: '-30px' }}>
             <div className="resources-container">
-              <div className="resource-menu">
+              <div className="resource-menu" id="top-menu-sec">
                 <div className="title-wrapper">
                   <h1 className="resource-menu-title">
                     RESOURCE
@@ -107,44 +240,11 @@ const CleanAirPublications = () => {
               </div>
 
               <div className="resource-body">
-                {activeResource === 'toolkits' && (
-                  <ReportComponent
-                    title="Air Quality Management in Africa: A Guide for Practitioners"
-                    authors="In this example, all list items except the first one will have a top margin of 10px. You can adjust the value as needed to suit your design. This is a simple and effective way to apply styles to middle items in a list. Note that this will also apply the margin to the last item. If you want to exclude the last item as well, you"
-                    link="https://www.cleanairafrica.org/wp-content/uploads/2021/09/"
-                    linkTitle="Read Journal"
-                    downloadLink="https://www.cleanairafrica.org/wp-content/uploads/2021/09/Air-Quality-Management-in-Africa-A-Guide-for-Practitioners.pdf"
-                  />
-                )}
-                {activeResource === 'technical reports' && (
-                  <ReportComponent
-                    title="Air Quality Management in Africa: A Guide for Practitioners"
-                    authors="led by the Clean Air Africa Network"
-                    link="https://www.cleanairafrica.org/wp-content/uploads/2021/09/Air-Quality-Management-in-Africa-A-Guide-for-Practitioners.pdf"
-                    linkTitle="Read Journal"
-                    showSecondAuthor={false}
-                    resourceFile="https://www.cleanairafrica.org/wp-content/uploads/2021/09/Air-Quality-Management-in-Africa-A-Guide-for-Practitioners.pdf"
-                  />
-                )}
-                {activeResource === 'workshop reports' && (
-                  <ReportComponent
-                    title="How to Develop an Air Quality Management Plan for Your City"
-                    authors="Led by the Clean Air Africa Network"
-                    link="https://www.cleanairafrica.org/wp-content/uploads/2021/09/Air-Quality-Management-in-Africa-A-Guide-for-Practitioners.pdf"
-                    linkTitle="Read Journal"
-                    showSecondAuthor={false}
-                    resourceFile="https://www.cleanairafrica.org/wp-content/uploads/2021/09/Air-Quality-Management-in-Africa-A-Guide-for-Practitioners.pdf"
-                  />
-                )}
-                {activeResource === 'research publications' && (
-                  <ReportComponent
-                    title="Nairobi Air Quality Management Plan (2019-2024)"
-                    authors="Nairobi City County"
-                    link="https://www.cleanairafrica.org/wp-content/uploads/2021/09/Air-Quality-Management-in-Africa-A-Guide-for-Practitioners.pdf"
-                    linkTitle="Read More"
-                    downloadLink={null}
-                  />
-                )}
+                {activeResource === 'toolkits' && renderData(toolkitData)}
+                {activeResource === 'technical reports' && renderData(technicalReportData)}
+                {activeResource === 'workshop reports' && renderData(workshopReportData)}
+                {activeResource === 'research publications' && renderData(researchPublicationData)}
+                {renderPagination(activeResource)}
               </div>
             </div>
           </div>
