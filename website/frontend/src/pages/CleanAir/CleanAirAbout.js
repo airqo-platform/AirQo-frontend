@@ -11,7 +11,7 @@ import SEO from 'utilities/seo';
 const CleanAirAbout = () => {
   useInitScrollTop();
   return (
-    <>
+    <div className="page-wrapper">
       <SEO
         title="CLEAN-Air Africa Network"
         siteTitle="AirQo"
@@ -150,7 +150,7 @@ const CleanAirAbout = () => {
       </SplitSection>
       {/* section 6 */}
       <MainHighlight />
-    </>
+    </div>
   );
 };
 

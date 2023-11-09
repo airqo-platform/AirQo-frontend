@@ -78,7 +78,9 @@ const Highlight = () => {
                       <button
                         type="button"
                         style={{ cursor: 'pointer' }}
-                        onClick={() => navigate(`/events/${featuredEvent.unique_title}/`)}>
+                        onClick={() =>
+                          navigate(`/clean-air/event-details/${featuredEvent.unique_title}/`)
+                        }>
                         Read More {' -->'}
                       </button>
                     </div>

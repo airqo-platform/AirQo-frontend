@@ -10,12 +10,14 @@ import { loadPartnersData } from '../../../reduxStore/Partners/operations';
 import Partner1 from 'assets/img/cleanAir/partners-sec1.png';
 import Partner2 from 'assets/img/cleanAir/partners-sec2.png';
 import Partner3 from 'assets/img/cleanAir/partners-sec3.png';
+import useWindowSize from 'utilities/customHooks';
 
 const CleanAirPartners = () => {
   useInitScrollTop();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const partnersData = usePartnersData();
+  const { width } = useWindowSize();
 
   useEffect(() => {
     if (isEmpty(partnersData)) {
@@ -67,8 +69,20 @@ const CleanAirPartners = () => {
     setItems((prevState) => (prevState > minItems ? prevState - decrement : minItems));
   };
 
+  useEffect(() => {
+    let backdropRevElements = document.querySelectorAll('.backdrop-rev');
+
+    backdropRevElements.forEach((element) => {
+      if (width < 1081) {
+        element.style.flexDirection = 'column';
+      } else {
+        element.style.flexDirection = 'column-reverse';
+      }
+    });
+  }, [width]);
+
   return (
-    <div>
+    <div className="page-wrapper">
       <SEO
         title="Partners | CLEAN-Air Africa Network"
         siteTitle="CLEAN-Air Africa Network"
@@ -90,7 +104,9 @@ const CleanAirPartners = () => {
         </div>
       </div>
 
-      <hr className="separator-1" />
+      <div>
+        <hr className="separator-1" />
+      </div>
 
       <div className="partners">
         <div className="partners-wrapper">
@@ -152,7 +168,9 @@ const CleanAirPartners = () => {
         </div>
       )}
 
-      <hr className="separator-1" />
+      <div>
+        <hr className="separator-1" />
+      </div>
 
       <div className="partners">
         <div className="partners-wrapper">
@@ -218,7 +236,9 @@ const CleanAirPartners = () => {
         </div>
       )}
 
-      <hr className="separator-1" />
+      <div>
+        <hr className="separator-1" />
+      </div>
 
       <div className="partners">
         <div className="partners-wrapper">

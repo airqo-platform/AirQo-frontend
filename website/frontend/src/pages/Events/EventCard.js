@@ -3,11 +3,12 @@ import React from 'react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
-const EventCard = ({ image, title, subText, startDate, endDate, link, key }) => {
+const EventCard = ({ image, title, subText, startDate, endDate, link, key, web_category }) => {
   const navigate = useNavigate();
   const routeToDetails = (link) => (event) => {
     event.preventDefault();
-    navigate(`/events/${link}/`);
+    if (web_category === 'cleanair') navigate(`/clean-air/event-details/${link}/`);
+    else navigate(`/events/${link}/`);
   };
 
   const days = (date_1, date_2) => {

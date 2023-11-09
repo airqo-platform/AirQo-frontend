@@ -10,6 +10,7 @@ import { SplitSection } from 'components/CleanAir';
 import EventCard from '../Events/EventCard';
 import event1 from 'assets/img/cleanAir/event-sec1.png';
 import event2 from 'assets/img/cleanAir/event-sec2.png';
+import useWindowSize from 'utilities/customHooks';
 
 const ITEMS_PER_PAGE = 9;
 
@@ -25,6 +26,7 @@ const CleanAirEvents = () => {
   const navTabs = ['upcoming events', 'past events'];
   const selectedNavTab = useSelector((state) => state.eventsNavTab.tab);
   const allEventsData = useSelector((state) => state.eventsData.events);
+  const { width } = useWindowSize();
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -61,8 +63,20 @@ const CleanAirEvents = () => {
     }
   }, [selectedNavTab]);
 
+  useEffect(() => {
+    let backdropRevElement = document.querySelector('.backdrop-rev');
+
+    if (backdropRevElement) {
+      if (width < 1081) {
+        backdropRevElement.style.flexDirection = 'column';
+      } else {
+        backdropRevElement.style.flexDirection = 'column-reverse';
+      }
+    }
+  }, [width]);
+
   return (
-    <div>
+    <div className="page-wrapper">
       <SEO
         title="CLEAN-Air Africa Network | Events"
         siteTitle="CLEAN-Air Africa Network"
@@ -91,7 +105,9 @@ const CleanAirEvents = () => {
         </div>
       </div>
 
-      <hr className="separator-1" />
+      <div>
+        <hr className="separator-1" />
+      </div>
 
       <SplitSection
         content="  <p
@@ -136,6 +152,7 @@ const CleanAirEvents = () => {
                     startDate={event.start_date}
                     endDate={event.end_date}
                     link={event.unique_title}
+                    web_category={event.website_category}
                   />
                 ))}
             </div>

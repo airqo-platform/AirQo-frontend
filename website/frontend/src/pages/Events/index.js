@@ -99,6 +99,7 @@ const EventsPage = () => {
                           startDate={event.start_date}
                           endDate={event.end_date}
                           link={event.unique_title}
+                          web_category={event.website_category}
                         />
                       ))}
                   {selectedNavTab === 'past events' &&
@@ -113,6 +114,7 @@ const EventsPage = () => {
                           startDate={event.start_date}
                           endDate={event.end_date}
                           link={event.unique_title}
+                          web_category={event.website_category}
                         />
                       ))}
                 </div>

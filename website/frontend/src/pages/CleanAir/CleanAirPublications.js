@@ -69,7 +69,7 @@ const CleanAirPublications = () => {
   };
 
   return (
-    <div>
+    <div className="page-wrapper">
       <SEO
         title="CLEAN-Air Africa Network | Partners"
         siteTitle="CLEAN-Air Africa Network"
@@ -104,6 +104,7 @@ const CleanAirPublications = () => {
                 </ul>
               </div>
             </div>
+
             <div className="resource-body">
               {activeResource === 'toolkits' && (
                 <CardComponent
