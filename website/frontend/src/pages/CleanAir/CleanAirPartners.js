@@ -92,6 +92,15 @@ const CleanAirPartners = () => {
 
       <hr className="separator-1" />
 
+      <div className="partners">
+        <div className="partners-wrapper">
+          <h2 className="extra-content">
+            Leveraging the unique expertise and resources of implementing partners to advance air
+            quality monitoring in Africa.
+          </h2>
+        </div>
+      </div>
+
       <SplitSection
         content="  <p
             style={{
@@ -142,6 +151,17 @@ const CleanAirPartners = () => {
           </div>
         </div>
       )}
+
+      <hr className="separator-1" />
+
+      <div className="partners">
+        <div className="partners-wrapper">
+          <h2 className="extra-content ">
+            Effective air quality management, rooted in evidence-informed decision-making is
+            imperative for air quality management.
+          </h2>
+        </div>
+      </div>
 
       <SplitSection
         content="
@@ -197,6 +217,17 @@ const CleanAirPartners = () => {
           </div>
         </div>
       )}
+
+      <hr className="separator-1" />
+
+      <div className="partners">
+        <div className="partners-wrapper">
+          <h2 className="extra-content ">
+            Championing the power of collective action and collaboration in air quality management
+            to enable collective learning and knowledge sharing.
+          </h2>
+        </div>
+      </div>
 
       <SplitSection
         content="<p

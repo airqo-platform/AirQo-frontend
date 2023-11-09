@@ -147,6 +147,17 @@
       }
     }
 
+    .extra-content {
+      color: #353e52;
+      font-size: 32px;
+      font-weight: 400;
+      line-height: 40px;
+      font-style: normal;
+      margin: 0;
+      padding-top: 50px;
+      text-align: center;
+    }
+
     .splitSection-section {
       display: grid;
       grid-template-columns: $gridColumn;
