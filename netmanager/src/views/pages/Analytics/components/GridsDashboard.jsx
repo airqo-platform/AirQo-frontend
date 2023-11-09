@@ -42,11 +42,10 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const GridsDashboardView = ({ grid, gridDetails }) => {
+const GridsDashboardView = ({ grid, gridDetails, loading }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const userDefaultGraphs = useUserDefaultGraphsData();
-  const [loading, setLoading] = useState(false);
 
   const [gridInfo, setGridInfo] = useState({
     name: 'N/A',
@@ -111,7 +110,6 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
   }, [recentEventsData, gridInfo]);
 
   useEffect(() => {
-    setLoading(true);
     if (gridDetails && gridDetails.sites && gridDetails.sites.length > 0) {
       setGridInfo({
         name: gridDetails.long_name,
@@ -129,7 +127,6 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
         sites: []
       });
     }
-    setLoading(false);
   }, [gridDetails]);
 
   function appendLeadingZeroes(n) {
@@ -156,7 +153,7 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
     <ErrorBoundary>
       <Box marginTop={'40px'}>
         <Box marginBottom={'20px'}>
-          <Grid container spacing={4} alignItems="center" justify="center">
+          <Grid container spacing={4} alignItems="flex-start" justify="center">
             <Grid item lg={4} sm={6} xl={3} xs={12}>
               <Typography variant="subtitle2">Grid name</Typography>
               <Typography variant="h2" style={{ textTransform: 'capitalize' }}>
@@ -221,44 +218,57 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
           </Grid>
         </Grid>
 
-        <Grid container spacing={4}>
-          <AveragesChart classes={classes} analyticsSites={gridInfo.sites} isGrids={true} />
+        {loading ? (
+          <Box
+            height={'100%'}
+            width={'100%'}
+            color="blue"
+            display={'flex'}
+            justifyContent={'center'}
+            alignItems={'center'}
+          >
+            Loading...
+          </Box>
+        ) : (
+          <Grid container spacing={4}>
+            <AveragesChart classes={classes} analyticsSites={gridInfo.sites} isGrids={true} />
 
-          {gridInfo && gridInfo.sites && gridInfo.sites.length > 0 && (
+            {gridInfo && gridInfo.sites && gridInfo.sites.length > 0 && (
+              <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+                <ExceedancesChart
+                  className={clsx(classes.chartCard)}
+                  date={dateValue}
+                  chartContainer={classes.chartContainer}
+                  idSuffix="exceedances"
+                  analyticsSites={gridInfo.sites}
+                  isGrids={true}
+                />
+              </Grid>
+            )}
+
+            {userDefaultGraphs &&
+              userDefaultGraphs.map((filter, key) => {
+                return (
+                  <D3CustomisableChart
+                    className={clsx(classes.customChartCard)}
+                    defaultFilter={filter}
+                    key={key}
+                    isGrids
+                    analyticsSites={gridInfo.sites}
+                  />
+                );
+              })}
+
             <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-              <ExceedancesChart
-                className={clsx(classes.chartCard)}
-                date={dateValue}
-                chartContainer={classes.chartContainer}
-                idSuffix="exceedances"
+              <AddChart
+                className={classes.customChartCard}
+                isGrids
                 analyticsSites={gridInfo.sites}
-                isGrids={true}
+                grid={grid}
               />
             </Grid>
-          )}
-
-          {userDefaultGraphs &&
-            userDefaultGraphs.map((filter, key) => {
-              return (
-                <D3CustomisableChart
-                  className={clsx(classes.customChartCard)}
-                  defaultFilter={filter}
-                  key={key}
-                  isGrids
-                  analyticsSites={gridInfo.sites}
-                />
-              );
-            })}
-
-          <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-            <AddChart
-              className={classes.customChartCard}
-              isGrids
-              analyticsSites={gridInfo.sites}
-              grid={grid}
-            />
           </Grid>
-        </Grid>
+        )}
       </Box>
     </ErrorBoundary>
   );

@@ -152,7 +152,7 @@ const CohortsDashboardView = ({ cohort, cohortDetails, loading }) => {
     <ErrorBoundary>
       <Box marginTop={'40px'}>
         <Box marginBottom={'20px'}>
-          <Grid container spacing={4} alignItems="center" justify="center">
+          <Grid container spacing={4} alignItems="flex-start" justify="center">
             <Grid item lg={6} sm={6} xl={3} xs={12}>
               <Typography variant="subtitle2">Cohort name</Typography>
               <Typography variant="h2" style={{ textTransform: 'capitalize' }}>
