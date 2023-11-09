@@ -108,10 +108,14 @@ const Analytics = () => {
   const [isCohort, setIsCohort] = useState(false);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
-
+  const activeNetworkString = localStorage.getItem('activeNetwork');
+  const activeNetwork = activeNetworkString ? JSON.parse(activeNetworkString) : {};
   const devices = useDevicesData();
   const [deviceOptions, setDeviceOptions] = useState([]);
+
+  if (typeof activeNetwork !== 'object' || activeNetwork === null) {
+    console.error('Error parsing activeNetwork:', activeNetwork);
+  }
 
   const [downloadingData, setDownloadingData] = useState(false);
 

@@ -9,7 +9,7 @@ import Main from './Main';
 class Landing extends Component {
   componentDidMount() {
     if (this.props.auth.isAuthenticated) {
-      this.props.history.push('/dashboard');
+      this.props.history.push('/analytics');
     }
   }
 

@@ -92,20 +92,15 @@ const allMainPages = [
     icon: <AspectRatioIcon />
   },
   {
-    title: 'Map',
-    href: '/map',
-    icon: <MapIcon />
-  },
-  {
-    title: 'Dashboard',
-    href: '/dashboard',
-    icon: <DashboardIcon />
-  },
-  {
     title: 'Analytics',
     href: '/analytics',
     icon: <TimelineIcon />,
     isNew: true
+  },
+  {
+    title: 'Map',
+    href: '/map',
+    icon: <MapIcon />
   },
   {
     title: 'Export data',
@@ -328,6 +323,28 @@ const Sidebar = (props) => {
           setUserPages(selectedUserPages);
           setAdminPages(selectedAdminPages);
         }
+      } else {
+        const selectedUserPages = excludePages(allMainPages, [
+          'Locate',
+          'Network Monitoring',
+          'Location Registry',
+          'Device Registry',
+          'Host Registry',
+          'SIM Registry',
+          'Site Registry',
+          'AirQloud Registry',
+          'Cohorts Registry',
+          'Grids Registry'
+        ]);
+        const selectedAdminPages = excludePages(allUserManagementPages, [
+          'Users',
+          'Candidates',
+          'Roles',
+          'Logs'
+        ]);
+        setUserPages(selectedUserPages);
+        setAdminPages(selectedAdminPages);
+        setLoading(false);
       }
     } else {
       const selectedUserPages = excludePages(allMainPages, [
@@ -360,7 +377,8 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}>
+      variant={variant}
+    >
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />
