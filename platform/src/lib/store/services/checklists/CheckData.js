@@ -39,8 +39,13 @@ const checklistsSlice = createSlice({
         state.status = 'loading';
       })
       .addCase(fetchUserChecklists.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        state.checklist = action.payload;
+        if (action.payload.length === 0) {
+          state.status = 'succeeded';
+          state.checklist = 'Empty';
+        } else {
+          state.status = 'succeeded';
+          state.checklist = action.payload;
+        }
       })
       .addCase(fetchUserChecklists.rejected, (state, action) => {
         state.status = 'failed';

@@ -226,8 +226,6 @@ const Home = () => {
   const [step, setStep] = useState(0);
   const totalSteps = 4;
 
-  console.log('checklist', cardCheckList);
-
   useEffect(() => {
     const completedCards = cardCheckList.filter((card) => card.completed === true);
     setStep(completedCards.length);
@@ -294,7 +292,7 @@ const Home = () => {
 
   return (
     <Layout noBorderBottom>
-      {checkListStatus === 'loading' && !checkListData ? (
+      {checkListStatus === 'loading' && checkListData.length === 0 ? (
         <HomeSkeleton />
       ) : (
         <>
