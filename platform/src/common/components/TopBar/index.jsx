@@ -13,6 +13,8 @@ import ExpandIcon from '@/icons/SideBar/expand.svg';
 import { resetAllTasks } from '@/lib/store/services/checklists/CheckList';
 import { updateUserChecklists, resetChecklist } from '@/lib/store/services/checklists/CheckData';
 import Spinner from '@/components/Spinner';
+import SettingsIcon from '@/icons/SideBar/SettingsIcon';
+import UserIcon from '@/icons/Topbar/userIcon';
 
 const TopBar = ({
   topbarTitle,
@@ -57,7 +59,6 @@ const TopBar = ({
 
     // Check the status of the updateUserChecklists request
     if (updateUserChecklists.rejected.match(action)) {
-      console.error('Failed to update user checklists');
       setIsLoading(false);
       return;
     }
@@ -85,6 +86,11 @@ const TopBar = ({
       window.removeEventListener('click', hideDropdown);
     };
   }, [dropdownVisible]);
+
+  const handleClick = (path) => (event) => {
+    event.preventDefault();
+    router.push(path);
+  };
 
   return (
     <nav
@@ -165,12 +171,30 @@ const TopBar = ({
                       </div>
                     </div>
                   </div>
-
+                  <hr className='dropdown-divider border-b border-gray-200 dark:border-gray-700' />
+                  <ul className='dropdown-list p-2'>
+                    <li
+                      onClick={handleClick('/settings')}
+                      className='flex items-center text-gray-500 hover:text-gray-600 cursor-pointer p-2'>
+                      <span className='mr-3'>
+                        <UserIcon fill='#6F87A1' width={16} height={16} />
+                      </span>
+                      My profile
+                    </li>
+                    <li
+                      onClick={handleClick('/settings')}
+                      className='flex items-center text-gray-500 hover:text-gray-600 cursor-pointer p-2'>
+                      <span className='mr-3'>
+                        <SettingsIcon fill='#6F87A1' width={17} height={17} />
+                      </span>
+                      Settings
+                    </li>
+                  </ul>
                   <hr className='dropdown-divider border-b border-gray-200 dark:border-gray-700' />
                   <ul className='dropdown-list p-2'>
                     <li
                       onClick={handleLogout}
-                      className='logout-option text-gray-500 hover:text-gray-600 cursor-pointer p-2'>
+                      className='text-gray-500 hover:text-gray-600 cursor-pointer p-2'>
                       Log out
                       {isLoading && (
                         <span className='float-right'>

@@ -34,24 +34,22 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
   // Fetching user checklists
   useEffect(() => {
     if (userInfo?._id && !localStorage.getItem('dataFetched')) {
-      // Fetch the checklists data
       dispatch(fetchUserChecklists(userInfo._id)).then((action) => {
         if (fetchUserChecklists.fulfilled.match(action)) {
           const { payload } = action;
-          // Check if payload is defined and not empty
           if (payload && payload.length > 0) {
             const { items } = payload[0];
             dispatch(updateCards(items));
             localStorage.setItem('dataFetched', 'true');
           } else {
-            console.log('Payload is empty or undefined');
+            localStorage.setItem('dataFetched', 'true');
+            return;
           }
         }
       });
     }
   }, [dispatch, userInfo]);
 
-  // setting collapsed state in local storage
   useEffect(() => {
     localStorage.setItem('collapsed', collapsed);
   }, [collapsed]);

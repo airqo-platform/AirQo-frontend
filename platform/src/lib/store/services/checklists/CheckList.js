@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 // Define the initial state of each card
 const initialCardState = {
-  status: 'notStarted',
+  status: 'not started',
   completed: false,
   completionDate: null,
   videoProgress: 0,

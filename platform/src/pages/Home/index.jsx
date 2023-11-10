@@ -17,13 +17,9 @@ import {
   updateTitle,
   updateVideoProgress,
 } from '@/lib/store/services/checklists/CheckList';
-import {
-  fetchUserChecklists,
-  updateUserChecklists,
-} from '@/lib/store/services/checklists/CheckData';
 
 const StepProgress = ({ step, totalSteps }) => {
-  const radius = 50;
+  const radius = 45;
   const stroke = 10;
   const normalizedRadius = radius - stroke * 2;
   const circumference = normalizedRadius * 2 * Math.PI;
@@ -130,7 +126,10 @@ const CustomModal = ({ open, setOpen, videoUrl, checklistData }) => {
           </h1>
           <button
             type='button'
-            onClick={() => setOpen(!open)}
+            onClick={() => {
+              setOpen(!open);
+              dispatch(updateVideoProgress({ id: 1, videoProgress: videoRef.current.currentTime }));
+            }}
             className='absolute top-0 right-0 md:-top-[25px] md:-right-[24px] m-2 text-gray-400 bg-blue-600 hover:bg-blue-900 hover:text-gray-900 rounded-full text-sm w-8 h-8 inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white'
             data-modal-hide='custom-modal'>
             <CloseIcon fill='#FFFFFF' />
@@ -221,10 +220,13 @@ const Home = () => {
   const checkListData = useSelector((state) => state.checklists.checklist);
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
   const userData = JSON.parse(localStorage.getItem('loggedUser'));
+  const checkListStatus = useSelector((state) => state.checklists.status);
   const [open, setOpen] = useState(false);
 
   const [step, setStep] = useState(0);
   const totalSteps = 4;
+
+  console.log('checklist', cardCheckList);
 
   useEffect(() => {
     const completedCards = cardCheckList.filter((card) => card.completed === true);
@@ -236,9 +238,24 @@ const Home = () => {
     const card = cardCheckList.find((card) => card.id === 1);
     if (card) {
       switch (card.status) {
-        case 'notStarted':
+        case 'not started':
           dispatch(startTask(1));
           dispatch(updateTitle({ id: 1, title: 'analytics_video' }));
+          break;
+        default:
+          return;
+      }
+    } else {
+      console.log('Card not found');
+    }
+  };
+
+  const handleCardClick = (id) => {
+    const card = cardCheckList.find((card) => card.id === id);
+    if (card) {
+      switch (card.status) {
+        case 'not started':
+          dispatch(startTask(id));
           break;
         default:
           return;
@@ -251,33 +268,33 @@ const Home = () => {
   const steps = [
     {
       label: 'Introduction AirQo Analytics demo video',
-      time: '2 min',
+      time: '1 min',
       link: '#',
-      func: handleModel,
+      func: () => handleModel(),
     },
     {
       label: 'Choose location you most interested in',
-      time: '3 min',
+      time: '2 min',
       link: '/analytics',
-      func: null,
+      func: () => handleCardClick(2),
     },
     {
       label: 'Complete your AirQo Analytics profile',
       time: '4 min',
       link: '/settings',
-      func: null,
+      func: () => handleCardClick(3),
     },
     {
       label: 'Practical ways to reduce air pollution',
-      time: '6 min',
+      time: '1 min',
       link: '#',
-      func: null,
+      func: () => handleCardClick(4),
     },
   ];
 
   return (
     <Layout noBorderBottom>
-      {!checkListData ? (
+      {checkListStatus === 'loading' && !checkListData ? (
         <HomeSkeleton />
       ) : (
         <>
@@ -304,9 +321,9 @@ const Home = () => {
               {steps.map((step, index) => {
                 const card = cardCheckList.find((card) => card.id === index + 1);
 
-                const statusText = card && card.completed === true ? 'Completed' : 'Start';
+                const statusText = card && card.completed === true ? 'Done' : 'Start';
                 const statusColor =
-                  card && card.completed === true ? 'text-green-600' : 'text-blue-600';
+                  card && card.completed === true ? 'text-black' : 'text-blue-600';
                 const justifyStyle =
                   card && card.completed === true ? 'justify-end' : 'justify-between';
 

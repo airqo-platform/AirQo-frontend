@@ -56,7 +56,7 @@ const checklistsSlice = createSlice({
             entity.id === action.payload.id ? action.payload : entity,
           );
         } else {
-          console.log('No payload');
+          return;
         }
       })
 
