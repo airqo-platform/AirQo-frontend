@@ -12,8 +12,10 @@ import DownloadIcon from '@/icons/Common/download.svg';
 import { useWindowSize } from '@/lib/windowSize';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserDefaults } from '@/lib/store/services/charts/userDefaultsSlice';
-import ConfirmExportModal from '@/components/Modal/ConfirmExportModal';
+import ExportDataModal from '@/components/Modal/ExportDataModal';
 import AlertBox from '@/components/AlertBox';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const AuthenticatedHomePage = () => {
   const dispatch = useDispatch();
@@ -52,7 +54,35 @@ const AuthenticatedHomePage = () => {
     // }
   };
 
-  const printFile = () => {};
+  const printFile = () => {
+    const chartContainer = document.getElementById('explore-chart-container');
+
+    if (chartContainer) {
+      const rect = chartContainer.getBoundingClientRect();
+      const extraSpace = 20;
+      const width = rect.width + extraSpace;
+      const height = rect.height + extraSpace;
+
+      html2canvas(chartContainer, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: rect.backgroundColor,
+        width: width,
+        height: height,
+      }).then((canvas) => {
+        const link = document.createElement('a');
+        link.download = `chart.pdf`;
+
+        const pdf = new jsPDF({
+          orientation: 'landscape',
+          unit: 'px',
+          format: [width, height],
+        });
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, width, height);
+        pdf.save('chart.pdf');
+      });
+    }
+  };
 
   const renderChildrenRight = () => {
     return [
@@ -127,11 +157,10 @@ const AuthenticatedHomePage = () => {
         </Tabs>
       </div>
       {open && (
-        <ConfirmExportModal
+        <ExportDataModal
           open={openConfirmModal}
           onClose={() => setOpenConfirmModal(false)}
-          onConfirm={() => console.log('E DEY WORK')}
-          data={data}
+          handleExportPDF={printFile}
         />
       )}
     </Layout>
