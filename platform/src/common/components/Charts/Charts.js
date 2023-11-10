@@ -70,7 +70,7 @@ const CustomTooltipLineGraph = ({ active, payload }) => {
     return (
       <div className='bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none'>
         <div className='flex flex-col space-y-1'>
-          <div className='flex flex-col items-start justify-between w-full h-auto p-2'>
+          <div className='flex flex-col items-start justify-between w-full h-auto py-2 px-3'>
             <span className='text-sm text-gray-300'>
               {new Date(hoveredPoint.payload.time).toLocaleDateString('en-US', {
                 year: 'numeric',
@@ -95,7 +95,7 @@ const CustomTooltipLineGraph = ({ active, payload }) => {
             </div>
           </div>
           <div className='w-full h-[2px] bg-transparent my-1 border-t border-dotted border-gray-300' />
-          <div className='p-2 space-y-1'>
+          <div className='py-2 px-3 space-y-1'>
             {otherPoints.map((point, index) => (
               <p key={index} className='flex justify-between w-full mb-1'>
                 <div className='flex items-center text-xs font-medium leading-[14px] text-gray-400'>
@@ -152,7 +152,7 @@ const CustomTooltipBarGraph = ({ active, payload }) => {
     return (
       <div className='bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none'>
         <div className='flex flex-col space-y-1'>
-          <div className='flex flex-col items-start justify-between w-full h-auto p-2'>
+          <div className='flex flex-col items-start justify-between w-full h-auto py-2 px-3'>
             <span className='text-sm text-gray-300'>
               {new Date(hoveredPoint.payload.time).toLocaleDateString('en-US', {
                 year: 'numeric',
@@ -218,15 +218,13 @@ const CustomTooltip = ({ tooltipText, children, direction, themeClass }) => {
     <div
       className='relative'
       onMouseEnter={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}
-    >
+      onMouseLeave={() => setVisible(false)}>
       {children}
       {visible && (
         <div
           className={`absolute ${tooltipClass} ${
             themeClass ? themeClass : 'bg-white text-center text-gray-700'
-          } p-2 w-48 rounded-md shadow-lg z-10`}
-        >
+          } p-2 w-48 rounded-md shadow-lg z-10`}>
           <p className='text-sm'>{tooltipText}</p>
         </div>
       )}
@@ -259,8 +257,7 @@ const renderCustomizedLegend = (props) => {
           <div style={{ color: entry.color }} className='flex space-x-2 items-center text-sm'>
             <div
               className='w-[10px] h-[10px] rounded-xl mr-1 ml-1'
-              style={{ backgroundColor: entry.color }}
-            ></div>
+              style={{ backgroundColor: entry.color }}></div>
             {truncate(entry.value)}
           </div>
         </CustomTooltip>
@@ -373,8 +370,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
           margin={{
             top: 38,
             right: 10,
-          }}
-        >
+          }}>
           {Array.from(allKeys)
             .filter((key) => key !== 'time')
             .map((key, index) => (
@@ -408,8 +404,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
               } else {
                 return tick;
               }
-            }}
-          >
+            }}>
             <Label
               value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
               position='insideTopRight'
@@ -441,8 +436,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
           margin={{
             top: 38,
             right: 10,
-          }}
-        >
+          }}>
           {Array.from(allKeys)
             .filter((key) => key !== 'time')
             .map((key, index) => (
@@ -462,8 +456,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
               } else {
                 return tick;
               }
-            }}
-          >
+            }}>
             <Label
               value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
               position='insideTopRight'
