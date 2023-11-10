@@ -121,7 +121,7 @@ const CleanAirPublications = () => {
           title={resource.resource_title}
           authors={resource.resource_authors}
           link={resource.resource_link}
-          linkTitle={resource.linkTitle}
+          linkTitle="Read Journal"
           showSecondAuthor={showSecondAuthor}
           resourceFile={resource.resource_file}
         />
