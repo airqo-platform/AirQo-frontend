@@ -107,12 +107,6 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
 
   return (
     <div>
-      <AlertBox
-        type={alert.type}
-        message={alert.message}
-        show={alert.show}
-        hide={() => setAlert({ ...alert, show: false })}
-      />
       <ExportModalWrapper
         title='Export your report'
         open={open}
@@ -121,6 +115,12 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
         loading={loading}
       >
         <div className='flex-col justify-start items-start gap-[13px] flex'>
+          <AlertBox
+            type={alert.type}
+            message={alert.message}
+            show={alert.show}
+            hide={() => setAlert({ ...alert, show: false })}
+          />
           <div className='self-stretch pr-2 justify-start items-start gap-2.5 inline-flex'>
             <div className='text-gray-700 text-base font-medium leading-tight'>Export as</div>
           </div>

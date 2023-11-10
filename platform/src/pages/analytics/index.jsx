@@ -64,15 +64,26 @@ const AuthenticatedHomePage = () => {
   };
 
   const openPrintModalFunc = () => {
-    if (chartDataRange) {
+    if (
+      chartDataRange &&
+      chartDataRange.startDate &&
+      chartDataRange.endDate &&
+      chartSites.length > 0
+    ) {
       let exportData = {
         startDate: chartDataRange.startDate,
         endDate: chartDataRange.endDate,
       };
 
       setData(exportData);
+      setOpenPrintModal(true);
+    } else {
+      setAlert({
+        type: 'error',
+        message: 'Please select sites and date range',
+        show: true,
+      });
     }
-    setOpenPrintModal(true);
   };
 
   const printFile = () => {

@@ -87,12 +87,6 @@ const PrintReportModal = ({ open, onClose, handlePrintPDF, data }) => {
 
   return (
     <div>
-      <AlertBox
-        type={alert.type}
-        message={alert.message}
-        show={alert.show}
-        hide={() => setAlert({ ...alert, show: false })}
-      />
       <ExportModalWrapper
         title='Print your report'
         open={open}
@@ -103,12 +97,18 @@ const PrintReportModal = ({ open, onClose, handlePrintPDF, data }) => {
         primaryButtonText='Print'
         data={data}
       >
-        {/* <div className='flex-col justify-start items-start gap-[13px] flex w-full self-stretch'>
-          <div className='self-stretch pr-2 justify-start items-start gap-2.5 inline-flex'>
+        <div className='flex-col justify-start items-start gap-[13px] flex w-full self-stretch'>
+          <AlertBox
+            type={alert.type}
+            message={alert.message}
+            show={alert.show}
+            hide={() => setAlert({ ...alert, show: false })}
+          />
+          {/* <div className='self-stretch pr-2 justify-start items-start gap-2.5 inline-flex'>
             <div className='text-gray-700 text-base font-medium leading-tight'>Send to email</div>
-          </div>
+          </div> */}
 
-          {emails.map((email, index) => (
+          {/* {emails.map((email, index) => (
               <div key={index}>
                 <div className='relative w-full' key={index}>
                   <input
@@ -145,8 +145,8 @@ const PrintReportModal = ({ open, onClose, handlePrintPDF, data }) => {
               >
                 <PlusIcon /> <span>Add email</span>
               </Button>
-            </div>
-        </div> */}
+            </div> */}
+        </div>
       </ExportModalWrapper>
     </div>
   );
