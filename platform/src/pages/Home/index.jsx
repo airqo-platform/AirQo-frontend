@@ -11,8 +11,16 @@ import CloseIcon from '@/icons/close_icon';
 import Spinner from '@/components/Spinner';
 import AnalyticsVideo from '../../../public/videos/analytics.mp4';
 import { useSelector, useDispatch } from 'react-redux';
-import { startTask, completeTask } from '@/lib/store/services/checklists/CheckList';
-import { updateDefaults } from '@/lib/store/services/charts/userDefaultsSlice';
+import {
+  startTask,
+  completeTask,
+  updateTitle,
+  updateVideoProgress,
+} from '@/lib/store/services/checklists/CheckList';
+import {
+  fetchUserChecklists,
+  updateUserChecklists,
+} from '@/lib/store/services/checklists/CheckData';
 
 const StepProgress = ({ step, totalSteps }) => {
   const radius = 50;
@@ -57,7 +65,7 @@ const StepProgress = ({ step, totalSteps }) => {
   );
 };
 
-const CustomModal = ({ open, setOpen, videoUrl }) => {
+const CustomModal = ({ open, setOpen, videoUrl, checklistData }) => {
   const dispatch = useDispatch();
   const modalRef = useRef(null);
   const backdropRef = useRef(null);
@@ -67,6 +75,7 @@ const CustomModal = ({ open, setOpen, videoUrl }) => {
   const handleClickOutside = (event) => {
     if (backdropRef.current && !backdropRef.current.contains(event.target)) {
       setOpen(false);
+      dispatch(updateVideoProgress({ id: 1, videoProgress: videoRef.current.currentTime }));
     }
   };
 
@@ -74,14 +83,16 @@ const CustomModal = ({ open, setOpen, videoUrl }) => {
     if (open) {
       modalRef.current.focus();
       document.addEventListener('mousedown', handleClickOutside);
-      const savedTime = localStorage.getItem('videoTime');
-      if (savedTime) {
-        videoRef.current.currentTime = savedTime;
+      const videoTime = checklistData.find(
+        (card) => card.title === 'analytics_video',
+      )?.videoProgress;
+      if (videoTime) {
+        videoRef.current.currentTime = videoTime;
       }
     } else {
       document.removeEventListener('mousedown', handleClickOutside);
       if (videoRef.current) {
-        localStorage.setItem('videoTime', videoRef.current.currentTime);
+        dispatch(updateVideoProgress({ id: 1, videoProgress: videoRef.current.currentTime }));
       }
     }
     return () => {
@@ -94,11 +105,11 @@ const CustomModal = ({ open, setOpen, videoUrl }) => {
   };
 
   const handleVideoPause = () => {
-    localStorage.setItem('videoTime', videoRef.current.currentTime);
+    dispatch(updateVideoProgress({ id: 1, videoProgress: videoRef.current.currentTime }));
   };
 
   const handleVideoEnd = () => {
-    localStorage.setItem('videoTime', 0);
+    dispatch(updateVideoProgress({ id: 1, videoProgress: 0 }));
     dispatch(completeTask(1));
   };
 
@@ -148,10 +159,67 @@ const CustomModal = ({ open, setOpen, videoUrl }) => {
   );
 };
 
+const HomeSkeleton = () => {
+  return (
+    <div className='px-3 lg:px-16 py-3 space-y-5'>
+      <div className='w-full mb-4 md:mb-10 animate-pulse'>
+        <h1 className='text-[32px] leading-10 font-medium bg-gray-300 h-10 w-3/4'></h1>
+      </div>
+
+      <div className='w-full flex justify-between items-center'>
+        <div className='w-full flex flex-col items-start'>
+          <h1 className='text-2xl font-medium text-gray-900 bg-gray-300 h-7 w-1/2'></h1>
+          <p className='text-sm font-normal text-gray-500 bg-gray-300 h-5 w-3/4'></p>
+        </div>
+        <div className='w-full'>
+          <div className='h-5 bg-gray-300 w-1/4'></div>
+        </div>
+      </div>
+
+      <div className='w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5'>
+        {[1, 2, 3, 4].map((index) => (
+          <div
+            key={index}
+            className='w-full h-[250px] flex flex-col justify-between items-start border-[0.5px] rounded-xl border-grey-150 py-5 px-3 space-y-5 focus:outline-blue-600 focus:ring-2 focus:shadow-lg focus:border-blue-600 animate-pulse'
+            tabIndex={0}>
+            <div className='w-full bg-gray-300 h-14 flex justify-center items-center rounded-full'></div>
+            <div className='w-full text-base font-normal bg-gray-300 h-5'></div>
+            <div className={`w-full text-sm flex justify-between font-normal bg-gray-300 h-5`}>
+              <span className='text-blue-600 bg-gray-300 h-4 w-1/4'></span>
+              <span className='text-black-900 bg-gray-300 h-4 w-1/4'></span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className='w-full grid grid-cols-1 md:grid-cols-2 gap-3 items-center border-[0.5px] rounded-xl border-grey-150 p-3'>
+        <div className='flex flex-col justify-start p-8 animate-pulse'>
+          <h1 className='text-black-900 text-2xl font-medium bg-gray-300 h-7 w-3/4'></h1>
+          <p className='text-lg font-normal text-black-900 mt-2 bg-gray-300 h-5 w-3/4'></p>
+          <div className='mt-4 flex items-center space-x-8'>
+            <div className='bg-gray-300 text-white rounded-lg w-32 h-12'></div>
+            <div className='text-gray-300 text-sm font-normal mt-2 cursor-pointer bg-gray-300 h-5 w-1/4'></div>
+          </div>
+        </div>
+        <div
+          className='rounded-md p-9 relative bg-gray-300'
+          style={{
+            background: '#145DFF08',
+          }}>
+          <div className='absolute z-50 inset-0 flex items-center justify-center cursor-pointer'>
+            <div className='w-8 h-8 bg-gray-300 rounded-full'></div>
+          </div>
+          <div className='bg-gray-300 h-48 w-72'></div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Home = () => {
   const dispatch = useDispatch();
+  const checkListData = useSelector((state) => state.checklists.checklist);
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
-  const userDefaults = useSelector((state) => state.userDefaults.defaults);
   const userData = JSON.parse(localStorage.getItem('loggedUser'));
   const [open, setOpen] = useState(false);
 
@@ -159,7 +227,7 @@ const Home = () => {
   const totalSteps = 4;
 
   useEffect(() => {
-    const completedCards = cardCheckList.filter((card) => card.status === 'completed');
+    const completedCards = cardCheckList.filter((card) => card.completed === true);
     setStep(completedCards.length);
   }, [cardCheckList]);
 
@@ -170,6 +238,7 @@ const Home = () => {
       switch (card.status) {
         case 'notStarted':
           dispatch(startTask(1));
+          dispatch(updateTitle({ id: 1, title: 'analytics_video' }));
           break;
         default:
           return;
@@ -208,113 +277,124 @@ const Home = () => {
 
   return (
     <Layout noBorderBottom>
-      <div className='px-3 lg:px-16 py-3 space-y-5'>
-        <div className='w-full mb-4 md:mb-10'>
-          <h1 className='text-[32px] leading-10 font-medium'>
-            Welcome, <span className='capitalize'>{userData?.firstName}</span> 👋
-          </h1>
-        </div>
+      {!checkListData ? (
+        <HomeSkeleton />
+      ) : (
+        <>
+          <div className='px-3 lg:px-16 py-3 space-y-5'>
+            <div className='w-full mb-4 md:mb-10'>
+              <h1 className='text-[32px] leading-10 font-medium'>
+                Welcome, <span className='capitalize'>{userData?.firstName}</span> 👋
+              </h1>
+            </div>
 
-        <div className='w-full flex justify-between items-center'>
-          <div className='w-full flex flex-col items-start'>
-            <h1 className='text-2xl font-medium text-gray-900'>Onboarding checklist</h1>
-            <p className='text-sm font-normal text-gray-500'>
-              We recommend starting with our onboarding checklist.
-            </p>
-          </div>
-          <div className='w-full'>
-            <StepProgress step={step} totalSteps={totalSteps} />
-          </div>
-        </div>
+            <div className='w-full flex justify-between items-center'>
+              <div className='w-full flex flex-col items-start'>
+                <h1 className='text-2xl font-medium text-gray-900'>Onboarding checklist</h1>
+                <p className='text-sm font-normal text-gray-500'>
+                  We recommend starting with our onboarding checklist.
+                </p>
+              </div>
+              <div className='w-full'>
+                <StepProgress step={step} totalSteps={totalSteps} />
+              </div>
+            </div>
 
-        <div className='w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5'>
-          {steps.map((step, index) => {
-            const card = cardCheckList.find((card) => card.id === index + 1);
+            <div className='w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5'>
+              {steps.map((step, index) => {
+                const card = cardCheckList.find((card) => card.id === index + 1);
 
-            const statusText = card && card.status === 'completed' ? 'Completed' : 'Start';
-            const statusColor =
-              card && card.status === 'completed' ? 'text-green-600' : 'text-blue-600';
-            const justifyStyle =
-              card && card.status === 'completed' ? 'justify-end' : 'justify-between';
+                const statusText = card && card.completed === true ? 'Completed' : 'Start';
+                const statusColor =
+                  card && card.completed === true ? 'text-green-600' : 'text-blue-600';
+                const justifyStyle =
+                  card && card.completed === true ? 'justify-end' : 'justify-between';
 
-            return (
-              <div
-                key={index}
-                className='w-full h-[250px] flex flex-col justify-between items-start border-[0.5px] rounded-xl border-grey-150 py-5 px-3 space-y-5 focus:outline-blue-600 focus:ring-2 focus:shadow-lg focus:border-blue-600'
-                tabIndex={0}>
-                <div className='w-full'>
-                  {card && card.status === 'completed' ? (
-                    <div className='w-14 h-14 flex justify-center items-center rounded-full bg-blue-900'>
-                      <CheckIcon fill='#FFFFFF' />
+                return (
+                  <div
+                    key={index}
+                    className='w-full h-[250px] flex flex-col justify-between items-start border-[0.5px] rounded-xl border-grey-150 py-5 px-3 space-y-5 focus:outline-blue-600 focus:ring-2 focus:shadow-lg focus:border-blue-600'
+                    tabIndex={0}>
+                    <div className='w-full'>
+                      {card && card.completed === true ? (
+                        <div className='w-14 h-14 flex justify-center items-center rounded-full bg-blue-900'>
+                          <CheckIcon fill='#FFFFFF' />
+                        </div>
+                      ) : (
+                        <div
+                          className='text-base w-14 h-14 flex justify-center items-center font-medium rounded-full'
+                          style={{ background: '#F5F5FF' }}>
+                          <span className='text-blue-600'>{index + 1}</span>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div
-                      className='text-base w-14 h-14 flex justify-center items-center font-medium rounded-full'
-                      style={{ background: '#F5F5FF' }}>
-                      <span className='text-blue-600'>{index + 1}</span>
-                    </div>
-                  )}
-                </div>
-                <p className='w-full text-base font-normal'>{step.label}</p>
+                    <p className='w-full text-base font-normal'>{step.label}</p>
 
-                <div className={`w-full text-sm flex ${justifyStyle} font-normal`}>
-                  {card && card.status === 'completed' ? (
-                    <span className={statusColor}>{statusText}</span>
-                  ) : (
-                    <>
-                      <Link href={step.link}>
-                        <a onClick={step.func} className={statusColor}>
-                          {card && card.status === 'inProgress' ? 'Resume' : statusText}
-                        </a>
-                      </Link>
-                      <span className='text-sm font-normal text-black-900'>{step.time}</span>
-                    </>
-                  )}
+                    <div className={`w-full text-sm flex ${justifyStyle} font-normal`}>
+                      {card && card.completed === true ? (
+                        <span className={statusColor}>{statusText}</span>
+                      ) : (
+                        <>
+                          <Link href={step.link}>
+                            <a onClick={step.func} className={statusColor}>
+                              {card && card.status === 'inProgress' ? 'Resume' : statusText}
+                            </a>
+                          </Link>
+                          <span className='text-sm font-normal text-black-900'>{step.time}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className='w-full grid grid-cols-1 md:grid-cols-2 gap-3 items-center border-[0.5px] rounded-xl border-grey-150 p-3'>
+              <div className='flex flex-col justify-start p-8'>
+                <h1 className='text-black-900 text-2xl font-medium'>
+                  Track air pollution in places you care about
+                </h1>
+                <p className='text-lg font-normal text-black-900 mt-2'>
+                  Empower yourself with knowledge about the air you breathe; because clean air
+                  begins with understanding
+                </p>
+                <div className='mt-4 flex items-center space-x-8'>
+                  <Button
+                    path='/analytics'
+                    className='bg-blue-900 text-white rounded-lg w-32 h-12'
+                    dataTestId='get-started-button'>
+                    Start here
+                  </Button>
+                  <a
+                    onClick={handleModel}
+                    className='text-blue-600 text-sm font-normal mt-2 cursor-pointer'>
+                    Show me how
+                  </a>
                 </div>
               </div>
-            );
-          })}
-        </div>
-
-        <div className='w-full grid grid-cols-1 md:grid-cols-2 gap-3 items-center border-[0.5px] rounded-xl border-grey-150 p-3'>
-          <div className='flex flex-col justify-start p-8'>
-            <h1 className='text-black-900 text-2xl font-medium'>
-              Track air pollution in places you care about
-            </h1>
-            <p className='text-lg font-normal text-black-900 mt-2'>
-              Empower yourself with knowledge about the air you breathe; because clean air begins
-              with understanding
-            </p>
-            <div className='mt-4 flex items-center space-x-8'>
-              <Button
-                path='/analytics'
-                className='bg-blue-900 text-white rounded-lg w-32 h-12'
-                dataTestId='get-started-button'>
-                Start here
-              </Button>
-              <a
-                onClick={handleModel}
-                className='text-blue-600 text-sm font-normal mt-2 cursor-pointer'>
-                Show me how
-              </a>
+              <div
+                className='rounded-md p-9 relative'
+                style={{
+                  background: '#145DFF08',
+                }}>
+                <div
+                  onClick={handleModel}
+                  className='absolute z-50 inset-0 flex items-center justify-center cursor-pointer'>
+                  <PlayIcon />
+                </div>
+                <Image src={AnalyticsImage} alt='Analytics Image' width={600} height={350} />
+              </div>
             </div>
           </div>
-          <div
-            className='rounded-md p-9 relative'
-            style={{
-              background: '#145DFF08',
-            }}>
-            <div
-              onClick={handleModel}
-              className='absolute z-50 inset-0 flex items-center justify-center cursor-pointer'>
-              <PlayIcon />
-            </div>
-            <Image src={AnalyticsImage} alt='Analytics Image' width={600} height={350} />
-          </div>
-        </div>
-      </div>
 
-      <CustomModal open={open} setOpen={setOpen} videoUrl={AnalyticsVideo} />
+          <CustomModal
+            open={open}
+            setOpen={setOpen}
+            videoUrl={AnalyticsVideo}
+            checklistData={cardCheckList}
+          />
+        </>
+      )}
     </Layout>
   );
 };

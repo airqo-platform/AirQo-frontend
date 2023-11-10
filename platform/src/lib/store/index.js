@@ -13,6 +13,7 @@ import { chartSlice } from './services/charts/ChartSlice';
 import { gridsSlice } from './services/deviceRegistry/GridsSlice';
 import userDefaultsReducer from './services/charts/userDefaultsSlice';
 import { cardSlice } from './services/checklists/CheckList';
+import checklistsReducer from './services/checklists/CheckData';
 
 const persistConfig = {
   key: 'root',
@@ -30,6 +31,7 @@ const rootReducer = combineReducers({
   [gridsSlice.name]: gridsSlice.reducer,
   [cardSlice.name]: cardSlice.reducer,
   userDefaults: userDefaultsReducer,
+  checklists: checklistsReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

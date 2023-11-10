@@ -12,6 +12,8 @@ import {
   resetChartStore,
 } from '@/lib/store/services/charts/ChartSlice';
 import { useDispatch, useSelector } from 'react-redux';
+import { fetchUserChecklists } from '@/lib/store/services/checklists/CheckData';
+import { updateCards } from '@/lib/store/services/checklists/CheckList';
 
 const Layout = ({ children, topbarTitle, noBorderBottom }) => {
   // Constants
@@ -28,6 +30,26 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
   const [collapsed, setCollapsed] = useState(
     () => JSON.parse(localStorage.getItem('collapsed')) || false,
   );
+
+  // Fetching user checklists
+  useEffect(() => {
+    if (userInfo?._id && !localStorage.getItem('dataFetched')) {
+      // Fetch the checklists data
+      dispatch(fetchUserChecklists(userInfo._id)).then((action) => {
+        if (fetchUserChecklists.fulfilled.match(action)) {
+          const { payload } = action;
+          // Check if payload is defined and not empty
+          if (payload && payload.length > 0) {
+            const { items } = payload[0];
+            dispatch(updateCards(items));
+            localStorage.setItem('dataFetched', 'true');
+          } else {
+            console.log('Payload is empty or undefined');
+          }
+        }
+      });
+    }
+  }, [dispatch, userInfo]);
 
   // setting collapsed state in local storage
   useEffect(() => {

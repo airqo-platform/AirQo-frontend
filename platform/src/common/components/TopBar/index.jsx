@@ -11,6 +11,8 @@ import CloseIcon from '@/icons/close_icon';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import ExpandIcon from '@/icons/SideBar/expand.svg';
 import { resetAllTasks } from '@/lib/store/services/checklists/CheckList';
+import { updateUserChecklists, resetChecklist } from '@/lib/store/services/checklists/CheckData';
+import Spinner from '@/components/Spinner';
 
 const TopBar = ({
   topbarTitle,
@@ -27,6 +29,8 @@ const TopBar = ({
   const isCurrentRoute = currentRoute.includes('/Home');
   const userInfo = useSelector((state) => state.login.userInfo);
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const cardCheckList = useSelector((state) => state.cardChecklist.cards);
+  const [isLoading, setIsLoading] = useState(false);
 
   const PlaceholderImage = `https://ui-avatars.com/api/?name=${userInfo.firstName[0]}+${userInfo.lastName[0]}&background=random`;
 
@@ -39,13 +43,33 @@ const TopBar = ({
     setDropdownVisible(!dropdownVisible);
   };
 
-  const handleLogout = (event) => {
+  const handleLogout = async (event) => {
     event.preventDefault();
+
+    setIsLoading(true);
+
+    const action = await dispatch(
+      updateUserChecklists({
+        user_id: userInfo._id,
+        items: cardCheckList,
+      }),
+    );
+
+    // Check the status of the updateUserChecklists request
+    if (updateUserChecklists.rejected.match(action)) {
+      console.error('Failed to update user checklists');
+      setIsLoading(false);
+      return;
+    }
+
     localStorage.clear();
     dispatch(resetStore());
     dispatch(resetChartStore());
     dispatch(resetAllTasks());
+    dispatch(resetChecklist());
     router.push('/account/login');
+
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -148,6 +172,11 @@ const TopBar = ({
                       onClick={handleLogout}
                       className='logout-option text-gray-500 hover:text-gray-600 cursor-pointer p-2'>
                       Log out
+                      {isLoading && (
+                        <span className='float-right'>
+                          <Spinner width={20} height={20} />
+                        </span>
+                      )}
                     </li>
                   </ul>
                 </div>

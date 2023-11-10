@@ -1,13 +1,19 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+// Define the initial state of each card
+const initialCardState = {
+  status: 'notStarted',
+  completed: false,
+  completionDate: null,
+  videoProgress: 0,
+  title: '',
+};
+
+// Define the initial state of the slice
 const initialState = {
-  cards: [
-    { id: 1, status: 'notStarted' },
-    { id: 2, status: 'notStarted' },
-    { id: 3, status: 'notStarted' },
-    { id: 4, status: 'notStarted' },
-  ],
-  videoTime: 0,
+  cards: Array(4)
+    .fill()
+    .map((_, i) => ({ id: i + 1, ...initialCardState })),
 };
 
 export const cardSlice = createSlice({
@@ -24,26 +30,54 @@ export const cardSlice = createSlice({
       const card = state.cards.find((card) => card.id === action.payload);
       if (card) {
         card.status = 'completed';
+        card.completed = true;
+        card.completionDate = new Date().toISOString();
       }
     },
     resetTask: (state, action) => {
       const card = state.cards.find((card) => card.id === action.payload);
       if (card) {
-        card.status = 'notStarted';
+        Object.assign(card, initialCardState);
       }
     },
     resetAllTasks: (state) => {
       state.cards.forEach((card) => {
-        card.status = 'notStarted';
+        Object.assign(card, initialCardState);
       });
     },
-    setVideoTime: (state, action) => {
-      state.videoTime = action.payload;
+    updateVideoProgress: (state, action) => {
+      const { id, videoProgress } = action.payload;
+      const card = state.cards.find((card) => card.id === id);
+      if (card) {
+        card.videoProgress = videoProgress;
+      }
+    },
+    updateTitle: (state, action) => {
+      const { id, title } = action.payload;
+      const card = state.cards.find((card) => card.id === id);
+      if (card) {
+        card.title = title;
+      }
+    },
+    updateCards: (state, action) => {
+      action.payload.forEach((updatedCard, index) => {
+        const card = state.cards.find((card) => card.id === index + 1);
+        if (card) {
+          Object.assign(card, updatedCard);
+        }
+      });
     },
   },
 });
 
-export const { startTask, completeTask, resetTask, resetAllTasks, setVideoTime } =
-  cardSlice.actions;
+export const {
+  startTask,
+  completeTask,
+  resetTask,
+  resetAllTasks,
+  updateTitle,
+  updateVideoProgress,
+  updateCards,
+} = cardSlice.actions;
 
 export default cardSlice.reducer;
