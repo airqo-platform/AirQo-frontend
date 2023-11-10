@@ -125,7 +125,7 @@ export const updateUserDefaultsApi = async (data) => {
 }
 
 // Verify user email
-export const verifyUserEmail = async (identifier, token) => {
+export const verifyUserEmailApi = async (identifier, token) => {
   try {
     const response = await createAxiosInstance().get(`${VERIFY_USER_URL}/${identifier}/${token}`);
     return response.data;
