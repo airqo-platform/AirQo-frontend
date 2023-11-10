@@ -16,12 +16,15 @@ import ExportDataModal from '@/components/Modal/ExportDataModal';
 import AlertBox from '@/components/AlertBox';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import PrintReportModal from '@/components/Modal/PrintReportModal';
 
 const AuthenticatedHomePage = () => {
   const dispatch = useDispatch();
   const isMobile = useWindowSize().width < 500;
-  const userDefaults = useSelector((state) => state.userDefaults.defaults);
+  const chartDataRange = useSelector((state) => state.chart.chartDataRange);
+  const chartSites = useSelector((state) => state.chart.chartSites);
   const [openConfirmModal, setOpenConfirmModal] = useState(false);
+  const [openPrintModal, setOpenPrintModal] = useState(false);
   const [data, setData] = useState({});
   const [alert, setAlert] = useState({
     type: '',
@@ -37,21 +40,39 @@ const AuthenticatedHomePage = () => {
   }, []);
 
   const exportFile = () => {
-    // if (userDefaults && userDefaults?.sites.length !== 0) {
-    // let exportData = {
-    //   startDateTime: userDefaults.startDate,
-    //   endDateTime: userDefaults.endDate,
-    //   sites: userDefaults.sites,
-    // };
-    // setData(exportData);
-    setOpenConfirmModal(true);
-    // } else {
-    //   setAlert({
-    //     type: 'error',
-    //     message: 'No sites selected',
-    //     show: true,
-    //   });
-    // }
+    if (
+      chartSites &&
+      chartDataRange &&
+      chartDataRange.startDate &&
+      chartDataRange.endDate &&
+      chartSites.length > 0
+    ) {
+      let exportData = {
+        startDate: chartDataRange.startDate,
+        endDate: chartDataRange.endDate,
+        sites: chartSites,
+      };
+      setData(exportData);
+      setOpenConfirmModal(true);
+    } else {
+      setAlert({
+        type: 'error',
+        message: 'Please select sites and date range',
+        show: true,
+      });
+    }
+  };
+
+  const openPrintModalFunc = () => {
+    if (chartDataRange) {
+      let exportData = {
+        startDate: chartDataRange.startDate,
+        endDate: chartDataRange.endDate,
+      };
+
+      setData(exportData);
+    }
+    setOpenPrintModal(true);
   };
 
   const printFile = () => {
@@ -111,7 +132,7 @@ const AuthenticatedHomePage = () => {
             <Button
               className='text-sm font-medium capitalize'
               variant='outlined'
-              onClick={printFile}
+              onClick={openPrintModalFunc}
             >
               Print
             </Button>
@@ -156,11 +177,21 @@ const AuthenticatedHomePage = () => {
           </Tab>
         </Tabs>
       </div>
-      {open && (
+      {openConfirmModal && (
         <ExportDataModal
           open={openConfirmModal}
           onClose={() => setOpenConfirmModal(false)}
           handleExportPDF={printFile}
+          data={data}
+        />
+      )}
+
+      {openPrintModal && (
+        <PrintReportModal
+          open={openPrintModal}
+          onClose={() => setOpenPrintModal(false)}
+          handlePrintPDF={printFile}
+          data={data}
         />
       )}
     </Layout>

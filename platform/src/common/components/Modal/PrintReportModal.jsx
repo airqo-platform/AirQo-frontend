@@ -1,68 +1,66 @@
 import { useState } from 'react';
-import { exportDataApi } from '@/core/apis/Analytics';
-import Papa from 'papaparse';
-import { roundToEndOfDay, roundToStartOfDay } from '@/core/utils/dateTime';
 import AlertBox from '@/components/AlertBox';
-import moment from 'moment';
 import ExportModalWrapper from './ExportModalWrapper';
+import ShareIcon from '@/icons/Analytics/share.svg';
+import MailIcon from '@/icons/Settings/mail.svg';
+import PlusIcon from '@/icons/Settings/plus.svg';
+import Button from '@/components/Button';
+import { isEmpty } from 'underscore';
 
-const PrintReportModal = ({ open, onClose, handleExportPDF }) => {
-  const exportFormats = ['csv', 'json', 'pdf'];
-  const [selectedFormat, setSelectedFormat] = useState('csv');
+const PrintReportModal = ({ open, onClose, handlePrintPDF, data }) => {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({
     type: '',
     message: '',
     show: false,
   });
-  const startDate = moment().subtract(5, 'days').format('MMMM D, YYYY');
-  const endDate = moment().format('MMMM D, YYYY');
+  const [emails, setEmails] = useState(['']);
+  const [emailErrors, setEmailErrors] = useState([]);
 
-  const handleFormatChange = (event) => {
-    setSelectedFormat(event.target.value);
+  const handleEmailChange = (index, value) => {
+    const updatedEmails = [...emails];
+    updatedEmails[index] = value;
+    setEmails(updatedEmails);
+
+    if (!isEmpty(value)) {
+      const updatedEmailErrors = [...emailErrors];
+      updatedEmailErrors[index] = isValidEmail(value) ? '' : 'Invalid email';
+      setEmailErrors(updatedEmailErrors);
+    }
+  };
+
+  const handleAddEmail = () => {
+    setEmails([...emails, '']);
+  };
+
+  const handleRemoveEmail = (index) => {
+    const updatedEmails = [...emails];
+    updatedEmails.splice(index, 1);
+    setEmails(updatedEmails);
+  };
+
+  const isValidEmail = (email) => {
+    // Email validation regex pattern
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // Check if email is not empty and matches the regex pattern
+    if (email && email.match(emailRegex)) {
+      return true; // Email is valid and not empty
+    }
+
+    return false; // Email is either empty or invalid
   };
 
   const handleCancel = () => {
-    setSelectedFormat('');
+    setEmails(['']);
+    setEmailErrors([]);
     onClose();
   };
 
-  const exportData = (data, fileName, type) => {
-    const blob = new Blob([data], { type });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
-
-  const downloadDataFunc = async (body) => {
+  const downloadDataFunc = () => {
     try {
-      const response = await exportDataApi(body);
-      const resData = response.data;
-      let filename = `airquality-data.${selectedFormat}`;
+      handlePrintPDF();
 
-      if (selectedFormat === 'json') {
-        const jsonString = JSON.stringify(resData);
-        exportData(jsonString, filename, 'application/json');
-      }
-
-      if (selectedFormat === 'csv') {
-        // Convert JSON data to CSV using Papa Parse
-        const csvData = Papa.unparse(resData);
-        exportData(csvData, filename, 'text/csv;charset=utf-8;');
-      }
-
-      if (selectedFormat === 'pdf') {
-        handleExportPDF();
-      }
-
-      setAlert({
-        type: 'success',
-        message: 'Air quality data download successful',
-        show: true,
-      });
       setLoading(false);
       setTimeout(() => {
         setAlert({
@@ -73,41 +71,18 @@ const PrintReportModal = ({ open, onClose, handleExportPDF }) => {
       }, 7000);
       handleCancel();
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.status === 'success') {
-        setAlert({
-          type: 'success',
-          message: 'Uh-oh! No data found for the selected parameters.',
-          show: true,
-        });
-      } else {
-        setAlert({
-          type: 'error',
-          message: 'An error occurred while exporting data',
-          show: true,
-        });
-      }
+      setAlert({
+        type: 'error',
+        message: 'An error occurred while exporting data',
+        show: true,
+      });
       setLoading(false);
     }
   };
 
   const handleDataExport = () => {
     setLoading(true);
-
-    let body = {
-      sites: [
-        '647f3a5d69df500029a2fc93',
-        '6461df90dab86000293ba49f',
-        '64aafb1843e5f70029a059c4',
-        '6373928b7c737c001e78554f',
-      ],
-      startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
-      endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
-      frequency: 'hourly',
-      pollutants: ['pm2_5', 'pm10'],
-      downloadType: 'json',
-      outputFormat: 'airqo-standard',
-    };
-    downloadDataFunc(body);
+    downloadDataFunc();
   };
 
   return (
@@ -119,43 +94,59 @@ const PrintReportModal = ({ open, onClose, handleExportPDF }) => {
         hide={() => setAlert({ ...alert, show: false })}
       />
       <ExportModalWrapper
-        title='Export your report'
+        title='Print your report'
         open={open}
         onClose={onClose}
         downloadDataFunc={handleDataExport}
         loading={loading}
+        ModalIcon={ShareIcon}
+        primaryButtonText='Print'
+        data={data}
       >
-        <div className='flex-col justify-start items-start gap-[13px] flex'>
+        {/* <div className='flex-col justify-start items-start gap-[13px] flex w-full self-stretch'>
           <div className='self-stretch pr-2 justify-start items-start gap-2.5 inline-flex'>
-            <div className='text-gray-700 text-base font-medium leading-tight'>Export as</div>
+            <div className='text-gray-700 text-base font-medium leading-tight'>Send to email</div>
           </div>
 
-          {exportFormats.map((format, index) => (
-            <div
-              className='justify-start items-start gap-2 inline-flex'
-              key={index}
-              data-testid='selectedFormat-format'
-            >
-              <input
-                type='radio'
-                name='selectedFormat'
-                value={format}
-                checked={selectedFormat === format}
-                onChange={handleFormatChange}
-              />
-              <div className='inline-flex flex-col'>
-                <span className='self-stretch text-gray-600 text-sm font-medium leading-tight uppercase'>
-                  {format}
-                </span>
-                {format === 'csv' && (
-                  <span className='text-gray-500 text-sm font-normal leading-tight'>
-                    Report will be exported as a CSV(comma separated values) table.
-                  </span>
+          {emails.map((email, index) => (
+              <div key={index}>
+                <div className='relative w-full' key={index}>
+                  <input
+                    type='text'
+                    placeholder='Enter email'
+                    className='input input-bordered w-full pl-9 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded'
+                    value={email}
+                    onChange={(e) => handleEmailChange(index, e.target.value)}
+                  />
+                  <div className='absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none'>
+                    <MailIcon />
+                  </div>
+                  {index > 0 && (
+                    <button
+                      className='absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto'
+                      onClick={() => handleRemoveEmail(index)}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                {emailErrors[index] && email && (
+                  <div className='relative flex justify-end pr-3'>
+                    <span className='text-xs text-red-500'>{emailErrors[index]}</span>
+                  </div>
                 )}
               </div>
+            ))}
+
+            <div>
+              <Button
+                className='text-sm font-medium text-primary-600 leading-5 gap-2 h-5 mt-3 mb-8 w-auto pl-0'
+                onClick={handleAddEmail}
+              >
+                <PlusIcon /> <span>Add email</span>
+              </Button>
             </div>
-          ))}
-        </div>
+        </div> */}
       </ExportModalWrapper>
     </div>
   );

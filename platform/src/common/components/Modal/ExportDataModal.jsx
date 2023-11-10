@@ -6,7 +6,7 @@ import AlertBox from '@/components/AlertBox';
 import moment from 'moment';
 import ExportModalWrapper from './ExportModalWrapper';
 
-const ConfirmExportModal = ({ open, onClose, handleExportPDF }) => {
+const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
   const exportFormats = ['csv', 'json', 'pdf'];
   const [selectedFormat, setSelectedFormat] = useState('csv');
   const [loading, setLoading] = useState(false);
@@ -94,12 +94,7 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF }) => {
     setLoading(true);
 
     let body = {
-      sites: [
-        '647f3a5d69df500029a2fc93',
-        '6461df90dab86000293ba49f',
-        '64aafb1843e5f70029a059c4',
-        '6373928b7c737c001e78554f',
-      ],
+      sites: data?.sites,
       startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
       endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
       frequency: 'hourly',

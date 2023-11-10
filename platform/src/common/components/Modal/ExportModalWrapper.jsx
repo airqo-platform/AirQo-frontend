@@ -1,11 +1,25 @@
 import Button from '@/components/Button';
-import DownloadIcon from '@/icons/Settings/download.svg';
+import DownloadIcon from '@/icons/Analytics/download.svg';
 import { roundToEndOfDay, roundToStartOfDay } from '@/core/utils/dateTime';
 import moment from 'moment';
 
-const ExportModalWrapper = ({ open, onClose, children, downloadDataFunc, title, loading }) => {
-  const startDate = moment().subtract(5, 'days').format('MMMM D, YYYY');
-  const endDate = moment().format('MMMM D, YYYY');
+const ExportModalWrapper = ({
+  open,
+  onClose,
+  children,
+  downloadDataFunc,
+  title,
+  loading,
+  ModalIcon,
+  primaryButtonText = 'Export',
+  data,
+}) => {
+  const startDate = data?.startDate
+    ? moment(data.startDate).format('MMMM D, YYYY')
+    : moment().subtract(5, 'days').format('MMMM D, YYYY');
+  const endDate = data?.endDate
+    ? moment(data.endDate).format('MMMM D, YYYY')
+    : moment().format('MMMM D, YYYY');
 
   const handleCancel = () => {
     onClose();
@@ -13,12 +27,7 @@ const ExportModalWrapper = ({ open, onClose, children, downloadDataFunc, title, 
 
   const handleDataExport = async () => {
     let body = {
-      sites: [
-        '647f3a5d69df500029a2fc93',
-        '6461df90dab86000293ba49f',
-        '64aafb1843e5f70029a059c4',
-        '6373928b7c737c001e78554f',
-      ],
+      sites: data?.sites,
       startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
       endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
       frequency: 'hourly',
@@ -39,7 +48,7 @@ const ExportModalWrapper = ({ open, onClose, children, downloadDataFunc, title, 
         <div className='self-stretch px-6 flex-col justify-start items-start gap-5 flex'>
           <div className='self-stretch flex-col justify-start items-start gap-2 flex'>
             <div className='p-5 bg-indigo-50 rounded-full border-indigo-50 justify-start items-start gap-1 flex'>
-              <DownloadIcon className='w-6 h-6' />
+              {ModalIcon ? <ModalIcon className='w-6 h-6' /> : <DownloadIcon className='w-6 h-6' />}
             </div>
             <div className='self-stretch text-gray-700 text-lg font-medium leading-relaxed'>
               {title}
@@ -53,7 +62,9 @@ const ExportModalWrapper = ({ open, onClose, children, downloadDataFunc, title, 
               </span>
             </div>
           </div>
-          <div className='flex-col justify-start items-start gap-[13px] flex'>{children}</div>
+          <div className='flex-col justify-start items-start gap-[13px] flex w-full self-stretch'>
+            {children}
+          </div>
         </div>
         <div className='self-stretch p-5 bg-gray-50 border-gray-200 justify-end items-start gap-3 inline-flex w-full'>
           <Button onClick={handleCancel} variant='outlined' className='text-sm font-medium'>
@@ -64,7 +75,7 @@ const ExportModalWrapper = ({ open, onClose, children, downloadDataFunc, title, 
             className='text-sm font-medium'
             onClick={handleDataExport}
           >
-            {loading ? 'Loading...' : 'Export'}
+            {loading ? 'Loading...' : primaryButtonText}
           </Button>
         </div>
       </div>
