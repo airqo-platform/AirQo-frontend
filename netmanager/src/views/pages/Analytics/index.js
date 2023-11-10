@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   Divider,
+  Grid,
   IconButton,
   ListItemIcon,
   ListItemText,
@@ -35,15 +36,21 @@ import MoreDropdown from './components/MoreDropdown';
 import { deleteCohortApi, deleteGridApi, refreshGridApi } from '../../apis/deviceRegistry';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { updateMainAlert } from 'redux/MainAlert/operations';
+import { downloadDataApi } from '../../apis/analytics';
+import { roundToEndOfDay, roundToStartOfDay } from '../../../utils/dateTime';
+import Papa from 'papaparse';
 
 const useStyles = makeStyles((theme) => ({
   root: {
     padding: theme.spacing(4),
-    position: 'relative'
+    position: 'relative',
+    [theme.breakpoints.down('sm')]: {
+      padding: theme.spacing(2)
+    }
   }
 }));
 
-const createDeviceOptions = (devices) => {
+export const createDeviceOptions = (devices) => {
   const options = [];
   devices.map((device) => {
     options.push({
@@ -54,16 +61,63 @@ const createDeviceOptions = (devices) => {
   return options;
 };
 
+export const createSiteOptions = (sites) => {
+  const options = [];
+  sites.map((site) => {
+    options.push({
+      value: site._id,
+      label: site.site_name
+    });
+  });
+  return options;
+};
+
+const extractGridSitesIds = (sites = []) => {
+  try {
+    const sitesIds = [];
+    sites.map((site) => {
+      if (site && site._id) {
+        sitesIds.push(site._id);
+      }
+    });
+    return sitesIds;
+  } catch (error) {
+    console.error('Error in extractGridSitesIds:', error);
+    return [];
+  }
+};
+
+const extraCohortDevicesIds = (devices = []) => {
+  try {
+    const devicesIds = [];
+    devices.map((device) => {
+      if (device && device._id) {
+        devicesIds.push(device._id);
+      }
+    });
+    return devicesIds;
+  } catch (error) {
+    console.error('Error in extraCohortDevicesIds:', error);
+    return [];
+  }
+};
+
 const Analytics = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const [isCohort, setIsCohort] = useState(false);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
-
+  const activeNetworkString = localStorage.getItem('activeNetwork');
+  const activeNetwork = activeNetworkString ? JSON.parse(activeNetworkString) : {};
   const devices = useDevicesData();
   const [deviceOptions, setDeviceOptions] = useState([]);
+
+  if (typeof activeNetwork !== 'object' || activeNetwork === null) {
+    console.error('Error parsing activeNetwork:', activeNetwork);
+  }
+
+  const [downloadingData, setDownloadingData] = useState(false);
 
   const combinedGridAndCohortsSummary = useSelector(
     (state) => state.analytics.combinedGridAndCohortsSummary
@@ -72,7 +126,6 @@ const Analytics = () => {
   const activeGridDetails = useSelector((state) => state.analytics.activeGridDetails);
   const activeCohort = useSelector((state) => state.analytics.activeCohort);
   const activeCohortDetails = useSelector((state) => state.analytics.activeCohortDetails);
-
   const [anchorEl, setAnchorEl] = useState(null);
   const openMenu = Boolean(anchorEl);
 
@@ -191,6 +244,147 @@ const Analytics = () => {
       });
   };
 
+  // Function to export data as a file
+  const exportData = (data, fileName, type) => {
+    try {
+      const blob = new Blob([data], { type });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      dispatch(
+        updateMainAlert({
+          message: 'Error exporting data',
+          show: true,
+          severity: 'error'
+        })
+      );
+    }
+  };
+
+  const downloadDataFunc = async (body) => {
+    await downloadDataApi(body)
+      .then((response) => response.data)
+      .then((resData) => {
+        let filename = `${isCohort ? 'cohort' : 'grid'}_data.csv`;
+
+        const csvData = Papa.unparse(resData);
+
+        exportData(csvData, filename, 'text/csv;charset=utf-8;');
+
+        setDownloadingData(false);
+        dispatch(
+          updateMainAlert({
+            message: 'Air quality data download successful',
+            show: true,
+            severity: 'success'
+          })
+        );
+      })
+      .catch((err) => {
+        if (err.response.data.status === 'success') {
+          dispatch(
+            updateMainAlert({
+              message: 'Uh-oh! No data found',
+              show: true,
+              severity: 'success'
+            })
+          );
+        } else {
+          dispatch(
+            updateMainAlert({
+              message: err.response.data.message,
+              show: true,
+              severity: 'error'
+            })
+          );
+        }
+
+        setDownloadingData(false);
+      });
+  };
+
+  const submitExportData = async (e) => {
+    setDownloadingData(true);
+
+    let exportData = [];
+    let body = {};
+
+    const getBody = (exportData) => {
+      return {
+        sites: !isCohort ? exportData : [],
+        devices: isCohort ? exportData : [],
+        startDateTime: roundToStartOfDay(new Date().toISOString()),
+        endDateTime: roundToEndOfDay(new Date().toISOString()),
+        frequency: 'hourly',
+        pollutants: ['pm2_5', 'pm10'],
+        downloadType: isCohort ? 'csv' : 'json',
+        outputFormat: 'airqo-standard'
+      };
+    };
+
+    if (!isCohort) {
+      if (!isEmpty(activeGridDetails.sites)) {
+        exportData = extractGridSitesIds(activeGridDetails.sites);
+
+        if (!isEmpty(exportData)) {
+          body = getBody(exportData);
+        } else {
+          dispatch(
+            updateMainAlert({
+              message: 'No sites found',
+              show: true,
+              severity: 'error'
+            })
+          );
+        }
+
+        try {
+          await downloadDataFunc(body);
+        } catch (error) {
+          console.log(error.message);
+        } finally {
+          setDownloadingData(false);
+        }
+      }
+    } else {
+      if (!isEmpty(activeCohortDetails.devices)) {
+        exportData = extraCohortDevicesIds(activeCohortDetails.devices);
+
+        if (!isEmpty(exportData)) {
+          body = getBody(exportData);
+        } else {
+          dispatch(
+            updateMainAlert({
+              message: 'No devices found',
+              show: true,
+              severity: 'error'
+            })
+          );
+        }
+
+        try {
+          await downloadDataFunc(body);
+        } catch (error) {
+          dispatch(
+            updateMainAlert({
+              message: error.message || 'An error occurred while downloading data',
+              show: true,
+              severity: 'error'
+            })
+          );
+        } finally {
+          setDownloadingData(false);
+        }
+      }
+    }
+
+    setDownloadingData(false);
+  };
+
   return (
     <ErrorBoundary>
       <div className={classes.root}>
@@ -237,7 +431,27 @@ const Analytics = () => {
               />
             )}
           </Box>
-          <Box width={'auto'} marginTop={{ xs: '25px', sm: '25px', md: '0', lg: '0', xl: '0' }}>
+          <Box
+            width={'auto'}
+            marginTop={{ xs: '25px', sm: '25px', md: '0', lg: '0', xl: '0' }}
+            display={'flex'}
+            gridGap="12px"
+          >
+            <Button
+              margin="dense"
+              color="primary"
+              style={{
+                width: 'auto',
+                textTransform: 'initial',
+                height: '44px',
+                position: 'relative'
+              }}
+              variant="outlined"
+              onClick={submitExportData}
+              disabled={downloadingData || loading}
+            >
+              Download data
+            </Button>
             <Button
               margin="dense"
               color="primary"
