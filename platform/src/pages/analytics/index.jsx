@@ -22,9 +22,9 @@ const AuthenticatedHomePage = () => {
   const [openConfirmModal, setOpenConfirmModal] = useState(false);
   const [data, setData] = useState({});
   const [alert, setAlert] = useState({
-    type: 'success',
-    message: 'This is a success alert',
-    show: true,
+    type: '',
+    message: '',
+    show: false,
   });
 
   useEffect(() => {
@@ -34,23 +34,25 @@ const AuthenticatedHomePage = () => {
     }
   }, []);
 
-  const printAndExportFile = () => {
-    if (userDefaults && userDefaults?.sites.length !== 0) {
-      let exportData = {
-        startDateTime: userDefaults.startDate,
-        endDateTime: userDefaults.endDate,
-        sites: userDefaults.sites,
-      };
-      setData(exportData);
-      setOpenConfirmModal(true);
-    } else {
-      setAlert({
-        type: 'error',
-        message: 'No sites selected',
-        show: true,
-      });
-    }
+  const exportFile = () => {
+    // if (userDefaults && userDefaults?.sites.length !== 0) {
+    // let exportData = {
+    //   startDateTime: userDefaults.startDate,
+    //   endDateTime: userDefaults.endDate,
+    //   sites: userDefaults.sites,
+    // };
+    // setData(exportData);
+    setOpenConfirmModal(true);
+    // } else {
+    //   setAlert({
+    //     type: 'error',
+    //     message: 'No sites selected',
+    //     show: true,
+    //   });
+    // }
   };
+
+  const printFile = () => {};
 
   const renderChildrenRight = () => {
     return [
@@ -79,11 +81,16 @@ const AuthenticatedHomePage = () => {
             <Button
               className='text-sm font-medium capitalize'
               variant='outlined'
-              onClick={printAndExportFile}
+              onClick={printFile}
             >
               Print
             </Button>
-            <Button className='text-sm font-medium capitalize' variant='filled' Icon={DownloadIcon}>
+            <Button
+              className='text-sm font-medium capitalize'
+              variant='filled'
+              Icon={DownloadIcon}
+              onClick={exportFile}
+            >
               Export
             </Button>
           </div>

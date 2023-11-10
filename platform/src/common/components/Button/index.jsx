@@ -25,6 +25,9 @@ const Button = ({
     textColor = 'text-secondary-neutral-light-600';
   } else if (variant === 'text') {
     textColor = 'text-secondary-neutral-light-600';
+  } else if (variant === 'disabled') {
+    backgroundColor = 'bg-secondary-neutral-light-100';
+    textColor = 'text-secondary-neutral-light-600';
   }
 
   if (bgColor) {
