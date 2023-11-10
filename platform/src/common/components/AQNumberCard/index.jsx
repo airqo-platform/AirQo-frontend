@@ -68,7 +68,9 @@ const AQNumberCard = ({ reading, location, keyValue }) => {
                 </div>
                 <div className='text-slate-400 text-sm font-medium leading-tight'>PM2.5</div>
               </div>
-              <div className='text-gray-700 text-[28px] font-extrabold leading-7'>{reading}</div>
+              <div className='text-gray-700 text-[28px] font-extrabold leading-7'>
+                {reading.toFixed(2)}
+              </div>
             </div>
           </div>
           <div className='absolute right-3 bottom-1 z-10'>
