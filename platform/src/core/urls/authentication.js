@@ -18,3 +18,5 @@ export const GROUPS_URL = `${AUTH_URL}/groups`;
 export const UPDATE_USER_DETAILS_URL = AUTH_URL;
 
 export const USER_DEFAULTS_URL = `${AUTH_URL}/defaults`
+
+export const VERIFY_USER_URL = `${AUTH_URL}/verify`

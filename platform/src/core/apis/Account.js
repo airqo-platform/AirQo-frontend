@@ -6,6 +6,7 @@ import {
   GROUPS_URL,
   UPDATE_USER_DETAILS_URL,
   USER_DEFAULTS_URL,
+  VERIFY_USER_URL,
 } from '../urls/authentication';
 import axios from 'axios';
 import createAxiosInstance from './axiosConfig';
@@ -119,6 +120,16 @@ export const updateUserDefaultsApi = async (data) => {
     return response.data;
   }
   catch (error) {
+    throw error;
+  }
+}
+
+// Verify user email
+export const verifyUserEmail = async (identifier, token) => {
+  try {
+    const response = await createAxiosInstance().get(`${VERIFY_USER_URL}/${identifier}/${token}`);
+    return response.data;
+  } catch (error) {
     throw error;
   }
 }
