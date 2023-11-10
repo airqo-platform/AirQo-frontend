@@ -25,8 +25,8 @@ const OverView = () => {
         ))}
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-        <ChartContainer chartType='line' chartTitle='Air quality over time' />
-        <ChartContainer chartType='bar' chartTitle='Air quality over time' />
+        <ChartContainer chartType='line' chartTitle='Air quality over time' height={300} />
+        <ChartContainer chartType='bar' chartTitle='Air quality over time' height={300} />
       </div>
       <style jsx>{`
         .grid {
