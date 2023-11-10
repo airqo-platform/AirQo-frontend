@@ -22,7 +22,7 @@ import { MoreHoriz } from '@material-ui/icons';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import createAxiosInstance from 'views/apis/axiosConfig';
 import palette from 'theme/palette';
-import { EXCEEDANCES_URI } from 'config/urls/analytics';
+import { EXCEEDANCES_URI, DEVICE_EXCEEDANCES_URI } from 'config/urls/analytics';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import domtoimage from 'dom-to-image';
@@ -33,7 +33,6 @@ import { usePollutantsOptions } from 'utils/customHooks';
 import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
 import { flattenSiteOptions } from 'utils/sites';
 import OutlinedSelect from 'views/components/CustomSelects/OutlinedSelect';
-import { BASE_AUTH_TOKEN } from 'utils/envVariables';
 import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
@@ -59,8 +58,8 @@ const ExceedancesChart = (props) => {
     chartContainer,
     idSuffix,
     analyticsSites,
-    isGrids,
-    isCohorts,
+    isGrids = false,
+    isCohorts = false,
     analyticsDevices,
     ...rest
   } = props;
@@ -226,8 +225,10 @@ const ExceedancesChart = (props) => {
       `${tempPollutant.label} Exceedances Over the Past 28 Days Based on ${tempStandard.label}`
     );
     try {
-      const jwtToken = localStorage.getItem('jwtToken');
-      const response = await createAxiosInstance().post(EXCEEDANCES_URI, filter);
+      const response = await createAxiosInstance().post(
+        isCohorts ? DEVICE_EXCEEDANCES_URI : EXCEEDANCES_URI,
+        filter
+      );
       const responseData = response.data;
       const exceedanceData = responseData.data;
       exceedanceData.sort((a, b) => {
@@ -507,7 +508,8 @@ const ExceedancesChart = (props) => {
           borderRadius: '4px',
           marginBottom: '10px',
           borderRadius: '4px'
-        }}>
+        }}
+      >
         <CardHeader
           title={site.name || site.description || site.generated_name}
           style={{
@@ -542,11 +544,13 @@ const ExceedancesChart = (props) => {
     setAnchorEl(null);
   };
 
-  const handleExportCustomChart = ({ action }) => () => {
-    const chart = document.querySelector(`#${rootCustomChartContainerId}`);
-    handleClose();
-    action(chart);
-  };
+  const handleExportCustomChart =
+    ({ action }) =>
+    () => {
+      const chart = document.querySelector(`#${rootCustomChartContainerId}`);
+      handleClose();
+      action(chart);
+    };
 
   const openMenu = Boolean(anchorEl);
 
@@ -560,14 +564,16 @@ const ExceedancesChart = (props) => {
               color="primary"
               id={iconButton}
               onClick={handleClick}
-              className={classes.chartSaveButton}>
+              className={classes.chartSaveButton}
+            >
               <MoreHoriz />
             </IconButton>
             <Menu
               anchorEl={anchorEl}
               open={openMenu}
               onClose={handleMenuClose}
-              PaperProps={paperProps}>
+              PaperProps={paperProps}
+            >
               {menuOptions.map((option) => (
                 <MenuItem key={option.key} onClick={handleExportCustomChart(option)}>
                   {option.text}
@@ -591,7 +597,8 @@ const ExceedancesChart = (props) => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   height: '30vh'
-                }}>
+                }}
+              >
                 loading...
               </div>
             ) : isEmpty(locations) ? (
@@ -601,7 +608,8 @@ const ExceedancesChart = (props) => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   height: '30vh'
-                }}>
+                }}
+              >
                 No data found
               </div>
             ) : (
@@ -700,7 +708,8 @@ const ExceedancesChart = (props) => {
             classes={{ paper: classes.dialogPaper }}
             open={open}
             onClose={handleClose}
-            aria-labelledby="form-dialog-title">
+            aria-labelledby="form-dialog-title"
+          >
             <DialogTitle id="form-dialog-title" onClose={handleClose}>
               Customise Chart by Selecting the Various Options
             </DialogTitle>
@@ -754,7 +763,8 @@ const ExceedancesChart = (props) => {
             margin: '10px',
             borderRadius: '8px'
           }
-        }}>
+        }}
+      >
         <DialogContent>
           {allLocations.map((dataset) => (
             <div key={dataset.label}>
@@ -767,7 +777,8 @@ const ExceedancesChart = (props) => {
                   fontWeight: 'bold',
                   padding: '6px',
                   fontSize: '20px'
-                }}>
+                }}
+              >
                 {dataset.label}
               </h5>
               <Grid container spacing={2}>
@@ -803,7 +814,8 @@ const ExceedancesChart = (props) => {
         style={{
           justifyContent: 'flex-end',
           marginTop: '-20px'
-        }}>
+        }}
+      >
         <Button
           variant="outlined"
           color="primary"
@@ -818,7 +830,8 @@ const ExceedancesChart = (props) => {
             boxShadow: 'none',
             background: 'transparent',
             border: 'none'
-          }}>
+          }}
+        >
           View all Exceedances <ArrowForwardIcon />
         </Button>
       </CardActions>
