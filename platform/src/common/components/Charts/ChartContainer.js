@@ -9,7 +9,7 @@ import html2canvas from 'html2canvas';
 import Spinner from '@/components/Spinner';
 import CheckIcon from '@/icons/tickIcon';
 
-const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width }) => {
+const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id }) => {
   const dispatch = useDispatch();
   const chartRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -89,13 +89,15 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width }) => {
           </button>
         }
         id='options'
-        dropStyle={{ top: '21px', right: '0', zIndex: 999 }}>
+        dropStyle={{ top: '21px', right: '0', zIndex: 999 }}
+      >
         {['jpeg', 'pdf', 'png'].map((format) => (
           <a
             key={format}
             href='#'
             onClick={() => exportChart(format)}
-            className='flex justify-between items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'>
+            className='flex justify-between items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
+          >
             <span>Export as {format.toUpperCase()}</span>
             <span className='-mr-2'>
               {loadingFormat === format && <Spinner width={15} height={15} />}
@@ -126,11 +128,13 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width }) => {
         </div>
         <div
           ref={chartRef}
+          id={id}
           className='mt-6 -ml-[27px] relative'
           style={{
             width: width || '100%',
             height: height,
-          }}>
+          }}
+        >
           <Chart chartType={chartType} width={width} height={height} />
         </div>
       </div>
