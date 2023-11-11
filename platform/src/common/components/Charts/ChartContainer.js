@@ -3,7 +3,7 @@ import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
 import Chart from './Charts';
 import DotMenuIcon from '@/icons/Actions/three-dots-menu.svg';
 import { useDispatch } from 'react-redux';
-import { setChartTab, setChartType } from '@/lib/store/services/charts/ChartSlice';
+import { setChartTab, setRefreshChart, setChartType } from '@/lib/store/services/charts/ChartSlice';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import Spinner from '@/components/Spinner';
@@ -29,6 +29,15 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id }) =
     };
   }, [downloadComplete]);
 
+  const handleMoreClick = () => {
+    dispatch(setChartTab(1));
+    dispatch(setChartType(chartType));
+  };
+
+  const refreshChart = useCallback(() => {
+    dispatch(setRefreshChart(true));
+  }, []);
+
   const exportChart = useCallback(async (format) => {
     setLoadingFormat(format);
     if (!chartRef.current) return;
@@ -50,15 +59,6 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id }) =
     link.download = `chart.${format}`;
 
     switch (format) {
-      case 'png':
-      case 'jpeg':
-        canvas.toBlob((blob) => {
-          link.href = URL.createObjectURL(blob);
-          link.click();
-          setLoadingFormat(null);
-          setDownloadComplete(format);
-        }, `image/${format}`);
-        break;
       case 'pdf':
         const pdf = new jsPDF({
           orientation: 'landscape',
@@ -67,18 +67,20 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id }) =
         });
         pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, width, height);
         pdf.save('chart.pdf');
-        setLoadingFormat(null);
-        setDownloadComplete(format);
+        break;
+      case 'jpg':
+        canvas.toBlob((blob) => {
+          link.href = URL.createObjectURL(blob);
+          link.click();
+        }, 'image/jpeg');
         break;
       default:
         throw new Error('Unsupported format');
     }
-  }, []);
 
-  const handleMoreClick = () => {
-    dispatch(setChartTab(1));
-    dispatch(setChartType(chartType));
-  };
+    setLoadingFormat(null);
+    setDownloadComplete(format);
+  }, []);
 
   const renderDropdown = () => (
     <div ref={dropdownRef}>
@@ -89,20 +91,35 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id }) =
           </button>
         }
         id='options'
-        dropStyle={{ top: '21px', right: '0', zIndex: 999 }}
-      >
-        {['jpeg', 'pdf', 'png'].map((format) => (
+        className='top-[21px] right-0'>
+        <a
+          href='#'
+          onClick={() => refreshChart()}
+          className='flex justify-between items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100'>
+          <span>Refresh chart</span>
+        </a>
+        <hr className='dropdown-divider border-b border-gray-200 dark:border-gray-700' />
+        {['jpg', 'pdf'].map((format) => (
           <a
             key={format}
             href='#'
             onClick={() => exportChart(format)}
-            className='flex justify-between items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
-          >
+            className='flex justify-between items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100'>
             <span>Export as {format.toUpperCase()}</span>
             <span className='-mr-2'>
               {loadingFormat === format && <Spinner width={15} height={15} />}
               {downloadComplete === format && <CheckIcon fill='#1E40AF' width={20} height={20} />}
             </span>
+          </a>
+        ))}
+        <hr className='dropdown-divider border-b border-gray-200 dark:border-gray-700' />
+        {['csv', 'pdf'].map((format) => (
+          <a
+            key={format}
+            href='#'
+            onClick={() => shareReport(format)}
+            className='flex justify-between items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'>
+            <span>Share report as {format.toUpperCase()}</span>
           </a>
         ))}
       </CustomDropdown>
@@ -133,8 +150,7 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id }) =
           style={{
             width: width || '100%',
             height: height,
-          }}
-        >
+          }}>
           <Chart chartType={chartType} width={width} height={height} />
         </div>
       </div>

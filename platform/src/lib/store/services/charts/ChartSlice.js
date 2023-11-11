@@ -34,6 +34,7 @@ const initialState = {
   userDefaultID: null,
   chartAnalyticsData: [],
   chartTab: defaultChartTab,
+  refreshChart: false,
 };
 
 export const chartSlice = createSlice({
@@ -67,6 +68,9 @@ export const chartSlice = createSlice({
     setChartData: (state, action) => {
       state.chartAnalyticsData = action.payload;
     },
+    setRefreshChart: (state, action) => {
+      state.refreshChart = action.payload;
+    },
     resetChartStore: (state) => {
       state.chartType = defaultChartType;
       state.timeFrame = defaultTimeFrame;
@@ -92,6 +96,7 @@ export const {
   setOrganizationName,
   setDefaultID,
   setChartData,
+  setRefreshChart,
 } = chartSlice.actions;
 
 export default chartSlice.reducer;

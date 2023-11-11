@@ -19,8 +19,10 @@ import Unhealthy from '@/icons/Charts/Unhealthy';
 import UnhealthySG from '@/icons/Charts/UnhealthySG';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import Spinner from '@/components/Spinner';
+import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
+import { fetchAnalyticsData } from '@/lib/store/services/charts/ChartData';
 
 const colors = ['#11225A', '#0A46EB', '#297EFF', '#B8D9FF'];
 
@@ -206,7 +208,7 @@ const CustomDot = (props) => {
   return <circle cx={cx} cy={cy} r={6} fill={fill} />;
 };
 
-const CustomTooltip = ({ tooltipText, children, direction, themeClass }) => {
+const CustomLegendTooltip = ({ tooltipText, children, direction, themeClass }) => {
   const [visible, setVisible] = useState(false);
 
   const tooltipClass = {
@@ -253,14 +255,14 @@ const renderCustomizedLegend = (props) => {
   return (
     <div className='p-2 md:p-0 flex flex-wrap flex-col md:flex-row md:justify-end mt-2 space-y-2 md:space-y-0 md:space-x-4'>
       {sortedPayload.map((entry, index) => (
-        <CustomTooltip key={`item-${index}`} tooltipText={entry.value} direction='top'>
+        <CustomLegendTooltip key={`item-${index}`} tooltipText={entry.value} direction='top'>
           <div style={{ color: entry.color }} className='flex space-x-2 items-center text-sm'>
             <div
               className='w-[10px] h-[10px] rounded-xl mr-1 ml-1'
               style={{ backgroundColor: entry.color }}></div>
             {truncate(entry.value)}
           </div>
-        </CustomTooltip>
+        </CustomLegendTooltip>
       ))}
     </div>
   );
@@ -268,16 +270,15 @@ const renderCustomizedLegend = (props) => {
 
 // Custom hook to fetch analytics data
 const useAnalytics = () => {
+  const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
-  const status = useSelector((state) => state.userDefaults.status);
-  const [analyticsData, setAnalyticsData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const refreshChart = useSelector((state) => state.chart.refreshChart);
+  const analyticsData = useSelector((state) => state.analyticsData.data);
+  const isLoading = useSelector((state) => state.analyticsData.status === 'loading');
 
   useEffect(() => {
-    let isCancelled = false;
-
     const fetchData = async () => {
-      if (!chartData || status === 'loading') return;
+      if (!chartData || isLoading) return;
 
       const body = {
         sites: chartData.chartSites,
@@ -294,30 +295,16 @@ const useAnalytics = () => {
       );
 
       if (allPropertiesSet) {
-        setIsLoading(true);
         try {
-          const response = await getAnalyticsData(body);
-          if (!isCancelled) {
-            setAnalyticsData(response.data.length > 0 ? response.data : null);
-          }
+          await dispatch(fetchAnalyticsData(body));
         } catch (error) {
-          if (!isCancelled) {
-            console.error(`Error getting analytics data: ${error}`);
-          }
-        } finally {
-          if (!isCancelled) {
-            setIsLoading(false);
-          }
+          console.error(`Error getting analytics data: ${error}`);
         }
       }
     };
 
     fetchData();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [chartData, status]);
+  }, [chartData, refreshChart, dispatch]);
 
   return { analyticsData, isLoading };
 };

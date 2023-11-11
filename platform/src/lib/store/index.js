@@ -12,6 +12,7 @@ import { userLoginSlice } from './services/account/LoginSlice';
 import { chartSlice } from './services/charts/ChartSlice';
 import { gridsSlice } from './services/deviceRegistry/GridsSlice';
 import userDefaultsReducer from './services/charts/userDefaultsSlice';
+import analyticsDataReducer from './services/charts/ChartData';
 
 const persistConfig = {
   key: 'root',
@@ -28,6 +29,7 @@ const rootReducer = combineReducers({
   [chartSlice.name]: chartSlice.reducer,
   [gridsSlice.name]: gridsSlice.reducer,
   userDefaults: userDefaultsReducer,
+  analyticsData: analyticsDataReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
