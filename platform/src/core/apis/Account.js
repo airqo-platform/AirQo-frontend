@@ -6,6 +6,8 @@ import {
   GROUPS_URL,
   UPDATE_USER_DETAILS_URL,
   USER_DEFAULTS_URL,
+  USER_CHECKLISTS_UPSERT_URL,
+  USER_CHECKLISTS_URL,
 } from '../urls/authentication';
 import createAxiosInstance from './axiosConfig';
 
@@ -91,5 +93,17 @@ export const updateUserDefaults = async (defaultsId, defaults) => {
         id: defaultsId,
       },
     })
+    .then((response) => response.data);
+};
+
+export const getUserChecklists = async (userID) => {
+  return await createAxiosInstance()
+    .get(`${USER_CHECKLISTS_URL}/${userID}`)
+    .then((response) => response.data);
+};
+
+export const upsertUserChecklists = async (checklist) => {
+  return await createAxiosInstance()
+    .post(USER_CHECKLISTS_UPSERT_URL, checklist)
     .then((response) => response.data);
 };

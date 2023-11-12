@@ -39,3 +39,16 @@ select:focus {
 ::-webkit-scrollbar-thumb:hover {
   background-color: #555;
 }
+
+@keyframes slide-in {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out forwards;
+}

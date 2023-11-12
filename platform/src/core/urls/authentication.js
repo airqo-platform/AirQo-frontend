@@ -18,3 +18,7 @@ export const GROUPS_URL = `${AUTH_URL}/groups`;
 export const UPDATE_USER_DETAILS_URL = AUTH_URL;
 
 export const USER_DEFAULTS_URL = `${BASE_AUTH_URL}/users/defaults`;
+
+export const USER_CHECKLISTS_URL = `${BASE_AUTH_URL}/users/checklist`;
+
+export const USER_CHECKLISTS_UPSERT_URL = `${BASE_AUTH_URL}/users/checklist/upsert`;
