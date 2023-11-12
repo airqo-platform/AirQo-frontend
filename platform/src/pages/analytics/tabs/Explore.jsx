@@ -88,6 +88,7 @@ const Explore = () => {
           chartType={chartData.chartType}
           chartTitle='Air quality over time'
           height={450}
+          id='explore-chart-container'
         />
       </div>
     </div>

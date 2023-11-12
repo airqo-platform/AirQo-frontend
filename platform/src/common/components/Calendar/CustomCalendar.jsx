@@ -101,7 +101,8 @@ const CustomCalendar = ({
     <div className='relative cursor-pointer' onClick={handleDatepicker}>
       <button
         type='button'
-        className='relative border border-grey-750 w-15 h-10 rounded-lg flex items-center justify-between gap-2 p-[10px]'>
+        className='relative border border-grey-750 rounded flex items-center justify-between gap-2 px-4 py-3'
+      >
         {Icon ? <Icon /> : <CalendarIcon />}
         <span className='hidden sm:inline-block text-sm font-medium'>
           {chartData.chartDataRange.label}
