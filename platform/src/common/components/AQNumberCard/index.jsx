@@ -53,7 +53,7 @@ const AQNumberCard = ({ reading, location, keyValue }) => {
                 className='text-gray-700 text-base font-medium leading-normal whitespace-nowrap overflow-ellipsis'
                 title={location}
               >
-                {location.length > 14 ? location.slice(0, 14) + '...' : location}
+                {location.length > 17 ? location.slice(0, 17) + '...' : location}
               </div>
               <div className='text-slate-400 text-sm font-medium leading-tight'>Daily Avg.</div>
             </div>
