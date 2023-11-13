@@ -66,7 +66,7 @@ const GridsDashboardView = ({ grid, gridDetails, loading }) => {
   const recentEventsData = useEventsMapData();
 
   useEffect(() => {
-    if (isEmpty(recentEventsData.features)) dispatch(loadMapEventsData());
+    dispatch(loadMapEventsData());
   }, []);
 
   useEffect(() => {
@@ -89,17 +89,14 @@ const GridsDashboardView = ({ grid, gridDetails, loading }) => {
       recentEventsData.features &&
         recentEventsData.features.forEach((feature) => {
           const siteId = feature.properties.site_id;
+          const site = gridSitesObj[siteId];
+
           if (gridSitesObj[siteId]) {
-            const pm2_5Value =
-              feature.properties.pm2_5.calibratedValue || feature.properties.pm2_5.value;
-            Object.keys(PM_25_CATEGORY).forEach((key) => {
-              const { min, max } = PM_25_CATEGORY[key];
-              if (pm2_5Value >= min && pm2_5Value <= max) {
-                initialCount[key].push({
-                  site: gridSitesObj[siteId].site_name,
-                  siteId,
-                  pm2_5: pm2_5Value
-                });
+            const pm2_5 = feature.properties.pm2_5.value;
+            Object.keys(PM_25_CATEGORY).map((key) => {
+              const valid = PM_25_CATEGORY[key];
+              if (pm2_5 > valid[0] && pm2_5 <= valid[1]) {
+                initialCount[key].push({ ...site, pm2_5 });
               }
             });
           }
@@ -218,18 +215,7 @@ const GridsDashboardView = ({ grid, gridDetails, loading }) => {
           </Grid>
         </Grid>
 
-        {loading ? (
-          <Box
-            height={'100%'}
-            width={'100%'}
-            color="blue"
-            display={'flex'}
-            justifyContent={'center'}
-            alignItems={'center'}
-          >
-            Loading...
-          </Box>
-        ) : (
+        {
           <Grid container spacing={4}>
             <AveragesChart classes={classes} analyticsSites={gridInfo.sites} isGrids={true} />
 
@@ -268,7 +254,7 @@ const GridsDashboardView = ({ grid, gridDetails, loading }) => {
               />
             </Grid>
           </Grid>
-        )}
+        }
       </Box>
     </ErrorBoundary>
   );
