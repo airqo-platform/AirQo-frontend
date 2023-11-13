@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 import { setUserName, setUserPassword } from '@/lib/store/services/account/LoginSlice';
 import { postUserLoginDetails, getUserDetails } from '@/core/apis/Account';
-import setAuthToken from '@/core/utils/setAuthToken';
+// import setAuthToken from '@/core/utils/setAuthToken';
 import jwt_decode from 'jwt-decode';
 import { setFailure, setSuccess, setUserInfo } from '@/lib/store/services/account/LoginSlice';
 import Link from 'next/link';
@@ -29,7 +29,6 @@ const UserLogin = () => {
       .then((res) => {
         const { token } = res;
         localStorage.setItem('token', token);
-        setAuthToken(token);
         // Decode token to get user data
         const decoded = jwt_decode(token);
 
@@ -54,7 +53,7 @@ const UserLogin = () => {
             dispatch(setUserInfo(response.users[0]));
             dispatch(setSuccess(true));
             setLoading(false);
-            router.push('/analytics');
+            router.push('/Home');
           })
           .catch((error) => {
             dispatch(setSuccess(false));
@@ -132,6 +131,12 @@ const UserLogin = () => {
                   </div>
                 </div>
               </div>
+              <button
+                data-testid='login-btn'
+                className='mt-6 btn bg-blue-900 rounded-none w-full text-sm outline-none border-none hover:bg-blue-950'
+                type='submit'>
+                {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Login'}
+              </button>
             </div>
           </div>
           <div className='mt-10'>

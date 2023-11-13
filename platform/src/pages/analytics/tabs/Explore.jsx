@@ -14,7 +14,7 @@ const Explore = () => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
 
-  const timeOptions = ['Hourly', 'Daily', 'Weekly', 'Monthly'];
+  const timeOptions = ['hourly', 'daily', 'weekly', 'monthly'];
   const chartOptions = [
     { id: 'bar', name: 'Bar chart', icon: <BarChart /> },
     { id: 'line', name: 'Line chart', icon: <LineChart /> },
@@ -28,17 +28,15 @@ const Explore = () => {
             initialStartDate={new Date()}
             initialEndDate={new Date()}
             id='datePicker2'
-            position={{ top: '40px', left: '0px' }}
+            className='left-0'
+            position='down'
             dropdown
           />
           <CustomDropdown
             trigger={<TabButtons btnText={chartData.timeFrame} dropdown />}
             id='days'
-            dropStyle={
-              window.innerWidth <= 768
-                ? { top: '36px', zIndex: 9999, right: '0px' }
-                : { top: '36px', zIndex: 9999, left: '0px' }
-            }>
+            dropStyle={{ top: '36px', zIndex: 9999, left: '0px' }}
+          >
             {timeOptions.map((option) => (
               <span
                 key={option}
@@ -47,7 +45,8 @@ const Explore = () => {
                 }}
                 className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                   chartData.timeFrame === option ? 'bg-gray-100' : ''
-                }`}>
+                }`}
+              >
                 <span className='flex items-center space-x-2'>
                   <span>{option.charAt(0).toUpperCase() + option.slice(1)}</span>
                 </span>
@@ -60,11 +59,8 @@ const Explore = () => {
           <CustomDropdown
             trigger={<TabButtons Icon={BarChart} btnText='Chart' dropdown />}
             id='charts'
-            dropStyle={
-              window.innerWidth <= 768
-                ? { top: '36px', zIndex: 9999, left: '0px' }
-                : { top: '36px', zIndex: 9999, right: '0px' }
-            }>
+            dropStyle={{ top: '36px', zIndex: 9999, right: '0px' }}
+          >
             {chartOptions.map((option) => (
               <span
                 key={option.id}
@@ -73,7 +69,8 @@ const Explore = () => {
                 }}
                 className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                   chartData.chartType === option.id ? 'bg-gray-100' : ''
-                }`}>
+                }`}
+              >
                 <span className='flex items-center space-x-2'>
                   {option.icon}
                   <span>{option.name}</span>
@@ -90,6 +87,8 @@ const Explore = () => {
           menuBtn
           chartType={chartData.chartType}
           chartTitle='Air quality over time'
+          height={450}
+          id='explore-chart-container'
         />
       </div>
     </div>

@@ -17,7 +17,6 @@ import ConfirmDialog from './views/containers/ConfirmDialog';
 // lazy imports
 const Landing = lazy(() => import('./views/layouts/Landing'));
 const Account = lazy(() => import('./views/pages/Account'));
-const AnalyticsDashboard = lazy(() => import('./views/pages/Dashboard'));
 const DeviceView = lazy(() => import('./views/components/DataDisplay/DeviceView'));
 const ManagerMap = lazy(() =>
   import('./views/components/DataDisplay/DeviceManagement/ManagementMap')
@@ -102,12 +101,6 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <Route exact path="/forgot/:tenant?" component={ForgotPassword} />
             <Route exact path="/reset" component={ResetPassword} />
             <Route exact path="/request-access/:tenant?" component={Register} />
-            <PrivateRoute
-              exact
-              path="/dashboard"
-              component={AnalyticsDashboard}
-              layout={MainLayout}
-            />
             <PrivateRoute exact path="/analytics" component={Analytics} layout={MainLayout} />
             <PrivateRoute
               exact
@@ -216,7 +209,8 @@ const AppRoutes = ({ auth, logoutUser }) => {
             right: 0,
             marginRight: '10px',
             marginBottom: '20px'
-          }}>
+          }}
+        >
           <div id="jira-help-desk" />
         </div>
 

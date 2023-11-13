@@ -38,8 +38,7 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
           itemPath
             ? 'hover:bg-light-blue hover:text-blue'
             : 'hover:bg-grey-900 hover:opacity-50 hover:cursor-not-allowed'
-        }`}
-      >
+        }`}>
         {(!isMediumDevice || itemLabel) && (
           <h3 className={`text-sm text-grey leading-[21px] ${isCurrentRoute && 'text-blue-600'}`}>
             {itemLabel}
@@ -50,18 +49,27 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
   );
 };
 
-export const SidebarIconItem = ({ IconComponent, isActive, navPath }) => (
-  <Link href={navPath}>
-    <a
-      className={`relative flex items-center p-4 rounded cursor-pointer ${
-        isActive ? 'bg-light-blue' : ''
-      } hover:bg-gray-200`}
-    >
-      {isActive && <span className='bg-blue-600 w-1 h-1/2 mr-2 absolute rounded-xl -left-2'></span>}
-      <IconComponent />
-    </a>
-  </Link>
-);
+export const SidebarIconItem = ({ IconComponent, navPath }) => {
+  const router = useRouter();
+  // get current route
+  const currentRoute = router.pathname;
+  // check if current route contains navPath
+  const isCurrentRoute = currentRoute.includes(navPath);
+
+  return (
+    <Link href={navPath}>
+      <a
+        className={`relative flex items-center p-4 rounded cursor-pointer ${
+          isCurrentRoute ? 'bg-light-blue' : ''
+        } hover:bg-gray-200`}>
+        {isCurrentRoute && (
+          <span className='bg-blue-600 w-1 h-1/2 mr-2 absolute rounded-xl -left-2'></span>
+        )}
+        <IconComponent fill={isCurrentRoute ? '#145FFF' : '#6F87A1'} />
+      </a>
+    </Link>
+  );
+};
 
 const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, toggleState }) => {
   const router = useRouter();
@@ -75,29 +83,24 @@ const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, t
       className={`cursor-pointer ${toggleState && 'bg-sidebar-blue rounded'}`}
       role='button'
       tabIndex={0}
-      onClick={dropdown && toggleMethod}
-    >
+      onClick={dropdown && toggleMethod}>
       <Link href={navPath || '#'}>
         <div className={`flex items-center justify-between w-full h-12 hover:cursor-pointer mt-2`}>
           <div className={`flex items-center w-full`}>
-            {isCurrentRoute && <div className='w-1 h-5 bg-blue-600 mr-1 rounded-3xl' />}
+            <div
+              className={`w-1 h-5 mr-1 rounded-3xl ${
+                isCurrentRoute ? 'bg-blue-600' : 'bg-transparent'
+              }`}
+            />
             <div
               className={`flex items-center py-3 px-4 w-full ${
                 isCurrentRoute && 'bg-primary-50 rounded'
-              }`}
-            >
+              }`}>
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center mr-4 ${
                   isCurrentRoute && 'text-blue-600'
-                }`}
-              >
-                <Icon
-                  className={`${
-                    isCurrentRoute
-                      ? 'stroke-[1.5px] stroke-blue-600'
-                      : 'stroke-[1.5px] stroke-secondary-neutral-light-400'
-                  }`}
-                />
+                }`}>
+                <Icon fill={isCurrentRoute ? '#145FFF' : '#6F87A1'} />
               </div>
 
               <h3
@@ -105,8 +108,7 @@ const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, t
                   isCurrentRoute
                     ? 'text-blue-600 mr-3'
                     : 'font-normal text-secondary-neutral-light-800'
-                }`}
-              >
+                }`}>
                 {label}
               </h3>
             </div>

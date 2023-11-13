@@ -19,7 +19,8 @@ class AppService {
 
   static final AppService _instance = AppService._internal();
 
-  static Future<void> postSignInActions(BuildContext context) async {
+  static Future<void> postSignInActions(BuildContext context,
+      {bool isGuest = false}) async {
     context.read<ProfileBloc>().add(const FetchProfile());
     context.read<KyaBloc>().add(const FetchKya());
     context.read<KyaBloc>().add(const FetchQuizzes());
@@ -29,6 +30,9 @@ class AppService {
     context.read<SearchHistoryBloc>().add(const SyncSearchHistory());
     Profile profile = context.read<ProfileBloc>().state;
     await CloudAnalytics.logSignInEvents(profile);
+    if (!isGuest) {
+    await AirqoApiClient().syncPlatformAccount();
+    }
   }
 
   static Future<void> postSignOutActions(

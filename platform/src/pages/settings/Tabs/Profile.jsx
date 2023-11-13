@@ -4,7 +4,7 @@ import Button from '@/components/Button';
 import Modal from '@/components/Modal/Modal';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateUserDetails } from '@/core/apis/Account';
+import { updateUserCreationDetails } from '@/core/apis/Account';
 import ClockIcon from '@/icons/Settings/clock.svg';
 import AlertBox from '@/components/AlertBox';
 import countries from 'i18n-iso-countries';
@@ -13,6 +13,7 @@ import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
 import timeZones from 'timezones.json';
 import TextInputField from '@/components/TextInputField';
 import { setUserInfo } from '@/lib/store/services/account/LoginSlice';
+import { completeTask } from '@/lib/store/services/checklists/CheckList';
 countries.registerLocale(enLocale);
 
 const countryObj = countries.getNames('en', { select: 'official' });
@@ -66,6 +67,23 @@ const Profile = () => {
   const [profileUploading, setProfileUploading] = useState(false);
   const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
   const userInfo = useSelector((state) => state.login.userInfo);
+  const cardCheckList = useSelector((state) => state.cardChecklist.cards);
+
+  // checklist profile task
+  const handleProfileCompletion = (id) => {
+    const card = cardCheckList.find((card) => card.id === id);
+    if (card) {
+      switch (card.status) {
+        case 'inProgress':
+          dispatch(completeTask(id));
+          break;
+        default:
+          return;
+      }
+    } else {
+      console.log('Card not found');
+    }
+  };
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('loggedUser'));
@@ -108,10 +126,19 @@ const Profile = () => {
       return;
     }
     try {
-      updateUserDetails(userID, userData)
+      updateUserCreationDetails(userData, userID)
         .then((response) => {
           localStorage.setItem('loggedUser', JSON.stringify({ _id: userID, ...response.user }));
           dispatch(setUserInfo({ _id: userID, ...response.user }));
+          if (
+            userData.firstName &&
+            userData.lastName &&
+            userData.email &&
+            userData.country &&
+            userData.timezone
+          ) {
+            handleProfileCompletion(3);
+          }
           setLoading(false);
           setIsError({
             isError: true,
@@ -236,7 +263,10 @@ const Profile = () => {
         .then(async (responseData) => {
           setUserData({ ...userData, profilePicture: responseData.secure_url });
           const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
-          return await updateUserDetails(userID, { profilePicture: responseData.secure_url })
+          return await updateUserCreationDetails(
+            { profilePicture: responseData.secure_url },
+            userID,
+          )
             .then((responseData) => {
               localStorage.setItem('loggedUser', JSON.stringify({ _id: userID, ...userData }));
               dispatch(setUserInfo({ _id: userID, ...userData }));
@@ -278,7 +308,7 @@ const Profile = () => {
     setUserData({ ...userData, profilePicture: '' });
 
     const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
-    updateUserDetails(userID, { profilePicture: '' })
+    updateUserCreationDetails({ profilePicture: '' }, userID)
       .then((response) => {
         localStorage.setItem(
           'loggedUser',
@@ -334,8 +364,7 @@ const Profile = () => {
                   <div
                     className='w-16 h-16 bg-secondary-neutral-light-25 rounded-full flex justify-center items-center cursor-pointer'
                     onClick={handleAvatarClick}
-                    title='Tap to change profile image'
-                  >
+                    title='Tap to change profile image'>
                     {userData.profilePicture ? (
                       <img
                         src={userData.profilePicture}
@@ -351,8 +380,7 @@ const Profile = () => {
                   <div className='flex items-center'>
                     <Button
                       className='text-sm font-medium text-secondary-neutral-light-500'
-                      onClick={confirmDeleteProfileImage}
-                    >
+                      onClick={confirmDeleteProfileImage}>
                       Delete
                     </Button>
                     <Button
@@ -362,8 +390,7 @@ const Profile = () => {
                           : 'text-blue-600 bg-blue-50 rounded'
                       }`}
                       onClick={handleProfileImageUpdate}
-                      disabled={!updatedProfilePicture}
-                    >
+                      disabled={!updatedProfilePicture}>
                       {updatedProfilePicture && !profileUploading
                         ? 'Save photo'
                         : profileUploading
@@ -422,8 +449,7 @@ const Profile = () => {
                         value={userData.country}
                         onChange={handleChange}
                         className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm w-full rounded p-3 dark:placeholder-white-400 dark:text-white'
-                        required
-                      >
+                        required>
                         <option value='' disabled></option>
                         {countryOptions.map((country) => (
                           <option value={country.value} key={country.value}>
@@ -447,8 +473,7 @@ const Profile = () => {
                       value={userData.timezone}
                       onChange={handleChange}
                       className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full pl-10 pr-3 py-3 dark:placeholder-white-400 dark:text-white'
-                      required
-                    >
+                      required>
                       <option value='' disabled></option>
                       {timeZonesArr.map((timeZone) => (
                         <option value={timeZone.value} key={timeZone.value}>
@@ -477,15 +502,13 @@ const Profile = () => {
                 <Button
                   onClick={handleCancel}
                   className='text-sm font-medium leading-5 text-secondary-neutral-light-600 py-3 px-4 rounded border border-secondary-neutral-light-100 bg-white'
-                  disabled={isLoading}
-                >
+                  disabled={isLoading}>
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSubmit}
                   className='text-sm font-medium leading-5 text-white py-3 px-4 rounded bg-blue-600'
-                  disabled={isLoading}
-                >
+                  disabled={isLoading}>
                   {isLoading ? 'Loading...' : 'Save'}
                 </Button>
               </div>

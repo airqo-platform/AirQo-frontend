@@ -56,13 +56,6 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-function withMyHook(Component) {
-  return function WrappedComponent(props) {
-    const classes = useStyles();
-    return <Component {...props} classes={classes} />;
-  };
-}
-
 // dropdown component styles
 const customStyles = {
   control: (base, state) => ({
@@ -97,18 +90,10 @@ const customStyles = {
 };
 
 const UsersTable = (props) => {
-  //the props
-  //need to get the ones from the state
-  /***
-   * if we are to take the prop value which was provided at UserList:
-   *
-   */
-
   const { className, mappeduserState, roles, ...rest } = props;
   const [userDelState, setUserDelState] = useState({ open: false, user: {} });
 
   const dispatch = useDispatch();
-  const collaborators = mappeduserState.collaborators;
   const editUser = mappeduserState.userToEdit;
   const [updatedUser, setUpdatedUser] = useState({});
   const [showEditPopup, setShowEditPopup] = useState(false);
@@ -160,13 +145,17 @@ const UsersTable = (props) => {
     setLoading(true);
     e.preventDefault();
     if (updatedUser.userName !== '') {
-      const data = { ...updatedUser, id: props.mappeduserState.userToEdit._id };
+      const data = {
+        ...updatedUser,
+        id: props.mappeduserState.userToEdit._id,
+        networks: updatedUser.networks.map((network) => network._id)
+      };
       // update user role
-      if (props.mappeduserState.userToEdit.role) {
-        if (updatedUser.role !== props.mappeduserState.userToEdit.role._id) {
-          assignUserToRoleApi(updatedUser.role, {
-            user: props.mappeduserState.userToEdit._id
-          }).then((res) => {
+      if (updatedUser.role) {
+        assignUserToRoleApi(updatedUser.role, {
+          user: props.mappeduserState.userToEdit._id
+        })
+          .then((res) => {
             dispatch(fetchNetworkUsers(activeNetwork._id));
             setIsLoading(false);
             dispatch(
@@ -177,8 +166,17 @@ const UsersTable = (props) => {
               })
             );
             setLoading(false);
+          })
+          .catch((error) => {
+            dispatch(
+              updateMainAlert({
+                message: error.response.data.errors.message,
+                show: true,
+                severity: 'error'
+              })
+            );
+            setIsLoading(false);
           });
-        }
       }
       hideEditDialog();
       props.mappedEditUser(data);
@@ -302,7 +300,7 @@ const UsersTable = (props) => {
                       Update
                     </Button>
 
-                    <Button style={{ color: 'red' }} onClick={() => showDeleteDialog(user)}>
+                    <Button disabled={true} color="info" onClick={() => showDeleteDialog(user)}>
                       Delete
                     </Button>
                   </div>
@@ -322,7 +320,8 @@ const UsersTable = (props) => {
           <Dialog
             open={showMoreDetailsPopup}
             onClose={hideMoreDetailsDialog}
-            aria-labelledby="form-dialog-title">
+            aria-labelledby="form-dialog-title"
+          >
             <DialogTitle>User request details</DialogTitle>
             <DialogContent>
               <div style={{ minWidth: 500 }}>
@@ -493,7 +492,8 @@ const UsersTable = (props) => {
                   style={{ margin: '0 15px' }}
                   onClick={submitEditUser}
                   color="primary"
-                  variant="contained">
+                  variant="contained"
+                >
                   Submit
                 </Button>
               </div>

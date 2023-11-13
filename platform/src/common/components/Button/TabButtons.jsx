@@ -6,9 +6,14 @@ const TabButtons = ({ Icon, btnText, dropdown, onClick }) => {
     <button
       type='button'
       onClick={onClick}
-      className='border border-grey-750 w-15 h-10 rounded-lg flex items-center justify-between gap-2 p-[10px] cursor-pointer'>
-      {Icon && <Icon />}
-      <span className='text-sm font-medium'>{btnText}</span>
+      className='border border-grey-750 rounded flex items-center justify-between gap-2 px-4 py-3 cursor-pointer'
+    >
+      {Icon ? (
+        <Icon />
+      ) : (
+        <span className='inline-block sm:hidden text-sm font-medium capitalize'>{btnText}</span>
+      )}
+      <span className='hidden sm:inline-block text-sm font-medium capitalize'>{btnText}</span>
       {dropdown && <ChevronDownIcon />}
     </button>
   );
