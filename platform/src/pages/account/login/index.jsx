@@ -131,12 +131,6 @@ const UserLogin = () => {
                   </div>
                 </div>
               </div>
-              <button
-                data-testid='login-btn'
-                className='mt-6 btn bg-blue-900 rounded-none w-full text-sm outline-none border-none hover:bg-blue-950'
-                type='submit'>
-                {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Login'}
-              </button>
             </div>
           </div>
           <div className='mt-10'>
