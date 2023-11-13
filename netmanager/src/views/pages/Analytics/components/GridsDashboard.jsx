@@ -66,7 +66,7 @@ const GridsDashboardView = ({ grid, gridDetails, loading }) => {
   const recentEventsData = useEventsMapData();
 
   useEffect(() => {
-    if (isEmpty(recentEventsData.features)) dispatch(loadMapEventsData());
+    dispatch(loadMapEventsData());
   }, []);
 
   useEffect(() => {
@@ -105,7 +105,6 @@ const GridsDashboardView = ({ grid, gridDetails, loading }) => {
           }
         });
     }
-    // console.log(initialCount);
     setPm2_5SiteCount(initialCount);
   }, [recentEventsData, gridInfo]);
 
