@@ -1,17 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Button,
-  Divider,
-  Grid,
-  IconButton,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
-  Typography,
-  makeStyles
-} from '@material-ui/core';
+import { Box, Button, Typography, makeStyles } from '@material-ui/core';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import AnalyticsAirqloudsDropDown from './components/AirqloudDropdown';
 import ImportExportIcon from '@material-ui/icons/ImportExport';
@@ -27,11 +15,6 @@ import {
 } from 'redux/Analytics/operations';
 import { isEmpty } from 'underscore';
 import CohortsDashboardView from './components/CohortsDashboard';
-import { loadDevicesData } from 'redux/DeviceRegistry/operations';
-import { useDevicesData } from 'redux/DeviceRegistry/selectors';
-import AddCohortToolbar from '../CohortsRegistry/AddCohortForm';
-import AddGridToolbar from '../GridsRegistry/AddGridForm';
-import { withPermission } from '../../containers/PageAccess';
 import MoreDropdown from './components/MoreDropdown';
 import { deleteCohortApi, deleteGridApi, refreshGridApi } from '../../apis/deviceRegistry';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
@@ -40,6 +23,7 @@ import { downloadDataApi } from '../../apis/analytics';
 import { roundToEndOfDay, roundToStartOfDay } from '../../../utils/dateTime';
 import Papa from 'papaparse';
 import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
+import { addActiveNetwork } from 'redux/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -109,17 +93,8 @@ const Analytics = () => {
   const [isCohort, setIsCohort] = useState(false);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const activeNetworkString = localStorage.getItem('activeNetwork');
-  const activeNetwork = activeNetworkString ? JSON.parse(activeNetworkString) : {};
-  const devices = useDevicesData();
-  const [deviceOptions, setDeviceOptions] = useState([]);
-
-  if (typeof activeNetwork !== 'object' || activeNetwork === null) {
-    console.error('Error parsing activeNetwork:', activeNetwork);
-  }
-
   const [downloadingData, setDownloadingData] = useState(false);
-
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
   const combinedGridAndCohortsSummary = useSelector(
     (state) => state.analytics.combinedGridAndCohortsSummary
   );
@@ -130,84 +105,117 @@ const Analytics = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const openMenu = Boolean(anchorEl);
 
+  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
+  const [isGridLoading, setIsGridLoading] = useState(false);
+  const [isCohortLoading, setIsCohortLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState(null);
+  const [gridError, setGridError] = useState(null);
+  const [cohortError, setCohortError] = useState(null);
+
   const handleSwitchAirqloudTypeClick = () => {
     setIsCohort(!isCohort);
   };
 
   useEffect(() => {
-    setLoading(true);
-    if (!isEmpty(activeNetwork)) {
-      dispatch(loadGridsAndCohortsSummary(activeNetwork.net_name));
-      setLoading(false);
+    if (isEmpty(activeNetwork)) {
+      const activeNtkString = localStorage.getItem('activeNetwork');
+      const activeNtk = activeNtkString ? JSON.parse(activeNtkString) : {};
+      dispatch(addActiveNetwork(activeNtk));
     }
   }, []);
 
   useEffect(() => {
-    if (!isEmpty(combinedGridAndCohortsSummary)) {
-      const gridsList = combinedGridAndCohortsSummary.grids;
-      if (!isEmpty(gridsList)) {
-        dispatch(setActiveGrid(gridsList[0]));
-        localStorage.setItem('activeGrid', JSON.stringify(gridsList[0]));
+    const loadSummaryAsync = async () => {
+      if (!activeNetwork) {
+        return;
       }
-    }
+
+      setIsSummaryLoading(true);
+      try {
+        await dispatch(loadGridsAndCohortsSummary(activeNetwork?.net_name))
+          .then(() => {
+            const gridsList = combinedGridAndCohortsSummary.grids;
+            const cohortsList = combinedGridAndCohortsSummary.cohorts;
+            if (!isEmpty(gridsList)) {
+              dispatch(setActiveGrid(gridsList[0]));
+              localStorage.setItem('activeGrid', JSON.stringify(gridsList[0]));
+            }
+            if (!isEmpty(cohortsList)) {
+              dispatch(setActiveCohort(cohortsList[0]));
+              localStorage.setItem('activeCohort', JSON.stringify(cohortsList[0]));
+            }
+          })
+          .catch((error) => {
+            console.error('Error in loadSummaryAsync:', error);
+            setSummaryError(error);
+          });
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsSummaryLoading(false);
+      }
+    };
+
+    loadSummaryAsync();
+  }, [activeNetwork]);
+
+  useEffect(() => {
+    const loadGridsAndCohortsSummaryAsync = async () => {
+      setIsSummaryLoading(true);
+      try {
+        if (combinedGridAndCohortsSummary) {
+          const gridsList = combinedGridAndCohortsSummary.grids;
+          const cohortsList = combinedGridAndCohortsSummary.cohorts;
+          if (!isEmpty(gridsList)) {
+            dispatch(setActiveGrid(gridsList[0]));
+            localStorage.setItem('activeGrid', JSON.stringify(gridsList[0]));
+          }
+          if (!isEmpty(cohortsList)) {
+            dispatch(setActiveCohort(cohortsList[0]));
+            localStorage.setItem('activeCohort', JSON.stringify(cohortsList[0]));
+          }
+        }
+      } catch (error) {
+        console.error('Error in loadGridsAndCohortsSummaryAsync:', error);
+      } finally {
+        setIsSummaryLoading(false);
+      }
+    };
+
+    loadGridsAndCohortsSummaryAsync();
   }, [combinedGridAndCohortsSummary]);
 
   useEffect(() => {
-    setLoading(true);
-    if (!isEmpty(combinedGridAndCohortsSummary)) {
-      const cohortsList = combinedGridAndCohortsSummary.cohorts;
-      if (!isEmpty(cohortsList)) {
-        dispatch(setActiveCohort(cohortsList[0]));
-        localStorage.setItem('activeCohort', JSON.stringify(cohortsList[0]));
+    const loadGridDetailsAsync = async () => {
+      if (activeGrid && activeGrid._id) {
+        setIsGridLoading(true);
+        try {
+          await dispatch(loadGridDetails(activeGrid._id));
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setIsGridLoading(false);
+        }
       }
-    }
-  }, [combinedGridAndCohortsSummary]);
-
-  useEffect(() => {
-    setLoading(true);
-    if (activeGrid && activeGrid._id) {
-      dispatch(loadGridDetails(activeGrid._id));
-    }
-    setTimeout(() => {
-      setLoading(false);
-    }, 10000);
+    };
+    loadGridDetailsAsync();
   }, [activeGrid]);
 
   useEffect(() => {
-    setLoading(true);
-    if (activeCohort && activeCohort._id) {
-      dispatch(loadCohortDetails(activeCohort._id));
-    }
-    setTimeout(() => {
-      setLoading(false);
-    }, 10000);
+    const loadCohortDetailsAsync = async () => {
+      if (activeCohort && activeCohort._id) {
+        setIsCohortLoading(true);
+        try {
+          await dispatch(loadCohortDetails(activeCohort._id));
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setIsCohortLoading(false);
+        }
+      }
+    };
+    loadCohortDetailsAsync();
   }, [activeCohort]);
-
-  useEffect(() => {
-    setLoading(true);
-    if (!isEmpty(activeNetwork)) {
-      dispatch(loadDevicesData(activeNetwork.net_name));
-    }
-    setTimeout(() => {
-      setLoading(false);
-    }, 3000);
-  }, []);
-
-  useEffect(() => {
-    if (!isEmpty(devices)) {
-      const deviceOptions = createDeviceOptions(Object.values(devices));
-      setDeviceOptions(deviceOptions);
-    }
-  }, [devices]);
-
-  const handleClickOpen = () => {
-    setOpen(true);
-    handleCloseMenu();
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
 
   const handleClickMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -218,7 +226,7 @@ const Analytics = () => {
   };
 
   const handleRefreshGrid = async () => {
-    setLoading(true);
+    setIsGridLoading(true);
     await refreshGridApi(activeGrid._id)
       .then((res) => {
         dispatch(loadGridDetails(activeGrid._id));
@@ -230,7 +238,7 @@ const Analytics = () => {
           })
         );
         handleCloseMenu();
-        setLoading(false);
+        setIsGridLoading(false);
       })
       .catch((error) => {
         const errors = error.response && error.response.data && error.response.data.errors;
@@ -242,7 +250,7 @@ const Analytics = () => {
             extra: createAlertBarExtraContentFromObject(errors || {})
           })
         );
-        setLoading(false);
+        setIsGridLoading(false);
       });
   };
 
@@ -453,7 +461,7 @@ const Analytics = () => {
                 }}
                 variant="outlined"
                 onClick={submitExportData}
-                disabled={downloadingData || loading}
+                disabled={downloadingData || isGridLoading || isCohortLoading || isSummaryLoading}
               >
                 Download data
               </Button>
@@ -476,20 +484,24 @@ const Analytics = () => {
         )}
 
         {!isCohort && !isEmpty(activeGrid) && activeGrid.name !== 'Empty' && (
-          <GridsDashboardView grid={activeGrid} gridDetails={activeGridDetails} loading={loading} />
+          <GridsDashboardView
+            grid={activeGrid}
+            gridDetails={activeGridDetails}
+            loading={isGridLoading}
+          />
         )}
 
         {isCohort && !isEmpty(activeCohort) && activeCohort.name !== 'Empty' && (
           <CohortsDashboardView
             cohort={activeCohort}
             cohortDetails={activeCohortDetails}
-            loading={loading}
+            loading={isCohortLoading}
           />
         )}
 
-        {loading ? (
+        {isSummaryLoading || isGridLoading || isCohortLoading ? (
           <Box height="60vh" display="flex" justifyContent={'center'} alignItems="center">
-            <LargeCircularLoader loading={loading} />
+            <LargeCircularLoader loading={isSummaryLoading} />
           </Box>
         ) : combinedGridAndCohortsSummary &&
           combinedGridAndCohortsSummary.grids &&
