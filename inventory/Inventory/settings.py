@@ -75,6 +75,10 @@ CORS_ALLOWED_ORIGINS = [
     "https://platform.airqo.net",
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://staging-platform.airqo.net",
+    "https://platform.airqo.net",
+]
 ROOT_URLCONF = 'Inventory.urls'
 
 TEMPLATES = [
