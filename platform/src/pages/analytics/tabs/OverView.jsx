@@ -4,6 +4,7 @@ import AQNumberCard from '@/components/AQNumberCard';
 import BorderlessContentBox from '@/components/Layout/borderless_content_box';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRecentMeasurementsData } from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
+import { GRIDS } from '@/lib/constants';
 
 const OverView = () => {
   // events hook
@@ -11,12 +12,7 @@ const OverView = () => {
   const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
   const chartDataRange = useSelector((state) => state.chart.chartDataRange);
   const userDefaults = useSelector((state) => state.userDefaults.defaults);
-  const [grids, setGrids] = useState([
-    '64b7baccf2b99f00296acd59',
-    '64b7ac8fd7249f0029feca80',
-    '64d635f18f492b0013406c46',
-    '64c90174448a63001e3a0b45',
-  ]);
+  const [grids, setGrids] = useState(GRIDS);
 
   useEffect(() => {
     if (userDefaults && userDefaults.grids) {
