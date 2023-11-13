@@ -170,7 +170,7 @@ const Analytics = () => {
     }
     setTimeout(() => {
       setLoading(false);
-    }, 3000);
+    }, 10000);
   }, [activeGrid]);
 
   useEffect(() => {
@@ -180,7 +180,7 @@ const Analytics = () => {
     }
     setTimeout(() => {
       setLoading(false);
-    }, 3000);
+    }, 10000);
   }, [activeCohort]);
 
   useEffect(() => {
