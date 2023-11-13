@@ -7,6 +7,7 @@ import GridsTable from './GridsTable';
 import BreadCrumb from './breadcrumb';
 import { withPermission } from '../../containers/PageAccess';
 import { fetchGridsSummary } from 'redux/Analytics/operations';
+import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -49,8 +50,8 @@ const GridsRegistry = () => {
         display={'flex'}
         justifyContent={'center'}
         alignItems={'center'}
-        fontSize={'20px'}>
-        Fetching grids...
+      >
+        <LargeCircularLoader loading={loading} />
       </Box>
     );
   }
@@ -73,7 +74,8 @@ const GridsRegistry = () => {
               textAlign={'center'}
               display={'flex'}
               justifyContent={'center'}
-              alignItems={'center'}>
+              alignItems={'center'}
+            >
               <Typography variant="body2" color="textSecondary">
                 No grids found
               </Typography>

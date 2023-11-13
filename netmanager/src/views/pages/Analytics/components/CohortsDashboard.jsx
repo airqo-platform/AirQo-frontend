@@ -211,18 +211,7 @@ const CohortsDashboardView = ({ cohort, cohortDetails, loading }) => {
           </Grid>
         </Grid>
 
-        {loading ? (
-          <Box
-            height={'100%'}
-            width={'100%'}
-            color="blue"
-            display={'flex'}
-            justifyContent={'center'}
-            alignItems={'center'}
-          >
-            Loading...
-          </Box>
-        ) : cohortInfo && cohortInfo.devices && cohortInfo.devices.length > 0 ? (
+        {cohortInfo && cohortInfo.devices && cohortInfo.devices.length > 0 ? (
           <Grid container spacing={4}>
             <AveragesChart classes={classes} analyticsDevices={cohortInfo.devices} isCohorts />
 

@@ -215,18 +215,7 @@ const GridsDashboardView = ({ grid, gridDetails, loading }) => {
           </Grid>
         </Grid>
 
-        {loading ? (
-          <Box
-            height={'100%'}
-            width={'100%'}
-            color="blue"
-            display={'flex'}
-            justifyContent={'center'}
-            alignItems={'center'}
-          >
-            Loading...
-          </Box>
-        ) : (
+        {
           <Grid container spacing={4}>
             <AveragesChart classes={classes} analyticsSites={gridInfo.sites} isGrids={true} />
 
@@ -265,7 +254,7 @@ const GridsDashboardView = ({ grid, gridDetails, loading }) => {
               />
             </Grid>
           </Grid>
-        )}
+        }
       </Box>
     </ErrorBoundary>
   );
