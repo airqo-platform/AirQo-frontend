@@ -53,6 +53,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
           <button className='mr-3 border border-input-light-outline text-sm text-secondary-neutral-light-800 font-medium py-3 px-4 rounded-lg'>
             Cancel
           </button>
+          {/* TODO: Update user preferences onclick */}
           <button className='bg-primary-600 text-sm text-white font-medium py-3 px-4 rounded-lg'>
             Apply
           </button>
