@@ -319,7 +319,9 @@ const Analytics = () => {
       return {
         sites: !isCohort ? exportData : [],
         devices: isCohort ? exportData : [],
-        startDateTime: roundToStartOfDay(new Date().toISOString()),
+        startDateTime: roundToStartOfDay(
+          new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+        ),
         endDateTime: roundToEndOfDay(new Date().toISOString()),
         frequency: 'hourly',
         pollutants: ['pm2_5', 'pm10'],
