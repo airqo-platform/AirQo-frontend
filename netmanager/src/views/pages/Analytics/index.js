@@ -39,6 +39,7 @@ import { updateMainAlert } from 'redux/MainAlert/operations';
 import { downloadDataApi } from '../../apis/analytics';
 import { roundToEndOfDay, roundToStartOfDay } from '../../../utils/dateTime';
 import Papa from 'papaparse';
+import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -152,6 +153,7 @@ const Analytics = () => {
   }, [combinedGridAndCohortsSummary]);
 
   useEffect(() => {
+    setLoading(true);
     if (!isEmpty(combinedGridAndCohortsSummary)) {
       const cohortsList = combinedGridAndCohortsSummary.cohorts;
       if (!isEmpty(cohortsList)) {
@@ -389,104 +391,90 @@ const Analytics = () => {
     <ErrorBoundary>
       <div className={classes.root}>
         <AnalyticsBreadCrumb isCohort={isCohort} />
-        <Box
-          display={'flex'}
-          flexDirection={{ xs: 'column', sm: 'column', md: 'row', lg: 'row', xl: 'row' }}
-          justifyContent={'space-between'}
-          alignItems={'center'}
-          width={'100%'}
-          position={'relative'}
-        >
+        {combinedGridAndCohortsSummary && (
           <Box
             display={'flex'}
+            flexDirection={{ xs: 'column', sm: 'column', md: 'row', lg: 'row', xl: 'row' }}
             justifyContent={'space-between'}
-            gap={'16px'}
+            alignItems={'center'}
             width={'100%'}
-            maxWidth={'450px'}
-            marginBottom={{ xs: '20px', sm: '20px', md: '0', lg: '0', xl: '0' }}
+            position={'relative'}
           >
-            <AnalyticsAirqloudsDropDown
-              isCohort={isCohort}
-              airqloudsData={
-                combinedGridAndCohortsSummary &&
-                (isCohort
-                  ? combinedGridAndCohortsSummary.cohorts
-                  : combinedGridAndCohortsSummary.grids)
-              }
-            />
-
-            {!isCohort && (
-              <MoreDropdown
-                dropdownItems={[
-                  {
-                    title: 'Refresh Grid',
-                    onClick: handleRefreshGrid,
-                    loading: loading
-                  }
-                ]}
-                anchorEl={anchorEl}
-                openMenu={openMenu}
-                handleClickMenu={handleClickMenu}
-                handleCloseMenu={handleCloseMenu}
+            <Box
+              display={'flex'}
+              justifyContent={'space-between'}
+              gap={'16px'}
+              width={'100%'}
+              maxWidth={'450px'}
+              marginBottom={{ xs: '20px', sm: '20px', md: '0', lg: '0', xl: '0' }}
+            >
+              <AnalyticsAirqloudsDropDown
+                isCohort={isCohort}
+                airqloudsData={
+                  combinedGridAndCohortsSummary &&
+                  (isCohort
+                    ? combinedGridAndCohortsSummary.cohorts
+                    : combinedGridAndCohortsSummary.grids)
+                }
               />
-            )}
-          </Box>
-          <Box
-            width={'auto'}
-            marginTop={{ xs: '25px', sm: '25px', md: '0', lg: '0', xl: '0' }}
-            display={'flex'}
-            gridGap="12px"
-          >
-            <Button
-              margin="dense"
-              color="primary"
-              style={{
-                width: 'auto',
-                textTransform: 'initial',
-                height: '44px',
-                position: 'relative'
-              }}
-              variant="outlined"
-              onClick={submitExportData}
-              disabled={downloadingData || loading}
+
+              {!isCohort && (
+                <MoreDropdown
+                  dropdownItems={[
+                    {
+                      title: 'Refresh Grid',
+                      onClick: handleRefreshGrid,
+                      loading: loading
+                    }
+                  ]}
+                  anchorEl={anchorEl}
+                  openMenu={openMenu}
+                  handleClickMenu={handleClickMenu}
+                  handleCloseMenu={handleCloseMenu}
+                />
+              )}
+            </Box>
+            <Box
+              width={'auto'}
+              marginTop={{ xs: '25px', sm: '25px', md: '0', lg: '0', xl: '0' }}
+              display={'flex'}
+              gridGap="12px"
             >
-              Download data
-            </Button>
-            <Button
-              margin="dense"
-              color="primary"
-              style={{
-                width: 'auto',
-                textTransform: 'initial',
-                height: '44px',
-                position: 'relative'
-              }}
-              variant="contained"
-              onClick={handleSwitchAirqloudTypeClick}
-            >
-              <ImportExportIcon /> Switch to {isCohort ? 'Grid View' : 'Cohort View'}
-            </Button>
+              <Button
+                margin="dense"
+                color="primary"
+                style={{
+                  width: 'auto',
+                  textTransform: 'initial',
+                  height: '44px',
+                  position: 'relative'
+                }}
+                variant="outlined"
+                onClick={submitExportData}
+                disabled={downloadingData || loading}
+              >
+                Download data
+              </Button>
+              <Button
+                margin="dense"
+                color="primary"
+                style={{
+                  width: 'auto',
+                  textTransform: 'initial',
+                  height: '44px',
+                  position: 'relative'
+                }}
+                variant="contained"
+                onClick={handleSwitchAirqloudTypeClick}
+              >
+                <ImportExportIcon /> Switch to {isCohort ? 'Grid View' : 'Cohort View'}
+              </Button>
+            </Box>
           </Box>
-        </Box>
+        )}
 
         {!isCohort && !isEmpty(activeGrid) && activeGrid.name !== 'Empty' && (
           <GridsDashboardView grid={activeGrid} gridDetails={activeGridDetails} loading={loading} />
-        )}
-
-        {!isCohort && activeGrid && activeGrid.name === 'Empty' && (
-          <Box
-            display={'flex'}
-            flexDirection={'column'}
-            justifyContent={'center'}
-            alignItems={'center'}
-            width={'100%'}
-            height={'100%'}
-          >
-            <Box height={'100px'} />
-            <Typography variant={'h4'}>No grids found</Typography>
-            <Box height={'20px'} />
-            <Typography variant={'subtitle1'}>Create a new grids to get started</Typography>
-          </Box>
         )}
 
         {isCohort && !isEmpty(activeCohort) && activeCohort.name !== 'Empty' && (
@@ -497,21 +485,24 @@ const Analytics = () => {
           />
         )}
 
-        {isCohort && activeCohort && activeCohort.name === 'Empty' && (
-          <Box
-            display={'flex'}
-            flexDirection={'column'}
-            justifyContent={'center'}
-            alignItems={'center'}
-            width={'100%'}
-            height={'100%'}
-          >
-            <Box height={'100px'} />
-            <Typography variant={'h4'}>No cohorts found</Typography>
-            <Box height={'20px'} />
-            <Typography variant={'subtitle1'}>Create a new cohorts to get started</Typography>
+        {loading ? (
+          <Box height="60vh" display="flex" justifyContent={'center'} alignItems="center">
+            <LargeCircularLoader loading={loading} />
           </Box>
-        )}
+        ) : combinedGridAndCohortsSummary &&
+          combinedGridAndCohortsSummary.grids &&
+          combinedGridAndCohortsSummary.cohorts ? (
+          combinedGridAndCohortsSummary.grids.length === 0 ||
+          combinedGridAndCohortsSummary.cohorts.length === 0 ? (
+            <Box height="60vh" display="flex" justifyContent={'center'} alignItems="center">
+              <Typography variant="h5" color="textSecondary">
+                {!isCohort && combinedGridAndCohortsSummary.grids.length === 0
+                  ? 'No grids yet'
+                  : 'No cohorts yet'}
+              </Typography>
+            </Box>
+          ) : null
+        ) : null}
       </div>
     </ErrorBoundary>
   );
