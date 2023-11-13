@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: eu.gcr.io/airqo-250220/airqo-stage-inventory
-  tag: stage-dd37b72e-1699388116
+  tag: stage-7bbc06fd-1699865899
   pullPolicy: Always
 imagePullSecrets: []
 nameOverride: ''
