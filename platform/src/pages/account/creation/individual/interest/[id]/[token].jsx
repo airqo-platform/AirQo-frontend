@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AccountPageLayout from '@/components/Account/Layout';
 import RadioComponent from '@/components/Account/RadioComponent';
-import { updateUserCreationDetails } from '@/core/apis/Account';
+import { updateUserCreationDetails, verifyUserEmailApi } from '@/core/apis/Account';
 import { useRouter } from 'next/router';
 import Toast from '@/components/Toast';
 import Spinner from '@/components/Spinner';
@@ -12,6 +12,7 @@ const IndividualAccountInterest = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const { id } = router.query;
+  const { token } = router.query;
 
   const radioButtonText = [
     'Health Professional',
@@ -31,6 +32,16 @@ const IndividualAccountInterest = () => {
     message: '',
   });
   const [loading, setLoading] = useState(false);
+
+  const verifyUserEmail = async (userId, userToken) => {
+    try {
+      await verifyUserEmailApi(userId, userToken);
+    } catch {}
+  };
+
+  useEffect(() => {
+    verifyUserEmail(id, token);
+  }, [router, id, token]);
 
   const handleUpdate = async () => {
     setLoading(true);
