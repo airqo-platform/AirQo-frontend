@@ -17,18 +17,16 @@ import Link from 'next/link';
 import LocationIcon from '@/icons/SideBar/Sites.svg';
 import CloseIcon from '@/icons/Actions/close.svg';
 import {
-  setSelectedLocations,
   getAllGridLocations,
 } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import countries from 'i18n-iso-countries';
 import englishLocale from 'i18n-iso-countries/langs/en.json';
 import {
   setCustomisedLocations,
-  updateUserDefaults,
-  postUserDefaults
+  updateUserPreferences,
+  postUserPreferences,
 } from '@/lib/store/services/account/UserDefaultsSlice';
 
-// TODO: Create user default on organisation creation
 const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -56,8 +54,8 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
       state: false,
       message: '',
     });
-    const userDefaults = {
-      user: id, 
+    const createPreference = {
+      user_id: id,
     };
     try {
       const response = await dispatch(postOrganisationCreationDetails(orgData));
@@ -66,14 +64,13 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
           state: true,
           message: response.payload.response.data.message,
         });
-      }else{
+      } else {
         try {
-          const response = await dispatch(postUserDefaults(userDefaults));
-          console.log(response);
+          const response = await dispatch(postUserPreferences(createPreference));
           if (response.payload.success) {
             handleComponentSwitch();
           } else {
-            setUpdateError({
+            setCreationError({
               state: true,
               message: response.payload.message,
             });
@@ -83,7 +80,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
         }
       }
     } catch (error) {
-      throw err;
+      throw error;
     }
     setLoading(false);
   };
@@ -447,14 +444,12 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
   );
 };
 
-// TODO: Post selected locations to user defaults/sites
 const CreateOrganisationDetailsPageThree = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const gridLocationsState = useSelector((state) => state.grids.gridLocations);
   const gridSitesLocations = gridLocationsState.map((grid) => grid.sites);
   const gridLocationsData = [].concat(...gridSitesLocations);
-  // const grp_id = useSelector((state)=>state.creation.orgUpdate.grp_id)
   const { id } = router.query;
   const [location, setLocation] = useState('');
   const [inputSelect, setInputSelect] = useState(false);
@@ -494,22 +489,22 @@ const CreateOrganisationDetailsPageThree = () => {
     setLoading(true);
     const data = {
       user_id: id,
-      sites: locationArray,
+      sites: {
+        selected_sites: locationArray,
+      },
     };
     dispatch(setCustomisedLocations(data));
     try {
-      const response = await dispatch(updateUserDefaults(data));
-      console.log(response)
-      // const success = useSelector((state) => state.defaults.success);
-      // if (!response.payload.success) {
-      //   setCreationErrors({
-      //     state: true,
-      //     message: response.payload.response.data.message,
-      //   });
-      //   setLoading(false);
-      // } else {
-      //   router.push('/account/creation/get-started');
-      // }
+      const response = await dispatch(updateUserPreferences(data));
+      if (!response.payload.success) {
+        setCreationErrors({
+          state: true,
+          message: response.payload.message,
+        });
+        setLoading(false);
+      } else {
+        router.push('/account/creation/get-started');
+      }
     } catch (error) {
       throw error;
     }
