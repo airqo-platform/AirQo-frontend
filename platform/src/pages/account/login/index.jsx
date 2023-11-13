@@ -9,6 +9,9 @@ import jwt_decode from 'jwt-decode';
 import { setFailure, setSuccess, setUserInfo } from '@/lib/store/services/account/LoginSlice';
 import Link from 'next/link';
 import Spinner from '@/components/Spinner';
+import Toast from '@/components/Toast';
+import VisibilityOffIcon from '@/icons/Account/visibility_off.svg';
+import VisibilityOnIcon from '@/icons/Account/visibility_on.svg';
 
 const UserLogin = () => {
   const [errors, setErrors] = useState(false);
@@ -17,6 +20,7 @@ const UserLogin = () => {
   const router = useRouter();
   const postData = useSelector((state) => state.login);
   const [loading, setLoading] = useState(false);
+  const [passwordType, setPasswordType] = useState('password');
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -72,6 +76,14 @@ const UserLogin = () => {
       });
   };
 
+  const showPassword = () => {
+    if (passwordType === 'password') {
+      setPasswordType('text');
+    } else {
+      setPasswordType('password');
+    }
+  };
+
   return (
     <AccountPageLayout>
       <div className='w-full'>
@@ -79,36 +91,55 @@ const UserLogin = () => {
         <p className='text-xl text-black-700 font-normal mt-3'>
           Get access to air quality analytics across Africa
         </p>
-        <form className='mt-6' onSubmit={handleLogin} data-testid='login-form'>
-          <div className='w-full'>
-            <div className='text-xs'>User Name</div>
-            <div className='mt-2 w-full'>
-              <input
-                data-testid='username'
-                onChange={(e) => dispatch(setUserName(e.target.value))}
-                placeholder='e.g. greta.nagawa@gmail.com'
-                className='input w-full rounded-none bg-form-input focus:outline-form-input focus:outline-none focus:outline-offset-0'
-                required
-              />
-              <div className='text-xs mt-6'>Password</div>
-              <input
-                data-testid='password'
-                onChange={(e) => dispatch(setUserPassword(e.target.value))}
-                type='password'
-                placeholder='******'
-                className='input w-full rounded-none bg-form-input focus:outline-form-input focus:outline-none focus:outline-offset-0'
-                required
-              />
-              <div data-testid='alert-box'>
-                {errors && <div className='text-sm text-red-600 py-2 capitalize'>{error}</div>}
+        {errors && <Toast type={'error'} timeout={8000} message={`${error}`} />}
+        <form onSubmit={handleLogin} data-testid='login-form'>
+          <div className='mt-6'>
+            <div className='w-full'>
+              <div className='text-sm'>Email Address</div>
+              <div className='mt-2 w-full'>
+                <input
+                  type='text'
+                  data-testid='username'
+                  onChange={(e) => dispatch(setUserName(e.target.value))}
+                  placeholder='e.g. greta.nagawa@gmail.com'
+                  className='input w-full h-16 rounded-lg bg-form-input focus:border-input-outline '
+                  required
+                />
               </div>
-              <button
-                data-testid='login-btn'
-                className='mt-6 btn bg-blue-900 rounded-none w-full text-sm outline-none border-none hover:bg-blue-950'
-                type='submit'>
-                {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Login'}
-              </button>
             </div>
+          </div>
+          <div className='mt-6'>
+            <div className='w-full'>
+              <div className='text-sm'>Password</div>
+              <div className='mt-2 flex flex-row justify-between'>
+                <div className='w-11/12'>
+                  <input
+                    data-testid='password'
+                    onChange={(e) => dispatch(setUserPassword(e.target.value))}
+                    type={passwordType}
+                    placeholder='******'
+                    className='input w-full h-16 rounded-lg bg-form-input focus:border-input-outline '
+                    required
+                  />
+                </div>
+                <div className='w-16 h-16 flex items-center p-4 justify-center hover:cursor-pointer'>
+                  <div onClick={showPassword}>
+                    {passwordType === 'password' && <VisibilityOffIcon />}
+                    {passwordType === 'text' && (
+                      <VisibilityOnIcon className='stroke-1 stroke-svg-green' />
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className='mt-10'>
+            <button
+              data-testid='login-btn'
+              className='w-full btn bg-blue-900 rounded-none text-white text-sm outline-none border-none hover:bg-blue-950'
+              type='submit'>
+              {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Login'}
+            </button>
           </div>
         </form>
         <div className='mt-8'>

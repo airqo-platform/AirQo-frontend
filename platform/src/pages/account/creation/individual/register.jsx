@@ -119,7 +119,7 @@ const IndividualAccountRegistration = () => {
                       required
                     />
                     <div className='flex flex-row items-start text-xs text-red-600 py-2'>
-                      <HintIcon className='w-8 h-8 mr-2' />
+                      <HintIcon className='w-8 h-8' />
                       <span>Please provide a valid email address!</span>
                     </div>
                   </>
