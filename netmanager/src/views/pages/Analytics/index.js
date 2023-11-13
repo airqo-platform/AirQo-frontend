@@ -131,59 +131,37 @@ const Analytics = () => {
       }
 
       setIsSummaryLoading(true);
-      try {
-        await dispatch(loadGridsAndCohortsSummary(activeNetwork?.net_name))
-          .then(() => {
-            const gridsList = combinedGridAndCohortsSummary.grids;
-            const cohortsList = combinedGridAndCohortsSummary.cohorts;
-            if (!isEmpty(gridsList)) {
-              dispatch(setActiveGrid(gridsList[0]));
-              localStorage.setItem('activeGrid', JSON.stringify(gridsList[0]));
-            }
-            if (!isEmpty(cohortsList)) {
-              dispatch(setActiveCohort(cohortsList[0]));
-              localStorage.setItem('activeCohort', JSON.stringify(cohortsList[0]));
-            }
-          })
-          .catch((error) => {
-            console.error('Error in loadSummaryAsync:', error);
-            setSummaryError(error);
-          });
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsSummaryLoading(false);
-      }
+      await dispatch(loadGridsAndCohortsSummary(activeNetwork?.net_name));
     };
 
-    loadSummaryAsync();
+    loadSummaryAsync().catch((error) => {
+      console.error('Error in loadSummaryAsync:', error);
+      setSummaryError(error);
+    });
   }, [activeNetwork]);
 
   useEffect(() => {
-    const loadGridsAndCohortsSummaryAsync = async () => {
-      setIsSummaryLoading(true);
-      try {
-        if (combinedGridAndCohortsSummary) {
-          const gridsList = combinedGridAndCohortsSummary.grids;
-          const cohortsList = combinedGridAndCohortsSummary.cohorts;
-          if (!isEmpty(gridsList)) {
-            dispatch(setActiveGrid(gridsList[0]));
-            localStorage.setItem('activeGrid', JSON.stringify(gridsList[0]));
-          }
-          if (!isEmpty(cohortsList)) {
-            dispatch(setActiveCohort(cohortsList[0]));
-            localStorage.setItem('activeCohort', JSON.stringify(cohortsList[0]));
-          }
-        }
-      } catch (error) {
-        console.error('Error in loadGridsAndCohortsSummaryAsync:', error);
-      } finally {
-        setIsSummaryLoading(false);
-      }
-    };
-
-    loadGridsAndCohortsSummaryAsync();
+    const gridsList = combinedGridAndCohortsSummary.grids;
+    const cohortsList = combinedGridAndCohortsSummary.cohorts;
+    if (!isEmpty(gridsList)) {
+      dispatch(setActiveGrid(gridsList[0]));
+      localStorage.setItem('activeGrid', JSON.stringify(gridsList[0]));
+    }
+    if (!isEmpty(cohortsList)) {
+      dispatch(setActiveCohort(cohortsList[0]));
+      localStorage.setItem('activeCohort', JSON.stringify(cohortsList[0]));
+    }
   }, [combinedGridAndCohortsSummary]);
+
+  useEffect(() => {
+    if (activeGrid && activeGrid._id) {
+      setIsSummaryLoading(false);
+    }
+
+    if (activeCohort && activeCohort._id) {
+      setIsSummaryLoading(false);
+    }
+  }, [activeGrid, activeCohort]);
 
   useEffect(() => {
     const loadGridDetailsAsync = async () => {
