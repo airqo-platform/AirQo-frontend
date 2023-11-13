@@ -10,6 +10,11 @@ import MenuBarIcon from '@/icons/menu_bar';
 import CloseIcon from '@/icons/close_icon';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import ExpandIcon from '@/icons/SideBar/expand.svg';
+import { resetAllTasks } from '@/lib/store/services/checklists/CheckList';
+import { updateUserChecklists, resetChecklist } from '@/lib/store/services/checklists/CheckData';
+import Spinner from '@/components/Spinner';
+import SettingsIcon from '@/icons/SideBar/SettingsIcon';
+import UserIcon from '@/icons/Topbar/userIcon';
 
 const TopBar = ({
   topbarTitle,
@@ -26,6 +31,8 @@ const TopBar = ({
   const isCurrentRoute = currentRoute.includes('/Home');
   const userInfo = useSelector((state) => state.login.userInfo);
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const cardCheckList = useSelector((state) => state.cardChecklist.cards);
+  const [isLoading, setIsLoading] = useState(false);
 
   const PlaceholderImage = `https://ui-avatars.com/api/?name=${userInfo.firstName[0]}+${userInfo.lastName[0]}&background=random`;
 
@@ -38,12 +45,32 @@ const TopBar = ({
     setDropdownVisible(!dropdownVisible);
   };
 
-  const handleLogout = (event) => {
+  const handleLogout = async (event) => {
     event.preventDefault();
+
+    setIsLoading(true);
+
+    const action = await dispatch(
+      updateUserChecklists({
+        user_id: userInfo._id,
+        items: cardCheckList,
+      }),
+    );
+
+    // Check the status of the updateUserChecklists request
+    if (updateUserChecklists.rejected.match(action)) {
+      setIsLoading(false);
+      return;
+    }
+
     localStorage.clear();
     dispatch(resetStore());
     dispatch(resetChartStore());
+    dispatch(resetAllTasks());
+    dispatch(resetChecklist());
     router.push('/account/login');
+
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -59,6 +86,11 @@ const TopBar = ({
       window.removeEventListener('click', hideDropdown);
     };
   }, [dropdownVisible]);
+
+  const handleClick = (path) => (event) => {
+    event.preventDefault();
+    router.push(path);
+  };
 
   return (
     <nav
@@ -139,13 +171,36 @@ const TopBar = ({
                       </div>
                     </div>
                   </div>
-
+                  <hr className='dropdown-divider border-b border-gray-200 dark:border-gray-700' />
+                  <ul className='dropdown-list p-2'>
+                    <li
+                      onClick={handleClick('/settings')}
+                      className='flex items-center text-gray-500 hover:text-gray-600 cursor-pointer p-2'>
+                      <span className='mr-3'>
+                        <UserIcon fill='#6F87A1' width={16} height={16} />
+                      </span>
+                      My profile
+                    </li>
+                    <li
+                      onClick={handleClick('/settings')}
+                      className='flex items-center text-gray-500 hover:text-gray-600 cursor-pointer p-2'>
+                      <span className='mr-3'>
+                        <SettingsIcon fill='#6F87A1' width={17} height={17} />
+                      </span>
+                      Settings
+                    </li>
+                  </ul>
                   <hr className='dropdown-divider border-b border-gray-200 dark:border-gray-700' />
                   <ul className='dropdown-list p-2'>
                     <li
                       onClick={handleLogout}
-                      className='logout-option text-gray-500 hover:text-gray-600 cursor-pointer p-2'>
+                      className='text-gray-500 hover:text-gray-600 cursor-pointer p-2'>
                       Log out
+                      {isLoading && (
+                        <span className='float-right'>
+                          <Spinner width={20} height={20} />
+                        </span>
+                      )}
                     </li>
                   </ul>
                 </div>

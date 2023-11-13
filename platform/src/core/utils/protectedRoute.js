@@ -2,6 +2,9 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useSelector, useDispatch } from 'react-redux';
 import { resetStore } from '@/lib/store/services/account/LoginSlice';
+import { updateUserChecklists, resetChecklist } from '@/lib/store/services/checklists/CheckData';
+import { resetAllTasks } from '@/lib/store/services/checklists/CheckList';
+import { resetChartStore } from '@/lib/store/services/charts/ChartSlice';
 
 // Custom hook to handle user inactivity
 const useIdleTimer = (action, idleTime) => {
@@ -24,14 +27,32 @@ const useIdleTimer = (action, idleTime) => {
 };
 
 export default function withAuth(Component) {
-  return () => {
+  return function WithAuthComponent(props) {
     const dispatch = useDispatch();
     const router = useRouter();
+    const userInfo = useSelector((state) => state.login.userInfo);
     const userCredentials = useSelector((state) => state.login);
+    const cardCheckList = useSelector((state) => state.cardChecklist.cards);
 
-    const logout = () => {
+    const logout = async () => {
+      const action = await dispatch(
+        updateUserChecklists({
+          user_id: userInfo._id,
+          items: cardCheckList,
+        }),
+      );
+
+      // Check the status of the updateUserChecklists request
+      if (updateUserChecklists.rejected.match(action)) {
+        setIsLoading(false);
+        return;
+      }
+
       localStorage.clear();
       dispatch(resetStore());
+      dispatch(resetChartStore());
+      dispatch(resetAllTasks());
+      dispatch(resetChecklist());
       router.push('/account/login');
     };
 
@@ -44,6 +65,6 @@ export default function withAuth(Component) {
       }
     }, [userCredentials]);
 
-    return userCredentials.success && <Component />;
+    return userCredentials.success && <Component {...props} />;
   };
 }

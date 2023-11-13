@@ -6,11 +6,15 @@ export const GENERATE_CUSTOMISABLE_CHARTS_URI = `${BASE_ANALYTICS_URL_V2}/analyt
 
 export const DAILY_MEAN_AVERAGES_URI = `${BASE_ANALYTICS_URL_V2}/analytics/dashboard/historical/daily-averages`;
 
+export const DEVICE_MEAN_AVERAGES_URI = `${BASE_ANALYTICS_URL_V2}/analytics/dashboard/historical/daily-averages-devices`;
+
 export const DOWNLOAD_CUSTOMISED_DATA_URI = `${BASE_ANALYTICS_URL_V2}/analytics/data-download`;
 
 export const D3_CHART_DATA_URI = `${BASE_ANALYTICS_URL_V2}/analytics/dashboard/chart/d3/data`;
 
 export const EXCEEDANCES_URI = `${BASE_ANALYTICS_URL_V2}/analytics/dashboard/exceedances`;
+
+export const DEVICE_EXCEEDANCES_URI = `${BASE_ANALYTICS_URL_V2}/analytics/dashboard/exceedances-devices`;
 
 export const GET_SITES = `${BASE_ANALYTICS_URL_V2}/analytics/dashboard/sites`;
 

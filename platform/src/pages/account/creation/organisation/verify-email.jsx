@@ -4,13 +4,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import SideImage from '@/images/Account/OrganisationSideQuote.png';
 import { createUser } from '@/lib/store/services/account/CreationSlice';
 import Toast from '@/components/Toast';
-import { useRouter } from 'next/router';
 
 const VerifyUserEmail = () => {
   const dispatch = useDispatch();
   const userEmail = useSelector((state) => state.creation.userData.email);
   const userData = useSelector((state) => state.creation.userData);
   const errors = useSelector((state) => state.creation.errors);
+  const success = useSelector((state)=>state.creation.success)
   const [verificationErrors, setVerificationErrors] = useState(false);
 
   const handleSubmit = async () => {

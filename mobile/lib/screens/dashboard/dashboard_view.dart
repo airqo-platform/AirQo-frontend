@@ -252,6 +252,9 @@ class _DashboardViewState extends State<DashboardView>
                       builder: (context, state) {
                         CurrentLocation? currentLocation =
                             state.currentLocation;
+                        String topCardName = "";
+                        String topCardLocation = "";
+                        List<AirQualityReading> airQualityReadings = [];
                         switch (state.blocStatus) {
                           case NearbyLocationStatus.searchComplete:
                             break;
@@ -267,48 +270,87 @@ class _DashboardViewState extends State<DashboardView>
                             );
                         }
 
-                        if (currentLocation == null) {
-                          return state.showErrorMessage
-                              ? Padding(
-                                  padding: const EdgeInsets.only(top: 16),
-                                  child: NoLocationAirQualityMessage(
-                                    AppLocalizations.of(context)!
-                                        .unableToGetCurrentLocation,
-                                  ),
-                                )
-                              : Container();
-                        }
-
                         return ValueListenableBuilder<Box<AirQualityReading>>(
                           valueListenable: Hive.box<AirQualityReading>(
                             _hiveService.airQualityReadingsBox,
                           ).listenable(),
                           builder: (context, box, widget) {
-                            List<AirQualityReading> airQualityReadings = box
-                                .values
-                                .where((element) =>
-                                    element.referenceSite ==
-                                    currentLocation.referenceSite)
-                                .toList();
+                            if (currentLocation != null) {
+                              topCardName = currentLocation.name;
+                              topCardLocation = currentLocation.location;
+                              airQualityReadings = box.values
+                                  .where((element) =>
+                                      element.referenceSite ==
+                                      currentLocation.referenceSite)
+                                  .toList();
+                            }
 
                             if (airQualityReadings.isEmpty) {
                               _nearbyLocationExists = false;
 
-                              return state.showErrorMessage
-                                  ? Padding(
-                                      padding: const EdgeInsets.only(top: 16),
-                                      child: NoLocationAirQualityMessage(
-                                        AppLocalizations.of(context)!
-                                            .unableToGetAirQuality,
-                                      ),
-                                    )
-                                  : Container();
+                              List<FavouritePlace> favouritePlaces =
+                                  context.read<FavouritePlaceBloc>().state;
+                              if (favouritePlaces.isNotEmpty) {
+                                airQualityReadings = box.values
+                                    .where((element) =>
+                                        element.referenceSite ==
+                                        favouritePlaces.first.referenceSite)
+                                    .toList();
+                                topCardName = favouritePlaces.first.name;
+                                topCardLocation =
+                                    favouritePlaces.first.location;
+                              }
+
+                              if (airQualityReadings.isEmpty) {
+                                List<LocationHistory> locationHistory =
+                                    context.read<LocationHistoryBloc>().state;
+                                if (locationHistory.isNotEmpty) {
+                                  airQualityReadings = box.values
+                                      .where((element) =>
+                                          element.placeId ==
+                                          locationHistory.first.placeId)
+                                      .toList();
+                                  topCardName = locationHistory.first.name;
+                                  topCardLocation =
+                                      locationHistory.first.location;
+                                }
+                              }
+
+                              if (airQualityReadings.isEmpty) {
+                                List<SearchHistory> searchHistory = context
+                                    .read<SearchHistoryBloc>()
+                                    .state
+                                    .history;
+
+                                if (searchHistory.isNotEmpty) {
+                                  airQualityReadings = box.values
+                                      .where((element) =>
+                                          element.placeId ==
+                                          searchHistory.first.placeId)
+                                      .toList();
+                                  topCardName = searchHistory.first.name;
+                                  topCardLocation =
+                                      searchHistory.first.location;
+                                }
+                              }
+
+                              if (airQualityReadings.isEmpty) {
+                                return state.showErrorMessage
+                                    ? Padding(
+                                        padding: const EdgeInsets.only(top: 16),
+                                        child: NoLocationAirQualityMessage(
+                                          AppLocalizations.of(context)!
+                                              .unableToGetAirQuality,
+                                        ),
+                                      )
+                                    : Container();
+                              }
                             }
 
                             AirQualityReading airQualityReading =
                                 airQualityReadings.first.copyWith(
-                              name: currentLocation.name,
-                              location: currentLocation.location,
+                              name: topCardName,
+                              location: topCardLocation,
                             );
                             context
                                 .read<LocationHistoryBloc>()
@@ -341,7 +383,12 @@ class _DashboardViewState extends State<DashboardView>
                           return const SizedBox();
                         }
                         Quiz displayedQuiz = quizzes.first;
-                        return QuizCard(displayedQuiz);
+                        return AnimatedPadding(
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.easeInExpo,
+                          padding: const EdgeInsets.only(top: 16),
+                          child: QuizCard(displayedQuiz),
+                        );
                       },
                     ),
                     BlocConsumer<DashboardBloc, DashboardState>(
