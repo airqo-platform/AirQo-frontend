@@ -7,6 +7,7 @@ import {
   UPDATE_USER_DETAILS_URL,
   USER_DEFAULTS_URL,
   VERIFY_USER_URL,
+  USER_PREFERENCES_URL,
 } from '../urls/authentication';
 import axios from 'axios';
 import createAxiosInstance from './axiosConfig';
@@ -130,6 +131,28 @@ export const verifyUserEmailApi = async (identifier, token) => {
     const response = await createAxiosInstance().get(`${VERIFY_USER_URL}/${identifier}/${token}`);
     return response.data;
   } catch (error) {
+    throw error;
+  }
+}
+
+// Post User Preferences
+export const postUserPreferencesApi = async (data) => {
+  try {
+    const response = await createAxiosInstance().post(`${USER_PREFERENCES_URL}`, data);
+    return response.data;
+  }
+  catch (error) {
+    throw error;
+  }
+}
+
+// Update User Preferences
+export const updateUserPreferencesApi = async (data) => {
+  try {
+    const response = await createAxiosInstance().put(`${USER_PREFERENCES_URL}/${data.user_id}`, data.sites);
+    return response.data;
+  }
+  catch (error) {
     throw error;
   }
 }
