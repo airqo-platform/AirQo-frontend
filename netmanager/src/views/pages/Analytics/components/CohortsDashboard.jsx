@@ -90,17 +90,15 @@ const CohortsDashboardView = ({ cohort, cohortDetails, loading }) => {
       recentEventsData.features &&
         recentEventsData.features.forEach((feature) => {
           const deviceId = feature.properties.device_id;
+          const device = cohortDevicesObj[deviceId];
+
           if (cohortDevicesObj[deviceId]) {
-            const pm2_5Value =
-              feature.properties.pm2_5.calibratedValue || feature.properties.pm2_5.value;
-            Object.keys(PM_25_CATEGORY).forEach((key) => {
-              const { min, max } = PM_25_CATEGORY[key];
-              if (pm2_5Value >= min && pm2_5Value <= max) {
-                initialCount[key].push({
-                  device: cohortDevicesObj[deviceId].label,
-                  deviceId,
-                  pm2_5: pm2_5Value
-                });
+            const pm2_5 = feature.properties.pm2_5.value;
+
+            Object.keys(PM_25_CATEGORY).map((key) => {
+              const valid = PM_25_CATEGORY[key];
+              if (pm2_5 > valid[0] && pm2_5 <= valid[1]) {
+                initialCount[key].push({ ...device, pm2_5 });
               }
             });
           }

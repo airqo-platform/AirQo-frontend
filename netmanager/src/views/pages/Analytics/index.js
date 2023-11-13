@@ -502,7 +502,13 @@ const Analytics = () => {
               </Typography>
             </Box>
           ) : null
-        ) : null}
+        ) : (
+          <Box height="60vh" display="flex" justifyContent={'center'} alignItems="center">
+            <Typography variant="h5" color="textSecondary">
+              No data found
+            </Typography>
+          </Box>
+        )}
       </div>
     </ErrorBoundary>
   );
