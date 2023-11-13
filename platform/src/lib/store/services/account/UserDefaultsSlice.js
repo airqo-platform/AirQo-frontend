@@ -1,4 +1,4 @@
-import { postUserDefaultsApi, updateUserDefaultsApi } from '@/core/apis/Account';
+import { postUserDefaultsApi, postUserPreferencesApi, updateUserDefaultsApi, updateUserPreferencesApi } from '@/core/apis/Account';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
@@ -12,9 +12,9 @@ const initialState = {
     post_response:[]
 }
 
-export const postUserDefaults = createAsyncThunk('/post/defaults', async (data, { rejectWithValue })=>{
+export const postUserPreferences = createAsyncThunk('/post/preferences', async (data, { rejectWithValue })=>{
     try {
-        const response = await postUserDefaultsApi(data);
+        const response = await postUserPreferencesApi(data);
         return response;
     } catch (error) {
         if (!error.response) {
@@ -24,9 +24,9 @@ export const postUserDefaults = createAsyncThunk('/post/defaults', async (data, 
     }
 })
 
-export const updateUserDefaults = createAsyncThunk('/update/defaults', async (data, { rejectWithValue }) => {
+export const updateUserPreferences = createAsyncThunk('/update/preferences', async (data, { rejectWithValue }) => {
     try {
-        const response = await updateUserDefaultsApi(data);
+        const response = await updateUserPreferencesApi(data);
         return response
     } catch (error) {
         if (!error.response) {
@@ -46,25 +46,25 @@ export const defaultsSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            .addCase(postUserDefaults.fulfilled, (state, action) => {
+            .addCase(postUserPreferences.fulfilled, (state, action) => {
                 state.post_response = action.payload;
                 state.success = action.payload.success;
             })
-            .addCase(postUserDefaults.pending, (state) => {
+            .addCase(postUserPreferences.pending, (state) => {
                 state.success = false;
             })
-            .addCase(postUserDefaults.rejected, (state, action) => {
+            .addCase(postUserPreferences.rejected, (state, action) => {
                 state.errors = action.payload;
                 state.success = false;
             })
-            .addCase(updateUserDefaults.fulfilled, (state, action) => {
+            .addCase(updateUserPreferences.fulfilled, (state, action) => {
                 state.update_response = action.payload;
                 state.success = action.payload.success;
             })
-            .addCase(updateUserDefaults.pending, (state) => {
+            .addCase(updateUserPreferences.pending, (state) => {
                 state.success = false;
             })
-            .addCase(updateUserDefaults.rejected, (state, action) => {
+            .addCase(updateUserPreferences.rejected, (state, action) => {
                 state.errors = action.payload;
                 state.success = false;
             })
