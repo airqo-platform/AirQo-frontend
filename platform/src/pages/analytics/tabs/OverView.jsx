@@ -11,26 +11,40 @@ const OverView = () => {
   const dispatch = useDispatch();
   const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
   const chartDataRange = useSelector((state) => state.chart.chartDataRange);
-  const userDefaults = useSelector((state) => state.userDefaults.defaults);
+  const userLocationsData = useSelector((state) => state.defaults.locationsData);
   const [grids, setGrids] = useState(GRIDS);
+  const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
 
   useEffect(() => {
-    if (userDefaults && userDefaults.grids) {
-      setGrids(userDefaults.grids);
+    setIsLoadingMeasurements(true);
+    if (userLocationsData && userLocationsData?.grid_ids) {
+      setIsLoadingMeasurements(false);
+      return;
     }
-  }, [userDefaults]);
+    if (userLocationsData && userLocationsData?.grid_ids) {
+      setGrids(userLocationsData.grid_ids);
+    }
+    setIsLoadingMeasurements(false);
+  }, [userLocationsData]);
 
   useEffect(() => {
-    if (chartDataRange && chartDataRange.startDate && chartDataRange.endDate && grids) {
-      dispatch(
-        fetchRecentMeasurementsData({
-          grid_id: grids.join(),
-          startTime: chartDataRange.startDate,
-          endTime: chartDataRange.endDate,
-        }),
-      );
+    setIsLoadingMeasurements(true);
+    try {
+      if (chartDataRange && chartDataRange.startDate && chartDataRange.endDate && grids) {
+        dispatch(
+          fetchRecentMeasurementsData({
+            grid_id: grids.join(),
+            startTime: chartDataRange.startDate,
+            endTime: chartDataRange.endDate,
+          }),
+        );
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoadingMeasurements(false);
     }
-  }, [chartDataRange]);
+  }, [chartDataRange, grids]);
 
   return (
     <BorderlessContentBox>
@@ -38,13 +52,17 @@ const OverView = () => {
         className='mb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 grid-flow-col-dense'
         style={{ gridAutoFlow: 'dense' }}
       >
-        {recentLocationMeasurements.slice(0, 4).map((event, index) => (
-          <AQNumberCard
-            keyValue={index}
-            location={event?.siteDetails?.name}
-            reading={event.pm2_5.value}
-          />
-        ))}
+        {!isLoadingMeasurements &&
+          recentLocationMeasurements &&
+          recentLocationMeasurements
+            .slice(0, 4)
+            .map((event, index) => (
+              <AQNumberCard
+                keyValue={index}
+                location={event?.siteDetails?.name}
+                reading={event.pm2_5.value}
+              />
+            ))}
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <ChartContainer chartType='line' chartTitle='Air quality over time' height={300} />
