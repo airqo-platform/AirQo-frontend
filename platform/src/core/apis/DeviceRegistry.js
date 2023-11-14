@@ -13,9 +13,12 @@ export const getAllGridLocationsApi = async () => {
 
 // Get Sites Summary
 export const getSiteSummaryDetails = async () => {
-  return await createAxiosInstance()
-    .get(`${SITES_URL}/summary`)
-    .then((response) => response.data);
+  try {
+    const response = await createAxiosInstance().get(`${SITES_URL}/summary`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const getAnalyticsData = async (body) => {
