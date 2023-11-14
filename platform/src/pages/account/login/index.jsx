@@ -21,6 +21,12 @@ const UserLogin = () => {
   const postData = useSelector((state) => state.login);
   const [loading, setLoading] = useState(false);
   const [passwordType, setPasswordType] = useState('password');
+  const chartData = useSelector((state) => state.chart);
+  const userPreferences = useSelector((state) => state.userDefaults.preferences);
+
+  console.log('userPreferences', userPreferences);
+
+  console.log('chartData', chartData);
 
   const handleLogin = async (e) => {
     e.preventDefault();

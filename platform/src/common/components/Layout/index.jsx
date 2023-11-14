@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import TopBar from '@/components/TopBar';
-import { fetchUserDefaults, clearChartStore } from '@/lib/store/services/charts/userDefaultsSlice';
+import {
+  fetchUserPreferences,
+  clearChartStore,
+} from '@/lib/store/services/charts/userDefaultsSlice';
 import {
   setChartSites,
   setChartDataRange,
@@ -18,18 +21,56 @@ import { updateCards } from '@/lib/store/services/checklists/CheckList';
 const Layout = ({ children, topbarTitle, noBorderBottom }) => {
   // Constants
   const MAX_WIDTH = '(max-width: 1024px)';
-  const SUCCEEDED = 'succeeded';
-  const FAILED = 'failed';
 
   const dispatch = useDispatch();
+  const chartData = useSelector((state) => state.chart);
   const userInfo = useSelector((state) => state.login.userInfo);
-  const userDefaults = useSelector((state) => state.userDefaults.defaults);
-  const status = useSelector((state) => state.userDefaults.status);
-  const error = useSelector((state) => state.userDefaults.error);
+  const userPreferences = useSelector((state) => state.userDefaults.preferences);
   const [toggleDrawer, setToggleDrawer] = useState(false);
   const [collapsed, setCollapsed] = useState(
     () => JSON.parse(localStorage.getItem('collapsed')) || false,
   );
+
+  useEffect(() => {
+    const fetchPreferences = async () => {
+      if (userInfo && !userPreferences) {
+        try {
+          await dispatch(fetchUserPreferences(userInfo._id));
+        } catch (error) {
+          console.error(`Error getting user preferences: ${error}`);
+        }
+      }
+    };
+
+    fetchPreferences();
+  }, [userInfo, userPreferences, dispatch]);
+
+  useEffect(() => {
+    const setChartProperties = async () => {
+      if (userInfo && userPreferences && userPreferences.length > 0) {
+        const { period, site_ids, startDate, endDate, frequency, chartType, pollutant } =
+          userPreferences[0];
+        dispatch(clearChartStore());
+        try {
+          await dispatch(setChartSites(site_ids || chartData.chartSites));
+          await dispatch(
+            setChartDataRange({
+              startDate: startDate || chartData.chartDataRange.startDate,
+              endDate: endDate || chartData.chartDataRange.endDate,
+              label: period.label || chartData.chartDataRange.label,
+            }),
+          );
+          await dispatch(setTimeFrame(frequency || chartData.timeFrame));
+          await dispatch(setChartType(chartType || chartData.chartType));
+          await dispatch(setPollutant(pollutant || chartData.pollutionType));
+        } catch (error) {
+          console.error(`Error setting chart properties: ${error}`);
+        }
+      }
+    };
+
+    setChartProperties();
+  }, [userInfo, dispatch]);
 
   // Fetching user checklists
   useEffect(() => {
@@ -68,57 +109,6 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
       mediaQuery.removeEventListener('change', handleMediaQueryChange);
     };
   }, []);
-
-  // fetching user defaults
-  useEffect(() => {
-    if (userInfo?._id) {
-      dispatch(fetchUserDefaults(userInfo._id));
-    }
-  }, [dispatch, userInfo]);
-
-  // Function to update chart options
-  const updateChart = useCallback(
-    ({ chartType, frequency, startDate, endDate, period, sites, pollutant, _id }) => {
-      dispatch(clearChartStore());
-      if (_id) {
-        dispatch(setDefaultID(_id));
-      }
-      if (chartType) {
-        dispatch(setChartType(chartType));
-      }
-      if (frequency) {
-        dispatch(setTimeFrame(frequency));
-      }
-      if (pollutant) {
-        dispatch(setPollutant(pollutant));
-      }
-      if (startDate && endDate && period && period.label) {
-        dispatch(
-          setChartDataRange({
-            startDate: new Date(startDate),
-            endDate: new Date(endDate),
-            label: period.label,
-          }),
-        );
-      }
-      if (sites) {
-        dispatch(setChartSites(sites));
-      }
-    },
-    [dispatch],
-  );
-
-  // Effect hook for updating chart based on user defaults
-  useEffect(() => {
-    if (status === SUCCEEDED && userDefaults) {
-      updateChart(userDefaults);
-    } else if (status === SUCCEEDED && !userDefaults) {
-      dispatch(resetChartStore());
-    } else if (status === FAILED) {
-      console.error(`Error getting user defaults: ${error}`);
-      dispatch(resetChartStore());
-    }
-  }, [status, error, userDefaults, dispatch]);
 
   return (
     <div className=' w-screen h-screen  overflow-x-hidden' data-testid='layout'>

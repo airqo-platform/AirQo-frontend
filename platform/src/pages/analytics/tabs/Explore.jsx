@@ -10,7 +10,7 @@ import CheckIcon from '@/icons/tickIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import { setChartType, setTimeFrame } from '@/lib/store/services/charts/ChartSlice';
 
-const Explore = () => {
+const Explore = ({ toggleCustomize }) => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
 
@@ -35,8 +35,7 @@ const Explore = () => {
           <CustomDropdown
             trigger={<TabButtons btnText={chartData.timeFrame} dropdown />}
             id='days'
-            dropStyle={{ top: '36px', zIndex: 9999, left: '0px' }}
-          >
+            className='left-0'>
             {timeOptions.map((option) => (
               <span
                 key={option}
@@ -45,8 +44,7 @@ const Explore = () => {
                 }}
                 className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                   chartData.timeFrame === option ? 'bg-gray-100' : ''
-                }`}
-              >
+                }`}>
                 <span className='flex items-center space-x-2'>
                   <span>{option.charAt(0).toUpperCase() + option.slice(1)}</span>
                 </span>
@@ -59,8 +57,7 @@ const Explore = () => {
           <CustomDropdown
             trigger={<TabButtons Icon={BarChart} btnText='Chart' dropdown />}
             id='charts'
-            dropStyle={{ top: '36px', zIndex: 9999, right: '0px' }}
-          >
+            className='right-0'>
             {chartOptions.map((option) => (
               <span
                 key={option.id}
@@ -69,8 +66,7 @@ const Explore = () => {
                 }}
                 className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                   chartData.chartType === option.id ? 'bg-gray-100' : ''
-                }`}
-              >
+                }`}>
                 <span className='flex items-center space-x-2'>
                   {option.icon}
                   <span>{option.name}</span>
@@ -79,7 +75,7 @@ const Explore = () => {
               </span>
             ))}
           </CustomDropdown>
-          <TabButtons Icon={SettingsIcon} btnText='Customize' />
+          <TabButtons Icon={SettingsIcon} btnText='Customize' onClick={toggleCustomize} />
         </div>
       </div>
       <div>

@@ -128,7 +128,7 @@ const AuthenticatedHomePage = () => {
       {
         label: 'Overview',
         children: (
-          <div className='flex space-x-3 mb-2'>
+          <div className='flex space-x-3 mb-3'>
             <CustomCalendar
               initialStartDate={new Date()}
               initialEndDate={new Date()}
@@ -187,7 +187,7 @@ const AuthenticatedHomePage = () => {
                 {renderChildrenRight()[1].children}
               </div>
             )}
-            <Explore />
+            <Explore toggleCustomize={toggleCustomise} />
           </Tab>
         </Tabs>
         {customise && <CustomiseLocationsComponent toggleCustomise={toggleCustomise} />}

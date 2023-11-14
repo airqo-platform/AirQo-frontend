@@ -2,6 +2,7 @@ import Button from '@/components/Button';
 import DownloadIcon from '@/icons/Analytics/download.svg';
 import { roundToEndOfDay, roundToStartOfDay } from '@/core/utils/dateTime';
 import moment from 'moment';
+import CloseIcon from '@/icons/close_icon';
 
 const ExportModalWrapper = ({
   open,
@@ -42,13 +43,26 @@ const ExportModalWrapper = ({
   return (
     <dialog
       id='confirm_export_dialog'
-      className={`${open ? 'visible modal modal-open' : 'hidden'} w-screen h-screen`}
-    >
+      className={`${open ? 'visible modal modal-open' : 'hidden'} w-screen h-screen`}>
       <div className='modal-box p-0 w-[400px] h-auto pt-6 bg-white rounded-lg shadow border border-gray-50 flex-col justify-start items-center gap-6 flex'>
         <div className='self-stretch px-6 flex-col justify-start items-start gap-5 flex'>
           <div className='self-stretch flex-col justify-start items-start gap-2 flex'>
-            <div className='p-5 bg-indigo-50 rounded-full border-indigo-50 justify-start items-start gap-1 flex'>
-              {ModalIcon ? <ModalIcon className='w-6 h-6' /> : <DownloadIcon className='w-6 h-6' />}
+            <div className='flex w-full justify-between items-center'>
+              <div className='p-5 bg-indigo-50 rounded-full border-indigo-50 justify-start items-start gap-1 flex'>
+                {ModalIcon ? (
+                  <ModalIcon className='w-6 h-6' />
+                ) : (
+                  <DownloadIcon className='w-6 h-6' />
+                )}
+              </div>
+              <div
+                onClick={() => {
+                  onClose();
+                  handleCancel();
+                }}
+                className='bottom-5 relative hover:bg-gray-100 rounded-full p-2 cursor-pointer'>
+                <CloseIcon />
+              </div>
             </div>
             <div className='self-stretch text-gray-700 text-lg font-medium leading-relaxed'>
               {title}
@@ -73,8 +87,7 @@ const ExportModalWrapper = ({
           <Button
             variant={loading ? 'disabled' : 'filled'}
             className='text-sm font-medium'
-            onClick={handleDataExport}
-          >
+            onClick={handleDataExport}>
             {loading ? 'Loading...' : primaryButtonText}
           </Button>
         </div>
