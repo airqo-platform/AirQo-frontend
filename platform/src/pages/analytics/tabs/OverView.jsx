@@ -17,7 +17,7 @@ const OverView = () => {
 
   useEffect(() => {
     setIsLoadingMeasurements(true);
-    if (userLocationsData && userLocationsData?.grid_ids) {
+    if (userLocationsData && !userLocationsData?.grid_ids) {
       setIsLoadingMeasurements(false);
       return;
     }
