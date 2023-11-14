@@ -1,6 +1,7 @@
 import createAxiosInstance from './axiosConfig';
 import { SITES_URL, ANALYTICS_URL, GRIDS_URL } from '../urls/deviceRegistry';
 
+// Get grid locations
 export const getAllGridLocationsApi = async () => {
   try {
     const response = await createAxiosInstance().get(`${GRIDS_URL}`);
@@ -10,6 +11,7 @@ export const getAllGridLocationsApi = async () => {
   }
 };
 
+// Get Sites Summary
 export const getSiteSummaryDetails = async () => {
   return await createAxiosInstance()
     .get(`${SITES_URL}/summary`)
