@@ -10,7 +10,7 @@ import Spinner from '@/components/Spinner';
 import CheckIcon from '@/icons/tickIcon';
 import PrintReportModal from '@/components/Modal/PrintReportModal';
 
-const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id }) => {
+const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, downloadStatus }) => {
   const dispatch = useDispatch();
   const chartRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -34,48 +34,62 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id }) =
   }, [downloadComplete]);
 
   const exportChart = useCallback(async (format) => {
-    setLoadingFormat(format);
-    if (!chartRef.current) return;
+    try {
+      setDownloadComplete(null);
+      setLoadingFormat(format);
+      if (!chartRef.current) return;
 
-    const rect = chartRef.current.getBoundingClientRect();
-    const extraSpace = 20;
-    const width = rect.width + extraSpace;
-    const height = rect.height + extraSpace;
+      const rect = chartRef.current.getBoundingClientRect();
+      const extraSpace = 20;
+      const width = rect.width + extraSpace;
+      const height = rect.height + extraSpace;
 
-    const canvas = await html2canvas(chartRef.current, {
-      scale: 3,
-      useCORS: true,
-      backgroundColor: rect.backgroundColor,
-      width: width,
-      height: height,
-    });
+      const canvas = await html2canvas(chartRef.current, {
+        scale: 5,
+        useCORS: true,
+        backgroundColor: rect.backgroundColor,
+        width: width,
+        height: height,
+        scrollX: 0,
+        scrollY: 0,
+      });
 
-    const link = document.createElement('a');
-    link.download = `chart.${format}`;
+      const link = document.createElement('a');
+      link.download = `airquality-data.${format}`;
 
-    switch (format) {
-      case 'png':
-      case 'jpg':
-        canvas.toBlob((blob) => {
-          link.href = URL.createObjectURL(blob);
-          link.click();
+      switch (format) {
+        case 'png':
+        case 'jpg':
+          canvas.toBlob(
+            (blob) => {
+              link.href = URL.createObjectURL(blob);
+              link.click();
+              setLoadingFormat(null);
+              setDownloadComplete(format);
+            },
+            `image/${format}`,
+            1,
+          );
+          break;
+        case 'pdf':
+          const pdf = new jsPDF({
+            orientation: 'landscape',
+            unit: 'px',
+            format: [width, height],
+          });
+          pdf.addImage(canvas.toDataURL('image/png', 1), 'PNG', 0, 0, width, height);
+          pdf.save('airquality-data.pdf');
           setLoadingFormat(null);
           setDownloadComplete(format);
-        }, `image/${format}`);
-        break;
-      case 'pdf':
-        const pdf = new jsPDF({
-          orientation: 'landscape',
-          unit: 'px',
-          format: [width, height],
-        });
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, width, height);
-        pdf.save('chart.pdf');
-        setLoadingFormat(null);
-        setDownloadComplete(format);
-        break;
-      default:
-        throw new Error('Unsupported format');
+          break;
+        default:
+          throw new Error('Unsupported format');
+      }
+
+      downloadStatus('Download complete');
+    } catch (error) {
+      console.error(error);
+      downloadStatus('Download failed');
     }
   }, []);
 
@@ -189,6 +203,7 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id }) =
         open={openShare}
         onClose={() => setOpenShare(false)}
         format={shareFormat}
+        shareStatus={downloadStatus}
       />
     </div>
   );

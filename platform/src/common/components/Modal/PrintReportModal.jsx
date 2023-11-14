@@ -16,6 +16,7 @@ const PrintReportModal = ({
   format,
   btnText,
   ModalType,
+  shareStatus,
 }) => {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({
@@ -130,6 +131,7 @@ const PrintReportModal = ({
       show: true,
     });
     // handleCancel();
+    shareStatus('Report shared');
   };
 
   return (

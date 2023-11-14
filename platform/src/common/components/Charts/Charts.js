@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   LineChart,
   Line,
@@ -241,10 +241,10 @@ const renderCustomizedLegend = (props) => {
     <div className='p-2 md:p-0 flex flex-wrap flex-col md:flex-row md:justify-end mt-2 space-y-2 md:space-y-0 md:space-x-4'>
       {sortedPayload.map((entry, index) => (
         <CustomLegendTooltip key={`item-${index}`} tooltipText={entry.value} direction='top'>
-          <div style={{ color: entry.color }} className='flex space-x-2 items-center text-sm'>
-            <div
+          <div style={{ color: '#485972' }} className='flex w-full items-center text-sm'>
+            <span
               className='w-[10px] h-[10px] rounded-xl mr-1 ml-1'
-              style={{ backgroundColor: entry.color }}></div>
+              style={{ backgroundColor: entry.color }}></span>
             {truncate(entry.value)}
           </div>
         </CustomLegendTooltip>
@@ -258,12 +258,13 @@ const useAnalytics = () => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
   const refreshChart = useSelector((state) => state.chart.refreshChart);
+  const preferencesLoading = useSelector((state) => state.userDefaults.status === 'loading');
   const userPreferences = useSelector((state) => state.userDefaults.preferences);
   const isLoading = useSelector((state) => state.analytics.status === 'loading');
   const analyticsData = useSelector((state) => state.analytics.data);
 
   useEffect(() => {
-    if (!chartData || isLoading) return;
+    if (preferencesLoading) return;
 
     const body = {
       sites: chartData.chartSites,

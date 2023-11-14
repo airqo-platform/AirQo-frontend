@@ -103,7 +103,7 @@ const AuthenticatedHomePage = () => {
       const height = rect.height + extraSpace;
 
       html2canvas(chartContainer, {
-        scale: 3,
+        scale: 5,
         useCORS: true,
         backgroundColor: rect.backgroundColor,
         width: width,

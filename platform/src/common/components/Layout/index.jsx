@@ -31,8 +31,7 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
     () => JSON.parse(localStorage.getItem('collapsed')) || false,
   );
 
-  console.log('userInfo', userPreferences);
-
+  // Fetching user preferences
   useEffect(() => {
     const fetchPreferences = async () => {
       if (userInfo) {

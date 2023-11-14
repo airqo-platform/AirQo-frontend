@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { getUserDefaults, updateUserDefaults, getUserPreferencesApi } from '@/core/apis/Account';
 
-// Define action types to avoid typo errors
 const actionTypes = {
   FETCH_USER_DEFAULTS: 'userDefaults/fetch',
   UPDATE_DEFAULTS: 'userDefaults/update',

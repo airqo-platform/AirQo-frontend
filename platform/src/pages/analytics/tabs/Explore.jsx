@@ -9,10 +9,12 @@ import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
 import CheckIcon from '@/icons/tickIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import { setChartType, setTimeFrame } from '@/lib/store/services/charts/ChartSlice';
+import CircleTickIcon from '@/icons/circleTick';
 
 const Explore = ({ toggleCustomize }) => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
+  const [downloadStatus, setDownloadStatus] = useState(null);
 
   const timeOptions = ['hourly', 'daily', 'weekly', 'monthly'];
   const chartOptions = [
@@ -85,8 +87,22 @@ const Explore = ({ toggleCustomize }) => {
           chartTitle='Air quality over time'
           height={450}
           id='explore-chart-container'
+          downloadStatus={(status) => {
+            setDownloadStatus(status);
+            setTimeout(() => {
+              setDownloadStatus(null);
+            }, 3000);
+          }}
         />
       </div>
+      {downloadStatus && (
+        <div className='w-full flex justify-center items-center'>
+          <span className='bg-blue-600 flex items-center justify-center gap-3 rounded-xl text-white w-auto h-auto text-sm p-[22px]'>
+            <CircleTickIcon fill='#fff' />
+            {downloadStatus}
+          </span>
+        </div>
+      )}
     </div>
   );
 };
