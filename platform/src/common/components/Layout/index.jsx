@@ -11,8 +11,8 @@ import {
   setTimeFrame,
   setChartType,
   setPollutant,
-  setDefaultID,
   resetChartStore,
+  clearAll,
 } from '@/lib/store/services/charts/ChartSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserChecklists } from '@/lib/store/services/checklists/CheckData';
@@ -31,9 +31,11 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
     () => JSON.parse(localStorage.getItem('collapsed')) || false,
   );
 
+  console.log('userInfo', userPreferences);
+
   useEffect(() => {
     const fetchPreferences = async () => {
-      if (userInfo && !userPreferences) {
+      if (userInfo) {
         try {
           await dispatch(fetchUserPreferences(userInfo._id));
         } catch (error) {
@@ -43,14 +45,14 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
     };
 
     fetchPreferences();
-  }, [userInfo, userPreferences, dispatch]);
+  }, [userInfo, dispatch]);
 
   useEffect(() => {
     const setChartProperties = async () => {
       if (userInfo && userPreferences && userPreferences.length > 0) {
         const { period, site_ids, startDate, endDate, frequency, chartType, pollutant } =
           userPreferences[0];
-        dispatch(clearChartStore());
+        dispatch(clearAll());
         try {
           await dispatch(setChartSites(site_ids || chartData.chartSites));
           await dispatch(
@@ -64,8 +66,11 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
           await dispatch(setChartType(chartType || chartData.chartType));
           await dispatch(setPollutant(pollutant || chartData.pollutionType));
         } catch (error) {
+          dispatch(resetChartStore());
           console.error(`Error setting chart properties: ${error}`);
         }
+      } else {
+        dispatch(resetChartStore());
       }
     };
 

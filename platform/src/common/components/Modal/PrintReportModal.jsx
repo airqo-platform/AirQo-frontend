@@ -129,7 +129,7 @@ const PrintReportModal = ({
       message: 'Air quality data shared successful',
       show: true,
     });
-    handleCancel();
+    // handleCancel();
   };
 
   return (

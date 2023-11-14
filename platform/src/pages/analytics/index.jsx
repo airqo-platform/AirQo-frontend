@@ -134,7 +134,7 @@ const AuthenticatedHomePage = () => {
               initialEndDate={new Date()}
               id='datePicker1'
               position='down'
-              className='left-[60px] md:right-0 lg:right-0'
+              className='right-0 md:right-0 lg:right-0'
               dropdown
             />
             <TabButtons Icon={SettingsIcon} btnText='Customize' onClick={() => toggleCustomise()} />

@@ -86,6 +86,7 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id }) =
 
   const refreshChart = () => {
     dispatch(setRefreshChart(true));
+    document.getElementById('options-btn').click();
   };
 
   const shareReport = () => {

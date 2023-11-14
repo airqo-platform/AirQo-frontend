@@ -18,7 +18,6 @@ import Moderate from '@/icons/Charts/Moderate';
 import Unhealthy from '@/icons/Charts/Unhealthy';
 import UnhealthySG from '@/icons/Charts/UnhealthySG';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
-import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
 import { useSelector, useDispatch } from 'react-redux';
 import Spinner from '@/components/Spinner';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
@@ -259,9 +258,9 @@ const useAnalytics = () => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
   const refreshChart = useSelector((state) => state.chart.refreshChart);
+  const userPreferences = useSelector((state) => state.userDefaults.preferences);
   const isLoading = useSelector((state) => state.analytics.status === 'loading');
   const analyticsData = useSelector((state) => state.analytics.data);
-  console.log('chartData2', chartData);
 
   useEffect(() => {
     if (!chartData || isLoading) return;
@@ -284,7 +283,7 @@ const useAnalytics = () => {
       dispatch(fetchAnalyticsData(body));
       dispatch(setRefreshChart(false));
     }
-  }, [chartData, refreshChart]);
+  }, [chartData, refreshChart, userPreferences]);
 
   return { analyticsData, isLoading };
 };
@@ -373,11 +372,12 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
               }
             }}>
             <Label
-              value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
+              value={chartData.pollutionType === 'pm2_5' ? 'PM2.5 (µg/m³)' : 'PM10 (µg/m³)'}
               position='insideTopRight'
               offset={0}
               fontSize={12}
               dy={-35}
+              dx={60}
             />
           </YAxis>
           <Legend
@@ -425,11 +425,12 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
               }
             }}>
             <Label
-              value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
+              value={chartData.pollutionType === 'pm2_5' ? 'PM2.5 (µg/m³)' : 'PM10 (µg/m³)'}
               position='insideTopRight'
               offset={0}
               fontSize={12}
               dy={-35}
+              dx={60}
             />
           </YAxis>
           <Legend

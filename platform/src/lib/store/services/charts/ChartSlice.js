@@ -71,6 +71,17 @@ export const chartSlice = createSlice({
     setRefreshChart: (state, action) => {
       state.refreshChart = action.payload;
     },
+    clearAll: (state) => {
+      state.chartType = '';
+      state.timeFrame = '';
+      state.pollutionType = '';
+      state.organizationName = '';
+      state.chartDataRange = {};
+      state.chartSites = [];
+      state.userDefaultID = null;
+      state.chartAnalyticsData = [];
+      state.refreshChart = false;
+    },
     resetChartStore: (state) => {
       state.chartType = defaultChartType;
       state.timeFrame = defaultTimeFrame;
@@ -97,6 +108,7 @@ export const {
   setDefaultID,
   setChartData,
   setRefreshChart,
+  clearAll,
 } = chartSlice.actions;
 
 export default chartSlice.reducer;
