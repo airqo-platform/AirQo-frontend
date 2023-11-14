@@ -149,18 +149,6 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <PrivateRoute exact path="/sim" component={SimRegistry} layout={MainLayout} />
             <PrivateRoute exact path="/heatMap" component={HeatMapOverlay} layout={MainLayout} />
 
-            <PrivateRoute
-              exact
-              path="/airqlouds"
-              component={AirQloudRegistry}
-              layout={MainLayout}
-            />
-            <PrivateRoute
-              exact
-              path="/airqlouds/:id"
-              component={AirQloudView}
-              layout={MainLayout}
-            />
             <PrivateRoute exact path="/overview" component={Overview} layout={MainLayout} />
             <PrivateRoute
               exact

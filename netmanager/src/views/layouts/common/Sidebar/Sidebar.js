@@ -160,12 +160,6 @@ const allMainPages = [
     isNew: true
   },
   {
-    title: 'AirQloud Registry',
-    href: '/airqlouds',
-    icon: <AirQloudIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
-  },
-  {
     title: 'Heat Map',
     href: '/heatMap',
     icon: <BubbleChartIcon />,
@@ -332,7 +326,6 @@ const Sidebar = (props) => {
           'Host Registry',
           'SIM Registry',
           'Site Registry',
-          'AirQloud Registry',
           'Cohorts Registry',
           'Grids Registry'
         ]);
@@ -355,7 +348,6 @@ const Sidebar = (props) => {
         'Host Registry',
         'SIM Registry',
         'Site Registry',
-        'AirQloud Registry',
         'Cohorts Registry',
         'Grids Registry'
       ]);

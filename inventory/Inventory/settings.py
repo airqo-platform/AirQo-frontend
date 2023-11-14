@@ -43,6 +43,7 @@ ALLOWED_HOSTS = ['staging-platform.airqo.net','platform.airqo.net']
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',  # CORS HEADERS
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -58,6 +59,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # CORS HEADERS
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -68,6 +70,15 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CORS_ALLOWED_ORIGINS = [
+    "https://staging-platform.airqo.net",
+    "https://platform.airqo.net",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://staging-platform.airqo.net",
+    "https://platform.airqo.net",
+]
 ROOT_URLCONF = 'Inventory.urls'
 
 TEMPLATES = [

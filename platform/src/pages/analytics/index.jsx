@@ -8,6 +8,7 @@ import Explore from './tabs/Explore';
 import CustomCalendar from '@/components/Calendar/CustomCalendar';
 import Button from '@/components/Button';
 import SettingsIcon from '@/icons/settings.svg';
+import CustomiseLocationsComponent from '@/components/Customise';
 import DownloadIcon from '@/icons/Common/download.svg';
 import { useWindowSize } from '@/lib/windowSize';
 import { useDispatch, useSelector } from 'react-redux';
@@ -17,6 +18,7 @@ import AlertBox from '@/components/AlertBox';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import PrintReportModal from '@/components/Modal/PrintReportModal';
+import TabButtons from '@/components/Button/TabButtons';
 
 const AuthenticatedHomePage = () => {
   const dispatch = useDispatch();
@@ -31,6 +33,11 @@ const AuthenticatedHomePage = () => {
     message: '',
     show: false,
   });
+  const [customise, setCustomise] = useState(false);
+
+  const toggleCustomise = () => {
+    customise ? setCustomise(false) : setCustomise(true);
+  };
 
   useEffect(() => {
     const userId = JSON.parse(localStorage.getItem('loggedUser'))._id;
@@ -130,9 +137,7 @@ const AuthenticatedHomePage = () => {
               className='left-[60px] md:right-0 lg:right-0'
               dropdown
             />
-            <Button variant='outlined' className='text-sm font-medium' Icon={SettingsIcon}>
-              Customize
-            </Button>
+            <TabButtons Icon={SettingsIcon} btnText='Customize' onClick={() => toggleCustomise()} />
           </div>
         ),
       },
@@ -143,16 +148,14 @@ const AuthenticatedHomePage = () => {
             <Button
               className='text-sm font-medium capitalize'
               variant='outlined'
-              onClick={openPrintModalFunc}
-            >
+              onClick={openPrintModalFunc}>
               Print
             </Button>
             <Button
               className='text-sm font-medium capitalize'
               variant='filled'
               Icon={DownloadIcon}
-              onClick={exportFile}
-            >
+              onClick={exportFile}>
               Export
             </Button>
           </div>
@@ -187,6 +190,7 @@ const AuthenticatedHomePage = () => {
             <Explore />
           </Tab>
         </Tabs>
+        {customise && <CustomiseLocationsComponent toggleCustomise={toggleCustomise} />}
       </div>
       {openConfirmModal && (
         <ExportDataModal
