@@ -184,3 +184,9 @@ export const getGroupDetailsApi = async (groupID) => {
     .get(`${GROUPS_URL}/${groupID}`)
     .then((response) => response.data);
 };
+
+export const updateGroupDetailsApi = async (groupID, data) => {
+  return await createAxiosInstance()
+    .put(`${GROUPS_URL}/${groupID}`, data)
+    .then((response) => response.data);
+};

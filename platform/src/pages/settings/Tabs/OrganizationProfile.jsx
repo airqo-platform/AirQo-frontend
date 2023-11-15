@@ -4,19 +4,16 @@ import Button from '@/components/Button';
 import Modal from '@/components/Modal/Modal';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateUserCreationDetails } from '@/core/apis/Account';
 import GlobeIcon from '@/icons/Settings/globe.svg';
 import ClockIcon from '@/icons/Settings/clock.svg';
 import AlertBox from '@/components/AlertBox';
-import CopyIcon from '@/icons/Common/copy.svg';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
 import timeZones from 'timezones.json';
 import TextInputField from '@/components/TextInputField';
-import { setUserInfo } from '@/lib/store/services/account/LoginSlice';
-import { completeTask } from '@/lib/store/services/checklists/CheckList';
-import { fetchGroupInfo } from '../../../lib/store/services/groups/GroupInfoSlice';
+import { fetchGroupInfo } from '@/lib/store/services/groups/GroupInfoSlice';
+import { updateGroupDetailsApi } from '@/core/apis/Account';
 countries.registerLocale(enLocale);
 
 const countryObj = countries.getNames('en', { select: 'official' });
@@ -82,25 +79,7 @@ const OrganizationProfile = () => {
   const [isLoading, setLoading] = useState(false);
   const [profileUploading, setProfileUploading] = useState(false);
   const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
-  const userInfo = useSelector((state) => state.login.userInfo);
-  const cardCheckList = useSelector((state) => state.cardChecklist.cards);
   const orgInfo = useSelector((state) => state.groupInfo.groupInfo);
-
-  // checklist profile task
-  const handleProfileCompletion = (id) => {
-    const card = cardCheckList.find((card) => card.id === id);
-    if (card) {
-      switch (card.status) {
-        case 'inProgress':
-          dispatch(completeTask(id));
-          break;
-        default:
-          return;
-      }
-    } else {
-      console.log('Card not found');
-    }
-  };
 
   useEffect(() => {
     setLoading(true);
@@ -138,34 +117,31 @@ const OrganizationProfile = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
-    const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
-    if (!userID) {
+    const storedActiveGroup = localStorage.getItem('activeGroup');
+    const storedActiveGroupID = storedActiveGroup && JSON.parse(storedActiveGroup)._id;
+    if (!storedActiveGroupID) {
       setLoading(false);
       return;
     }
     try {
-      updateUserCreationDetails(orgData, userID)
+      updateGroupDetailsApi(storedActiveGroupID, orgData)
         .then((response) => {
-          localStorage.setItem('loggedUser', JSON.stringify({ _id: userID, ...response.user }));
-          dispatch(setUserInfo({ _id: userID, ...response.user }));
-          if (
-            orgData.firstName &&
-            orgData.lastName &&
-            orgData.email &&
-            orgData.country &&
-            orgData.timezone
-          ) {
-            handleProfileCompletion(3);
+          try {
+            dispatch(fetchGroupInfo(storedActiveGroupID));
+
+            setIsError({
+              isError: true,
+              message: 'Organization details successfully updated',
+              type: 'success',
+            });
+          } catch (error) {
+            console.error(`Error fetching organization info: ${error}`);
+          } finally {
+            setLoading(false);
           }
-          setLoading(false);
-          setIsError({
-            isError: true,
-            message: 'User details successfully updated',
-            type: 'success',
-          });
         })
         .catch((error) => {
-          console.error(`Error updating user details: ${error}`);
+          console.error(`Error updating organization details: ${error}`);
           setIsError({
             isError: true,
             message: error.message,
@@ -185,17 +161,14 @@ const OrganizationProfile = () => {
   };
 
   const handleCancel = () => {
-    const user = JSON.parse(localStorage.getItem('loggedUser'));
     setOrgData({
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
-      email: user.email || '',
-      phone: user.phone || '',
-      jobTitle: user.jobTitle || '',
-      country: user.country || '',
-      timezone: user.timezone || '',
-      description: user.description || '',
-      grp_image: user.grp_image || '',
+      grp_title: orgInfo.grp_title,
+      grp_website: orgInfo.grp_website,
+      grp_industry: orgInfo.grp_industry,
+      grp_description: orgInfo.grp_description,
+      grp_country: orgInfo.grp_country,
+      grp_timezone: orgInfo.grp_timezone,
+      grp_image: orgInfo.grp_image,
     });
   };
 
@@ -274,25 +247,33 @@ const OrganizationProfile = () => {
       const formData = new FormData();
       formData.append('file', updatedProfilePicture);
       formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_PRESET);
-      formData.append('folder', 'profiles');
+      formData.append('folder', 'organization_profiles');
 
       setProfileUploading(true);
       await cloudinaryImageUpload(formData)
         .then(async (responseData) => {
           setOrgData({ ...orgData, grp_image: responseData.secure_url });
-          const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
-          return await updateUserCreationDetails({ grp_image: responseData.secure_url }, userID)
+          const storedActiveGroup = localStorage.getItem('activeGroup');
+          const storedActiveGroupID = storedActiveGroup && JSON.parse(storedActiveGroup)._id;
+
+          return await updateGroupDetailsApi(storedActiveGroupID, {
+            grp_image: responseData.secure_url,
+          })
             .then((responseData) => {
-              localStorage.setItem('loggedUser', JSON.stringify({ _id: userID, ...orgData }));
-              dispatch(setUserInfo({ _id: userID, ...orgData }));
-              // updated user alert
-              setIsError({
-                isError: true,
-                message: 'Profile image successfully added',
-                type: 'success',
-              });
-              setUpdatedProfilePicture('');
-              setProfileUploading(false);
+              try {
+                dispatch(fetchGroupInfo(storedActiveGroupID));
+                // updated user alert
+                setIsError({
+                  isError: true,
+                  message: 'Organization image successfully added',
+                  type: 'success',
+                });
+                setUpdatedProfilePicture('');
+              } catch (error) {
+                console.log(error);
+              } finally {
+                setProfileUploading(false);
+              }
             })
             .catch((err) => {
               // updated user failure alert
@@ -322,23 +303,25 @@ const OrganizationProfile = () => {
     setUpdatedProfilePicture('');
     setOrgData({ ...orgData, grp_image: '' });
 
-    const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
-    updateUserCreationDetails({ grp_image: '' }, userID)
+    const storedActiveGroup = localStorage.getItem('activeGroup');
+    const storedActiveGroupID = storedActiveGroup && JSON.parse(storedActiveGroup)._id;
+
+    updateGroupDetailsApi(storedActiveGroupID, { grp_image: '' })
       .then((response) => {
-        localStorage.setItem(
-          'loggedUser',
-          JSON.stringify({ ...orgData, grp_image: '', _id: userID }),
-        );
-        dispatch(setUserInfo({ ...orgData, grp_image: '', _id: userID }));
-        setShowDeleteProfileModal(false);
-        setIsError({
-          isError: true,
-          message: 'Profile image successfully deleted',
-          type: 'success',
-        });
+        try {
+          dispatch(fetchGroupInfo(storedActiveGroupID));
+          setShowDeleteProfileModal(false);
+          setIsError({
+            isError: true,
+            message: 'Profile image successfully deleted',
+            type: 'success',
+          });
+        } catch (error) {
+          console.log(error);
+        }
       })
       .catch((error) => {
-        console.error(`Error updating user details: ${error}`);
+        console.error(`Error updating organization details: ${error}`);
         setIsError({
           isError: true,
           message: error.message,
@@ -489,14 +472,14 @@ const OrganizationProfile = () => {
                         <select
                           type='text'
                           id='grp_country'
-                          value={orgData.grp_country}
+                          value={orgData.grp_country || ''}
                           onChange={handleChange}
                           className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm w-full rounded p-3 dark:placeholder-white-400 dark:text-white'
                           required
                         >
                           <option value='' disabled></option>
                           {countryOptions.map((country) => (
-                            <option value={country.value} key={country.value}>
+                            <option value={country.label} key={country.value}>
                               {country.label}
                             </option>
                           ))}
@@ -514,7 +497,7 @@ const OrganizationProfile = () => {
                       <select
                         type='text'
                         id='grp_timezone'
-                        value={orgData.grp_timezone}
+                        value={orgData.grp_timezone || ''}
                         onChange={handleChange}
                         className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full pl-10 pr-3 py-3 dark:placeholder-white-400 dark:text-white'
                         required
