@@ -182,7 +182,7 @@ const CleanAirPartners = () => {
         <div className="partners">
           <div className="partners-wrapper">
             <h2 className="extra-content ">
-              Effective air quality management, rooted in evidence-informed action anchors on an
+              Effective air quality management rooted in evidence-informed action anchors on an
               enabling policy environment.
             </h2>
           </div>
