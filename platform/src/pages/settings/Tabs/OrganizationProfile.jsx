@@ -16,6 +16,7 @@ import timeZones from 'timezones.json';
 import TextInputField from '@/components/TextInputField';
 import { setUserInfo } from '@/lib/store/services/account/LoginSlice';
 import { completeTask } from '@/lib/store/services/checklists/CheckList';
+import { fetchGroupInfo } from '../../../lib/store/services/groups/GroupInfoSlice';
 countries.registerLocale(enLocale);
 
 const countryObj = countries.getNames('en', { select: 'official' });
@@ -53,16 +54,14 @@ const OrganizationProfile = () => {
     type: '',
   });
   const dispatch = useDispatch();
-  const [userData, setUserData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    jobTitle: '',
-    country: '',
-    timezone: '',
-    description: '',
-    profilePicture: '',
+  const [orgData, setOrgData] = useState({
+    grp_title: '',
+    grp_website: '',
+    grp_industry: '',
+    grp_description: '',
+    grp_country: '',
+    grp_timezone: '',
+    grp_image: '',
   });
   const industryList = [
     'Textiles',
@@ -85,6 +84,7 @@ const OrganizationProfile = () => {
   const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
   const userInfo = useSelector((state) => state.login.userInfo);
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
+  const orgInfo = useSelector((state) => state.groupInfo.groupInfo);
 
   // checklist profile task
   const handleProfileCompletion = (id) => {
@@ -103,35 +103,36 @@ const OrganizationProfile = () => {
   };
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('loggedUser'));
+    setLoading(true);
+    const storedActiveGroup = localStorage.getItem('activeGroup');
+    const storedActiveGroupID = storedActiveGroup && JSON.parse(storedActiveGroup)._id;
 
-    if (user) {
-      if (!userInfo) {
-        dispatch(setUserInfo(user));
-      }
-
-      setUserData({
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        jobTitle: user.jobTitle || '',
-        country: user.country || '',
-        timezone: user.timezone || '',
-        description: user.description || '',
-        profilePicture: user.profilePicture || '',
-      });
-    } else {
-      setIsError({
-        isError: true,
-        message: 'Hmm, no user details found!',
-        type: 'error',
-      });
+    // get group information
+    try {
+      dispatch(fetchGroupInfo(storedActiveGroupID));
+    } catch (error) {
+      console.error(`Error fetching group info: ${error}`);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
+  useEffect(() => {
+    if (orgInfo) {
+      setOrgData({
+        grp_title: orgInfo.grp_title,
+        grp_website: orgInfo.grp_website,
+        grp_industry: orgInfo.grp_industry,
+        grp_description: orgInfo.grp_description,
+        grp_country: orgInfo.grp_country,
+        grp_timezone: orgInfo.grp_timezone,
+        grp_image: orgInfo.grp_image,
+      });
+    }
+  }, [orgInfo]);
+
   const handleChange = (e) => {
-    setUserData({ ...userData, [e.target.id]: e.target.value });
+    setOrgData({ ...orgData, [e.target.id]: e.target.value });
   };
 
   const handleSubmit = (e) => {
@@ -143,16 +144,16 @@ const OrganizationProfile = () => {
       return;
     }
     try {
-      updateUserCreationDetails(userData, userID)
+      updateUserCreationDetails(orgData, userID)
         .then((response) => {
           localStorage.setItem('loggedUser', JSON.stringify({ _id: userID, ...response.user }));
           dispatch(setUserInfo({ _id: userID, ...response.user }));
           if (
-            userData.firstName &&
-            userData.lastName &&
-            userData.email &&
-            userData.country &&
-            userData.timezone
+            orgData.firstName &&
+            orgData.lastName &&
+            orgData.email &&
+            orgData.country &&
+            orgData.timezone
           ) {
             handleProfileCompletion(3);
           }
@@ -185,7 +186,7 @@ const OrganizationProfile = () => {
 
   const handleCancel = () => {
     const user = JSON.parse(localStorage.getItem('loggedUser'));
-    setUserData({
+    setOrgData({
       firstName: user.firstName || '',
       lastName: user.lastName || '',
       email: user.email || '',
@@ -194,7 +195,7 @@ const OrganizationProfile = () => {
       country: user.country || '',
       timezone: user.timezone || '',
       description: user.description || '',
-      profilePicture: user.profilePicture || '',
+      grp_image: user.grp_image || '',
     });
   };
 
@@ -257,7 +258,7 @@ const OrganizationProfile = () => {
     cropImage()
       .then((croppedUrl) => {
         setUpdatedProfilePicture(croppedUrl);
-        setUserData({ ...userData, profilePicture: croppedUrl });
+        setOrgData({ ...orgData, grp_image: croppedUrl });
       })
       .catch((error) => {
         setIsError({
@@ -278,15 +279,12 @@ const OrganizationProfile = () => {
       setProfileUploading(true);
       await cloudinaryImageUpload(formData)
         .then(async (responseData) => {
-          setUserData({ ...userData, profilePicture: responseData.secure_url });
+          setOrgData({ ...orgData, grp_image: responseData.secure_url });
           const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
-          return await updateUserCreationDetails(
-            { profilePicture: responseData.secure_url },
-            userID,
-          )
+          return await updateUserCreationDetails({ grp_image: responseData.secure_url }, userID)
             .then((responseData) => {
-              localStorage.setItem('loggedUser', JSON.stringify({ _id: userID, ...userData }));
-              dispatch(setUserInfo({ _id: userID, ...userData }));
+              localStorage.setItem('loggedUser', JSON.stringify({ _id: userID, ...orgData }));
+              dispatch(setUserInfo({ _id: userID, ...orgData }));
               // updated user alert
               setIsError({
                 isError: true,
@@ -322,16 +320,16 @@ const OrganizationProfile = () => {
 
   const deleteProfileImage = () => {
     setUpdatedProfilePicture('');
-    setUserData({ ...userData, profilePicture: '' });
+    setOrgData({ ...orgData, grp_image: '' });
 
     const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
-    updateUserCreationDetails({ profilePicture: '' }, userID)
+    updateUserCreationDetails({ grp_image: '' }, userID)
       .then((response) => {
         localStorage.setItem(
           'loggedUser',
-          JSON.stringify({ ...userData, profilePicture: '', _id: userID }),
+          JSON.stringify({ ...orgData, grp_image: '', _id: userID }),
         );
-        dispatch(setUserInfo({ ...userData, profilePicture: '', _id: userID }));
+        dispatch(setUserInfo({ ...orgData, grp_image: '', _id: userID }));
         setShowDeleteProfileModal(false);
         setIsError({
           isError: true,
@@ -354,207 +352,212 @@ const OrganizationProfile = () => {
   };
 
   return (
-    <BorderlessContentBox>
-      <AlertBox
-        message={isError.message}
-        type={isError.type}
-        show={isError.isError}
-        hide={() =>
-          setIsError({
-            isError: false,
-            message: '',
-            type: '',
-          })
-        }
-      />
-      <div className='block lg:flex justify-start lg:gap-8 w-full'>
-        <div className='mb-6'>
-          <h3 className='text-sm font-medium leading-5 text-grey-710'>Organisation information</h3>
-          <p className='text-sm text-grey-500 leading-5'>
-            Update your organisation and details here.
-          </p>
-        </div>
+    orgData &&
+    orgData.grp_title && (
+      <BorderlessContentBox>
+        <AlertBox
+          message={isError.message}
+          type={isError.type}
+          show={isError.isError}
+          hide={() =>
+            setIsError({
+              isError: false,
+              message: '',
+              type: '',
+            })
+          }
+        />
+        <div className='block lg:flex justify-start lg:gap-8 w-full'>
+          <div className='mb-6'>
+            <h3 className='text-sm font-medium leading-5 text-grey-710'>
+              Organisation information
+            </h3>
+            <p className='text-sm text-grey-500 leading-5'>
+              Update your organisation and details here.
+            </p>
+          </div>
 
-        <div className='w-full mb-12'>
-          <ContentBox noMargin>
-            <>
-              <div className='w-full p-3 md:p-6'>
-                <div className='flex items-center justify-between md:gap-6 w-full mb-6'>
-                  <div
-                    className='w-16 h-16 bg-secondary-neutral-light-25 rounded-full flex justify-center items-center cursor-pointer'
-                    onClick={handleAvatarClick}
-                    title='Tap to change profile image'
-                  >
-                    {userData.profilePicture ? (
-                      <img
-                        src={userData.profilePicture}
-                        alt={`${userData.firstName + ' ' + userData.lastName} profile image`}
-                        className='w-full h-full rounded-full object-cover'
+          <div className='w-full mb-12'>
+            <ContentBox noMargin>
+              <>
+                <div className='w-full p-3 md:p-6'>
+                  <div className='flex items-center justify-between md:gap-6 w-full mb-6'>
+                    <div
+                      className='w-16 h-16 bg-secondary-neutral-light-25 rounded-full flex justify-center items-center cursor-pointer'
+                      onClick={handleAvatarClick}
+                      title='Tap to change profile image'
+                    >
+                      {orgData.grp_image ? (
+                        <img
+                          src={orgData.grp_image}
+                          alt={`${orgData.grp_title[0] + ' ' + orgData.grp_title[1]} profile image`}
+                          className='w-full h-full rounded-full object-cover'
+                        />
+                      ) : (
+                        <h3 className='text-center text-2xl leading-8 font-medium text-blue-600 uppercase'>
+                          {orgData.grp_title[0] + ' ' + orgData.grp_title[1]}
+                        </h3>
+                      )}
+                    </div>
+                    <div className='flex items-center'>
+                      <Button
+                        className='text-sm font-medium text-secondary-neutral-light-500'
+                        onClick={confirmDeleteProfileImage}
+                      >
+                        Delete
+                      </Button>
+                      <Button
+                        className={`text-sm font-medium ${
+                          !updatedProfilePicture
+                            ? 'text-secondary-neutral-light-500'
+                            : 'text-blue-600 bg-blue-50 rounded'
+                        }`}
+                        onClick={handleProfileImageUpdate}
+                        disabled={!updatedProfilePicture}
+                      >
+                        {updatedProfilePicture && !profileUploading
+                          ? 'Save photo'
+                          : profileUploading
+                          ? 'Uploading...'
+                          : 'Update'}
+                      </Button>
+                    </div>
+                  </div>
+                  <form className='grid grid-cols-2 gap-6'>
+                    <div className='gap-[6px] col-span-full'>
+                      <TextInputField
+                        id='grp_title'
+                        value={orgData.grp_title}
+                        onChange={handleChange}
+                        label='Organisation name'
+                        type='text'
                       />
-                    ) : (
-                      <h3 className='text-center text-2xl leading-8 font-medium text-blue-600'>
-                        {userData.firstName[0] + userData.lastName[0]}
-                      </h3>
-                    )}
-                  </div>
-                  <div className='flex items-center'>
-                    <Button
-                      className='text-sm font-medium text-secondary-neutral-light-500'
-                      onClick={confirmDeleteProfileImage}
-                    >
-                      Delete
-                    </Button>
-                    <Button
-                      className={`text-sm font-medium ${
-                        !updatedProfilePicture
-                          ? 'text-secondary-neutral-light-500'
-                          : 'text-blue-600 bg-blue-50 rounded'
-                      }`}
-                      onClick={handleProfileImageUpdate}
-                      disabled={!updatedProfilePicture}
-                    >
-                      {updatedProfilePicture && !profileUploading
-                        ? 'Save photo'
-                        : profileUploading
-                        ? 'Uploading...'
-                        : 'Update'}
-                    </Button>
-                  </div>
+                    </div>
+
+                    <div className='relative flex flex-col gap-[6px] col-span-full'>
+                      <TextInputField
+                        id='grp_website'
+                        value={orgData.grp_website}
+                        onChange={handleChange}
+                        label='Website'
+                        type='text'
+                        Icon={GlobeIcon}
+                      />
+                    </div>
+
+                    <div className='relative flex flex-col gap-[6px] col-span-full'>
+                      <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
+                        Industry
+                      </label>
+                      <div className='relative'>
+                        <select
+                          type='text'
+                          id='grp_industry'
+                          value={orgData.grp_industry}
+                          onChange={handleChange}
+                          className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm w-full rounded p-3 dark:placeholder-white-400 dark:text-white'
+                          required
+                        >
+                          <option value='' disabled></option>
+                          {industryList.map((industry, index) => (
+                            <option value={industry} key={index}>
+                              {industry}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className='relative flex flex-col gap-[6px] col-span-full'>
+                      <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
+                        About
+                      </label>
+                      <textarea
+                        type='text'
+                        id='grp_description'
+                        value={orgData.grp_description}
+                        onChange={handleChange}
+                        className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full p-3 dark:placeholder-white-400 dark:text-white'
+                        required
+                      />
+                    </div>
+
+                    <div className='relative flex flex-col gap-[6px] md:col-span-1 col-span-full'>
+                      <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
+                        Country
+                      </label>
+                      <div className='relative'>
+                        <select
+                          type='text'
+                          id='grp_country'
+                          value={orgData.grp_country}
+                          onChange={handleChange}
+                          className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm w-full rounded p-3 dark:placeholder-white-400 dark:text-white'
+                          required
+                        >
+                          <option value='' disabled></option>
+                          {countryOptions.map((country) => (
+                            <option value={country.value} key={country.value}>
+                              {country.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className='relative flex flex-col gap-[6px] md:col-span-1 col-span-full'>
+                      <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
+                        Timezone
+                      </label>
+                      <div className='absolute left-0 top-3 w-10 h-full flex items-center justify-center'>
+                        <ClockIcon />
+                      </div>
+                      <select
+                        type='text'
+                        id='grp_timezone'
+                        value={orgData.grp_timezone}
+                        onChange={handleChange}
+                        className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full pl-10 pr-3 py-3 dark:placeholder-white-400 dark:text-white'
+                        required
+                      >
+                        <option value='' disabled></option>
+                        {timeZonesArr.map((timeZone) => (
+                          <option value={timeZone.value} key={timeZone.value}>
+                            {timeZone.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </form>
                 </div>
-                <form className='grid grid-cols-2 gap-6'>
-                  <div className='gap-[6px] col-span-full'>
-                    <TextInputField
-                      id='grp_title'
-                      value={userData.grp_title}
-                      onChange={handleChange}
-                      label='Organisation name'
-                      type='text'
-                    />
-                  </div>
-
-                  <div className='relative flex flex-col gap-[6px] col-span-full'>
-                    <TextInputField
-                      id='grp_website'
-                      value={userData.grp_website}
-                      onChange={handleChange}
-                      label='Website'
-                      type='text'
-                      Icon={GlobeIcon}
-                    />
-                  </div>
-
-                  <div className='relative flex flex-col gap-[6px] col-span-full'>
-                    <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
-                      Industry
-                    </label>
-                    <div className='relative'>
-                      <select
-                        type='text'
-                        id='grp_industry'
-                        value={userData.grp_industry}
-                        onChange={handleChange}
-                        className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm w-full rounded p-3 dark:placeholder-white-400 dark:text-white'
-                        required
-                      >
-                        <option value='' disabled></option>
-                        {industryList.map((industry, index) => (
-                          <option value={industry} key={index}>
-                            {industry}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <div className='relative flex flex-col gap-[6px] col-span-full'>
-                    <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
-                      About
-                    </label>
-                    <textarea
-                      type='text'
-                      id='grp_description'
-                      value={userData.grp_description}
-                      onChange={handleChange}
-                      className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full p-3 dark:placeholder-white-400 dark:text-white'
-                      required
-                    />
-                  </div>
-
-                  <div className='relative flex flex-col gap-[6px] md:col-span-1 col-span-full'>
-                    <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
-                      Country
-                    </label>
-                    <div className='relative'>
-                      <select
-                        type='text'
-                        id='grp_country'
-                        value={userData.grp_country}
-                        onChange={handleChange}
-                        className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm w-full rounded p-3 dark:placeholder-white-400 dark:text-white'
-                        required
-                      >
-                        <option value='' disabled></option>
-                        {countryOptions.map((country) => (
-                          <option value={country.value} key={country.value}>
-                            {country.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className='relative flex flex-col gap-[6px] md:col-span-1 col-span-full'>
-                    <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
-                      Timezone
-                    </label>
-                    <div className='absolute left-0 top-3 w-10 h-full flex items-center justify-center'>
-                      <ClockIcon />
-                    </div>
-                    <select
-                      type='text'
-                      id='grp_timezone'
-                      value={userData.grp_timezone}
-                      onChange={handleChange}
-                      className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full pl-10 pr-3 py-3 dark:placeholder-white-400 dark:text-white'
-                      required
-                    >
-                      <option value='' disabled></option>
-                      {timeZonesArr.map((timeZone) => (
-                        <option value={timeZone.value} key={timeZone.value}>
-                          {timeZone.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </form>
-              </div>
-              <div className='col-span-full flex justify-end gap-3 border-t border-t-secondary-neutral-light-100 w-full px-3 py-4'>
-                <Button
-                  onClick={handleCancel}
-                  className='text-sm font-medium leading-5 text-secondary-neutral-light-600 py-3 px-4 rounded border border-secondary-neutral-light-100 bg-white'
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSubmit}
-                  className='text-sm font-medium leading-5 text-white py-3 px-4 rounded bg-blue-600'
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Loading...' : 'Save'}
-                </Button>
-              </div>
-            </>
-          </ContentBox>
+                <div className='col-span-full flex justify-end gap-3 border-t border-t-secondary-neutral-light-100 w-full px-3 py-4'>
+                  <Button
+                    onClick={handleCancel}
+                    className='text-sm font-medium leading-5 text-secondary-neutral-light-600 py-3 px-4 rounded border border-secondary-neutral-light-100 bg-white'
+                    disabled={isLoading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSubmit}
+                    className='text-sm font-medium leading-5 text-white py-3 px-4 rounded bg-blue-600'
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Loading...' : 'Save'}
+                  </Button>
+                </div>
+              </>
+            </ContentBox>
+          </div>
         </div>
-      </div>
-      <Modal
-        display={showDeleteProfileModal}
-        handleConfirm={deleteProfileImage}
-        closeModal={() => setShowDeleteProfileModal(false)}
-        description={`Are you sure you want to delete the organization profile image?`}
-        confirmButton='Delete'
-      />
-    </BorderlessContentBox>
+        <Modal
+          display={showDeleteProfileModal}
+          handleConfirm={deleteProfileImage}
+          closeModal={() => setShowDeleteProfileModal(false)}
+          description={`Are you sure you want to delete the organization profile image?`}
+          confirmButton='Delete'
+        />
+      </BorderlessContentBox>
+    )
   );
 };
 
