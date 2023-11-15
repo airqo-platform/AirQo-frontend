@@ -34,7 +34,7 @@ dotenv.load_dotenv()
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
  
- 
+    
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
@@ -164,8 +164,6 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 STATIC_ROOT = (BASE_DIR/"assets/")
-
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # MEDIA_ROOT = (BASE_DIR/'media/')
 
