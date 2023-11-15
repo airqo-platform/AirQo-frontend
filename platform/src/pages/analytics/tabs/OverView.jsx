@@ -17,16 +17,12 @@ const OverView = () => {
 
   useEffect(() => {
     setIsLoadingMeasurements(true);
-    if (userLocationsData && !userLocationsData?.selected_sites) {
+    if (userLocationsData && !userLocationsData?.chartSites) {
       setIsLoadingMeasurements(false);
       return;
     }
-    if (userLocationsData && userLocationsData?.selected_sites) {
-      const siteLists = [];
-      userLocationsData.selected_sites.map((site) => {
-        siteLists.push(site._id);
-      });
-      setSites(siteLists);
+    if (userLocationsData && userLocationsData?.chartSites) {
+      setSites(userLocationsData?.chartSites);
     }
     setIsLoadingMeasurements(false);
   }, [userLocationsData]);
