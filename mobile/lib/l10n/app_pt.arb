@@ -338,5 +338,6 @@
 	"doYouWantToSwitchToLanguage": "Você quer mudar para {placeholder}? O aplicativo será reiniciado para efetuar as alterações",
 	"languageChangedSuccessfully": "Idioma alterado com sucesso {placeholder}",
 	"ok": "OK",
-	"languages": "Idiomas"
+	"languages": "Idiomas",
+	"dataProvider":"Fornecedor de dados: {placeholder}"
 	}
