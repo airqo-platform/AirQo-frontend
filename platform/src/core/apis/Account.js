@@ -143,10 +143,10 @@ export const postUserPreferencesApi = async (data) => {
   }
 }
 
-// Update User Preferences
+// Update/Upsert User Preferences
 export const updateUserPreferencesApi = async (data) => {
   try {
-    const response = await createAxiosInstance().put(`${USER_PREFERENCES_URL}/${data.user_id}`, data.sites);
+    const response = await createAxiosInstance().post(`${USER_PREFERENCES_URL}/upsert`, data);
     return response.data;
   }
   catch (error) {
