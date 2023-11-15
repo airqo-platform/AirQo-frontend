@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import DatePicker from 'react-tailwindcss-datepicker';
 import CalendarIcon from '@/icons/calendar.svg';
 import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
 import { useSelector, useDispatch } from 'react-redux';
@@ -27,7 +26,7 @@ const CustomCalendar = ({
   const handleValueChange = (newValue) => {
     const computeDaysBetweenDates = (startDate, endDate) => {
       const oneDay = 24 * 60 * 60 * 1000;
-      return Math.round(Math.abs((startDate.getTime() - endDate.getTime()) / oneDay));
+      return Math.floor(Math.abs((startDate.getTime() - endDate.getTime()) / oneDay));
     };
 
     const isSameDay = (date1, date2) =>
