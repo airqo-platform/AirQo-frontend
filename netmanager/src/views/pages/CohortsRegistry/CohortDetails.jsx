@@ -34,6 +34,7 @@ import { loadDevicesData } from 'redux/DeviceRegistry/operations';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import OutlinedSelect from '../../components/CustomSelects/OutlinedSelect';
 import { createAlertBarExtraContent } from '../../../utils/objectManipulators';
+import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
 
 const gridItemStyle = {
   padding: '5px',
@@ -461,7 +462,7 @@ const CohortDetails = (props) => {
                 justifyContent={'center'}
                 alignItems={'center'}
               >
-                Loading cohort devices...
+                <LargeCircularLoader loading={loading} />
               </Box>
             ) : (
               devicesData &&

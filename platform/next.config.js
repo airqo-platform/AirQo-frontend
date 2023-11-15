@@ -1,4 +1,6 @@
-module.exports = {
+const withVideos = require('next-videos');
+
+module.exports = withVideos({
   // Adding support for Docker
   output: 'standalone',
   webpack(config) {
@@ -9,4 +11,4 @@ module.exports = {
 
     return config;
   },
-};
+});

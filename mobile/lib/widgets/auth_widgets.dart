@@ -96,7 +96,8 @@ class ProceedAsGuest extends StatelessWidget {
         if (success) {
           await AppService.postSignOutActions(context, log: false)
               .then((_) async {
-            await AppService.postSignInActions(context).then((_) async {
+            await AppService.postSignInActions(context, isGuest: true)
+                .then((_) async {
               Navigator.pop(context);
               await Navigator.pushAndRemoveUntil(
                 context,
