@@ -244,8 +244,7 @@ const renderCustomizedLegend = (props) => {
           <div style={{ color: '#485972' }} className='flex w-full items-center text-sm'>
             <span
               className='w-[10px] h-[10px] rounded-xl mr-1 ml-1'
-              style={{ backgroundColor: entry.color }}
-            ></div>
+              style={{ backgroundColor: entry.color }}></span>
             {truncate(entry.value)}
           </div>
         </CustomLegendTooltip>
@@ -267,15 +266,15 @@ const useAnalytics = () => {
   useEffect(() => {
     if (preferencesLoading) return;
 
-      const body = {
-        sites: chartData.chartSites,
-        startDate: new Date(chartData.chartDataRange.startDate).toISOString(),
-        endDate: new Date(chartData.chartDataRange.endDate).toISOString(),
-        chartType: chartData.chartType,
-        frequency: chartData.timeFrame,
-        pollutant: chartData.pollutionType,
-        organisation_name: chartData.organizationName,
-      };
+    const body = {
+      sites: chartData.chartSites,
+      startDate: chartData.chartDataRange.startDate,
+      endDate: chartData.chartDataRange.endDate,
+      chartType: chartData.chartType,
+      frequency: chartData.timeFrame,
+      pollutant: chartData.pollutionType,
+      organisation_name: chartData.organizationName,
+    };
 
     const allPropertiesSet = Object.values(body).every(
       (property) => property !== undefined && property !== null,
