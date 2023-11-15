@@ -19,6 +19,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import PrintReportModal from '@/components/Modal/PrintReportModal';
 import TabButtons from '@/components/Button/TabButtons';
+import Calendar from '@/components/Calendar/Calendar';
 
 const AuthenticatedHomePage = () => {
   const dispatch = useDispatch();
@@ -179,7 +180,8 @@ const AuthenticatedHomePage = () => {
                 {renderChildrenRight()[0].children}
               </div>
             )}
-            <OverView />
+            {/* <OverView /> */}
+            <Calendar />
           </Tab>
           <Tab label='Explore'>
             {isMobile && (
