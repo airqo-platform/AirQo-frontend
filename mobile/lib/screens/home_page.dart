@@ -55,6 +55,7 @@ class _HomePageState extends State<HomePage> {
           dialogStyle: UpgradeDialogStyle.cupertino,
           durationUntilAlertAgain: const Duration(days: 7),
           languageCode: Localizations.localeOf(context).languageCode,
+          
         ),
         child: Scaffold(
           backgroundColor: CustomColors.appBodyColor,
