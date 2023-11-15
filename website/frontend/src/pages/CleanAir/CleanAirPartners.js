@@ -10,6 +10,7 @@ import { loadPartnersData } from '../../../reduxStore/Partners/operations';
 import Partner1 from 'assets/img/cleanAir/partners-sec1.png';
 import Partner2 from 'assets/img/cleanAir/partners-sec2.png';
 import Partner3 from 'assets/img/cleanAir/partners-sec3.png';
+import Partner4 from 'assets/img/cleanAir/partners-sec4.png';
 import useWindowSize from 'utilities/customHooks';
 
 const CleanAirPartners = () => {
@@ -268,7 +269,7 @@ const CleanAirPartners = () => {
         </p>
         "
           showButton={false}
-          imgURL={Partner2}
+          imgURL={Partner4}
           bgColor="#FFFFFF"
           reverse
         />
