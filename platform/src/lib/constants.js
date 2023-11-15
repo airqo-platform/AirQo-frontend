@@ -1,13 +1,2 @@
-export const GRIDS = [
-  '64b7baccf2b99f00296acd59',
-  '64b7ac8fd7249f0029feca80',
-  '64d635f18f492b0013406c46',
-  '64c90174448a63001e3a0b45',
-];
-
-export const DEFAULT_CHART_SITES = [
-  '647f3a5d69df500029a2fc93',
-  '6461df90dab86000293ba49f',
-  '64aafb1843e5f70029a059c4',
-  '6373928b7c737c001e78554f',
-];
+export const GRIDS = process.env.NEXT_PUBLIC_GRIDS;
+export const DEFAULT_CHART_SITES = process.env.NEXT_PUBLIC_DEFAULT_CHART_SITES;

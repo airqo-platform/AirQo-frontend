@@ -33,7 +33,7 @@ const OverView = () => {
       if (chartDataRange && chartDataRange.startDate && chartDataRange.endDate && sites) {
         dispatch(
           fetchRecentMeasurementsData({
-            site_id: sites.join(),
+            site_id: sites,
             startTime: chartDataRange.startDate,
             endTime: chartDataRange.endDate,
           }),
