@@ -132,9 +132,7 @@ const AuthenticatedHomePage = () => {
             <CustomCalendar
               initialStartDate={new Date()}
               initialEndDate={new Date()}
-              id='datePicker1'
-              position='down'
-              className='right-0 md:right-0 lg:right-0 z-50'
+              className='right-0 lg:right-0 md:-right-20'
               dropdown
             />
             <TabButtons Icon={SettingsIcon} btnText='Customize' onClick={() => toggleCustomise()} />
@@ -148,16 +146,14 @@ const AuthenticatedHomePage = () => {
             <Button
               className='text-sm font-medium capitalize'
               variant='outlined'
-              onClick={openPrintModalFunc}
-            >
+              onClick={openPrintModalFunc}>
               Print
             </Button>
             <Button
               className='text-sm font-medium capitalize'
               variant='filled'
               Icon={DownloadIcon}
-              onClick={exportFile}
-            >
+              onClick={exportFile}>
               Export
             </Button>
           </div>
