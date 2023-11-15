@@ -68,8 +68,7 @@ export const acceptGroupTeamInvite = async (body) => {
 // Update [Individual]User Details
 export const updateUserCreationDetails = async (data, identifier) => {
   try {
-    const response = await axios
-      .put(`${UPDATE_USER_DETAILS_URL}/${identifier}`, data)
+    const response = await axios.put(`${UPDATE_USER_DETAILS_URL}/${identifier}`, data);
     return response.data;
   } catch (error) {
     return error;
@@ -101,26 +100,24 @@ export const postUserDefaultsApi = async (data) => {
   try {
     const response = await createAxiosInstance().post(`${USER_DEFAULTS_URL}`, data);
     return response.data;
-  }
-  catch (error) {
+  } catch (error) {
     throw error;
   }
-}
+};
 
 // Update User Defaults
 export const updateUserDefaultsApi = async (data) => {
   try {
     const response = await createAxiosInstance().put(`${USER_DEFAULTS_URL}`, data.sites, {
       params: {
-        id: data.user_id
-      }
+        id: data.user_id,
+      },
     });
     return response.data;
-  }
-  catch (error) {
+  } catch (error) {
     throw error;
   }
-}
+};
 
 // Verify user email
 export const verifyUserEmailApi = async (identifier, token) => {
@@ -130,29 +127,30 @@ export const verifyUserEmailApi = async (identifier, token) => {
   } catch (error) {
     throw error;
   }
-}
+};
 
 // Post User Preferences
 export const postUserPreferencesApi = async (data) => {
   try {
     const response = await createAxiosInstance().post(`${USER_PREFERENCES_URL}`, data);
     return response.data;
-  }
-  catch (error) {
+  } catch (error) {
     throw error;
   }
-}
+};
 
 // Update User Preferences
 export const updateUserPreferencesApi = async (data) => {
   try {
-    const response = await createAxiosInstance().put(`${USER_PREFERENCES_URL}/${data.user_id}`, data.sites);
+    const response = await createAxiosInstance().put(
+      `${USER_PREFERENCES_URL}/${data.user_id}`,
+      data.sites,
+    );
     return response.data;
-  }
-  catch (error) {
+  } catch (error) {
     throw error;
   }
-}
+};
 export const getUserDefaults = async () => {
   return await createAxiosInstance()
     .get(USER_DEFAULTS_URL)
@@ -178,5 +176,17 @@ export const getUserChecklists = async (userID) => {
 export const upsertUserChecklists = async (checklist) => {
   return await createAxiosInstance()
     .post(USER_CHECKLISTS_UPSERT_URL, checklist)
+    .then((response) => response.data);
+};
+
+export const getGroupDetailsApi = async (groupID) => {
+  return await createAxiosInstance()
+    .get(`${GROUPS_URL}/${groupID}`)
+    .then((response) => response.data);
+};
+
+export const updateGroupDetailsApi = async (groupID, data) => {
+  return await createAxiosInstance()
+    .put(`${GROUPS_URL}/${groupID}`, data)
     .then((response) => response.data);
 };
