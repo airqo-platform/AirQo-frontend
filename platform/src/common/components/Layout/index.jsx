@@ -46,14 +46,21 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
     fetchPreferences();
   }, [userInfo, dispatch]);
 
+  console.log('userPreferences', chartData);
+
   useEffect(() => {
     const setChartProperties = async () => {
       if (userInfo && userPreferences && userPreferences.length > 0) {
-        const { period, site_ids, startDate, endDate, frequency, chartType, pollutant } =
+        const { period, selected_sites, startDate, endDate, frequency, chartType, pollutant } =
           userPreferences[0];
         dispatch(clearAll());
         try {
-          await dispatch(setChartSites(site_ids || chartData.chartSites));
+          const chartSites = selected_sites
+            ? selected_sites.map((site) => site['_id'])
+            : chartData.chartSites;
+
+          console.log('chartSites', chartSites);
+          await dispatch(setChartSites(chartSites));
           await dispatch(
             setChartDataRange({
               startDate: startDate || chartData.chartDataRange.startDate,
