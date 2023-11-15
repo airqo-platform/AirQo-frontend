@@ -7,7 +7,17 @@ import PlusIcon from '@/icons/Settings/plus.svg';
 import Button from '@/components/Button';
 import { isEmpty } from 'underscore';
 
-const PrintReportModal = ({ open, onClose, handlePrintPDF, data }) => {
+const PrintReportModal = ({
+  open,
+  onClose,
+  handlePrintPDF,
+  data,
+  title,
+  format,
+  btnText,
+  ModalType,
+  shareStatus,
+}) => {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({
     type: '',
@@ -85,36 +95,80 @@ const PrintReportModal = ({ open, onClose, handlePrintPDF, data }) => {
     downloadDataFunc();
   };
 
+  const handleShareReport = () => {
+    if (emails.length === 0 || (emails.length === 1 && emails[0] === '')) {
+      setAlert({
+        type: 'error',
+        message: 'Please enter at least one email',
+        show: true,
+      });
+      return;
+    }
+    setLoading(true);
+
+    const rect = document.getElementById('analytics-chart').getBoundingClientRect();
+
+    setLoading(true);
+
+    switch (format) {
+      case 'pdf':
+        console.log('pdf case');
+        // Your code for 'pdf' case here...
+        break;
+      case 'csv':
+        console.log('csv case');
+        // Your code for 'csv' case here...
+        break;
+      default:
+        console.log('default case');
+      // Your code for default case here...
+    }
+
+    setLoading(false);
+    setAlert({
+      type: 'success',
+      message: 'Air quality data shared successful',
+      show: true,
+    });
+    // handleCancel();
+    shareStatus('Report shared');
+  };
+
   return (
     <div>
       <ExportModalWrapper
-        title='Print your report'
+        title={title}
         open={open}
-        onClose={onClose}
-        downloadDataFunc={handleDataExport}
+        onClose={() => {
+          onClose;
+          handleCancel();
+        }}
+        downloadDataFunc={ModalType === 'share' ? handleShareReport : handleDataExport}
         loading={loading}
         ModalIcon={ShareIcon}
-        primaryButtonText='Print'
-        data={data}
-      >
-        <div className='flex-col justify-start items-start gap-[13px] flex w-full self-stretch'>
-          <AlertBox
-            type={alert.type}
-            message={alert.message}
-            show={alert.show}
-            hide={() => setAlert({ ...alert, show: false })}
-          />
-          {/* <div className='self-stretch pr-2 justify-start items-start gap-2.5 inline-flex'>
-            <div className='text-gray-700 text-base font-medium leading-tight'>Send to email</div>
-          </div> */}
+        primaryButtonText={btnText || 'Print'}
+        data={data}>
+        {ModalType === 'share' && (
+          <>
+            <div className='w-full'>
+              <AlertBox
+                type={alert.type}
+                message={alert.message}
+                show={alert.show}
+                hide={() => setAlert({ ...alert, show: false })}
+              />
+            </div>
+            <div className='self-stretch pr-2 justify-start items-start gap-2.5 inline-flex'>
+              <div className='text-gray-700 text-base font-medium leading-tight'>Send to email</div>
+            </div>
 
-          {/* {emails.map((email, index) => (
-              <div key={index}>
+            {emails.map((email, index) => (
+              <div key={index} className='w-full'>
                 <div className='relative w-full' key={index}>
                   <input
                     type='text'
                     placeholder='Enter email'
-                    className='input input-bordered w-full pl-9 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded'
+                    className='input input-bordered w-full pl-9 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100  rounded'
                     value={email}
                     onChange={(e) => handleEmailChange(index, e.target.value)}
                   />
@@ -124,8 +178,7 @@ const PrintReportModal = ({ open, onClose, handlePrintPDF, data }) => {
                   {index > 0 && (
                     <button
                       className='absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto'
-                      onClick={() => handleRemoveEmail(index)}
-                    >
+                      onClick={() => handleRemoveEmail(index)}>
                       ✕
                     </button>
                   )}
@@ -141,12 +194,12 @@ const PrintReportModal = ({ open, onClose, handlePrintPDF, data }) => {
             <div>
               <Button
                 className='text-sm font-medium text-primary-600 leading-5 gap-2 h-5 mt-3 mb-8 w-auto pl-0'
-                onClick={handleAddEmail}
-              >
+                onClick={handleAddEmail}>
                 <PlusIcon /> <span>Add email</span>
               </Button>
-            </div> */}
-        </div>
+            </div>
+          </>
+        )}
       </ExportModalWrapper>
     </div>
   );

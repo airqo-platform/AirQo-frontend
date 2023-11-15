@@ -129,6 +129,16 @@ export const verifyUserEmailApi = async (identifier, token) => {
   }
 };
 
+// Get User Preferences
+export const getUserPreferencesApi = async (userID) => {
+  try {
+    const response = await createAxiosInstance().get(`${USER_PREFERENCES_URL}/${userID}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 // Post User Preferences
 export const postUserPreferencesApi = async (data) => {
   try {
