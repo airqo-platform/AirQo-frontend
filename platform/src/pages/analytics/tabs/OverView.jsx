@@ -4,15 +4,15 @@ import AQNumberCard from '@/components/AQNumberCard';
 import BorderlessContentBox from '@/components/Layout/borderless_content_box';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRecentMeasurementsData } from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
-import { GRIDS } from '@/lib/constants';
+import { DEFAULT_CHART_SITES } from '@/lib/constants';
 
 const OverView = () => {
   // events hook
   const dispatch = useDispatch();
   const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
   const chartDataRange = useSelector((state) => state.chart.chartDataRange);
-  const userLocationsData = useSelector((state) => state.defaults.locationsData);
-  const [grids, setGrids] = useState(GRIDS);
+  const userLocationsData = useSelector((state) => state.defaults.preferences);
+  const [sites, setSites] = useState(DEFAULT_CHART_SITES);
   const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
 
   useEffect(() => {
@@ -22,13 +22,11 @@ const OverView = () => {
       return;
     }
     if (userLocationsData && userLocationsData?.selected_sites) {
-      const gridsList = [];
+      const siteLists = [];
       userLocationsData.selected_sites.map((site) => {
-        if (site.grid_ids && site.grid_ids.length > 0) {
-          gridsList.push(site.grid_ids[0]);
-        }
+        siteLists.push(site._id);
       });
-      setGrids(gridsList);
+      setSites(siteLists);
     }
     setIsLoadingMeasurements(false);
   }, [userLocationsData]);
@@ -36,10 +34,10 @@ const OverView = () => {
   useEffect(() => {
     setIsLoadingMeasurements(true);
     try {
-      if (chartDataRange && chartDataRange.startDate && chartDataRange.endDate && grids) {
+      if (chartDataRange && chartDataRange.startDate && chartDataRange.endDate && sites) {
         dispatch(
           fetchRecentMeasurementsData({
-            grid_id: grids.join(),
+            site_id: sites.join(),
             startTime: chartDataRange.startDate,
             endTime: chartDataRange.endDate,
           }),
@@ -50,7 +48,7 @@ const OverView = () => {
     } finally {
       setIsLoadingMeasurements(false);
     }
-  }, [chartDataRange, grids]);
+  }, [chartDataRange, sites]);
 
   return (
     <BorderlessContentBox>
