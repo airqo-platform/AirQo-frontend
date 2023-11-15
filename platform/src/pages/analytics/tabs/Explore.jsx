@@ -23,7 +23,7 @@ const Explore = ({ toggleCustomize }) => {
   ];
 
   return (
-    <div className='px-3 lg:px-16 py-3 space-y-4'>
+    <div className='px-3 lg:px-16 pb-3 space-y-4'>
       <div className='flex justify-between items-center flex-wrap space-y-2'>
         <div className='flex space-x-3'>
           <CustomCalendar
