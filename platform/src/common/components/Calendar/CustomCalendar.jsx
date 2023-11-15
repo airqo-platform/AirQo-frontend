@@ -23,7 +23,7 @@ const CustomCalendar = ({
 
   const handleValueChange = (newValue) => {
     const computeDaysBetweenDates = (startDate, endDate) => {
-      const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+      const oneDay = 24 * 60 * 60 * 1000;
       return Math.round(Math.abs((startDate.getTime() - endDate.getTime()) / oneDay));
     };
 
@@ -101,8 +101,7 @@ const CustomCalendar = ({
     <div className='relative cursor-pointer' onClick={handleDatepicker}>
       <button
         type='button'
-        className='relative border border-grey-750 rounded flex items-center justify-between gap-2 px-4 py-3'
-      >
+        className='relative border w-auto h-full border-grey-750 rounded flex items-center justify-between gap-2 px-4 py-3'>
         {Icon ? <Icon /> : <CalendarIcon />}
         <span className='hidden sm:inline-block text-sm font-medium'>
           {chartData.chartDataRange.label}
