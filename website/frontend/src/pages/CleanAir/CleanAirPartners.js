@@ -89,6 +89,7 @@ const CleanAirPartners = () => {
 
   return (
     <div className="page-wrapper">
+      {/* SEO */}
       <SEO
         title="Partners | CLEAN-Air Africa Network"
         siteTitle="CLEAN-Air Africa Network"
