@@ -21,7 +21,7 @@
     "autoprefixer": "^10.4.12",
     "axios": "^1.4.0",
     "daisyui": "^2.47.0",
-    "date-fns": "^2.29.3",
+    "date-fns": "^2.30.0",
     "dayjs": "^1.11.7",
     "file-saver": "^2.0.5",
     "flowbite": "^1.6.3",

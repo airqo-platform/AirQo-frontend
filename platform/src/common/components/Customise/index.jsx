@@ -12,7 +12,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
   return (
     <div>
       <div
-        className='absolute right-0 top-0 w-full lg:w-3/12 h-full overflow-y-scroll bg-white z-20 border-l-grey-50 px-6'
+        className='z-50 absolute right-0 top-0 w-full lg:w-3/12 h-full overflow-y-scroll bg-white border-l-grey-50 px-6'
         style={{ boxShadow: '0px 16px 32px 0px rgba(83, 106, 135, 0.20)' }}>
         <div className='flex flex-row justify-between items-center mt-6'>
           <h3 className='text-xl text-black-800 font-semibold'>Customise</h3>

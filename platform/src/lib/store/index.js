@@ -13,6 +13,7 @@ import { chartSlice } from './services/charts/ChartSlice';
 import { gridsSlice } from './services/deviceRegistry/GridsSlice';
 import { defaultsSlice } from './services/account/UserDefaultsSlice';
 import userDefaultsReducer from './services/charts/userDefaultsSlice';
+import { recentMeasurementsSlice } from './services/deviceRegistry/RecentMeasurementsSlice';
 import { cardSlice } from './services/checklists/CheckList';
 import checklistsReducer from './services/checklists/CheckData';
 import analyticsReducer from './services/charts/ChartData';
@@ -35,6 +36,7 @@ const rootReducer = combineReducers({
   [defaultsSlice.name]: defaultsSlice.reducer,
   [cardSlice.name]: cardSlice.reducer,
   userDefaults: userDefaultsReducer,
+  [recentMeasurementsSlice.name]: recentMeasurementsSlice.reducer,
   checklists: checklistsReducer,
   analytics: analyticsReducer,
   [groupInfoSlice.name]: groupInfoSlice.reducer,

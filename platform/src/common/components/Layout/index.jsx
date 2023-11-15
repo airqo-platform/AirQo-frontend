@@ -46,8 +46,6 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
     fetchPreferences();
   }, [userInfo, dispatch]);
 
-  console.log('userPreferences', chartData);
-
   useEffect(() => {
     const setChartProperties = async () => {
       if (userInfo && userPreferences && userPreferences.length > 0) {
@@ -59,7 +57,6 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
             ? selected_sites.map((site) => site['_id'])
             : chartData.chartSites;
 
-          console.log('chartSites', chartSites);
           await dispatch(setChartSites(chartSites));
           await dispatch(
             setChartDataRange({
