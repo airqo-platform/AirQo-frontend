@@ -86,13 +86,15 @@ const CleanAirEvents = () => {
       <div className="partners">
         <div className="partners-wrapper">
           <p className="partners-intro">
-            The CLEAN-Air Network provides a platform that unites organizations and individuals
-            committed to air quality management. The platform provides a launchpad for your
-            engagement activities, from conferences and webinars to workshops.
+            The CLEAN-Air Network provides a platform for facilitating engagement activities
+            including conferences, webinars, workshops, training and community campaigns.
             <br />
             <br />
-            Members will also have access to a diverse pool of experts who can be invited to
-            participate in different engagement activities, either as speakers or co-organizers.
+            Partners will have access to shared resources in the form of social media toolkits,
+            press release templates, digital banners, etc. that can be customised to suit every
+            activity. Members will also have access to a diverse pool of experts who can be invited
+            to participate in different engagement activities, either as speakers or co-organizers,
+            etc.
           </p>
         </div>
       </div>
@@ -119,7 +121,7 @@ const CleanAirEvents = () => {
               fontWeight: 400,
               fontStyle: 'normal'
             }}>
-            Increase your event's visibility. Register your workshops, conferences, webinars, trainings, roundtable meetings, outdoor campaigns etc and tap into invaluable networking prospects.
+            Increase your event's visibility. Register your engagement activity and tap into invaluable resources and networking prospects.
           </p>"
           showButton={true}
           customBtn={

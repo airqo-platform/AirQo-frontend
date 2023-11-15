@@ -35,6 +35,10 @@ const CleanAirPartners = () => {
 
   const supportPartners = cleanAirPartners.filter((partner) => partner.type === 'ca-support');
 
+  const privateSectorPartners = cleanAirPartners.filter(
+    (partner) => partner.type === 'ca-private-sector'
+  );
+
   const generatePartnerDataGroup = (partners) => {
     return partners
       .map((e, i) => {
@@ -47,6 +51,7 @@ const CleanAirPartners = () => {
 
   const supportPartnerDataGroup = generatePartnerDataGroup(supportPartners);
   const policyPartnerDataGroup = generatePartnerDataGroup(policyPartners);
+  const privateSectorPartnerDataGroup = generatePartnerDataGroup(privateSectorPartners);
 
   const onLogoClick = (uniqueTitle) => (event) => {
     event.preventDefault();
@@ -93,13 +98,11 @@ const CleanAirPartners = () => {
         <div className="partners-wrapper">
           <p className="partners-intro">
             The CLEAN-Air Network is a multi-regional network, strengthening cross-regional
-            collaborations and strengthening partnerships to enable collective learning and
-            knowledge sharing.
+            collaborations and partnerships to enable collective learning and knowledge sharing.
             <br />
             <br />
             We have a growing list of partners from diverse disciplines across different parts of
-            the world, reflecting the multi-disciplinary nature of tackling the air pollution
-            challenge.
+            the world, reflecting the multidisciplinarity of tackling urban air pollution.
           </p>
         </div>
       </div>
@@ -112,8 +115,8 @@ const CleanAirPartners = () => {
         <div className="partners">
           <div className="partners-wrapper">
             <h2 className="extra-content">
-              Leveraging the unique expertise and resources of implementing partners to advance air
-              quality monitoring in Africa.
+              Leveraging the unique expertise and resources of implementing partners to advance
+              capacity for air quality management in Africa.
             </h2>
           </div>
         </div>
@@ -127,7 +130,7 @@ const CleanAirPartners = () => {
               fontWeight: 400,
               fontStyle: 'normal'
             }}>
-            Our implementing partners have active interest in air quality work in Africa, have personnel with primary roles on air quality, organize and host activities, participate in CLEAN-Air Network annual meetings and may provide logistical/or funding support to members.
+            Implementing partners have active interest in air quality work in Africa, have personnel with primary roles in air quality, organize and host engagement activities, participate in CLEAN-Air Network annual meetings and may provide logistical/or funding support to partners.
           </p>"
           showButton={false}
           imgURL={Partner1}
@@ -178,8 +181,8 @@ const CleanAirPartners = () => {
         <div className="partners">
           <div className="partners-wrapper">
             <h2 className="extra-content ">
-              Effective air quality management, rooted in evidence-informed decision-making is
-              imperative for air quality management.
+              Effective air quality management, rooted in evidence-informed action anchors on an
+              enabling policy environment.
             </h2>
           </div>
         </div>
@@ -194,7 +197,7 @@ const CleanAirPartners = () => {
               fontWeight: 400,
               fontStyle: 'normal'
             }}>
-            Our Policy Forum includes any city in Africa interested in implementing an air quality programme.
+            The policy forum provides a platform for engagement for African cities and national governments interested in developing and implementing an air quality program.
         </p>
         "
           showButton={false}
@@ -247,9 +250,78 @@ const CleanAirPartners = () => {
       <div>
         <div className="partners">
           <div className="partners-wrapper">
+            <h2 className="extra-content ">Private sector</h2>
+          </div>
+        </div>
+
+        <SplitSection
+          content="
+          <p
+            style={{
+              color: '#353E52',
+              fontSize: '24px',
+              lineHeight: '32px',
+              fontWeight: 400,
+              fontStyle: 'normal'
+            }}>
+            private
+        </p>
+        "
+          showButton={false}
+          imgURL={Partner2}
+          bgColor="#FFFFFF"
+          reverse
+        />
+
+        {privateSectorPartners.length > 0 && (
+          <div className="AboutUsPage">
+            <div className="wrapper">
+              <div className="partner-logos" id="logo-table">
+                <table>
+                  <tbody>
+                    {privateSectorPartnerDataGroup
+                      .slice(0, itemsToShowPolicy)
+                      .map((partnerGroup, key) => (
+                        <tr key={key}>
+                          {partnerGroup.map((partner) => (
+                            <td key={partner.id} onClick={() => onLogoClick(partner)}>
+                              <img src={partner.partner_logo} alt={partner.partner_name} />
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+                {itemsToShowPolicy < policyPartnerDataGroup.length && (
+                  <button
+                    className="partners-toggle-button"
+                    onClick={() => showMoreItems(setItemsToShowPolicy, 3)}>
+                    Show More
+                  </button>
+                )}
+                {itemsToShowPolicy > 3 && (
+                  <button
+                    className="partners-toggle-button"
+                    onClick={() => showLessItems(setItemsToShowPolicy, 3, 3)}>
+                    Show Less
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <hr className="separator-1" />
+      </div>
+
+      <div>
+        <div className="partners">
+          <div className="partners-wrapper">
             <h2 className="extra-content ">
-              Championing the power of collective action and collaboration in air quality management
-              to enable collective learning and knowledge sharing.
+              Leveraging international collaborations for experience sharing and knowledge exchange
+              on urban air pollution as a global phenomenon.
             </h2>
           </div>
         </div>
@@ -263,7 +335,12 @@ const CleanAirPartners = () => {
               fontWeight: 400,
               fontStyle: 'normal'
             }}>
-            Supporting Partners provide logistical and/or funding support to network members, and may participate in the annual CLEAN-Air Network meetings.
+            The CLEAN-Air network is supported by development partners and philanthropic
+              organisations, including Google.org, WEHUBIT, and the U.S. Department of State, with
+              an established history of pioneering continuous air quality monitoring in data-hungry
+              cities through the U.S. Embassies across the world.
+              <br/><br/>
+            Supporting partners provide logistical and/or funding support to network members, and may participate in activities including the annual CLEAN-Air Network meetings.
           </p>"
           showButton={false}
           imgURL={Partner3}

@@ -25,10 +25,10 @@ const CleanAirAbout = () => {
         <div className="hero-content">
           <div>
             <p className="hero-title">
-              The CLEAN-Air Africa <br className="breaker" /> Network
+              The CLEAN-Air <br className="breaker" /> Network
             </p>
             <p className="hero-sub">
-              <span className="fact">An African-led, multi-region network</span> <br />
+              <span className="fact">An African-led, multi-regional network</span> <br />
               bringing together a community of practice for air quality solutions and air quality
               management across Africa.
             </p>
@@ -42,12 +42,31 @@ const CleanAirAbout = () => {
           </div>
         </div>
       </div>
+
       {/* section 2 */}
       <div>
         <SplitSection
+          pillTitle="CLEAN-Air"
+          content="CLEAN-Air, an acronym coined from ‘Championing Liveable urban Environments through African Networks for Air’, brings together stakeholders and researchers in air quality management to share best practices and knowledge on developing and implementing air quality management solutions in African cities."
+          imgURL={Section3}
+          imageStyle={{
+            objectFit: 'cover'
+          }}
+          // bgColor="#FFFFFF"
+          // pillBgColor="#ECF2FF"
+          // pillTextColor="#135DFF"
+          bgColor="#EDF3FF"
+          pillBgColor="#FFFFFF"
+          pillTextColor="#000000"
+          showButton={false}
+        />
+      </div>
+      {/* section 3 */}
+      <div>
+        <SplitSection
           pillTitle="CLEAN-Air Mission"
-          title="Our mission is"
-          content="To strengthen regional networks for sustained partnerships and enable partners to co-develop solutions that enhance the capacity for air quality monitoring and managements across selected cities in Africa."
+          title="CLEAN-Air Mission"
+          content="To strengthen regional networks for sustained partnerships and enable partners to co-develop solutions that enhance the capacity for air quality monitoring, modelling and management across cities in Africa."
           btnText={'Learn how -->'}
           showButton={false}
           link="#"
@@ -55,34 +74,23 @@ const CleanAirAbout = () => {
             objectFit: 'cover'
           }}
           imgURL={Section2}
-          bgColor="#EDF3FF"
-          pillBgColor="#FFFFFF"
-          pillTextColor="#000000"
-          reverse
-        />
-      </div>
-      {/* section 3 */}
-      <div>
-        <SplitSection
-          pillTitle="CLEAN-Air"
-          content="CLEAN-Air, an acronym coined from ‘Championing Liveable urban Environments through African Networks for Air’, brings together stakeholders and researchers in air quality management from over 16 cities across the African continent to share best practices and knowledge on developing and implementing air quality management solutions."
-          imgURL={Section3}
-          imageStyle={{
-            objectFit: 'cover'
-          }}
+          // bgColor="#EDF3FF"
+          // pillBgColor="#FFFFFF"
+          // pillTextColor="#000000"
           bgColor="#FFFFFF"
           pillBgColor="#ECF2FF"
           pillTextColor="#135DFF"
-          showButton={false}
+          reverse
         />
       </div>
+
       {/* section 4 */}
       <div>
         <SplitSection
           pillTitle="CLEAN-Air Membership"
           title="A Synergy for air quality in Africa"
-          content=" The CLEAN-Air network is supported by development partners and philanthropic organizations, including the U.S. Department of State, Google.org, which have an established history of pioneering continuous air quality monitoring in data-hungry cities through the U.S. Embassies across Africa.<br/> <br/>
-        Are you an organization or individual interested in air quality in Africa? We implore you to join the CLEAN-Air Africa Network. 
+          content="The network comprises a diverse stakeholder landscape including research organisations, city and national governments, the private sector, development partners, and individuals who are championing the air quality agenda in African cities.<br/> <br/>
+          Are you an organization or individual interested in air quality in Africa? We welcome you to join the CLEAN-Air Network. 
         "
           link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
           btnText={'Join the Network -->'}
@@ -124,7 +132,7 @@ const CleanAirAbout = () => {
                 }}>
                 Enhancing Regional Capacity
               </span>
-              :  We are dedicated to improving capacity in air quality monitoring, modeling, data
+              :  Dedicated to improving capacity in air quality monitoring, modeling, data
               management and access through scaling up of ongoing localized initiatives in African
               Cities.
             </div>
@@ -135,10 +143,11 @@ const CleanAirAbout = () => {
                   fontSize: '1.5rem',
                   color: '#135DFF'
                 }}>
-                Driving awareness
+                Collaboration and awareness
               </span>
-              :  We are committed to fostering a deeper understanding, awareness and appreciation of
-              air quality issues through evidence-informed and participatory advocacy approaches.
+              :  Committed to fostering a deeper understanding, awareness and appreciation of air
+              quality issues through evidence-informed and participatory advocacy, and knowledge
+              sharing.
             </div>
             <div>
               <span
@@ -147,11 +156,10 @@ const CleanAirAbout = () => {
                   fontSize: '1.5rem',
                   color: '#135DFF'
                 }}>
-                Building clean air solutions
+                Clean air solutions for cities
               </span>
-              :  We are not just a network; we are a nexus for developing tangible clean air
-              solutions and comprehensive frameworks that cater specifically to the unique
-              challenges faced by African cities.
+              :  CLEAN-Air network is a nexus for developing tangible and contextual clean air
+              solutions and frameworks for African cities.
             </div>
           </div>
         </SplitSection>
