@@ -7,6 +7,7 @@ import Team from './Tabs/Team';
 import { useEffect, useState } from 'react';
 import { getAssignedGroupMembers } from '@/core/apis/Account';
 import Profile from './Tabs/Profile';
+import OrganizationProfile from './Tabs/OrganizationProfile';
 import { isEmpty } from 'underscore';
 
 const checkAccess = (requiredPermission, rolePermissions) => {
@@ -59,6 +60,11 @@ const Settings = () => {
         <Tab label='Password'>
           <Password />
         </Tab>
+        {userPermissions && checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_USERS', userPermissions) && (
+          <Tab label='Organisation'>
+            <OrganizationProfile />
+          </Tab>
+        )}
         {userGroup &&
           userPermissions &&
           checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_USERS', userPermissions) &&
