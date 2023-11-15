@@ -17,12 +17,18 @@ const OverView = () => {
 
   useEffect(() => {
     setIsLoadingMeasurements(true);
-    if (userLocationsData && !userLocationsData?.grid_ids) {
+    if (userLocationsData && !userLocationsData?.selected_sites) {
       setIsLoadingMeasurements(false);
       return;
     }
-    if (userLocationsData && userLocationsData?.grid_ids) {
-      setGrids(userLocationsData.grid_ids);
+    if (userLocationsData && userLocationsData?.selected_sites) {
+      const gridsList = [];
+      userLocationsData.selected_sites.map((site) => {
+        if (site.grid_ids && site.grid_ids.length > 0) {
+          gridsList.push(site.grid_ids[0]);
+        }
+      });
+      setGrids(gridsList);
     }
     setIsLoadingMeasurements(false);
   }, [userLocationsData]);
