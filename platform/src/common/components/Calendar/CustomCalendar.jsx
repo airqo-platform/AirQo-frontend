@@ -26,7 +26,7 @@ const CustomCalendar = ({
 
   const handleValueChange = (newValue) => {
     const computeDaysBetweenDates = (startDate, endDate) => {
-      const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+      const oneDay = 24 * 60 * 60 * 1000;
       return Math.round(Math.abs((startDate.getTime() - endDate.getTime()) / oneDay));
     };
 
