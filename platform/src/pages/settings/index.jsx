@@ -7,6 +7,7 @@ import Team from './Tabs/Team';
 import { useEffect, useState } from 'react';
 import { getAssignedGroupMembers } from '@/core/apis/Account';
 import Profile from './Tabs/Profile';
+import OrganizationProfile from './Tabs/OrganizationProfile';
 
 const Settings = () => {
   const [teamMembers, setTeamMembers] = useState([]);
@@ -37,6 +38,9 @@ const Settings = () => {
         </Tab>
         <Tab label='Password'>
           <Password />
+        </Tab>
+        <Tab label='Organisation'>
+          <OrganizationProfile />
         </Tab>
         <Tab label='Team'>
           <Team users={teamMembers} loading={loading} />
