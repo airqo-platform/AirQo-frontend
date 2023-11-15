@@ -17,7 +17,7 @@ import Link from 'next/link';
 import LocationIcon from '@/icons/SideBar/Sites.svg';
 import CloseIcon from '@/icons/Actions/close.svg';
 import {
-  getAllGridLocations,
+  getSitesSummary,
 } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import countries from 'i18n-iso-countries';
 import englishLocale from 'i18n-iso-countries/langs/en.json';
@@ -447,15 +447,20 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
 const CreateOrganisationDetailsPageThree = () => {
   const dispatch = useDispatch();
   const router = useRouter();
-  const gridLocationsState = useSelector((state) => state.grids.gridLocations);
-  const gridSitesLocations = gridLocationsState.map((grid) => grid.sites);
-  const gridLocationsData = [].concat(...gridSitesLocations);
+  // const gridLocationsState = useSelector((state) => state.grids.gridLocations);
+  // const gridSitesLocations = gridLocationsState.map((grid) => grid.sites);
+  // const gridLocationsData = [].concat(...gridSitesLocations);
+  const gridLocationsData = useSelector((state) => state.grids.sitesSummary.sites);
   const { id } = router.query;
   const [location, setLocation] = useState('');
   const [inputSelect, setInputSelect] = useState(false);
   const [locationArray, setLocationArray] = useState([]);
   const [filteredLocations, setFilteredLocations] = useState(gridLocationsData);
   const [loading, setLoading] = useState(false);
+  const [creationErrors, setCreationErrors] = useState({
+    state: false,
+    message: '',
+  });
 
   const handleLocationEntry = (e) => {
     setInputSelect(false);
@@ -489,9 +494,7 @@ const CreateOrganisationDetailsPageThree = () => {
     setLoading(true);
     const data = {
       user_id: id,
-      sites: {
-        selected_sites: locationArray,
-      },
+      selected_sites:locationArray,
     };
     dispatch(setCustomisedLocations(data));
     try {
@@ -517,7 +520,7 @@ const CreateOrganisationDetailsPageThree = () => {
   };
 
   useEffect(() => {
-    dispatch(getAllGridLocations());
+    dispatch(getSitesSummary());
   }, []);
 
   return (
@@ -528,6 +531,9 @@ const CreateOrganisationDetailsPageThree = () => {
           Choose locations you are interested in
         </h2>
         <form onSubmit={handleSubmit}>
+          {creationErrors.state && (
+            <Toast type={'error'} timeout={6000} message={creationErrors.message} />
+          )}
           <div className='mt-6'>
             <div className='lg:w-11/12 sm:w-full md:w-full'>
               <div className='text-sm'>Add Locations</div>
