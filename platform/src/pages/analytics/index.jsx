@@ -19,7 +19,6 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import PrintReportModal from '@/components/Modal/PrintReportModal';
 import TabButtons from '@/components/Button/TabButtons';
-import Calendar from '@/components/Calendar/Calendar';
 
 const AuthenticatedHomePage = () => {
   const dispatch = useDispatch();
@@ -135,7 +134,7 @@ const AuthenticatedHomePage = () => {
               initialEndDate={new Date()}
               id='datePicker1'
               position='down'
-              className='left-[60px] md:right-0 lg:right-0'
+              className='right-0 lg:right-0 md:-right-20'
               dropdown
             />
             <TabButtons Icon={SettingsIcon} btnText='Customize' onClick={() => toggleCustomise()} />
@@ -180,8 +179,7 @@ const AuthenticatedHomePage = () => {
                 {renderChildrenRight()[0].children}
               </div>
             )}
-            {/* <OverView /> */}
-            <Calendar />
+            <OverView />
           </Tab>
           <Tab label='Explore'>
             {isMobile && (

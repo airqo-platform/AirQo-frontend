@@ -218,15 +218,13 @@ const CustomTooltip = ({ tooltipText, children, direction, themeClass }) => {
     <div
       className='relative'
       onMouseEnter={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}
-    >
+      onMouseLeave={() => setVisible(false)}>
       {children}
       {visible && (
         <div
           className={`absolute ${tooltipClass} ${
             themeClass ? themeClass : 'bg-white text-center text-gray-700'
-          } p-2 w-48 rounded-md shadow-lg z-10`}
-        >
+          } p-2 w-48 rounded-md shadow-lg z-10`}>
           <p className='text-sm'>{tooltipText}</p>
         </div>
       )}
@@ -259,8 +257,7 @@ const renderCustomizedLegend = (props) => {
           <div style={{ color: entry.color }} className='flex space-x-2 items-center text-sm'>
             <div
               className='w-[10px] h-[10px] rounded-xl mr-1 ml-1'
-              style={{ backgroundColor: entry.color }}
-            ></div>
+              style={{ backgroundColor: entry.color }}></div>
             {truncate(entry.value)}
           </div>
         </CustomTooltip>
@@ -284,8 +281,8 @@ const useAnalytics = () => {
 
       const body = {
         sites: chartData.chartSites,
-        startDate: new Date(chartData.chartDataRange.startDate).toISOString(),
-        endDate: new Date(chartData.chartDataRange.endDate).toISOString(),
+        startDate: chartData.chartDataRange.startDate,
+        endDate: chartData.chartDataRange.endDate,
         chartType: chartData.chartType,
         frequency: chartData.timeFrame,
         pollutant: chartData.pollutionType,
@@ -373,8 +370,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
           margin={{
             top: 38,
             right: 10,
-          }}
-        >
+          }}>
           {Array.from(allKeys)
             .filter((key) => key !== 'time')
             .map((key, index) => (
@@ -408,8 +404,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
               } else {
                 return tick;
               }
-            }}
-          >
+            }}>
             <Label
               value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
               position='insideTopRight'
@@ -441,8 +436,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
           margin={{
             top: 38,
             right: 10,
-          }}
-        >
+          }}>
           {Array.from(allKeys)
             .filter((key) => key !== 'time')
             .map((key, index) => (
@@ -462,8 +456,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
               } else {
                 return tick;
               }
-            }}
-          >
+            }}>
             <Label
               value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
               position='insideTopRight'
