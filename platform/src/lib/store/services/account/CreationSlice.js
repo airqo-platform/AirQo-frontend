@@ -13,7 +13,6 @@ const initialState = {
     grp_industry: '',
     grp_country: '',
     grp_timezone: '',
-    grp_locations: [],
     grp_id:''
   },
   password: '',
@@ -25,12 +24,6 @@ const initialState = {
 };
 
 export const createUser = createAsyncThunk('account/creation', async (postData, { rejectWithValue }) => {
-  // const appendedData = {
-  //   organization: 'airqo',
-  //   long_organization: 'clean air for all African cities',
-  //   privilege: 'admin',
-  // };
-  // const createUserData = { ...postData, ...appendedData };
   try {
     const response = await postUserCreationDetails(postData);
     return response
@@ -58,9 +51,8 @@ export const postOrganisationCreationDetails = createAsyncThunk('/organisation/c
 export const updateOrganisationDetails = createAsyncThunk('/organisation/update', async (postData, id) => {
   const response = await updateOrganisationApi(postData, id);
   return response;
+});
 
-
-})
 
 export const createAccountSlice = createSlice({
   name: 'creation',

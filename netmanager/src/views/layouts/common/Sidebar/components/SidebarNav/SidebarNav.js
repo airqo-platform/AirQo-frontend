@@ -164,7 +164,8 @@ const NestedMenuItemComponent = ({ page }) => {
         <Button
           className={
             (location.pathname.includes(page.href) && classes.buttonActive) || classes.button
-          }>
+          }
+        >
           <div className={classes.icon}>{page.icon}</div>
           {page.title}
           {page.isNew && !isNewClicked && (
@@ -175,7 +176,8 @@ const NestedMenuItemComponent = ({ page }) => {
         </Button>
       }
       parentMenuOpen={true}
-      style={{ padding: '0px' }}>
+      style={{ padding: '0px' }}
+    >
       {page.nestItems.map((nestPage, key) => (
         <MenuItem key={key}>
           <Button
@@ -184,7 +186,8 @@ const NestedMenuItemComponent = ({ page }) => {
             className={classes.nestButton}
             component={CustomRouterLink}
             to={nestPage.href}
-            key={key}>
+            key={key}
+          >
             {nestPage.title}
           </Button>
         </MenuItem>
@@ -216,14 +219,16 @@ const SidebarNavItem = ({ page }) => {
       className={`${classes.item} ${page.disabled ? classes.disabledItem : ''}`}
       disableGutters
       key={page.title}
-      disabled={page.disabled}>
+      disabled={page.disabled}
+    >
       <Button
         disabled={page.disabled}
         activeClassName={classes.active}
         className={classes.button}
         component={CustomRouterLink}
         to={page.href}
-        onClick={handleClick}>
+        onClick={handleClick}
+      >
         <div className={classes.icon}>{page.icon}</div>
         <div style={{ marginRight: page.isNew && !isNewClicked ? '2px' : '0px' }}>{page.title}</div>
         {page.isNew && !isNewClicked && (
@@ -260,7 +265,7 @@ const SidebarNav = (props) => {
           if (
             !isEmpty(activeNetwork) &&
             activeNetwork.net_name !== 'airqo' &&
-            (page.title === 'Logs' || page.title === 'AirQloud Registry')
+            page.title === 'Logs'
           ) {
             return null;
           } else {
