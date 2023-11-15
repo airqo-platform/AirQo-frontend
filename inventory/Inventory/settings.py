@@ -33,9 +33,10 @@ dotenv.load_dotenv()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
-
+ 
+    
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['staging-platform.airqo.net','platform.airqo.net']
 
@@ -161,10 +162,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
-
-# STATICFILES_DIRS = [
-#     BASE_DIR / "static",
-# ]
 
 STATIC_ROOT = (BASE_DIR/"assets/")
 

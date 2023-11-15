@@ -16,6 +16,7 @@ import userDefaultsReducer from './services/charts/userDefaultsSlice';
 import { cardSlice } from './services/checklists/CheckList';
 import checklistsReducer from './services/checklists/CheckData';
 import analyticsReducer from './services/charts/ChartData';
+import { groupInfoSlice } from './services/groups/GroupInfoSlice';
 
 const persistConfig = {
   key: 'root',
@@ -36,6 +37,7 @@ const rootReducer = combineReducers({
   userDefaults: userDefaultsReducer,
   checklists: checklistsReducer,
   analytics: analyticsReducer,
+  [groupInfoSlice.name]: groupInfoSlice.reducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

@@ -188,3 +188,15 @@ export const upsertUserChecklists = async (checklist) => {
     .post(USER_CHECKLISTS_UPSERT_URL, checklist)
     .then((response) => response.data);
 };
+
+export const getGroupDetailsApi = async (groupID) => {
+  return await createAxiosInstance()
+    .get(`${GROUPS_URL}/${groupID}`)
+    .then((response) => response.data);
+};
+
+export const updateGroupDetailsApi = async (groupID, data) => {
+  return await createAxiosInstance()
+    .put(`${GROUPS_URL}/${groupID}`, data)
+    .then((response) => response.data);
+};
