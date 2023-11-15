@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   setSelectedLocations,
-  getAllGridLocations,
+  getSitesSummary,
 } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import SearchIcon from '@/icons/Common/search_md.svg';
 import LocationIcon from '@/icons/SideBar/Sites.svg';
@@ -15,9 +15,11 @@ import DragIconLight from '@/icons/Actions/drag_icon_light.svg';
 const LocationsContentComponent = () => {
   const dispatch = useDispatch();
 
-  const gridLocationsState = useSelector((state) => state.grids.gridLocations);
-  const gridSitesLocations = gridLocationsState.map((grid) => grid.sites);
-  const gridLocationsData = [].concat(...gridSitesLocations);
+  // const gridLocationsState = useSelector((state) => state.grids.gridLocations);
+  // const gridSitesLocations = gridLocationsState.map((grid) => grid.sites);
+  // const gridLocationsData = [].concat(...gridSitesLocations);
+
+  const gridLocationsData = useSelector((state) => state.grids.sitesSummary.sites);
 
   const [location, setLocation] = useState('');
   const [inputSelect, setInputSelect] = useState(false);
@@ -59,11 +61,12 @@ const LocationsContentComponent = () => {
     setUnSelectedLocations((locations) => [...locations, item]);
   };
 
-  // TODO: HandleSubmit function that updates user defaults endpoint with the selected locations 
+  // TODO: HandleSubmit function that updates user defaults endpoint with the selected locations
 
   useEffect(() => {
-    dispatch(getAllGridLocations());
-  }, []);
+    dispatch(getSitesSummary());
+    dispatch(setSelectedLocations(locationArray));
+  }, [locationArray]);
 
   return (
     <form>
@@ -88,13 +91,13 @@ const LocationsContentComponent = () => {
               inputSelect ? 'hidden' : 'relative'
             }`}>
             {filteredLocations.length > 0 ? (
-              filteredLocations.map((location, key) => (
+              filteredLocations.map((location) => (
                 <div
                   className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer'
                   onClick={() => {
                     handleLocationSelect(location);
                   }}
-                  key={key}>
+                  key={location._id}>
                   <LocationIcon />
                   <div className='text-sm ml-1 text-black capitalize'>{location.name}</div>
                 </div>
