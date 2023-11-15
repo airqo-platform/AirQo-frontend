@@ -251,7 +251,10 @@ const CleanAirPartners = () => {
       <div>
         <div className="partners">
           <div className="partners-wrapper">
-            <h2 className="extra-content ">Private sector</h2>
+            <h2 className="extra-content ">
+              Collaborating with the private sector to advocate for a holistic and sustainable
+              approach to air quality management.
+            </h2>
           </div>
         </div>
 
@@ -265,7 +268,7 @@ const CleanAirPartners = () => {
               fontWeight: 400,
               fontStyle: 'normal'
             }}>
-            private
+            The private sector forum provides a platform for engagement with commercial media houses, regulated industries and organisation in the transport sector. 
         </p>
         "
           showButton={false}
