@@ -53,7 +53,7 @@ const OrganizationDropdown = () => {
                 </div>
                 <div className='pt-0.5 justify-start items-center gap-1 flex'>
                   <div
-                    className='text-slate-500 text-sm font-medium capitalize leading-tight'
+                    className='text-slate-500 text-sm font-medium uppercase leading-tight'
                     title={activeGroup?.grp_title}
                   >
                     {activeGroup && activeGroup?.grp_title && activeGroup?.grp_title.length > 16
