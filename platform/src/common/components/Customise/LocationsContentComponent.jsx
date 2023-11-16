@@ -15,7 +15,7 @@ import Toast from '../Toast';
 
 const LocationsContentComponent = ({ selectedLocations }) => {
   const dispatch = useDispatch();
-  const gridLocationsData = useSelector((state) => state.grids.sitesSummary.sites);
+  const gridLocationsData = useSelector((state) => state.grids.sitesSummary.sites) || [];
 
   const [location, setLocation] = useState('');
   const [inputSelect, setInputSelect] = useState(false);

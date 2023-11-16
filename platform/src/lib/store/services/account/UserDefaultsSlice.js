@@ -8,7 +8,9 @@ const initialState = {
     errors: null,
     update_response: [],
     post_response: [],
-    individual_preferences:[]
+    individual_preferences:{
+        preferences:[{}]
+    }
 }
 
 export const postUserPreferences = createAsyncThunk('/post/preferences', async (data, { rejectWithValue }) => {
