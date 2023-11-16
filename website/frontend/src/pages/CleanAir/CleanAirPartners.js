@@ -253,8 +253,8 @@ const CleanAirPartners = () => {
         <div className="partners">
           <div className="partners-wrapper">
             <h2 className="extra-content ">
-              Collaborating with the private sector to advocate for a holistic and sustainable
-              approach to air quality management.
+              Facilitating private sector-led collaborations for a holistic and sustainable model
+              for tackling air pollution
             </h2>
           </div>
         </div>
@@ -269,7 +269,7 @@ const CleanAirPartners = () => {
               fontWeight: 400,
               fontStyle: 'normal'
             }}>
-            The private sector forum provides a platform for engagement with commercial media houses, regulated industries and organisation in the transport sector. 
+            The private sector forum is a platform for engagement with the private sector players interested in contributing to advancing the air quality agenda. Private sector includes regulated industries, commercial media houses, and any private sector entity operating in Africa. 
         </p>
         "
           showButton={false}
