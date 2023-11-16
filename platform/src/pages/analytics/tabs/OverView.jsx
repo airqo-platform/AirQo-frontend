@@ -48,10 +48,7 @@ const OverView = () => {
 
   return (
     <BorderlessContentBox>
-      <div
-        className='mb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 grid-flow-col-dense'
-        style={{ gridAutoFlow: 'dense' }}
-      >
+      <div className='mb-5 grid grid-cols-1 md:grid-cols-2 gap-4' style={{ gridAutoFlow: 'dense' }}>
         {!isLoadingMeasurements &&
           recentLocationMeasurements &&
           recentLocationMeasurements
