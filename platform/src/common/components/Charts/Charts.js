@@ -238,12 +238,14 @@ const renderCustomizedLegend = (props) => {
   });
 
   return (
-    <div className='p-2 md:p-0 flex flex-wrap flex-col md:flex-row md:justify-end mt-2 space-y-2 md:space-y-0 md:space-x-4'>
+    <div className='p-2 md:p-0 flex flex-wrap flex-col md:flex-row md:justify-end mt-2 space-y-2 md:space-y-0 md:space-x-4 outline-none'>
       {sortedPayload.map((entry, index) => (
         <CustomLegendTooltip key={`item-${index}`} tooltipText={entry.value} direction='top'>
-          <div style={{ color: '#485972' }} className='flex w-full items-center text-sm'>
+          <div
+            style={{ color: '#485972' }}
+            className='flex w-full items-center text-sm outline-none'>
             <span
-              className='w-[10px] h-[10px] rounded-xl mr-1 ml-1'
+              className='w-[10px] h-[10px] rounded-xl mr-1 ml-1 outline-none'
               style={{ backgroundColor: entry.color }}></span>
             {truncate(entry.value)}
           </div>
