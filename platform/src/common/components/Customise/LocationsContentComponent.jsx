@@ -120,34 +120,6 @@ const LocationsContentComponent = ({ selectedLocations }) => {
           </div>
         )}
       </div>
-      {/* <div className='mt-4'>
-        {selectedLocations.length > 0 ? (
-          selectedLocations.map((location) => (
-            <div
-              className='border rounded-lg bg-secondary-neutral-light-25 border-input-light-outline flex flex-row justify-between items-center p-3 w-full mb-2'
-              key={location._id}>
-              <div className='flex flex-row items-center overflow-x-clip'>
-                <div>
-                  <DragIcon />
-                </div>
-                <span className='text-sm text-secondary-neutral-light-800 font-medium'>
-                  {location.name}
-                </span>
-              </div>
-              <div className='flex flex-row'>
-                <div className='mr-1 hover:cursor-pointer' onClick={() => removeLocation(location)}>
-                  <TrashIcon />
-                </div>
-                <div className='bg-primary-600 rounded-md p-2 flex items-center justify-center hover:cursor-pointer'>
-                  <StarIcon />
-                </div>
-              </div>
-            </div>
-          ))
-        ) : (
-          <span />
-        )}
-      </div> */}
       {
         <div className='mt-4'>
           {locationArray.length > 0 ? (
@@ -176,7 +148,7 @@ const LocationsContentComponent = ({ selectedLocations }) => {
               </div>
             ))
           ) : (
-            <></>
+            <span/>
           )}
         </div>
       }
