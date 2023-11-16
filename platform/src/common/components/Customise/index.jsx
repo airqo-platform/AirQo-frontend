@@ -19,7 +19,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
   });
   const selectedLocations = useSelector((state) => state.grids.selectedLocations) || [];
   const preferenceData = useSelector((state) => state.defaults.individual_preferences);
-  const customisedLocations = preferenceData[0].selected_sites || [];
+  const customisedLocations = preferenceData.length > 0 ? preferenceData[0].selected_sites : [];
   const id = useSelector((state) => state.login.userInfo._id);
 
   const handleSelectedTab = (tab) => {
