@@ -22,8 +22,12 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, dow
   const chartData = useSelector((state) => state.chart);
 
   const modifiedData = {
-    startDate: chartData.chartDataRange.startDate,
-    endDate: chartData.chartDataRange.endDate,
+    startDate: new Date(
+      new Date(new Date(chartData.chartDataRange.endDate)).setDate(
+        new Date(chartData.chartDataRange.endDate).getDate() - 2,
+      ),
+    ),
+    endDate: new Date(chartData.chartDataRange.endDate),
     sites: chartData.chartSites,
   };
 

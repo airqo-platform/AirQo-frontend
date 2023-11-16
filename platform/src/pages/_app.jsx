@@ -9,21 +9,23 @@ export default function App({ Component, ...rest }) {
   const { store, props } = wrapper.useWrappedStore(rest);
   const persistor = persistStore(store);
 
-  // useEffect(() => {
-  //   if (process.env.ALLOW_DEV_TOOLS !== true) {
-  //     // Disable context menu (right click)
-  //     document.addEventListener('contextmenu', (e) => {
-  //       e.preventDefault();
-  //     });
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS === 'staging') {
+      return;
+    } else {
+      // Disable context menu (right click)
+      document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+      });
 
-  //     // Disable F12 key (open developer tools)
-  //     document.addEventListener('keydown', (e) => {
-  //       if (e.keyCode === 123) {
-  //         e.preventDefault();
-  //       }
-  //     });
-  //   }
-  // }, []);
+      // Disable F12 key (open developer tools)
+      document.addEventListener('keydown', (e) => {
+        if (e.keyCode === 123) {
+          e.preventDefault();
+        }
+      });
+    }
+  }, []);
 
   return (
     <Provider store={store}>

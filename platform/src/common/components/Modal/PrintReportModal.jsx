@@ -9,9 +9,9 @@ import { isEmpty } from 'underscore';
 import { exportDataApi, shareReportApi } from '@/core/apis/Analytics';
 import { useSelector } from 'react-redux';
 import { jsPDF } from 'jspdf';
+import Papa from 'papaparse';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
-import { roundToEndOfDay, roundToStartOfDay } from '@/core/utils/dateTime';
 
 const PrintReportModal = ({
   open,
@@ -104,23 +104,14 @@ const PrintReportModal = ({
 
   // Function to generate CSV file
   const generateCsv = async (data) => {
-    let csvContent = 'data:text/csv;charset=utf-8,';
-
-    // headers
-    csvContent += Object.keys(data[0]).join(',') + '\r\n';
-
-    // rows
-    data.forEach((row) => {
-      csvContent += Object.values(row).join(',') + '\r\n';
-    });
-
-    const encodedUri = encodeURI(csvContent);
-    return encodedUri;
+    const csvContent = Papa.unparse(data);
+    const csvBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    return csvBlob;
   };
 
   // Function to generate PDF file
   const generatePdf = async (data) => {
-    const doc = new jsPDF('p', 'pt', 'a4');
+    const doc = new jsPDF('l', 'pt', 'a4', true); // Changed orientation to landscape
     const tableColumn = Object.keys(data[0]);
     const tableRows = [];
 
@@ -131,12 +122,13 @@ const PrintReportModal = ({
 
     autoTable(doc, { head: [tableColumn], body: tableRows, styles: { fontSize: 8 } });
 
-    const pdfName = 'analytics-data.pdf';
-    doc.save(pdfName);
+    // Convert the PDF to a Blob object
+    const pdfBlob = new Blob([doc.output()], { type: 'application/pdf' });
 
-    // Convert the PDF to a base64 string and return it
-    const pdfBase64String = doc.output('datauristring');
-    return pdfBase64String;
+    // Convert the Blob to a File object
+    const pdfFile = new File([pdfBlob], 'report.pdf', { type: 'application/pdf' });
+
+    return pdfFile;
   };
 
   const handleShareReport = async (usebody) => {
@@ -158,24 +150,26 @@ const PrintReportModal = ({
       const shareBody = {
         recepientEmails: [...emails],
         senderEmail: userInfo.email,
+        pdf: null,
+        csv: null,
       };
 
       switch (format) {
         case 'pdf':
-          const pdfFile = await generatePdf(resData);
-          shareBody.pdf = pdfFile;
-          console.log('shareBody', shareBody);
-          await shareReportApi(shareBody);
+          shareBody.pdf = await generatePdf(resData);
           break;
 
         case 'csv':
-          const csvFile = await generateCsv(resData);
-          shareBody.csv = csvFile;
-          await shareReportApi(shareBody);
+          shareBody.csv = await generateCsv(resData);
           break;
+
         default:
           console.log('default case');
       }
+
+      console.log(shareBody, 'shareBody');
+
+      await shareReportApi(shareBody);
 
       setAlert({
         type: 'success',
