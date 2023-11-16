@@ -8,6 +8,7 @@ import { getAllEvents } from '../../../reduxStore/Events/EventSlice';
 import { format } from 'date-fns';
 import Loadspinner from '../../components/LoadSpinner';
 import PageMini from '../PageMini';
+import { setActiveTab } from '../../../reduxStore/CleanAirNetwork/CleanAir';
 
 const EventDetails = () => {
   useInitScrollTop();
