@@ -17,8 +17,9 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserChecklists } from '@/lib/store/services/checklists/CheckData';
 import { updateCards } from '@/lib/store/services/checklists/CheckList';
+import Head from 'next/head';
 
-const Layout = ({ children, topbarTitle, noBorderBottom }) => {
+const Layout = ({ pageTitle, children, topbarTitle, noBorderBottom }) => {
   // Constants
   const MAX_WIDTH = '(max-width: 1024px)';
 
@@ -119,29 +120,35 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
   }, []);
 
   return (
-    <div className=' w-screen h-screen  overflow-x-hidden' data-testid='layout'>
-      <div className=' lg:flex w-screen h-screen'>
-        <div>
-          <AuthenticatedSideBar
-            toggleDrawer={toggleDrawer}
-            setToggleDrawer={setToggleDrawer}
-            collapsed={collapsed}
-            setCollapsed={setCollapsed}
-          />
-        </div>
-        <div className='w-full overflow-x-hidden'>
-          <TopBar
-            topbarTitle={topbarTitle}
-            noBorderBottom={noBorderBottom}
-            toggleDrawer={toggleDrawer}
-            setToggleDrawer={setToggleDrawer}
-            collapsed={collapsed}
-            setCollapsed={setCollapsed}
-          />
-          {children}
+    <>
+      <Head>
+        <title>{pageTitle}</title>
+        <meta property='og:title' content={pageTitle} key='title' />
+      </Head>
+      <div className=' w-screen h-screen  overflow-x-hidden' data-testid='layout'>
+        <div className=' lg:flex w-screen h-screen'>
+          <div>
+            <AuthenticatedSideBar
+              toggleDrawer={toggleDrawer}
+              setToggleDrawer={setToggleDrawer}
+              collapsed={collapsed}
+              setCollapsed={setCollapsed}
+            />
+          </div>
+          <div className='w-full overflow-x-hidden'>
+            <TopBar
+              topbarTitle={topbarTitle}
+              noBorderBottom={noBorderBottom}
+              toggleDrawer={toggleDrawer}
+              setToggleDrawer={setToggleDrawer}
+              collapsed={collapsed}
+              setCollapsed={setCollapsed}
+            />
+            {children}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

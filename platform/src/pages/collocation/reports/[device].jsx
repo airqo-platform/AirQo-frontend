@@ -18,7 +18,6 @@ import ContentBox from '@/components/Layout/content_box';
 import CustomLegend from '@/components/Collocation/Report/MonitorReport/IntraCorrelation/custom_legend';
 import { generateRandomColors } from '@/core/utils/colors';
 import withAuth from '@/core/utils/protectedRoute';
-import Head from 'next/head';
 
 const Reports = () => {
   const router = useRouter();
@@ -114,11 +113,7 @@ const Reports = () => {
   };
 
   return (
-    <Layout topbarTitle={'Collocation'}>
-      <Head>
-        <title>Collocation Reports</title>
-        <meta property='og:title' content='Collocation Reports' key='Collocation Reports' />
-      </Head>
+    <Layout topbarTitle={'Collocation'} pageTitle={'Collocation Reports'}>
       <NavigationBreadCrumb navTitle={'Reports'} />
       {(isFetchCollocationResultsError || collocationStatisticsError) && (
         <Toast
@@ -162,8 +157,7 @@ const Reports = () => {
                 console.log('I am an event');
               },
             },
-          ]}
-        >
+          ]}>
           <div className='flex flex-col justify-start w-full' data-testid='intra-correlation-chart'>
             <PollutantDropdown
               pollutantValue={pmConcentration}

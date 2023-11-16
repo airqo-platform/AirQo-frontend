@@ -26,7 +26,7 @@ const IndividualAccountVerification = () => {
   };
 
   return (
-    <AccountPageLayout rightImage={SideImage}>
+    <AccountPageLayout rightImage={SideImage} pageTitle={'Verify Email | AirQo'}>
       {verificationErrors && (
         <Toast
           type={'error'}

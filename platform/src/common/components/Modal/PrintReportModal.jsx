@@ -6,6 +6,12 @@ import MailIcon from '@/icons/Settings/mail.svg';
 import PlusIcon from '@/icons/Settings/plus.svg';
 import Button from '@/components/Button';
 import { isEmpty } from 'underscore';
+import { exportDataApi, shareReportApi } from '@/core/apis/Analytics';
+import { useSelector } from 'react-redux';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import html2canvas from 'html2canvas';
+import { roundToEndOfDay, roundToStartOfDay } from '@/core/utils/dateTime';
 
 const PrintReportModal = ({
   open,
@@ -26,6 +32,7 @@ const PrintReportModal = ({
   });
   const [emails, setEmails] = useState(['']);
   const [emailErrors, setEmailErrors] = useState([]);
+  const userInfo = useSelector((state) => state.login.userInfo);
 
   const handleEmailChange = (index, value) => {
     const updatedEmails = [...emails];
@@ -95,43 +102,88 @@ const PrintReportModal = ({
     downloadDataFunc();
   };
 
-  const handleShareReport = () => {
-    if (emails.length === 0 || (emails.length === 1 && emails[0] === '')) {
+  // Function to generate CSV file
+  const generateCsv = async (data) => {
+    let csvContent = 'data:text/csv;charset=utf-8,';
+
+    // headers
+    csvContent += Object.keys(data[0]).join(',') + '\r\n';
+
+    // rows
+    data.forEach((row) => {
+      csvContent += Object.values(row).join(',') + '\r\n';
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    return encodedUri;
+  };
+
+  // Function to generate PDF file
+  const generatePdf = async (data) => {
+    const doc = new jsPDF();
+    const tableColumn = Object.keys(data[0]);
+    const tableRows = [];
+
+    data.forEach((row) => {
+      const data = Object.values(row);
+      tableRows.push(data);
+    });
+
+    autoTable(doc, { head: [tableColumn], body: tableRows });
+    return doc.output('datauristring');
+  };
+
+  const handleShareReport = async (usebody) => {
+    try {
+      if (emails.length === 0 || (emails.length === 1 && emails[0] === '')) {
+        setAlert({
+          type: 'error',
+          message: 'Please enter at least one email',
+          show: true,
+        });
+        return;
+      }
+
+      setLoading(true);
+
+      const response = await exportDataApi(usebody);
+      const resData = response.data;
+
+      const sharebody = {
+        recepientEmails: [...emails],
+        senderEmail: userInfo.email,
+      };
+
+      switch (format) {
+        case 'pdf':
+          const pdfFile = await generatePdf(resData);
+          await shareReportApi(sharebody, pdfFile);
+          break;
+        case 'csv':
+          const csvFile = await generateCsv(resData);
+          await shareReportApi(sharebody, csvFile);
+          break;
+        default:
+          console.log('default case');
+      }
+
       setAlert({
-        type: 'error',
-        message: 'Please enter at least one email',
+        type: 'success',
+        message: 'Air quality data shared successful',
         show: true,
       });
-      return;
+      handleCancel();
+      shareStatus('Report shared');
+    } catch (error) {
+      console.error(error, 'error');
+      setAlert({
+        type: 'error',
+        message: 'An error occurred while sharing the report. Please try again.',
+        show: true,
+      });
+    } finally {
+      setLoading(false);
     }
-    setLoading(true);
-
-    const rect = document.getElementById('analytics-chart').getBoundingClientRect();
-
-    setLoading(true);
-
-    switch (format) {
-      case 'pdf':
-        console.log('pdf case');
-        // Your code for 'pdf' case here...
-        break;
-      case 'csv':
-        console.log('csv case');
-        // Your code for 'csv' case here...
-        break;
-      default:
-        console.log('default case');
-      // Your code for default case here...
-    }
-
-    setLoading(false);
-    setAlert({
-      type: 'success',
-      message: 'Air quality data shared successful',
-      show: true,
-    });
-    // handleCancel();
-    shareStatus('Report shared');
   };
 
   return (
