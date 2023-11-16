@@ -12,7 +12,7 @@ import CustomiseLocationsComponent from '@/components/Customise';
 import DownloadIcon from '@/icons/Common/download.svg';
 import { useWindowSize } from '@/lib/windowSize';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUserDefaults } from '@/lib/store/services/charts/userDefaultsSlice';
+import { fetchUserPreferences } from '@/lib/store/services/charts/userDefaultsSlice';
 import ExportDataModal from '@/components/Modal/ExportDataModal';
 import AlertBox from '@/components/AlertBox';
 import jsPDF from 'jspdf';
@@ -42,7 +42,7 @@ const AuthenticatedHomePage = () => {
   useEffect(() => {
     const userId = JSON.parse(localStorage.getItem('loggedUser'))._id;
     if (userId) {
-      dispatch(fetchUserDefaults(userId));
+      dispatch(fetchUserPreferences(userId));
     }
   }, []);
 
@@ -146,14 +146,16 @@ const AuthenticatedHomePage = () => {
             <Button
               className='text-sm font-medium capitalize'
               variant='outlined'
-              onClick={openPrintModalFunc}>
+              onClick={openPrintModalFunc}
+            >
               Print
             </Button>
             <Button
               className='text-sm font-medium capitalize'
               variant='filled'
               Icon={DownloadIcon}
-              onClick={exportFile}>
+              onClick={exportFile}
+            >
               Export
             </Button>
           </div>

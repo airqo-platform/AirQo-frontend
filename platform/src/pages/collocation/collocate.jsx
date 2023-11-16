@@ -18,19 +18,33 @@ import { wrapper } from '@/lib/store';
 import { isEmpty } from 'underscore';
 import EmptyState from '@/components/Collocation/Collocate/empty_state';
 import Layout from '@/components/Layout';
-import withAuth from '@/core/utils/protectedRoute';
+import withAuth, { withPermission } from '@/core/utils/protectedRoute';
+import Head from 'next/head';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
-  const name = context.params?.name;
-  if (typeof name === 'string') {
-    store.dispatch(getDeviceStatusSummary.initiate(name));
+  try {
+    const name = context.params?.name;
+
+    if (typeof name === 'string') {
+      await store.dispatch(getDeviceStatusSummary.initiate(name));
+    }
+
+    await Promise.all(store.dispatch(getDeviceStatusSummary.util.getRunningQueriesThunk()));
+
+    const deviceStatusSummary = store.getState().collocationData.deviceStatusSummary;
+
+    return {
+      props: {
+        deviceStatusSummary,
+      },
+    };
+  } catch (error) {
+    console.error('Error in getServerSideProps:', error);
+
+    return {
+      props: {},
+    };
   }
-
-  await Promise.all(store.dispatch(getRunningQueriesThunk()));
-
-  return {
-    props: {},
-  };
 });
 
 const Collocate = () => {
@@ -128,4 +142,4 @@ const Collocate = () => {
   );
 };
 
-export default withAuth(Collocate);
+export default withPermission(withAuth(Collocate), 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');
