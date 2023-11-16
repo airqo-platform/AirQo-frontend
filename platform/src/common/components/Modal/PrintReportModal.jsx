@@ -120,17 +120,23 @@ const PrintReportModal = ({
 
   // Function to generate PDF file
   const generatePdf = async (data) => {
-    const doc = new jsPDF();
+    const doc = new jsPDF('p', 'pt', 'a4');
     const tableColumn = Object.keys(data[0]);
     const tableRows = [];
 
     data.forEach((row) => {
-      const data = Object.values(row);
-      tableRows.push(data);
+      const rowData = Object.values(row);
+      tableRows.push(rowData);
     });
 
-    autoTable(doc, { head: [tableColumn], body: tableRows });
-    return doc.output('datauristring');
+    autoTable(doc, { head: [tableColumn], body: tableRows, styles: { fontSize: 8 } });
+
+    const pdfName = 'analytics-data.pdf';
+    doc.save(pdfName);
+
+    // Convert the PDF to a base64 string and return it
+    const pdfBase64String = doc.output('datauristring');
+    return pdfBase64String;
   };
 
   const handleShareReport = async (usebody) => {
@@ -149,7 +155,7 @@ const PrintReportModal = ({
       const response = await exportDataApi(usebody);
       const resData = response.data;
 
-      const sharebody = {
+      const shareBody = {
         recepientEmails: [...emails],
         senderEmail: userInfo.email,
       };
@@ -157,11 +163,15 @@ const PrintReportModal = ({
       switch (format) {
         case 'pdf':
           const pdfFile = await generatePdf(resData);
-          await shareReportApi(sharebody, pdfFile);
+          shareBody.pdf = pdfFile;
+          console.log('shareBody', shareBody);
+          await shareReportApi(shareBody);
           break;
+
         case 'csv':
           const csvFile = await generateCsv(resData);
-          await shareReportApi(sharebody, csvFile);
+          shareBody.csv = csvFile;
+          await shareReportApi(shareBody);
           break;
         default:
           console.log('default case');

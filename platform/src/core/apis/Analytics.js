@@ -2,18 +2,13 @@ import createAxiosInstance from './axiosConfig';
 import { DATA_EXPORT_URL, SHARE_REPORT_URL } from '../urls/analytics';
 
 export const exportDataApi = async (body) => {
-  const headers = {
-    service: 'data-export',
-  };
-
   return await createAxiosInstance()
-    .post(DATA_EXPORT_URL, body, { headers })
+    .post(DATA_EXPORT_URL, body)
     .then((response) => response.data);
 };
 
-export const shareReportApi = async (body, msg) => {
-  const url = `${SHARE_REPORT_URL}?msg=${msg}`;
+export const shareReportApi = async (body) => {
   return await createAxiosInstance()
-    .post(url, body)
+    .post(SHARE_REPORT_URL, body)
     .then((response) => response.data);
 };
