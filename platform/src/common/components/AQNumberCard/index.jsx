@@ -8,7 +8,7 @@ import WindIcon from '@/icons/Common/wind.svg';
 import CustomTooltip from '../Tooltip';
 import { useWindowSize } from '@/lib/windowSize';
 
-const AQNumberCard = ({ reading, location, keyValue }) => {
+const AQNumberCard = ({ reading, location, keyValue, count }) => {
   let airQualityText = '';
   let AirQualityIcon = null;
   let airQualityColor = '';
@@ -42,7 +42,9 @@ const AQNumberCard = ({ reading, location, keyValue }) => {
 
   return (
     <div
-      className='relative h-[164.48px] bg-white flex-col justify-start items-center inline-flex'
+      className={`${
+        count <= 2 ? 'w-full md:min-w-[200px] md:max-w-[50%] float-left' : 'w-full'
+      } relative h-[164.48px] bg-white flex-col justify-start items-center inline-flex`}
       key={keyValue}>
       <div className='border border-gray-200 rounded-lg overflow-hidden w-full'>
         <div className='self-stretch w-full h-[68.48px] px-4 pt-3.5 pb-[10.48px] bg-white border-b border-b-gray-200 flex-col justify-start items-start flex'>
