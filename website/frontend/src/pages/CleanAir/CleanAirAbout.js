@@ -44,13 +44,14 @@ const CleanAirAbout = () => {
       </div>
 
       {/* section 2 */}
-      <div>
+      <div style={{paddingTop:'80px'}}>
         <SplitSection
           pillTitle="CLEAN-Air"
           content="CLEAN-Air, an acronym coined from ‘Championing Liveable urban Environments through African Networks for Air’, brings together stakeholders and researchers in air quality management to share best practices and knowledge on developing and implementing air quality management solutions in African cities."
           imgURL={Section3}
           imageStyle={{
-            objectFit: 'cover'
+            objectFit: 'cover',
+            maxHeight: '400px'
           }}
           // bgColor="#FFFFFF"
           // pillBgColor="#ECF2FF"
@@ -71,7 +72,8 @@ const CleanAirAbout = () => {
           showButton={false}
           link="#"
           imageStyle={{
-            objectFit: 'cover'
+            objectFit: 'cover',
+            maxHeight:'400px'
           }}
           imgURL={Section2}
           // bgColor="#EDF3FF"
@@ -96,7 +98,7 @@ const CleanAirAbout = () => {
           btnText={'Join the Network -->'}
           imgURL={Section4}
           imageStyle={{
-            objectFit: 'cover'
+            objectFit: 'cover',
           }}
           bgColor="#EDF3FF"
           pillBgColor="#FFFFFF"
