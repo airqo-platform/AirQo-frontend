@@ -129,16 +129,6 @@ export const verifyUserEmailApi = async (identifier, token) => {
   }
 };
 
-// Get User Preferences
-export const getUserPreferencesApi = async (userID) => {
-  try {
-    const response = await createAxiosInstance().get(`${USER_PREFERENCES_URL}/${userID}`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
 // Post User Preferences
 export const postUserPreferencesApi = async (data) => {
   try {
@@ -149,18 +139,27 @@ export const postUserPreferencesApi = async (data) => {
   }
 };
 
-// Update User Preferences
+// Update/Upsert User Preferences
 export const updateUserPreferencesApi = async (data) => {
   try {
-    const response = await createAxiosInstance().put(
-      `${USER_PREFERENCES_URL}/${data.user_id}`,
-      data.sites,
-    );
+    const response = await createAxiosInstance().post(`${USER_PREFERENCES_URL}/upsert`, data);
     return response.data;
   } catch (error) {
     throw error;
   }
-};
+}
+
+// Get Individual user preferences
+export const getUserPreferencesApi = async (identifier) => {
+  try {
+    const response = await createAxiosInstance().get(`${USER_PREFERENCES_URL}/${identifier}`);
+    return response.data;
+  }
+  catch (error) {
+    throw error;
+  }
+}
+
 export const getUserDefaults = async () => {
   return await createAxiosInstance()
     .get(USER_DEFAULTS_URL)
