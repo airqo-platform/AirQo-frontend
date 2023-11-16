@@ -63,7 +63,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
 
   useEffect(() => {
     dispatch(getIndividualUserPreferences(id));
-  }, []);
+  }, [customisedLocations]);
 
   return (
     <div>

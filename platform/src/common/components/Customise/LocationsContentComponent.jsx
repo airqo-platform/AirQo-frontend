@@ -36,7 +36,7 @@ const LocationsContentComponent = ({ selectedLocations }) => {
 
   const filterBySearch = (e) => {
     const query = e.target.value;
-    let locationList = [...unSelectedLocations];
+    let locationList = [...gridLocationsData];
     locationList = locationList.filter((location) => {
       return location.name.toLowerCase().indexOf(query.toLowerCase()) !== -1;
     });
