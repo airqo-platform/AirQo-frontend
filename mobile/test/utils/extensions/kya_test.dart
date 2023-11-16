@@ -21,6 +21,7 @@ void main() {
     activeTask: 1,
     status: KyaLessonStatus.todo,
     completionMessage: 'Lesson completed!',
+    hasCompleted: false,
   );
   group('KyaExt', () {
     testWidgets(
@@ -158,9 +159,6 @@ void main() {
           return;
         }
 
-        kyaLesson =
-            kyaLesson.copyWith(status: KyaLessonStatus.pendingCompletion);
-
         final message = kyaLesson.getKyaMessage(buildContext);
 
         expect(message, 'Complete! Move to For You');
@@ -231,32 +229,20 @@ void main() {
                     ? KyaLessonStatus.todo
                     : index == 1
                         ? KyaLessonStatus.inProgress
-                        : index == 2
-                            ? KyaLessonStatus.pendingCompletion
-                            : KyaLessonStatus.complete,
+                        : KyaLessonStatus.complete,
                 shareLink: '',
                 title: '',
                 tasks: const [],
+                hasCompleted: false,
               ),
             ),
           });
 
       test(
-          'filterInCompleteLessons returns pendingCompletion lessons if available',
+          'filterInCompleteLessons returns inProgress lessons if complete lessons are empty',
           () {
-        final result = lessons.filterInCompleteLessons();
-
-        expect(
-            result.every(
-                (lesson) => lesson.status == KyaLessonStatus.pendingCompletion),
-            true);
-      });
-
-      test(
-          'filterInCompleteLessons returns inProgress lessons if pendingCompletion lessons are empty',
-          () {
-        lessons.removeWhere(
-            (lesson) => lesson.status == KyaLessonStatus.pendingCompletion);
+        lessons
+            .removeWhere((lesson) => lesson.status == KyaLessonStatus.complete);
         final result = lessons.filterInCompleteLessons();
 
         expect(
@@ -266,11 +252,10 @@ void main() {
       });
 
       test(
-          'filterInCompleteLessons returns todo lessons if both pendingCompletion and inProgress lessons are empty',
+          'filterInCompleteLessons returns todo lessons if both  inProgress lessons are empty',
           () {
-        lessons.removeWhere((lesson) =>
-            lesson.status == KyaLessonStatus.pendingCompletion ||
-            lesson.status == KyaLessonStatus.inProgress);
+        lessons.removeWhere(
+            (lesson) => lesson.status == KyaLessonStatus.inProgress);
         final result = lessons.filterInCompleteLessons();
 
         expect(result.every((lesson) => lesson.status == KyaLessonStatus.todo),

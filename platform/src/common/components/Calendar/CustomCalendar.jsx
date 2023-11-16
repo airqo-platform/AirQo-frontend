@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import DatePicker from 'react-tailwindcss-datepicker';
+import React, { useState, useEffect } from 'react';
 import CalendarIcon from '@/icons/calendar.svg';
 import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
 import { useSelector, useDispatch } from 'react-redux';
 import { setChartDataRange } from '@/lib/store/services/charts/ChartSlice';
+import Calendar from './Calendar';
+import { set } from 'date-fns';
 
 const CustomCalendar = ({
   initialStartDate,
@@ -15,6 +16,7 @@ const CustomCalendar = ({
   className,
 }) => {
   const dispatch = useDispatch();
+  const [openDatePicker, setOpenDatePicker] = useState(false);
   const chartData = useSelector((state) => state.chart);
   const [value, setValue] = useState({
     startDate: initialStartDate,
@@ -23,8 +25,8 @@ const CustomCalendar = ({
 
   const handleValueChange = (newValue) => {
     const computeDaysBetweenDates = (startDate, endDate) => {
-      const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
-      return Math.round(Math.abs((startDate.getTime() - endDate.getTime()) / oneDay));
+      const oneDay = 24 * 60 * 60 * 1000;
+      return Math.floor(Math.abs((startDate.getTime() - endDate.getTime()) / oneDay));
     };
 
     const isSameDay = (date1, date2) =>
@@ -33,8 +35,8 @@ const CustomCalendar = ({
       date1.getFullYear() === date2.getFullYear();
 
     const handleDateChange = (newValue) => {
-      const startDate = new Date(newValue.startDate);
-      const endDate = new Date(newValue.endDate);
+      const startDate = new Date(newValue.start);
+      const endDate = new Date(newValue.end);
 
       const today = new Date();
 
@@ -58,6 +60,8 @@ const CustomCalendar = ({
         label = 'Last 90 days';
       } else if (computedValue === 365 || computedValue === 364) {
         label = 'This year';
+      } else if (computedValue === 730 || computedValue === 729) {
+        label = 'Last year';
       }
 
       // include also for This month and Last month
@@ -81,39 +85,52 @@ const CustomCalendar = ({
   };
 
   const DatePickerHiddenInput = () => (
-    <DatePicker
-      onChange={handleValueChange}
-      showShortcuts
-      showFooter
-      inputId={id}
-      popoverDirection={position}
-      inputClassName='absolute opacity-0 pointer-events-none w-0 h-0 z-[-1]'
-      toggleClassName='absolute opacity-0 pointer-events-none w-0 h-0 z-[-1]'
+    <Calendar
+      initialMonth1={new Date(2023, 1)}
+      initialMonth2={new Date(2023, 2)}
+      handleValueChange={handleValueChange}
+      closeDatePicker={() => setOpenDatePicker(false)}
     />
   );
-
-  const handleDatepicker = (e) => {
-    e.preventDefault();
-    document.getElementById(id).focus();
+  const handleClick = (event) => {
+    event.stopPropagation();
+    setOpenDatePicker(!openDatePicker);
   };
 
+  const handleClickOutside = (event) => {
+    if (event.target.closest('.date-picker-container') === null) {
+      setOpenDatePicker(false);
+    }
+  };
+
+  useEffect(() => {
+    if (openDatePicker) {
+      document.addEventListener('click', handleClickOutside);
+    } else {
+      document.removeEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [openDatePicker]);
+
   return (
-    <div className='relative cursor-pointer' onClick={handleDatepicker}>
+    <div className='relative cursor-pointer date-picker-container'>
       <button
+        onClick={handleClick}
         type='button'
-        className='relative border border-grey-750 rounded flex items-center justify-between gap-2 px-4 py-3'
-      >
+        className='relative border border-grey-750 rounded flex items-center justify-between gap-2 px-4 py-3'>
         {Icon ? <Icon /> : <CalendarIcon />}
         <span className='hidden sm:inline-block text-sm font-medium'>
           {chartData.chartDataRange.label}
         </span>
         {dropdown && <ChevronDownIcon />}
       </button>
-      <div className={`absolute top-10 ${className}`}>
+      <div className={`absolute top-[50px] ${className} ${openDatePicker ? 'block' : 'hidden'}`}>
         <DatePickerHiddenInput />
       </div>
     </div>
   );
 };
-
 export default CustomCalendar;

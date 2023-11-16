@@ -103,7 +103,7 @@ const AuthenticatedHomePage = () => {
       const height = rect.height + extraSpace;
 
       html2canvas(chartContainer, {
-        scale: 3,
+        scale: 5,
         useCORS: true,
         backgroundColor: rect.backgroundColor,
         width: width,
@@ -128,13 +128,11 @@ const AuthenticatedHomePage = () => {
       {
         label: 'Overview',
         children: (
-          <div className='flex space-x-3 mb-2'>
+          <div className='flex space-x-3 mb-3'>
             <CustomCalendar
               initialStartDate={new Date()}
               initialEndDate={new Date()}
-              id='datePicker1'
-              position='down'
-              className='left-[60px] md:right-0 lg:right-0'
+              className='-right-10 lg:right-0 md:-right-20'
               dropdown
             />
             <TabButtons Icon={SettingsIcon} btnText='Customize' onClick={() => toggleCustomise()} />
@@ -187,7 +185,7 @@ const AuthenticatedHomePage = () => {
                 {renderChildrenRight()[1].children}
               </div>
             )}
-            <Explore />
+            <Explore toggleCustomize={toggleCustomise} />
           </Tab>
         </Tabs>
         {customise && <CustomiseLocationsComponent toggleCustomise={toggleCustomise} />}

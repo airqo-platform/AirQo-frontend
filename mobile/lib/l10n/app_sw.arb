@@ -338,6 +338,8 @@
     "doYouWantToSwitchToLanguage": "unataka kubadili {placeholder}? programu itaanza upya ili kufanya mabadiliko",
     "languageChangedSuccessfully": "Lugha imebadilishwa kwa mafanikio {placeholder}",
     "ok": "Sawa",
-    "languages": "Lugha"
-
+    "languages": "Lugha",
+    "reDOLesson": "Fanya tena somo",
+    "reDoQuiz": "Fanya tena mtihani",
+    "continueLearning" : "Endelea kujifunza"
 }
