@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import TopBar from '@/components/TopBar';
-import {
-  fetchUserPreferences,
-  clearChartStore,
-} from '@/lib/store/services/charts/userDefaultsSlice';
+import { fetchUserPreferences } from '@/lib/store/services/charts/userDefaultsSlice';
 import {
   setChartSites,
   setChartDataRange,
@@ -12,7 +9,6 @@ import {
   setChartType,
   setPollutant,
   resetChartStore,
-  clearAll,
 } from '@/lib/store/services/charts/ChartSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserChecklists } from '@/lib/store/services/checklists/CheckData';
@@ -52,7 +48,6 @@ const Layout = ({ pageTitle, children, topbarTitle, noBorderBottom }) => {
       if (userInfo && userPreferences && userPreferences.length > 0) {
         const { period, selected_sites, startDate, endDate, frequency, chartType, pollutant } =
           userPreferences[0];
-        dispatch(clearAll());
         try {
           const chartSites = selected_sites
             ? selected_sites.map((site) => site['_id'])
@@ -79,7 +74,7 @@ const Layout = ({ pageTitle, children, topbarTitle, noBorderBottom }) => {
     };
 
     setChartProperties();
-  }, [userInfo, dispatch]);
+  }, [userInfo, userPreferences, dispatch]);
 
   // Fetching user checklists
   useEffect(() => {
