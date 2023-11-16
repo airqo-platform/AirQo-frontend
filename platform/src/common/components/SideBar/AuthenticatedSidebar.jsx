@@ -115,7 +115,9 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
             <SidebarIconItem IconComponent={HomeIcon} navPath='/Home' />
             <SidebarIconItem IconComponent={BarChartIcon} navPath='/analytics' />
             <hr className='my-3 h-[0.5px] bg-grey-150' />
-            <SidebarIconItem IconComponent={CollocateIcon} navPath='#' />
+            {checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES') && (
+              <SidebarIconItem IconComponent={CollocateIcon} navPath='/collocation/overview' />
+            )}
           </div>
         </div>
         <div className='mx-2 mb-2 flex items-center justify-center'>
