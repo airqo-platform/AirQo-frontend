@@ -31,7 +31,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
     setLoading(true);
     setCreationErrors({
       state: false,
-      message:''
+      message: '',
     });
     if (selectedLocations.length > 4) {
       setCreationErrors({
@@ -71,7 +71,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
         <Toast type={'error'} timeout={6000} message={creationErrors.message} />
       )}
       <div
-        className='absolute right-0 top-0 w-full lg:w-4/12 h-full overflow-y-scroll bg-white z-20 border-l-grey-50 px-6'
+        className='absolute right-0 top-0 w-full lg:w-4/12 h-full overflow-y-scroll bg-white z-50 border-l-grey-50 px-6'
         style={{ boxShadow: '0px 16px 32px 0px rgba(83, 106, 135, 0.20)' }}>
         <div className='flex flex-row justify-between items-center mt-6'>
           <h3 className='text-xl text-black-800 font-semibold'>Customise</h3>
@@ -109,7 +109,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
         )}
         {/* TODO: Pollutant component and post selection to user defaults */}
       </div>
-      <div className='absolute w-full lg:w-4/12 bg-white z-30 bottom-0 right-0 border-t border-input-light-outline py-4 px-6'>
+      <div className='absolute w-full lg:w-4/12 bg-white z-50 bottom-0 right-0 border-t border-input-light-outline py-4 px-6'>
         <div className='flex flex-row justify-end items-center'>
           <button
             className='btn bg-white mr-3 border border-input-light-outline text-sm text-secondary-neutral-light-800 font-medium py-3 px-4 rounded-lg hover:bg-white hover:border-input-light-outline'
