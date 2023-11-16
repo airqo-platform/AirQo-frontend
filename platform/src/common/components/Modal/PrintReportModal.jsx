@@ -11,7 +11,6 @@ import { useSelector } from 'react-redux';
 import { jsPDF } from 'jspdf';
 import Papa from 'papaparse';
 import autoTable from 'jspdf-autotable';
-import html2canvas from 'html2canvas';
 
 const PrintReportModal = ({
   open,
@@ -103,32 +102,75 @@ const PrintReportModal = ({
   };
 
   // Function to generate CSV file
-  const generateCsv = async (data) => {
-    const csvContent = Papa.unparse(data);
-    const csvBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    return csvBlob;
+  const generateCsv = (data) => {
+    // convert data to array of objects
+    const dataArr = data.map((row) => {
+      return {
+        SiteName: row.site_name,
+        PM2_5: row.pm2_5_calibrated_value,
+        PM10: row.pm10_calibrated_value,
+        Latitude: row.device_latitude,
+        Longitude: row.device_longitude,
+        Frequency: row.frequency,
+        Date: row.datetime,
+      };
+    });
+
+    // convert data to CSV
+    const csv = Papa.unparse(dataArr);
+
+    // save CSV file
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `airquality-data.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
+    // Return the CSV file
+    return new Blob([csv], { type: 'text/csv' });
   };
 
   // Function to generate PDF file
-  const generatePdf = async (data) => {
-    const doc = new jsPDF('l', 'pt', 'a4', true); // Changed orientation to landscape
-    const tableColumn = Object.keys(data[0]);
+  const generatePdf = (data) => {
+    const doc = new jsPDF('p', 'pt');
+    const tableColumn = [
+      'SiteName',
+      'PM2.5 Value',
+      'PM10 Value',
+      'Latitude',
+      'Longitude',
+      'Frequency',
+      'Date',
+    ];
     const tableRows = [];
 
+    // Loop through the data and push the rows to the tableRows array
     data.forEach((row) => {
-      const rowData = Object.values(row);
-      tableRows.push(rowData);
+      const dataRow = [
+        row.site_name,
+        row.pm2_5_calibrated_value,
+        row.pm10_calibrated_value,
+        row.device_latitude,
+        row.device_longitude,
+        row.frequency,
+        row.datetime,
+      ];
+      tableRows.push(dataRow);
     });
 
-    autoTable(doc, { head: [tableColumn], body: tableRows, styles: { fontSize: 8 } });
+    // Set the table headers and data
+    doc.autoTable(tableColumn, tableRows, { startY: 60 });
 
-    // Convert the PDF to a Blob object
-    const pdfBlob = new Blob([doc.output()], { type: 'application/pdf' });
+    // Add title and date
+    doc.text('Air quality data', 14, 15);
+    doc.text(`From: ${data[0].date} - To: ${data[data.length - 1].date}`, 14, 30);
 
-    // Convert the Blob to a File object
-    const pdfFile = new File([pdfBlob], 'report.pdf', { type: 'application/pdf' });
+    doc.save('air_quality_data.pdf');
 
-    return pdfFile;
+    // Return the PDF file
+    return doc.output('blob');
   };
 
   const handleShareReport = async (usebody) => {
@@ -144,40 +186,44 @@ const PrintReportModal = ({
 
       setLoading(true);
 
-      const response = await exportDataApi(usebody);
-      const resData = response.data;
+      await exportDataApi(usebody).then((resData) => {
+        let file;
+        switch (format) {
+          case 'pdf':
+            file = generatePdf(resData.data);
+            break;
 
-      const shareBody = {
-        recepientEmails: [...emails],
-        senderEmail: userInfo.email,
-        pdf: null,
-        csv: null,
-      };
+          case 'csv':
+            file = generateCsv(resData.data);
+            break;
 
-      switch (format) {
-        case 'pdf':
-          shareBody.pdf = await generatePdf(resData);
-          break;
+          default:
+            console.log('default case');
+        }
 
-        case 'csv':
-          shareBody.csv = await generateCsv(resData);
-          break;
+        const formData = new FormData();
+        formData.append('recepientEmails', JSON.stringify([...emails]));
+        formData.append('senderEmail', userInfo.email);
+        formData.append(format, file);
 
-        default:
-          console.log('default case');
-      }
-
-      console.log(shareBody, 'shareBody');
-
-      await shareReportApi(shareBody);
-
-      setAlert({
-        type: 'success',
-        message: 'Air quality data shared successful',
-        show: true,
+        shareReportApi(formData)
+          .then((res) => {
+            setAlert({
+              type: 'success',
+              message: 'Air quality data shared successful',
+              show: true,
+            });
+            handleCancel();
+            shareStatus('Report shared');
+          })
+          .catch((err) => {
+            setAlert({
+              type: 'error',
+              message: 'An error occurred while sharing the report. Please try again.',
+              show: true,
+            });
+          });
       });
-      handleCancel();
-      shareStatus('Report shared');
     } catch (error) {
       console.error(error, 'error');
       setAlert({

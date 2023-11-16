@@ -8,7 +8,11 @@ export const exportDataApi = async (body) => {
 };
 
 export const shareReportApi = async (body) => {
-  return await createAxiosInstance()
-    .post(SHARE_REPORT_URL, body)
-    .then((response) => response.data);
+  try {
+    return await createAxiosInstance()
+      .post(SHARE_REPORT_URL, body)
+      .then((response) => response.data);
+  } catch (error) {
+    console.log(error);
+  }
 };
