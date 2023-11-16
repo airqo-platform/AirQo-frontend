@@ -132,7 +132,7 @@ const AuthenticatedHomePage = () => {
             <CustomCalendar
               initialStartDate={new Date()}
               initialEndDate={new Date()}
-              className='right-0 lg:right-0 md:-right-20'
+              className='-right-10 lg:right-0 md:-right-20'
               dropdown
             />
             <TabButtons Icon={SettingsIcon} btnText='Customize' onClick={() => toggleCustomise()} />
