@@ -1,4 +1,3 @@
-import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -7,9 +6,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'kya_title_page.dart';
@@ -63,32 +60,6 @@ class KyaMessageChip extends StatelessWidget {
         color: CustomColors.appColorBlue,
       ),
     );
-    if (kya.status == KyaLessonStatus.pendingCompletion) {
-      widget = RichText(
-        textAlign: TextAlign.start,
-        overflow: TextOverflow.ellipsis,
-        text: TextSpan(
-          children: [
-            TextSpan(
-              text: AppLocalizations.of(context)!.completeMoveTo,
-              style: CustomTextStyle.caption3(context)?.copyWith(
-                color: CustomColors.appColorBlack,
-              ),
-            ),
-            const TextSpan(
-              text: " ",
-            ),
-            TextSpan(
-              text: AppLocalizations.of(context)!.forYou,
-              style: CustomTextStyle.caption3(context)?.copyWith(
-                color: CustomColors.appColorBlue,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -123,11 +94,16 @@ class KyaMessageChip extends StatelessWidget {
   }
 }
 
-class KyaLessonCardWidget extends StatelessWidget {
+class KyaLessonCardWidget extends StatefulWidget {
   const KyaLessonCardWidget(this.kyaLesson, {super.key});
 
   final KyaLesson kyaLesson;
 
+  @override
+  State<KyaLessonCardWidget> createState() => _KyaLessonCardWidgetState();
+}
+
+class _KyaLessonCardWidgetState extends State<KyaLessonCardWidget> {
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
@@ -148,26 +124,14 @@ class KyaLessonCardWidget extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
       ),
       onPressed: () async {
-        if (kyaLesson.status == KyaLessonStatus.pendingCompletion) {
-          context.read<KyaBloc>().add(
-                UpdateKyaProgress(
-                  kyaLesson.copyWith(
-                    status: KyaLessonStatus.complete,
-                    activeTask: 1,
-                  ),
-                  updateRemote: true,
-                ),
-              );
-        } else {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) {
-                return KyaTitlePage(kyaLesson);
-              },
-            ),
-          );
-        }
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return KyaTitlePage(widget.kyaLesson);
+            },
+          ),
+        );
       },
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -184,22 +148,69 @@ class KyaLessonCardWidget extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 2),
                     child: AutoSizeText(
-                      kyaLesson.title,
-                      maxLines: 5,
+                      widget.kyaLesson.title,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: CustomTextStyle.headline10(context),
                     ),
                   ),
                 ),
                 const Spacer(),
+                Visibility(
+                  visible: widget.kyaLesson.status == KyaLessonStatus.todo ||
+                      widget.kyaLesson.activeTask >= 1,
+                  child: Row(
+                    children: [
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.44,
+                          maxHeight: 4,
+                        ),
+                        child: KyaLessonCardProgressBar(widget.kyaLesson),
+                      ),
+                      (widget.kyaLesson.status == KyaLessonStatus.complete ||
+                              widget.kyaLesson.hasCompleted == true &&
+                                  widget.kyaLesson.activeTask >= 1 &&
+                                  widget.kyaLesson.status ==
+                                      KyaLessonStatus.todo)
+                          ? Container(
+                              height: 19,
+                              width: 19,
+                              padding: const EdgeInsets.fromLTRB(1, 1, 1, 1),
+                              decoration: BoxDecoration(
+                                color:
+                                    CustomColors.appColorBlue.withOpacity(0.24),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.check_circle_rounded,
+                                color: CustomColors.appColorBlue,
+                                size: 17,
+                              ),
+                            )
+                          : Container(
+                              height: 19,
+                              width: 19,
+                              padding: const EdgeInsets.fromLTRB(3, 5, 3, 1),
+                              decoration: BoxDecoration(
+                                color:
+                                    CustomColors.appColorBlue.withOpacity(0.24),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                "${widget.kyaLesson.activeTask == 1 ? 0 : widget.kyaLesson.activeTask - 1}/${widget.kyaLesson.tasks.length - 1}",
+                                style: TextStyle(
+                                  color: CustomColors.appColorBlue,
+                                  fontSize: 7,
+                                ),
+                              ),
+                            ),
+                    ],
+                  ),
+                ),
                 Flexible(
                   flex: 1,
-                  child: KyaMessageChip(kyaLesson),
-                ),
-                Visibility(
-                  visible: kyaLesson.status != KyaLessonStatus.todo &&
-                      kyaLesson.activeTask != 1,
-                  child: KyaLessonProgressBar(kyaLesson),
+                  child: KyaMessageChip(widget.kyaLesson),
                 ),
               ],
             ),
@@ -214,7 +225,7 @@ class KyaLessonCardWidget extends StatelessWidget {
               width: MediaQuery.of(context).size.width * 0.27,
               height: 112,
               child: CachedNetworkImage(
-                imageUrl: kyaLesson.imageUrl,
+                imageUrl: widget.kyaLesson.imageUrl,
                 imageBuilder: (context, imageProvider) => Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.0),
@@ -249,6 +260,35 @@ class KyaLessonCardWidget extends StatelessWidget {
   }
 }
 
+class KyaLessonCardProgressBar extends StatelessWidget {
+  const KyaLessonCardProgressBar(this.kyaLesson, {super.key});
+
+  final KyaLesson kyaLesson;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: kyaLesson.tasks.length.toDouble(),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
+        child: LinearProgressIndicator(
+          color: CustomColors.appColorBlue,
+          value: (kyaLesson.hasCompleted == true &&
+                      kyaLesson.activeTask >= 1 &&
+                      kyaLesson.status == KyaLessonStatus.todo) ||
+                  kyaLesson.status == KyaLessonStatus.complete
+              ? 1.0
+              : kyaLesson.activeTask == 1
+                  ? 0
+                  : kyaLesson.activeTask / kyaLesson.tasks.length,
+          backgroundColor: CustomColors.appColorBlue.withOpacity(0.24),
+          valueColor: AlwaysStoppedAnimation<Color>(CustomColors.appColorBlue),
+        ),
+      ),
+    );
+  }
+}
+
 class KyaLessonProgressBar extends StatelessWidget {
   const KyaLessonProgressBar(this.kyaLesson, {super.key});
 
@@ -259,10 +299,13 @@ class KyaLessonProgressBar extends StatelessWidget {
     return SizedBox(
       height: kyaLesson.tasks.length.toDouble(),
       child: ClipRRect(
-        borderRadius: const BorderRadius.all(Radius.circular(10)),
+        borderRadius: const BorderRadius.horizontal(
+            left: Radius.circular(10), right: Radius.circular(10)),
         child: LinearProgressIndicator(
           color: CustomColors.appColorBlue,
-          value: kyaLesson.activeTask / kyaLesson.tasks.length,
+          value: kyaLesson.activeTask == 1
+              ? 0
+              : kyaLesson.activeTask / kyaLesson.tasks.length,
           backgroundColor: CustomColors.appColorBlue.withOpacity(0.24),
           valueColor: AlwaysStoppedAnimation<Color>(CustomColors.appColorBlue),
         ),

@@ -25,7 +25,7 @@ const CustomDropdown = ({ trigger, children, className, id }) => {
       {React.cloneElement(trigger, { onClick: handleDropdown })}
       {isOpen && (
         <div
-          className={`absolute w-[200px] mt-2 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-50 top-[40px] ${className}`}>
+          className={`absolute w-[200px] mt-2 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-50 ${className}`}>
           <div className='py-1'>{children}</div>
         </div>
       )}
