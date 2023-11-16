@@ -6,3 +6,5 @@ export { default as MainHighlight } from './Hightlights/MainHighlight';
 export { default as Article } from './Hightlights/NewArticle';
 export { default as BottomCTAS } from './CTAs/BottomCTAs';
 export { default as HeaderComponent } from './HomePage/Header';
+export { default as CardComponent } from './cards/CardComponent';
+export { default as ReportComponent } from './cards/ReportComponent';

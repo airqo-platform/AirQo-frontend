@@ -6,6 +6,7 @@ export const fetchCleanAirData = createAsyncThunk('tabs/fetchCleanAirData', asyn
 
 const initialState = {
   activeTab: 0,
+  activeResource: 'toolkits',
   airData: [],
   loading: false,
   error: null
@@ -17,6 +18,9 @@ const tabsSlice = createSlice({
   reducers: {
     setActiveTab(state, action) {
       state.activeTab = action.payload;
+    },
+    setActiveResource(state, action) {
+      state.activeResource = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -35,6 +39,6 @@ const tabsSlice = createSlice({
   }
 });
 
-export const { setActiveTab } = tabsSlice.actions;
+export const { setActiveTab, setActiveResource } = tabsSlice.actions; // Export new reducer
 
 export default tabsSlice.reducer;

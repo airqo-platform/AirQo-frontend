@@ -20,8 +20,8 @@ const CleanAirPageContainer = ({ children }) => {
     <div className="Page Clean-air-page">
       <TopBar />
       <HeaderComponent
-        title="CLEAN-Air Africa Network"
-        pageTitle="CLEAN-Air Africa Network"
+        title="CLEAN-Air Network"
+        pageTitle="CLEAN-Air Network"
         style={{
           backgroundImage: `url(${HeroImage})`
         }}
