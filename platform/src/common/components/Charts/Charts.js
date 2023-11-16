@@ -311,9 +311,9 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
 
   useEffect(() => {
     let timeoutId;
-    if (isLoading && loadingTime > 8000) {
+    if (isLoading && loadingTime > 5000) {
       // 10 seconds
-      timeoutId = setTimeout(() => setShowLoadingMessage(true), 10000);
+      timeoutId = setTimeout(() => setShowLoadingMessage(true), 5000);
     } else if (!isLoading) {
       setShowLoadingMessage(false);
     }
