@@ -116,7 +116,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
             onClick={() => toggleCustomise()}>
             Cancel
           </button>
-          {selectedLocations.length >= 4 ? (
+          {selectedLocations.length === 4 ? (
             <button
               className='btn bg-blue-900 text-sm border-none text-white font-medium py-3 px-4 rounded-lg hover:bg-primary-600'
               onClick={() => handleSubmit()}>
