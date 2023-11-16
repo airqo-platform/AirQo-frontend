@@ -450,7 +450,8 @@ const CreateOrganisationDetailsPageThree = () => {
   // const gridLocationsState = useSelector((state) => state.grids.gridLocations);
   // const gridSitesLocations = gridLocationsState.map((grid) => grid.sites);
   // const gridLocationsData = [].concat(...gridSitesLocations);
-  const gridLocationsData = useSelector((state) => state.grids.sitesSummary.sites) || [];
+  const gridsData = useSelector((state) => state.grids.sitesSummary);
+  const gridLocationsData = (gridsData && gridsData.sites) || [];
   const { id } = router.query;
   const [location, setLocation] = useState('');
   const [inputSelect, setInputSelect] = useState(false);
@@ -520,11 +521,13 @@ const CreateOrganisationDetailsPageThree = () => {
   };
 
   useEffect(() => {
-    dispatch(getSitesSummary());
+    if (gridLocationsData && gridLocationsData.length < 1) {
+      dispatch(getSitesSummary());
+    }
   }, [gridLocationsData]);
 
   return (
-    <div className='sm:ml-3 lg:ml-1'>
+    <div className='sm:ml-3 lg:ml-1 relative h-screen'>
       <ProgressComponent colorFirst={true} colorSecond={true} colorThird={true} />
       <div className='w-full'>
         <h2 className='text-3xl text-black font-semibold w-full lg:w-10/12 md:mt-20 lg:mt-2'>
@@ -578,11 +581,11 @@ const CreateOrganisationDetailsPageThree = () => {
                   )}
                 </div>
               )}
-              <div className='mt-1 text-xs text-grey-350'>Minimum of 4 locations</div>
+              <div className='mt-1 text-xs text-grey-350'>Select any 4 locations</div>
             </div>
           </div>
           {inputSelect && (
-            <div className='mt-4 flex flex-row flex-wrap'>
+            <div className='mt-4 flex flex-row flex-wrap overflow-y-clip'>
               {locationArray.length > 0 ? (
                 locationArray.map((location, key) => (
                   <div
@@ -601,34 +604,40 @@ const CreateOrganisationDetailsPageThree = () => {
               )}
             </div>
           )}
-          <div className='mt-6'>
-            {locationArray.length >= 4 ? (
-              <div className='w-full'>
-                <button
-                  type='submit'
-                  onClick={handleSubmit}
-                  className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
-                  {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
-                </button>
-              </div>
-            ) : (
-              <div className='w-full'>
-                <button
-                  type='submit'
-                  className='w-full btn btn-disabled bg-white rounded-none text-sm outline-none border-none'>
-                  Continue
-                </button>
-              </div>
-            )}
+          <div className='absolute w-full bottom-32 lg:bottom-36 2xl:bottom-52'>
+            <div className='mt-6 relative w-auto'>
+              {locationArray.length === 4 ? (
+                <div className='w-full'>
+                  <button
+                    type='submit'
+                    onClick={handleSubmit}
+                    className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
+                    {loading ? (
+                      <Spinner data-testid='spinner' width={25} height={25} />
+                    ) : (
+                      'Continue'
+                    )}
+                  </button>
+                </div>
+              ) : (
+                <div className='w-full'>
+                  <button
+                    type='submit'
+                    className='w-full btn btn-disabled bg-white rounded-none text-sm outline-none border-none'>
+                    Continue
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className='flex flex-row items-center justify-end mt-4 relative'>
+              <Link href='/account/creation/get-started'>
+                <span className='text-sm text-blue-900 font-medium hover:cursor-pointer hover:text-blue-950'>
+                  Complete this later
+                </span>
+              </Link>
+            </div>
           </div>
         </form>
-        <div className='flex flex-row items-center justify-end mt-4'>
-          <Link href='/account/creation/get-started'>
-            <span className='text-sm text-blue-900 font-medium hover:cursor-pointer hover:text-blue-950'>
-              Complete this later
-            </span>
-          </Link>
-        </div>
       </div>
     </div>
   );
@@ -647,7 +656,7 @@ const CreateOrganisationDetails = () => {
 
   return (
     <AccountPageLayout childrenHeight={'lg:h-[500]'} childrenTop={'mt-8'}>
-      {nextComponent === 'pageOne' && (
+      {nextComponent === 'pageThree' && (
         <CreateOrganisationDetailsPageOne handleComponentSwitch={() => handleSwitchTo('pageTwo')} />
       )}
       {nextComponent === 'pageTwo' && (
@@ -655,7 +664,7 @@ const CreateOrganisationDetails = () => {
           handleComponentSwitch={() => handleSwitchTo('pageThree')}
         />
       )}
-      {nextComponent === 'pageThree' && <CreateOrganisationDetailsPageThree />}
+      {nextComponent === 'pageOne' && <CreateOrganisationDetailsPageThree />}
     </AccountPageLayout>
   );
 };
