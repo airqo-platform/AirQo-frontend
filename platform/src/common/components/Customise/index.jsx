@@ -18,8 +18,8 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
     message: '',
   });
   const selectedLocations = useSelector((state) => state.grids.selectedLocations) || [];
-  const preferenceData = useSelector((state) => state.defaults.individual_preferences);
-  let customisedLocations = [];
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const customisedLocations = preferenceData.length > 0 ? preferenceData[0].selected_sites : [];;
   const id = useSelector((state) => state.login.userInfo._id);
 
   const handleSelectedTab = (tab) => {
@@ -62,7 +62,6 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
 
   useEffect(() => {
     dispatch(getIndividualUserPreferences(id));
-    customisedLocations = preferenceData.length > 0 ? preferenceData[0].selected_sites : [];
   }, [preferenceData]);
 
   return (
