@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   setSelectedLocations,
-  getAllGridLocations,
+  getSitesSummary,
 } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import SearchIcon from '@/icons/Common/search_md.svg';
 import LocationIcon from '@/icons/SideBar/Sites.svg';
@@ -11,19 +11,17 @@ import StarIcon from '@/icons/Actions/star_icon.svg';
 import StarIconLight from '@/icons/Actions/star_icon_light.svg';
 import DragIcon from '@/icons/Actions/drag_icon.svg';
 import DragIconLight from '@/icons/Actions/drag_icon_light.svg';
+import Toast from '../Toast';
 
-const LocationsContentComponent = () => {
+const LocationsContentComponent = ({ selectedLocations }) => {
   const dispatch = useDispatch();
-
-  const gridLocationsState = useSelector((state) => state.grids.gridLocations);
-  const gridSitesLocations = gridLocationsState.map((grid) => grid.sites);
-  const gridLocationsData = [].concat(...gridSitesLocations);
+  const gridLocationsData = useSelector((state) => state.grids.sitesSummary.sites) || [];
 
   const [location, setLocation] = useState('');
   const [inputSelect, setInputSelect] = useState(false);
-  const [locationArray, setLocationArray] = useState([]);
+  const [locationArray, setLocationArray] = useState(selectedLocations);
   const [filteredLocations, setFilteredLocations] = useState(gridLocationsData);
-  const [unSelectedLocations, setUnSelectedLocations] = useState(gridLocationsData);
+  const [unSelectedLocations, setUnSelectedLocations] = useState([]);
 
   const handleLocationEntry = (e) => {
     setInputSelect(false);
@@ -38,7 +36,7 @@ const LocationsContentComponent = () => {
 
   const filterBySearch = (e) => {
     const query = e.target.value;
-    let locationList = [...unSelectedLocations];
+    let locationList = [...gridLocationsData];
     locationList = locationList.filter((location) => {
       return location.name.toLowerCase().indexOf(query.toLowerCase()) !== -1;
     });
@@ -49,7 +47,9 @@ const LocationsContentComponent = () => {
     unSelectedLocations.includes(item)
       ? setUnSelectedLocations(unSelectedLocations.filter((location) => location._id !== item._id))
       : null;
-    setLocationArray((locations) => [...locations, item]);
+    locationArray.includes(item)
+      ? setLocationArray(locationArray.filter((location) => location._id !== item._id))
+      : setLocationArray((locations) => [...locations, item]);
     setInputSelect(true);
     setLocation('');
   };
@@ -57,16 +57,26 @@ const LocationsContentComponent = () => {
   const removeLocation = (item) => {
     setLocationArray(locationArray.filter((location) => location._id !== item._id));
     setUnSelectedLocations((locations) => [...locations, item]);
+    dispatch(setSelectedLocations(locationArray));
   };
 
-  // TODO: HandleSubmit function that updates user defaults endpoint with the selected locations 
-
   useEffect(() => {
-    dispatch(getAllGridLocations());
-  }, []);
+    dispatch(getSitesSummary());
+    dispatch(setSelectedLocations(locationArray));
+    while (unSelectedLocations.length < 15) {
+      const randomIndex = Math.floor(Math.random() * gridLocationsData.length);
+      const randomObject = gridLocationsData[randomIndex];
+      if (!unSelectedLocations.includes(randomObject)) {
+        unSelectedLocations.push(randomObject);
+      }
+    }
+  }, [locationArray]);
 
   return (
     <form>
+      {locationArray.length > 4 && (
+        <Toast type={'error'} message='Choose only 4 locations' timeout={6000} />
+      )}
       <div className='mt-6'>
         <div className='w-full flex flex-row items-center justify-start'>
           <div className='flex items-center justify-center pl-3 bg-white border h-12 rounded-lg rounded-r-none border-r-0 border-input-light-outline focus:border-input-light-outline'>
@@ -88,13 +98,13 @@ const LocationsContentComponent = () => {
               inputSelect ? 'hidden' : 'relative'
             }`}>
             {filteredLocations.length > 0 ? (
-              filteredLocations.map((location, key) => (
+              filteredLocations.map((location) => (
                 <div
                   className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer'
                   onClick={() => {
                     handleLocationSelect(location);
                   }}
-                  key={key}>
+                  key={location._id}>
                   <LocationIcon />
                   <div className='text-sm ml-1 text-black capitalize'>{location.name}</div>
                 </div>
@@ -110,7 +120,7 @@ const LocationsContentComponent = () => {
           </div>
         )}
       </div>
-      {inputSelect && (
+      {
         <div className='mt-4'>
           {locationArray.length > 0 ? (
             locationArray.map((location) => (
@@ -131,17 +141,17 @@ const LocationsContentComponent = () => {
                     onClick={() => removeLocation(location)}>
                     <TrashIcon />
                   </div>
-                  <div className='bg-primary-600 rounded-md p-2 flex items-center justify-center hover:cursor-pointer'>
+                  <div className='bg-primary-600 rounded-md p-2 flex items-center justify-center'>
                     <StarIcon />
                   </div>
                 </div>
               </div>
             ))
           ) : (
-            <></>
+            <span/>
           )}
         </div>
-      )}
+      }
       <div className='mt-6'>
         <h3 className='text-sm text-black-800 font-semibold'>Suggestions</h3>
         <div className='mt-3'>
@@ -161,7 +171,9 @@ const LocationsContentComponent = () => {
                 <div className='flex flex-row'>
                   <div
                     className='border border-input-light-outline rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
-                    onClick={() => handleLocationSelect(location)}>
+                    onClick={() => {
+                      handleLocationSelect(location);
+                    }}>
                     <StarIconLight />
                   </div>
                 </div>
