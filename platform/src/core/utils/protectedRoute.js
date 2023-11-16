@@ -93,3 +93,15 @@ export const withPermission = (Component, requiredPermission) => {
 
   return WithPermission;
 };
+
+export const checkAccess = (requiredPermission) => {
+  const storedGroupObj = localStorage.getItem('activeGroup');
+  const currentRole = storedGroupObj ? JSON.parse(storedGroupObj).role : {};
+
+  const permissions =
+    currentRole &&
+    currentRole.role_permissions &&
+    currentRole.role_permissions.map((item) => item.permission);
+
+  return permissions.includes(requiredPermission);
+};

@@ -9,6 +9,7 @@ import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import CollocateIcon from '@/icons/SideBar/CollocateIcon';
 import OrganizationDropdown from '../Dropdowns/OrganizationDropdown';
+import { checkAccess } from '@/core/utils/protectedRoute';
 
 const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCollapsed }) => {
   const sideBarDisplayStyle = toggleDrawer ? 'flex fixed left-0 z-50' : 'hidden';
@@ -80,16 +81,18 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
           <div className='mt-11 mx-2'>
             <SideBarItem label='Home' Icon={HomeIcon} navPath='/Home' />
             <SideBarItem label='Analytics' Icon={BarChartIcon} navPath='/analytics' />
-            <SideBarItem
-              label='Collocation'
-              Icon={CollocateIcon}
-              dropdown
-              toggleMethod={() => setCollocationOpen(!collocationOpen)}
-              toggleState={collocationOpen}
-            >
-              <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
-              <SideBarDropdownItem itemLabel='Collocate' itemPath='/collocation/collocate' />
-            </SideBarItem>
+            {checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES') && (
+              <SideBarItem
+                label='Collocation'
+                Icon={CollocateIcon}
+                dropdown
+                toggleMethod={() => setCollocationOpen(!collocationOpen)}
+                toggleState={collocationOpen}
+              >
+                <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
+                <SideBarDropdownItem itemLabel='Collocate' itemPath='/collocation/collocate' />
+              </SideBarItem>
+            )}
           </div>
         </div>
         <div className='mx-2 mb-3'>
