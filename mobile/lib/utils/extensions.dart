@@ -109,14 +109,13 @@ extension KyaExt on KyaLesson {
   String getKyaMessage(BuildContext context) {
     switch (status) {
       case KyaLessonStatus.todo:
-        return AppLocalizations.of(context)!.startLearning;
-      case KyaLessonStatus.pendingCompletion:
-        return AppLocalizations.of(context)!.completeMoveToForYou;
+        if (!hasCompleted) return AppLocalizations.of(context)!.startLearning;
       case KyaLessonStatus.inProgress:
+        return AppLocalizations.of(context)!.continueLearning;
       case KyaLessonStatus.complete:
-        if (activeTask == 1) return AppLocalizations.of(context)!.startLearning;
-        return AppLocalizations.of(context)!.continu;
+        if (hasCompleted) return AppLocalizations.of(context)!.reDOLesson;
     }
+    return AppLocalizations.of(context)!.reDOLesson;
   }
 }
 
@@ -124,30 +123,22 @@ extension QuizExt on Quiz {
   String getQuizMessage(BuildContext context) {
     switch (status) {
       case QuizStatus.todo:
-        return AppLocalizations.of(context)!.takeQuiz;
+        if (!hasCompleted) return AppLocalizations.of(context)!.takeQuiz;
       case QuizStatus.inProgress:
+        return AppLocalizations.of(context)!.continueLearning;
       case QuizStatus.complete:
-        if (activeQuestion == 1) {
-          return AppLocalizations.of(context)!.takeQuiz;
-        }
-        return AppLocalizations.of(context)!.continu;
+        if (hasCompleted) return AppLocalizations.of(context)!.reDoQuiz;
     }
+    return AppLocalizations.of(context)!.reDoQuiz;
   }
 }
 
 extension KyaListExt on List<KyaLesson> {
   List<KyaLesson> filterInCompleteLessons() {
     List<KyaLesson> inCompleteLessons =
-        where((lesson) => lesson.status == KyaLessonStatus.pendingCompletion)
+        where((lesson) => lesson.status == KyaLessonStatus.inProgress)
             .take(3)
             .toList();
-
-    if (inCompleteLessons.isEmpty) {
-      inCompleteLessons =
-          where((lesson) => lesson.status == KyaLessonStatus.inProgress)
-              .take(3)
-              .toList();
-    }
 
     if (inCompleteLessons.isEmpty) {
       inCompleteLessons =
