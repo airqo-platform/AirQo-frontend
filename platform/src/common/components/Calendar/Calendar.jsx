@@ -9,6 +9,9 @@ import {
   isWithinInterval,
   isSameDay,
   isBefore,
+  isSameMonth,
+  startOfWeek,
+  endOfWeek,
 } from 'date-fns';
 import Footer from './components/Footer';
 import ShortCuts from './components/ShortCuts';
@@ -37,10 +40,12 @@ const Calendar = ({ initialMonth1, initialMonth2, handleValueChange, closeDatePi
     }
   };
 
-  const renderDays = (month, selectedDays, setSelectedDays, closeDatePicker) => {
+  const renderDays = (month, selectedDays, setSelectedDays) => {
+    const startDay = startOfWeek(startOfMonth(month));
+    const endDay = endOfWeek(endOfMonth(month));
     const daysOfMonth = eachDayOfInterval({
-      start: startOfMonth(month),
-      end: endOfMonth(month),
+      start: startDay,
+      end: endDay,
     });
 
     return daysOfMonth.map((day, index) => {
@@ -52,30 +57,44 @@ const Calendar = ({ initialMonth1, initialMonth2, handleValueChange, closeDatePi
         selectedRange.end &&
         isWithinInterval(day, selectedRange) &&
         !isStartOrEndDay;
-      let isFirstOrLast = index === 0 || index === daysOfMonth.length - 1;
+      let isStartOfWeek = index % 7 === 0;
+      let isEndOfWeek = index % 7 === 6;
       let isToday = isSameDay(day, new Date());
+      let isCurrentMonth = isSameMonth(day, month);
 
       return (
         <div
           key={day}
           className={`flex justify-center items-center ${
-            isInBetween
-              ? 'bg-gray-100 first:rounded-s-full last:rounded-e-full dark:bg-gray-800'
+            isInBetween || isStartOrEndDay ? 'bg-gray-100 text-gray-800 dark:bg-gray-800' : ''
+          } ${
+            (selectedRange.start && isSameDay(day, selectedRange.start)) || isStartOfWeek
+              ? 'rounded-l-full'
+              : ''
+          } ${
+            (selectedRange.end && isSameDay(day, selectedRange.end)) || isEndOfWeek
+              ? 'rounded-r-full'
               : ''
           }`}>
           <button
             onClick={() => handleDayClick(day, setSelectedDays)}
-            className={`w-10 h-10 flex justify-center items-center ${
-              selectedDays.includes(day)
-                ? 'bg-blue-600 hover:text-white text-white dark:bg-blue-500 rounded-full'
-                : isStartOrEndDay
-                ? 'bg-blue-600 hover:text-white text-white dark:bg-blue-500 rounded-full'
-                : isToday
-                ? 'text-blue-600'
-                : 'text-gray-800 dark:text-gray-200'
-            } ${
-              isFirstOrLast ? 'rounded-s-full' : 'rounded-e-full'
-            } hover:border-blue-600 hover:text-blue-600 dark:hover:border-gray-500 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600 disabled:text-gray-300 disabled:pointer-events-none md:w-14 lg:w-16`}>
+            className={`
+              w-10 h-10 text-sm flex justify-center items-center 
+              ${
+                selectedDays.includes(day) || isStartOrEndDay
+                  ? 'bg-blue-600 dark:bg-blue-500 rounded-full text-red-50 hover:text-red-50'
+                  : ''
+              }
+              ${
+                isToday
+                  ? 'text-blue-600'
+                  : isCurrentMonth
+                  ? 'text-gray-800 dark:text-gray-200'
+                  : 'text-gray-300'
+              }
+              hover:border-blue-600 hover:text-blue-600 hover:rounded-full hover:border dark:hover:border-gray-500 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600 
+              disabled:text-gray-300 disabled:pointer-events-none md:w-14 lg:w-16
+            `}>
             {format(day, 'd')}
           </button>
         </div>
@@ -95,10 +114,20 @@ const Calendar = ({ initialMonth1, initialMonth2, handleValueChange, closeDatePi
             <div className='flex flex-col px-6 pt-5 pb-6'>
               <CalendarHeader
                 month={format(month1, 'MMMM yyyy')}
-                onNext={() => setMonth1(addMonths(month1, 1))}
-                onPrev={() => setMonth1(subMonths(month1, 1))}
+                onNext={() => {
+                  const nextMonth = addMonths(month1, 1);
+                  if (!isSameMonth(nextMonth, month2)) {
+                    setMonth1(nextMonth);
+                  }
+                }}
+                onPrev={() => {
+                  const prevMonth = subMonths(month1, 1);
+                  if (!isSameMonth(prevMonth, month2)) {
+                    setMonth1(prevMonth);
+                  }
+                }}
               />
-              <div className='grid grid-cols-7 text-xs text-center text-gray-900'>
+              <div className='grid grid-cols-7 text-xs text-center text-gray-900 space-y-[1px]'>
                 {daysOfWeek.map((day) => (
                   <span
                     key={day}
@@ -113,10 +142,20 @@ const Calendar = ({ initialMonth1, initialMonth2, handleValueChange, closeDatePi
             <div className='flex flex-col px-6 pt-5 pb-6'>
               <CalendarHeader
                 month={format(month2, 'MMMM yyyy')}
-                onNext={() => setMonth2(addMonths(month2, 1))}
-                onPrev={() => setMonth2(subMonths(month2, 1))}
+                onNext={() => {
+                  const nextMonth = addMonths(month2, 1);
+                  if (!isSameMonth(nextMonth, month1)) {
+                    setMonth2(nextMonth);
+                  }
+                }}
+                onPrev={() => {
+                  const prevMonth = subMonths(month2, 1);
+                  if (!isSameMonth(prevMonth, month1)) {
+                    setMonth2(prevMonth);
+                  }
+                }}
               />
-              <div className='grid grid-cols-7 text-xs text-center text-gray-900'>
+              <div className='grid grid-cols-7 text-xs text-center text-gray-900 space-y-[1px]'>
                 {daysOfWeek.map((day) => (
                   <span
                     key={day}

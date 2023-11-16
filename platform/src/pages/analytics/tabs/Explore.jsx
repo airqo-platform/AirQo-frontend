@@ -37,7 +37,7 @@ const Explore = ({ toggleCustomize }) => {
           <CustomDropdown
             trigger={<TabButtons btnText={chartData.timeFrame} dropdown />}
             id='days'
-            className='left-0'>
+            className='left-0 top-[40px]'>
             {timeOptions.map((option) => (
               <span
                 key={option}
@@ -59,7 +59,7 @@ const Explore = ({ toggleCustomize }) => {
           <CustomDropdown
             trigger={<TabButtons Icon={BarChart} btnText='Chart' dropdown />}
             id='charts'
-            className='right-0'>
+            className='right-0 top-[40px]'>
             {chartOptions.map((option) => (
               <span
                 key={option.id}
