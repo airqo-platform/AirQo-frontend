@@ -60,6 +60,8 @@ const CustomCalendar = ({
         label = 'Last 90 days';
       } else if (computedValue === 365 || computedValue === 364) {
         label = 'This year';
+      } else if (computedValue === 730 || computedValue === 729) {
+        label = 'Last year';
       }
 
       // include also for This month and Last month

@@ -262,6 +262,8 @@ const useAnalytics = () => {
   const userPreferences = useSelector((state) => state.userDefaults.preferences);
   const isLoading = useSelector((state) => state.analytics.status === 'loading');
   const analyticsData = useSelector((state) => state.analytics.data);
+  const [error, setError] = useState(null);
+  const [loadingTime, setLoadingTime] = useState(0);
 
   useEffect(() => {
     if (preferencesLoading) return;
@@ -281,23 +283,64 @@ const useAnalytics = () => {
     );
 
     if (allPropertiesSet) {
-      dispatch(fetchAnalyticsData(body));
-      dispatch(setRefreshChart(false));
+      const fetchData = async () => {
+        try {
+          setError(null);
+          setLoadingTime(Date.now());
+          await dispatch(fetchAnalyticsData(body));
+          dispatch(setRefreshChart(false));
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setLoadingTime(Date.now() - loadingTime);
+        }
+      };
+      fetchData();
     }
   }, [chartData, refreshChart, userPreferences]);
 
-  return { analyticsData, isLoading };
+  return { analyticsData, isLoading, error, loadingTime };
 };
 
 const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
   const chartData = useSelector((state) => state.chart);
-  const { analyticsData, isLoading } = useAnalytics();
+  const { analyticsData, isLoading, error, loadingTime } = useAnalytics();
+  const [showLoadingMessage, setShowLoadingMessage] = useState(false);
+
+  useEffect(() => {
+    let timeoutId;
+    if (isLoading && loadingTime > 8000) {
+      // 10 seconds
+      timeoutId = setTimeout(() => setShowLoadingMessage(true), 10000);
+    } else if (!isLoading) {
+      setShowLoadingMessage(false);
+    }
+    return () => clearTimeout(timeoutId);
+  }, [isLoading, loadingTime]);
+
+  // Error state
+  if (error) {
+    return (
+      <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
+        <p className='text-red-500'>
+          Oops! Something went wrong. Please try again later or contact support.
+        </p>
+      </div>
+    );
+  }
 
   // Loading state
   if (isLoading) {
     return (
-      <div className='ml-10 flex justify-center items-center w-full h-full'>
-        <Spinner />
+      <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
+        <p className='text-blue-500'>
+          <Spinner />
+          {showLoadingMessage && (
+            <span className='text-yellow-500 mt-2'>
+              The data is taking longer than expected to load. Please hang on a bit longer.
+            </span>
+          )}
+        </p>
       </div>
     );
   }
