@@ -136,6 +136,7 @@ const CleanAirEvents = () => {
           }
           imgURL={event2}
           bgColor="#FFFFFF"
+          wrapperPadding='0'
           reverse
         />
       </div>

@@ -216,7 +216,7 @@ const CleanAirPublications = () => {
 
       <div>
         <div className="partners">
-          <div className="partners-wrapper" style={{ marginTop: '-30px' }}>
+          <div className="partners-wrapper" style={{ marginTop: '50px' }}>
             <div className="resources-container">
               <div className="resource-menu" id="top-menu-sec">
                 <div className="title-wrapper">

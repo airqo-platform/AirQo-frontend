@@ -392,7 +392,7 @@ const CleanAirPartners = () => {
         )}
       </div>
 
-      <div>
+      <div style={{marginTop:'60px'}}>
         <SingleSection
           content="
         Individuals actively involved in air quality work in Africa are welcome to join the CLEAN-Air Africa Network."
