@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useSelector, useDispatch } from 'react-redux';
 import { resetStore } from '@/lib/store/services/account/LoginSlice';
@@ -68,3 +68,28 @@ export default function withAuth(Component) {
     return userCredentials.success && <Component {...props} />;
   };
 }
+
+export const withPermission = (Component, requiredPermission) => {
+  const WithPermission = (props) => {
+    const currentRole = JSON.parse(localStorage.getItem('activeGroup')).role;
+    const router = useRouter();
+
+    // Check if the user has the required permission
+    const hasPermission =
+      currentRole &&
+      currentRole?.role_permissions?.some(
+        (permission) => permission.permission === requiredPermission,
+      );
+
+    if (!hasPermission) {
+      // If the user doesn't have permission, redirect to a "permission denied" page
+      router.push('/permission-denied');
+      return null;
+    }
+
+    // If the user has permission, render the requested component
+    return <Component {...props} />;
+  };
+
+  return WithPermission;
+};
