@@ -121,6 +121,7 @@ class SplashScreenState extends State<SplashScreen>
         await _proceedWithSplashAnimation();
       }
     } else if (notifsNavigator != "None") {
+      CloudAnalytics.logNotificationOpen();
       switch (notifsNavigator) {
         case "favorites":
           await prefs.setString("pushNotificationTarget", "None");

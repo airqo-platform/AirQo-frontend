@@ -106,6 +106,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
         ),
         (r) => false,
       );
+      CloudAnalytics.logAllowNotification();
     } else {
       NotificationService.requestNotification(context, "onboarding");
     }

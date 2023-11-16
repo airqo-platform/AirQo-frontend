@@ -26,6 +26,7 @@ class NotificationService {
               .read<ProfileBloc>()
               .add(UpdateProfile(profile.copyWith(notifications: true)));
           FirebaseMessaging.instance.subscribeToTopic("notifications");
+          CloudAnalytics.logAllowNotification();
           break;
         case PermissionStatus.restricted:
         case PermissionStatus.denied:
@@ -194,5 +195,6 @@ class NotificationService {
     final notificationTarget = message.data['subject'] as String;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString("pushNotificationTarget", notificationTarget);
+    CloudAnalytics.logNotificationReceive();
   }
 }
