@@ -3,7 +3,7 @@ import AccountPageLayout from '@/components/Account/Layout';
 import ProgressComponent from '@/components/Account/ProgressComponent';
 import HintIcon from '@/icons/Actions/exclamation.svg';
 import { useDispatch, useSelector } from 'react-redux';
-import SearchIcon from '@/icons/Actions/search.svg';
+import SearchIcon from '@/icons/Common/search_md.svg';
 import Spinner from '@/components/Spinner';
 import { useRouter } from 'next/router';
 import {
@@ -17,11 +17,15 @@ import Link from 'next/link';
 import LocationIcon from '@/icons/SideBar/Sites.svg';
 import CloseIcon from '@/icons/Actions/close.svg';
 import {
-  setSelectedLocations,
-  getAllGridLocations,
+  getSitesSummary,
 } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import countries from 'i18n-iso-countries';
 import englishLocale from 'i18n-iso-countries/langs/en.json';
+import {
+  setCustomisedLocations,
+  updateUserPreferences,
+  postUserPreferences,
+} from '@/lib/store/services/account/UserDefaultsSlice';
 
 const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
   const router = useRouter();
@@ -50,6 +54,9 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
       state: false,
       message: '',
     });
+    const createPreference = {
+      user_id: id,
+    };
     try {
       const response = await dispatch(postOrganisationCreationDetails(orgData));
       if (!response.payload.success) {
@@ -57,13 +64,23 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
           state: true,
           message: response.payload.response.data.message,
         });
-        setLoading(false);
       } else {
-        handleComponentSwitch();
+        try {
+          const response = await dispatch(postUserPreferences(createPreference));
+          if (response.payload.success) {
+            handleComponentSwitch();
+          } else {
+            setCreationError({
+              state: true,
+              message: response.payload.message,
+            });
+          }
+        } catch (error) {
+          throw error;
+        }
       }
-    } catch (err) {
-      setLoading(false);
-      return err;
+    } catch (error) {
+      throw error;
     }
     setLoading(false);
   };
@@ -197,8 +214,7 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
     message: '',
   });
   const orgDetails = useSelector((state) => state.creation.org_creation_response);
-  const organisationId = orgDetails._id
-  console.log(organisationId)
+  const organisationId = orgDetails._id;
   countries.registerLocale(englishLocale);
   const industryList = [
     'Textiles',
@@ -326,7 +342,7 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
       grp_industry: orgIndustry,
       grp_country: orgCountry,
       grp_timezone: orgTimeZone,
-      grp_id:organisationId
+      grp_id: organisationId,
     };
     dispatch(setOrgUpdateDetails(orgData));
     try {
@@ -363,7 +379,7 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
               <div className='mt-2 w-full'>
                 <select
                   className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'
-                  onChange={(e) => setOrgCountry(e.target.value)}>
+                  onChange={(e) => setOrgIndustry(e.target.value)}>
                   {industryList.map((country, key) => (
                     <option key={key} value={country}>
                       {country}
@@ -379,7 +395,7 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
               <div className='mt-2 w-full flex flex-row'>
                 <select
                   className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'
-                  onChange={(e) => setOrgIndustry(e.target.value)}>
+                  onChange={(e) => setOrgCountry(e.target.value)}>
                   {Object.entries(countryList).map(([code, country], key) => (
                     <option key={code} value={country}>
                       {country}
@@ -431,13 +447,21 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
 const CreateOrganisationDetailsPageThree = () => {
   const dispatch = useDispatch();
   const router = useRouter();
-  const gridLocationsData = useSelector((state) => state.grids.gridLocations);
-  const grp_id = useSelector((state)=>state.creation.orgUpdate.grp_id)
-  const [location, setLocation] = useState(undefined);
+  // const gridLocationsState = useSelector((state) => state.grids.gridLocations);
+  // const gridSitesLocations = gridLocationsState.map((grid) => grid.sites);
+  // const gridLocationsData = [].concat(...gridSitesLocations);
+  const gridsData = useSelector((state) => state.grids.sitesSummary);
+  const gridLocationsData = (gridsData && gridsData.sites) || [];
+  const { id } = router.query;
+  const [location, setLocation] = useState('');
   const [inputSelect, setInputSelect] = useState(false);
   const [locationArray, setLocationArray] = useState([]);
   const [filteredLocations, setFilteredLocations] = useState(gridLocationsData);
   const [loading, setLoading] = useState(false);
+  const [creationErrors, setCreationErrors] = useState({
+    state: false,
+    message: '',
+  });
 
   const handleLocationEntry = (e) => {
     setInputSelect(false);
@@ -449,41 +473,41 @@ const CreateOrganisationDetailsPageThree = () => {
     const query = e.target.value;
     let locationList = [...gridLocationsData];
     locationList = locationList.filter((location) => {
-      return location.long_name.toLowerCase().indexOf(query.toLowerCase()) !== -1;
+      return location.name.toLowerCase().indexOf(query.toLowerCase()) !== -1;
     });
     setFilteredLocations(locationList);
   };
 
-  const handleLocationSelect = (name) => {
-    locationArray.includes(name)
-      ? setLocationArray(locationArray.filter((location) => location !== name))
-      : setLocationArray((locations) => [...locations, name]);
+  const handleLocationSelect = (item) => {
+    locationArray.includes(item)
+      ? setLocationArray(locationArray.filter((location) => location._id !== item._id))
+      : setLocationArray((locations) => [...locations, item]);
     setInputSelect(true);
     setLocation('');
   };
 
-  const removeLocation = (name) => {
-    setLocationArray(locationArray.filter((location) => location !== name));
+  const removeLocation = (item) => {
+    setLocationArray(locationArray.filter((location) => location._id !== item._id));
   };
 
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    dispatch(setSelectedLocations(locationArray));
-    const data={
-      grp_locations:locationArray,
-      grp_id
-    }
+    const data = {
+      user_id: id,
+      selected_sites:locationArray,
+    };
+    dispatch(setCustomisedLocations(data));
     try {
-      const response = await dispatch(updateOrganisationDetails(data));
+      const response = await dispatch(updateUserPreferences(data));
       if (!response.payload.success) {
         setCreationErrors({
           state: true,
-          message: response.payload.response.data.message,
+          message: response.payload.message,
         });
         setLoading(false);
       } else {
-        router.push('/account/creation/get-started')
+        router.push('/account/creation/get-started');
       }
     } catch (error) {
       throw error;
@@ -491,18 +515,28 @@ const CreateOrganisationDetailsPageThree = () => {
     setLoading(false);
   };
 
+  const toggleInputSelect = () => {
+    setFilteredLocations(gridLocationsData);
+    inputSelect ? setInputSelect(false) : setInputSelect(true);
+  };
+
   useEffect(() => {
-    dispatch(getAllGridLocations());
-  }, []);
+    if (gridLocationsData && gridLocationsData.length < 1) {
+      dispatch(getSitesSummary());
+    }
+  }, [gridLocationsData]);
 
   return (
-    <div className='sm:ml-3 lg:ml-1'>
+    <div className='sm:ml-3 lg:ml-1 relative h-screen'>
       <ProgressComponent colorFirst={true} colorSecond={true} colorThird={true} />
       <div className='w-full'>
         <h2 className='text-3xl text-black font-semibold w-full lg:w-10/12 md:mt-20 lg:mt-2'>
           Choose locations you are interested in
         </h2>
         <form onSubmit={handleSubmit}>
+          {creationErrors.state && (
+            <Toast type={'error'} timeout={6000} message={creationErrors.message} />
+          )}
           <div className='mt-6'>
             <div className='lg:w-11/12 sm:w-full md:w-full'>
               <div className='text-sm'>Add Locations</div>
@@ -514,43 +548,52 @@ const CreateOrganisationDetailsPageThree = () => {
                   onChange={(e) => {
                     handleLocationEntry(e);
                   }}
+                  onClick={() => toggleInputSelect()}
                   value={location}
                   placeholder='Search locations'
                   className='input text-sm w-full h-12 rounded-lg bg-white border-l-0 rounded-l-none border-input-light-outline focus:border-input-light-outline'
                 />
               </div>
-              {location !== undefined && (
+              {location !== '' && (
                 <div
                   className={`bg-white max-h-48 overflow-y-scroll px-3 pt-2 pr-1 my-1 border border-input-light-outline rounded-md ${
                     inputSelect ? 'hidden' : 'relative'
                   }`}>
                   {filteredLocations.length > 0 ? (
-                    filteredLocations.map((location) => (
+                    filteredLocations.map((location, key) => (
                       <div
                         className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer'
                         onClick={() => {
-                          handleLocationSelect(location.long_name);
-                        }}>
+                          handleLocationSelect(location);
+                        }}
+                        key={key}>
                         <LocationIcon />
-                        <div key={location._id} className='text-sm ml-1 text-black capitalize'>
-                          {location.long_name}
-                        </div>
+                        <div className='text-sm ml-1 text-black capitalize'>{location.name}</div>
                       </div>
                     ))
                   ) : (
-                    <span />
+                    <div className='flex flex-row justify-start items-center mb-0.5 text-sm w-full'>
+                      <LocationIcon />
+                      <div className='text-sm ml-1 text-black font-medium capitalize'>
+                        Location not found
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
-              <div className='mt-1 text-xs text-grey-350'>Minimum of 4 locations</div>
+              <div className='mt-1 text-xs text-grey-350'>Select any 4 locations</div>
             </div>
           </div>
           {inputSelect && (
-            <div className='mt-4 flex flex-row flex-wrap'>
+            <div className='mt-4 flex flex-row flex-wrap overflow-y-clip'>
               {locationArray.length > 0 ? (
-                locationArray.map((location) => (
-                  <div className='bg-green-150 flex flex-row items-center mr-2 px-3 py-1 rounded-xl mb-2'>
-                    <span className='text-sm text-blue-600 font-semibold mr-1'>{location}</span>
+                locationArray.map((location, key) => (
+                  <div
+                    className='bg-green-150 flex flex-row items-center mr-2 px-3 py-1 rounded-xl mb-2'
+                    key={key}>
+                    <span className='text-sm text-blue-600 font-semibold mr-1'>
+                      {location.name}
+                    </span>
                     <div onClick={() => removeLocation(location)} className='hover:cursor-pointer'>
                       <CloseIcon style={{ margin: '0 3px' }} />
                     </div>
@@ -561,34 +604,40 @@ const CreateOrganisationDetailsPageThree = () => {
               )}
             </div>
           )}
-          <div className='mt-6'>
-            {locationArray.length >= 4 ? (
-              <div className='w-full'>
-                <button
-                  type='submit'
-                  onClick={handleSubmit}
-                  className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
-                  {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
-                </button>
-              </div>
-            ) : (
-              <div className='w-full'>
-                <button
-                  type='submit'
-                  className='w-full btn btn-disabled bg-white rounded-none text-sm outline-none border-none'>
-                  Continue
-                </button>
-              </div>
-            )}
+          <div className='absolute w-full bottom-32 lg:bottom-36 2xl:bottom-52'>
+            <div className='mt-6 relative w-auto'>
+              {locationArray.length === 4 ? (
+                <div className='w-full'>
+                  <button
+                    type='submit'
+                    onClick={handleSubmit}
+                    className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
+                    {loading ? (
+                      <Spinner data-testid='spinner' width={25} height={25} />
+                    ) : (
+                      'Continue'
+                    )}
+                  </button>
+                </div>
+              ) : (
+                <div className='w-full'>
+                  <button
+                    type='submit'
+                    className='w-full btn btn-disabled bg-white rounded-none text-sm outline-none border-none'>
+                    Continue
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className='flex flex-row items-center justify-end mt-4 relative'>
+              <Link href='/account/creation/get-started'>
+                <span className='text-sm text-blue-900 font-medium hover:cursor-pointer hover:text-blue-950'>
+                  Complete this later
+                </span>
+              </Link>
+            </div>
           </div>
         </form>
-        <div className='flex flex-row items-center justify-end mt-4'>
-          <Link href='/account/creation/get-started'>
-            <span className='text-sm text-blue-900 font-medium hover:cursor-pointer hover:text-blue-950'>
-              Complete this later
-            </span>
-          </Link>
-        </div>
       </div>
     </div>
   );

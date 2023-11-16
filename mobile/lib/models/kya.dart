@@ -19,6 +19,7 @@ class KyaLesson extends Equatable {
     required this.activeTask,
     required this.status,
     required this.completionMessage,
+    required this.hasCompleted,
     this.shareLink,
   });
 
@@ -42,6 +43,9 @@ class KyaLesson extends Equatable {
   @JsonKey(defaultValue: KyaLessonStatus.todo)
   final KyaLessonStatus status;
 
+  @JsonKey(defaultValue: false)
+  final bool hasCompleted;
+
   @JsonKey(name: 'share_link', defaultValue: '')
   final String? shareLink;
 
@@ -57,6 +61,7 @@ class KyaLesson extends Equatable {
       shareLink: '',
       activeTask: 1,
       status: KyaLessonStatus.todo,
+      hasCompleted: false,
     );
   }
 
@@ -66,6 +71,7 @@ class KyaLesson extends Equatable {
     String? shareLink,
     KyaLessonStatus? status,
     int? activeTask,
+    bool? hasCompleted,
   }) {
     return KyaLesson(
       title: title,
@@ -75,6 +81,7 @@ class KyaLesson extends Equatable {
       tasks: tasks,
       status: status ?? this.status,
       activeTask: activeTask ?? this.activeTask,
+      hasCompleted: hasCompleted ?? this.hasCompleted,
       shareLink: shareLink ?? this.shareLink,
     );
   }

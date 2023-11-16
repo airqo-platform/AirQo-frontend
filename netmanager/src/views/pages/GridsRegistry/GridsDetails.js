@@ -28,6 +28,7 @@ import { updateMainAlert } from 'redux/MainAlert/operations';
 import GridSitesTable from './SitesTable';
 import { updateGridApi } from '../../apis/deviceRegistry';
 import { withPermission } from '../../containers/PageAccess';
+import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
 
 const gridItemStyle = {
   padding: '5px',
@@ -322,7 +323,7 @@ const GridsDetails = (props) => {
                 justifyContent={'center'}
                 alignItems={'center'}
               >
-                Loading grid sites...
+                <LargeCircularLoader loading={loading} />
               </Box>
             ) : (
               sitesData && sitesData.length > 0 && <GridSitesTable sites={sitesData} />

@@ -1,12 +1,13 @@
 import React from 'react';
 import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
 
-const TabButtons = ({ Icon, btnText, dropdown, onClick }) => {
+const TabButtons = ({ Icon, btnText, dropdown, onClick, id }) => {
   return (
     <button
+      id={id}
       type='button'
       onClick={onClick}
-      className='border border-grey-750 w-15 h-10 rounded-lg flex items-center justify-between gap-2 p-[10px] cursor-pointer'>
+      className='border border-grey-750 rounded flex items-center justify-between gap-2 px-4 py-3 cursor-pointer'>
       {Icon ? (
         <Icon />
       ) : (

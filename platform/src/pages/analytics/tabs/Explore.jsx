@@ -9,10 +9,12 @@ import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
 import CheckIcon from '@/icons/tickIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import { setChartType, setTimeFrame } from '@/lib/store/services/charts/ChartSlice';
+import CircleTickIcon from '@/icons/circleTick';
 
-const Explore = () => {
+const Explore = ({ toggleCustomize }) => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
+  const [downloadStatus, setDownloadStatus] = useState(null);
 
   const timeOptions = ['hourly', 'daily', 'weekly', 'monthly'];
   const chartOptions = [
@@ -21,7 +23,7 @@ const Explore = () => {
   ];
 
   return (
-    <div className='px-3 lg:px-16 py-3 space-y-4'>
+    <div className='px-3 lg:px-16 pb-3 space-y-4'>
       <div className='flex justify-between items-center flex-wrap space-y-2'>
         <div className='flex space-x-3'>
           <CustomCalendar
@@ -35,7 +37,7 @@ const Explore = () => {
           <CustomDropdown
             trigger={<TabButtons btnText={chartData.timeFrame} dropdown />}
             id='days'
-            dropStyle={{ top: '36px', zIndex: 9999, left: '0px' }}>
+            className='left-0 top-[40px]'>
             {timeOptions.map((option) => (
               <span
                 key={option}
@@ -57,7 +59,7 @@ const Explore = () => {
           <CustomDropdown
             trigger={<TabButtons Icon={BarChart} btnText='Chart' dropdown />}
             id='charts'
-            dropStyle={{ top: '36px', zIndex: 9999, right: '0px' }}>
+            className='right-0 top-[40px]'>
             {chartOptions.map((option) => (
               <span
                 key={option.id}
@@ -75,7 +77,7 @@ const Explore = () => {
               </span>
             ))}
           </CustomDropdown>
-          <TabButtons Icon={SettingsIcon} btnText='Customize' />
+          <TabButtons Icon={SettingsIcon} btnText='Customize' onClick={toggleCustomize} />
         </div>
       </div>
       <div>
@@ -84,8 +86,23 @@ const Explore = () => {
           chartType={chartData.chartType}
           chartTitle='Air quality over time'
           height={450}
+          id='explore-chart-container'
+          downloadStatus={(status) => {
+            setDownloadStatus(status);
+            setTimeout(() => {
+              setDownloadStatus(null);
+            }, 3000);
+          }}
         />
       </div>
+      {downloadStatus && (
+        <div className='w-full flex justify-center items-center'>
+          <span className='bg-blue-600 flex items-center justify-center gap-3 rounded-xl text-white w-auto h-auto text-sm p-[22px]'>
+            <CircleTickIcon fill='#fff' />
+            {downloadStatus}
+          </span>
+        </div>
+      )}
     </div>
   );
 };

@@ -22,20 +22,33 @@ import EmptyState from '@/components/Collocation/Overview/empty_state';
 import OverviewSkeleton from '@/components/Collocation/AddMonitor/Skeletion/Overview';
 import Toast from '@/components/Toast';
 import Layout from '@/components/Layout';
-import withAuth from '@/core/utils/protectedRoute';
+import withAuth, { withPermission } from '@/core/utils/protectedRoute';
 import Head from 'next/head';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
-  const name = context.params?.name;
-  if (typeof name === 'string') {
-    store.dispatch(getDeviceStatusSummary.initiate(name));
+  try {
+    const name = context.params?.name;
+
+    if (typeof name === 'string') {
+      await store.dispatch(getDeviceStatusSummary.initiate(name));
+    }
+
+    await Promise.all(store.dispatch(getDeviceStatusSummary.util.getRunningQueriesThunk()));
+
+    const deviceStatusSummary = store.getState().collocationData.deviceStatusSummary;
+
+    return {
+      props: {
+        deviceStatusSummary,
+      },
+    };
+  } catch (error) {
+    console.error('Error in getServerSideProps:', error);
+
+    return {
+      props: {},
+    };
   }
-
-  await Promise.all(store.dispatch(getRunningQueriesThunk()));
-
-  return {
-    props: {},
-  };
 });
 
 const CollocationOverview = () => {
@@ -314,4 +327,7 @@ const CollocationOverview = () => {
   );
 };
 
-export default withAuth(CollocationOverview);
+export default withPermission(
+  withAuth(CollocationOverview),
+  'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
+);

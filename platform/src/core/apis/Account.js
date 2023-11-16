@@ -6,8 +6,22 @@ import {
   GROUPS_URL,
   UPDATE_USER_DETAILS_URL,
   USER_DEFAULTS_URL,
+  VERIFY_USER_URL,
+  USER_PREFERENCES_URL,
+  USER_CHECKLISTS_UPSERT_URL,
+  USER_CHECKLISTS_URL,
 } from '../urls/authentication';
+import axios from 'axios';
 import createAxiosInstance from './axiosConfig';
+
+let jwtToken;
+if (typeof window !== 'undefined') {
+  jwtToken = window.localStorage.getItem('token');
+}
+
+const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN;
+
+axios.defaults.headers.common.Authorization = jwtToken;
 
 // Register User Details
 export const postUserCreationDetails = async (data) => {
@@ -53,9 +67,12 @@ export const acceptGroupTeamInvite = async (body) => {
 
 // Update [Individual]User Details
 export const updateUserCreationDetails = async (data, identifier) => {
-  return await createAxiosInstance()
-    .put(`${UPDATE_USER_DETAILS_URL}/${identifier}`, data)
-    .then((response) => response.data);
+  try {
+    const response = await axios.put(`${UPDATE_USER_DETAILS_URL}/${identifier}`, data);
+    return response.data;
+  } catch (error) {
+    return error;
+  }
 };
 
 // Create Organisation
@@ -69,7 +86,7 @@ export const createOrganisation = async (data) => {
 };
 
 // Update Organisation
-export const updateOrganisationApi = async (data, identifier) => {
+export const updateOrganisationApi = async (data) => {
   try {
     const response = await createAxiosInstance().put(`${GROUPS_URL}/${data.grp_id}`, data);
     return response.data;
@@ -77,6 +94,71 @@ export const updateOrganisationApi = async (data, identifier) => {
     return error;
   }
 };
+
+// Post User Defaults
+export const postUserDefaultsApi = async (data) => {
+  try {
+    const response = await createAxiosInstance().post(`${USER_DEFAULTS_URL}`, data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Update User Defaults
+export const updateUserDefaultsApi = async (data) => {
+  try {
+    const response = await createAxiosInstance().put(`${USER_DEFAULTS_URL}`, data.sites, {
+      params: {
+        id: data.user_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Verify user email
+export const verifyUserEmailApi = async (identifier, token) => {
+  try {
+    const response = await createAxiosInstance().get(`${VERIFY_USER_URL}/${identifier}/${token}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Post User Preferences
+export const postUserPreferencesApi = async (data) => {
+  try {
+    const response = await createAxiosInstance().post(`${USER_PREFERENCES_URL}`, data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Update/Upsert User Preferences
+export const updateUserPreferencesApi = async (data) => {
+  try {
+    const response = await createAxiosInstance().post(`${USER_PREFERENCES_URL}/upsert`, data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Get Individual user preferences
+export const getUserPreferencesApi = async (identifier) => {
+  try {
+    const response = await createAxiosInstance().get(`${USER_PREFERENCES_URL}/${identifier}`);
+    return response.data;
+  }
+  catch (error) {
+    throw error;
+  }
+}
 
 export const getUserDefaults = async () => {
   return await createAxiosInstance()
@@ -91,5 +173,29 @@ export const updateUserDefaults = async (defaultsId, defaults) => {
         id: defaultsId,
       },
     })
+    .then((response) => response.data);
+};
+
+export const getUserChecklists = async (userID) => {
+  return await createAxiosInstance()
+    .get(`${USER_CHECKLISTS_URL}/${userID}`)
+    .then((response) => response.data);
+};
+
+export const upsertUserChecklists = async (checklist) => {
+  return await createAxiosInstance()
+    .post(USER_CHECKLISTS_UPSERT_URL, checklist)
+    .then((response) => response.data);
+};
+
+export const getGroupDetailsApi = async (groupID) => {
+  return await createAxiosInstance()
+    .get(`${GROUPS_URL}/${groupID}`)
+    .then((response) => response.data);
+};
+
+export const updateGroupDetailsApi = async (groupID, data) => {
+  return await createAxiosInstance()
+    .put(`${GROUPS_URL}/${groupID}`, data)
     .then((response) => response.data);
 };

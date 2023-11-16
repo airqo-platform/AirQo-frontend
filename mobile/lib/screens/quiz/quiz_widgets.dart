@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'package:app/models/quiz.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -7,6 +6,8 @@ import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
+
+import 'package:app/models/models.dart';
 
 class QuizSkipButton extends StatelessWidget {
   const QuizSkipButton({
@@ -18,33 +19,33 @@ class QuizSkipButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IntrinsicWidth(
-        child: Container(
-      height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: const BoxDecoration(
-        color: Color.fromARGB(0, 0, 0, 0),
-        borderRadius: BorderRadius.all(
-          Radius.circular(8.0),
+      child: Container(
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: const BoxDecoration(
+          color: Color.fromARGB(0, 0, 0, 0),
+          borderRadius: BorderRadius.all(
+            Radius.circular(8.0),
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              text,
+              style: const TextStyle(
+                color: Color.fromARGB(197, 0, 0, 0),
+                fontSize: 14,
+                letterSpacing: 16 * -0.022,
+              ),
+            ),
+            const SizedBox(
+              width: 6,
+            ),
+          ],
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            text,
-            style: const TextStyle(
-              color: Color.fromARGB(197, 0, 0, 0),
-              fontSize: 14,
-              letterSpacing: 16 * -0.022,
-            ),
-          ),
-          const SizedBox(
-            width: 6,
-          ),
-        ],
-      ),
-    )
     );
   }
 }
@@ -85,8 +86,7 @@ class QuizActionButton extends StatelessWidget {
           ),
         ],
       ),
-    )
-    );
+    ));
   }
 }
 
@@ -97,7 +97,7 @@ class QuizDraggingHandle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 4,
-      width: 100,
+      width: 130,
       decoration: BoxDecoration(
         color: Colors.grey[200],
         borderRadius: BorderRadius.circular(16),
@@ -125,6 +125,40 @@ class QuizProgressBar extends StatelessWidget {
           valueColor: AlwaysStoppedAnimation<Color>(CustomColors.appColorBlue),
         ),
       ),
+    );
+  }
+}
+
+class QuizCardProgressBar extends StatelessWidget {
+  const QuizCardProgressBar(this.activeQuestion, this.totalQuestions, this.quiz,
+      {super.key});
+  final int activeQuestion;
+  final int totalQuestions;
+  final Quiz quiz;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 6,
+      width: MediaQuery.of(context).size.width * 0.87,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
+        child: LinearProgressIndicator(
+          color: CustomColors.appColorBlue,
+          value: (quiz.hasCompleted == true &&
+                      quiz.activeQuestion >= 1 &&
+                      quiz.status == QuizStatus.todo) ||
+                  quiz.status == QuizStatus.complete
+              ? 1.0
+              : quiz.activeQuestion == 1
+                  ? 0
+                  : quiz.activeQuestion / quiz.questions.length,
+          backgroundColor: CustomColors.appColorBlue.withOpacity(0.24),
+          valueColor: AlwaysStoppedAnimation<Color>(CustomColors.appColorBlue),
+        ),
+      ),
+
+      // ),
     );
   }
 }
@@ -202,8 +236,8 @@ class _ConfettiState extends State<Confetti> {
     super.dispose();
   }
 
-  Path drawStar(Size size) { //TODO draw custom shapes
-    // Method to convert degree to radians
+  Path drawStar(Size size) {
+    //TODO draw custom shapes
     double degToRad(double deg) => deg * (pi / 180.0);
 
     const numberOfPoints = 5;
@@ -338,11 +372,7 @@ class CircularQuizButton extends StatelessWidget {
 }
 
 class NextQuizButton extends StatelessWidget {
-  const NextQuizButton({
-    super.key,
-    required this.icon,
-    this.isActive = true
-  });
+  const NextQuizButton({super.key, required this.icon, this.isActive = true});
 
   final String icon;
   final bool isActive;

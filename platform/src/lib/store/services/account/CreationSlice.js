@@ -1,66 +1,69 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { postUserCreationDetails, createOrganisation, updateOrganisationApi } from '@/core/apis/Account';
+import {
+  postUserCreationDetails,
+  createOrganisation,
+  updateOrganisationApi,
+} from '@/core/apis/Account';
 
 const initialState = {
-  userData: { firstName: '', lastName: '', email: '', },
+  userData: { firstName: '', lastName: '', email: '' },
   orgData: {
     grp_title: '',
     grp_website: '',
     grp_description: '',
-    user_id: ''
+    user_id: '',
   },
   orgUpdate: {
     grp_industry: '',
     grp_country: '',
     grp_timezone: '',
-    grp_locations: [],
-    grp_id:''
+    grp_id: '',
   },
   password: '',
   errors: null,
   success: false,
-  user_id: undefined,
+  user_id: null,
   org_creation_response: [],
-  org_update_response: []
+  org_update_response: [],
 };
 
-export const createUser = createAsyncThunk('account/creation', async (postData, { rejectWithValue }) => {
-  // const appendedData = {
-  //   organization: 'airqo',
-  //   long_organization: 'clean air for all African cities',
-  //   privilege: 'admin',
-  // };
-  // const createUserData = { ...postData, ...appendedData };
-  try {
-    const response = await postUserCreationDetails(postData);
-    return response
-  } catch (error) {
-    if (!error.response) {
-      throw error
+export const createUser = createAsyncThunk(
+  'account/creation',
+  async (postData, { rejectWithValue }) => {
+    try {
+      const response = await postUserCreationDetails(postData);
+      return response;
+    } catch (error) {
+      if (!error.response) {
+        throw error;
+      }
+      return rejectWithValue(error.response.data);
     }
-    return rejectWithValue(error.response.data);
-  }
-});
+  },
+);
 
-export const postOrganisationCreationDetails = createAsyncThunk('/organisation/creation', async (postData, { rejectWithValue }) => {
-  try {
-    const response = await createOrganisation(postData);
+export const postOrganisationCreationDetails = createAsyncThunk(
+  '/organisation/creation',
+  async (postData, { rejectWithValue }) => {
+    try {
+      const response = await createOrganisation(postData);
+      return response;
+    } catch (error) {
+      if (!error.response) {
+        throw error;
+      }
+      return rejectWithValue(error.response);
+    }
+  },
+);
+
+export const updateOrganisationDetails = createAsyncThunk(
+  '/organisation/update',
+  async (postData, id) => {
+    const response = await updateOrganisationApi(postData, id);
     return response;
-  }
-  catch (error) {
-    if (!error.response) {
-      throw error
-    }
-    return rejectWithValue(error.response)
-  }
-})
-
-export const updateOrganisationDetails = createAsyncThunk('/organisation/update', async (postData, id) => {
-  const response = await updateOrganisationApi(postData, id);
-  return response;
-
-
-})
+  },
+);
 
 export const createAccountSlice = createSlice({
   name: 'creation',
@@ -86,7 +89,7 @@ export const createAccountSlice = createSlice({
     },
     setUserId: (state, action) => {
       state.user_id = action.payload;
-    }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -126,7 +129,14 @@ export const createAccountSlice = createSlice({
   },
 });
 
-export const { setUserEmail, setUserFirstName, setUserLastName, setUserPassword, setOrgDetails, setUserId, setOrgUpdateDetails } =
-  createAccountSlice.actions;
+export const {
+  setUserEmail,
+  setUserFirstName,
+  setUserLastName,
+  setUserPassword,
+  setOrgDetails,
+  setUserId,
+  setOrgUpdateDetails,
+} = createAccountSlice.actions;
 
 export default createAccountSlice.reducer;

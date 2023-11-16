@@ -129,13 +129,13 @@
         display: flex;
         flex-direction: row;
         align-items: center;
+        padding-bottom: 12px;
         span {
           margin-left: 15px;
         }
       }
       .cta {
-        position: absolute;
-        bottom: 0;
+        position: relative;
       }
       button.link {
         color: #135dff;

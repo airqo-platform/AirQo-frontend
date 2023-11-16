@@ -12,7 +12,6 @@ import 'package:app/utils/utils.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../home_page.dart';
@@ -32,35 +31,49 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => SplashScreenState();
 }
 
-class SplashScreenState extends State<SplashScreen> {
-  int _widgetId = 0;
+class SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   bool _visible = false;
+  late Future<void> _initializationFuture;
   late StreamSubscription<PendingDynamicLinkData> _dynamicLinkSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializationFuture = _initialize();
+  }
 
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context);
     AppService().setLocale(locale.languageCode);
-    
-    return Scaffold(
-      body: PageTransitionSwitcher(
-        duration: const Duration(seconds: 3),
-        transitionBuilder: (
-          child,
-          animation,
-          secondaryAnimation,
-        ) {
-          return SharedAxisTransition(
-            animation: animation,
-            secondaryAnimation: secondaryAnimation,
-            transitionType: SharedAxisTransitionType.horizontal,
-            child: child,
-          );
-        },
-        child: _widgetId == 0
-            ? const LogoWidget()
-            : TaglineWidget(visible: _visible),
-      ),
+
+    return FutureBuilder<void>(
+      future: _initializationFuture,
+      builder: (context, snapshot) {
+        return Scaffold(
+          body: PageTransitionSwitcher(
+            duration: const Duration(seconds: 0),
+            transitionBuilder: (
+              child,
+              animation,
+              secondaryAnimation,
+            ) {
+              return SharedAxisTransition(
+                animation: animation,
+                secondaryAnimation: secondaryAnimation,
+                transitionType: SharedAxisTransitionType.horizontal,
+                child: child,
+              );
+            },
+            child: _visible
+                ? TaglineWidget(key: UniqueKey(), visible: true)
+                : CustomPaint(
+                    painter: SplashScreenPainter(), // Create a custom painter
+                  ),
+          ),
+        );
+      },
     );
   }
 
@@ -131,12 +144,6 @@ class SplashScreenState extends State<SplashScreen> {
     super.dispose();
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _initialize();
-  }
-
   Future<void> _proceedWithSplashAnimation() async {
     final Profile profile = context.read<ProfileBloc>().state;
 
@@ -187,9 +194,24 @@ class SplashScreenState extends State<SplashScreen> {
     setState(
       () {
         _visible = true;
-        _widgetId = _widgetId == 0 ? 1 : 0;
       },
     );
+  }
+}
+
+class SplashScreenPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Paint a white background to match the native splash screen
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    canvas.drawRect(Offset.zero & size, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false;
   }
 }
 
@@ -222,30 +244,6 @@ class TaglineWidget extends StatelessWidget {
                   .textTheme
                   .headlineMedium
                   ?.copyWith(color: Colors.white),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class LogoWidget extends StatelessWidget {
-  const LogoWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              'assets/icon/splash_image.svg',
-              semanticsLabel: AppLocalizations.of(context)!.share,
-              // height: 118,
-              // width: 81,
             ),
           ],
         ),

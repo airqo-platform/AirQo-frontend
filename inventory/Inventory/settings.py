@@ -33,16 +33,18 @@ dotenv.load_dotenv()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
-
+ 
+    
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['staging-platform.airqo.net','platform.airqo.net']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',  # CORS HEADERS
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -58,6 +60,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # CORS HEADERS
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -68,6 +71,15 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CORS_ALLOWED_ORIGINS = [
+    "https://staging-platform.airqo.net",
+    "https://platform.airqo.net",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://staging-platform.airqo.net",
+    "https://platform.airqo.net",
+]
 ROOT_URLCONF = 'Inventory.urls'
 
 TEMPLATES = [
@@ -150,10 +162,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
-
-# STATICFILES_DIRS = [
-#     BASE_DIR / "static",
-# ]
 
 STATIC_ROOT = (BASE_DIR/"assets/")
 

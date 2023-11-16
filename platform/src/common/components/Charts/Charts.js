@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   LineChart,
   Line,
@@ -18,9 +18,10 @@ import Moderate from '@/icons/Charts/Moderate';
 import Unhealthy from '@/icons/Charts/Unhealthy';
 import UnhealthySG from '@/icons/Charts/UnhealthySG';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
-import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import Spinner from '@/components/Spinner';
+import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
+import { fetchAnalyticsData } from '@/lib/store/services/charts/ChartData';
 
 const colors = ['#11225A', '#0A46EB', '#297EFF', '#B8D9FF'];
 
@@ -32,40 +33,48 @@ const truncate = (str) => {
   return str.length > 10 ? str.substr(0, 10 - 1) + '...' : str;
 };
 
+const getAirQualityLevelText = (value) => {
+  let airQualityText = '';
+  let AirQualityIcon = null;
+  let airQualityColor = '';
+
+  if (value >= 0 && value <= 12) {
+    airQualityText = 'Air Quality is Good';
+    AirQualityIcon = GoodAir;
+    airQualityColor = 'text-green-500';
+  } else if (value > 12 && value <= 35.4) {
+    airQualityText = 'Air Quality is Moderate';
+    AirQualityIcon = Moderate;
+    airQualityColor = 'text-yellow-500';
+  } else if (value > 35.4 && value <= 55.4) {
+    airQualityText = 'Air Quality is Unhealthy for Sensitive Groups';
+    AirQualityIcon = UnhealthySG;
+    airQualityColor = 'text-orange-500';
+  } else if (value > 55.4 && value <= 150.4) {
+    airQualityText = 'Air Quality is Unhealthy';
+    AirQualityIcon = Unhealthy;
+    airQualityColor = 'text-red-500';
+  } else if (value > 150.4 && value <= 250.4) {
+    airQualityText = 'Air Quality is Very Unhealthy';
+    AirQualityIcon = VeryUnhealthy;
+    airQualityColor = 'text-purple-500';
+  } else if (value > 250.4 && value <= 500) {
+    airQualityText = 'Air Quality is Hazardous';
+    AirQualityIcon = Hazardous;
+    airQualityColor = 'text-gray-500';
+  }
+
+  return { airQualityText, AirQualityIcon, airQualityColor };
+};
+
 const CustomTooltipLineGraph = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const hoveredPoint = payload[0];
     const otherPoints = payload.slice(1);
 
-    let airQualityText = '';
-    let AirQualityIcon = null;
-    let airQualityColor = '';
-
-    if (hoveredPoint.value >= 0 && hoveredPoint.value <= 12) {
-      airQualityText = 'Air Quality is Good';
-      AirQualityIcon = GoodAir;
-      airQualityColor = 'text-green-500';
-    } else if (hoveredPoint.value > 12 && hoveredPoint.value <= 35.4) {
-      airQualityText = 'Air Quality is Moderate';
-      AirQualityIcon = Moderate;
-      airQualityColor = 'text-yellow-500';
-    } else if (hoveredPoint.value > 35.4 && hoveredPoint.value <= 55.4) {
-      airQualityText = 'Air Quality is Unhealthy for Sensitive Groups';
-      AirQualityIcon = UnhealthySG;
-      airQualityColor = 'text-orange-500';
-    } else if (hoveredPoint.value > 55.4 && hoveredPoint.value <= 150.4) {
-      airQualityText = 'Air Quality is Unhealthy';
-      AirQualityIcon = Unhealthy;
-      airQualityColor = 'text-red-500';
-    } else if (hoveredPoint.value > 150.4 && hoveredPoint.value <= 250.4) {
-      airQualityText = 'Air Quality is Very Unhealthy';
-      AirQualityIcon = VeryUnhealthy;
-      airQualityColor = 'text-purple-500';
-    } else if (hoveredPoint.value > 250.4 && hoveredPoint.value <= 500) {
-      airQualityText = 'Air Quality is Hazardous';
-      AirQualityIcon = Hazardous;
-      airQualityColor = 'text-gray-500';
-    }
+    const { airQualityText, AirQualityIcon, airQualityColor } = getAirQualityLevelText(
+      hoveredPoint.value,
+    );
 
     return (
       <div className='bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none'>
@@ -94,60 +103,38 @@ const CustomTooltipLineGraph = ({ active, payload }) => {
               <AirQualityIcon width={30} height={30} />
             </div>
           </div>
-          <div className='w-full h-[2px] bg-transparent my-1 border-t border-dotted border-gray-300' />
-          <div className='p-2 space-y-1'>
-            {otherPoints.map((point, index) => (
-              <p key={index} className='flex justify-between w-full mb-1'>
-                <div className='flex items-center text-xs font-medium leading-[14px] text-gray-400'>
-                  <div className='w-[10px] h-[10px] bg-gray-400 rounded-xl mr-2'></div>
-                  {truncate(point.name)}
-                </div>
-                <div className='text-xs font-medium leading-[14px] text-gray-400'>
-                  {reduceDecimalPlaces(point.value) + ' μg/m3'}
-                </div>
-              </p>
-            ))}
-          </div>
+          {otherPoints.length > 0 && (
+            <>
+              <div className='w-full h-[2px] bg-transparent my-1 border-t border-dotted border-gray-300' />
+              <div className='p-2 space-y-1'>
+                {otherPoints.map((point, index) => (
+                  <p key={index} className='flex justify-between w-full mb-1'>
+                    <div className='flex items-center text-xs font-medium leading-[14px] text-gray-400'>
+                      <div className='w-[10px] h-[10px] bg-gray-400 rounded-xl mr-2'></div>
+                      {truncate(point.name)}
+                    </div>
+                    <div className='text-xs font-medium leading-[14px] text-gray-400'>
+                      {reduceDecimalPlaces(point.value) + ' μg/m3'}
+                    </div>
+                  </p>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
     );
   }
-  return null;
+  return '';
 };
 
 const CustomTooltipBarGraph = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const hoveredPoint = payload[0];
 
-    let airQualityText = '';
-    let AirQualityIcon = null;
-    let airQualityColor = '';
-
-    if (hoveredPoint.value >= 0 && hoveredPoint.value <= 12) {
-      airQualityText = 'Air Quality is Good';
-      AirQualityIcon = GoodAir;
-      airQualityColor = 'text-green-500';
-    } else if (hoveredPoint.value > 12 && hoveredPoint.value <= 35.4) {
-      airQualityText = 'Air Quality is Moderate';
-      AirQualityIcon = Moderate;
-      airQualityColor = 'text-yellow-500';
-    } else if (hoveredPoint.value > 35.4 && hoveredPoint.value <= 55.4) {
-      airQualityText = 'Air Quality is Unhealthy for Sensitive Groups';
-      AirQualityIcon = UnhealthySG;
-      airQualityColor = 'text-orange-500';
-    } else if (hoveredPoint.value > 55.4 && hoveredPoint.value <= 150.4) {
-      airQualityText = 'Air Quality is Unhealthy';
-      AirQualityIcon = Unhealthy;
-      airQualityColor = 'text-red-500';
-    } else if (hoveredPoint.value > 150.4 && hoveredPoint.value <= 250.4) {
-      airQualityText = 'Air Quality is Very Unhealthy';
-      AirQualityIcon = VeryUnhealthy;
-      airQualityColor = 'text-purple-500';
-    } else if (hoveredPoint.value > 250.4 && hoveredPoint.value <= 500) {
-      airQualityText = 'Air Quality is Hazardous';
-      AirQualityIcon = Hazardous;
-      airQualityColor = 'text-gray-500';
-    }
+    const { airQualityText, AirQualityIcon, airQualityColor } = getAirQualityLevelText(
+      hoveredPoint.value,
+    );
 
     return (
       <div className='bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none'>
@@ -180,7 +167,7 @@ const CustomTooltipBarGraph = ({ active, payload }) => {
       </div>
     );
   }
-  return null;
+  return '';
 };
 
 const CustomizedAxisTick = ({ x, y, payload }) => {
@@ -206,7 +193,7 @@ const CustomDot = (props) => {
   return <circle cx={cx} cy={cy} r={6} fill={fill} />;
 };
 
-const CustomTooltip = ({ tooltipText, children, direction, themeClass }) => {
+const CustomLegendTooltip = ({ tooltipText, children, direction, themeClass }) => {
   const [visible, setVisible] = useState(false);
 
   const tooltipClass = {
@@ -251,16 +238,18 @@ const renderCustomizedLegend = (props) => {
   });
 
   return (
-    <div className='p-2 md:p-0 flex flex-wrap flex-col md:flex-row md:justify-end mt-2 space-y-2 md:space-y-0 md:space-x-4'>
+    <div className='p-2 md:p-0 flex flex-wrap flex-col md:flex-row md:justify-end mt-2 space-y-2 md:space-y-0 md:space-x-4 outline-none'>
       {sortedPayload.map((entry, index) => (
-        <CustomTooltip key={`item-${index}`} tooltipText={entry.value} direction='top'>
-          <div style={{ color: entry.color }} className='flex space-x-2 items-center text-sm'>
-            <div
-              className='w-[10px] h-[10px] rounded-xl mr-1 ml-1'
-              style={{ backgroundColor: entry.color }}></div>
+        <CustomLegendTooltip key={`item-${index}`} tooltipText={entry.value} direction='top'>
+          <div
+            style={{ color: '#485972' }}
+            className='flex w-full items-center text-sm outline-none'>
+            <span
+              className='w-[10px] h-[10px] rounded-xl mr-1 ml-1 outline-none'
+              style={{ backgroundColor: entry.color }}></span>
             {truncate(entry.value)}
           </div>
-        </CustomTooltip>
+        </CustomLegendTooltip>
       ))}
     </div>
   );
@@ -268,75 +257,98 @@ const renderCustomizedLegend = (props) => {
 
 // Custom hook to fetch analytics data
 const useAnalytics = () => {
+  const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
-  const status = useSelector((state) => state.userDefaults.status);
-  const [analyticsData, setAnalyticsData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const refreshChart = useSelector((state) => state.chart.refreshChart);
+  const preferencesLoading = useSelector((state) => state.userDefaults.status === 'loading');
+  const userPreferences = useSelector((state) => state.userDefaults.preferences);
+  const isLoading = useSelector((state) => state.analytics.status === 'loading');
+  const analyticsData = useSelector((state) => state.analytics.data);
+  const [error, setError] = useState(null);
+  const [loadingTime, setLoadingTime] = useState(0);
 
   useEffect(() => {
-    let isCancelled = false;
+    if (preferencesLoading) return;
 
-    const fetchData = async () => {
-      if (!chartData || status === 'loading') return;
+    const body = {
+      sites: chartData.chartSites,
+      startDate: chartData.chartDataRange.startDate,
+      endDate: chartData.chartDataRange.endDate,
+      chartType: chartData.chartType,
+      frequency: chartData.timeFrame,
+      pollutant: chartData.pollutionType,
+      organisation_name: chartData.organizationName,
+    };
 
-      const body = {
-        sites: chartData.chartSites,
-        startDate: new Date(chartData.chartDataRange.startDate).toISOString(),
-        endDate: new Date(chartData.chartDataRange.endDate).toISOString(),
-        chartType: chartData.chartType,
-        frequency: chartData.timeFrame,
-        pollutant: chartData.pollutionType,
-        organisation_name: chartData.organizationName,
-      };
+    const allPropertiesSet = Object.values(body).every(
+      (property) => property !== undefined && property !== null,
+    );
 
-      const allPropertiesSet = Object.values(body).every(
-        (property) => property !== undefined && property !== null,
-      );
-
-      if (allPropertiesSet) {
-        setIsLoading(true);
+    if (allPropertiesSet) {
+      const fetchData = async () => {
         try {
-          const response = await getAnalyticsData(body);
-          if (!isCancelled) {
-            setAnalyticsData(response.data.length > 0 ? response.data : null);
-          }
-        } catch (error) {
-          if (!isCancelled) {
-            console.error(`Error getting analytics data: ${error}`);
-          }
+          setError(null);
+          setLoadingTime(Date.now());
+          await dispatch(fetchAnalyticsData(body));
+          dispatch(setRefreshChart(false));
+        } catch (err) {
+          setError(err.message);
         } finally {
-          if (!isCancelled) {
-            setIsLoading(false);
-          }
+          setLoadingTime(Date.now() - loadingTime);
         }
-      }
-    };
+      };
+      fetchData();
+    }
+  }, [chartData, refreshChart, userPreferences]);
 
-    fetchData();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [chartData, status]);
-
-  return { analyticsData, isLoading };
+  return { analyticsData, isLoading, error, loadingTime };
 };
 
 const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
   const chartData = useSelector((state) => state.chart);
-  const { analyticsData, isLoading } = useAnalytics();
+  const { analyticsData, isLoading, error, loadingTime } = useAnalytics();
+  const [showLoadingMessage, setShowLoadingMessage] = useState(false);
+
+  useEffect(() => {
+    let timeoutId;
+    if (isLoading && loadingTime > 8000) {
+      // 10 seconds
+      timeoutId = setTimeout(() => setShowLoadingMessage(true), 10000);
+    } else if (!isLoading) {
+      setShowLoadingMessage(false);
+    }
+    return () => clearTimeout(timeoutId);
+  }, [isLoading, loadingTime]);
+
+  // Error state
+  if (error) {
+    return (
+      <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
+        <p className='text-red-500'>
+          Oops! Something went wrong. Please try again later or contact support.
+        </p>
+      </div>
+    );
+  }
 
   // Loading state
   if (isLoading) {
     return (
-      <div className='ml-10 flex justify-center items-center w-full h-full'>
-        <Spinner />
+      <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
+        <p className='text-blue-500'>
+          <Spinner />
+          {showLoadingMessage && (
+            <span className='text-yellow-500 mt-2'>
+              The data is taking longer than expected to load. Please hang on a bit longer.
+            </span>
+          )}
+        </p>
       </div>
     );
   }
 
   // No data for this time range
-  if (analyticsData === null) {
+  if (analyticsData === null || analyticsData.length === 0) {
     return (
       <div className='ml-10 flex justify-center items-center w-full h-full'>
         No data for this time range
@@ -406,11 +418,12 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
               }
             }}>
             <Label
-              value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
+              value={chartData.pollutionType === 'pm2_5' ? 'PM2.5 (µg/m³)' : 'PM10 (µg/m³)'}
               position='insideTopRight'
               offset={0}
               fontSize={12}
               dy={-35}
+              dx={60}
             />
           </YAxis>
           <Legend
@@ -458,11 +471,12 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
               }
             }}>
             <Label
-              value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
+              value={chartData.pollutionType === 'pm2_5' ? 'PM2.5 (µg/m³)' : 'PM10 (µg/m³)'}
               position='insideTopRight'
               offset={0}
               fontSize={12}
               dy={-35}
+              dx={60}
             />
           </YAxis>
           <Legend

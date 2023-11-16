@@ -5,7 +5,6 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
-import 'package:app/screens/kya/kya_widgets.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -166,19 +165,14 @@ class _DashboardViewState extends State<DashboardView>
                       ),
                       BlocBuilder<KyaBloc, KyaState>(
                         builder: (context, state) {
-                          final completeLessons = state.lessons
-                              .where((lesson) =>
-                                  lesson.status == KyaLessonStatus.complete)
-                              .take(3)
-                              .toList();
+                          final allLessons = state.lessons;
                           final completeQuizzes = state.quizzes
                               .where(
                                   (quiz) => quiz.status == QuizStatus.complete)
                               .take(3)
                               .toList();
-                          final kyaWidgets = completeKyaWidgets(
-                              completeLessons, completeQuizzes);
-
+                          final kyaWidgets =
+                              completeKyaWidgets(allLessons, completeQuizzes);
                           return Expanded(
                             child: CustomShowcaseWidget(
                               showcaseKey: _forYouShowcaseKey,
@@ -258,6 +252,9 @@ class _DashboardViewState extends State<DashboardView>
                       builder: (context, state) {
                         CurrentLocation? currentLocation =
                             state.currentLocation;
+                        String topCardName = "";
+                        String topCardLocation = "";
+                        List<AirQualityReading> airQualityReadings = [];
                         switch (state.blocStatus) {
                           case NearbyLocationStatus.searchComplete:
                             break;
@@ -273,48 +270,87 @@ class _DashboardViewState extends State<DashboardView>
                             );
                         }
 
-                        if (currentLocation == null) {
-                          return state.showErrorMessage
-                              ? Padding(
-                                  padding: const EdgeInsets.only(top: 16),
-                                  child: NoLocationAirQualityMessage(
-                                    AppLocalizations.of(context)!
-                                        .unableToGetCurrentLocation,
-                                  ),
-                                )
-                              : Container();
-                        }
-
                         return ValueListenableBuilder<Box<AirQualityReading>>(
                           valueListenable: Hive.box<AirQualityReading>(
                             _hiveService.airQualityReadingsBox,
                           ).listenable(),
                           builder: (context, box, widget) {
-                            List<AirQualityReading> airQualityReadings = box
-                                .values
-                                .where((element) =>
-                                    element.referenceSite ==
-                                    currentLocation.referenceSite)
-                                .toList();
+                            if (currentLocation != null) {
+                              topCardName = currentLocation.name;
+                              topCardLocation = currentLocation.location;
+                              airQualityReadings = box.values
+                                  .where((element) =>
+                                      element.referenceSite ==
+                                      currentLocation.referenceSite)
+                                  .toList();
+                            }
 
                             if (airQualityReadings.isEmpty) {
                               _nearbyLocationExists = false;
 
-                              return state.showErrorMessage
-                                  ? Padding(
-                                      padding: const EdgeInsets.only(top: 16),
-                                      child: NoLocationAirQualityMessage(
-                                        AppLocalizations.of(context)!
-                                            .unableToGetAirQuality,
-                                      ),
-                                    )
-                                  : Container();
+                              List<FavouritePlace> favouritePlaces =
+                                  context.read<FavouritePlaceBloc>().state;
+                              if (favouritePlaces.isNotEmpty) {
+                                airQualityReadings = box.values
+                                    .where((element) =>
+                                        element.referenceSite ==
+                                        favouritePlaces.first.referenceSite)
+                                    .toList();
+                                topCardName = favouritePlaces.first.name;
+                                topCardLocation =
+                                    favouritePlaces.first.location;
+                              }
+
+                              if (airQualityReadings.isEmpty) {
+                                List<LocationHistory> locationHistory =
+                                    context.read<LocationHistoryBloc>().state;
+                                if (locationHistory.isNotEmpty) {
+                                  airQualityReadings = box.values
+                                      .where((element) =>
+                                          element.placeId ==
+                                          locationHistory.first.placeId)
+                                      .toList();
+                                  topCardName = locationHistory.first.name;
+                                  topCardLocation =
+                                      locationHistory.first.location;
+                                }
+                              }
+
+                              if (airQualityReadings.isEmpty) {
+                                List<SearchHistory> searchHistory = context
+                                    .read<SearchHistoryBloc>()
+                                    .state
+                                    .history;
+
+                                if (searchHistory.isNotEmpty) {
+                                  airQualityReadings = box.values
+                                      .where((element) =>
+                                          element.placeId ==
+                                          searchHistory.first.placeId)
+                                      .toList();
+                                  topCardName = searchHistory.first.name;
+                                  topCardLocation =
+                                      searchHistory.first.location;
+                                }
+                              }
+
+                              if (airQualityReadings.isEmpty) {
+                                return state.showErrorMessage
+                                    ? Padding(
+                                        padding: const EdgeInsets.only(top: 16),
+                                        child: NoLocationAirQualityMessage(
+                                          AppLocalizations.of(context)!
+                                              .unableToGetAirQuality,
+                                        ),
+                                      )
+                                    : Container();
+                              }
                             }
 
                             AirQualityReading airQualityReading =
                                 airQualityReadings.first.copyWith(
-                              name: currentLocation.name,
-                              location: currentLocation.location,
+                              name: topCardName,
+                              location: topCardLocation,
                             );
                             context
                                 .read<LocationHistoryBloc>()
@@ -341,42 +377,17 @@ class _DashboardViewState extends State<DashboardView>
                     ),
                     BlocBuilder<KyaBloc, KyaState>(
                       builder: (context, state) {
-                        List<Quiz> inCompleteQuizzes = state.quizzes
-                            .where((quiz) => quiz.status != QuizStatus.complete)
-                            .toList();
+                        List<Quiz> quizzes = state.quizzes;
 
-                        if (inCompleteQuizzes.isEmpty) {
-                          _kyaExists = false;
+                        if (quizzes.isEmpty) {
                           return const SizedBox();
                         }
-                        Quiz displayedQuiz = inCompleteQuizzes.first;
-                        return QuizCard(displayedQuiz);
-                      },
-                    ),
-                    BlocBuilder<KyaBloc, KyaState>(
-                      builder: (context, state) {
-                        List<KyaLesson> inCompleteLessons =
-                            state.lessons.filterInCompleteLessons();
-
-                        if (inCompleteLessons.isEmpty) {
-                          _kyaExists = false;
-
-                          return const SizedBox();
-                        }
-
+                        Quiz displayedQuiz = quizzes.first;
                         return AnimatedPadding(
                           duration: const Duration(milliseconds: 500),
                           curve: Curves.easeInExpo,
                           padding: const EdgeInsets.only(top: 16),
-                          child: CustomShowcaseWidget(
-                            showcaseKey: _kyaShowcaseKey,
-                            descriptionHeight: screenSize.height * 0.14,
-                            description: AppLocalizations.of(context)!
-                                .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
-                            child: KyaLessonCardWidget(
-                              inCompleteLessons.first,
-                            ),
-                          ),
+                          child: QuizCard(displayedQuiz),
                         );
                       },
                     ),
