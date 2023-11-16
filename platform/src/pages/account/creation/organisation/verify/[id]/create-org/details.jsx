@@ -450,7 +450,7 @@ const CreateOrganisationDetailsPageThree = () => {
   // const gridLocationsState = useSelector((state) => state.grids.gridLocations);
   // const gridSitesLocations = gridLocationsState.map((grid) => grid.sites);
   // const gridLocationsData = [].concat(...gridSitesLocations);
-  const gridLocationsData = useSelector((state) => state.grids.sitesSummary.sites);
+  const gridLocationsData = useSelector((state) => state.grids.sitesSummary.sites) || [];
   const { id } = router.query;
   const [location, setLocation] = useState('');
   const [inputSelect, setInputSelect] = useState(false);
@@ -521,7 +521,7 @@ const CreateOrganisationDetailsPageThree = () => {
 
   useEffect(() => {
     dispatch(getSitesSummary());
-  }, []);
+  }, [gridLocationsData]);
 
   return (
     <div className='sm:ml-3 lg:ml-1'>
