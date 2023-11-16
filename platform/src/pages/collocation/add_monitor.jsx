@@ -18,7 +18,7 @@ import Toast from '@/components/Toast';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import Layout from '@/components/Layout';
-import withAuth from '@/core/utils/protectedRoute';
+import withAuth, { withPermission } from '@/core/utils/protectedRoute';
 import Head from 'next/head';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
@@ -159,4 +159,4 @@ const AddMonitor = () => {
   );
 };
 
-export default withAuth(AddMonitor);
+export default withPermission(withAuth(AddMonitor), 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');
