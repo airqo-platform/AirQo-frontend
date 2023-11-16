@@ -4,6 +4,7 @@ import 'package:animations/animations.dart';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
+import 'package:app/screens/favourite_places/favourite_places_page.dart';
 import 'package:app/screens/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/on_boarding/setup_complete_screen.dart';
 import 'package:app/services/services.dart';
@@ -12,6 +13,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../home_page.dart';
 import '../phone_authentication/phone_auth_screen.dart';
@@ -75,6 +77,10 @@ class SplashScreenState extends State<SplashScreen> {
     context.read<NotificationBloc>().add(const SyncNotifications());
     context.read<DashboardBloc>().add(const RefreshDashboard(reload: true));
     context.read<SearchHistoryBloc>().add(const SyncSearchHistory());
+
+    final prefs = await SharedPreferences.getInstance();
+    final notifsNavigator = prefs.getString("pushNotificationTarget") ?? "None";
+
     _dynamicLinkSubscription =
         FirebaseDynamicLinks.instance.onLink.listen((linkData) async {
       BuildContext? navigatorBuildContext = navigatorKey.currentContext;
@@ -100,6 +106,19 @@ class SplashScreenState extends State<SplashScreen> {
         );
       } else {
         await _proceedWithSplashAnimation();
+      }
+    } else if (notifsNavigator != "None") {
+      switch (notifsNavigator) {
+        case "favorites":
+          await prefs.setString("pushNotificationTarget", "None");
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) {
+              return FavouritePlacesPage();
+            }),
+            (r) => false,
+          );
+          break;
       }
     } else {
       await _proceedWithSplashAnimation();

@@ -1,11 +1,13 @@
 import 'package:app/constants/constants.dart';
 import 'package:app/main_common.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/notification_service.dart';
 import 'package:app/services/widget_service.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -41,6 +43,17 @@ void main() async {
       environment: Environment.prod,
       child: AirQoApp(initialLink, locale: savedLocale),
     );
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      NotificationService.handleNotifications(message);
+    });
+
+    FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
+      NotificationService.handleNotifications(message);
+    });
+
+    
+
     runApp(configuredApp);
   } catch (exception, stackTrace) {
     runApp(

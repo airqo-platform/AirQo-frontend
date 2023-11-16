@@ -7,6 +7,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../offline_banner.dart';
 import 'location_setup_screen.dart';
@@ -90,6 +91,8 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
     bool hasPermission =
         await PermissionService.checkPermission(AppPermission.notification);
     if (hasPermission && mounted) {
+      await FirebaseMessaging.instance.subscribeToTopic("push-notifications");
+
       Profile profile = context.read<ProfileBloc>().state;
       context
           .read<ProfileBloc>()
@@ -104,7 +107,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
         (r) => false,
       );
     } else {
-      NotificationService.requestNotification(context, true);
+      NotificationService.requestNotification(context, "onboarding");
     }
   }
 
