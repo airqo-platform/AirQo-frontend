@@ -1,4 +1,4 @@
-import { postUserDefaultsApi, postUserPreferencesApi, updateUserDefaultsApi, updateUserPreferencesApi } from '@/core/apis/Account';
+import { getUserPreferencesApi, postUserDefaultsApi, postUserPreferencesApi, updateUserDefaultsApi, updateUserPreferencesApi } from '@/core/apis/Account';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
@@ -7,7 +7,8 @@ const initialState = {
     success: false,
     errors: null,
     update_response: [],
-    post_response: []
+    post_response: [],
+    individual_preferences:[]
 }
 
 export const postUserPreferences = createAsyncThunk('/post/preferences', async (data, { rejectWithValue }) => {
@@ -26,6 +27,18 @@ export const updateUserPreferences = createAsyncThunk('/update/preferences', asy
     try {
         const response = await updateUserPreferencesApi(data);
         return response
+    } catch (error) {
+        if (!error.response) {
+            throw error
+        }
+        return rejectWithValue(error.response.data);
+    }
+})
+
+export const getIndividualUserPreferences = createAsyncThunk('/get/individual/preference', async(identifier, {rejectWithValue})=>{
+    try {
+        const response = await getUserPreferencesApi(identifier);
+        return response;
     } catch (error) {
         if (!error.response) {
             throw error
@@ -63,6 +76,17 @@ export const defaultsSlice = createSlice({
                 state.success = false;
             })
             .addCase(updateUserPreferences.rejected, (state, action) => {
+                state.errors = action.payload;
+                state.success = false;
+            })
+            .addCase(getIndividualUserPreferences.fulfilled, (state, action) => {
+                state.individual_preferences = action.payload;
+                state.success = action.payload.success;
+            })
+            .addCase(getIndividualUserPreferences.pending, (state) => {
+                state.success = false;
+            })
+            .addCase(getIndividualUserPreferences.rejected, (state, action) => {
                 state.errors = action.payload;
                 state.success = false;
             })

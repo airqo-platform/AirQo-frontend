@@ -153,6 +153,18 @@ export const updateUserPreferencesApi = async (data) => {
     throw error;
   }
 }
+
+// Get Individual user preferences
+export const getUserPreferencesApi = async (identifier) => {
+  try {
+    const response = await createAxiosInstance().get(`${USER_PREFERENCES_URL}/${identifier}`);
+    return response.data;
+  }
+  catch (error) {
+    throw error;
+  }
+}
+
 export const getUserDefaults = async () => {
   return await createAxiosInstance()
     .get(USER_DEFAULTS_URL)
