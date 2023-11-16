@@ -15,12 +15,13 @@ import Toast from '../Toast';
 
 const LocationsContentComponent = ({ selectedLocations }) => {
   const dispatch = useDispatch();
-  const gridLocationsData = useSelector((state) => state.grids.sitesSummary.sites) || [];
+  const gridsData = useSelector((state) => state.grids.sitesSummary);
+  const gridLocationsData = (gridsData && gridsData.sites) || [];
 
   const [location, setLocation] = useState('');
   const [inputSelect, setInputSelect] = useState(false);
   const [locationArray, setLocationArray] = useState(selectedLocations);
-  const [filteredLocations, setFilteredLocations] = useState(gridLocationsData);
+  const [filteredLocations, setFilteredLocations] = useState([]);
   const [unSelectedLocations, setUnSelectedLocations] = useState([]);
 
   const handleLocationEntry = (e) => {
@@ -61,20 +62,37 @@ const LocationsContentComponent = ({ selectedLocations }) => {
   };
 
   useEffect(() => {
-    dispatch(getSitesSummary());
-    dispatch(setSelectedLocations(locationArray));
-    while (unSelectedLocations.length < 15) {
-      const randomIndex = Math.floor(Math.random() * gridLocationsData.length);
-      const randomObject = gridLocationsData[randomIndex];
-      if (!unSelectedLocations.includes(randomObject)) {
-        unSelectedLocations.push(randomObject);
+    if (gridLocationsData && gridLocationsData.length > 0) {
+      setFilteredLocations(gridLocationsData);
+    }
+  }, [gridLocationsData]);
+
+  useEffect(() => {
+    if (gridLocationsData && gridLocationsData.length < 1) {
+      dispatch(getSitesSummary());
+    }
+  }, []);
+
+  useEffect(() => {
+    if (gridLocationsData && gridLocationsData.length > 0) {
+      try {
+        dispatch(setSelectedLocations(locationArray));
+        while (unSelectedLocations.length < 15) {
+          const randomIndex = Math.floor(Math.random() * gridLocationsData.length);
+          const randomObject = gridLocationsData[randomIndex];
+          if (!unSelectedLocations.includes(randomObject)) {
+            unSelectedLocations.push(randomObject);
+          }
+        }
+      } catch (error) {
+        throw error;
       }
     }
-  }, [locationArray]);
+  }, [locationArray, gridLocationsData]);
 
   return (
     <form>
-      {locationArray.length > 4 && (
+      {locationArray && locationArray.length > 4 && (
         <Toast type={'error'} message='Choose only 4 locations' timeout={6000} />
       )}
       <div className='mt-6'>
@@ -96,15 +114,17 @@ const LocationsContentComponent = ({ selectedLocations }) => {
           <div
             className={`bg-white max-h-48 overflow-y-scroll px-3 pt-2 pr-1 my-1 border border-input-light-outline rounded-md ${
               inputSelect ? 'hidden' : 'relative'
-            }`}>
-            {filteredLocations.length > 0 ? (
+            }`}
+          >
+            {filteredLocations && filteredLocations.length > 0 ? (
               filteredLocations.map((location) => (
                 <div
                   className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer'
                   onClick={() => {
                     handleLocationSelect(location);
                   }}
-                  key={location._id}>
+                  key={location._id}
+                >
                   <LocationIcon />
                   <div className='text-sm ml-1 text-black capitalize'>{location.name}</div>
                 </div>
@@ -122,11 +142,12 @@ const LocationsContentComponent = ({ selectedLocations }) => {
       </div>
       {
         <div className='mt-4'>
-          {locationArray.length > 0 ? (
+          {locationArray && locationArray.length > 0 ? (
             locationArray.map((location) => (
               <div
                 className='border rounded-lg bg-secondary-neutral-light-25 border-input-light-outline flex flex-row justify-between items-center p-3 w-full mb-2'
-                key={location._id}>
+                key={location._id}
+              >
                 <div className='flex flex-row items-center overflow-x-clip'>
                   <div>
                     <DragIcon />
@@ -138,7 +159,8 @@ const LocationsContentComponent = ({ selectedLocations }) => {
                 <div className='flex flex-row'>
                   <div
                     className='mr-1 hover:cursor-pointer'
-                    onClick={() => removeLocation(location)}>
+                    onClick={() => removeLocation(location)}
+                  >
                     <TrashIcon />
                   </div>
                   <div className='bg-primary-600 rounded-md p-2 flex items-center justify-center'>
@@ -148,18 +170,20 @@ const LocationsContentComponent = ({ selectedLocations }) => {
               </div>
             ))
           ) : (
-            <span/>
+            <span />
           )}
         </div>
       }
       <div className='mt-6'>
         <h3 className='text-sm text-black-800 font-semibold'>Suggestions</h3>
         <div className='mt-3'>
-          {unSelectedLocations.length > 0 &&
+          {unSelectedLocations &&
+            unSelectedLocations.length > 0 &&
             unSelectedLocations.slice(0, 15).map((location) => (
               <div
                 className='border rounded-lg bg-secondary-neutral-light-25 border-input-light-outline flex flex-row justify-between items-center p-3 w-full mb-2'
-                key={location._id}>
+                key={location._id}
+              >
                 <div className='flex flex-row items-center overflow-x-clip'>
                   <div>
                     <DragIconLight />
@@ -173,7 +197,8 @@ const LocationsContentComponent = ({ selectedLocations }) => {
                     className='border border-input-light-outline rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
                     onClick={() => {
                       handleLocationSelect(location);
-                    }}>
+                    }}
+                  >
                     <StarIconLight />
                   </div>
                 </div>
