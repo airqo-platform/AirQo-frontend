@@ -20,7 +20,7 @@ const PrintReportModal = ({
   title,
   format,
   btnText,
-  ModalType,
+  ModalType = 'share',
   shareStatus,
 }) => {
   const [loading, setLoading] = useState(false);
@@ -249,7 +249,8 @@ const PrintReportModal = ({
         loading={loading}
         ModalIcon={ShareIcon}
         primaryButtonText={btnText || 'Print'}
-        data={data}>
+        data={data}
+      >
         {ModalType === 'share' && (
           <>
             <div className='w-full'>
@@ -280,7 +281,8 @@ const PrintReportModal = ({
                   {index > 0 && (
                     <button
                       className='absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto'
-                      onClick={() => handleRemoveEmail(index)}>
+                      onClick={() => handleRemoveEmail(index)}
+                    >
                       ✕
                     </button>
                   )}
@@ -296,7 +298,8 @@ const PrintReportModal = ({
             <div>
               <Button
                 className='text-sm font-medium text-primary-600 leading-5 gap-2 h-5 mt-3 mb-8 w-auto pl-0'
-                onClick={handleAddEmail}>
+                onClick={handleAddEmail}
+              >
                 <PlusIcon /> <span>Add email</span>
               </Button>
             </div>
