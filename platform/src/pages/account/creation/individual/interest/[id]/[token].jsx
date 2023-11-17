@@ -43,6 +43,7 @@ const IndividualAccountInterest = () => {
     verifyUserEmail(id, token);
   }, [router, id, token]);
 
+  // TODO: check post user defaults
   const handleUpdate = async () => {
     setLoading(true);
     setUpdateError({
@@ -63,6 +64,8 @@ const IndividualAccountInterest = () => {
           state: true,
           message: response.message,
         });
+      }else{
+        router.push('/account/creation/get-started');
       }
     } catch (error) {
       throw error;
