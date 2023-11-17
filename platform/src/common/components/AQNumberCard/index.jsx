@@ -8,7 +8,7 @@ import WindIcon from '@/icons/Common/wind.svg';
 import CustomTooltip from '../Tooltip';
 import { useWindowSize } from '@/lib/windowSize';
 
-const AQNumberCard = ({ reading, location, keyValue }) => {
+const AQNumberCard = ({ reading, location, keyValue, count }) => {
   let airQualityText = '';
   let AirQualityIcon = null;
   let airQualityColor = '';
@@ -42,17 +42,17 @@ const AQNumberCard = ({ reading, location, keyValue }) => {
 
   return (
     <div
-      className='relative min-w-max lg:max-w-[249px] sm:max-w-full h-[164.48px] bg-white flex-col justify-start items-center inline-flex'
-      key={keyValue}
-    >
+      className={`${
+        count <= 2 ? 'w-full md:min-w-[200px] md:max-w-[50%] float-left' : 'w-full'
+      } relative h-[164.48px] bg-white flex-col justify-start items-center inline-flex`}
+      key={keyValue}>
       <div className='border border-gray-200 rounded-lg overflow-hidden w-full'>
         <div className='self-stretch w-full h-[68.48px] px-4 pt-3.5 pb-[10.48px] bg-white border-b border-b-gray-200 flex-col justify-start items-start flex'>
           <div className='self-stretch justify-between items-center inline-flex'>
             <div className='flex-col justify-start items-start inline-flex'>
               <div
                 className='text-gray-700 text-base font-medium leading-normal whitespace-nowrap overflow-ellipsis'
-                title={location}
-              >
+                title={location}>
                 {location.length > 17 ? location.slice(0, 17) + '...' : location}
               </div>
               <div className='text-slate-400 text-sm font-medium leading-tight'>Daily Avg.</div>

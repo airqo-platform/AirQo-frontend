@@ -299,7 +299,7 @@ const useAnalytics = () => {
       };
       fetchData();
     }
-  }, [chartData, refreshChart, userPreferences]);
+  }, [chartData, refreshChart]);
 
   return { analyticsData, isLoading, error, loadingTime };
 };
@@ -308,14 +308,15 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
   const chartData = useSelector((state) => state.chart);
   const { analyticsData, isLoading, error, loadingTime } = useAnalytics();
   const [showLoadingMessage, setShowLoadingMessage] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
     let timeoutId;
-    if (isLoading && loadingTime > 8000) {
-      // 10 seconds
-      timeoutId = setTimeout(() => setShowLoadingMessage(true), 10000);
+    if (isLoading && loadingTime > 5000) {
+      timeoutId = setTimeout(() => setShowLoadingMessage(true), 5000);
     } else if (!isLoading) {
       setShowLoadingMessage(false);
+      setHasLoaded(true);
     }
     return () => clearTimeout(timeoutId);
   }, [isLoading, loadingTime]);
@@ -332,7 +333,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
   }
 
   // Loading state
-  if (isLoading) {
+  if (isLoading || !hasLoaded) {
     return (
       <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
         <p className='text-blue-500'>
@@ -348,7 +349,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
   }
 
   // No data for this time range
-  if (analyticsData === null || analyticsData.length === 0) {
+  if (hasLoaded && (analyticsData === null || analyticsData.length === 0)) {
     return (
       <div className='ml-10 flex justify-center items-center w-full h-full'>
         No data for this time range

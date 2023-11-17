@@ -6,6 +6,11 @@ import MailIcon from '@/icons/Settings/mail.svg';
 import PlusIcon from '@/icons/Settings/plus.svg';
 import Button from '@/components/Button';
 import { isEmpty } from 'underscore';
+import { exportDataApi, shareReportApi } from '@/core/apis/Analytics';
+import { useSelector } from 'react-redux';
+import { jsPDF } from 'jspdf';
+import Papa from 'papaparse';
+import autoTable from 'jspdf-autotable';
 
 const PrintReportModal = ({
   open,
@@ -15,7 +20,7 @@ const PrintReportModal = ({
   title,
   format,
   btnText,
-  ModalType,
+  ModalType = 'share',
   shareStatus,
 }) => {
   const [loading, setLoading] = useState(false);
@@ -26,6 +31,7 @@ const PrintReportModal = ({
   });
   const [emails, setEmails] = useState(['']);
   const [emailErrors, setEmailErrors] = useState([]);
+  const userInfo = useSelector((state) => state.login.userInfo);
 
   const handleEmailChange = (index, value) => {
     const updatedEmails = [...emails];
@@ -95,43 +101,139 @@ const PrintReportModal = ({
     downloadDataFunc();
   };
 
-  const handleShareReport = () => {
-    if (emails.length === 0 || (emails.length === 1 && emails[0] === '')) {
+  // Function to generate CSV file
+  const generateCsv = (data) => {
+    // convert data to array of objects
+    const dataArr = data.map((row) => {
+      return {
+        SiteName: row.site_name,
+        PM2_5: row.pm2_5_calibrated_value,
+        PM10: row.pm10_calibrated_value,
+        Latitude: row.device_latitude,
+        Longitude: row.device_longitude,
+        Frequency: row.frequency,
+        Date: row.datetime,
+      };
+    });
+
+    // convert data to CSV
+    const csv = Papa.unparse(dataArr);
+
+    // save CSV file
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `airquality-data.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
+    // Return the CSV file
+    return new Blob([csv], { type: 'text/csv' });
+  };
+
+  // Function to generate PDF file
+  const generatePdf = (data) => {
+    const doc = new jsPDF('p', 'pt');
+    const tableColumn = [
+      'SiteName',
+      'PM2.5 Value',
+      'PM10 Value',
+      'Latitude',
+      'Longitude',
+      'Frequency',
+      'Date',
+    ];
+    const tableRows = [];
+
+    // Loop through the data and push the rows to the tableRows array
+    data.forEach((row) => {
+      const dataRow = [
+        row.site_name,
+        row.pm2_5_calibrated_value,
+        row.pm10_calibrated_value,
+        row.device_latitude,
+        row.device_longitude,
+        row.frequency,
+        row.datetime,
+      ];
+      tableRows.push(dataRow);
+    });
+
+    // Set the table headers and data
+    doc.autoTable(tableColumn, tableRows, { startY: 60 });
+
+    // Add title and date
+    doc.text('Air quality data', 14, 15);
+    doc.text(`From: ${data[0].date} - To: ${data[data.length - 1].date}`, 14, 30);
+
+    doc.save('air_quality_data.pdf');
+
+    // Return the PDF file
+    return doc.output('blob');
+  };
+
+  const handleShareReport = async (usebody) => {
+    try {
+      if (emails.length === 0 || (emails.length === 1 && emails[0] === '')) {
+        setAlert({
+          type: 'error',
+          message: 'Please enter at least one email',
+          show: true,
+        });
+        return;
+      }
+
+      setLoading(true);
+
+      await exportDataApi(usebody).then((resData) => {
+        let file;
+        switch (format) {
+          case 'pdf':
+            file = generatePdf(resData.data);
+            break;
+
+          case 'csv':
+            file = generateCsv(resData.data);
+            break;
+
+          default:
+            console.log('default case');
+        }
+
+        const formData = new FormData();
+        formData.append('recepientEmails', JSON.stringify([...emails]));
+        formData.append('senderEmail', userInfo.email);
+        formData.append(format, file);
+
+        shareReportApi(formData)
+          .then((res) => {
+            setAlert({
+              type: 'success',
+              message: 'Air quality data shared successful',
+              show: true,
+            });
+            handleCancel();
+            shareStatus('Report shared');
+          })
+          .catch((err) => {
+            setAlert({
+              type: 'error',
+              message: 'An error occurred while sharing the report. Please try again.',
+              show: true,
+            });
+          });
+      });
+    } catch (error) {
+      console.error(error, 'error');
       setAlert({
         type: 'error',
-        message: 'Please enter at least one email',
+        message: 'An error occurred while sharing the report. Please try again.',
         show: true,
       });
-      return;
+    } finally {
+      setLoading(false);
     }
-    setLoading(true);
-
-    const rect = document.getElementById('analytics-chart').getBoundingClientRect();
-
-    setLoading(true);
-
-    switch (format) {
-      case 'pdf':
-        console.log('pdf case');
-        // Your code for 'pdf' case here...
-        break;
-      case 'csv':
-        console.log('csv case');
-        // Your code for 'csv' case here...
-        break;
-      default:
-        console.log('default case');
-      // Your code for default case here...
-    }
-
-    setLoading(false);
-    setAlert({
-      type: 'success',
-      message: 'Air quality data shared successful',
-      show: true,
-    });
-    // handleCancel();
-    shareStatus('Report shared');
   };
 
   return (
@@ -147,7 +249,8 @@ const PrintReportModal = ({
         loading={loading}
         ModalIcon={ShareIcon}
         primaryButtonText={btnText || 'Print'}
-        data={data}>
+        data={data}
+      >
         {ModalType === 'share' && (
           <>
             <div className='w-full'>
@@ -178,7 +281,8 @@ const PrintReportModal = ({
                   {index > 0 && (
                     <button
                       className='absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto'
-                      onClick={() => handleRemoveEmail(index)}>
+                      onClick={() => handleRemoveEmail(index)}
+                    >
                       ✕
                     </button>
                   )}
@@ -194,7 +298,8 @@ const PrintReportModal = ({
             <div>
               <Button
                 className='text-sm font-medium text-primary-600 leading-5 gap-2 h-5 mt-3 mb-8 w-auto pl-0'
-                onClick={handleAddEmail}>
+                onClick={handleAddEmail}
+              >
                 <PlusIcon /> <span>Add email</span>
               </Button>
             </div>

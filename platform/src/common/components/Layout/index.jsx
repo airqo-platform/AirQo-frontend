@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import TopBar from '@/components/TopBar';
-import {
-  fetchUserPreferences,
-  clearChartStore,
-} from '@/lib/store/services/charts/userDefaultsSlice';
+import { fetchUserPreferences } from '@/lib/store/services/charts/userDefaultsSlice';
 import {
   setChartSites,
   setChartDataRange,
@@ -12,13 +9,13 @@ import {
   setChartType,
   setPollutant,
   resetChartStore,
-  clearAll,
 } from '@/lib/store/services/charts/ChartSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserChecklists } from '@/lib/store/services/checklists/CheckData';
 import { updateCards } from '@/lib/store/services/checklists/CheckList';
+import Head from 'next/head';
 
-const Layout = ({ children, topbarTitle, noBorderBottom }) => {
+const Layout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBorderBottom }) => {
   // Constants
   const MAX_WIDTH = '(max-width: 1024px)';
 
@@ -51,13 +48,12 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
       if (userInfo && userPreferences && userPreferences.length > 0) {
         const { period, selected_sites, startDate, endDate, frequency, chartType, pollutant } =
           userPreferences[0];
-        dispatch(clearAll());
         try {
           const chartSites = selected_sites
             ? selected_sites.map((site) => site['_id'])
             : chartData.chartSites;
 
-          await dispatch(setChartSites(chartSites));
+          await dispatch(setChartSites(chartSites.slice(0, 4)));
           await dispatch(
             setChartDataRange({
               startDate: startDate || chartData.chartDataRange.startDate,
@@ -78,7 +74,7 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
     };
 
     setChartProperties();
-  }, [userInfo, dispatch]);
+  }, [userInfo, userPreferences, dispatch]);
 
   // Fetching user checklists
   useEffect(() => {
@@ -119,29 +115,35 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
   }, []);
 
   return (
-    <div className=' w-screen h-screen  overflow-x-hidden' data-testid='layout'>
-      <div className=' lg:flex w-screen h-screen'>
-        <div>
-          <AuthenticatedSideBar
-            toggleDrawer={toggleDrawer}
-            setToggleDrawer={setToggleDrawer}
-            collapsed={collapsed}
-            setCollapsed={setCollapsed}
-          />
-        </div>
-        <div className='w-full overflow-x-hidden'>
-          <TopBar
-            topbarTitle={topbarTitle}
-            noBorderBottom={noBorderBottom}
-            toggleDrawer={toggleDrawer}
-            setToggleDrawer={setToggleDrawer}
-            collapsed={collapsed}
-            setCollapsed={setCollapsed}
-          />
-          {children}
+    <>
+      <Head>
+        <title>{pageTitle}</title>
+        <meta property='og:title' content={pageTitle} key='title' />
+      </Head>
+      <div className=' w-screen h-screen  overflow-x-hidden' data-testid='layout'>
+        <div className=' lg:flex w-screen h-screen'>
+          <div>
+            <AuthenticatedSideBar
+              toggleDrawer={toggleDrawer}
+              setToggleDrawer={setToggleDrawer}
+              collapsed={collapsed}
+              setCollapsed={setCollapsed}
+            />
+          </div>
+          <div className='w-full overflow-x-hidden'>
+            <TopBar
+              topbarTitle={topbarTitle}
+              noBorderBottom={noBorderBottom}
+              toggleDrawer={toggleDrawer}
+              setToggleDrawer={setToggleDrawer}
+              collapsed={collapsed}
+              setCollapsed={setCollapsed}
+            />
+            {children}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

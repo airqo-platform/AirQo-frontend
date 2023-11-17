@@ -11,18 +11,22 @@ const OverView = () => {
   const dispatch = useDispatch();
   const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
   const chartDataRange = useSelector((state) => state.chart.chartDataRange);
-  const userLocationsData = useSelector((state) => state.defaults.preferences);
+  const userLocationsData = useSelector((state) => state.defaults.individual_preferences);
   const [sites, setSites] = useState(DEFAULT_CHART_SITES);
   const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
 
   useEffect(() => {
     setIsLoadingMeasurements(true);
-    if (userLocationsData && !userLocationsData?.chartSites) {
+    if (userLocationsData && userLocationsData[0] && !userLocationsData[0]?.selected_sites) {
       setIsLoadingMeasurements(false);
       return;
     }
-    if (userLocationsData && userLocationsData?.chartSites) {
-      setSites(userLocationsData?.chartSites);
+    if (userLocationsData && userLocationsData[0] && userLocationsData[0]?.selected_sites) {
+      // map through the selected sites and get the first 4 site ids
+      const selectedSites = userLocationsData[0]?.selected_sites
+        .map((site) => site._id)
+        .slice(0, 4);
+      setSites(selectedSites);
     }
     setIsLoadingMeasurements(false);
   }, [userLocationsData]);
@@ -33,7 +37,7 @@ const OverView = () => {
       if (chartDataRange && chartDataRange.startDate && chartDataRange.endDate && sites) {
         dispatch(
           fetchRecentMeasurementsData({
-            site_id: sites,
+            site_id: sites.join(','),
             startTime: chartDataRange.startDate,
             endTime: chartDataRange.endDate,
           }),
@@ -49,8 +53,11 @@ const OverView = () => {
   return (
     <BorderlessContentBox>
       <div
-        className='mb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 grid-flow-col-dense'
-        style={{ gridAutoFlow: 'dense' }}
+        className={`mb-5 gap-4 ${
+          recentLocationMeasurements && recentLocationMeasurements.length <= 2
+            ? 'flex md:flex-row flex-col'
+            : 'grid md:grid-cols-2'
+        }`}
       >
         {!isLoadingMeasurements &&
           recentLocationMeasurements &&
@@ -61,6 +68,7 @@ const OverView = () => {
                 keyValue={index}
                 location={event?.siteDetails?.name}
                 reading={event.pm2_5.value}
+                count={recentLocationMeasurements.length}
               />
             ))}
       </div>

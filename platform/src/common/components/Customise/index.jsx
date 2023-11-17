@@ -8,6 +8,7 @@ import {
   getIndividualUserPreferences,
 } from '@/lib/store/services/account/UserDefaultsSlice';
 import Toast from '@/components/Toast';
+import { fetchUserPreferences } from '@/lib/store/services/charts/userDefaultsSlice';
 
 const CustomiseLocationsComponent = ({ toggleCustomise }) => {
   const dispatch = useDispatch();
@@ -19,8 +20,10 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
   });
   const selectedLocations = useSelector((state) => state.grids.selectedLocations) || [];
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
-  const customisedLocations = preferenceData.length > 0 ? preferenceData[0].selected_sites : [];;
+  const customisedLocations =
+    preferenceData.length > 0 ? preferenceData[0].selected_sites.slice(0, 4) : [];
   const id = useSelector((state) => state.login.userInfo._id);
+  const chartData = useSelector((state) => state.chart);
 
   const handleSelectedTab = (tab) => {
     setSelectedTab(tab);
@@ -41,17 +44,29 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
       const data = {
         user_id: id,
         selected_sites: selectedLocations,
+        startDate: chartData.chartDataRange.startDate,
+        endDate: chartData.chartDataRange.endDate,
+        chartType: chartData.chartType,
+        pollutant: chartData.pollutionType,
+        frequency: chartData.timeFrame,
+        period: {
+          label: chartData.chartDataRange.label,
+        },
       };
       try {
         const response = await dispatch(updateUserPreferences(data));
+
         if (!response.payload.success) {
           setCreationErrors({
             state: true,
             message: response.payload.message,
           });
+
           setLoading(false);
         } else {
           toggleCustomise();
+          // fetching user preferences after update
+          dispatch(fetchUserPreferences(id));
         }
       } catch (error) {
         throw error;

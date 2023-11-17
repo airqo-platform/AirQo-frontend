@@ -52,7 +52,7 @@ const Settings = () => {
   }, []);
 
   return (
-    <Layout topbarTitle={'Settings'} noBorderBottom>
+    <Layout topbarTitle={'Settings'} noBorderBottom pageTitle='Settings'>
       <Tabs>
         <Tab label='My profile'>
           <Profile />
