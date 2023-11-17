@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React from 'react';
+import React, { useEffect } from 'react';
 import './App.css';
 
 import jwt_decode from 'jwt-decode';
@@ -47,6 +47,24 @@ if (localStorage.jwtToken) {
 }
 
 const App = () => {
+  useEffect(() => {
+    if (process.env.REACT_APP_ALLOW_DEV_TOOLS === 'staging2') {
+      return;
+    } else {
+      // Disable context menu (right click)
+      document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+      });
+
+      // Disable F12 key (open developer tools)
+      document.addEventListener('keydown', (e) => {
+        if (e.keyCode === 123) {
+          e.preventDefault();
+        }
+      });
+    }
+  }, []);
+
   return (
     <Provider store={store}>
       <ThemeProvider theme={theme}>
