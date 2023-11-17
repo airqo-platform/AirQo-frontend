@@ -66,7 +66,12 @@ const OverView = () => {
             .map((event, index) => (
               <AQNumberCard
                 keyValue={index}
-                location={event?.siteDetails?.name}
+                location={
+                  event?.siteDetails?.search_name ||
+                  event?.siteDetails?.location_name ||
+                  event?.siteDetails?.formatted_name ||
+                  event?.siteDetails?.description
+                }
                 reading={event.pm2_5.value}
                 count={recentLocationMeasurements.length}
               />
