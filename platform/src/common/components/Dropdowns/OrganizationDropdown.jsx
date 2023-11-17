@@ -17,14 +17,15 @@ const OrganizationDropdown = () => {
 
   useEffect(() => {
     const storedActiveGroup = localStorage.getItem('activeGroup');
-    const storedUserGroups = localStorage.getItem('loggedUser').groups;
+    const storedUserGroups = localStorage.getItem('loggedUser');
+    const userGroups = JSON.parse(storedUserGroups)?.groups;
 
-    if (storedActiveGroup) {
+    if (storedActiveGroup !== null) {
       setActiveGroup(JSON.parse(storedActiveGroup));
     }
 
-    if (storedUserGroups) {
-      setUserGroups(JSON.parse(storedUserGroups));
+    if (userGroups) {
+      setUserGroups(userGroups);
     }
   }, []);
 
@@ -86,7 +87,7 @@ const OrganizationDropdown = () => {
             onClick={() => handleDropdownSelect(format)}
             className={`w-full h-11 px-3.5 py-2.5 justify-between items-center inline-flex ${
               activeGroup &&
-              activeGroup?.grp_title === format?.org_name &&
+              activeGroup?.grp_title === format?.grp_title &&
               'bg-secondary-neutral-light-50'
             }`}
           >
@@ -95,17 +96,17 @@ const OrganizationDropdown = () => {
                 <div className='w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight'>
                   {activeGroup &&
                   activeGroup?.grp_title &&
-                  splitNameIntoList(format?.org_name).length > 1
-                    ? splitNameIntoList(format?.org_name)[0][0] +
-                      splitNameIntoList(format?.org_name)[1][0]
-                    : splitNameIntoList(format?.org_name)[0][0]}
+                  splitNameIntoList(format?.grp_title).length > 1
+                    ? splitNameIntoList(format?.grp_title)[0][0] +
+                      splitNameIntoList(format?.grp_title)[1][0]
+                    : splitNameIntoList(format?.grp_title)[0][0]}
                 </div>
               </div>
               <div className='max-w-[120px] w-full text-gray-700 text-sm font-normal leading-tight capitalize'>
-                {format.org_name}
+                {format.grp_title}
               </div>
             </div>
-            {activeGroup && activeGroup?.grp_title === format?.org_name && (
+            {activeGroup && activeGroup?.grp_title === format?.grp_title && (
               <CheckIcon fill='#145FFF' />
             )}
           </a>
