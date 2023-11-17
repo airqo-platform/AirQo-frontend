@@ -15,7 +15,7 @@ import { fetchUserChecklists } from '@/lib/store/services/checklists/CheckData';
 import { updateCards } from '@/lib/store/services/checklists/CheckList';
 import Head from 'next/head';
 
-const Layout = ({ pageTitle, children, topbarTitle, noBorderBottom }) => {
+const Layout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBorderBottom }) => {
   // Constants
   const MAX_WIDTH = '(max-width: 1024px)';
 
