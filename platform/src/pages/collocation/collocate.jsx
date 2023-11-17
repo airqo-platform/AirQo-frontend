@@ -72,11 +72,7 @@ const Collocate = () => {
   }, [refetch]);
 
   return (
-    <Layout topbarTitle={'Collocation'}>
-      <Head>
-        <title>Collocate | Collocation</title>
-        <meta property='og:title' content='Collocate | Collocation' key='Collocate | Collocation' />
-      </Head>
+    <Layout topbarTitle={'Collocation'} pageTitle={'Collocate | Collocation'}>
       <HeaderNav category={'Collocation'} component={'Collocate'}>
         {isError && (
           <Toast
@@ -91,8 +87,7 @@ const Collocate = () => {
               <Button
                 className={
                   'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium text-sm'
-                }
-              >
+                }>
                 <div className='mr-[10px]'>
                   <UploadIcon />
                 </div>
@@ -103,8 +98,7 @@ const Collocate = () => {
                 className={
                   'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
                 }
-                path='/collocation/add_monitor'
-              >
+                path='/collocation/add_monitor'>
                 <div className='mr-[10px]'>
                   <BoxedAddIcon />
                 </div>

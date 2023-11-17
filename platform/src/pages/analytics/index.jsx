@@ -78,8 +78,13 @@ const AuthenticatedHomePage = () => {
       chartSites.length > 0
     ) {
       let exportData = {
-        startDate: chartDataRange.startDate,
-        endDate: chartDataRange.endDate,
+        sites: chartSites,
+        startDate: new Date(
+          new Date(new Date(chartDataRange.endDate)).setDate(
+            new Date(chartDataRange.endDate).getDate() - 2,
+          ),
+        ),
+        endDate: new Date(chartDataRange.endDate),
       };
 
       setData(exportData);
@@ -164,7 +169,7 @@ const AuthenticatedHomePage = () => {
     ];
   };
   return (
-    <Layout topbarTitle={'Analytics'} noBorderBottom>
+    <Layout topbarTitle={'Analytics'} noBorderBottom pageTitle={'Analytics'}>
       <AlertBox
         type={alert.type}
         message={alert.message}
@@ -203,10 +208,12 @@ const AuthenticatedHomePage = () => {
 
       {openPrintModal && (
         <PrintReportModal
+          title='Share report'
           open={openPrintModal}
           onClose={() => setOpenPrintModal(false)}
-          handlePrintPDF={printFile}
           data={data}
+          ModalType='share'
+          format={'pdf'}
         />
       )}
     </Layout>

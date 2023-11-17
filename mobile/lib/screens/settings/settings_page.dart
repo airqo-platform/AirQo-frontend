@@ -119,7 +119,7 @@ class _SettingsPageState extends State<SettingsPage>
                               onChanged: (bool value) async {
                                 await NotificationService.requestNotification(
                                   context,
-                                  value,
+                                  "settings",
                                 );
                               },
                               value: state.notifications,

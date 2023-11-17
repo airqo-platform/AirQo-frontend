@@ -10,7 +10,7 @@ const VerifyUserEmail = () => {
   const userEmail = useSelector((state) => state.creation.userData.email);
   const userData = useSelector((state) => state.creation.userData);
   const errors = useSelector((state) => state.creation.errors);
-  const success = useSelector((state)=>state.creation.success)
+  const success = useSelector((state) => state.creation.success);
   const [verificationErrors, setVerificationErrors] = useState(false);
 
   const handleSubmit = async () => {
@@ -27,7 +27,7 @@ const VerifyUserEmail = () => {
   };
 
   return (
-    <AccountPageLayout rightImage={SideImage}>
+    <AccountPageLayout rightImage={SideImage} pageTitle={'Verify Email | AirQo'}>
       {verificationErrors && (
         <Toast
           type={'error'}

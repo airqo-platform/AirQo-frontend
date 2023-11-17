@@ -90,7 +90,7 @@ const Home = () => {
   ];
 
   return (
-    <Layout noBorderBottom>
+    <Layout noBorderBottom pageTitle='Home'>
       {checkListStatus === 'loading' && checkListData.length === 0 ? (
         <HomeSkeleton />
       ) : (

@@ -527,6 +527,7 @@ class _DashboardViewState extends State<DashboardView>
     _listenToStreams();
     _refresh();
     _updateWidget();
+    NotificationService.requestNotification(context, "dashboard");
   }
 
   @override

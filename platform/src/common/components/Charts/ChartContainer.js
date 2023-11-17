@@ -19,6 +19,17 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, dow
   const [shareFormat, setShareFormat] = useState(null);
   const [loadingFormat, setLoadingFormat] = useState(null);
   const [downloadComplete, setDownloadComplete] = useState(null);
+  const chartData = useSelector((state) => state.chart);
+
+  const modifiedData = {
+    startDate: new Date(
+      new Date(new Date(chartData.chartDataRange.endDate)).setDate(
+        new Date(chartData.chartDataRange.endDate).getDate() - 2,
+      ),
+    ),
+    endDate: new Date(chartData.chartDataRange.endDate),
+    sites: chartData.chartSites,
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -204,6 +215,7 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, dow
         onClose={() => setOpenShare(false)}
         format={shareFormat}
         shareStatus={downloadStatus}
+        data={modifiedData}
       />
     </div>
   );
