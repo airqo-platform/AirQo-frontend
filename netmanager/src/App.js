@@ -47,6 +47,7 @@ if (localStorage.jwtToken) {
 }
 
 const App = () => {
+  // disabling feature
   useEffect(() => {
     if (process.env.REACT_APP_ALLOW_DEV_TOOLS === 'staging') {
       return;
