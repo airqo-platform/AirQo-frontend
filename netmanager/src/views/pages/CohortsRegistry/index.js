@@ -10,6 +10,7 @@ import { isEmpty } from 'underscore';
 import BreadCrumb from './breadcrumb';
 import { useDevicesData } from '../../../redux/DeviceRegistry/selectors';
 import { fetchAllCohorts } from '../../../redux/Analytics/operations';
+import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -95,7 +96,7 @@ const CohortsRegistry = () => {
               alignItems={'center'}
               fontSize={'20px'}
             >
-              Fetching cohorts...
+              <LargeCircularLoader loading={loading} />
             </Box>
           ) : cohorts && cohorts.length > 0 ? (
             <CohortsTable cohortsList={cohorts} />

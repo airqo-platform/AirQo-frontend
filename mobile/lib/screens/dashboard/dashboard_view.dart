@@ -5,7 +5,6 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
-import 'package:app/screens/kya/kya_widgets.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -166,19 +165,14 @@ class _DashboardViewState extends State<DashboardView>
                       ),
                       BlocBuilder<KyaBloc, KyaState>(
                         builder: (context, state) {
-                          final completeLessons = state.lessons
-                              .where((lesson) =>
-                                  lesson.status == KyaLessonStatus.complete)
-                              .take(3)
-                              .toList();
+                          final allLessons = state.lessons;
                           final completeQuizzes = state.quizzes
                               .where(
                                   (quiz) => quiz.status == QuizStatus.complete)
                               .take(3)
                               .toList();
-                          final kyaWidgets = completeKyaWidgets(
-                              completeLessons, completeQuizzes);
-
+                          final kyaWidgets =
+                              completeKyaWidgets(allLessons, completeQuizzes);
                           return Expanded(
                             child: CustomShowcaseWidget(
                               showcaseKey: _forYouShowcaseKey,
@@ -383,47 +377,17 @@ class _DashboardViewState extends State<DashboardView>
                     ),
                     BlocBuilder<KyaBloc, KyaState>(
                       builder: (context, state) {
-                        List<Quiz> inCompleteQuizzes = state.quizzes
-                            .where((quiz) => quiz.status != QuizStatus.complete)
-                            .toList();
+                        List<Quiz> quizzes = state.quizzes;
 
-                        if (inCompleteQuizzes.isEmpty) {
-                          _kyaExists = false;
+                        if (quizzes.isEmpty) {
                           return const SizedBox();
                         }
-                        Quiz displayedQuiz = inCompleteQuizzes.first;
+                        Quiz displayedQuiz = quizzes.first;
                         return AnimatedPadding(
                           duration: const Duration(milliseconds: 500),
                           curve: Curves.easeInExpo,
                           padding: const EdgeInsets.only(top: 16),
                           child: QuizCard(displayedQuiz),
-                        );
-                      },
-                    ),
-                    BlocBuilder<KyaBloc, KyaState>(
-                      builder: (context, state) {
-                        List<KyaLesson> inCompleteLessons =
-                            state.lessons.filterInCompleteLessons();
-
-                        if (inCompleteLessons.isEmpty) {
-                          _kyaExists = false;
-
-                          return const SizedBox();
-                        }
-
-                        return AnimatedPadding(
-                          duration: const Duration(milliseconds: 500),
-                          curve: Curves.easeInExpo,
-                          padding: const EdgeInsets.only(top: 16),
-                          child: CustomShowcaseWidget(
-                            showcaseKey: _kyaShowcaseKey,
-                            descriptionHeight: screenSize.height * 0.14,
-                            description: AppLocalizations.of(context)!
-                                .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
-                            child: KyaLessonCardWidget(
-                              inCompleteLessons.first,
-                            ),
-                          ),
                         );
                       },
                     ),
@@ -563,6 +527,7 @@ class _DashboardViewState extends State<DashboardView>
     _listenToStreams();
     _refresh();
     _updateWidget();
+    NotificationService.requestNotification(context, "dashboard");
   }
 
   @override

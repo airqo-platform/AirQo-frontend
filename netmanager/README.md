@@ -12,7 +12,7 @@ To run the app, enter the project directory <br/>
 **a) Add the `.env` file**
 
 You need to fill actual values to the environment variables while creating the respective `.env` file from [.env.sample](./.env.sample) file.
-Note that the variables with no (dummy)values are not required to get the app up and running.
+Note that the variables with no values(dummy variables) are not required to get the app up and running.
 
 **b) Install all the needed dependencies**
 

@@ -219,7 +219,7 @@
     "toTurnOnNotificationsGoToSettingsAirQoNotifications":"turn on notifications, go to\nSettings > AirQo > Notifications",
     "toTurnOffNotificationsGoToSettingsAirQoNotifications":"To turn off notifications, go to\nSettings > AirQo > Notifications",
     "completeMoveToForYou" : "Complete! Move to For You",
-    "continu" : "Continue",
+    "continueLearning" : "Continue learning",
     "yesterday": "Yesterday",
     "lastWeek": "Last Week",
     "nextWeek": "Next Week",
@@ -349,5 +349,7 @@
     "languageChangedSuccessfully": "You have successfully changed  to {placeholder}",
     "ok": "OK",
     "languages": "Languages",
-    "dataProvider":"Data Provider: {placeholder}"
+    "dataProvider":"Data Provider: {placeholder}",
+    "reDOLesson": "Re-do lesson",
+    "reDoQuiz": "Re-do quiz"
 }

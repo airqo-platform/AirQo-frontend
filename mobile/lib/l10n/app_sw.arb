@@ -339,5 +339,8 @@
     "languageChangedSuccessfully": "Lugha imebadilishwa kwa mafanikio {placeholder}",
     "ok": "Sawa",
     "languages": "Lugha",
-    "dataProvider":"Mtoa Huduma: {placeholder}"
+    "dataProvider":"Mtoa Huduma: {placeholder}",
+    "reDOLesson": "Fanya tena somo",
+    "reDoQuiz": "Fanya tena mtihani",
+    "continueLearning" : "Endelea kujifunza"
 }

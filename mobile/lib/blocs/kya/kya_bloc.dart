@@ -11,7 +11,8 @@ part 'kya_event.dart';
 part 'kya_state.dart';
 
 class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
-  KyaBloc() : super(const KyaState(lessons: [], quizzes: [])) {
+  KyaBloc()
+      : super(const KyaState(lessons: [], quizzes: [], hasCompleted: {})) {
     on<UpdateKyaProgress>(_onUpdateKyaProgress);
     on<ClearKya>(_onClearKya);
     on<FetchKya>(_onFetchKya);
@@ -50,7 +51,7 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
           .toList();
     }
 
-    emit(KyaState(lessons: kyaLessons, quizzes: const []));
+    emit(KyaState(lessons: kyaLessons, quizzes: const [], hasCompleted: {}));
   }
 
   Future<void> _onUpdateKyaProgress(
@@ -61,7 +62,18 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
     Set<KyaLesson> kyaLessons = state.lessons.toSet();
     kyaLessons.remove(kyaLesson);
     kyaLessons.add(kyaLesson);
-    emit(state.copyWith(lessons: kyaLessons.toList()));
+
+    final updatedHasCompleted = Map<String, bool>.from(state.hasCompleted);
+    for (var lesson in kyaLessons) {
+      updatedHasCompleted[lesson.id] =
+          lesson.status == KyaLessonStatus.complete;
+    }
+
+    emit(state.copyWith(
+      lessons: kyaLessons.toList(),
+      hasCompleted: updatedHasCompleted,
+    ));
+
     if (event.updateRemote) {
       final userId = CustomAuth.getUserId();
       if ((userId.isNotEmpty)) {
@@ -81,11 +93,20 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
           .map((e) => e.copyWith(
                 status: QuizStatus.todo,
                 activeQuestion: 1,
+                hasCompleted: false,
               ))
           .toList();
     }
 
-    emit(KyaState(quizzes: quizzes, lessons: const []));
+    final updatedHasCompleted = Map<String, bool>.from(state.hasCompleted);
+    for (var quiz in quizzes) {
+      updatedHasCompleted[quiz.id] = quiz.hasCompleted;
+    }
+
+    emit(KyaState(
+        quizzes: quizzes,
+        lessons: const [],
+        hasCompleted: updatedHasCompleted));
   }
 
   Future<void> _onUpdateQuizProgress(
@@ -96,7 +117,15 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
     Set<Quiz> quizzes = state.quizzes.toSet();
     quizzes.remove(quiz);
     quizzes.add(quiz);
-    emit(state.copyWith(quizzes: quizzes.toList()));
+
+    final updatedHasCompleted = Map<String, bool>.from(state.hasCompleted);
+    updatedHasCompleted[quiz.id] = quiz.hasCompleted;
+
+    emit(state.copyWith(
+      quizzes: quizzes.toList(),
+      hasCompleted: updatedHasCompleted,
+    ));
+
     if (event.updateRemote) {
       final userId = CustomAuth.getUserId();
       if ((userId.isNotEmpty)) {

@@ -82,6 +82,7 @@ class AirqoApiClient {
         AirQoUrls.appVersion,
         apiService: ApiService.view,
       );
+      print("Body: $body");
 
       return AppStoreVersion.fromJson(body['data'] as Map<String, dynamic>);
     } catch (exception, stackTrace) {
@@ -186,12 +187,17 @@ class AirqoApiClient {
 
   Future<List<Forecast>> fetchForecast(String siteId) async {
     final forecasts = <Forecast>[];
+    final prefs = await SharedPreferences.getInstance();
+    final locale = prefs.getString("language") ?? "en";
+    final queryParams = <String, String>{}
+      ..putIfAbsent('site_id', () => siteId);
+    if (locale != "en") {
+      queryParams.putIfAbsent('language', () => locale);
+    }
 
     try {
       final body = await _performGetRequest(
-        {
-          "site_id": siteId,
-        },
+        queryParams,
         AirQoUrls.forecast,
         apiService: ApiService.forecast,
       );

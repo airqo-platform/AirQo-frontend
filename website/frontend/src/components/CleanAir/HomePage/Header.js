@@ -1,19 +1,24 @@
 import React from 'react';
 import SecondaryNavComponent from '../SecondaryNav';
+import { Link } from 'react-router-dom';
 
 const HeaderComponent = ({ title, pageTitle, style }) => {
   return (
     <div className="header-wrapper" style={style}>
       <div className="content">
         <div className="breadcrumb">
-          <span>AirQo</span>
+          <Link to="/">
+            <span>AirQo</span>
+          </Link>
           <span className="arrow">{'>'}</span>
-          <span>{pageTitle}</span>
+          <Link to="/clean-air">
+            <span>{pageTitle}</span>
+          </Link>
         </div>
         <div className="heading-title">
           <h1>{title}</h1>
         </div>
-        <SecondaryNavComponent disabledTabs={[2, 3]} />
+        <SecondaryNavComponent />
       </div>
     </div>
   );

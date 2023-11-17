@@ -85,7 +85,11 @@ const OrganisationIndividualAccountCreation = () => {
     } else setChecked(true);
   };
   return (
-    <AccountPageLayout childrenHeight={'lg:h-[680]'} childrenTop={'mt-20'} rightImage={SideImage}>
+    <AccountPageLayout
+      childrenHeight={'lg:h-[680]'}
+      childrenTop={'mt-20'}
+      rightImage={SideImage}
+      pageTitle={'Create Account | AirQo'}>
       <div className='w-full'>
         <h2 className='text-3xl text-black-700 font-medium'>Let's get started</h2>
         <p className='text-xl text-black-700 font-normal mt-3'>
@@ -301,7 +305,11 @@ const OrganisationIndividualAccountCreation = () => {
                     type='submit'
                     onClick={handleSubmit}
                     className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
-                    {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
+                    {loading ? (
+                      <Spinner data-testid='spinner' width={25} height={25} />
+                    ) : (
+                      'Continue'
+                    )}
                   </button>
                 </div>
               ) : (
