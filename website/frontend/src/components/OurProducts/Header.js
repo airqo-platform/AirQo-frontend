@@ -1,13 +1,15 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const Header = ({ pageTitle, title, subText, children, style }) => {
+  const { t } = useTranslation();
   return (
     <div className="header-wrapper" style={style}>
       <div className="content">
         <div className="grid-wrapper row">
           <div className="left">
             <div className="breadcrumb">
-              <span>Our Products</span>
+              <span>{t('products.header.breadCrumb.pages')}</span>
               <span className="arrow">{'>'}</span>
               <span>{pageTitle}</span>
             </div>

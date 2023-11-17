@@ -11,8 +11,10 @@ import BackgroundShape from 'icons/research/background-shape.svg';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { Link } from 'react-router-dom';
 import SEO from 'utilities/seo';
+import { useTranslation, Trans } from 'react-i18next';
 
 const ResearchHeroSection = () => {
+  const { t } = useTranslation();
   return (
     <div className="research-title">
       <div className="page-nav">Solutions {'>'} For Research</div>
@@ -26,6 +28,7 @@ const ResearchHeroSection = () => {
 };
 
 const PublicationsSection = () => {
+  const { t } = useTranslation();
   return (
     <div className="publications-section">
       <div className="title">Publications</div>
@@ -57,6 +60,7 @@ const PublicationsSection = () => {
 };
 
 const ResearchContent = () => {
+  const { t } = useTranslation();
   return (
     <div className="research-content">
       <p className="content-intro">
@@ -112,6 +116,7 @@ const ResearchContent = () => {
 
 const ResearchPage = () => {
   useInitScrollTop();
+  const { t } = useTranslation();
   return (
     <Page>
       <div className="ResearchPage">

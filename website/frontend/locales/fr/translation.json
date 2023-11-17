@@ -1,195 +1,331 @@
 {
-    "navbar": {
-        "products": {
-            "title": "Produits",
-            "subnav": {
-                "monitor": {
-                    "name": "Binos Moniteur",
-                    "desc": "Construit en Afrique pour les villes africaines"
-                },
-                "dashboard": {
-                    "name": "Tableau de bord Analytique",
-                    "desc": "Analyse de la qualité de l'air dans les villes africaines"
-                },
-                "mobileapp": {
-                    "name": "Application Mobile",
-                    "desc": "Découvrez la qualité de l'air autour de vous"
-                },
-                "api": {
-                    "name": "Qualité de l'air API",
-                    "desc": "Accès aux données brutes et calibrées"
-                },
-                "calibrate": {
-                    "name": "AirQalibrate",
-                    "desc": "Étalonnez les données de vos capteurs à faible coût"
-                }
-            }
-        },
-        "solutions": {
-            "title": "Solutions",
-            "subnav": {
-                "cities": {
-                    "name": "Pour les Villes Africaines",
-                    "desc": "Faire progresser la gestion de la qualité de l'air dans les villes africaines"
-                },
-                "communities": {
-                    "name": "Pour les Communautés",
-                    "desc": "Donner aux collectivités les moyens de s'informer sur la qualité de l'air"
-                },
-                "research": {
-                    "name": "Pour la Recherche",
-                    "desc": "Accès gratuit aux analyses de la qualité de l'air"
-                }
-            }
-        },
-        "about": {
-            "title": "Sur",
-            "subnav": {
-                "aboutUs": "À propos de nous",
-                "cleanAir": "CLEAN-Air Réseau",
-                "events": "Evénements",
-                "resources": "Ressources",
-                "press": "Presse",
-                "careers": "Carrières",
-                "contact": "Nous Contacter"
-            }
-        },
-        "getInvolved": "S'engager",
-        "exploreData": "Explorer les Données"
-    },
-    "homepage": {
-        "heroSection": {
-            "title": "De l'air pur pour toutes les villes d'Afrique",
-            "subText": {
-                "fact": "9 personnes sur 10 respirent un air pollué",
-                "desc": "Nous fournissons aux collectivités des données précises, hyperlocales et opportunes sur la qualité de l'air afin qu'elles puissent prendre des mesures d'atténuation de la pollution atmosphérique"
-            }
-        },
-        "airQuality": {
-            "support": "Airqo est soutenu par",
-            "title": "Combler les lacunes en matière de données sur la qualité de l'air en Afrique",
-            "subText": "Nous fournissons des données précises, hyperlocales et opportunes sur la qualité de l'air afin de démontrer l'ampleur et l'étendue de la pollution atmosphérique en Afrique.",
-            "cities": {
-                "first": {
-                    "title": "Réseau à haute résolution",
-                    "list": {
-                        "1": "Nous voulons un air plus pur dans toutes les villes d'Afrique",
-                        "2": "Nous mettons à profit notre compréhension du contexte Africain"
-                    }
-                },
-                "second": {
-                    "title": "Plateformes numériques sur la qualité de l'air",
-                    "list": {
-                        "1": "Nous donnons aux décideurs des villes africaines les moyens d'agir",
-                        "2": "Nous améliorons l'accès aux données sur la qualité de l'air"
-                    }
-                },
-                "third": {
-                    "title": "Engagement politique",
-                    "list": {
-                        "1": "Nous engageons les autorités municipales et les agences gouvernementales",
-                        "2": "Nous donnons aux responsables locaux les moyens de s'informer sur la qualité de l'air"
-                    }
-                }
-            },
-            "community": {
-                "first": {
-                    "title": "AirQommunity Champions",
-                    "list": {
-                        "1": "Un réseau de plus en plus important d'acteurs du changement",
-                        "2": "Se faire le champion des leaders locaux et exiger des actions"
-                    }
-                },
-                "second": {
-                    "title": "Accès gratuit aux informations sur la qualité de l'air",
-                    "list": {
-                        "1": "Nous formons des individus et des communautés",
-                        "2": "Faciliter l'accès aux informations sur la qualité de l'air"
-                    }
-                },
-                "third": {
-                    "title": "AirQo Hôtes",
-                    "list": {
-                        "1": "Nous engageons les habitants à accueillir nos activités de déploiement",
-                        "2": "Nous impliquons les habitants dans nos actions de maintenance"
-                    }
-                }
-            }
-        },
-        "impact": {
-            "cities": "Villes d'Afrique",
-            "champions": "Champions de la Communauté",
-            "installs": "Installations de Moniteurs",
-            "records": "Enregistrements des Données",
-            "research": "Rapports de Recherche",
-            "partners": "Partenaires"
-        },
+  "navbar": {
+    "products": {
+      "title": "Produits",
+      "subnav": {
         "monitor": {
-            "pill": "Moniteur de la qualité de l'air",
-            "title": "Réseau de surveillance de la qualité de l'air à haute résolution",
-            "subText": "Nous déployons un réseau de surveillance de la qualité de l'air à haute résolution dans des zones urbaines ciblées à travers l'Afrique afin d'accroître la sensibilisation et la compréhension de la gestion de la qualité de l'air, de fournir des informations exploitables et de dériver des actions contre la pollution de l'air",
-            "cta": "Plus d'informations"
+          "name": "Binos Moniteur",
+          "desc": "Construit en Afrique pour les villes africaines"
         },
-        "analytics": {
-            "pill": "Analyse de la qualité de l'air",
-            "title": "Une plateforme interactive d'analyse de la qualité de l'air",
-            "subText": "Accédez et visualisez les informations historiques et en temps réel sur la qualité de l'air en Afrique grâce à notre tableau de bord analytique sur la qualité de l'air, facile à utiliser",
-            "cta": "Plus d'informations"
+        "dashboard": {
+          "name": "Tableau de bord Analytique",
+          "desc": "Analyse de la qualité de l'air dans les villes africaines"
         },
-        "apiSection": {
-            "pill": "Qualité de l'air API",
-            "title": "Amplifier l'impact sur la qualité de l'air grâce à notre API",
-            "subText": "Vous êtes développeur ? Nous vous invitons à exploiter nos données sur la qualité de l'air dans votre application",
-            "cta": "Commencer"
+        "mobileapp": {
+          "name": "Application Mobile",
+          "desc": "Découvrez la qualité de l'air autour de vous"
         },
-        "mapSection": {
-            "pill": "Carte de la qualité de l'air",
-            "title": "Informations en direct sur la qualité de l'air en Afrique",
-            "subText": "Visualisez en un seul clic des informations sur la qualité de l'air toutes les heures, grâce à notre réseau croissant de villes africaines",
-            "cta": "Voir la Carte"
+        "api": {
+          "name": "Qualité de l'air API",
+          "desc": "Accès aux données brutes et calibrées"
         },
-        "appSection": {
-            "title": "Télécharger l'application",
-            "subText": "Découvrez la qualité de l'air que vous respirez"
-        },
-        "ctaSection": {
-            "leaders": {
-                "title": "Google.org Leaders à suivre 2022",
-                "subText": "Qu'il s'agisse d'accroître l'équité dans l'éducation ou de s'attaquer aux problèmes environnementaux, les leaders à suivre de cette année construisent un avenir meilleur pour tous.",
-                "cta": "Plus d'informations"
-            },
-            "explore": {
-                "title": "Explorez nos outils numériques. Renseignez-vous sur la qualité de l'air autour de vous.",
-                "cta": "Explorer les Données"
-            },
-            "involved": {
-                "title": "Participez. Découvrez comment vous pouvez soutenir notre vision.",
-                "cta": "S'engager"
-            }
-        },
-        "newsLetter": {
-            "title": "Obtenir des mises à jour sur la qualité de l'air",
-            "subText": "Abonnez-vous à notre lettre d'information et renseignez-vous sur la qualité de l'air que vous respirez.",
-            "button": "S'abonner",
-            "subscribed": "Merci de votre participation",
-            "failed": "Oups! Un problème s'est produit. Veuillez réessayer!",
-            "placeholder": "Saisissez votre adresse e-mail"
+        "calibrate": {
+          "name": "AirQalibrate",
+          "desc": "Étalonnez les données de vos capteurs à faible coût"
         }
+      }
     },
-    "footer": {
-        "monitors": "Moniteurs en",
-        "blog": "Blog",
-        "tos": "Termes de Service",
-        "privacy": "Politique de Confidentialité",
-        "by": "Un projet de",
-        "modal": {
-            "title": "Pays AirQloud",
-            "subTitle": "Notre réseau en expansion en Afrique",
-            "view": "Voir les développements d'AirQo dans votre pays",
-            "select": "Pays sélectionné",
-            "country": "Sélectionner un pays",
-            "cancel": "annuler",
-            "save": "sauver"
+    "solutions": {
+      "title": "Solutions",
+      "subnav": {
+        "cities": {
+          "name": "Pour les Villes Africaines",
+          "desc": "Faire progresser la gestion de la qualité de l'air dans les villes africaines"
+        },
+        "communities": {
+          "name": "Pour les Communautés",
+          "desc": "Donner aux collectivités les moyens de s'informer sur la qualité de l'air"
+        },
+        "research": {
+          "name": "Pour la Recherche",
+          "desc": "Accès gratuit aux analyses de la qualité de l'air"
         }
+      }
+    },
+    "about": {
+      "title": "Sur",
+      "subnav": {
+        "aboutUs": "À propos de nous",
+        "cleanAir": "CLEAN-Air Réseau",
+        "events": "Evénements",
+        "resources": "Ressources",
+        "press": "Presse",
+        "careers": "Carrières",
+        "contact": "Nous Contacter"
+      }
+    },
+    "getInvolved": "S'engager",
+    "exploreData": "Explorer les Données"
+  },
+  "homepage": {
+    "heroSection": {
+      "title": "De l'air pur pour toutes les villes d'Afrique",
+      "subText": {
+        "fact": "9 personnes sur 10 respirent un air pollué",
+        "desc": "Nous fournissons aux collectivités des données précises, hyperlocales et opportunes sur la qualité de l'air afin qu'elles puissent prendre des mesures d'atténuation de la pollution atmosphérique"
+      }
+    },
+    "airQuality": {
+      "support": "Airqo est soutenu par",
+      "title": "Combler les lacunes en matière de données sur la qualité de l'air en Afrique",
+      "subText": "Nous fournissons des données précises, hyperlocales et opportunes sur la qualité de l'air afin de démontrer l'ampleur et l'étendue de la pollution atmosphérique en Afrique.",
+      "cities": {
+        "first": {
+          "title": "Réseau à haute résolution",
+          "list": {
+            "1": "Nous voulons un air plus pur dans toutes les villes d'Afrique",
+            "2": "Nous mettons à profit notre compréhension du contexte Africain"
+          }
+        },
+        "second": {
+          "title": "Plateformes numériques sur la qualité de l'air",
+          "list": {
+            "1": "Nous donnons aux décideurs des villes africaines les moyens d'agir",
+            "2": "Nous améliorons l'accès aux données sur la qualité de l'air"
+          }
+        },
+        "third": {
+          "title": "Engagement politique",
+          "list": {
+            "1": "Nous engageons les autorités municipales et les agences gouvernementales",
+            "2": "Nous donnons aux responsables locaux les moyens de s'informer sur la qualité de l'air"
+          }
+        }
+      },
+      "community": {
+        "first": {
+          "title": "AirQommunity Champions",
+          "list": {
+            "1": "Un réseau de plus en plus important d'acteurs du changement",
+            "2": "Se faire le champion des leaders locaux et exiger des actions"
+          }
+        },
+        "second": {
+          "title": "Accès gratuit aux informations sur la qualité de l'air",
+          "list": {
+            "1": "Nous formons des individus et des communautés",
+            "2": "Faciliter l'accès aux informations sur la qualité de l'air"
+          }
+        },
+        "third": {
+          "title": "AirQo Hôtes",
+          "list": {
+            "1": "Nous engageons les habitants à accueillir nos activités de déploiement",
+            "2": "Nous impliquons les habitants dans nos actions de maintenance"
+          }
+        }
+      }
+    },
+    "impact": {
+      "cities": "Villes d'Afrique",
+      "champions": "Champions de la Communauté",
+      "installs": "Installations de Moniteurs",
+      "records": "Enregistrements des Données",
+      "research": "Rapports de Recherche",
+      "partners": "Partenaires"
+    },
+    "monitor": {
+      "pill": "Moniteur de la qualité de l'air",
+      "title": "Réseau de surveillance de la qualité de l'air à haute résolution",
+      "subText": "Nous déployons un réseau de surveillance de la qualité de l'air à haute résolution dans des zones urbaines ciblées à travers l'Afrique afin d'accroître la sensibilisation et la compréhension de la gestion de la qualité de l'air, de fournir des informations exploitables et de dériver des actions contre la pollution de l'air",
+      "cta": "Plus d'informations"
+    },
+    "analytics": {
+      "pill": "Analyse de la qualité de l'air",
+      "title": "Une plateforme interactive d'analyse de la qualité de l'air",
+      "subText": "Accédez et visualisez les informations historiques et en temps réel sur la qualité de l'air en Afrique grâce à notre tableau de bord analytique sur la qualité de l'air, facile à utiliser",
+      "cta": "Plus d'informations"
+    },
+    "apiSection": {
+      "pill": "Qualité de l'air API",
+      "title": "Amplifier l'impact sur la qualité de l'air grâce à notre API",
+      "subText": "Vous êtes développeur ? Nous vous invitons à exploiter nos données sur la qualité de l'air dans votre application",
+      "cta": "Commencer"
+    },
+    "mapSection": {
+      "pill": "Carte de la qualité de l'air",
+      "title": "Informations en direct sur la qualité de l'air en Afrique",
+      "subText": "Visualisez en un seul clic des informations sur la qualité de l'air toutes les heures, grâce à notre réseau croissant de villes africaines",
+      "cta": "Voir la Carte"
+    },
+    "appSection": {
+      "title": "Télécharger l'application",
+      "subText": "Découvrez la qualité de l'air que vous respirez"
+    },
+    "ctaSection": {
+      "leaders": {
+        "title": "Google.org Leaders à suivre 2022",
+        "subText": "Qu'il s'agisse d'accroître l'équité dans l'éducation ou de s'attaquer aux problèmes environnementaux, les leaders à suivre de cette année construisent un avenir meilleur pour tous.",
+        "cta": "Plus d'informations"
+      },
+      "explore": {
+        "title": "Explorez nos outils numériques. Renseignez-vous sur la qualité de l'air autour de vous.",
+        "cta": "Explorer les Données"
+      },
+      "involved": {
+        "title": "Participez. Découvrez comment vous pouvez soutenir notre vision.",
+        "cta": "S'engager"
+      }
+    },
+    "newsLetter": {
+      "title": "Obtenir des mises à jour sur la qualité de l'air",
+      "subText": "Abonnez-vous à notre lettre d'information et renseignez-vous sur la qualité de l'air que vous respirez.",
+      "button": "S'abonner",
+      "subscribed": "Merci de votre participation",
+      "failed": "Oups! Un problème s'est produit. Veuillez réessayer!",
+      "placeholder": "Saisissez votre adresse e-mail"
     }
+  },
+  "products": {
+    "header": {
+      "breadCrumb": {
+        "pages": "Nos produits"
+      }
+    },
+    "monitor": {
+      "header": {
+        "pageTitle": "Moniteur Binos",
+        "title": "Construit en Afrique pour les villes africaines.",
+        "subText": "Conçu, fabriqué et calibré pour mesurer la qualité de l'air ambiant et optimisé pour le contexte africain."
+      },
+      "first": {
+        "title": "<0>Moniteurs fabriqués localement</0> à faible coût",
+        "subText": "Le moniteur Binos est un appareil de mesure de la qualité de l'air peu coûteux, configuré pour mesurer les particules PM<0>2,5</0> et PM<0>10</0>, les polluants les plus courants dans les villes africaines. Il mesure également les conditions météorologiques ambiantes telles que l'humidité et la pression atmosphérique."
+      },
+      "second": {
+        "title": "Conçu pour l'Afrique",
+        "subText": "Les moniteurs sont optimisés pour faire face à des défis tels que des conditions météorologiques extrêmes, y compris des niveaux élevés de poussière et de chaleur typiques du contexte des villes africaines.<br/><br/>Alimenté par le secteur ou par l'énergie solaire, l'appareil est optimisé pour fonctionner dans des environnements caractérisés par une alimentation électrique peu fiable et une connectivité Internet intermittente. Il fonctionne sur un réseau GSM 2G pour les cartes SIM IoT.",
+        "cta": "Manuel d'entretien"
+      },
+      "third": {
+        "title": "Surveillance mobile",
+        "subText": "Les moniteurs sont faciles à installer et peuvent être placés sur des bâtiments statiques ou sur des motos-taxis appelées localement 'boda-bodas' pour améliorer la couverture spatiale et la révolution.<br/><br/>La collecte de données sur la qualité de l'air à l'aide de motos-taxis présente un réel potentiel pour la surveillance à haute résolution de la qualité de l'air dans les espaces urbains. La surveillance mobile nous permet de combler les lacunes et les limites spatiales de la surveillance statique fixe."
+      },
+      "fourth": {
+        "title": "Plus de 160 moniteurs de qualité de l'air installés dans 8 grandes villes africaines",
+        "subText": "Pour lutter efficacement contre la pollution de l'air, l'accès aux données et aux preuves contextuelles est important pour montrer l'échelle et l'ampleur de la pollution de l'air.<br/><br/>Nous fournissons une solution complète de qualité de l'air dans les principales villes africaines en tirant parti des moniteurs à faible coût construits localement et de l'expertise existante pour faire progresser la gestion de la qualité de l'air et, implicitement, l'amélioration de la qualité de l'air dans ces villes africaines."
+      },
+      "fifth": {
+        "title": "<0>Moniteur</0> Installation",
+        "subText": "Ce guide comprend des instructions et des manuels sur la façon d'activer, d'installer, d'utiliser et de gérer facilement les moniteurs de qualité de l'air Binos."
+      },
+      "sixth": {
+        "title": "Activer, installer, exploiter et gérer les moniteurs Binos",
+        "subText": "Dans ce guide, vous trouverez des recommandations sur :<br />+ Où placer le moniteur <br /> + Comment installer le moniteur <br /> + Comment accéder aux données à l'aide de notre tableau de bord analytique ?",
+        "cta": "Guide d'installation"
+      }
+    },
+    "mobileApp": {
+      "header": {
+        "pageTitle": "Appli mobile",
+        "title": "Découvrez la qualité de l'air autour de vous.",
+        "subText": "L'accès à des données fiables sur la qualité de l'air est la première étape pour se protéger contre la pollution atmosphérique. L'application mobile AirQo est facile à utiliser et gratuite. Elle vous permet de rester informé sur la qualité de l'air que vous respirez."
+      },
+      "first": {
+        "title": "Connaître son <1>Air</1>",
+        "subText": "L’application mobile AirQo Air Quality est la première du genre en Afrique. Avec l’application, vous avez accès à des informations en temps réel et sur la qualité de l’air dans les zones urbaines surveillées des grandes villes d’Afrique."
+      },
+      "second": {
+        "title": "Alertes et notifications personnalisées sur la qualité de l'air",
+        "subText": "Recevez des alertes et des recommandations personnalisées sur la qualité de l’air pour vous permettre d’agir et de rester en bonne santé.<br/><br/>Configurez vos endroits préférés pour vérifier rapidement la qualité de l’air dans les zones qui comptent pour vous.<br/><br/>Activez les notifications pour connaître la qualité de l’air que vous respirez.<br/><br/>Vous recevrez une notification push chaque fois que la qualité de l’air est propre ou dépasse les niveaux de sécurité recommandés."
+      },
+      "third": {
+        "title": "Temps réel et prévisions",
+        "subText": "Notre application vous donne accès à des informations en temps réel et sur la qualité de l’air dans la paume de vos mains, ce qui vous donne le pouvoir de prendre des décisions éclairées concernant vos activités quotidiennes.<br/><br/>Nos prévisions de la qualité de l’air sur 24 heures, développées à l’aide de l’apprentissage automatique et de l’IA, vous permettent de mieux planifier votre journée, de savoir quand faire une promenade ou un jogging pour éviter la pollution de l’air et rester en bonne santé."
+      },
+      "fourth": {
+        "title": "Conseils santé",
+        "subText": "Notre application vous fournit des informations détaillées au-delà des chiffres.<br/><br/>Vous avez accès à des conseils fréquents pour vous aider à rester en bonne santé et à apprendre comment vous pouvez réduire votre exposition à la pollution de l’air."
+      }
+    },
+    "calibrate": {
+      "header": {
+        "pageTitle": "AirQalibrate",
+        "title": "Calibrez les données de vos capteurs à faible coût",
+        "subText": "Améliorez la précision et la fiabilité des données de vos moniteurs de qualité de l’air à faible coût à l’aide de l’outil AirQalibrate d’AirQo, qui fournit des résultats plus précis."
+      },
+      "first": {
+        "title": "<0>Pourquoi calibrer</0> les données de vos capteurs à faible coût ?",
+        "subText": "Les capteurs à faible coût sont utilisés pour augmenter la couverture géographique des réseaux de surveillance de la qualité de l’air, mais ils sont sensibles aux conditions ambiantes (humidité, température) qui pourraient affecter la précision des données sur la qualité de l’air.<br/>L’étalonnage améliore la qualité et la fiabilité des données sur la qualité de l’air provenant de capteurs à faible coût."
+      },
+      "second": {
+        "title": "Rentable et accessible",
+        "subText": "AirQalibrate est un outil d’étalonnage basé sur l’apprentissage automatique qui élimine le besoin de moniteurs de qualité de référence ou d’étalonnage de moniteurs sur site.<br/><br/>Il permet aux utilisateurs qui n’ont pas accès à des moniteurs de référence ou à une expertise technique d’étalonner les données de leurs moniteurs à faible coût, d’améliorer les performances et de renforcer la confiance dans le réseau de qualité de l’air.<br/><br/>Cela réduit les coûts opérationnels liés à la surveillance, ce qui permet d’étendre les systèmes de surveillance pour créer un réseau dense de surveillance et de gestion de la qualité de l’air."
+      },
+      "third": {
+        "title": "Calibrez vos données",
+        "subText": "Téléchargez un fichier CSV contenant les données de votre capteur PM2,5 et PM10 à faible coût, suivez quelques étapes simples et calibrez vos données. Les résultats sont automatiquement téléchargés lorsque le processus d’étalonnage est terminé.",
+        "cta": "Calibrez vos données"
+      },
+      "fourth": {
+        "title": "<0>Interface utilisateur simple </0>.",
+        "subText": "Notre outil d’étalonnage dispose d’une interface conviviale qui simplifie le processus d’étalonnage. Même sans expertise technique, vous pouvez facilement naviguer dans l’outil et calibrer les données des moniteurs de qualité de l’air."
+      }
+    },
+    "Analytics": {
+      "header": {
+        "pageTitle": "Tableau de bord d'analyse de la qualité de l'air",
+        "title": "Accéder et visualiser les données sur la qualité de l'air dans les villes africaines.",
+        "subText": "Si nous ne pouvons pas mesurer la pollution de l'air, nous ne pouvons pas la gérer : Accédez, suivez, analysez et téléchargez des données pertinentes sur la qualité de l'air dans les principales villes d'Afrique."
+      },
+      "first": {
+        "title": "<0>Analyse de la qualité de l’air en temps réel</0> pour les villes africaines",
+        "subText": "La pollution de l’air dans de nombreuses villes d’Afrique est sous-surveillée, en partie en raison des contraintes logistiques liées à la mise en place et à la maintenance d’un réseau de surveillance, associées à l’expertise nécessaire pour traiter et analyser les données."
+      },
+      "second": {
+        "title": "Accès rapide aux données",
+        "subText": "Le tableau de bord d’analyse de la qualité de l’air est un tableau de bord logiciel intuitif qui vous permet d’accéder en temps opportun à des informations historiques, en temps réel et prévisionnelles sur la qualité de l’air exploitables dans nos espaces urbains surveillés en Afrique.<br/><br/>Nous voulons que les citoyens et les décideurs des villes africaines aient un accès rapide aux tendances, aux modèles et aux informations sur la qualité de l’air afin d’éclairer les décisions fondées sur des données pour lutter contre la pollution de l’air.",
+        "cta": "Guide de l’utilisateur"
+      },
+      "third": {
+        "title": "Obtenir des informations pour passer à l’action",
+        "subText": "Grâce à notre tableau de bord d’analyse de la qualité de l’air, vous pouvez consulter des données calibrées historiques, en temps réel ou prévisionnelles dans les endroits qui vous intéressent.<br/><br/>Vous pouvez générer, comparer et télécharger des données sur la qualité de l’air dans diverses villes africaines et développer des actions fondées sur des données probantes pour lutter contre la pollution de l’air.<br/>"
+      },
+      "fourth": {
+        "title": "<0>Interface facile à utiliser</0>",
+        "subText": "Nos graphiques de visualisation sont conçus pour vous aider à interpréter et à obtenir facilement des informations sur les données tout en vous donnant accès aux tendances de la qualité de l’air dans les villes africaines au fil du temps. Grâce à notre interface facile à utiliser, vous pouvez suivre et visualiser les tendances de la qualité de l’air au fil du temps.",
+        "cta": "Explorer les données"
+      }
+    },
+    "api": {
+      "header": {
+        "pageTitle": "API AirQo",
+        "title": "Accédez à des données en temps réel sur la qualité de l’air.",
+        "subText": "Conçu pour améliorer sans effort votre application avec des informations vitales, embrassez le potentiel de transformation des informations sur la qualité de l’air grâce à notre API."
+      },
+      "first": {
+        "title": "Débloquez la qualité de l’air <1>Insights</1>",
+        "subText": "L’API AirQo offre un accès libre à un vaste référentiel de plus de 2 millions d’enregistrements de données brutes et calibrées en temps réel, historiques et prévisionnelles sur la qualité de l’air."
+      },
+      "second": {
+        "title": "Redéfinir l’accès aux données",
+        "subText": "L’API utilise des techniques d’IA et d’analyse de données pour fournir des mesures précises de la qualité de l’air. Il offre des mesures des PM<1>2,5</1> et PM<1>10</1>, les polluants les plus courants dans les villes africaines.<br /><br />Nos ensembles de données complets sur la qualité de l’air comprennent des données provenant de nos moniteurs de qualité de l’air à faible coût ainsi que de moniteurs de qualité de référence stratégiquement déployés dans les grandes villes africaines."
+      },
+      "third": {
+        "title": "Commencez à responsabiliser votre public",
+        "subText": "L’API AirQo ne concerne pas seulement les données sur la qualité de l’air, elle permet aux utilisateurs de prendre des mesures pour se protéger contre la pollution de l’air.<br /><br />Intégrez des informations sur la qualité de l’air dans vos projets Open Source, extensions de navigateur, plugins, applications mobiles, applications de bureau et Web.<br /><br />Aidez les utilisateurs à prendre leur santé en main et à rejoindre le mouvement pour un air plus pur !"
+      },
+      "fourth": {
+        "title": "<0>Comment</0> cela fonctionne",
+        "subText": "Avec notre API, vous avez accès à une documentation complète pour vous permettre d'intégrer les données de manière transparente, et à une équipe d'assistance dédiée pour vous aider à chaque étape du processus d'intégration.",
+        "cta": "Lire les documents"
+      }
+    }
+  },
+  "footer": {
+    "monitors": "Moniteurs en",
+    "blog": "Blog",
+    "tos": "Termes de Service",
+    "privacy": "Politique de Confidentialité",
+    "by": "Un projet de",
+    "modal": {
+      "title": "Pays AirQloud",
+      "subTitle": "Notre réseau en expansion en Afrique",
+      "view": "Voir les développements d'AirQo dans votre pays",
+      "select": "Pays sélectionné",
+      "country": "Sélectionner un pays",
+      "cancel": "annuler",
+      "save": "sauver"
+    }
+  }
 }

@@ -7,44 +7,45 @@ import HeaderImage from '../../assets/img/OurProducts/Api/HeaderImage.png';
 import Section1Image from '../../assets/img/OurProducts/Api/section-1.jpg';
 import Section2Image from '../../assets/img/OurProducts/Api/section-2.png';
 import Section3Image from '../../assets/img/OurProducts/Api/section-3.png';
+import { useTranslation, Trans } from 'react-i18next';
 
 const ApiPage = () => {
   useInitScrollTop();
+  const { t } = useTranslation();
   return (
     <Page>
       <div className="product-page api mobile-app analytics">
         <Header
           style={{ backgroundColor: '#FFFDEA' }}
-          pageTitle={'AirQo API'}
-          title={'Access real-time air quality data.'}
-          subText={
-            'Designed to effortlessly enhance your application with vital insights, embrace the transformative potential of air quality information through our API.'
-          }>
+          pageTitle={t('products.api.header.pageTitle')}
+          title={t('products.api.header.title')}
+          subText={t('products.api.header.subText')}>
           <img src={HeaderImage} alt="" style={{ borderRadius: '8px' }} />
         </Header>
         <div className="content">
           <div className="grid-wrapper column section section-1">
             <div className="row">
               <h2 className="left title">
-                Unlock Air Quality <span className="blue">Insights</span>
+                <Trans i18nKey="products.api.first.title">
+                  Unlock Air Quality <span className="blue">Insights</span>
+                </Trans>
               </h2>
-              <p className="right">
-                The AirQo API provides open access to a vast repository of over 2 million records of
-                raw and calibrated real-time, historical, and forecast air quality data.
-              </p>
+              <p className="right">{t('products.api.first.subText')}</p>
             </div>
             <div className="overlap-section">
               <div className="lapping-left card larger-top" style={{ backgroundColor: '#F2F1F6' }}>
-                <h5>Redefining data access</h5>
+                <h5>{t('products.api.second.title')}</h5>
                 <p>
-                  The API uses AI and data analysis techniques to provide accurate air quality
-                  measurements. It offers PM<sub>2.5</sub> and PM<sub>10</sub> measurements, the
-                  most common pollutants in African cities.
-                  <br />
-                  <br />
-                  Our comprehensive air quality datasets include data from our low-cost air quality
-                  monitors as well as reference-grade monitors strategically deployed in major
-                  African Cities.
+                  <Trans i18nKey="products.api.second.subText">
+                    The API uses AI and data analysis techniques to provide accurate air quality
+                    measurements. It offers PM<sub>2.5</sub> and PM<sub>10</sub> measurements, the
+                    most common pollutants in African cities.
+                    <br />
+                    <br />
+                    Our comprehensive air quality datasets include data from our low-cost air
+                    quality monitors as well as reference-grade monitors strategically deployed in
+                    major African Cities.
+                  </Trans>
                 </p>
               </div>
               <div className="lapping-left image" id="section-1">
@@ -55,16 +56,18 @@ const ApiPage = () => {
           <div className="grid-wrapper section">
             <div className="overlap-section">
               <div className="lapping-right card" style={{ backgroundColor: '#FFFCE1' }}>
-                <h5>Start empowering your audience</h5>
+                <h5>{t('products.api.third.title')}</h5>
                 <p>
-                  The AirQo API is not only about air quality data — it's about empowering users to
-                  take action to protect themselves against air pollution.
-                  <br /> <br />
-                  Integrate air quality information in your Open Source Projects, Browser
-                  Extensions, Plugins, Mobile Apps, Desktop and Web Apps.
-                  <br />
-                  <br />
-                  Help users take charge of their health and join the movement for cleaner air!
+                  <Trans i18nKey="products.api.third.subText">
+                    The AirQo API is not only about air quality data — it's about empowering users
+                    to take action to protect themselves against air pollution.
+                    <br /> <br />
+                    Integrate air quality information in your Open Source Projects, Browser
+                    Extensions, Plugins, Mobile Apps, Desktop and Web Apps.
+                    <br />
+                    <br />
+                    Help users take charge of their health and join the movement for cleaner air!
+                  </Trans>
                 </p>
               </div>
               <div className="lapping-right image" id="section-2">
@@ -78,16 +81,14 @@ const ApiPage = () => {
             style={{ backgroundColor: '#F2F1F6' }}>
             <div className="column smaller-width">
               <h2 className="left title">
-                <span className="blue">How</span> it works
+                <Trans i18nKey="products.api.fourth.title">
+                  <span className="blue">How</span> it works
+                </Trans>
               </h2>
-              <p className="right">
-                With our API, you have access to comprehensive documentation to enable you
-                seamlessly integrate the data, and a dedicated support team to assist you at every
-                step of the integration process.
-              </p>
+              <p className="right">{t('products.api.fourth.subText')}</p>
               <div className="cta-button">
                 <NavTab
-                  text="Read Docs"
+                  text={t('products.api.fourth.cta')}
                   path="https://docs.airqo.net/airqo-rest-api-documentation/"
                   externalLink
                   hideArrow
