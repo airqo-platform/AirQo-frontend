@@ -82,7 +82,6 @@ class AirqoApiClient {
         AirQoUrls.appVersion,
         apiService: ApiService.view,
       );
-      print("Body: $body");
 
       return AppStoreVersion.fromJson(body['data'] as Map<String, dynamic>);
     } catch (exception, stackTrace) {

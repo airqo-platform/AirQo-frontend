@@ -12,7 +12,6 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -52,8 +51,12 @@ class _HomePageState extends State<HomePage> {
     return OfflineBanner(
       child: Scaffold(
         backgroundColor: CustomColors.appBodyColor,
-        body: WillPopScope(
-          onWillPop: _onWillPop,
+        body: PopScope(
+          onPopInvoked: ((didPop) {
+            if (didPop) {
+              _onWillPop();
+            }
+          }),
           child: PageTransitionSwitcher(
             transitionBuilder: (
               Widget child,
@@ -226,23 +229,15 @@ class _HomePageState extends State<HomePage> {
 
         await AirqoApiClient()
             .getAppVersion(
-          currentVersion: '2.0.20',
+          currentVersion: packageInfo.version,
           bundleId: Platform.isIOS ? packageInfo.packageName : null,
           packageName: Platform.isAndroid ? packageInfo.packageName : null,
         )
             .then((version) async {
-          print("version:$version.version");
           if (version != null && mounted && !version.isUpdated) {
-            print("Update screen");
-            try {
-              await canLaunchUrl(version.url).then((bool result) async {
-                await openUpdateScreen(context, version);
-              });
-            } catch (e) {
-              if (kDebugMode) {
-                print(e);
-              }
-            }
+            await canLaunchUrl(version.url).then((bool result) async {
+              await openUpdateScreen(context, version);
+            });
           }
         });
       }

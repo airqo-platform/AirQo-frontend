@@ -34,8 +34,12 @@ class IntroductionScreenState extends State<IntroductionScreen> {
     return OfflineBanner(
       child: Scaffold(
         appBar: const OnBoardingTopBar(),
-        body: WillPopScope(
-          onWillPop: onWillPop,
+        body: PopScope(
+          onPopInvoked: ((didPop) {
+            if (didPop) {
+              onWillPop();
+            }
+          }),
           child: AppSafeArea(
             horizontalPadding: 24,
             verticalPadding: 10,

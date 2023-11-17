@@ -27,8 +27,12 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
     return OfflineBanner(
       child: Scaffold(
         appBar: const OnBoardingTopBar(),
-        body: WillPopScope(
-          onWillPop: onWillPop,
+        body: PopScope(
+          onPopInvoked: ((didPop) {
+            if (didPop) {
+              onWillPop();
+            }
+          }),
           child: AppSafeArea(
             verticalPadding: 10,
             child: Column(
