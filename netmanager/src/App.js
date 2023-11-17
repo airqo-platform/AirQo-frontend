@@ -48,7 +48,7 @@ if (localStorage.jwtToken) {
 
 const App = () => {
   useEffect(() => {
-    if (process.env.REACT_APP_ALLOW_DEV_TOOLS === 'staging2') {
+    if (process.env.REACT_APP_ALLOW_DEV_TOOLS === 'staging') {
       return;
     } else {
       // Disable context menu (right click)
