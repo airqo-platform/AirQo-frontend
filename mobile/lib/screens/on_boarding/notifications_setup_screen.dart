@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:app/constants/constants.dart';
 
 import '../offline_banner.dart';
 import 'location_setup_screen.dart';
@@ -91,7 +92,8 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
     bool hasPermission =
         await PermissionService.checkPermission(AppPermission.notification);
     if (hasPermission && mounted) {
-      await FirebaseMessaging.instance.subscribeToTopic("push-notifications");
+      await FirebaseMessaging.instance
+          .subscribeToTopic(Config.notificationsTopic);
 
       Profile profile = context.read<ProfileBloc>().state;
       context

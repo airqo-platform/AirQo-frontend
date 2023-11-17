@@ -80,6 +80,8 @@ class Config {
 
   static double get refreshIndicatorExtent => 30;
 
+  static String get notificationsTopic => 'push-notifications';
+
   static double refreshIndicatorPadding(int index) {
     return index == 0 ? 16.0 : 0.0;
   }

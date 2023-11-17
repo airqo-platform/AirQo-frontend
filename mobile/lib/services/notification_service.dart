@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
@@ -14,6 +15,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
+
 class NotificationService {
   static Future<void> updateNotificationStatus(BuildContext context) async {
     Profile profile = context.read<ProfileBloc>().state;
@@ -25,7 +27,8 @@ class NotificationService {
           context
               .read<ProfileBloc>()
               .add(UpdateProfile(profile.copyWith(notifications: true)));
-          FirebaseMessaging.instance.subscribeToTopic("notifications");
+          FirebaseMessaging.instance
+              .subscribeToTopic(Config.notificationsTopic);
           CloudAnalytics.logAllowNotification();
           break;
         case PermissionStatus.restricted:
@@ -34,7 +37,8 @@ class NotificationService {
           context
               .read<ProfileBloc>()
               .add(UpdateProfile(profile.copyWith(notifications: false)));
-          FirebaseMessaging.instance.unsubscribeFromTopic("notifications");
+          FirebaseMessaging.instance
+              .unsubscribeFromTopic(Config.notificationsTopic);
           break;
       }
     });
