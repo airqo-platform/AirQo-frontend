@@ -312,6 +312,77 @@
       }
     }
   },
+  "solutions": {
+    "research": {
+      "header": {
+        "breadCrumb": "Solutions > For Research",
+        "title": "For Research",
+        "subText": "We actively collaborate with researchers across the world to jointly tackle air quality research challenges."
+      },
+      "consult": {
+        "first": {
+          "Intro": "We aim to advance the understanding of air quality issues in sub-Saharan Africa. We take a multidisciplinary approach that encompasses IoT and sensing technology, AI and machine learning, temporal and spatial modeling to enhance air quality understanding in Africa."
+        },
+        "second": {
+          "text": "<p>Industrial consultation and collaboration</p><p>We provide access to our expertise to help in providing historic air quality data, conduct location-specific monitoring and surveys, and understand emissions profiles.</p><p>These insights can assist organizations to take steps to minimize the impact of air pollution on communities and explore compliance with current and forthcoming legislation.</p>"
+        },
+        "third": {
+          "text": "<p>Collaboration with universities and academic institutions</p><p>We provide air quality data to facilitate university research. Universities get free access to periodical air quality reports through the AirQo dashboard and the AirQo API.</p>"
+        }
+      },
+      "publications": {
+        "title": "Publications",
+        "mainText": "Managing the Environment for Climate Resilient Livelihoods and Sustainable Economic Development.",
+        "author1": "Created by",
+        "author2": "Supported by",
+        "team1": "National Environment Management Authority(NEMA)",
+        "team2": "AirQo and Makerere University",
+        "cta": "Read Report"
+      },
+      "bottomBtn": {
+        "title": "Explore our digital air quality tools.",
+        "cta": "Explore data"
+      }
+    },
+    "africanCities": {
+      "header": {
+        "breadCrumb": "Solutions > For African Cities",
+        "title": "For African cities",
+        "subText": "Leveraging a high-resolution air quality monitoring network to advance air quality management in African cities."
+      },
+      "banner": {
+        "mainText": "Many African cities lack actionable data and evidence on the scale and magnitude of air pollution in order to tackle air pollution, a major urban environmental health challenge."
+      },
+      "approach": {
+        "title": "Our Approach",
+        "card": {
+          "first": {
+            "title": "Locally developed high-resolution air quality monitoring network",
+            "subText": "We want to see cleaner air in all African Cities. We leverage our understanding of the African context and close collaborations with relevant partners to deliver a high resolution air quality network to inform contextualised and locally relevant approaches to air quality management for African cities."
+          },
+          "second": {
+            "title": "Community-aware digital air quality platforms",
+            "subText": "We empower decision-makers and citizens in African Cities with increased access to air quality data evidence to help them tackle urban air quality and achieve cleaner air objectives."
+          },
+          "third": {
+            "title": "Policy Engagement",
+            "subText": "We engage city authorities and government agencies to build their capacity and empower them with evidence and digital tools for air quality management and informing air quality public policies."
+          },
+          "fourth": {
+            "title": "Community engagement",
+            "subText": "We empower local leaders and targeted communities with air quality information to create awareness of air quality issues."
+          }
+        }
+      },
+      "publications": {
+        "title": "Publications",
+        "mainText": "Seeing the air in detail: Hyperlocal air quality dataset collected from spatially distributed AirQo network.",
+        "author": "Published by",
+        "team": "AirQo",
+        "cta": "Read More"
+      }
+    }
+  },
   "footer": {
     "monitors": "Monitors in",
     "blog": "Blog",

@@ -312,6 +312,77 @@
       }
     }
   },
+  "solutions": {
+    "research": {
+      "header": {
+        "breadCrumb": "Solutions > pour la recherche",
+        "title": "Pour la recherche",
+        "subText": "Nous collaborons activement avec des chercheurs du monde entier pour relever ensemble les défis de la recherche sur la qualité de l'air."
+      },
+      "consult": {
+        "first": {
+          "Intro": "Nous visons à faire progresser la compréhension des problèmes de qualité de l'air en Afrique subsaharienne. Nous adoptons une approche multidisciplinaire qui englobe l'IdO et la technologie de détection, l'IA et l'apprentissage automatique, la modélisation temporelle et spatiale pour améliorer la compréhension de la qualité de l'air en Afrique."
+        },
+        "second": {
+          "text": "<p>Consultation et collaboration avec l’industrie</p><p>Nous mettons à votre disposition notre expertise pour vous aider à fournir des données historiques sur la qualité de l’air, à effectuer des surveillances et des enquêtes spécifiques à chaque emplacement et à comprendre les profils d’émissions.</p><p>Ces informations peuvent aider les organisations à prendre des mesures pour minimiser l’impact de la pollution atmosphérique sur les communautés et à explorer la conformité aux lois actuelles et à venir.</p>"
+        },
+        "third": {
+          "text": "<p>Collaboration avec les universités et les institutions académiques</p><p>Nous fournissons des données sur la qualité de l'air pour faciliter la recherche universitaire. Les universités bénéficient d'un accès gratuit aux rapports périodiques sur la qualité de l'air via le tableau de bord AirQo et l'API AirQo."
+        }
+      },
+      "publications": {
+        "title": "Publications",
+        "mainText": "Gérer l'environnement pour des moyens de subsistance résistants au climat et un développement économique durable.",
+        "author1": "Créé par",
+        "author2": "Soutenu par",
+        "team1": "Autorité nationale de gestion de l'environnement (NEMA)",
+        "team2": "AirQo et l'Université de Makerere",
+        "cta": "Lire le rapport"
+      },
+      "bottomBtn": {
+        "title": "Découvrez nos outils numériques sur la qualité de l'air.",
+        "cta": "Explorer les données"
+      }
+    },
+    "africanCities": {
+      "header": {
+        "breadCrumb": "Solutions > Pour les villes africaines",
+        "title": "Pour les villes africaines",
+        "subText": "Exploiter un réseau de surveillance de la qualité de l'air à haute résolution pour faire progresser la gestion de la qualité de l'air dans les villes africaines."
+      },
+      "banner": {
+        "mainText": "De nombreuses villes africaines manquent de données et de preuves exploitables sur l'ampleur et la gravité de la pollution de l'air afin de s'attaquer à ce problème, qui constitue un défi majeur pour la santé environnementale en milieu urbain."
+      },
+      "approach": {
+        "title": "Notre approche",
+        "card": {
+          "first": {
+            "title": "Réseau de surveillance de la qualité de l'air à haute résolution développé localement",
+            "subText": "Nous voulons que l'air soit plus pur dans toutes les villes africaines. Nous nous appuyons sur notre compréhension du contexte africain et sur des collaborations étroites avec les partenaires concernés pour mettre en place un réseau de qualité de l'air à haute résolution afin d'éclairer les approches contextualisées et locales de la gestion de la qualité de l'air dans les villes africaines."
+          },
+          "second": {
+            "title": "Plates-formes numériques d'information sur la qualité de l'air",
+            "subText": "Nous donnons aux décideurs et aux citoyens des villes africaines un meilleur accès aux données sur la qualité de l'air afin de les aider à lutter contre la qualité de l'air en milieu urbain et à atteindre les objectifs en matière d'assainissement de l'air."
+          },
+          "third": {
+            "title": "Engagement politique",
+            "subText": "Nous engageons les autorités municipales et les agences gouvernementales à renforcer leurs capacités et à leur donner les moyens de disposer de données probantes et d'outils numériques pour la gestion de la qualité de l'air et l'information des politiques publiques en matière de qualité de l'air."
+          },
+          "fourth": {
+            "title": "Engagement communautaire",
+            "subText": "Nous donnons aux dirigeants locaux et aux communautés ciblées des informations sur la qualité de l'air afin de les sensibiliser aux problèmes de qualité de l'air."
+          }
+        }
+      },
+      "publications": {
+        "title": "Publications",
+        "mainText": "Voir l'air en détail : Ensemble de données hyperlocales sur la qualité de l'air collectées à partir du réseau AirQo distribué dans l'espace.",
+        "author": "Publié par",
+        "team": "AirQo",
+        "cta": "Lire la suite"
+      }
+    }
+  },
   "footer": {
     "monitors": "Moniteurs en",
     "blog": "Blog",

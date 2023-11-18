@@ -1,6 +1,5 @@
-@import "lib/colors";
-@import "lib/variables";
-
+@import 'lib/colors';
+@import 'lib/variables';
 
 .ResearchPage {
   height: 100%;
@@ -21,7 +20,7 @@
     text-align: center;
 
     .page-nav {
-      max-width: 173px;
+      // max-width: 173px;
       font-weight: 400;
       font-size: 14px;
       line-height: 28px;
@@ -62,7 +61,7 @@
     padding: 16px;
     margin-bottom: 42px;
 
-    >* {
+    > * {
       width: 100%;
       max-width: 944px;
     }
@@ -73,7 +72,7 @@
       line-height: 28px;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: #0CE87E;
+      color: #0ce87e;
       padding-top: 64px;
     }
 
@@ -155,15 +154,16 @@
       width: 100%;
       max-width: $columnWidth;
       height: 0px;
-      border: 8px solid #F0FFF8;
+      border: 8px solid #f0fff8;
       margin: 120px auto 80px auto;
     }
 
-    .collaborate-container, .consult-container {
+    .collaborate-container,
+    .consult-container {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      
+
       .consult-text {
         display: flex;
         flex-wrap: wrap;
@@ -245,7 +245,7 @@
       max-width: $columnWidth;
       margin: 138px auto 119px auto;
 
-      >p {
+      > p {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -266,13 +266,13 @@
 
         margin: 0px;
 
-        >span {
+        > span {
           width: 100%;
           max-width: 589px;
         }
       }
 
-      >div {
+      > div {
         display: flex;
         flex-wrap: wrap;
         flex-direction: column;
@@ -285,7 +285,7 @@
         background: $aq-green-0;
         border-radius: 100px;
 
-        >span:first-child {
+        > span:first-child {
           width: 95px;
           height: 91px;
           font-family: 'DM Mono', monospace;
@@ -297,7 +297,7 @@
           color: $aq-green-1;
         }
 
-        >span:last-child {
+        > span:last-child {
           font-family: 'DM Serif Text', serif;
           font-style: normal;
           font-weight: 400;
@@ -318,31 +318,31 @@
     max-width: $columnWidth;
     width: 100%;
     border-radius: 16px;
-    background-color: #0CE87E;
+    background-color: #0ce87e;
     margin: 0 16px;
 
     h3 {
-        padding-top: 64px;
-        font-size: 32px;
-        font-weight: 400;
-        line-height: 32px;
-        color: $aq-blue-2;
-        margin-bottom: 32px;
-        text-align: center;
+      padding-top: 64px;
+      font-size: 32px;
+      font-weight: 400;
+      line-height: 32px;
+      color: $aq-blue-2;
+      margin-bottom: 32px;
+      text-align: center;
     }
 
     .section-link {
-        font-size: 16px;
-        line-height: 24px;
-        color: $aq-blue-2;
-        padding-bottom: 64px;
+      font-size: 16px;
+      line-height: 24px;
+      color: $aq-blue-2;
+      padding-bottom: 64px;
     }
   }
 }
 
-@media(max-width: $mainBreakPoint) {
+@media (max-width: $mainBreakPoint) {
   .ResearchPage {
-    overflow:hidden;
+    overflow: hidden;
     .research-content {
       margin-bottom: 80px;
       .research-divider {
@@ -355,7 +355,7 @@
         .consult-images {
           display: block;
           height: auto;
-          
+
           .img-small {
             display: block;
             width: 100%;
@@ -376,7 +376,7 @@
         .consult-images {
           display: block;
           height: auto;
-          
+
           .img-small {
             display: block;
             width: 100%;

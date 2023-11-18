@@ -1,5 +1,5 @@
-@import "lib/colors";
-@import "lib/variables";
+@import 'lib/colors';
+@import 'lib/variables';
 
 .AfricanCitiesPage {
   display: flex;
@@ -8,7 +8,7 @@
   font-style: normal;
   position: relative;
 
-  .content-wrapper{
+  .content-wrapper {
     overflow: hidden;
     display: grid;
   }
@@ -17,7 +17,7 @@
     width: 100%;
     max-width: $columnWidth;
     height: 0px;
-    border: 8px solid #EBF1FF;
+    border: 8px solid #ebf1ff;
     margin: 80px auto 120px auto;
   }
 
@@ -33,7 +33,7 @@
     text-align: center;
 
     .page-nav {
-      max-width: 200px;
+      // max-width: 200px;
       font-weight: 400;
       font-size: 14px;
       line-height: 28px;
@@ -59,212 +59,212 @@
     }
   }
 
-  .city-content{
+  .city-content {
     margin-top: 20px;
     display: grid;
     grid-template-columns: $gridColumn;
-    .city-content-wrapper{
+    .city-content-wrapper {
       grid-column: 2 / 3;
       padding: 0 5px;
     }
-    .nav-tabs{
-      overflow-x: auto; 
+    .nav-tabs {
+      overflow-x: auto;
     }
-    .nav-tab{
-      button{
+    .nav-tab {
+      button {
         text-transform: capitalize;
         border: none;
         outline: none;
         padding: 10px;
         background-color: transparent;
-        color: #353E52A3;
+        color: #353e52a3;
         margin-right: 15px;
         border-bottom: 1px solid $aq-grey-5;
       }
-      button.selected{
+      button.selected {
         border-bottom: 2px solid $aq-blue-2;
         color: #121723;
       }
-      button:hover{
+      button:hover {
         cursor: pointer;
       }
     }
     .cities-content {
-    width: 100%;
-    min-height: 300px;
-    padding: 10px;
-
-    .content-intro {
-      display: flex;
-      justify-content: center;
-      align-items: center;
       width: 100%;
-      max-width: $columnWidth;
+      min-height: 300px;
+      padding: 10px;
 
-      min-height: 168px;
-
-      background: #EBF1FF;
-      border-radius: 1000px;
-
-      >p {
-        width: 95%;
-        max-width: 782px;
-        min-height: 80px;
-
-        font-style: normal;
-        font-weight: 300;
-        font-size: 32px;
-        line-height: 40px;
-
-        text-align: center;
-
-        color: #353E52;
-
-        mix-blend-mode: normal;
-      }
-
-      margin: 110px auto 124px auto;
-    }
-
-    .cities-container {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
-      margin: 0px;
-      margin-top: 30px;
-
-      .consult-text {
+      .content-intro {
         display: flex;
-        flex-wrap: wrap;
+        justify-content: center;
         align-items: center;
-        width: 40%;
-        min-height: 346px;
-        padding-right: 30px;
+        width: 100%;
+        max-width: $columnWidth;
 
-        p {
-          width: 100%;
-          // max-width: 477px;
-          font-weight: 400;
-          font-size: 18px;
-          line-height: 26px;
+        min-height: 168px;
 
-          color: $aq-black-1;
-          margin-top: 20px;
-        }
+        background: #ebf1ff;
+        border-radius: 1000px;
 
-        p.title {
-          font-weight: 500;
+        > p {
+          width: 95%;
+          max-width: 782px;
+          min-height: 80px;
+
+          font-style: normal;
+          font-weight: 300;
           font-size: 32px;
           line-height: 40px;
-          width: 100%;
 
-          color: $aq-black-1;
-          margin: 0px;
+          text-align: center;
+
+          color: #353e52;
+
+          mix-blend-mode: normal;
         }
 
-        p:last-child {
-          margin-top: 20px;
-        }
-
-        // .number-list {
-        //   display: flex;
-        //   margin-bottom: 24px;
-
-        //   span:first-child {
-        //     display: flex;
-        //     align-items: center;
-        //     justify-content: center;
-        //     width: 32px;
-        //     height: 32px;
-
-        //     font-style: normal;
-        //     font-weight: 400;
-        //     font-size: 18px;
-        //     line-height: 26px;
-
-        //     color: #135DFF;
-        //     background: #EBF1FF;
-
-        //     border-radius: 50%;
-        //   }
-
-        //   span:last-child {
-        //     max-width: 383px;
-        //     min-height: 104px;
-
-        //     font-style: normal;
-        //     font-weight: 400;
-        //     font-size: 18px;
-        //     line-height: 26px;
-
-        //     color: #121723;
-        //     margin-left: 24px;
-        //   }
-        // }
+        margin: 110px auto 124px auto;
       }
 
-      .grid-tiles {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-auto-rows: 1fr;
-        gap: 20px;
-        position: relative;
+      .cities-container {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        margin: 0px;
+        margin-top: 30px;
 
-        width: 100%;
-        max-width: 568px;
-        height: 482px;
+        .consult-text {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          width: 40%;
+          min-height: 346px;
+          padding-right: 30px;
 
-        .grid-tile:only-child {
-          grid-area: span 2 /  span 2;
+          p {
+            width: 100%;
+            // max-width: 477px;
+            font-weight: 400;
+            font-size: 18px;
+            line-height: 26px;
+
+            color: $aq-black-1;
+            margin-top: 20px;
+          }
+
+          p.title {
+            font-weight: 500;
+            font-size: 32px;
+            line-height: 40px;
+            width: 100%;
+
+            color: $aq-black-1;
+            margin: 0px;
+          }
+
+          p:last-child {
+            margin-top: 20px;
+          }
+
+          // .number-list {
+          //   display: flex;
+          //   margin-bottom: 24px;
+
+          //   span:first-child {
+          //     display: flex;
+          //     align-items: center;
+          //     justify-content: center;
+          //     width: 32px;
+          //     height: 32px;
+
+          //     font-style: normal;
+          //     font-weight: 400;
+          //     font-size: 18px;
+          //     line-height: 26px;
+
+          //     color: #135DFF;
+          //     background: #EBF1FF;
+
+          //     border-radius: 50%;
+          //   }
+
+          //   span:last-child {
+          //     max-width: 383px;
+          //     min-height: 104px;
+
+          //     font-style: normal;
+          //     font-weight: 400;
+          //     font-size: 18px;
+          //     line-height: 26px;
+
+          //     color: #121723;
+          //     margin-left: 24px;
+          //   }
+          // }
         }
-        .grid-tile:first-child:nth-last-child(3) {
-          grid-area: span 2;
-        }
-        // .grid-tile:first-child:nth-last-child(3) {
-        //   grid-area: span 2;
-        //   height: 268px;
-        //   border: 1px solid red;
-        // }
-        // .grid-tile:first-child:nth-last-child(2) {
-        //   grid-area: span 2;
-        //   border: 1px solid green;
-        // }
-        // .grid-tile:nth-child(2):nth-last-child(1){
-        //   grid-area: span 2;
-        //   border: 1px solid yellow;
-        // }
-        // .grid-tile:nth-child(3):nth-last-child(1){
-        //   grid-area: span 1;
-        //   height: 268px;
-        //   border: 1px solid orange;
-        // }
-        // .grid-tile:nth-child(4):nth-last-child(1){
-        //   grid-area: span 2;
-        //   height: 268px;
-        //   border: 1px solid black;
-        // }
 
-        img{
-          object-fit: cover;
-          object-position: center;
-          border-radius: 8px;
+        .grid-tiles {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          grid-auto-rows: 1fr;
+          gap: 20px;
+          position: relative;
+
           width: 100%;
-          height: 100%;
-          max-height: 482px;
-          align-self: center;
-        }
+          max-width: 568px;
+          height: 482px;
 
-        .background-shape {
-          position: absolute;
-          left: -10%;
-          top: 7.74%;
-          z-index: -1;
-          transform: rotate(5.54deg);
+          .grid-tile:only-child {
+            grid-area: span 2 / span 2;
+          }
+          .grid-tile:first-child:nth-last-child(3) {
+            grid-area: span 2;
+          }
+          // .grid-tile:first-child:nth-last-child(3) {
+          //   grid-area: span 2;
+          //   height: 268px;
+          //   border: 1px solid red;
+          // }
+          // .grid-tile:first-child:nth-last-child(2) {
+          //   grid-area: span 2;
+          //   border: 1px solid green;
+          // }
+          // .grid-tile:nth-child(2):nth-last-child(1){
+          //   grid-area: span 2;
+          //   border: 1px solid yellow;
+          // }
+          // .grid-tile:nth-child(3):nth-last-child(1){
+          //   grid-area: span 1;
+          //   height: 268px;
+          //   border: 1px solid orange;
+          // }
+          // .grid-tile:nth-child(4):nth-last-child(1){
+          //   grid-area: span 2;
+          //   height: 268px;
+          //   border: 1px solid black;
+          // }
+
+          img {
+            object-fit: cover;
+            object-position: center;
+            border-radius: 8px;
+            width: 100%;
+            height: 100%;
+            max-height: 482px;
+            align-self: center;
+          }
+
+          .background-shape {
+            position: absolute;
+            left: -10%;
+            top: 7.74%;
+            z-index: -1;
+            transform: rotate(5.54deg);
+          }
         }
       }
     }
-  }
   }
 
   .city-banner {
@@ -331,11 +331,14 @@
         }
       }
 
-      a:link, a:active, a:focus, a:visited {
-          color: inherit;
-          cursor: pointer;
-          text-decoration: none;
-        }
+      a:link,
+      a:active,
+      a:focus,
+      a:visited {
+        color: inherit;
+        cursor: pointer;
+        text-decoration: none;
+      }
 
       .not-available {
         border: 1px solid green;
@@ -376,11 +379,11 @@
       }
 
       .extended {
-        min-width: 250px
+        min-width: 250px;
       }
 
       .active {
-        border: 2px solid #135DFF;
+        border: 2px solid #135dff;
       }
     }
   }
@@ -410,7 +413,7 @@
 
         text-align: center;
 
-        color: #353E52;
+        color: #353e52;
 
         margin: 0px;
       }
@@ -427,7 +430,7 @@
 
         text-align: center;
 
-        color: #353E52;
+        color: #353e52;
 
         margin: 24px 0 0 0;
       }
@@ -443,13 +446,13 @@
     max-width: $columnWidth;
     width: 100%;
     min-height: 482px;
-    background: #EBF1FF;
+    background: #ebf1ff;
     border-radius: 8px;
     padding: 16px;
     margin: 0 16px;
     margin-top: 48px;
 
-    >* {
+    > * {
       width: 100%;
       max-width: 944px;
     }
@@ -548,10 +551,10 @@
         margin: 0;
       }
     }
-    
+
     .section-content {
       padding: 80px 64px;
-      background-color: #F2F1F6;
+      background-color: #f2f1f6;
       border-radius: 16px;
 
       hr {
@@ -584,37 +587,35 @@
         }
       }
     }
-
   }
-
 }
-@media (max-width: 980px){
-.AfricanCitiesPage {
-  .city-banner{
-    padding: 0 16px;
-  }
-  .city-tabs-wrapper{
-    padding: 0 12px;
-  }
-  .city-content {
-    padding: 0 18px;
-    .cities-content{
-      .cities-container {
+@media (max-width: 980px) {
+  .AfricanCitiesPage {
+    .city-banner {
+      padding: 0 16px;
+    }
+    .city-tabs-wrapper {
+      padding: 0 12px;
+    }
+    .city-content {
+      padding: 0 18px;
+      .cities-content {
+        .cities-container {
           flex-direction: column;
-          .consult-text{
+          .consult-text {
             width: 98%;
             margin-bottom: 28px;
             padding: 0;
           }
         }
+      }
+    }
+    .cities-divider {
+      margin-bottom: 30px;
     }
   }
-  .cities-divider{
-    margin-bottom: 30px;
-  }
 }
-}
-@media(max-width: $mainBreakPoint) {
+@media (max-width: $mainBreakPoint) {
   .AfricanCitiesPage {
     .cities-divider {
       margin: 48px auto;
@@ -633,12 +634,12 @@
       }
     }
 
-    .city-content{
+    .city-content {
       .cities-content {
         .cities-container {
           .grid-tiles {
             grid-template-columns: 1fr;
-            img{
+            img {
               max-height: 450px;
             }
             .background-shape {
@@ -647,16 +648,16 @@
               transform: rotate(2.54deg);
             }
             .grid-tile:first-child:nth-last-child(2) {
-              img{
+              img {
                 max-height: 230px;
               }
             }
             .grid-tile:nth-child(2) {
-              img{
+              img {
                 max-height: 230px;
               }
             }
-            
+
             // .img-small {
             //   display: block;
             //   width: 100%;
@@ -679,18 +680,17 @@
               flex-direction: column;
               justify-content: flex-start;
               align-items: flex-start;
-    
+
               span:first-child {
                 margin-bottom: 0px;
               }
-    
+
               span:last-child {
                 width: 100%;
                 margin: 0;
               }
             }
           }
-          
         }
       }
     }

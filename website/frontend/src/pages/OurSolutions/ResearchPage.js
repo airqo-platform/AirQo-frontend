@@ -17,12 +17,9 @@ const ResearchHeroSection = () => {
   const { t } = useTranslation();
   return (
     <div className="research-title">
-      <div className="page-nav">Solutions {'>'} For Research</div>
-      <div className="research-main-text">For Research</div>
-      <div className="research-sub-text">
-        We actively collaborate with researchers across the world to jointly tackle air quality
-        research challenges.
-      </div>
+      <div className="page-nav">{t('solutions.research.header.breadCrumb')}</div>
+      <div className="research-main-text">{t('solutions.research.header.title')}</div>
+      <div className="research-sub-text">{t('solutions.research.header.subText')}</div>
     </div>
   );
 };
@@ -31,16 +28,13 @@ const PublicationsSection = () => {
   const { t } = useTranslation();
   return (
     <div className="publications-section">
-      <div className="title">Publications</div>
+      <div className="title">{t('solutions.research.publications.title')}</div>
       <div>
-        <div className="main-text">
-          Managing the Environment for Climate Resilient Livelihoods and Sustainable Economic
-          Development.
-        </div>
-        <div className="author">Created by</div>
-        <div className="team">National Environment Management Authority(NEMA)</div>
-        <div className="author">Supported by</div>
-        <div className="team">AirQo and Makerere University</div>
+        <div className="main-text">{t('solutions.research.publications.mainText')}</div>
+        <div className="author">{t('solutions.research.publications.author1')}</div>
+        <div className="team">{t('solutions.research.publications.team1')}</div>
+        <div className="author">{t('solutions.research.publications.author2')}</div>
+        <div className="team">{t('solutions.research.publications.team2')}</div>
         <div>
           <div className="link">
             <a
@@ -49,7 +43,7 @@ const PublicationsSection = () => {
               download
               rel="noopener noreferrer">
               <span>
-                Read Report <ArrowRight />
+                {t('solutions.research.publications.cta')} <ArrowRight />
               </span>
             </a>
           </div>
@@ -63,25 +57,23 @@ const ResearchContent = () => {
   const { t } = useTranslation();
   return (
     <div className="research-content">
-      <p className="content-intro">
-        We aim to advance the understanding of air quality issues in sub-Saharan Africa. We take a
-        multidisciplinary approach that encompasses IoT and sensing technology, AI and machine
-        learning, temporal and spatial modeling to enhance air quality understanding in Africa.
-      </p>
+      <p className="content-intro">{t('solutions.research.consult.first.Intro')}</p>
       <div className="research-divider" />
       <div className="consult-container">
         <div className="consult-text">
           <div>
-            <p>Industrial consultation and collaboration </p>
-            <p>
-              We provide access to our expertise to help in providing historic air quality data,
-              conduct location-specific monitoring and surveys, and understand emissions profiles.
-            </p>
-            <p>
-              These insights can assist organizations to take steps to minimize the impact of air
-              pollution on communities and explore compliance with current and forthcoming
-              legislation.
-            </p>
+            <Trans i18nKey="solutions.research.consult.second.text">
+              <p>Industrial consultation and collaboration </p>
+              <p>
+                We provide access to our expertise to help in providing historic air quality data,
+                conduct location-specific monitoring and surveys, and understand emissions profiles.
+              </p>
+              <p>
+                These insights can assist organizations to take steps to minimize the impact of air
+                pollution on communities and explore compliance with current and forthcoming
+                legislation.
+              </p>
+            </Trans>
           </div>
         </div>
         <div className="consult-images">
@@ -95,12 +87,14 @@ const ResearchContent = () => {
       <div className="collaborate-container">
         <div className="consult-text">
           <div>
-            <p>Collaboration with universities and academic institutions</p>
-            <p>
-              We provide air quality data to facilitate university research. Universities get free
-              access to periodical air quality reports through the AirQo dashboard and the AirQo
-              API.
-            </p>
+            <Trans i18nKey="solutions.research.consult.third.text">
+              <p>Collaboration with universities and academic institutions</p>
+              <p>
+                We provide air quality data to facilitate university research. Universities get free
+                access to periodical air quality reports through the AirQo dashboard and the AirQo
+                API.
+              </p>
+            </Trans>
           </div>
         </div>
         <div className="consult-images">
@@ -130,9 +124,11 @@ const ResearchPage = () => {
         <PublicationsSection />
 
         <section className="bottom-hero-section">
-          <h3>Explore our digital air quality tools.</h3>
+          <h3>{t('solutions.research.bottomBtn.title')}</h3>
           <Link to="/explore-data" className="section-link">
-            <span>Explore data {'-->'}</span>
+            <span>
+              {t('solutions.research.bottomBtn.cta')} {'-->'}
+            </span>
           </Link>
         </section>
       </div>
