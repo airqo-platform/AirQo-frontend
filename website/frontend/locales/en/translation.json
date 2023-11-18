@@ -190,7 +190,7 @@
       },
       "first": {
         "title": "<0>Locally built</0> low cost monitors",
-        "subText": "The Binos Monitor is a low-cost air quality device configured to measure particulate matter PM<0>2.5</0> and PM<0>10</0>, the most common pollutants in African cities. It also measures ambient meteorological conditions such as humidity and atmospheric pressure."
+        "subText": "The Binos Monitor is a low-cost air quality device configured to measure particulate matter PM<1>2.5</1> and PM<1>10</1>, the most common pollutants in African cities. It also measures ambient meteorological conditions such as humidity and atmospheric pressure."
       },
       "second": {
         "title": "Designed for Africa",
@@ -254,7 +254,7 @@
       },
       "third": {
         "title": "Calibrate your data",
-        "subText": "Upload a CSV file containing your low-cost sensor PM2.5 and PM10 data, follow a few simple steps and calibrate your data. The results are automatically downloaded when the calibration process is completed.",
+        "subText": "Upload a CSV file containing your low-cost sensor PM<1>2.5</1> and PM<1>10</1> data, follow a few simple steps and calibrate your data. The results are automatically downloaded when the calibration process is completed.",
         "cta": "Calibrate your data"
       },
       "fourth": {
