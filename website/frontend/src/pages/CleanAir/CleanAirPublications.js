@@ -37,6 +37,7 @@ const CleanAirPublications = () => {
   const activeResource = useSelector((state) => state.cleanAirData.activeResource);
   const resources = ['toolkits', 'technical reports', 'workshop reports', 'research publications'];
   const { width } = useWindowSize();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isEmpty(activeResource)) {
@@ -45,11 +46,16 @@ const CleanAirPublications = () => {
   }, [activeResource]);
 
   useEffect(() => {
+    setLoading(true);
     getAllCleanAirApi()
       .then((response) => {
         setCleanAirResources(response);
+        setLoading(false);
       })
-      .catch((error) => console.log(error));
+      .catch((error) => {
+        console.log(error);
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -91,7 +97,7 @@ const CleanAirPublications = () => {
     const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
     const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
 
-    if (currentItems.length === 0 && data.length === 0) {
+    if (loading) {
       return (
         <div
           style={{
@@ -107,9 +113,18 @@ const CleanAirPublications = () => {
       );
     }
 
-    if (currentItems.length === 0) {
+    if (currentItems.length === 0 || !currentItems) {
       return (
-        <div className="no-data">
+        <div
+          style={{
+            display: 'flex',
+            width: '100%',
+            height: '100%',
+            color: '#808080',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: '50px'
+          }}>
           <h1>No Data</h1>
         </div>
       );
