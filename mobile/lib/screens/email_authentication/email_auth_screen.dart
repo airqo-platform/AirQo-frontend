@@ -56,8 +56,12 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
     return OfflineBanner(
       child: Scaffold(
         appBar: const OnBoardingTopBar(backgroundColor: Colors.white),
-        body: WillPopScope(
-          onWillPop: onWillPop,
+        body: PopScope(
+          onPopInvoked: ((didPop) {
+            if (didPop) {
+              onWillPop();
+            }
+          }),
           child: AppSafeArea(
             backgroundColor: Colors.white,
             horizontalPadding: 24,
@@ -84,73 +88,73 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                                   .pleaseEnterAValidEmail;
                             }
 
-                          return null;
-                        },
-                        onChanged: (value) {
-                          setState(() => emailAddress = value);
-                        },
-                        onSaved: (value) {
-                          setState(() => emailAddress = value!);
-                        },
-                        style: inputTextStyle(state.status),
-                        enableSuggestions: true,
-                        cursorWidth: 1,
-                        autofocus: false,
-                        enabled: state.status != AuthenticationStatus.success,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: inputDecoration(
-                          state.status,
-                          hintText: 'me@company.com',
-                          suffixIconCallback: () {
-                            _formKey.currentState?.reset();
-                            FocusScope.of(context).requestFocus(FocusNode());
+                            return null;
                           },
-                        ),
-                      );
-                    },
+                          onChanged: (value) {
+                            setState(() => emailAddress = value);
+                          },
+                          onSaved: (value) {
+                            setState(() => emailAddress = value!);
+                          },
+                          style: inputTextStyle(state.status),
+                          enableSuggestions: true,
+                          cursorWidth: 1,
+                          autofocus: false,
+                          enabled: state.status != AuthenticationStatus.success,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: inputDecoration(
+                            state.status,
+                            hintText: 'me@company.com',
+                            suffixIconCallback: () {
+                              _formKey.currentState?.reset();
+                              FocusScope.of(context).requestFocus(FocusNode());
+                            },
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
-              const EmailAuthErrorMessage(),
-              const EmailAuthSwitchButton(),
-              const Spacer(),
-              NextButton(
-                buttonColor: emailAddress.isValidEmail()
-                    ? CustomColors.appColorBlue
-                    : CustomColors.appColorDisabled,
-                callBack: () async {
-                  FocusScope.of(context).requestFocus(FocusNode());
+                const EmailAuthErrorMessage(),
+                const EmailAuthSwitchButton(),
+                const Spacer(),
+                NextButton(
+                  buttonColor: emailAddress.isValidEmail()
+                      ? CustomColors.appColorBlue
+                      : CustomColors.appColorDisabled,
+                  callBack: () async {
+                    FocusScope.of(context).requestFocus(FocusNode());
 
-                  switch (context.read<EmailAuthBloc>().state.status) {
-                    case AuthenticationStatus.initial:
-                    case AuthenticationStatus.error:
-                      FormState? formState = _formKey.currentState;
-                      if (formState == null) {
-                        return;
-                      }
+                    switch (context.read<EmailAuthBloc>().state.status) {
+                      case AuthenticationStatus.initial:
+                      case AuthenticationStatus.error:
+                        FormState? formState = _formKey.currentState;
+                        if (formState == null) {
+                          return;
+                        }
 
-                      if (formState.validate()) {
-                        formState.save();
-                        await _sendAuthCode();
-                      }
-                      break;
-                    case AuthenticationStatus.success:
-                      await verifyEmailAuthCode(context);
-                      break;
-                  }
-                },
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              Visibility(
-                visible: !_keyboardVisible,
-                child: const EmailAuthButtons(),
-              ),
-            ],
+                        if (formState.validate()) {
+                          formState.save();
+                          await _sendAuthCode();
+                        }
+                        break;
+                      case AuthenticationStatus.success:
+                        await verifyEmailAuthCode(context);
+                        break;
+                    }
+                  },
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
+                Visibility(
+                  visible: !_keyboardVisible,
+                  child: const EmailAuthButtons(),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }

@@ -128,7 +128,7 @@ class SplashScreenState extends State<SplashScreen>
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) {
-              return FavouritePlacesPage();
+              return const FavouritePlacesPage();
             }),
             (r) => false,
           );

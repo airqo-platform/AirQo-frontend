@@ -14,7 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:restart_app/restart_app.dart';
 
 class LanguageList extends StatefulWidget {
-  const LanguageList({Key? key}) : super(key: key);
+  const LanguageList({super.key});
 
   @override
   LanguageListState createState() => LanguageListState();
