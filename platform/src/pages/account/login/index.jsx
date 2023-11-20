@@ -85,7 +85,7 @@ const UserLogin = () => {
   };
 
   return (
-    <AccountPageLayout>
+    <AccountPageLayout pageTitle='AirQo Analytics | Login'>
       <div className='w-full'>
         <h2 className='text-3xl text-black-700 font-medium'>Lets get started</h2>
         <p className='text-xl text-black-700 font-normal mt-3'>

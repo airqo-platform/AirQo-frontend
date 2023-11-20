@@ -22,20 +22,33 @@ import EmptyState from '@/components/Collocation/Overview/empty_state';
 import OverviewSkeleton from '@/components/Collocation/AddMonitor/Skeletion/Overview';
 import Toast from '@/components/Toast';
 import Layout from '@/components/Layout';
-import withAuth from '@/core/utils/protectedRoute';
+import withAuth, { withPermission } from '@/core/utils/protectedRoute';
 import Head from 'next/head';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
-  const name = context.params?.name;
-  if (typeof name === 'string') {
-    store.dispatch(getDeviceStatusSummary.initiate(name));
+  try {
+    const name = context.params?.name;
+
+    if (typeof name === 'string') {
+      await store.dispatch(getDeviceStatusSummary.initiate(name));
+    }
+
+    await Promise.all(store.dispatch(getDeviceStatusSummary.util.getRunningQueriesThunk()));
+
+    const deviceStatusSummary = store.getState().collocationData.deviceStatusSummary;
+
+    return {
+      props: {
+        deviceStatusSummary,
+      },
+    };
+  } catch (error) {
+    console.error('Error in getServerSideProps:', error);
+
+    return {
+      props: {},
+    };
   }
-
-  await Promise.all(store.dispatch(getRunningQueriesThunk()));
-
-  return {
-    props: {},
-  };
 });
 
 const CollocationOverview = () => {
@@ -145,11 +158,7 @@ const CollocationOverview = () => {
   }, [collocationStatisticsList]);
 
   return (
-    <Layout topbarTitle={'Collocation'}>
-      <Head>
-        <title>Collocation | Overview</title>
-        <meta property='og:title' content='Collocation | Overview' key='Collocation | Overview' />
-      </Head>
+    <Layout topbarTitle={'Collocation'} pageTitle={'Collocation | Overview'}>
       <HeaderNav category={'Collocation'} component={'Overview'} />
       {(collocationStatisticsError || deviceSummaryError) && (
         <Toast type={'error'} timeout={10000} message={'Server error!'} />
@@ -175,8 +184,7 @@ const CollocationOverview = () => {
                   <div className='relative'>
                     <Button
                       className='w-auto h-10 bg-blue-200 rounded-lg text-base font-semibold text-purple-700 md:ml-2'
-                      onClick={() => setIsOpen(!isOpen)}
-                    >
+                      onClick={() => setIsOpen(!isOpen)}>
                       <span>
                         {!isEmpty(activeCollocationPeriod) &&
                           `${moment(activeCollocationPeriod.start_date).format(
@@ -187,8 +195,7 @@ const CollocationOverview = () => {
                     {isOpen && (
                       <ul
                         tabIndex={0}
-                        className='absolute z-30 mt-1 ml-6 w-auto border border-gray-200 max-h-60 overflow-y-auto text-sm p-2 shadow bg-base-100 rounded-md'
-                      >
+                        className='absolute z-30 mt-1 ml-6 w-auto border border-gray-200 max-h-60 overflow-y-auto text-sm p-2 shadow bg-base-100 rounded-md'>
                         {collocationPeriods.map((period, index) => (
                           <li
                             role='button'
@@ -210,8 +217,7 @@ const CollocationOverview = () => {
                               setActiveCollocationPeriod(period);
                               setActiveIndex(index);
                               setIsOpen(false);
-                            }}
-                          >
+                            }}>
                             <a>{`${moment(period.start_date).format('MMM DD')} - ${moment(
                               period.end_date,
                             ).format('MMM DD')}`}</a>
@@ -226,8 +232,7 @@ const CollocationOverview = () => {
             <div
               className={`grid grid-cols-1 ${
                 selectedBatch.length === 2 && 'lg:grid-cols-2'
-              } lg:divide-x divide-grey-150`}
-            >
+              } lg:divide-x divide-grey-150`}>
               {!isEmpty(selectedBatch) &&
               selectedBatch.length > 1 &&
               !isEmpty(deviceStatistics) &&
@@ -314,4 +319,7 @@ const CollocationOverview = () => {
   );
 };
 
-export default withAuth(CollocationOverview);
+export default withPermission(
+  withAuth(CollocationOverview),
+  'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
+);

@@ -17,7 +17,7 @@ import Link from 'next/link';
 import LocationIcon from '@/icons/SideBar/Sites.svg';
 import CloseIcon from '@/icons/Actions/close.svg';
 import {
-  getAllGridLocations,
+  getSitesSummary,
 } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import countries from 'i18n-iso-countries';
 import englishLocale from 'i18n-iso-countries/langs/en.json';
@@ -447,15 +447,21 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
 const CreateOrganisationDetailsPageThree = () => {
   const dispatch = useDispatch();
   const router = useRouter();
-  const gridLocationsState = useSelector((state) => state.grids.gridLocations);
-  const gridSitesLocations = gridLocationsState.map((grid) => grid.sites);
-  const gridLocationsData = [].concat(...gridSitesLocations);
+  // const gridLocationsState = useSelector((state) => state.grids.gridLocations);
+  // const gridSitesLocations = gridLocationsState.map((grid) => grid.sites);
+  // const gridLocationsData = [].concat(...gridSitesLocations);
+  const gridsData = useSelector((state) => state.grids.sitesSummary);
+  const gridLocationsData = (gridsData && gridsData.sites) || [];
   const { id } = router.query;
   const [location, setLocation] = useState('');
   const [inputSelect, setInputSelect] = useState(false);
   const [locationArray, setLocationArray] = useState([]);
   const [filteredLocations, setFilteredLocations] = useState(gridLocationsData);
   const [loading, setLoading] = useState(false);
+  const [creationErrors, setCreationErrors] = useState({
+    state: false,
+    message: '',
+  });
 
   const handleLocationEntry = (e) => {
     setInputSelect(false);
@@ -489,9 +495,7 @@ const CreateOrganisationDetailsPageThree = () => {
     setLoading(true);
     const data = {
       user_id: id,
-      sites: {
-        selected_sites: locationArray,
-      },
+      selected_sites:locationArray,
     };
     dispatch(setCustomisedLocations(data));
     try {
@@ -517,17 +521,22 @@ const CreateOrganisationDetailsPageThree = () => {
   };
 
   useEffect(() => {
-    dispatch(getAllGridLocations());
-  }, []);
+    if (gridLocationsData && gridLocationsData.length < 1) {
+      dispatch(getSitesSummary());
+    }
+  }, [gridLocationsData]);
 
   return (
-    <div className='sm:ml-3 lg:ml-1'>
+    <div className='sm:ml-3 lg:ml-1 relative h-[600px]'>
       <ProgressComponent colorFirst={true} colorSecond={true} colorThird={true} />
-      <div className='w-full'>
+      <div className='w-full h-full'>
         <h2 className='text-3xl text-black font-semibold w-full lg:w-10/12 md:mt-20 lg:mt-2'>
           Choose locations you are interested in
         </h2>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className='h-full'>
+          {creationErrors.state && (
+            <Toast type={'error'} timeout={6000} message={creationErrors.message} />
+          )}
           <div className='mt-6'>
             <div className='lg:w-11/12 sm:w-full md:w-full'>
               <div className='text-sm'>Add Locations</div>
@@ -572,11 +581,11 @@ const CreateOrganisationDetailsPageThree = () => {
                   )}
                 </div>
               )}
-              <div className='mt-1 text-xs text-grey-350'>Minimum of 4 locations</div>
+              <div className='mt-1 text-xs text-grey-350'>Select any 4 locations</div>
             </div>
           </div>
           {inputSelect && (
-            <div className='mt-4 flex flex-row flex-wrap'>
+            <div className='mt-4 flex flex-row flex-wrap overflow-y-clip'>
               {locationArray.length > 0 ? (
                 locationArray.map((location, key) => (
                   <div
@@ -595,34 +604,40 @@ const CreateOrganisationDetailsPageThree = () => {
               )}
             </div>
           )}
-          <div className='mt-6'>
-            {locationArray.length >= 4 ? (
-              <div className='w-full'>
-                <button
-                  type='submit'
-                  onClick={handleSubmit}
-                  className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
-                  {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
-                </button>
-              </div>
-            ) : (
-              <div className='w-full'>
-                <button
-                  type='submit'
-                  className='w-full btn btn-disabled bg-white rounded-none text-sm outline-none border-none'>
-                  Continue
-                </button>
-              </div>
-            )}
+          <div className='absolute w-full bottom-6'>
+            <div className='mt-6 relative w-auto'>
+              {locationArray.length === 4 ? (
+                <div className='w-full'>
+                  <button
+                    type='submit'
+                    onClick={handleSubmit}
+                    className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
+                    {loading ? (
+                      <Spinner data-testid='spinner' width={25} height={25} />
+                    ) : (
+                      'Continue'
+                    )}
+                  </button>
+                </div>
+              ) : (
+                <div className='w-full'>
+                  <button
+                    type='submit'
+                    className='w-full btn btn-disabled bg-white rounded-none text-sm outline-none border-none'>
+                    Continue
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className='flex flex-row items-center justify-end mt-4 relative'>
+              <Link href='/account/creation/get-started'>
+                <span className='text-sm text-blue-900 font-medium hover:cursor-pointer hover:text-blue-950'>
+                  Complete this later
+                </span>
+              </Link>
+            </div>
           </div>
         </form>
-        <div className='flex flex-row items-center justify-end mt-4'>
-          <Link href='/account/creation/get-started'>
-            <span className='text-sm text-blue-900 font-medium hover:cursor-pointer hover:text-blue-950'>
-              Complete this later
-            </span>
-          </Link>
-        </div>
       </div>
     </div>
   );

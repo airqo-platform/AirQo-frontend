@@ -43,6 +43,7 @@ const IndividualAccountInterest = () => {
     verifyUserEmail(id, token);
   }, [router, id, token]);
 
+  // TODO: check post user defaults
   const handleUpdate = async () => {
     setLoading(true);
     setUpdateError({
@@ -63,6 +64,8 @@ const IndividualAccountInterest = () => {
           state: true,
           message: response.message,
         });
+      }else{
+        router.push('/account/creation/get-started');
       }
     } catch (error) {
       throw error;
@@ -85,7 +88,7 @@ const IndividualAccountInterest = () => {
   };
 
   return (
-    <AccountPageLayout childrenHeight={'lg:h-[580]'}>
+    <AccountPageLayout childrenHeight={'lg:h-[580]'} pageTitle={'Interest | AirQo'}>
       {updateError.state && <Toast type={'error'} timeout={5000} message={updateError.message} />}
       <div className='w-full'>
         <h2 className='text-3xl text-black-700 font-medium'>Help us understand your interest</h2>

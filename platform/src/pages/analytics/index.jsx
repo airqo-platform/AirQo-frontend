@@ -12,7 +12,7 @@ import CustomiseLocationsComponent from '@/components/Customise';
 import DownloadIcon from '@/icons/Common/download.svg';
 import { useWindowSize } from '@/lib/windowSize';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUserDefaults } from '@/lib/store/services/charts/userDefaultsSlice';
+import { fetchUserPreferences } from '@/lib/store/services/charts/userDefaultsSlice';
 import ExportDataModal from '@/components/Modal/ExportDataModal';
 import AlertBox from '@/components/AlertBox';
 import jsPDF from 'jspdf';
@@ -42,7 +42,7 @@ const AuthenticatedHomePage = () => {
   useEffect(() => {
     const userId = JSON.parse(localStorage.getItem('loggedUser'))._id;
     if (userId) {
-      dispatch(fetchUserDefaults(userId));
+      dispatch(fetchUserPreferences(userId));
     }
   }, []);
 
@@ -78,8 +78,13 @@ const AuthenticatedHomePage = () => {
       chartSites.length > 0
     ) {
       let exportData = {
-        startDate: chartDataRange.startDate,
-        endDate: chartDataRange.endDate,
+        sites: chartSites,
+        startDate: new Date(
+          new Date(new Date(chartDataRange.endDate)).setDate(
+            new Date(chartDataRange.endDate).getDate() - 2,
+          ),
+        ),
+        endDate: new Date(chartDataRange.endDate),
       };
 
       setData(exportData);
@@ -103,7 +108,7 @@ const AuthenticatedHomePage = () => {
       const height = rect.height + extraSpace;
 
       html2canvas(chartContainer, {
-        scale: 3,
+        scale: 5,
         useCORS: true,
         backgroundColor: rect.backgroundColor,
         width: width,
@@ -128,13 +133,11 @@ const AuthenticatedHomePage = () => {
       {
         label: 'Overview',
         children: (
-          <div className='flex space-x-3 mb-2'>
+          <div className='flex space-x-3 mb-3'>
             <CustomCalendar
               initialStartDate={new Date()}
               initialEndDate={new Date()}
-              id='datePicker1'
-              position='down'
-              className='left-[60px] md:right-0 lg:right-0'
+              className='-right-10 lg:right-0 md:-right-20'
               dropdown
             />
             <TabButtons Icon={SettingsIcon} btnText='Customize' onClick={() => toggleCustomise()} />
@@ -148,14 +151,16 @@ const AuthenticatedHomePage = () => {
             <Button
               className='text-sm font-medium capitalize'
               variant='outlined'
-              onClick={openPrintModalFunc}>
+              onClick={openPrintModalFunc}
+            >
               Print
             </Button>
             <Button
               className='text-sm font-medium capitalize'
               variant='filled'
               Icon={DownloadIcon}
-              onClick={exportFile}>
+              onClick={exportFile}
+            >
               Export
             </Button>
           </div>
@@ -164,7 +169,7 @@ const AuthenticatedHomePage = () => {
     ];
   };
   return (
-    <Layout topbarTitle={'Analytics'} noBorderBottom>
+    <Layout topbarTitle={'Analytics'} noBorderBottom pageTitle={'Analytics'}>
       <AlertBox
         type={alert.type}
         message={alert.message}
@@ -187,7 +192,7 @@ const AuthenticatedHomePage = () => {
                 {renderChildrenRight()[1].children}
               </div>
             )}
-            <Explore />
+            <Explore toggleCustomize={toggleCustomise} />
           </Tab>
         </Tabs>
         {customise && <CustomiseLocationsComponent toggleCustomise={toggleCustomise} />}
@@ -203,10 +208,12 @@ const AuthenticatedHomePage = () => {
 
       {openPrintModal && (
         <PrintReportModal
+          title='Share report'
           open={openPrintModal}
           onClose={() => setOpenPrintModal(false)}
-          handlePrintPDF={printFile}
           data={data}
+          ModalType='share'
+          format={'pdf'}
         />
       )}
     </Layout>

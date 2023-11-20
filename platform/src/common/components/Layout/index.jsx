@@ -1,35 +1,80 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import TopBar from '@/components/TopBar';
-import { fetchUserDefaults, clearChartStore } from '@/lib/store/services/charts/userDefaultsSlice';
+import { fetchUserPreferences } from '@/lib/store/services/charts/userDefaultsSlice';
 import {
   setChartSites,
   setChartDataRange,
   setTimeFrame,
   setChartType,
   setPollutant,
-  setDefaultID,
   resetChartStore,
 } from '@/lib/store/services/charts/ChartSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserChecklists } from '@/lib/store/services/checklists/CheckData';
 import { updateCards } from '@/lib/store/services/checklists/CheckList';
+import Head from 'next/head';
 
-const Layout = ({ children, topbarTitle, noBorderBottom }) => {
+const Layout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBorderBottom }) => {
   // Constants
   const MAX_WIDTH = '(max-width: 1024px)';
-  const SUCCEEDED = 'succeeded';
-  const FAILED = 'failed';
 
   const dispatch = useDispatch();
+  const chartData = useSelector((state) => state.chart);
   const userInfo = useSelector((state) => state.login.userInfo);
-  const userDefaults = useSelector((state) => state.userDefaults.defaults);
-  const status = useSelector((state) => state.userDefaults.status);
-  const error = useSelector((state) => state.userDefaults.error);
+  const userPreferences = useSelector((state) => state.userDefaults.preferences);
   const [toggleDrawer, setToggleDrawer] = useState(false);
   const [collapsed, setCollapsed] = useState(
     () => JSON.parse(localStorage.getItem('collapsed')) || false,
   );
+
+  // Fetching user preferences
+  useEffect(() => {
+    const fetchPreferences = async () => {
+      if (userInfo) {
+        try {
+          await dispatch(fetchUserPreferences(userInfo._id));
+        } catch (error) {
+          console.error(`Error getting user preferences: ${error}`);
+        }
+      }
+    };
+
+    fetchPreferences();
+  }, [userInfo, dispatch]);
+
+  useEffect(() => {
+    const setChartProperties = async () => {
+      if (userInfo && userPreferences && userPreferences.length > 0) {
+        const { period, selected_sites, startDate, endDate, frequency, chartType, pollutant } =
+          userPreferences[0];
+        try {
+          const chartSites = selected_sites
+            ? selected_sites.map((site) => site['_id'])
+            : chartData.chartSites;
+
+          await dispatch(setChartSites(chartSites.slice(0, 4)));
+          await dispatch(
+            setChartDataRange({
+              startDate: startDate || chartData.chartDataRange.startDate,
+              endDate: endDate || chartData.chartDataRange.endDate,
+              label: period.label || chartData.chartDataRange.label,
+            }),
+          );
+          await dispatch(setTimeFrame(frequency || chartData.timeFrame));
+          await dispatch(setChartType(chartType || chartData.chartType));
+          await dispatch(setPollutant(pollutant || chartData.pollutionType));
+        } catch (error) {
+          dispatch(resetChartStore());
+          console.error(`Error setting chart properties: ${error}`);
+        }
+      } else {
+        dispatch(resetChartStore());
+      }
+    };
+
+    setChartProperties();
+  }, [userInfo, userPreferences, dispatch]);
 
   // Fetching user checklists
   useEffect(() => {
@@ -69,81 +114,36 @@ const Layout = ({ children, topbarTitle, noBorderBottom }) => {
     };
   }, []);
 
-  // fetching user defaults
-  useEffect(() => {
-    if (userInfo?._id) {
-      dispatch(fetchUserDefaults(userInfo._id));
-    }
-  }, [dispatch, userInfo]);
-
-  // Function to update chart options
-  const updateChart = useCallback(
-    ({ chartType, frequency, startDate, endDate, period, sites, pollutant, _id }) => {
-      dispatch(clearChartStore());
-      if (_id) {
-        dispatch(setDefaultID(_id));
-      }
-      if (chartType) {
-        dispatch(setChartType(chartType));
-      }
-      if (frequency) {
-        dispatch(setTimeFrame(frequency));
-      }
-      if (pollutant) {
-        dispatch(setPollutant(pollutant));
-      }
-      if (startDate && endDate && period && period.label) {
-        dispatch(
-          setChartDataRange({
-            startDate: new Date(startDate),
-            endDate: new Date(endDate),
-            label: period.label,
-          }),
-        );
-      }
-      if (sites) {
-        dispatch(setChartSites(sites));
-      }
-    },
-    [dispatch],
-  );
-
-  // Effect hook for updating chart based on user defaults
-  useEffect(() => {
-    if (status === SUCCEEDED && userDefaults) {
-      updateChart(userDefaults);
-    } else if (status === SUCCEEDED && !userDefaults) {
-      dispatch(resetChartStore());
-    } else if (status === FAILED) {
-      console.error(`Error getting user defaults: ${error}`);
-      dispatch(resetChartStore());
-    }
-  }, [status, error, userDefaults, dispatch]);
-
   return (
-    <div className=' w-screen h-screen  overflow-x-hidden' data-testid='layout'>
-      <div className=' lg:flex w-screen h-screen'>
-        <div>
-          <AuthenticatedSideBar
-            toggleDrawer={toggleDrawer}
-            setToggleDrawer={setToggleDrawer}
-            collapsed={collapsed}
-            setCollapsed={setCollapsed}
-          />
-        </div>
-        <div className='w-full overflow-x-hidden'>
-          <TopBar
-            topbarTitle={topbarTitle}
-            noBorderBottom={noBorderBottom}
-            toggleDrawer={toggleDrawer}
-            setToggleDrawer={setToggleDrawer}
-            collapsed={collapsed}
-            setCollapsed={setCollapsed}
-          />
-          {children}
+    <>
+      <Head>
+        <title>{pageTitle}</title>
+        <meta property='og:title' content={pageTitle} key='title' />
+      </Head>
+      <div className=' w-screen h-screen  overflow-x-hidden' data-testid='layout'>
+        <div className=' lg:flex w-screen h-screen'>
+          <div>
+            <AuthenticatedSideBar
+              toggleDrawer={toggleDrawer}
+              setToggleDrawer={setToggleDrawer}
+              collapsed={collapsed}
+              setCollapsed={setCollapsed}
+            />
+          </div>
+          <div className='w-full overflow-x-hidden'>
+            <TopBar
+              topbarTitle={topbarTitle}
+              noBorderBottom={noBorderBottom}
+              toggleDrawer={toggleDrawer}
+              setToggleDrawer={setToggleDrawer}
+              collapsed={collapsed}
+              setCollapsed={setCollapsed}
+            />
+            {children}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

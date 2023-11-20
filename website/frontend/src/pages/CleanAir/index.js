@@ -4,8 +4,7 @@ import CleanAirPageContainer from './Page';
 import CleanAirAbout from './CleanAirAbout';
 import CleanAirPartners from './CleanAirPartners';
 import CleanAirEvents from './CleanAirEvents';
-import CleanAirPress from './CleanAirPress';
-import GetInvolved from './GetInvolved';
+import CleanAirPublications from './CleanAirPublications';
 
 const CleanAirPage = () => {
   const activeTab = useSelector((state) => state.cleanAirData.activeTab);
@@ -14,8 +13,8 @@ const CleanAirPage = () => {
     <CleanAirPageContainer>
       {activeTab === 0 && <CleanAirAbout />}
       {activeTab === 1 && <CleanAirPartners />}
-      {activeTab === 2 && <CleanAirPress />}
-      {activeTab === 3 && <GetInvolved />}
+      {activeTab === 2 && <CleanAirEvents />}
+      {activeTab === 3 && <CleanAirPublications />}
     </CleanAirPageContainer>
   );
 };

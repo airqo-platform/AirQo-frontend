@@ -18,20 +18,33 @@ import { wrapper } from '@/lib/store';
 import { isEmpty } from 'underscore';
 import EmptyState from '@/components/Collocation/Collocate/empty_state';
 import Layout from '@/components/Layout';
-import withAuth from '@/core/utils/protectedRoute';
+import withAuth, { withPermission } from '@/core/utils/protectedRoute';
 import Head from 'next/head';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
-  const name = context.params?.name;
-  if (typeof name === 'string') {
-    store.dispatch(getDeviceStatusSummary.initiate(name));
+  try {
+    const name = context.params?.name;
+
+    if (typeof name === 'string') {
+      await store.dispatch(getDeviceStatusSummary.initiate(name));
+    }
+
+    await Promise.all(store.dispatch(getDeviceStatusSummary.util.getRunningQueriesThunk()));
+
+    const deviceStatusSummary = store.getState().collocationData.deviceStatusSummary;
+
+    return {
+      props: {
+        deviceStatusSummary,
+      },
+    };
+  } catch (error) {
+    console.error('Error in getServerSideProps:', error);
+
+    return {
+      props: {},
+    };
   }
-
-  await Promise.all(store.dispatch(getRunningQueriesThunk()));
-
-  return {
-    props: {},
-  };
 });
 
 const Collocate = () => {
@@ -59,11 +72,7 @@ const Collocate = () => {
   }, [refetch]);
 
   return (
-    <Layout topbarTitle={'Collocation'}>
-      <Head>
-        <title>Collocate | Collocation</title>
-        <meta property='og:title' content='Collocate | Collocation' key='Collocate | Collocation' />
-      </Head>
+    <Layout topbarTitle={'Collocation'} pageTitle={'Collocate | Collocation'}>
       <HeaderNav category={'Collocation'} component={'Collocate'}>
         {isError && (
           <Toast
@@ -78,8 +87,7 @@ const Collocate = () => {
               <Button
                 className={
                   'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium text-sm'
-                }
-              >
+                }>
                 <div className='mr-[10px]'>
                   <UploadIcon />
                 </div>
@@ -90,8 +98,7 @@ const Collocate = () => {
                 className={
                   'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
                 }
-                path='/collocation/add_monitor'
-              >
+                path='/collocation/add_monitor'>
                 <div className='mr-[10px]'>
                   <BoxedAddIcon />
                 </div>
@@ -135,4 +142,4 @@ const Collocate = () => {
   );
 };
 
-export default withAuth(Collocate);
+export default withPermission(withAuth(Collocate), 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');
