@@ -349,6 +349,7 @@
     "languageChangedSuccessfully": "You have successfully changed  to {placeholder}",
     "ok": "OK",
     "languages": "Languages",
+    "dataProvider":"Data Provider: {placeholder}",
     "reDOLesson": "Re-do lesson",
     "reDoQuiz": "Re-do quiz"
 }

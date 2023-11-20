@@ -249,9 +249,6 @@ class AnalyticsCard extends StatelessWidget {
                                         );
                                       },
                                     ),
-                                    const SizedBox(
-                                      height: 8,
-                                    ),
                                     Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,

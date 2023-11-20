@@ -51,8 +51,12 @@ class _HomePageState extends State<HomePage> {
     return OfflineBanner(
       child: Scaffold(
         backgroundColor: CustomColors.appBodyColor,
-        body: WillPopScope(
-          onWillPop: _onWillPop,
+        body: PopScope(
+          onPopInvoked: ((didPop) {
+            if (didPop) {
+              _onWillPop();
+            }
+          }),
           child: PageTransitionSwitcher(
             transitionBuilder: (
               Widget child,

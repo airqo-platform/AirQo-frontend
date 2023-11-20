@@ -485,6 +485,7 @@ class _DashboardViewState extends State<DashboardView>
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        shape: const CircleBorder(),
         onPressed: () async {
           await Navigator.push(
             context,

@@ -6,6 +6,7 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -33,8 +34,12 @@ class IntroductionScreenState extends State<IntroductionScreen> {
     return OfflineBanner(
       child: Scaffold(
         appBar: const OnBoardingTopBar(),
-        body: WillPopScope(
-          onWillPop: onWillPop,
+        body: PopScope(
+          onPopInvoked: ((didPop) {
+            if (didPop) {
+              onWillPop();
+            }
+          }),
           child: AppSafeArea(
             horizontalPadding: 24,
             verticalPadding: 10,
@@ -113,14 +118,20 @@ class IntroductionScreenState extends State<IntroductionScreen> {
 
         await AirqoApiClient()
             .getAppVersion(
-          currentVersion: packageInfo.version,
+          currentVersion: "2.0.20",
           bundleId: Platform.isIOS ? packageInfo.packageName : null,
           packageName: Platform.isAndroid ? packageInfo.packageName : null,
         )
             .then((version) async {
           if (version != null && mounted && !version.isUpdated) {
             await canLaunchUrl(version.url).then((bool result) async {
-              await openUpdateScreen(context, version);
+              try {
+                await openUpdateScreen(context, version);
+              } catch (error) {
+                if (kDebugMode) {
+                  print('Error opening update screen: $error');
+                }
+              }
             });
           }
         });
