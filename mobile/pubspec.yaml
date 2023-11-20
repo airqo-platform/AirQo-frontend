@@ -30,8 +30,8 @@ dependencies:
   json_annotation: ^4.8.1
   http: ^0.13.6
   cached_network_image: ^3.2.3
-  geolocator: ^9.0.2
-  flutter_local_notifications: ^15.1.0+1
+  geolocator: ^10.1.0
+  flutter_local_notifications: ^16.1.0
   path_provider: ^2.0.15
   animations: ^2.0.7
   provider: ^6.0.5
@@ -45,7 +45,7 @@ dependencies:
   in_app_review: ^2.0.6
   lottie: ^2.5.0
   share_plus: ^7.0.2
-  flutter_secure_storage: ^8.0.0
+  flutter_secure_storage: ^9.0.0
   flutter_dotenv: ^5.1.0
   auto_size_text: ^3.0.0
   firebase_core: ^2.15.0
@@ -60,7 +60,7 @@ dependencies:
   retry: ^3.0.0
   hive_flutter: ^1.1.0
   firebase_in_app_messaging: ^0.7.3+4
-  permission_handler: ^10.4.3
+  permission_handler: ^11.0.1
   workmanager: ^0.5.1
   flutter_cache_manager: ^3.3.1
   path: ^1.8.3
@@ -76,7 +76,7 @@ dependencies:
   rating_dialog: ^2.0.4
   confetti: ^0.7.0
   animated_text_kit: ^4.2.2
-  connectivity_plus: ^4.0.2
+  connectivity_plus: ^5.0.1
 
   # Drift previous database => airqo_app_db.sqlite
 
@@ -84,7 +84,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   mockito: ^5.4.0
-  flutter_lints: ^2.0.1
+  flutter_lints: ^3.0.1
   build_runner: ^2.3.3
   json_serializable: ^6.6.0
   dart_code_metrics: ^5.5.0
