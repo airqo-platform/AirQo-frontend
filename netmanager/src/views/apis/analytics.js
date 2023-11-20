@@ -57,6 +57,12 @@ export const generateAirQloudDataSummaryApi = async (data) => {
     .then((response) => response.data);
 };
 
+export const generateGridDataSummaryApi = async (data) => {
+  return await createAxiosInstance()
+    .post(GENERATE_AIRQLOUD_DATA_SUMMARY_URI, data)
+    .then((response) => response.data);
+};
+
 export const createClientApi = async (data) => {
   return await createAxiosInstance()
     .post(CREATE_CLIENT_URI, data)

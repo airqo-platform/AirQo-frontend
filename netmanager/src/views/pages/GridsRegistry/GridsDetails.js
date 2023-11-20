@@ -29,6 +29,7 @@ import GridSitesTable from './SitesTable';
 import { updateGridApi } from '../../apis/deviceRegistry';
 import { withPermission } from '../../containers/PageAccess';
 import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
+import { AirQloudView } from '../../components/AirQlouds';
 
 const gridItemStyle = {
   padding: '5px',
@@ -269,11 +270,16 @@ const GridsDetails = (props) => {
   useEffect(() => {
     setLoading(true);
     if (params.gridName) {
-      dispatch(loadGridDetails(params.gridName));
-    }
-    setTimeout(() => {
+      try {
+        dispatch(loadGridDetails(params.gridName));
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    } else {
       setLoading(false);
-    }, 5000);
+    }
   }, []);
 
   useEffect(() => {
@@ -326,7 +332,13 @@ const GridsDetails = (props) => {
                 <LargeCircularLoader loading={loading} />
               </Box>
             ) : (
-              sitesData && sitesData.length > 0 && <GridSitesTable sites={sitesData} />
+              sitesData &&
+              sitesData.length > 0 && (
+                <Box>
+                  <GridSitesTable sites={sitesData} />
+                  <AirQloudView airqloud={activeGridDetails} />
+                </Box>
+              )
             )}
           </div>
         </div>

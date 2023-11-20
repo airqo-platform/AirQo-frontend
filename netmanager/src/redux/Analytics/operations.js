@@ -21,7 +21,7 @@ import {
   LOAD_GRIDS_SUMMARY_SUCCESS
 } from './actions';
 import { isEmpty } from 'underscore';
-import { getCohortsApi, getGridsApi } from '../../views/apis/deviceRegistry';
+import { getCohortsApi, getGridsApi, getGridsSummaryApi } from '../../views/apis/deviceRegistry';
 
 export const loadGridsAndCohortsSummary = (network_name) => async (dispatch) => {
   return await getGridsAndCohortsSummaryApi(network_name)
@@ -125,7 +125,7 @@ export const fetchAllCohorts = (network_name) => async (dispatch) => {
 };
 
 export const fetchGridsSummary = (network_name) => async (dispatch) => {
-  return await getGridsApi({ network: network_name })
+  return await getGridsSummaryApi({ network: network_name })
     .then((resData) => {
       dispatch({
         type: LOAD_GRIDS_SUMMARY_SUCCESS,
