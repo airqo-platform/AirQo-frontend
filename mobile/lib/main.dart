@@ -13,6 +13,8 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:app/services/notification_service.dart';
 
 import 'firebase_options.dart';
 
@@ -46,6 +48,13 @@ void main() async {
       environment: Environment.prod,
       child: AirQoApp(initialLink, locale: savedLocale),
     );
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      NotificationService.handleNotifications(message);
+    });
+
+    FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
+      NotificationService.handleNotifications(message);
+    });
     runApp(configuredApp);
   } catch (exception, stackTrace) {
     runApp(
