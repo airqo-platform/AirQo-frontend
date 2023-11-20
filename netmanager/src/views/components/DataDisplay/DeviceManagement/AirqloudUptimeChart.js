@@ -3,23 +3,23 @@ import moment from 'moment';
 import { isEmpty } from 'underscore';
 import { useAirqloudUptimeData } from 'redux/DeviceManagement/selectors';
 import { loadAirqloudUptime } from 'redux/DeviceManagement/operations';
-import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
 import { ApexChart, createPieChartOptions } from 'views/charts';
 import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
 import { Button, TextField, Typography } from '@material-ui/core';
 import ScheduleIcon from '@material-ui/icons/Schedule';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
-import { useAirqloudsSummaryData } from 'redux/AirQloud/selectors';
-import { fetchAirqloudsSummaryData } from 'redux/AirQloud/operations';
+import { fetchGridsSummary } from 'redux/Analytics/operations';
 
 const AirqloudUptimeChart = () => {
   const dispatch = useDispatch();
   const airqloudUptimeData = useAirqloudUptimeData();
   const [airqloudUptime, setAirqloudUptime] = useState([]);
-  const [activeAirqloud, setActiveAirqloud] = useState({});
-  const currentAirqloud = useCurrentAirQloudData();
-  const airqlouds = useAirqloudsSummaryData();
+  const [activeGrid, setActiveGrid] = useState({
+    _id: '',
+    long_name: ''
+  });
+  const grids = useSelector((state) => state.analytics.gridsSummary);
   const [editableStartDate, setEditableStartDate] = useState(
     roundToStartOfDay(moment().subtract(1, 'days').toISOString()).toISOString()
   );
@@ -32,18 +32,16 @@ const AirqloudUptimeChart = () => {
   const [airqloudsLoading, setAirqloudsLoading] = useState(false);
 
   useEffect(() => {
-    if (currentAirqloud) {
-      setActiveAirqloud(currentAirqloud);
+    if (grids.length > 0) {
+      setActiveGrid(grids[0]);
+    } else {
+      setAirqloudsLoading(true);
+      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
+      dispatch(fetchGridsSummary(activeNetwork.net_name)).then(() => {
+        setAirqloudsLoading(false);
+      });
     }
-  }, []);
-
-  useEffect(() => {
-    setAirqloudsLoading(true);
-    dispatch(fetchAirqloudsSummaryData());
-    setTimeout(() => {
-      setAirqloudsLoading(false);
-    }, 3000);
-  }, []);
+  }, [grids]);
 
   useEffect(() => {
     if (isEmpty(airqloudUptimeData)) {
@@ -56,7 +54,7 @@ const AirqloudUptimeChart = () => {
   }, [airqloudUptimeData]);
 
   useEffect(() => {
-    if (!isEmpty(activeAirqloud) && isEmpty(airqloudUptimeData)) {
+    if (activeGrid && activeGrid._id !== '' && isEmpty(airqloudUptimeData)) {
       setAirqloudUptimeLoading(true);
       dispatch(
         loadAirqloudUptime({
@@ -64,7 +62,7 @@ const AirqloudUptimeChart = () => {
             moment(new Date()).subtract(1, 'days').toISOString()
           ).toISOString(),
           endDateTime: roundToEndOfDay(new Date().toISOString()).toISOString(),
-          airqloud: activeAirqloud._id
+          grid: activeGrid._id
         })
       );
       setCloseController(true);
@@ -73,11 +71,11 @@ const AirqloudUptimeChart = () => {
         setCloseController(false);
       }, 5000);
     }
-  }, [activeAirqloud]);
+  }, [activeGrid, grids]);
 
   const resetAirqloudUptimeChart = () => {
     setAirqloudUptimeLoading(true);
-    if (editableStartDate && editableEndDate && activeAirqloud) {
+    if (editableStartDate && editableEndDate && activeGrid) {
       if (new Date(editableStartDate) > new Date(editableEndDate)) {
         setErrorMsg('Error: End date is older than start date. Please adjust.');
         setTimeout(() => {
@@ -104,7 +102,7 @@ const AirqloudUptimeChart = () => {
           loadAirqloudUptime({
             startDateTime: roundToEndOfDay(new Date(editableStartDate).toISOString()).toISOString(),
             endDateTime: roundToEndOfDay(new Date(editableEndDate).toISOString()).toISOString(),
-            airqloud: activeAirqloud._id
+            grid: activeGrid._id
           })
         );
         setCloseController(true);
@@ -121,7 +119,7 @@ const AirqloudUptimeChart = () => {
       <ApexChart
         options={createPieChartOptions(['#FF2E2E', '#00A300'], ['Downtime', 'Uptime'])}
         series={airqloudUptime}
-        title={activeAirqloud ? `Health status for ${activeAirqloud.long_name}` : 'Health status'}
+        title={activeGrid ? `Health status for ${activeGrid.long_name}` : 'Health status'}
         type="pie"
         blue
         centerItems
@@ -160,15 +158,13 @@ const AirqloudUptimeChart = () => {
             <TextField
               select
               label="Choose airqloud"
-              id="activeAirqloud"
+              id="activeGrid"
               fullWidth
               style={{ marginTop: '15px' }}
-              value={activeAirqloud ? activeAirqloud._id : ''}
+              value={activeGrid ? activeGrid._id : ''}
               onChange={(e) => {
-                const selectedAirqloud = airqlouds.find(
-                  (airqloud) => airqloud._id === e.target.value
-                );
-                setActiveAirqloud(selectedAirqloud);
+                const selectedAirqloud = grids.find((airqloud) => airqloud._id === e.target.value);
+                setActiveGrid(selectedAirqloud);
               }}
               SelectProps={{
                 native: true,
@@ -178,16 +174,16 @@ const AirqloudUptimeChart = () => {
               InputLabelProps={{ shrink: true }}
             >
               <option
-                value={activeAirqloud._id}
+                value={activeGrid._id}
                 style={{
                   background: 'blue',
                   color: '#fff'
                 }}
               >
-                {activeAirqloud.long_name}
+                {activeGrid.long_name}
               </option>
               {airqloudsLoading && <option value="">Loading...</option>}
-              {airqlouds.map((airqloud) => (
+              {grids.map((airqloud) => (
                 <option key={airqloud._id} value={airqloud._id}>
                   {airqloud.long_name}
                 </option>
