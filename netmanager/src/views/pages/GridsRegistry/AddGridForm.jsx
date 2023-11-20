@@ -47,7 +47,8 @@ const AddGridToolbar = ({ open, handleClose }) => {
     const gridData = {
       name: form.name,
       admin_level: form.admin_level,
-      shape: polygon
+      shape: polygon,
+      network: activeNetwork.net_name
     };
 
     await createGridApi(gridData)
