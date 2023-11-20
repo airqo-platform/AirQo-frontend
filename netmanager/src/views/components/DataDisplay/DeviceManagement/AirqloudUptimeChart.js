@@ -5,11 +5,19 @@ import { useAirqloudUptimeData } from 'redux/DeviceManagement/selectors';
 import { loadAirqloudUptime } from 'redux/DeviceManagement/operations';
 import { ApexChart, createPieChartOptions } from 'views/charts';
 import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
-import { Button, TextField, Typography } from '@material-ui/core';
+import { Box, Button, TextField, Typography } from '@material-ui/core';
 import ScheduleIcon from '@material-ui/icons/Schedule';
 import { useDispatch, useSelector } from 'react-redux';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import { fetchGridsSummary } from 'redux/Analytics/operations';
+import Select from 'react-select';
+
+const gridOptions = (grids) => {
+  return grids.map((grid) => ({
+    value: grid._id,
+    label: grid.long_name
+  }));
+};
 
 const AirqloudUptimeChart = () => {
   const dispatch = useDispatch();
@@ -30,6 +38,9 @@ const AirqloudUptimeChart = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [airqloudUptimeLoading, setAirqloudUptimeLoading] = useState(false);
   const [airqloudsLoading, setAirqloudsLoading] = useState(false);
+  const [state, setState] = useState({
+    errors: {}
+  });
 
   useEffect(() => {
     if (grids.length > 0) {
@@ -114,6 +125,43 @@ const AirqloudUptimeChart = () => {
     }
   };
 
+  const { errors: formErrors } = state;
+
+  const customStyles = {
+    control: (base, state) => ({
+      ...base,
+      height: '55px',
+      borderColor: state.isFocused
+        ? '#3f51b5'
+        : !!formErrors[state.selectProps.name]
+        ? '#e53935'
+        : '#9a9a9a',
+      boxShadow: state.isFocused ? 0 : null,
+      '&:hover': {
+        borderColor: !!formErrors[state.selectProps.name] ? '#e53935' : 'black'
+      }
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      borderBottom: '1px dotted pink',
+      color: state.isSelected ? 'white' : 'blue',
+      textAlign: 'left'
+    }),
+    input: (provided, state) => ({
+      ...provided,
+      height: '40px',
+      borderColor: state.isFocused ? '#3f51b5' : 'black'
+    }),
+    placeholder: (provided, state) => ({
+      ...provided,
+      color: !!formErrors[state.selectProps.name] ? '#e53935' : 'black'
+    }),
+    menu: (provided, state) => ({
+      ...provided,
+      zIndex: 9999
+    })
+  };
+
   return (
     <ErrorBoundary>
       <ApexChart
@@ -155,40 +203,23 @@ const AirqloudUptimeChart = () => {
               InputLabelProps={{ shrink: true }}
               variant="outlined"
             />
-            <TextField
-              select
-              label="Choose airqloud"
-              id="activeGrid"
-              fullWidth
-              style={{ marginTop: '15px' }}
-              value={activeGrid ? activeGrid._id : ''}
-              onChange={(e) => {
-                const selectedAirqloud = grids.find((airqloud) => airqloud._id === e.target.value);
-                setActiveGrid(selectedAirqloud);
-              }}
-              SelectProps={{
-                native: true,
-                style: { width: '100%', height: '40px' }
-              }}
-              variant="outlined"
-              InputLabelProps={{ shrink: true }}
-            >
-              <option
-                value={activeGrid._id}
-                style={{
-                  background: 'blue',
-                  color: '#fff'
+
+            <Box marginTop="8px">
+              <Select
+                value={gridOptions(grids).find((option) => option.value === activeGrid._id)}
+                onChange={(e) => {
+                  const selectedAirqloud = grids.find((airqloud) => airqloud._id === e.value);
+                  setActiveGrid(selectedAirqloud);
                 }}
-              >
-                {activeGrid.long_name}
-              </option>
-              {airqloudsLoading && <option value="">Loading...</option>}
-              {grids.map((airqloud) => (
-                <option key={airqloud._id} value={airqloud._id}>
-                  {airqloud.long_name}
-                </option>
-              ))}
-            </TextField>
+                isClearable={true}
+                options={gridOptions(grids)}
+                isSearchable
+                placeholder="Choose grid"
+                name="activeGrid"
+                styles={customStyles}
+              />
+            </Box>
+
             <Button
               variant="contained"
               color="primary"
