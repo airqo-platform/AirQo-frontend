@@ -35,7 +35,7 @@ Future<void> openUpdateScreen(
 
       return MediaQuery(
         data: mediaQueryData.copyWith(
-          textScaleFactor: textScaleFactor as double,
+          textScaler: TextScaler.linear(textScaleFactor as double),
         ),
         child: Column(
           children: [
@@ -83,7 +83,8 @@ Future<void> openUpdateScreen(
               child: Text(
                 AppLocalizations.of(context)!
                     .airQoversionIsNowAvailableToKeepYouUpToDateOnTheLatestAirQualityData(
-                        appStoreVersion.version),
+                  appStoreVersion.version,
+                ),
                 style: CustomTextStyle.errorSubTitle(context),
                 textAlign: TextAlign.center,
               ),
