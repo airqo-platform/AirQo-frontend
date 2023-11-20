@@ -527,13 +527,13 @@ const CreateOrganisationDetailsPageThree = () => {
   }, [gridLocationsData]);
 
   return (
-    <div className='sm:ml-3 lg:ml-1 relative h-screen'>
+    <div className='sm:ml-3 lg:ml-1 relative h-[600px]'>
       <ProgressComponent colorFirst={true} colorSecond={true} colorThird={true} />
-      <div className='w-full'>
+      <div className='w-full h-full'>
         <h2 className='text-3xl text-black font-semibold w-full lg:w-10/12 md:mt-20 lg:mt-2'>
           Choose locations you are interested in
         </h2>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className='h-full'>
           {creationErrors.state && (
             <Toast type={'error'} timeout={6000} message={creationErrors.message} />
           )}
@@ -604,7 +604,7 @@ const CreateOrganisationDetailsPageThree = () => {
               )}
             </div>
           )}
-          <div className='absolute w-full bottom-32 lg:bottom-36 2xl:bottom-52'>
+          <div className='absolute w-full bottom-6'>
             <div className='mt-6 relative w-auto'>
               {locationArray.length === 4 ? (
                 <div className='w-full'>
