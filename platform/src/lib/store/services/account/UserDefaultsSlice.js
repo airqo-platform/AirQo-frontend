@@ -1,4 +1,4 @@
-import { getUserPreferencesApi, postUserDefaultsApi, postUserPreferencesApi, updateUserDefaultsApi, updateUserPreferencesApi } from '@/core/apis/Account';
+import { getUserPreferencesApi, patchUserPreferencesApi, postUserDefaultsApi, postUserPreferencesApi, updateUserDefaultsApi, updateUserPreferencesApi } from '@/core/apis/Account';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
@@ -47,6 +47,18 @@ export const getIndividualUserPreferences = createAsyncThunk('/get/individual/pr
     }
 })
 
+export const replaceUserPreferences = createAsyncThunk('/replace/individual/preference', async (data, { rejectWithValue }) => {
+    try {
+        const response = await patchUserPreferencesApi(data);
+        return response
+    } catch (error) {
+        if (!error.response) {
+            throw error
+        }
+        return rejectWithValue(error.response.data);
+    }
+})
+
 export const defaultsSlice = createSlice({
     name: 'defaults',
     initialState,
@@ -87,6 +99,10 @@ export const defaultsSlice = createSlice({
                 state.success = false;
             })
             .addCase(getIndividualUserPreferences.rejected, (state, action) => {
+                state.errors = action.payload;
+                state.success = false;
+            })
+            .addCase(replaceUserPreferences.rejected, (state, action) => {
                 state.errors = action.payload;
                 state.success = false;
             })

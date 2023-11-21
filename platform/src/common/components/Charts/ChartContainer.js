@@ -210,7 +210,7 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, dow
       <PrintReportModal
         title='Share report'
         btnText='Send'
-        ModalType='share'
+        shareModel={true}
         open={openShare}
         onClose={() => setOpenShare(false)}
         format={shareFormat}
