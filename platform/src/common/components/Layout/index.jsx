@@ -14,7 +14,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserChecklists } from '@/lib/store/services/checklists/CheckData';
 import { updateCards } from '@/lib/store/services/checklists/CheckList';
 import Head from 'next/head';
-import { updateUserChecklists } from '@/lib/store/services/checklists/CheckData';
 
 const Layout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBorderBottom }) => {
   // Constants
@@ -95,20 +94,6 @@ const Layout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBorder
   };
 
   useEffect(fetchData, [dispatch, userInfo]);
-
-  // update user checklists when ever the cardCheckList changes
-  const updateUserChecklist = () => {
-    if (userInfo?._id) {
-      dispatch(
-        updateUserChecklists({
-          user_id: userInfo._id,
-          items: cardCheckList,
-        }),
-      );
-    }
-  };
-
-  useEffect(updateUserChecklist, [dispatch, userInfo, cardCheckList]);
 
   useEffect(() => {
     localStorage.setItem('collapsed', collapsed);
