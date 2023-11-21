@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import CustomDropdown from './CustomDropdown';
 import CheckIcon from '@/icons/tickIcon';
 import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { updateUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import Spinner from '@/components/Spinner';
 
@@ -28,6 +28,7 @@ const OrganizationDropdown = () => {
   const [activeGroup, setActiveGroup] = useState({});
   const [userGroups, setUserGroups] = useState([]);
   const [loading, setLoading] = useState(false);
+  const preferences = useSelector((state) => state.defaults.individual_preferences);
 
   useEffect(() => {
     const storedActiveGroup = localStorage.getItem('activeGroup');
@@ -54,8 +55,15 @@ const OrganizationDropdown = () => {
       }
     };
 
-    if (storedActiveGroup !== null) {
+    if (
+      storedActiveGroup !== null &&
+      preferences &&
+      preferences[0] &&
+      preferences[0].group_id === ''
+    ) {
       handleUpdatePreferences();
+    } else {
+      setActiveGroup(JSON.parse(storedActiveGroup));
     }
 
     if (userGroups) {
@@ -136,7 +144,7 @@ const OrganizationDropdown = () => {
             key={format._id}
             href='#'
             onClick={() => handleDropdownSelect(format)}
-            className={`w-full h-11 px-3.5 py-2.5 justify-between items-center inline-flex ${
+            className={`w-56 h-11 px-3.5 py-2.5 justify-between items-center inline-flex ${
               activeGroup &&
               activeGroup?.grp_title === format?.grp_title &&
               'bg-secondary-neutral-light-50'

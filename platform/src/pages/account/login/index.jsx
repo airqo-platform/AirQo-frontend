@@ -46,11 +46,20 @@ const UserLogin = () => {
               setLoading(false);
               return;
             }
-            // find airqo group in the users groups and set it as the active group
-            const airqoGroup = response.users[0].groups.find(
-              (group) => group.grp_title === 'airqo',
-            );
-            localStorage.setItem('activeGroup', JSON.stringify(airqoGroup));
+
+            // check if user has a saved organisation
+            if (preferences && preferences[0] && preferences[0].group_id) {
+              const activeGroup = response.users[0].groups.find(
+                (group) => group._id === preferences[0].group_id,
+              );
+              localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
+            } else {
+              const airqoGroup = response.users[0].groups.find(
+                (group) => group.grp_title === 'airqo',
+              );
+              localStorage.setItem('activeGroup', JSON.stringify(airqoGroup));
+            }
+
             dispatch(setUserInfo(response.users[0]));
             dispatch(setSuccess(true));
             setLoading(false);
