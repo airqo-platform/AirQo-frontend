@@ -9,6 +9,7 @@ import {
 } from '@/lib/store/services/account/UserDefaultsSlice';
 import Toast from '@/components/Toast';
 import { fetchUserPreferences } from '@/lib/store/services/charts/userDefaultsSlice';
+import { completeTask } from '@/lib/store/services/checklists/CheckList';
 
 const CustomiseLocationsComponent = ({ toggleCustomise }) => {
   const dispatch = useDispatch();
@@ -20,8 +21,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
   });
   const selectedLocations = useSelector((state) => state.grids.selectedLocations) || [];
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
-  const customisedLocations =
-    preferenceData.length > 0 ? preferenceData[0].selected_sites.slice(0, 4) : [];
+  const customisedLocations = preferenceData.length > 0 ? preferenceData[0].selected_sites : [];
   const id = useSelector((state) => state.login.userInfo._id);
   const chartData = useSelector((state) => state.chart);
 
@@ -65,8 +65,8 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
           setLoading(false);
         } else {
           toggleCustomise();
-          // fetching user preferences after update
           dispatch(fetchUserPreferences(id));
+          dispatch(completeTask(2));
         }
       } catch (error) {
         throw error;
