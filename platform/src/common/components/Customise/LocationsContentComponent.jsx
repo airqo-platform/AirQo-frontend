@@ -47,20 +47,28 @@ const LocationsContentComponent = ({ selectedLocations }) => {
   };
 
   const handleLocationSelect = (item) => {
-    unSelectedLocations.includes(item)
-      ? setUnSelectedLocations(unSelectedLocations.filter((location) => location._id !== item._id))
-      : null;
-    locationArray.includes(item)
-      ? setLocationArray(locationArray.filter((location) => location._id !== item._id))
-      : setLocationArray((locations) => [...locations, item]);
+    const unSelectedIndex = unSelectedLocations.findIndex((location) => location._id === item._id);
+    if (unSelectedIndex !== -1) {
+      setUnSelectedLocations(unSelectedLocations.filter((location) => location._id !== item._id));
+    }
+    const locationIndex = locationArray.findIndex((location) => location._id === item._id);
+    if (locationIndex !== -1) {
+      setLocationArray(locationArray.filter((location) => location._id !== item._id));
+    } else {
+      const newLocationArray = [...locationArray, item];
+      setLocationArray(newLocationArray);
+      setDraggedLocations(newLocationArray);
+    }
     setInputSelect(true);
     setLocation('');
   };
 
   const removeLocation = (item) => {
-    setLocationArray(locationArray.filter((location) => location._id !== item._id));
+    const newLocationArray = locationArray.filter((location) => location._id !== item._id);
+    setLocationArray(newLocationArray);
+    setDraggedLocations(newLocationArray);
     setUnSelectedLocations((locations) => [...locations, item]);
-    dispatch(setSelectedLocations(locationArray));
+    dispatch(setSelectedLocations(newLocationArray));
   };
 
   const onDragEnd = (result) => {
@@ -90,7 +98,7 @@ const LocationsContentComponent = ({ selectedLocations }) => {
         while (unSelectedLocations.length < 8) {
           const randomIndex = Math.floor(Math.random() * gridLocationsData.length);
           const randomObject = gridLocationsData[randomIndex];
-          if (!unSelectedLocations.includes(randomObject)) {
+          if (!unSelectedLocations.find((location) => location._id === randomObject._id)) {
             unSelectedLocations.push(randomObject);
           }
         }
