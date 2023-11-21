@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../main_common.dart';
 import '../home_page.dart';
 import '../phone_authentication/phone_auth_screen.dart';
 import 'introduction_screen.dart';
@@ -46,7 +47,7 @@ class SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context);
-    AppService().setLocale(locale.languageCode);
+    AirQoApp.setLocale(context, locale);
 
     return FutureBuilder<void>(
       future: _initializationFuture,

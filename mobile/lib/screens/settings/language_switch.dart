@@ -145,26 +145,6 @@ class LanguageListState extends State<LanguageList> {
                                   selectedLanguageCode = language.languageCode;
                                 });
                               }
-
-                              // await _saveSelectedLanguage(
-                              //     language.languageCode);
-                              // Locale locale =
-                              //     await setLocale(language.languageCode);
-                              // setState(() {
-                              //   selectedLanguageCode = language.languageCode;
-                              // });
-                              // ScaffoldMessenger.of(context).showSnackBar(
-                              //   SnackBar(
-                              //     elevation: 1,
-                              //     content: Text(
-                              //       AppLocalizations.of(context)!
-                              //           .languageChangedSuccessfully(
-                              //               language.name.toCapitalized()),
-                              //     ),
-                              //   ),
-                              // );
-                              // await AirQoApp.setLocale(context, locale);
-                              //Navigator.pop(context, true);
                             },
                           ),
                         ),
