@@ -21,6 +21,7 @@ const UserLogin = () => {
   const postData = useSelector((state) => state.login);
   const [loading, setLoading] = useState(false);
   const [passwordType, setPasswordType] = useState('password');
+  const preferences = useSelector((state) => state.defaults.individual_preferences);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -45,11 +46,20 @@ const UserLogin = () => {
               setLoading(false);
               return;
             }
-            // find airqo group in the users groups and set it as the active group
-            const airqoGroup = response.users[0].groups.find(
-              (group) => group.grp_title === 'airqo',
-            );
-            localStorage.setItem('activeGroup', JSON.stringify(airqoGroup));
+
+            // check if user has a saved organisation
+            if (preferences && preferences[0] && preferences[0].group_id) {
+              const activeGroup = response.users[0].groups.find(
+                (group) => group._id === preferences[0].group_id,
+              );
+              localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
+            } else {
+              const airqoGroup = response.users[0].groups.find(
+                (group) => group.grp_title === 'airqo',
+              );
+              localStorage.setItem('activeGroup', JSON.stringify(airqoGroup));
+            }
+
             dispatch(setUserInfo(response.users[0]));
             dispatch(setSuccess(true));
             setLoading(false);
@@ -137,7 +147,8 @@ const UserLogin = () => {
             <button
               data-testid='login-btn'
               className='w-full btn bg-blue-900 rounded-none text-white text-sm outline-none border-none hover:bg-blue-950'
-              type='submit'>
+              type='submit'
+            >
               {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Login'}
             </button>
           </div>

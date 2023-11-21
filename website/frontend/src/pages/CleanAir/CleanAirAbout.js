@@ -13,8 +13,8 @@ const CleanAirAbout = () => {
   return (
     <div className="page-wrapper">
       <SEO
-        title="CLEAN-Air Africa Network"
-        siteTitle="AirQo"
+        title="About"
+        siteTitle="CLEAN-Air Network"
         description="An African led, multi-region network bringing together a community of practice for air quality solutions and air quality management across Africa."
       />
       {/* section 1 */}

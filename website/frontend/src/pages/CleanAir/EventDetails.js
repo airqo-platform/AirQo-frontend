@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { AccessTimeOutlined, CalendarMonth, PlaceOutlined } from '@mui/icons-material';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { useParams } from 'react-router-dom';
@@ -8,7 +8,6 @@ import { getAllEvents } from '../../../reduxStore/Events/EventSlice';
 import { format } from 'date-fns';
 import Loadspinner from '../../components/LoadSpinner';
 import PageMini from '../PageMini';
-import { setActiveTab } from '../../../reduxStore/CleanAirNetwork/CleanAir';
 
 const EventDetails = () => {
   useInitScrollTop();
@@ -67,7 +66,7 @@ const EventDetails = () => {
                         <span>
                           {event.end_date !== null ? (
                             <span>
-                              {format(new Date(event.start_date), 'do')} -{' '}
+                              {format(new Date(event.start_date), 'do MMM')} -{' '}
                               {format(new Date(event.end_date), 'do MMMM yyyy')}
                             </span>
                           ) : (
@@ -91,11 +90,9 @@ const EventDetails = () => {
                       {event.location_name ? (
                         <div className="item">
                           <PlaceOutlined />
-                          <span>
-                            <a href={event.location_link !== null ? event.location_link : null}>
-                              <span>{event.location_name}</span>
-                            </a>
-                          </span>
+                          {
+                            event.location_link !== null ? <a href={event.location_link} target='_blank'><span>{event.location_name}</span></a> : <span>{event.location_name}</span>
+                          }
                         </div>
                       ) : (
                         <span />
