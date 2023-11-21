@@ -2,15 +2,14 @@ import 'package:app/constants/constants.dart';
 import 'package:app/main_common.dart';
 import 'package:app/screens/offline_banner.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:app/services/services.dart';
 
 import '../../themes/colors.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:restart_app/restart_app.dart';
+import 'package:restart_app/restart_app.dart';
 
 class LanguageList extends StatefulWidget {
   const LanguageList({super.key});
@@ -66,7 +65,7 @@ class LanguageListState extends State<LanguageList> {
               Locale locale = await setLocale(language.languageCode);
               await AirQoApp.setLocale(context, locale);
               Navigator.pop(context, true);
-              //await Restart.restartApp();
+              await Restart.restartApp();
             },
           ),
           CupertinoDialogAction(
@@ -137,34 +136,34 @@ class LanguageListState extends State<LanguageList> {
                             ),
                             title: Text(language.name),
                             onTap: () async {
-                              // final shouldChangeLanguage =
-                              //     await languageDialog(context, language);
-                              // if (shouldChangeLanguage) {
-                              //   await _saveSelectedLanguage(
-                              //       language.languageCode);
-                              //   setState(() {
-                              //     selectedLanguageCode = language.languageCode;
-                              //   });
-                              // }
+                              final shouldChangeLanguage =
+                                  await languageDialog(context, language);
+                              if (shouldChangeLanguage) {
+                                await _saveSelectedLanguage(
+                                    language.languageCode);
+                                setState(() {
+                                  selectedLanguageCode = language.languageCode;
+                                });
+                              }
 
-                              await _saveSelectedLanguage(
-                                  language.languageCode);
-                              Locale locale =
-                                  await setLocale(language.languageCode);
-                              setState(() {
-                                selectedLanguageCode = language.languageCode;
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  elevation: 1,
-                                  content: Text(
-                                    AppLocalizations.of(context)!
-                                        .languageChangedSuccessfully(
-                                            language.name.toCapitalized()),
-                                  ),
-                                ),
-                              );
-                              await AirQoApp.setLocale(context, locale);
+                              // await _saveSelectedLanguage(
+                              //     language.languageCode);
+                              // Locale locale =
+                              //     await setLocale(language.languageCode);
+                              // setState(() {
+                              //   selectedLanguageCode = language.languageCode;
+                              // });
+                              // ScaffoldMessenger.of(context).showSnackBar(
+                              //   SnackBar(
+                              //     elevation: 1,
+                              //     content: Text(
+                              //       AppLocalizations.of(context)!
+                              //           .languageChangedSuccessfully(
+                              //               language.name.toCapitalized()),
+                              //     ),
+                              //   ),
+                              // );
+                              // await AirQoApp.setLocale(context, locale);
                               //Navigator.pop(context, true);
                             },
                           ),
@@ -188,11 +187,11 @@ class LanguageListState extends State<LanguageList> {
 }
 
 Future<void> _saveSelectedLanguage(String languageCode) async {
-  final prefs = await SharedPreferences.getInstance();
+  final prefs = await SharedPreferencesHelper.instance;
   await prefs.setString('language', languageCode);
 }
 
 Future<String?> _loadSelectedLanguage() async {
-  final prefs = await SharedPreferences.getInstance();
+  final prefs = await SharedPreferencesHelper.instance;
   return prefs.getString('language');
 }

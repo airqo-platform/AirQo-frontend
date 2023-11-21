@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:app/services/services.dart';
 
 const String LANGUAGE_CODE = 'languageCode';
 
@@ -10,13 +11,13 @@ const String portuguese = 'pt';
 const String swahili = 'sw';
 
 Future<Locale> setLocale(String languageCode) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
+  SharedPreferences prefs = await SharedPreferencesHelper.instance;
   await prefs.setString(LANGUAGE_CODE, languageCode);
   return _locale(languageCode);
 }
 
 Future<Locale> getLocale() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
+  SharedPreferences prefs = await SharedPreferencesHelper.instance;
   String languageCode = prefs.getString(LANGUAGE_CODE) ?? english;
   return _locale(languageCode);
 }

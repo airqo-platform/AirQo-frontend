@@ -186,7 +186,7 @@ class AirqoApiClient {
 
   Future<List<Forecast>> fetchForecast(String siteId) async {
     final forecasts = <Forecast>[];
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferencesHelper.instance;
     final locale = prefs.getString("language") ?? "en";
     final queryParams = <String, String>{}
       ..putIfAbsent('site_id', () => siteId);
@@ -424,7 +424,7 @@ class AirqoApiClient {
   }
 
   Future<List<AirQualityReading>> fetchAirQualityReadings() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferencesHelper.instance;
     final locale = prefs.getString("language") ?? "en";
     final airQualityReadings = <AirQualityReading>[];
     final queryParams = <String, String>{}
@@ -471,7 +471,7 @@ class AirqoApiClient {
   }
 
   Future<List<KyaLesson>> fetchKyaLessons(String userId) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferencesHelper.instance;
     final locale = prefs.getString("language") ?? "en";
     final lessons = <KyaLesson>[];
     final queryParams = <String, String>{}
@@ -537,7 +537,7 @@ class AirqoApiClient {
   }
 
   Future<List<Quiz>> fetchQuizzes(String userId) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferencesHelper.instance;
     final locale = prefs.getString("language") ?? "en";
     final quizzes = <Quiz>[];
     final queryParams = <String, String>{}
