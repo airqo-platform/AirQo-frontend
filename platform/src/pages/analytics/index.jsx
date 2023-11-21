@@ -208,6 +208,7 @@ const AuthenticatedHomePage = () => {
         <PrintReportModal
           title='Share report'
           open={openPrintModal}
+          handlePrintPDF={printFile}
           onClose={() => setOpenPrintModal(false)}
           data={data}
           shareModel={false}

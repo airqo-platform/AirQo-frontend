@@ -190,7 +190,7 @@ const PrintReportModal = ({
       tableRows.push(dataRow);
     });
 
-    doc.autoTable({
+    autoTable(doc, {
       columns: Object.keys(selectedColumns)
         .filter((column) => selectedColumns[column])
         .map((col) => ({
