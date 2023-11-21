@@ -12,6 +12,7 @@ import StarIconLight from '@/icons/Actions/star_icon_light.svg';
 import DragIcon from '@/icons/Actions/drag_icon.svg';
 import DragIconLight from '@/icons/Actions/drag_icon_light.svg';
 import Toast from '../Toast';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const LocationsContentComponent = ({ selectedLocations }) => {
   const dispatch = useDispatch();
@@ -23,6 +24,7 @@ const LocationsContentComponent = ({ selectedLocations }) => {
   const [locationArray, setLocationArray] = useState(selectedLocations);
   const [filteredLocations, setFilteredLocations] = useState([]);
   const [unSelectedLocations, setUnSelectedLocations] = useState([]);
+  const [draggedLocations, setDraggedLocations] = useState(selectedLocations);
 
   const handleLocationEntry = (e) => {
     setInputSelect(false);
@@ -61,6 +63,14 @@ const LocationsContentComponent = ({ selectedLocations }) => {
     dispatch(setSelectedLocations(locationArray));
   };
 
+  const onDragEnd = (result) => {
+    const items = Array.from(draggedLocations);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setDraggedLocations(items);
+  };
+
   useEffect(() => {
     if (gridLocationsData && gridLocationsData.length > 0) {
       setFilteredLocations(gridLocationsData);
@@ -77,7 +87,7 @@ const LocationsContentComponent = ({ selectedLocations }) => {
     if (gridLocationsData && gridLocationsData.length > 0) {
       try {
         dispatch(setSelectedLocations(locationArray));
-        while (unSelectedLocations.length < 15) {
+        while (unSelectedLocations.length < 8) {
           const randomIndex = Math.floor(Math.random() * gridLocationsData.length);
           const randomObject = gridLocationsData[randomIndex];
           if (!unSelectedLocations.includes(randomObject)) {
@@ -92,120 +102,129 @@ const LocationsContentComponent = ({ selectedLocations }) => {
 
   return (
     <form>
-      {locationArray && locationArray.length > 4 && (
-        <Toast type={'error'} message='Choose only 4 locations' timeout={6000} />
-      )}
-      <div className='mt-6'>
-        <div className='w-full flex flex-row items-center justify-start'>
-          <div className='flex items-center justify-center pl-3 bg-white border h-12 rounded-lg rounded-r-none border-r-0 border-input-light-outline focus:border-input-light-outline'>
-            <SearchIcon />
-          </div>
-          <input
-            onChange={(e) => {
-              handleLocationEntry(e);
-            }}
-            onClick={() => toggleInputSelect()}
-            value={location}
-            placeholder='Search Villages, Cities or Country'
-            className='input text-sm text-secondary-neutral-light-800 w-full h-12 ml-0 rounded-lg bg-white border-l-0 rounded-l-none border-input-light-outline focus:border-input-light-outline'
-          />
-        </div>
-        {location !== '' && (
-          <div
-            className={`bg-white max-h-48 overflow-y-scroll px-3 pt-2 pr-1 my-1 border border-input-light-outline rounded-md ${
-              inputSelect ? 'hidden' : 'relative'
-            }`}
-          >
-            {filteredLocations && filteredLocations.length > 0 ? (
-              filteredLocations.map((location) => (
-                <div
-                  className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer'
-                  onClick={() => {
-                    handleLocationSelect(location);
-                  }}
-                  key={location._id}
-                >
-                  <LocationIcon />
-                  <div className='text-sm ml-1 text-black capitalize'>{location.name}</div>
-                </div>
-              ))
-            ) : (
-              <div className='flex flex-row justify-start items-center mb-0.5 text-sm w-full'>
-                <LocationIcon />
-                <div className='text-sm ml-1 text-black font-medium capitalize'>
-                  Location not found
-                </div>
-              </div>
-            )}
-          </div>
+      <DragDropContext onDragEnd={onDragEnd}>
+        {locationArray && locationArray.length > 4 && (
+          <Toast type={'error'} message='Choose only 4 locations' timeout={6000} />
         )}
-      </div>
-      {
-        <div className='mt-4'>
-          {locationArray && locationArray.length > 0 ? (
-            locationArray.map((location) => (
-              <div
-                className='border rounded-lg bg-secondary-neutral-light-25 border-input-light-outline flex flex-row justify-between items-center p-3 w-full mb-2'
-                key={location._id}
-              >
-                <div className='flex flex-row items-center overflow-x-clip'>
-                  <div>
-                    <DragIcon />
-                  </div>
-                  <span className='text-sm text-secondary-neutral-light-800 font-medium'>
-                    {location.name}
-                  </span>
-                </div>
-                <div className='flex flex-row'>
+        <div className='mt-6'>
+          <div className='w-full flex flex-row items-center justify-start'>
+            <div className='flex items-center justify-center pl-3 bg-white border h-12 rounded-lg rounded-r-none border-r-0 border-input-light-outline focus:border-input-light-outline'>
+              <SearchIcon />
+            </div>
+            <input
+              onChange={(e) => {
+                handleLocationEntry(e);
+              }}
+              onClick={() => toggleInputSelect()}
+              value={location}
+              placeholder='Search Villages, Cities or Country'
+              className='input text-sm text-secondary-neutral-light-800 w-full h-12 ml-0 rounded-lg bg-white border-l-0 rounded-l-none border-input-light-outline focus:border-input-light-outline'
+            />
+          </div>
+          {location !== '' && (
+            <div
+              className={`bg-white max-h-48 overflow-y-scroll px-3 pt-2 pr-1 my-1 border border-input-light-outline rounded-md ${
+                inputSelect ? 'hidden' : 'relative'
+              }`}>
+              {filteredLocations && filteredLocations.length > 0 ? (
+                filteredLocations.map((location) => (
                   <div
-                    className='mr-1 hover:cursor-pointer'
-                    onClick={() => removeLocation(location)}
-                  >
-                    <TrashIcon />
-                  </div>
-                  <div className='bg-primary-600 rounded-md p-2 flex items-center justify-center'>
-                    <StarIcon />
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <span />
-          )}
-        </div>
-      }
-      <div className='mt-6'>
-        <h3 className='text-sm text-black-800 font-semibold'>Suggestions</h3>
-        <div className='mt-3'>
-          {unSelectedLocations &&
-            unSelectedLocations.length > 0 &&
-            unSelectedLocations.slice(0, 15).map((location) => (
-              <div
-                className='border rounded-lg bg-secondary-neutral-light-25 border-input-light-outline flex flex-row justify-between items-center p-3 w-full mb-2'
-                key={location._id}
-              >
-                <div className='flex flex-row items-center overflow-x-clip'>
-                  <div>
-                    <DragIconLight />
-                  </div>
-                  <span className='text-sm text-secondary-neutral-light-800 font-medium'>
-                    {location.name}
-                  </span>
-                </div>
-                <div className='flex flex-row'>
-                  <div
-                    className='border border-input-light-outline rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
+                    className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer'
                     onClick={() => {
                       handleLocationSelect(location);
                     }}
-                  >
-                    <StarIconLight />
+                    key={location._id}>
+                    <LocationIcon />
+                    <div className='text-sm ml-1 text-black capitalize'>{location.name}</div>
+                  </div>
+                ))
+              ) : (
+                <div className='flex flex-row justify-start items-center mb-0.5 text-sm w-full'>
+                  <LocationIcon />
+                  <div className='text-sm ml-1 text-black font-medium capitalize'>
+                    Location not found
                   </div>
                 </div>
-              </div>
-            ))}
+              )}
+            </div>
+          )}
         </div>
-      </div>
+        <Droppable droppableId='starredLocations'>
+          {(provided) => (
+            <div {...provided.droppableProps} ref={provided.innerRef}>
+              {
+                <div className='mt-4'>
+                  {locationArray &&
+                    locationArray.length > 0 &&
+                    draggedLocations.map((location, index) => (
+                      <Draggable draggableId={location._id} index={index}>
+                        {(provided) => (
+                          <div
+                            className='border rounded-lg bg-secondary-neutral-light-25 border-input-light-outline flex flex-row justify-between items-center p-3 w-full mb-2'
+                            key={location._id}
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}>
+                            <div className='flex flex-row items-center overflow-x-clip'>
+                              <div>
+                                <DragIcon />
+                              </div>
+                              <span className='text-sm text-secondary-neutral-light-800 font-medium'>
+                                {location.name}
+                              </span>
+                            </div>
+                            <div className='flex flex-row'>
+                              <div
+                                className='mr-1 hover:cursor-pointer'
+                                onClick={() => removeLocation(location)}>
+                                <TrashIcon />
+                              </div>
+                              <div
+                                className='bg-primary-600 rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
+                                onClick={() => removeLocation(location)}>
+                                <StarIcon />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                </div>
+              }
+              <div className='mt-6 mb-24'>
+                <h3 className='text-sm text-black-800 font-semibold'>Suggestions</h3>
+                <div className='mt-3'>
+                  {unSelectedLocations &&
+                    unSelectedLocations.length > 0 &&
+                    unSelectedLocations.slice(0, 15).map((location) => (
+                      <div
+                        className='border rounded-lg bg-secondary-neutral-light-25 border-input-light-outline flex flex-row justify-between items-center p-3 w-full mb-2'
+                        key={location._id}>
+                        <div className='flex flex-row items-center overflow-x-clip'>
+                          <div>
+                            <DragIconLight />
+                          </div>
+                          <span className='text-sm text-secondary-neutral-light-800 font-medium'>
+                            {location.name}
+                          </span>
+                        </div>
+                        <div className='flex flex-row'>
+                          <div
+                            className='border border-input-light-outline rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
+                            onClick={() => {
+                              handleLocationSelect(location);
+                            }}>
+                            <StarIconLight />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
     </form>
   );
 };

@@ -27,6 +27,7 @@ const Layout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBorder
   const [collapsed, setCollapsed] = useState(
     () => JSON.parse(localStorage.getItem('collapsed')) || false,
   );
+  const cardCheckList = useSelector((state) => state.cardChecklist.cards);
 
   // Fetching user preferences
   useEffect(() => {
@@ -53,7 +54,7 @@ const Layout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBorder
             ? selected_sites.map((site) => site['_id'])
             : chartData.chartSites;
 
-          await dispatch(setChartSites(chartSites.slice(0, 4)));
+          await dispatch(setChartSites(chartSites));
           await dispatch(
             setChartDataRange({
               startDate: startDate || chartData.chartDataRange.startDate,
@@ -77,7 +78,7 @@ const Layout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBorder
   }, [userInfo, userPreferences, dispatch]);
 
   // Fetching user checklists
-  useEffect(() => {
+  const fetchData = () => {
     if (userInfo?._id && !localStorage.getItem('dataFetched')) {
       dispatch(fetchUserChecklists(userInfo._id)).then((action) => {
         if (fetchUserChecklists.fulfilled.match(action)) {
@@ -85,15 +86,14 @@ const Layout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBorder
           if (payload && payload.length > 0) {
             const { items } = payload[0];
             dispatch(updateCards(items));
-            localStorage.setItem('dataFetched', 'true');
-          } else {
-            localStorage.setItem('dataFetched', 'true');
-            return;
           }
+          localStorage.setItem('dataFetched', 'true');
         }
       });
     }
-  }, [dispatch, userInfo]);
+  };
+
+  useEffect(fetchData, [dispatch, userInfo]);
 
   useEffect(() => {
     localStorage.setItem('collapsed', collapsed);

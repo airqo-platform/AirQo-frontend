@@ -149,7 +149,7 @@ export const updateUserPreferencesApi = async (data) => {
   }
 }
 
-// Get Individual user preferences
+// Get Individual User preferences
 export const getUserPreferencesApi = async (identifier) => {
   try {
     const response = await createAxiosInstance().get(`${USER_PREFERENCES_URL}/${identifier}`);
@@ -160,6 +160,18 @@ export const getUserPreferencesApi = async (identifier) => {
   }
 }
 
+// Patch/Replace User Preferences
+export const patchUserPreferencesApi = async (data) => {
+  try {
+    const response = await createAxiosInstance().patch(`${USER_PREFERENCES_URL}/replace`, data);
+    return response.data;
+  }
+  catch (error) {
+    throw error;
+  }
+}
+
+// User Defaults
 export const getUserDefaults = async () => {
   return await createAxiosInstance()
     .get(USER_DEFAULTS_URL)
@@ -176,6 +188,7 @@ export const updateUserDefaults = async (defaultsId, defaults) => {
     .then((response) => response.data);
 };
 
+// User Checklist
 export const getUserChecklists = async (userID) => {
   return await createAxiosInstance()
     .get(`${USER_CHECKLISTS_URL}/${userID}`)
@@ -188,6 +201,7 @@ export const upsertUserChecklists = async (checklist) => {
     .then((response) => response.data);
 };
 
+// Group Details
 export const getGroupDetailsApi = async (groupID) => {
   return await createAxiosInstance()
     .get(`${GROUPS_URL}/${groupID}`)

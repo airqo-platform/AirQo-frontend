@@ -4,7 +4,16 @@ import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
 import { useSelector, useDispatch } from 'react-redux';
 import { setChartDataRange } from '@/lib/store/services/charts/ChartSlice';
 import Calendar from './Calendar';
-import { set } from 'date-fns';
+import {
+  differenceInDays,
+  isSameDay,
+  startOfMonth,
+  endOfMonth,
+  startOfQuarter,
+  endOfQuarter,
+  subMonths,
+  subDays,
+} from 'date-fns';
 
 const CustomCalendar = ({
   initialStartDate,
@@ -24,27 +33,15 @@ const CustomCalendar = ({
   });
 
   const handleValueChange = (newValue) => {
-    const computeDaysBetweenDates = (startDate, endDate) => {
-      const oneDay = 24 * 60 * 60 * 1000;
-      return Math.floor(Math.abs((startDate.getTime() - endDate.getTime()) / oneDay));
-    };
-
-    const isSameDay = (date1, date2) =>
-      date1.getDate() === date2.getDate() &&
-      date1.getMonth() === date2.getMonth() &&
-      date1.getFullYear() === date2.getFullYear();
-
     const handleDateChange = (newValue) => {
       const startDate = new Date(newValue.start);
       const endDate = new Date(newValue.end);
 
       const today = new Date();
 
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      yesterday.setHours(0, 0, 0, 0);
+      const yesterday = subDays(today, 1);
 
-      const computedValue = computeDaysBetweenDates(startDate, endDate);
+      const computedValue = Math.abs(differenceInDays(startDate, endDate));
 
       let label = `Last ${computedValue} days`;
 
@@ -64,17 +61,24 @@ const CustomCalendar = ({
         label = 'Last year';
       }
 
-      // include also for This month and Last month
-      const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-
-      const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-
-      const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+      const thisMonthStart = startOfMonth(today);
+      const lastMonthStart = startOfMonth(subMonths(today, 1));
+      const lastMonthEnd = endOfMonth(subMonths(today, 1));
 
       if (isSameDay(startDate, thisMonthStart) && isSameDay(endDate, today)) {
         label = 'This month';
       } else if (isSameDay(startDate, lastMonthStart) && isSameDay(endDate, lastMonthEnd)) {
         label = 'Last month';
+      }
+
+      const thisQuarterStart = startOfQuarter(today);
+      const lastQuarterStart = startOfQuarter(subMonths(today, 3));
+      const lastQuarterEnd = endOfQuarter(subMonths(today, 3));
+
+      if (isSameDay(startDate, thisQuarterStart) && isSameDay(endDate, today)) {
+        label = 'This quarter';
+      } else if (isSameDay(startDate, lastQuarterStart) && isSameDay(endDate, lastQuarterEnd)) {
+        label = 'Last quarter';
       }
 
       dispatch(setChartDataRange({ startDate, endDate, label }));
