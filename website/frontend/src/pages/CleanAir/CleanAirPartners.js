@@ -91,8 +91,8 @@ const CleanAirPartners = () => {
     <div className="page-wrapper">
       {/* SEO */}
       <SEO
-        title="Partners | CLEAN-Air Africa Network"
-        siteTitle="CLEAN-Air Africa Network"
+        title="Partners"
+        siteTitle="CLEAN-Air Network"
         description="Meet the partners of CLEAN-Air Africa Network, a diverse group of organizations and individuals dedicated to improving air quality across Africa. Join us in our mission to foster innovative air quality solutions and effective air quality management strategies."
       />
 
@@ -138,6 +138,7 @@ const CleanAirPartners = () => {
           imgURL={Partner1}
           bgColor="#FFFFFF"
           reverse
+          titleSection={true}
         />
 
         {implementingPartners.length > 0 && (
@@ -206,25 +207,22 @@ const CleanAirPartners = () => {
           imgURL={Partner2}
           bgColor="#FFFFFF"
           reverse
+          titleSection={true}
         />
 
         {policyPartners.length > 0 && (
-          <div className="AboutUsPage">
-            <div className="wrapper">
-              <div className="partner-logos" id="logo-table">
-                <table>
-                  <tbody>
-                    {policyPartnerDataGroup.slice(0, itemsToShowPolicy).map((partnerGroup, key) => (
-                      <tr key={key}>
-                        {partnerGroup.map((partner) => (
-                          <td key={partner.id} onClick={() => onLogoClick(partner)}>
-                            <img src={partner.partner_logo} alt={partner.partner_name} />
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          <div className="partners AboutUsPage">
+            <div className="partners-wrapper wrapper">
+              <div className="partners-list">
+                {policyPartners.slice(0, itemsToShowPolicy).map((policyPartner) => (
+                  <div
+                    style={{ cursor: 'pointer' }}
+                    className="partner-img"
+                    key={policyPartner.id}
+                    onClick={onLogoClick(policyPartner)}>
+                    <img src={policyPartner.partner_logo} alt={policyPartner.partner_name} />
+                  </div>
+                ))}
                 {itemsToShowPolicy < policyPartnerDataGroup.length && (
                   <button
                     className="partners-toggle-button"
@@ -276,27 +274,22 @@ const CleanAirPartners = () => {
           imgURL={Partner4}
           bgColor="#FFFFFF"
           reverse
+          titleSection={true}
         />
 
         {privateSectorPartners.length > 0 && (
-          <div className="AboutUsPage">
-            <div className="wrapper">
-              <div className="partner-logos" id="logo-table">
-                <table>
-                  <tbody>
-                    {privateSectorPartnerDataGroup
-                      .slice(0, itemsToShowPolicy)
-                      .map((partnerGroup, key) => (
-                        <tr key={key}>
-                          {partnerGroup.map((partner) => (
-                            <td key={partner.id} onClick={() => onLogoClick(partner)}>
-                              <img src={partner.partner_logo} alt={partner.partner_name} />
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
+          <div className="partners AboutUsPage">
+            <div className="partners-wrapper wrapper">
+              <div className="partners-list">
+                {privateSectorPartners.slice(0, itemsToShowPolicy).map((privatePartner) => (
+                  <div
+                    style={{ cursor: 'pointer' }}
+                    className="partner-img"
+                    key={privatePartner.id}
+                    onClick={onLogoClick(privatePartner)}>
+                    <img src={privatePartner.partner_logo} alt={privatePartner.partner_name} />
+                  </div>
+                ))}
                 {itemsToShowPolicy < policyPartnerDataGroup.length && (
                   <button
                     className="partners-toggle-button"
@@ -351,27 +344,22 @@ const CleanAirPartners = () => {
           imgURL={Partner3}
           bgColor="#FFFFFF"
           reverse
+          titleSection={true}
         />
 
         {supportPartners.length > 0 && (
-          <div className="AboutUsPage">
-            <div className="wrapper">
-              <div className="partner-logos" id="logo-table">
-                <table>
-                  <tbody>
-                    {supportPartnerDataGroup
-                      .slice(0, itemsToShowSupport)
-                      .map((partnerGroup, key) => (
-                        <tr key={key}>
-                          {partnerGroup.map((partner) => (
-                            <td key={partner.id} onClick={() => onLogoClick(partner)}>
-                              <img src={partner.partner_logo} alt={partner.partner_name} />
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
+          <div className="partners AboutUsPage">
+            <div className="partners-wrapper wrapper">
+              <div className="partners-list">
+                {supportPartners.slice(0, itemsToShowSupport).map((supportPartner) => (
+                  <div
+                    style={{ cursor: 'pointer' }}
+                    className="partner-img"
+                    key={supportPartner.id}
+                    onClick={onLogoClick(supportPartner)}>
+                    <img src={supportPartner.partner_logo} alt={supportPartner.partner_name} />
+                  </div>
+                ))}
                 {itemsToShowSupport < supportPartnerDataGroup.length && (
                   <button
                     className="partners-toggle-button"
@@ -392,7 +380,7 @@ const CleanAirPartners = () => {
         )}
       </div>
 
-      <div style={{marginTop:'60px'}}>
+      <div style={{ marginTop: '60px' }}>
         <SingleSection
           content="
         Individuals actively involved in air quality work in Africa are welcome to join the CLEAN-Air Africa Network."
