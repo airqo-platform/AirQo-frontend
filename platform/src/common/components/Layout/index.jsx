@@ -54,7 +54,7 @@ const Layout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBorder
             ? selected_sites.map((site) => site['_id'])
             : chartData.chartSites;
 
-          await dispatch(setChartSites(chartSites));
+          await dispatch(setChartSites(chartSites.slice(0, 4)));
           await dispatch(
             setChartDataRange({
               startDate: startDate || chartData.chartDataRange.startDate,

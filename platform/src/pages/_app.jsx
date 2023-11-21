@@ -10,7 +10,10 @@ export default function App({ Component, ...rest }) {
   const persistor = persistStore(store);
 
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS === 'staging') {
+    if (
+      process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS === 'staging' ||
+      process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS === 'production'
+    ) {
       return;
     } else {
       // Disable context menu (right click)
