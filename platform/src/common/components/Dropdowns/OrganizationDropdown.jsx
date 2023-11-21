@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import CustomDropdown from './CustomDropdown';
 import CheckIcon from '@/icons/tickIcon';
 import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
+import { useDispatch } from 'react-redux';
+import { updateUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
+import Spinner from '@/components/Spinner';
 
 const splitNameIntoList = (fullName) => {
   if (fullName && fullName.length > 0) {
@@ -11,17 +14,48 @@ const splitNameIntoList = (fullName) => {
   return;
 };
 
+export const formatString = (string) => {
+  return string
+    .replace(/_/g, ' ')
+    .replace(/\w\S*/g, (txt) => {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    })
+    .replace('Id', 'ID');
+};
+
 const OrganizationDropdown = () => {
+  const dispatch = useDispatch();
   const [activeGroup, setActiveGroup] = useState({});
   const [userGroups, setUserGroups] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const storedActiveGroup = localStorage.getItem('activeGroup');
-    const storedUserGroups = localStorage.getItem('loggedUser');
-    const userGroups = JSON.parse(storedUserGroups)?.groups;
+    const storedUser = localStorage.getItem('loggedUser');
+    const userGroups = JSON.parse(storedUser)?.groups;
+    const userId = JSON.parse(storedUser)?._id;
+
+    const handleUpdatePreferences = async () => {
+      setLoading(true);
+      const data = {
+        user_id: userId,
+        group_id: JSON.parse(storedActiveGroup)?._id,
+      };
+
+      try {
+        const response = await dispatch(updateUserPreferences(data));
+        if (response.payload.success) {
+          setActiveGroup(JSON.parse(storedActiveGroup));
+        }
+      } catch (error) {
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    };
 
     if (storedActiveGroup !== null) {
-      setActiveGroup(JSON.parse(storedActiveGroup));
+      handleUpdatePreferences();
     }
 
     if (userGroups) {
@@ -29,9 +63,26 @@ const OrganizationDropdown = () => {
     }
   }, []);
 
-  const handleDropdownSelect = (option) => {
-    setActiveGroup(option);
-    localStorage.setItem('activeGroup', JSON.stringify(option));
+  const handleDropdownSelect = async (option) => {
+    setLoading(true);
+    const storedUser = localStorage.getItem('loggedUser');
+    const userId = JSON.parse(storedUser)?._id;
+    const data = {
+      user_id: userId,
+      group_id: option._id,
+    };
+
+    try {
+      const response = await dispatch(updateUserPreferences(data));
+      if (response.payload.success) {
+        setActiveGroup(option);
+        localStorage.setItem('activeGroup', JSON.stringify(option));
+      }
+    } catch (error) {
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -70,10 +121,10 @@ const OrganizationDropdown = () => {
           </button>
         }
         id='options'
+        dropdownWidth='224px'
         dropStyle={{
           top: '41px',
           zIndex: 999,
-          width: '224px',
           maxHeight: '320px',
           overflowY: 'scroll',
           overflowX: 'hidden',
@@ -82,7 +133,7 @@ const OrganizationDropdown = () => {
       >
         {userGroups.map((format) => (
           <a
-            key={format}
+            key={format._id}
             href='#'
             onClick={() => handleDropdownSelect(format)}
             className={`w-full h-11 px-3.5 py-2.5 justify-between items-center inline-flex ${
@@ -102,8 +153,13 @@ const OrganizationDropdown = () => {
                     : splitNameIntoList(format?.grp_title)[0][0]}
                 </div>
               </div>
-              <div className='max-w-[120px] w-full text-gray-700 text-sm font-normal leading-tight capitalize'>
-                {format.grp_title}
+              <div
+                className='max-w-[120px] w-full text-gray-700 text-sm font-normal leading-tight uppercase'
+                title={format.grp_title}
+              >
+                {format && format.grp_title && format.grp_title.length > 24
+                  ? formatString(format.grp_title.slice(0, 24)) + '...'
+                  : formatString(format.grp_title)}
               </div>
             </div>
             {activeGroup && activeGroup?.grp_title === format?.grp_title && (

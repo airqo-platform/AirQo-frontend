@@ -21,6 +21,7 @@ const UserLogin = () => {
   const postData = useSelector((state) => state.login);
   const [loading, setLoading] = useState(false);
   const [passwordType, setPasswordType] = useState('password');
+  const preferences = useSelector((state) => state.defaults.individual_preferences);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -137,7 +138,8 @@ const UserLogin = () => {
             <button
               data-testid='login-btn'
               className='w-full btn bg-blue-900 rounded-none text-white text-sm outline-none border-none hover:bg-blue-950'
-              type='submit'>
+              type='submit'
+            >
               {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Login'}
             </button>
           </div>
