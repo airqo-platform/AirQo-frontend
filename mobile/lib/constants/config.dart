@@ -117,14 +117,11 @@ class Config {
 
 class AppConfig extends InheritedWidget {
   const AppConfig({
-    Key? key,
-    required Widget child,
+    super.key,
+    required super.child,
     required this.environment,
     required this.appTitle,
-  }) : super(
-          key: key,
-          child: child,
-        );
+  });
   final Environment environment;
   final String appTitle;
 

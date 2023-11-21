@@ -22,7 +22,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'constants/language_contants.dart';
 
 class AirQoApp extends StatefulWidget {
   const AirQoApp(this.initialLink, {super.key, required this.locale});

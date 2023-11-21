@@ -48,7 +48,7 @@ class _DashboardViewState extends State<DashboardView>
   late GlobalKey _analyticsShowcaseKey;
   late GlobalKey _nearestLocationShowcaseKey;
   late GlobalKey _skipShowcaseKey;
-  bool _kyaExists = true, _nearbyLocationExists = false;
+  bool kyaExists = true, _nearbyLocationExists = false;
 
   final Stream<int> _timeStream =
       Stream.periodic(const Duration(minutes: 5), (int count) {
@@ -601,7 +601,7 @@ class _DashboardViewState extends State<DashboardView>
       _analyticsShowcaseKey,
     ]);
 
-    if (_kyaExists) {
+    if (kyaExists) {
       globalKeys.add(_kyaShowcaseKey);
     }
 
