@@ -117,11 +117,11 @@ const OrganizationDropdown = () => {
                 <div className='pt-0.5 justify-start items-center gap-1 flex'>
                   <div
                     className='text-slate-500 text-sm font-medium uppercase leading-tight'
-                    title={activeGroup?.grp_title}
+                    title={formatString(activeGroup?.grp_title)}
                   >
                     {activeGroup && activeGroup?.grp_title && activeGroup?.grp_title.length > 16
-                      ? activeGroup?.grp_title.slice(0, 16) + '...'
-                      : activeGroup?.grp_title}
+                      ? formatString(activeGroup?.grp_title.slice(0, 16)) + '...'
+                      : formatString(activeGroup?.grp_title)}
                   </div>
                 </div>
               </div>
