@@ -28,6 +28,7 @@ const OrganizationDropdown = () => {
   const [activeGroup, setActiveGroup] = useState({});
   const [userGroups, setUserGroups] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState({});
   const preferences = useSelector((state) => state.defaults.individual_preferences);
 
   useEffect(() => {
@@ -79,6 +80,7 @@ const OrganizationDropdown = () => {
       user_id: userId,
       group_id: option._id,
     };
+    setSelectedGroup(option);
 
     try {
       const response = await dispatch(updateUserPreferences(data));
@@ -90,6 +92,7 @@ const OrganizationDropdown = () => {
       throw error;
     } finally {
       setLoading(false);
+      setSelectedGroup({});
     }
   };
 
@@ -172,6 +175,11 @@ const OrganizationDropdown = () => {
             </div>
             {activeGroup && activeGroup?.grp_title === format?.grp_title && (
               <CheckIcon fill='#145FFF' />
+            )}
+            {loading && selectedGroup._id === format._id && (
+              <span>
+                <Spinner width={20} height={20} />
+              </span>
             )}
           </a>
         ))}
