@@ -11,6 +11,7 @@ import EventCard from '../Events/EventCard';
 import event1 from 'assets/img/cleanAir/event-sec1.png';
 import event2 from 'assets/img/cleanAir/event-sec2.png';
 import useWindowSize from 'utilities/customHooks';
+import Loadspinner from 'src/components/LoadSpinner/SectionLoader';
 
 const ITEMS_PER_PAGE = 9;
 
@@ -78,8 +79,8 @@ const CleanAirEvents = () => {
   return (
     <div className="page-wrapper">
       <SEO
-        title="CLEAN-Air Africa Network | Events"
-        siteTitle="CLEAN-Air Africa Network"
+        title="Events"
+        siteTitle="CLEAN-Air Network"
         description="CLEAN-Air Africa Network is a network of African cities, governments, and partners committed to improving air quality and reducing carbon emissions through sustainable transport and mobility solutions."
       />
 
@@ -99,13 +100,13 @@ const CleanAirEvents = () => {
         </div>
       </div>
 
-      <div className="partners">
+      {/* <div className="partners">
         <div className="partners-wrapper">
           <div className="event-intro-image">
             <img src={event1} alt="CLEAN-Air Africa Network Events" className="events-image" />
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div>
         <hr className="separator-1" />
@@ -138,6 +139,7 @@ const CleanAirEvents = () => {
           bgColor="#FFFFFF"
           wrapperPadding='0'
           reverse
+          titleSection={true}
         />
       </div>
 
@@ -163,16 +165,7 @@ const CleanAirEvents = () => {
             </div>
           </div>
           {loading ? (
-            <div
-              style={{
-                display: 'flex',
-                width: '100%',
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginTop: '50px'
-              }}>
-              loading ...
-            </div>
+            <Loadspinner />
           ) : null}
           {!loading && upcomingEvents.length === 0 && selectedNavTab === 'upcoming events' ? (
             <div className="no-events">There are currently no events</div>
