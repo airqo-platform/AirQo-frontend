@@ -90,11 +90,9 @@ const EventDetails = () => {
                       {event.location_name ? (
                         <div className="item">
                           <PlaceOutlined />
-                          <span>
-                            <a href={event.location_link !== null ? event.location_link : null}>
-                              <span>{event.location_name}</span>
-                            </a>
-                          </span>
+                          {
+                            event.location_link !== null ? <a href={event.location_link} target='_blank'><span>{event.location_name}</span></a> : <span>{event.location_name}</span>
+                          }
                         </div>
                       ) : (
                         <span />
