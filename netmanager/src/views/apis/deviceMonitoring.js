@@ -64,3 +64,9 @@ export const generateAirQloudUptimeSummaryApi = async (data) => {
     .post(GENERATE_AIRQLOUD_UPTIME_SUMMARY_URI, data)
     .then((response) => response.data);
 };
+
+export const getGridUptimeSummaryApi = async (data) => {
+  return await createAxiosInstance()
+    .post(GENERATE_AIRQLOUD_UPTIME_SUMMARY_URI, data)
+    .then((response) => response.data);
+};

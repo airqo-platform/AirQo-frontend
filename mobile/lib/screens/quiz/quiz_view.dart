@@ -584,12 +584,12 @@ class QuizCard extends StatelessWidget {
 class QuizAnswerWidget extends StatefulWidget {
   const QuizAnswerWidget(
     this.selectedOption, {
-    Key? key,
+    super.key,
     required this.quiz,
     required this.nextButtonClickCallback,
     this.completedListTiles = 0,
     this.nextButtonActive = false,
-  }) : super(key: key);
+  });
 
   final QuizAnswer selectedOption;
   final Quiz quiz;

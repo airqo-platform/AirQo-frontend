@@ -430,7 +430,7 @@ class InsightsCalendar extends StatelessWidget {
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          "Data Provider: ${airQualityReading.dataProvider}",
+                          AppLocalizations.of(context)!.dataProvider(airQualityReading.dataProvider),
                           style: CustomTextStyle.bodyText4(context)?.copyWith(
                             color: CustomColors.appColorBlack.withOpacity(0.3),
                           ),

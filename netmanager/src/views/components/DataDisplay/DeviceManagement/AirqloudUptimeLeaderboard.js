@@ -14,8 +14,6 @@ const AirqloudUptimeLeaderboard = () => {
   const [devicesUptime, setDevicesUptime] = useState([]);
   const [devicesUptimeDescending, setDevicesUptimeDescending] = useState(true);
 
-  console.log(airqloudUptimeData);
-
   const sortLeaderBoardData = (leaderboardData) => {
     const sortByName = (device1, device2) => {
       if (device1.long_name.toLowerCase() > device2.long_name.toLowerCase()) return 1;
@@ -72,7 +70,7 @@ const AirqloudUptimeLeaderboard = () => {
   return (
     <ChartContainer
       title={`Health status leaderboard ${
-        !isEmpty(airqloudUptimeData) ? `for ${airqloudUptimeData.airqloud_name}` : ''
+        !isEmpty(airqloudUptimeData) ? `for ${airqloudUptimeData.grid_name}` : ''
       }`}
       loading={airqloudUptimeLoading}
       controller={

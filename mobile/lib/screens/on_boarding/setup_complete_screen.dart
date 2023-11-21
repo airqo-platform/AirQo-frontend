@@ -22,8 +22,12 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     return OfflineBanner(
       child: Scaffold(
         appBar: const OnBoardingTopBar(),
-        body: WillPopScope(
-          onWillPop: _onWillPop,
+        body: PopScope(
+          onPopInvoked: ((didPop) {
+            if (didPop) {
+              _onWillPop();
+            }
+          }),
           child: AppSafeArea(
             child: Center(
               child: Column(
