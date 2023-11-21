@@ -77,7 +77,7 @@ const LocationsContentComponent = ({ selectedLocations }) => {
     if (gridLocationsData && gridLocationsData.length > 0) {
       try {
         dispatch(setSelectedLocations(locationArray));
-        while (unSelectedLocations.length < 15) {
+        while (unSelectedLocations.length < 8) {
           const randomIndex = Math.floor(Math.random() * gridLocationsData.length);
           const randomObject = gridLocationsData[randomIndex];
           if (!unSelectedLocations.includes(randomObject)) {
@@ -114,8 +114,7 @@ const LocationsContentComponent = ({ selectedLocations }) => {
           <div
             className={`bg-white max-h-48 overflow-y-scroll px-3 pt-2 pr-1 my-1 border border-input-light-outline rounded-md ${
               inputSelect ? 'hidden' : 'relative'
-            }`}
-          >
+            }`}>
             {filteredLocations && filteredLocations.length > 0 ? (
               filteredLocations.map((location) => (
                 <div
@@ -123,8 +122,7 @@ const LocationsContentComponent = ({ selectedLocations }) => {
                   onClick={() => {
                     handleLocationSelect(location);
                   }}
-                  key={location._id}
-                >
+                  key={location._id}>
                   <LocationIcon />
                   <div className='text-sm ml-1 text-black capitalize'>{location.name}</div>
                 </div>
@@ -146,8 +144,7 @@ const LocationsContentComponent = ({ selectedLocations }) => {
             locationArray.map((location) => (
               <div
                 className='border rounded-lg bg-secondary-neutral-light-25 border-input-light-outline flex flex-row justify-between items-center p-3 w-full mb-2'
-                key={location._id}
-              >
+                key={location._id}>
                 <div className='flex flex-row items-center overflow-x-clip'>
                   <div>
                     <DragIcon />
@@ -159,11 +156,12 @@ const LocationsContentComponent = ({ selectedLocations }) => {
                 <div className='flex flex-row'>
                   <div
                     className='mr-1 hover:cursor-pointer'
-                    onClick={() => removeLocation(location)}
-                  >
+                    onClick={() => removeLocation(location)}>
                     <TrashIcon />
                   </div>
-                  <div className='bg-primary-600 rounded-md p-2 flex items-center justify-center'>
+                  <div
+                    className='bg-primary-600 rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
+                    onClick={() => removeLocation(location)}>
                     <StarIcon />
                   </div>
                 </div>
@@ -174,7 +172,7 @@ const LocationsContentComponent = ({ selectedLocations }) => {
           )}
         </div>
       }
-      <div className='mt-6'>
+      <div className='mt-6 mb-24'>
         <h3 className='text-sm text-black-800 font-semibold'>Suggestions</h3>
         <div className='mt-3'>
           {unSelectedLocations &&
@@ -182,8 +180,7 @@ const LocationsContentComponent = ({ selectedLocations }) => {
             unSelectedLocations.slice(0, 15).map((location) => (
               <div
                 className='border rounded-lg bg-secondary-neutral-light-25 border-input-light-outline flex flex-row justify-between items-center p-3 w-full mb-2'
-                key={location._id}
-              >
+                key={location._id}>
                 <div className='flex flex-row items-center overflow-x-clip'>
                   <div>
                     <DragIconLight />
@@ -197,8 +194,7 @@ const LocationsContentComponent = ({ selectedLocations }) => {
                     className='border border-input-light-outline rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
                     onClick={() => {
                       handleLocationSelect(location);
-                    }}
-                  >
+                    }}>
                     <StarIconLight />
                   </div>
                 </div>
