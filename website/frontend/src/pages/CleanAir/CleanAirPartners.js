@@ -147,7 +147,7 @@ const CleanAirPartners = () => {
               <div className="partners-list">
                 {implementingPartners.slice(0, itemsToShow).map((networkPartner) => (
                   <div
-                    style={{ cursor: 'pointer' }}
+                    style={networkPartner.descriptions.length > 0 ? { cursor: 'pointer' } : null}
                     className="partner-img"
                     key={networkPartner.id}
                     onClick={onLogoClick(networkPartner)}>
@@ -216,7 +216,7 @@ const CleanAirPartners = () => {
               <div className="partners-list">
                 {policyPartners.slice(0, itemsToShowPolicy).map((policyPartner) => (
                   <div
-                    style={{ cursor: 'pointer' }}
+                    style={policyPartner.descriptions.length > 0 ? { cursor: 'pointer' } : null}
                     className="partner-img"
                     key={policyPartner.id}
                     onClick={onLogoClick(policyPartner)}>
@@ -283,7 +283,7 @@ const CleanAirPartners = () => {
               <div className="partners-list">
                 {privateSectorPartners.slice(0, itemsToShowPolicy).map((privatePartner) => (
                   <div
-                    style={{ cursor: 'pointer' }}
+                    style={privatePartner.descriptions.length > 0 ? { cursor: 'pointer' } : null}
                     className="partner-img"
                     key={privatePartner.id}
                     onClick={onLogoClick(privatePartner)}>
@@ -353,7 +353,7 @@ const CleanAirPartners = () => {
               <div className="partners-list">
                 {supportPartners.slice(0, itemsToShowSupport).map((supportPartner) => (
                   <div
-                    style={{ cursor: 'pointer' }}
+                    style={supportPartner.descriptions.length > 0 ? { cursor: 'pointer' } : null}
                     className="partner-img"
                     key={supportPartner.id}
                     onClick={onLogoClick(supportPartner)}>
