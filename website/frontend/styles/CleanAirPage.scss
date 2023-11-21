@@ -169,6 +169,10 @@
       text-align: center;
     }
 
+    .splitSection-section.title-section{
+      padding: 20px 0 10px 0;
+    }
+
     .splitSection-section {
       display: grid;
       grid-template-columns: $gridColumn;
@@ -909,13 +913,17 @@
           .partner-img {
             width: 200px;
             height: auto;
-            padding: 50px;
+            padding: 20px 0;
             box-sizing: border-box;
+            max-width: 264px;
+            margin: 0 10px;
 
             img {
               width: 100%;
-              height: auto;
+              height: 100%;
               object-fit: contain;
+              max-width: 192px;
+              max-height: 110px;
             }
           }
         }
@@ -1257,6 +1265,13 @@
       .breaker {
         display: none;
       }
+
+    .splitSection-section.title-section{
+      margin-top: 0;
+      .backdrop-rev{
+        grid-gap: 0;
+      }
+    }
 
       .splitSection-section {
         width: 100%;

@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllEvents } from '../../../../reduxStore/Events/EventSlice';
 import { isEmpty } from 'underscore';
 import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
 import { AccessTimeOutlined, CalendarMonth } from '@mui/icons-material';
 import { format } from 'date-fns';
 
@@ -53,7 +52,7 @@ const Highlight = () => {
                       <CalendarMonth />
                       {featuredEvent.end_date !== null ? (
                         <span>
-                          {format(new Date(featuredEvent.start_date), 'do')} -{' '}
+                          {format(new Date(featuredEvent.start_date), 'do MMM')} -{' '}
                           {format(new Date(featuredEvent.end_date), 'do MMMM yyyy')}
                         </span>
                       ) : (

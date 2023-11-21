@@ -1,23 +1,24 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setActiveTab } from '../../../../reduxStore/CleanAirNetwork/CleanAir';
 import PropTypes from 'prop-types';
 
 const SecondaryNavComponent = ({ disabledTabs }) => {
+  const tabs = ['About', 'Membership', 'Events', 'Resources'];
   const dispatch = useDispatch();
   const activeTab = useSelector((state) => state.cleanAirData.activeTab);
+  const [selectedTab, setSelectedTab] = useState(tabs[0]);
 
   useEffect(() => {
-    dispatch(setActiveTab(0));
-  }, [dispatch]);
+    setSelectedTab(activeTab)
+  }, [])
 
-  const handleTabClick = (index) => {
-    if (!disabledTabs.includes(index)) {
-      dispatch(setActiveTab(index));
+  const handleTabClick = (tab) => {
+    if (!disabledTabs.includes(tab)) {
+      setSelectedTab(tab);
+      dispatch(setActiveTab(tab));
     }
   };
-
-  const tabs = ['About', 'Membership', 'Events', 'Resources'];
 
   return (
     <div className="header-subnav">
@@ -25,10 +26,12 @@ const SecondaryNavComponent = ({ disabledTabs }) => {
         {tabs.map((tab, index) => (
           <li
             key={index}
-            className={`${activeTab === index ? 'active' : ''} ${
-              disabledTabs.includes(index) ? 'disabled' : ''
-            }`}
-            onClick={() => handleTabClick(index)}>
+            className={`${selectedTab === index ? 'active' : ''} ${disabledTabs.includes(index) ? 'disabled' : ''
+              }`}
+            onClick={() => {
+              handleTabClick(index);
+              
+            }}>
             <span>{tab}</span>
           </li>
         ))}
