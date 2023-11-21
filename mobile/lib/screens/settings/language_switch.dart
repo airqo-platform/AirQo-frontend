@@ -3,13 +3,13 @@ import 'package:app/main_common.dart';
 import 'package:app/screens/offline_banner.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:app/services/services.dart';
-
-import '../../themes/colors.dart';
-import 'package:restart_app/restart_app.dart';
+import 'package:app/themes/colors.dart';
+import 'package:app/blocs/blocs.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:async';
 
 class LanguageList extends StatefulWidget {
   const LanguageList({super.key});
@@ -24,6 +24,7 @@ class LanguageListState extends State<LanguageList> {
   @override
   void initState() {
     super.initState();
+    _initialize();
     _loadSelectedLanguage().then((value) {
       setState(() {
         selectedLanguageCode = value;
@@ -31,60 +32,9 @@ class LanguageListState extends State<LanguageList> {
     });
   }
 
-  Future<bool> languageDialog(BuildContext context, Language language) {
-    return showCupertinoDialog<bool>(
-      context: context,
-      builder: (BuildContext context) => CupertinoAlertDialog(
-        title: Text(
-          AppLocalizations.of(context)!.confirm,
-          style: TextStyle(
-            color: CustomColors.appColorBlue,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        content: Text(
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: CustomColors.appColorBlack,
-          ),
-          AppLocalizations.of(context)!
-              .doYouWantToSwitchToLanguage(language.name),
-        ),
-        actions: [
-          CupertinoDialogAction(
-            child: Text(
-              style: TextStyle(
-                color: CustomColors.appColorBlue,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-              AppLocalizations.of(context)!.ok,
-            ),
-            onPressed: () async {
-              Locale locale = await setLocale(language.languageCode);
-              await AirQoApp.setLocale(context, locale);
-              Navigator.pop(context, true);
-              await Restart.restartApp();
-            },
-          ),
-          CupertinoDialogAction(
-            child: Text(
-              style: TextStyle(
-                color: CustomColors.appColorBlue,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-              AppLocalizations.of(context)!.cancel,
-            ),
-            onPressed: () {
-              Navigator.pop(context, false);
-            },
-          ),
-        ],
-      ),
-      barrierDismissible: true,
-    ).then((value) => value ?? false);
+  Future<void> _initialize() async {
+    context.read<KyaBloc>().add(const ClearKya());
+    context.read<KyaBloc>().add(const ClearQuizzes());
   }
 
   @override
@@ -136,15 +86,17 @@ class LanguageListState extends State<LanguageList> {
                             ),
                             title: Text(language.name),
                             onTap: () async {
-                              final shouldChangeLanguage =
-                                  await languageDialog(context, language);
-                              if (shouldChangeLanguage) {
-                                await _saveSelectedLanguage(
-                                    language.languageCode);
-                                setState(() {
-                                  selectedLanguageCode = language.languageCode;
-                                });
-                              }
+                              await _saveSelectedLanguage(
+                                language.languageCode,
+                              );
+                              Locale locale =
+                                  await setLocale(language.languageCode);
+                              setState(() {
+                                selectedLanguageCode = language.languageCode;
+                              });
+                              context.read<KyaBloc>().add(const ClearKya());
+                              context.read<KyaBloc>().add(const ClearQuizzes());
+                              await AirQoApp.setLocale(context, locale);
                             },
                           ),
                         ),
