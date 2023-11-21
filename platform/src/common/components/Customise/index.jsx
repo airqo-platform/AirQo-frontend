@@ -21,8 +21,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
   });
   const selectedLocations = useSelector((state) => state.grids.selectedLocations) || [];
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
-  const customisedLocations =
-    preferenceData.length > 0 ? preferenceData[0].selected_sites.slice(-4) : [];
+  const customisedLocations = preferenceData.length > 0 ? preferenceData[0].selected_sites : [];
   const id = useSelector((state) => state.login.userInfo._id);
   const chartData = useSelector((state) => state.chart);
 
@@ -66,7 +65,6 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
           setLoading(false);
         } else {
           toggleCustomise();
-          // fetching user preferences after update
           dispatch(fetchUserPreferences(id));
           dispatch(completeTask(2));
         }
