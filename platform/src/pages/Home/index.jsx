@@ -9,7 +9,7 @@ import AnalyticsImage from '@/images/Home/analyticsImage.png';
 import PlayIcon from '@/images/Home/playIcon.svg';
 import AnalyticsVideo from '../../../public/videos/analytics.mp4';
 import { useSelector, useDispatch } from 'react-redux';
-import { startTask, updateTitle } from '@/lib/store/services/checklists/CheckList';
+import { startTask, completeTask, updateTitle } from '@/lib/store/services/checklists/CheckList';
 import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
 import CustomModal from '@/components/Modal/videoModals/CustomModal';
 import StepProgress from '@/components/steppers/CircularStepper';
@@ -48,17 +48,21 @@ const Home = () => {
   };
 
   const handleCardClick = (id) => {
-    const card = cardCheckList.find((card) => card.id === id);
-    if (card) {
-      switch (card.status) {
-        case 'not started':
-          dispatch(startTask(id));
-          break;
-        default:
-          return;
-      }
+    if (id === 4) {
+      dispatch(completeTask(4));
     } else {
-      console.log('Card not found');
+      const card = cardCheckList.find((card) => card.id === id);
+      if (card) {
+        switch (card.status) {
+          case 'not started':
+            dispatch(startTask(id));
+            break;
+          default:
+            return;
+        }
+      } else {
+        console.log('Card not found');
+      }
     }
   };
 
@@ -84,7 +88,7 @@ const Home = () => {
     {
       label: 'Practical ways to reduce air pollution',
       time: '1 min',
-      link: '#',
+      link: 'https://blog.airqo.net/',
       func: () => handleCardClick(4),
     },
   ];
@@ -150,7 +154,10 @@ const Home = () => {
                       ) : (
                         <>
                           <Link href={step.link}>
-                            <a onClick={step.func} className={statusColor}>
+                            <a
+                              onClick={step.func}
+                              className={statusColor}
+                              target={index === 3 ? '_blank' : ''}>
                               {card && card.status === 'inProgress' ? 'Resume' : statusText}
                             </a>
                           </Link>
