@@ -9,6 +9,7 @@ import {
 } from '@/lib/store/services/account/UserDefaultsSlice';
 import Toast from '@/components/Toast';
 import { fetchUserPreferences } from '@/lib/store/services/charts/userDefaultsSlice';
+import { RxInfoCircled } from 'react-icons/rx';
 
 const CustomiseLocationsComponent = ({ toggleCustomise }) => {
   const dispatch = useDispatch();
@@ -87,7 +88,14 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
         className='absolute right-0 top-0 w-full lg:w-3/12 h-full overflow-y-scroll bg-white z-50 border-l-grey-50 px-6'
         style={{ boxShadow: '0px 16px 32px 0px rgba(83, 106, 135, 0.20)' }}>
         <div className='flex flex-row justify-between items-center mt-6'>
-          <h3 className='text-xl text-black-800 font-semibold'>Customise</h3>
+          <h3 className='text-xl text-black-800 font-semibold'>
+            Customise
+            <span
+              className='tooltip tooltip-bottom ml-1 hover:cursor-pointer text-lg font-normal'
+              data-tip='Changes are applied when 4 locations have been selected'>
+              <RxInfoCircled style={{ paddingTop: '2px' }} />
+            </span>
+          </h3>
           <div
             className='p-3 rounded-md border border-secondary-neutral-light-100 bg-white hover:cursor-pointer'
             onClick={() => toggleCustomise()}>
@@ -96,7 +104,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
         </div>
         <div className='mt-6'>
           <p className='text-grey-350 text-sm font-normal'>
-            Select at least 4 locations you would like to feature on your overview page.
+            Select any 4 locations you would like to feature on your overview page.
           </p>
         </div>
         <div className='mt-6'>
