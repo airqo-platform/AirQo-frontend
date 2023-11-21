@@ -114,13 +114,13 @@ const OrganizationDropdown = () => {
                       : splitNameIntoList(activeGroup?.grp_title)[0][0]}
                   </div>
                 </div>
-                <div className='pt-0.5 justify-start items-center gap-1 flex'>
+                <div className='pt-0.5 justify-start items-start gap-1 flex'>
                   <div
-                    className='text-slate-500 text-sm font-medium uppercase leading-tight'
+                    className='text-slate-500 text-sm font-medium uppercase leading-tight text-left'
                     title={formatString(activeGroup?.grp_title)}
                   >
-                    {activeGroup && activeGroup?.grp_title && activeGroup?.grp_title.length > 16
-                      ? formatString(activeGroup?.grp_title.slice(0, 16)) + '...'
+                    {activeGroup && activeGroup?.grp_title && activeGroup?.grp_title.length > 14
+                      ? formatString(activeGroup?.grp_title.slice(0, 14)) + '...'
                       : formatString(activeGroup?.grp_title)}
                   </div>
                 </div>
