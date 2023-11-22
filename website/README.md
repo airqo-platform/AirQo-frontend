@@ -178,7 +178,7 @@ We will have to configure the environment manually, `direnv` cant help us here.
 
 First install `postgresql` on `Windows` [Postgresql Windows Installers](https://www.postgresql.org/download/windows/)
 
-#### Create Python Virtual Environment
+#### Create Python Virtual Environment.
 
 In your `Windows` command shell prompt type in
 

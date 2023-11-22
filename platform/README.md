@@ -19,7 +19,7 @@
 - [NodeJs](https://nodejs.org/en/) v16 or later
 - [Yarn](https://classic.yarnpkg.com/lang/en/)
 
-## Getting started
+## Getting started.
 
 a) To get started, start by cloning the repository
 
