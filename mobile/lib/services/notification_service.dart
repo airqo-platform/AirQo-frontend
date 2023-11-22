@@ -71,7 +71,7 @@ class NotificationService {
 
     if (source == "dashboard") {
       enableNotificationsMessage =
-          "Turn on notifications to get the best AirQo expereince";
+          "Turn on notifications to get the best AirQo experience";
     }
 
     await Permission.notification.status.then((status) async {

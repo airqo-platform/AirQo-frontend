@@ -237,7 +237,6 @@ class _ConfettiState extends State<Confetti> {
   }
 
   Path drawStar(Size size) {
-    //TODO draw custom shapes
     double degToRad(double deg) => deg * (pi / 180.0);
 
     const numberOfPoints = 5;

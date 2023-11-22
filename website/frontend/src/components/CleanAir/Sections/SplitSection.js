@@ -15,10 +15,10 @@ const SplitSection = ({
   imageStyle,
   showButton,
   children,
-  customBtn, wrapperPadding
+  customBtn, wrapperPadding, titleSection
 }) => {
   return (
-    <div className="splitSection-section" style={{ backgroundColor: bgColor, padding: wrapperPadding }}>
+    <div className={titleSection ? "splitSection-section title-section" : "splitSection-section"} style={{ backgroundColor: bgColor, padding: wrapperPadding }}>
       <div className={` ${reverse ? 'backdrop-rev' : 'backdrop'}`}>
         <div className="splitSection-content">
           {pillTitle && (

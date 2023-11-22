@@ -151,16 +151,14 @@ const AuthenticatedHomePage = () => {
             <Button
               className='text-sm font-medium capitalize'
               variant='outlined'
-              onClick={openPrintModalFunc}
-            >
+              onClick={openPrintModalFunc}>
               Print
             </Button>
             <Button
               className='text-sm font-medium capitalize'
               variant='filled'
               Icon={DownloadIcon}
-              onClick={exportFile}
-            >
+              onClick={exportFile}>
               Export
             </Button>
           </div>
@@ -210,9 +208,10 @@ const AuthenticatedHomePage = () => {
         <PrintReportModal
           title='Share report'
           open={openPrintModal}
+          handlePrintPDF={printFile}
           onClose={() => setOpenPrintModal(false)}
           data={data}
-          ModalType='share'
+          shareModel={false}
           format={'pdf'}
         />
       )}

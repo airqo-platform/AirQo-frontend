@@ -57,8 +57,12 @@ class _EmailAuthVerificationWidgetState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const OnBoardingTopBar(backgroundColor: Colors.white),
-      body: WillPopScope(
-        onWillPop: onWillPop,
+      body: PopScope(
+        onPopInvoked: ((didPop) {
+          if (didPop) {
+            onWillPop();
+          }
+        }),
         child: AppSafeArea(
           horizontalPadding: 24,
           backgroundColor: Colors.white,
