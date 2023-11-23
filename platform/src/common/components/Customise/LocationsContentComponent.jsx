@@ -19,7 +19,6 @@ const LocationsContentComponent = ({ selectedLocations }) => {
   const dispatch = useDispatch();
   const gridsData = useSelector((state) => state.grids.sitesSummary);
   const gridsData2 = useSelector((state) => state.grids);
-  console.log('gridsData2', gridsData2);
   const gridLocationsData = (gridsData && gridsData.sites) || [];
   const [isLoading, setIsLoading] = useState(false);
 
