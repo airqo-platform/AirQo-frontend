@@ -8,7 +8,7 @@ import Skeleton from './Skeleton';
 import moment from 'moment';
 import { useRouter } from 'next/router';
 import Toast from '@/components/Toast';
-import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation';
+import { getDeviceStatusSummary } from '@/lib/store/services/collocation';
 import Dropdown from '@/components/Dropdowns/Dropdown';
 import InfoIcon from '@/icons/Common/info_circle.svg';
 import Modal from '@/components/Modal/Modal';
@@ -115,11 +115,9 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     createAxiosInstance()
       .delete(DELETE_COLLOCATION_DEVICE, { params: data })
       .then((response) => {
+        dispatch(getDeviceStatusSummary());
         setVisible(false);
         setSuccessMessage(`Succesfully deleted batch ${batchId}`);
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
       })
       .catch((error) => {
         setVisible(false);
@@ -138,11 +136,9 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     createAxiosInstance()
       .delete(DELETE_COLLOCATION_DEVICE, { params: data })
       .then((response) => {
+        dispatch(getDeviceStatusSummary());
         setVisibleDeleteDevice(false);
         setSuccessMessage(`Succesfully deleted device ${device}`);
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
       })
       .catch((error) => {
         setVisibleDeleteDevice(false);
