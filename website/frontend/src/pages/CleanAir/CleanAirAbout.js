@@ -1,10 +1,10 @@
 import React from 'react';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { SplitSection, MainHighlight, ButtonCTA } from 'components/CleanAir';
-import Section1 from 'assets/img/cleanAir/clean.jpeg';
+// import Section1 from 'assets/img/cleanAir/clean.jpeg';
 import Section11 from 'assets/img/cleanAir/clean1.jpg';
 import Section2 from 'assets/img/cleanAir/mission.jpeg';
-import Section3 from 'assets/img/cleanAir/acronym.jpg';
+// import Section3 from 'assets/img/cleanAir/acronym.jpg';
 import Section33 from 'assets/img/cleanAir/acronym3.png';
 import Section4 from 'assets/img/cleanAir/synergy.jpg';
 import Section5 from 'assets/img/cleanAir/goals.JPG';
