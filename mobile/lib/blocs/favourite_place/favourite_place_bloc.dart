@@ -40,11 +40,15 @@ class FavouritePlaceBloc
     favouritePlaces = _updateAirQuality(favouritePlaces);
     List<FavouritePlace> favouritePlacesList = favouritePlaces.toList();
     favouritePlacesList.sortByAirQuality();
-    await AirqoApiClient().syncFavouritePlaces(
-      favouritePlacesList,
-      clear: true,
-    );
-    emit(favouritePlacesList);
+    if (!emit.isDone) {
+      await AirqoApiClient().syncFavouritePlaces(
+        favouritePlacesList,
+        clear: true,
+      );
+      if (!emit.isDone) {
+        emit(favouritePlacesList);
+      }
+    }
   }
 
   Future<void> _onUpdateFavouritePlace(
