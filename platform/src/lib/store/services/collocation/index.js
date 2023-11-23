@@ -7,6 +7,7 @@ import {
   getIntraSensorCorrelationApi,
   getInterSensorCorrelationApi,
   getCollocationBatchResultsApi,
+  getCollocationStatisticsApi,
 } from '@/core/apis/Collocation';
 
 export const collocateDevices = createAsyncThunk('collocation/activeDevices', async () => {
@@ -57,7 +58,7 @@ export const getInterSensorCorrelation = createAsyncThunk(
 export const getCollocationStatistics = createAsyncThunk(
   'collocation/collocationStatisticsData',
   async (addCollocationStatisticsInput) => {
-    const response = await getCollocationBatchResultsApi(addCollocationStatisticsInput);
+    const response = await getCollocationStatisticsApi(addCollocationStatisticsInput);
     return response;
   },
 );

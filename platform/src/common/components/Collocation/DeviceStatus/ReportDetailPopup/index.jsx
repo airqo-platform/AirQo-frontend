@@ -16,6 +16,7 @@ import ReactPDF, {
 } from '@react-pdf/renderer';
 import ExportStatusReport from '../../BatchReport';
 import dynamic from 'next/dynamic';
+import { useSelector } from 'react-redux';
 
 const DynamicPDFDownloadLink = dynamic(
   () => import('@react-pdf/renderer').then((module) => module.PDFDownloadLink),
@@ -27,13 +28,14 @@ const ReportDetailCard = ({ deviceName, batchId, data, open, closeModal }) => {
   const [skip, setSkip] = useState(true);
   const [collocationBatchId, setCollocationBatchId] = useState('');
   const [exportData, setExportData] = useState([]);
-
   const {
-    isLoading,
-    isError,
-    isSuccess,
     data: collocationBatchResults,
-  } = useGetCollocationBatchResultsQuery(collocationBatchId, { skip: skip });
+    loading: isLoading,
+    fulfilled: isSuccess,
+    rejected: isError,
+    error,
+  } = useSelector((state) => state.collocation.collocationBatchResults);
+
   const collocationBatchResultsData = collocationBatchResults ? collocationBatchResults.data : null;
   const [fileBlob, setFileBlob] = useState(null);
 
