@@ -5,7 +5,7 @@ import storage from 'redux-persist/lib/storage';
 import { combineReducers } from 'redux';
 import { deviceRegistryApi } from './services/deviceRegistry';
 import selectedCollocateDevicesReducer from './services/collocation/selectedCollocateDevicesSlice';
-import { collocateApi } from './services/collocation';
+import collocationReducer from './services/collocation';
 import collocationDataReducer from './services/collocation/collocationDataSlice';
 import { createAccountSlice } from './services/account/CreationSlice';
 import { userLoginSlice } from './services/account/LoginSlice';
@@ -26,7 +26,7 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
   [deviceRegistryApi.reducerPath]: deviceRegistryApi.reducer,
-  [collocateApi.reducerPath]: collocateApi.reducer,
+  collocation: collocationReducer,
   selectedCollocateDevices: selectedCollocateDevicesReducer,
   collocationData: collocationDataReducer,
   [createAccountSlice.name]: createAccountSlice.reducer,
@@ -51,7 +51,7 @@ const store = () =>
       thunk: true,
       immutableCheck: true,
       serializableCheck: false,
-    }).concat(deviceRegistryApi.middleware, collocateApi.middleware),
+    }).concat(deviceRegistryApi.middleware),
   });
 
 export const wrapper = createWrapper(store);

@@ -4,72 +4,32 @@ import BoxedAddIcon from '@/icons/Actions/addBoxed.svg';
 import UploadIcon from '@/icons/Actions/upload.svg';
 import Button from '@/components/Button';
 import ContentBox from '@/components/Layout/content_box';
-import { useDispatch } from 'react-redux';
-import {
-  useGetDeviceStatusSummaryQuery,
-  getDeviceStatusSummary,
-  getRunningQueriesThunk,
-} from '@/lib/store/services/collocation';
+import { useDispatch, useSelector } from 'react-redux';
+import { getDeviceStatusSummary } from '@/lib/store/services/collocation';
 import Tabs from '@/components/Tabs';
 import Tab from '@/components/Tabs/Tab';
 import Table from '@/components/Collocation/DeviceStatus/Table';
 import Toast from '@/components/Toast';
-import { wrapper } from '@/lib/store';
-import { isEmpty } from 'underscore';
 import EmptyState from '@/components/Collocation/Collocate/empty_state';
 import Layout from '@/components/Layout';
 import withAuth, { withPermission } from '@/core/utils/protectedRoute';
-import Head from 'next/head';
-
-export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
-  try {
-    const name = context.params?.name;
-
-    if (typeof name === 'string') {
-      await store.dispatch(getDeviceStatusSummary.initiate(name));
-    }
-
-    await Promise.all(store.dispatch(getDeviceStatusSummary.util.getRunningQueriesThunk()));
-
-    const deviceStatusSummary = store.getState().collocationData.deviceStatusSummary;
-
-    return {
-      props: {
-        deviceStatusSummary,
-      },
-    };
-  } catch (error) {
-    console.error('Error in getServerSideProps:', error);
-
-    return {
-      props: {},
-    };
-  }
-});
 
 const Collocate = () => {
+  const dispatch = useDispatch();
   const {
-    data: data,
-    isLoading,
-    isSuccess,
-    isError,
+    data: deviceStatusSummary,
+    loading: isLoading,
+    fulfilled: isSuccess,
+    rejected: isError,
     error,
-    refetch,
-  } = useGetDeviceStatusSummaryQuery();
-  let deviceStatusSummary = data ? data.data : [];
+  } = useSelector((state) => state.collocation.collocationBatchSummary);
 
   const filterDevicesByStatus = (status) =>
-    deviceStatusSummary.filter((device) => device.status === status);
+    deviceStatusSummary && deviceStatusSummary.filter((device) => device.status === status);
 
   useEffect(() => {
-    // Fetch data every 2 minutes
-    const intervalId = setInterval(() => {
-      refetch();
-    }, 200000);
-
-    // Clear interval on unmount
-    return () => clearInterval(intervalId);
-  }, [refetch]);
+    dispatch(getDeviceStatusSummary());
+  }, []);
 
   return (
     <Layout topbarTitle={'Collocation'} pageTitle={'Collocate | Collocation'}>
@@ -82,12 +42,13 @@ const Collocate = () => {
           />
         )}
         {isLoading ||
-          (isSuccess && (
+          (deviceStatusSummary && (
             <div className='flex'>
               <Button
                 className={
                   'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium text-sm'
-                }>
+                }
+              >
                 <div className='mr-[10px]'>
                   <UploadIcon />
                 </div>
@@ -98,7 +59,8 @@ const Collocate = () => {
                 className={
                   'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
                 }
-                path='/collocation/add_monitor'>
+                path='/collocation/add_monitor'
+              >
                 <div className='mr-[10px]'>
                   <BoxedAddIcon />
                 </div>
@@ -108,7 +70,7 @@ const Collocate = () => {
           ))}
       </HeaderNav>
       <ContentBox>
-        {isLoading || isSuccess ? (
+        {deviceStatusSummary ? (
           <div className='w-full'>
             <Tabs>
               <Tab label='All'>

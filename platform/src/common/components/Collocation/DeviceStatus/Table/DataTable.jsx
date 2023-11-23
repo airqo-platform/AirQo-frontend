@@ -50,11 +50,13 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const [clickedRowIndex, setClickedRowIndex] = useState(null);
 
   const {
-    isLoading: isCheckingForDataAvailability,
-    isError,
-    isSuccess,
     data: collocationBatchResults,
-  } = useGetCollocationResultsQuery(collocationInput, { skip: skip });
+    loading: isCheckingForDataAvailability,
+    fulfilled: isSuccess,
+    rejected: isError,
+    error,
+  } = useSelector((state) => state.collocation.collocationBatchResults);
+
   const collocationBatchResultsData = collocationBatchResults ? collocationBatchResults.data : [];
 
   const selectedCollocateDevices = useSelector(
@@ -62,14 +64,20 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   );
 
   useEffect(() => {
-    if (selectedCollocateDevices.length > 0) {
+    if (
+      selectedCollocateDevices.length > 0 &&
+      collocationDevices &&
+      collocationDevices.length > 0
+    ) {
       dispatch(removeDevices(collocationDevices));
     }
   }, []);
 
   const handleSelectAllDevices = (e) => {
     const allDevices = [];
-    collocationDevices.map((device) => allDevices.push(device.device_name));
+    collocationDevices &&
+      collocationDevices.length > 0 &&
+      collocationDevices.map((device) => allDevices.push(device.device_name));
     if (e.target.checked) {
       dispatch(addDevices(allDevices));
     } else {
@@ -209,13 +217,15 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
 
       <table
         className='border-collapse text-xs text-left w-full mb-6'
-        data-testid='collocation-device-status-summary'>
+        data-testid='collocation-device-status-summary'
+      >
         <thead>
           <tr className='border-b border-b-slate-300 text-black'>
             <th scope='col' className='font-normal w-[61px] py-[10px] px-[21px]'>
               <input
                 type='checkbox'
                 checked={
+                  collocationDevices &&
                   collocationDevices.length > 0 &&
                   selectedCollocateDevices.length === collocationDevices.length
                 }
@@ -261,7 +271,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     onMouseEnter={() => setHoveredRowIndex(index)}
                     onMouseLeave={() => setHoveredRowIndex(null)}
                     onFocus={() => setFocusedRowIndex(index)}
-                    onBlur={() => setFocusedRowIndex(null)}>
+                    onBlur={() => setFocusedRowIndex(null)}
+                  >
                     <td scope='row' className='w-[61px] py-[10px] px-[21px]'>
                       <input
                         type='checkbox'
@@ -298,7 +309,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                         }}
                         className={`max-w-[96px] h-5 pl-2 pr-0.5 py-0.5 ${
                           STATUS_COLOR_CODES[device.status.toLowerCase()]
-                        } rounded-lg justify-start items-center gap-1 inline-flex cursor-pointer`}>
+                        } rounded-lg justify-start items-center gap-1 inline-flex cursor-pointer`}
+                      >
                         <div className='text-center text-neutral-800 capitalize'>
                           {device.status.toLowerCase()}
                         </div>
@@ -312,7 +324,11 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     <td scope='row' className='w-[75px] px-4 py-3'>
                       <Dropdown
                         menu={menu}
-                        length={index === collocationDevices.length - 1 ? 'last' : ''}
+                        length={
+                          index === (collocationDevices && collocationDevices.length - 1)
+                            ? 'last'
+                            : ''
+                        }
                         onItemClick={(id) => handleItemClick(id, device, index)}
                       />
                     </td>
