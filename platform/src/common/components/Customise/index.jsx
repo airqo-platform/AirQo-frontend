@@ -8,7 +8,6 @@ import {
   getIndividualUserPreferences,
 } from '@/lib/store/services/account/UserDefaultsSlice';
 import Toast from '@/components/Toast';
-import { fetchUserPreferences } from '@/lib/store/services/charts/userDefaultsSlice';
 import { RxInfoCircled } from 'react-icons/rx';
 import { completeTask } from '@/lib/store/services/checklists/CheckList';
 
@@ -56,30 +55,25 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
         },
       };
       try {
-        const response = await dispatch(replaceUserPreferences(data));
-        if (!response.payload.success) {
-          setCreationErrors({
-            state: true,
-            message: response.payload.message,
-          });
-          setLoading(false);
-        } else {
-          toggleCustomise();
-          // fetching user preferences after update
-          dispatch(getIndividualUserPreferences(id));
-          dispatch(fetchUserPreferences(id));
-          dispatch(completeTask(2));
-        }
+        await dispatch(replaceUserPreferences(data)).then((response) => {
+          if (response.payload && response.payload.success) {
+            dispatch(getIndividualUserPreferences(id));
+            toggleCustomise();
+            dispatch(completeTask(2));
+          } else {
+            setCreationErrors({
+              state: true,
+              message: 'Error updating user preferences',
+            });
+          }
+        });
       } catch (error) {
-        throw error;
+        console.error(`Error replacing user preferences: ${error}`);
+      } finally {
+        setLoading(false);
       }
     }
-    setLoading(false);
   };
-
-  useEffect(() => {
-    dispatch(getIndividualUserPreferences(id));
-  }, []);
 
   return (
     <div>
