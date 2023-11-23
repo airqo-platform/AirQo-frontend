@@ -11,25 +11,8 @@ const OverView = () => {
   const dispatch = useDispatch();
   const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
   const chartDataRange = useSelector((state) => state.chart.chartDataRange);
-  const userLocationsData = useSelector((state) => state.defaults.individual_preferences);
-  const [sites, setSites] = useState(DEFAULT_CHART_SITES);
+  const sites = useSelector((state) => state.chart.chartSites);
   const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
-
-  useEffect(() => {
-    setIsLoadingMeasurements(true);
-    if (userLocationsData && userLocationsData[0] && !userLocationsData[0]?.selected_sites) {
-      setIsLoadingMeasurements(false);
-      return;
-    }
-    if (userLocationsData && userLocationsData[0] && userLocationsData[0]?.selected_sites) {
-      // map through the selected sites and get the first 4 site ids
-      const selectedSites = userLocationsData[0]?.selected_sites
-        .map((site) => site._id)
-        .slice(0, 4);
-      setSites(selectedSites);
-    }
-    setIsLoadingMeasurements(false);
-  }, [userLocationsData]);
 
   useEffect(() => {
     setIsLoadingMeasurements(true);
@@ -57,8 +40,7 @@ const OverView = () => {
           recentLocationMeasurements && recentLocationMeasurements.length <= 2
             ? 'flex md:flex-row flex-col'
             : 'grid md:grid-cols-2'
-        }`}
-      >
+        }`}>
         {!isLoadingMeasurements &&
           recentLocationMeasurements &&
           recentLocationMeasurements

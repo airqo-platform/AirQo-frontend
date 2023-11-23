@@ -11,12 +11,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:app/services/notification_service.dart';
 
 import 'firebase_options.dart';
+import 'package:app/services/services.dart';
 
 @pragma("vm:entry-point")
 void callbackDispatcher() {
@@ -31,7 +31,7 @@ void main() async {
     SystemUiMode.manual,
     overlays: [SystemUiOverlay.bottom, SystemUiOverlay.top],
   );
-  final prefs = await SharedPreferences.getInstance();
+  final prefs = await SharedPreferencesHelper.instance;
   final savedLanguageCode = prefs.getString('selectedLanguage') ?? 'en';
   final savedLocale = Locale(savedLanguageCode);
   Workmanager().initialize(callbackDispatcher, isInDebugMode: kDebugMode);

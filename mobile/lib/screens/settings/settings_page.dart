@@ -16,7 +16,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 import 'about_page.dart';
@@ -269,7 +268,7 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Future<void> _startShowcase() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferencesHelper.instance;
 
     if (prefs.getBool(Config.restartTourShowcase) != true) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -283,7 +282,7 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Future<void> _showcaseToggle() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferencesHelper.instance;
     if (prefs.getBool(Config.settingsPageShowcase) == null) {
       WidgetsBinding.instance
           .addPostFrameCallback((_) async => await _startShowcase());

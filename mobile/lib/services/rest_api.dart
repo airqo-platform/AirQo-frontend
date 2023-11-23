@@ -12,7 +12,6 @@ import 'package:http/http.dart' as http;
 import 'package:http/retry.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
@@ -186,7 +185,7 @@ class AirqoApiClient {
 
   Future<List<Forecast>> fetchForecast(String siteId) async {
     final forecasts = <Forecast>[];
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferencesHelper.instance;
     final locale = prefs.getString("language") ?? "en";
     final queryParams = <String, String>{}
       ..putIfAbsent('site_id', () => siteId);
@@ -424,7 +423,7 @@ class AirqoApiClient {
   }
 
   Future<List<AirQualityReading>> fetchAirQualityReadings() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferencesHelper.instance;
     final locale = prefs.getString("language") ?? "en";
     final airQualityReadings = <AirQualityReading>[];
     final queryParams = <String, String>{}
@@ -471,7 +470,7 @@ class AirqoApiClient {
   }
 
   Future<List<KyaLesson>> fetchKyaLessons(String userId) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferencesHelper.instance;
     final locale = prefs.getString("language") ?? "en";
     final lessons = <KyaLesson>[];
     final queryParams = <String, String>{}
@@ -537,7 +536,7 @@ class AirqoApiClient {
   }
 
   Future<List<Quiz>> fetchQuizzes(String userId) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferencesHelper.instance;
     final locale = prefs.getString("language") ?? "en";
     final quizzes = <Quiz>[];
     final queryParams = <String, String>{}

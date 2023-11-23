@@ -9,6 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_service.dart';
 import 'hive_service.dart';
 import 'rest_api.dart';
+import 'dart:async';
+import 'package:app/services/services.dart';
 
 class AppService {
   factory AppService() {
@@ -31,7 +33,7 @@ class AppService {
     Profile profile = context.read<ProfileBloc>().state;
     await CloudAnalytics.logSignInEvents(profile);
     if (!isGuest) {
-    await AirqoApiClient().syncPlatformAccount();
+      await AirqoApiClient().syncPlatformAccount();
     }
   }
 
@@ -85,12 +87,13 @@ class AppService {
   }
 
   Future<void> setLocale(String locale) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferencesHelper.instance;
+
     await prefs.setString("language", locale);
   }
 
   Future<String> getLocale() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferencesHelper.instance;
     return prefs.getString("language") ?? "en";
   }
 
