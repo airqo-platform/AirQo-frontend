@@ -261,7 +261,6 @@ const useAnalytics = () => {
   const chartData = useSelector((state) => state.chart);
   const refreshChart = useSelector((state) => state.chart.refreshChart);
   const preferencesLoading = useSelector((state) => state.userDefaults.status === 'loading');
-  const userPreferences = useSelector((state) => state.userDefaults.preferences);
   const isLoading = useSelector((state) => state.analytics.status === 'loading');
   const analyticsData = useSelector((state) => state.analytics.data);
   const [error, setError] = useState(null);

@@ -5,6 +5,7 @@ import { resetStore } from '@/lib/store/services/account/LoginSlice';
 import { updateUserChecklists, resetChecklist } from '@/lib/store/services/checklists/CheckData';
 import { resetAllTasks } from '@/lib/store/services/checklists/CheckList';
 import { resetChartStore } from '@/lib/store/services/charts/ChartSlice';
+import { clearIndividualPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 
 // Custom hook to handle user inactivity
 const useIdleTimer = (action, idleTime) => {
@@ -51,6 +52,7 @@ export default function withAuth(Component) {
       localStorage.clear();
       dispatch(resetStore());
       dispatch(resetChartStore());
+      dispatch(clearIndividualPreferences());
       dispatch(resetAllTasks());
       dispatch(resetChecklist());
       router.push('/account/login');
