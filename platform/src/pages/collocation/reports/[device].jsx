@@ -4,28 +4,24 @@ import Box from '@/components/Collocation/Report/box';
 import PollutantDropdown from '@/components/Collocation/Report/PollutantDropdown';
 import CorrelationChart from '@/components/Collocation/Report/Charts/CorrelationLineChart';
 import { useEffect, useState } from 'react';
-import CorrelationBarChart from '@/components/Collocation/Report/Charts/CorrelationBarChart';
 import { useRouter } from 'next/router';
 import Toast from '@/components/Toast';
 import Spinner from '@/components/Spinner';
-import {
-  useGetCollocationResultsQuery,
-  useGetCollocationStatisticsQuery,
-} from '@/lib/store/services/collocation';
 import CustomTable from '@/components/Table';
 import { isEmpty } from 'underscore';
 import ContentBox from '@/components/Layout/content_box';
 import CustomLegend from '@/components/Collocation/Report/MonitorReport/IntraCorrelation/custom_legend';
-import { generateRandomColors } from '@/core/utils/colors';
 import withAuth from '@/core/utils/protectedRoute';
+import { useDispatch, useSelector } from 'react-redux';
+import { getCollocationStatistics, getCollocationResults } from '@/lib/store/services/collocation';
+import { withPermission } from '@/core/utils/protectedRoute';
 
 const Reports = () => {
+  const dispatch = useDispatch();
   const router = useRouter();
   const { device, batchId } = router.query;
 
   const [deviceStatisticsInput, setDeviceStatisticsInput] = useState(null);
-  const [skipCollocationResults, setSkipCollocationResults] = useState(true);
-  const [skipStatistics, setSkipStatistics] = useState(true);
   const [input, setInput] = useState(null);
   const [deviceStatistics, setDeviceStatistics] = useState([]);
   const [pmConcentration, setPmConcentration] = useState('2.5');
@@ -33,18 +29,20 @@ const Reports = () => {
 
   const {
     data: collocationResultsData,
-    isLoading: isCollocationResultsLoading,
-    isSuccess: isCollocationResultsSuccess,
-    isError: isFetchCollocationResultsError,
-  } = useGetCollocationResultsQuery(input, { skip: skipCollocationResults });
+    loading: isCollocationResultsLoading,
+    fulfilled: isCollocationResultsSuccess,
+    rejected: isFetchCollocationResultsError,
+  } = useSelector((state) => state.collocation.collocationResults);
+
   const {
     data: collocationStatistics,
-    isLoading: collocationStatisticsLoading,
-    isSuccess: collocationStatisticsSuccess,
-    isError: collocationStatisticsError,
-  } = useGetCollocationStatisticsQuery(deviceStatisticsInput, { skip: skipStatistics });
+    loading: collocationStatisticsLoading,
+    fulfilled: collocationStatisticsSuccess,
+    rejected: collocationStatisticsError,
+  } = useSelector((state) => state.collocation.collocationStatisticsData);
 
   let collocationStatisticsList = collocationStatistics ? collocationStatistics.data : [];
+
   const collocationResultsList = collocationResultsData ? collocationResultsData.data : null;
 
   let graphColors = [
@@ -80,10 +78,19 @@ const Reports = () => {
     setDeviceStatisticsInput({
       batchId,
     });
-
-    setSkipCollocationResults(false);
-    setSkipStatistics(false);
   }, [device, batchId]);
+
+  useEffect(() => {
+    if (!isEmpty(deviceStatisticsInput)) {
+      dispatch(getCollocationStatistics(deviceStatisticsInput));
+    }
+  }, [deviceStatisticsInput]);
+
+  useEffect(() => {
+    if (!isEmpty(input)) {
+      dispatch(getCollocationResults(input));
+    }
+  }, [input]);
 
   useEffect(() => {
     if (!isEmpty(collocationStatisticsList)) {
@@ -123,7 +130,7 @@ const Reports = () => {
         />
       )}
       <ContentBox>
-        {(collocationStatisticsSuccess || collocationStatisticsLoading) && (
+        {deviceStatistics && (
           <CustomTable
             headers={[
               'Monitor Name',
@@ -157,7 +164,8 @@ const Reports = () => {
                 console.log('I am an event');
               },
             },
-          ]}>
+          ]}
+        >
           <div className='flex flex-col justify-start w-full' data-testid='intra-correlation-chart'>
             <PollutantDropdown
               pollutantValue={pmConcentration}
@@ -173,26 +181,20 @@ const Reports = () => {
               </div>
             ) : (
               <>
-                {isCollocationResultsSuccess &&
-                  collocationResultsList &&
-                  !isEmpty(collocationResultsList) && (
-                    <>
-                      <CorrelationChart
-                        data={collocationResultsList}
-                        pmConcentration={pmConcentration}
-                        height={'210'}
-                        isInterSensorCorrelation
-                        graphColors={graphColors}
-                      />
-                      {batchList && graphColors && (
-                        <CustomLegend
-                          isDeviceLegend
-                          devices={batchList}
-                          graphColors={graphColors}
-                        />
-                      )}
-                    </>
-                  )}
+                {collocationResultsList && !isEmpty(collocationResultsList) && (
+                  <>
+                    <CorrelationChart
+                      data={collocationResultsList}
+                      pmConcentration={pmConcentration}
+                      height={'210'}
+                      isInterSensorCorrelation
+                      graphColors={graphColors}
+                    />
+                    {batchList && graphColors && (
+                      <CustomLegend isDeviceLegend devices={batchList} graphColors={graphColors} />
+                    )}
+                  </>
+                )}
 
                 {isEmpty(collocationResultsList) && (
                   <div className='text-center pb-6 text-grey-300 text-sm'>No data found</div>
@@ -206,4 +208,4 @@ const Reports = () => {
   );
 };
 
-export default withAuth(Reports);
+export default withPermission(withAuth(Reports), 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');

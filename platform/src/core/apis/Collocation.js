@@ -30,7 +30,9 @@ export const getDeviceStatusSummaryApi = async () => {
 };
 
 export const getCollocationResultsApi = async ({ devices, batchId }) => {
-  const response = await getRequest(`${COLLOCATION}/data?devices=${devices}&batchId=${batchId}`);
+  const response = await getRequest(
+    `${COLLOCATION}/data?devices=${devices || ''}&batchId=${batchId}`,
+  );
   return response;
 };
 
@@ -55,7 +57,9 @@ export const getInterSensorCorrelationApi = async (addInterSensorInput) => {
 
 export const getCollocationStatisticsApi = async (addCollocationStatisticsInput) => {
   const response = await getRequest(
-    `${COLLOCATION}/statistics?devices=${addCollocationStatisticsInput.devices}&batchId=${addCollocationStatisticsInput.batchId}`,
+    `${COLLOCATION}/statistics?devices=${addCollocationStatisticsInput.devices || ''}&batchId=${
+      addCollocationStatisticsInput.batchId
+    }`,
   );
   return response;
 };

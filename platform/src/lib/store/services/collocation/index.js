@@ -27,7 +27,7 @@ export const getCollocationResults = createAsyncThunk(
   'collocation/collocationResults',
   async ({ devices, batchId }) => {
     const response = await getCollocationResultsApi({ devices, batchId });
-    return response;
+    return response.data;
   },
 );
 
@@ -143,7 +143,7 @@ const collocationSlice = createSlice({
       })
       .addCase(getCollocationResults.fulfilled, (state, action) => {
         state.collocationResults.loading = false;
-        state.collocationResults.data = action.payload.data;
+        state.collocationResults.data = action.payload;
       })
       .addCase(getCollocationResults.rejected, (state, action) => {
         state.collocationResults.loading = false;

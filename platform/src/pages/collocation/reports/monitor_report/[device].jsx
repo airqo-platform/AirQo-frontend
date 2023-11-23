@@ -22,6 +22,7 @@ import Spinner from '@/components/Spinner';
 import ContentBox from '@/components/Layout/content_box';
 import { generateRandomColors } from '@/core/utils/colors';
 import withAuth from '@/core/utils/protectedRoute';
+import { withPermission } from '@/core/utils/protectedRoute';
 
 const MonitorReport = () => {
   const dispatch = useDispatch();
@@ -187,4 +188,4 @@ const MonitorReport = () => {
   );
 };
 
-export default withAuth(MonitorReport);
+export default withPermission(withAuth(MonitorReport), 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');
