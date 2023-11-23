@@ -57,8 +57,8 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
       try {
         await dispatch(replaceUserPreferences(data)).then((response) => {
           if (response.payload && response.payload.success) {
-            toggleCustomise();
             dispatch(getIndividualUserPreferences(id));
+            toggleCustomise();
             dispatch(completeTask(2));
           } else {
             setCreationErrors({

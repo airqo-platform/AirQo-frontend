@@ -51,22 +51,20 @@ const LocationsContentComponent = ({ selectedLocations }) => {
   };
 
   const handleLocationSelect = (item) => {
-    const unSelectedIndex = unSelectedLocations.findIndex((location) => location._id === item._id);
-    if (unSelectedIndex !== -1) {
-      setUnSelectedLocations(unSelectedLocations.filter((location) => location._id !== item._id));
+    const newLocationArray = [...locationArray];
+    const index = newLocationArray.findIndex((location) => location._id === item._id);
+
+    if (index !== -1) {
+      newLocationArray.splice(index, 1);
+    } else if (newLocationArray.length < 4) {
+      newLocationArray.push(item);
     }
-    const locationIndex = locationArray.findIndex((location) => location._id === item._id);
-    if (locationIndex !== -1) {
-      setLocationArray(locationArray.filter((location) => location._id !== item._id));
-    } else {
-      const newLocationArray = [...locationArray, item];
-      setLocationArray(newLocationArray);
-      setDraggedLocations(newLocationArray);
-    }
+
+    setLocationArray(newLocationArray);
+    setDraggedLocations(newLocationArray);
     setInputSelect(true);
     setLocation('');
   };
-
   const removeLocation = (item) => {
     const newLocationArray = locationArray.filter((location) => location._id !== item._id);
     setLocationArray(newLocationArray);
