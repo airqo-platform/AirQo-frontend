@@ -95,12 +95,14 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   };
 
   const openMonitorReport = async (deviceName, batchId, index) => {
-    setCollocationInput({
-      devices: deviceName,
-      batchId: batchId,
-    });
     setClickedRowIndex(index);
-    setSkip(false);
+    router.push({
+      pathname: `/collocation/reports/${deviceName}`,
+      query: {
+        device: deviceName,
+        batchId,
+      },
+    });
   };
 
   // This function is to delete batch
@@ -147,18 +149,6 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         setErrorMessage(error.response.data.message);
       });
   };
-
-  useEffect(() => {
-    if (isSuccess) {
-      router.push({
-        pathname: `/analytics/collocation/reports/${collocationInput.devices}`,
-        query: {
-          device: collocationInput.devices,
-          batchId: collocationInput.batchId,
-        },
-      });
-    }
-  }, [isSuccess, collocationBatchResultsData, collocationInput]);
 
   // dropdown menu list
   const [menu, setMenu] = useState([
