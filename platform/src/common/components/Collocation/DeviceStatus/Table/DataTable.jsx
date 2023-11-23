@@ -45,6 +45,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const [collocationInput, setCollocationInput] = useState({
     devices: null,
     batchId: '',
+    batchName: '',
   });
   const [skip, setSkip] = useState(true);
   const [clickedRowIndex, setClickedRowIndex] = useState(null);
@@ -107,17 +108,17 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
 
   // This function is to delete batch
   const deleteBatch = async () => {
-    const { device, batchId } = collocationInput;
+    const { device, batchId, batchName } = collocationInput;
     const data = {
       batchId: batchId,
     };
 
-    createAxiosInstance()
+    await createAxiosInstance()
       .delete(DELETE_COLLOCATION_DEVICE, { params: data })
       .then((response) => {
-        dispatch(getDeviceStatusSummary());
         setVisible(false);
-        setSuccessMessage(`Succesfully deleted batch ${batchId}`);
+        dispatch(getDeviceStatusSummary());
+        setSuccessMessage(`Succesfully deleted batch ${batchName}`);
       })
       .catch((error) => {
         setVisible(false);
@@ -127,18 +128,18 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
 
   // This function is to delete device
   const deleteDevice = async () => {
-    const { device, batchId } = collocationInput;
+    const { device, batchId, batchName } = collocationInput;
     const data = {
       batchId: batchId,
       devices: device,
     };
 
-    createAxiosInstance()
+    await createAxiosInstance()
       .delete(DELETE_COLLOCATION_DEVICE, { params: data })
       .then((response) => {
-        dispatch(getDeviceStatusSummary());
         setVisibleDeleteDevice(false);
-        setSuccessMessage(`Succesfully deleted device ${device}`);
+        dispatch(getDeviceStatusSummary());
+        setSuccessMessage(`Succesfully deleted device ${device} from batch ${batchName}`);
       })
       .catch((error) => {
         setVisibleDeleteDevice(false);
@@ -163,7 +164,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   ]);
 
   const handleItemClick = (id, device, index) => {
-    const { device_name, batch_id } = device;
+    const { device_name, batch_id, batch_name } = device;
     switch (id) {
       case 1:
         openMonitorReport(device_name, batch_id, index);
@@ -173,6 +174,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         setCollocationInput({
           device: device_name,
           batchId: batch_id,
+          batchName: batch_name,
         });
         break;
       case 3:
@@ -180,6 +182,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         setCollocationInput({
           device: device_name,
           batchId: batch_id,
+          batchName: batch_name,
         });
         break;
       default:
@@ -337,9 +340,9 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         <div data-testid='delete_modal'>
           <Modal
             display={visible}
-            handleConfirm={deleteBatch}
+            handleConfirm={() => deleteBatch()}
             closeModal={() => setVisible(false)}
-            description={`Are you sure you want to delete this collocation batch ${collocationInput.batchId}?`}
+            description={`Are you sure you want to delete this collocation batch ${collocationInput.batchName}?`}
             confirmButton='Delete'
           />
         </div>
@@ -363,7 +366,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         <div data-testid='delete_modal'>
           <Modal
             display={visibleDeleteDevice}
-            handleConfirm={deleteDevice}
+            handleConfirm={() => deleteDevice()}
             closeModal={() => setVisibleDeleteDevice(false)}
             description={`Are you sure you want to delete ${collocationInput.device} from the collocation batch?`}
             confirmButton='Delete'

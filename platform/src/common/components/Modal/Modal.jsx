@@ -1,20 +1,19 @@
 import React, { useState } from 'react';
-
 import Close from '@/icons/Actions/close.svg';
-import Exclamation from '@/icons/Actions/exclamation.svg';
-import Image from 'next/image';
+import Button from '@/components/Button';
 
 const Modal = ({ description, confirmButton, handleConfirm, display, closeModal }) => {
   const [loading, setLoading] = useState(false);
+  console.log(loading);
   const handleClick = async () => {
     setLoading(true);
     try {
       await handleConfirm();
     } catch (error) {
       throw error;
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
   return (
@@ -40,28 +39,26 @@ const Modal = ({ description, confirmButton, handleConfirm, display, closeModal 
             <h3 className='mb-5 text-lg font-normal text-gray-500 dark:text-gray-400'>
               {description}
             </h3>
-            <div>
+            <div className='flex space-x-3'>
               {confirmButton && (
-                <button
-                  onClick={handleClick}
+                <Button
+                  className='text-sm font-medium capitalize'
+                  variant={loading ? 'disabled' : 'filled'}
                   disabled={loading}
-                  type='button'
-                  className={`${
-                    loading
-                      ? 'text-secondary-neutral-light-900 bg-secondary-neutral-light-25'
-                      : 'text-white bg-red-600 hover:bg-red-800 focus:ring-red-300'
-                  } focus:ring-opacity-50 focus:outline-none font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2 cursor-pointer transform transition hover:scale-[1.05]`}
+                  onClick={handleClick}
                 >
-                  {confirmButton}
-                </button>
+                  {loading ? 'Loading...' : 'Delete'}
+                </Button>
               )}
-              <button
+
+              <Button
+                className='text-sm font-medium capitalize'
+                variant='outlined'
+                disabled={loading}
                 onClick={closeModal}
-                type='button'
-                className='text-gray-500 bg-white hover:bg-gray-100 focus:ring-gray-200 focus:ring-opacity-50 focus:outline-none rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 cursor-pointer transform transition hover:scale-[1.05]'
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </div>
         </div>
