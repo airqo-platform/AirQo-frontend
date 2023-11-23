@@ -1,10 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import Close from '@/icons/Actions/close.svg';
 import Exclamation from '@/icons/Actions/exclamation.svg';
 import Image from 'next/image';
 
 const Modal = ({ description, confirmButton, handleConfirm, display, closeModal }) => {
+  const [loading, setLoading] = useState(false);
+  const handleClick = async () => {
+    setLoading(true);
+    try {
+      await handleConfirm();
+    } catch (error) {
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div
       style={{
@@ -31,9 +43,14 @@ const Modal = ({ description, confirmButton, handleConfirm, display, closeModal 
             <div>
               {confirmButton && (
                 <button
-                  onClick={handleConfirm}
+                  onClick={handleClick}
+                  disabled={loading}
                   type='button'
-                  className='text-white bg-red-600 hover:bg-red-800 focus:ring-red-300 focus:ring-opacity-50 focus:outline-none font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2 cursor-pointer transform transition hover:scale-[1.05]'
+                  className={`${
+                    loading
+                      ? 'text-secondary-neutral-light-900 bg-secondary-neutral-light-25'
+                      : 'text-white bg-red-600 hover:bg-red-800 focus:ring-red-300'
+                  } focus:ring-opacity-50 focus:outline-none font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2 cursor-pointer transform transition hover:scale-[1.05]`}
                 >
                   {confirmButton}
                 </button>
