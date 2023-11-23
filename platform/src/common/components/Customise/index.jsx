@@ -63,7 +63,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
           } else {
             setCreationErrors({
               state: true,
-              message: response.payload.message,
+              message: 'Error updating user preferences',
             });
           }
         });
