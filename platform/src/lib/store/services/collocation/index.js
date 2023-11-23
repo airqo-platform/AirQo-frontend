@@ -10,10 +10,13 @@ import {
   getCollocationStatisticsApi,
 } from '@/core/apis/Collocation';
 
-export const collocateDevices = createAsyncThunk('collocation/activeDevices', async () => {
-  const response = await collocateDevicesApi();
-  return response;
-});
+export const collocateDevices = createAsyncThunk(
+  'collocation/collocateDevices',
+  async (collocateDevices) => {
+    const response = await collocateDevicesApi(collocateDevices);
+    return response;
+  },
+);
 
 export const getDeviceStatusSummary = createAsyncThunk(
   'collocation/collocationBatchSummary',
@@ -123,6 +126,13 @@ const collocationSlice = createSlice({
       fulfilled: false,
       rejected: false,
     },
+    collocateDevices: {
+      loading: false,
+      data: null,
+      error: null,
+      fulfilled: false,
+      rejected: false,
+    },
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -203,6 +213,18 @@ const collocationSlice = createSlice({
       .addCase(getCollocationBatchResults.rejected, (state, action) => {
         state.collocationBatchResults.loading = false;
         state.collocationBatchResults.error = action.error.message || '';
+      })
+      .addCase(collocateDevices.pending, (state) => {
+        state.collocateDevices.loading = true;
+      })
+      .addCase(collocateDevices.fulfilled, (state, action) => {
+        state.collocateDevices.loading = false;
+        state.collocateDevices.fulfilled = true;
+      })
+      .addCase(collocateDevices.rejected, (state, action) => {
+        state.collocateDevices.loading = false;
+        state.collocateDevices.error = action.error.message || '';
+        state.collocateDevices.rejected = true;
       });
   },
 });

@@ -3,7 +3,7 @@ import { createWrapper } from 'next-redux-wrapper';
 import { persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { combineReducers } from 'redux';
-import { deviceRegistryApi } from './services/deviceRegistry';
+import deviceRegistryReducer from './services/deviceRegistry';
 import selectedCollocateDevicesReducer from './services/collocation/selectedCollocateDevicesSlice';
 import collocationReducer from './services/collocation';
 import collocationDataReducer from './services/collocation/collocationDataSlice';
@@ -25,7 +25,7 @@ const persistConfig = {
 };
 
 const rootReducer = combineReducers({
-  [deviceRegistryApi.reducerPath]: deviceRegistryApi.reducer,
+  deviceRegistry: deviceRegistryReducer,
   collocation: collocationReducer,
   selectedCollocateDevices: selectedCollocateDevicesReducer,
   collocationData: collocationDataReducer,
@@ -51,7 +51,7 @@ const store = () =>
       thunk: true,
       immutableCheck: true,
       serializableCheck: false,
-    }).concat(deviceRegistryApi.middleware),
+    }),
   });
 
 export const wrapper = createWrapper(store);
