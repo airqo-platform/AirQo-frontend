@@ -12,8 +12,8 @@ import {
 } from '@/lib/store/services/collocation/collocationDataSlice';
 import { useRouter } from 'next/router';
 import CustomLegend from './custom_legend';
-import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation';
 import { isEmpty } from 'underscore';
+import { getCollocationResults } from '@/lib/store/services/collocation';
 
 const IntraCorrelationChart = ({
   intraCorrelationConcentration,
@@ -28,7 +28,6 @@ const IntraCorrelationChart = ({
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState(null);
-  const [skipCollocationResults, setSkipCollocationResults] = useState(true);
 
   const activeSelectedDeviceCollocationReportData = useSelector(
     (state) => state.collocationData.activeSelectedDeviceCollocationReportData,
@@ -39,11 +38,18 @@ const IntraCorrelationChart = ({
 
   const {
     data: collocationResultsData,
-    isError: isFetchCollocationResultsError,
-    isSuccess: isFetchCollocationResultsSuccess,
-    isLoading: isFetchCollocationResultsLoading,
-  } = useGetCollocationResultsQuery(input, { skip: skipCollocationResults });
+    loading: isFetchCollocationResultsLoading,
+    fulfilled: isFetchCollocationResultsSuccess,
+    rejected: isFetchCollocationResultsError,
+  } = useSelector((state) => state.collocation.collocationResults);
+
   const newCollocationResults = collocationResultsData ? collocationResultsData.data : null;
+
+  useEffect(() => {
+    if (!isEmpty(input) && input.device) {
+      dispatch(getCollocationResults(input));
+    }
+  }, [input]);
 
   useEffect(() => {
     dispatch(addActiveSelectedDeviceCollocationReportData(collocationResults));
@@ -61,12 +67,11 @@ const IntraCorrelationChart = ({
   const handleSelect = async (newDevice, batchId) => {
     dispatch(addActiveSelectedDeviceReport({ device: newDevice, batchId }));
     setInput({ device: newDevice, batchId });
-    setSkipCollocationResults(false);
     setIsOpen(false);
   };
 
   useEffect(() => {
-    if (isFetchCollocationResultsSuccess) {
+    if (input && input.device) {
       const updatedQuery = {
         ...input,
       };
@@ -106,9 +111,9 @@ const IntraCorrelationChart = ({
             </Button>
             {isOpen && deviceList.length > 1 && (
               <ul className='absolute z-30 bg-white mt-1 ml-6 py-1 w-36 rounded border border-gray-200 max-h-60 overflow-y-auto text-sm'>
-                {deviceList.map((device, index) => (
-                  <>
-                    {activeSelectedDeviceReport.device !== device.device_name && (
+                {deviceList.map(
+                  (device, index) =>
+                    activeSelectedDeviceReport.device !== device.device_name && (
                       <li
                         key={index}
                         className='px-4 py-2 hover:bg-gray-200 cursor-pointer text-xs uppercase'
@@ -116,9 +121,8 @@ const IntraCorrelationChart = ({
                       >
                         {device.device_name}
                       </li>
-                    )}
-                  </>
-                ))}
+                    ),
+                )}
               </ul>
             )}
           </div>

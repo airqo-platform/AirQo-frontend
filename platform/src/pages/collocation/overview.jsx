@@ -3,14 +3,8 @@ import HeaderNav from '@/components/Layout/header';
 import ContentBox from '@/components/Layout/content_box';
 import { format } from 'date-fns';
 import GraphCard from '@/components/Collocation/AddMonitor/Overview/graph_card';
-import {
-  useGetCollocationStatisticsQuery,
-  useGetDeviceStatusSummaryQuery,
-  getRunningQueriesThunk,
-} from '@/lib/store/services/collocation';
 import { findAllMatchingDevices } from '@/core/utils/matchingDevices';
 import moment from 'moment';
-import { wrapper } from '@/lib/store';
 import Button from '@/components/Button';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
@@ -23,33 +17,7 @@ import OverviewSkeleton from '@/components/Collocation/AddMonitor/Skeletion/Over
 import Toast from '@/components/Toast';
 import Layout from '@/components/Layout';
 import withAuth, { withPermission } from '@/core/utils/protectedRoute';
-import Head from 'next/head';
-
-export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
-  try {
-    const name = context.params?.name;
-
-    if (typeof name === 'string') {
-      await store.dispatch(getDeviceStatusSummary.initiate(name));
-    }
-
-    await Promise.all(store.dispatch(getDeviceStatusSummary.util.getRunningQueriesThunk()));
-
-    const deviceStatusSummary = store.getState().collocationData.deviceStatusSummary;
-
-    return {
-      props: {
-        deviceStatusSummary,
-      },
-    };
-  } catch (error) {
-    console.error('Error in getServerSideProps:', error);
-
-    return {
-      props: {},
-    };
-  }
-});
+import { getCollocationStatistics, getDeviceStatusSummary } from '@/lib/store/services/collocation';
 
 const CollocationOverview = () => {
   const dispatch = useDispatch();
@@ -58,14 +26,11 @@ const CollocationOverview = () => {
   const [collocationPeriods, setCollocationPeriods] = useState(null);
   const [activeCollocationPeriod, setActiveCollocationPeriod] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [openDeviceMenu, setOpenDeviceMenu] = useState(false);
-  const [skip, setSkip] = useState(true);
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [device1, setDevice1] = useState(null);
   const [device2, setDevice2] = useState(null);
   const [statisticsParams, setStatisticsParams] = useState({});
-  const [alternativeActiveDevice, setAlternativeActiveDevice] = useState(null);
 
   // get list of selectedCollocateDevices from redux store
   const selectedBatch = useSelector((state) => state.collocationData.overviewBatch);
@@ -73,18 +38,34 @@ const CollocationOverview = () => {
   // device summary list
   const {
     data: deviceStatusSummary,
-    isSuccess: deviceSummarySuccess,
-    isLoading: deviceSummaryLoading,
-    isError: deviceSummaryError,
-  } = useGetDeviceStatusSummaryQuery();
-  let deviceStatusSummaryList = deviceStatusSummary ? deviceStatusSummary.data : [];
+    loading: deviceSummaryLoading,
+    fulfilled: deviceSummarySuccess,
+    rejected: deviceSummaryError,
+    error,
+  } = useSelector((state) => state.collocation.collocationBatchSummary);
+
+  let deviceStatusSummaryList = deviceStatusSummary
+    ? deviceStatusSummary.length > 0 && deviceStatusSummary
+    : [];
+
   const {
     data: collocationStatistics,
-    isLoading: collocationStatisticsLoading,
-    isSuccess: collocationStatisticsSuccess,
-    isError: collocationStatisticsError,
-  } = useGetCollocationStatisticsQuery(statisticsParams, { skip: skip });
+    loading: collocationStatisticsLoading,
+    fulfilled: collocationStatisticsSuccess,
+    rejected: collocationStatisticsError,
+  } = useSelector((state) => state.collocation.collocationStatisticsData);
+
   let collocationStatisticsList = collocationStatistics ? collocationStatistics.data : [];
+
+  useEffect(() => {
+    dispatch(getDeviceStatusSummary());
+  }, []);
+
+  useEffect(() => {
+    if (statisticsParams && !isEmpty(statisticsParams)) {
+      dispatch(getCollocationStatistics(statisticsParams));
+    }
+  }, [statisticsParams]);
 
   // matching devices
   useEffect(() => {
@@ -129,13 +110,11 @@ const CollocationOverview = () => {
             devices: [selectedBatch[0].device_name, selectedBatch[1].device_name],
             batchId: selectedBatch[0].batch_id,
           });
-          setSkip(false);
         } else {
           setStatisticsParams({
             devices: [selectedBatch[0].device_name],
             batchId: selectedBatch[0].batch_id,
           });
-          setSkip(false);
         }
       }
     };
@@ -184,7 +163,8 @@ const CollocationOverview = () => {
                   <div className='relative'>
                     <Button
                       className='w-auto h-10 bg-blue-200 rounded-lg text-base font-semibold text-purple-700 md:ml-2'
-                      onClick={() => setIsOpen(!isOpen)}>
+                      onClick={() => setIsOpen(!isOpen)}
+                    >
                       <span>
                         {!isEmpty(activeCollocationPeriod) &&
                           `${moment(activeCollocationPeriod.start_date).format(
@@ -195,7 +175,8 @@ const CollocationOverview = () => {
                     {isOpen && (
                       <ul
                         tabIndex={0}
-                        className='absolute z-30 mt-1 ml-6 w-auto border border-gray-200 max-h-60 overflow-y-auto text-sm p-2 shadow bg-base-100 rounded-md'>
+                        className='absolute z-30 mt-1 ml-6 w-auto border border-gray-200 max-h-60 overflow-y-auto text-sm p-2 shadow bg-base-100 rounded-md'
+                      >
                         {collocationPeriods.map((period, index) => (
                           <li
                             role='button'
@@ -217,7 +198,8 @@ const CollocationOverview = () => {
                               setActiveCollocationPeriod(period);
                               setActiveIndex(index);
                               setIsOpen(false);
-                            }}>
+                            }}
+                          >
                             <a>{`${moment(period.start_date).format('MMM DD')} - ${moment(
                               period.end_date,
                             ).format('MMM DD')}`}</a>
@@ -232,7 +214,8 @@ const CollocationOverview = () => {
             <div
               className={`grid grid-cols-1 ${
                 selectedBatch.length === 2 && 'lg:grid-cols-2'
-              } lg:divide-x divide-grey-150`}>
+              } lg:divide-x divide-grey-150`}
+            >
               {!isEmpty(selectedBatch) &&
               selectedBatch.length > 1 &&
               !isEmpty(deviceStatistics) &&
@@ -297,7 +280,9 @@ const CollocationOverview = () => {
                   <span className='font-semibold text-base flex justify-between items-center uppercase'>
                     {device1}
                   </span>
-                  <span className='text-xl font-normal'>{format(new Date(), 'MMM dd, yyyy')}</span>
+                  <span className='text-xl font-normal'>
+                    {moment(activeCollocationPeriod.end_date).format('MMM DD, yyyy')}
+                  </span>
                 </div>
               )}
 
@@ -306,7 +291,9 @@ const CollocationOverview = () => {
                   <span className='font-semibold text-base flex justify-between items-center uppercase'>
                     {device2}
                   </span>
-                  <span className='text-xl font-normal'>{format(new Date(), 'MMM dd, yyyy')}</span>
+                  <span className='text-xl font-normal'>
+                    {moment(activeCollocationPeriod.end_date).format('MMM DD, yyyy')}
+                  </span>
                 </div>
               )}
             </div>

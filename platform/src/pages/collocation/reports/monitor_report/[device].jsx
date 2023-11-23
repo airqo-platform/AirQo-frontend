@@ -2,7 +2,6 @@ import Layout from '@/components/Layout';
 import NavigationBreadCrumb from '@/components/Navigation/breadcrumb';
 import { useRouter } from 'next/router';
 import DataCompletenessTable from '@/components/Collocation/Report/MonitorReport/DataCompletenessTable';
-import { useGetDeviceStatusSummaryQuery } from '@/lib/store/services/collocation';
 import { useEffect, useState } from 'react';
 import InterCorrelationChart from '@/components/Collocation/Report/MonitorReport/InterCorrelation';
 import IntraCorrelationChart from '@/components/Collocation/Report/MonitorReport/IntraCorrelation';
@@ -12,16 +11,15 @@ import {
   addActiveSelectedDeviceCollocationReportData,
   addActiveSelectedDeviceReport,
 } from '@/lib/store/services/collocation/collocationDataSlice';
-import {
-  useGetCollocationResultsQuery,
-  useGetDataCompletenessResultsQuery,
-  useGetInterSensorCorrelationQuery,
-} from '@/lib/store/services/collocation';
 import { isEmpty } from 'underscore';
-import Spinner from '@/components/Spinner';
-import ContentBox from '@/components/Layout/content_box';
-import { generateRandomColors } from '@/core/utils/colors';
 import withAuth from '@/core/utils/protectedRoute';
+import { withPermission } from '@/core/utils/protectedRoute';
+import {
+  getCollocationResults,
+  getDataCompletenessResults,
+  getInterSensorCorrelation,
+  getDeviceStatusSummary,
+} from '@/lib/store/services/collocation';
 
 const MonitorReport = () => {
   const dispatch = useDispatch();
@@ -39,28 +37,26 @@ const MonitorReport = () => {
   const [input, setInput] = useState(null);
   const [dataCompletenessRecords, setDataCompletenessRecords] = useState(null);
 
-  const [skipCollocationResults, setSkipCollocationResults] = useState(true);
-  const [skipDataCompleteness, setSkipDataCompleteness] = useState(true);
-  const [skipInterSensorCorrelation, setSkipInterSensorCorrelation] = useState(true);
-
   const {
     data: collocationResultsData,
-    isError: isFetchCollocationResultsError,
-    isSuccess: isFetchCollocationResultsSuccess,
-    isLoading: isFetchCollocationResultsLoading,
-  } = useGetCollocationResultsQuery(input, { skip: skipCollocationResults });
+    loading: isFetchCollocationResultsLoading,
+    fulfilled: isFetchCollocationResultsSuccess,
+    rejected: isFetchCollocationResultsError,
+  } = useSelector((state) => state.collocation.collocationResults);
+
   const {
     data: dataCompletenessResultsData,
-    isError: isFetchDataCompletenessError,
-    isSuccess: isFetchDataCompletenessSuccess,
-    isLoading: isFetchDataCompletenessLoading,
-  } = useGetDataCompletenessResultsQuery(input, { skip: skipDataCompleteness });
+    loading: isFetchDataCompletenessLoading,
+    fulfilled: isFetchDataCompletenessSuccess,
+    rejected: isFetchDataCompletenessError,
+  } = useSelector((state) => state.collocation.dataCompletenessData);
+
   const {
     data: interSensorCorrelationData,
-    isLoading: isInterSensorCorrelationDataLoading,
-    isSuccess: isInterSensorCorrelationDataSuccess,
-    isError: isFetchInterSensorCorrelationDataError,
-  } = useGetInterSensorCorrelationQuery(input, { skip: skipInterSensorCorrelation });
+    loading: isInterSensorCorrelationDataLoading,
+    fulfilled: isInterSensorCorrelationDataSuccess,
+    rejected: isFetchInterSensorCorrelationDataError,
+  } = useSelector((state) => state.collocation.interSensorCorrelationData);
 
   const collocationResults = collocationResultsData ? collocationResultsData.data : null;
   const dataCompletenessResults = dataCompletenessResultsData
@@ -72,13 +68,13 @@ const MonitorReport = () => {
 
   const {
     data: data,
-    isLoading: isSummaryLoading,
-    isSuccess: isSummarySuccess,
-    isError: isSummaryError,
+    loading: isSummaryLoading,
+    fulfilled: isSummarySuccess,
+    rejected: isSummaryError,
     error: summaryError,
-    refetch,
-  } = useGetDeviceStatusSummaryQuery();
-  let deviceStatusSummary = data ? data.data : [];
+  } = useSelector((state) => state.collocation.collocationBatchSummary);
+
+  let deviceStatusSummary = data ? data : [];
 
   let batchDevices = deviceStatusSummary.filter((device) => device.batch_id === batchId);
   let graphColors = [
@@ -107,15 +103,34 @@ const MonitorReport = () => {
   ];
 
   useEffect(() => {
+    dispatch(getDeviceStatusSummary());
+  }, []);
+
+  useEffect(() => {
     if (!device || !batchId) return;
     setInput({
       devices: [device],
       batchId,
     });
-    setSkipDataCompleteness(false);
-    setSkipCollocationResults(false);
-    setSkipInterSensorCorrelation(false);
   }, [device, batchId]);
+
+  useEffect(() => {
+    if (!isEmpty(input)) {
+      dispatch(getCollocationResults(input));
+    }
+  }, [input]);
+
+  useEffect(() => {
+    if (!isEmpty(input)) {
+      dispatch(getDataCompletenessResults(input));
+    }
+  }, [input]);
+
+  useEffect(() => {
+    if (!isEmpty(input)) {
+      dispatch(getInterSensorCorrelation(input));
+    }
+  }, [input]);
 
   useEffect(() => {
     if (!isEmpty(dataCompletenessResults)) {
@@ -177,7 +192,7 @@ const MonitorReport = () => {
         /> */}
       </div>
 
-      {(isFetchCollocationResultsLoading || isFetchCollocationResultsSuccess) && (
+      {dataCompletenessRecords && (
         <DataCompletenessTable
           dataCompletenessResults={dataCompletenessRecords}
           isLoading={isFetchDataCompletenessLoading}
@@ -187,4 +202,4 @@ const MonitorReport = () => {
   );
 };
 
-export default withAuth(MonitorReport);
+export default withPermission(withAuth(MonitorReport), 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');
