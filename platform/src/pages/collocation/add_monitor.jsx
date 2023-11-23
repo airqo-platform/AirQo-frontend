@@ -1,52 +1,30 @@
 import Button from '@/components/Button';
 import ContentBox from '@/components/Layout/content_box';
 import NavigationBreadCrumb from '@/components/Navigation/breadcrumb';
-import {
-  useGetCollocationDevicesQuery,
-  getCollocationDevices,
-  getRunningQueriesThunk,
-} from '@/lib/store/services/deviceRegistry';
-import { wrapper } from '@/lib/store';
+import { getCollocationDevices } from '@/lib/store/services/deviceRegistry';
 import Table from '@/components/Collocation/AddMonitor/Table';
 import SkeletonFrame from '@/components/Collocation/AddMonitor/Skeletion';
 import { useDispatch, useSelector } from 'react-redux';
 import CheckCircleIcon from '@/icons/check_circle';
 import ScheduleCalendar from '@/components/Collocation/AddMonitor/Calendar';
-import { useCollocateDevicesMutation } from '@/lib/store/services/collocation';
 import { removeDevices } from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
 import Toast from '@/components/Toast';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import withAuth, { withPermission } from '@/core/utils/protectedRoute';
-import Head from 'next/head';
-
-export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
-  const name = context.params?.name;
-  if (typeof name === 'string') {
-    store.dispatch(getCollocationDevices.initiate(name));
-  }
-
-  await Promise.all(store.dispatch(getRunningQueriesThunk()));
-
-  return {
-    props: {},
-  };
-});
+import { collocateDevices } from '@/lib/store/services/collocation';
 
 const AddMonitor = () => {
   const router = useRouter();
   const dispatch = useDispatch();
   const [isCollocating, setCollocating] = useState(false);
 
-  const {
-    data: data,
-    isLoading,
-    isError: isFetchRunningDevicesError,
-  } = useGetCollocationDevicesQuery();
+  const schedulingResponse = useSelector((state) => state.collocation.collocateDevices);
+
+  const { collocationDevices: data, status, error } = useSelector((state) => state.deviceRegistry);
 
   let collocationDevices = data ? data.devices : [];
-  const [collocateDevices, { isError: isCollocateDeviceError }] = useCollocateDevicesMutation();
 
   const selectedCollocateDevices = useSelector(
     (state) => state.selectedCollocateDevices.selectedCollocateDevices,
@@ -70,6 +48,10 @@ const AddMonitor = () => {
     (state) => state.selectedCollocateDevices.scheduledBatchDifferencesThreshold,
   );
 
+  useEffect(() => {
+    dispatch(getCollocationDevices());
+  }, []);
+
   const handleCollocation = async () => {
     setCollocating(true);
     if (startDate && endDate && selectedCollocateDevices) {
@@ -84,9 +66,9 @@ const AddMonitor = () => {
         intraCorrelationThreshold: scheduledBatchIntraCorrelationThreshold,
       };
 
-      const response = await collocateDevices(body);
+      await dispatch(collocateDevices(body));
 
-      if (!response.error) {
+      if (schedulingResponse.fulfilled) {
         router.push('/collocation/collocate_success');
       }
     }
@@ -96,7 +78,7 @@ const AddMonitor = () => {
 
   return (
     <Layout pageTitle={'Add monitor | Collocation'}>
-      {(isFetchRunningDevicesError || isCollocateDeviceError) && (
+      {(error || (schedulingResponse && schedulingResponse.rejected)) && (
         <Toast
           type={'error'}
           message={
@@ -106,20 +88,20 @@ const AddMonitor = () => {
         />
       )}
       {/* SKELETON LOADER */}
-      {isLoading ? (
+      {status && status === 'loading' ? (
         <SkeletonFrame />
       ) : (
         <>
           <NavigationBreadCrumb navTitle={'Add monitor'}>
             <div className='flex'>
-              {/* {isCollocating && (
+              {schedulingResponse && schedulingResponse.fulfilled && (
                 <Button className={'mr-1'}>
                   <div className='mr-1'>
                     <CheckCircleIcon />
                   </div>{' '}
                   Saved
                 </Button>
-              )} */}
+              )}
               <Button
                 className={`rounded-none text-white bg-blue-900 border border-blue-900 font-medium ${
                   selectedCollocateDevices.length > 0 &&
@@ -131,7 +113,8 @@ const AddMonitor = () => {
                     : 'opacity-40 cursor-not-allowed'
                 }`}
                 onClick={handleCollocation}
-                dataTestId={'collocation-schedule-button'}>
+                dataTestId={'collocation-schedule-button'}
+              >
                 Start collocation
               </Button>
             </div>
