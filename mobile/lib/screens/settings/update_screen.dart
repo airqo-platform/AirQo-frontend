@@ -3,6 +3,7 @@ import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -124,7 +125,7 @@ Future<void> openUpdateScreen(
                         );
                   });
                 },
-                child: Text(
+                child: AutoSizeText(
                   AppLocalizations.of(context)!.updateNow,
                   style: CustomTextStyle.errorTitle(context)?.copyWith(
                     fontSize: 14,
