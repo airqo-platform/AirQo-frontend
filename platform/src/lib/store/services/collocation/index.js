@@ -143,7 +143,7 @@ const collocationSlice = createSlice({
       })
       .addCase(getCollocationResults.fulfilled, (state, action) => {
         state.collocationResults.loading = false;
-        state.collocationResults.data = action.payload;
+        state.collocationResults.data = action.payload.data;
       })
       .addCase(getCollocationResults.rejected, (state, action) => {
         state.collocationResults.loading = false;
@@ -154,7 +154,7 @@ const collocationSlice = createSlice({
       })
       .addCase(getDataCompletenessResults.fulfilled, (state, action) => {
         state.dataCompletenessData.loading = false;
-        state.dataCompletenessData.data = action.payload;
+        state.dataCompletenessData.data = action.payload.data;
       })
       .addCase(getDataCompletenessResults.rejected, (state, action) => {
         state.dataCompletenessData.loading = false;
@@ -165,7 +165,7 @@ const collocationSlice = createSlice({
       })
       .addCase(getIntraSensorCorrelation.fulfilled, (state, action) => {
         state.intraSensorCorrelationData.loading = false;
-        state.intraSensorCorrelationData.data = action.payload;
+        state.intraSensorCorrelationData.data = action.payload.data;
       })
       .addCase(getIntraSensorCorrelation.rejected, (state, action) => {
         state.intraSensorCorrelationData.loading = false;
@@ -176,7 +176,7 @@ const collocationSlice = createSlice({
       })
       .addCase(getInterSensorCorrelation.fulfilled, (state, action) => {
         state.interSensorCorrelationData.loading = false;
-        state.interSensorCorrelationData.data = action.payload;
+        state.interSensorCorrelationData.data = action.payload.data;
       })
       .addCase(getInterSensorCorrelation.rejected, (state, action) => {
         state.interSensorCorrelationData.loading = false;
@@ -187,7 +187,7 @@ const collocationSlice = createSlice({
       })
       .addCase(getCollocationStatistics.fulfilled, (state, action) => {
         state.collocationStatisticsData.loading = false;
-        state.collocationStatisticsData.data = action.payload;
+        state.collocationStatisticsData.data = action.payload.data;
       })
       .addCase(getCollocationStatistics.rejected, (state, action) => {
         state.collocationStatisticsData.loading = false;
@@ -198,7 +198,7 @@ const collocationSlice = createSlice({
       })
       .addCase(getCollocationBatchResults.fulfilled, (state, action) => {
         state.collocationBatchResults.loading = false;
-        state.collocationBatchResults.data = action.payload;
+        state.collocationBatchResults.data = action.payload.data;
       })
       .addCase(getCollocationBatchResults.rejected, (state, action) => {
         state.collocationBatchResults.loading = false;
