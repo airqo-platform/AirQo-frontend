@@ -1,6 +1,6 @@
 import React from 'react';
 import { useInitScrollTop } from 'utilities/customHooks';
-import { SplitSection, MainHighlight, ButtonCTA } from 'components/CleanAir';
+import { SplitSection, SingleSection, MainHighlight, ButtonCTA } from 'components/CleanAir';
 // import Section1 from 'assets/img/cleanAir/clean.jpeg';
 import Section11 from 'assets/img/cleanAir/clean1.jpg';
 import Section2 from 'assets/img/cleanAir/mission.jpeg';
@@ -46,22 +46,31 @@ const CleanAirAbout = () => {
       </div>
 
       {/* section 2 */}
-      <div style={{ paddingTop: '80px' }}>
-        <SplitSection
-          pillTitle="CLEAN-Air"
-          content="CLEAN-Air, an acronym coined from ‘Championing Liveable urban Environments through African Networks for Air’, brings together stakeholders and researchers in air quality management to share best practices and knowledge on developing and implementing air quality management solutions in African cities."
-          imgURL={Section33}
-          imageStyle={{
-            objectFit: 'cover',
-            maxHeight: '400px'
-          }}
-          // bgColor="#FFFFFF"
-          // pillBgColor="#ECF2FF"
-          // pillTextColor="#135DFF"
+      <div>
+        <SingleSection
+          content={
+            <div
+              style={{
+                padding: '50px 0',
+                fontSize: '1.5rem',
+                lineHeight: '2.5rem'
+              }}>
+              <span
+                style={{
+                  fontWeight: 'bold',
+                  fontSize: '40px',
+                  color: '#135DFF'
+                }}>
+                CLEAN-Air
+              </span>
+              , an acronym coined from ‘Championing Liveable urban Environments through African
+              Networks for Air’, brings together stakeholders and researchers in air quality
+              management to share best practices and knowledge on developing and implementing air
+              quality management solutions in African cities.
+            </div>
+          }
           bgColor="#EDF3FF"
-          pillBgColor="#FFFFFF"
-          pillTextColor="#000000"
-          showButton={false}
+          btnStyle={{ width: 'auto' }}
         />
       </div>
       {/* section 3 */}
