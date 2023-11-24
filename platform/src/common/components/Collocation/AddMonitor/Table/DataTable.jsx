@@ -67,7 +67,7 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
         </tr>
       </thead>
       <tbody>
-        {paginatedData.length > 0 &&
+        {paginatedData.length > 0 ? (
           paginatedData.map((device, index) => {
             return (
               <tr className='border-b border-b-slate-300' key={index}>
@@ -91,7 +91,17 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
                 <td scope='row' className='w-[145px] px-4 py-3'></td>
               </tr>
             );
-          })}
+          })
+        ) : (
+          <tr className='border-b border-b-slate-300'>
+            <td
+              colSpan={5}
+              className='w-full py-3 px-6 text-center text-secondary-neutral-light-500'
+            >
+              No devices found
+            </td>
+          </tr>
+        )}
       </tbody>
     </table>
   );

@@ -1,33 +1,38 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { DEVICES } from '@/core/urls/deviceRegistry';
-import { HYDRATE } from 'next-redux-wrapper';
-import { NEXT_PUBLIC_API_TOKEN } from '../../envConstants';
+import createAxiosInstance from '@/core/apis/axiosConfig';
 
-export const deviceRegistryApi = createApi({
-  reducerPath: 'deviceRegistryApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: DEVICES,
-  }),
-  extractRehydrationInfo(action, { reducerPath }) {
-    if (action.type === HYDRATE) {
-      return action.payload[reducerPath];
-    }
+export const getCollocationDevices = createAsyncThunk(
+  'deviceRegistry/getCollocationDevices',
+  async () => {
+    const response = await createAxiosInstance(false).get(`${DEVICES}/events/running`);
+    return response.data;
   },
-  endpoints: (builder) => ({
-    getAllDevices: builder.query({
-      query: () => '',
-    }),
-    getCollocationDevices: builder.query({
-      query: () => `/events/running?token=${NEXT_PUBLIC_API_TOKEN}&tenant=airqo`,
-    }),
-  }),
+);
+
+const deviceRegistrySlice = createSlice({
+  name: 'deviceRegistry',
+  initialState: {
+    collocationDevices: [],
+    status: 'idle',
+    error: null,
+  },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(getCollocationDevices.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(getCollocationDevices.fulfilled, (state, action) => {
+        console.log(action.payload.data);
+        state.status = 'succeeded';
+        state.collocationDevices = action.payload.data;
+      })
+      .addCase(getCollocationDevices.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message;
+      });
+  },
 });
 
-export const {
-  useGetAllDevicesQuery,
-  useGetCollocationDevicesQuery,
-  util: { getRunningQueriesThunk },
-} = deviceRegistryApi;
-
-// export endpoints for use in SSR
-export const { getAllDevices, getCollocationDevices } = deviceRegistryApi.endpoints;
+export default deviceRegistrySlice.reducer;

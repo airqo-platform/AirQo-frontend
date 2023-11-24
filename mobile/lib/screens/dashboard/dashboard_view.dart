@@ -166,13 +166,9 @@ class _DashboardViewState extends State<DashboardView>
                       BlocBuilder<KyaBloc, KyaState>(
                         builder: (context, state) {
                           final allLessons = state.lessons;
-                          final completeQuizzes = state.quizzes
-                              .where(
-                                  (quiz) => quiz.status == QuizStatus.complete)
-                              .take(3)
-                              .toList();
+                          final allQuizzes = state.quizzes;
                           final kyaWidgets =
-                              completeKyaWidgets(allLessons, completeQuizzes);
+                              kyaHeaderWidget(allLessons, allQuizzes);
                           return Expanded(
                             child: CustomShowcaseWidget(
                               showcaseKey: _forYouShowcaseKey,
