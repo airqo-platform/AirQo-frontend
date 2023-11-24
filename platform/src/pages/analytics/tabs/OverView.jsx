@@ -33,6 +33,24 @@ const OverView = () => {
     }
   }, [chartDataRange, sites]);
 
+  const dummyData = {
+    siteDetails: {
+      search_name: 'N/A',
+      location_name: 'N/A',
+      formatted_name: 'N/A',
+      description: 'N/A',
+    },
+    pm2_5: {
+      value: 'N/A',
+    },
+  };
+
+  let displayData = recentLocationMeasurements ? recentLocationMeasurements.slice(0, 4) : [];
+
+  while (displayData.length < 4) {
+    displayData.push(dummyData);
+  }
+
   return (
     <BorderlessContentBox>
       <div
@@ -42,22 +60,19 @@ const OverView = () => {
             : 'grid md:grid-cols-2'
         }`}>
         {!isLoadingMeasurements &&
-          recentLocationMeasurements &&
-          recentLocationMeasurements
-            .slice(0, 4)
-            .map((event, index) => (
-              <AQNumberCard
-                keyValue={index}
-                location={
-                  event?.siteDetails?.search_name ||
-                  event?.siteDetails?.location_name ||
-                  event?.siteDetails?.formatted_name ||
-                  event?.siteDetails?.description
-                }
-                reading={event.pm2_5.value}
-                count={recentLocationMeasurements.length}
-              />
-            ))}
+          displayData.map((event, index) => (
+            <AQNumberCard
+              keyValue={index}
+              location={
+                event.siteDetails.search_name ||
+                event.siteDetails.location_name ||
+                event.siteDetails.formatted_name ||
+                event.siteDetails.description
+              }
+              reading={event.pm2_5.value}
+              count={displayData.length}
+            />
+          ))}
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <ChartContainer chartType='line' chartTitle='Air quality over time' height={300} />
