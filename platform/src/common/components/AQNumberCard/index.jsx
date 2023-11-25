@@ -8,7 +8,7 @@ import WindIcon from '@/icons/Common/wind.svg';
 import CustomTooltip from '../Tooltip';
 import { useWindowSize } from '@/lib/windowSize';
 
-const AQNumberCard = ({ reading, location, keyValue, count }) => {
+const AQNumberCard = ({ reading, location, keyValue, pollutant, count }) => {
   let airQualityText = '';
   let AirQualityIcon = null;
   let airQualityColor = '';
@@ -66,10 +66,12 @@ const AQNumberCard = ({ reading, location, keyValue, count }) => {
                 <div className='p-[2.62px] bg-slate-100 rounded-[18.35px] justify-center items-center flex'>
                   <WindIcon width='10.48px' height='10.48px' />
                 </div>
-                <div className='text-slate-400 text-sm font-medium leading-tight'>PM2.5</div>
+                <div className='text-slate-400 text-sm font-medium leading-tight'>
+                  {pollutant === 'pm2_5' ? 'PM2.5' : 'PM10'}
+                </div>
               </div>
               <div className='text-gray-700 text-[28px] font-extrabold leading-7'>
-                {reading.toFixed(2)}
+                {typeof reading === 'number' ? reading.toFixed(2) : reading}
               </div>
             </div>
           </div>

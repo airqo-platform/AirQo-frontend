@@ -11,6 +11,7 @@ const OverView = () => {
   const dispatch = useDispatch();
   const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
   const chartDataRange = useSelector((state) => state.chart.chartDataRange);
+  const pollutantType = useSelector((state) => state.chart.pollutionType);
   const sites = useSelector((state) => state.chart.chartSites);
   const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
 
@@ -33,6 +34,24 @@ const OverView = () => {
     }
   }, [chartDataRange, sites]);
 
+  const dummyData = {
+    siteDetails: {
+      search_name: '--',
+      location_name: '--',
+      formatted_name: '--',
+      description: '--',
+    },
+    pm2_5: {
+      value: '--',
+    },
+  };
+
+  let displayData = recentLocationMeasurements ? recentLocationMeasurements.slice(0, 4) : [];
+
+  while (displayData.length < 4) {
+    displayData.push(dummyData);
+  }
+
   return (
     <BorderlessContentBox>
       <div
@@ -42,22 +61,20 @@ const OverView = () => {
             : 'grid md:grid-cols-2'
         }`}>
         {!isLoadingMeasurements &&
-          recentLocationMeasurements &&
-          recentLocationMeasurements
-            .slice(0, 4)
-            .map((event, index) => (
-              <AQNumberCard
-                keyValue={index}
-                location={
-                  event?.siteDetails?.search_name ||
-                  event?.siteDetails?.location_name ||
-                  event?.siteDetails?.formatted_name ||
-                  event?.siteDetails?.description
-                }
-                reading={event.pm2_5.value}
-                count={recentLocationMeasurements.length}
-              />
-            ))}
+          displayData.map((event, index) => (
+            <AQNumberCard
+              keyValue={index}
+              location={
+                event.siteDetails.search_name ||
+                event.siteDetails.location_name ||
+                event.siteDetails.formatted_name ||
+                event.siteDetails.description
+              }
+              reading={event.pm2_5.value}
+              count={displayData.length}
+              pollutant={pollutantType}
+            />
+          ))}
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <ChartContainer chartType='line' chartTitle='Air quality over time' height={300} />
