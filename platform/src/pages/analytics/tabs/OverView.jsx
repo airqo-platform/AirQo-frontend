@@ -35,13 +35,13 @@ const OverView = () => {
 
   const dummyData = {
     siteDetails: {
-      search_name: 'N/A',
-      location_name: 'N/A',
-      formatted_name: 'N/A',
-      description: 'N/A',
+      search_name: '--',
+      location_name: '--',
+      formatted_name: '--',
+      description: '--',
     },
     pm2_5: {
-      value: 'N/A',
+      value: '--',
     },
   };
 
