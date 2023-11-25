@@ -11,6 +11,7 @@ const OverView = () => {
   const dispatch = useDispatch();
   const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
   const chartDataRange = useSelector((state) => state.chart.chartDataRange);
+  const pollutantType = useSelector((state) => state.chart.pollutionType);
   const sites = useSelector((state) => state.chart.chartSites);
   const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
 
@@ -71,6 +72,7 @@ const OverView = () => {
               }
               reading={event.pm2_5.value}
               count={displayData.length}
+              pollutant={pollutantType}
             />
           ))}
       </div>
