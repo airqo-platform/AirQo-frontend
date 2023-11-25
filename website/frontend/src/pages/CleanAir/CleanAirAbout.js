@@ -1,9 +1,11 @@
 import React from 'react';
 import { useInitScrollTop } from 'utilities/customHooks';
-import { SplitSection, MainHighlight, ButtonCTA } from 'components/CleanAir';
-import Section1 from 'assets/img/cleanAir/clean.jpeg';
+import { SplitSection, SingleSection, MainHighlight, ButtonCTA } from 'components/CleanAir';
+// import Section1 from 'assets/img/cleanAir/clean.jpeg';
+import Section11 from 'assets/img/cleanAir/clean1.jpg';
 import Section2 from 'assets/img/cleanAir/mission.jpeg';
-import Section3 from 'assets/img/cleanAir/acronym.jpg';
+// import Section3 from 'assets/img/cleanAir/acronym.jpg';
+import Section33 from 'assets/img/cleanAir/acronym3.png';
 import Section4 from 'assets/img/cleanAir/synergy.jpg';
 import Section5 from 'assets/img/cleanAir/goals.JPG';
 import SEO from 'utilities/seo';
@@ -20,7 +22,7 @@ const CleanAirAbout = () => {
       {/* section 1 */}
       <div className="Hero">
         <span className="image-container">
-          <img src={Section1} />
+          <img src={Section11} />
         </span>
         <div className="hero-content">
           <div>
@@ -44,22 +46,31 @@ const CleanAirAbout = () => {
       </div>
 
       {/* section 2 */}
-      <div style={{paddingTop:'80px'}}>
-        <SplitSection
-          pillTitle="CLEAN-Air"
-          content="CLEAN-Air, an acronym coined from ‘Championing Liveable urban Environments through African Networks for Air’, brings together stakeholders and researchers in air quality management to share best practices and knowledge on developing and implementing air quality management solutions in African cities."
-          imgURL={Section3}
-          imageStyle={{
-            objectFit: 'cover',
-            maxHeight: '400px'
-          }}
-          // bgColor="#FFFFFF"
-          // pillBgColor="#ECF2FF"
-          // pillTextColor="#135DFF"
+      <div>
+        <SingleSection
+          content={
+            <div
+              style={{
+                padding: '50px 0',
+                fontSize: '1.5rem',
+                lineHeight: '2.5rem'
+              }}>
+              <span
+                style={{
+                  fontWeight: 'bold',
+                  fontSize: '40px',
+                  color: '#135DFF'
+                }}>
+                CLEAN-Air
+              </span>
+              , an acronym coined from ‘Championing Liveable urban Environments through African
+              Networks for Air’, brings together stakeholders and researchers in air quality
+              management to share best practices and knowledge on developing and implementing air
+              quality management solutions in African cities.
+            </div>
+          }
           bgColor="#EDF3FF"
-          pillBgColor="#FFFFFF"
-          pillTextColor="#000000"
-          showButton={false}
+          btnStyle={{ width: 'auto' }}
         />
       </div>
       {/* section 3 */}
@@ -73,7 +84,7 @@ const CleanAirAbout = () => {
           link="#"
           imageStyle={{
             objectFit: 'cover',
-            maxHeight:'400px'
+            maxHeight: '400px'
           }}
           imgURL={Section2}
           // bgColor="#EDF3FF"
@@ -98,7 +109,7 @@ const CleanAirAbout = () => {
           btnText={'Join the Network -->'}
           imgURL={Section4}
           imageStyle={{
-            objectFit: 'cover',
+            objectFit: 'cover'
           }}
           bgColor="#EDF3FF"
           pillBgColor="#FFFFFF"
