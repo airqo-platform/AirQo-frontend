@@ -256,7 +256,7 @@ class AirqoApiClient {
 
   Future<void> syncPlatformAccount() async {
     try {
-      await Future.delayed(const Duration(minutes: 5));
+      await Future.delayed(const Duration(minutes: 1));
       final user = await CloudStore.getProfile();
       String url = addQueryParameters({}, AirQoUrls.syncPlatformAccount);
       Map<String, String> headers = Map.from(postHeaders);
@@ -286,11 +286,17 @@ class AirqoApiClient {
         final responseBody = json.decode(response.body);
 
         if (responseBody['success'] == true) {
-          Profile userToUpdate = user.copyWith(
-            analyticsMongoID: responseBody['user']['_id'] as String,
-          );
+          Profile userToUpdate = user;
+          if (responseBody['syncOperation'] == "Created") {
+            userToUpdate = user.copyWith(
+              analyticsMongoID: responseBody['user']['_id'] as String,
+            );
+          }
 
-          if (responseBody['syncOperation'] == "update") {
+          if (responseBody['syncOperation'] == "Updated") {
+            userToUpdate = user.copyWith(
+              analyticsMongoID: responseBody['user'][0]['_id'] as String,
+            );
             if (user.phoneNumber == "") {
               userToUpdate = userToUpdate.copyWith(
                 phoneNumber: responseBody['user']['phoneNumber'] as String,
