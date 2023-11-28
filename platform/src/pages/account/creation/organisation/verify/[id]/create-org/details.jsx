@@ -24,7 +24,7 @@ import {
   updateUserPreferences,
   postUserPreferences,
 } from '@/lib/store/services/account/UserDefaultsSlice';
-import InfoCircle from '@/icons/Alerts/info_circle';
+import InfoCircle from '@/icons/Alerts/Info_circle';
 
 const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
   const router = useRouter();
@@ -539,7 +539,7 @@ const CreateOrganisationDetailsPageThree = () => {
   return (
     <div className='relative h-[600px] w-full'>
       <ProgressComponent colorFirst={true} colorSecond={true} colorThird={true} />
-      <div className='w-full h-full'>
+      <div className='w-full h-auto'>
         <h2 className='text-3xl text-black font-semibold w-full lg:w-10/12 md:mt-20 lg:mt-2'>
           Choose locations you are interested in
         </h2>
