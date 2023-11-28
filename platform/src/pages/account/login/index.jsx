@@ -95,7 +95,11 @@ const UserLogin = () => {
   };
 
   return (
-    <AccountPageLayout pageTitle='AirQo Analytics | Login'>
+    <AccountPageLayout
+      pageTitle='AirQo Analytics | Login'
+      rightText={
+        "What you've built here is so much better for air pollution monitoring than anything else on the market!"
+      }>
       <div className='w-full'>
         <h2 className='text-3xl text-black-700 font-medium'>Lets get started</h2>
         <p className='text-xl text-black-700 font-normal mt-3'>

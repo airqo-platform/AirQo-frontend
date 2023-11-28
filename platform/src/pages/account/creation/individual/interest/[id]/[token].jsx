@@ -64,7 +64,7 @@ const IndividualAccountInterest = () => {
           state: true,
           message: response.message,
         });
-      }else{
+      } else {
         router.push('/account/creation/get-started');
       }
     } catch (error) {
@@ -88,7 +88,12 @@ const IndividualAccountInterest = () => {
   };
 
   return (
-    <AccountPageLayout childrenHeight={'lg:h-[580]'} pageTitle={'Interest | AirQo'}>
+    <AccountPageLayout
+      childrenHeight={'lg:h-[580]'}
+      pageTitle={'Interest | AirQo'}
+      rightText={
+        "What you've built here is so much better for air pollution monitoring than anything else on the market!"
+      }>
       {updateError.state && <Toast type={'error'} timeout={5000} message={updateError.message} />}
       <div className='w-full'>
         <h2 className='text-3xl text-black-700 font-medium'>Help us understand your interest</h2>
@@ -138,12 +143,15 @@ const IndividualAccountInterest = () => {
         <div className='mt-10'>
           <div className='lg:w-1/3 mt-6 md:mt-0 md:w-full'>
             {clickedButton === '' && interest === null ? (
-              <button className='w-full btn btn-disabled bg-white rounded-none text-sm outline-none border-none'>
+              <button
+                style={{ textTransform: 'none' }}
+                className='w-full btn btn-disabled bg-white rounded-[12px] text-sm outline-none border-none'>
                 {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
               </button>
             ) : (
               <button
-                className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'
+                style={{ textTransform: 'none' }}
+                className='w-full btn bg-blue-900 rounded-[12px] text-sm outline-none border-none hover:bg-blue-950'
                 onClick={() => handleUpdate()}>
                 Continue
               </button>

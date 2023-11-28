@@ -672,7 +672,12 @@ const CreateOrganisationDetails = () => {
   }, []);
 
   return (
-    <AccountPageLayout childrenHeight={'lg:h-[500]'} childrenTop={'mt-8'}>
+    <AccountPageLayout
+      childrenHeight={'lg:h-[500]'}
+      childrenTop={'mt-8'}
+      rightText={
+        "What you've built here is so much better for air pollution monitoring than anything else on the market!"
+      }>
       {nextComponent === 'pageOne' && (
         <CreateOrganisationDetailsPageOne handleComponentSwitch={() => handleSwitchTo('pageTwo')} />
       )}

@@ -203,7 +203,7 @@ const IndividualAccountRegistration = () => {
           <div className='mt-6'>
             {firstName.length >= 2 && lastName.length >= 2 ? (
               <div className='w-full'>
-                <div className='text-xs'>Password*</div>
+                <div className='text-xs'>Password</div>
                 <div className='mt-2 flex flex-row justify-between'>
                   <div className='w-11/12'>
                     {passwordWordErrors ? (
@@ -293,7 +293,9 @@ const IndividualAccountRegistration = () => {
             <div className='flex flex-col-reverse md:flex-row items-center justify-start md:justify-between'>
               <div className='w-full md:w-1/3 sm:mt-6 md:mt-0'>
                 <Link href='/account/creation'>
-                  <button className='w-full text-sm btn bg-white rounded-none outline-none border-2 border-check-box hover:bg-gray-100 hover:border-inherit focus:border-inherit'>
+                  <button
+                    style={{ textTransform: 'none' }}
+                    className='w-full text-sm btn bg-white rounded-[12px] outline-none border-2 border-check-box hover:bg-gray-100 hover:border-inherit focus:border-inherit'>
                     <span style={{ color: '#353E52' }}>Back</span>
                   </button>
                 </Link>
@@ -303,7 +305,8 @@ const IndividualAccountRegistration = () => {
                   <button
                     type='submit'
                     onClick={handleSubmit}
-                    className='w-full btn bg-blue-900 rounded-none text-white text-sm outline-none border-none hover:bg-blue-950'>
+                    style={{ textTransform: 'none' }}
+                    className='w-full btn bg-blue-900 rounded-[12px] text-white text-sm outline-none border-none hover:bg-blue-950'>
                     {loading ? (
                       <Spinner data-testid='spinner' width={25} height={25} />
                     ) : (
@@ -314,8 +317,9 @@ const IndividualAccountRegistration = () => {
               ) : (
                 <div className='w-full md:w-1/3'>
                   <button
+                    style={{ textTransform: 'none' }}
                     type='submit'
-                    className='w-full btn btn-disabled bg-white rounded-none text-sm outline-none border-none'>
+                    className='w-full btn btn-disabled bg-white rounded-[12px] text-sm outline-none border-none'>
                     Continue
                   </button>
                 </div>
