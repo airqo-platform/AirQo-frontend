@@ -1,4 +1,4 @@
-const CloseIcon = ({ width, height, fill }) => (
+const CloseIcon = ({ width, height, fill, strokeWidth }) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
     width={width || '24'}
@@ -8,7 +8,7 @@ const CloseIcon = ({ width, height, fill }) => (
     <path
       d='M18 6L6 18M6 6L18 18'
       stroke={fill || '#536A87'}
-      strokeWidth='1.5'
+      strokeWidth={strokeWidth || '1.5'}
       strokeLinecap='round'
       strokeLinejoin='round'
     />

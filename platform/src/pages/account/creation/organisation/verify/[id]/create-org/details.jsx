@@ -15,10 +15,8 @@ import {
 import Toast from '@/components/Toast';
 import Link from 'next/link';
 import LocationIcon from '@/icons/SideBar/Sites.svg';
-import CloseIcon from '@/icons/Actions/close.svg';
-import {
-  getSitesSummary,
-} from '@/lib/store/services/deviceRegistry/GridsSlice';
+import CloseIcon from '@/icons/close_icon';
+import { getSitesSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import countries from 'i18n-iso-countries';
 import englishLocale from 'i18n-iso-countries/langs/en.json';
 import {
@@ -26,6 +24,7 @@ import {
   updateUserPreferences,
   postUserPreferences,
 } from '@/lib/store/services/account/UserDefaultsSlice';
+import InfoCircle from '@/icons/Alerts/info_circle';
 
 const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
   const router = useRouter();
@@ -495,7 +494,7 @@ const CreateOrganisationDetailsPageThree = () => {
     setLoading(true);
     const data = {
       user_id: id,
-      selected_sites:locationArray,
+      selected_sites: locationArray,
     };
     dispatch(setCustomisedLocations(data));
     try {
@@ -538,7 +537,7 @@ const CreateOrganisationDetailsPageThree = () => {
             <Toast type={'error'} timeout={6000} message={creationErrors.message} />
           )}
           <div className='mt-6'>
-            <div className='lg:w-11/12 sm:w-full md:w-full'>
+            <div className='w-full'>
               <div className='text-sm'>Add Locations</div>
               <div className='mt-2 w-full flex flex-row items-center justify-start '>
                 <div className='flex items-center justify-center pl-3 bg-white border h-12 rounded-lg rounded-r-none border-r-0 border-input-light-outline focus:border-input-light-outline'>
@@ -581,7 +580,10 @@ const CreateOrganisationDetailsPageThree = () => {
                   )}
                 </div>
               )}
-              <div className='mt-1 text-xs text-grey-350'>Select any 4 locations</div>
+              <div className='mt-1 flex space-x-1 text-xs text-grey-350'>
+                <InfoCircle />
+                <span>Select any 4 locations</span>
+              </div>
             </div>
           </div>
           {inputSelect && (
@@ -595,7 +597,9 @@ const CreateOrganisationDetailsPageThree = () => {
                       {location.name}
                     </span>
                     <div onClick={() => removeLocation(location)} className='hover:cursor-pointer'>
-                      <CloseIcon style={{ margin: '0 3px' }} />
+                      <span className='mt-[4px]'>
+                        <CloseIcon fill='#145FFF' strokeWidth='2' width={16} height={16} />
+                      </span>
                     </div>
                   </div>
                 ))
@@ -656,7 +660,7 @@ const CreateOrganisationDetails = () => {
 
   return (
     <AccountPageLayout childrenHeight={'lg:h-[500]'} childrenTop={'mt-8'}>
-      {nextComponent === 'pageOne' && (
+      {nextComponent === 'pageThree' && (
         <CreateOrganisationDetailsPageOne handleComponentSwitch={() => handleSwitchTo('pageTwo')} />
       )}
       {nextComponent === 'pageTwo' && (
@@ -664,7 +668,7 @@ const CreateOrganisationDetails = () => {
           handleComponentSwitch={() => handleSwitchTo('pageThree')}
         />
       )}
-      {nextComponent === 'pageThree' && <CreateOrganisationDetailsPageThree />}
+      {nextComponent === 'pageOne' && <CreateOrganisationDetailsPageThree />}
     </AccountPageLayout>
   );
 };
