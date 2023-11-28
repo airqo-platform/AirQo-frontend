@@ -14,7 +14,6 @@ import { decryptKeyApi } from 'views/apis/deviceRegistry';
 import { isEmpty } from 'underscore';
 import format from 'date-fns/format';
 import { stripTrailingSlash } from '../../../../../config/utils';
-import InfoIcon from '@material-ui/icons/Info';
 import HowToApiModal from '../../../HowToApiModal';
 
 const BASE_ANALYTICS_URL = stripTrailingSlash(process.env.REACT_APP_BASE_URL_V2);
