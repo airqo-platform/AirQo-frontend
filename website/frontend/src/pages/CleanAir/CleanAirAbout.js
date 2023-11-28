@@ -13,7 +13,7 @@ import SEO from 'utilities/seo';
 const CleanAirAbout = () => {
   useInitScrollTop();
   return (
-    <div className="page-wrapper">
+    <div className="page-wrapper about-page">
       <SEO
         title="About"
         siteTitle="CLEAN-Air Network"
@@ -46,7 +46,7 @@ const CleanAirAbout = () => {
       </div>
 
       {/* section 2 */}
-      <div>
+      <div className='page-section'>
         <SingleSection
           content={
             <div
@@ -74,7 +74,7 @@ const CleanAirAbout = () => {
         />
       </div>
       {/* section 3 */}
-      <div>
+      <div className='page-section'>
         <SplitSection
           pillTitle="CLEAN-Air Mission"
           title="CLEAN-Air Mission"
@@ -98,7 +98,7 @@ const CleanAirAbout = () => {
       </div>
 
       {/* section 4 */}
-      <div>
+      <div className='page-section'>
         <SplitSection
           pillTitle="CLEAN-Air Membership"
           title="A Synergy for air quality in Africa"
@@ -118,7 +118,7 @@ const CleanAirAbout = () => {
         />
       </div>
       {/* section 5 */}
-      <div>
+      <div className='page-section'>
         <SplitSection
           pillTitle="CLEAN-Air Goals"
           imgURL={Section5}
@@ -178,7 +178,7 @@ const CleanAirAbout = () => {
         </SplitSection>
       </div>
       {/* section 6 */}
-      <div>
+      <div className='page-section'>
         <MainHighlight />
       </div>
     </div>

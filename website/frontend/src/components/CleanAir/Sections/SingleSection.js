@@ -1,9 +1,9 @@
 import React from 'react';
 import ButtonCTA from '../CTAs/ButtonCTA';
 
-const SingleSection = ({ bgColor, btnText, title, content, link, btnStyle }) => {
+const SingleSection = ({ bgColor, btnText, title, content, link, btnStyle, removeTopMargin }) => {
   return (
-    <div className="single-section" style={{ backgroundColor: bgColor }}>
+    <div className={removeTopMargin ? "single-section no-top" : "single-section"} style={{ backgroundColor: bgColor }}>
       <div className="content">
         {title && <h3 className="content-h">{title}</h3>}
         <span className="content-p">{content}</span>

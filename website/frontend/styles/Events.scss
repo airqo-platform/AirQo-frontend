@@ -279,11 +279,12 @@
         margin-top: 60px;
         .html {
           p {
-            font-size: 17px;
-            line-height: 28px;
+            font-size: 16px;
+            line-height: 26px;
             font-weight: 400;
             margin: 0;
             color: $aq-black-1;
+            text-align: justify;
           }
           a {
             color: $aq-blue-0;
@@ -295,24 +296,24 @@
             object-fit: cover;
             max-width: 95%;
             justify-self: center;
-            padding: 8px 0;
+            padding: 6px 0;
           }
           strong {
             font-weight: 700;
-            font-size: 18px;
+            font-size: 17px;
           }
           ol {
             margin-top: 0px;
             li {
-              font-size: 17px;
+              font-size: 16px;
               font-weight: 400;
-              line-height: 28px;
+              line-height: 26px;
             }
           }
         }
         .partner_logos {
           width: 100%;
-          margin-bottom: 40px;
+          margin-bottom: 30px;
           table {
             table-layout: fixed;
             width: 100%;
@@ -328,7 +329,7 @@
             max-width: 194px;
             width: 100%;
             height: 144px;
-            border: 0.4px solid $aq-blue-8;
+            // border: 0.4px solid $aq-blue-8;
           }
           img {
             display: flex;
@@ -343,14 +344,14 @@
           }
         }
         .program {
-          margin-top: 40px;
+          margin-top: 30px;
           h3 {
             font-weight: 700;
             font-size: 22px;
             line-height: 28px;
           }
           details {
-            margin-top: 40px;
+            margin-top: 26px;
             summary {
               background-color: $aq-blue-1;
               padding: 30px;
@@ -394,12 +395,14 @@
               h4 {
                 color: $aq-blue-2;
                 font-weight: 700;
+                font-size: 18px;
+                margin-bottom: 4px;
               }
             }
           }
         }
         .inquiry {
-          margin-top: 48px;
+          margin-top: 36px;
           h4 {
             font-size: 22px;
           }
@@ -407,6 +410,7 @@
             margin-top: 10px;
             span:nth-child(1) {
               font-weight: 600;
+              font-size: 18px;
             }
             span:nth-child(3) {
               color: $aq-blue-0;
@@ -484,6 +488,7 @@
     }
     &.details {
       .detail-body {
+        padding: 0 16px;
         .event-details {
           padding-right: 16px;
           padding-left: 16px;
@@ -541,6 +546,7 @@
         .event-details {
           flex-direction: column;
           align-items: flex-start;
+          padding: 0 4px;
         }
         .time {
           .item {
@@ -550,6 +556,12 @@
           }
         }
         .body {
+          .partner_logos {
+            margin-bottom: 10px;
+          }
+          .program {
+            margin-bottom: 10px;
+          }
           .html {
             img {
               width: 100%;

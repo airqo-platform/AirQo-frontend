@@ -168,7 +168,7 @@ const CleanAirEvents = () => {
             <Loadspinner />
           ) : null}
           {!loading && upcomingEvents.length === 0 && selectedNavTab === 'upcoming events' ? (
-            <div className="no-events">There are currently no events</div>
+            <div className="no-events">There are currently no upcoming events</div>
           ) : null}
           {eventsToShow.length > ITEMS_PER_PAGE && (
             <ul className="pagination">

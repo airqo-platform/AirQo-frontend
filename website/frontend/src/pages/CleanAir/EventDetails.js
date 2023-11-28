@@ -90,9 +90,11 @@ const EventDetails = () => {
                       {event.location_name ? (
                         <div className="item">
                           <PlaceOutlined />
-                          {
-                            event.location_link !== null ? <a href={event.location_link} target='_blank'><span>{event.location_name}</span></a> : <span>{event.location_name}</span>
-                          }
+                          <span>
+                            {
+                              event.location_link !== null ? <a href={event.location_link} target='_blank'><span>{event.location_name}</span></a> : <span>{event.location_name}</span>
+                            }
+                          </span>
                         </div>
                       ) : (
                         <span />
@@ -128,7 +130,7 @@ const EventDetails = () => {
                     <div dangerouslySetInnerHTML={{ __html: event.html }} className="html"></div>
                     {event.program.length > 0 ? (
                       <div className="program">
-                        <h3>Event Program</h3>
+                        <h3>Schedule</h3>
                         {event.program.map((program) => (
                           <div key={program.id}>
                             <details>
@@ -162,7 +164,6 @@ const EventDetails = () => {
                     )}
                     {event.inquiry.length > 0 ? (
                       <div className="inquiry">
-                        <h4>For any inquiries and clarifications:</h4>
                         {event.inquiry.map((inq) => (
                           <div key={inq.id}>
                             <span>{inq.inquiry}</span>: <span>{inq.role}</span> -{' '}
