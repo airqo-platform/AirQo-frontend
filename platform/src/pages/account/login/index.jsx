@@ -105,7 +105,7 @@ const UserLogin = () => {
         <form onSubmit={handleLogin} data-testid='login-form'>
           <div className='mt-6'>
             <div className='w-full'>
-              <div className='text-sm'>Email Address</div>
+              <div className='text-sm text-grey-300'>Email Address</div>
               <div className='mt-2 w-full'>
                 <input
                   type='text'
@@ -120,7 +120,7 @@ const UserLogin = () => {
           </div>
           <div className='mt-6'>
             <div className='w-full'>
-              <div className='text-sm'>Password</div>
+              <div className='text-sm text-grey-300'>Password</div>
               <div className='mt-2 flex flex-row justify-between'>
                 <div className='w-11/12'>
                   <input
@@ -146,9 +146,9 @@ const UserLogin = () => {
           <div className='mt-10'>
             <button
               data-testid='login-btn'
-              className='w-full btn bg-blue-900 rounded-none text-white text-sm outline-none border-none hover:bg-blue-950'
-              type='submit'
-            >
+              style={{ textTransform: 'none' }}
+              className='w-full btn bg-blue-900 rounded-[12px] text-white text-sm outline-none border-none hover:bg-blue-950'
+              type='submit'>
               {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Login'}
             </button>
           </div>
