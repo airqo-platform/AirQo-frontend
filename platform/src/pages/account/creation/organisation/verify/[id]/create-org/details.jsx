@@ -96,8 +96,8 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
             <Toast type={'error'} timeout={7000} message={creationErrors.message} />
           )}
           <div className='mt-6'>
-            <div className='lg:w-10/12 sm:w-full md:w-11/12'>
-              <div className='text-sm'>Organisation Name*</div>
+            <div className='w-full'>
+              <div className='text-sm text-grey-300'>Organisation Name*</div>
               <div className='mt-2 w-full'>
                 {orgName.length <= 2 ? (
                   <input
@@ -120,8 +120,8 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
             </div>
           </div>
           <div className='mt-6'>
-            <div className='lg:w-10/12 sm:w-full md:w-11/12'>
-              <div className='text-sm'>Website*</div>
+            <div className='w-full'>
+              <div className='text-sm text-grey-300'>Website</div>
               <div className='mt-2 w-full'>
                 {orgWebsite.length >= 3 && !orgWebsite.includes('.') ? (
                   <>
@@ -130,6 +130,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
                         https://
                       </span>
                       <input
+                        placeholder='example.com'
                         onChange={(e) => setOrgWebsite(e.target.value)}
                         type='text'
                         minLength={4}
@@ -150,6 +151,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
                     <input
                       onChange={(e) => setOrgWebsite(e.target.value)}
                       type='text'
+                      placeholder='example.com'
                       minLength={4}
                       className={`text-sm w-full h-12 rounded-r-lg bg-white ${
                         orgWebsite.length <= 2
@@ -164,15 +166,21 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
             </div>
           </div>
           <div className='mt-6'>
-            <div className='lg:w-10/12 sm:w-full md:w-11/12'>
-              <div className='text-sm'>Details about your Organisation*</div>
+            <div className='w-full'>
+              <div className='text-sm flex justify-between text-grey-300'>
+                <span>About your Organisation</span>
+                <span>0/200</span>
+              </div>
               <div className='mt-2 w-full flex flex-col justify-start'>
                 <textarea
                   onChange={(e) => setOrgDescription(e.target.value)}
                   className='text-sm textarea textarea-lg border border-input-light-outline w-full focus:border-input-outline'
                   rows={4}
-                  placeholder='Type a description'></textarea>
-                <span className='text-xs text-grey-350 mt-2'>Write a short description</span>
+                  placeholder='Enter a description...'></textarea>
+                <span className='text-xs flex space-x-1 text-grey-300 mt-2'>
+                  <InfoCircle />
+                  <span>Write a short description</span>
+                </span>
               </div>
             </div>
           </div>
@@ -182,7 +190,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
                 <button
                   type='submit'
                   onClick={handleSubmit}
-                  className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
+                  className='w-full btn rounded-[12px] bg-blue-900 text-sm outline-none border-none hover:bg-blue-950'>
                   {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
                 </button>
               </div>
@@ -190,7 +198,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
               <div className='w-full'>
                 <button
                   type='submit'
-                  className='w-full btn btn-disabled bg-white rounded-none text-sm outline-none border-none'>
+                  className='w-full btn btn-disabled rounded-[12px] bg-white text-sm outline-none border-none'>
                   Continue
                 </button>
               </div>
@@ -469,24 +477,18 @@ const CreateOrganisationDetailsPageThree = () => {
   };
 
   const filterBySearch = (e) => {
-    const query = e.target.value.toLowerCase();
-    const locationList = gridLocationsData.filter((location) => {
-      return location.name.toLowerCase().includes(query);
+    const query = e.target.value;
+    let locationList = [...gridLocationsData];
+    locationList = locationList.filter((location) => {
+      return location.name.toLowerCase().indexOf(query.toLowerCase()) !== -1;
     });
     setFilteredLocations(locationList);
   };
 
   const handleLocationSelect = (item) => {
-    const newLocationArray = [...locationArray];
-    const index = newLocationArray.findIndex((location) => location._id === item._id);
-
-    if (index !== -1) {
-      newLocationArray.splice(index, 1);
-    } else {
-      newLocationArray.push(item);
-    }
-
-    setLocationArray(newLocationArray);
+    locationArray.includes(item)
+      ? setLocationArray(locationArray.filter((location) => location._id !== item._id))
+      : setLocationArray((locations) => [...locations, item]);
     setInputSelect(true);
     setLocation('');
   };
@@ -510,22 +512,23 @@ const CreateOrganisationDetailsPageThree = () => {
           state: true,
           message: response.payload.message,
         });
+        setLoading(false);
       } else {
         router.push('/account/creation/get-started');
       }
     } catch (error) {
-      console.error(error);
+      throw error;
     }
     setLoading(false);
   };
 
   const toggleInputSelect = () => {
     setFilteredLocations(gridLocationsData);
-    setInputSelect(!inputSelect);
+    inputSelect ? setInputSelect(false) : setInputSelect(true);
   };
 
   useEffect(() => {
-    if (!gridLocationsData.length) {
+    if (gridLocationsData && gridLocationsData.length < 1) {
       dispatch(getSitesSummary());
     }
   }, [gridLocationsData]);
@@ -620,7 +623,7 @@ const CreateOrganisationDetailsPageThree = () => {
                   <button
                     type='submit'
                     onClick={handleSubmit}
-                    className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
+                    className='w-full btn bg-blue-900 rounded-[12px] text-sm outline-none border-none hover:bg-blue-950'>
                     {loading ? (
                       <Spinner data-testid='spinner' width={25} height={25} />
                     ) : (
@@ -632,7 +635,7 @@ const CreateOrganisationDetailsPageThree = () => {
                 <div className='w-full'>
                   <button
                     type='submit'
-                    className='w-full btn btn-disabled bg-white rounded-none text-sm outline-none border-none'>
+                    className='w-full btn btn-disabled bg-white rounded-[12px] text-sm outline-none border-none'>
                     Continue
                   </button>
                 </div>
