@@ -190,7 +190,8 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
                 <button
                   type='submit'
                   onClick={handleSubmit}
-                  className='w-full btn rounded-[12px] bg-blue-900 text-sm outline-none border-none hover:bg-blue-950'>
+                  className='w-full btn rounded-[12px] bg-blue-900 text-sm outline-none border-none hover:bg-blue-950'
+                  style={{ textTransform: 'none' }}>
                   {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
                 </button>
               </div>
@@ -198,7 +199,8 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
               <div className='w-full'>
                 <button
                   type='submit'
-                  className='w-full btn btn-disabled rounded-[12px] bg-white text-sm outline-none border-none'>
+                  className='w-full btn btn-disabled rounded-[12px] bg-white text-sm outline-none border-none'
+                  style={{ textTransform: 'none' }}>
                   Continue
                 </button>
               </div>
@@ -433,7 +435,8 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
               <button
                 type='submit'
                 onClick={handleSubmit}
-                className='w-full btn bg-blue-900 rounded-[12px] text-sm outline-none border-none hover:bg-blue-950'>
+                className='w-full btn rounded-[12px] bg-blue-900 text-sm outline-none border-none hover:bg-blue-950'
+                style={{ textTransform: 'none' }}>
                 {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
               </button>
             </div>
@@ -623,6 +626,7 @@ const CreateOrganisationDetailsPageThree = () => {
                   <button
                     type='submit'
                     onClick={handleSubmit}
+                    style={{ textTransform: 'none' }}
                     className='w-full btn bg-blue-900 rounded-[12px] text-sm outline-none border-none hover:bg-blue-950'>
                     {loading ? (
                       <Spinner data-testid='spinner' width={25} height={25} />
@@ -635,6 +639,7 @@ const CreateOrganisationDetailsPageThree = () => {
                 <div className='w-full'>
                   <button
                     type='submit'
+                    style={{ textTransform: 'none' }}
                     className='w-full btn btn-disabled bg-white rounded-[12px] text-sm outline-none border-none'>
                     Continue
                   </button>
