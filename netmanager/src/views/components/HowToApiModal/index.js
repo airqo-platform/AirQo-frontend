@@ -4,7 +4,7 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mate
 const HowToApiModal = ({ open, onClose }) => {
   return (
     <Dialog open={open} onClose={onClose} style={{ padding: '20px' }}>
-      <DialogTitle>How to the API</DialogTitle>
+      <DialogTitle>How to the use the API</DialogTitle>
       <DialogContent>
         <ol>
           <li>To use an API, you'll need to add an access token</li>
