@@ -30,8 +30,8 @@ const AccountPageLayout = ({
       </Head>
       <div className='h-full w-auto'>
         <div className='grid md:grid-cols-1 lg:grid-cols-11 w-full h-full '>
-          <div className='lg:col-span-5 py-10 px-6 lg:px-20 h-full flex items-center'>
-            <div className='w-full'>
+          <div className='lg:col-span-5 py-10 px-6 lg:px-20 h-full flex justify-center items-center'>
+            <div className='w-full lg:w-auto'>
               <div>
                 <SmallLogo />
               </div>
