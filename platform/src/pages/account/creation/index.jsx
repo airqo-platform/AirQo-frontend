@@ -45,7 +45,7 @@ const UserDesignation = () => {
             {userRoles.map((role, index) => (
               <div
                 key={index}
-                className='w-full cursor-pointer mb-8 lg:w-10/12 lg:mb-0 flex flex-col focus:ring-1 focus:ring-blue-600'
+                className='w-full cursor-pointer mb-8 lg:w-10/12 lg:mb-0 flex flex-col'
                 onClick={() => handleRoleClick(role.title)}>
                 <CheckComponent
                   text={role.title}

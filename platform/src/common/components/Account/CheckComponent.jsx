@@ -17,7 +17,9 @@ const CheckComponent = ({
     <div
       className={`${bgColor || 'bg-white'} ${padding || 'p-7'} ${
         width || 'lg:w-fit w-11/12'
-      } border ${border || 'border-radio-border'} rounded-lg ${checked && 'ring-1 ring-blue-600'}`}>
+      } border ${border || 'border-radio-border'} rounded-lg ${
+        checked && 'ring-1 ring-blue-600 focus:shadow-lg focus:outline-blue-600'
+      }`}>
       <div className='flex flex-col justify-start'>
         {checked ? (
           <div className='w-8 h-8 mb-3 flex justify-center items-center rounded-full bg-blue-900'>
