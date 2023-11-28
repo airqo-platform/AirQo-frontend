@@ -14,7 +14,7 @@ import {
 } from '@/lib/store/services/account/CreationSlice';
 import Toast from '@/components/Toast';
 import Link from 'next/link';
-import LocationIcon from '@/icons/SideBar/Sites.svg';
+import LocationIcon from '@/icons/LocationIcon';
 import CloseIcon from '@/icons/close_icon';
 import { getSitesSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import countries from 'i18n-iso-countries';
