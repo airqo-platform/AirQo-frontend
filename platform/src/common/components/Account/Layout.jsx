@@ -29,8 +29,8 @@ const AccountPageLayout = ({
         <meta property='og:title' content={pageTitle} key='title' />
       </Head>
       <div className='h-full w-auto'>
-        <div className='col-start-2 col-end-3 grid md:grid-cols-1 lg:grid-cols-11 grid-rows-1 w-full h-full overflow-hidden'>
-          <div className='lg:col-span-5 lg:py-10 lg:px-20 py-8 px-6 h-full flex items-center'>
+        <div className='grid md:grid-cols-1 lg:grid-cols-11 w-full h-full '>
+          <div className='lg:col-span-5 py-10 px-6 lg:px-20 h-full flex items-center'>
             <div className='w-full'>
               <div>
                 <SmallLogo />
@@ -38,9 +38,7 @@ const AccountPageLayout = ({
               <div
                 className={`${
                   childrenTop ? childrenTop : 'mt-16'
-                } flex flex-col justify-center items-start ${
-                  childrenHeight ? childrenHeight : 'lg:h-[480px]'
-                } overflow-hidden`}>
+                } flex flex-col justify-center items-start overflow-auto`}>
                 {children}
               </div>
             </div>

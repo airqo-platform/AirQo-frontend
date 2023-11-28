@@ -95,7 +95,7 @@ const IndividualAccountInterest = () => {
         "What you've built here is so much better for air pollution monitoring than anything else on the market!"
       }>
       {updateError.state && <Toast type={'error'} timeout={5000} message={updateError.message} />}
-      <div className='w-full'>
+      <div className='w-full px-[2px]'>
         <h2 className='text-3xl text-black-700 font-medium'>Help us understand your interest</h2>
         <p className='text-xl text-black-700 font-normal mt-3'>
           We will help you get started based on your response
@@ -127,7 +127,7 @@ const IndividualAccountInterest = () => {
                       <div className='mt-6'>
                         <div className='w-full'>
                           <div className='text-sm'>Give us more details about your interests?</div>
-                          <div className='mt-2 w-10/12'>
+                          <div className='mt-2 w-full'>
                             <textarea
                               onChange={(e) => setInterest(e.target.value)}
                               rows='3'
