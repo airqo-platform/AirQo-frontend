@@ -38,7 +38,7 @@ const AccountPageLayout = ({
               <div
                 className={`${
                   childrenTop ? childrenTop : 'mt-16'
-                } flex flex-col justify-center items-start overflow-auto`}>
+                } flex flex-col justify-center items-start`}>
                 {children}
               </div>
             </div>
@@ -47,7 +47,7 @@ const AccountPageLayout = ({
             className={`lg:col-span-6 lg:grid hidden ${
               sideBackgroundColor ? sideBackgroundColor : 'bg-green-150'
             } flex items-center justify-center w-full`}>
-            <div className='px-[64px] py-[96px] relative max-w-4xl h-full'>
+            <div className='px-[64px] py-[26px] relative max-w-4xl h-auto'>
               <h1 className='relative font-medium leading-9 text-[29px] mb-6'>
                 {rightText
                   ? rightText
