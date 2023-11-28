@@ -30,6 +30,11 @@ import { updateGridApi } from '../../apis/deviceRegistry';
 import { withPermission } from '../../containers/PageAccess';
 import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
 import { AirQloudView } from '../../components/AirQlouds';
+import HowToApiModal from '../../components/HowToApiModal';
+import { stripTrailingSlash } from '../../../config/utils';
+import Copyable from '../../components/Copy/Copyable';
+
+const BASE_ANALYTICS_URL = stripTrailingSlash(process.env.REACT_APP_BASE_URL_V2);
 
 const gridItemStyle = {
   padding: '5px',
@@ -47,6 +52,8 @@ const GridForm = ({ grid }) => {
     description: ''
   };
   const [form, setState] = useState(initialState);
+  const [openAPIModal, setOpenAPIModal] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const clearState = () => {
     setState({ ...initialState });
@@ -229,6 +236,44 @@ const GridForm = ({ grid }) => {
             onChange={onChangeInputField}
           />
         </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <label style={{ textAlign: 'left' }}>Recent Measurements API</label>
+          <Box
+            style={{
+              backgroundColor: '#f0f0f0',
+              padding: '5px',
+              borderRadius: '5px',
+              fontFamily: 'monospace'
+            }}
+          >
+            <Copyable
+              width="100%"
+              value={`${stripTrailingSlash(BASE_ANALYTICS_URL)}/devices/measurements/grids/${
+                grid._id
+              }`}
+              isScrollable
+            />
+          </Box>
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <label style={{ textAlign: 'left' }}>Historical Measurements API</label>
+          <Box
+            style={{
+              backgroundColor: '#f0f0f0',
+              padding: '5px',
+              borderRadius: '5px',
+              fontFamily: 'monospace'
+            }}
+          >
+            <Copyable
+              width="100%"
+              value={`${stripTrailingSlash(BASE_ANALYTICS_URL)}/devices/measurements/grids/${
+                grid._id
+              }/historical`}
+              isScrollable
+            />
+          </Box>
+        </Grid>
 
         <Grid
           container
@@ -238,20 +283,46 @@ const GridForm = ({ grid }) => {
           xs={12}
           style={{ margin: '10px 0' }}
         >
-          <Button variant="contained" onClick={handleCancel}>
-            Reset
-          </Button>
-
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSubmit}
-            style={{ marginLeft: '10px' }}
+          <Grid
+            items
+            xs={12}
+            sm={6}
+            style={{
+              textDecoration: 'underline',
+              padding: '10px',
+              fontWeight: 'bold',
+              cursor: 'pointer'
+            }}
+            onClick={() => setOpenAPIModal(true)}
           >
-            Save Changes
-          </Button>
+            <p style={{ width: '100%', textAlign: 'left' }}>How to use the API</p>
+          </Grid>
+
+          <Grid
+            items
+            xs={12}
+            sm={6}
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end'
+            }}
+          >
+            <Button variant="contained" onClick={handleCancel}>
+              Reset
+            </Button>
+
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSubmit}
+              style={{ marginLeft: '10px' }}
+            >
+              Save Changes
+            </Button>
+          </Grid>
         </Grid>
       </Grid>
+      <HowToApiModal open={openAPIModal} onClose={() => setOpenAPIModal(false)} />
     </Paper>
   );
 };
