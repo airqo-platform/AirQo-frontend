@@ -85,7 +85,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
   };
 
   return (
-    <div className='lg:mb-3 md:mb-5'>
+    <div className='lg:mb-3 md:mb-5 w-full'>
       <ProgressComponent colorFirst={true} />
       <div className='w-full'>
         <h2 className='text-3xl text-black font-semibold lg:w-10/12 md:mt-20 lg:mt-2'>
@@ -370,7 +370,7 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
   };
 
   return (
-    <div className='sm:ml-3 lg:ml-1'>
+    <div className='w-full'>
       <ProgressComponent colorFirst={true} colorSecond={true} />
       <div className='w-full'>
         <h2 className='text-3xl text-black font-semibold w-full lg:w-10/12 md:mt-20 lg:mt-2'>
@@ -381,8 +381,8 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
             <Toast type={'error'} timeout={7000} message={creationErrors.message} />
           )}
           <div className='mt-6'>
-            <div className='lg:w-10/12 sm:w-full md:w-11/12'>
-              <div className='text-sm'>Industry</div>
+            <div className='w-full'>
+              <div className='text-sm text-grey-300'>Industry</div>
               <div className='mt-2 w-full'>
                 <select
                   className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'
@@ -397,8 +397,8 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
             </div>
           </div>
           <div className='mt-6'>
-            <div className='lg:w-10/12 sm:w-full md:w-11/12'>
-              <div className='text-sm'>Country</div>
+            <div className='w-full'>
+              <div className='text-sm text-grey-300'>Country</div>
               <div className='mt-2 w-full flex flex-row'>
                 <select
                   className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'
@@ -413,7 +413,7 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
             </div>
           </div>
           <div className='mt-6'>
-            <div className='lg:w-10/12 sm:w-full md:w-11/12'>
+            <div className='w-full text-grey-300'>
               <div className='text-sm'>Timezone</div>
               <div className='mt-2 w-full'>
                 <select
@@ -429,11 +429,11 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
             </div>
           </div>
           <div className='mt-10'>
-            <div className='sm:w-full lg:w-10/12 md:w-11/12'>
+            <div className='w-full'>
               <button
                 type='submit'
                 onClick={handleSubmit}
-                className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
+                className='w-full btn bg-blue-900 rounded-[12px] text-sm outline-none border-none hover:bg-blue-950'>
                 {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
               </button>
             </div>
@@ -534,7 +534,7 @@ const CreateOrganisationDetailsPageThree = () => {
   }, [gridLocationsData]);
 
   return (
-    <div className='sm:ml-3 lg:ml-1 relative h-[600px]'>
+    <div className='relative h-[600px] w-full'>
       <ProgressComponent colorFirst={true} colorSecond={true} colorThird={true} />
       <div className='w-full h-full'>
         <h2 className='text-3xl text-black font-semibold w-full lg:w-10/12 md:mt-20 lg:mt-2'>
