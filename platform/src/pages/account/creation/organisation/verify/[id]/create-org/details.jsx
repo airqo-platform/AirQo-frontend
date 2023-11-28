@@ -469,18 +469,24 @@ const CreateOrganisationDetailsPageThree = () => {
   };
 
   const filterBySearch = (e) => {
-    const query = e.target.value;
-    let locationList = [...gridLocationsData];
-    locationList = locationList.filter((location) => {
-      return location.name.toLowerCase().indexOf(query.toLowerCase()) !== -1;
+    const query = e.target.value.toLowerCase();
+    const locationList = gridLocationsData.filter((location) => {
+      return location.name.toLowerCase().includes(query);
     });
     setFilteredLocations(locationList);
   };
 
   const handleLocationSelect = (item) => {
-    locationArray.includes(item)
-      ? setLocationArray(locationArray.filter((location) => location._id !== item._id))
-      : setLocationArray((locations) => [...locations, item]);
+    const newLocationArray = [...locationArray];
+    const index = newLocationArray.findIndex((location) => location._id === item._id);
+
+    if (index !== -1) {
+      newLocationArray.splice(index, 1);
+    } else {
+      newLocationArray.push(item);
+    }
+
+    setLocationArray(newLocationArray);
     setInputSelect(true);
     setLocation('');
   };
@@ -504,23 +510,22 @@ const CreateOrganisationDetailsPageThree = () => {
           state: true,
           message: response.payload.message,
         });
-        setLoading(false);
       } else {
         router.push('/account/creation/get-started');
       }
     } catch (error) {
-      throw error;
+      console.error(error);
     }
     setLoading(false);
   };
 
   const toggleInputSelect = () => {
     setFilteredLocations(gridLocationsData);
-    inputSelect ? setInputSelect(false) : setInputSelect(true);
+    setInputSelect(!inputSelect);
   };
 
   useEffect(() => {
-    if (gridLocationsData && gridLocationsData.length < 1) {
+    if (!gridLocationsData.length) {
       dispatch(getSitesSummary());
     }
   }, [gridLocationsData]);
@@ -660,7 +665,7 @@ const CreateOrganisationDetails = () => {
 
   return (
     <AccountPageLayout childrenHeight={'lg:h-[500]'} childrenTop={'mt-8'}>
-      {nextComponent === 'pageThree' && (
+      {nextComponent === 'pageOne' && (
         <CreateOrganisationDetailsPageOne handleComponentSwitch={() => handleSwitchTo('pageTwo')} />
       )}
       {nextComponent === 'pageTwo' && (
@@ -668,7 +673,7 @@ const CreateOrganisationDetails = () => {
           handleComponentSwitch={() => handleSwitchTo('pageThree')}
         />
       )}
-      {nextComponent === 'pageOne' && <CreateOrganisationDetailsPageThree />}
+      {nextComponent === 'pageThree' && <CreateOrganisationDetailsPageThree />}
     </AccountPageLayout>
   );
 };
