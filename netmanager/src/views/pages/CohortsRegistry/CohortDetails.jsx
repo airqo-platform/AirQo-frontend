@@ -35,6 +35,11 @@ import { updateMainAlert } from 'redux/MainAlert/operations';
 import OutlinedSelect from '../../components/CustomSelects/OutlinedSelect';
 import { createAlertBarExtraContent } from '../../../utils/objectManipulators';
 import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
+import { stripTrailingSlash } from '../../../config/utils';
+import Copyable from '../../components/Copy/Copyable';
+import HowToApiModal from '../../components/HowToApiModal';
+
+const BASE_ANALYTICS_URL = stripTrailingSlash(process.env.REACT_APP_BASE_URL_V2);
 
 const gridItemStyle = {
   padding: '5px',
@@ -185,6 +190,7 @@ const CohortForm = ({ cohort }) => {
   };
   const [form, setState] = useState(initialState);
   const [loading, setLoading] = useState(false);
+  const [openAPIModal, setOpenAPIModal] = useState(false);
   const clearState = () => {
     setState({ ...initialState });
   };
@@ -337,28 +343,90 @@ const CohortForm = ({ cohort }) => {
             <option value={false}>False</option>
           </TextField>
         </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <label style={{ textAlign: 'left' }}>Recent Measurements API</label>
+          <Box
+            style={{
+              backgroundColor: '#f0f0f0',
+              padding: '5px',
+              borderRadius: '5px',
+              fontFamily: 'monospace'
+            }}
+          >
+            <Copyable
+              width="100%"
+              value={`${stripTrailingSlash(BASE_ANALYTICS_URL)}/devices/measurements/cohorts/${
+                cohort._id
+              }`}
+              isScrollable
+            />
+          </Box>
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <label style={{ textAlign: 'left' }}>Historical Measurements API</label>
+          <Box
+            style={{
+              backgroundColor: '#f0f0f0',
+              padding: '5px',
+              borderRadius: '5px',
+              fontFamily: 'monospace'
+            }}
+          >
+            <Copyable
+              width="100%"
+              value={`${stripTrailingSlash(BASE_ANALYTICS_URL)}/devices/measurements/cohorts/${
+                cohort._id
+              }/historical`}
+              isScrollable
+            />
+          </Box>
+        </Grid>
 
         <Grid
           container
-          alignItems="flex-end"
-          alignContent="flex-end"
-          justify="flex-end"
+          alignItems="center"
+          alignContent="center"
+          justify="space-between"
           xs={12}
           style={{ margin: '10px 0' }}
         >
-          <Button variant="contained" onClick={handleCancel} disabled={loading}>
-            Reset
-          </Button>
-
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSubmit}
-            style={{ marginLeft: '10px' }}
-            disabled={loading}
+          <Grid
+            items
+            xs={12}
+            sm={6}
+            style={{
+              textDecoration: 'underline',
+              padding: '10px',
+              fontWeight: 'bold',
+              cursor: 'pointer'
+            }}
+            onClick={() => setOpenAPIModal(true)}
           >
-            {loading ? 'Laoding...' : 'Save Changes'}
-          </Button>
+            <p style={{ width: '100%', textAlign: 'left' }}>How to use the API</p>
+          </Grid>
+          <Grid
+            items
+            xs={12}
+            sm={6}
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end'
+            }}
+          >
+            <Button variant="contained" onClick={handleCancel} disabled={loading}>
+              Reset
+            </Button>
+
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSubmit}
+              style={{ marginLeft: '10px' }}
+              disabled={loading}
+            >
+              {loading ? 'Loading...' : 'Save Changes'}
+            </Button>
+          </Grid>
         </Grid>
       </Grid>
 
@@ -368,6 +436,7 @@ const CohortForm = ({ cohort }) => {
         open={openDrawer}
         handleClose={handleCloseDrawer}
       />
+      <HowToApiModal open={openAPIModal} onClose={() => setOpenAPIModal(false)} />
     </Paper>
   );
 };
