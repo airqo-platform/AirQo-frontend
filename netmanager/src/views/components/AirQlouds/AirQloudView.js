@@ -319,7 +319,7 @@ const AirQloudView = (props) => {
                     style={{ overflow: 'visible' }}
                   >
                     <Typography className={clsx(classes.cardTitle, classes.titleSpacing)}>
-                      {`Data Summary For ${airQloudDataSummaryReport.grid_name} From ${formatDate(
+                      {`Data Summary For ${airQloudDataSummaryReport.grid} From ${formatDate(
                         airQloudDataSummaryReport.start_date_time,
                         'YYYY-MM-DD'
                       )} to ${formatDate(airQloudDataSummaryReport.end_date_time, 'YYYY-MM-DD')}`}
