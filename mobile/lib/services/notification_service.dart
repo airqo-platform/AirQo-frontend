@@ -12,9 +12,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-
 
 class NotificationService {
   static Future<void> updateNotificationStatus(BuildContext context) async {
@@ -71,7 +68,7 @@ class NotificationService {
 
     if (source == "dashboard") {
       enableNotificationsMessage =
-          "Turn on notifications to get the best AirQo expereince";
+          "Turn on notifications to get the best AirQo experience";
     }
 
     await Permission.notification.status.then((status) async {
@@ -186,7 +183,7 @@ class NotificationService {
   }
 
   static Future<bool> showRequestNotification() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferencesHelper.instance;
     final int count = prefs.getInt("requestNotificationCount") ?? 0;
     await prefs.setInt("requestNotificationCount", count + 1);
     if (count % 5 == 0 && count < 25) {
@@ -197,7 +194,7 @@ class NotificationService {
 
   static Future<void> handleNotifications(RemoteMessage message) async {
     final notificationTarget = message.data['subject'] as String;
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferencesHelper.instance;
     await prefs.setString("pushNotificationTarget", notificationTarget);
     CloudAnalytics.logNotificationReceive();
   }

@@ -16,7 +16,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -51,8 +50,12 @@ class _HomePageState extends State<HomePage> {
     return OfflineBanner(
       child: Scaffold(
         backgroundColor: CustomColors.appBodyColor,
-        body: WillPopScope(
-          onWillPop: _onWillPop,
+        body: PopScope(
+          onPopInvoked: ((didPop) {
+            if (didPop) {
+              _onWillPop();
+            }
+          }),
           child: PageTransitionSwitcher(
             transitionBuilder: (
               Widget child,
@@ -91,7 +94,7 @@ class _HomePageState extends State<HomePage> {
           ),
           child: ShowCaseWidget(
             onFinish: () async {
-              final prefs = await SharedPreferences.getInstance();
+              final prefs = await SharedPreferencesHelper.instance;
               if (prefs.getBool(Config.restartTourShowcase) == true) {
                 Future.delayed(
                   Duration.zero,

@@ -4,11 +4,12 @@ import { useInitScrollTop } from 'utilities/customHooks';
 import { isEmpty } from 'underscore';
 import { useDispatch, useSelector } from 'react-redux';
 import { setActiveResource } from 'reduxStore/CleanAirNetwork/CleanAir';
-import { CardComponent, ReportComponent } from 'components/CleanAir';
+import { ReportComponent } from 'components/CleanAir';
 import { getAllCleanAirApi } from 'apis/index.js';
 import ListIcon from '@mui/icons-material/List';
 import CloseIcon from '@mui/icons-material/Close';
 import useWindowSize from 'utilities/customHooks';
+import Loadspinner from 'src/components/LoadSpinner/SectionLoader';
 
 const ResourceMenuItem = ({ activeResource, resource, dispatch, setToggle }) => {
   const { width } = useWindowSize();
@@ -37,6 +38,7 @@ const CleanAirPublications = () => {
   const activeResource = useSelector((state) => state.cleanAirData.activeResource);
   const resources = ['toolkits', 'technical reports', 'workshop reports', 'research publications'];
   const { width } = useWindowSize();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isEmpty(activeResource)) {
@@ -45,11 +47,16 @@ const CleanAirPublications = () => {
   }, [activeResource]);
 
   useEffect(() => {
+    setLoading(true);
     getAllCleanAirApi()
       .then((response) => {
         setCleanAirResources(response);
+        setLoading(false);
       })
-      .catch((error) => console.log(error));
+      .catch((error) => {
+        console.log(error);
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -91,26 +98,27 @@ const CleanAirPublications = () => {
     const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
     const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
 
-    if (currentItems.length === 0 && data.length === 0) {
+    if (loading) {
+      return (
+        <div style={{ marginTop: '100px' }}>
+          <Loadspinner />
+        </div>
+      );
+    }
+
+    if (currentItems.length === 0 || !currentItems) {
       return (
         <div
           style={{
             display: 'flex',
             width: '100%',
             height: '100%',
+            color: '#808080',
             justifyContent: 'center',
             alignItems: 'center',
             marginTop: '50px'
           }}>
-          Loading...
-        </div>
-      );
-    }
-
-    if (currentItems.length === 0) {
-      return (
-        <div className="no-data">
-          <h1>No Data</h1>
+          <h1>No Resources available</h1>
         </div>
       );
     }
@@ -209,14 +217,14 @@ const CleanAirPublications = () => {
   return (
     <div className="page-wrapper">
       <SEO
-        title="CLEAN-Air Africa Network | Partners"
-        siteTitle="CLEAN-Air Africa Network"
+        title="Partners"
+        siteTitle="CLEAN-Air Network"
         description="CLEAN-Air Africa Network is a network of African cities and partners committed to improving air quality and reducing carbon emissions through knowledge sharing and capacity building."
       />
 
       <div>
         <div className="partners">
-          <div className="partners-wrapper" style={{ marginTop: '50px' }}>
+          <div className="partners-wrapper" style={{ marginTop: '20px' }}>
             <div className="resources-container">
               <div className="resource-menu" id="top-menu-sec">
                 <div className="title-wrapper">

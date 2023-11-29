@@ -22,8 +22,12 @@ class KyaFinalPage extends StatefulWidget {
 class _KyaFinalPageState extends State<KyaFinalPage> {
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    return PopScope(
+      onPopInvoked: ((didPop) {
+        if (didPop) {
+          _onWillPop();
+        }
+      }),
       child: OfflineBanner(
           child: Scaffold(
         appBar: AppBar(

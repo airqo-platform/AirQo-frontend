@@ -262,13 +262,15 @@ const Footer = () => {
             <div className="category-label">{t('footer.modal.country')}</div>
             <div className="countries">
               {/* The country list displayed here */}
-              {countries.map((country) => (
-                <CountryTab
-                  className={`tab tab-margin-sm ${active(country.name)}`}
-                  flag={country.flag}
-                  name={country.name}
-                  onClick={onTabClick(country.name)}
-                />
+              {countries.map((country, key) => (
+                <div key={key}>
+                  <CountryTab
+                    className={`tab tab-margin-sm ${active(country.name)}`}
+                    flag={country.flag}
+                    name={country.name}
+                    onClick={onTabClick(country.name)}
+                  />
+                </div>
               ))}
               <CountryTab className={`tab tab-margin-sm`} />
             </div>

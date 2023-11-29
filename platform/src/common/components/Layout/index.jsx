@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import TopBar from '@/components/TopBar';
-import { fetchUserPreferences } from '@/lib/store/services/charts/userDefaultsSlice';
+// import { fetchUserPreferences } from '@/lib/store/services/charts/userDefaultsSlice';
+import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import {
   setChartSites,
   setChartDataRange,
@@ -22,18 +23,20 @@ const Layout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBorder
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
   const userInfo = useSelector((state) => state.login.userInfo);
-  const userPreferences = useSelector((state) => state.userDefaults.preferences);
+  // const userPreferences = useSelector((state) => state.userDefaults.preferences);
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
   const [toggleDrawer, setToggleDrawer] = useState(false);
   const [collapsed, setCollapsed] = useState(
     () => JSON.parse(localStorage.getItem('collapsed')) || false,
   );
+  const cardCheckList = useSelector((state) => state.cardChecklist.cards);
 
   // Fetching user preferences
   useEffect(() => {
     const fetchPreferences = async () => {
       if (userInfo) {
         try {
-          await dispatch(fetchUserPreferences(userInfo._id));
+          await dispatch(getIndividualUserPreferences(userInfo._id));
         } catch (error) {
           console.error(`Error getting user preferences: ${error}`);
         }
@@ -45,9 +48,9 @@ const Layout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBorder
 
   useEffect(() => {
     const setChartProperties = async () => {
-      if (userInfo && userPreferences && userPreferences.length > 0) {
+      if (userInfo && preferenceData && preferenceData.length > 0) {
         const { period, selected_sites, startDate, endDate, frequency, chartType, pollutant } =
-          userPreferences[0];
+          preferenceData[0];
         try {
           const chartSites = selected_sites
             ? selected_sites.map((site) => site['_id'])
@@ -74,10 +77,10 @@ const Layout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBorder
     };
 
     setChartProperties();
-  }, [userInfo, userPreferences, dispatch]);
+  }, [userInfo, preferenceData, dispatch]);
 
   // Fetching user checklists
-  useEffect(() => {
+  const fetchData = () => {
     if (userInfo?._id && !localStorage.getItem('dataFetched')) {
       dispatch(fetchUserChecklists(userInfo._id)).then((action) => {
         if (fetchUserChecklists.fulfilled.match(action)) {
@@ -85,15 +88,14 @@ const Layout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBorder
           if (payload && payload.length > 0) {
             const { items } = payload[0];
             dispatch(updateCards(items));
-            localStorage.setItem('dataFetched', 'true');
-          } else {
-            localStorage.setItem('dataFetched', 'true');
-            return;
           }
+          localStorage.setItem('dataFetched', 'true');
         }
       });
     }
-  }, [dispatch, userInfo]);
+  };
+
+  useEffect(fetchData, [dispatch, userInfo]);
 
   useEffect(() => {
     localStorage.setItem('collapsed', collapsed);

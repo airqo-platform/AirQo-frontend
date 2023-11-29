@@ -5,6 +5,7 @@ import { resetStore } from '@/lib/store/services/account/LoginSlice';
 import { updateUserChecklists, resetChecklist } from '@/lib/store/services/checklists/CheckData';
 import { resetAllTasks } from '@/lib/store/services/checklists/CheckList';
 import { resetChartStore } from '@/lib/store/services/charts/ChartSlice';
+import { clearIndividualPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 
 // Custom hook to handle user inactivity
 const useIdleTimer = (action, idleTime) => {
@@ -51,6 +52,7 @@ export default function withAuth(Component) {
       localStorage.clear();
       dispatch(resetStore());
       dispatch(resetChartStore());
+      dispatch(clearIndividualPreferences());
       dispatch(resetAllTasks());
       dispatch(resetChecklist());
       router.push('/account/login');
@@ -71,7 +73,9 @@ export default function withAuth(Component) {
 
 export const withPermission = (Component, requiredPermission) => {
   const WithPermission = (props) => {
-    const currentRole = JSON.parse(localStorage.getItem('activeGroup')).role;
+    const storedUserGroup = localStorage.getItem('activeGroup');
+    const parsedUserGroup = storedUserGroup ? JSON.parse(storedUserGroup) : {};
+    const currentRole = parsedUserGroup && parsedUserGroup.role;
     const router = useRouter();
 
     // Check if the user has the required permission

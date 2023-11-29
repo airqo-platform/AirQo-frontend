@@ -11,25 +11,9 @@ const OverView = () => {
   const dispatch = useDispatch();
   const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
   const chartDataRange = useSelector((state) => state.chart.chartDataRange);
-  const userLocationsData = useSelector((state) => state.defaults.individual_preferences);
-  const [sites, setSites] = useState(DEFAULT_CHART_SITES);
+  const pollutantType = useSelector((state) => state.chart.pollutionType);
+  const sites = useSelector((state) => state.chart.chartSites);
   const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
-
-  useEffect(() => {
-    setIsLoadingMeasurements(true);
-    if (userLocationsData && userLocationsData[0] && !userLocationsData[0]?.selected_sites) {
-      setIsLoadingMeasurements(false);
-      return;
-    }
-    if (userLocationsData && userLocationsData[0] && userLocationsData[0]?.selected_sites) {
-      // map through the selected sites and get the first 4 site ids
-      const selectedSites = userLocationsData[0]?.selected_sites
-        .map((site) => site._id)
-        .slice(0, 4);
-      setSites(selectedSites);
-    }
-    setIsLoadingMeasurements(false);
-  }, [userLocationsData]);
 
   useEffect(() => {
     setIsLoadingMeasurements(true);
@@ -50,6 +34,24 @@ const OverView = () => {
     }
   }, [chartDataRange, sites]);
 
+  const dummyData = {
+    siteDetails: {
+      search_name: '--',
+      location_name: '--',
+      formatted_name: '--',
+      description: '--',
+    },
+    pm2_5: {
+      value: '--',
+    },
+  };
+
+  let displayData = recentLocationMeasurements ? recentLocationMeasurements.slice(0, 4) : [];
+
+  while (displayData.length < 4) {
+    displayData.push(dummyData);
+  }
+
   return (
     <BorderlessContentBox>
       <div
@@ -57,25 +59,22 @@ const OverView = () => {
           recentLocationMeasurements && recentLocationMeasurements.length <= 2
             ? 'flex md:flex-row flex-col'
             : 'grid md:grid-cols-2'
-        }`}
-      >
+        }`}>
         {!isLoadingMeasurements &&
-          recentLocationMeasurements &&
-          recentLocationMeasurements
-            .slice(0, 4)
-            .map((event, index) => (
-              <AQNumberCard
-                keyValue={index}
-                location={
-                  event?.siteDetails?.search_name ||
-                  event?.siteDetails?.location_name ||
-                  event?.siteDetails?.formatted_name ||
-                  event?.siteDetails?.description
-                }
-                reading={event.pm2_5.value}
-                count={recentLocationMeasurements.length}
-              />
-            ))}
+          displayData.map((event, index) => (
+            <AQNumberCard
+              keyValue={index}
+              location={
+                event.siteDetails.search_name ||
+                event.siteDetails.location_name ||
+                event.siteDetails.formatted_name ||
+                event.siteDetails.description
+              }
+              reading={event.pm2_5.value}
+              count={displayData.length}
+              pollutant={pollutantType}
+            />
+          ))}
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <ChartContainer chartType='line' chartTitle='Air quality over time' height={300} />

@@ -3,23 +3,31 @@ import moment from 'moment';
 import { isEmpty } from 'underscore';
 import { useAirqloudUptimeData } from 'redux/DeviceManagement/selectors';
 import { loadAirqloudUptime } from 'redux/DeviceManagement/operations';
-import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
 import { ApexChart, createPieChartOptions } from 'views/charts';
 import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
-import { Button, TextField, Typography } from '@material-ui/core';
+import { Box, Button, TextField, Typography } from '@material-ui/core';
 import ScheduleIcon from '@material-ui/icons/Schedule';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
-import { useAirqloudsSummaryData } from 'redux/AirQloud/selectors';
-import { fetchAirqloudsSummaryData } from 'redux/AirQloud/operations';
+import { fetchGridsSummary } from 'redux/Analytics/operations';
+import Select from 'react-select';
+
+const gridOptions = (grids) => {
+  return grids.map((grid) => ({
+    value: grid._id,
+    label: grid.long_name
+  }));
+};
 
 const AirqloudUptimeChart = () => {
   const dispatch = useDispatch();
   const airqloudUptimeData = useAirqloudUptimeData();
   const [airqloudUptime, setAirqloudUptime] = useState([]);
-  const [activeAirqloud, setActiveAirqloud] = useState({});
-  const currentAirqloud = useCurrentAirQloudData();
-  const airqlouds = useAirqloudsSummaryData();
+  const [activeGrid, setActiveGrid] = useState({
+    _id: '',
+    long_name: ''
+  });
+  const grids = useSelector((state) => state.analytics.gridsSummary);
   const [editableStartDate, setEditableStartDate] = useState(
     roundToStartOfDay(moment().subtract(1, 'days').toISOString()).toISOString()
   );
@@ -30,20 +38,21 @@ const AirqloudUptimeChart = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [airqloudUptimeLoading, setAirqloudUptimeLoading] = useState(false);
   const [airqloudsLoading, setAirqloudsLoading] = useState(false);
+  const [state, setState] = useState({
+    errors: {}
+  });
 
   useEffect(() => {
-    if (currentAirqloud) {
-      setActiveAirqloud(currentAirqloud);
+    if (grids.length > 0) {
+      setActiveGrid(grids[0]);
+    } else {
+      setAirqloudsLoading(true);
+      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
+      dispatch(fetchGridsSummary(activeNetwork.net_name)).then(() => {
+        setAirqloudsLoading(false);
+      });
     }
-  }, []);
-
-  useEffect(() => {
-    setAirqloudsLoading(true);
-    dispatch(fetchAirqloudsSummaryData());
-    setTimeout(() => {
-      setAirqloudsLoading(false);
-    }, 3000);
-  }, []);
+  }, [grids]);
 
   useEffect(() => {
     if (isEmpty(airqloudUptimeData)) {
@@ -56,7 +65,7 @@ const AirqloudUptimeChart = () => {
   }, [airqloudUptimeData]);
 
   useEffect(() => {
-    if (!isEmpty(activeAirqloud) && isEmpty(airqloudUptimeData)) {
+    if (activeGrid && activeGrid._id !== '' && isEmpty(airqloudUptimeData)) {
       setAirqloudUptimeLoading(true);
       dispatch(
         loadAirqloudUptime({
@@ -64,7 +73,7 @@ const AirqloudUptimeChart = () => {
             moment(new Date()).subtract(1, 'days').toISOString()
           ).toISOString(),
           endDateTime: roundToEndOfDay(new Date().toISOString()).toISOString(),
-          airqloud: activeAirqloud._id
+          grid: activeGrid._id
         })
       );
       setCloseController(true);
@@ -73,11 +82,11 @@ const AirqloudUptimeChart = () => {
         setCloseController(false);
       }, 5000);
     }
-  }, [activeAirqloud]);
+  }, [activeGrid, grids]);
 
   const resetAirqloudUptimeChart = () => {
     setAirqloudUptimeLoading(true);
-    if (editableStartDate && editableEndDate && activeAirqloud) {
+    if (editableStartDate && editableEndDate && activeGrid) {
       if (new Date(editableStartDate) > new Date(editableEndDate)) {
         setErrorMsg('Error: End date is older than start date. Please adjust.');
         setTimeout(() => {
@@ -104,7 +113,7 @@ const AirqloudUptimeChart = () => {
           loadAirqloudUptime({
             startDateTime: roundToEndOfDay(new Date(editableStartDate).toISOString()).toISOString(),
             endDateTime: roundToEndOfDay(new Date(editableEndDate).toISOString()).toISOString(),
-            airqloud: activeAirqloud._id
+            grid: activeGrid._id
           })
         );
         setCloseController(true);
@@ -116,12 +125,49 @@ const AirqloudUptimeChart = () => {
     }
   };
 
+  const { errors: formErrors } = state;
+
+  const customStyles = {
+    control: (base, state) => ({
+      ...base,
+      height: '55px',
+      borderColor: state.isFocused
+        ? '#3f51b5'
+        : !!formErrors[state.selectProps.name]
+        ? '#e53935'
+        : '#9a9a9a',
+      boxShadow: state.isFocused ? 0 : null,
+      '&:hover': {
+        borderColor: !!formErrors[state.selectProps.name] ? '#e53935' : 'black'
+      }
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      borderBottom: '1px dotted pink',
+      color: state.isSelected ? 'white' : 'blue',
+      textAlign: 'left'
+    }),
+    input: (provided, state) => ({
+      ...provided,
+      height: '40px',
+      borderColor: state.isFocused ? '#3f51b5' : 'black'
+    }),
+    placeholder: (provided, state) => ({
+      ...provided,
+      color: !!formErrors[state.selectProps.name] ? '#e53935' : 'black'
+    }),
+    menu: (provided, state) => ({
+      ...provided,
+      zIndex: 9999
+    })
+  };
+
   return (
     <ErrorBoundary>
       <ApexChart
         options={createPieChartOptions(['#FF2E2E', '#00A300'], ['Downtime', 'Uptime'])}
         series={airqloudUptime}
-        title={activeAirqloud ? `Health status for ${activeAirqloud.long_name}` : 'Health status'}
+        title={activeGrid ? `Health status for ${activeGrid.long_name}` : 'Health status'}
         type="pie"
         blue
         centerItems
@@ -157,42 +203,23 @@ const AirqloudUptimeChart = () => {
               InputLabelProps={{ shrink: true }}
               variant="outlined"
             />
-            <TextField
-              select
-              label="Choose airqloud"
-              id="activeAirqloud"
-              fullWidth
-              style={{ marginTop: '15px' }}
-              value={activeAirqloud ? activeAirqloud._id : ''}
-              onChange={(e) => {
-                const selectedAirqloud = airqlouds.find(
-                  (airqloud) => airqloud._id === e.target.value
-                );
-                setActiveAirqloud(selectedAirqloud);
-              }}
-              SelectProps={{
-                native: true,
-                style: { width: '100%', height: '40px' }
-              }}
-              variant="outlined"
-              InputLabelProps={{ shrink: true }}
-            >
-              <option
-                value={activeAirqloud._id}
-                style={{
-                  background: 'blue',
-                  color: '#fff'
+
+            <Box marginTop="8px">
+              <Select
+                value={gridOptions(grids).find((option) => option.value === activeGrid._id)}
+                onChange={(e) => {
+                  const selectedAirqloud = grids.find((airqloud) => airqloud._id === e.value);
+                  setActiveGrid(selectedAirqloud);
                 }}
-              >
-                {activeAirqloud.long_name}
-              </option>
-              {airqloudsLoading && <option value="">Loading...</option>}
-              {airqlouds.map((airqloud) => (
-                <option key={airqloud._id} value={airqloud._id}>
-                  {airqloud.long_name}
-                </option>
-              ))}
-            </TextField>
+                isClearable={true}
+                options={gridOptions(grids)}
+                isSearchable
+                placeholder="Choose grid"
+                name="activeGrid"
+                styles={customStyles}
+              />
+            </Box>
+
             <Button
               variant="contained"
               color="primary"

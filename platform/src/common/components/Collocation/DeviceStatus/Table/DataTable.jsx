@@ -8,7 +8,7 @@ import Skeleton from './Skeleton';
 import moment from 'moment';
 import { useRouter } from 'next/router';
 import Toast from '@/components/Toast';
-import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation';
+import { getDeviceStatusSummary } from '@/lib/store/services/collocation';
 import Dropdown from '@/components/Dropdowns/Dropdown';
 import InfoIcon from '@/icons/Common/info_circle.svg';
 import Modal from '@/components/Modal/Modal';
@@ -45,16 +45,19 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const [collocationInput, setCollocationInput] = useState({
     devices: null,
     batchId: '',
+    batchName: '',
   });
   const [skip, setSkip] = useState(true);
   const [clickedRowIndex, setClickedRowIndex] = useState(null);
 
   const {
-    isLoading: isCheckingForDataAvailability,
-    isError,
-    isSuccess,
     data: collocationBatchResults,
-  } = useGetCollocationResultsQuery(collocationInput, { skip: skip });
+    loading: isCheckingForDataAvailability,
+    fulfilled: isSuccess,
+    rejected: isError,
+    error,
+  } = useSelector((state) => state.collocation.collocationBatchResults);
+
   const collocationBatchResultsData = collocationBatchResults ? collocationBatchResults.data : [];
 
   const selectedCollocateDevices = useSelector(
@@ -62,14 +65,20 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   );
 
   useEffect(() => {
-    if (selectedCollocateDevices.length > 0) {
+    if (
+      selectedCollocateDevices.length > 0 &&
+      collocationDevices &&
+      collocationDevices.length > 0
+    ) {
       dispatch(removeDevices(collocationDevices));
     }
   }, []);
 
   const handleSelectAllDevices = (e) => {
     const allDevices = [];
-    collocationDevices.map((device) => allDevices.push(device.device_name));
+    collocationDevices &&
+      collocationDevices.length > 0 &&
+      collocationDevices.map((device) => allDevices.push(device.device_name));
     if (e.target.checked) {
       dispatch(addDevices(allDevices));
     } else {
@@ -87,29 +96,29 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   };
 
   const openMonitorReport = async (deviceName, batchId, index) => {
-    setCollocationInput({
-      devices: deviceName,
-      batchId: batchId,
-    });
     setClickedRowIndex(index);
-    setSkip(false);
+    router.push({
+      pathname: `/collocation/reports/${deviceName}`,
+      query: {
+        device: deviceName,
+        batchId,
+      },
+    });
   };
 
   // This function is to delete batch
   const deleteBatch = async () => {
-    const { device, batchId } = collocationInput;
+    const { device, batchId, batchName } = collocationInput;
     const data = {
       batchId: batchId,
     };
 
-    createAxiosInstance()
+    await createAxiosInstance()
       .delete(DELETE_COLLOCATION_DEVICE, { params: data })
       .then((response) => {
         setVisible(false);
-        setSuccessMessage(`Succesfully deleted batch ${batchId}`);
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
+        dispatch(getDeviceStatusSummary());
+        setSuccessMessage(`Succesfully deleted batch ${batchName}`);
       })
       .catch((error) => {
         setVisible(false);
@@ -119,38 +128,24 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
 
   // This function is to delete device
   const deleteDevice = async () => {
-    const { device, batchId } = collocationInput;
+    const { device, batchId, batchName } = collocationInput;
     const data = {
       batchId: batchId,
       devices: device,
     };
 
-    createAxiosInstance()
+    await createAxiosInstance()
       .delete(DELETE_COLLOCATION_DEVICE, { params: data })
       .then((response) => {
         setVisibleDeleteDevice(false);
-        setSuccessMessage(`Succesfully deleted device ${device}`);
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
+        dispatch(getDeviceStatusSummary());
+        setSuccessMessage(`Succesfully deleted device ${device} from batch ${batchName}`);
       })
       .catch((error) => {
         setVisibleDeleteDevice(false);
         setErrorMessage(error.response.data.message);
       });
   };
-
-  useEffect(() => {
-    if (isSuccess) {
-      router.push({
-        pathname: `/analytics/collocation/reports/${collocationInput.devices}`,
-        query: {
-          device: collocationInput.devices,
-          batchId: collocationInput.batchId,
-        },
-      });
-    }
-  }, [isSuccess, collocationBatchResultsData, collocationInput]);
 
   // dropdown menu list
   const [menu, setMenu] = useState([
@@ -169,7 +164,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   ]);
 
   const handleItemClick = (id, device, index) => {
-    const { device_name, batch_id } = device;
+    const { device_name, batch_id, batch_name } = device;
     switch (id) {
       case 1:
         openMonitorReport(device_name, batch_id, index);
@@ -179,6 +174,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         setCollocationInput({
           device: device_name,
           batchId: batch_id,
+          batchName: batch_name,
         });
         break;
       case 3:
@@ -186,6 +182,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         setCollocationInput({
           device: device_name,
           batchId: batch_id,
+          batchName: batch_name,
         });
         break;
       default:
@@ -209,13 +206,15 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
 
       <table
         className='border-collapse text-xs text-left w-full mb-6'
-        data-testid='collocation-device-status-summary'>
+        data-testid='collocation-device-status-summary'
+      >
         <thead>
           <tr className='border-b border-b-slate-300 text-black'>
             <th scope='col' className='font-normal w-[61px] py-[10px] px-[21px]'>
               <input
                 type='checkbox'
                 checked={
+                  collocationDevices &&
                   collocationDevices.length > 0 &&
                   selectedCollocateDevices.length === collocationDevices.length
                 }
@@ -261,7 +260,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     onMouseEnter={() => setHoveredRowIndex(index)}
                     onMouseLeave={() => setHoveredRowIndex(null)}
                     onFocus={() => setFocusedRowIndex(index)}
-                    onBlur={() => setFocusedRowIndex(null)}>
+                    onBlur={() => setFocusedRowIndex(null)}
+                  >
                     <td scope='row' className='w-[61px] py-[10px] px-[21px]'>
                       <input
                         type='checkbox'
@@ -298,7 +298,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                         }}
                         className={`max-w-[96px] h-5 pl-2 pr-0.5 py-0.5 ${
                           STATUS_COLOR_CODES[device.status.toLowerCase()]
-                        } rounded-lg justify-start items-center gap-1 inline-flex cursor-pointer`}>
+                        } rounded-lg justify-start items-center gap-1 inline-flex cursor-pointer`}
+                      >
                         <div className='text-center text-neutral-800 capitalize'>
                           {device.status.toLowerCase()}
                         </div>
@@ -312,7 +313,11 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     <td scope='row' className='w-[75px] px-4 py-3'>
                       <Dropdown
                         menu={menu}
-                        length={index === collocationDevices.length - 1 ? 'last' : ''}
+                        length={
+                          index === (collocationDevices && collocationDevices.length - 1)
+                            ? 'last'
+                            : ''
+                        }
                         onItemClick={(id) => handleItemClick(id, device, index)}
                       />
                     </td>
@@ -335,9 +340,9 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         <div data-testid='delete_modal'>
           <Modal
             display={visible}
-            handleConfirm={deleteBatch}
+            handleConfirm={() => deleteBatch()}
             closeModal={() => setVisible(false)}
-            description={`Are you sure you want to delete this collocation batch ${collocationInput.batchId}?`}
+            description={`Are you sure you want to delete this collocation batch ${collocationInput.batchName}?`}
             confirmButton='Delete'
           />
         </div>
@@ -361,7 +366,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         <div data-testid='delete_modal'>
           <Modal
             display={visibleDeleteDevice}
-            handleConfirm={deleteDevice}
+            handleConfirm={() => deleteDevice()}
             closeModal={() => setVisibleDeleteDevice(false)}
             description={`Are you sure you want to delete ${collocationInput.device} from the collocation batch?`}
             confirmButton='Delete'
