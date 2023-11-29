@@ -528,17 +528,37 @@ class _DashboardViewState extends State<DashboardView>
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
     super.didChangeAppLifecycleState(state);
     switch (state) {
       case AppLifecycleState.resumed:
         _refresh();
+        await _checkNotificationsNavigator();
         break;
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
       case AppLifecycleState.hidden:
       case AppLifecycleState.detached:
         break;
+    }
+  }
+
+  Future<void> _checkNotificationsNavigator() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    final notifsNavigator = prefs.getString("pushNotificationTarget");
+
+    if (notifsNavigator == "favorites") {
+      prefs.setString("pushNotificationTarget", "None");
+      CloudAnalytics.logNotificationOpen();
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) {
+            return const FavouritePlacesPage();
+          },
+        ),
+      );
     }
   }
 

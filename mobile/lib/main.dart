@@ -25,6 +25,14 @@ void callbackDispatcher() {
   });
 }
 
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  NotificationService.handleNotifications(message);
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(
@@ -48,13 +56,11 @@ void main() async {
       environment: Environment.prod,
       child: AirQoApp(initialLink, locale: savedLocale),
     );
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      NotificationService.handleNotifications(message);
     });
 
-    FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
-      NotificationService.handleNotifications(message);
-    });
     runApp(configuredApp);
   } catch (exception, stackTrace) {
     runApp(

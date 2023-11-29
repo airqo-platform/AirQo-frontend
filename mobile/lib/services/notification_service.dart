@@ -12,6 +12,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationService {
   static Future<void> updateNotificationStatus(BuildContext context) async {
@@ -192,10 +193,15 @@ class NotificationService {
     return false;
   }
 
+  @pragma('vm:entry-point')
   static Future<void> handleNotifications(RemoteMessage message) async {
-    final notificationTarget = message.data['subject'] as String;
-    final prefs = await SharedPreferencesHelper.instance;
-    await prefs.setString("pushNotificationTarget", notificationTarget);
-    CloudAnalytics.logNotificationReceive();
+    final notificationData = (message.data);
+    final notificationTarget = notificationData.values.first;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+        "pushNotificationTarget", notificationTarget as String);
+    await CloudAnalytics.logNotificationReceive();
+    
   }
 }
