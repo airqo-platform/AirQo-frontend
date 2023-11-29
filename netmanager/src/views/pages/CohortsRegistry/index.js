@@ -4,12 +4,12 @@ import { Box, Button, Typography, makeStyles } from '@material-ui/core';
 import AddCohortToolbar from './AddCohortForm';
 import { getCohortsApi } from '../../apis/deviceRegistry';
 import CohortsTable from './CohortsTable';
-import { loadDevicesData } from '../../../redux/DeviceRegistry/operations';
+import { loadDevicesData } from 'redux/DeviceRegistry/operations';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import BreadCrumb from './breadcrumb';
-import { useDevicesData } from '../../../redux/DeviceRegistry/selectors';
-import { fetchAllCohorts } from '../../../redux/Analytics/operations';
+import { useDevicesData } from 'redux/DeviceRegistry/selectors';
+import { fetchCohortsSummary } from 'redux/Analytics/operations';
 import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
 
 const useStyles = makeStyles((theme) => ({
@@ -36,7 +36,7 @@ const CohortsRegistry = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const devices = useDevicesData();
-  const cohorts = useSelector((state) => state.analytics.cohorts);
+  const cohorts = useSelector((state) => state.analytics.cohortsSummary);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [deviceOptions, setDeviceOptions] = useState([]);
@@ -45,7 +45,7 @@ const CohortsRegistry = () => {
   useEffect(() => {
     setLoading(true);
     const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
-    dispatch(fetchAllCohorts(activeNetwork.net_name));
+    dispatch(fetchCohortsSummary(activeNetwork.net_name));
     setTimeout(() => {
       setLoading(false);
     }, 5000);

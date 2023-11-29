@@ -257,6 +257,12 @@ export const getCohortDetailsApi = async (cohortID) => {
     .then((response) => response.data);
 };
 
+export const getCohortsSummaryApi = async (params) => {
+  return await createAxiosInstance()
+    .get(`${COHORTS}/summary`, { params: { ...params } })
+    .then((response) => response.data);
+};
+
 export const getCohortsApi = async (params) => {
   return await createAxiosInstance()
     .get(COHORTS, { params: { ...params } })
