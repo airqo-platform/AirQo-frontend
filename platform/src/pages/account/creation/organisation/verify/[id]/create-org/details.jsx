@@ -14,11 +14,9 @@ import {
 } from '@/lib/store/services/account/CreationSlice';
 import Toast from '@/components/Toast';
 import Link from 'next/link';
-import LocationIcon from '@/icons/SideBar/Sites.svg';
-import CloseIcon from '@/icons/Actions/close.svg';
-import {
-  getSitesSummary,
-} from '@/lib/store/services/deviceRegistry/GridsSlice';
+import LocationIcon from '@/icons/LocationIcon';
+import CloseIcon from '@/icons/close_icon';
+import { getSitesSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import countries from 'i18n-iso-countries';
 import englishLocale from 'i18n-iso-countries/langs/en.json';
 import {
@@ -26,6 +24,7 @@ import {
   updateUserPreferences,
   postUserPreferences,
 } from '@/lib/store/services/account/UserDefaultsSlice';
+import InfoCircle from '@/icons/Alerts/Info_circle';
 
 const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
   const router = useRouter();
@@ -86,7 +85,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
   };
 
   return (
-    <div className='lg:mb-3 md:mb-5'>
+    <div className='lg:mb-3 md:mb-5 w-full'>
       <ProgressComponent colorFirst={true} />
       <div className='w-full'>
         <h2 className='text-3xl text-black font-semibold lg:w-10/12 md:mt-20 lg:mt-2'>
@@ -97,8 +96,8 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
             <Toast type={'error'} timeout={7000} message={creationErrors.message} />
           )}
           <div className='mt-6'>
-            <div className='lg:w-10/12 sm:w-full md:w-11/12'>
-              <div className='text-sm'>Organisation Name*</div>
+            <div className='w-full'>
+              <div className='text-sm text-grey-300'>Organisation Name*</div>
               <div className='mt-2 w-full'>
                 {orgName.length <= 2 ? (
                   <input
@@ -121,8 +120,8 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
             </div>
           </div>
           <div className='mt-6'>
-            <div className='lg:w-10/12 sm:w-full md:w-11/12'>
-              <div className='text-sm'>Website*</div>
+            <div className='w-full'>
+              <div className='text-sm text-grey-300'>Website</div>
               <div className='mt-2 w-full'>
                 {orgWebsite.length >= 3 && !orgWebsite.includes('.') ? (
                   <>
@@ -131,6 +130,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
                         https://
                       </span>
                       <input
+                        placeholder='example.com'
                         onChange={(e) => setOrgWebsite(e.target.value)}
                         type='text'
                         minLength={4}
@@ -151,6 +151,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
                     <input
                       onChange={(e) => setOrgWebsite(e.target.value)}
                       type='text'
+                      placeholder='example.com'
                       minLength={4}
                       className={`text-sm w-full h-12 rounded-r-lg bg-white ${
                         orgWebsite.length <= 2
@@ -165,15 +166,21 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
             </div>
           </div>
           <div className='mt-6'>
-            <div className='lg:w-10/12 sm:w-full md:w-11/12'>
-              <div className='text-sm'>Details about your Organisation*</div>
+            <div className='w-full'>
+              <div className='text-sm flex justify-between text-grey-300'>
+                <span>About your Organisation</span>
+                <span>0/200</span>
+              </div>
               <div className='mt-2 w-full flex flex-col justify-start'>
                 <textarea
                   onChange={(e) => setOrgDescription(e.target.value)}
                   className='text-sm textarea textarea-lg border border-input-light-outline w-full focus:border-input-outline'
                   rows={4}
-                  placeholder='Type a description'></textarea>
-                <span className='text-xs text-grey-350 mt-2'>Write a short description</span>
+                  placeholder='Enter a description...'></textarea>
+                <span className='text-xs flex space-x-1 text-grey-300 mt-2'>
+                  <InfoCircle />
+                  <span>Write a short description</span>
+                </span>
               </div>
             </div>
           </div>
@@ -183,7 +190,8 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
                 <button
                   type='submit'
                   onClick={handleSubmit}
-                  className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
+                  className='w-full btn rounded-[12px] bg-blue-900 text-sm outline-none border-none hover:bg-blue-950'
+                  style={{ textTransform: 'none' }}>
                   {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
                 </button>
               </div>
@@ -191,7 +199,8 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
               <div className='w-full'>
                 <button
                   type='submit'
-                  className='w-full btn btn-disabled bg-white rounded-none text-sm outline-none border-none'>
+                  className='w-full btn btn-disabled rounded-[12px] bg-white text-sm outline-none border-none'
+                  style={{ textTransform: 'none' }}>
                   Continue
                 </button>
               </div>
@@ -363,7 +372,7 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
   };
 
   return (
-    <div className='sm:ml-3 lg:ml-1'>
+    <div className='w-full'>
       <ProgressComponent colorFirst={true} colorSecond={true} />
       <div className='w-full'>
         <h2 className='text-3xl text-black font-semibold w-full lg:w-10/12 md:mt-20 lg:mt-2'>
@@ -374,8 +383,8 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
             <Toast type={'error'} timeout={7000} message={creationErrors.message} />
           )}
           <div className='mt-6'>
-            <div className='lg:w-10/12 sm:w-full md:w-11/12'>
-              <div className='text-sm'>Industry</div>
+            <div className='w-full'>
+              <div className='text-sm text-grey-300'>Industry</div>
               <div className='mt-2 w-full'>
                 <select
                   className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'
@@ -390,8 +399,8 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
             </div>
           </div>
           <div className='mt-6'>
-            <div className='lg:w-10/12 sm:w-full md:w-11/12'>
-              <div className='text-sm'>Country</div>
+            <div className='w-full'>
+              <div className='text-sm text-grey-300'>Country</div>
               <div className='mt-2 w-full flex flex-row'>
                 <select
                   className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'
@@ -406,7 +415,7 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
             </div>
           </div>
           <div className='mt-6'>
-            <div className='lg:w-10/12 sm:w-full md:w-11/12'>
+            <div className='w-full text-grey-300'>
               <div className='text-sm'>Timezone</div>
               <div className='mt-2 w-full'>
                 <select
@@ -422,11 +431,12 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
             </div>
           </div>
           <div className='mt-10'>
-            <div className='sm:w-full lg:w-10/12 md:w-11/12'>
+            <div className='w-full'>
               <button
                 type='submit'
                 onClick={handleSubmit}
-                className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
+                className='w-full btn rounded-[12px] bg-blue-900 text-sm outline-none border-none hover:bg-blue-950'
+                style={{ textTransform: 'none' }}>
                 {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
               </button>
             </div>
@@ -495,7 +505,7 @@ const CreateOrganisationDetailsPageThree = () => {
     setLoading(true);
     const data = {
       user_id: id,
-      selected_sites:locationArray,
+      selected_sites: locationArray,
     };
     dispatch(setCustomisedLocations(data));
     try {
@@ -527,9 +537,9 @@ const CreateOrganisationDetailsPageThree = () => {
   }, [gridLocationsData]);
 
   return (
-    <div className='sm:ml-3 lg:ml-1 relative h-[600px]'>
+    <div className='relative h-[600px] w-full'>
       <ProgressComponent colorFirst={true} colorSecond={true} colorThird={true} />
-      <div className='w-full h-full'>
+      <div className='w-full h-auto'>
         <h2 className='text-3xl text-black font-semibold w-full lg:w-10/12 md:mt-20 lg:mt-2'>
           Choose locations you are interested in
         </h2>
@@ -538,7 +548,7 @@ const CreateOrganisationDetailsPageThree = () => {
             <Toast type={'error'} timeout={6000} message={creationErrors.message} />
           )}
           <div className='mt-6'>
-            <div className='lg:w-11/12 sm:w-full md:w-full'>
+            <div className='w-full'>
               <div className='text-sm'>Add Locations</div>
               <div className='mt-2 w-full flex flex-row items-center justify-start '>
                 <div className='flex items-center justify-center pl-3 bg-white border h-12 rounded-lg rounded-r-none border-r-0 border-input-light-outline focus:border-input-light-outline'>
@@ -581,7 +591,10 @@ const CreateOrganisationDetailsPageThree = () => {
                   )}
                 </div>
               )}
-              <div className='mt-1 text-xs text-grey-350'>Select any 4 locations</div>
+              <div className='mt-1 flex space-x-1 text-xs text-grey-350'>
+                <InfoCircle />
+                <span>Select any 4 locations</span>
+              </div>
             </div>
           </div>
           {inputSelect && (
@@ -595,7 +608,9 @@ const CreateOrganisationDetailsPageThree = () => {
                       {location.name}
                     </span>
                     <div onClick={() => removeLocation(location)} className='hover:cursor-pointer'>
-                      <CloseIcon style={{ margin: '0 3px' }} />
+                      <span className='mt-[4px]'>
+                        <CloseIcon fill='#145FFF' strokeWidth='2' width={16} height={16} />
+                      </span>
                     </div>
                   </div>
                 ))
@@ -611,7 +626,8 @@ const CreateOrganisationDetailsPageThree = () => {
                   <button
                     type='submit'
                     onClick={handleSubmit}
-                    className='w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950'>
+                    style={{ textTransform: 'none' }}
+                    className='w-full btn bg-blue-900 rounded-[12px] text-sm outline-none border-none hover:bg-blue-950'>
                     {loading ? (
                       <Spinner data-testid='spinner' width={25} height={25} />
                     ) : (
@@ -623,7 +639,8 @@ const CreateOrganisationDetailsPageThree = () => {
                 <div className='w-full'>
                   <button
                     type='submit'
-                    className='w-full btn btn-disabled bg-white rounded-none text-sm outline-none border-none'>
+                    style={{ textTransform: 'none' }}
+                    className='w-full btn btn-disabled bg-white rounded-[12px] text-sm outline-none border-none'>
                     Continue
                   </button>
                 </div>
@@ -655,7 +672,12 @@ const CreateOrganisationDetails = () => {
   }, []);
 
   return (
-    <AccountPageLayout childrenHeight={'lg:h-[500]'} childrenTop={'mt-8'}>
+    <AccountPageLayout
+      childrenHeight={'lg:h-[500]'}
+      childrenTop={'mt-8'}
+      rightText={
+        "What you've built here is so much better for air pollution monitoring than anything else on the market!"
+      }>
       {nextComponent === 'pageOne' && (
         <CreateOrganisationDetailsPageOne handleComponentSwitch={() => handleSwitchTo('pageTwo')} />
       )}
