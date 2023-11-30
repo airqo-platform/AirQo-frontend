@@ -131,7 +131,7 @@ const EventDetails = () => {
                     <div dangerouslySetInnerHTML={{ __html: event.html }} className="html"></div>
                     {event.program.length > 0 ? (
                       <div className="program">
-                        <h3>Event Program</h3>
+                        <h3>Event Schedule</h3>
                         {event.program.map((program) => (
                           <div key={program.id}>
                             <details>
