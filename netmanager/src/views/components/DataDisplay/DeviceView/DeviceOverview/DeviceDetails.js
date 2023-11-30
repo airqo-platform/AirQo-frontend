@@ -1,13 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Paper, Table, TableBody, TableCell, TableContainer, TableRow } from '@material-ui/core';
+import {
+  Box,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow
+} from '@material-ui/core';
 import Copyable from 'views/components/Copy/Copyable';
 import { ChartContainer } from 'views/charts';
 import { decryptKeyApi } from 'views/apis/deviceRegistry';
 import { isEmpty } from 'underscore';
 import format from 'date-fns/format';
+import { stripTrailingSlash } from '../../../../../config/utils';
+import HowToApiModal from '../../../HowToApiModal';
+
+const BASE_ANALYTICS_URL = stripTrailingSlash(process.env.REACT_APP_BASE_URL_V2);
 
 const DeviceDetails = ({ deviceData }) => {
   const BLANK_PLACE_HOLDER = '-';
+  const [openModal, setOpenModal] = useState(false);
   const [readKey, setReadKey] = useState('');
   const [writeKey, setWriteKey] = useState('');
 
@@ -157,9 +170,60 @@ const DeviceDetails = ({ deviceData }) => {
                 <Copyable value={writeKey || BLANK_PLACE_HOLDER} />
               </TableCell>
             </TableRow>
+            {deviceData._id && (
+              <TableRow>
+                <TableCell>
+                  <b>Historical measurements API</b>
+                </TableCell>
+                <TableCell>
+                  <Copyable
+                    value={
+                      `${stripTrailingSlash(BASE_ANALYTICS_URL)}/devices/measurements/devices/${
+                        deviceData._id
+                      }/historical` || BLANK_PLACE_HOLDER
+                    }
+                    isScrollable
+                  />
+                </TableCell>
+              </TableRow>
+            )}
+            {deviceData._id && (
+              <TableRow>
+                <TableCell>
+                  <b>Recent measurements API</b>
+                </TableCell>
+                <TableCell>
+                  <Copyable
+                    value={
+                      `${stripTrailingSlash(BASE_ANALYTICS_URL)}/devices/measurements/devices/${
+                        deviceData._id
+                      }` || BLANK_PLACE_HOLDER
+                    }
+                    isScrollable
+                  />
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Box
+        style={{
+          display: 'flex',
+          flex: 1,
+          width: '100%',
+          justifyContent: 'flex-end',
+          textDecoration: 'underline',
+          padding: '10px',
+          fontWeight: 'bold',
+          cursor: 'pointer'
+        }}
+        onClick={() => setOpenModal(true)}
+      >
+        <p style={{ width: '100%', textAlign: 'right' }}>How to use the API</p>
+      </Box>
+      <HowToApiModal open={openModal} onClose={() => setOpenModal(false)} />
     </ChartContainer>
   );
 };

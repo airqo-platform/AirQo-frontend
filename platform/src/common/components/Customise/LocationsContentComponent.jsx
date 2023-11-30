@@ -14,11 +14,11 @@ import DragIconLight from '@/icons/Actions/drag_icon_light.svg';
 import Toast from '../Toast';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import Spinner from '@/components/Spinner';
+import AlertBox from '@/components/AlertBox';
 
 const LocationsContentComponent = ({ selectedLocations }) => {
   const dispatch = useDispatch();
   const gridsData = useSelector((state) => state.grids.sitesSummary);
-  const gridsData2 = useSelector((state) => state.grids);
   const gridLocationsData = (gridsData && gridsData.sites) || [];
   const [isLoading, setIsLoading] = useState(false);
 
@@ -28,6 +28,11 @@ const LocationsContentComponent = ({ selectedLocations }) => {
   const [filteredLocations, setFilteredLocations] = useState([]);
   const [unSelectedLocations, setUnSelectedLocations] = useState([]);
   const [draggedLocations, setDraggedLocations] = useState(selectedLocations);
+  const [isError, setIsError] = useState({
+    isError: false,
+    message: '',
+    type: '',
+  });
 
   const handleLocationEntry = (e) => {
     setInputSelect(false);
@@ -57,6 +62,18 @@ const LocationsContentComponent = ({ selectedLocations }) => {
       newLocationArray.splice(index, 1);
     } else if (newLocationArray.length < 4) {
       newLocationArray.push(item);
+      const unselectedIndex = unSelectedLocations.findIndex(
+        (location) => location._id === item._id,
+      );
+      unSelectedLocations.splice(unselectedIndex, 1);
+    } else {
+      setIsError({
+        isError: true,
+        message:
+          'You have reached the limit of 4 locations. Please remove a location before adding another.',
+        type: 'error',
+      });
+      return;
     }
 
     setLocationArray(newLocationArray);
@@ -64,6 +81,7 @@ const LocationsContentComponent = ({ selectedLocations }) => {
     setInputSelect(true);
     setLocation('');
   };
+
   const removeLocation = (item) => {
     const newLocationArray = locationArray.filter((location) => location._id !== item._id);
     setLocationArray(newLocationArray);
@@ -220,6 +238,20 @@ const LocationsContentComponent = ({ selectedLocations }) => {
                   }
                   <div className='mt-6 mb-24'>
                     <h3 className='text-sm text-black-800 font-semibold'>Suggestions</h3>
+                    <div className='my-1'>
+                      <AlertBox
+                        message={isError.message}
+                        type={isError.type}
+                        show={isError.isError}
+                        hide={() =>
+                          setIsError({
+                            isError: false,
+                            message: '',
+                            type: '',
+                          })
+                        }
+                      />
+                    </div>
                     <div className='mt-3'>
                       {unSelectedLocations && unSelectedLocations.length > 0 ? (
                         unSelectedLocations.slice(0, 15).map((location) => (

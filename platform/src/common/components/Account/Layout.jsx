@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import SmallLogo from '@/icons/airqo_logo.svg';
 import Image from 'next/image';
 import SideImage from '@/images/Account/SideQuote.png';
+import AnalyticsImage from '@/images/Account/analyticsImage.png';
 import Head from 'next/head';
 
 const AccountPageLayout = ({
   pageTitle,
   children,
-  rightImage,
+  rightText,
   childrenTop,
   childrenHeight,
   sideBackgroundColor,
@@ -22,37 +23,48 @@ const AccountPageLayout = ({
   }, [width]);
 
   return (
-    <>
+    <div style={{ height: '100vh' }}>
       <Head>
         <title>{pageTitle}</title>
         <meta property='og:title' content={pageTitle} key='title' />
       </Head>
-      <div className='grid grid-cols-account'>
-        <div className='col-start-2 col-end-3 grid md:grid-cols-1 lg:grid-cols-11 grid-rows-1 w-full  max-h-[800px]'>
-          <div className='lg:col-span-5 lg:py-10 lg:px-20 py-8 px-6 h-max'>
-            <div>
-              <SmallLogo />
-            </div>
-            <div
-              className={`${
-                childrenTop ? childrenTop : 'mt-16'
-              } flex flex-col justify-center items-start ${
-                childrenHeight ? childrenHeight : 'lg:h-[480px]'
-              } overflow-hidden`}>
-              {children}
+      <div className='h-full w-auto'>
+        <div className='grid md:grid-cols-1 lg:grid-cols-11 w-full h-full '>
+          <div className='lg:col-span-5 py-10 px-6 lg:px-20 h-full flex justify-center items-center'>
+            <div className='w-full lg:w-auto'>
+              <div>
+                <SmallLogo />
+              </div>
+              <div
+                className={`${
+                  childrenTop ? childrenTop : 'mt-16'
+                } flex flex-col justify-center items-start`}>
+                {children}
+              </div>
             </div>
           </div>
-          {width >= 1020 && (
-            <div
-              className={`lg:col-span-6 ${
-                sideBackgroundColor ? sideBackgroundColor : 'bg-green-150'
-              } flex items-center justify-center max-h-[900px] relative overflow-hidden`}>
-              <Image src={rightImage ? rightImage : SideImage} />
+          <div
+            className={`lg:col-span-6 lg:grid hidden ${
+              sideBackgroundColor ? sideBackgroundColor : 'bg-green-150'
+            } flex items-center justify-center w-full`}>
+            <div className='px-[64px] py-[26px] relative max-w-4xl h-auto'>
+              <h1 className='relative font-medium leading-9 text-[29px] mb-6'>
+                {rightText
+                  ? rightText
+                  : "Before joining the AirQo Analytics I spent ages trying to send emails to AirQo support to get access to air quality data. What you've built here is so much better for air pollution monitoring than anything else on the market!"}
+              </h1>
+              <h2 className='relative font-medium leading-9 text-[18px]'>— Jennifer</h2>
+              <span className='text-grey-300 text-[16px] font-normal leading-6'>
+                Environment officer. NEMA
+              </span>
+              <div className='mt-10 w-auto'>
+                <Image src={AnalyticsImage} alt='side image' />
+              </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

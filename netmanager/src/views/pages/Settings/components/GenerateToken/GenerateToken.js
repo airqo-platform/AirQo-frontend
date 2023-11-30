@@ -61,19 +61,28 @@ const RegisterClient = (props) => {
   const classes = useStyles();
   const { open, onClose, data, onRegister } = props;
   const [clientName, setClientName] = useState('');
+  const [clientIP, setClientIP] = useState('');
   const [clientNameError, setClientNameError] = useState(false);
   const userID = data.user._id;
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!clientName) {
       setClientNameError(true);
       return;
     }
+    setIsLoading(true);
     try {
       const data = {
         name: clientName,
         user_id: userID
       };
+
+      // Add clientIP to the data if it's provided
+      if (clientIP) {
+        data.ip_address = clientIP;
+      }
+
       const response = await createClientApi(data);
       if (response.success === true) {
         dispatch(
@@ -86,6 +95,7 @@ const RegisterClient = (props) => {
         onClose();
         onRegister();
         setClientName('');
+        setClientIP('');
       } else {
         dispatch(
           updateMainAlert({
@@ -105,24 +115,38 @@ const RegisterClient = (props) => {
         })
       );
     }
+    setIsLoading(false);
   };
 
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle className={classes.DialogTitle}>Register Client</DialogTitle>
       <DialogContent className={classes.DialogContent}>
-        <TextField
-          label="Client Name"
-          value={clientName}
-          variant="outlined"
-          onChange={(e) => {
-            setClientName(e.target.value);
-            setClientNameError(false);
-          }}
-          error={clientNameError}
-          helperText={clientNameError && 'Please enter a client name'}
-          fullWidth
-        />
+        <div style={{ marginBottom: '10px', width: '100%' }}>
+          <TextField
+            label="Client Name"
+            value={clientName}
+            variant="outlined"
+            onChange={(e) => {
+              setClientName(e.target.value);
+              setClientNameError(false);
+            }}
+            error={clientNameError}
+            helperText={clientNameError && 'Please enter a client name'}
+            fullWidth
+          />
+        </div>
+        <div style={{ width: '100%' }}>
+          <TextField
+            label="Client IP (Optional)"
+            value={clientIP}
+            variant="outlined"
+            onChange={(e) => {
+              setClientIP(e.target.value);
+            }}
+            fullWidth
+          />
+        </div>
       </DialogContent>
       <DialogActions className={classes.DialogActions}>
         <Button onClick={onClose}>Cancel</Button>
@@ -130,8 +154,9 @@ const RegisterClient = (props) => {
           color="primary"
           variant="contained"
           onClick={handleSubmit}
-          className={classes.DialogButton}>
-          Submit
+          className={classes.DialogButton}
+          disabled={isLoading}>
+          {isLoading ? <CircularProgress size={24} /> : 'Submit'}
         </Button>
       </DialogActions>
     </Dialog>
@@ -267,6 +292,10 @@ const GenerateToken = (props) => {
                 {
                   id: '_id',
                   label: 'Client ID'
+                },
+                {
+                  id: 'ip_address',
+                  label: 'Client IP Address'
                 },
                 {
                   id: 'createdAt',

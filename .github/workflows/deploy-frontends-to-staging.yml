@@ -150,7 +150,7 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-platform-frontend:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@v1.0.36 # Retries action on fail
+        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
@@ -301,7 +301,7 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-calibrate-app:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@v1.0.36 # Retries action on fail
+        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
@@ -360,7 +360,7 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-next-platform:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@v1.0.36 # Retries action on fail
+        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
@@ -408,7 +408,7 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }}
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@v1.0.36 # Retries action on fail
+        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
@@ -456,7 +456,7 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-inventory:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@v1.0.36 # Retries action on fail
+        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
