@@ -294,6 +294,10 @@ const GenerateToken = (props) => {
                   label: 'Client ID'
                 },
                 {
+                  id: 'ip_address',
+                  label: 'Client IP Address'
+                },
+                {
                   id: 'createdAt',
                   label: 'Registered Date',
                   format: (value, rowData) => {
