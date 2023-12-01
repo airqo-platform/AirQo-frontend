@@ -34,9 +34,13 @@ const AvailableUserList = (props) => {
           setUsers(res.available_users);
         })
         .catch((error) => {
+          let errorMessage = 'An error occurred';
+          if (error.response && error.response.data && error.response.data.message) {
+            errorMessage = error.response.data.message;
+          }
           dispatch(
             updateMainAlert({
-              message: error.response?.data?.message,
+              message: errorMessage,
               show: true,
               severity: 'error'
             })

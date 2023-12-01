@@ -294,8 +294,8 @@ export default function DevicePhotos({ deviceData }) {
         )}
       </ImageUploading>
       <h4 style={{ textAlign: 'center', fontWeight: 'bold' }}>
-        {deviceData && deviceData?.name
-          ? deviceData?.name?.charAt(0).toUpperCase() + deviceData?.name?.slice(1) + ' ' + 'Uploads'
+        {deviceData && deviceData.name
+          ? deviceData.name.charAt(0).toUpperCase() + deviceData.name.slice(1) + ' ' + 'Uploads'
           : ' '}
       </h4>
       {/* rendering the images */}

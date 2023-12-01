@@ -289,7 +289,8 @@ const UsersToolbar = (props) => {
   }, []);
 
   // role options
-  const options = roles?.map((role) => ({ value: role._id, label: role.role_name })) ?? [];
+  const options =
+    (roles && roles.map((role) => ({ value: role._id, label: role.role_name }))) || [];
 
   // handles role select
   const handleDropdownChange = (selectedOption, { name }) => {

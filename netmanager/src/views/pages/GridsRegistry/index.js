@@ -49,8 +49,7 @@ const GridsRegistry = () => {
         color="blue"
         display={'flex'}
         justifyContent={'center'}
-        alignItems={'center'}
-      >
+        alignItems={'center'}>
         <LargeCircularLoader loading={loading} />
       </Box>
     );
@@ -66,7 +65,7 @@ const GridsRegistry = () => {
           </Button>
         </BreadCrumb>
         <div className={classes.content}>
-          {grids?.length > 0 ? (
+          {grids && grids.length > 0 ? (
             <GridsTable gridsList={grids} />
           ) : (
             <Box
@@ -74,8 +73,7 @@ const GridsRegistry = () => {
               textAlign={'center'}
               display={'flex'}
               justifyContent={'center'}
-              alignItems={'center'}
-            >
+              alignItems={'center'}>
               <Typography variant="body2" color="textSecondary">
                 No grids found
               </Typography>

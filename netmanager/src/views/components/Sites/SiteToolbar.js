@@ -241,15 +241,20 @@ const SiteToolbar = (props) => {
       );
       setRefresh();
     } catch (error) {
-      const errors = error.response?.data?.errors;
-      setErrors(errors || initErrorData);
+      let errors = initErrorData;
+      let message = '';
+      if (error.response && error.response.data) {
+        errors = error.response.data.errors || initErrorData;
+        message = error.response.data.message || '';
+      }
+      setErrors(errors);
 
       dispatch(
         updateMainAlert({
-          message: error.response?.data?.message,
+          message: message,
           show: true,
           severity: 'error',
-          extra: createAlertBarExtraContentFromObject(errors || {})
+          extra: createAlertBarExtraContentFromObject(errors)
         })
       );
     }
@@ -267,7 +272,10 @@ const SiteToolbar = (props) => {
   };
 
   const handleErrors = (error) => {
-    const errorMessage = error.response?.data?.errors?.message;
+    let errorMessage = '';
+    if (error.response && error.response.data && error.response.data.errors) {
+      errorMessage = error.response.data.errors.message || '';
+    }
     setErrorMessage(errorMessage);
     setShowError(true);
   };

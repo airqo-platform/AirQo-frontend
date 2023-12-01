@@ -90,11 +90,14 @@ const AirQloudView = (props) => {
 
     setLoading(true);
 
-    let data = {
-      startDateTime: roundToStartOfDay(new Date(uptimeStartDate).toISOString()),
-      endDateTime: roundToEndOfDay(new Date(uptimeEndDate).toISOString()),
-      grid: airqloud?._id
-    };
+    let data = {};
+    if (airqloud) {
+      data = {
+        startDateTime: roundToStartOfDay(new Date(uptimeStartDate).toISOString()),
+        endDateTime: roundToEndOfDay(new Date(uptimeEndDate).toISOString()),
+        grid: airqloud._id
+      };
+    }
 
     generateAirQloudUptimeReportFunc(data);
   };
@@ -104,11 +107,14 @@ const AirQloudView = (props) => {
 
     setLoading(true);
 
-    let data = {
-      startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
-      endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
-      grid: airqloud?._id
-    };
+    let data = {};
+    if (airqloud) {
+      data = {
+        startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
+        endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
+        grid: airqloud._id
+      };
+    }
 
     generateAirQloudDataReportFunc(data);
   };
@@ -213,23 +219,20 @@ const AirQloudView = (props) => {
         style={{
           width: '96%',
           margin: ' 20px auto'
-        }}
-      >
+        }}>
         <div
           style={{
             margin: '50px auto',
             // minHeight: "400px",
             maxWidth: '1500px'
-          }}
-        >
+          }}>
           <div className={classes.rootxx}>
             <Grid container spacing={4}>
               <Grid item xs={12}>
                 <Card
                   {...rest}
                   className={clsx(classes.root, className)}
-                  style={{ overflow: 'visible' }}
-                >
+                  style={{ overflow: 'visible' }}>
                   <Typography className={classes.cardTitle}>
                     Generate Grid Data Summary Report
                   </Typography>
@@ -277,8 +280,7 @@ const AirQloudView = (props) => {
                           color="primary"
                           variant="outlined"
                           type="submit"
-                          disabled={disableReportGenerationBtn()}
-                        >
+                          disabled={disableReportGenerationBtn()}>
                           {' '}
                           Generate Data Summary Report
                         </Button>
@@ -307,8 +309,7 @@ const AirQloudView = (props) => {
           style={{
             margin: '50px auto',
             maxWidth: '1500px'
-          }}
-        >
+          }}>
           {dataSummaryReady ? (
             <div className={classes.rootxx}>
               <Grid container spacing={4}>
@@ -316,8 +317,7 @@ const AirQloudView = (props) => {
                   <Card
                     {...rest}
                     className={clsx(classes.root, className)}
-                    style={{ overflow: 'visible' }}
-                  >
+                    style={{ overflow: 'visible' }}>
                     <Typography className={clsx(classes.cardTitle, classes.titleSpacing)}>
                       {`Data Summary For ${airQloudDataSummaryReport.grid} From ${formatDate(
                         airQloudDataSummaryReport.start_date_time,
@@ -333,8 +333,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            >
+                              variant="body2">
                               Hourly Records
                             </Typography>
                             <Typography variant="h3">
@@ -347,8 +346,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            >
+                              variant="body2">
                               Calibrated Records
                             </Typography>
                             <Typography variant="h3">
@@ -361,8 +359,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            >
+                              variant="body2">
                               Uncalibrated Records
                             </Typography>
                             <Typography variant="h3">
@@ -375,8 +372,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            >
+                              variant="body2">
                               Calibrated Records(%)
                             </Typography>
                             <Typography variant="h3">
@@ -389,8 +385,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            >
+                              variant="body2">
                               UnCalibrated Records (%)
                             </Typography>
                             <Typography variant="h3">
@@ -512,16 +507,14 @@ const AirQloudView = (props) => {
             margin: '50px auto',
             // minHeight: "400px",
             maxWidth: '1500px'
-          }}
-        >
+          }}>
           <div className={classes.rootxx}>
             <Grid container spacing={4}>
               <Grid item xs={12}>
                 <Card
                   {...rest}
                   className={clsx(classes.root, className)}
-                  style={{ overflow: 'visible' }}
-                >
+                  style={{ overflow: 'visible' }}>
                   <Typography className={classes.cardTitle}>Generate Grid Uptime Report</Typography>
                   <p>
                     Select the time period of your interest to view the uptime report for this
@@ -568,8 +561,7 @@ const AirQloudView = (props) => {
                           color="primary"
                           variant="outlined"
                           type="submit"
-                          disabled={disableUptimeReportGenerationBtn()}
-                        >
+                          disabled={disableUptimeReportGenerationBtn()}>
                           {' '}
                           Generate Uptime Report for the Grid
                         </Button>
@@ -598,8 +590,7 @@ const AirQloudView = (props) => {
           style={{
             margin: '50px auto',
             maxWidth: '1500px'
-          }}
-        >
+          }}>
           {uptimeSummaryReady ? (
             <div className={classes.rootxx}>
               <Grid container spacing={4}>
@@ -607,8 +598,7 @@ const AirQloudView = (props) => {
                   <Card
                     {...rest}
                     className={clsx(classes.root, className)}
-                    style={{ overflow: 'visible' }}
-                  >
+                    style={{ overflow: 'visible' }}>
                     <Typography className={clsx(classes.cardTitle, classes.titleSpacing)}>
                       {`Uptime Statistics For ${
                         airQloudUptimeSummaryReport.grid_name
@@ -626,8 +616,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            >
+                              variant="body2">
                               Uptime (%)
                             </Typography>
                             <Typography variant="h3">
@@ -640,8 +629,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            >
+                              variant="body2">
                               Downtime (%)
                             </Typography>
                             <Typography variant="h3">
@@ -654,8 +642,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            >
+                              variant="body2">
                               Data Points
                             </Typography>
                             <Typography variant="h3">
@@ -668,8 +655,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            >
+                              variant="body2">
                               Hourly Threshold
                             </Typography>
                             <Typography variant="h3">
@@ -682,8 +668,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            ></Typography>
+                              variant="body2"></Typography>
                             <Typography variant="h3"></Typography>
                           </Grid>
                         </Grid>
