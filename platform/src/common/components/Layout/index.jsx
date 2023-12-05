@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import TopBar from '@/components/TopBar';
-// import { fetchUserPreferences } from '@/lib/store/services/charts/userDefaultsSlice';
-import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import {
   setChartSites,
   setChartDataRange,
@@ -23,28 +21,11 @@ const Layout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBorder
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
   const userInfo = useSelector((state) => state.login.userInfo);
-  // const userPreferences = useSelector((state) => state.userDefaults.preferences);
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
   const [toggleDrawer, setToggleDrawer] = useState(false);
   const [collapsed, setCollapsed] = useState(
     () => JSON.parse(localStorage.getItem('collapsed')) || false,
   );
-  const cardCheckList = useSelector((state) => state.cardChecklist.cards);
-
-  // Fetching user preferences
-  useEffect(() => {
-    const fetchPreferences = async () => {
-      if (userInfo) {
-        try {
-          await dispatch(getIndividualUserPreferences(userInfo._id));
-        } catch (error) {
-          console.error(`Error getting user preferences: ${error}`);
-        }
-      }
-    };
-
-    fetchPreferences();
-  }, [userInfo, dispatch]);
 
   useEffect(() => {
     const setChartProperties = async () => {
