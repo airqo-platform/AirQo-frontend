@@ -17,8 +17,7 @@ import { getSitesSummaryApi } from 'views/apis/deviceRegistry';
 import 'assets/css/location-registry.css';
 import { clearSiteDetails } from '../../../redux/SiteRegistry/operations';
 
-// horizontal loader
-import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
 
 const BLANK_SPACE_HOLDER = '-';
 const renderCell = (field) => (rowData) => <span>{rowData[field] || BLANK_SPACE_HOLDER}</span>;
@@ -51,6 +50,7 @@ const SitesTable = () => {
   const handleDeleteSite = async () => {
     setDelState({ open: false, name: '', id: '' });
     setIsLoading(true);
+    dispatch(loadStatus(true));
     try {
       const resData = await deleteSiteApi(delState.id);
       if (!isEmpty(activeNetwork)) {
@@ -75,12 +75,12 @@ const SitesTable = () => {
       );
     } finally {
       setIsLoading(false);
+      dispatch(loadStatus(false));
     }
   };
 
   return (
     <>
-      <HorizontalLoader loading={isLoading} />
       <CustomMaterialTable
         pointerCursor
         userPreferencePaginationKey={'sites'}

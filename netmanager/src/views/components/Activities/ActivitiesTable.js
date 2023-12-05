@@ -14,9 +14,6 @@ import { formatDateString } from 'utils/dateTime';
 // css
 import 'assets/css/location-registry.css';
 
-// horizontal loader
-import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
-
 const BLANK_SPACE_HOLDER = '-';
 const renderCell = (field) => (rowData) => <span>{rowData[field] || BLANK_SPACE_HOLDER}</span>;
 
@@ -50,8 +47,6 @@ const ActivitiesTable = () => {
 
   return (
     <>
-      {/* custome Horizontal loader indicator */}
-      {/* <HorizontalLoader loading={loading} /> */}
       <CustomMaterialTable
         pointerCursor
         userPreferencePaginationKey={'site_activities'}

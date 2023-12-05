@@ -14,7 +14,6 @@ import { isEmpty } from 'underscore';
 import Alert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/styles';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
-import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import Select from 'react-select';
 import RemoveIcon from '@material-ui/icons/Remove';
@@ -26,6 +25,7 @@ import { getSimsApi, createSimApi, checkSimStatusApi } from '../../apis/accessCo
 import DeleteIcon from '@material-ui/icons/Delete';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import { withPermission } from '../../containers/PageAccess';
+import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -99,6 +99,7 @@ const customStyles = {
 };
 
 const RegisterSim = ({ setCreateSimDialog, CreateSimDialog, setIsLoading, setRefresh }) => {
+  const dispatch = useDispatch();
   const classes = useStyles();
 
   const [sim, setSim] = useState({
@@ -142,9 +143,11 @@ const RegisterSim = ({ setCreateSimDialog, CreateSimDialog, setIsLoading, setRef
       });
     } else {
       setIsLoading(true);
+      dispatch(loadStatus(true));
       createSimApi(sim)
         .then((res) => {
           setIsLoading(false);
+          dispatch(loadStatus(false));
           if (res.success) {
             setCreateSimDialog(false);
             resetForm();
@@ -159,6 +162,7 @@ const RegisterSim = ({ setCreateSimDialog, CreateSimDialog, setIsLoading, setRef
         })
         .catch((err) => {
           setIsLoading(false);
+          dispatch(loadStatus(false));
           setErrors({
             msisdn: err.message,
             showError: true,
@@ -258,9 +262,11 @@ const SimRegistry = () => {
 
   const checkSimStatus = async (id) => {
     setIsLoading(true);
+    dispatch(loadStatus(true));
     try {
       const res = await checkSimStatusApi(id);
       setIsLoading(false);
+      dispatch(loadStatus(false));
       if (res.success) {
         dispatch(updateMainAlert({ message: res.message, show: true, severity: 'success' }));
         setRefresh(true);
@@ -269,6 +275,7 @@ const SimRegistry = () => {
       }
     } catch (err) {
       setIsLoading(false);
+      dispatch(loadStatus(false));
       dispatch(updateMainAlert({ message: err.message, show: true, severity: 'error' }));
     }
   };
@@ -277,7 +284,6 @@ const SimRegistry = () => {
 
   return (
     <>
-      <HorizontalLoader loading={isLoading} />
       <div className={classes.root}>
         <div
           style={{

@@ -23,8 +23,7 @@ import 'react-leaflet-fullscreen/dist/styles.css';
 import 'assets/css/location-registry.css';
 import { withPermission } from '../../containers/PageAccess';
 
-// horizontal loader
-import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
 
 const gridItemStyle = {
   padding: '5px',
@@ -76,6 +75,7 @@ const SiteForm = ({ site }) => {
 
   const handleSubmit = async () => {
     setLoading(true);
+    dispatch(loadStatus(true));
     await updateSiteApi(site._id, siteInfo)
       .then((responseData) => {
         dispatch(
@@ -102,6 +102,7 @@ const SiteForm = ({ site }) => {
         );
       });
     setLoading(false);
+    dispatch(loadStatus(false));
   };
 
   return (
@@ -112,8 +113,6 @@ const SiteForm = ({ site }) => {
         padding: '20px 20px',
         maxWidth: '1500px'
       }}>
-      {/* custome Horizontal loader indicator */}
-      <HorizontalLoader loading={loading} />
       <div
         style={{
           display: 'flex',

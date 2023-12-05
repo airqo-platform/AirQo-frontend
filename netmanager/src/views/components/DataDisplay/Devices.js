@@ -33,8 +33,7 @@ import { updateDeviceDetails } from '../../../redux/DeviceOverview/OverviewSlice
 // dropdown component
 import Select from 'react-select';
 
-// horizontal loader
-import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
 import UsersListBreadCrumb from '../../pages/UserList/components/Breadcrumb';
 
 const useStyles = makeStyles((theme) => ({
@@ -172,8 +171,7 @@ const createDeviceColumns = (history, setDelState) => [
               className={'underline-hover'}
               onClick={(event) => {
                 event.stopPropagation();
-              }}
-            >
+              }}>
               {data.site && data.site.description}
             </Link>
           )
@@ -203,8 +201,7 @@ const createDeviceColumns = (history, setDelState) => [
               style={{
                 color: deviceStatus === 'deployed' ? 'green' : 'red',
                 textTransform: 'capitalize'
-              }}
-            >
+              }}>
               {deviceStatus}
             </span>
           }
@@ -290,9 +287,10 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
     setErrors({ long_name: '', category: '', network: '' });
   };
 
-  let handleRegisterSubmit = (e) => {
+  const handleRegisterSubmit = (e) => {
     // Set loading to true when submitting
     setIsLoading(true);
+    dispatch(loadStatus(true));
     setOpen(false);
 
     if (!isEmpty(userNetworks)) {
@@ -317,6 +315,7 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
 
         // Set loading to false when done
         setIsLoading(false);
+        dispatch(loadStatus(false));
 
         return;
       } else {
@@ -327,6 +326,10 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
           .then((res) => res.data)
           .then((resData) => {
             handleRegisterClose();
+
+            setIsLoading(false);
+            dispatch(loadStatus(false));
+
             if (!isEmpty(selectedNetwork)) {
               dispatch(loadDevicesData(selectedNetwork));
             }
@@ -341,8 +344,6 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
                 severity: 'success'
               })
             );
-            // Set loading to false when done
-            setIsLoading(false);
           })
           .catch((error) => {
             const errors = error.response && error.response.data && error.response.data.errors;
@@ -357,6 +358,7 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
             );
             // Set loading to false when done
             setIsLoading(false);
+            dispatch(loadStatus(false));
           });
       }
     }
@@ -367,8 +369,7 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
       open={open}
       onClose={handleRegisterClose}
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description"
-    >
+      aria-describedby="form-dialog-description">
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Add a device
       </DialogTitle>
@@ -413,8 +414,7 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
             variant="outlined"
             error={!!errors.network}
             helperText={errors.network}
-            disabled
-          ></TextField>
+            disabled></TextField>
         </form>
       </DialogContent>
 
@@ -428,8 +428,7 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
             color="primary"
             type="submit"
             onClick={handleRegisterSubmit}
-            style={{ margin: '0 15px' }}
-          >
+            style={{ margin: '0 15px' }}>
             Register
           </Button>
         </Grid>
@@ -473,8 +472,9 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
     setErrors({ long_name: '', category: '', network: '' });
   };
 
-  let handleRegisterSubmit = (e) => {
+  const handleRegisterSubmit = (e) => {
     setIsLoading(true);
+    dispatch(loadStatus(true));
     setOpen(false);
     if (!isEmpty(userNetworks)) {
       const userNetworksNames = userNetworks.map((network) => network.net_name);
@@ -496,6 +496,7 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
         setErrors({ long_name: '', category: '', network: '' });
 
         setIsLoading(false);
+        dispatch(loadStatus(false));
 
         return;
       } else {
@@ -504,6 +505,14 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
         })
           .then((resData) => {
             handleRegisterClose();
+
+            if (!isEmpty(selectedNetwork)) {
+              dispatch(loadDevicesData(selectedNetwork));
+            }
+
+            setIsLoading(false);
+            dispatch(loadStatus(false));
+
             dispatch(
               updateMainAlert({
                 message: `${resData.message}. ${
@@ -515,7 +524,6 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
                 severity: 'success'
               })
             );
-            setIsLoading(false);
           })
           .catch((error) => {
             const errors = error.response && error.response.data && error.response.data.errors;
@@ -529,6 +537,7 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
               })
             );
             setIsLoading(false);
+            dispatch(loadStatus(false));
           });
       }
     }
@@ -539,8 +548,7 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
       open={open}
       onClose={handleRegisterClose}
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description"
-    >
+      aria-describedby="form-dialog-description">
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Soft add a device
       </DialogTitle>
@@ -583,8 +591,7 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
             variant="outlined"
             error={!!errors.network}
             helperText={errors.network}
-            disabled
-          ></TextField>
+            disabled></TextField>
         </form>
       </DialogContent>
 
@@ -598,8 +605,7 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
             color="primary"
             type="submit"
             onClick={handleRegisterSubmit}
-            style={{ margin: '0 15px' }}
-          >
+            style={{ margin: '0 15px' }}>
             Register
           </Button>
         </Grid>
@@ -644,6 +650,7 @@ const DevicesTable = (props) => {
   const handleDeleteDevice = async () => {
     if (delDevice.name) {
       setIsLoading(true);
+      dispatch(loadStatus(true));
       try {
         await deleteDeviceApi(delDevice.name);
         delete devices[delDevice.name];
@@ -670,6 +677,7 @@ const DevicesTable = (props) => {
         );
       } finally {
         setIsLoading(false);
+        dispatch(loadStatus(false));
       }
     }
     setDelDevice({ open: false, name: '' });
@@ -677,9 +685,6 @@ const DevicesTable = (props) => {
 
   return (
     <ErrorBoundary>
-      {/* custome Horizontal loader indicator */}
-      <HorizontalLoader loading={isLoading} />
-
       <div className={classes.root}>
         <br />
         <div
@@ -687,16 +692,14 @@ const DevicesTable = (props) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end'
-          }}
-        >
+          }}>
           {activeNetwork.net_name === 'airqo' && (
             <Button
               variant="contained"
               color="primary"
               type="submit"
               align="right"
-              onClick={() => setRegisterOpen(true)}
-            >
+              onClick={() => setRegisterOpen(true)}>
               {' '}
               Add Device
             </Button>
@@ -706,8 +709,7 @@ const DevicesTable = (props) => {
             color="primary"
             type="submit"
             style={{ marginLeft: '20px' }}
-            onClick={() => setSoftRegisterOpen(true)}
-          >
+            onClick={() => setSoftRegisterOpen(true)}>
             {activeNetwork.net_name === 'airqo' ? 'Soft Add Device' : 'Add Device'}
           </Button>
         </div>

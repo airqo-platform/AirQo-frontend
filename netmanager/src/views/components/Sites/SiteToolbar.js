@@ -19,7 +19,7 @@ import { loadSitesData, loadSitesSummary } from 'redux/SiteRegistry/operations';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { isEmpty } from 'underscore';
-import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
 import IconButton from '@material-ui/core/IconButton';
 import LocationOnIcon from '@material-ui/icons/LocationOn';
 
@@ -200,6 +200,7 @@ const SiteToolbar = (props) => {
 
   const handleSiteSubmit = async (e) => {
     setIsLoading(true);
+    dispatch(loadStatus(true));
     setOpen(false);
     setDisabled(true);
 
@@ -267,6 +268,7 @@ const SiteToolbar = (props) => {
     setConfirm(false);
     setOpen(false);
     setIsLoading(false);
+    dispatch(loadStatus(false));
     setSiteData(initSiteData);
     setErrors(initErrorData);
   };
@@ -326,13 +328,6 @@ const SiteToolbar = (props) => {
   return (
     <>
       <div {...rest} className={clsx(classes.root, className)}>
-        <HorizontalLoader
-          color="#FFCC00"
-          loading={isLoading}
-          initial={0}
-          target={100}
-          duration={1500}
-        />
         <div className={classes.row}>
           <span className={classes.spacer} />
           <Button
