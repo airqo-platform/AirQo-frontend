@@ -3,7 +3,10 @@ import CustomDropdown from './CustomDropdown';
 import CheckIcon from '@/icons/tickIcon';
 import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
+import {
+  updateUserPreferences,
+  getIndividualUserPreferences,
+} from '@/lib/store/services/account/UserDefaultsSlice';
 import Spinner from '@/components/Spinner';
 
 const splitNameIntoList = (fullName) => {
@@ -30,69 +33,50 @@ const OrganizationDropdown = () => {
   const [loading, setLoading] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState({});
   const preferences = useSelector((state) => state.defaults.individual_preferences);
+  const userInfo = useSelector((state) => state.login.userInfo);
 
-  useEffect(() => {
-    const storedActiveGroup = localStorage.getItem('activeGroup');
-    const storedUser = localStorage.getItem('loggedUser');
-    const userGroups = JSON.parse(storedUser)?.groups;
-    const userId = JSON.parse(storedUser)?._id;
-
-    const handleUpdatePreferences = async () => {
-      setLoading(true);
-      const data = {
-        user_id: userId,
-        group_id: JSON.parse(storedActiveGroup)?._id,
-      };
-
-      try {
-        const response = await dispatch(updateUserPreferences(data));
-        if (response.payload.success) {
-          setActiveGroup(JSON.parse(storedActiveGroup));
-        }
-      } catch (error) {
-        throw error;
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (
-      storedActiveGroup !== null &&
-      preferences &&
-      preferences[0] &&
-      preferences[0].group_id === ''
-    ) {
-      handleUpdatePreferences();
-    } else {
-      setActiveGroup(JSON.parse(storedActiveGroup));
-    }
-
-    if (userGroups) {
-      setUserGroups(userGroups);
-    }
-  }, []);
-
-  const handleDropdownSelect = async (option) => {
+  const handleUpdatePreferences = async (group) => {
     setLoading(true);
-    const storedUser = localStorage.getItem('loggedUser');
-    const userId = JSON.parse(storedUser)?._id;
+    setSelectedGroup(group);
+    const userId = userInfo?._id;
     const data = {
       user_id: userId,
-      group_id: option._id,
+      group_id: group._id,
     };
-    setSelectedGroup(option);
 
     try {
       const response = await dispatch(updateUserPreferences(data));
       if (response.payload.success) {
-        setActiveGroup(option);
-        localStorage.setItem('activeGroup', JSON.stringify(option));
+        setActiveGroup(group);
+        localStorage.setItem('activeGroup', JSON.stringify(group));
+        // Refetch the preferences
+        await dispatch(getIndividualUserPreferences(userId));
       }
     } catch (error) {
       throw error;
     } finally {
       setLoading(false);
-      setSelectedGroup({});
+    }
+  };
+
+  useEffect(() => {
+    const storedActiveGroup = JSON.parse(localStorage.getItem('activeGroup'));
+    const userGroups = userInfo?.groups;
+
+    if (storedActiveGroup && (!preferences || preferences[0]?.group_id === '')) {
+      handleUpdatePreferences(storedActiveGroup);
+    } else {
+      setActiveGroup(storedActiveGroup);
+    }
+
+    if (userGroups) {
+      setUserGroups(userGroups);
+    }
+  }, [userInfo, preferences]);
+
+  const handleDropdownSelect = (option) => {
+    if (activeGroup?.grp_title !== option?.grp_title) {
+      handleUpdatePreferences(option);
     }
   };
 
@@ -117,8 +101,7 @@ const OrganizationDropdown = () => {
                 <div className='pt-0.5 justify-start items-start gap-1 flex'>
                   <div
                     className='text-slate-500 text-sm font-medium uppercase leading-tight text-left'
-                    title={formatString(activeGroup?.grp_title)}
-                  >
+                    title={formatString(activeGroup?.grp_title)}>
                     {activeGroup && activeGroup?.grp_title && activeGroup?.grp_title.length > 14
                       ? formatString(activeGroup?.grp_title.slice(0, 14)) + '...'
                       : formatString(activeGroup?.grp_title)}
@@ -140,8 +123,7 @@ const OrganizationDropdown = () => {
           overflowY: 'scroll',
           overflowX: 'hidden',
           display: userGroups.length > 1 ? 'block' : 'none',
-        }}
-      >
+        }}>
         {userGroups.map((format) => (
           <a
             key={format._id}
@@ -151,8 +133,7 @@ const OrganizationDropdown = () => {
               activeGroup &&
               activeGroup?.grp_title === format?.grp_title &&
               'bg-secondary-neutral-light-50'
-            }`}
-          >
+            }`}>
             <div className='grow shrink basis-0 h-6 justify-start items-center gap-2 flex'>
               <div className='w-8 h-8 py-1.5 bg-gray-50 rounded-full justify-center items-center flex'>
                 <div className='w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight'>
@@ -166,21 +147,19 @@ const OrganizationDropdown = () => {
               </div>
               <div
                 className='max-w-[120px] w-full text-gray-700 text-sm font-normal leading-tight uppercase'
-                title={format.grp_title}
-              >
+                title={format.grp_title}>
                 {format && format.grp_title && format.grp_title.length > 24
                   ? formatString(format.grp_title.slice(0, 24)) + '...'
                   : formatString(format.grp_title)}
               </div>
             </div>
-            {activeGroup && activeGroup?.grp_title === format?.grp_title && (
-              <CheckIcon fill='#145FFF' />
-            )}
-            {loading && selectedGroup._id === format._id && (
+            {loading && selectedGroup._id === format._id ? (
               <span>
                 <Spinner width={20} height={20} />
               </span>
-            )}
+            ) : activeGroup && activeGroup?.grp_title === format?.grp_title ? (
+              <CheckIcon fill='#145FFF' />
+            ) : null}
           </a>
         ))}
       </CustomDropdown>
