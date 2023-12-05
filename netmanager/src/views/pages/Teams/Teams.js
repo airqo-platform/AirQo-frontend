@@ -98,6 +98,7 @@ const CreateTeam = ({
 
     if (team.name && team.description) {
       let teamData = {
+        user_id: JSON.parse(localStorage.getItem('currentUser'))?._id,
         grp_title: team.name,
         grp_description: team.description
       };
