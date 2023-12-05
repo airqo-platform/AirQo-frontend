@@ -181,7 +181,7 @@ const AirqloudUptimeChart = () => {
               id="startDate"
               fullWidth
               style={{ marginTop: '15px' }}
-              value={editableStartDate?.slice(0, 10)}
+              value={editableStartDate ? editableStartDate.slice(0, 10) : ''}
               onChange={(e) => {
                 setEditableStartDate(e.target.value);
               }}
@@ -195,13 +195,13 @@ const AirqloudUptimeChart = () => {
               id="endDate"
               fullWidth
               style={{ marginTop: '15px' }}
-              value={editableEndDate?.slice(0, 10)}
+              value={editableEndDate ? editableEndDate.slice(0, 10) : ''}
               onChange={(e) => {
                 setEditableEndDate(e.target.value);
               }}
-              type="date"
-              InputLabelProps={{ shrink: true }}
               variant="outlined"
+              InputLabelProps={{ shrink: true }}
+              type="date"
             />
 
             <Box marginTop="8px">
@@ -224,8 +224,7 @@ const AirqloudUptimeChart = () => {
               variant="contained"
               color="primary"
               style={{ marginTop: '15px' }}
-              onClick={resetAirqloudUptimeChart}
-            >
+              onClick={resetAirqloudUptimeChart}>
               Reset chart
             </Button>
             {errorMsg && (
@@ -234,8 +233,7 @@ const AirqloudUptimeChart = () => {
                 style={{
                   color: 'red',
                   marginTop: '8px'
-                }}
-              >
+                }}>
                 {errorMsg}
               </Typography>
             )}

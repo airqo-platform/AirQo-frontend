@@ -220,11 +220,12 @@ const UsersTable = (props) => {
   }, []);
 
   // If roles is null or undefined will return empty array
-  const options = roles?.map((role) => ({ value: role._id, label: role.role_name })) ?? [];
+  const options =
+    (roles && roles.map((role) => ({ value: role._id, label: role.role_name }))) || [];
 
   // checking if userToEdit is undefined or null
   const [selectedOption, setSelectedOption] = useState(
-    props.mappeduserState.userToEdit?.role
+    props.mappeduserState.userToEdit && props.mappeduserState.userToEdit.role
       ? {
           value: props.mappeduserState.userToEdit.role._id,
           label: props.mappeduserState.userToEdit.role.role_name
@@ -320,8 +321,7 @@ const UsersTable = (props) => {
           <Dialog
             open={showMoreDetailsPopup}
             onClose={hideMoreDetailsDialog}
-            aria-labelledby="form-dialog-title"
-          >
+            aria-labelledby="form-dialog-title">
             <DialogTitle>User request details</DialogTitle>
             <DialogContent>
               <div style={{ minWidth: 500 }}>
@@ -492,8 +492,7 @@ const UsersTable = (props) => {
                   style={{ margin: '0 15px' }}
                   onClick={submitEditUser}
                   color="primary"
-                  variant="contained"
-                >
+                  variant="contained">
                   Submit
                 </Button>
               </div>

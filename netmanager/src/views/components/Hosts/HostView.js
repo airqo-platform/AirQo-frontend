@@ -335,10 +335,13 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
               isLoading={isEmpty(sites)}
               options={sites.map((site) => ({ value: site._id, label: site.name }))}
               value={
-                selectedOption || {
-                  value: host.site_id,
-                  label: sites.find((site) => site._id === host.site_id)?.name || ''
-                }
+                selectedOption ||
+                (host && host.site_id && sites.find((site) => site._id === host.site_id)
+                  ? {
+                      value: host.site_id,
+                      label: sites.find((site) => site._id === host.site_id).name
+                    }
+                  : '')
               }
               onChange={onChangeDropdown}
               styles={customStyles}
@@ -440,7 +443,11 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
         );
         onSent();
       } else {
-        setError(response.errors?.message || 'An error occurred. Please try again.');
+        let errorMessage = 'An error occurred. Please try again.';
+        if (response.errors && response.errors.message) {
+          errorMessage = response.errors.message;
+        }
+        setError(errorMessage);
       }
     } catch (error) {
       setError('An error occurred. Please try again.');
@@ -598,10 +605,16 @@ const HostView = () => {
         const { transaction } = response;
         const hostsData = transaction.map((transaction) => {
           const host = hosts.find((host) => transaction.host_id === host._id);
+          let hostFirstName = '';
+          let hostLastName = '';
+          if (host) {
+            hostFirstName = host.first_name || '';
+            hostLastName = host.last_name || '';
+          }
           return {
             ...transaction,
-            hostFirstName: host?.first_name || '',
-            hostLastName: host?.last_name || ''
+            hostFirstName: hostFirstName,
+            hostLastName: hostLastName
           };
         });
         setTransactions(hostsData);

@@ -173,10 +173,13 @@ const GenerateToken = (props) => {
   const [clientStaffData, setClientStaffData] = useState([]);
   const [refresh, setRefresh] = useState(false);
   const [generated, setGenerated] = useState(false);
-  const userID = mappedAuth?.user?._id;
+  let userID = '';
+  if (mappedAuth && mappedAuth.user) {
+    userID = mappedAuth.user._id;
+  }
 
   useEffect(() => {
-    if (!isEmpty(mappedAuth?.user)) {
+    if (!isEmpty(mappedAuth) && mappedAuth.user) {
       getUserDetails(userID).then((res) => {
         setClientData(res.users[0].clients);
       });
@@ -203,10 +206,10 @@ const GenerateToken = (props) => {
     .filter((item) => clientData.map((item) => item._id).includes(item._id))
     .flatMap((item) => item.access_token || [])
     .map((token) => ({
-      clientName: token?.name,
-      createdAt: token?.createdAt,
-      expiresAt: token?.expires,
-      token: token?.token
+      clientName: token && token.name ? token.name : undefined,
+      createdAt: token && token.createdAt ? token.createdAt : undefined,
+      expiresAt: token && token.expires ? token.expires : undefined,
+      token: token && token.token ? token.token : undefined
     }));
 
   const handleTokenGeneration = async (res) => {

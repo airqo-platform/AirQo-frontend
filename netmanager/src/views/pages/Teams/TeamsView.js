@@ -310,15 +310,18 @@ const TeamsView = () => {
     // Add your delete logic here
   };
 
-  const filteredData = teamsData.grp_users?.map((row) => {
-    return {
-      id: row._id,
-      username: `${row.firstName} ${row.lastName}`,
-      email: row.email,
-      country: row.country,
-      long_organization: row.long_organization
-    };
-  });
+  let filteredData = [];
+  if (teamsData.grp_users) {
+    filteredData = teamsData.grp_users.map((row) => {
+      return {
+        id: row._id,
+        username: `${row.firstName} ${row.lastName}`,
+        email: row.email,
+        country: row.country,
+        long_organization: row.long_organization
+      };
+    });
+  }
 
   return (
     <ErrorBoundary>
