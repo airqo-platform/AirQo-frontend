@@ -270,7 +270,7 @@ const MapStyleSelector = () => {
     if (localStorage.mapMode) {
       setMapMode(localStorage.mapMode);
     } else {
-      setMapMode('light');
+      setMapMode('street');
     }
   }, []);
 

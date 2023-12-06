@@ -460,7 +460,7 @@ export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
             showPollutant.pm2_5 || showPollutant.pm10
               ? Math.floor(feature.properties.pm2_5.value) ||
                 Math.floor(feature.properties.pm10.value)
-              : '';
+              : '--';
 
           if (
             feature.geometry.coordinates.length >= 2 &&
