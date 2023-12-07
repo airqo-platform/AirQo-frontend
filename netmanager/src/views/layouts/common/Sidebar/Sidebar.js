@@ -103,6 +103,12 @@ const allMainPages = [
     icon: <MapIcon />
   },
   {
+    title: 'Heat Map',
+    href: '/heatMap',
+    icon: <BubbleChartIcon />,
+    isNew: true
+  },
+  {
     title: 'Export data',
     href: '/export-data',
     nested: true,
@@ -159,12 +165,7 @@ const allMainPages = [
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES',
     isNew: true
   },
-  {
-    title: 'Heat Map',
-    href: '/heatMap',
-    icon: <BubbleChartIcon />,
-    isNew: true
-  },
+
   {
     title: 'Cohorts Registry',
     href: '/cohorts',
@@ -369,8 +370,7 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}
-    >
+      variant={variant}>
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />

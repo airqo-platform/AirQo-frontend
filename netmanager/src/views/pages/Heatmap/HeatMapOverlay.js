@@ -551,16 +551,17 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
           el.style.width = '30px';
           el.style.height = '30px';
           el.style.padding = '10px';
-          el.innerHTML =
-            showPollutant.pm2_5 || showPollutant.pm10
-              ? Math.floor(feature.properties.pm2_5.value) ||
-                Math.floor(feature.properties.pm10.value)
-              : '';
+          el.innerHTML = showPollutant.pm2_5
+            ? Math.floor(feature.properties.pm2_5.value)
+            : showPollutant.pm10
+            ? Math.floor(feature.properties.pm10.value)
+            : '--';
 
           if (
             feature.geometry.coordinates.length >= 2 &&
             feature.geometry.coordinates[0] &&
-            feature.geometry.coordinates[1]
+            feature.geometry.coordinates[1] &&
+            pollutantValue !== null
           ) {
             const marker = new mapboxgl.Marker(el)
               .setLngLat(feature.geometry.coordinates)

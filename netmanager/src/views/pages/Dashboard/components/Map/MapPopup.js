@@ -11,23 +11,40 @@ import Hazardous from 'views/components/MapIcons/Hazardous';
 import ReactDOMServer from 'react-dom/server';
 
 const MapPopup = (feature, showPollutant, pollutantValue, desc, duration, markerClass) => {
-  const getIcon = () => {
-    if (pollutantValue <= 12) {
-      return <Good width={30} height={30} fill={'#000000'} />;
-    } else if (pollutantValue <= 35.4) {
-      return <Moderate width={30} height={30} fill={'#000000'} />;
-    } else if (pollutantValue <= 55.4) {
-      return <UnhealthySensitive width={30} height={30} fill={'#000000'} />;
-    } else if (pollutantValue <= 150.4) {
-      return <Unhealthy width={30} height={30} fill={'#000000'} />;
-    } else if (pollutantValue <= 250.4) {
-      return <VeryUnhealthy width={30} height={30} fill={'#000000'} />;
-    } else if (pollutantValue >= 250.5) {
-      return <Hazardous width={30} height={30} fill={'#000000'} />;
+  const getIcon = (Value, Pollutant) => {
+    let markerDetails;
+    if (Pollutant.pm2_5) {
+      markerDetails = {
+        0.0: <Good width={30} height={30} fill={'#000000'} />,
+        12.1: <Moderate width={30} height={30} fill={'#000000'} />,
+        35.5: <UnhealthySensitive width={30} height={30} fill={'#000000'} />,
+        55.5: <Unhealthy width={30} height={30} fill={'#000000'} />,
+        150.5: <VeryUnhealthy width={30} height={30} fill={'#000000'} />,
+        250.5: <Hazardous width={30} height={30} fill={'#000000'} />
+        // 500.5: <Invalid width={30} height={30} fill={'#000000'} />
+      };
+    } else {
+      markerDetails = {
+        0.0: <Good width={30} height={30} fill={'#000000'} />,
+        54.1: <Moderate width={30} height={30} fill={'#000000'} />,
+        154.1: <UnhealthySensitive width={30} height={30} fill={'#000000'} />,
+        254.1: <Unhealthy width={30} height={30} fill={'#000000'} />,
+        354.1: <VeryUnhealthy width={30} height={30} fill={'#000000'} />,
+        424.1: <Hazardous width={30} height={30} fill={'#000000'} />
+        // 604.1: <Invalid width={30} height={30} fill={'#000000'} />
+      };
     }
+
+    const keys = Object.keys(markerDetails);
+    for (let i = 0; i < keys.length; i++) {
+      if (Value < keys[i]) {
+        return markerDetails[keys[i - 1]];
+      }
+    }
+    return markerDetails[keys[keys.length - 1]];
   };
 
-  const icon = ReactDOMServer.renderToString(getIcon());
+  const icon = ReactDOMServer.renderToString(getIcon(pollutantValue, showPollutant));
   const DividerIcon = ReactDOMServer.renderToString(<Divider />);
 
   return `<div class="popup-body">
