@@ -76,6 +76,10 @@ const MapPopup = (feature, showPollutant, pollutantValue, desc, duration, marker
     </span>
   </div>
   <span>Last Refreshed: <b>${duration}</b> ago</span>
+  ${DividerIcon}
+  <div class="data-source">
+  Source: ${feature.properties.siteDetails.data_provider}
+  </div>
 </div>`;
 };
 

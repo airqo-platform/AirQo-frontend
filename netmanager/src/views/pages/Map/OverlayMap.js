@@ -353,7 +353,6 @@ const CustomMapControl = ({
 };
 
 export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
-  const dispatch = useDispatch();
   const MAX_OFFLINE_DURATION = 86400; // 24 HOURS
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState();
@@ -518,8 +517,6 @@ const MapContainer = () => {
       dispatch(loadMapEventsData());
     }
   }, [monitoringSiteData]);
-
-  console.log('tasy', monitoringSiteData);
 
   return (
     <div>

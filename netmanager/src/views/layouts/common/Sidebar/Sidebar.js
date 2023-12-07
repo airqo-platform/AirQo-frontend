@@ -99,14 +99,8 @@ const allMainPages = [
   },
   {
     title: 'Map',
-    href: '/map',
-    icon: <MapIcon />
-  },
-  {
-    title: 'Heat Map',
     href: '/heatMap',
-    icon: <BubbleChartIcon />,
-    isNew: true
+    icon: <MapIcon />
   },
   {
     title: 'Export data',
