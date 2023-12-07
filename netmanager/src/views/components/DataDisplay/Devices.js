@@ -291,82 +291,74 @@ const CreateDevice = ({ open, setOpen }) => {
   const handleRegisterSubmit = (e) => {
     // Set loading to true when submitting
     dispatch(loadStatus(true));
-    setOpen(false);
+    if (!isEmpty(userNetworks)) {
+      const userNetworksNames = userNetworks.map((network) => network.net_name);
 
-    try {
-      if (!isEmpty(userNetworks)) {
-        const userNetworksNames = userNetworks.map((network) => network.net_name);
+      if (!userNetworksNames.includes(newDevice.network)) {
+        dispatch(
+          updateMainAlert({
+            message: `You are not a member of the ${newDevice.network} organisation. Only members of the org can add devices to it. Contact support if you think this is a mistake.`,
+            show: true,
+            severity: 'error'
+          })
+        );
 
-        if (!userNetworksNames.includes(newDevice.network)) {
-          dispatch(
-            updateMainAlert({
-              message: `You are not a member of the ${newDevice.network} organisation. Only members of the org can add devices to it. Contact support if you think this is a mistake.`,
-              show: true,
-              severity: 'error'
-            })
-          );
+        //clear the new device form
+        setNewDevice({
+          long_name: '',
+          category: CATEGORIES[0].value,
+          network: selectedNetwork
+        });
+        setErrors({ long_name: '', category: '', network: '' });
 
-          //clear the new device form
-          setNewDevice({
-            long_name: '',
-            category: CATEGORIES[0].value,
-            network: selectedNetwork
+        // Set loading to false when done
+        dispatch(loadStatus(false));
+
+        return;
+      } else {
+        createAxiosInstance()
+          .post(REGISTER_DEVICE_URI, dropEmpty(newDevice), {
+            headers: { 'Content-Type': 'application/json' }
+          })
+          .then((res) => res.data)
+          .then((resData) => {
+            handleRegisterClose();
+
+            dispatch(loadStatus(false));
+
+            if (!isEmpty(selectedNetwork)) {
+              dispatch(loadDevicesData(selectedNetwork));
+            }
+            dispatch(
+              updateMainAlert({
+                message: `${resData.message}. ${
+                  newDevice.network !== selectedNetwork
+                    ? `Switch to the ${newDevice.network} organisation to see the new device.`
+                    : ''
+                }`,
+                show: true,
+                severity: 'success'
+              })
+            );
+
+            dispatch(loadStatus(false));
+            dispatch(setRefresh(true));
+          })
+          .catch((error) => {
+            const errors = error.response && error.response.data && error.response.data.errors;
+            setErrors(errors || initialErrors);
+            dispatch(
+              updateMainAlert({
+                message: error.response && error.response.data && error.response.data.message,
+                show: true,
+                severity: 'error',
+                extra: createAlertBarExtraContentFromObject(errors || {})
+              })
+            );
+            // Set loading to false when done
+            dispatch(loadStatus(false));
           });
-          setErrors({ long_name: '', category: '', network: '' });
-
-          // Set loading to false when done
-          dispatch(loadStatus(false));
-
-          return;
-        } else {
-          createAxiosInstance()
-            .post(REGISTER_DEVICE_URI, dropEmpty(newDevice), {
-              headers: { 'Content-Type': 'application/json' }
-            })
-            .then((res) => res.data)
-            .then((resData) => {
-              handleRegisterClose();
-
-              dispatch(loadStatus(false));
-
-              if (!isEmpty(selectedNetwork)) {
-                dispatch(loadDevicesData(selectedNetwork));
-              }
-              dispatch(
-                updateMainAlert({
-                  message: `${resData.message}. ${
-                    newDevice.network !== selectedNetwork
-                      ? `Switch to the ${newDevice.network} organisation to see the new device.`
-                      : ''
-                  }`,
-                  show: true,
-                  severity: 'success'
-                })
-              );
-
-              dispatch(loadStatus(false));
-              dispatch(setRefresh(true));
-            })
-            .catch((error) => {
-              const errors = error.response && error.response.data && error.response.data.errors;
-              setErrors(errors || initialErrors);
-              dispatch(
-                updateMainAlert({
-                  message: error.response && error.response.data && error.response.data.message,
-                  show: true,
-                  severity: 'error',
-                  extra: createAlertBarExtraContentFromObject(errors || {})
-                })
-              );
-              // Set loading to false when done
-              dispatch(loadStatus(false));
-            });
-        }
       }
-    } catch (error) {
-      console.log(error);
-      dispatch(loadStatus(false));
-      dispatch(setRefresh(false));
     }
   };
 
@@ -481,60 +473,58 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
     setErrors({ long_name: '', category: '', network: '' });
   };
 
-  const handleRegisterSubmit = (e) => {
-    dispatch(loadStatus(true));
-    setOpen(false);
+  const handleRegisterSubmit = async (e) => {
+    try {
+      dispatch(loadStatus(true));
+      if (!isEmpty(userNetworks)) {
+        const userNetworksNames = userNetworks.map((network) => network.net_name);
 
-    if (!isEmpty(userNetworks)) {
-      const userNetworksNames = userNetworks.map((network) => network.net_name);
-
-      if (!userNetworksNames.includes(newDevice.network)) {
-        dispatch(
-          updateMainAlert({
-            message: `You are not a member of the ${newDevice.network} organisation. Only members of the org can add devices to it. Contact support if you think this is a mistake.`,
-            show: true,
-            severity: 'error'
-          })
-        );
-        return;
-      } else {
-        softCreateDeviceApi(dropEmpty(newDevice), {
-          headers: { 'Content-Type': 'application/json' }
-        })
-          .then((resData) => {
-            if (!isEmpty(selectedNetwork)) {
-              dispatch(loadDevicesData(selectedNetwork));
-            }
-
-            dispatch(
-              updateMainAlert({
-                message: `${resData.message}. ${
-                  newDevice.network !== selectedNetwork
-                    ? `Switch to the ${newDevice.network} organisation to see the new device.`
-                    : ''
-                }`,
-                show: true,
-                severity: 'success'
-              })
-            );
-
-            dispatch(setRefresh(true));
-            handleRegisterClose();
-          })
-          .catch((error) => {
-            const errors = error.response && error.response.data && error.response.data.errors;
-            setErrors(errors || initialErrors);
-            dispatch(
-              updateMainAlert({
-                message: error.response && error.response.data && error.response.data.message,
-                show: true,
-                severity: 'error',
-                extra: createAlertBarExtraContentFromObject(errors || {})
-              })
-            );
-            dispatch(loadStatus(false));
+        if (!userNetworksNames.includes(newDevice.network)) {
+          dispatch(
+            updateMainAlert({
+              message: `You are not a member of the ${newDevice.network} organisation. Only members of the org can add devices to it. Contact support if you think this is a mistake.`,
+              show: true,
+              severity: 'error'
+            })
+          );
+          return;
+        } else {
+          const resData = await softCreateDeviceApi(dropEmpty(newDevice), {
+            headers: { 'Content-Type': 'application/json' }
           });
+
+          if (!isEmpty(selectedNetwork)) {
+            dispatch(loadDevicesData(selectedNetwork));
+          }
+
+          dispatch(
+            updateMainAlert({
+              message: `${resData.message}. ${
+                newDevice.network !== selectedNetwork
+                  ? `Switch to the ${newDevice.network} organisation to see the new device.`
+                  : ''
+              }`,
+              show: true,
+              severity: 'success'
+            })
+          );
+
+          dispatch(setRefresh(true));
+          handleRegisterClose();
+        }
       }
+    } catch (error) {
+      const errors = error.response && error.response.data && error.response.data.errors;
+      setErrors(errors || initialErrors);
+      dispatch(
+        updateMainAlert({
+          message: error.response && error.response.data && error.response.data.message,
+          show: true,
+          severity: 'error',
+          extra: createAlertBarExtraContentFromObject(errors || {})
+        })
+      );
+      dispatch(loadStatus(false));
     }
   };
 
