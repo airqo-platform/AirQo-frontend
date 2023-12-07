@@ -73,37 +73,37 @@ const Indicator = () => {
         <div className="indicator">
           <Tooltip
             label="Good"
-            text="Air quality is considered satisfactory, and air pollution poses little or no risk."
+            text="Air is clean and poses no health risks."
             icon={<Good width={30} height={30} fill="#45e50d" />}>
             <span className="good">Good</span>
           </Tooltip>
           <Tooltip
             label="Moderate"
-            text="Air quality is acceptable; however, for some pollutants there may be a moderate health concern for a very small number of people who are unusually sensitive to air pollution."
+            text="Air quality is fair, but pollutants might affect sensitive individuals."
             icon={<Moderate width={30} height={30} fill="#f8fe28" />}>
             <span className="moderate">Moderate</span>
           </Tooltip>
           <Tooltip
             label="Unhealthy for Sensitive Groups"
-            text="Members of sensitive groups may experience health effects. The general public is not likely to be affected."
+            text="Air quality could impact health of sensitive groups. General public is not likely affected."
             icon={<UnhealthySensitive width={30} height={30} fill="#ee8310" />}>
             <span className="unhealthy-sensitive">Unhealthy for Sensitive Groups</span>
           </Tooltip>
           <Tooltip
             label="Unhealthy"
-            text="Everyone may begin to experience health effects; members of sensitive groups may experience more serious health effects."
+            text="Health effects may be felt by everyone; sensitive groups may experience more severe effects."
             icon={<Unhealthy width={30} height={30} fill="#fe0000" />}>
             <span className="unhealthy">Unhealthy</span>
           </Tooltip>
           <Tooltip
             label="Very Unhealthy"
-            text="Health warnings of emergency conditions. The entire population is more likely to be affected."
+            text="Health alert: everyone may experience serious health effects."
             icon={<VeryUnhealthy width={30} height={30} fill="#8639c0" />}>
             <span className="very-unhealthy">Very Unhealthy</span>
           </Tooltip>
           <Tooltip
             label="Hazardous"
-            text="everyone may experience more serious health effects."
+            text="Health warning of emergency conditions: severe impact on entire population."
             icon={<Hazardous width={30} height={30} fill="#81202e" />}>
             <span className="hazardous">Hazardous</span>
           </Tooltip>
