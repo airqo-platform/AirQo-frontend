@@ -39,15 +39,21 @@ const DataTable = ({ title, columns, rows, onRowClick, loading, tableBodyHeight 
     setSearchTerm('');
   };
 
-  const filteredRows = rows?.filter((row) => {
-    return columns.some((column) => {
-      if (column.format) {
-        return column.format(null, row).toString().toLowerCase().includes(searchTerm.toLowerCase());
-      } else {
-        return row[column.id].toString().toLowerCase().includes(searchTerm.toLowerCase());
-      }
+  const filteredRows =
+    rows &&
+    rows.filter((row) => {
+      return columns.some((column) => {
+        if (column.format) {
+          return column
+            .format(null, row)
+            .toString()
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
+        } else {
+          return row[column.id].toString().toLowerCase().includes(searchTerm.toLowerCase());
+        }
+      });
     });
-  });
 
   return (
     <Paper>
@@ -95,11 +101,11 @@ const DataTable = ({ title, columns, rows, onRowClick, loading, tableBodyHeight 
           <TableBody style={{ backgroundColor: 'white' }}>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={columns?.length} style={{ textAlign: 'center' }}>
+                <TableCell colSpan={columns && columns.length} style={{ textAlign: 'center' }}>
                   <CircularProgress />
                 </TableCell>
               </TableRow>
-            ) : filteredRows?.length > 0 ? (
+            ) : filteredRows && filteredRows.length > 0 ? (
               filteredRows
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row) => (
@@ -129,7 +135,7 @@ const DataTable = ({ title, columns, rows, onRowClick, loading, tableBodyHeight 
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={filteredRows?.length}
+          count={filteredRows && filteredRows.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onChangePage={handleChangePage}

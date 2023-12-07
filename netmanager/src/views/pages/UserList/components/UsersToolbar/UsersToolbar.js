@@ -23,8 +23,7 @@ import { fetchNetworkUsers } from 'redux/AccessControl/operations';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 
-// horizontal loader
-import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
 
 countries.registerLocale(enLocale);
 
@@ -230,6 +229,7 @@ const UsersToolbar = (props) => {
 
   const onSubmit = (e) => {
     setLoading(true);
+    dispatch(loadStatus(true));
     e.preventDefault();
     setOpen(false);
     // register user
@@ -252,6 +252,7 @@ const UsersToolbar = (props) => {
                   })
                 );
                 setLoading(false);
+                dispatch(loadStatus(false));
               })
               .catch((error) => {
                 const errors = error.response && error.response.data && error.response.data.errors;
@@ -265,6 +266,7 @@ const UsersToolbar = (props) => {
                   })
                 );
                 setLoading(false);
+                dispatch(loadStatus(false));
               });
           });
         }
@@ -273,6 +275,7 @@ const UsersToolbar = (props) => {
         const errors = error.response && error.response.data && error.response.data.errors;
         setErrors(errors || initialStateErrors);
         setLoading(false);
+        dispatch(loadStatus(false));
         dispatch(
           updateMainAlert({
             message: error.response && error.response.data && error.response.data.message,
@@ -289,7 +292,8 @@ const UsersToolbar = (props) => {
   }, []);
 
   // role options
-  const options = roles?.map((role) => ({ value: role._id, label: role.role_name })) ?? [];
+  const options =
+    (roles && roles.map((role) => ({ value: role._id, label: role.role_name }))) || [];
 
   // handles role select
   const handleDropdownChange = (selectedOption, { name }) => {
@@ -304,8 +308,7 @@ const UsersToolbar = (props) => {
 
   return (
     <div className={clsx(classes.root, className)}>
-      {/* custome Horizontal loader indicator */}
-      <HorizontalLoader loading={loading} />
+      \
       <div className={classes.row}>
         <span className={classes.spacer} />
         <div>

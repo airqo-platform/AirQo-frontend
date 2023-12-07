@@ -4,6 +4,7 @@ import { isEmpty } from 'underscore';
 import { circlePointPaint, heatMapPaint } from '../Map/paints';
 import { getFirstDuration } from 'utils/dateTime';
 import Filter from '../Dashboard/components/Map/Filter';
+import MapPopup from '../Dashboard/components/Map/MapPopup';
 import Divider from '@material-ui/core/Divider';
 import { loadPM25HeatMapData, loadMapEventsData } from 'redux/MapData/operations';
 import { usePM25HeatMapData, useEventsMapData } from 'redux/MapData/selectors';
@@ -14,6 +15,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import { useInitScrollTop } from 'utils/customHooks';
 import { ErrorBoundary } from '../../ErrorBoundary';
 import { useOrgData } from 'redux/Join/selectors';
+import Indicator from '../Dashboard/components/Map/Indicator ';
 
 // css
 import 'assets/css/overlay-map.css';
@@ -160,17 +162,16 @@ const PollutantSelector = ({ className, onChange }) => {
               pm2_5: true,
               no2: false,
               pm10: false
-            })}
-          >
+            })}>
             PM<sub>2.5</sub>
           </MenuItem>
+          <Divider />
           <MenuItem
             onClick={handleMenuItemChange('pm10', {
               pm2_5: false,
               no2: false,
               pm10: true
-            })}
-          >
+            })}>
             PM<sub>10</sub>
           </MenuItem>
           {orgData.name !== 'airqo' && (
@@ -179,8 +180,7 @@ const PollutantSelector = ({ className, onChange }) => {
                 pm2_5: false,
                 no2: true,
                 pm10: false
-              })}
-            >
+              })}>
               NO<sub>2</sub>
             </MenuItem>
           )}
@@ -188,9 +188,8 @@ const PollutantSelector = ({ className, onChange }) => {
       }
       open={open}
       placement="left"
-      onClose={() => setOpen(false)}
-    >
-      <div style={{ padding: '10px' }}>
+      onClose={() => setOpen(false)}>
+      <div style={{ padding: '5px' }}>
         <span className={className} onClick={onHandleClick}>
           {pollutantMapper[pollutant]}
         </span>
@@ -232,8 +231,7 @@ const MapStyleSelectorPlaceholder = () => {
       className="map-style-placeholder"
       onClick={handleClick}
       onMouseEnter={() => handleHover(true)}
-      onMouseLeave={() => handleHover(false)}
-    >
+      onMouseLeave={() => handleHover(false)}>
       <div className={`map-icon-container${isHovered ? ' map-icon-hovered' : ''}`}>
         <MapIcon className="map-icon" />
       </div>
@@ -272,7 +270,7 @@ const MapStyleSelector = () => {
     if (localStorage.mapMode) {
       setMapMode(localStorage.mapMode);
     } else {
-      setMapMode('light');
+      setMapMode('street');
     }
   }, []);
 
@@ -288,8 +286,7 @@ const MapStyleSelector = () => {
                   localStorage.mapStyle = style.mapStyle;
                   localStorage.mapMode = style.name;
                   window.location.reload();
-                }}
-              >
+                }}>
                 <span>{style.icon}</span>
                 <span>{style.name} map</span>
               </div>
@@ -335,9 +332,8 @@ const MapSettings = ({
       }
       open={open}
       placement="left"
-      onClose={() => setOpen(false)}
-    >
-      <div style={{ padding: '10px' }}>
+      onClose={() => setOpen(false)}>
+      <div style={{ padding: '5px' }}>
         <div className="map-settings" onClick={() => setOpen(!open)}>
           <SettingsIcon />
         </div>
@@ -547,51 +543,52 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
 
           const el = document.createElement('div');
           el.className = `marker ${seconds >= MAX_OFFLINE_DURATION ? 'marker-grey' : markerClass}`;
-          // el.innerText = (pollutantValue && pollutantValue.toFixed(0)) || "--";
+          el.style.borderRadius = '50%';
+          el.style.display = 'flex';
+          el.style.justifyContent = 'center';
+          el.style.alignItems = 'center';
+          el.style.fontSize = '12px';
+          el.style.width = '30px';
+          el.style.height = '30px';
+          el.style.padding = '10px';
+          el.innerHTML =
+            showPollutant.pm2_5 || showPollutant.pm10
+              ? Math.floor(feature.properties.pm2_5.value) ||
+                Math.floor(feature.properties.pm10.value)
+              : '';
 
           if (
             feature.geometry.coordinates.length >= 2 &&
             feature.geometry.coordinates[0] &&
             feature.geometry.coordinates[1]
           ) {
-            new mapboxgl.Marker(el, { rotation: -45, scale: 0.4 })
+            const marker = new mapboxgl.Marker(el)
               .setLngLat(feature.geometry.coordinates)
               .setPopup(
                 new mapboxgl.Popup({
                   offset: 25,
                   className: 'map-popup'
                 }).setHTML(
-                  `<div class="popup-body">
-                    <div>
-                      <span class="popup-title">
-                      <b>${feature.properties.siteDetails.description}</b>
-                      </span>
-                    </div>
-                    <div class="${`popup-aqi ${markerClass}`}"> 
-                      <span>
-                      ${
-                        (showPollutant.pm2_5 && 'PM<sub>2.5<sub>') ||
-                        (showPollutant.pm10 && 'PM<sub>10<sub>')
-                      }
-                      </span> </hr>  
-                      <div class="pollutant-info">
-                        <div class="pollutant-info-row">
-                        <div class="pollutant-number">${
-                          (pollutantValue && pollutantValue.toFixed(2)) || '--'
-                        }</div>
-                        <div class="popup-measurement">µg/m<sup>3</sup></div>
-                        </div> 
-                        <div class="pollutant-desc">${desc}</div>
-                      </div>
-                    </div>
-                    <span>Last Refreshed: <b>${duration}</b> ago</span>
-                  </div>`
+                  MapPopup(feature, showPollutant, pollutantValue, desc, duration, markerClass)
                 )
               )
               .addTo(map);
+
+            // Listen to the zoom event of the map
+            map.on('zoom', function () {
+              // Get the current zoom level of the map
+              const zoom = map.getZoom();
+              // Calculate the size based on the zoom level
+              const size = (30 * zoom) / 10;
+              // Set the size of the marker
+              el.style.width = `${size}px`;
+              el.style.height = `${size}px`;
+            });
           }
         })}
+
       <Filter pollutants={showPollutant} />
+      <Indicator />
       {map && (
         <CustomMapControl
           showSensors={showSensors}
@@ -614,18 +611,22 @@ const HeatMapOverlay = () => {
   const monitoringSiteData = useEventsMapData();
 
   useEffect(() => {
-    if (!heatMapData || heatMapData?.features) dispatch(loadPM25HeatMapData());
+    if (!heatMapData || (heatMapData && heatMapData.features)) dispatch(loadPM25HeatMapData());
   }, []);
 
   useEffect(() => {
-    if (!monitoringSiteData?.features || monitoringSiteData?.features.length === 0) {
+    if (
+      !monitoringSiteData ||
+      (monitoringSiteData &&
+        (!monitoringSiteData.features || monitoringSiteData.features.length === 0))
+    ) {
       dispatch(loadMapEventsData()).catch((error) => {
         console.error('Failed to load Map Events Data:', error);
       });
     }
   }, [monitoringSiteData, dispatch]);
 
-  if (!monitoringSiteData?.features) {
+  if (!monitoringSiteData || (monitoringSiteData && !monitoringSiteData.features)) {
     return (
       <div
         style={{
@@ -633,8 +634,7 @@ const HeatMapOverlay = () => {
           justifyContent: 'center',
           alignItems: 'center',
           height: '100vh'
-        }}
-      >
+        }}>
         <CircularLoader loading={true} />
       </div>
     );
