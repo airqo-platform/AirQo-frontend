@@ -33,8 +33,7 @@ import LoadingOverlay from 'react-loading-overlay';
 import UsersListBreadCrumb from '../Breadcrumb';
 // dropdown component
 import Dropdown from 'react-select';
-// Horizontal loader
-import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -142,6 +141,7 @@ const UsersTable = (props) => {
 
   const submitEditUser = (e) => {
     setIsLoading(true);
+    dispatch(loadStatus(true));
     setLoading(true);
     e.preventDefault();
     if (updatedUser.userName !== '') {
@@ -158,6 +158,7 @@ const UsersTable = (props) => {
           .then((res) => {
             dispatch(fetchNetworkUsers(activeNetwork._id));
             setIsLoading(false);
+            dispatch(loadStatus(false));
             dispatch(
               updateMainAlert({
                 message: 'User successfully added to the organisation',
@@ -176,6 +177,7 @@ const UsersTable = (props) => {
               })
             );
             setIsLoading(false);
+            dispatch(loadStatus(false));
           });
       }
       hideEditDialog();
@@ -183,6 +185,7 @@ const UsersTable = (props) => {
     }
     setTimeout(() => {
       setIsLoading(false);
+      dispatch(loadStatus(false));
     }, 2000);
     setLoading(false);
   };
@@ -199,6 +202,7 @@ const UsersTable = (props) => {
   const deleteUser = async () => {
     // Set loading to true when deleting
     setIsLoading(true);
+    dispatch(loadStatus(true));
     try {
       await props.mappedConfirmDeleteUser(userDelState.user);
       hideDeleteDialog();
@@ -208,6 +212,7 @@ const UsersTable = (props) => {
     } finally {
       // Set loading to false when done
       setIsLoading(false);
+      dispatch(loadStatus(false));
     }
   };
 
@@ -242,8 +247,6 @@ const UsersTable = (props) => {
     <>
       <UsersListBreadCrumb category={'Users'} usersTable={'Assigned Users'} />
       <Card {...rest} className={clsx(classes.root, className)}>
-        {/* custome Horizontal loader indicator */}
-        <HorizontalLoader loading={loading} />
         <CustomMaterialTable
           title={'Users'}
           userPreferencePaginationKey={'users'}

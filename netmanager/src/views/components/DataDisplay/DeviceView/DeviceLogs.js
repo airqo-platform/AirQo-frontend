@@ -32,8 +32,7 @@ import EditIcon from '@material-ui/icons/EditOutlined';
 import DeleteIcon from '@material-ui/icons/DeleteOutlineOutlined';
 import ConfirmDialog from 'views/containers/ConfirmDialog';
 import { humanReadableDate } from 'utils/dateTime';
-// horizontal loader
-import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
 
 const titleStyles = {
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif'
@@ -101,6 +100,7 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log, loading, setLoad
     };
 
     setLoading(true);
+    dispatch(loadStatus(true));
     await updateMaintenanceLogApi(log._id, logData)
       .then(async (responseData) => {
         dispatch(
@@ -142,6 +142,7 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log, loading, setLoad
         );
       });
     setLoading(false);
+    dispatch(loadStatus(false));
     toggleShow();
   };
 
@@ -246,14 +247,13 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow, loading, setLoadin
     evt.preventDefault();
     const extracted_tags = [];
     tags && tags.map((tag) => extracted_tags.push(tag.value));
-    const storedData = localStorage.getItem('currentUser'); 
+    const storedData = localStorage.getItem('currentUser');
     if (!storedData) {
-      console.error("Error: No user data found in local storage");
+      console.error('Error: No user data found in local storage');
       return;
     }
 
     const parsedData = JSON.parse(storedData);
-
 
     const logData = {
       date: selectedDate.toISOString(),
@@ -262,10 +262,11 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow, loading, setLoadin
       userName: parsedData.email,
       email: parsedData.email,
       firstName: parsedData.firstName,
-      lastName: parsedData.lastName,
+      lastName: parsedData.lastName
     };
 
     setLoading(true);
+    dispatch(loadStatus(true));
     await addMaintenanceLogApi(deviceName, logData)
       .then(async (responseData) => {
         dispatch(
@@ -319,6 +320,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow, loading, setLoadin
         );
       });
     setLoading(false);
+    dispatch(loadStatus(false));
     toggleShow();
   };
 
@@ -462,6 +464,7 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
     setDelState({ ...delState, open: false });
     if (delState.data._id) {
       setLoading(true);
+      dispatch(loadStatus(true));
       await deleteMaintenanceLogApi(delState.data._id)
         .then(async (responseData) => {
           dispatch(
@@ -516,7 +519,10 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
             })
           );
         })
-        .finally(() => setLoading(false));
+        .finally(() => {
+          setLoading(false);
+          dispatch(loadStatus(false));
+        });
     }
   };
 
@@ -530,8 +536,6 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
 
   return (
     <>
-      {/* custome Horizontal loader indicator */}
-      <HorizontalLoader loading={loading} />
       <div
         style={{
           display: 'flex',

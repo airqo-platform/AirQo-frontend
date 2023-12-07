@@ -19,7 +19,7 @@ import { loadSitesData, loadSitesSummary } from 'redux/SiteRegistry/operations';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { isEmpty } from 'underscore';
-import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+import { setLoading as loadStatus, setRefresh } from 'redux/HorizontalLoader/index';
 import IconButton from '@material-ui/core/IconButton';
 import LocationOnIcon from '@material-ui/icons/LocationOn';
 
@@ -136,7 +136,7 @@ const FormDialog = ({
 };
 
 const SiteToolbar = (props) => {
-  const { className, setRefresh, ...rest } = props;
+  const { className, ...rest } = props;
 
   const classes = useStyles();
 
@@ -168,7 +168,6 @@ const SiteToolbar = (props) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [errors, setErrors] = useState(initErrorData);
   const [Fields, setFields] = useState(['Country', 'District', 'Region', 'Latitude', 'Longitude']);
-  const [isLoading, setIsLoading] = useState(false);
   const userNetworks = JSON.parse(localStorage.getItem('userNetworks')) || [];
   const mapview = process.env.REACT_APP_MAP_PREVIEW;
 
@@ -199,7 +198,7 @@ const SiteToolbar = (props) => {
   }, [errorMessage]);
 
   const handleSiteSubmit = async (e) => {
-    setIsLoading(true);
+    dispatch(loadStatus(true));
     setOpen(false);
     setDisabled(true);
 
@@ -239,7 +238,6 @@ const SiteToolbar = (props) => {
           severity: 'success'
         })
       );
-      setRefresh();
     } catch (error) {
       let errors = initErrorData;
       let message = '';
@@ -263,10 +261,11 @@ const SiteToolbar = (props) => {
   };
 
   const resetForm = () => {
+    dispatch(setRefresh(true));
     setDisabled(false);
     setConfirm(false);
     setOpen(false);
-    setIsLoading(false);
+    dispatch(loadStatus(false));
     setSiteData(initSiteData);
     setErrors(initErrorData);
   };
@@ -326,13 +325,6 @@ const SiteToolbar = (props) => {
   return (
     <>
       <div {...rest} className={clsx(classes.root, className)}>
-        <HorizontalLoader
-          color="#FFCC00"
-          loading={isLoading}
-          initial={0}
-          target={100}
-          duration={1500}
-        />
         <div className={classes.row}>
           <span className={classes.spacer} />
           <Button

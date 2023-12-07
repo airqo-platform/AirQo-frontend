@@ -16,7 +16,7 @@ import Alert from '@material-ui/lab/Alert';
 import Select from 'react-select';
 import { isEmpty } from 'underscore';
 import ErrorBoundary from '../../ErrorBoundary/ErrorBoundary';
-import HorizontalLoader from '../HorizontalLoader/HorizontalLoader';
+import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
 import { useHistory, useParams } from 'react-router-dom';
 import { ArrowBackIosRounded } from '@material-ui/icons';
 import {
@@ -170,6 +170,7 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
   const handleEditHost = async () => {
     try {
       setLoading(true);
+      dispatch(loadStatus(true));
 
       const updatedHost = {
         ...host,
@@ -181,6 +182,7 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
 
       const response = await updateDeviceHost(hosts_id, updatedHost);
       setLoading(false);
+      dispatch(loadStatus(false));
       if (response.success === true) {
         onHostEdited();
         dispatch(
@@ -214,10 +216,12 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
   useEffect(() => {
     if (isEmpty(sites)) {
       setLoading(true);
+      dispatch(loadStatus(true));
       if (!isEmpty(activeNetwork)) {
         dispatch(loadSitesSummary(activeNetwork.net_name));
       }
       setLoading(false);
+      dispatch(loadStatus(false));
     }
   }, []);
 
@@ -431,6 +435,7 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
     try {
       setDisabled(true);
       setLoading(true);
+      dispatch(loadStatus(true));
       const response = await sendMoneyToHost(host_id[0], amount);
       if (response.success === true) {
         handleCloseDialog();
@@ -452,8 +457,10 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
     } catch (error) {
       setError('An error occurred. Please try again.');
       setLoading(false);
+      dispatch(loadStatus(false));
     } finally {
       setLoading(false);
+      dispatch(loadStatus(false));
       setDisabled(false);
     }
   };
@@ -655,7 +662,6 @@ const HostView = () => {
 
   return (
     <ErrorBoundary>
-      <HorizontalLoader loading={loading} />
       <div className={classes.root}>
         <div
           style={{
