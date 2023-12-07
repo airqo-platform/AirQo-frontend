@@ -518,8 +518,6 @@ const MapContainer = () => {
     }
   }, [monitoringSiteData]);
 
-  console.log('monitoring data', monitoringSiteData);
-
   return (
     <div>
       <ErrorBoundary>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import createAxiosInstance from '../../apis/axiosConfig';
 import { Link, useHistory, useLocation } from 'react-router-dom';
@@ -33,7 +33,7 @@ import { updateDeviceDetails } from '../../../redux/DeviceOverview/OverviewSlice
 // dropdown component
 import Select from 'react-select';
 
-import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
+import { setLoading as loadStatus, setRefresh } from 'redux/HorizontalLoader/index';
 import UsersListBreadCrumb from '../../pages/UserList/components/Breadcrumb';
 
 const useStyles = makeStyles((theme) => ({
@@ -252,7 +252,7 @@ const categoriesOptions = CATEGORIES.map((category) => ({
   label: category.name
 }));
 
-const CreateDevice = ({ open, setOpen, setIsLoading }) => {
+const CreateDevice = ({ open, setOpen }) => {
   const selectedNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -272,6 +272,7 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
   const [errors, setErrors] = useState(initialErrors);
 
   const userNetworks = JSON.parse(localStorage.getItem('userNetworks')) || [];
+  const loaderStatus = useSelector((state) => state.HorizontalLoader.loading);
 
   const handleDeviceDataChange = (key) => (event) => {
     return setNewDevice({ ...newDevice, [key]: event.target.value });
@@ -289,7 +290,6 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
 
   const handleRegisterSubmit = (e) => {
     // Set loading to true when submitting
-    setIsLoading(true);
     dispatch(loadStatus(true));
     setOpen(false);
 
@@ -314,7 +314,6 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
         setErrors({ long_name: '', category: '', network: '' });
 
         // Set loading to false when done
-        setIsLoading(false);
         dispatch(loadStatus(false));
 
         return;
@@ -327,7 +326,6 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
           .then((resData) => {
             handleRegisterClose();
 
-            setIsLoading(false);
             dispatch(loadStatus(false));
 
             if (!isEmpty(selectedNetwork)) {
@@ -344,6 +342,9 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
                 severity: 'success'
               })
             );
+
+            dispatch(loadStatus(false));
+            dispatch(setRefresh(true));
           })
           .catch((error) => {
             const errors = error.response && error.response.data && error.response.data.errors;
@@ -357,7 +358,6 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
               })
             );
             // Set loading to false when done
-            setIsLoading(false);
             dispatch(loadStatus(false));
           });
       }
@@ -424,6 +424,7 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
             Cancel
           </Button>
           <Button
+            disabled={loaderStatus}
             variant="contained"
             color="primary"
             type="submit"
@@ -438,7 +439,7 @@ const CreateDevice = ({ open, setOpen, setIsLoading }) => {
   );
 };
 
-const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
+const SoftCreateDevice = ({ open, setOpen, network }) => {
   const selectedNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -457,6 +458,7 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
   const [errors, setErrors] = useState(initialErrors);
   const userNetworks = JSON.parse(localStorage.getItem('userNetworks')) || [];
+  const loaderStatus = useSelector((state) => state.HorizontalLoader.loading);
 
   const handleDeviceDataChange = (key) => (event) => {
     return setNewDevice({ ...newDevice, [key]: event.target.value });
@@ -468,78 +470,69 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
 
   const handleRegisterClose = () => {
     setOpen(false);
+    dispatch(loadStatus(false));
+    dispatch(setRefresh(true));
     setNewDevice({ long_name: '', category: CATEGORIES[0].value, network: selectedNetwork });
     setErrors({ long_name: '', category: '', network: '' });
   };
 
   const handleRegisterSubmit = (e) => {
-    setIsLoading(true);
     dispatch(loadStatus(true));
     setOpen(false);
-    if (!isEmpty(userNetworks)) {
-      const userNetworksNames = userNetworks.map((network) => network.net_name);
+    try {
+      if (!isEmpty(userNetworks)) {
+        const userNetworksNames = userNetworks.map((network) => network.net_name);
 
-      if (!userNetworksNames.includes(newDevice.network)) {
-        dispatch(
-          updateMainAlert({
-            message: `You are not a member of the ${newDevice.network} organisation. Only members of the org can add devices to it. Contact support if you think this is a mistake.`,
-            show: true,
-            severity: 'error'
+        if (!userNetworksNames.includes(newDevice.network)) {
+          dispatch(
+            updateMainAlert({
+              message: `You are not a member of the ${newDevice.network} organisation. Only members of the org can add devices to it. Contact support if you think this is a mistake.`,
+              show: true,
+              severity: 'error'
+            })
+          );
+          return;
+        } else {
+          softCreateDeviceApi(dropEmpty(newDevice), {
+            headers: { 'Content-Type': 'application/json' }
           })
-        );
+            .then((resData) => {
+              if (!isEmpty(selectedNetwork)) {
+                dispatch(loadDevicesData(selectedNetwork));
+              }
 
-        setNewDevice({
-          long_name: '',
-          category: CATEGORIES[0].value,
-          network: selectedNetwork
-        });
-        setErrors({ long_name: '', category: '', network: '' });
-
-        setIsLoading(false);
-        dispatch(loadStatus(false));
-
-        return;
-      } else {
-        softCreateDeviceApi(dropEmpty(newDevice), {
-          headers: { 'Content-Type': 'application/json' }
-        })
-          .then((resData) => {
-            handleRegisterClose();
-
-            if (!isEmpty(selectedNetwork)) {
-              dispatch(loadDevicesData(selectedNetwork));
-            }
-
-            setIsLoading(false);
-            dispatch(loadStatus(false));
-
-            dispatch(
-              updateMainAlert({
-                message: `${resData.message}. ${
-                  newDevice.network !== selectedNetwork
-                    ? `Switch to the ${newDevice.network} organisation to see the new device.`
-                    : ''
-                }`,
-                show: true,
-                severity: 'success'
-              })
-            );
-          })
-          .catch((error) => {
-            const errors = error.response && error.response.data && error.response.data.errors;
-            setErrors(errors || initialErrors);
-            dispatch(
-              updateMainAlert({
-                message: error.response && error.response.data && error.response.data.message,
-                show: true,
-                severity: 'error',
-                extra: createAlertBarExtraContentFromObject(errors || {})
-              })
-            );
-            setIsLoading(false);
-            dispatch(loadStatus(false));
-          });
+              dispatch(
+                updateMainAlert({
+                  message: `${resData.message}. ${
+                    newDevice.network !== selectedNetwork
+                      ? `Switch to the ${newDevice.network} organisation to see the new device.`
+                      : ''
+                  }`,
+                  show: true,
+                  severity: 'success'
+                })
+              );
+            })
+            .catch((error) => {
+              const errors = error.response && error.response.data && error.response.data.errors;
+              setErrors(errors || initialErrors);
+              dispatch(
+                updateMainAlert({
+                  message: error.response && error.response.data && error.response.data.message,
+                  show: true,
+                  severity: 'error',
+                  extra: createAlertBarExtraContentFromObject(errors || {})
+                })
+              );
+              dispatch(loadStatus(false));
+            });
+        }
       }
+    } catch (error) {
+      console.log(error);
+      dispatch(loadStatus(false));
+    } finally {
+      handleRegisterClose();
     }
   };
 
@@ -601,6 +594,7 @@ const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
             Cancel
           </Button>
           <Button
+            disabled={loaderStatus}
             variant="contained"
             color="primary"
             type="submit"
@@ -628,9 +622,9 @@ const DevicesTable = (props) => {
   const [delDevice, setDelDevice] = useState({ open: false, name: '' });
   const deviceColumns = createDeviceColumns(history, setDelDevice);
   const [loading, setLoading] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [softRegisterOpen, setSoftRegisterOpen] = useState(false);
+  const refresh = useSelector((state) => state.HorizontalLoader.refresh);
 
   useEffect(() => {
     setLoading(true);
@@ -645,11 +639,10 @@ const DevicesTable = (props) => {
     setTimeout(() => {
       setLoading(false);
     }, 3000);
-  }, [devices]);
+  }, [devices, refresh]);
 
   const handleDeleteDevice = async () => {
     if (delDevice.name) {
-      setIsLoading(true);
       dispatch(loadStatus(true));
       try {
         await deleteDeviceApi(delDevice.name);
@@ -676,8 +669,8 @@ const DevicesTable = (props) => {
           })
         );
       } finally {
-        setIsLoading(false);
         dispatch(loadStatus(false));
+        dispatch(setRefresh(true));
       }
     }
     setDelDevice({ open: false, name: '' });
@@ -742,17 +735,11 @@ const DevicesTable = (props) => {
           }}
         />
 
-        <CreateDevice
-          open={registerOpen}
-          setOpen={setRegisterOpen}
-          network={activeNetwork}
-          setIsLoading={setIsLoading}
-        />
+        <CreateDevice open={registerOpen} setOpen={setRegisterOpen} network={activeNetwork} />
         <SoftCreateDevice
           open={softRegisterOpen}
           setOpen={setSoftRegisterOpen}
           network={activeNetwork}
-          setIsLoading={setIsLoading}
         />
 
         <ConfirmDialog

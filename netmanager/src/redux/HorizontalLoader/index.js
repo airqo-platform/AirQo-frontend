@@ -1,7 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  loading: false
+  loading: false,
+  refresh: false
 };
 
 const HorizontalLoaderSlice = createSlice({
@@ -10,10 +11,13 @@ const HorizontalLoaderSlice = createSlice({
   reducers: {
     setLoading: (state, action) => {
       state.loading = action.payload;
+    },
+    setRefresh: (state, action) => {
+      state.refresh = action.payload;
     }
   }
 });
 
-export const { setLoading } = HorizontalLoaderSlice.actions;
+export const { setLoading, setRefresh } = HorizontalLoaderSlice.actions;
 
 export default HorizontalLoaderSlice.reducer;
