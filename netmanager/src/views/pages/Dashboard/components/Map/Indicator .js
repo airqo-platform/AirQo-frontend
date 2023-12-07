@@ -52,7 +52,12 @@ const Tooltip = ({ children, text, icon, label }) => {
               {label}
             </p>
           </div>
-          <p>{text}</p>
+          <p
+            style={{
+              fontFamily: 'Roboto'
+            }}>
+            {text}
+          </p>
         </div>
       )}
       {children}
