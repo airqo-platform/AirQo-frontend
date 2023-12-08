@@ -584,7 +584,6 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
           showHeatmap={showHeatMap}
           showCalibratedValues={showCalibratedValues}
           onSensorChange={toggleSensors}
-          // onHeatmapChange={toggleHeatMap}
           onCalibratedChange={setShowCalibratedValues}
           onPollutantChange={setShowPollutant}
           className={'pollutant-selector'}
@@ -615,28 +614,39 @@ const HeatMapOverlay = () => {
     }
   }, [monitoringSiteData, dispatch]);
 
-  if (!monitoringSiteData || (monitoringSiteData && !monitoringSiteData.features)) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh'
-        }}>
-        <CircularLoader loading={true} />
-      </div>
-    );
-  }
-
   return (
     <ErrorBoundary>
-      <OverlayMap
-        center={[22.5600613, 0.8341424]}
-        zoom={2.4}
-        heatMapData={heatMapData}
-        monitoringSiteData={monitoringSiteData}
-      />
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '100vh'
+        }}>
+        <OverlayMap
+          center={[22.5600613, 0.8341424]}
+          zoom={2.4}
+          heatMapData={heatMapData}
+          monitoringSiteData={monitoringSiteData}
+        />
+        {monitoringSiteData && isEmpty(monitoringSiteData.features) ? (
+          <div
+            style={{
+              zIndex: 9999,
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100vh',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: 'rgba(255, 255, 255, 0.4)',
+              backdropFilter: 'blur(1px)'
+            }}>
+            <CircularLoader loading={true} />
+          </div>
+        ) : null}
+      </div>
     </ErrorBoundary>
   );
 };

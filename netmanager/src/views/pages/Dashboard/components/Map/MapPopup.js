@@ -72,7 +72,7 @@ const MapPopup = (feature, showPollutant, pollutantValue, desc, duration, marker
         </b>
     </span>
     <span class="popup-pollutant-value">
-    ${(pollutantValue && Math.floor(pollutantValue)) || '--'} µg/m<sup>3</sup>
+    ${(pollutantValue && pollutantValue.toFixed(1)) || '--'} µg/m<sup>3</sup>
     </span>
   </div>
   <span>Last Refreshed: <b>${duration}</b> ago</span>
