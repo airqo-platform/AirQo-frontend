@@ -604,36 +604,12 @@ const HeatMapOverlay = () => {
 
   return (
     <ErrorBoundary>
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: '100%'
-        }}>
-        <OverlayMap
-          center={[22.5600613, 0.8341424]}
-          zoom={2.4}
-          heatMapData={heatMapData}
-          monitoringSiteData={monitoringSiteData}
-        />
-        {monitoringSiteData && isEmpty(monitoringSiteData.features) && (
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100vh',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              backgroundColor: 'rgba(255, 255, 255, 0.4)',
-              backdropFilter: 'blur(1px)'
-            }}>
-            <CircularLoader loading={true} />
-          </div>
-        )}
-      </div>
+      <OverlayMap
+        center={[22.5600613, 0.8341424]}
+        zoom={2.4}
+        heatMapData={heatMapData}
+        monitoringSiteData={monitoringSiteData}
+      />
     </ErrorBoundary>
   );
 };
