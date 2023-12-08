@@ -524,7 +524,8 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
           const [markerClass, desc] = getMarkerDetail(pollutantValue, markerKey);
 
           const el = document.createElement('div');
-          el.className = `marker ${seconds >= MAX_OFFLINE_DURATION ? 'marker-grey' : markerClass}`;
+          // el.className = `marker ${seconds >= MAX_OFFLINE_DURATION ? 'marker-grey' : markerClass}`;
+          el.className = `marker ${markerClass}`;
           el.style.borderRadius = '50%';
           el.style.display = 'flex';
           el.style.justifyContent = 'center';
