@@ -337,7 +337,6 @@ const CustomMapControl = ({
   className,
   onPollutantChange,
   showSensors,
-  showHeatmap,
   showCalibratedValues,
   onSensorChange,
   onHeatmapChange,
@@ -347,17 +346,12 @@ const CustomMapControl = ({
     <MapControllerPosition className={'custom-map-control'} position={'topRight'}>
       <MapSettings
         showSensors={showSensors}
-        showHeatmap={showHeatmap}
         showCalibratedValues={showCalibratedValues}
         onSensorChange={onSensorChange}
         onHeatmapChange={onHeatmapChange}
         onCalibratedChange={onCalibratedChange}
       />
-      <PollutantSelector
-        className={className}
-        onChange={onPollutantChange}
-        showHeatMap={showHeatmap}
-      />
+      <PollutantSelector className={className} onChange={onPollutantChange} />
       <MapStyleSelectorPlaceholder />
     </MapControllerPosition>
   );
@@ -582,7 +576,6 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
       {map && (
         <CustomMapControl
           showSensors={showSensors}
-          showHeatmap={showHeatMap}
           showCalibratedValues={showCalibratedValues}
           onSensorChange={toggleSensors}
           onCalibratedChange={setShowCalibratedValues}
@@ -615,7 +608,7 @@ const HeatMapOverlay = () => {
         style={{
           position: 'relative',
           width: '100%',
-          height: '100vh'
+          height: '100%'
         }}>
         <OverlayMap
           center={[22.5600613, 0.8341424]}
@@ -626,7 +619,6 @@ const HeatMapOverlay = () => {
         {monitoringSiteData && isEmpty(monitoringSiteData.features) && (
           <div
             style={{
-              zIndex: 9999,
               position: 'absolute',
               top: 0,
               left: 0,
