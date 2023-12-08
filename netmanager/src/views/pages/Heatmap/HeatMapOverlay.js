@@ -298,14 +298,7 @@ const MapStyleSelector = () => {
   );
 };
 
-const MapSettings = ({
-  showSensors,
-  showHeatmap,
-  showCalibratedValues,
-  onSensorChange,
-  onHeatmapChange,
-  onCalibratedChange
-}) => {
+const MapSettings = ({ showSensors, showCalibratedValues, onSensorChange, onCalibratedChange }) => {
   const [open, setOpen] = useState(false);
 
   return (
@@ -315,9 +308,7 @@ const MapSettings = ({
           <MenuItem onClick={() => onSensorChange(!showSensors)}>
             <Checkbox checked={showSensors} color="default" /> Monitors
           </MenuItem>
-          <MenuItem onClick={() => onHeatmapChange(!showHeatmap)}>
-            <Checkbox checked={showHeatmap} color="default" /> Heatmap
-          </MenuItem>
+
           <Divider />
           {showSensors ? (
             <MenuItem onClick={() => onCalibratedChange(!showCalibratedValues)}>
@@ -346,7 +337,6 @@ const CustomMapControl = ({
   className,
   onPollutantChange,
   showSensors,
-  showHeatmap,
   showCalibratedValues,
   onSensorChange,
   onHeatmapChange,
@@ -356,24 +346,18 @@ const CustomMapControl = ({
     <MapControllerPosition className={'custom-map-control'} position={'topRight'}>
       <MapSettings
         showSensors={showSensors}
-        showHeatmap={showHeatmap}
         showCalibratedValues={showCalibratedValues}
         onSensorChange={onSensorChange}
         onHeatmapChange={onHeatmapChange}
         onCalibratedChange={onCalibratedChange}
       />
-      <PollutantSelector
-        className={className}
-        onChange={onPollutantChange}
-        showHeatMap={showHeatmap}
-      />
+      <PollutantSelector className={className} onChange={onPollutantChange} />
       <MapStyleSelectorPlaceholder />
     </MapControllerPosition>
   );
 };
 
 export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) => {
-  const dispatch = useDispatch();
   const MAX_OFFLINE_DURATION = 86400; // 24 HOURS
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState();
@@ -396,11 +380,15 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
   // Update showPollutant state when localStorage.pollutant changes
   useEffect(() => {
     const pollutant = localStorage.getItem('pollutant');
-    setShowPollutant({
-      pm2_5: pollutant === 'pm2_5',
-      no2: pollutant === 'no2',
-      pm10: pollutant === 'pm10'
-    });
+    if (pollutant) {
+      setShowPollutant({
+        pm2_5: pollutant === 'pm2_5',
+        no2: pollutant === 'no2',
+        pm10: pollutant === 'pm10'
+      });
+    } else {
+      console.error('No pollutant data found in localStorage');
+    }
   }, [localStorage.getItem('pollutant')]);
 
   useEffect(() => {
@@ -450,14 +438,16 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
           });
         }
 
-        // Set visibility based on showHeatMap state
-        const visibility = showHeatMap ? 'visible' : 'none';
+        // Set visibility to visible
+        const visibility = 'visible';
         ['sensor-heat', 'sensor-point'].forEach((id) =>
           map.setLayoutProperty(id, 'visibility', visibility)
         );
       });
+    } else {
+      console.error('No map or heatmap data found');
     }
-  }, [map, heatMapData, showHeatMap]);
+  }, [map, heatMapData]);
 
   useEffect(() => {
     if (map) {
@@ -476,6 +466,8 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
         } catch (error) {
           console.error('Error setting heatmap data:', error);
         }
+      } else {
+        return;
       }
     }
   }, [map, heatMapData]);
@@ -483,26 +475,16 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
   const toggleSensors = () => {
     try {
       const markers = document.getElementsByClassName('marker');
-      for (let i = 0; i < markers.length; i++) {
-        markers[i].style.visibility = !showSensors ? 'visible' : 'hidden';
+      if (markers.length > 0) {
+        for (let i = 0; i < markers.length; i++) {
+          markers[i].style.visibility = !showSensors ? 'visible' : 'hidden';
+        }
+        setShowSensors(!showSensors);
+      } else {
+        console.error('No markers found');
       }
-      setShowSensors(!showSensors);
     } catch (err) {
       console.error('Error toggling sensors:', err);
-    }
-  };
-
-  const toggleHeatMap = () => {
-    setShowHeatMap(!showHeatMap);
-    if (map) {
-      try {
-        map.setLayoutProperty('sensor-heat', 'visibility', showHeatMap ? 'none' : 'visible');
-        map.setLayoutProperty('sensor-point', 'visibility', showHeatMap ? 'none' : 'visible');
-      } catch (err) {
-        console.error('Error toggling heatmap:', err);
-      }
-    } else {
-      console.log('Map does not exist');
     }
   };
 
@@ -542,7 +524,8 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
           const [markerClass, desc] = getMarkerDetail(pollutantValue, markerKey);
 
           const el = document.createElement('div');
-          el.className = `marker ${seconds >= MAX_OFFLINE_DURATION ? 'marker-grey' : markerClass}`;
+          // el.className = `marker ${seconds >= MAX_OFFLINE_DURATION ? 'marker-grey' : markerClass}`;
+          el.className = `marker ${markerClass}`;
           el.style.borderRadius = '50%';
           el.style.display = 'flex';
           el.style.justifyContent = 'center';
@@ -551,16 +534,17 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
           el.style.width = '30px';
           el.style.height = '30px';
           el.style.padding = '10px';
-          el.innerHTML =
-            showPollutant.pm2_5 || showPollutant.pm10
-              ? Math.floor(feature.properties.pm2_5.value) ||
-                Math.floor(feature.properties.pm10.value)
-              : '';
+          el.innerHTML = showPollutant.pm2_5
+            ? Math.floor(feature.properties.pm2_5.value)
+            : showPollutant.pm10
+            ? Math.floor(feature.properties.pm10.value)
+            : '--';
 
           if (
             feature.geometry.coordinates.length >= 2 &&
             feature.geometry.coordinates[0] &&
-            feature.geometry.coordinates[1]
+            feature.geometry.coordinates[1] &&
+            pollutantValue !== null
           ) {
             const marker = new mapboxgl.Marker(el)
               .setLngLat(feature.geometry.coordinates)
@@ -592,10 +576,8 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
       {map && (
         <CustomMapControl
           showSensors={showSensors}
-          showHeatmap={showHeatMap}
           showCalibratedValues={showCalibratedValues}
           onSensorChange={toggleSensors}
-          onHeatmapChange={toggleHeatMap}
           onCalibratedChange={setShowCalibratedValues}
           onPollutantChange={setShowPollutant}
           className={'pollutant-selector'}
@@ -615,39 +597,44 @@ const HeatMapOverlay = () => {
   }, []);
 
   useEffect(() => {
-    if (
-      !monitoringSiteData ||
-      (monitoringSiteData &&
-        (!monitoringSiteData.features || monitoringSiteData.features.length === 0))
-    ) {
-      dispatch(loadMapEventsData()).catch((error) => {
-        console.error('Failed to load Map Events Data:', error);
-      });
+    if (isEmpty(monitoringSiteData.features)) {
+      dispatch(loadMapEventsData());
     }
-  }, [monitoringSiteData, dispatch]);
-
-  if (!monitoringSiteData || (monitoringSiteData && !monitoringSiteData.features)) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh'
-        }}>
-        <CircularLoader loading={true} />
-      </div>
-    );
-  }
+  }, [monitoringSiteData]);
 
   return (
     <ErrorBoundary>
-      <OverlayMap
-        center={[22.5600613, 0.8341424]}
-        zoom={2.4}
-        heatMapData={heatMapData}
-        monitoringSiteData={monitoringSiteData}
-      />
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '100%'
+        }}>
+        <OverlayMap
+          center={[22.5600613, 0.8341424]}
+          zoom={2.4}
+          heatMapData={heatMapData}
+          monitoringSiteData={monitoringSiteData}
+        />
+        {monitoringSiteData && isEmpty(monitoringSiteData.features) && (
+          <div
+            style={{
+              position: 'absolute',
+              zIndex: 100,
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100vh',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: 'rgba(255, 255, 255, 0.4)',
+              backdropFilter: 'blur(1px)'
+            }}>
+            <CircularLoader loading={true} />
+          </div>
+        )}
+      </div>
     </ErrorBoundary>
   );
 };
