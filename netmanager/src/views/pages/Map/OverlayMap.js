@@ -446,7 +446,8 @@ export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
           const [markerClass, desc] = getMarkerDetail(pollutantValue, markerKey);
 
           const el = document.createElement('div');
-          el.className = `marker ${seconds >= MAX_OFFLINE_DURATION ? 'marker-grey' : markerClass}`;
+          // el.className = `marker ${seconds >= MAX_OFFLINE_DURATION ? 'marker-grey' : markerClass}`;
+          el.className = `marker ${markerClass}`;
           el.style.borderRadius = '50%';
           el.style.display = 'flex';
           el.style.justifyContent = 'center';
@@ -519,19 +520,38 @@ const MapContainer = () => {
   }, [monitoringSiteData]);
 
   return (
-    <div>
-      <ErrorBoundary>
-        {monitoringSiteData ? (
-          <OverlayMap
-            center={[22.5600613, 0.8341424]}
-            zoom={2.4}
-            monitoringSiteData={monitoringSiteData}
-          />
-        ) : (
-          <CircularLoader loading={true} />
+    <ErrorBoundary>
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '100%'
+        }}>
+        <OverlayMap
+          center={[22.5600613, 0.8341424]}
+          zoom={2.4}
+          monitoringSiteData={monitoringSiteData}
+        />
+        {monitoringSiteData && isEmpty(monitoringSiteData.features) && (
+          <div
+            style={{
+              position: 'absolute',
+              zIndex: 100,
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100vh',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: 'rgba(255, 255, 255, 0.4)',
+              backdropFilter: 'blur(1px)'
+            }}>
+            <CircularLoader loading={true} />
+          </div>
         )}
-      </ErrorBoundary>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 };
 
