@@ -604,16 +604,10 @@ const HeatMapOverlay = () => {
   }, []);
 
   useEffect(() => {
-    if (
-      !monitoringSiteData ||
-      (monitoringSiteData &&
-        (!monitoringSiteData.features || monitoringSiteData.features.length === 0))
-    ) {
-      dispatch(loadMapEventsData()).catch((error) => {
-        console.error('Failed to load Map Events Data:', error);
-      });
+    if (isEmpty(monitoringSiteData.features)) {
+      dispatch(loadMapEventsData());
     }
-  }, [monitoringSiteData, dispatch]);
+  }, [monitoringSiteData]);
 
   return (
     <ErrorBoundary>
@@ -629,7 +623,7 @@ const HeatMapOverlay = () => {
           heatMapData={heatMapData}
           monitoringSiteData={monitoringSiteData}
         />
-        {monitoringSiteData && isEmpty(monitoringSiteData.features) ? (
+        {monitoringSiteData && isEmpty(monitoringSiteData.features) && (
           <div
             style={{
               zIndex: 9999,
@@ -646,7 +640,7 @@ const HeatMapOverlay = () => {
             }}>
             <CircularLoader loading={true} />
           </div>
-        ) : null}
+        )}
       </div>
     </ErrorBoundary>
   );
