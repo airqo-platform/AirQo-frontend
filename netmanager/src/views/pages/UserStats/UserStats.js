@@ -74,25 +74,26 @@ const UserStats = () => {
     // Prepare table rows from data
     const tableRows = data.map((record) => [record.email]);
 
-    // Add title to PDF
     doc.setFontSize(18);
-    doc.text(tableTitle, 14, 15); // Adjust the position as needed
+    doc.text(tableTitle, 14, 15);
+
+    doc.setFontSize(14);
+    doc.text(`Total: ${tableRows.length}`, 14, 22);
 
     setButtonLabel('Preparing...');
-    // Add table to PDF
+
     autoTable(doc, {
-      startY: 20,
+      startY: 25,
       head: [tableColumn],
       body: tableRows
     });
 
     setButtonLabel('Exporting...');
-    // Wait for 2 seconds before saving the PDF
+
     setTimeout(() => {
       doc.save(`AirQo_${selectedUserType}.pdf`);
       setButtonLabel('Exported');
 
-      // Reset the button label after 3 seconds
       setTimeout(() => {
         setButtonLabel('Export as PDF');
       }, 3000);
