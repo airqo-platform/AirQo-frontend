@@ -16,7 +16,7 @@ import Alert from '@material-ui/lab/Alert';
 import Select from 'react-select';
 import { isEmpty } from 'underscore';
 import ErrorBoundary from '../../ErrorBoundary/ErrorBoundary';
-import HorizontalLoader from '../HorizontalLoader/HorizontalLoader';
+import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
 import { useHistory, useParams } from 'react-router-dom';
 import { ArrowBackIosRounded } from '@material-ui/icons';
 import {
@@ -170,6 +170,7 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
   const handleEditHost = async () => {
     try {
       setLoading(true);
+      dispatch(loadStatus(true));
 
       const updatedHost = {
         ...host,
@@ -181,6 +182,7 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
 
       const response = await updateDeviceHost(hosts_id, updatedHost);
       setLoading(false);
+      dispatch(loadStatus(false));
       if (response.success === true) {
         onHostEdited();
         dispatch(
@@ -214,10 +216,12 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
   useEffect(() => {
     if (isEmpty(sites)) {
       setLoading(true);
+      dispatch(loadStatus(true));
       if (!isEmpty(activeNetwork)) {
         dispatch(loadSitesSummary(activeNetwork.net_name));
       }
       setLoading(false);
+      dispatch(loadStatus(false));
     }
   }, []);
 
@@ -335,10 +339,13 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
               isLoading={isEmpty(sites)}
               options={sites.map((site) => ({ value: site._id, label: site.name }))}
               value={
-                selectedOption || {
-                  value: host.site_id,
-                  label: sites.find((site) => site._id === host.site_id)?.name || ''
-                }
+                selectedOption ||
+                (host && host.site_id && sites.find((site) => site._id === host.site_id)
+                  ? {
+                      value: host.site_id,
+                      label: sites.find((site) => site._id === host.site_id).name
+                    }
+                  : '')
               }
               onChange={onChangeDropdown}
               styles={customStyles}
@@ -428,6 +435,7 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
     try {
       setDisabled(true);
       setLoading(true);
+      dispatch(loadStatus(true));
       const response = await sendMoneyToHost(host_id[0], amount);
       if (response.success === true) {
         handleCloseDialog();
@@ -440,13 +448,19 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
         );
         onSent();
       } else {
-        setError(response.errors?.message || 'An error occurred. Please try again.');
+        let errorMessage = 'An error occurred. Please try again.';
+        if (response.errors && response.errors.message) {
+          errorMessage = response.errors.message;
+        }
+        setError(errorMessage);
       }
     } catch (error) {
       setError('An error occurred. Please try again.');
       setLoading(false);
+      dispatch(loadStatus(false));
     } finally {
       setLoading(false);
+      dispatch(loadStatus(false));
       setDisabled(false);
     }
   };
@@ -598,10 +612,16 @@ const HostView = () => {
         const { transaction } = response;
         const hostsData = transaction.map((transaction) => {
           const host = hosts.find((host) => transaction.host_id === host._id);
+          let hostFirstName = '';
+          let hostLastName = '';
+          if (host) {
+            hostFirstName = host.first_name || '';
+            hostLastName = host.last_name || '';
+          }
           return {
             ...transaction,
-            hostFirstName: host?.first_name || '',
-            hostLastName: host?.last_name || ''
+            hostFirstName: hostFirstName,
+            hostLastName: hostLastName
           };
         });
         setTransactions(hostsData);
@@ -642,7 +662,6 @@ const HostView = () => {
 
   return (
     <ErrorBoundary>
-      <HorizontalLoader loading={loading} />
       <div className={classes.root}>
         <div
           style={{

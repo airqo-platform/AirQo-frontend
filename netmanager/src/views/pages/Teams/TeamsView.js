@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import DataTable from './Table';
 import ErrorBoundary from '../../ErrorBoundary/ErrorBoundary';
-import HorizontalLoader from '../../components/HorizontalLoader/HorizontalLoader';
+import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
+
 import { makeStyles } from '@material-ui/styles';
 import { useHistory, useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
@@ -152,6 +153,7 @@ const EditTeams = ({ setLoading, params, teamsData, setTeamsData }) => {
     if (!teams.name || !teams.description) return;
 
     setLoading(true);
+    dispatch(loadStatus(true));
 
     const teamsData = {
       grp_title: teams.name,
@@ -176,6 +178,7 @@ const EditTeams = ({ setLoading, params, teamsData, setTeamsData }) => {
       });
     } finally {
       setLoading(false);
+      dispatch(loadStatus(false));
     }
   };
 
@@ -310,19 +313,21 @@ const TeamsView = () => {
     // Add your delete logic here
   };
 
-  const filteredData = teamsData.grp_users?.map((row) => {
-    return {
-      id: row._id,
-      username: `${row.firstName} ${row.lastName}`,
-      email: row.email,
-      country: row.country,
-      long_organization: row.long_organization
-    };
-  });
+  let filteredData = [];
+  if (teamsData.grp_users) {
+    filteredData = teamsData.grp_users.map((row) => {
+      return {
+        id: row._id,
+        username: `${row.firstName} ${row.lastName}`,
+        email: row.email,
+        country: row.country,
+        long_organization: row.long_organization
+      };
+    });
+  }
 
   return (
     <ErrorBoundary>
-      <HorizontalLoader loading={isLoaded} />
       <div className={classes.root}>
         <div
           style={{

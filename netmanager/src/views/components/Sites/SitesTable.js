@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import LoadingOverlay from 'react-loading-overlay';
 import { isEmpty } from 'underscore';
@@ -16,9 +16,7 @@ import { getSitesSummaryApi } from 'views/apis/deviceRegistry';
 // css
 import 'assets/css/location-registry.css';
 import { clearSiteDetails } from '../../../redux/SiteRegistry/operations';
-
-// horizontal loader
-import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+import { setLoading as loadStatus, setRefresh } from 'redux/HorizontalLoader/index';
 
 const BLANK_SPACE_HOLDER = '-';
 const renderCell = (field) => (rowData) => <span>{rowData[field] || BLANK_SPACE_HOLDER}</span>;
@@ -29,8 +27,8 @@ const SitesTable = () => {
   const [sites, setSites] = useState([]);
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
   const [loading, setLoading] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [delState, setDelState] = useState({ open: false, name: '', id: '' });
+  const refresh = useSelector((state) => state.HorizontalLoader.refresh);
 
   useEffect(() => {
     if (!isEmpty(activeNetwork)) {
@@ -44,13 +42,14 @@ const SitesTable = () => {
         })
         .finally(() => {
           setLoading(false);
+          dispatch(setRefresh(false));
         });
     }
-  }, []);
+  }, [refresh]);
 
   const handleDeleteSite = async () => {
     setDelState({ open: false, name: '', id: '' });
-    setIsLoading(true);
+    dispatch(loadStatus(true));
     try {
       const resData = await deleteSiteApi(delState.id);
       if (!isEmpty(activeNetwork)) {
@@ -63,6 +62,9 @@ const SitesTable = () => {
           severity: 'success'
         })
       );
+
+      // refresh the sites table
+      dispatch(setRefresh(true));
     } catch (error) {
       dispatch(
         updateMainAlert({
@@ -74,13 +76,13 @@ const SitesTable = () => {
         })
       );
     } finally {
-      setIsLoading(false);
+      dispatch(loadStatus(false));
+      dispatch(setRefresh(false));
     }
   };
 
   return (
     <>
-      <HorizontalLoader loading={isLoading} />
       <CustomMaterialTable
         pointerCursor
         userPreferencePaginationKey={'sites'}

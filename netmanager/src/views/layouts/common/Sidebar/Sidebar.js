@@ -43,6 +43,7 @@ import SimCardIcon from '@material-ui/icons/SimCard';
 import GridOnIcon from '@material-ui/icons/GridOn';
 import GrainIcon from '@material-ui/icons/Grain';
 import GroupAddIcon from '@material-ui/icons/GroupAdd';
+import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -99,7 +100,7 @@ const allMainPages = [
   },
   {
     title: 'Map',
-    href: '/map',
+    href: '/heatMap',
     icon: <MapIcon />
   },
   {
@@ -159,12 +160,7 @@ const allMainPages = [
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES',
     isNew: true
   },
-  {
-    title: 'Heat Map',
-    href: '/heatMap',
-    icon: <BubbleChartIcon />,
-    isNew: true
-  },
+
   {
     title: 'Cohorts Registry',
     href: '/cohorts',
@@ -209,13 +205,14 @@ const allUserManagementPages = [
     nested: true,
     nestItems: [
       { title: 'Assigned Users', href: '/admin/users/assigned-users' },
-      { title: 'Available Users', href: '/admin/users/available-users' }
+      { title: 'Available Users', href: '/admin/users/available-users' },
+      { title: 'User Statistics', href: '/admin/users/users-statistics' }
     ]
   },
   {
     title: 'Roles',
     href: '/roles',
-    icon: <SupervisorAccountIcon />,
+    icon: <AssignmentIndIcon />,
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_ROLES'
   },
   {
@@ -369,8 +366,7 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}
-    >
+      variant={variant}>
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />

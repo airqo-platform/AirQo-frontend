@@ -55,6 +55,7 @@ const GridsDetails = lazy(() => import('./views/pages/GridsRegistry/GridsDetails
 const Teams = lazy(() => import('./views/pages/Teams/Teams'));
 const TeamsView = lazy(() => import('./views/pages/Teams/TeamsView'));
 const SimRegistry = lazy(() => import('./views/components/SIM/SimRegistry'));
+const UserStats = lazy(() => import('./views/pages/UserStats/UserStats'));
 
 const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
@@ -112,6 +113,12 @@ const AppRoutes = ({ auth, logoutUser }) => {
               exact
               path="/admin/users/available-users"
               component={AvailableUserList}
+              layout={MainLayout}
+            />
+            <PrivateRoute
+              exact
+              path="/admin/users/users-statistics"
+              component={UserStats}
               layout={MainLayout}
             />
             <PrivateRoute component={CandidateList} exact layout={MainLayout} path="/candidates" />
@@ -197,8 +204,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
             right: 0,
             marginRight: '10px',
             marginBottom: '20px'
-          }}
-        >
+          }}>
           <div id="jira-help-desk" />
         </div>
 

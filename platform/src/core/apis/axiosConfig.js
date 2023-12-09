@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { NEXT_PUBLIC_API_BASE_URL } from '../../lib/envConstants';
 
 // Function to get JWT Token
 const getJwtToken = () => {
@@ -24,6 +25,8 @@ const createAxiosInstance = (isJWT = true) => {
         delete config.headers['Authorization'];
         config.params = { ...config.params, token: API_TOKEN };
       }
+      // config.withCredentials = true;
+      config.baseURL = NEXT_PUBLIC_API_BASE_URL;
       return config;
     },
     (error) => {

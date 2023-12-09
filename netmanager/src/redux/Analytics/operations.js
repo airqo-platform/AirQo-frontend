@@ -15,13 +15,20 @@ import {
   LOAD_ALL_COHORTS_SUCCESS,
   LOAD_ALL_GRIDS_FAILURE,
   LOAD_ALL_GRIDS_SUCCESS,
+  LOAD_COHORTS_SUMMARY_FAILURE,
+  LOAD_COHORTS_SUMMARY_SUCCESS,
   LOAD_COMBINED_GRIDS_AND_COHORTS_SUMMARY_FAILURE,
   LOAD_COMBINED_GRIDS_AND_COHORTS_SUMMARY_SUCCESS,
   LOAD_GRIDS_SUMMARY_FAILURE,
   LOAD_GRIDS_SUMMARY_SUCCESS
 } from './actions';
 import { isEmpty } from 'underscore';
-import { getCohortsApi, getGridsApi, getGridsSummaryApi } from '../../views/apis/deviceRegistry';
+import {
+  getCohortsApi,
+  getCohortsSummaryApi,
+  getGridsApi,
+  getGridsSummaryApi
+} from '../../views/apis/deviceRegistry';
 
 export const loadGridsAndCohortsSummary = (network_name) => async (dispatch) => {
   return await getGridsAndCohortsSummaryApi(network_name)
@@ -119,6 +126,22 @@ export const fetchAllCohorts = (network_name) => async (dispatch) => {
     .catch((err) => {
       dispatch({
         type: LOAD_ALL_COHORTS_FAILURE,
+        payload: err
+      });
+    });
+};
+
+export const fetchCohortsSummary = (network_name) => async (dispatch) => {
+  return await getCohortsSummaryApi({ network: network_name })
+    .then((resData) => {
+      dispatch({
+        type: LOAD_COHORTS_SUMMARY_SUCCESS,
+        payload: resData.cohorts
+      });
+    })
+    .catch((err) => {
+      dispatch({
+        type: LOAD_COHORTS_SUMMARY_FAILURE,
         payload: err
       });
     });

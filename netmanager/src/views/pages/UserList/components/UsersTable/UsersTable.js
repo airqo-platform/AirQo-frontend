@@ -33,8 +33,7 @@ import LoadingOverlay from 'react-loading-overlay';
 import UsersListBreadCrumb from '../Breadcrumb';
 // dropdown component
 import Dropdown from 'react-select';
-// Horizontal loader
-import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -142,6 +141,7 @@ const UsersTable = (props) => {
 
   const submitEditUser = (e) => {
     setIsLoading(true);
+    dispatch(loadStatus(true));
     setLoading(true);
     e.preventDefault();
     if (updatedUser.userName !== '') {
@@ -158,6 +158,7 @@ const UsersTable = (props) => {
           .then((res) => {
             dispatch(fetchNetworkUsers(activeNetwork._id));
             setIsLoading(false);
+            dispatch(loadStatus(false));
             dispatch(
               updateMainAlert({
                 message: 'User successfully added to the organisation',
@@ -176,6 +177,7 @@ const UsersTable = (props) => {
               })
             );
             setIsLoading(false);
+            dispatch(loadStatus(false));
           });
       }
       hideEditDialog();
@@ -183,6 +185,7 @@ const UsersTable = (props) => {
     }
     setTimeout(() => {
       setIsLoading(false);
+      dispatch(loadStatus(false));
     }, 2000);
     setLoading(false);
   };
@@ -199,6 +202,7 @@ const UsersTable = (props) => {
   const deleteUser = async () => {
     // Set loading to true when deleting
     setIsLoading(true);
+    dispatch(loadStatus(true));
     try {
       await props.mappedConfirmDeleteUser(userDelState.user);
       hideDeleteDialog();
@@ -208,6 +212,7 @@ const UsersTable = (props) => {
     } finally {
       // Set loading to false when done
       setIsLoading(false);
+      dispatch(loadStatus(false));
     }
   };
 
@@ -220,11 +225,12 @@ const UsersTable = (props) => {
   }, []);
 
   // If roles is null or undefined will return empty array
-  const options = roles?.map((role) => ({ value: role._id, label: role.role_name })) ?? [];
+  const options =
+    (roles && roles.map((role) => ({ value: role._id, label: role.role_name }))) || [];
 
   // checking if userToEdit is undefined or null
   const [selectedOption, setSelectedOption] = useState(
-    props.mappeduserState.userToEdit?.role
+    props.mappeduserState.userToEdit && props.mappeduserState.userToEdit.role
       ? {
           value: props.mappeduserState.userToEdit.role._id,
           label: props.mappeduserState.userToEdit.role.role_name
@@ -241,8 +247,6 @@ const UsersTable = (props) => {
     <>
       <UsersListBreadCrumb category={'Users'} usersTable={'Assigned Users'} />
       <Card {...rest} className={clsx(classes.root, className)}>
-        {/* custome Horizontal loader indicator */}
-        <HorizontalLoader loading={loading} />
         <CustomMaterialTable
           title={'Users'}
           userPreferencePaginationKey={'users'}
@@ -320,8 +324,7 @@ const UsersTable = (props) => {
           <Dialog
             open={showMoreDetailsPopup}
             onClose={hideMoreDetailsDialog}
-            aria-labelledby="form-dialog-title"
-          >
+            aria-labelledby="form-dialog-title">
             <DialogTitle>User request details</DialogTitle>
             <DialogContent>
               <div style={{ minWidth: 500 }}>
@@ -492,8 +495,7 @@ const UsersTable = (props) => {
                   style={{ margin: '0 15px' }}
                   onClick={submitEditUser}
                   color="primary"
-                  variant="contained"
-                >
+                  variant="contained">
                   Submit
                 </Button>
               </div>

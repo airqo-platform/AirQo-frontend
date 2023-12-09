@@ -4,6 +4,7 @@ import { isEmpty } from 'underscore';
 import { circlePointPaint, heatMapPaint } from '../Map/paints';
 import { getFirstDuration } from 'utils/dateTime';
 import Filter from '../Dashboard/components/Map/Filter';
+import MapPopup from '../Dashboard/components/Map/MapPopup';
 import Divider from '@material-ui/core/Divider';
 import { loadPM25HeatMapData, loadMapEventsData } from 'redux/MapData/operations';
 import { usePM25HeatMapData, useEventsMapData } from 'redux/MapData/selectors';
@@ -14,6 +15,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import { useInitScrollTop } from 'utils/customHooks';
 import { ErrorBoundary } from '../../ErrorBoundary';
 import { useOrgData } from 'redux/Join/selectors';
+import Indicator from '../Dashboard/components/Map/Indicator ';
 
 // css
 import 'assets/css/overlay-map.css';
@@ -160,17 +162,16 @@ const PollutantSelector = ({ className, onChange }) => {
               pm2_5: true,
               no2: false,
               pm10: false
-            })}
-          >
+            })}>
             PM<sub>2.5</sub>
           </MenuItem>
+          <Divider />
           <MenuItem
             onClick={handleMenuItemChange('pm10', {
               pm2_5: false,
               no2: false,
               pm10: true
-            })}
-          >
+            })}>
             PM<sub>10</sub>
           </MenuItem>
           {orgData.name !== 'airqo' && (
@@ -179,8 +180,7 @@ const PollutantSelector = ({ className, onChange }) => {
                 pm2_5: false,
                 no2: true,
                 pm10: false
-              })}
-            >
+              })}>
               NO<sub>2</sub>
             </MenuItem>
           )}
@@ -188,9 +188,8 @@ const PollutantSelector = ({ className, onChange }) => {
       }
       open={open}
       placement="left"
-      onClose={() => setOpen(false)}
-    >
-      <div style={{ padding: '10px' }}>
+      onClose={() => setOpen(false)}>
+      <div style={{ padding: '5px' }}>
         <span className={className} onClick={onHandleClick}>
           {pollutantMapper[pollutant]}
         </span>
@@ -232,8 +231,7 @@ const MapStyleSelectorPlaceholder = () => {
       className="map-style-placeholder"
       onClick={handleClick}
       onMouseEnter={() => handleHover(true)}
-      onMouseLeave={() => handleHover(false)}
-    >
+      onMouseLeave={() => handleHover(false)}>
       <div className={`map-icon-container${isHovered ? ' map-icon-hovered' : ''}`}>
         <MapIcon className="map-icon" />
       </div>
@@ -272,7 +270,7 @@ const MapStyleSelector = () => {
     if (localStorage.mapMode) {
       setMapMode(localStorage.mapMode);
     } else {
-      setMapMode('light');
+      setMapMode('street');
     }
   }, []);
 
@@ -288,8 +286,7 @@ const MapStyleSelector = () => {
                   localStorage.mapStyle = style.mapStyle;
                   localStorage.mapMode = style.name;
                   window.location.reload();
-                }}
-              >
+                }}>
                 <span>{style.icon}</span>
                 <span>{style.name} map</span>
               </div>
@@ -301,14 +298,7 @@ const MapStyleSelector = () => {
   );
 };
 
-const MapSettings = ({
-  showSensors,
-  showHeatmap,
-  showCalibratedValues,
-  onSensorChange,
-  onHeatmapChange,
-  onCalibratedChange
-}) => {
+const MapSettings = ({ showSensors, showCalibratedValues, onSensorChange, onCalibratedChange }) => {
   const [open, setOpen] = useState(false);
 
   return (
@@ -318,9 +308,7 @@ const MapSettings = ({
           <MenuItem onClick={() => onSensorChange(!showSensors)}>
             <Checkbox checked={showSensors} color="default" /> Monitors
           </MenuItem>
-          <MenuItem onClick={() => onHeatmapChange(!showHeatmap)}>
-            <Checkbox checked={showHeatmap} color="default" /> Heatmap
-          </MenuItem>
+
           <Divider />
           {showSensors ? (
             <MenuItem onClick={() => onCalibratedChange(!showCalibratedValues)}>
@@ -335,9 +323,8 @@ const MapSettings = ({
       }
       open={open}
       placement="left"
-      onClose={() => setOpen(false)}
-    >
-      <div style={{ padding: '10px' }}>
+      onClose={() => setOpen(false)}>
+      <div style={{ padding: '5px' }}>
         <div className="map-settings" onClick={() => setOpen(!open)}>
           <SettingsIcon />
         </div>
@@ -350,7 +337,6 @@ const CustomMapControl = ({
   className,
   onPollutantChange,
   showSensors,
-  showHeatmap,
   showCalibratedValues,
   onSensorChange,
   onHeatmapChange,
@@ -360,24 +346,18 @@ const CustomMapControl = ({
     <MapControllerPosition className={'custom-map-control'} position={'topRight'}>
       <MapSettings
         showSensors={showSensors}
-        showHeatmap={showHeatmap}
         showCalibratedValues={showCalibratedValues}
         onSensorChange={onSensorChange}
         onHeatmapChange={onHeatmapChange}
         onCalibratedChange={onCalibratedChange}
       />
-      <PollutantSelector
-        className={className}
-        onChange={onPollutantChange}
-        showHeatMap={showHeatmap}
-      />
+      <PollutantSelector className={className} onChange={onPollutantChange} />
       <MapStyleSelectorPlaceholder />
     </MapControllerPosition>
   );
 };
 
 export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) => {
-  const dispatch = useDispatch();
   const MAX_OFFLINE_DURATION = 86400; // 24 HOURS
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState();
@@ -400,11 +380,15 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
   // Update showPollutant state when localStorage.pollutant changes
   useEffect(() => {
     const pollutant = localStorage.getItem('pollutant');
-    setShowPollutant({
-      pm2_5: pollutant === 'pm2_5',
-      no2: pollutant === 'no2',
-      pm10: pollutant === 'pm10'
-    });
+    if (pollutant) {
+      setShowPollutant({
+        pm2_5: pollutant === 'pm2_5',
+        no2: pollutant === 'no2',
+        pm10: pollutant === 'pm10'
+      });
+    } else {
+      console.error('No pollutant data found in localStorage');
+    }
   }, [localStorage.getItem('pollutant')]);
 
   useEffect(() => {
@@ -454,14 +438,16 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
           });
         }
 
-        // Set visibility based on showHeatMap state
-        const visibility = showHeatMap ? 'visible' : 'none';
+        // Set visibility to visible
+        const visibility = 'visible';
         ['sensor-heat', 'sensor-point'].forEach((id) =>
           map.setLayoutProperty(id, 'visibility', visibility)
         );
       });
+    } else {
+      console.error('No map or heatmap data found');
     }
-  }, [map, heatMapData, showHeatMap]);
+  }, [map, heatMapData]);
 
   useEffect(() => {
     if (map) {
@@ -480,6 +466,8 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
         } catch (error) {
           console.error('Error setting heatmap data:', error);
         }
+      } else {
+        return;
       }
     }
   }, [map, heatMapData]);
@@ -487,26 +475,16 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
   const toggleSensors = () => {
     try {
       const markers = document.getElementsByClassName('marker');
-      for (let i = 0; i < markers.length; i++) {
-        markers[i].style.visibility = !showSensors ? 'visible' : 'hidden';
+      if (markers.length > 0) {
+        for (let i = 0; i < markers.length; i++) {
+          markers[i].style.visibility = !showSensors ? 'visible' : 'hidden';
+        }
+        setShowSensors(!showSensors);
+      } else {
+        console.error('No markers found');
       }
-      setShowSensors(!showSensors);
     } catch (err) {
       console.error('Error toggling sensors:', err);
-    }
-  };
-
-  const toggleHeatMap = () => {
-    setShowHeatMap(!showHeatMap);
-    if (map) {
-      try {
-        map.setLayoutProperty('sensor-heat', 'visibility', showHeatMap ? 'none' : 'visible');
-        map.setLayoutProperty('sensor-point', 'visibility', showHeatMap ? 'none' : 'visible');
-      } catch (err) {
-        console.error('Error toggling heatmap:', err);
-      }
-    } else {
-      console.log('Map does not exist');
     }
   };
 
@@ -547,58 +525,58 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
 
           const el = document.createElement('div');
           el.className = `marker ${seconds >= MAX_OFFLINE_DURATION ? 'marker-grey' : markerClass}`;
-          // el.innerText = (pollutantValue && pollutantValue.toFixed(0)) || "--";
+          el.style.borderRadius = '50%';
+          el.style.display = 'flex';
+          el.style.justifyContent = 'center';
+          el.style.alignItems = 'center';
+          el.style.fontSize = '12px';
+          el.style.width = '30px';
+          el.style.height = '30px';
+          el.style.padding = '10px';
+          el.innerHTML = showPollutant.pm2_5
+            ? Math.floor(feature.properties.pm2_5.value)
+            : showPollutant.pm10
+            ? Math.floor(feature.properties.pm10.value)
+            : '--';
 
           if (
             feature.geometry.coordinates.length >= 2 &&
             feature.geometry.coordinates[0] &&
-            feature.geometry.coordinates[1]
+            feature.geometry.coordinates[1] &&
+            pollutantValue !== null
           ) {
-            new mapboxgl.Marker(el, { rotation: -45, scale: 0.4 })
+            const marker = new mapboxgl.Marker(el)
               .setLngLat(feature.geometry.coordinates)
               .setPopup(
                 new mapboxgl.Popup({
                   offset: 25,
                   className: 'map-popup'
                 }).setHTML(
-                  `<div class="popup-body">
-                    <div>
-                      <span class="popup-title">
-                      <b>${feature.properties.siteDetails.description}</b>
-                      </span>
-                    </div>
-                    <div class="${`popup-aqi ${markerClass}`}"> 
-                      <span>
-                      ${
-                        (showPollutant.pm2_5 && 'PM<sub>2.5<sub>') ||
-                        (showPollutant.pm10 && 'PM<sub>10<sub>')
-                      }
-                      </span> </hr>  
-                      <div class="pollutant-info">
-                        <div class="pollutant-info-row">
-                        <div class="pollutant-number">${
-                          (pollutantValue && pollutantValue.toFixed(2)) || '--'
-                        }</div>
-                        <div class="popup-measurement">µg/m<sup>3</sup></div>
-                        </div> 
-                        <div class="pollutant-desc">${desc}</div>
-                      </div>
-                    </div>
-                    <span>Last Refreshed: <b>${duration}</b> ago</span>
-                  </div>`
+                  MapPopup(feature, showPollutant, pollutantValue, desc, duration, markerClass)
                 )
               )
               .addTo(map);
+
+            // Listen to the zoom event of the map
+            map.on('zoom', function () {
+              // Get the current zoom level of the map
+              const zoom = map.getZoom();
+              // Calculate the size based on the zoom level
+              const size = (30 * zoom) / 10;
+              // Set the size of the marker
+              el.style.width = `${size}px`;
+              el.style.height = `${size}px`;
+            });
           }
         })}
+
       <Filter pollutants={showPollutant} />
+      <Indicator />
       {map && (
         <CustomMapControl
           showSensors={showSensors}
-          showHeatmap={showHeatMap}
           showCalibratedValues={showCalibratedValues}
           onSensorChange={toggleSensors}
-          onHeatmapChange={toggleHeatMap}
           onCalibratedChange={setShowCalibratedValues}
           onPollutantChange={setShowPollutant}
           className={'pollutant-selector'}
@@ -614,40 +592,48 @@ const HeatMapOverlay = () => {
   const monitoringSiteData = useEventsMapData();
 
   useEffect(() => {
-    if (!heatMapData || heatMapData?.features) dispatch(loadPM25HeatMapData());
+    if (!heatMapData || (heatMapData && heatMapData.features)) dispatch(loadPM25HeatMapData());
   }, []);
 
   useEffect(() => {
-    if (!monitoringSiteData?.features || monitoringSiteData?.features.length === 0) {
-      dispatch(loadMapEventsData()).catch((error) => {
-        console.error('Failed to load Map Events Data:', error);
-      });
+    if (isEmpty(monitoringSiteData.features)) {
+      dispatch(loadMapEventsData());
     }
-  }, [monitoringSiteData, dispatch]);
-
-  if (!monitoringSiteData?.features) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh'
-        }}
-      >
-        <CircularLoader loading={true} />
-      </div>
-    );
-  }
+  }, [monitoringSiteData]);
 
   return (
     <ErrorBoundary>
-      <OverlayMap
-        center={[22.5600613, 0.8341424]}
-        zoom={2.4}
-        heatMapData={heatMapData}
-        monitoringSiteData={monitoringSiteData}
-      />
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '100%'
+        }}>
+        <OverlayMap
+          center={[22.5600613, 0.8341424]}
+          zoom={2.4}
+          heatMapData={heatMapData}
+          monitoringSiteData={monitoringSiteData}
+        />
+        {monitoringSiteData && isEmpty(monitoringSiteData.features) && (
+          <div
+            style={{
+              position: 'absolute',
+              zIndex: 100,
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100vh',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: 'rgba(255, 255, 255, 0.4)',
+              backdropFilter: 'blur(1px)'
+            }}>
+            <CircularLoader loading={true} />
+          </div>
+        )}
+      </div>
     </ErrorBoundary>
   );
 };
