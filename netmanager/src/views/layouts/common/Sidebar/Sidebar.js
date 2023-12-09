@@ -204,7 +204,8 @@ const allUserManagementPages = [
     nested: true,
     nestItems: [
       { title: 'Assigned Users', href: '/admin/users/assigned-users' },
-      { title: 'Available Users', href: '/admin/users/available-users' }
+      { title: 'Available Users', href: '/admin/users/available-users' },
+      { title: 'User Statistics', href: '/admin/users/users-statistics' }
     ]
   },
   {
