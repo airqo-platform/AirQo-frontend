@@ -25,7 +25,7 @@ const createAxiosInstance = (isJWT = true) => {
         delete config.headers['Authorization'];
         config.params = { ...config.params, token: API_TOKEN };
       }
-      config.withCredentials = true;
+      // config.withCredentials = true;
       config.baseURL = NEXT_PUBLIC_API_BASE_URL;
       return config;
     },
