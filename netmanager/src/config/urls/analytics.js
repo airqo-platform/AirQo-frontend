@@ -52,3 +52,6 @@ export const CREATE_TEAM_URI = `${BASE_ANALYTICS_URL_V2}/users/groups`;
 
 // SIM
 export const GET_SIM_URI = `${BASE_ANALYTICS_URL_V2}/incentives/sims`;
+
+// USER STATS
+export const GET_USER_STATS_URI = `${BASE_ANALYTICS_URL_V2}/users/stats`;
