@@ -46,7 +46,7 @@ const CleanAirAbout = () => {
       </div>
 
       {/* section 2 */}
-      <div className='page-section'>
+      <div className="page-section">
         <SingleSection
           content={
             <div
@@ -74,7 +74,7 @@ const CleanAirAbout = () => {
         />
       </div>
       {/* section 3 */}
-      <div className='page-section'>
+      <div className="page-section">
         <SplitSection
           pillTitle="CLEAN-Air Mission"
           title="CLEAN-Air Mission"
@@ -87,9 +87,6 @@ const CleanAirAbout = () => {
             maxHeight: '400px'
           }}
           imgURL={Section2}
-          // bgColor="#EDF3FF"
-          // pillBgColor="#FFFFFF"
-          // pillTextColor="#000000"
           bgColor="#FFFFFF"
           pillBgColor="#ECF2FF"
           pillTextColor="#135DFF"
@@ -98,7 +95,7 @@ const CleanAirAbout = () => {
       </div>
 
       {/* section 4 */}
-      <div className='page-section'>
+      <div className="page-section">
         <SplitSection
           pillTitle="CLEAN-Air Membership"
           title="A Synergy for air quality in Africa"
@@ -118,7 +115,7 @@ const CleanAirAbout = () => {
         />
       </div>
       {/* section 5 */}
-      <div className='page-section'>
+      <div className="page-section">
         <SplitSection
           pillTitle="CLEAN-Air Goals"
           imgURL={Section5}
@@ -178,7 +175,7 @@ const CleanAirAbout = () => {
         </SplitSection>
       </div>
       {/* section 6 */}
-      <div className='page-section'>
+      <div className="page-section">
         <MainHighlight />
       </div>
     </div>
