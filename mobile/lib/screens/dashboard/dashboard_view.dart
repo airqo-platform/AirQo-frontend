@@ -5,6 +5,7 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
+import 'package:app/screens/phone_no_email_link/email_link.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -483,14 +484,15 @@ class _DashboardViewState extends State<DashboardView>
       floatingActionButton: FloatingActionButton(
         shape: const CircleBorder(),
         onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) {
-                return const SearchPage();
-              },
-            ),
-          );
+          bottomSheetEmailLink(context);
+          // await Navigator.push(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (context) {
+          //       return const SearchPage();
+          //     },
+          //   ),
+          // );
         },
         backgroundColor: CustomColors.appColorBlue,
         child: const Icon(Icons.search, color: Colors.white),
