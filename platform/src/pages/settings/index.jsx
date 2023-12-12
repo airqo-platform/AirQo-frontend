@@ -4,12 +4,13 @@ import Tab from '@/components/Tabs/Tab';
 import Password from './Tabs/Password';
 import withAuth from '@/core/utils/protectedRoute';
 import Team from './Tabs/Team';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useState } from 'react';
 import { getAssignedGroupMembers } from '@/core/apis/Account';
 import Profile from './Tabs/Profile';
 import OrganizationProfile from './Tabs/OrganizationProfile';
 import { isEmpty } from 'underscore';
+import { setChartTab } from '@/lib/store/services/charts/ChartSlice';
 
 const checkAccess = (requiredPermission, rolePermissions) => {
   const permissions = rolePermissions && rolePermissions.map((item) => item.permission);
@@ -18,6 +19,7 @@ const checkAccess = (requiredPermission, rolePermissions) => {
 };
 
 const Settings = () => {
+  const dispatch = useDispatch();
   const [teamMembers, setTeamMembers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [userPermissions, setUserPermissions] = useState([]);
@@ -39,6 +41,7 @@ const Settings = () => {
       setUserPermissions(storedUserPermissions);
     } else {
       setUserPermissions([]);
+      dispatch(setChartTab(0));
     }
 
     try {
