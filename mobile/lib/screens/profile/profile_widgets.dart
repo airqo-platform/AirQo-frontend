@@ -879,14 +879,86 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(60);
 }
 
-class EditCredentialsField extends StatelessWidget {
+// class EditCredentialsField extends StatelessWidget {
+//   const EditCredentialsField({
+//     super.key,
+//     required this.authMethod,
+//     required this.profile,
+//   });
+//   final AuthMethod authMethod;
+//   final Profile profile;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       mainAxisSize: MainAxisSize.min,
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         Text(
+//           authMethod == AuthMethod.email
+//               ? AppLocalizations.of(context)!.email
+//               : AppLocalizations.of(context)!.phoneNumber,
+//           style: TextStyle(
+//             fontSize: 12,
+//             color: CustomColors.inactiveColor,
+//           ),
+//         ),
+//         const SizedBox(
+//           height: 4,
+//         ),
+//         TextFormField(
+//           initialValue: authMethod == AuthMethod.email
+//               ? profile.emailAddress
+//               : profile.phoneNumber,
+//           enableSuggestions: false,
+//           readOnly: true,
+//           style: TextStyle(color: CustomColors.inactiveColor),
+//           decoration: InputDecoration(
+//             filled: true,
+//             fillColor: Colors.white,
+//             hintText: '-',
+//             focusedBorder: OutlineInputBorder(
+//               borderSide:
+//                   const BorderSide(color: Colors.transparent, width: 1.0),
+//               borderRadius: BorderRadius.circular(8.0),
+//             ),
+//             enabledBorder: OutlineInputBorder(
+//               borderSide:
+//                   const BorderSide(color: Colors.transparent, width: 1.0),
+//               borderRadius: BorderRadius.circular(8.0),
+//             ),
+//           ),
+//         ),
+//       ],
+//     );
+//   }
+// }
+
+class EditCredentialsField extends StatefulWidget {
   const EditCredentialsField({
-    super.key,
+    Key? key,
     required this.authMethod,
     required this.profile,
-  });
+    this.isSaveClicked = false,
+  }) : super(key: key);
+
   final AuthMethod authMethod;
   final Profile profile;
+  final bool isSaveClicked;
+
+  @override
+  _EditCredentialsFieldState createState() => _EditCredentialsFieldState();
+}
+
+class _EditCredentialsFieldState extends State<EditCredentialsField> {
+  late bool isReadOnly;
+
+  @override
+  void initState() {
+    super.initState();
+    // Set the initial readOnly status based on whether the email is present
+    isReadOnly = widget.profile.emailAddress.isNotEmpty;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -895,7 +967,7 @@ class EditCredentialsField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          authMethod == AuthMethod.email
+          widget.authMethod == AuthMethod.email
               ? AppLocalizations.of(context)!.email
               : AppLocalizations.of(context)!.phoneNumber,
           style: TextStyle(
@@ -907,16 +979,44 @@ class EditCredentialsField extends StatelessWidget {
           height: 4,
         ),
         TextFormField(
-          initialValue: authMethod == AuthMethod.email
-              ? profile.emailAddress
-              : profile.phoneNumber,
+          initialValue: widget.authMethod == AuthMethod.email
+              ? widget.profile.emailAddress
+              : widget.profile.phoneNumber,
           enableSuggestions: false,
-          readOnly: true,
+          readOnly: widget.isSaveClicked || isReadOnly,
           style: TextStyle(color: CustomColors.inactiveColor),
+          onChanged: (value) {
+            if (widget.authMethod == AuthMethod.email &&
+                !widget.isSaveClicked) {
+              context.read<ProfileBloc>().add(
+                    UpdateProfile(
+                      widget.profile.copyWith(emailAddress: value),
+                    ),
+                  );
+            }
+          },
+          onTap: () {
+            // Allow editing when the user taps the field
+            if (!widget.isSaveClicked) {
+              setState(() {
+                isReadOnly = false;
+              });
+            }
+          },
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white,
             hintText: '-',
+            suffixIcon: isReadOnly
+                ? null
+                : Container(
+                    padding: const EdgeInsets.all(10),
+                    height: 20,
+                    width: 20,
+                    child: SvgPicture.asset(
+                      'assets/icon/profile_edit.svg',
+                    ),
+                  ),
             focusedBorder: OutlineInputBorder(
               borderSide:
                   const BorderSide(color: Colors.transparent, width: 1.0),
