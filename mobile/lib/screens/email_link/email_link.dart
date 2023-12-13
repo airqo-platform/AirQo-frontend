@@ -1,4 +1,5 @@
-import 'package:app/screens/phone_no_email_link/email_link_widgets.dart';
+import 'package:app/screens/email_link/email_link_widgets.dart';
+import 'package:app/screens/profile/profile_edit_page.dart';
 import 'package:app/screens/profile/profile_view.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:app/themes/colors.dart';
@@ -133,7 +134,7 @@ Future<dynamic> bottomSheetEmailLink(BuildContext context) {
                       onTap: () async {
                         Navigator.push(context, MaterialPageRoute(
                           builder: (context) {
-                            return const ProfileView();
+                            return const ProfileEditPage();
                           },
                         ));
                       },

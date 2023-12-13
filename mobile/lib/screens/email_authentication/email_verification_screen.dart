@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/enum_constants.dart';
 import 'package:app/screens/email_authentication/email_auth_widgets.dart';
@@ -6,6 +8,7 @@ import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -208,6 +211,100 @@ class _EmailAuthVerificationWidgetState
     );
   }
 
+  Future<void> linkAccounts() async {
+    final emailAuthModel =
+        context.read<EmailVerificationBloc>().state.emailAuthModel;
+
+    final emailCredential = EmailAuthProvider.credentialWithLink(
+      emailLink: emailAuthModel.signInLink,
+      email: emailAuthModel.emailAddress,
+    );
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    try {
+      await user!.linkWithCredential(emailCredential);
+      context.read<EmailVerificationBloc>().add(
+            const SetEmailVerificationStatus(
+              AuthenticationStatus.success,
+            ),
+          );
+      print('Accoun/////////////////////////////////////t linking successful');
+    } catch (error) {
+      context.read<EmailVerificationBloc>().add(
+            const SetEmailVerificationStatus(
+              AuthenticationStatus.error,
+            ),
+          );
+      if (kDebugMode) {
+        print('Error linking accounts: $error');
+      }
+    }
+  }
+
+  // Future<void> _authenticate() async {
+  //   loadingScreen(context);
+
+  //   final emailAuthModel =
+  //       context.read<EmailVerificationBloc>().state.emailAuthModel;
+
+  //   final emailCredential = EmailAuthProvider.credentialWithLink(
+  //     emailLink: emailAuthModel.signInLink,
+  //     email: emailAuthModel.emailAddress,
+  //   );
+
+  //   try {
+  //     // Check if the user is already signed in with phone number
+  //     final currentUser = FirebaseAuth.instance.currentUser;
+  //     if (currentUser != null) {
+  //       // Link the email credential with the existing user
+  //       await currentUser.linkWithCredential(emailCredential);
+  //       context.read<EmailVerificationBloc>().add(
+  //             const SetEmailVerificationStatus(
+  //               AuthenticationStatus.success,
+  //             ),
+  //           );
+  //       await AppService.postSignInActions(context);
+  //       Navigator.pop(context);
+  //       return;
+  //     }
+
+  //     // If not signed in with phone number, perform email authentication
+  //     final bool authenticationSuccessful =
+  //         await CustomAuth.firebaseSignIn(emailCredential);
+  //     if (!mounted) return;
+
+  //     Navigator.pop(context);
+
+  //     if (authenticationSuccessful) {
+  //       context
+  //           .read<EmailVerificationBloc>()
+  //           .add(const SetEmailVerificationStatus(
+  //             AuthenticationStatus.success,
+  //           ));
+  //       await linkAccounts();
+  //       await AppService.postSignInActions(context);
+  //     } else {
+  //       await showDialog<void>(
+  //         context: context,
+  //         barrierDismissible: false,
+  //         builder: (BuildContext _) {
+  //           return const AuthFailureDialog();
+  //         },
+  //       );
+  //     }
+  //   } catch (exception, stackTrace) {
+  //     Navigator.pop(context);
+  //     await showDialog<void>(
+  //       context: context,
+  //       barrierDismissible: false,
+  //       builder: (BuildContext _) {
+  //         return const AuthFailureDialog();
+  //       },
+  //     );
+  //     await logException(exception, stackTrace);
+  //   }
+  // }
   Future<void> _authenticate() async {
     loadingScreen(context);
 
@@ -220,6 +317,22 @@ class _EmailAuthVerificationWidgetState
     );
 
     try {
+      // Check if the user is already signed in with phone number
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        // Link the email credential with the existing user
+        await currentUser.linkWithCredential(emailCredential);
+        context.read<EmailVerificationBloc>().add(
+              const SetEmailVerificationStatus(
+                AuthenticationStatus.success,
+              ),
+            );
+        await AppService.postSignInActions(context);
+        Navigator.pop(context);
+        return;
+      }
+
+      // If not signed in with phone number, perform email authentication
       final bool authenticationSuccessful =
           await CustomAuth.firebaseSignIn(emailCredential);
       if (!mounted) return;
@@ -232,6 +345,7 @@ class _EmailAuthVerificationWidgetState
             .add(const SetEmailVerificationStatus(
               AuthenticationStatus.success,
             ));
+        await linkAccounts();
         await AppService.postSignInActions(context);
       } else {
         await showDialog<void>(
