@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: eu.gcr.io/airqo-250220/airqo-platform-frontend
-  tag: prod-bf02a1f1-1702133932
+  tag: prod-c144865b-1702298458
   pullPolicy: Always
 imagePullSecrets: []
 nameOverride: ''
