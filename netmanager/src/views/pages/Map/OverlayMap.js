@@ -511,7 +511,7 @@ const MapContainer = () => {
       <div className="map-new-container">
         <OverlayMap
           center={[22.5600613, 0.8341424]}
-          zoom={2.4}
+          zoom={window.innerWidth <= 768 ? 2.0 : window.innerWidth <= 1440 ? 2.4 : 2.4}
           monitoringSiteData={monitoringSiteData}
         />
         {monitoringSiteData && isEmpty(monitoringSiteData.features) && (
