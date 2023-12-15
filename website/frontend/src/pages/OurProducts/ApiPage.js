@@ -11,6 +11,7 @@ import { useTranslation, Trans } from 'react-i18next';
 
 const ApiPage = () => {
   useInitScrollTop();
+  // generate translation hooks
   const { t } = useTranslation();
   return (
     <Page>
