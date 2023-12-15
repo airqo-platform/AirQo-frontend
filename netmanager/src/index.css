@@ -141,7 +141,7 @@ select {
 }
 
 .filter {
-  z-index: 1000;
+  z-index: 100;
   background-color: rgba(255, 255, 255, 1);
   position: absolute;
   top: 30px;
@@ -343,10 +343,9 @@ label {
 
 .indicator {
   position: absolute;
-  /* center position */
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1000;
+  z-index: 100;
   bottom: 10px;
   display: flex;
   flex-wrap: wrap;
@@ -386,6 +385,10 @@ label {
 
 .indicator .hazardous {
   background-color: #81202e;
+}
+
+.indicator .Offline {
+  background-color: #868686;
   border-bottom-right-radius: 5px;
   border-top-right-radius: 5px;
 }
@@ -402,12 +405,13 @@ label {
   margin: 0;
 }
 
-@media (max-width: 868px) {
+/* tablet */
+@media (max-width: 1024px) {
   .indicator {
     position: absolute;
     left: 34%;
     transform: translateX(-50%);
-    z-index: 1000;
+    z-index: 100;
     bottom: 10px;
     display: flex;
     flex-wrap: wrap;
@@ -415,11 +419,14 @@ label {
     align-items: center;
     bottom: 43px;
   }
+}
+
+@media (max-width: 868px) {
   .indicator .good {
     border-bottom-left-radius: 0;
     border-top-left-radius: 0;
   }
-  .indicator .hazardous {
+  .indicator .Offline {
     border-bottom-right-radius: 0;
     border-top-right-radius: 0;
   }
