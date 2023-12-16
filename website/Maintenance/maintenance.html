@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Maintenance Page</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="./imgs/Logo.svg" />
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #f3f3f3;
+        font-family: Arial, sans-serif;
+      }
+      .navbar {
+        display: flex;
+        justify-content: start;
+        width: 100%;
+        padding: 10px 0;
+        border-bottom: 1px solid #a1a1a1;
+      }
+      .logo {
+        margin-left: 20px;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        flex-grow: 1;
+        text-align: center;
+      }
+      .icon {
+        fill: #ff6347;
+        width: 300px;
+        height: 300px;
+        margin-bottom: 20px;
+      }
+      .message {
+        font-size: 25px;
+        font-weight: 500;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="logo">
+        <img src="./imgs/Logo.svg" alt="Logo" />
+      </div>
+    </nav>
+    <div class="container">
+      <img class="icon" src="./imgs/Oops.svg" alt="maintenance" />
+      <div class="message">
+        We're currently performing some maintenance. Please check back soon.
+      </div>
+    </div>
+  </body>
+</html>
