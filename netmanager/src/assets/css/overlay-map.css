@@ -1,8 +1,29 @@
 .overlay-map-container {
+  width: 100%;
   height: calc(100vh - 64px);
   height: -moz-calc(100vh - 64px);
   height: -webkit-calc(100vh - 64px);
   position: relative;
+}
+
+.map-new-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.map-circular-loader {
+  position: absolute;
+  z-index: 120;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(1px);
 }
 
 .map-wrapper {
@@ -403,4 +424,24 @@
   visibility: hidden;
   opacity: 0;
   transition: visibility 0s, opacity 0.2s ease;
+}
+
+/* tablet */
+@media (max-width: 1279px) {
+  .overlay-map-container {
+    width: 100vw;
+    height: calc(100vh - 64px);
+  }
+}
+
+/* mobile */
+@media (max-width: 768px) {
+  .overlay-map-container {
+    width: 100vw;
+    height: calc(100vh - 64px);
+  }
+
+  .air-quality-description {
+    display: none;
+  }
 }

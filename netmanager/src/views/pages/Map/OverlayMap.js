@@ -379,7 +379,7 @@ export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
   useEffect(() => {
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: localStorage.mapStyle ? localStorage.mapStyle : lightMapStyle,
+      style: localStorage.mapStyle ? localStorage.mapStyle : streetMapStyle,
       center,
       zoom,
       maxZoom: 20
@@ -410,86 +410,74 @@ export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
     } catch (err) {}
   };
 
+  const createMarker = (feature) => {
+    const [seconds, duration] = getFirstDuration(feature.properties.time);
+    let pollutantValue = null;
+    let markerKey = '';
+
+    // Loop through the showPollutant object and get the value and key for the selected pollutant
+    for (const property in showPollutant) {
+      if (showPollutant[property]) {
+        markerKey = property;
+        pollutantValue = feature.properties[property] && feature.properties[property].value;
+        if (showCalibratedValues) {
+          pollutantValue =
+            feature.properties[property] && feature.properties[property].calibratedValue;
+        }
+        break;
+      }
+    }
+
+    const [markerClass, desc] = getMarkerDetail(pollutantValue, markerKey);
+
+    const el = document.createElement('div');
+    el.className = `marker ${seconds >= MAX_OFFLINE_DURATION ? 'marker-grey' : markerClass}`;
+    el.style.borderRadius = seconds >= MAX_OFFLINE_DURATION ? '10%' : '50%';
+    el.style.display = 'flex';
+    el.style.justifyContent = 'center';
+    el.style.alignItems = 'center';
+    el.style.fontSize = '12px';
+    el.style.width = seconds >= MAX_OFFLINE_DURATION ? '15px' : '30px';
+    el.style.height = seconds >= MAX_OFFLINE_DURATION ? '15px' : '30px';
+    el.style.padding = '10px';
+    el.innerHTML = pollutantValue ? Math.floor(pollutantValue) : '--';
+
+    if (
+      feature.geometry.coordinates.length >= 2 &&
+      feature.geometry.coordinates[0] &&
+      feature.geometry.coordinates[1] &&
+      pollutantValue !== null
+    ) {
+      const marker = new mapboxgl.Marker(el)
+        .setLngLat(feature.geometry.coordinates)
+        .setPopup(
+          new mapboxgl.Popup({
+            offset: 25,
+            className: 'map-popup'
+          }).setHTML(MapPopup(feature, showPollutant, pollutantValue, desc, duration, markerClass))
+        )
+        .addTo(map);
+
+      // Listen to the zoom event of the map
+      map.on('zoom', function () {
+        // Get the current zoom level of the map
+        const zoom = map.getZoom();
+        // Calculate the size based on the zoom level
+        const size = (30 * zoom) / 10;
+        // Set the size of the marker
+        el.style.width = `${size}px`;
+        el.style.height = `${size}px`;
+      });
+    }
+  };
+
   return (
     <div className="overlay-map-container" ref={mapContainerRef}>
       {showSensors &&
         map &&
         monitoringSiteData.features.length > 0 &&
         monitoringSiteData.features.forEach((feature) => {
-          const [seconds, duration] = getFirstDuration(feature.properties.time);
-          let pollutantValue =
-            (showPollutant.pm2_5 && feature.properties.pm2_5 && feature.properties.pm2_5.value) ||
-            (showPollutant.pm10 && feature.properties.pm10 && feature.properties.pm10.value) ||
-            (showPollutant.no2 && feature.properties.no2 && feature.properties.no2.value) ||
-            null;
-
-          if (showCalibratedValues) {
-            pollutantValue =
-              (showPollutant.pm2_5 &&
-                feature.properties.pm2_5 &&
-                feature.properties.pm2_5.calibratedValue &&
-                feature.properties.pm2_5.calibratedValue) ||
-              (showPollutant.pm10 &&
-                feature.properties.pm10 &&
-                feature.properties.pm10.calibratedValue &&
-                feature.properties.pm10.calibratedValue) ||
-              (showPollutant.no2 &&
-                feature.properties.no2 &&
-                feature.properties.no2.calibratedValue &&
-                feature.properties.no2.calibratedValue) ||
-              null;
-          }
-          let markerKey = '';
-          for (const property in showPollutant) {
-            if (showPollutant[property]) markerKey = property;
-          }
-          const [markerClass, desc] = getMarkerDetail(pollutantValue, markerKey);
-
-          const el = document.createElement('div');
-          el.className = `marker ${seconds >= MAX_OFFLINE_DURATION ? 'marker-grey' : markerClass}`;
-          el.style.borderRadius = '50%';
-          el.style.display = 'flex';
-          el.style.justifyContent = 'center';
-          el.style.alignItems = 'center';
-          el.style.fontSize = '12px';
-          el.style.width = '30px';
-          el.style.height = '30px';
-          el.style.padding = '10px';
-          el.innerHTML = showPollutant.pm2_5
-            ? Math.floor(feature.properties.pm2_5.value)
-            : showPollutant.pm10
-            ? Math.floor(feature.properties.pm10.value)
-            : '--';
-
-          if (
-            feature.geometry.coordinates.length >= 2 &&
-            feature.geometry.coordinates[0] &&
-            feature.geometry.coordinates[1] &&
-            pollutantValue !== null
-          ) {
-            const marker = new mapboxgl.Marker(el)
-              .setLngLat(feature.geometry.coordinates)
-              .setPopup(
-                new mapboxgl.Popup({
-                  offset: 25,
-                  className: 'map-popup'
-                }).setHTML(
-                  MapPopup(feature, showPollutant, pollutantValue, desc, duration, markerClass)
-                )
-              )
-              .addTo(map);
-
-            // Listen to the zoom event of the map
-            map.on('zoom', function () {
-              // Get the current zoom level of the map
-              const zoom = map.getZoom();
-              // Calculate the size based on the zoom level
-              const size = (30 * zoom) / 10;
-              // Set the size of the marker
-              el.style.width = `${size}px`;
-              el.style.height = `${size}px`;
-            });
-          }
+          createMarker(feature);
         })}
 
       <Filter pollutants={showPollutant} />
@@ -513,39 +501,21 @@ const MapContainer = () => {
   const monitoringSiteData = useEventsMapData();
 
   useEffect(() => {
-    if (isEmpty(monitoringSiteData.features)) {
+    if (!monitoringSiteData.features.length) {
       dispatch(loadMapEventsData());
     }
-  }, [monitoringSiteData]);
+  }, [dispatch, monitoringSiteData.features.length]);
 
   return (
     <ErrorBoundary>
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: '100%'
-        }}>
+      <div className="map-new-container">
         <OverlayMap
           center={[22.5600613, 0.8341424]}
-          zoom={2.4}
+          zoom={window.innerWidth <= 768 ? 2.0 : window.innerWidth <= 1440 ? 2.4 : 2.4}
           monitoringSiteData={monitoringSiteData}
         />
         {monitoringSiteData && isEmpty(monitoringSiteData.features) && (
-          <div
-            style={{
-              position: 'absolute',
-              zIndex: 100,
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100vh',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              backgroundColor: 'rgba(255, 255, 255, 0.4)',
-              backdropFilter: 'blur(1px)'
-            }}>
+          <div className="map-circular-loader">
             <CircularLoader loading={true} />
           </div>
         )}
