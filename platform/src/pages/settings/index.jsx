@@ -4,11 +4,13 @@ import Tab from '@/components/Tabs/Tab';
 import Password from './Tabs/Password';
 import withAuth from '@/core/utils/protectedRoute';
 import Team from './Tabs/Team';
+import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useState } from 'react';
 import { getAssignedGroupMembers } from '@/core/apis/Account';
 import Profile from './Tabs/Profile';
 import OrganizationProfile from './Tabs/OrganizationProfile';
 import { isEmpty } from 'underscore';
+import { setChartTab } from '@/lib/store/services/charts/ChartSlice';
 
 const checkAccess = (requiredPermission, rolePermissions) => {
   const permissions = rolePermissions && rolePermissions.map((item) => item.permission);
@@ -17,10 +19,13 @@ const checkAccess = (requiredPermission, rolePermissions) => {
 };
 
 const Settings = () => {
+  const dispatch = useDispatch();
   const [teamMembers, setTeamMembers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [userPermissions, setUserPermissions] = useState([]);
   const [userGroup, setUserGroup] = useState({});
+  const preferences = useSelector((state) => state.defaults.individual_preferences);
+  const userInfo = useSelector((state) => state.login.userInfo);
 
   useEffect(() => {
     setLoading(true);
@@ -34,6 +39,9 @@ const Settings = () => {
 
     if (storedUserPermissions && storedUserPermissions.length > 0) {
       setUserPermissions(storedUserPermissions);
+    } else {
+      setUserPermissions([]);
+      dispatch(setChartTab(0));
     }
 
     try {
@@ -49,7 +57,7 @@ const Settings = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userInfo, preferences]);
 
   return (
     <Layout topbarTitle={'Settings'} noBorderBottom pageTitle='Settings'>
