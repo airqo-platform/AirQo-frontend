@@ -26,7 +26,7 @@
 
 #### OSX, Linux, Windows
 
-- `Python 3.6 or higher (Python 3.7 preferred)` [Python Download](https://www.python.org/)
+- `For Python 3.6 or higher (Python 3.7 preferred)` [Python Download](https://www.python.org/)
 - `NodeJs v12` [Node Download](https://nodejs.org/en/download/)
 - `Npm` [NpmJs](https://www.npmjs.com/get-npm)
 
