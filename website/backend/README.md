@@ -1,4 +1,4 @@
-# The AirQo Website Server
+# The AirQo Website Server.
 ### Prerequisites
 
 - [Python v3.8+](https://www.python.org/downloads/)
