@@ -560,7 +560,7 @@ jobs:
       - name: Deploy to App Engine
         run: |-
           cd website/
-          gcloud app deploy  \
+          gcloud app deploy --version dbnew  \
             --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }} \
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
             --quiet
