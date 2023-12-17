@@ -1,6 +1,6 @@
 # The AirQo Website.
 
----
+## <!--  -->
 
 - [Prerequisites](#prerequisites)
   - [OSX, Linux, Windows](#osx-linux-windows)
