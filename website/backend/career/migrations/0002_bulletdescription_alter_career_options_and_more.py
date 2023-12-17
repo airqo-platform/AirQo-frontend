@@ -4,7 +4,7 @@ import datetime
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-from django.utils.timezone import utc
+from datetime import timezone
 import django.utils.timezone
 import django_extensions.db.fields
 
@@ -56,7 +56,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='career',
             name='apply_url',
-            field=models.URLField(default=datetime.datetime(2022, 7, 12, 20, 52, 5, 796544, tzinfo=utc), max_length=250),
+            field=models.URLField(default=datetime.datetime(2022, 7, 12, 20, 52, 5, 796544, tzinfo=timezone.utc), max_length=250),
             preserve_default=False,
         ),
         migrations.AddField(
