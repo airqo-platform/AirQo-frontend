@@ -431,14 +431,15 @@ export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
     const [markerClass, desc] = getMarkerDetail(pollutantValue, markerKey);
 
     const el = document.createElement('div');
-    el.className = `marker ${seconds >= MAX_OFFLINE_DURATION ? 'marker-grey' : markerClass}`;
-    el.style.borderRadius = seconds >= MAX_OFFLINE_DURATION ? '10%' : '50%';
+    // el.className = `marker ${seconds >= MAX_OFFLINE_DURATION ? 'marker-grey' : markerClass}`;
+    el.className = `marker ${markerClass}`;
+    el.style.borderRadius = '50%';
     el.style.display = 'flex';
     el.style.justifyContent = 'center';
     el.style.alignItems = 'center';
     el.style.fontSize = '12px';
-    el.style.width = seconds >= MAX_OFFLINE_DURATION ? '15px' : '30px';
-    el.style.height = seconds >= MAX_OFFLINE_DURATION ? '15px' : '30px';
+    el.style.width = '30px';
+    el.style.height = '30px';
     el.style.padding = '10px';
     el.innerHTML = pollutantValue ? Math.floor(pollutantValue) : '--';
 
