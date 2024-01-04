@@ -255,6 +255,16 @@ jobs:
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
             --quiet
 
+      - name: Delete Old Versions
+        run: |-
+          service="staging"
+            versions=$(gcloud app versions list --service=$service --sort-by '~LAST_DEPLOYED' --format 'value(VERSION.ID)' | sort -r | tail -n +4)
+            for version in $versions; do
+              echo "Deleting version: $version for service: $service"
+              gcloud app versions delete "$version" --service=$service --quiet
+            done
+
+
   ### build and push calibrate app image ###
   calibrate-app:
     name: build-push-calibrate-app-image
