@@ -86,7 +86,9 @@ const SitesTable = () => {
       <CustomMaterialTable
         pointerCursor
         userPreferencePaginationKey={'sites'}
-        title={`Site Registry for ${activeNetwork.net_name}`}
+        title={`Site Registry for ${
+          activeNetwork.net_name === 'airqo' ? 'AirQo' : activeNetwork.net_name
+        }`}
         isLoading={loading}
         columns={[
           {

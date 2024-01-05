@@ -32,7 +32,10 @@ const SiteRegistry = () => {
     <ErrorBoundary>
       <div className={classes.root}>
         <SiteToolbar />
-        <UsersListBreadCrumb category="Site Registry" usersTable={`${activeNetwork.net_name}`} />
+        <UsersListBreadCrumb
+          category="Site Registry"
+          usersTable={`${activeNetwork.net_name === 'airqo' ? 'AirQo' : activeNetwork.net_name}`}
+        />
         <div className={classes.content}>
           <SitesTable />
         </div>
