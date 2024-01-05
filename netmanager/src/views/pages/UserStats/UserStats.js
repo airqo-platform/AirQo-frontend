@@ -15,27 +15,12 @@ import ErrorBoundary from '../../ErrorBoundary/ErrorBoundary';
 import { makeStyles } from '@material-ui/styles';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-
-const useStyles = makeStyles((theme) => ({
-  root: {
-    padding: theme.spacing(2),
-    [theme.breakpoints.down('sm')]: {
-      padding: theme.spacing(1)
-    }
-  },
-  title: {
-    margin: theme.spacing(2, 0)
-  },
-  category_btn_con: {
-    display: 'flex',
-    justifyContent: 'right',
-    alignItems: 'center',
-    margin: theme.spacing(2, 0)
-  }
-}));
+import { useTheme } from '@material-ui/core/styles';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 
 const UserStats = () => {
-  const classes = useStyles();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [loading, setLoading] = useState(false);
   const [userStats, setUserStats] = useState([]);
   const [selectedUserType, setSelectedUserType] = useState('users');
@@ -51,6 +36,47 @@ const UserStats = () => {
   const allUsers = userStats.users ? userStats.users : { number: 0, details: [] };
   const activeUsers = userStats.active_users ? userStats.active_users : { number: 0, details: [] };
   const apiUsers = userStats.api_users ? userStats.api_users : { number: 0, details: [] };
+
+  const useStyles = makeStyles((theme) => ({
+    root: {
+      padding: theme.spacing(2),
+      [theme.breakpoints.down('sm')]: {
+        padding: theme.spacing(1)
+      }
+    },
+    title: {
+      margin: theme.spacing(2, 0)
+    },
+    category_btn_con: {
+      display: 'flex',
+      justifyContent: 'right',
+      alignItems: 'center',
+      margin: theme.spacing(2, 0)
+    },
+    buttonGroup: {
+      '& .MuiButton-root': {
+        color: theme.palette.primary.main,
+        backgroundColor: 'transparent',
+        '&.selected': {
+          color: theme.palette.common.white,
+          backgroundColor: theme.palette.primary.main
+        }
+      },
+      margin: theme.spacing(1, 0),
+      [theme.breakpoints.down('sm')]: {
+        margin: theme.spacing(1, 0)
+      }
+    },
+    boxContainer: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      width: '100%',
+      flexDirection: isMobile ? 'column' : 'row',
+      alignItems: isMobile ? 'flex-start' : 'center'
+    }
+  }));
+
+  const classes = useStyles();
 
   const handleUserTypeChange = (userType) => {
     setSelectedUserType(userType);
@@ -166,7 +192,7 @@ const UserStats = () => {
           </Grid>
         </Grid>
         <div className={classes.category_btn_con}>
-          <Box display="flex" justifyContent="space-between" width="100%">
+          <Box className={classes.boxContainer}>
             <Tooltip title="Your Exporting the selected table data." placement="right">
               <Button
                 variant="contained"
@@ -177,22 +203,23 @@ const UserStats = () => {
             </Tooltip>
 
             <ButtonGroup
-              variant="contained"
+              className={classes.buttonGroup}
+              variant="outlined"
               color="primary"
-              aria-label="contained primary button group">
+              aria-label="outlined primary button group">
               <Button
                 onClick={() => handleUserTypeChange('users')}
-                color={selectedUserType === 'users' ? 'secondary' : 'primary'}>
+                className={selectedUserType === 'users' ? 'selected' : ''}>
                 All Users
               </Button>
               <Button
                 onClick={() => handleUserTypeChange('active_users')}
-                color={selectedUserType === 'active_users' ? 'secondary' : 'primary'}>
+                className={selectedUserType === 'active_users' ? 'selected' : ''}>
                 Active Users
               </Button>
               <Button
                 onClick={() => handleUserTypeChange('api_users')}
-                color={selectedUserType === 'api_users' ? 'secondary' : 'primary'}>
+                className={selectedUserType === 'api_users' ? 'selected' : ''}>
                 API Users
               </Button>
             </ButtonGroup>
