@@ -633,7 +633,9 @@ const HeatMapOverlay = () => {
 
   const updateLocalStorage = useCallback(
     (data) => {
-      localStorage.setItem('monitoringSiteData', JSON.stringify(data));
+      const dataCopy = { ...data };
+      dataCopy.features = dataCopy.features.slice(0, 100);
+      localStorage.setItem('monitoringSiteData', JSON.stringify(dataCopy));
       localStorage.setItem('monitoringSiteDataTimeStamp', currentTimeStamp.toString());
     },
     [currentTimeStamp]
