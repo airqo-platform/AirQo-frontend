@@ -26,6 +26,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import { withPermission } from '../../containers/PageAccess';
 import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
+import UsersListBreadCrumb from '../../pages/UserList/components/Breadcrumb';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -64,39 +65,6 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(2)
   }
 }));
-
-const customStyles = {
-  control: (base, state) => ({
-    ...base,
-    height: '50px',
-    marginTop: '10px',
-    marginBottom: '10px',
-    borderColor: state.isFocused ? '#3f51b5' : '#9a9a9a',
-    '&:hover': {
-      borderColor: state.isFocused ? 'black' : 'black'
-    },
-    boxShadow: state.isFocused ? '0 0 1px 1px #3f51b5' : null
-  }),
-  option: (provided, state) => ({
-    ...provided,
-    borderBottom: '1px dotted pink',
-    color: state.isSelected ? 'white' : 'blue',
-    textAlign: 'left'
-  }),
-  input: (provided, state) => ({
-    ...provided,
-    height: '40px',
-    borderColor: state.isFocused ? '#3f51b5' : 'black'
-  }),
-  placeholder: (provided, state) => ({
-    ...provided,
-    color: '#000'
-  }),
-  menu: (provided, state) => ({
-    ...provided,
-    zIndex: 9999
-  })
-};
 
 const RegisterSim = ({ setCreateSimDialog, CreateSimDialog, setIsLoading, setRefresh }) => {
   const dispatch = useDispatch();
@@ -243,6 +211,7 @@ const SimRegistry = () => {
   const [refresh, setRefresh] = useState(false);
   const [CreateSimDialog, setCreateSimDialog] = useState(false);
   const [simData, setSimData] = useState([]);
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   useEffect(() => {
     setLoading(true);
@@ -296,6 +265,10 @@ const SimRegistry = () => {
             Register SIM
           </Button>
         </div>
+        <UsersListBreadCrumb
+          category="SIM Registry"
+          usersTable={`${activeNetwork.net_name === 'airqo' ? 'AirQo' : activeNetwork.net_name}`}
+        />
 
         <CustomMaterialTable
           pointerCursor

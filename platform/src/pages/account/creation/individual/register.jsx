@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AccountPageLayout from '@/components/Account/Layout';
 import Link from 'next/link';
 import { useDispatch } from 'react-redux';
@@ -28,11 +28,21 @@ const IndividualAccountRegistration = () => {
 
   const dispatch = useDispatch();
   const router = useRouter();
+  const { userExists, userEmail } = router.query;
   const [loading, setLoading] = useState(false);
   const [creationErrors, setCreationErrors] = useState({
     state: false,
     message: '',
   });
+
+  useEffect(() => {
+    if (userEmail) {
+      setEmail(userEmail);
+    }
+    if (userExists === 'true') {
+      router.push('/account/login');
+    }
+  }, [userExists, userEmail]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -148,6 +158,7 @@ const IndividualAccountRegistration = () => {
               <div className='text-sm text-gray-500'>Email address*</div>
               <div className='mt-2 w-full'>
                 <input
+                  value={email || ''}
                   onChange={(e) => setEmail(e.target.value)}
                   type='email'
                   placeholder='Enter your email'

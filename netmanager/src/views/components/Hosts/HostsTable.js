@@ -25,6 +25,7 @@ import RemoveIcon from '@material-ui/icons/Remove';
 import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
 import Tooltip from '@material-ui/core/Tooltip';
+import UsersListBreadCrumb from '../../pages/UserList/components/Breadcrumb';
 
 const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
@@ -380,6 +381,7 @@ const HostsTable = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [addHostDialog, setAddHostDialog] = useState(false);
   const [refreshData, setRefreshData] = useState(false);
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   const getHosts = async () => {
     try {
@@ -421,6 +423,10 @@ const HostsTable = () => {
           Add Host
         </Button>
       </div>
+      <UsersListBreadCrumb
+        category="Host Registry"
+        usersTable={`${activeNetwork.net_name === 'airqo' ? 'AirQo' : activeNetwork.net_name}`}
+      />
 
       <CustomMaterialTable
         userPreferencePaginationKey={'hosts-table'}
