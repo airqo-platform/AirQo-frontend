@@ -434,10 +434,6 @@ export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
     window.history.replaceState({}, '', `${window.location.pathname}?${urlParams}`);
   }
 
-  const getSize = (zoom) => {
-    return zoom <= 2.5 ? 8 : zoom <= 3.5 ? 12 : zoom <= 4.5 ? 16 : zoom <= 5.5 ? 25 : 30;
-  };
-
   const createMarker = (feature) => {
     try {
       const [seconds, duration] = getFirstDuration(feature.properties.time);
@@ -460,14 +456,13 @@ export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
       const [markerClass, desc] = getMarkerDetail(pollutantValue, markerKey);
 
       const el = document.createElement('div');
-      // el.className = `marker ${seconds >= MAX_OFFLINE_DURATION ? 'marker-grey' : markerClass}`;
       el.className = `marker ${markerClass}`;
       el.style.display = 'flex';
       el.style.justifyContent = 'center';
       el.style.alignItems = 'center';
       el.style.fontSize = '12px';
-      el.style.width = '28px';
-      el.style.height = '28px';
+      el.style.width = '30px';
+      el.style.height = '30px';
       el.style.padding = '8px';
       el.style.borderRadius = '50%';
       el.innerHTML = pollutantValue ? Math.floor(pollutantValue) : '--';
@@ -493,7 +488,7 @@ export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
         // Listen to the zoom event of the map
         map.on('zoom', function () {
           const zoom = map.getZoom();
-          const size = getSize(zoom);
+          const size = zoom <= 5 ? 30 : zoom <= 7 ? 40 : zoom <= 9 ? 50 : zoom <= 11 ? 60 : 70;
           el.style.width = `${size}px`;
           el.style.height = `${size}px`;
         });
