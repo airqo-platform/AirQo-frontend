@@ -10,7 +10,8 @@ import VeryUnhealthy from 'views/components/MapIcons/VeryUnhealthy';
 import Hazardous from 'views/components/MapIcons/Hazardous';
 import ReactDOMServer from 'react-dom/server';
 
-const MapPopup = (feature, showPollutant, pollutantValue, desc, duration, markerClass) => {
+const MapPopup = (feature, showPollutant, pollutantValue, desc, duration, seconds, markerClass) => {
+  const MAX_OFFLINE_DURATION = 86400; // 24 HOURS
   const getIcon = (Value, Pollutant) => {
     let markerDetails;
     if (Pollutant.pm2_5) {
@@ -47,6 +48,17 @@ const MapPopup = (feature, showPollutant, pollutantValue, desc, duration, marker
   const icon = ReactDOMServer.renderToString(getIcon(pollutantValue, showPollutant));
   const DividerIcon = ReactDOMServer.renderToString(<Divider />);
 
+  const date = new Date(feature.properties.time);
+  const options = {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true
+  };
+  const formattedDate = date.toLocaleString('en-US', options);
+
   return `<div class="popup-body">
   <div>
     <span class="popup-title">
@@ -75,7 +87,9 @@ const MapPopup = (feature, showPollutant, pollutantValue, desc, duration, marker
     ${(pollutantValue && pollutantValue.toFixed(1)) || '--'} µg/m<sup>3</sup>
     </span>
   </div>
-  <span>Last Refreshed: <b>${duration}</b> ago</span>
+  <span>Last Updated: <b>${duration}</b> ago</span>
+  <span>${formattedDate}</span>
+
   ${DividerIcon}
   <div class="data-source">
   Source: ${feature.properties.siteDetails.data_provider}
