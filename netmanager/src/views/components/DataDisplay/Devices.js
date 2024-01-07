@@ -699,10 +699,15 @@ const DevicesTable = (props) => {
             {activeNetwork.net_name === 'airqo' ? 'Soft Add Device' : 'Add Device'}
           </Button>
         </div>
-        <UsersListBreadCrumb category="Device Registry" usersTable={`${activeNetwork.net_name}`} />
+        <UsersListBreadCrumb
+          category="Device Registry"
+          usersTable={`${activeNetwork.net_name === 'airqo' ? 'AirQo' : activeNetwork.net_name}`}
+        />
 
         <CustomMaterialTable
-          title={`Device Registry for ${activeNetwork.net_name}`}
+          title={`Device Registry for ${
+            activeNetwork.net_name === 'airqo' ? 'AirQo' : activeNetwork.net_name
+          }`}
           userPreferencePaginationKey={'devices'}
           columns={deviceColumns}
           data={deviceList.map((x) => Object.assign({}, x))}

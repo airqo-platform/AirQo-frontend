@@ -109,12 +109,6 @@ const Indicator = () => {
             icon={<Hazardous width={30} height={30} fill="#81202e" />}>
             <span className="hazardous">Hazardous</span>
           </Tooltip>
-          <Tooltip
-            label="Offline"
-            text="Air quality sensor is offline."
-            icon={<Offline width={30} height={30} fill="#D3D3D3" />}>
-            <span className="Offline">Offline</span>
-          </Tooltip>
         </div>
       )}
     </div>

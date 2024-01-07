@@ -156,6 +156,22 @@ select {
   background-color: white;
 }
 
+.filter_1 {
+  z-index: 200;
+  background-color: rgba(255, 255, 255, 1);
+  position: absolute;
+  bottom: 30px;
+  left: 10px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+  padding: 1px 8px;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial,
+    sans-serif;
+  font-weight: 300;
+  color: #000;
+  border-radius: 5px;
+  background-color: white;
+}
+
 .filter__h2 {
   font-size: 16px;
   font-weight: 600;
@@ -385,10 +401,7 @@ label {
 
 .indicator .hazardous {
   background-color: #81202e;
-}
 
-.indicator .Offline {
-  background-color: #868686;
   border-bottom-right-radius: 5px;
   border-top-right-radius: 5px;
 }
@@ -426,7 +439,7 @@ label {
     border-bottom-left-radius: 0;
     border-top-left-radius: 0;
   }
-  .indicator .Offline {
+  .indicator .hazardous {
     border-bottom-right-radius: 0;
     border-top-right-radius: 0;
   }
