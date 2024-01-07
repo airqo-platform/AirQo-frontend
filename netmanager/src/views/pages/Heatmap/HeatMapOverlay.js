@@ -401,49 +401,57 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
   }, []);
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    let centerFromUrl = center;
     try {
-      centerFromUrl = urlParams.get('center') ? JSON.parse(urlParams.get('center')) : center;
+      const urlParams = new URLSearchParams(window.location.search);
+      let centerFromUrl = center;
+      try {
+        centerFromUrl = urlParams.get('center') ? JSON.parse(urlParams.get('center')) : center;
+      } catch (error) {
+        console.error('Failed to parse center from URL:', error);
+      }
+
+      const zoomFromUrl = urlParams.get('zoom') || zoom;
+
+      const map = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: localStorage.mapStyle ? localStorage.mapStyle : streetMapStyle,
+        center: centerFromUrl,
+        zoom: zoomFromUrl,
+        maxZoom: 20
+      });
+
+      map.addControl(
+        new mapboxgl.FullscreenControl({
+          container: mapContainerRef.current
+        }),
+        'bottom-right'
+      );
+      map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+
+      map.on('moveend', function () {
+        const newCenter = map.getCenter().wrap();
+        const newZoom = map.getZoom();
+        updateUrl(newCenter, newZoom);
+      });
+
+      setMap(map);
+
+      // clean up on unmount
+      return () => map.remove();
     } catch (error) {
-      console.error('Failed to parse center from URL:', error);
+      console.error('Error:', error);
     }
-
-    const zoomFromUrl = urlParams.get('zoom') || zoom;
-
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: localStorage.mapStyle ? localStorage.mapStyle : streetMapStyle,
-      center: centerFromUrl,
-      zoom: zoomFromUrl,
-      maxZoom: 20
-    });
-
-    map.addControl(
-      new mapboxgl.FullscreenControl({
-        container: mapContainerRef.current
-      }),
-      'bottom-right'
-    );
-    map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
-
-    map.on('moveend', function () {
-      const newCenter = map.getCenter().wrap();
-      const newZoom = map.getZoom();
-      updateUrl(newCenter, newZoom);
-    });
-
-    setMap(map);
-
-    // clean up on unmount
-    // return () => map.remove();
   }, []);
 
   function updateUrl(center, zoom) {
-    const urlParams = new URLSearchParams(window.location.search);
-    urlParams.set('center', JSON.stringify([center.lng.toFixed(4), center.lat.toFixed(4)]));
-    urlParams.set('zoom', zoom.toFixed(2));
-    window.history.replaceState({}, '', `${window.location.pathname}?${urlParams}`);
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      urlParams.set('center', JSON.stringify([center.lng.toFixed(4), center.lat.toFixed(4)]));
+      urlParams.set('zoom', zoom.toFixed(2));
+      window.history.replaceState({}, '', `${window.location.pathname}?${urlParams}`);
+    } catch (error) {
+      console.error('Error updating URL:', error);
+    }
   }
 
   useEffect(() => {
@@ -498,79 +506,67 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
   };
 
   const createMarker = (feature) => {
-    const [seconds, duration] = getFirstDuration(feature.properties.time);
-    let pollutantValue = null;
-    let markerKey = '';
+    try {
+      const [seconds, duration] = getFirstDuration(feature.properties.time);
+      let pollutantValue = null;
+      let markerKey = '';
 
-    // Loop through the showPollutant object and get the value and key for the selected pollutant
-    for (const property in showPollutant) {
-      if (showPollutant[property]) {
-        markerKey = property;
-        pollutantValue = feature.properties[property] && feature.properties[property].value;
-        if (showCalibratedValues) {
-          pollutantValue =
-            feature.properties[property] && feature.properties[property].calibratedValue;
+      // Loop through the showPollutant object and get the value and key for the selected pollutant
+      for (const property in showPollutant) {
+        if (showPollutant[property]) {
+          markerKey = property;
+          pollutantValue = feature.properties[property] && feature.properties[property].value;
+          if (showCalibratedValues) {
+            pollutantValue =
+              feature.properties[property] && feature.properties[property].calibratedValue;
+          }
+          break;
         }
-        break;
       }
-    }
 
-    const [markerClass, desc] = getMarkerDetail(pollutantValue, markerKey);
+      const [markerClass, desc] = getMarkerDetail(pollutantValue, markerKey);
 
-    const el = document.createElement('div');
-    el.className = `marker ${seconds >= MAX_OFFLINE_DURATION ? 'marker-grey' : markerClass}`;
-    el.style.display = 'flex';
-    el.style.justifyContent = 'center';
-    el.style.alignItems = 'center';
-
-    if (seconds >= MAX_OFFLINE_DURATION) {
-      el.style.borderRadius = '50%';
-      el.style.width = '8px';
-      el.style.height = '8px';
-      el.innerHTML = '';
-    } else {
+      const el = document.createElement('div');
+      // el.className = `marker ${seconds >= MAX_OFFLINE_DURATION ? 'marker-grey' : markerClass}`;
+      el.className = `marker ${markerClass}`;
+      el.style.display = 'flex';
+      el.style.justifyContent = 'center';
+      el.style.alignItems = 'center';
       el.style.fontSize = '12px';
       el.style.width = '28px';
       el.style.height = '28px';
       el.style.padding = '8px';
       el.style.borderRadius = '50%';
       el.innerHTML = pollutantValue ? Math.floor(pollutantValue) : '--';
-    }
 
-    if (
-      feature.geometry.coordinates.length >= 2 &&
-      feature.geometry.coordinates[0] &&
-      feature.geometry.coordinates[1] &&
-      pollutantValue !== null
-    ) {
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat(feature.geometry.coordinates)
-        .setPopup(
-          new mapboxgl.Popup({
-            offset: 25,
-            className: 'map-popup'
-          }).setHTML(MapPopup(feature, showPollutant, pollutantValue, desc, duration, markerClass))
-        )
-        .addTo(map);
+      if (
+        feature.geometry.coordinates.length >= 2 &&
+        feature.geometry.coordinates[0] &&
+        feature.geometry.coordinates[1] &&
+        pollutantValue !== null
+      ) {
+        const marker = new mapboxgl.Marker(el)
+          .setLngLat(feature.geometry.coordinates)
+          .setPopup(
+            new mapboxgl.Popup({
+              offset: 25,
+              className: 'map-popup'
+            }).setHTML(
+              MapPopup(feature, showPollutant, pollutantValue, desc, duration, seconds, markerClass)
+            )
+          )
+          .addTo(map);
 
-      // Listen to the zoom event of the map
-      map.on('zoom', function () {
-        const zoom = map.getZoom();
-        const size = getSize(zoom);
-        el.style.width = `${size}px`;
-        el.style.height = `${size}px`;
-      });
-
-      if (seconds >= MAX_OFFLINE_DURATION) {
+        // Listen to the zoom event of the map
         map.on('zoom', function () {
           const zoom = map.getZoom();
-          if (zoom <= 6) {
-            marker._element.style.visibility = 'hidden';
-          } else {
-            marker._element.style.visibility = 'visible';
-          }
+          const size = getSize(zoom);
+          el.style.width = `${size}px`;
+          el.style.height = `${size}px`;
         });
       }
+    } catch (error) {
+      console.error('Error creating marker:', error);
     }
   };
 
@@ -633,10 +629,14 @@ const HeatMapOverlay = () => {
 
   const updateLocalStorage = useCallback(
     (data) => {
-      const dataCopy = { ...data };
-      dataCopy.features = dataCopy.features.slice(0, 100);
-      localStorage.setItem('monitoringSiteData', JSON.stringify(dataCopy));
-      localStorage.setItem('monitoringSiteDataTimeStamp', currentTimeStamp.toString());
+      try {
+        const dataCopy = { ...data };
+        dataCopy.features = dataCopy.features.slice(0, 100);
+        localStorage.setItem('monitoringSiteData', JSON.stringify(dataCopy));
+        localStorage.setItem('monitoringSiteDataTimeStamp', currentTimeStamp.toString());
+      } catch (error) {
+        console.error('Error updating local storage:', error);
+      }
     },
     [currentTimeStamp]
   );
@@ -652,7 +652,11 @@ const HeatMapOverlay = () => {
     }
 
     if (isEmpty(apiData.features)) {
-      dispatch(loadMapEventsData());
+      try {
+        dispatch(loadMapEventsData());
+      } catch (error) {
+        console.error('Error loading map events data:', error);
+      }
     } else {
       setMonitoringSiteData(apiData);
 
@@ -663,8 +667,14 @@ const HeatMapOverlay = () => {
   }, [dispatch, apiData, storedData, storedTimeStamp, currentTimeStamp, updateLocalStorage]);
 
   useEffect(() => {
-    if (!heatMapData || (heatMapData && heatMapData.features)) dispatch(loadPM25HeatMapData());
-  }, []);
+    if (!heatMapData || (heatMapData && heatMapData.features)) {
+      try {
+        dispatch(loadPM25HeatMapData());
+      } catch (error) {
+        console.error('Error loading PM2.5 heat map data:', error);
+      }
+    }
+  }, [dispatch]);
 
   return (
     <ErrorBoundary>
