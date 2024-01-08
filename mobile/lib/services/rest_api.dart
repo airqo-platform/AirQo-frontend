@@ -433,19 +433,6 @@ class AirqoApiClient {
     final locale = prefs.getString("language") ?? "en";
     final airQualityReadings = <AirQualityReading>[];
     final queryParams = <String, String>{}
-      ..putIfAbsent('recent', () => 'yes')
-      ..putIfAbsent('metadata', () => 'site_id')
-      ..putIfAbsent('external', () => 'no')
-      ..putIfAbsent(
-        'startTime',
-        () => '${DateFormat('yyyy-MM-dd').format(
-          DateTime.now().toUtc().subtract(
-                const Duration(days: 1),
-              ),
-        )}T00:00:00Z',
-      )
-      ..putIfAbsent('frequency', () => 'hourly')
-      ..putIfAbsent('tenant', () => 'airqo')
       ..putIfAbsent('token', () => Config.airqoApiV2Token);
 
     if (locale != "en") {
