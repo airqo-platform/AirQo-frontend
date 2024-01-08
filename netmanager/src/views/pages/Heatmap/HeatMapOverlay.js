@@ -501,13 +501,18 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
     }
   }, [map, heatMapData]);
 
+  const adjustMarkerSize = (zoom, el) => {
+    const size = zoom <= 5 ? 30 : zoom <= 10 ? 35 : zoom <= 15 ? 35 : 30;
+    el.style.width = `${size}px`;
+    el.style.height = `${size}px`;
+  };
+
   const createMarker = (feature) => {
     try {
       const [seconds, duration] = getFirstDuration(feature.properties.time);
       let pollutantValue = null;
       let markerKey = '';
 
-      // Loop through the showPollutant object and get the value and key for the selected pollutant
       for (const property in showPollutant) {
         if (showPollutant[property]) {
           markerKey = property;
@@ -528,8 +533,6 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
       el.style.justifyContent = 'center';
       el.style.alignItems = 'center';
       el.style.fontSize = '12px';
-      el.style.width = '30px';
-      el.style.height = '30px';
       el.style.padding = '8px';
       el.style.borderRadius = '50%';
       el.innerHTML = pollutantValue ? Math.floor(pollutantValue) : '--';
@@ -552,13 +555,15 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
           )
           .addTo(map);
 
-        // Listen to the zoom event of the map
         map.on('zoom', function () {
-          const zoom = map.getZoom();
-          const size = zoom <= 5 ? 30 : zoom <= 7 ? 40 : zoom <= 9 ? 50 : zoom <= 11 ? 60 : 70;
-          el.style.width = `${size}px`;
-          el.style.height = `${size}px`;
+          adjustMarkerSize(map.getZoom(), el);
         });
+
+        map.on('idle', function () {
+          adjustMarkerSize(map.getZoom(), el);
+        });
+
+        adjustMarkerSize(map.getZoom(), el);
       }
     } catch (error) {
       console.error('Error creating marker:', error);
