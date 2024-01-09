@@ -1,6 +1,6 @@
 # The AirQo Website.
 
----
+##
 
 - [Prerequisites](#prerequisites)
   - [OSX, Linux, Windows](#osx-linux-windows)
@@ -26,7 +26,7 @@
 
 #### OSX, Linux, Windows
 
-- `For Python 3.6 or higher (Python 3.7 preferred)` [Python Download](https://www.python.org/)
+- `Python 3.6 or higher (Python 3.7 preferred)` [Python Download](https://www.python.org/)
 - `NodeJs v12` [Node Download](https://nodejs.org/en/download/)
 - `Npm` [NpmJs](https://www.npmjs.com/get-npm)
 
@@ -50,7 +50,7 @@ Change directory into the `website` folder of the cloned `AirQo-frontend` folder
 
 #### HomeBrew
 
-Install homebrew
+Now Install homebrew
 
     /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 

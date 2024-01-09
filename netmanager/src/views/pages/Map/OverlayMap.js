@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { isEmpty } from 'underscore';
 import { getFirstDuration } from 'utils/dateTime';
@@ -15,7 +15,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import { useInitScrollTop } from 'utils/customHooks';
 import { ErrorBoundary } from '../../ErrorBoundary';
 import { useOrgData } from 'redux/Join/selectors';
-
+import { useHistory, useLocation } from 'react-router-dom';
 // css
 import 'assets/css/overlay-map.css';
 
@@ -377,27 +377,131 @@ export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
   }, [localStorage.pollutant]);
 
   useEffect(() => {
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: localStorage.mapStyle ? localStorage.mapStyle : lightMapStyle,
-      center,
-      zoom,
-      maxZoom: 20
-    });
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      let centerFromUrl = center;
+      try {
+        centerFromUrl = urlParams.get('center') ? JSON.parse(urlParams.get('center')) : center;
+      } catch (error) {
+        console.error('Failed to parse center from URL:', error);
+      }
 
-    map.addControl(
-      new mapboxgl.FullscreenControl({
-        container: mapContainerRef.current
-      }),
-      'bottom-right'
-    );
-    map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+      const zoomFromUrl = urlParams.get('zoom') || zoom;
 
-    setMap(map);
+      const map = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: localStorage.mapStyle ? localStorage.mapStyle : streetMapStyle,
+        center: centerFromUrl,
+        zoom: zoomFromUrl,
+        maxZoom: 20
+      });
 
-    // clean up on unmount
-    // return () => map.remove();
+      try {
+        map.addControl(
+          new mapboxgl.FullscreenControl({
+            container: mapContainerRef.current
+          }),
+          'bottom-right'
+        );
+        map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+      } catch (error) {
+        console.error('Failed to add controls to the map:', error);
+      }
+
+      map.on('moveend', function () {
+        try {
+          const newCenter = map.getCenter().wrap();
+          const newZoom = map.getZoom();
+          updateUrl(newCenter, newZoom);
+        } catch (error) {
+          console.error('Failed to update URL:', error);
+        }
+      });
+
+      setMap(map);
+
+      // clean up on unmount
+      return () => map.remove();
+    } catch (error) {
+      console.error('Error:', error);
+    }
   }, []);
+
+  function updateUrl(center, zoom) {
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set('center', JSON.stringify([center.lng.toFixed(4), center.lat.toFixed(4)]));
+    urlParams.set('zoom', zoom.toFixed(2));
+    window.history.replaceState({}, '', `${window.location.pathname}?${urlParams}`);
+  }
+
+  const adjustMarkerSize = (zoom, el) => {
+    const size = zoom <= 5 ? 30 : zoom <= 10 ? 35 : zoom <= 15 ? 35 : 30;
+    el.style.width = `${size}px`;
+    el.style.height = `${size}px`;
+  };
+
+  const createMarker = (feature) => {
+    try {
+      const [seconds, duration] = getFirstDuration(feature.properties.time);
+      let pollutantValue = null;
+      let markerKey = '';
+
+      for (const property in showPollutant) {
+        if (showPollutant[property]) {
+          markerKey = property;
+          pollutantValue = feature.properties[property] && feature.properties[property].value;
+          if (showCalibratedValues) {
+            pollutantValue =
+              feature.properties[property] && feature.properties[property].calibratedValue;
+          }
+          break;
+        }
+      }
+
+      const [markerClass, desc] = getMarkerDetail(pollutantValue, markerKey);
+
+      const el = document.createElement('div');
+      el.className = `marker ${markerClass}`;
+      el.style.display = 'flex';
+      el.style.justifyContent = 'center';
+      el.style.alignItems = 'center';
+      el.style.fontSize = '12px';
+      el.style.padding = '8px';
+      el.style.borderRadius = '50%';
+      el.innerHTML = pollutantValue ? Math.floor(pollutantValue) : '--';
+
+      if (
+        feature.geometry.coordinates.length >= 2 &&
+        feature.geometry.coordinates[0] &&
+        feature.geometry.coordinates[1] &&
+        pollutantValue !== null
+      ) {
+        const marker = new mapboxgl.Marker(el)
+          .setLngLat(feature.geometry.coordinates)
+          .setPopup(
+            new mapboxgl.Popup({
+              offset: 25,
+              className: 'map-popup'
+            }).setHTML(
+              MapPopup(feature, showPollutant, pollutantValue, desc, duration, seconds, markerClass)
+            )
+          )
+          .addTo(map);
+
+        map.on('zoom', function () {
+          adjustMarkerSize(map.getZoom(), el);
+        });
+
+        map.on('idle', function () {
+          adjustMarkerSize(map.getZoom(), el);
+        });
+
+        adjustMarkerSize(map.getZoom(), el);
+      }
+    } catch (error) {
+      console.error('Error creating marker:', error);
+    }
+  };
 
   const toggleSensors = () => {
     try {
@@ -414,82 +518,11 @@ export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
     <div className="overlay-map-container" ref={mapContainerRef}>
       {showSensors &&
         map &&
+        monitoringSiteData &&
+        monitoringSiteData.features &&
         monitoringSiteData.features.length > 0 &&
         monitoringSiteData.features.forEach((feature) => {
-          const [seconds, duration] = getFirstDuration(feature.properties.time);
-          let pollutantValue =
-            (showPollutant.pm2_5 && feature.properties.pm2_5 && feature.properties.pm2_5.value) ||
-            (showPollutant.pm10 && feature.properties.pm10 && feature.properties.pm10.value) ||
-            (showPollutant.no2 && feature.properties.no2 && feature.properties.no2.value) ||
-            null;
-
-          if (showCalibratedValues) {
-            pollutantValue =
-              (showPollutant.pm2_5 &&
-                feature.properties.pm2_5 &&
-                feature.properties.pm2_5.calibratedValue &&
-                feature.properties.pm2_5.calibratedValue) ||
-              (showPollutant.pm10 &&
-                feature.properties.pm10 &&
-                feature.properties.pm10.calibratedValue &&
-                feature.properties.pm10.calibratedValue) ||
-              (showPollutant.no2 &&
-                feature.properties.no2 &&
-                feature.properties.no2.calibratedValue &&
-                feature.properties.no2.calibratedValue) ||
-              null;
-          }
-          let markerKey = '';
-          for (const property in showPollutant) {
-            if (showPollutant[property]) markerKey = property;
-          }
-          const [markerClass, desc] = getMarkerDetail(pollutantValue, markerKey);
-
-          const el = document.createElement('div');
-          el.className = `marker ${seconds >= MAX_OFFLINE_DURATION ? 'marker-grey' : markerClass}`;
-          el.style.borderRadius = '50%';
-          el.style.display = 'flex';
-          el.style.justifyContent = 'center';
-          el.style.alignItems = 'center';
-          el.style.fontSize = '12px';
-          el.style.width = '30px';
-          el.style.height = '30px';
-          el.style.padding = '10px';
-          el.innerHTML = showPollutant.pm2_5
-            ? Math.floor(feature.properties.pm2_5.value)
-            : showPollutant.pm10
-            ? Math.floor(feature.properties.pm10.value)
-            : '--';
-
-          if (
-            feature.geometry.coordinates.length >= 2 &&
-            feature.geometry.coordinates[0] &&
-            feature.geometry.coordinates[1] &&
-            pollutantValue !== null
-          ) {
-            const marker = new mapboxgl.Marker(el)
-              .setLngLat(feature.geometry.coordinates)
-              .setPopup(
-                new mapboxgl.Popup({
-                  offset: 25,
-                  className: 'map-popup'
-                }).setHTML(
-                  MapPopup(feature, showPollutant, pollutantValue, desc, duration, markerClass)
-                )
-              )
-              .addTo(map);
-
-            // Listen to the zoom event of the map
-            map.on('zoom', function () {
-              // Get the current zoom level of the map
-              const zoom = map.getZoom();
-              // Calculate the size based on the zoom level
-              const size = (30 * zoom) / 10;
-              // Set the size of the marker
-              el.style.width = `${size}px`;
-              el.style.height = `${size}px`;
-            });
-          }
+          createMarker(feature);
         })}
 
       <Filter pollutants={showPollutant} />
@@ -508,44 +541,70 @@ export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
   );
 };
 
+const getStoredData = () => {
+  const storedData = localStorage.getItem('monitoringSiteData');
+  const storedTimeStamp = localStorage.getItem('monitoringSiteDataTimeStamp');
+  return { storedData, storedTimeStamp };
+};
+
 const MapContainer = () => {
   const dispatch = useDispatch();
-  const monitoringSiteData = useEventsMapData();
+  const apiData = useEventsMapData();
+  const { storedData, storedTimeStamp } = useMemo(getStoredData, []);
+  const currentTimeStamp = useMemo(() => new Date().getTime(), []);
+  const oneDayInMilliseconds = 24 * 60 * 60 * 1000;
+
+  const [monitoringSiteData, setMonitoringSiteData] = useState({});
+
+  const updateLocalStorage = useCallback(
+    (data) => {
+      try {
+        const dataCopy = { ...data };
+        dataCopy.features = dataCopy.features.slice(0, 100);
+        localStorage.setItem('monitoringSiteData', JSON.stringify(dataCopy));
+        localStorage.setItem('monitoringSiteDataTimeStamp', currentTimeStamp.toString());
+      } catch (error) {
+        console.error('Error updating local storage:', error);
+      }
+    },
+    [currentTimeStamp]
+  );
 
   useEffect(() => {
-    if (isEmpty(monitoringSiteData.features)) {
-      dispatch(loadMapEventsData());
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        setMonitoringSiteData(parsedData);
+      } catch (error) {
+        console.error('Error parsing stored data:', error);
+      }
     }
-  }, [monitoringSiteData]);
+
+    if (isEmpty(apiData.features)) {
+      try {
+        dispatch(loadMapEventsData());
+      } catch (error) {
+        console.error('Error loading map events data:', error);
+      }
+    } else {
+      setMonitoringSiteData(apiData);
+
+      if (!storedTimeStamp || currentTimeStamp - storedTimeStamp >= oneDayInMilliseconds) {
+        updateLocalStorage(apiData);
+      }
+    }
+  }, [dispatch, apiData, storedData, storedTimeStamp, currentTimeStamp, updateLocalStorage]);
 
   return (
     <ErrorBoundary>
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: '100%'
-        }}>
+      <div className="map-new-container">
         <OverlayMap
           center={[22.5600613, 0.8341424]}
-          zoom={2.4}
+          zoom={window.innerWidth <= 768 ? 2.0 : window.innerWidth <= 1440 ? 2.4 : 2.4}
           monitoringSiteData={monitoringSiteData}
         />
         {monitoringSiteData && isEmpty(monitoringSiteData.features) && (
-          <div
-            style={{
-              position: 'absolute',
-              zIndex: 100,
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100vh',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              backgroundColor: 'rgba(255, 255, 255, 0.4)',
-              backdropFilter: 'blur(1px)'
-            }}>
+          <div className="map-circular-loader">
             <CircularLoader loading={true} />
           </div>
         )}

@@ -53,7 +53,7 @@
     "leaflet-draw": "^1.0.4",
     "leaflet-makimarkers": "^3.1.0",
     "leaflet-spin": "^1.1.2",
-    "mapbox-gl": "^2.5.1",
+    "mapbox-gl": "^2.15.0",
     "material-table": "^1.57.2",
     "material-ui-nested-menu-item": "^1.0.2",
     "moment": "^2.29.1",
