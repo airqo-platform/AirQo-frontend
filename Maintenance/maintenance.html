@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Maintenance Page</title>
+    <title>Site Under Maintenance</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="./imgs/Logo.svg" />
@@ -9,6 +9,7 @@
       body {
         display: flex;
         flex-direction: column;
+        justify-content: center;
         align-items: center;
         height: 100vh;
         margin: 0;
@@ -17,7 +18,7 @@
       }
       .navbar {
         display: flex;
-        justify-content: start;
+        justify-content: left;
         width: 100%;
         padding: 10px 0;
         border-bottom: 1px solid #a1a1a1;
@@ -32,6 +33,9 @@
         align-items: center;
         flex-grow: 1;
         text-align: center;
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
       }
       .icon {
         fill: #ff6347;
@@ -44,18 +48,24 @@
         font-weight: 500;
         color: #333;
       }
+      @media (max-width: 600px) {
+        .icon {
+          width: 200px;
+          height: 200px;
+        }
+      }
     </style>
   </head>
   <body>
     <nav class="navbar">
       <div class="logo">
-        <img src="./imgs/Logo.svg" alt="Logo" />
+        <img src="./imgs/Logo.svg" alt="Logo" loading="lazy"/>
       </div>
     </nav>
     <div class="container">
-      <img class="icon" src="./imgs/Oops.svg" alt="maintenance" />
+      <img class="icon" src="./imgs/Oops.svg" alt="maintenance" loading="lazy"/>
       <div class="message">
-        We're currently performing some maintenance. Please check back soon.
+        The site is currently undergoing scheduled maintenance. We apologize for any inconvenience caused and appreciate your patience. Please check back later.
       </div>
     </div>
   </body>
