@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Site Under Maintenance</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="./imgs/Logo.svg" />
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #f3f3f3;
+        font-family: Arial, sans-serif;
+      }
+      .navbar {
+        display: flex;
+        justify-content: left;
+        width: 100%;
+        padding: 10px 0;
+        border-bottom: 1px solid #a1a1a1;
+      }
+      .logo {
+        margin-left: 20px;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        flex-grow: 1;
+        text-align: center;
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
+      }
+      .icon {
+        fill: #ff6347;
+        width: 300px;
+        height: 300px;
+        margin-bottom: 20px;
+      }
+      .message {
+        font-size: 25px;
+        font-weight: 500;
+        color: #333;
+      }
+      @media (max-width: 600px) {
+        .icon {
+          width: 200px;
+          height: 200px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="logo">
+        <img src="./imgs/Logo.svg" alt="Logo" loading="lazy"/>
+      </div>
+    </nav>
+    <div class="container">
+      <img class="icon" src="./imgs/Oops.svg" alt="maintenance" loading="lazy"/>
+      <div class="message">
+        The site is currently undergoing scheduled maintenance. We apologize for any inconvenience caused and appreciate your patience. Please check back later.
+      </div>
+    </div>
+  </body>
+</html>
