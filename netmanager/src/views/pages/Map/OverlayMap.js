@@ -434,8 +434,13 @@ export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
     window.history.replaceState({}, '', `${window.location.pathname}?${urlParams}`);
   }
 
-  const adjustMarkerSize = (zoom, el) => {
-    const size = zoom <= 5 ? 30 : zoom <= 10 ? 35 : zoom <= 15 ? 35 : 30;
+  const adjustMarkerSize = (zoom, el, pollutantValue) => {
+    let size;
+    if (pollutantValue === undefined || pollutantValue === false) {
+      size = 6;
+    } else {
+      size = zoom <= 5 ? 30 : zoom <= 10 ? 35 : zoom <= 15 ? 35 : 30;
+    }
     el.style.width = `${size}px`;
     el.style.height = `${size}px`;
   };
@@ -461,20 +466,21 @@ export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
       const [markerClass, desc] = getMarkerDetail(pollutantValue, markerKey);
 
       const el = document.createElement('div');
-      el.className = `marker ${markerClass}`;
+      el.className = `marker ${pollutantValue ? markerClass : 'marker-unknown'} `;
       el.style.display = 'flex';
       el.style.justifyContent = 'center';
       el.style.alignItems = 'center';
       el.style.fontSize = '12px';
       el.style.padding = '8px';
       el.style.borderRadius = '50%';
-      el.innerHTML = pollutantValue ? Math.floor(pollutantValue) : '--';
+      el.innerHTML = pollutantValue ? Math.floor(pollutantValue) : '';
+
+      adjustMarkerSize(map.getZoom(), el, pollutantValue);
 
       if (
         feature.geometry.coordinates.length >= 2 &&
         feature.geometry.coordinates[0] &&
-        feature.geometry.coordinates[1] &&
-        pollutantValue !== null
+        feature.geometry.coordinates[1]
       ) {
         const marker = new mapboxgl.Marker(el)
           .setLngLat(feature.geometry.coordinates)
@@ -489,14 +495,12 @@ export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
           .addTo(map);
 
         map.on('zoom', function () {
-          adjustMarkerSize(map.getZoom(), el);
+          adjustMarkerSize(map.getZoom(), el, pollutantValue);
         });
 
         map.on('idle', function () {
-          adjustMarkerSize(map.getZoom(), el);
+          adjustMarkerSize(map.getZoom(), el, pollutantValue);
         });
-
-        adjustMarkerSize(map.getZoom(), el);
       }
     } catch (error) {
       console.error('Error creating marker:', error);

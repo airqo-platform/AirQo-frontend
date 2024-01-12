@@ -5,8 +5,7 @@ import {
   D3_CHART_DATA_URI,
   GENERATE_AIRQLOUD_DATA_SUMMARY_URI,
   SCHEDULE_EXPORT_DATA,
-  CREATE_CLIENT_URI,
-  GET_CLIENTS_URI,
+  CLIENT_URI,
   GENERATE_TOKEN_URI,
   GET_USER_STATS_URI
 } from 'config/urls/analytics';
@@ -66,13 +65,19 @@ export const generateGridDataSummaryApi = async (data) => {
 
 export const createClientApi = async (data) => {
   return await createAxiosInstance()
-    .post(CREATE_CLIENT_URI, data)
+    .post(CLIENT_URI, data)
+    .then((response) => response.data);
+};
+
+export const updateClientApi = async (data, client_id) => {
+  return await createAxiosInstance()
+    .put(CLIENT_URI + '/' + client_id, data)
     .then((response) => response.data);
 };
 
 export const getClientsApi = async () => {
   return await createAxiosInstance()
-    .get(GET_CLIENTS_URI)
+    .get(CLIENT_URI)
     .then((response) => response.data);
 };
 

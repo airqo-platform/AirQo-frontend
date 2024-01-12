@@ -94,7 +94,7 @@
 }
 
 .marker-unknown {
-  background: #b19174;
+  background: #979797;
 }
 
 .map-popup {
@@ -182,6 +182,14 @@
   font-weight: 600;
   line-height: 10px;
   font-style: italic;
+}
+
+.popup-pollutant .popup-pollutant-noData {
+  font-size: 14px;
+  letter-spacing: 0.1px;
+  color: rgb(85, 79, 79);
+  font-weight: 600;
+  line-height: 12px;
 }
 
 .popup-pollutant .popup-pollutant-value {

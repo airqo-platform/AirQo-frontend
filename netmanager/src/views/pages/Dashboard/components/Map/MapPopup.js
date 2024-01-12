@@ -68,7 +68,11 @@ const MapPopup = (feature, showPollutant, pollutantValue, desc, duration, second
     </span>
   </div>
   ${DividerIcon}
-  <div class="${`popup-aqi ${markerClass}`}"> 
+  
+  ${
+    pollutantValue !== null && pollutantValue !== undefined
+      ? `
+      <div class="${`popup-aqi ${markerClass}`}"> 
     <div class="popup-aqi-icon">
         ${icon}
     </div>
@@ -77,7 +81,7 @@ const MapPopup = (feature, showPollutant, pollutantValue, desc, duration, second
     </div>
   </div>
   ${DividerIcon}
-  <div class="popup-pollutant">
+      <div class="popup-pollutant">
     <span class="popup-pollutant-title">
         <b>
         ${(showPollutant.pm2_5 && 'PM<sub>2.5<sub>') || (showPollutant.pm10 && 'PM<sub>10<sub>')}
@@ -86,7 +90,15 @@ const MapPopup = (feature, showPollutant, pollutantValue, desc, duration, second
     <span class="popup-pollutant-value">
     ${(pollutantValue && pollutantValue.toFixed(1)) || '--'} µg/m<sup>3</sup>
     </span>
-  </div>
+  </div>`
+      : `<div class="popup-pollutant">
+    <span class="popup-pollutant-noData">
+        <b>
+        Sorry, No data available
+        </b>
+    </span>
+  </div>`
+  }
   <span>Last Updated: <b>${duration}</b> ago</span>
   <span>${formattedDate}</span>
 
