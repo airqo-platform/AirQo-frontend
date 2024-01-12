@@ -473,9 +473,14 @@ export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
       el.style.fontSize = '12px';
       el.style.padding = '8px';
       el.style.borderRadius = '50%';
+      el.style.zIndex = '2';
       el.innerHTML = pollutantValue ? Math.floor(pollutantValue) : '';
 
       adjustMarkerSize(map.getZoom(), el, pollutantValue);
+
+      if (pollutantValue === null || pollutantValue === undefined) {
+        el.style.zIndex = '1';
+      }
 
       if (
         feature.geometry.coordinates.length >= 2 &&
@@ -506,7 +511,6 @@ export const OverlayMap = ({ center, zoom, monitoringSiteData }) => {
       console.error('Error creating marker:', error);
     }
   };
-
   const toggleSensors = () => {
     try {
       const markers = document.getElementsByClassName('marker');
