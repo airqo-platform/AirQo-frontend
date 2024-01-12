@@ -16,9 +16,7 @@ class Landing extends Component {
   render() {
     return (
       <Main>
-        <ErrorBoundary>
-          <HeatMapOverlay />
-        </ErrorBoundary>
+        <HeatMapOverlay />
       </Main>
     );
   }
