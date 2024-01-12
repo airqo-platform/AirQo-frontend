@@ -1,5 +1,5 @@
 runtime: python38
-service: default
+service: website-pr-previews
 
 handlers:
 - url: /
