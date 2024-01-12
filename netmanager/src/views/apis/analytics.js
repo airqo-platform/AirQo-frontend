@@ -1,5 +1,5 @@
 import {
-  GET_DATA_MAP,
+  GET_MAP_READING_URI,
   GET_SITES,
   DOWNLOAD_CUSTOMISED_DATA_URI,
   D3_CHART_DATA_URI,
@@ -88,5 +88,11 @@ export const generateTokenApi = async (data) => {
 
 export const getUserStatsApi = async () => {
   const response = await createAxiosInstance().get(GET_USER_STATS_URI);
+  return response.data;
+};
+
+// new
+export const getMapReadingApi = async () => {
+  const response = await createAxiosInstance(false).get(GET_MAP_READING_URI);
   return response.data;
 };

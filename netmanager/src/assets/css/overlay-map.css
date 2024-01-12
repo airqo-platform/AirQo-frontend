@@ -48,8 +48,8 @@
   justify-content: center;
   font-size: 1.1rem;
   background: blue;
-  width: 12px;
-  height: 12px;
+  /* width: 12px;
+  height: 12px; */
   cursor: pointer;
   color: #f3f3f3;
   font-weight: 600;

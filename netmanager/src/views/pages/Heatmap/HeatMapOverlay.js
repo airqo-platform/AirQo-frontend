@@ -16,6 +16,7 @@ import { useInitScrollTop } from 'utils/customHooks';
 import { ErrorBoundary } from '../../ErrorBoundary';
 import { useOrgData } from 'redux/Join/selectors';
 import Indicator from '../Dashboard/components/Map/Indicator ';
+import { getMapReadingApi } from 'views/apis/analytics';
 // css
 import 'assets/css/overlay-map.css';
 
@@ -712,12 +713,14 @@ const HeatMapOverlay = () => {
   return (
     <ErrorBoundary>
       <div className="map-new-container">
-        <OverlayMap
-          center={[22.5600613, 0.8341424]}
-          zoom={window.innerWidth <= 768 ? 2.0 : window.innerWidth <= 1440 ? 2.4 : 2.4}
-          heatMapData={heatMapData}
-          monitoringSiteData={monitoringSiteData}
-        />
+        {monitoringSiteData && !isEmpty(monitoringSiteData.features) && (
+          <OverlayMap
+            center={[22.5600613, 0.8341424]}
+            zoom={window.innerWidth <= 768 ? 2.0 : window.innerWidth <= 1440 ? 2.4 : 2.4}
+            heatMapData={heatMapData}
+            monitoringSiteData={monitoringSiteData}
+          />
+        )}
         {monitoringSiteData && isEmpty(monitoringSiteData.features) && (
           <div className="map-circular-loader">
             <CircularLoader loading={true} />
