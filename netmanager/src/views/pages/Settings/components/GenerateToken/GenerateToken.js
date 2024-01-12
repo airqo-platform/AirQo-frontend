@@ -188,12 +188,17 @@ const EditClient = (props) => {
     handleInitialData();
   }, [data]);
 
+  const isValidIP = (ip) => {
+    const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    return ipRegex.test(ip);
+  };
+
   const handleSubmit = async () => {
     if (!clientName) {
       setClientNameError(true);
       return;
     }
-    if (!clientIP && data.ip_address) {
+    if (clientIP && !isValidIP(clientIP)) {
       setClientIPError(true);
       return;
     }
@@ -271,7 +276,7 @@ const EditClient = (props) => {
               setClientIPError(false);
             }}
             error={clientIPError}
-            helperText={clientIPError && 'Please enter a client IP'}
+            helperText={clientIPError && 'Please enter a valid client IP'}
             fullWidth
           />
         </div>
