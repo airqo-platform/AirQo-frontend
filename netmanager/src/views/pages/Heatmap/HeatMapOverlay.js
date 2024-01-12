@@ -568,11 +568,11 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
       el.style.zIndex = '2';
       el.innerHTML = pollutantValue ? Math.floor(pollutantValue) : '';
 
+      adjustMarkerSize(map.getZoom(), el, pollutantValue);
+
       if (pollutantValue === null || pollutantValue === undefined) {
         el.style.zIndex = '1';
       }
-
-      adjustMarkerSize(map.getZoom(), el, pollutantValue);
 
       if (
         feature.geometry.coordinates.length >= 2 &&
@@ -717,14 +717,12 @@ const HeatMapOverlay = () => {
   return (
     <ErrorBoundary>
       <div className="map-new-container">
-        {monitoringSiteData && !isEmpty(monitoringSiteData.features) && (
-          <OverlayMap
-            center={[22.5600613, 0.8341424]}
-            zoom={window.innerWidth <= 768 ? 2.0 : window.innerWidth <= 1440 ? 2.4 : 2.4}
-            heatMapData={heatMapData}
-            monitoringSiteData={monitoringSiteData}
-          />
-        )}
+        <OverlayMap
+          center={[22.5600613, 0.8341424]}
+          zoom={window.innerWidth <= 768 ? 2.0 : window.innerWidth <= 1440 ? 2.4 : 2.4}
+          heatMapData={heatMapData}
+          monitoringSiteData={monitoringSiteData}
+        />
         {monitoringSiteData && isEmpty(monitoringSiteData.features) && (
           <div className="map-circular-loader">
             <CircularLoader loading={true} />
