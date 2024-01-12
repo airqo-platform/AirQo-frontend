@@ -53,6 +53,3 @@ export const GET_SIM_URI = `${BASE_ANALYTICS_URL_V2}/incentives/sims`;
 
 // USER STATS
 export const GET_USER_STATS_URI = `${BASE_ANALYTICS_URL_V2}/users/stats`;
-
-// Map reading endpoint
-export const GET_MAP_READING_URI = `${BASE_ANALYTICS_URL_V2}/devices/readings/map`;

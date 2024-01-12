@@ -16,7 +16,6 @@ import { useInitScrollTop } from 'utils/customHooks';
 import { ErrorBoundary } from '../../ErrorBoundary';
 import { useOrgData } from 'redux/Join/selectors';
 import Indicator from '../Dashboard/components/Map/Indicator ';
-import { getMapReadingApi } from 'views/apis/analytics';
 // css
 import 'assets/css/overlay-map.css';
 

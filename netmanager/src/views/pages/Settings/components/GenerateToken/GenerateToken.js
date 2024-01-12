@@ -290,7 +290,7 @@ const EditClient = (props) => {
           onClick={() => handleSubmit()}
           className={classes.DialogButton}
           disabled={isLoading}>
-          {isLoading ? <CircularProgress size={24} /> : 'Submit'}
+          {isLoading ? <CircularProgress size={24} /> : 'Edit'}
         </Button>
       </DialogActions>
     </Dialog>

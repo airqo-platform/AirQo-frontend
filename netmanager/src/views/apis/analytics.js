@@ -90,9 +90,3 @@ export const getUserStatsApi = async () => {
   const response = await createAxiosInstance().get(GET_USER_STATS_URI);
   return response.data;
 };
-
-// new
-export const getMapReadingApi = async () => {
-  const response = await createAxiosInstance(false).get(GET_MAP_READING_URI);
-  return response.data;
-};
