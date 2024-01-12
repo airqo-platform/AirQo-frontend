@@ -100,6 +100,7 @@
 .map-popup {
   font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial,
     sans-serif;
+  z-index: 1000;
 }
 
 .map-popup .mapboxgl-popup-content {
