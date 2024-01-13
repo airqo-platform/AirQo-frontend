@@ -81,7 +81,6 @@ const RegisterClient = (props) => {
         user_id: userID
       };
 
-      // Add clientIP to the data if it's provided
       if (clientIP) {
         data.ip_address = clientIP;
       }
@@ -100,6 +99,7 @@ const RegisterClient = (props) => {
         setClientName('');
         setClientIP('');
       } else {
+        onClose();
         dispatch(
           updateMainAlert({
             message: 'Client registration failed',
@@ -110,6 +110,7 @@ const RegisterClient = (props) => {
       }
     } catch (error) {
       console.error(error);
+      onClose();
       dispatch(
         updateMainAlert({
           message: 'Client registration failed',
@@ -320,11 +321,18 @@ const GenerateToken = (props) => {
   }
 
   useEffect(() => {
-    if (!isEmpty(mappedAuth) && mappedAuth.user) {
-      getUserDetails(userID).then((res) => {
-        setClientData(res.users[0].clients);
-      });
-    }
+    const fetchUserDetails = async () => {
+      try {
+        if (!isEmpty(mappedAuth) && mappedAuth.user) {
+          const res = await getUserDetails(userID);
+          setClientData(res.users[0].clients);
+        }
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+      }
+    };
+
+    fetchUserDetails();
   }, [refresh, mappedAuth]);
 
   useEffect(() => {

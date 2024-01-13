@@ -70,16 +70,14 @@ const markerDetailsMapper = {
 };
 
 const getMarkerDetail = (markerValue, markerKey) => {
-  if (markerValue === null || markerValue === undefined) return ['marker-unknown', 'uncategorised'];
+  if (!markerValue) return ['marker-unknown', 'uncategorised'];
 
   const markerDetails = markerDetailsMapper[markerKey] || markerDetailsPM2_5;
-  let keys = Object.keys(markerDetails);
-  // in-place reverse sorting
-  keys.sort((key1, key2) => -(key1 - key2));
+  const keys = Object.keys(markerDetails).sort((a, b) => b - a);
 
-  for (let i = 0; i < keys.length; i++) {
-    if (markerValue >= keys[i]) {
-      return markerDetails[keys[i]];
+  for (const key of keys) {
+    if (markerValue >= key) {
+      return markerDetails[key];
     }
   }
   return ['marker-unknown', 'uncategorised'];
@@ -527,12 +525,7 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
   };
 
   const adjustMarkerSize = (zoom, el, pollutantValue) => {
-    let size;
-    if (pollutantValue === undefined || pollutantValue === false) {
-      size = 6;
-    } else {
-      size = zoom <= 5 ? 30 : zoom <= 10 ? 35 : zoom <= 15 ? 35 : 30;
-    }
+    const size = pollutantValue === undefined || pollutantValue === false ? 6 : zoom <= 5 ? 30 : 35;
     el.style.width = `${size}px`;
     el.style.height = `${size}px`;
   };
@@ -544,61 +537,48 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
       let markerKey = '';
 
       for (const property in showPollutant) {
-        if (showPollutant[property]) {
-          markerKey = property;
-          pollutantValue = feature.properties[property] && feature.properties[property].value;
-          if (showCalibratedValues) {
-            pollutantValue =
-              feature.properties[property] && feature.properties[property].calibratedValue;
-          }
-          break;
+        if (!showPollutant[property]) continue;
+        markerKey = property;
+        pollutantValue = feature.properties[property]?.value;
+        if (showCalibratedValues) {
+          pollutantValue = feature.properties[property]?.calibratedValue;
         }
+        break;
       }
 
       const [markerClass, desc] = getMarkerDetail(pollutantValue, markerKey);
 
       const el = document.createElement('div');
-      el.className = `marker ${pollutantValue ? markerClass : 'marker-unknown'} `;
-      el.style.display = 'flex';
-      el.style.justifyContent = 'center';
-      el.style.alignItems = 'center';
-      el.style.fontSize = '12px';
-      el.style.padding = '8px';
-      el.style.borderRadius = '50%';
-      el.style.zIndex = '2';
+      el.className = `marker ${markerClass}`;
+      el.style.cssText = `display: flex; justify-content: center; align-items: center; font-size: 12px; padding: 8px; border-radius: 50%; z-index: ${
+        pollutantValue ? '2' : '1'
+      };`;
       el.innerHTML = pollutantValue ? Math.floor(pollutantValue) : '';
 
       adjustMarkerSize(map.getZoom(), el, pollutantValue);
 
-      if (pollutantValue === null || pollutantValue === undefined) {
-        el.style.zIndex = '1';
-      }
-
       if (
-        feature.geometry.coordinates.length >= 2 &&
-        feature.geometry.coordinates[0] &&
-        feature.geometry.coordinates[1]
-      ) {
-        const marker = new mapboxgl.Marker(el)
-          .setLngLat(feature.geometry.coordinates)
-          .setPopup(
-            new mapboxgl.Popup({
-              offset: 25,
-              className: 'map-popup'
-            }).setHTML(
-              MapPopup(feature, showPollutant, pollutantValue, desc, duration, seconds, markerClass)
-            )
+        feature.geometry.coordinates.length < 2 ||
+        !feature.geometry.coordinates[0] ||
+        !feature.geometry.coordinates[1]
+      )
+        return;
+
+      const marker = new mapboxgl.Marker(el)
+        .setLngLat(feature.geometry.coordinates)
+        .setPopup(
+          new mapboxgl.Popup({
+            offset: 25,
+            className: 'map-popup'
+          }).setHTML(
+            MapPopup(feature, showPollutant, pollutantValue, desc, duration, seconds, markerClass)
           )
-          .addTo(map);
+        )
+        .addTo(map);
 
-        map.on('zoom', function () {
-          adjustMarkerSize(map.getZoom(), el, pollutantValue);
-        });
-
-        map.on('idle', function () {
-          adjustMarkerSize(map.getZoom(), el, pollutantValue);
-        });
-      }
+      const adjustMarkerOnEvent = () => adjustMarkerSize(map.getZoom(), el, pollutantValue);
+      map.on('zoom', adjustMarkerOnEvent);
+      map.on('idle', adjustMarkerOnEvent);
     } catch (error) {
       console.error('Error creating marker:', error);
     }
@@ -655,21 +635,20 @@ const getStoredData = () => {
   return { storedData, storedTimeStamp };
 };
 
+const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000;
+
 const MapContainer = () => {
   const dispatch = useDispatch();
   const heatMapData = usePM25HeatMapData();
   const apiData = useEventsMapData();
   const { storedData, storedTimeStamp } = useMemo(getStoredData, []);
   const currentTimeStamp = useMemo(() => new Date().getTime(), []);
-  const oneDayInMilliseconds = 24 * 60 * 60 * 1000;
-
   const [monitoringSiteData, setMonitoringSiteData] = useState({});
 
   const updateLocalStorage = useCallback(
     (data) => {
       try {
-        const dataCopy = { ...data };
-        dataCopy.features = dataCopy.features.slice(0, 100);
+        const dataCopy = { ...data, features: data.features.slice(0, 100) };
         localStorage.setItem('monitoringSiteData', JSON.stringify(dataCopy));
         localStorage.setItem('monitoringSiteDataTimeStamp', currentTimeStamp.toString());
       } catch (error) {
@@ -680,7 +659,7 @@ const MapContainer = () => {
   );
 
   useEffect(() => {
-    if (storedData) {
+    if (storedData && storedData !== 'undefined') {
       try {
         const parsedData = JSON.parse(storedData);
         setMonitoringSiteData(parsedData);
@@ -698,7 +677,7 @@ const MapContainer = () => {
     } else {
       setMonitoringSiteData(apiData);
 
-      if (!storedTimeStamp || currentTimeStamp - storedTimeStamp >= oneDayInMilliseconds) {
+      if (!storedTimeStamp || currentTimeStamp - storedTimeStamp >= ONE_DAY_IN_MS) {
         updateLocalStorage(apiData);
       }
     }
@@ -714,12 +693,14 @@ const MapContainer = () => {
     }
   }, [dispatch]);
 
+  const zoom = window.innerWidth <= 768 ? 2.0 : 2.4;
+
   return (
     <ErrorBoundary>
       <div className="map-new-container">
         <OverlayMap
           center={[22.5600613, 0.8341424]}
-          zoom={window.innerWidth <= 768 ? 2.0 : window.innerWidth <= 1440 ? 2.4 : 2.4}
+          zoom={zoom}
           heatMapData={heatMapData}
           monitoringSiteData={monitoringSiteData}
         />
