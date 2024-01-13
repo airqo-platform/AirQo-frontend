@@ -32,6 +32,7 @@ import StreetModeIcon from '@material-ui/icons/Traffic';
 // prettier-ignore
 // eslint-disable-next-line import/no-webpack-loader-syntax
 mapboxgl.workerClass = require("worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker").default;
+mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
 const markerDetailsPM2_5 = {
   0.0: ['marker-good', 'Good'],
@@ -82,8 +83,6 @@ const getMarkerDetail = (markerValue, markerKey) => {
   }
   return ['marker-unknown', 'uncategorised'];
 };
-
-mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
 const MapControllerPosition = ({ className, children, position }) => {
   const positions = {
@@ -386,15 +385,20 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
   const [showSensors, setShowSensors] = useState(true);
   const [showCalibratedValues, setShowCalibratedValues] = useState(false);
   const [showHeatMap, setShowHeatMap] = useState(false);
+  const mapContainerRef = useRef(null);
   const initialShowPollutant = {
-    pm2_5: handleLocalStorage.get('pollutant') === 'pm2_5',
-    no2: handleLocalStorage.get('pollutant') === 'no2',
-    pm10: handleLocalStorage.get('pollutant') === 'pm10'
+    pm2_5: false,
+    no2: false,
+    pm10: false
   };
 
-  const [showPollutant, setShowPollutant] = useState(initialShowPollutant);
+  // Set initial values in localStorage if not already present
+  if (!handleLocalStorage.get('pollutant')) {
+    handleLocalStorage.set('pollutant', 'pm2_5');
+  }
 
-  const mapContainerRef = useRef(null);
+  // Use state to keep track of the current pollutant
+  const [showPollutant, setShowPollutant] = useState(initialShowPollutant);
 
   useEffect(() => {
     const pollutant = handleLocalStorage.get('pollutant');
@@ -533,6 +537,7 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
   const createMarker = (feature) => {
     try {
       const [seconds, duration] = getFirstDuration(feature.properties.time);
+
       let pollutantValue = null;
       let markerKey = '';
 
@@ -543,7 +548,7 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
         if (showCalibratedValues) {
           pollutantValue = feature.properties[property]?.calibratedValue;
         }
-        break;
+        if (pollutantValue !== null) break;
       }
 
       const [markerClass, desc] = getMarkerDetail(pollutantValue, markerKey);
