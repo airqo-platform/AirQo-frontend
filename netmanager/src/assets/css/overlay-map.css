@@ -48,8 +48,8 @@
   justify-content: center;
   font-size: 1.1rem;
   background: blue;
-  width: 12px;
-  height: 12px;
+  /* width: 12px;
+  height: 12px; */
   cursor: pointer;
   color: #f3f3f3;
   font-weight: 600;
@@ -94,12 +94,13 @@
 }
 
 .marker-unknown {
-  background: #b19174;
+  background: #979797;
 }
 
 .map-popup {
   font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial,
     sans-serif;
+  z-index: 1000;
 }
 
 .map-popup .mapboxgl-popup-content {
@@ -182,6 +183,14 @@
   font-weight: 600;
   line-height: 10px;
   font-style: italic;
+}
+
+.popup-pollutant .popup-pollutant-noData {
+  font-size: 14px;
+  letter-spacing: 0.1px;
+  color: rgb(85, 79, 79);
+  font-weight: 600;
+  line-height: 12px;
 }
 
 .popup-pollutant .popup-pollutant-value {
