@@ -19,7 +19,8 @@ import {
   CREATE_DEVICE_HOST,
   UPDATE_DEVICE_HOST,
   SEND_DEVICE_HOST_MONEY,
-  GET_TRANSACTION_HISTORY
+  GET_TRANSACTION_HISTORY,
+  GET_MAP_READING_URI
 } from 'config/urls/deviceRegistry';
 import { DEVICE_MAINTENANCE_LOG_URI } from 'config/urls/deviceMonitoring';
 import { DEVICE_RECENT_FEEDS } from 'config/urls/dataManagement';
@@ -136,7 +137,7 @@ export const deleteDevicePhotos = async (deviceId, urls) => {
 
 export const getEventsApi = async () => {
   return await createAxiosInstance(false)
-    .get(EVENTS)
+    .get(GET_MAP_READING_URI)
     .then((response) => response.data);
 };
 

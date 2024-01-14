@@ -154,7 +154,6 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <PrivateRoute exact path="/sites" component={SiteRegistry} layout={MainLayout} />
             <PrivateRoute exact path="/sites/:id" component={SiteView} layout={MainLayout} />
             <PrivateRoute exact path="/sim" component={SimRegistry} layout={MainLayout} />
-            <PrivateRoute exact path="/heatMap" component={HeatMapOverlay} layout={MainLayout} />
 
             <PrivateRoute exact path="/overview" component={Overview} layout={MainLayout} />
             <PrivateRoute
