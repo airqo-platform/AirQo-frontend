@@ -1,0 +1,135 @@
+@import 'lib/variables';
+
+.lang-container {
+  width: 100%;
+  height: auto;
+  background: linear-gradient(110deg, #f2f1f6 48.17%, #eef7ff 87.81%);
+  display: flex;
+  justify-content: center;
+
+  .wrapper {
+    width: 100%;
+    height: 42px;
+    max-width: 1088px;
+    padding: 0 16px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .clean-air-link {
+    p {
+      color: #536a87;
+      font-family: Inter;
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 28px;
+
+      span {
+        display: inline-flex;
+        align-items: center;
+        margin-left: clamp(5px, 1vw, 8px);
+        color: #135dff;
+        font-size: 14px;
+      }
+    }
+  }
+
+  .desktop-view {
+    display: block;
+  }
+
+  .mobile-view {
+    display: none;
+  }
+
+  .language-dropdown {
+    display: flex;
+    align-items: center;
+    outline: none;
+    border: none;
+
+    .dropdown {
+      outline: none;
+      border: none;
+      position: relative;
+      background: transparent;
+      color: #353e52;
+      text-align: center;
+      font-family: Inter;
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 24px;
+      cursor: pointer;
+
+      p {
+        margin-left: 5px;
+      }
+
+      .dropdown-list {
+        background-color: white;
+        border-radius: 4px;
+        position: absolute;
+        top: 36px;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+        width: auto;
+        height: auto;
+        max-width: 150px;
+        max-height: 200px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        z-index: 9999;
+        padding: 4px 0;
+        margin: 0;
+        list-style: none;
+        box-shadow: 0px 14px 26px rgba(0, 0, 0, 0.08);
+
+        .selected {
+          background-color: #ebf5ff;
+        }
+
+        li {
+          display: flex;
+          gap: 8px;
+          padding: 5px 8px;
+          align-items: center;
+
+          &:hover {
+            background-color: #f3f6f8;
+          }
+        }
+      }
+    }
+  }
+
+  @keyframes arrow-animation {
+    0% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(6px);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+
+  .arrow-icon {
+    animation: arrow-animation 1s infinite;
+  }
+
+  @media screen and (max-width: $mainBreakPoint) {
+    .desktop-view {
+      display: none;
+    }
+
+    .mobile-view {
+      display: block;
+    }
+  }
+}
