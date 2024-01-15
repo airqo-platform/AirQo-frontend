@@ -126,7 +126,7 @@ const Analytics = () => {
 
   useEffect(() => {
     const loadSummaryAsync = async () => {
-      if (!activeNetwork) {
+      if (!activeNetwork || activeNetwork.net_name === '') {
         return;
       }
 
@@ -386,14 +386,16 @@ const Analytics = () => {
             justifyContent={'space-between'}
             alignItems={'center'}
             width={'100%'}
-            position={'relative'}>
+            position={'relative'}
+          >
             <Box
               display={'flex'}
               justifyContent={'space-between'}
               gap={'16px'}
               width={'100%'}
               maxWidth={'450px'}
-              marginBottom={{ xs: '20px', sm: '20px', md: '0', lg: '0', xl: '0' }}>
+              marginBottom={{ xs: '20px', sm: '20px', md: '0', lg: '0', xl: '0' }}
+            >
               <AnalyticsAirqloudsDropDown
                 isCohort={isCohort}
                 airqloudsData={
@@ -424,7 +426,8 @@ const Analytics = () => {
               width={'auto'}
               marginTop={{ xs: '25px', sm: '25px', md: '0', lg: '0', xl: '0' }}
               display={'flex'}
-              gridGap="12px">
+              gridGap="12px"
+            >
               <Button
                 margin="dense"
                 color="primary"
@@ -436,7 +439,8 @@ const Analytics = () => {
                 }}
                 variant="outlined"
                 onClick={submitExportData}
-                disabled={downloadingData || isGridLoading || isCohortLoading || isSummaryLoading}>
+                disabled={downloadingData || isGridLoading || isCohortLoading || isSummaryLoading}
+              >
                 Download data
               </Button>
               <Button
@@ -449,7 +453,8 @@ const Analytics = () => {
                   position: 'relative'
                 }}
                 variant="contained"
-                onClick={handleSwitchAirqloudTypeClick}>
+                onClick={handleSwitchAirqloudTypeClick}
+              >
                 <ImportExportIcon /> Switch to {isCohort ? 'Grid View' : 'Cohort View'}
               </Button>
             </Box>
