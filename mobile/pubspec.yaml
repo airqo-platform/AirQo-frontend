@@ -111,7 +111,6 @@ flutter_native_splash:
   # Image that you want to show
   image: assets/images/airQo-logo.png
   # Sizing of image
-  # fill: true
   # Splash Image to show in dark mode (Optional)
   image_dark: assets/images/airQo-logo.png
   # Background color of dark mode (Optional)
