@@ -94,7 +94,7 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
       const deviceOptions = [];
       !isEmpty(analyticsDevices) &&
         analyticsDevices.map((device) => {
-          deviceOptions.push(device._id);
+          deviceOptions.push(device.long_name.toLowerCase());
         });
       setAverageChartDevices(deviceOptions);
     }
