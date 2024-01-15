@@ -91,7 +91,7 @@ dev_dependencies:
   hive_generator: ^2.0.0
   bloc_test: ^9.1.1
   restart_app: ^1.2.1
-  flutter_native_splash: ^2.3.5
+  flutter_native_splash: ^2.3.9
 
 flutter:
   uses-material-design: true
@@ -106,7 +106,13 @@ flutter:
     - shorebird.yaml
 
 flutter_native_splash:
-  background_image: "assets/images/airqo_logo.png"
-  android_12:
-    background_image: "assets/images/airqo_logo.png"
-  fullscreen: true
+  # Background color of splash screen
+  color: "#ffffff"
+  # Image that you want to show
+  image: assets/images/airQo-logo.png
+  # Sizing of image
+  # fill: true
+  # Splash Image to show in dark mode (Optional)
+  image_dark: assets/images/airQo-logo.png
+  # Background color of dark mode (Optional)
+  color_dark: "#000000"
