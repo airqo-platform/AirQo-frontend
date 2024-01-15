@@ -170,13 +170,13 @@ const TopBar = () => {
             </div>
           </div>
           {/* <NavTab text="About" path="/about-us" hideArrow /> */}
-          {/* <NavTab text={t('navbar.getInvolved')} hideArrow colored onClick={showModal} /> */}
-          <Link to="/clean-air" className="clean-air-tab">
+          <NavTab text={t('navbar.getInvolved')} hideArrow colored onClick={showModal} />
+          {/* <Link to="/clean-air" className="clean-air-tab">
             <div>
               <PublicIcon />
               <h3>{t('navbar.about.subnav.cleanAir')}</h3>
             </div>
-          </Link>
+          </Link> */}
           <NavTab text={t('navbar.exploreData')} path="/explore-data" hideArrow filled />
         </div>
       </div>
