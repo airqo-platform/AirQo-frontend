@@ -112,9 +112,9 @@ flutter_native_splash:
   image: assets/images/airQo-logo.png
   # Sizing of image
   # Splash Image to show in dark mode (Optional)
-  image_dark: assets/images/airQo-logo.png
+  # image_dark: assets/images/airQo-logo.png
   # Background color of dark mode (Optional)
-  color_dark: "#000000"
+  # color_dark: "#000000"
   android_12:
     # The image parameter sets the splash screen icon image.  If this parameter is not specified,
     # the app's launcher icon will be used instead.
@@ -137,8 +137,8 @@ flutter_native_splash:
     # The image_dark, color_dark, icon_background_color_dark, and branding_dark set values that
     # apply when the device is in dark mode. If they are not specified, the app will use the
     # parameters from above.
-    image_dark: assets/images/airQo-logo.png
+    # image_dark: assets/images/airQo-logo.png
 
-    color_dark: "#ffffff"
+    # color_dark: "#ffffff"
     #icon_background_color_dark: "#eeeeee"
 
