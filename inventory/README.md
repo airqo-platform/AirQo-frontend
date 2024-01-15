@@ -1,2 +1,2 @@
-# deploy .
+# AirQo Hardware Inventory
 metadata
