@@ -4,6 +4,7 @@ import 'package:animations/animations.dart';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
+import 'package:app/screens/email_link/email_link_page.dart';
 import 'package:app/screens/profile/profile_view.dart';
 import 'package:app/screens/settings/update_screen.dart';
 import 'package:app/services/services.dart';
@@ -241,6 +242,15 @@ class _HomePageState extends State<HomePage> {
         });
       }
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(Duration(milliseconds: 500), () {
+        showEmailLinkBottomSheet(context);
+      });
+    });
+  }
+
+  Future<void> showEmailLinkBottomSheet(BuildContext context) async {
+    await bottomSheetEmailLink(context);
   }
 
   Future<void> _initializeDynamicLinks() async {

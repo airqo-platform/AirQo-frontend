@@ -18,7 +18,7 @@ import '../home_page.dart';
 import '../on_boarding/on_boarding_widgets.dart';
 import '../on_boarding/profile_setup_screen.dart';
 
-Future<void> verifyEmailAuthCode(BuildContext context) async {
+Future<void> verifyLinkAuthCode(BuildContext context) async {
   await Navigator.of(context).push(
     PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) =>
@@ -255,8 +255,10 @@ class _EmailAuthVerificationWidgetState
     );
 
     try {
+      // Check if the user is already signed in with phone number
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
+        // The user is already signed in with phone number
         // Link the email credential with the existing user
         await currentUser.linkWithCredential(emailCredential);
       } else {
@@ -266,6 +268,7 @@ class _EmailAuthVerificationWidgetState
         if (!mounted) return;
 
         if (!authenticationSuccessful) {
+          // Handle authentication failure
           await showDialog<void>(
             context: context,
             barrierDismissible: false,
