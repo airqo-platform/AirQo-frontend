@@ -6,12 +6,14 @@ import Unhealthy from 'views/components/MapIcons/Unhealthy';
 import UnhealthySensitive from 'views/components/MapIcons/UnhealthySen';
 import VeryUnhealthy from 'views/components/MapIcons/VeryUnhealthy';
 import Hazardous from 'views/components/MapIcons/Hazardous';
+import Offline from 'views/components/MapIcons/Offline';
 
 const Tooltip = ({ children, text, icon, label }) => {
   const [showTooltip, setShowTooltip] = React.useState(false);
 
   return (
     <div
+      className="air-quality-description"
       style={{ position: 'relative', outline: 'none', border: 'none', margin: '13px 0' }}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}>
