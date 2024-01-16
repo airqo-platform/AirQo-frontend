@@ -34,20 +34,6 @@ h4 {
         height: 48px;
       }
     }
-    .language-dropdown {
-      margin-left: 32px;
-      select {
-        outline: none;
-        min-width: 95px;
-        border: none;
-        border-bottom: 2px solid $aq-blue-9;
-        font-weight: 500;
-        font-size: 14px;
-        padding: 5px 5px;
-        box-shadow: 3px 2px 5px $aq-blue-9;
-        border-radius: 3px;
-      }
-    }
 
     .nav-center,
     .nav-right {
@@ -324,14 +310,6 @@ h4 {
 
     .wrapper {
       padding: 0 24px;
-      .language-dropdown {
-        margin-left: 12px;
-        select {
-          min-width: 60px;
-          font-size: 14px;
-          padding: 3px 2px;
-        }
-      }
 
       .nav-center {
         // margin: 0 auto;

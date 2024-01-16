@@ -1,10 +1,10 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import Footer from 'components/Footer';
 import TopBar from 'components/nav/TopBar';
-import { useSelector } from 'react-redux';
-import { BottomCTAS, HeaderComponent } from 'components/CleanAir';
+import { BottomCTAS, SecondaryNavComponent } from 'components/CleanAir';
 import Loadspinner from 'components/LoadSpinner';
-import HeroImage from 'assets/img/cleanAir/hero.jpg';
+import LanguageSwitcher from 'components/LanguageSwitcher';
 
 const CleanAirPageContainer = ({ children }) => {
   const { pressDataLoading, eventsDataLoading } = useSelector((state) => ({
@@ -17,17 +17,14 @@ const CleanAirPageContainer = ({ children }) => {
   }
 
   return (
-    <div className="Page Clean-air-page">
+    <div className="Page">
+      <LanguageSwitcher />
       <TopBar />
-      <HeaderComponent
-        title="CLEAN-Air Network"
-        pageTitle="CLEAN-Air Network"
-        style={{
-          backgroundImage: `url(${HeroImage})`
-        }}
-      />
-      <div className="page-wrapper page-container">{children}</div>
-      <BottomCTAS />
+      <div className="Clean-air-page">
+        <SecondaryNavComponent />
+        <div className="page-wrapper page-container">{children}</div>
+        <BottomCTAS />
+      </div>
       <Footer />
     </div>
   );
