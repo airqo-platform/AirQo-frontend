@@ -10,8 +10,8 @@ const SecondaryNavComponent = ({ disabledTabs }) => {
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
 
   useEffect(() => {
-    setSelectedTab(activeTab)
-  }, [])
+    setSelectedTab(activeTab);
+  }, []);
 
   const handleTabClick = (tab) => {
     if (!disabledTabs.includes(tab)) {
@@ -26,11 +26,11 @@ const SecondaryNavComponent = ({ disabledTabs }) => {
         {tabs.map((tab, index) => (
           <li
             key={index}
-            className={`${selectedTab === index ? 'active' : ''} ${disabledTabs.includes(index) ? 'disabled' : ''
-              }`}
+            className={`${selectedTab === index ? 'active' : ''} ${
+              disabledTabs.includes(index) ? 'disabled' : ''
+            }`}
             onClick={() => {
               handleTabClick(index);
-              
             }}>
             <span>{tab}</span>
           </li>

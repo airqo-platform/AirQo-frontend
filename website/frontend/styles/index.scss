@@ -3,81 +3,85 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Serif+Text:ital@0;1&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Serif+Text:ital@0;1&family=Roboto+Mono:ital,wght@0,400;0,500;0,600;1,500;1,600&display=swap');
 
-@import "normalize";
+@import 'normalize';
 
-@import "NotificationBanner";
+@import 'NotificationBanner';
 
-@import "TopBar";
+@import 'TopBar';
 
-@import "NavTab";
+@import 'NavTab';
 
-@import "AnalyticsSection";
+@import 'AnalyticsSection';
 
-@import "ApiSection";
+@import 'ApiSection';
 
-@import "Footer";
+@import 'Footer';
 
-@import "HomePage";
+@import 'HomePage';
 
-@import "MapSection";
+@import 'MapSection';
 
-@import "GetApp";
+@import 'GetApp';
 
-@import "Hero";
+@import 'Hero';
 
-@import "Monitor";
+@import 'Monitor';
 
-@import "NewsletterSection";
+@import 'NewsletterSection';
 
-@import "CommunityPage";
+@import 'CommunityPage';
 
-@import "ResearchPage";
+@import 'ResearchPage';
 
-@import "Press";
+@import 'Press';
 
-@import "Legal";
+@import 'Legal';
 
-@import "CommunityPage";
+@import 'CommunityPage';
 
-@import "AboutUsPage";
+@import 'AboutUsPage';
 
-@import "ContactUs";
+@import 'ContactUs';
 
-@import "AfricanCitiesPage";
+@import 'AfricanCitiesPage';
 
-@import "Partners";
+@import 'Partners';
 
-@import "AirQuality";
+@import 'AirQuality';
 
-@import "Highlight";
+@import 'Highlight';
 
-@import "ExploreData";
+@import 'ExploreData';
 
-@import "GetInvolvedModal";
+@import 'GetInvolvedModal';
 
-@import "HighlightsSection";
+@import 'HighlightsSection';
 
-@import "Loadspinner";
+@import 'Loadspinner';
 
-@import "CareersPage";
+@import 'CareersPage';
 
-@import "CareersDetailPage";
+@import 'CareersDetailPage';
 
-@import "Errors";
+@import 'Errors';
 
-@import "Modal";
+@import 'Modal';
 
-@import "ImpactNumbers";
+@import 'ImpactNumbers';
 
-@import "PublicationPage";
+@import 'PublicationPage';
 
-@import "Events";
+@import 'Events';
 
-@import "Products";
+@import 'Products';
 
-@import "CleanAirPage";
+@import 'CleanAirPage';
 
-*, *::before, *::after {
+@import 'LanguageSwitcher';
+
+*,
+*::before,
+*::after {
   box-sizing: inherit;
 }
 
@@ -88,36 +92,36 @@ html {
 body {
   font-family: 'Inter', sans-serif;
   height: auto;
-  overflow-x:hidden ;
-
+  overflow-x: hidden;
 }
 
-a, a:hover{
+a,
+a:hover {
   text-decoration: none;
-  color:inherit;
+  color: inherit;
   text-decoration-color: none;
 }
 
 .Page {
   width: 100%;
   margin: 0 auto;
-  
+
   .page-wrapper {
     overflow-x: hidden !important;
   }
 }
 
-.Page-mini{
-  width:100%;
-  margin:auto;
+.Page-mini {
+  width: 100%;
+  margin: auto;
   scrollbar-width: none;
   margin-bottom: 160px;
-  .page-mini-wrapper{
+  .page-mini-wrapper {
     overflow-x: hidden;
   }
 }
 
-.cta-link .link{
+.cta-link .link {
   color: $aq-blue-4;
   font-size: 18px;
   line-height: 24px;
@@ -125,18 +129,17 @@ a, a:hover{
   text-align: center;
   opacity: 0.9;
   text-transform: capitalize;
-  &:hover{
-      cursor: pointer;
-      opacity: 1;
-      font-size: 18px + 0.2px;
+  &:hover {
+    cursor: pointer;
+    opacity: 1;
+    font-size: 18px + 0.2px;
   }
 }
 
-.arrow{
+.arrow {
   font-family: monospace;
 }
 
-img{
+img {
   pointer-events: none;
 }
-

@@ -12,7 +12,7 @@ const Table = ({ collocationDevices }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredData, setFilteredData] = useState([]);
-  const [ sortOption, setSortOption] = useState('')
+  const [sortOption, setSortOption] = useState('');
 
   const [filterOptions, setFilterOptions] = useState('all');
 
@@ -29,9 +29,12 @@ const Table = ({ collocationDevices }) => {
   let endIndex = startIndex + pageSize;
 
   useEffect(() => {
-    const filterList = collocationDevices.filter((row) =>
-      Object.values(row).join('').toLowerCase().includes(searchTerm.toLowerCase()),
-    );
+    const filterList =
+      collocationDevices &&
+      collocationDevices.length > 0 &&
+      collocationDevices.filter((row) =>
+        Object.values(row).join('').toLowerCase().includes(searchTerm.toLowerCase()),
+      );
     setFilteredData(filterList);
   }, [searchTerm, sortOption, collocationDevices]);
 
@@ -41,7 +44,8 @@ const Table = ({ collocationDevices }) => {
     endIndex = filteredData.length;
   }
 
-  const paginatedData = filteredData.slice(startIndex, endIndex);
+  const paginatedData =
+    filteredData && filteredData.length > 0 && filteredData.slice(startIndex, endIndex);
 
   const handleSearch = (searchTerm, filterOptions) => {
     setSearchTerm(searchTerm);
@@ -66,10 +70,10 @@ const Table = ({ collocationDevices }) => {
         break;
       default:
         sortedData = filteredData;
-        break
+        break;
     }
 
-    setSortOption(sortOption)
+    setSortOption(sortOption);
     setFilteredData(sortedData);
   };
 
@@ -77,10 +81,10 @@ const Table = ({ collocationDevices }) => {
     const sortedData = [...data].sort((a, b) => {
       const dateA = parseISO(a.time);
       const dateB = parseISO(b.time);
-  
+
       return order === 'asc' ? compareAsc(dateA, dateB) : compareDesc(dateA, dateB);
     });
-  
+
     return sortedData;
   };
 
@@ -88,13 +92,13 @@ const Table = ({ collocationDevices }) => {
     const sortedData = [...data].sort((a, b) => {
       const nameA = a.device || '';
       const nameB = b.device || '';
-  
+
       return order === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
     });
-  
+
     return sortedData;
   };
-  
+
   return (
     <div className='col-span-2 gap-0 pt-6 border-r border-grey-150'>
       <div className='px-6 pb-6'>
@@ -117,7 +121,7 @@ const Table = ({ collocationDevices }) => {
               <ArrowDropDownIcon />
             </div>
           </Button>
-          
+
           <div className='dropdown'>
             <Button
               tabIndex={0}

@@ -1,6 +1,6 @@
 # The AirQo Website.
 
----
+##
 
 - [Prerequisites](#prerequisites)
   - [OSX, Linux, Windows](#osx-linux-windows)
@@ -50,7 +50,7 @@ Change directory into the `website` folder of the cloned `AirQo-frontend` folder
 
 #### HomeBrew
 
-Install homebrew
+Now Install homebrew
 
     /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 

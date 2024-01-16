@@ -12,7 +12,8 @@ class AirQoUrls {
   static String get appVersion =>
       '${Config.airqoApi}/v2/view/mobile-app/version-info';
 
-  static String get measurements => '${Config.airqoApi}/v2/devices/events';
+  static String get measurements =>
+      '${Config.airqoApi}/v2/devices/readings/map';
 
   static String get emailReAuthentication =>
       '${Config.airqoApi}/v2/users/emailAuth';

@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import Alert from '@material-ui/lab/Alert';
-import { CircularLoader } from 'views/components/Loader/CircularLoader';
 import PropTypes from 'prop-types';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
-import DeleteIcon from '@material-ui/icons/DeleteOutlineOutlined';
+import EditIcon from '@material-ui/icons/EditOutlined';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { makeStyles } from '@material-ui/core/styles';
-import { createClientApi, getClientsApi, generateTokenApi } from '../../../../apis/analytics';
+import {
+  createClientApi,
+  getClientsApi,
+  updateClientApi,
+  generateTokenApi
+} from 'views/apis/analytics';
 import { useDispatch } from 'react-redux';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import DataTable from './Table';
@@ -78,7 +81,6 @@ const RegisterClient = (props) => {
         user_id: userID
       };
 
-      // Add clientIP to the data if it's provided
       if (clientIP) {
         data.ip_address = clientIP;
       }
@@ -97,6 +99,7 @@ const RegisterClient = (props) => {
         setClientName('');
         setClientIP('');
       } else {
+        onClose();
         dispatch(
           updateMainAlert({
             message: 'Client registration failed',
@@ -107,6 +110,7 @@ const RegisterClient = (props) => {
       }
     } catch (error) {
       console.error(error);
+      onClose();
       dispatch(
         updateMainAlert({
           message: 'Client registration failed',
@@ -163,27 +167,172 @@ const RegisterClient = (props) => {
   );
 };
 
+const EditClient = (props) => {
+  const dispatch = useDispatch();
+  const classes = useStyles();
+  const { open, onClose, data, onEdit } = props;
+  const [clientName, setClientName] = useState('');
+  const [clientIP, setClientIP] = useState('');
+  const [clientNameError, setClientNameError] = useState(false);
+  const [clientIPError, setClientIPError] = useState(false);
+  const client_id = data._id;
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleInitialData = () => {
+    setClientName(data.name ? data.name : '');
+    setClientIP(data.ip_address ? data.ip_address : '');
+    setClientIPError(false);
+    setClientNameError(false);
+  };
+
+  useEffect(() => {
+    handleInitialData();
+  }, [data]);
+
+  const isValidIP = (ip) => {
+    const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    return ipRegex.test(ip);
+  };
+
+  const handleSubmit = async () => {
+    if (!clientName) {
+      setClientNameError(true);
+      return;
+    }
+    if (clientIP && !isValidIP(clientIP)) {
+      setClientIPError(true);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const data = {
+        name: clientName
+      };
+
+      // Add clientIP to the data if it's provided
+      if (clientIP) {
+        data.ip_address = clientIP;
+      }
+
+      const response = await updateClientApi(data, client_id);
+      if (response.success === true) {
+        dispatch(
+          updateMainAlert({
+            message: 'Client details updated successfully',
+            show: true,
+            severity: 'success'
+          })
+        );
+        onClose();
+        onEdit();
+      } else {
+        onClose();
+        dispatch(
+          updateMainAlert({
+            message: 'Client details update failed',
+            show: true,
+            severity: 'error'
+          })
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      onClose();
+      dispatch(
+        updateMainAlert({
+          message: 'Client details update failed',
+          show: true,
+          severity: 'error'
+        })
+      );
+    }
+    setIsLoading(false);
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle className={classes.DialogTitle}>Edit Client</DialogTitle>
+      <DialogContent className={classes.DialogContent}>
+        <div style={{ marginBottom: '10px', width: '100%' }}>
+          <TextField
+            label="Client Name"
+            defaultValue={clientName}
+            variant="outlined"
+            onChange={(e) => {
+              setClientName(e.target.value);
+              setClientNameError(false);
+            }}
+            error={clientNameError}
+            helperText={clientNameError && 'Please enter a client name'}
+            fullWidth
+          />
+        </div>
+        <div style={{ width: '100%' }}>
+          <TextField
+            label="Client IP (Optional)"
+            value={clientIP}
+            variant="outlined"
+            onChange={(e) => {
+              setClientIP(e.target.value);
+              setClientIPError(false);
+            }}
+            error={clientIPError}
+            helperText={clientIPError && 'Please enter a valid client IP'}
+            fullWidth
+          />
+        </div>
+      </DialogContent>
+      <DialogActions className={classes.DialogActions}>
+        <Button
+          onClick={() => {
+            handleInitialData();
+            onClose();
+          }}>
+          Cancel
+        </Button>
+        <Button
+          color="primary"
+          variant="contained"
+          onClick={() => handleSubmit()}
+          className={classes.DialogButton}
+          disabled={isLoading}>
+          {isLoading ? <CircularProgress size={24} /> : 'Edit'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 const GenerateToken = (props) => {
   const dispatch = useDispatch();
   const { className, mappedAuth, ...rest } = props;
   const [open, setOpen] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [clientData, setClientData] = useState([]);
   const [clientStaffData, setClientStaffData] = useState([]);
   const [refresh, setRefresh] = useState(false);
   const [generated, setGenerated] = useState(false);
+  const [editData, setEditData] = useState({});
   let userID = '';
   if (mappedAuth && mappedAuth.user) {
     userID = mappedAuth.user._id;
   }
 
   useEffect(() => {
-    if (!isEmpty(mappedAuth) && mappedAuth.user) {
-      getUserDetails(userID).then((res) => {
-        setClientData(res.users[0].clients);
-      });
-    }
+    const fetchUserDetails = async () => {
+      try {
+        if (!isEmpty(mappedAuth) && mappedAuth.user) {
+          const res = await getUserDetails(userID);
+          setClientData(res.users[0].clients);
+        }
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+      }
+    };
+
+    fetchUserDetails();
   }, [refresh, mappedAuth]);
 
   useEffect(() => {
@@ -251,10 +400,10 @@ const GenerateToken = (props) => {
     }
   }, [clientData, clientStaffData]);
 
-  // future implementation
+  // TODO: future implementation
   const handleDeleteToken = async (token) => {};
 
-  // future implementation
+  // TODO: future implementation
   const handleDeleteClient = async (clientId) => {};
 
   const handleOpen = () => {
@@ -265,9 +414,19 @@ const GenerateToken = (props) => {
     setOpen(false);
   };
 
+  const handleOpenEdit = () => {
+    setOpenEdit(true);
+  };
+
+  const handleCloseEdit = () => {
+    setOpenEdit(false);
+  };
+
   return (
     <>
-      {clientData.length === 0 ? (
+      {clientData.length === 0 && isLoading ? (
+        <CircularProgress />
+      ) : clientData.length === 0 ? (
         <Card>
           <CardHeader
             title="API Access"
@@ -350,18 +509,24 @@ const GenerateToken = (props) => {
                       </Button>
                     );
                   }
+                },
+                {
+                  id: 'actions',
+                  label: 'Actions',
+                  format: (value, rowData) => {
+                    return (
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => {
+                          handleOpenEdit();
+                          setEditData(rowData);
+                        }}>
+                        <EditIcon />
+                      </Button>
+                    );
+                  }
                 }
-                // {
-                //   id: 'actions',
-                //   label: 'Actions',
-                //   format: (value, rowData) => {
-                //     return (
-                //       <Button variant="outlined" color="primary" onClick={() => {}}>
-                //         <DeleteIcon />
-                //       </Button>
-                //     );
-                //   }
-                // }
               ]}
               rows={clientData}
               loading={isLoading}
@@ -455,6 +620,12 @@ const GenerateToken = (props) => {
         onClose={handleClose}
         data={mappedAuth}
         onRegister={() => setRefresh(!refresh)}
+      />
+      <EditClient
+        open={openEdit}
+        onClose={handleCloseEdit}
+        data={editData}
+        onEdit={() => setRefresh(!refresh)}
       />
     </>
   );

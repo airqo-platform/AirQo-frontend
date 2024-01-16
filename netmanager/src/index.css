@@ -141,10 +141,26 @@ select {
 }
 
 .filter {
-  z-index: 1000;
+  z-index: 100;
   background-color: rgba(255, 255, 255, 1);
   position: absolute;
   top: 30px;
+  left: 10px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+  padding: 1px 8px;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial,
+    sans-serif;
+  font-weight: 300;
+  color: #000;
+  border-radius: 5px;
+  background-color: white;
+}
+
+.filter_1 {
+  z-index: 200;
+  background-color: rgba(255, 255, 255, 1);
+  position: absolute;
+  bottom: 30px;
   left: 10px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
   padding: 1px 8px;
@@ -343,10 +359,9 @@ label {
 
 .indicator {
   position: absolute;
-  /* center position */
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1000;
+  z-index: 100;
   bottom: 10px;
   display: flex;
   flex-wrap: wrap;
@@ -386,6 +401,7 @@ label {
 
 .indicator .hazardous {
   background-color: #81202e;
+
   border-bottom-right-radius: 5px;
   border-top-right-radius: 5px;
 }
@@ -402,12 +418,13 @@ label {
   margin: 0;
 }
 
-@media (max-width: 868px) {
+/* tablet */
+@media (max-width: 1024px) {
   .indicator {
     position: absolute;
     left: 34%;
     transform: translateX(-50%);
-    z-index: 1000;
+    z-index: 100;
     bottom: 10px;
     display: flex;
     flex-wrap: wrap;
@@ -415,6 +432,9 @@ label {
     align-items: center;
     bottom: 43px;
   }
+}
+
+@media (max-width: 868px) {
   .indicator .good {
     border-bottom-left-radius: 0;
     border-top-left-radius: 0;
