@@ -3,9 +3,9 @@
 .lang-container {
   width: 100%;
   height: auto;
-  background: linear-gradient(110deg, #f2f1f6 48.17%, #eef7ff 87.81%);
   display: flex;
   justify-content: center;
+  background: linear-gradient(110deg, #f2f1f6 48.17%, #eef7ff 87.81%);
 
   .wrapper {
     width: 100%;
@@ -120,7 +120,7 @@
   }
 
   .arrow-icon {
-    animation: arrow-animation 1s infinite;
+    animation: arrow-animation 2s infinite;
   }
 
   @media screen and (max-width: $mainBreakPoint) {
