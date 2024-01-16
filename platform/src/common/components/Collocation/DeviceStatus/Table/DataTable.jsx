@@ -74,27 +74,6 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     }
   }, []);
 
-  const handleSelectAllDevices = (e) => {
-    const allDevices = [];
-    collocationDevices &&
-      collocationDevices.length > 0 &&
-      collocationDevices.map((device) => allDevices.push(device.device_name));
-    if (e.target.checked) {
-      dispatch(addDevices(allDevices));
-    } else {
-      dispatch(removeDevices(allDevices));
-    }
-  };
-
-  const handleSelectDevice = (e, device) => {
-    const isChecked = e.target.checked;
-    if (isChecked) {
-      dispatch(addDevices([device.device_name]));
-    } else {
-      dispatch(removeDevices([device.device_name]));
-    }
-  };
-
   const openMonitorReport = async (deviceName, batchId, index) => {
     setClickedRowIndex(index);
     router.push({
@@ -210,17 +189,6 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
       >
         <thead>
           <tr className='border-b border-b-slate-300 text-black'>
-            <th scope='col' className='font-normal w-[61px] py-[10px] px-[21px]'>
-              <input
-                type='checkbox'
-                checked={
-                  collocationDevices &&
-                  collocationDevices.length > 0 &&
-                  selectedCollocateDevices.length === collocationDevices.length
-                }
-                onChange={handleSelectAllDevices}
-              />
-            </th>
             <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
               Monitor name
             </th>
@@ -262,14 +230,6 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     onFocus={() => setFocusedRowIndex(index)}
                     onBlur={() => setFocusedRowIndex(null)}
                   >
-                    <td scope='row' className='w-[61px] py-[10px] px-[21px]'>
-                      <input
-                        type='checkbox'
-                        checked={selectedCollocateDevices.includes(device.device_name)}
-                        value={device}
-                        onChange={(e) => handleSelectDevice(e, device)}
-                      />
-                    </td>
                     <td scope='row' className='w-[175px] px-4 py-3 uppercase'>
                       {device.device_name}
                     </td>
