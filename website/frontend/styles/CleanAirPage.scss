@@ -1256,6 +1256,16 @@
               }
             }
           }
+
+          .acronym-image {
+            width: 100%;
+            height: auto;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: -1rem;
+            object-fit: cover;
+            object-position: bottom;
+          }
         }
       }
 
@@ -1473,6 +1483,7 @@
           }
 
           .goals-container {
+            padding: 0 16px;
             .goals {
               gap: 20px;
               .goal {
