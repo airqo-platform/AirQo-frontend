@@ -27,13 +27,13 @@ const CleanAirAbout = () => {
       title: 'Collaboration and awareness',
       content:
         'Committed to fostering a deeper understanding, awareness and appreciation of air quality issues through evidence-informed and participatory advocacy, and knowledge sharing.',
-      imgURL: Placeholder2
+      imgURL: Placeholder3
     },
     {
       title: 'Clean air solutions for cities',
       content:
         'CLEAN-Air network is a nexus for developing tangible and contextual clean air solutions and frameworks for African cities.',
-      imgURL: Placeholder3
+      imgURL: Placeholder2
     }
   ];
 
@@ -95,7 +95,15 @@ const CleanAirAbout = () => {
           content={
             <>
               <div className="acronym-content-container">
-                <p>CLEAN-Air, is an acronym coined from</p>
+                <p>
+                  <b
+                    style={{
+                      color: '#135DFF'
+                    }}>
+                    CLEAN-Air
+                  </b>
+                  , is an acronym coined from
+                </p>
                 <h2 className="content-h">
                   “Championing Liveable urban Environments through African Networks for Air”
                 </h2>
@@ -110,8 +118,13 @@ const CleanAirAbout = () => {
                     href="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
                     target="_blank"
                     rel="noopener noreferrer">
-                    {' '}
-                    Join now
+                    <b
+                      style={{
+                        color: '#135DFF'
+                      }}>
+                      {' '}
+                      Join the network
+                    </b>
                   </a>
                 </p>
               </div>
@@ -147,7 +160,7 @@ const CleanAirAbout = () => {
         <SplitSection
           pillTitle="Membership"
           title="A Synergy for air quality in Africa"
-          content="The network comprises a diverse stakeholder landscape including research organisations, city and national governments, the private sector, development partners, and individuals who are championing the air quality agenda in African cities.<br/> 
+          content="The network comprises a diverse stakeholder landscape including research organisations, city and national governments, the private sector, development partners, and individuals who are championing the air quality agenda in African cities.<br/> <br/> 
           Are you an organization or individual interested in air quality in Africa? We welcome you to join the CLEAN-Air Network. 
         "
           imgURL={Section4}
