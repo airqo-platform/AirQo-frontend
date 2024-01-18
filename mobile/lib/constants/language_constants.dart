@@ -59,7 +59,7 @@ class Language {
       Language(
           4, Image.asset('assets/images/swahili_flag.png'), "Swahili", "sw"),
       Language(
-          5, Image.asset('assets/images/uganda_flag.jpeg'), "Luganda", "lg"),
+          5, Image.asset('assets/images/uganda_flag.png'), "Luganda", "lg"),
     ];
   }
 }
