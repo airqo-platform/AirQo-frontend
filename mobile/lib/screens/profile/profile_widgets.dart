@@ -857,7 +857,7 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
                         ? Colors.transparent
                         : CustomColors.appColorBlue,
                   ),
-                  child: Text(
+                  child: AutoSizeText(
                     AppLocalizations.of(context)!.save,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(

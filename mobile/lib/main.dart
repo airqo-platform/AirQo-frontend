@@ -3,6 +3,7 @@ import 'package:app/main_common.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/widget_service.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/custom_localisation.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -72,12 +73,17 @@ void main() async {
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
+          LgMaterialLocalizations.delegate,
+          LgCupertinoLocalizations.delegate,
+          LgWidgetsLocalizations.delegate,
+
         ],
         supportedLocales: const [
           Locale('en'), // English
           Locale('fr'), //French
           Locale('pt'), //Portuguese
           Locale('sw'), //Swahili
+          Locale('lg'), //Luganda
         ],
         home: AppCrushWidget(exception, stackTrace),
       ),
