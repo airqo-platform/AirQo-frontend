@@ -2,7 +2,6 @@
 
 import 'package:app/screens/email_link/confirm_account_details.dart';
 import 'package:app/screens/email_link/email_link_widgets.dart';
-import 'package:app/screens/profile/profile_edit_page.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:app/themes/colors.dart';
 import 'package:auto_size_text/auto_size_text.dart';

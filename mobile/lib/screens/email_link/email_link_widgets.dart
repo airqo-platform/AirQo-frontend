@@ -1,6 +1,5 @@
 import 'package:app/blocs/email_auth/email_auth_bloc.dart';
 import 'package:app/models/enum_constants.dart';
-import 'package:app/screens/email_authentication/email_auth_widgets.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/themes/app_theme.dart';
 import 'package:app/themes/colors.dart';
@@ -195,7 +194,6 @@ class SkipLinkButtons extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (context) => const HomePage(),
                     ),
-                    
                   );
                 },
                 child: const Text(
@@ -212,8 +210,6 @@ class SkipLinkButtons extends StatelessWidget {
     );
   }
 }
-
-
 
 class EmailLinkSubTitle extends StatelessWidget {
   const EmailLinkSubTitle({super.key});
