@@ -1,6 +1,5 @@
 import 'package:app/blocs/email_auth/email_auth_bloc.dart';
 import 'package:app/models/enum_constants.dart';
-import 'package:app/screens/email_authentication/email_auth_widgets.dart';
 import 'package:app/themes/app_theme.dart';
 import 'package:app/themes/colors.dart';
 import 'package:auto_size_text/auto_size_text.dart';

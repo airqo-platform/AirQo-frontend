@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:app/screens/email_link/confirm_account_details.dart';
 import 'package:app/screens/email_link/email_link_widgets.dart';
 import 'package:app/screens/profile/profile_edit_page.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
@@ -149,7 +150,7 @@ Future<dynamic> bottomSheetEmailLink(BuildContext context) async {
                         onTap: () async {
                           Navigator.push(context, MaterialPageRoute(
                             builder: (context) {
-                              return const ProfileEditPage();
+                              return const EmailLinkScreen();
                             },
                           ));
                         },
