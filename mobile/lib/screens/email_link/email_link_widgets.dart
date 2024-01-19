@@ -1,11 +1,14 @@
 import 'package:app/blocs/email_auth/email_auth_bloc.dart';
 import 'package:app/models/enum_constants.dart';
+import 'package:app/screens/email_authentication/email_auth_widgets.dart';
+import 'package:app/screens/home_page.dart';
 import 'package:app/themes/app_theme.dart';
 import 'package:app/themes/colors.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class EmailLinkActionButton extends StatelessWidget {
   const EmailLinkActionButton({
@@ -88,6 +91,49 @@ class EmailLinkSkipButton extends StatelessWidget {
   }
 }
 
+class EmailLinkErrorMessage extends StatelessWidget {
+  const EmailLinkErrorMessage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<EmailAuthBloc, EmailAuthState>(
+      builder: (context, state) {
+        if (state.errorMessage.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 16),
+          child: SizedBox(
+            child: Row(
+              children: [
+                SvgPicture.asset(
+                  'assets/icon/error_info_icon.svg',
+                ),
+                const SizedBox(
+                  width: 5,
+                ),
+                Expanded(
+                  child: AutoSizeText(
+                    'Your account is already linked',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: CustomColors.appColorInvalid,
+                          fontSize: 14,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class EmailLinkTitle extends StatelessWidget {
   const EmailLinkTitle({super.key});
 
@@ -123,6 +169,51 @@ class EmailLinkTitle extends StatelessWidget {
     );
   }
 }
+
+class SkipLinkButtons extends StatelessWidget {
+  const SkipLinkButtons({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<EmailAuthBloc, EmailAuthState>(
+      builder: (context, state) {
+        if (state.status == AuthenticationStatus.success ||
+            context.read<EmailAuthBloc>().state.authProcedure !=
+                AuthProcedure.signup) {
+          return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Column(
+            children: [
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const HomePage(),
+                    ),
+                    
+                  );
+                },
+                child: const Text(
+                  'Skip',
+                  style: TextStyle(
+                    color: Colors.blue, // Customize the color as needed
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+
 
 class EmailLinkSubTitle extends StatelessWidget {
   const EmailLinkSubTitle({super.key});

@@ -14,7 +14,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../on_boarding/on_boarding_widgets.dart';
-import '../email_authentication/email_auth_widgets.dart';
 import '../email_authentication/email_verification_screen.dart';
 
 class _EmailVerifyWidget extends StatefulWidget {
@@ -116,8 +115,7 @@ class _EmailAuthWidgetState<T extends _EmailVerifyWidget> extends State<T> {
                     ),
                   ),
                 ),
-                const EmailAuthErrorMessage(),
-                const EmailAuthSwitchButton(),
+                const EmailLinkErrorMessage(),
                 const Spacer(),
                 NextButton(
                   buttonColor: emailAddress.isValidEmail()
@@ -150,7 +148,7 @@ class _EmailAuthWidgetState<T extends _EmailVerifyWidget> extends State<T> {
                 ),
                 Visibility(
                   visible: !_keyboardVisible,
-                  child: const EmailAuthButtons(),
+                  child: const SkipLinkButtons(),
                 ),
               ],
             ),
