@@ -15,6 +15,7 @@ import GoogleplayBtn from 'assets/svg/android_play_store.svg';
 import QR_code from 'assets/img/QR_code.jpg';
 import ManDownloadingApp from 'assets/img/explore/man-download-app.png';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useTranslation } from 'react-i18next';
 
 export const PageWithImageLayout = ({ imgPath, children }) => {
   const navigate = useNavigate();
@@ -100,23 +101,21 @@ export const ExploreApp = () => (
 
 const ExploreData = () => {
   useInitScrollTop();
+  const { t } = useTranslation();
   return (
     <ExploreDataModal>
       <div className="ExploreData">
         <div className="left-section">
           <div className="nav">
             <Link to="/">
-              <h3>Home</h3>
+              <h3>{t('exploreData.leftSection.breadCrumb.home')}</h3>
             </Link>
             <ArrowForwardIosIcon className="icon" />
-            <h3 className="blur-text">Explore Data</h3>
+            <h3 className="blur-text">{t('exploreData.leftSection.breadCrumb.explore')}</h3>
           </div>
           <div className="content">
-            <h2>Visualise air quality information.</h2>
-            <p>
-              Access real-time and historic air quality information across Africa through our
-              easy-to-use air quality analytics dashboard or mobile app.
-            </p>
+            <h2>{t('exploreData.leftSection.title')}</h2>
+            <p>{t('exploreData.leftSection.subText')}</p>
           </div>
         </div>
         <div className="right-section">
@@ -132,9 +131,11 @@ const ExploreData = () => {
                   <MobileApp />
                 </div>
               </div>
-              <h6>Discover the quality of air you are breathing.</h6>
+              <h6>{t('exploreData.rightSection.mobileApp.title')}</h6>
               <Link to="/explore-data/download-apps">
-                <button className="nav-button">Download App</button>
+                <button className="nav-button">
+                  {t('exploreData.rightSection.mobileApp.btnText')}
+                </button>
               </Link>
             </div>
             <div className="nav-option">
@@ -143,9 +144,11 @@ const ExploreData = () => {
                   <AirqualityPlatform />
                 </div>
               </div>
-              <h6>An interactive air quality analytics platform</h6>
+              <h6>{t('exploreData.rightSection.analytics.title')}</h6>
               <Link to={`${NETMANAGER_URL}`} target="_blank" rel="noopener noreferrer">
-                <button className="nav-button">Air Quality Analytics</button>
+                <button className="nav-button">
+                  {t('exploreData.rightSection.analytics.btnText')}
+                </button>
               </Link>
             </div>
           </div>

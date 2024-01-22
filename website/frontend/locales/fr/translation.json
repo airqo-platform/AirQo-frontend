@@ -98,7 +98,10 @@
       }
     },
     "banner": {
-      "breadCrumb": "<0>Accueil</0>   >  <2 style={{ opacity : '0.5' }}>Impliquez-vous</2>",
+      "breadCrumb": {
+        "home": "Accueil",
+        "getInvolved": "S'impliquer"
+      },
       "title": "Comment aimeriez-vous <br />     vous engager avec nous ?",
       "subText": "Accédez à des informations historiques et en temps réel sur la qualité de l'air à travers l'Afrique grâce à notre tableau de bord d'analyse de la qualité de l'air facile à utiliser."
     },
@@ -106,6 +109,26 @@
       "title": "Consultez votre messagerie pour plus de détails.",
       "subText": "Accédez à des informations historiques et en temps réel sur la qualité de l'air à travers l'Afrique grâce à notre tableau de bord d'analyse de la qualité de l'air facile à utiliser.",
       "cta": "Retour à l'accueil"
+    }
+  },
+  "exploreData": {
+    "leftSection": {
+      "breadCrumb": {
+        "home": "Accueil",
+        "explore": "Explorer les données"
+      },
+      "title": "Visualisez les informations sur la qualité de l'air.",
+      "subText": "Accédez à des informations historiques et en temps réel sur la qualité de l'air à travers l'Afrique grâce à notre tableau de bord d'analyse de la qualité de l'air facile à utiliser ou à notre application mobile."
+    },
+    "rightSection": {
+      "mobileApp": {
+        "title": "Découvrez la qualité de l'air que vous respirez.",
+        "btnText": "Télécharger l'application"
+      },
+      "analytics": {
+        "title": "Une plateforme interactive d'analyse de la qualité de l'air",
+        "btnText": "Analyse de la qualité de l'air"
+      }
     }
   },
   "homepage": {

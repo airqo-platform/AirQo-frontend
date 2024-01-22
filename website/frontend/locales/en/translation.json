@@ -98,7 +98,10 @@
       }
     },
     "banner": {
-      "breadCrumb": "<0>Home</0> <2 className='icon' />  <3 style={{ opacity: '0.5' }}>Get Involved</3>",
+      "breadCrumb": {
+        "home": "Home",
+        "getInvolved": "Get Involved"
+      },
       "title": "How would you like to <br />      engage with us?",
       "subText": "Access real-time and historic air quality information across Africa through our    easy-to-use air quality analytics dashboard"
     },
@@ -106,6 +109,26 @@
       "title": "Check your email for more details.",
       "subText": "Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard",
       "cta": "Back Home"
+    }
+  },
+  "exploreData": {
+    "leftSection": {
+      "breadCrumb": {
+        "home": "Home",
+        "explore": "Explore Data"
+      },
+      "title": "Visualise air quality information.",
+      "subText": "Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard or mobile app."
+    },
+    "rightSection": {
+      "mobileApp": {
+        "title": "Discover the quality of air you are breathing.",
+        "btnText": "Download App"
+      },
+      "analytics": {
+        "title": "An interactive air quality analytics platform",
+        "btnText": "Air Quality Analytics"
+      }
     }
   },
   "homepage": {

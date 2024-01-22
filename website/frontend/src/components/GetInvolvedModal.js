@@ -189,11 +189,11 @@ const GetInvolvedRegistryContent = () => {
       <div className="banner">
         <div>
           <div className="section-nav">
-            <Trans i18nKey="getInvolvedModal.banner.breadCrumb">
-              <h5>Home</h5>
-              <ArrowForwardIosIcon className="icon" />
-              <h5 style={{ opacity: '0.5' }}>Get Involved</h5>
-            </Trans>
+            <h5>{t('getInvolvedModal.banner.breadCrumb.home')}</h5>
+            <ArrowForwardIosIcon className="icon" />
+            <h5 style={{ opacity: '0.5' }}>
+              {t('getInvolvedModal.banner.breadCrumb.getInvolved')}
+            </h5>
           </div>
           <h1 className="section-title">
             <Trans i18nKey="getInvolvedModal.banner.title">
