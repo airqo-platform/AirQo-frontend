@@ -75,10 +75,10 @@ const LanguageSwitcher = () => {
         </div>
         <div className="clean-air-link">
           <p className="desktop-view">
-            Join the CLEAN-AIR Network
+            {t('topBanners.languageSwitcher.cleanAirText')}
             <a href="/clean-air">
               <span>
-                Learn more{' '}
+                {t('topBanners.languageSwitcher.linkText')}
                 <ArrowRightAltIcon
                   className="arrow-icon"
                   sx={{
@@ -95,7 +95,7 @@ const LanguageSwitcher = () => {
           </p>
           <p className="mobile-view">
             <a href="/clean-air">
-              <span>CLEAN-AIR Network</span>
+              <span>{t('topBanners.languageSwitcher.mobileViewLinkText')}</span>
             </a>
           </p>
         </div>

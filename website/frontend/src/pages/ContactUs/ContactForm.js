@@ -64,7 +64,7 @@ const ContactForm = () => {
           <div className="checkpoint">
             <input type="checkbox" required />
             <label>
-              <Trans i18nKey="bout.contactUs.form.terms">
+              <Trans i18nKey="about.contactUs.form.terms">
                 I agree to the <Link to="/terms">Terms of Service</Link> and{' '}
                 <Link to="/privacy">Privacy Policy</Link>
               </Trans>

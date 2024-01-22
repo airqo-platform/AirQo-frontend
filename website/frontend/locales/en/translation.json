@@ -1,4 +1,11 @@
 {
+  "topBanners": {
+    "languageSwitcher": {
+      "cleanAirText": "Join the CLEAN-AIR Network",
+      "linkText": "Learn more",
+      "mobileViewLinkText": "CLEAN-AIR Network"
+    }
+  },
   "navbar": {
     "products": {
       "title": "Products",
@@ -420,7 +427,6 @@
       }
     }
   },
-
   "about": {
     "aboutUs": {
       "header": {
@@ -539,7 +545,7 @@
         "name": "Full name",
         "email": "Email address",
         "message": "Your message*",
-        "terms": "I agree to the <0>Terms of Service</0> and <1>Privacy Policy</1>",
+        "terms": "I agree to the <1>Terms of Service</1> and <1>Privacy Policy</1>",
         "cta": "Send"
       },
       "feedBack": {

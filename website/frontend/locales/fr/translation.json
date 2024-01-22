@@ -1,4 +1,11 @@
 {
+  "topBanners": {
+    "languageSwitcher": {
+      "cleanAirText": "Rejoignez le réseau CLEAN-AIR",
+      "linkText": "En savoir plus",
+      "mobileViewLinkText": "Réseau CLEAN-AIR"
+    }
+  },
   "navbar": {
     "products": {
       "title": "Produits",
@@ -417,6 +424,220 @@
       "bottomBtn": {
         "title": "Devenez un champion de la qualité de l’air.",
         "cta": "Impliquez-vous"
+      }
+    }
+  },
+  "about": {
+    "aboutUs": {
+      "header": {
+        "pageTitle": "À propos",
+        "subnav": {
+          "vision": "Notre vision",
+          "story": "Notre histoire",
+          "mission": "Notre mission",
+          "values": "Nos valeurs",
+          "team": "Notre équipe"
+        }
+      },
+      "vision": {
+        "text": "Chez AirQo, nous donnons aux communautés africaines des données précises, hyperlocales et opportunes sur la qualité de l'air afin de stimuler des actions d'atténuation de la pollution atmosphérique."
+      },
+      "banner": {
+        "title": "Notre vision",
+        "subText": "Un air pur pour toutes les villes africaines."
+      },
+      "story": {
+        "title": "Notre histoire",
+        "paragraphs": {
+          "first": "Nous avons pour mission de donner aux communautés africaines le pouvoir de s'informer sur la qualité de l'air qu'elles respirent.",
+          "second": "AirQo a été fondée en 2015 à l'Université Makerere pour combler les lacunes de la surveillance de la qualité de l'air en Afrique. Nos moniteurs de qualité de l'air à faible coût sont conçus pour s'adapter à l'infrastructure africaine, offrant des solutions locales aux défis de la pollution atmosphérique en Afrique.",
+          "third": "Ils fournissent des données précises, hyperlocales et opportunes, prouvant l'ampleur et l'échelle de la pollution atmosphérique sur le continent.",
+          "fourth": "En donnant aux citoyens des informations sur la qualité de l'air, nous espérons inspirer le changement et l'action parmi les citoyens Africains pour prendre des mesures efficaces afin de réduire la pollution atmosphérique."
+        }
+      },
+      "mission": {
+        "text": "Notre mission est de collecter, d'analyser et de prévoir efficacement les données de qualité de l'air conformément aux normes internationales et de travailler avec des partenaires pour réduire la pollution atmosphérique et sensibiliser ses effets dans les villes africaines."
+      },
+      "values": {
+        "title": "Nos valeurs",
+        "subSection1": {
+          "title": "Focus citoyen",
+          "subText": "Chez AirQo, nous pensons que les principaux bénéficiaires d'un air pur sont les citoyens et l'impact positif qu'il peut avoir sur leur santé et leur bien-être."
+        },
+        "subSection2": {
+          "title": "Précision",
+          "subText": "Nous convertissons les données des capteurs à faible coût en une mesure fiable de la qualité de l'air, rendant ainsi notre réseau et nos modèles aussi précis que possible."
+        },
+        "subSection3": {
+          "title": "Collaboration et ouverture",
+          "subText": "Afin de maximiser notre impact, nous collaborons en partageant nos données via des partenariats."
+        },
+        "subSection4": {
+          "title": "Investissement dans les personnes",
+          "subText": "Nous travaillons dans un domaine en évolution rapide avec des améliorations technologiques continues. Nous recrutons les meilleures équipes et nous engageons également dans leur développement professionnel et leur formation continus."
+        }
+      },
+      "team": {
+        "title": "Rencontrez l'équipe",
+        "subText": "Voici notre équipe, une communauté d'individus passionnés qui travaillent dur pour combler le fossé de la surveillance de la qualité de l'air en Afrique.",
+        "cta": "Rejoignez l'équipe"
+      },
+      "board": {
+        "title": "Rencontrez le Conseil d'Administration",
+        "subText": "Une équipe d'experts enthousiastes qui offrent des conseils pour améliorer notre croissance et la réalisation de nos objectifs."
+      },
+      "partners": {
+        "title": "Nos partenaires",
+        "subText": "Avec nos partenaires, nous résolvons les grands défis complexes de la surveillance de la qualité de l'air en Afrique. Nous fournissons des données de qualité de l'air indispensables aux gouvernements et aux individus du continent pour faciliter les changements politiques qui combattent la pollution atmosphérique.",
+        "cta": "Devenez partenaire",
+        "toggleButtons": {
+          "showMore": "Voir plus",
+          "showLess": "Voir moins"
+        }
+      }
+    },
+    "careers": {
+      "header": {
+        "breadCrumb": "Carrères > Bienvenue chez AirQo",
+        "title": "Rejoignez notre équipe",
+        "subText": "Faites partie d'une équipe pionnière de la surveillance de la qualité de l'air en Afrique. Ensemble, nous travaillons avec passion pour notre vision d'un air pur pour toutes les villes africaines."
+      },
+      "categories": {
+        "label": "Catégories",
+        "btnText": "Voir les postes vacants",
+        "noListing": "Nous n'avons actuellement aucun poste vacant.",
+        "selfIntro": {
+          "text": "Vous ne trouvez pas de poste qui vous correspond parfaitement ? <br /> Présentez-vous ici",
+          "cta": "careers@airqo.net"
+        }
+      },
+      "careerDetails": {
+        "noListing": "Offre d'emploi introuvable ou fermée.",
+        "cta": "Appliquer"
+      }
+    },
+    "contactUs": {
+      "leftSection": {
+        "title": "Contactez-nous",
+        "subTitle": "Université Makerere",
+        "subText": "Centre des Systèmes Logiciels, Bloc B, Niveau 3, Faculté d'Informatique et de Sciences de l'Information, Plot 56 University Pool Road. Kampala, Ouganda",
+        "cta": "info@airqo.net"
+      },
+      "cards": {
+        "first": {
+          "title": "Outils de Qualité de l'Air",
+          "subText": "J'ai une question sur"
+        },
+        "second": {
+          "title": "Données sur la Qualité de l'Air",
+          "subText": "J'ai une question sur"
+        },
+        "third": {
+          "title": "Feedback",
+          "subText": "J'ai quelques"
+        },
+        "fourth": {
+          "title": "Question générale",
+          "subText": "J'ai une"
+        }
+      },
+      "form": {
+        "name": "Nom complet",
+        "email": "Adresse email",
+        "message": "Votre message*",
+        "terms": "J’accepte les <1>Conditions d’utilisation</1> et <1>Politique de confidentialité</1>",
+        "cta": "Envoyer"
+      },
+      "feedBack": {
+        "text": "Merci de nous contacter. <br /> Nous vous répondrons dans les meilleurs délais!",
+        "cta": "Retour à l'accueil"
+      }
+    },
+    "events": {
+      "header": {
+        "title": "Événements AirQo",
+        "subText": "Faire progresser la gestion de la qualité de l'air dans les villes africaines",
+        "time": {
+          "text": "Toute la journée"
+        },
+        "buttons": {
+          "btn1": {
+            "text": "En savoir plus"
+          },
+          "btn2": {
+            "text": "S'inscrire"
+          }
+        }
+      },
+      "navTabs": {
+        "upcoming": "événements à venir",
+        "past": "événements passés"
+      },
+      "eventCard": {
+        "cta": { "text": "En savoir plus" }
+      },
+      "eventsDetails": {
+        "header": {
+          "breadCrumb": "Événements"
+        },
+        "eventBody": {
+          "time": {
+            "title": "Détails de l'événement",
+            "time": "Toute la journée"
+          },
+          "register": {
+            "btnText": "S'inscrire"
+          },
+          "program": {
+            "title": "Programme de l'événement"
+          },
+          "inquiry_resources": {
+            "title1": "Pour toute question ou précision :",
+            "title2": "Accédez aux ressources de l'événement ici :"
+          }
+        }
+      },
+      "noEvents": "Aucun événement n'est actuellement prévu",
+      "cta": {
+        "showMore": "Voir plus",
+        "showLess": "Voir moins"
+      }
+    },
+    "press": {
+      "header": {
+        "title": "Dans la presse",
+        "subText": "Des articles sur AirQo que nous pensons que vous aimerez"
+      },
+      "article": {
+        "btnText": "Lire l'article"
+      },
+      "buttons": {
+        "showMore": "Voir plus",
+        "showLess": "Voir moins"
+      }
+    },
+    "publications": {
+      "header": {
+        "title": "Ressources",
+        "subText": "Découvrez notre dernière collection de ressources"
+      },
+      "subNav": {
+        "research": "Publications de recherche",
+        "reports": "Rapports techniques et documents de politique",
+        "guides": "Guides et manuels"
+      },
+      "reportCard": {
+        "authors": {
+          "author1": "Créé par",
+          "author2": {
+            "text": "Soutenu par",
+            "subText": "AirQo et l'Université Makerere"
+          }
+        },
+        "resourceLinks": {
+          "linkText": "Lire plus",
+          "downloadLinkText": "Télécharger"
+        }
       }
     }
   },
