@@ -16,11 +16,13 @@ import Page from '../Page';
 import { useDispatch } from 'react-redux';
 import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
 import SEO from 'utilities/seo';
+import { useTranslation, Trans } from 'react-i18next';
 
 const CommunityPage = () => {
   useInitScrollTop();
   const dispatch = useDispatch();
   const showModal = () => dispatch(showGetInvolvedModal(true));
+  const { t } = useTranslation();
   return (
     <Page>
       <div className="CommunityPage">
@@ -33,15 +35,12 @@ const CommunityPage = () => {
         <div className="page-container">
           <div className="hero">
             <div className="header-1">
-              <h6>Solutions</h6>
+              <h6>{t('solutions.communities.header.breadCrumb')}</h6>
               <ArrowForwardIosIcon className="arrow-forward" />
-              <h6>For Communities</h6>
+              <h6>{t('solutions.communities.header.nextCrumb')}</h6>
             </div>
-            <h1 className="header-2">For Communities</h1>
-            <h3 className="header-3">
-              We harness the value that comes with bringing together community members passionate
-              about clean air and a healthy environment.
-            </h3>
+            <h1 className="header-2">{t('solutions.communities.header.title')}</h1>
+            <h3 className="header-3">{t('solutions.communities.header.subText')}</h3>
           </div>
 
           <div className="community_wrapper">
@@ -56,19 +55,11 @@ const CommunityPage = () => {
                       <CommunityStar />
                     </div>
 
-                    <h1>AirQommunity champions</h1>
+                    <h1>{t('solutions.communities.section1.title')}</h1>
                   </div>
 
-                  <p>
-                    AirQommunity champions and ambassadors are individuals who are part of a growing
-                    network of change makers dedicated to improving air quality at the grassroots
-                    level.
-                  </p>
-                  <p>
-                    They use air quality data to create positive change in the fight against air
-                    inequality while contributing insights and ideas on major issues and potential
-                    solutions to air quality challenges in their communities.
-                  </p>
+                  <p>{t('solutions.communities.section1.paragraph1')}</p>
+                  <p>{t('solutions.communities.section1.paragraph2')}</p>
                 </div>
                 <div className="img-stack">
                   <div className="stack-1">
@@ -86,19 +77,18 @@ const CommunityPage = () => {
             <div className="strip">
               <div className="left-strip">
                 <span>
-                  <h3>300</h3>
+                  <h3>{t('solutions.communities.strip.leftStrip.number')}</h3>
                   <AirQoArrowLeft className="left-strip-arrow" />
                 </span>
-                <h3>AirQommunity champions</h3>
+                <h3>{t('solutions.communities.strip.leftStrip.title')}</h3>
               </div>
               <div className="right-strip">
                 <h3>
-                  Amina, one of our air quality champions — helping raise awareness about air
-                  pollution in her community through our digital technologies.{' '}
+                  {t('solutions.communities.strip.rightStrip.paragraph')}
                   <a
                     href="https://blog.airqo.net/helping-communities-combat-air-pollution-through-digital-technologies-6a5924a1e1e"
                     target="_blank">
-                    <u>Read story</u>
+                    <u>{t('solutions.communities.strip.rightStrip.cta')}</u>
                   </a>
                 </h3>
               </div>
@@ -107,18 +97,9 @@ const CommunityPage = () => {
             <div className="section-1">
               <div className="layer-1">
                 <div className="text">
-                  <h1>Facilitating access to air quality information</h1>
-                  <p>
-                    Access to air quality data is one of the biggest challenges in tackling air
-                    pollution in Africa. We close the air quality data gaps by training and giving
-                    free access to real-time data on air quality across Africa, from our open-air
-                    quality monitoring platform.
-                  </p>
-                  <p>
-                    Through building and ensuring access to digital platforms that help us know the
-                    pattern or behavior of air quality, we are facilitating evidence-based
-                    decision-making in air quality.
-                  </p>
+                  <h1>{t('solutions.communities.section2.title')}</h1>
+                  <p>{t('solutions.communities.section2.paragraphs1')}</p>
+                  <p>{t('solutions.communities.section2.paragraphs2')}</p>
                 </div>
                 <div className="img-stack">
                   <div className="stack-1">
@@ -135,19 +116,17 @@ const CommunityPage = () => {
 
             <div className="lower-banner">
               <img src={AirQoQuotes} />
-              <h2>
-                We advocate for road safety and environmental protection from pollution associated
-                with the transport industry, and depend a lot on the AirQo platform to get air
-                quality data in order to extend air quality education to the communities.
-              </h2>
-              <h3>Michael Wanyama</h3>
-              <h6>Team Lead on AutoSafety</h6>
+              <h2>{t('solutions.communities.lowerBanner.text')}</h2>
+              <h3>{t('solutions.communities.lowerBanner.author')}</h3>
+              <h6>{t('solutions.communities.lowerBanner.role')}</h6>
             </div>
 
             <section className="bottom-hero-section">
-              <h3>Become an air quality champion.</h3>
+              <h3>{t('solutions.communities.bottomBtn.title')}</h3>
               <a href="#" onClick={showModal} className="section-link">
-                <span>Get involved {'-->'}</span>
+                <span>
+                  {t('solutions.communities.bottomBtn.cta')} {'-->'}
+                </span>
               </a>
             </section>
           </div>

@@ -381,6 +381,43 @@
         "team": "AirQo",
         "cta": "Read More"
       }
+    },
+    "communities": {
+      "header": {
+        "breadCrumb": "Solutions",
+        "nextCrumb": "For Communities",
+        "title": "For Communities",
+        "subText": "We harness the value that comes with bringing together community members passionate about clean air and a healthy environment."
+      },
+      "section1": {
+        "title": "AirQommunity champions",
+        "paragraph1": "AirQommunity champions and ambassadors are individuals who are part of a growing network of change makers dedicated to improving air quality at the grassroots level.",
+        "paragraph2": "They use air quality data to create positive change in the fight against air inequality while contributing insights and ideas on major issues and potential solutions to air quality challenges in their communities."
+      },
+      "strip": {
+        "leftStrip": {
+          "number": "300",
+          "title": "AirQommunity champions"
+        },
+        "rightStrip": {
+          "paragraph": "Amina, one of our air quality champions — helping raise awareness about air pollution in her community through our digital technologies.",
+          "cta": "Read story"
+        }
+      },
+      "section2": {
+        "title": "Facilitating access to air quality information",
+        "paragraphs1": "Access to air quality data is one of the biggest challenges in tackling air pollution in Africa. We close the air quality data gaps by training and giving free access to real-time data on air quality across Africa, from our open-air quality monitoring platform.",
+        "paragraphs2": "Through building and ensuring access to digital platforms that help us know the pattern or behavior of air quality, we are facilitating evidence-based decision-making in air quality."
+      },
+      "lowerBanner": {
+        "text": "We advocate for road safety and environmental protection from pollution associated with the transport industry, and depend a lot on the AirQo platform to get air quality data in order to extend air quality education to the communities.",
+        "author": "Michael Wanyama",
+        "role": "Team Lead on AutoSafety"
+      },
+      "bottomBtn": {
+        "title": "Become an air quality champion.",
+        "cta": "Get involved"
+      }
     }
   },
   "footer": {

@@ -381,6 +381,43 @@
         "team": "AirQo",
         "cta": "Lire la suite"
       }
+    },
+    "communities": {
+      "header": {
+        "breadCrumb": "Solutions",
+        "nextCrumb": "Pour les collectivités",
+        "title": "Pour les collectivités",
+        "subText": "Nous exploitons la valeur qui accompagne le fait de rassembler des membres de la communauté passionnés par l’air pur et un environnement sain."
+      },
+      "section1": {
+        "title": "Champions d’AirQommunity",
+        "paragraph1": "Les champions et ambassadeurs d’AirQommunity sont des personnes qui font partie d’un réseau croissant d’acteurs du changement qui se consacrent à l’amélioration de la qualité de l’air au niveau local.",
+        "paragraph2": "Ils utilisent les données sur la qualité de l’air pour créer des changements positifs dans la lutte contre l’inégalité de l’air tout en apportant des idées et des idées sur les principaux problèmes et les solutions potentielles aux défis de la qualité de l’air dans leurs communautés."
+      },
+      "strip": {
+        "leftStrip": {
+          "number": "300",
+          "title": "Champions de la communauté AirQ"
+        },
+        "rightStrip": {
+          "paragraph": "Amina, l'une de nos championnes de la qualité de l'air, contribue à sensibiliser sa communauté à la pollution de l'air grâce à nos technologies numériques.",
+          "cta": "Lire l'histoire"
+        }
+      },
+      "section2": {
+        "title": "Faciliter l’accès à l’information sur la qualité de l’air",
+        "paragraphs1": "L’accès aux données sur la qualité de l’air est l’un des plus grands défis de la lutte contre la pollution de l’air en Afrique. Nous comblons les lacunes en matière de données sur la qualité de l’air en formant et en donnant un accès gratuit aux données en temps réel sur la qualité de l’air à travers l’Afrique, à partir de notre plateforme de surveillance de la qualité à l’air libre.",
+        "paragraphs2": "En créant et en garantissant l’accès à des plateformes numériques qui nous aident à connaître les modèles ou les comportements de la qualité de l’air, nous facilitons la prise de décisions fondées sur des données probantes en matière de qualité de l’air."
+      },
+      "lowerBanner": {
+        "text": "Nous plaidons en faveur de la sécurité routière et de la protection de l’environnement contre la pollution associée à l’industrie des transports, et nous dépendons beaucoup de la plateforme AirQo pour obtenir des données sur la qualité de l’air afin d’étendre l’éducation à la qualité de l’air aux communautés.",
+        "author": "Michael Wanyama",
+        "role": "Chef d’équipe sur la sécurité automobile"
+      },
+      "bottomBtn": {
+        "title": "Devenez un champion de la qualité de l’air.",
+        "cta": "Impliquez-vous"
+      }
     }
   },
   "footer": {
