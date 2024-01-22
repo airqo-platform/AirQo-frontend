@@ -12,9 +12,11 @@ import Partner2 from 'assets/img/cleanAir/partners-sec2.png';
 import Partner3 from 'assets/img/cleanAir/partners-sec3.png';
 import Partner4 from 'assets/img/cleanAir/partners-sec4.png';
 import useWindowSize from 'utilities/customHooks';
+import { useTranslation, Trans } from 'react-i18next';
 
 const CleanAirPartners = () => {
   useInitScrollTop();
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const partnersData = usePartnersData();
@@ -83,15 +85,18 @@ const CleanAirPartners = () => {
         description="Meet the partners of CLEAN-Air Africa Network, a diverse group of organizations and individuals dedicated to improving air quality across Africa. Join us in our mission to foster innovative air quality solutions and effective air quality management strategies."
       />
 
+      {/* section 1 */}
       <div className="partners">
         <div className="partners-wrapper">
           <p className="partners-intro">
-            The CLEAN-Air Network is a multi-regional network, strengthening cross-regional
-            collaborations and partnerships to enable collective learning and knowledge sharing.
-            <br />
-            <br />
-            We have a growing list of partners from diverse disciplines across different parts of
-            the world, reflecting the multidisciplinarity of tackling urban air pollution.
+            <Trans i18nKey="cleanAirSite.membership.section1">
+              The CLEAN-Air Network is a multi-regional network, strengthening cross-regional
+              collaborations and partnerships to enable collective learning and knowledge sharing.
+              <br />
+              <br />
+              We have a growing list of partners from diverse disciplines across different parts of
+              the world, reflecting the multidisciplinarity of tackling urban air pollution.
+            </Trans>
           </p>
         </div>
       </div>
@@ -104,23 +109,13 @@ const CleanAirPartners = () => {
         <div className="partners">
           <div className="partners-wrapper">
             <h2 className="extra-content">
-              Leveraging the unique expertise and resources of implementing partners to advance
-              capacity for air quality management in Africa.
+              {t('cleanAirSite.membership.implementingPartners.intro')}
             </h2>
           </div>
         </div>
 
         <SplitSection
-          content="  <p
-            style={{
-              color: '#353E52',
-              fontSize: '24px',
-              lineHeight: '32px',
-              fontWeight: 400,
-              fontStyle: 'normal'
-            }}>
-            Implementing partners have active interest in air quality work in Africa, have personnel with primary roles in air quality, organize and host engagement activities, participate in CLEAN-Air Network annual meetings and may provide logistical/or funding support to partners.
-          </p>"
+          content={t('cleanAirSite.membership.implementingPartners.subText')}
           showButton={false}
           imgURL={Partner1}
           bgColor="#FFFFFF"
@@ -152,14 +147,14 @@ const CleanAirPartners = () => {
                   <button
                     className="partners-toggle-button"
                     onClick={() => showMoreItems(setItemsToShow, 8)}>
-                    Show More
+                    {t('cleanAirSite.cta.showMore')}
                   </button>
                 )}
                 {itemsToShow > 8 && (
                   <button
                     className="partners-toggle-button"
                     onClick={() => showLessItems(setItemsToShow, 8, 8)}>
-                    Show Less
+                    {t('cleanAirSite.cta.showLess')}
                   </button>
                 )}
               </div>
@@ -175,26 +170,12 @@ const CleanAirPartners = () => {
       <div>
         <div className="partners">
           <div className="partners-wrapper">
-            <h2 className="extra-content ">
-              Effective air quality management rooted in evidence-informed action anchors on an
-              enabling policy environment.
-            </h2>
+            <h2 className="extra-content ">{t('cleanAirSite.membership.policyPartners.intro')}</h2>
           </div>
         </div>
 
         <SplitSection
-          content="
-          <p
-            style={{
-              color: '#353E52',
-              fontSize: '24px',
-              lineHeight: '32px',
-              fontWeight: 400,
-              fontStyle: 'normal'
-            }}>
-            The policy forum provides a platform for engagement for African cities and national governments interested in developing and implementing an air quality program.
-        </p>
-        "
+          content={t('cleanAirSite.membership.policyPartners.subText')}
           showButton={false}
           imgURL={Partner2}
           bgColor="#FFFFFF"
@@ -220,14 +201,14 @@ const CleanAirPartners = () => {
                     <button
                       className="partners-toggle-button"
                       onClick={() => showMoreItems(setItemsToShowPolicy, 8)}>
-                      Show More
+                      {t('cleanAirSite.cta.showMore')}
                     </button>
                   )}
                   {itemsToShowPolicy > 8 && (
                     <button
                       className="partners-toggle-button"
                       onClick={() => showLessItems(setItemsToShowPolicy, 8, 8)}>
-                      Show Less
+                      {t('cleanAirSite.cta.showLess')}
                     </button>
                   )}
                 </div>
@@ -244,26 +225,12 @@ const CleanAirPartners = () => {
       <div>
         <div className="partners">
           <div className="partners-wrapper">
-            <h2 className="extra-content ">
-              Facilitating private sector-led collaborations for a holistic and sustainable model
-              for tackling air pollution
-            </h2>
+            <h2 className="extra-content ">{t('cleanAirSite.membership.privateSector.intro')}</h2>
           </div>
         </div>
 
         <SplitSection
-          content="
-          <p
-            style={{
-              color: '#353E52',
-              fontSize: '24px',
-              lineHeight: '32px',
-              fontWeight: 400,
-              fontStyle: 'normal'
-            }}>
-            The private sector forum is a platform for engagement with the private sector players interested in contributing to advancing the air quality agenda. Private sector includes regulated industries, commercial media houses, and any private sector entity operating in Africa. 
-        </p>
-        "
+          content={t('cleanAirSite.membership.privateSector.subText')}
           showButton={false}
           imgURL={Partner4}
           bgColor="#FFFFFF"
@@ -314,28 +281,13 @@ const CleanAirPartners = () => {
         <div className="partners">
           <div className="partners-wrapper">
             <h2 className="extra-content ">
-              Leveraging international collaborations for experience sharing and knowledge exchange
-              on urban air pollution as a global phenomenon.
+              {t('cleanAirSite.membership.supportingPartners.intro')}
             </h2>
           </div>
         </div>
 
         <SplitSection
-          content="<p
-            style={{
-              color: '#353E52',
-              fontSize: '24px',
-              lineHeight: '32px',
-              fontWeight: 400,
-              fontStyle: 'normal'
-            }}>
-            The CLEAN-Air network is supported by development partners and philanthropic
-              organisations, including Google.org, WEHUBIT, and the U.S. Department of State, with
-              an established history of pioneering continuous air quality monitoring in data-hungry
-              cities through the U.S. Embassies across the world.
-              <br/><br/>
-            Supporting partners provide logistical and/or funding support to network members, and may participate in activities including the annual CLEAN-Air Network meetings.
-          </p>"
+          content={t('cleanAirSite.membership.supportingPartners.subText')}
           showButton={false}
           imgURL={Partner3}
           bgColor="#FFFFFF"
@@ -378,12 +330,11 @@ const CleanAirPartners = () => {
         )}
       </div>
 
-      <div className='individual-section'>
+      <div className="individual-section">
         <SingleSection
           removeTopMargin={true}
-          content="
-        Individuals actively involved in air quality work in Africa are welcome to join the CLEAN-Air Africa Network."
-          btnText={'Register your interest'}
+          content={t('cleanAirSite.membership.individualSection.subText')}
+          btnText={t('cleanAirSite.membership.individualSection.cta')}
           link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
           bgColor="#F2F1F6"
           btnStyle={{ width: 'auto' }}

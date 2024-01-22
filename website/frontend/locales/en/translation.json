@@ -178,6 +178,33 @@
           }
         }
       }
+    },
+    "membership": {
+      "section1": "The CLEAN-Air Network is a multi-regional network, strengthening cross-regional collaborations and partnerships to enable collective learning and knowledge sharing. <br /> <br /> We have a growing list of partners from diverse disciplines across different parts of the world, reflecting the multidisciplinarity of tackling urban air pollution.",
+      "implementingPartners": {
+        "intro": "Leveraging the unique expertise and resources of implementing partners to advance capacity for air quality management in Africa.",
+        "subText": "<p style={{color: '#353E52', fontSize: '24px', lineHeight: '32px', fontWeight: 400, fontStyle: 'normal'}}>Implementing partners have active interest in air quality work in Africa, have personnel with primary roles in air quality, organize and host engagement activities, participate in CLEAN-Air Network annual meetings and may provide logistical/or funding support to partners.</p>"
+      },
+      "policyPartners": {
+        "intro": "Effective air quality management rooted in evidence-informed action anchors on an        enabling policy environment.",
+        "subText": "<p style={{color: '#353E52', fontSize: '24px', lineHeight: '32px', fontWeight: 400, fontStyle: 'normal'}}>The policy forum provides a platform for engagement for African cities and national governments interested in developing and implementing an air quality program.</p>"
+      },
+      "privateSector": {
+        "intro": " Facilitating private sector-led collaborations for a holistic and sustainable model for tackling air pollution",
+        "subText": "<p style={{color: '#353E52', fontSize: '24px', lineHeight: '32px', fontWeight: 400, fontStyle: 'normal'}}>The private sector forum is a platform for engagement with the private sector players interested in contributing to advancing the air quality agenda. Private sector includes regulated industries, commercial media houses, and any private sector entity operating in Africa.</p>"
+      },
+      "supportingPartners": {
+        "intro": " Leveraging international collaborations for experience sharing and knowledge exchange on urban air pollution as a global phenomenon.",
+        "subText": "<p style={{color: '#353E52', fontSize: '24px', lineHeight: '32px', fontWeight: 400, fontStyle: 'normal'}}>The CLEAN-Air network is supported by development partners and philanthropic organisations, including Google.org, WEHUBIT, and the U.S. Department of State, with an established history of pioneering continuous air quality monitoring in data-hungry cities through the U.S. Embassies across the world.<br/><br/>Supporting partners provide logistical and/or funding support to network members, and may participate in activities including the annual CLEAN-Air Network meetings.</p>"
+      },
+      "individualSection": {
+        "subText": "Individuals actively involved in air quality work in Africa are welcome to join the CLEAN-Air Africa Network.",
+        "cta": "Register your interest"
+      }
+    },
+    "cta": {
+      "showMore": "Afficher plus",
+      "showLess": "Afficher moins"
     }
   },
   "homepage": {
