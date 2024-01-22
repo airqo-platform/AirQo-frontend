@@ -20,7 +20,7 @@ Future<dynamic> bottomSheetEmailLink(BuildContext context) async {
     DateTime lastRemindTimestamp =
         DateTime.fromMillisecondsSinceEpoch(remindMeLaterTimestamp);
     DateTime now = DateTime.now();
-    if (now.difference(lastRemindTimestamp).inDays < 3) {
+    if (now.difference(lastRemindTimestamp).inDays <= 1) {
       shouldShowBottomSheet = false;
     }
   }
@@ -125,7 +125,7 @@ Future<dynamic> bottomSheetEmailLink(BuildContext context) async {
                                     if (await canLaunchUrl(url)) {
                                       await launchUrl(
                                         url,
-                                        mode: LaunchMode.platformDefault,
+                                        mode: LaunchMode.inAppBrowserView,
                                       );
                                     } else {
                                       throw 'Could not launch $url';
@@ -161,11 +161,10 @@ Future<dynamic> bottomSheetEmailLink(BuildContext context) async {
                       InkWell(
                         onTap: () async {
                           Navigator.pop(context, false);
-                          // Update the timestamp when "Remind me later" is clicked
-                          prefs.setInt(
-                            'remindMeLaterTimestamp',
-                            DateTime.now().millisecondsSinceEpoch,
-                          );
+                          // prefs.setInt(
+                          //   'remindMeLaterTimestamp',
+                          //   DateTime.now().millisecondsSinceEpoch,
+                          // );
                         },
                         child: const EmailLinkSkipButton(
                           text: "Remind me later",

@@ -4,6 +4,7 @@ import 'package:app/screens/home_page.dart';
 import 'package:app/themes/app_theme.dart';
 import 'package:app/themes/colors.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -281,6 +282,40 @@ class LinkAuthButtons extends StatelessWidget {
               : const SizedBox.shrink(),
         );
       },
+    );
+  }
+}
+
+class LinkFailureDialog extends StatelessWidget {
+  const LinkFailureDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoAlertDialog(
+      title: Text(
+        "Oops something went wrong! Please try again later",
+        textAlign: TextAlign.center,
+        style: CustomTextStyle.headline8(context),
+      ),
+      actions: <Widget>[
+        CupertinoDialogAction(
+          onPressed: () async {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomePage(),
+              ),
+            );
+          },
+          isDefaultAction: true,
+          isDestructiveAction: false,
+          child: Text(
+            "Try again later",
+            style: CustomTextStyle.button2(context)
+                ?.copyWith(color: CustomColors.appColorBlue),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -528,8 +528,8 @@ class _DashboardViewState extends State<DashboardView>
     _updateWidget();
     NotificationService.requestNotification(context, "dashboard");
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user?.email != null && !user!.emailVerified) {
+      final user = await CloudStore.getProfile();
+      if (user.phoneNumber != "" && user.analyticsMongoID == "") {
         await Future.delayed(const Duration(milliseconds: 1000))
             .then((_) async {
           if (mounted) {

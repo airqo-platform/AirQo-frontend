@@ -212,7 +212,7 @@ class _EmailAuthWidgetState<T extends _EmailVerifyWidget> extends State<T> {
         context: context,
         barrierDismissible: false,
         builder: (BuildContext _) {
-          return const AuthFailureDialog();
+          return const LinkFailureDialog();
         },
       );
 
@@ -257,7 +257,7 @@ class _EmailAuthWidgetState<T extends _EmailVerifyWidget> extends State<T> {
         context: context,
         barrierDismissible: false,
         builder: (BuildContext _) {
-          return const AuthFailureDialog();
+          return const LinkFailureDialog();
         },
       );
 
