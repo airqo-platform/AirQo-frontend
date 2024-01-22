@@ -10,7 +10,7 @@ const LanguageSwitcher = () => {
   const dispatch = useDispatch();
   const { t, i18n } = useTranslation();
   const languageTab = useSelector((state) => state.eventsNavTab.languageTab);
-  const [language, setLanguage] = useState(languageTab);
+  const [language, setLanguage] = useState(localStorage.getItem('language') || languageTab);
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -28,6 +28,7 @@ const LanguageSwitcher = () => {
     i18n.changeLanguage(lng);
     setLanguage(lng);
     dispatch(setLanguageTab(lng));
+    localStorage.setItem('language', lng);
     setOpen(false);
   };
 
@@ -43,6 +44,15 @@ const LanguageSwitcher = () => {
       document.removeEventListener('mousedown', checkIfClickedOutside);
     };
   }, [open]);
+
+  useEffect(() => {
+    const localLanguage = localStorage.getItem('language');
+    if (localLanguage && Object.keys(lngs).includes(localLanguage)) {
+      setLanguage(localLanguage);
+      i18n.changeLanguage(localLanguage);
+      dispatch(setLanguageTab(localLanguage));
+    }
+  }, []);
 
   return (
     <div className="lang-container">

@@ -244,6 +244,16 @@
       },
       "noResources": "No Resources available"
     },
+    "bottomCTA": {
+      "left": {
+        "title": "Increase the visibility of your work in African Cities. Access a pool of experts.",
+        "ctaText": "Join the Network"
+      },
+      "right": {
+        "title": "Are you organising an event/activity and you would want it featured?",
+        "ctaText": "Register here"
+      }
+    },
     "cta": {
       "showMore": "Show more",
       "showLess": "Show less"

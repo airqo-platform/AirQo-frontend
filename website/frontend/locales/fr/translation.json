@@ -243,6 +243,16 @@
       },
       "noResources": "Aucune ressource disponible"
     },
+    "bottomCTA": {
+      "left": {
+        "title": "Accroissez la visibilité de votre travail dans les villes africaines. Accédez à un pool d'experts.",
+        "ctaText": "Rejoindre le réseau"
+      },
+      "right": {
+        "title": "Vous organisez un événement/une activité et vous souhaitez qu'il/elle soit mis(e) en avant ?",
+        "ctaText": "Enregistrez-vous ici"
+      }
+    },
     "cta": {
       "showMore": "Afficher plus",
       "showLess": "Afficher moins"
