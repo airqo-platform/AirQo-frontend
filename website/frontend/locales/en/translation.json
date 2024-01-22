@@ -64,6 +64,50 @@
     "getInvolved": "Get Involved",
     "exploreData": "Explore Data"
   },
+  "getInvolvedModal": {
+    "cards": {
+      "first": {
+        "category": "Partner",
+        "infoText": "Interested in supporting AirQo’s vision"
+      },
+      "second": {
+        "category": "Policymaker",
+        "infoText": "Interested in air quality information"
+      },
+      "third": {
+        "category": "Community Champion",
+        "infoText": "Interested in raising awareness about air pollution."
+      },
+      "fourth": {
+        "category": "Researcher",
+        "infoText": "Interested in Air Quality data and analytics"
+      },
+      "fifth": {
+        "category": "Developer",
+        "infoText": "Interested in air quality data API"
+      }
+    },
+    "form": {
+      "fname": "First name",
+      "lname": "Last name",
+      "email": "Email address",
+      "terms": "I agree to the <1>Terms of Service</1> and <1>Privacy Policy</1>",
+      "cta": {
+        "sending": "Submitting...",
+        "send": "Submit"
+      }
+    },
+    "banner": {
+      "breadCrumb": "<0>Home</0> <2 className='icon' />  <3 style={{ opacity: '0.5' }}>Get Involved</3>",
+      "title": "How would you like to <br />      engage with us?",
+      "subText": "Access real-time and historic air quality information across Africa through our    easy-to-use air quality analytics dashboard"
+    },
+    "complete": {
+      "title": "Check your email for more details.",
+      "subText": "Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard",
+      "cta": "Back Home"
+    }
+  },
   "homepage": {
     "heroSection": {
       "title": "Clean air for <br/> all African cities",

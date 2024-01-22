@@ -14,53 +14,74 @@ import { useGetInvolvedData } from 'reduxStore/GetInvolved/selectors';
 import { showGetInvolvedModal, updateGetInvolvedData } from 'reduxStore/GetInvolved/operations';
 import { sendInquiryApi } from 'apis';
 import { Link } from 'react-router-dom';
+import { useTranslation, Trans } from 'react-i18next';
 
 const categoryMapper = {
   partner: 'partners',
   policymaker: 'policy',
   'community champion': 'champions',
   researcher: 'researchers',
-  developer: 'developers',
+  developer: 'developers'
 };
 
-const BoxWrapper = ({ children }) => (
-        <div className="GetInvolvedModalWrapper">
-            {children}
-        </div>
-);
+const BoxWrapper = ({ children }) => <div className="GetInvolvedModalWrapper">{children}</div>;
 
 const GetInvolvedTab = ({ icon, category, infoText }) => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const getInvolvedData = useGetInvolvedData();
 
   const onClick = () => {
     dispatch(updateGetInvolvedData({ category: categoryMapper[category.toLowerCase()], slide: 1 }));
   };
   return (
-        <div
-          onClick={onClick}
-          className={`GetInvolvedTab ${categoryMapper[category.toLowerCase()] === getInvolvedData.category ? 'tab-active' : 'tab-inactive'}`}
-        >
-            <div className="img-placeholder">{icon}</div>
-            <div className="text-holder">
-                I’m a <strong>{category}</strong>. <br />
-                {infoText}
-            </div>
-        </div>
+    <div
+      onClick={onClick}
+      className={`GetInvolvedTab ${
+        categoryMapper[category.toLowerCase()] === getInvolvedData.category
+          ? 'tab-active'
+          : 'tab-inactive'
+      }`}>
+      <div className="img-placeholder">{icon}</div>
+      <div className="text-holder">
+        I’m a <strong>{category}</strong>. <br />
+        {infoText}
+      </div>
+    </div>
   );
 };
 
-const GetInvolvedLanding = () => (
-        <div>
-            <GetInvolvedTab icon={<PartnersIcon />} category="Partner" infoText="Interested in supporting AirQo’s vision" />
-            <GetInvolvedTab icon={<PolicyIcon />} category="Policymaker" infoText="Interested in air quality information" />
-            <GetInvolvedTab icon={<ChampionIcon />} category="Community Champion" infoText="Interested in raising awareness about air pollution." />
-            <GetInvolvedTab icon={<ResearchIcon />} category="Researcher" infoText="Interested in Air Quality data and analytics" />
-            <GetInvolvedTab icon={<DeveloperIcon />} category="Developer" infoText="Interested in air quality data API" />
-        </div>
+const GetInvolvedLanding = ({ t }) => (
+  <div>
+    <GetInvolvedTab
+      icon={<PartnersIcon />}
+      category={t('getInvolvedModal.cards.first.category')}
+      infoText={t('getInvolvedModal.cards.first.infoText')}
+    />
+    <GetInvolvedTab
+      icon={<PolicyIcon />}
+      category={t('getInvolvedModal.cards.second.category')}
+      infoText={t('getInvolvedModal.cards.second.infoText')}
+    />
+    <GetInvolvedTab
+      icon={<ChampionIcon />}
+      category={t('getInvolvedModal.cards.third.category')}
+      infoText={t('getInvolvedModal.cards.third.infoText')}
+    />
+    <GetInvolvedTab
+      icon={<ResearchIcon />}
+      category={t('getInvolvedModal.cards.fourth.category')}
+      infoText={t('getInvolvedModal.cards.fourth.infoText')}
+    />
+    <GetInvolvedTab
+      icon={<DeveloperIcon />}
+      category={t('getInvolvedModal.cards.fifth.category')}
+      infoText={t('getInvolvedModal.cards.fifth.infoText')}
+    />
+  </div>
 );
 
-const GetInvolvedEmail = () => {
+const GetInvolvedEmail = ({ t }) => {
   const dispatch = useDispatch();
   const getInvolvedData = useGetInvolvedData();
   const [emailState, setEmailState] = useState(getInvolvedData);
@@ -73,7 +94,8 @@ const GetInvolvedEmail = () => {
     setEmailState({ ...emailState, acceptedTerms: event.target.checked });
   };
 
-  const checkAllFilled = () => emailState.firstName && emailState.lastName && emailState.email && emailState.acceptedTerms;
+  const checkAllFilled = () =>
+    emailState.firstName && emailState.lastName && emailState.email && emailState.acceptedTerms;
 
   const onSubmit = async () => {
     if (!checkAllFilled() || loading) return;
@@ -83,21 +105,23 @@ const GetInvolvedEmail = () => {
       fullName: `${emailState.firstName} ${emailState.lastName}`,
       email: emailState.email,
       category: emailState.category,
-      message: 'Get involved - Request from the website',
-    }).then((data) => {
-      dispatch(updateGetInvolvedData({ ...setEmailState, complete: true }));
-      setLoading(false);
-    }).catch((err) => {
-      console.log(err);
-      setLoading(false);
-    });
+      message: 'Get involved - Request from the website'
+    })
+      .then((data) => {
+        dispatch(updateGetInvolvedData({ ...setEmailState, complete: true }));
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.log(err);
+        setLoading(false);
+      });
   };
   return (
     <div className="form-section">
       <div className="wrapper">
         <form className="register-form">
           <div className="form-field">
-            <label>First name</label>
+            <label>{t('getInvolvedModal.form.fname')}</label>
             <input
               type="text"
               id="fname"
@@ -107,7 +131,7 @@ const GetInvolvedEmail = () => {
             />
           </div>
           <div className="form-field">
-            <label>Last name</label>
+            <label>{t('getInvolvedModal.form.lname')}</label>
             <input
               type="text"
               id="lname"
@@ -117,7 +141,7 @@ const GetInvolvedEmail = () => {
             />
           </div>
           <div className="form-field">
-            <label>Email address</label>
+            <label>{t('getInvolvedModal.form.email')}</label>
             <input
               type="email"
               id="email"
@@ -134,8 +158,10 @@ const GetInvolvedEmail = () => {
               required
             />
             <label>
-              I agree to the <Link to="/legal">Terms of Service</Link> and{' '}
-              <Link to="/legal">Privacy Policy</Link>
+              <Trans i18nKey="getInvolvedModal.form.terms">
+                I agree to the <Link to="/legal">Terms of Service</Link> and{' '}
+                <Link to="/legal">Privacy Policy</Link>
+              </Trans>
             </label>
           </div>
         </form>
@@ -143,7 +169,7 @@ const GetInvolvedEmail = () => {
           <button
             className={`register-btn ${checkAllFilled() ? 'btn-active' : 'btn-disabled'}`}
             onClick={onSubmit}>
-            {loading ? 'Submitting...' : 'Submit'}
+            {loading ? t('getInvolvedModal.form.cta.sending') : t('getInvolvedModal.form.cta.send')}
           </button>
         </div>
       </div>
@@ -153,67 +179,78 @@ const GetInvolvedEmail = () => {
 
 const GetInvolvedRegistryContent = () => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const getInvolvedData = useGetInvolvedData();
 
   const hideModal = () => dispatch(showGetInvolvedModal(false));
   const goBack = () => dispatch(updateGetInvolvedData({ slide: getInvolvedData.slide - 1 }));
   return (
     <>
-       <div className="banner">
-            <div>
-             <div className="section-nav">
-                <h5>Home</h5>
-                <ArrowForwardIosIcon className="icon" />
-                <h5 style={{ opacity: '0.5' }}>Get Involved</h5>
-             </div>
-            <h1 className="section-title">How would you like to <br />engage with us?</h1>
-            <p className="banner-content">Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard</p>
-            </div>
-       </div>
-        <div className="content">
-            <span>
-                {getInvolvedData.slide ? <ArrowBackIcon onClick={goBack} /> : <span />}
-                <CloseIcon onClick={hideModal} />
-            </span>
-            {getInvolvedData.slide <= 0 ? <GetInvolvedLanding /> : <GetInvolvedEmail />}
+      <div className="banner">
+        <div>
+          <div className="section-nav">
+            <Trans i18nKey="getInvolvedModal.banner.breadCrumb">
+              <h5>Home</h5>
+              <ArrowForwardIosIcon className="icon" />
+              <h5 style={{ opacity: '0.5' }}>Get Involved</h5>
+            </Trans>
+          </div>
+          <h1 className="section-title">
+            <Trans i18nKey="getInvolvedModal.banner.title">
+              How would you like to <br />
+              engage with us?
+            </Trans>
+          </h1>
+          <p className="banner-content">{t('getInvolvedModal.banner.subText')}</p>
         </div>
+      </div>
+      <div className="content">
+        <span>
+          {getInvolvedData.slide ? <ArrowBackIcon onClick={goBack} /> : <span />}
+          <CloseIcon onClick={hideModal} />
+        </span>
+        {getInvolvedData.slide <= 0 ? <GetInvolvedLanding t={t} /> : <GetInvolvedEmail t={t} />}
+      </div>
     </>
   );
 };
 
-const GetInvolvedComplete = () => {
+const GetInvolvedComplete = ({ t }) => {
   const dispatch = useDispatch();
 
   const backToHomePage = () => {
     dispatch(showGetInvolvedModal(false));
   };
   return (
-        <div className="complete">
-            <div className="content-wrapper">
-            <CheckMailIcon />
-            <p className="main-text">Check your email for more details.</p>
-            <p className="secondary-text">Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard</p>
-            <button className="btn" onClick={backToHomePage}>Back home</button>
-            </div>
-        </div>
+    <div className="complete">
+      <div className="content-wrapper">
+        <CheckMailIcon />
+        <p className="main-text">{t('getInvolvedModal.complete.title')}</p>
+        <p className="secondary-text">{t('getInvolvedModal.complete.subText')}</p>
+        <button className="btn" onClick={backToHomePage}>
+          {t('getInvolvedModal.complete.cta')}
+        </button>
+      </div>
+    </div>
   );
 };
 
 const GetInvolvedModal = () => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const getInvolvedData = useGetInvolvedData();
 
   const hideModal = () => dispatch(showGetInvolvedModal(false));
 
   return (
-        <Modal open={getInvolvedData.openModal} onClose={hideModal}>
-            <BoxWrapper>
-                <Box className="GetInvolvedModal">
-                    {!getInvolvedData.complete && <GetInvolvedRegistryContent />}
-                    {getInvolvedData.complete && <GetInvolvedComplete />}
-                </Box>
-            </BoxWrapper>
-        </Modal>
+    <Modal open={getInvolvedData.openModal} onClose={hideModal}>
+      <BoxWrapper>
+        <Box className="GetInvolvedModal">
+          {!getInvolvedData.complete && <GetInvolvedRegistryContent />}
+          {getInvolvedData.complete && <GetInvolvedComplete t={t} />}
+        </Box>
+      </BoxWrapper>
+    </Modal>
   );
 };
 

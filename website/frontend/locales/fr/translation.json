@@ -64,6 +64,50 @@
     "getInvolved": "S'engager",
     "exploreData": "Explorer les Données"
   },
+  "getInvolvedModal": {
+    "cards": {
+      "first": {
+        "category": "Partenaire",
+        "infoText": "Intéressé par le soutien de la vision d'AirQo?"
+      },
+      "second": {
+        "category": "Décideur politique",
+        "infoText": "Intéressé par les informations sur la qualité de l'air"
+      },
+      "third": {
+        "category": "Champion de la communauté",
+        "infoText": "Intéressé par la sensibilisation à la pollution de l'air."
+      },
+      "fourth": {
+        "category": "Chercheur",
+        "infoText": "Intéressé par les données et analyses de la qualité de l'air"
+      },
+      "fifth": {
+        "category": "Développeur",
+        "infoText": "Intéressé par l'API de données de qualité de l'air"
+      }
+    },
+    "form": {
+      "fname": "Prénom",
+      "lname": "Nom de famille",
+      "email": "Adresse email",
+      "terms": "J’accepte les <1>Conditions d’utilisation</1> et <1>Politique de confidentialité</1>",
+      "cta": {
+        "sending": "Envoi...",
+        "send": "Envoyer"
+      }
+    },
+    "banner": {
+      "breadCrumb": "<0>Accueil</0>   >  <2 style={{ opacity : '0.5' }}>Impliquez-vous</2>",
+      "title": "Comment aimeriez-vous <br />     vous engager avec nous ?",
+      "subText": "Accédez à des informations historiques et en temps réel sur la qualité de l'air à travers l'Afrique grâce à notre tableau de bord d'analyse de la qualité de l'air facile à utiliser."
+    },
+    "complete": {
+      "title": "Consultez votre messagerie pour plus de détails.",
+      "subText": "Accédez à des informations historiques et en temps réel sur la qualité de l'air à travers l'Afrique grâce à notre tableau de bord d'analyse de la qualité de l'air facile à utiliser.",
+      "cta": "Retour à l'accueil"
+    }
+  },
   "homepage": {
     "heroSection": {
       "title": "De l'air pur pour toutes les villes d'Afrique",
