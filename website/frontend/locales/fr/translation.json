@@ -201,6 +201,17 @@
         "subText": "Les personnes actives dans le domaine de la qualité de l'air en Afrique sont invitées à rejoindre le réseau CLEAN-Air Africa.",
         "cta": "Enregistrez votre intérêt"
       }
+    },
+    "events": {
+      "section1": "Le réseau CLEAN-Air fournit une plateforme pour faciliter les activités d'engagement, notamment des conférences, des webinaires, des ateliers, des formations et des campagnes communautaires.<br /><br /> Les partenaires auront accès à des ressources partagées sous forme de kits d'outils pour les médias sociaux, de modèles de communiqués de presse, de bannières numériques, etc. qui peuvent être personnalisés pour s'adapter à chaque activité. Les membres auront également accès à un groupe diversifié d'experts qui peuvent être invités à participer à différentes activités d'engagement, en tant qu'intervenants ou co-organisateurs, etc.",
+      "section2": {
+        "subText": "<p style={{color: '#353E52', fontSize: '24px', lineHeight: '32px', fontWeight: 400, fontStyle: 'normal'}}>Augmentez la visibilité de votre événement. Enregistrez votre activité d'engagement et profitez de ressources précieuses et de perspectives de réseautage.</p>",
+        "cta": "Enregistrer l'événement"
+      },
+      "subNavs": {
+        "upcoming": "Événements à venir",
+        "past": "Événements passés"
+      }
     }
   },
   "homepage": {

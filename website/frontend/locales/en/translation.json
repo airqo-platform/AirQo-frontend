@@ -202,6 +202,17 @@
         "cta": "Register your interest"
       }
     },
+    "events": {
+      "section1": "The CLEAN-Air Network provides a platform for facilitating engagement activities including conferences, webinars, workshops, training and community campaigns.<br /><br /> Partners will have access to shared resources in the form of social media toolkits, press release templates, digital banners, etc. that can be customised to suit every activity. Members will also have access to a diverse pool of experts who can be invited to participate in different engagement activities, either as speakers or co-organizers, etc.",
+      "section2": {
+        "subText": "<p style={{color: '#353E52', fontSize: '24px', lineHeight: '32px', fontWeight: 400, fontStyle: 'normal'}}>Increase your event's visibility. Register your engagement activity and tap into invaluable resources and networking prospects.</p>",
+        "cta": "Register Event"
+      },
+      "subNavs": {
+        "upcoming": "Upcoming Events",
+        "past": "Past Events"
+      }
+    },
     "cta": {
       "showMore": "Afficher plus",
       "showLess": "Afficher moins"

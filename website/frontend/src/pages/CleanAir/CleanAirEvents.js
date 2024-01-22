@@ -12,6 +12,7 @@ import event1 from 'assets/img/cleanAir/event-sec1.png';
 import event2 from 'assets/img/cleanAir/event-sec2.png';
 import useWindowSize from 'utilities/customHooks';
 import Loadspinner from 'src/components/LoadSpinner/SectionLoader';
+import { useTranslation, Trans } from 'react-i18next';
 
 const ITEMS_PER_PAGE = 9;
 
@@ -23,8 +24,12 @@ const days = (date_1, date_2) => {
 
 const CleanAirEvents = () => {
   useInitScrollTop();
+  const { t } = useTranslation();
   const dispatch = useDispatch();
-  const navTabs = ['upcoming events', 'past events'];
+  const navTabs = [
+    t('cleanAirSite.events.subNavs.upcoming'),
+    t('cleanAirSite.events.subNavs.past')
+  ];
   const selectedNavTab = useSelector((state) => state.eventsNavTab.tab);
   const allEventsData = useSelector((state) => state.eventsData.events);
   const { width } = useWindowSize();
@@ -87,15 +92,17 @@ const CleanAirEvents = () => {
       <div className="partners">
         <div className="partners-wrapper">
           <p className="partners-intro">
-            The CLEAN-Air Network provides a platform for facilitating engagement activities
-            including conferences, webinars, workshops, training and community campaigns.
-            <br />
-            <br />
-            Partners will have access to shared resources in the form of social media toolkits,
-            press release templates, digital banners, etc. that can be customised to suit every
-            activity. Members will also have access to a diverse pool of experts who can be invited
-            to participate in different engagement activities, either as speakers or co-organizers,
-            etc.
+            <Trans i18nKey="cleanAirSite.events.section1">
+              The CLEAN-Air Network provides a platform for facilitating engagement activities
+              including conferences, webinars, workshops, training and community campaigns.
+              <br />
+              <br />
+              Partners will have access to shared resources in the form of social media toolkits,
+              press release templates, digital banners, etc. that can be customised to suit every
+              activity. Members will also have access to a diverse pool of experts who can be
+              invited to participate in different engagement activities, either as speakers or
+              co-organizers, etc.
+            </Trans>
           </p>
         </div>
       </div>
@@ -114,20 +121,11 @@ const CleanAirEvents = () => {
 
       <div>
         <SplitSection
-          content="  <p
-            style={{
-              color: '#353E52',
-              fontSize: '24px',
-              lineHeight: '32px',
-              fontWeight: 400,
-              fontStyle: 'normal'
-            }}>
-            Increase your event's visibility. Register your engagement activity and tap into invaluable resources and networking prospects.
-          </p>"
+          content={t('cleanAirSite.events.section2.subText')}
           showButton={true}
           customBtn={
             <ButtonCTA
-              label="Register Event"
+              label={t('cleanAirSite.events.section2.cta')}
               link="https://docs.google.com/forms/d/14jKDs2uCtMy2a_hzyCiJnu9i0GbxITX_DJxVB4GGP5c/edit"
               style={{
                 width: '200px',
@@ -137,7 +135,7 @@ const CleanAirEvents = () => {
           }
           imgURL={event2}
           bgColor="#FFFFFF"
-          wrapperPadding='0'
+          wrapperPadding="0"
           reverse
           titleSection={true}
         />
@@ -164,9 +162,7 @@ const CleanAirEvents = () => {
                 ))}
             </div>
           </div>
-          {loading ? (
-            <Loadspinner />
-          ) : null}
+          {loading ? <Loadspinner /> : null}
           {!loading && upcomingEvents.length === 0 && selectedNavTab === 'upcoming events' ? (
             <div className="no-events">There are currently no upcoming events</div>
           ) : null}
