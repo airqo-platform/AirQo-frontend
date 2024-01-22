@@ -682,7 +682,7 @@ const ExceedancesChart = (props) => {
                           stacked: true,
                           scaleLabel: {
                             display: true,
-                            labelString: 'Locations',
+                            labelString: isCohorts ? 'Devices' : 'Locations',
                             // fontWeight: 4,
                             // fontColor: "black",
                             fontSize: 15,
