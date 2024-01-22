@@ -131,6 +131,58 @@
       }
     }
   },
+  "cleanAirSite": {
+    "subNav": {
+      "about": "À propos",
+      "membership": "Adhésion",
+      "events": "Événements",
+      "resources": "Ressources"
+    },
+    "about": {
+      "section1": {
+        "title": "Le réseau <br className='breaker' /> CLEAN-Air",
+        "subText": "<0 className='fact'>Un réseau multirégional dirigé par l’Afrique</0> <br /> rassemblant une communauté de pratique pour les solutions de qualité de l’air et la gestion de la qualité de l’air à travers l’Afrique.",
+        "cta": "Rejoignez le réseau"
+      },
+      "section2": {
+        "title": "“Promouvoir des environnements urbains vivables grâce aux réseaux africains pour l'air”",
+        "acronym": "<0 style={{color: '#135DFF'}}>CLEAN-Air, est un acronyme forgé à partir de",
+        "subText": "Le réseau rassemble les parties prenantes et les chercheurs en gestion de la qualité de l'air afin de partager les meilleures pratiques et les connaissances sur le développement et la mise en œuvre de solutions de gestion de la qualité de l'air dans les villes africaines.",
+        "cta": "Êtes-vous une organisation ou un individu intéressé par la qualité de l'air en Afrique? <1 href=\"https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform\" target=\"_blank\" rel=\"noopener noreferrer\"><0 style={{color: '#135DFF'}}> Rejoignez le réseau"
+      },
+      "section3": {
+        "pillTitle": "Mission",
+        "title": "Mission CLEAN-Air",
+        "subText": "Renforcer les réseaux régionaux pour des partenariats durables et permettre aux partenaires de co-développer des solutions qui améliorent la capacité de surveillance, de modélisation et de gestion de la qualité de l'air dans les villes africaines."
+      },
+      "section4": {
+        "pillTitle": "Adhésion",
+        "title": "Une synergie pour la qualité de l'air en Afrique",
+        "subText": "Le réseau comprend un paysage diversifié d'acteurs, notamment des organismes de recherche, des gouvernements municipaux et nationaux, le secteur privé, des partenaires de développement et des individus qui défendent l'agenda de la qualité de l'air dans les villes africaines.<br/> <br/> Êtes-vous une organisation ou un individu intéressé par la qualité de l'air en Afrique? Nous vous invitons à rejoindre le réseau CLEAN-Air."
+      },
+      "section5": {
+        "pillTitle": "Objectifs",
+        "title": "Objectifs de CLEAN Air",
+        "subSections": {
+          "first": {
+            "title": "Renforcement des capacités régionales",
+            "subText": "Engagé à promouvoir une compréhension, une sensibilisation et une appréciation plus profondes des problèmes de qualité de l'air grâce à un plaidoyer participatif et fondé sur des preuves, et au partage des connaissances."
+          },
+          "second": {
+            "title": "Collaboration et sensibilisation",
+            "subText": "Engagé à promouvoir une compréhension, une sensibilisation et une appréciation plus profondes des problèmes de qualité de l'air grâce à un plaidoyer participatif et fondé sur des preuves, et au partage des connaissances."
+          },
+          "third": {
+            "title": "Solutions d'air pur pour les villes",
+            "subText": "Le réseau CLEAN-Air est un centre de développement de solutions et de cadres concrets et contextuels pour l'air pur pour les villes africaines."
+          }
+        }
+      }
+    },
+    "membership": {
+      "section1": {}
+    }
+  },
   "homepage": {
     "heroSection": {
       "title": "De l'air pur pour toutes les villes d'Afrique",

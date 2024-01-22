@@ -10,29 +10,28 @@ import Placeholder2 from 'assets/img/cleanAir/placeholder2.png';
 import Placeholder3 from 'assets/img/cleanAir/placeholder3.png';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import SEO from 'utilities/seo';
+import { useTranslation, Trans } from 'react-i18next';
 
 const CleanAirAbout = () => {
   useInitScrollTop();
+  const { t } = useTranslation();
 
   const [showScroll, setShowScroll] = useState(false);
 
   const goals = [
     {
-      title: 'Enhancing Regional Capacity',
-      content:
-        'Committed to fostering a deeper understanding, awareness and appreciation of air quality issues through evidence-informed and participatory advocacy, and knowledge sharing.',
+      title: t('cleanAirSite.about.section5.subSections.first.title'),
+      content: t('cleanAirSite.about.section5.subSections.first.subText'),
       imgURL: Section5
     },
     {
-      title: 'Collaboration and awareness',
-      content:
-        'Committed to fostering a deeper understanding, awareness and appreciation of air quality issues through evidence-informed and participatory advocacy, and knowledge sharing.',
+      title: t('cleanAirSite.about.section5.subSections.second.title'),
+      content: t('cleanAirSite.about.section5.subSections.second.subText'),
       imgURL: Placeholder3
     },
     {
-      title: 'Clean air solutions for cities',
-      content:
-        'CLEAN-Air network is a nexus for developing tangible and contextual clean air solutions and frameworks for African cities.',
+      title: t('cleanAirSite.about.section5.subSections.third.title'),
+      content: t('cleanAirSite.about.section5.subSections.third.subText'),
       imgURL: Placeholder2
     }
   ];
@@ -71,15 +70,19 @@ const CleanAirAbout = () => {
         <div className="hero-content">
           <div>
             <p className="hero-title">
-              The CLEAN-Air <br className="breaker" /> Network
+              <Trans i18nKey="cleanAirSite.about.section1.title">
+                The CLEAN-Air <br className="breaker" /> Network
+              </Trans>
             </p>
             <p className="hero-sub">
-              <span className="fact">An African-led, multi-regional network</span> <br />
-              bringing together a community of practice for air quality solutions and air quality
-              management across Africa.
+              <Trans i18nKey="cleanAirSite.about.section1.subText">
+                <span className="fact">An African-led, multi-regional network</span> <br />
+                bringing together a community of practice for air quality solutions and air quality
+                management across Africa.
+              </Trans>
             </p>
             <ButtonCTA
-              label="Join the Network"
+              label={t('cleanAirSite.about.section1.cta')}
               link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
               style={{
                 width: '200px'
@@ -96,36 +99,34 @@ const CleanAirAbout = () => {
             <>
               <div className="acronym-content-container">
                 <p>
-                  <b
-                    style={{
-                      color: '#135DFF'
-                    }}>
-                    CLEAN-Air
-                  </b>
-                  , is an acronym coined from
-                </p>
-                <h2 className="content-h">
-                  “Championing Liveable urban Environments through African Networks for Air”
-                </h2>
-                <p>
-                  The network brings together stakeholders and researchers in air quality management
-                  to share best practices and knowledge on developing and implementing air quality
-                  management solutions in African cities.
-                </p>
-                <p className="join-now">
-                  Are you an organization or individual interested in air quality in Africa?
-                  <a
-                    href="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
-                    target="_blank"
-                    rel="noopener noreferrer">
+                  <Trans i18nKey="cleanAirSite.about.section2.acronym">
                     <b
                       style={{
                         color: '#135DFF'
                       }}>
-                      {' '}
-                      Join the network
+                      CLEAN-Air
                     </b>
-                  </a>
+                    , is an acronym coined from
+                  </Trans>
+                </p>
+                <h2 className="content-h">{t('cleanAirSite.about.section2.title')}</h2>
+                <p>{t('cleanAirSite.about.section2.subText')}</p>
+                <p className="join-now">
+                  <Trans i18nKey="cleanAirSite.about.section2.cta">
+                    Are you an organization or individual interested in air quality in Africa?
+                    <a
+                      href="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
+                      target="_blank"
+                      rel="noopener noreferrer">
+                      <b
+                        style={{
+                          color: '#135DFF'
+                        }}>
+                        {' '}
+                        Join the network
+                      </b>
+                    </a>
+                  </Trans>
                 </p>
               </div>
               <img srcSet={Placeholder} className="acronym-image" />
@@ -138,10 +139,9 @@ const CleanAirAbout = () => {
       {/* section 3 */}
       <div className="page-section">
         <SplitSection
-          pillTitle="Mission"
-          title="CLEAN-Air Mission"
-          content="To strengthen regional networks for sustained partnerships and enable partners to co-develop solutions that enhance the capacity for air quality monitoring, modelling and management across cities in Africa."
-          btnText={'Learn how -->'}
+          pillTitle={t('cleanAirSite.about.section3.pillTitle')}
+          title={t('cleanAirSite.about.section3.title')}
+          content={t('cleanAirSite.about.section3.subText')}
           showButton={false}
           link="#"
           imageStyle={{
@@ -158,11 +158,9 @@ const CleanAirAbout = () => {
       {/* section 4 */}
       <div className="page-section">
         <SplitSection
-          pillTitle="Membership"
-          title="A Synergy for air quality in Africa"
-          content="The network comprises a diverse stakeholder landscape including research organisations, city and national governments, the private sector, development partners, and individuals who are championing the air quality agenda in African cities.<br/> <br/> 
-          Are you an organization or individual interested in air quality in Africa? We welcome you to join the CLEAN-Air Network. 
-        "
+          pillTitle={t('cleanAirSite.about.section4.pillTitle')}
+          title={t('cleanAirSite.about.section4.title')}
+          content={t('cleanAirSite.about.section4.subText')}
           imgURL={Section4}
           imageStyle={{
             height: '420px',
