@@ -89,7 +89,7 @@ const EventsPage = () => {
               <div className="content">
                 <EventsNavigation navTabs={navTabs} />
                 <div className="event-cards">
-                  {selectedNavTab === 'upcoming events' &&
+                  {selectedNavTab === t('about.events.navTabs.upcoming') &&
                     upcomingEvents
                       .slice(0, numEventsToShow)
                       .map((event) => (
@@ -104,7 +104,7 @@ const EventsPage = () => {
                           web_category={event.website_category}
                         />
                       ))}
-                  {selectedNavTab === 'past events' &&
+                  {selectedNavTab === t('about.events.navTabs.past') &&
                     pastEvents
                       .slice(0, numEventsToShow)
                       .map((event) => (
@@ -121,15 +121,17 @@ const EventsPage = () => {
                       ))}
                 </div>
               </div>
-              {upcomingEvents.length === 0 && selectedNavTab === 'upcoming events' ? (
+              {upcomingEvents.length === 0 &&
+              selectedNavTab === t('about.events.navTabs.upcoming') ? (
                 <div className="no-events">
                   <span>{t('about.events.noEvents')}</span>
                 </div>
               ) : null}
               <div className="see-more-container">
                 {(upcomingEvents.length > numEventsToShow &&
-                  selectedNavTab === 'upcoming events') ||
-                (pastEvents.length > numEventsToShow && selectedNavTab === 'past events') ? (
+                  selectedNavTab === t('about.events.navTabs.upcoming')) ||
+                (pastEvents.length > numEventsToShow &&
+                  selectedNavTab === t('about.events.navTabs.past')) ? (
                   <div className="see-more">
                     <button onClick={() => setNumEventsToShow(numEventsToShow + 6)}>
                       {t('about.events.cta.showMore')}

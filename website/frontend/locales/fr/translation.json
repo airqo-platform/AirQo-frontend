@@ -212,6 +212,40 @@
         "upcoming": "Événements à venir",
         "past": "Événements passés"
       }
+    },
+    "eventsDetails": {
+      "header": {
+        "breadCrumb": "CleanAir"
+      },
+      "eventBody": {
+        "time": {
+          "title": "Détails de l'événement",
+          "time": "Toute la journée"
+        },
+        "register": {
+          "btnText": "S'inscrire"
+        },
+        "program": {
+          "title": "Programme de l'événement"
+        },
+        "inquiry_resources": {
+          "title2": "Accéder aux ressources de l'événement ici :"
+        }
+      }
+    },
+    "publications": {
+      "title": "RESSOURCE <br /> <2>CENTER</2>",
+      "navs": {
+        "toolkits": "boîtes à outils",
+        "reports": "rapports techniques",
+        "workshops": "rapports d'ateliers",
+        "research": "publications de recherche"
+      },
+      "noResources": "Aucune ressource disponible"
+    },
+    "cta": {
+      "showMore": "Afficher plus",
+      "showLess": "Afficher moins"
     }
   },
   "homepage": {

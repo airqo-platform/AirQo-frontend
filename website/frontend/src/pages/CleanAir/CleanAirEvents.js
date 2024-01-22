@@ -58,7 +58,8 @@ const CleanAirEvents = () => {
     }
   };
 
-  const eventsToShow = selectedNavTab === 'upcoming events' ? upcomingEvents : pastEvents;
+  const eventsToShow =
+    selectedNavTab === t('cleanAirSite.events.subNavs.upcoming') ? upcomingEvents : pastEvents;
   const totalPages = Math.ceil(eventsToShow.length / ITEMS_PER_PAGE);
 
   const loading = useSelector((state) => state.eventsData.loading);
@@ -163,8 +164,10 @@ const CleanAirEvents = () => {
             </div>
           </div>
           {loading ? <Loadspinner /> : null}
-          {!loading && upcomingEvents.length === 0 && selectedNavTab === 'upcoming events' ? (
-            <div className="no-events">There are currently no upcoming events</div>
+          {!loading &&
+          upcomingEvents.length === 0 &&
+          selectedNavTab === t('cleanAirSite.events.subNavs.upcoming') ? (
+            <div className="no-events">{t('cleanAirSite.events.noEvents')}</div>
           ) : null}
           {eventsToShow.length > ITEMS_PER_PAGE && (
             <ul className="pagination">

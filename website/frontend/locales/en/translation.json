@@ -209,13 +209,44 @@
         "cta": "Register Event"
       },
       "subNavs": {
-        "upcoming": "Upcoming Events",
-        "past": "Past Events"
+        "upcoming": "Upcoming events",
+        "past": "Past events"
+      },
+      "noEvents": "There are currently no upcoming events"
+    },
+    "eventsDetails": {
+      "header": {
+        "breadCrumb": "CleanAir"
+      },
+      "eventBody": {
+        "time": {
+          "title": "Event Details",
+          "time": "All Day"
+        },
+        "register": {
+          "btnText": "Register"
+        },
+        "program": {
+          "title": "Event Schedule"
+        },
+        "inquiry_resources": {
+          "title2": "Access the Event Resources here:"
+        }
       }
     },
+    "publications": {
+      "title": "RESOURCE <br /> <2>CENTER</2>",
+      "navs": {
+        "toolkits": "toolkits",
+        "reports": "technical reports",
+        "workshops": "workshop reports",
+        "research": "research publications"
+      },
+      "noResources": "No Resources available"
+    },
     "cta": {
-      "showMore": "Afficher plus",
-      "showLess": "Afficher moins"
+      "showMore": "Show more",
+      "showLess": "Show less"
     }
   },
   "homepage": {
