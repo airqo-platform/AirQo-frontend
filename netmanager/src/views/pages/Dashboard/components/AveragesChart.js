@@ -314,7 +314,7 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
           categoryPercentage: numLocations > 0 ? 1 / numLocations : 0.5,
           ticks: {
             fontColor: 'black',
-            callback: (value) => `${value.substr(0, 7)}`
+            callback: (value) => `${value.substr(0, 11)}`
           },
           gridLines: {
             display: false,
