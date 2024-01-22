@@ -2,6 +2,7 @@ import React from 'react';
 import { AccessTimeOutlined, CalendarMonth } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation, Trans } from 'react-i18next';
 
 const EventsHeader = ({
   title,
@@ -15,6 +16,7 @@ const EventsHeader = ({
   registerLink,
   eventImage
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const routeToDetails = (link) => (event) => {
     event.preventDefault();
@@ -51,17 +53,19 @@ const EventsHeader = ({
                             {startTime.slice(0, -3)} - {endTime.slice(0, -3)}
                           </span>
                         ) : (
-                          <span>All Day</span>
+                          <span>{t('about.events.header.time.text')}</span>
                         )}
                       </span>
                     </div>
                     <div className="links">
                       <button className="link" onClick={routeToDetails(detailsLink)}>
-                        Read more
+                        {t('about.events.header.buttons.btn1.text')}
                       </button>
                       {registerLink ? (
                         <a href={`${registerLink}`} target="_blank" rel="noopener noreferrer">
-                          <button className="link">Register</button>
+                          <button className="link">
+                            {t('about.events.header.buttons.btn2.text')}
+                          </button>
                         </a>
                       ) : (
                         <span></span>
@@ -76,8 +80,8 @@ const EventsHeader = ({
             </>
           ) : (
             <div>
-              <h2>AirQo Events</h2>
-              <p className="sub-title">Advancing Air Quality Management in African Cities</p>
+              <h2>{t('about.events.header.title')}</h2>
+              <p className="sub-title">{t('about.events.header.subText')}</p>
             </div>
           )}
         </div>

@@ -8,9 +8,9 @@ const EventsNavigation = ({ navTabs }) => {
   const onClickTabItem = (tab) => setSelectedTab(tab);
   const dispatch = useDispatch();
 
-  useEffect(()=>{
-    setSelectedTab(selectedNavTab)
-  },[])
+  useEffect(() => {
+    setSelectedTab(selectedNavTab);
+  }, []);
 
   return (
     <>

@@ -546,6 +546,56 @@
         "text": "Thanks for reaching out. <br /> We’ll get back to you!",
         "cta": "Back Home"
       }
+    },
+    "events": {
+      "header": {
+        "title": "AirQo Events",
+        "subText": "Advancing Air Quality Management in African Cities",
+        "time": {
+          "text": "All Day"
+        },
+        "buttons": {
+          "btn1": {
+            "text": "Read more"
+          },
+          "btn2": {
+            "text": "Register"
+          }
+        }
+      },
+      "navTabs": {
+        "upcoming": "upcoming events",
+        "past": "past events"
+      },
+      "eventCard": {
+        "cta": { "text": "Read more" }
+      },
+      "eventsDetails": {
+        "header": {
+          "breadCrumb": "Events"
+        },
+        "eventBody": {
+          "time": {
+            "title": "Event Details",
+            "time": "All Day"
+          },
+          "register": {
+            "btnText": "Register"
+          },
+          "program": {
+            "title": "Event Schedule"
+          },
+          "inquiry_resources": {
+            "title1": "For any inquiries and clarifications:",
+            "title2": "Access the Event Resources here:"
+          }
+        }
+      },
+      "noEvents": "There are currently no events",
+      "cta": {
+        "showMore": "More",
+        "showLess": "Less"
+      }
     }
   },
   "footer": {

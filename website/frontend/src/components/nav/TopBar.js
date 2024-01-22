@@ -158,9 +158,9 @@ const TopBar = () => {
                     <h3>{t('navbar.about.subnav.careers')}</h3>
                   </Link>
                 </div>
-                <div className="dropdown-list-item" onClick={showModal}>
+                {/* <div className="dropdown-list-item" onClick={showModal}>
                   <h3>{t('navbar.getInvolved')}</h3>
-                </div>
+                </div> */}
                 <div className="dropdown-list-item">
                   <Link to="/contact">
                     <h3>{t('navbar.about.subnav.contact')}</h3>
