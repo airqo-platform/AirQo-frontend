@@ -596,6 +596,19 @@
         "showMore": "More",
         "showLess": "Less"
       }
+    },
+    "press": {
+      "header": {
+        "title": "In the Press",
+        "subText": "Stories about AirQo that we think you'll love"
+      },
+      "article": {
+        "btnText": "Read article"
+      },
+      "buttons": {
+        "showMore": "See More",
+        "showLess": "See Less"
+      }
     }
   },
   "footer": {
