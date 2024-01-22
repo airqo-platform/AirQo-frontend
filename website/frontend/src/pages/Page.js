@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import NotificationBanner from 'src/components/NotificationBanner';
 import LanguageSwitcher from 'src/components/LanguageSwitcher';
 import Footer from 'src/components/Footer';
@@ -7,17 +7,19 @@ import NewsletterSection from 'src/components/NewsletterSection/NewsletterSectio
 import GetInvolvedModal from 'src/components/GetInvolvedModal';
 import MiniHighlights from '../components/MiniHighlights';
 
-const Page = ({ children }) => (
-  <div className="Page">
-    {/* <NotificationBanner /> */}
-    <LanguageSwitcher />
-    <TopBar />
-    <div className="page-wrapper">{children}</div>
-    <MiniHighlights />
-    <NewsletterSection />
-    <Footer />
-    <GetInvolvedModal />
-  </div>
-);
+const Page = ({ children }) => {
+  return (
+    <div className="Page">
+      {/* <NotificationBanner /> */}
+      <LanguageSwitcher />
+      <TopBar />
+      <div className="page-wrapper">{children}</div>
+      <MiniHighlights />
+      <NewsletterSection />
+      <Footer />
+      <GetInvolvedModal />
+    </div>
+  );
+};
 
 export default Page;

@@ -378,11 +378,18 @@ const CleanAirPartners = () => {
         )}
       </div>
 
-      <div className='individual-section'>
+      <div className="individual-section">
         <SingleSection
           removeTopMargin={true}
-          content="
-        Individuals actively involved in air quality work in Africa are welcome to join the CLEAN-Air Africa Network."
+          content={
+            <p
+              style={{
+                padding: '10px 0'
+              }}>
+              Individuals actively involved in air quality work in Africa are welcome to join the
+              CLEAN-Air Africa Network.
+            </p>
+          }
           btnText={'Register your interest'}
           link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
           bgColor="#F2F1F6"
