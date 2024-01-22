@@ -8,15 +8,12 @@ import Section5 from 'assets/img/cleanAir/goals.JPG';
 import Placeholder from 'assets/img/cleanAir/placeholder.png';
 import Placeholder2 from 'assets/img/cleanAir/placeholder2.png';
 import Placeholder3 from 'assets/img/cleanAir/placeholder3.png';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import SEO from 'utilities/seo';
 import { useTranslation, Trans } from 'react-i18next';
 
 const CleanAirAbout = () => {
   useInitScrollTop();
   const { t } = useTranslation();
-
-  const [showScroll, setShowScroll] = useState(false);
 
   const goals = [
     {
@@ -35,25 +32,6 @@ const CleanAirAbout = () => {
       imgURL: Placeholder2
     }
   ];
-
-  const checkScrollTop = () => {
-    const shouldShowScroll = window.scrollY >= 400;
-    if (showScroll !== shouldShowScroll) {
-      setShowScroll(shouldShowScroll);
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener('scroll', checkScrollTop);
-    return () => window.removeEventListener('scroll', checkScrollTop);
-  }, [showScroll]);
-
-  const ScrollTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  };
 
   return (
     <div className="page-wrapper about-page">
@@ -210,20 +188,6 @@ const CleanAirAbout = () => {
           bgColor="#EDF3FF"
         />
       </div>
-
-      {/* scroll top button */}
-      {showScroll && (
-        <div className="scroll-top" onClick={ScrollTop}>
-          <ArrowUpwardIcon
-            className="scroll-top-icon"
-            sx={{
-              width: '40px',
-              height: '40px',
-              color: '#FFF'
-            }}
-          />
-        </div>
-      )}
 
       {/* section 6 */}
       <div className="page-section">

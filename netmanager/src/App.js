@@ -47,6 +47,25 @@ if (localStorage.jwtToken) {
 }
 
 const App = () => {
+  // disabling feature
+  useEffect(() => {
+    if (process.env.REACT_APP_ALLOW_DEV_TOOLS === 'staging') {
+      return;
+    } else {
+      // Disable context menu (right click)
+      document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+      });
+
+      // Disable F12 key (open developer tools)
+      document.addEventListener('keydown', (e) => {
+        if (e.keyCode === 123) {
+          e.preventDefault();
+        }
+      });
+    }
+  }, []);
+
   return (
     <Provider store={store}>
       <ThemeProvider theme={theme}>

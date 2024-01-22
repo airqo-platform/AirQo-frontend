@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
@@ -36,10 +36,31 @@ import store from './store';
 import PartnerDetailPage from './src/pages/Partners';
 import Error404 from 'src/pages/ErrorPages/Error404';
 import { ExploreApp } from './src/pages/ExploreData';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 
 store.dispatch(loadAirQloudSummaryData());
 
 const App = () => {
+  const [showScroll, setShowScroll] = useState(false);
+
+  const checkScrollTop = () => {
+    const shouldShowScroll = window.scrollY >= 400;
+    if (showScroll !== shouldShowScroll) {
+      setShowScroll(shouldShowScroll);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('scroll', checkScrollTop);
+    return () => window.removeEventListener('scroll', checkScrollTop);
+  }, [showScroll]);
+
+  const ScrollTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
   return (
     <Provider store={store}>
       <I18nextProvider i18n={i18n}>
@@ -80,6 +101,19 @@ const App = () => {
           </Suspense>
         </Router>
       </I18nextProvider>
+      {/* scroll top button */}
+      {showScroll && (
+        <div className="scroll-top" onClick={ScrollTop}>
+          <ArrowUpwardIcon
+            className="scroll-top-icon"
+            sx={{
+              width: '40px',
+              height: '40px',
+              color: '#FFF'
+            }}
+          />
+        </div>
+      )}
     </Provider>
   );
 };
