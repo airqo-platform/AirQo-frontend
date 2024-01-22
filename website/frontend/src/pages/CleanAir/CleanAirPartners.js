@@ -333,7 +333,7 @@ const CleanAirPartners = () => {
       <div className="individual-section">
         <SingleSection
           removeTopMargin={true}
-          content={t('cleanAirSite.membership.individualSection.subText')}
+          content={<Trans i18nKey="cleanAirSite.membership.individualSection.subText" />}
           btnText={t('cleanAirSite.membership.individualSection.cta')}
           link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
           bgColor="#F2F1F6"

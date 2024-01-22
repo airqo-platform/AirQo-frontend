@@ -198,7 +198,7 @@
         "subText": "<p style={{color: '#353E52', fontSize: '24px', lineHeight: '32px', fontWeight: 400, fontStyle: 'normal'}}>Le réseau CLEAN-Air est soutenu par des partenaires de développement et des organisations philanthropiques, dont Google.org, WEHUBIT et le Département d'État américain, avec une longue tradition de mise en œuvre d'une surveillance continue de la qualité de l'air dans les villes gourmandes en données à travers les ambassades américaines du monde entier.<br/><br/>Les partenaires de soutien fournissent un soutien logistique et/ou financier aux membres du réseau et peuvent participer à des activités telles que les réunions annuelles du réseau CLEAN-Air.</p>"
       },
       "individualSection": {
-        "subText": "Les personnes actives dans le domaine de la qualité de l'air en Afrique sont invitées à rejoindre le réseau CLEAN-Air Africa.",
+        "subText": "<p style={{padding : '10px 0'}}>Les personnes activement impliquées dans le travail sur la qualité de l’air en Afrique sont invitées à rejoindre le réseau CLEAN-Air Africa.</p>",
         "cta": "Enregistrez votre intérêt"
       }
     },

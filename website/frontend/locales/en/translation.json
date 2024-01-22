@@ -198,7 +198,7 @@
         "subText": "<p style={{color: '#353E52', fontSize: '24px', lineHeight: '32px', fontWeight: 400, fontStyle: 'normal'}}>The CLEAN-Air network is supported by development partners and philanthropic organisations, including Google.org, WEHUBIT, and the U.S. Department of State, with an established history of pioneering continuous air quality monitoring in data-hungry cities through the U.S. Embassies across the world.<br/><br/>Supporting partners provide logistical and/or funding support to network members, and may participate in activities including the annual CLEAN-Air Network meetings.</p>"
       },
       "individualSection": {
-        "subText": "Individuals actively involved in air quality work in Africa are welcome to join the CLEAN-Air Africa Network.",
+        "subText": "<p style={{padding: '10px 0'}}>Individuals actively involved in air quality work in Africa are welcome to join the CLEAN-Air Africa Network.</p>",
         "cta": "Register your interest"
       }
     },
