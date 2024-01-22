@@ -442,13 +442,6 @@ enum AuthProcedure {
     confirmationOkayText: '',
     confirmationCancelText: '',
   ),
-  //include for linked account
-  linkAccount(
-    confirmationTitle: '',
-    confirmationBody: '',
-    confirmationOkayText: '',
-    confirmationCancelText: '',
-  ),
   signup(
     confirmationTitle: '',
     confirmationBody: '',
@@ -490,8 +483,6 @@ enum AuthProcedure {
 
   String getConfirmationTitle(BuildContext context) {
     switch (this) {
-      case AuthProcedure.linkAccount:
-        return '';
       case AuthProcedure.login:
         return '';
       case AuthProcedure.signup:
@@ -508,8 +499,6 @@ enum AuthProcedure {
 
   String getConfirmationBody(BuildContext context) {
     switch (this) {
-      case AuthProcedure.linkAccount:
-        return '';
       case AuthProcedure.login:
         return '';
       case AuthProcedure.signup:
@@ -526,8 +515,6 @@ enum AuthProcedure {
 
   String getConfirmationOkayText(BuildContext context) {
     switch (this) {
-      case AuthProcedure.linkAccount:
-        return '';
       case AuthProcedure.login:
         return '';
       case AuthProcedure.signup:
@@ -543,8 +530,6 @@ enum AuthProcedure {
 
   String getConfirmationCancelText(BuildContext context) {
     switch (this) {
-      case AuthProcedure.linkAccount:
-        return '';
       case AuthProcedure.login:
         return '';
       case AuthProcedure.signup:

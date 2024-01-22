@@ -232,8 +232,7 @@ class _EmailAuthWidgetState<T extends _EmailVerifyWidget> extends State<T> {
       return;
     }
 
-    if (exists && authProcedure == AuthProcedure.signup ||
-        authProcedure == AuthProcedure.linkAccount) {
+    if (exists && authProcedure == AuthProcedure.signup) {
       Navigator.pop(context);
       context.read<EmailAuthBloc>().add(SetEmailAuthStatus(
             AuthenticationStatus.error,
