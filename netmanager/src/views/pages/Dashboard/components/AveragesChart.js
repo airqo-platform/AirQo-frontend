@@ -314,7 +314,7 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
           categoryPercentage: numLocations > 0 ? 1 / numLocations : 0.5,
           ticks: {
             fontColor: 'black',
-            callback: (value) => `${value.substr(0, 7)}`
+            callback: (value) => `${value.substr(0, 11)}`
           },
           gridLines: {
             display: false,
@@ -322,7 +322,7 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
           },
           scaleLabel: {
             display: true,
-            labelString: 'Locations'
+            labelString: isCohorts ? 'Devices' : 'Locations'
           }
         }
       ],
@@ -684,7 +684,7 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
               border: 'none'
             }}
           >
-            View all Locations <ArrowForwardIcon />
+            View all {isCohorts ? 'Devices' : 'Locations'} <ArrowForwardIcon />
           </Button>
         </CardActions>
       </Card>
