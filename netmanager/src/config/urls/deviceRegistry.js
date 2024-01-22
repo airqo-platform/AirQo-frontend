@@ -61,3 +61,6 @@ export const SEND_DEVICE_HOST_MONEY = `${BASE_DEVICE_REGISTRY_URL_V2}/incentives
 export const GET_TRANSACTION_HISTORY = `${BASE_DEVICE_REGISTRY_URL_V2}/incentives/transactions/payments/hosts`;
 
 export const GET_AIRQLOUDS_SUMMARY = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/airqlouds/summary`;
+
+// new map READINGS
+export const GET_MAP_READING_URI = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/readings/map`;

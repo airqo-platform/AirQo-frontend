@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
 import AirQo from 'icons/nav/AirQo';
 import MenuIcon from 'assets/svg/Menu.svg';
@@ -7,7 +7,6 @@ import CloseIcon from 'assets/svg/Close.svg';
 import { Link } from 'react-router-dom';
 import NavTab from './NavTab';
 import { useTranslation } from 'react-i18next';
-import { setLanguageTab } from '../../../reduxStore/EventsNav/NavigationSlice';
 import PublicIcon from '@mui/icons-material/Public';
 
 const TopBar = () => {
@@ -44,7 +43,7 @@ const TopBar = () => {
 
   // Handling click event
   const handleClick = (item) => {
-    console.log(item)
+    console.log(item);
     if (width < 1024) {
       setOpenItem(openItem === item ? null : item);
     } else {
@@ -52,21 +51,7 @@ const TopBar = () => {
     }
   };
   // Translation hook
-  const { t, i18n } = useTranslation();
-  const languageTab = useSelector((state) => state.eventsNavTab.languageTab)
-  const [language, setLanguage] = useState(languageTab);
-
-  const lngs = {
-    en: { nativeName: 'English' },
-    fr: { nativeName: 'French' }
-  };
-
-  const changeLanguage = (event) => {
-    const optionValue = event.target.value
-    i18n.changeLanguage(optionValue);
-    setLanguage(optionValue);
-    dispatch(setLanguageTab(optionValue))
-  }
+  const { t } = useTranslation();
 
   return (
     <div className="TopBar">
@@ -75,15 +60,6 @@ const TopBar = () => {
           <Link to="/">
             <AirQo />
           </Link>
-          <div className='language-dropdown'>
-            <select onChange={(e) => changeLanguage(e)} value={language}>
-              {Object.keys(lngs).map((lng) => (
-                <option key={lng} value={lng}>
-                  {lngs[lng].nativeName}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
         <div className="nav-center" id="nav-center">
           <div className="nav-wrapper">
@@ -194,19 +170,19 @@ const TopBar = () => {
             </div>
           </div>
           {/* <NavTab text="About" path="/about-us" hideArrow /> */}
-          {/* <NavTab text={t('navbar.getInvolved')} hideArrow colored onClick={showModal} /> */}
-          <Link to='/clean-air' className='clean-air-tab'>
+          <NavTab text={t('navbar.getInvolved')} hideArrow colored onClick={showModal} />
+          {/* <Link to="/clean-air" className="clean-air-tab">
             <div>
               <PublicIcon />
               <h3>{t('navbar.about.subnav.cleanAir')}</h3>
             </div>
-          </Link>
+          </Link> */}
           <NavTab text={t('navbar.exploreData')} path="/explore-data" hideArrow filled />
         </div>
       </div>
       <MenuIcon className="menu-btn" id="menu" onClick={toggleMenu} />
       <CloseIcon className="close-menu-btn" id="close-menu" onClick={toggleCloseMenu} />
-    </div >
+    </div>
   );
 };
 

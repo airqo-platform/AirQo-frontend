@@ -100,7 +100,7 @@ const allMainPages = [
   },
   {
     title: 'Map',
-    href: '/heatMap',
+    href: '/map',
     icon: <MapIcon />
   },
   {
