@@ -420,6 +420,134 @@
       }
     }
   },
+
+  "about": {
+    "aboutUs": {
+      "header": {
+        "pageTitle": "About",
+        "subnav": {
+          "vision": "Our vision",
+          "story": "Our story",
+          "mission": "Our mission",
+          "values": "Our values",
+          "team": "Our Team"
+        }
+      },
+      "vision": {
+        "text": "At AirQo we empower communities across Africa with accurate, hyperlocal, and timely air quality data to drive air pollution mitigation actions."
+      },
+      "banner": {
+        "title": "Our vision",
+        "subText": "Clean air for all African cities."
+      },
+      "story": {
+        "title": "Our story",
+        "paragraphs": {
+          "first": " We are on a mission to empower communities across Africa with information about the quality of the air they breathe.",
+          "second": "AirQo was founded in 2015 at Makerere University to close the gaps in air quality        monitoring across Africa. Our low-cost air quality monitors are designed to suit the African infrastructure, providing locally-led solutions to African air pollution challenges.",
+          "third": " They provide accurate, hyperlocal, and timely data providing evidence of the magnitude and scale of air pollution across the continent.",
+          "fourth": " By empowering citizens with air quality information, we hope to inspire change and action among African citizens to take effective action to reduce air pollution."
+        }
+      },
+      "mission": {
+        "text": "Our mission is to efficiently collect, analyse and forecast air quality data to international standards and work with partners to reduce air pollution and raise      awareness of its effects in African cities."
+      },
+      "values": {
+        "title": "Our values",
+        "subSection1": {
+          "title": "Citizen Focus",
+          "subText": "At AirQo we believe that the main beneficiary of clean air are citizens and the  positive impact it can have on their health and wellbeing."
+        },
+        "subSection2": {
+          "title": "Precision",
+          "subText": "We convert low-cost sensor data into a reliable measure of air quality thus making our network and our models as accurate as they can be."
+        },
+        "subSection3": {
+          "title": "Collaboration and Openness",
+          "subText": "In order to maximize our impact, we collaborate by sharing our data through      partnerships."
+        },
+        "subSection4": {
+          "title": "Investment in People",
+          "subText": "We work in a fast-moving field with continuous improvements in technology. We    recruit the best teams and also commit to their ongoing professional development and training."
+        }
+      },
+      "team": {
+        "title": "Meet the team",
+        "subText": "This is our team, a community of spirited individuals who work hard to bridge the  gap in air quality monitoring in Africa.",
+        "cta": "Join the Team"
+      },
+      "board": {
+        "title": "Meet the Board",
+        "subText": "A team of enthusiastic experts that offer guidance to enhance our growth and      realisation of our goals."
+      },
+      "partners": {
+        "title": "Our partner",
+        "subText": "Together with our partners, we are solving large, complex air quality monitoring   challenges across Africa. We are providing much-needed air quality data to Governments and individuals in the continent to facilitate policy changes that combat air pollution.",
+        "cta": "Partner with Us",
+        "toggleButtons": {
+          "showMore": "See more",
+          "showLess": "See less"
+        }
+      }
+    },
+    "careers": {
+      "header": {
+        "breadCrumb": "Careers > Welcome to AirQo",
+        "title": "Join our team",
+        "subText": "Be part of a team pioneering air quality monitoring in Africa. Together, we work passionately towards our vision for Clean Air for all African Cities"
+      },
+      "categories": {
+        "label": "Categories",
+        "btnText": "Open positions",
+        "noListing": "We currently have no open positions.",
+        "selfIntro": {
+          "text": "Don’t see a <br /> position that fits you perfectly? Introduce yourself here",
+          "cta": "careers@airqo.net"
+        }
+      },
+      "careerDetails": {
+        "noListing": "Job listing not found or closed.",
+        "cta": "Apply"
+      }
+    },
+    "contactUs": {
+      "leftSection": {
+        "title": "Get in touch",
+        "subTitle": "Makerere University",
+        "subText": "Software Systems Centre, Block B, Level 3, College of Computing and Information  Sciences, Plot 56 University Pool Road. Kampala, Uganda",
+        "cta": "info@airqo.net"
+      },
+      "cards": {
+        "first": {
+          "title": "Air Quality Tools",
+          "subText": "I have a question about"
+        },
+        "second": {
+          "title": "Air Quality Data",
+          "subText": "I have a question about"
+        },
+        "third": {
+          "title": "feedback",
+          "subText": "I have some"
+        },
+        "fourth": {
+          "title": "general inquiry",
+          "subText": "I have a"
+        }
+      },
+      "form": {
+        "name": "Full name",
+        "email": "Email address",
+        "message": "Your message*",
+        "terms": "I agree to the <0>Terms of Service</0> and <1>Privacy Policy</1>",
+        "cta": "Send"
+      },
+      "feedBack": {
+        "text": "Thanks for reaching out. <br /> We’ll get back to you!",
+        "cta": "Back Home"
+      }
+    }
+  },
   "footer": {
     "monitors": "Monitors in",
     "blog": "Blog",
