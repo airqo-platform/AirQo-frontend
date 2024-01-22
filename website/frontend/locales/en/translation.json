@@ -609,6 +609,30 @@
         "showMore": "See More",
         "showLess": "See Less"
       }
+    },
+    "publications": {
+      "header": {
+        "title": "Resources",
+        "subText": "Discover our latest collection of resources"
+      },
+      "subNav": {
+        "research": "Research Publications",
+        "reports": "Technical reports and Policy documents",
+        "guides": "Guides and manuals"
+      },
+      "reportCard": {
+        "authors": {
+          "author1": "Created by",
+          "author2": {
+            "text": "Supported by",
+            "subText": "AirQo and Makerere University"
+          }
+        },
+        "resourceLinks": {
+          "linkText": "Read More",
+          "downloadLinkText": "Download"
+        }
+      }
     }
   },
   "footer": {

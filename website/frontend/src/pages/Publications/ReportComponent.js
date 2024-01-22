@@ -1,35 +1,43 @@
 import React from 'react';
 import ArrowRight from 'icons/research/arrow-right.svg';
 import { FileDownloadOutlined } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 const ReportComponent = ({ title, authors, link, linkTitle, showSecondAuthor, resourceFile }) => {
+  const { t } = useTranslation();
   return (
     <div className="report-card">
       <div>
         <div className="main-text">{title}</div>
-        <div className="author">Created by</div>
+        <div className="author">{t('about.publications.reportCard.authors.author1')}</div>
         <div className="team">{authors}</div>
-        {showSecondAuthor &&
+        {showSecondAuthor && (
           <>
             <hr />
-            <div className="author">Supported by</div>
-            <div className="team">AirQo and Makerere University</div>
+            <div className="author">{t('about.publications.reportCard.authors.author2.text')}</div>
+            <div className="team">{t('about.publications.reportCard.authors.author2.subText')}</div>
           </>
-        }
-        <div className='resource-links'>
+        )}
+        <div className="resource-links">
           {link !== null ? (
             <div className="link">
               <a href={link} target="_blank" rel="noopener noreferrer">
                 <span>
-                  {linkTitle || 'Read More'} <ArrowRight />
+                  {linkTitle || t('about.publications.reportCard.resourceLinks.linkText')}{' '}
+                  <ArrowRight />
                 </span>
               </a>
-            </div>) : (<span />)
-          }
+            </div>
+          ) : (
+            <span />
+          )}
           {resourceFile !== null ? (
-            <div className='link'>
+            <div className="link">
               <a href={resourceFile} target="_blank" rel="noopener noreferrer">
-                <span>Download <FileDownloadOutlined /> </span>
+                <span>
+                  {t('about.publications.reportCard.resourceLinks.downloadLinkText')}{' '}
+                  <FileDownloadOutlined />{' '}
+                </span>
               </a>
             </div>
           ) : (

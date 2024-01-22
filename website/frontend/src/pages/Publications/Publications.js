@@ -8,9 +8,11 @@ import Page from '../Page';
 import CardComponent from './CardComponent';
 import Pagination from './Pagination';
 import ReportComponent from './ReportComponent';
+import { useTranslation } from 'react-i18next';
 
 const PublicationsPage = () => {
   useInitScrollTop();
+  const { t } = useTranslation();
   const [selectedTab, setSelectedTab] = useState('Research');
   const onClickTabItem = (tab) => setSelectedTab(tab);
 
@@ -53,10 +55,8 @@ const PublicationsPage = () => {
         <div className="page-header">
           <div className="content">
             <div className="title-wrapper">
-              <h2>Resources</h2>
-              <span className="sub-title">
-                Discover our latest collection of resources
-              </span>
+              <h2>{t('about.publications.header.title')}</h2>
+              <span className="sub-title">{t('about.publications.header.subText')}</span>
             </div>
             <div className="nav">
               <span id="tab1">
@@ -66,7 +66,7 @@ const PublicationsPage = () => {
                     paginate(1);
                     onClickTabItem('Research');
                   }}>
-                  Research Publications
+                  {t('about.publications.subNav.research')}
                 </button>
               </span>
               <span id="tab2">
@@ -76,7 +76,7 @@ const PublicationsPage = () => {
                     paginate(1);
                     onClickTabItem('Reports');
                   }}>
-                  Technical reports and Policy documents
+                  {t('about.publications.subNav.reports')}
                 </button>
               </span>
               <span id="tab3">
@@ -86,7 +86,7 @@ const PublicationsPage = () => {
                     paginate(1);
                     onClickTabItem('Guides');
                   }}>
-                  Guides and manuals
+                  {t('about.publications.subNav.guides')}
                 </button>
               </span>
             </div>
