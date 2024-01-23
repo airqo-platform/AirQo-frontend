@@ -13,11 +13,18 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserChecklists } from '@/lib/store/services/checklists/CheckData';
 import { updateCards } from '@/lib/store/services/checklists/CheckList';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 
-const Layout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBorderBottom }) => {
+const Layout = ({
+  pageTitle = 'AirQo Analytics',
+  children,
+  topbarTitle,
+  noBorderBottom,
+  noTopNav = true,
+}) => {
   // Constants
   const MAX_WIDTH = '(max-width: 1024px)';
-
+  const router = useRouter();
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
   const userInfo = useSelector((state) => state.login.userInfo);
@@ -79,6 +86,14 @@ const Layout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBorder
   useEffect(fetchData, [dispatch, userInfo]);
 
   useEffect(() => {
+    if (router.pathname === '/map') {
+      setCollapsed(true);
+    } else {
+      setCollapsed(false);
+    }
+  }, [router.pathname]);
+
+  useEffect(() => {
     localStorage.setItem('collapsed', collapsed);
   }, [collapsed]);
 
@@ -114,14 +129,16 @@ const Layout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBorder
             />
           </div>
           <div className='w-full overflow-x-hidden'>
-            <TopBar
-              topbarTitle={topbarTitle}
-              noBorderBottom={noBorderBottom}
-              toggleDrawer={toggleDrawer}
-              setToggleDrawer={setToggleDrawer}
-              collapsed={collapsed}
-              setCollapsed={setCollapsed}
-            />
+            {noTopNav && (
+              <TopBar
+                topbarTitle={topbarTitle}
+                noBorderBottom={noBorderBottom}
+                toggleDrawer={toggleDrawer}
+                setToggleDrawer={setToggleDrawer}
+                collapsed={collapsed}
+                setCollapsed={setCollapsed}
+              />
+            )}
             {children}
           </div>
         </div>
