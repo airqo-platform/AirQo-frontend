@@ -3,6 +3,7 @@ import Layout from '@/components/Layout';
 import CloseIcon from '@/icons/close_icon';
 import LocationIcon from '@/icons/LocationIcon';
 import SearchIcon from '@/icons/Common/search_md.svg';
+import AirQoMap from '@/components/Map/AirQoMap';
 
 const TabSelector = ({ selectedTab, setSelectedTab }) => {
   return (
@@ -134,7 +135,7 @@ const index = () => {
     <Layout pageTitle='AirQo Map' noTopNav={false}>
       <div className='relative flex w-full h-full'>
         {showSideBar && (
-          <div className='w-[280px] md:w-[400px] bg-white shadow-lg shadow-right space-y-4'>
+          <div className='w-[280px] h-full md:w-[400px] bg-white shadow-lg shadow-right space-y-4 z-50'>
             <div className='px-4 pt-4'>
               <div className='w-full flex justify-between items-center'>
                 <div>
@@ -158,9 +159,11 @@ const index = () => {
 
               <div className='flex justify-between items-center'>
                 <button className='px-4 py-2 rounded-full bg-blue-500 text-white'>All</button>
-                <div className='flex space-x-4 overflow-x-auto custom-scrollbar ml-4'>
+                <div className='flex space-x-4 overflow-x-auto custom-scrollbar py-4 ml-4'>
                   {countries.map((country) => (
-                    <div className='flex items-center rounded-full bg-gray-100 p-2 space-x-2'>
+                    <div
+                      key={country.id}
+                      className='flex items-center rounded-full bg-gray-100 p-2 space-x-2'>
                       {/* flags */}
                       <span>{country.name}</span>
                     </div>
@@ -173,6 +176,7 @@ const index = () => {
                 <div className='overflow-y-auto'>
                   {locations.map((location) => (
                     <div
+                      key={location.id}
                       className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer hover:bg-blue-100 p-2 rounded-lg'
                       onClick={() => {
                         handleLocationSelect();
@@ -181,10 +185,10 @@ const index = () => {
                         <LocationIcon />
                       </div>
                       <div className='ml-3 flex flex-col item-start border-b w-full'>
-                        <span className=' font-normal text-black capitalize text-lg'>
+                        <span className='font-normal text-black capitalize text-lg'>
                           {location.name}
                         </span>
-                        <span className='font-normal text-gray-500 capitalize text-sm'>
+                        <span className='font-normal text-gray-500 capitalize text-sm mb-2'>
                           {location.country}
                         </span>
                       </div>
@@ -196,14 +200,18 @@ const index = () => {
             </div>
           </div>
         )}
-        <div className='relative p-4 h-[100vh] flex-grow'>
+        <div className='relative h-auto w-screen'>
           {!showSideBar && (
             <button
-              className='absolute top-4 left-4  text-red-400'
+              className='absolute top-4 left-4 z-50 text-red-400'
               onClick={() => setShowSideBar(!showSideBar)}>
               open
             </button>
           )}
+          <AirQoMap
+            mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
+            style='flex-grow w-[100%] h-screen relative'
+          />
         </div>
       </div>
     </Layout>
