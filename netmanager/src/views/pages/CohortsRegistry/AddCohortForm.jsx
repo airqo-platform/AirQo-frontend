@@ -14,8 +14,7 @@ import { updateMainAlert } from 'redux/MainAlert/operations';
 import Select from 'react-select';
 import { useDispatch } from 'react-redux';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
-import { setActiveCohort } from 'redux/Analytics/operations';
-import { fetchAllCohorts } from '../../../redux/Analytics/operations';
+import { fetchCohortsSummary } from 'redux/Analytics/operations';
 
 const AddCohortToolbar = ({ open, handleClose, deviceOptions }) => {
   const dispatch = useDispatch();
@@ -54,7 +53,7 @@ const AddCohortToolbar = ({ open, handleClose, deviceOptions }) => {
           selectedDevices.map((device) => device.value)
         )
           .then((res) => {
-            dispatch(fetchAllCohorts(activeNetwork.net_name));
+            dispatch(fetchCohortsSummary(activeNetwork.net_name));
             handleClose();
             dispatch(
               updateMainAlert({
