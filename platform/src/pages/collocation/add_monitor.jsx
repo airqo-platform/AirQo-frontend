@@ -7,7 +7,10 @@ import SkeletonFrame from '@/components/Collocation/AddMonitor/Skeletion';
 import { useDispatch, useSelector } from 'react-redux';
 import CheckCircleIcon from '@/icons/check_circle';
 import ScheduleCalendar from '@/components/Collocation/AddMonitor/Calendar';
-import { removeDevices } from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
+import {
+  removeDevices,
+  resetBatchData,
+} from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
 import Toast from '@/components/Toast';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -22,9 +25,7 @@ const AddMonitor = () => {
 
   const schedulingResponse = useSelector((state) => state.collocation.collocateDevices);
 
-  const { collocationDevices: data, status, error } = useSelector((state) => state.deviceRegistry);
-
-  let collocationDevices = data ? data.devices : [];
+  const { collocationDevices, status, error } = useSelector((state) => state.deviceRegistry);
 
   const selectedCollocateDevices = useSelector(
     (state) => state.selectedCollocateDevices.selectedCollocateDevices,
@@ -54,7 +55,19 @@ const AddMonitor = () => {
 
   const handleCollocation = async () => {
     setCollocating(true);
-    if (startDate && endDate && selectedCollocateDevices) {
+    if (
+      selectedCollocateDevices &&
+      startDate &&
+      endDate &&
+      scheduledBatchDifferencesThreshold >= 0 &&
+      scheduledBatchDifferencesThreshold <= 5 &&
+      scheduledBatchDataCompletenessThreshold >= 0 &&
+      scheduledBatchDataCompletenessThreshold <= 100 &&
+      scheduledBatchInterCorrelationThreshold >= 0 &&
+      scheduledBatchInterCorrelationThreshold <= 1 &&
+      scheduledBatchIntraCorrelationThreshold >= 0 &&
+      scheduledBatchIntraCorrelationThreshold <= 1
+    ) {
       const body = {
         startDate,
         endDate,
@@ -70,18 +83,22 @@ const AddMonitor = () => {
 
       if (schedulingResponse.fulfilled) {
         router.push('/collocation/collocate_success');
+
+        setCollocating(false);
+        dispatch(removeDevices(selectedCollocateDevices));
+        dispatch(resetBatchData());
       }
     }
-    setCollocating(false);
-    dispatch(removeDevices(selectedCollocateDevices));
   };
 
   return (
     <Layout pageTitle={'Add monitor | Collocation'}>
-      {(error || (schedulingResponse && schedulingResponse.rejected)) && (
+      {status && status === 'failed' && (
         <Toast
           type={'error'}
           message={
+            error ||
+            schedulingResponse.error ||
             'Uh-oh! Unable to collocate devices. Please check your connection or try again later.'
           }
           dataTestId={'collocation-error-toast'}
@@ -94,20 +111,20 @@ const AddMonitor = () => {
         <>
           <NavigationBreadCrumb navTitle={'Add monitor'}>
             <div className='flex'>
-              {schedulingResponse && schedulingResponse.fulfilled && (
-                <Button className={'mr-1'}>
-                  <div className='mr-1'>
-                    <CheckCircleIcon />
-                  </div>{' '}
-                  Saved
-                </Button>
-              )}
               <Button
                 className={`rounded-none text-white bg-blue-900 border border-blue-900 font-medium ${
                   selectedCollocateDevices.length > 0 &&
-                  endDate &&
                   startDate &&
+                  endDate &&
                   scheduledBatchName &&
+                  scheduledBatchDifferencesThreshold >= 0 &&
+                  scheduledBatchDifferencesThreshold <= 5 &&
+                  scheduledBatchDataCompletenessThreshold >= 0 &&
+                  scheduledBatchDataCompletenessThreshold <= 100 &&
+                  scheduledBatchInterCorrelationThreshold >= 0 &&
+                  scheduledBatchInterCorrelationThreshold <= 1 &&
+                  scheduledBatchIntraCorrelationThreshold >= 0 &&
+                  scheduledBatchIntraCorrelationThreshold <= 1 &&
                   !isCollocating
                     ? 'cursor-pointer'
                     : 'opacity-40 cursor-not-allowed'
