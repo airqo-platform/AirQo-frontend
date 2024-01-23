@@ -69,6 +69,15 @@ const selectedCollocateDevicesSlice = createSlice({
         state.scheduledBatchDifferencesThreshold = action.payload;
       }
     },
+    resetBatchData: (state) => {
+      state.startDate = null;
+      state.endDate = null;
+      state.scheduledBatchName = '';
+      state.scheduledBatchDataCompletenessThreshold = 80;
+      state.scheduledBatchInterCorrelationThreshold = 0.98;
+      state.scheduledBatchIntraCorrelationThreshold = 0.98;
+      state.scheduledBatchDifferencesThreshold = 5;
+    },
   },
 });
 
@@ -83,6 +92,7 @@ export const {
   addScheduledBatchDifferencesThreshold,
   addScheduledBatchInterCorrelationThreshold,
   addScheduledBatchIntraCorrelationThreshold,
+  resetBatchData,
 } = selectedCollocateDevicesSlice.actions;
 
 export default selectedCollocateDevicesSlice.reducer;
