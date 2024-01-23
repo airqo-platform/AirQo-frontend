@@ -14,9 +14,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import PolygonMap from './PolygonMap';
 import { createGridApi } from 'views/apis/deviceRegistry';
 import Alert from '@material-ui/lab/Alert';
-import { setActiveGrid } from 'redux/Analytics/operations';
 import { refreshGridApi } from '../../apis/deviceRegistry';
-import { fetchAllGrids } from '../../../redux/Analytics/operations';
+import { fetchGridsSummary } from 'redux/Analytics/operations';
 
 const AddGridToolbar = ({ open, handleClose }) => {
   const dispatch = useDispatch();
@@ -64,7 +63,7 @@ const AddGridToolbar = ({ open, handleClose }) => {
               severity: 'success'
             });
             const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
-            dispatch(fetchAllGrids(activeNetwork.net_name));
+            dispatch(fetchGridsSummary(activeNetwork.net_name));
             setTimeout(() => {
               setErrorMessage(null);
               clearState();
