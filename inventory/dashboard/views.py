@@ -166,40 +166,58 @@ def metadata(request):
 
 
 @login_required
-def details(request,pk):
+def details(request, pk):
     item = Stock.objects.get(id=pk)
+    
     if request.method == 'POST':
         newStockForm = NewStockForm(request.POST, instance=item)
         dispenseForm = DispenseForm(request.POST, instance=item)
+
         if newStockForm.is_valid():
-            history = StockHistory.objects.create(item_name=item.item_name,
-                                  stock_in=item.stock_in,
-                                  stock_out=item.stock_out,
-                                  stock_in_date=item.stock_in_date,
-                                  stock_out_date=item.stock_out_date)
+            # Save the original stock_out value before updating it to zero
+            original_stock_out = item.stock_out
+
+            # Set stock_out to zero
+            item.stock_out = 0
+
+            # Save the new stock entry
+            new_stock_instance = newStockForm.save()
+
+            
+            history = StockHistory.objects.create(
+                item_name=item.item_name,
+                stock_in=new_stock_instance.stock_in,
+                stock_out=original_stock_out,  # Use the original stock_out value
+                stock_in_date=new_stock_instance.stock_in_date,
+                stock_out_date=new_stock_instance.stock_out_date
+            )
             history.save()
-            newStockForm.save()
+
             return redirect('products')
-        
+
         if dispenseForm.is_valid():
-            history = StockHistory.objects.create(item_name=item.item_name,
-                                  stock_in=item.stock_in,
-                                  stock_out=item.stock_out,
-                                  stock_in_date=item.stock_in_date,
-                                  stock_out_date=item.stock_out_date)
+            history = StockHistory.objects.create(
+                item_name=item.item_name,
+                stock_in=item.stock_in,
+                stock_out=item.stock_out,
+                stock_in_date=item.stock_in_date,
+                stock_out_date=item.stock_out_date
+            )
             history.save()
             dispenseForm.save()
             return redirect('products')
-        
+
     else:
         newStockForm = NewStockForm(instance=item)
         dispenseForm = DispenseForm(instance=item)
+
     context = {
-        'newStockForm' : newStockForm,
-        'dispenseForm' : dispenseForm,
-        'item' : item
+        'newStockForm': newStockForm,
+        'dispenseForm': dispenseForm,
+        'item': item
     }
-    return render(request,'dashboard/details.html',context)
+
+    return render(request, 'dashboard/details.html', context)
 
 @login_required
 def edit_inventory(request,pk):
