@@ -253,14 +253,7 @@ class AnalyticsCard extends StatelessWidget {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Container(
-                                          constraints: BoxConstraints(
-                                            maxWidth: MediaQuery.of(context)
-                                                    .size
-                                                    .width /
-                                                3.2,
-                                          ),
-                                          child: Text(
+                                        Text(
                                             airQualityReading.dateTime
                                                 .analyticsCardString(context),
                                             maxLines: 1,
@@ -270,7 +263,6 @@ class AnalyticsCard extends StatelessWidget {
                                               color:
                                                   Colors.black.withOpacity(0.3),
                                             ),
-                                          ),
                                         ),
                                         const SizedBox(
                                           width: 4.0,

@@ -24,9 +24,8 @@ const deviceRegistrySlice = createSlice({
         state.status = 'loading';
       })
       .addCase(getCollocationDevices.fulfilled, (state, action) => {
-        console.log(action.payload.data);
         state.status = 'succeeded';
-        state.collocationDevices = action.payload.data;
+        state.collocationDevices = action.payload.devices;
       })
       .addCase(getCollocationDevices.rejected, (state, action) => {
         state.status = 'failed';

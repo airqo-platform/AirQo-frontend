@@ -246,7 +246,8 @@ const ExportData = (props) => {
         hidden={value !== index}
         id={`data-export-tabpanel-${index}`}
         aria-labelledby={`data-export-tab-${index}`}
-        {...other}>
+        {...other}
+      >
         {value === index && <div sx={{ p: 3 }}>{children}</div>}
       </div>
     );
@@ -626,9 +627,10 @@ const ExportData = (props) => {
           paddingBottom={'12px'}
           color={'grey.700'}
           fontSize={'14px'}
-          fontWeight={300}>
-          Customize the data you want to download. We recommend scheduling your downloads for bulky
-          data/time periods greater than a month to avoid timeouts.
+          fontWeight={300}
+        >
+          Customize the data you want to download. We recommend downloading data for shorter time
+          periods like a week or a month to avoid timeouts.
         </Box>
 
         <Grid container spacing={4}>
@@ -638,7 +640,8 @@ const ExportData = (props) => {
               className={clsx(classes.root, className)}
               style={{
                 overflow: 'visible'
-              }}>
+              }}
+            >
               <Tabs
                 value={value}
                 onChange={handleChangeTabPanel}
@@ -649,7 +652,8 @@ const ExportData = (props) => {
                 classes={{
                   root: classes.tabs, // Apply custom styles to the root element
                   indicator: classes.indicator // Apply custom styles to the indicator element
-                }}>
+                }}
+              >
                 <Tab disableTouchRipple label="Export by Sites" {...a11yProps(0)} />
                 <Tab disableTouchRipple label="Export by Devices" {...a11yProps(1)} />
                 <Tab disableTouchRipple label="Export by AirQlouds" {...a11yProps(2)} />
@@ -766,24 +770,30 @@ const ExportData = (props) => {
 
                   <Divider />
                   <CardActions>
-                    <Box display="flex" justifyContent="center" width="100%" className="step-2">
+                    <Box
+                      display={{
+                        xs: 'block',
+                        md: 'flex'
+                      }}
+                      justifyContent="center"
+                      width={'100%'}
+                      className="step-2"
+                    >
                       <Button
                         color="primary"
-                        variant="outlined"
+                        variant="contained"
                         type="submit"
                         style={{ marginRight: '15px' }}
-                        disabled={disableDownloadBtn('sites')}>
+                        disabled={disableDownloadBtn('sites')}
+                      >
                         {' '}
                         Download Data
                       </Button>
-                      <Button
-                        color="primary"
-                        variant="outlined"
-                        onClick={scheduleExportData}
-                        disabled={disableDownloadBtn('sites')}>
-                        {' '}
-                        Schedule Download
-                      </Button>
+                      {disableDownloadBtn('sites') && (
+                        <p style={{ marginTop: '10px', color: 'red' }}>
+                          {`Please fill in all the required fields`}
+                        </p>
+                      )}
                     </Box>
                   </CardActions>
                 </form>
@@ -904,24 +914,30 @@ const ExportData = (props) => {
 
                   <Divider />
                   <CardActions>
-                    <Box display="flex" justifyContent="center" width="100%">
+                    <Box
+                      display={{
+                        xs: 'block',
+                        md: 'flex'
+                      }}
+                      justifyContent="center"
+                      width={'100%'}
+                      className="step-2"
+                    >
                       <Button
                         color="primary"
-                        variant="outlined"
+                        variant="contained"
                         type="submit"
                         style={{ marginRight: '15px' }}
-                        disabled={disableDownloadBtn('devices')}>
+                        disabled={disableDownloadBtn('devices')}
+                      >
                         {' '}
                         Download Data
                       </Button>
-                      <Button
-                        color="primary"
-                        variant="outlined"
-                        onClick={scheduleExportData}
-                        disabled={disableDownloadBtn('devices')}>
-                        {' '}
-                        Schedule Download
-                      </Button>
+                      {disableDownloadBtn('devices') && (
+                        <p style={{ marginTop: '10px', color: 'red' }}>
+                          {`Please fill in all the required fields`}
+                        </p>
+                      )}
                     </Box>
                   </CardActions>
                 </form>
@@ -1041,24 +1057,30 @@ const ExportData = (props) => {
 
                   <Divider />
                   <CardActions>
-                    <Box display="flex" justifyContent="center" width="100%">
+                    <Box
+                      display={{
+                        xs: 'block',
+                        md: 'flex'
+                      }}
+                      justifyContent="center"
+                      width={'100%'}
+                      className="step-2"
+                    >
                       <Button
                         color="primary"
-                        variant="outlined"
+                        variant="contained"
                         type="submit"
                         style={{ marginRight: '15px' }}
-                        disabled={disableDownloadBtn('airqlouds')}>
+                        disabled={disableDownloadBtn('airqlouds')}
+                      >
                         {' '}
                         Download Data
                       </Button>
-                      <Button
-                        color="primary"
-                        variant="outlined"
-                        onClick={scheduleExportData}
-                        disabled={disableDownloadBtn('airqlouds')}>
-                        {' '}
-                        Schedule Download
-                      </Button>
+                      {disableDownloadBtn('airqlouds') && (
+                        <p style={{ marginTop: '10px', color: 'red' }}>
+                          {`Please fill in all the required fields`}
+                        </p>
+                      )}
                     </Box>
                   </CardActions>
                 </form>
@@ -1178,24 +1200,30 @@ const ExportData = (props) => {
 
                   <Divider />
                   <CardActions>
-                    <Box display="flex" justifyContent="center" width="100%">
+                    <Box
+                      display={{
+                        xs: 'block',
+                        md: 'flex'
+                      }}
+                      justifyContent="center"
+                      width={'100%'}
+                      className="step-2"
+                    >
                       <Button
                         color="primary"
-                        variant="outlined"
+                        variant="contained"
                         type="submit"
                         style={{ marginRight: '15px' }}
-                        disabled={disableDownloadBtn('regions')}>
+                        disabled={disableDownloadBtn('regions')}
+                      >
                         {' '}
                         Download Data
                       </Button>
-                      <Button
-                        color="primary"
-                        variant="outlined"
-                        onClick={scheduleExportData}
-                        disabled={disableDownloadBtn('regions')}>
-                        {' '}
-                        Schedule Download
-                      </Button>
+                      {disableDownloadBtn('regions') && (
+                        <p style={{ marginTop: '10px', color: 'red' }}>
+                          {`Please fill in all the required fields`}
+                        </p>
+                      )}
                     </Box>
                   </CardActions>
                 </form>
@@ -1219,7 +1247,8 @@ const ExportData = (props) => {
                 size="small"
                 aria-label="close"
                 color="inherit"
-                onClick={handleClickSnackbar}>
+                onClick={handleClickSnackbar}
+              >
                 <CloseIcon fontSize="small" />
               </IconButton>
             </React.Fragment>

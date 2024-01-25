@@ -186,7 +186,7 @@ const CohortForm = ({ cohort }) => {
   const initialState = {
     name: '',
     network: activeNetwork.net_name,
-    visibility: false
+    visibility: null
   };
   const [form, setState] = useState(initialState);
   const [loading, setLoading] = useState(false);

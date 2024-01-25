@@ -354,7 +354,6 @@
         justify-content: center;
         align-items: center;
         margin: 0 auto;
-        padding: 0px 16px;
 
         #first-pill {
           display: inline-flex;
@@ -401,19 +400,18 @@
           max-width: $maxWidth;
           margin: 0 auto;
           position: relative;
-          top: 56px;
+          top: 20px;
           z-index: 2;
         }
 
         .acronym-image {
           width: 100vw;
-          height: auto;
-          max-width: 100%;
+          height: 400px;
           position: relative;
           overflow: hidden;
-          margin-bottom: -2rem;
+          margin-bottom: -1rem;
           object-fit: cover;
-          object-position: center;
+          object-position: bottom;
         }
 
         .join-now {
@@ -491,7 +489,7 @@
 
                 .goal-title {
                   align-self: stretch;
-                  color: #121723;
+                  color: #135dff;
                   font-family: Inter;
                   font-size: 32px;
                   font-style: normal;
@@ -1137,39 +1135,6 @@
     }
   }
 
-  .scroll-top {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background-color: #145dff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    z-index: 1000;
-    transition: all 0.3s ease-in-out;
-    animation: scroll-top-icon 2s ease-in-out infinite;
-
-    &:hover {
-      background-color: #0e4dff;
-    }
-  }
-
-  @keyframes scroll-top-icon {
-    0% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
-    100% {
-      transform: translateY(0);
-    }
-  }
-
   /****************************************************/
   /*************** Responsivness **********************/
   /****************************************************/
@@ -1257,6 +1222,16 @@
                 }
               }
             }
+          }
+
+          .acronym-image {
+            width: 100%;
+            height: auto;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: -1rem;
+            object-fit: cover;
+            object-position: bottom;
           }
         }
       }
@@ -1471,10 +1446,11 @@
           }
 
           .acronym-content-container {
-            top: 25px;
+            top: 20px;
           }
 
           .goals-container {
+            padding: 0 16px;
             .goals {
               gap: 20px;
               .goal {

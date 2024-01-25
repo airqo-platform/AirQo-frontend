@@ -21,6 +21,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:app/utils/custom_localisation.dart';
 
 class AirQoApp extends StatefulWidget {
   const AirQoApp(this.initialLink, {super.key, required this.locale});
@@ -139,12 +140,16 @@ class _AirQoAppState extends State<AirQoApp> {
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
+          LgMaterialLocalizations.delegate,
+          LgCupertinoLocalizations.delegate,
+          LgWidgetsLocalizations.delegate,
         ],
         supportedLocales: const [
           Locale('en'), //English
           Locale('fr'), //French
           Locale('pt'), //Portuguese
           Locale('sw'), //Swahili
+          Locale('lg'), //Luganda
         ],
         navigatorKey: navigatorKey,
         navigatorObservers: [
