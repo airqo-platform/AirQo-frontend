@@ -5,14 +5,12 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
-import 'package:app/screens/email_link/email_link_page.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -527,17 +525,6 @@ class _DashboardViewState extends State<DashboardView>
     _refresh();
     _updateWidget();
     NotificationService.requestNotification(context, "dashboard");
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final user = await CloudStore.getProfile();
-      if (user.phoneNumber != "" && user.analyticsMongoID == "") {
-        await Future.delayed(const Duration(milliseconds: 1000))
-            .then((_) async {
-          if (mounted) {
-            await bottomSheetEmailLink(context);
-          }
-        });
-      }
-    });
   }
 
   @override

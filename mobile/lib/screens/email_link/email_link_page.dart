@@ -161,10 +161,10 @@ Future<dynamic> bottomSheetEmailLink(BuildContext context) async {
                       InkWell(
                         onTap: () async {
                           Navigator.pop(context, false);
-                          // prefs.setInt(
-                          //   'remindMeLaterTimestamp',
-                          //   DateTime.now().millisecondsSinceEpoch,
-                          // );
+                          prefs.setInt(
+                            'remindMeLaterTimestamp',
+                            DateTime.now().millisecondsSinceEpoch,
+                          );
                         },
                         child: const EmailLinkSkipButton(
                           text: "Remind me later",

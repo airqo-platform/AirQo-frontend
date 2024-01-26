@@ -12,6 +12,7 @@ import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/dialogs.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -242,10 +243,19 @@ class _HomePageState extends State<HomePage> {
         });
       }
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(Duration(milliseconds: 500), () {
-        showEmailLinkBottomSheet(context);
-      });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final user = FirebaseAuth.instance.currentUser;
+      if ((user != null && user.phoneNumber != null)) {
+        if (user.email != null) {
+          return;
+        } else if (user.isAnonymous) {
+          return;
+        }
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) {
+          await bottomSheetEmailLink(context);
+        }
+      }
     });
   }
 
