@@ -105,12 +105,7 @@ const allMainPages = [
   },
   {
     title: 'Export data',
-    href: '/export-data',
-    nested: true,
-    nestItems: [
-      { title: 'Export Options', href: '/export-data/options' },
-      { title: 'Scheduled', href: '/export-data/scheduled' }
-    ],
+    href: '/export-data/options',
     icon: <CloudDownloadIcon />
   },
   {
@@ -366,7 +361,8 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}>
+      variant={variant}
+    >
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />
