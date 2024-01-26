@@ -879,78 +879,23 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(60);
 }
 
-// class EditCredentialsField extends StatelessWidget {
-//   const EditCredentialsField({
-//     super.key,
-//     required this.authMethod,
-//     required this.profile,
-//   });
-//   final AuthMethod authMethod;
-//   final Profile profile;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       mainAxisSize: MainAxisSize.min,
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         Text(
-//           authMethod == AuthMethod.email
-//               ? AppLocalizations.of(context)!.email
-//               : AppLocalizations.of(context)!.phoneNumber,
-//           style: TextStyle(
-//             fontSize: 12,
-//             color: CustomColors.inactiveColor,
-//           ),
-//         ),
-//         const SizedBox(
-//           height: 4,
-//         ),
-//         TextFormField(
-//           initialValue: authMethod == AuthMethod.email
-//               ? profile.emailAddress
-//               : profile.phoneNumber,
-//           enableSuggestions: false,
-//           readOnly: true,
-//           style: TextStyle(color: CustomColors.inactiveColor),
-//           decoration: InputDecoration(
-//             filled: true,
-//             fillColor: Colors.white,
-//             hintText: '-',
-//             focusedBorder: OutlineInputBorder(
-//               borderSide:
-//                   const BorderSide(color: Colors.transparent, width: 1.0),
-//               borderRadius: BorderRadius.circular(8.0),
-//             ),
-//             enabledBorder: OutlineInputBorder(
-//               borderSide:
-//                   const BorderSide(color: Colors.transparent, width: 1.0),
-//               borderRadius: BorderRadius.circular(8.0),
-//             ),
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-// }
-
 class EditCredentialsField extends StatefulWidget {
   const EditCredentialsField({
-    Key? key,
+    super.key,
     required this.authMethod,
     required this.profile,
     this.isSaveClicked = false,
-  }) : super(key: key);
+  });
 
   final AuthMethod authMethod;
   final Profile profile;
   final bool isSaveClicked;
 
   @override
-  _EditCredentialsFieldState createState() => _EditCredentialsFieldState();
+  EditCredentialsFieldState createState() => EditCredentialsFieldState();
 }
 
-class _EditCredentialsFieldState extends State<EditCredentialsField> {
+class EditCredentialsFieldState extends State<EditCredentialsField> {
   late bool isReadOnly;
 
   @override
