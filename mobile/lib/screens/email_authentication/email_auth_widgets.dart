@@ -517,4 +517,3 @@ class LoginOptions extends StatelessWidget {
     );
   }
 }
-
