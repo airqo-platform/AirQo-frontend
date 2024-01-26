@@ -255,20 +255,15 @@ class _EmailAuthVerificationWidgetState
     );
 
     try {
-      // Check if the user is already signed in with phone number
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
-        // The user is already signed in with phone number
-        // Link the email credential with the existing user
         await currentUser.linkWithCredential(emailCredential);
       } else {
-        // Perform email authentication if not signed in with phone number
         final bool authenticationSuccessful =
             await CustomAuth.firebaseSignIn(emailCredential);
         if (!mounted) return;
 
         if (!authenticationSuccessful) {
-          // Handle authentication failure
           await showDialog<void>(
             context: context,
             barrierDismissible: false,
@@ -285,7 +280,6 @@ class _EmailAuthVerificationWidgetState
             AuthenticationStatus.success,
           ));
 
-      // Check if account linking was done, skip postSignInActions
       if (currentUser == null) {
         await AppService.postSignInActions(context);
       }

@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class EmailLinkActionButton extends StatelessWidget {
   const EmailLinkActionButton({
@@ -115,7 +116,7 @@ class EmailLinkErrorMessage extends StatelessWidget {
                 ),
                 Expanded(
                   child: AutoSizeText(
-                    'Your account is already linked',
+                    'Your Email is already registered ',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
@@ -144,7 +145,7 @@ class EmailLinkTitle extends StatelessWidget {
         String message;
         switch (state.status) {
           case AuthenticationStatus.initial:
-            message = "Link your account";
+            message = AppLocalizations.of(context)!.addYourEmail;
             break;
           case AuthenticationStatus.error:
             message =
@@ -197,9 +198,9 @@ class SkipLinkButtons extends StatelessWidget {
                     ),
                   );
                 },
-                child: const Text(
-                  'Skip',
-                  style: TextStyle(
+                child: Text(
+                  AppLocalizations.of(context)!.skip,
+                  style: const TextStyle(
                     color: Colors.blue, // Customize the color as needed
                   ),
                 ),
@@ -229,7 +230,7 @@ class EmailLinkSubTitle extends StatelessWidget {
 
             break;
           case AuthenticationStatus.success:
-            message = "Your account has been linked";
+            message = "Your Email has been added";
             break;
         }
 
@@ -265,17 +266,17 @@ class LinkAuthButtons extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 12),
           child: context.read<EmailAuthBloc>().state.authProcedure ==
                   AuthProcedure.signup
-              ? const Row(
+              ? Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     EmailLinkActionButton(
-                      text: "link",
+                      text: AppLocalizations.of(context)!.add,
                     ),
-                    SizedBox(
+                    const SizedBox(
                       width: 12,
                     ),
                     EmailLinkSkipButton(
-                      text: "skip",
+                      text: AppLocalizations.of(context)!.skip,
                     ),
                   ],
                 )
@@ -293,7 +294,7 @@ class LinkFailureDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoAlertDialog(
       title: Text(
-        "Oops something went wrong! Please try again later",
+        AppLocalizations.of(context)!.oopsSomethingWentWrongPleaseTryAgainLater,
         textAlign: TextAlign.center,
         style: CustomTextStyle.headline8(context),
       ),
@@ -310,7 +311,7 @@ class LinkFailureDialog extends StatelessWidget {
           isDefaultAction: true,
           isDestructiveAction: false,
           child: Text(
-            "Try again later",
+            AppLocalizations.of(context)!.tryAgainLater,
             style: CustomTextStyle.button2(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),

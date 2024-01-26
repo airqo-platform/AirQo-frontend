@@ -343,5 +343,18 @@
     "languages": "Ennimi",
     "dataProvider":"Ensibuko yo'bubaka: {placeholder}",
     "reDOLesson": "Ddiŋŋana essomo",
-    "reDoQuiz": "Ddiŋŋana Ekibuuzo"
+    "reDoQuiz": "Ddiŋŋana Ekibuuzo",
+    "addYourEmail":"Yongerako Email yo",
+    "yourEmailHasBeenAdded":"Email yo eyongezeddwayo",
+    "add":"Okwongerako",
+    "skip":"simbula",
+    "oopsSomethingWentWrongPleaseTryAgainLater":"Oops waliwo ekikyamu! Nsaba oddemu ogezeeko oluvannyuma",
+    "tryAgainLater":"Ddamu gezaako oluvannyuma",
+    "yourEmailIsAlreadyRegistered":"Email yo yawandiisibwa dda",
+    "weAreShufflingThingsAroundForYou":"Tutabula ebintu ku lulwo.....",
+    "youWouldBeRequiredToAddYourEmailToYourProfileOnTheMobileAppToEnableYouAccessThe":" Wandibadde weetaaga okwongera email yo ku profile yo ku app y'essimu okukusobozesa okuyingira mu ",
+    "withOneAccount":" nga erina akawunti emu.",
+    "addMyEmail":"Yongerako email yange",
+    "remindMeLater":"Nzijukiza oluvannyuma"
+
 }

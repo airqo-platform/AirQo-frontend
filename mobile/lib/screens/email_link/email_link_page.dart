@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:app/themes/theme.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<dynamic> bottomSheetEmailLink(BuildContext context) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -83,8 +84,7 @@ Future<dynamic> bottomSheetEmailLink(BuildContext context) async {
                         width: 295.53,
                         height: 67,
                         child: AutoSizeText(
-                          "We are shuffling things around for you.....",
-                          //maxLines: 2,
+                          AppLocalizations.of(context)!.weAreShufflingThingsAroundForYou,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: CustomColors.quizColorBlack,
@@ -101,10 +101,9 @@ Future<dynamic> bottomSheetEmailLink(BuildContext context) async {
                           textAlign: TextAlign.center,
                           text: TextSpan(
                             children: [
-                              const TextSpan(
-                                text:
-                                    " You would be required to add your email to your profile on the mobile app to enable you access the ",
-                                style: TextStyle(
+                               TextSpan(
+                                text:AppLocalizations.of(context)!.youWouldBeRequiredToAddYourEmailToYourProfileOnTheMobileAppToEnableYouAccessThe,
+                                style: const TextStyle(
                                   color: Color(0xFF485972),
                                   fontSize: 13.24,
                                   fontWeight: FontWeight.w400,
@@ -132,9 +131,9 @@ Future<dynamic> bottomSheetEmailLink(BuildContext context) async {
                                     }
                                   },
                               ),
-                              const TextSpan(
-                                text: " with one account.",
-                                style: TextStyle(
+                               TextSpan(
+                                text: AppLocalizations.of(context)!.withOneAccount,
+                                style: const TextStyle(
                                   color: Color(0xFF485972),
                                   fontSize: 13.24,
                                   fontWeight: FontWeight.w400,
@@ -153,8 +152,8 @@ Future<dynamic> bottomSheetEmailLink(BuildContext context) async {
                             },
                           ));
                         },
-                        child: const EmailLinkActionButton(
-                          text: "Add my email",
+                        child:  EmailLinkActionButton(
+                          text: AppLocalizations.of(context)!.addMyEmail,
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -166,8 +165,8 @@ Future<dynamic> bottomSheetEmailLink(BuildContext context) async {
                             DateTime.now().millisecondsSinceEpoch,
                           );
                         },
-                        child: const EmailLinkSkipButton(
-                          text: "Remind me later",
+                        child:  EmailLinkSkipButton(
+                          text: AppLocalizations.of(context)!.remindMeLater,
                         ),
                       ),
                     ],

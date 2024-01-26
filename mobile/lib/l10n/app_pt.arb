@@ -341,5 +341,17 @@
 	"languageChangedSuccessfully": "Idioma alterado com sucesso {placeholder}",
 	"ok": "OK",
 	"languages": "Idiomas",
-	"dataProvider":"Fornecedor de dados: {placeholder}"
+	"dataProvider":"Fornecedor de dados: {placeholder}",
+	"addYourEmail":"Adicione seu e-mail",
+    "yourEmailHasBeenAdded":"Seu e-mail foi adicionado",
+    "add":"Adicionar",
+    "skip":"pular",
+    "oopsSomethingWentWrongPleaseTryAgainLater":"Opa, algo deu errado! Tente novamente mais tarde",
+    "tryAgainLater":"Tente novamente mais tarde",
+    "yourEmailIsAlreadyRegistered":"Seu e-mail já está cadastrado",
+    "weAreShufflingThingsAroundForYou":"Estamos embaralhando as coisas para você.....",
+    "youWouldBeRequiredToAddYourEmailToYourProfileOnTheMobileAppToEnableYouAccessThe":" Você deverá adicionar seu e-mail ao seu perfil no aplicativo móvel para permitir o acesso ao ",
+    "withOneAccount":" com uma conta.",
+    "addMyEmail":"Adicionar meu e-mail",
+    "remindMeLater":"Lembre-me mais tarde"
 	}
