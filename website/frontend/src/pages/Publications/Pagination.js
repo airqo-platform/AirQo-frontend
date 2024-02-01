@@ -1,14 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Pagination = ({ itemsPerPage, totalItems, paginate }) => {
-  const pageNumbers = [];
-  const [clicked, setClicked] = useState(false);
+  const [pageNumbers, setPageNumbers] = useState([]);
   const [currentNumber, setCurrentNumber] = useState(1);
 
-  for (let i = 1; i <= Math.ceil(totalItems / itemsPerPage); i++) {
-    pageNumbers.push(i);
+  useEffect(() => {
+    const numbers = [];
+    for (let i = 1; i <= Math.ceil(totalItems / itemsPerPage); i++) {
+      numbers.push(i);
+    }
+    setPageNumbers(numbers);
+  }, [itemsPerPage, totalItems]);
+
+  const handleClick = (number) => {
+    setCurrentNumber(number);
+    paginate(number);
     window.scrollTo(0, 0);
-  }
+  };
 
   return (
     <ul className="pagination">
@@ -16,28 +24,24 @@ const Pagination = ({ itemsPerPage, totalItems, paginate }) => {
         <a
           className="page-link"
           onClick={() => {
-            currentNumber >= 2 ? paginate(currentNumber-1) : paginate(1);
+            currentNumber >= 2 && handleClick(currentNumber - 1);
           }}>
           {'<'}
         </a>
       </li>
-      {pageNumbers.map((number, key) => (
-        <li className="page-item" key={key}>
-          <a
-            onClick={() => {
-              setCurrentNumber(number);
-              setClicked(true);
-              paginate(number);
-            }}
-            className={clicked ? 'page-link page-number' : 'page-link page-number active'}>
+      {pageNumbers.map((number) => (
+        <li key={number} className={`page-item ${number === currentNumber ? 'active' : ''}`}>
+          <a onClick={() => handleClick(number)} className="page-link">
             {number}
           </a>
         </li>
       ))}
       <li className="page-item">
-        <a className="page-link" onClick={() => {
-          currentNumber >= pageNumbers.length ? paginate(pageNumbers.length) : paginate(currentNumber+1);
-        }}>
+        <a
+          className="page-link"
+          onClick={() => {
+            currentNumber < pageNumbers.length && handleClick(currentNumber + 1);
+          }}>
           {'>'}
         </a>
       </li>
