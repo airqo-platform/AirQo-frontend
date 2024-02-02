@@ -10,8 +10,8 @@ import UnhealthyForSensitiveGroups from '@/icons/Charts/UnhealthySG';
 import Unhealthy from '@/icons/Charts/Unhealthy';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import Hazardous from '@/icons/Charts/Hazardous';
-import UpArrow from '@/icons/map/UpArrow';
-import DownArrow from '@/icons/map/DownArrow';
+import UpArrow from '@/icons/map/upArrow';
+import DownArrow from '@/icons/map/downArrow';
 
 export const AirQualityLegend = () => {
   const [show, setShow] = useState(true);
