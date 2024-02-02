@@ -87,7 +87,10 @@ const AirQoMap = ({
       const map = mapRef.current;
       const center = map.getCenter();
       const zoom = map.getZoom();
-      const url = `https://www.openstreetmap.org/#map=${zoom}/${center.lat}/${center.lng}`;
+      const currentUrl = window.location.href;
+      const url = `${currentUrl}#c/${center.lat.toFixed(4)}/${center.lng.toFixed(4)}/${zoom.toFixed(
+        2,
+      )}`;
       navigator.clipboard.writeText(url);
 
       alert('Location URL copied to clipboard');

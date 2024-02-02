@@ -165,7 +165,7 @@ const index = () => {
   ];
 
   return (
-    <Layout pageTitle='AirQo Map' noTopNav={false}>
+    <Layout noTopNav={false}>
       <div className='relative'>
         <div>
           {showSideBar && (
