@@ -16,26 +16,32 @@ const PublicationsPage = () => {
 
   const dispatch = useDispatch();
   const publicationsData = usePublicationsData();
-  const ResearchData = publicationsData.filter(
-    (publication) => publication.category === 'research'
-  );
-  const ReportsData = publicationsData.filter(
-    (publication) => publication.category === 'technical' || publication.category === 'policy'
-  );
-  const GuidesData = publicationsData.filter(
-    (publication) => publication.category === 'guide' || publication.category === 'manual'
-  );
 
-  const [currentpage, setCurrentPage] = useState(1);
+  const filterData = (categories) => {
+    return publicationsData.filter((publication) => categories.includes(publication.category));
+  };
+
+  const ResearchData = filterData(['research']);
+  const ReportsData = filterData(['technical', 'policy']);
+  const GuidesData = filterData(['guide', 'manual']);
+
+  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
-  const lastItem = currentpage * itemsPerPage;
-  const firstItem = lastItem - itemsPerPage;
-  const currentResearch = ResearchData.slice(firstItem, lastItem);
-  const currentReports = ReportsData.slice(firstItem, lastItem);
-  const currentGuides = GuidesData.slice(firstItem, lastItem);
+
+  const paginateData = (data) => {
+    const lastItem = currentPage * itemsPerPage;
+    const firstItem = lastItem - itemsPerPage;
+    return data.slice(firstItem, lastItem);
+  };
+
+  const currentResearch = paginateData(ResearchData);
+  const currentReports = paginateData(ReportsData);
+  const currentGuides = paginateData(GuidesData);
+
   const totalResearch = ResearchData.length;
   const totalReports = ReportsData.length;
   const totalGuides = GuidesData.length;
+
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   useEffect(() => {
@@ -54,9 +60,7 @@ const PublicationsPage = () => {
           <div className="content">
             <div className="title-wrapper">
               <h2>Resources</h2>
-              <span className="sub-title">
-                Discover our latest collection of resources
-              </span>
+              <span className="sub-title">Discover our latest collection of resources</span>
             </div>
             <div className="nav">
               <span id="tab1">
