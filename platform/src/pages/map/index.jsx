@@ -5,6 +5,7 @@ import LocationIcon from '@/icons/LocationIcon';
 import SearchIcon from '@/icons/Common/search_md.svg';
 import MenuIcon from '@/icons/map/menuIcon';
 import AirQoMap from '@/components/Map/AirQoMap';
+import HomeIcon from '@/icons/map/homeIcon';
 import { useRouter } from 'next/router';
 import { AirQualityLegend } from '@/components/Map/components/Legend';
 import allCountries from '@/components/Map/components/countries';
@@ -123,6 +124,10 @@ const index = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, [router.pathname]);
 
+  const handleHomeClick = () => {
+    router.push('/Home');
+  };
+
   const handleSelectedTab = (tab) => {
     setSelectedTab(tab);
   };
@@ -231,11 +236,20 @@ const index = () => {
         </div>
         <div className='h-auto w-full relative'>
           {!showSideBar && (
-            <button
-              className='absolute top-4 left-3 z-50 inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-              onClick={() => setShowSideBar(!showSideBar)}>
-              <MenuIcon />
-            </button>
+            <div className='absolute top-4 left-3 z-50 '>
+              <div className='flex flex-col space-y-4'>
+                <button
+                  className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
+                  onClick={() => setShowSideBar(!showSideBar)}>
+                  <MenuIcon />
+                </button>
+                <button
+                  className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
+                  onClick={() => handleHomeClick()}>
+                  <HomeIcon />
+                </button>
+              </div>
+            </div>
           )}
           <AirQoMap
             mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
