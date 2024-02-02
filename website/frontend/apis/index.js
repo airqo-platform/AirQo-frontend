@@ -19,52 +19,30 @@ import {
   CLEAN_AIR_URL
 } from '../config/urls';
 
-const API_TOKEN = process.env.REACT_APP_AUTHORIZATION_TOKEN;
+const apiCall = async (url, method, data = null) => {
+  const config = {
+    method: method,
+    url: url,
+    data: data
+  };
 
-export const getAirQloudSummaryApi = async () =>
-  await axios
-    .get(AIRQLOUD_SUMMARY, {
-      params: {
-        token: API_TOKEN
-      }
-    })
-    .then((response) => response.data);
+  try {
+    const response = await axios(config);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
 
-export const newsletterSubscriptionApi = async (data) =>
-  await axios
-    .post(NEWSLETTER_SUBSCRIPTION, data, {
-      params: {
-        token: API_TOKEN
-      }
-    })
-    .then((response) => response.data);
+export const getAirQloudSummaryApi = () => apiCall(AIRQLOUD_SUMMARY, 'get');
 
-export const contactUsApi = async (data) =>
-  await axios
-    .post(INQUIRY_URL, data, {
-      params: {
-        token: API_TOKEN
-      }
-    })
-    .then((response) => response.data);
+export const newsletterSubscriptionApi = (data) => apiCall(NEWSLETTER_SUBSCRIPTION, 'post', data);
 
-export const sendInquiryApi = async (data) =>
-  await axios
-    .post(INQUIRY_URL, data, {
-      params: {
-        token: API_TOKEN
-      }
-    })
-    .then((response) => response.data);
+export const contactUsApi = (data) => apiCall(INQUIRY_URL, 'post', data);
 
-export const requestDataAccessApi = async (data) =>
-  await axios
-    .post(EXPLORE_DATA_URL, data, {
-      params: {
-        token: API_TOKEN
-      }
-    })
-    .then((response) => response.data);
+export const sendInquiryApi = (data) => apiCall(INQUIRY_URL, 'post', data);
+
+export const requestDataAccessApi = (data) => apiCall(EXPLORE_DATA_URL, 'post', data);
 
 // Careers endpoints
 export const getAllCareersApi = async () =>
