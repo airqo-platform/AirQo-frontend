@@ -88,14 +88,18 @@ const AirQoMap = ({
       const center = map.getCenter();
       const zoom = map.getZoom();
       const currentUrl = window.location.href;
-      const url = `${currentUrl}#c/${center.lat.toFixed(4)}/${center.lng.toFixed(4)}/${zoom.toFixed(
-        2,
-      )}`;
-      navigator.clipboard.writeText(url);
+
+      // Construct URL with labeled parameters
+      const url = new URL(currentUrl);
+      url.searchParams.set('lat', center.lat.toFixed(4));
+      url.searchParams.set('lng', center.lng.toFixed(4));
+      url.searchParams.set('zm', zoom.toFixed(2));
+
+      navigator.clipboard.writeText(url.toString());
 
       alert('Location URL copied to clipboard');
     } catch (error) {
-      console.log('Error sharing location', error);
+      console.error('Error sharing location', error);
     }
   };
 
