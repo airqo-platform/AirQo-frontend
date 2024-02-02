@@ -10,6 +10,8 @@ import { useRouter } from 'next/router';
 import { AirQualityLegend } from '@/components/Map/components/Legend';
 import allCountries from '@/components/Map/components/countries';
 
+const MAP_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+
 const countries = [
   {
     id: 1,
@@ -252,7 +254,7 @@ const index = () => {
             </div>
           )}
           <AirQoMap
-            mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
+            mapboxApiAccessToken={MAP_ACCESS_TOKEN}
             customStyle='flex-grow h-screen w-full relative'
           />
         </div>
