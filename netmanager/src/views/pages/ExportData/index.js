@@ -429,7 +429,7 @@ const ExportData = (props) => {
           const csvData = Papa.unparse(resData);
           exportData(csvData, filename, 'text/csv;charset=utf-8;');
         }
-        clearExportData();
+
         setLoading(false);
         dispatch(
           updateMainAlert({
@@ -458,7 +458,6 @@ const ExportData = (props) => {
           );
         }
 
-        clearExportData();
         setLoading(false);
       });
   };
@@ -494,7 +493,7 @@ const ExportData = (props) => {
 
     if (Difference_In_Days > 28) {
       setSnackbarMessage(
-        'For time periods greater than a month, please use scheduling to avoid timeouts!'
+        'For time periods greater than a month, please reduce the time difference to a week to avoid timeouts!'
       );
       handleClickSnackbar();
     }
@@ -787,15 +786,24 @@ const ExportData = (props) => {
                         disabled={disableDownloadBtn('sites')}
                       >
                         {' '}
-                        Download Data
+                        {loading ? 'Downloading Data...' : 'Download Data'}
                       </Button>
-                      {disableDownloadBtn('sites') && (
-                        <p style={{ marginTop: '10px', color: 'red' }}>
-                          {`Please fill in all the required fields`}
-                        </p>
-                      )}
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        onClick={clearExportData}
+                        style={{ marginRight: '15px' }}
+                      >
+                        {' '}
+                        Reset
+                      </Button>
                     </Box>
                   </CardActions>
+                  {!loading && disableDownloadBtn('sites') && (
+                    <p style={{ marginTop: '10px', color: 'red' }}>
+                      {`Please fill in all the required fields`}
+                    </p>
+                  )}
                 </form>
               </TabPanel>
 
@@ -931,15 +939,24 @@ const ExportData = (props) => {
                         disabled={disableDownloadBtn('devices')}
                       >
                         {' '}
-                        Download Data
+                        {loading ? 'Downloading Data...' : 'Download Data'}
                       </Button>
-                      {disableDownloadBtn('devices') && (
-                        <p style={{ marginTop: '10px', color: 'red' }}>
-                          {`Please fill in all the required fields`}
-                        </p>
-                      )}
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        onClick={clearExportData}
+                        style={{ marginRight: '15px' }}
+                      >
+                        {' '}
+                        Reset
+                      </Button>
                     </Box>
                   </CardActions>
+                  {!loading && disableDownloadBtn('devices') && (
+                    <p style={{ marginTop: '10px', color: 'red' }}>
+                      {`Please fill in all the required fields`}
+                    </p>
+                  )}
                 </form>
               </TabPanel>
 
@@ -1074,15 +1091,24 @@ const ExportData = (props) => {
                         disabled={disableDownloadBtn('airqlouds')}
                       >
                         {' '}
-                        Download Data
+                        {loading ? 'Downloading Data...' : 'Download Data'}
                       </Button>
-                      {disableDownloadBtn('airqlouds') && (
-                        <p style={{ marginTop: '10px', color: 'red' }}>
-                          {`Please fill in all the required fields`}
-                        </p>
-                      )}
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        onClick={clearExportData}
+                        style={{ marginRight: '15px' }}
+                      >
+                        {' '}
+                        Reset
+                      </Button>
                     </Box>
                   </CardActions>
+                  {!loading && disableDownloadBtn('airqlouds') && (
+                    <p style={{ marginTop: '10px', color: 'red' }}>
+                      {`Please fill in all the required fields`}
+                    </p>
+                  )}
                 </form>
               </TabPanel>
 
@@ -1217,15 +1243,24 @@ const ExportData = (props) => {
                         disabled={disableDownloadBtn('regions')}
                       >
                         {' '}
-                        Download Data
+                        {loading ? 'Downloading Data...' : 'Download Data'}
                       </Button>
-                      {disableDownloadBtn('regions') && (
-                        <p style={{ marginTop: '10px', color: 'red' }}>
-                          {`Please fill in all the required fields`}
-                        </p>
-                      )}
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        onClick={clearExportData}
+                        style={{ marginRight: '15px' }}
+                      >
+                        {' '}
+                        Reset
+                      </Button>
                     </Box>
                   </CardActions>
+                  {!loading && disableDownloadBtn('regions') && (
+                    <p style={{ marginTop: '10px', color: 'red' }}>
+                      {`Please fill in all the required fields`}
+                    </p>
+                  )}
                 </form>
               </TabPanel>
             </Card>
