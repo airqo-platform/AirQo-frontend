@@ -18,10 +18,10 @@ export const setCurrentAirQloudData = (name) => (dispatch) => {
 export const loadAirQloudSummaryData = () => async (dispatch) =>
   await getAirQloudSummaryApi()
     .then((resData) => {
-      if (isEmpty(resData.airqlouds || [])) return;
+      if (isEmpty(resData.grids || [])) return;
       dispatch({
         type: LOAD_AIRQLOUDS_SUMMARY_SUCCESS,
-        payload: transformArray(resData.airqlouds, 'long_name')
+        payload: transformArray(resData.grids, 'long_name')
       });
     })
     .catch((err) => {

@@ -223,7 +223,7 @@ const collocationSlice = createSlice({
       })
       .addCase(collocateDevices.rejected, (state, action) => {
         state.collocateDevices.loading = false;
-        state.collocateDevices.error = action.error.message || '';
+        state.collocateDevices.error = action.error.message;
         state.collocateDevices.rejected = true;
       });
   },
