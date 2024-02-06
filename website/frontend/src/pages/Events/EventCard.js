@@ -2,8 +2,10 @@ import { CalendarMonth } from '@mui/icons-material';
 import React from 'react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const EventCard = ({ image, title, subText, startDate, endDate, link, key, web_category }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const routeToDetails = (link) => (event) => {
     event.preventDefault();
@@ -39,7 +41,7 @@ const EventCard = ({ image, title, subText, startDate, endDate, link, key, web_c
         </div> */}
         <div className="cta">
           <button className="link" onClick={routeToDetails(link)}>
-            Read More {'-->'}
+            {t('about.events.eventCard.cta.text')} {'-->'}
           </button>
         </div>
       </div>

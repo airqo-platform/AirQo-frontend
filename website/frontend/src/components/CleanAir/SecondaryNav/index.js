@@ -2,9 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setActiveTab } from '../../../../reduxStore/CleanAirNetwork/CleanAir';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 
 const SecondaryNavComponent = ({ disabledTabs }) => {
-  const tabs = ['About', 'Membership', 'Events', 'Resources'];
+  const { t } = useTranslation();
+  const tabs = [
+    t('cleanAirSite.subNav.about'),
+    t('cleanAirSite.subNav.membership'),
+    t('cleanAirSite.subNav.events'),
+    t('cleanAirSite.subNav.resources')
+  ];
   const dispatch = useDispatch();
   const activeTab = useSelector((state) => state.cleanAirData.activeTab);
   const [selectedTab, setSelectedTab] = useState(tabs[0]);

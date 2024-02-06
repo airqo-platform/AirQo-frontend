@@ -9,72 +9,52 @@ import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import { getAllCities } from '../../../reduxStore/AfricanCities/CitiesSlice';
 import SectionLoader from '../../components/LoadSpinner/SectionLoader';
+import { useTranslation, Trans } from 'react-i18next';
+import { t } from 'i18next';
 
 const CityHeroSection = () => {
+  const { t } = useTranslation();
   return (
     <div className="city-title">
-      <div className="page-nav">Solutions {'>'} For African Cities</div>
-      <div className="city-main-text">For African cities</div>
-      <div className="city-sub-text">
-        Leveraging a high-resolution air quality monitoring network to advance air quality
-        management in African cities.
-      </div>
+      <div className="page-nav">{t('solutions.africanCities.header.breadCrumb')}</div>
+      <div className="city-main-text">{t('solutions.africanCities.header.title')}</div>
+      <div className="city-sub-text">{t('solutions.africanCities.header.subText')}</div>
     </div>
   );
 };
 
 const CityBanner = () => {
-  return (
-    <div className="city-banner">
-      Many African cities lack actionable data and evidence on the scale and magnitude of air
-      pollution in order to tackle air pollution, a major urban environmental health challenge.
-    </div>
-  );
+  const { t } = useTranslation();
+  return <div className="city-banner">{t('solutions.africanCities.banner.mainText')}</div>;
 };
 
 const AfricanCitiesApproach = () => (
   <section className="approach-section">
     <div className="section-row">
-      <h2>Our Approach</h2>
+      <h2>{t('solutions.africanCities.approach.title')}</h2>
       {/* <p>We empower city authorities and citizens with timely information and evidence to address the air pollution challenge.</p> */}
     </div>
     <div className="section-content">
       <div className="content">
         <h3 className="outstanding-text">
-          Locally developed high-resolution air quality monitoring network
+          {t('solutions.africanCities.approach.card.first.title')}
         </h3>
-        <p>
-          We want to see cleaner air in all African Cities. We leverage our understanding of the
-          African context and close collaborations with relevant partners to deliver a high
-          resolution air quality network to inform contextualised and locally relevant approaches to
-          air quality management for African cities.
-        </p>
+        <p>{t('solutions.africanCities.approach.card.first.subText')}</p>
       </div>
       <hr />
       <div className="content">
-        <h3>Community-aware digital air quality platforms</h3>
-        <p>
-          We empower decision-makers and citizens in African Cities with increased access to air
-          quality data evidence to help them tackle urban air quality and achieve cleaner air
-          objectives.
-        </p>
+        <h3>{t('solutions.africanCities.approach.card.second.title')}</h3>
+        <p>{t('solutions.africanCities.approach.card.second.subText')}</p>
       </div>
       <hr />
       <div className="content">
-        <h3>Policy Engagement</h3>
-        <p>
-          We engage city authorities and government agencies to build their capacity and empower
-          them with evidence and digital tools for air quality management and informing air quality
-          public policies.
-        </p>
+        <h3>{t('solutions.africanCities.approach.card.third.title')}</h3>
+        <p>{t('solutions.africanCities.approach.card.third.subText')}</p>
       </div>
       <hr />
       <div className="content">
-        <h3>Community engagement</h3>
-        <p>
-          We empower local leaders and targeted communities with air quality information to create
-          awareness of air quality issues.
-        </p>
+        <h3>{t('solutions.africanCities.approach.card.fourth.title')}</h3>
+        <p>{t('solutions.africanCities.approach.card.fourth.subText')}</p>
       </div>
     </div>
   </section>
@@ -219,14 +199,11 @@ const CountryTabs = ({ countries, activeCountry, loading }) => {
 const PublicationsSection = () => {
   return (
     <div className="publications-section">
-      <div className="title">Publications</div>
+      <div className="title">{t('solutions.africanCities.publications.title')}</div>
       <div>
-        <div className="main-text">
-          Seeing the air in detail: Hyperlocal air quality dataset collected from spatially
-          distributed AirQo network.
-        </div>
-        <div className="author">Published by</div>
-        <div className="team">AirQo</div>
+        <div className="main-text">{t('solutions.africanCities.publications.mainText')}</div>
+        <div className="author">{t('solutions.africanCities.publications.author')}</div>
+        <div className="team">{t('solutions.africanCities.publications.team')}</div>
         <div>
           <div className="link">
             <a
@@ -235,7 +212,7 @@ const PublicationsSection = () => {
               download
               rel="noopener noreferrer">
               <span>
-                Read More <ArrowRight />
+                {t('solutions.africanCities.publications.cta')} <ArrowRight />
               </span>
             </a>
           </div>
