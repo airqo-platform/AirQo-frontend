@@ -74,12 +74,26 @@ export const getAllPublicationsApi = async () =>
   await axios.get(PUBLICATIONS_URL).then((response) => response.data);
 
 // Press endpoints
-export const getAllPressApi = async () =>
-  await axios.get(PRESS_URL).then((response) => response.data);
+export const getAllPressApi = async (lang) => {
+  return await axios
+    .get(PRESS_URL, {
+      headers: {
+        'Accept-Language': lang
+      }
+    })
+    .then((response) => response.data);
+};
 
 // Events endpoint
-export const getAllEventsApi = async () =>
-  await axios.get(EVENTS_URL).then((response) => response.data);
+export const getAllEventsApi = async (lang) => {
+  return await axios
+    .get(EVENTS_URL, {
+      headers: {
+        'Accept-Language': lang
+      }
+    })
+    .then((response) => response.data);
+};
 
 // African Cities endpoint
 export const getAllCitiesApi = async () =>

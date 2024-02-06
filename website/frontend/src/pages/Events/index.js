@@ -23,6 +23,7 @@ const EventsPage = () => {
   const navTabs = ['upcoming events', 'past events'];
   const selectedNavTab = useSelector((state) => state.eventsNavTab.tab);
   const allEventsData = useSelector((state) => state.eventsData.events);
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   const eventsApiData = allEventsData.filter((event) => event.website_category === 'airqo');
 
@@ -39,10 +40,8 @@ const EventsPage = () => {
   const loading = useSelector((state) => state.eventsData.loading);
 
   useEffect(() => {
-    if (isEmpty(eventsApiData)) {
-      dispatch(getAllEvents());
-    }
-  }, [selectedNavTab]);
+    dispatch(getAllEvents());
+  }, [selectedNavTab, language]);
 
   // hook to handle see more/less button
   const [numEventsToShow, setNumEventsToShow] = useState(9);

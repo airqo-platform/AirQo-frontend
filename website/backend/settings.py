@@ -14,10 +14,11 @@ import os
 from pathlib import Path
 import cloudinary
 import dj_database_url
+from django.utils.translation import gettext_lazy as _
 
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 
-# load_dotenv()
+load_dotenv()
 
 
 # Read environment
@@ -79,39 +80,45 @@ CSRF_TRUSTED_ORIGINS = env.list(
 # Application definition
 
 INSTALLED_APPS = [
-    "nested_admin",
+    # Django built-in apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
     # Third-party apps
+    "nested_admin",
+    "modeltranslation",
     "cloudinary",
     "rest_framework",
     "drf_yasg",
-    'django_quill',
-    # My apps
-    'frontend.apps.FrontendConfig',
-    'backend.career.apps.CareerConfig',
-    'backend.FAQ.apps.FaqConfig',
-    'backend.team.apps.TeamConfig',
-    'backend.highlights.apps.HighlightsConfig',
-    'backend.partners.apps.PartnersConfig',
-    'backend.board.apps.BoardConfig',
-    'backend.publications.apps.PublicationsConfig',
-    'backend.event.apps.EventConfig',
-    'backend.africancities.apps.AfricanCitiesConfig',
-    'backend.press.apps.PressConfig',
-    'backend.impact.apps.ImpactConfig',
-    'backend.cleanair.apps.CleanAirConfig'
+    "django_quill",
+
+    # Your custom apps
+    "frontend.apps.FrontendConfig",
+    "backend.career.apps.CareerConfig",
+    "backend.FAQ.apps.FaqConfig",
+    "backend.team.apps.TeamConfig",
+    "backend.highlights.apps.HighlightsConfig",
+    "backend.partners.apps.PartnersConfig",
+    "backend.board.apps.BoardConfig",
+    "backend.publications.apps.PublicationsConfig",
+    "backend.event.apps.EventConfig",
+    "backend.africancities.apps.AfricanCitiesConfig",
+    "backend.press.apps.PressConfig",
+    "backend.impact.apps.ImpactConfig",
+    "backend.cleanair.apps.CleanAirConfig",
 ]
+
 
 MIDDLEWARE = [
     # CORS middleware should be placed as high as possible to work correctly
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -144,7 +151,15 @@ WSGI_APPLICATION = "backend.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-DATABASES = {"default": dj_database_url.config(default=env("DATABASE_URI"))}
+# DATABASES = {"default": dj_database_url.config(default=env("DATABASE_URI"))}
+
+# use the default sqlite database for now
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -178,6 +193,18 @@ USE_L10N = True
 
 USE_TZ = True
 
+LANGUAGES = [
+    ('en', _('English')),
+    ('fr', _('French')),
+]
+
+MODELTRANSLATION_DEFAULT_LANGUAGE = "en"
+
+MODELTRANSLATION_LANGUAGES = ("en", "fr")
+
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale'),
+]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/

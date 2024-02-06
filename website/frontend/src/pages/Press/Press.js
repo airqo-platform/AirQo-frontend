@@ -5,22 +5,20 @@ import Article from './Article';
 import Page from '../Page';
 import SEO from 'utilities/seo';
 import { loadPressData } from '../../../reduxStore/Press/PressSlice';
-import { isEmpty } from 'underscore';
 import Loadspinner from '../../components/LoadSpinner';
 
 const Press = () => {
   useInitScrollTop();
   const dispatch = useDispatch();
   const allPressData = useSelector((state) => state.pressData.pressData);
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
   const pressData = allPressData.filter((event) => event.website_category === 'airqo');
   const loading = useSelector((state) => state.pressData.loading);
   const [numArticlesToShow, setNumArticlesToShow] = useState(5);
 
   useEffect(() => {
-    if (isEmpty(pressData)) {
-      dispatch(loadPressData());
-    }
-  }, []);
+    dispatch(loadPressData());
+  }, [language]);
 
   const sortedArticles = [...pressData].sort((a, b) => new Date(b.date) - new Date(a.date));
 
