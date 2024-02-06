@@ -2,7 +2,7 @@ import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/animations/scale.css';
 import 'tippy.js/themes/light.css';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 // Icons
 import GoodAir from '@/icons/Charts/GoodAir';
 import ModerateAir from '@/icons/Charts/Moderate';
@@ -15,6 +15,22 @@ import DownArrow from '@/icons/map/downArrow';
 
 export const AirQualityLegend = () => {
   const [show, setShow] = useState(true);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 768) {
+        setShow(false);
+      } else {
+        setShow(true);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   const levels = [
     {
       range: '0μg/m3 - 12μg/m3',

@@ -114,15 +114,20 @@ const index = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 768 && router.pathname === '/map') {
+      if (
+        (window.innerWidth < 768 || (window.innerWidth >= 600 && window.innerWidth <= 800)) &&
+        router.pathname === '/map'
+      ) {
         setShowSideBar(false);
       } else {
         localStorage.setItem('collapsed', true);
         setShowSideBar(true);
       }
     };
+
     window.addEventListener('resize', handleResize);
     handleResize();
+
     return () => window.removeEventListener('resize', handleResize);
   }, [router.pathname]);
 
@@ -169,9 +174,9 @@ const index = () => {
   return (
     <Layout noTopNav={false}>
       <div className='relative'>
-        <div>
+        <>
           {showSideBar && (
-            <div className='absolute left-0 top-0 w-[280px] h-screen md:w-[400px] bg-white shadow-lg shadow-right space-y-4 z-50'>
+            <div className='absolute left-0 top-0 w-[280px] h-full md:w-[400px] bg-white shadow-lg shadow-right space-y-4 z-50 overflow-y-auto'>
               <div className='px-4 pt-4'>
                 <div className='w-full flex justify-between items-center'>
                   <div>
@@ -202,28 +207,26 @@ const index = () => {
                 <div className='space-y-2'>
                   <label className='font-medium text-gray-600 text-sm'>Suggestions</label>
                   <hr />
-                  <div className='overflow-y-auto'>
-                    {locations.map((location) => (
-                      <div
-                        key={location.id}
-                        className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer hover:bg-blue-100 p-2 rounded-lg'
-                        onClick={() => {
-                          handleLocationSelect();
-                        }}>
-                        <div className='p-2 rounded-full bg-gray-100'>
-                          <LocationIcon />
-                        </div>
-                        <div className='ml-3 flex flex-col item-start border-b w-full'>
-                          <span className='font-normal text-black capitalize text-lg'>
-                            {location.name}
-                          </span>
-                          <span className='font-normal text-gray-500 capitalize text-sm mb-2'>
-                            {location.country}
-                          </span>
-                        </div>
+                  {locations.map((location) => (
+                    <div
+                      key={location.id}
+                      className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer hover:bg-blue-100 p-2 rounded-lg'
+                      onClick={() => {
+                        handleLocationSelect();
+                      }}>
+                      <div className='p-2 rounded-full bg-gray-100'>
+                        <LocationIcon />
                       </div>
-                    ))}
-                  </div>
+                      <div className='ml-3 flex flex-col item-start border-b w-full'>
+                        <span className='font-normal text-black capitalize text-lg'>
+                          {location.name}
+                        </span>
+                        <span className='font-normal text-gray-500 capitalize text-sm mb-2'>
+                          {location.country}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                   <hr />
                 </div>
               </div>
@@ -235,8 +238,8 @@ const index = () => {
             } z-50`}>
             <AirQualityLegend />
           </div>
-        </div>
-        <div className='h-auto w-full relative'>
+        </>
+        <div className='h-auto w-full relative bg-[#ebe7e1]'>
           {!showSideBar && (
             <div className='absolute top-4 left-3 z-50 '>
               <div className='flex flex-col space-y-4'>
