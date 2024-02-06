@@ -8,22 +8,23 @@ from .translation import *
 
 
 class InquiryInline(nested_admin.NestedStackedInline):
-    fields = ('inquiry', 'role', 'email', 'order')
+    fields = ('inquiry_en', 'inquiry_fr', 'role_en',
+              'role_fr', 'email', 'order')
     readonly_fields = ('author', 'updated_by')
     model = Inquiry
     extra = 0
 
 
 class SessionInline(nested_admin.NestedStackedInline):
-    fields = ('session_title', 'session_details',
-              'venue', 'start_time', 'end_time', 'order')
+    fields = ('session_title_en', 'session_title_fr', 'session_details_en', 'session_details_fr',
+              'venue_en', 'venue_fr', 'start_time', 'end_time', 'order')
     readonly_fields = ('author', 'updated_by')
     model = Session
     extra = 0
 
 
 class ProgramInline(nested_admin.NestedTabularInline):
-    fields = ('date', 'program_details', 'order')
+    fields = ('date', 'program_details_en', 'program_details_fr', 'order')
     readonly_fields = ('author', 'updated_by')
     model = Program
     inlines = (SessionInline,)
@@ -31,14 +32,14 @@ class ProgramInline(nested_admin.NestedTabularInline):
 
 
 class PartnerLogoInline(nested_admin.NestedTabularInline):
-    fields = ('name', 'partner_logo', 'order')
+    fields = ('name_en', 'name_fr', 'partner_logo', 'order')
     readonly_fields = ('author', 'updated_by')
     model = PartnerLogo
     extra = 0
 
 
 class ResourceInline(nested_admin.NestedTabularInline):
-    fields = ('title', 'link', 'resource', 'order')
+    fields = ('title_en', 'title_fr', 'link', 'resource', 'order')
     readonly_fields = ('author', 'updated_by')
     model = Resource
     extra = 0
@@ -59,7 +60,7 @@ class EventAdmin(nested_admin.NestedModelAdmin, TranslationAdmin):
 
 
 @admin.register(Resource)
-class ResourceAdmin(admin.ModelAdmin):
+class ResourceAdmin(TranslationAdmin):
     fields = ('event', 'title', 'link', 'resource', 'order')
     list_display = ('title', 'event', 'author',)
     search_fields = ('event', 'title',)

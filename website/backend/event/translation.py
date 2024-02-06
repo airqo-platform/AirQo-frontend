@@ -1,47 +1,32 @@
-from modeltranslation.translator import register, TranslationOptions, translator
+from modeltranslation.translator import register, TranslationOptions
 from .models import Event, Inquiry, Program, Session, PartnerLogo, Resource
 
 
 @register(Event)
 class EventTranslationOptions(TranslationOptions):
-    fields = (
-        "title",
-        "title_subtext",
-        "location_name",
-        "event_details",
-    )
+    fields = ('title', 'title_subtext', 'location_name', 'event_details',)
 
 
+@register(Inquiry)
 class InquiryTranslationOptions(TranslationOptions):
-    fields = ("inquiry",)
+    fields = ('inquiry', 'role',)
 
 
-translator.register(Inquiry, InquiryTranslationOptions)
-
-
+@register(Program)
 class ProgramTranslationOptions(TranslationOptions):
-    fields = ("program_details",)
+    fields = ('program_details',)
 
 
-translator.register(Program, ProgramTranslationOptions)
-
-
+@register(Session)
 class SessionTranslationOptions(TranslationOptions):
-    fields = ("venue", "session_title", "session_details",)
+    fields = ('venue', 'session_title', 'session_details',)
 
 
-translator.register(Session, SessionTranslationOptions)
-
-
+@register(PartnerLogo)
 class PartnerLogoTranslationOptions(TranslationOptions):
-    fields = ("name",)
+    fields = ('name',)
 
 
-translator.register(PartnerLogo, PartnerLogoTranslationOptions)
-
-
+@register(Resource)
 class ResourceTranslationOptions(TranslationOptions):
-    fields = ("title",)
-
-
-translator.register(Resource, ResourceTranslationOptions)
+    fields = ('title', )
