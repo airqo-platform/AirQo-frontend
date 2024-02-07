@@ -8,13 +8,13 @@ const Article = ({ icon, date, title, subtitle, url }) => {
     <div className="article">
       <div className="a-header">
         {icon === null ? (
-          <div class="image-container">
+          <div className="image-container">
             <span className="image">{<NilePost />}</span>
           </div>
         ) : (
-          <div class="image-container">
+          <div className="image-container">
             <img
-              class="image"
+              className="image"
               src={icon}
               alt="icon"
               style={{

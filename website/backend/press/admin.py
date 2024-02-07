@@ -1,10 +1,14 @@
+from modeltranslation.admin import TranslationAdmin
 from django.contrib import admin
 from .models import Press
+from .translation import *
+
 
 @admin.register(Press)
-class PressAdmin(admin.ModelAdmin):
-    list_display = ("article_title", "date_published", "logo_preview", "website_category","created")
-    list_filter = ("website_category","date_published",)
+class PressAdmin(TranslationAdmin):
+    list_display = ("article_title", "date_published",
+                    "logo_preview", "website_category", "created")
+    list_filter = ("website_category", "date_published",)
     list_per_page = 12
     search_fields = ("article_title", "date_published")
     readonly_fields = (

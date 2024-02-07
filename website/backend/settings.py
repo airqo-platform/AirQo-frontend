@@ -89,6 +89,7 @@ INSTALLED_APPS = [
     # Third-party apps
     "cloudinary",
     "rest_framework",
+    'modeltranslation',
     "drf_yasg",
     'django_quill',
     # My apps
@@ -112,6 +113,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -146,6 +148,14 @@ WSGI_APPLICATION = "backend.wsgi.application"
 
 DATABASES = {"default": dj_database_url.config(default=env("DATABASE_URI"))}
 
+# use default sqlite3 database for now
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
+
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
 
@@ -168,6 +178,11 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
+LANGUAGES = [
+    ('en', 'English'),
+    ('fr', 'French'),
+]
+
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "Africa/Kampala"
@@ -177,6 +192,10 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, "locale"),
+]
 
 
 # Static files (CSS, JavaScript, Images)

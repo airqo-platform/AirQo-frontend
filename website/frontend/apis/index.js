@@ -30,7 +30,7 @@ const apiCall = async (url, method, data = null) => {
     const response = await axios(config);
     return response.data;
   } catch (error) {
-    console.error(error);
+    return;
   }
 };
 
@@ -74,8 +74,15 @@ export const getAllPublicationsApi = async () =>
   await axios.get(PUBLICATIONS_URL).then((response) => response.data);
 
 // Press endpoints
-export const getAllPressApi = async () =>
-  await axios.get(PRESS_URL).then((response) => response.data);
+export const getAllPressApi = async (lang) => {
+  return await axios
+    .get(PRESS_URL, {
+      headers: {
+        'Accept-Language': lang
+      }
+    })
+    .then((response) => response.data);
+};
 
 // Events endpoint
 export const getAllEventsApi = async () =>

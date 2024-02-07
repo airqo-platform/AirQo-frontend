@@ -4,14 +4,14 @@ export const navigationSlice = createSlice({
   name: 'navBarTab',
   initialState: {
     tab: 'upcoming events',
-    languageTab: 'English'
+    languageTab: 'en'
   },
   reducers: {
     setNavTab: (state, action) => {
       state.tab = action.payload;
     },
-    setLanguageTab: (state, action)=>{
-      state.languageTab = action.payload
+    setLanguageTab: (state, action) => {
+      state.languageTab = action.payload;
     }
   }
 });
