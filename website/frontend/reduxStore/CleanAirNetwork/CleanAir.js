@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { getAllCleanAirApi } from '../../apis';
+import i18n from 'i18next';
 
 export const fetchCleanAirData = createAsyncThunk('tabs/fetchCleanAirData', async (_, thunkAPI) => {
   const lang = thunkAPI.getState().eventsNavTab.languageTab;
@@ -9,7 +10,7 @@ export const fetchCleanAirData = createAsyncThunk('tabs/fetchCleanAirData', asyn
 
 const initialState = {
   activeTab: 0,
-  activeResource: 'toolkits',
+  activeResource: i18n.t('cleanAirSite.publications.navs.toolkits'),
   airData: [],
   loading: false,
   error: null

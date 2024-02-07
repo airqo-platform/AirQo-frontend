@@ -1,16 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
 import SEO from 'utilities/seo';
 import { useInitScrollTop } from 'utilities/customHooks';
-import { isEmpty } from 'underscore';
 import { useDispatch, useSelector } from 'react-redux';
 import { setActiveResource } from 'reduxStore/CleanAirNetwork/CleanAir';
 import { ReportComponent } from 'components/CleanAir';
-import { getAllCleanAirApi } from 'apis/index.js';
 import ListIcon from '@mui/icons-material/List';
 import CloseIcon from '@mui/icons-material/Close';
 import useWindowSize from 'utilities/customHooks';
 import Loadspinner from 'src/components/LoadSpinner/SectionLoader';
 import { useTranslation, Trans } from 'react-i18next';
+import { fetchCleanAirData } from 'reduxStore/CleanAirNetwork/CleanAir';
 
 const ResourceMenuItem = ({ activeResource, resource, dispatch, setToggle }) => {
   const { width } = useWindowSize();
@@ -36,7 +35,8 @@ const CleanAirPublications = () => {
   const menuRef = useRef(null);
   const dispatch = useDispatch();
   const [toggle, setToggle] = useState(false);
-  const [cleanAirResources, setCleanAirResources] = useState([]);
+  const cleanAirResources = useSelector((state) => state.cleanAirData.airData);
+  const loading = useSelector((state) => state.cleanAirData.loading);
   const activeResource = useSelector((state) => state.cleanAirData.activeResource);
   const resources = [
     t('cleanAirSite.publications.navs.toolkits'),
@@ -45,26 +45,12 @@ const CleanAirPublications = () => {
     t('cleanAirSite.publications.navs.research')
   ];
   const { width } = useWindowSize();
-  const [loading, setLoading] = useState(false);
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   useEffect(() => {
-    if (isEmpty(activeResource)) {
-      dispatch(setActiveResource(t('cleanAirSite.publications.navs.toolkits')));
-    }
-  }, [activeResource]);
-
-  useEffect(() => {
-    setLoading(true);
-    getAllCleanAirApi()
-      .then((response) => {
-        setCleanAirResources(response);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.log(error);
-        setLoading(false);
-      });
-  }, []);
+    dispatch(setActiveResource(t('cleanAirSite.publications.navs.toolkits')));
+    dispatch(fetchCleanAirData());
+  }, [language]);
 
   useEffect(() => {
     const resourceMenuItem = document.querySelector('.menu-wrapper');

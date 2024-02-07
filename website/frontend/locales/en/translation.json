@@ -236,6 +236,10 @@
     },
     "publications": {
       "title": "RESOURCE <br /> <2>CENTER</2>",
+      "card": {
+        "download": "Download",
+        "readmore": "Read more"
+      },
       "navs": {
         "toolkits": "toolkits",
         "reports": "technical reports",

@@ -235,6 +235,10 @@
     },
     "publications": {
       "title": "RESSOURCE <br /> <2>CENTER</2>",
+      "card": {
+        "download": "Télécharger",
+        "readmore": "Lire la suite"
+      },
       "navs": {
         "toolkits": "boîtes à outils",
         "reports": "rapports techniques",
