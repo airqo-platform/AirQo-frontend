@@ -1,9 +1,10 @@
 import { createSlice } from '@reduxjs/toolkit';
+import i18n from 'i18next';
 
 export const navigationSlice = createSlice({
   name: 'navBarTab',
   initialState: {
-    tab: 'upcoming events',
+    tab: i18n.t('about.events.navTabs.upcoming'),
     languageTab: 'en'
   },
   reducers: {

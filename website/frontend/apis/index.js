@@ -85,8 +85,15 @@ export const getAllPressApi = async (lang) => {
 };
 
 // Events endpoint
-export const getAllEventsApi = async () =>
-  await axios.get(EVENTS_URL).then((response) => response.data);
+export const getAllEventsApi = async (lang) => {
+  return await axios
+    .get(EVENTS_URL, {
+      headers: {
+        'Accept-Language': lang
+      }
+    })
+    .then((response) => response.data);
+};
 
 // African Cities endpoint
 export const getAllCitiesApi = async () =>
