@@ -1,16 +1,21 @@
 from django.contrib import admin
 from .models import BoardMember, BoardMemberBiography
 import nested_admin
+from modeltranslation.admin import TranslationAdmin
+from .translation import *
 
 # Register your models here.
+
+
 class BoardMemberBiographyInline(nested_admin.NestedTabularInline):
-    fields = ('description', 'author', 'order')
+    fields = ('description_en', 'description_fr', 'author', 'order')
     readonly_fields = ('author', )
     model = BoardMemberBiography
     extra = 0
 
+
 @admin.register(BoardMember)
-class BoardMemberAdmin(nested_admin.NestedModelAdmin):
+class BoardMemberAdmin(TranslationAdmin, nested_admin.NestedModelAdmin):
     list_display = ("name", "title", "image_tag")
     readonly_fields = (
         "id",

@@ -1,8 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { getAllCitiesApi } from '../../apis';
 
-export const getAllCities = createAsyncThunk('/getCities', async () => {
-  const response = await getAllCitiesApi();
+export const getAllCities = createAsyncThunk('/getCities', async (_, thunkAPI) => {
+  const lang = thunkAPI.getState().eventsNavTab.languageTab;
+  const response = await getAllCitiesApi(lang);
   return response;
 });
 

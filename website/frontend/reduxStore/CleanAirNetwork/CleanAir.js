@@ -1,7 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { getAllCleanAirApi } from '../../apis';
 
-export const fetchCleanAirData = createAsyncThunk('tabs/fetchCleanAirData', async () => {
-  return null;
+export const fetchCleanAirData = createAsyncThunk('tabs/fetchCleanAirData', async (_, thunkAPI) => {
+  const lang = thunkAPI.getState().eventsNavTab.languageTab;
+  const response = await getAllCleanAirApi(lang);
+  return response;
 });
 
 const initialState = {
