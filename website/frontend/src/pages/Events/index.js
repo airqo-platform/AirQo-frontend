@@ -9,9 +9,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getAllEvents } from '../../../reduxStore/Events/EventSlice';
 import { isEmpty } from 'underscore';
 import Loadspinner from '../../components/LoadSpinner';
+import { useTranslation } from 'react-i18next';
 
 const EventsPage = () => {
   useInitScrollTop();
+  const { t } = useTranslation();
   const dispatch = useDispatch();
 
   const days = (date_1, date_2) => {
@@ -20,7 +22,7 @@ const EventsPage = () => {
     return TotalDays;
   };
 
-  const navTabs = ['upcoming events', 'past events'];
+  const navTabs = [`${t('about.events.navTabs.upcoming')}`, `${t('about.events.navTabs.past')}`];
   const selectedNavTab = useSelector((state) => state.eventsNavTab.tab);
   const allEventsData = useSelector((state) => state.eventsData.events);
 
@@ -87,7 +89,7 @@ const EventsPage = () => {
               <div className="content">
                 <EventsNavigation navTabs={navTabs} />
                 <div className="event-cards">
-                  {selectedNavTab === 'upcoming events' &&
+                  {selectedNavTab === t('about.events.navTabs.upcoming') &&
                     upcomingEvents
                       .slice(0, numEventsToShow)
                       .map((event) => (
@@ -102,7 +104,7 @@ const EventsPage = () => {
                           web_category={event.website_category}
                         />
                       ))}
-                  {selectedNavTab === 'past events' &&
+                  {selectedNavTab === t('about.events.navTabs.past') &&
                     pastEvents
                       .slice(0, numEventsToShow)
                       .map((event) => (
@@ -119,22 +121,28 @@ const EventsPage = () => {
                       ))}
                 </div>
               </div>
-              {upcomingEvents.length === 0 && selectedNavTab === 'upcoming events' ? (
+              {upcomingEvents.length === 0 &&
+              selectedNavTab === t('about.events.navTabs.upcoming') ? (
                 <div className="no-events">
-                  <span>There are currently no events</span>
+                  <span>{t('about.events.noEvents')}</span>
                 </div>
               ) : null}
               <div className="see-more-container">
                 {(upcomingEvents.length > numEventsToShow &&
-                  selectedNavTab === 'upcoming events') ||
-                (pastEvents.length > numEventsToShow && selectedNavTab === 'past events') ? (
+                  selectedNavTab === t('about.events.navTabs.upcoming')) ||
+                (pastEvents.length > numEventsToShow &&
+                  selectedNavTab === t('about.events.navTabs.past')) ? (
                   <div className="see-more">
-                    <button onClick={() => setNumEventsToShow(numEventsToShow + 6)}>More</button>
+                    <button onClick={() => setNumEventsToShow(numEventsToShow + 6)}>
+                      {t('about.events.cta.showMore')}
+                    </button>
                   </div>
                 ) : null}
                 {numEventsToShow > 9 && (
                   <div className="see-less">
-                    <button onClick={() => handleSeeLess()}>Less</button>
+                    <button onClick={() => handleSeeLess()}>
+                      {t('about.events.cta.showLess')}
+                    </button>
                   </div>
                 )}
               </div>
