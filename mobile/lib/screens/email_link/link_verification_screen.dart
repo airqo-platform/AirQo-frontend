@@ -220,7 +220,7 @@ class _EmailAuthVerificationWidgetState
       email: emailAuthModel.emailAddress,
     );
 
-    final user = FirebaseAuth.instance.currentUser;
+    final user = CustomAuth.getUser();
 
     try {
       if (user != null) {
@@ -255,7 +255,7 @@ class _EmailAuthVerificationWidgetState
     );
 
     try {
-      final currentUser = FirebaseAuth.instance.currentUser;
+      final currentUser = CustomAuth.getUser();
       if (currentUser != null) {
         await currentUser.linkWithCredential(emailCredential);
       } else {

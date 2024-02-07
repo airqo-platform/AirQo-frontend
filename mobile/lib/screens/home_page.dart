@@ -244,7 +244,7 @@ class _HomePageState extends State<HomePage> {
       }
     });
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final user = FirebaseAuth.instance.currentUser;
+      final user = CustomAuth.getUser();
       if ((user != null && user.phoneNumber != null)) {
         if (user.email != null) {
           return;
