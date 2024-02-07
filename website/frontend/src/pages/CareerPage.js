@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useInitScrollTop } from 'utilities/customHooks';
 import Page from './Page';
 import { loadCareersListingData, loadCareersDepartmentsData } from 'reduxStore/Careers/operations';
 import { useCareerListingData, useCareerDepartmentsData } from 'reduxStore/Careers/selectors';
-import { isEmpty } from 'underscore';
 import { groupBy } from 'underscore';
 import SectionLoader from '../components/LoadSpinner/SectionLoader';
 import SEO from 'utilities/seo';
@@ -55,17 +54,22 @@ const CareerPage = () => {
   const careerListing = useCareerListingData();
   const departments = useCareerDepartmentsData();
   const [loading, setLoading] = useState(false);
-
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
   const groupedListing = groupBy(Object.values(careerListing), (v) => v['department']['name']);
 
   const [groupedKeys, setGroupedKeys] = useState(Object.keys(groupedListing));
   const [selectedTag, setSelectedTag] = useState('all');
 
+  console.log('groupedListing', groupedListing);
+  console.log('groupedKeys', careerListing);
+
   const filterGroups = (value) => {
     setSelectedTag(value);
-    const allKeys = Object.keys(groupedListing);
-    if (value === 'all') return setGroupedKeys(allKeys);
-    return setGroupedKeys(allKeys.filter((v) => v === value));
+    if (groupedListing) {
+      const allKeys = Object.keys(groupedListing);
+      if (value === 'all') return setGroupedKeys(allKeys);
+      return setGroupedKeys(allKeys.filter((v) => v === value));
+    }
   };
 
   const onTagClick = (value) => (event) => {
@@ -80,10 +84,10 @@ const CareerPage = () => {
 
   useEffect(() => {
     setLoading(true);
-    if (isEmpty(careerListing)) dispatch(loadCareersListingData());
-    if (isEmpty(departments)) dispatch(loadCareersDepartmentsData());
+    dispatch(loadCareersListingData());
+    dispatch(loadCareersDepartmentsData());
     setLoading(false);
-  }, []);
+  }, [language]);
 
   useEffect(() => {
     setLoading(true);

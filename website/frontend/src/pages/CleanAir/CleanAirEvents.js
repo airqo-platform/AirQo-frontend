@@ -30,6 +30,7 @@ const CleanAirEvents = () => {
     t('cleanAirSite.events.subNavs.upcoming'),
     t('cleanAirSite.events.subNavs.past')
   ];
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
   const selectedNavTab = useSelector((state) => state.eventsNavTab.tab);
   const allEventsData = useSelector((state) => state.eventsData.events);
   const { width } = useWindowSize();
@@ -65,10 +66,8 @@ const CleanAirEvents = () => {
   const loading = useSelector((state) => state.eventsData.loading);
 
   useEffect(() => {
-    if (isEmpty(eventsApiData)) {
-      dispatch(getAllEvents());
-    }
-  }, [selectedNavTab]);
+    dispatch(getAllEvents());
+  }, [language]);
 
   useEffect(() => {
     let backdropRevElement = document.querySelector('.backdrop-rev');
