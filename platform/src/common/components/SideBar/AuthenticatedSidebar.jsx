@@ -4,6 +4,7 @@ import { useWindowSize } from '@/lib/windowSize';
 import SideBarItem, { SideBarDropdownItem, SidebarIconItem } from './SideBarItem';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import CloseIcon from '@/icons/close_icon';
+import WorldIcon from '@/icons/SideBar/world_Icon';
 import HomeIcon from '@/icons/SideBar/HomeIcon';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
@@ -59,8 +60,7 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
       <div
         className={`${
           size.width >= 1024 ? 'flex' : sideBarDisplayStyle
-        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200`}
-      >
+        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200`}>
         <div>
           <div className='p-4 justify-between items-center flex'>
             <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
@@ -70,8 +70,7 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
             <button
               type='button'
               className='lg:hidden relative flex items-center justify-end z-10 w-auto focus:outline-none border border-gray-200 rounded-md'
-              onClick={() => setToggleDrawer(!toggleDrawer)}
-            >
+              onClick={() => setToggleDrawer(!toggleDrawer)}>
               <CloseIcon />
             </button>
           </div>
@@ -87,12 +86,12 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
                 Icon={CollocateIcon}
                 dropdown
                 toggleMethod={() => setCollocationOpen(!collocationOpen)}
-                toggleState={collocationOpen}
-              >
+                toggleState={collocationOpen}>
                 <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
                 <SideBarDropdownItem itemLabel='Collocate' itemPath='/collocation/collocate' />
               </SideBarItem>
             )}
+            <SideBarItem label='AirQo map' Icon={WorldIcon} navPath='/map' />
           </div>
         </div>
         <div className='mx-2 mb-3'>
@@ -105,8 +104,7 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
       <div
         className={`${
           size.width >= 1024 ? 'flex' : sideBarDisplayStyle
-        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200`}
-      >
+        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200`}>
         <div className='flex flex-col items-center justify-center'>
           <div className='p-4 justify-between items-center flex'>
             <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
@@ -118,6 +116,7 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
             {checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES') && (
               <SidebarIconItem IconComponent={CollocateIcon} navPath='/collocation/overview' />
             )}
+            <SidebarIconItem IconComponent={WorldIcon} navPath='/map' />
           </div>
         </div>
         <div className='mx-2 mb-2 flex items-center justify-center'>

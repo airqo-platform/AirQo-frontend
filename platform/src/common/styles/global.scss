@@ -19,6 +19,11 @@ select:focus {
   outline: none !important;
 }
 
+.custom-scrollbar::-webkit-scrollbar {
+  display: none;
+  height: 0;
+}
+
 /* Hide the default scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

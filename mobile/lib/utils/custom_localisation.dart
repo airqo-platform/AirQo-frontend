@@ -107,10 +107,9 @@ const lugandaDateSymbols = {
     'Mukulukusa Bitungo Tungo',
     'Museenene',
     'Ntenvu',
-
   ],
   'STANDALONEMONTHS': <dynamic>[
-   'Gatonnya',
+    'Gatonnya',
     'Mukutula Nsanja',
     'Mugula Nsigo',
     'Kafumuula Mpawu',
@@ -122,7 +121,6 @@ const lugandaDateSymbols = {
     'Mukulukusa Bitungo Tungo',
     'Museenene',
     'Ntenvu',
-
   ],
   'SHORTMONTHS': <dynamic>[
     'Jan.',
@@ -317,6 +315,8 @@ class LgMaterialLocalizations extends GlobalMaterialLocalizations {
     required super.decimalFormat,
     required super.twoDigitZeroPaddedFormat,
   });
+
+  bool shouldReload(_LgMaterialLocalizationsDelegate old) => false;
 
 // #docregion Getters
   @override
@@ -798,15 +798,15 @@ class LgCupertinoLocalizationsDelegate
   const LgCupertinoLocalizationsDelegate();
 
   @override
+  bool shouldReload(LgCupertinoLocalizationsDelegate old) => false;
+
+  @override
   bool isSupported(Locale locale) => locale.languageCode == 'lg';
 
   @override
   Future<CupertinoLocalizations> load(Locale locale) async {
     return DefaultCupertinoLocalizations.delegate.load(locale);
   }
-
-  @override
-  bool shouldReload(LgCupertinoLocalizationsDelegate old) => false;
 }
 
 class LgCupertinoLocalizations extends DefaultCupertinoLocalizations {
@@ -822,15 +822,15 @@ class LgWidgetsLocalizationsDelegate
   const LgWidgetsLocalizationsDelegate();
 
   @override
+  bool shouldReload(LgWidgetsLocalizationsDelegate old) => false;
+
+  @override
   bool isSupported(Locale locale) => locale.languageCode == 'lg';
 
   @override
   Future<WidgetsLocalizations> load(Locale locale) async {
     return DefaultWidgetsLocalizations.delegate.load(locale);
   }
-
-  @override
-  bool shouldReload(LgWidgetsLocalizationsDelegate old) => false;
 }
 
 class LgWidgetsLocalizations extends DefaultWidgetsLocalizations {

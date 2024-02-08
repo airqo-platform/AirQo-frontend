@@ -19,16 +19,18 @@ import { loadPartnersData } from '../../reduxStore/Partners/operations';
 import { useNavigate } from 'react-router-dom';
 import { useBoardData } from '../../reduxStore/Board/selectors';
 import { loadBoardData } from '../../reduxStore/Board/operations';
+import { useTranslation, Trans } from 'react-i18next';
 
 const AboutUsPage = () => {
   useInitScrollTop();
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const teamData = useTeamData();
   const allPartnersData = usePartnersData();
   const boardData = useBoardData();
   const navigate = useNavigate();
   const showModal = () => dispatch(showGetInvolvedModal(true));
-  const partnersData = allPartnersData.filter((partner) => partner.website_category === 'airqo')
+  const partnersData = allPartnersData.filter((partner) => partner.website_category === 'airqo');
 
   const [togglePartnersDisplay, setTogglePartnersDisplay] = useState(false);
 
@@ -67,31 +69,31 @@ const AboutUsPage = () => {
         />
         <div className="AboutUsPage__hero">
           <div className="content">
-            <h2>About</h2>
+            <h2>{t('about.aboutUs.header.pageTitle')}</h2>
             <ul className="AboutUsPage__nav">
               <li className="active-link">
                 <Link activeClass="active" spy smooth offset={-70} duration={500} to="vision">
-                  Our vision
+                  {t('about.aboutUs.header.subnav.vision')}
                 </Link>
               </li>
               <li>
                 <Link activeClass="active" spy smooth offset={-70} duration={500} to="story">
-                  Our story
+                  {t('about.aboutUs.header.subnav.story')}
                 </Link>
               </li>
               <li>
                 <Link activeClass="active" spy smooth offset={-70} duration={500} to="mission">
-                  Our mission
+                  {t('about.aboutUs.header.subnav.mission')}
                 </Link>
               </li>
               <li>
                 <Link activeClass="active" spy smooth offset={-70} duration={500} to="values">
-                  Our values
+                  {t('about.aboutUs.header.subnav.values')}
                 </Link>
               </li>
               <li>
                 <Link activeClass="active" spy smooth offset={-70} duration={500} to="team">
-                  Our Team
+                  {t('about.aboutUs.header.subnav.team')}
                 </Link>
               </li>
             </ul>
@@ -99,108 +101,75 @@ const AboutUsPage = () => {
         </div>
 
         <div className="wrapper">
-          <h2 className="AboutUsPage__vision">
-            At AirQo we empower communities across Africa with accurate, hyperlocal, and timely air
-            quality data to drive air pollution mitigation actions.
-          </h2>
+          <h2 className="AboutUsPage__vision">{t('about.aboutUs.vision.text')}</h2>
 
           <img src={TeamImg} className="team_img" alt="Team Photo" loading="lazy" />
 
           <div className="AboutUsPage__banner" id="vision">
             <div className="section-title">
-              <h3>Our vision</h3>
+              <h3>{t('about.aboutUs.banner.title')}</h3>
               <div>
                 <img src={Vector1} className="vector-1" />
                 <img src={Vector2} className="vector-2" />
               </div>
             </div>
-            <p>Clean air for all African cities.</p>
+            <p>{t('about.aboutUs.banner.subText')}</p>
           </div>
 
           <hr className="separator-1" />
 
           <div className="AboutUsPage__story" id="story">
-            <h3>Our story</h3>
+            <h3>{t('about.aboutUs.story.title')}</h3>
             <div className="section-info">
-              <p>
-                We are on a mission to empower communities across Africa with information about the
-                quality of the air they breathe.
-              </p>
-              <p>
-                AirQo was founded in 2015 at Makerere University to close the gaps in air quality
-                monitoring across Africa. Our low-cost air quality monitors are designed to suit the
-                African infrastructure, providing locally-led solutions to African air pollution
-                challenges.
-              </p>
-              <p>
-                They provide accurate, hyperlocal, and timely data providing evidence of the
-                magnitude and scale of air pollution across the continent.
-              </p>
-              <p>
-                By empowering citizens with air quality information, we hope to inspire change and
-                action among African citizens to take effective action to reduce air pollution
-              </p>
+              <p>{t('about.aboutUs.story.paragraphs.first')}</p>
+              <p>{t('about.aboutUs.story.paragraphs.second')}</p>
+              <p>{t('about.aboutUs.story.paragraphs.third')}</p>
+              <p>{t('about.aboutUs.story.paragraphs.fourth')}</p>
             </div>
           </div>
 
           <hr />
 
           <h2 className="AboutUsPage__mission" id="mission">
-            Our mission is to efficiently collect, analyse and forecast air quality data to
-            international standards and work with partners to reduce air pollution and raise
-            awareness of its effects in African cities.
+            {t('about.aboutUs.mission.text')}
           </h2>
 
           <hr />
 
           <div className="AboutUsPage__values" id="values">
-            <h3 className="section-title">Our values</h3>
+            <h3 className="section-title">{t('about.aboutUs.values.title')}</h3>
             <div className="section-info">
               <div className="subsection">
-                <h6>Citizen Focus</h6>
-                <p>
-                  At AirQo we believe that the main beneficiary of clean air are citizens and the
-                  positive impact it can have on their health and wellbeing.
-                </p>
+                <h6>{t('about.aboutUs.values.subSection1.title')}</h6>
+                <p>{t('about.aboutUs.values.subSection1.subText')}</p>
               </div>
               <div className="subsection">
-                <h6>Precision</h6>
-                <p>
-                  We convert low-cost sensor data into a reliable measure of air quality thus making
-                  our network and our models as accurate as they can be.
-                </p>
+                <h6>{t('about.aboutUs.values.subSection2.title')}</h6>
+                <p>{t('about.aboutUs.values.subSection2.subText')}</p>
               </div>
 
               <div className="subsection">
-                <h6>Collaboration and Openness</h6>
-                <p>
-                  In order to maximize our impact, we collaborate by sharing our data through
-                  partnerships.
-                </p>
+                <h6>{t('about.aboutUs.values.subSection3.title')}</h6>
+                <p>{t('about.aboutUs.values.subSection3.subText')}</p>
               </div>
 
               <div className="subsection">
-                <h6>Investment in People</h6>
-                <p>
-                  We work in a fast-moving field with continuous improvements in technology. We
-                  recruit the best teams and also commit to their ongoing professional development
-                  and training.
-                </p>
+                <h6>{t('about.aboutUs.values.subSection4.title')}</h6>
+                <p>{t('about.aboutUs.values.subSection4.subText')}</p>
               </div>
             </div>
           </div>
+
           <hr />
+
           <div className="AboutUsPage__team" id="team">
             <div className="header">
-              <h3 className="section-title">Meet the team</h3>
+              <h3 className="section-title"> {t('about.aboutUs.team.title')}</h3>
               <div>
-                <p className="section-info">
-                  This is our team, a community of spirited individuals who work hard to bridge the
-                  gap in air quality monitoring in Africa.
-                </p>
+                <p className="section-info">{t('about.aboutUs.team.subText')}</p>
                 <span className="cta-link">
                   <a className="link" href="/careers">
-                    Join the Team {'-->'}
+                    {t('about.aboutUs.team.cta')} {'-->'}
                   </a>
                 </span>
               </div>
@@ -225,15 +194,14 @@ const AboutUsPage = () => {
               )}
             </div>
           </div>
+
           <hr />
+
           <div className="AboutUsPage__team" id="board">
             <div className="header">
-              <h3 className="section-title">Meet the Board</h3>
+              <h3 className="section-title"> {t('about.aboutUs.board.title')}</h3>
               <div>
-                <p className="section-info">
-                  A team of enthusiastic experts that offer guidance to enhance our growth and
-                  realisation of our goals.
-                </p>
+                <p className="section-info">{t('about.aboutUs.board.subText')}</p>
               </div>
             </div>
             <div className="AboutUsPage__pictorial">
@@ -255,19 +223,16 @@ const AboutUsPage = () => {
               )}
             </div>
           </div>
+
           <hr />
+
           <div className="AboutUsPage__partners">
-            <h3 className="section-title">Our partners</h3>
+            <h3 className="section-title">{t('about.aboutUs.partners.title')}</h3>
             <div>
-              <p className="section-info">
-                Together with our partners, we are solving large, complex air quality monitoring
-                challenges across Africa. We are providing much-needed air quality data to
-                Governments and individuals in the continent to facilitate policy changes that
-                combat air pollution.
-              </p>
+              <p className="section-info">{t('about.aboutUs.partners.subText')}</p>
               <span className="cta-link">
                 <span className="link" onClick={showModal}>
-                  Partner with Us
+                  {t('about.aboutUs.partners.cta')}
                 </span>
               </span>
             </div>
@@ -293,10 +258,7 @@ const AboutUsPage = () => {
                     <tr key={key}>
                       {partnerGroup.map((partner) => (
                         <td key={partner.id} onClick={onLogoClick(partner.unique_title)}>
-                          <img
-                            src={partner.partner_logo}
-                            alt={partner.partner_name}
-                          />
+                          <img src={partner.partner_logo} alt={partner.partner_name} />
                         </td>
                       ))}
                     </tr>
@@ -307,7 +269,9 @@ const AboutUsPage = () => {
               </tbody>
             </table>
             <button className="partners-toggle-button" onClick={toggleFullPartnersListDisplay}>
-              {togglePartnersDisplay ? 'See less' : 'See more'}
+              {togglePartnersDisplay
+                ? t('about.aboutUs.partners.toggleButtons.showLess')
+                : t('about.aboutUs.partners.toggleButtons.showMore')}
             </button>
           </div>
         </div>

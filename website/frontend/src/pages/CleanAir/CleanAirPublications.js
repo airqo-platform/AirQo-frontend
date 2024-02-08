@@ -10,6 +10,7 @@ import ListIcon from '@mui/icons-material/List';
 import CloseIcon from '@mui/icons-material/Close';
 import useWindowSize from 'utilities/customHooks';
 import Loadspinner from 'src/components/LoadSpinner/SectionLoader';
+import { useTranslation, Trans } from 'react-i18next';
 
 const ResourceMenuItem = ({ activeResource, resource, dispatch, setToggle }) => {
   const { width } = useWindowSize();
@@ -31,18 +32,24 @@ const ResourceMenuItem = ({ activeResource, resource, dispatch, setToggle }) => 
 
 const CleanAirPublications = () => {
   useInitScrollTop();
+  const { t } = useTranslation();
   const menuRef = useRef(null);
   const dispatch = useDispatch();
   const [toggle, setToggle] = useState(false);
   const [cleanAirResources, setCleanAirResources] = useState([]);
   const activeResource = useSelector((state) => state.cleanAirData.activeResource);
-  const resources = ['toolkits', 'technical reports', 'workshop reports', 'research publications'];
+  const resources = [
+    t('cleanAirSite.publications.navs.toolkits'),
+    t('cleanAirSite.publications.navs.reports'),
+    t('cleanAirSite.publications.navs.workshops'),
+    t('cleanAirSite.publications.navs.research')
+  ];
   const { width } = useWindowSize();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isEmpty(activeResource)) {
-      dispatch(setActiveResource('toolkits'));
+      dispatch(setActiveResource(t('cleanAirSite.publications.navs.toolkits')));
     }
   }, [activeResource]);
 
@@ -118,7 +125,7 @@ const CleanAirPublications = () => {
             alignItems: 'center',
             marginTop: '50px'
           }}>
-          <h1>No Resources available</h1>
+          <h1>{t('cleanAirSite.publications.noResources')}</h1>
         </div>
       );
     }
@@ -150,16 +157,16 @@ const CleanAirPublications = () => {
   const renderPagination = () => {
     let data;
     switch (activeResource) {
-      case 'toolkits':
+      case t('cleanAirSite.publications.navs.toolkits'):
         data = toolkitData;
         break;
-      case 'technical reports':
+      case t('cleanAirSite.publications.navs.reports'):
         data = technicalReportData;
         break;
-      case 'workshop reports':
+      case t('cleanAirSite.publications.navs.workshops'):
         data = workshopReportData;
         break;
-      case 'research publications':
+      case t('cleanAirSite.publications.navs.research'):
         data = researchPublicationData;
         break;
       default:
@@ -229,9 +236,11 @@ const CleanAirPublications = () => {
               <div className="resource-menu" id="top-menu-sec">
                 <div className="title-wrapper">
                   <h1 className="resource-menu-title">
-                    RESOURCE
-                    <br />
-                    <span>CENTER</span>
+                    <Trans i18nKey="cleanAirSite.publications.title">
+                      RESOURCE
+                      <br />
+                      <span>CENTER</span>
+                    </Trans>
                   </h1>
 
                   <div className="resource-menu-icon" onClick={handleToggle}>
@@ -254,10 +263,14 @@ const CleanAirPublications = () => {
               </div>
 
               <div className="resource-body">
-                {activeResource === 'toolkits' && renderData(toolkitData, false)}
-                {activeResource === 'technical reports' && renderData(technicalReportData, true)}
-                {activeResource === 'workshop reports' && renderData(workshopReportData, true)}
-                {activeResource === 'research publications' && renderData(researchPublicationData)}
+                {activeResource === t('cleanAirSite.publications.navs.toolkits') &&
+                  renderData(toolkitData, false)}
+                {activeResource === t('cleanAirSite.publications.navs.reports') &&
+                  renderData(technicalReportData, true)}
+                {activeResource === t('cleanAirSite.publications.navs.workshops') &&
+                  renderData(workshopReportData, true)}
+                {activeResource === t('cleanAirSite.publications.navs.research') &&
+                  renderData(researchPublicationData)}
                 {renderPagination(activeResource)}
               </div>
             </div>
