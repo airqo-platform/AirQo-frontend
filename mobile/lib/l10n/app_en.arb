@@ -351,5 +351,18 @@
     "languages": "Languages",
     "dataProvider":"Data Provider: {placeholder}",
     "reDOLesson": "Re-do lesson",
-    "reDoQuiz": "Re-do quiz"
+    "reDoQuiz": "Re-do quiz",
+    "addYourEmail":"Add your Email",
+    "yourEmailHasBeenAdded":"Your Email has been added",
+    "add":"Add",
+    "skip":"skip",
+    "oopsSomethingWentWrongPleaseTryAgainLater":"Oops something went wrong! Please try again later",
+    "tryAgainLater":"Try again later",
+    "yourEmailIsAlreadyRegistered":"Your Email is already registered",
+    "weAreShufflingThingsAroundForYou":"We are shuffling things around for you.....",
+    "youWouldBeRequiredToAddYourEmailToYourProfileOnTheMobileAppToEnableYouAccessThe" :" You would be required to add your email to your profile on the mobile app to enable you access the ",
+    "withOneAccount":" with one account.",
+    "addMyEmail":"Add my email",
+    "remindMeLater":"Remind me later"
+
 }
