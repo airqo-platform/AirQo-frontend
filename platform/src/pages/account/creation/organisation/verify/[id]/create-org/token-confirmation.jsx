@@ -1,23 +1,44 @@
-import React, { useEffect, useState } from 'react';
+// Verifies the organisation cohort id
+import React, { useState } from 'react';
 import AccountPageLayout from '@/components/Account/Layout';
 import ProgressComponent from '@/components/Account/ProgressComponent';
 import HintIcon from '@/icons/Actions/exclamation.svg';
-import { useDispatch, useSelector } from 'react-redux';
-import SearchIcon from '@/icons/Common/search_md.svg';
 import Spinner from '@/components/Spinner';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { verifyCohortID } from '@/core/apis/DeviceRegistry';
 
-const ConfirmOrganizationToken = () => {
+const ConfirmOrganizationCohortToken = () => {
   const router = useRouter();
-  const dispatch = useDispatch();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [checked, setChecked] = useState(false);
+  const { id } = router.query;
+  const [token, setToken] = useState('');
+  const [tokenErrorMsg, setTokenErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (token === '') {
+      setTokenErrorMsg('Token is required');
+      setTimeout(() => {
+        setTokenErrorMsg('');
+      }, 3000);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await verifyCohortID(token);
+      router.push(`/account/creation/organisation/verify/${id}/create-org/details`);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      setTokenErrorMsg('Invalid token');
+      setTimeout(() => {
+        setTokenErrorMsg('');
+      }, 3000);
+    }
   };
 
   return (
@@ -28,7 +49,7 @@ const ConfirmOrganizationToken = () => {
         "What you've built here is so much better for air pollution monitoring than anything else on the market!"
       }
     >
-      <ProgressComponent colorFirst colorSecond />
+      <ProgressComponent colorFirst />
       <div>
         <h2 className='text-3xl text-black-800 font-semibold'>
           Please enter your organisation token
@@ -42,16 +63,16 @@ const ConfirmOrganizationToken = () => {
               <div className='text-sm text-secondary-neutral-light-600'>Organization token</div>
               <div className='mt-2 w-full'>
                 <input
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => setToken(e.target.value)}
                   type='text'
                   placeholder='Enter your token'
                   className={`input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500`}
                   required
                 />
-                {email.length >= 3 && !email.includes('@') && (
+                {tokenErrorMsg && (
                   <div className='flex flex-row items-start text-xs text-red-600 py-2'>
                     <HintIcon className='w-8 h-8 mr-2' />
-                    <span>Please provide a valid email address!</span>
+                    <span>{tokenErrorMsg}</span>
                   </div>
                 )}
               </div>
@@ -64,16 +85,11 @@ const ConfirmOrganizationToken = () => {
                 <button
                   style={{ textTransform: 'none' }}
                   type='submit'
-                  onClick={
-                    password !== '' && !passwordWordErrors && checked ? handleSubmit : undefined
-                  }
-                  className={`w-full btn text-sm outline-none border-none rounded-[12px] ${
-                    password !== '' && !passwordWordErrors && checked
-                      ? 'bg-blue-900 text-white hover:bg-blue-950'
-                      : 'btn-disabled bg-white'
-                  }`}
+                  onClick={handleSubmit}
+                  className='w-full btn text-sm outline-none border-none rounded-[12px] bg-blue-900 text-white hover:bg-blue-950
+                  '
                 >
-                  {loading && password !== '' && !passwordWordErrors && checked ? (
+                  {loading && token !== '' && !tokenErrorMsg ? (
                     <Spinner data-testid='spinner' width={25} height={25} />
                   ) : (
                     'Continue'
@@ -102,4 +118,4 @@ const ConfirmOrganizationToken = () => {
   );
 };
 
-export default ConfirmOrganizationToken;
+export default ConfirmOrganizationCohortToken;

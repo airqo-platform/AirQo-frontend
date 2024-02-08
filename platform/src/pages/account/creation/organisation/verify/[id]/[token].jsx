@@ -14,7 +14,7 @@ const UserCreationSuccess = () => {
   const verifyOrgManagerEmail = async (userId, userToken) => {
     try {
       await verifyUserEmailApi(userId, userToken);
-      router.push(`/account/creation/organisation/verify/${id}/create-org/details`);
+      router.push(`/account/creation/organisation/verify/${id}/create-org/token-confirmation`);
     } catch {}
   };
 
