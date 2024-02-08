@@ -38,7 +38,7 @@ const AccountPageLayout = ({
               <div
                 className={`${
                   childrenTop ? childrenTop : 'mt-16'
-                } flex flex-col justify-center items-start md:max-w-[360px]`}
+                } flex flex-col justify-center items-start lg:max-w-[360px]`}
               >
                 {children}
               </div>
