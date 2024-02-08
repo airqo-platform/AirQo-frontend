@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import mapboxgl from 'mapbox-gl';
 import LayerIcon from '@/icons/map/layerIcon';
 import RefreshIcon from '@/icons/map/refreshIcon';
@@ -18,6 +19,20 @@ const AirQoMap = ({
   const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/streets-v11');
   const [isOpen, setIsOpen] = useState(false);
   const [refresh, setRefresh] = useState(false);
+  const urls = new URL(window.location.href);
+  const urlParams = new URLSearchParams(urls.search);
+  const gridData = useSelector((state) => state.grids.gridLocationDetails);
+  let filteredGridsData = {};
+
+  if (gridData) {
+    filteredGridsData = {
+      centers: gridData.grids[0].centers,
+      sites: gridData.grids[0].sites,
+      _id: gridData.grids[0]._id,
+    };
+  }
+
+  console.log(filteredGridsData);
 
   const mapStyles = [
     { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets' },
@@ -29,13 +44,18 @@ const AirQoMap = ({
   ];
 
   useEffect(() => {
+    // this will capture the lat, lng and zoom from the URL
+    const lat = urlParams.get('lat');
+    const lng = urlParams.get('lng');
+    const zm = urlParams.get('zm');
+
     mapboxgl.accessToken = mapboxApiAccessToken;
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: mapStyle,
-      center: [longitude, latitude],
-      zoom: zoom,
+      center: [lng || longitude, lat || latitude],
+      zoom: zm || zoom,
     });
 
     mapRef.current = map;

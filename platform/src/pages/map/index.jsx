@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import Layout from '@/components/Layout';
 import CloseIcon from '@/icons/close_icon';
 import LocationIcon from '@/icons/LocationIcon';
@@ -9,6 +10,11 @@ import HomeIcon from '@/icons/map/homeIcon';
 import { useRouter } from 'next/router';
 import { AirQualityLegend } from '@/components/Map/components/Legend';
 import allCountries from '@/components/Map/components/countries';
+import {
+  clearGridLocationDetails,
+  getGridLocation,
+  getAllGridLocations,
+} from '@/lib/store/services/deviceRegistry/GridsSlice';
 
 const MAP_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -106,11 +112,18 @@ const CountryList = ({ selectedCountry, setSelectedCountry }) => (
 );
 
 const index = () => {
+  const dispatch = useDispatch();
   const router = useRouter();
-  const [location, setLocation] = useState();
   const [showSideBar, setShowSideBar] = useState(true);
   const [selectedTab, setSelectedTab] = useState('locations');
   const [selectedCountry, setSelectedCountry] = useState(null);
+  const gridsData = useSelector((state) => state.grids.gridLocations);
+
+  useEffect(() => {
+    if (gridsData.length === 0) {
+      dispatch(getAllGridLocations());
+    }
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -131,6 +144,12 @@ const index = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, [router.pathname]);
 
+  const filteredGrids = gridsData.map((grid) => ({
+    _id: grid._id,
+    admin_level: grid.admin_level,
+    long_name: grid.long_name,
+  }));
+
   const handleHomeClick = () => {
     router.push('/Home');
   };
@@ -139,37 +158,9 @@ const index = () => {
     setSelectedTab(tab);
   };
 
-  const handleLocationSelect = () => {
-    setLocation();
+  const handleLocationSelect = (gridID) => {
+    dispatch(getGridLocation(gridID));
   };
-
-  const locations = [
-    {
-      id: 1,
-      name: 'Kampala',
-      country: 'Central, Uganda',
-    },
-    {
-      id: 2,
-      name: 'Nairobi',
-      country: 'Central, Kenya',
-    },
-    {
-      id: 3,
-      name: 'kiambu',
-      country: 'Eastern, Kenya',
-    },
-    {
-      id: 4,
-      name: 'Kitgum',
-      country: 'Northern, Uganda',
-    },
-    {
-      id: 5,
-      name: 'Kigaali',
-      country: 'Central, Rwanda',
-    },
-  ];
 
   return (
     <Layout noTopNav={false}>
@@ -204,25 +195,25 @@ const index = () => {
                     setSelectedCountry={setSelectedCountry}
                   />
                 </div>
-                <div className='space-y-2'>
+                <div className='space-y-2 max-h-[445px] overflow-y-scroll'>
                   <label className='font-medium text-gray-600 text-sm'>Suggestions</label>
                   <hr />
-                  {locations.map((location) => (
+                  {filteredGrids.map((grid) => (
                     <div
-                      key={location.id}
+                      key={grid._id}
                       className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer hover:bg-blue-100 p-2 rounded-lg'
                       onClick={() => {
-                        handleLocationSelect();
+                        handleLocationSelect(grid._id);
                       }}>
                       <div className='p-2 rounded-full bg-gray-100'>
                         <LocationIcon />
                       </div>
                       <div className='ml-3 flex flex-col item-start border-b w-full'>
                         <span className='font-normal text-black capitalize text-lg'>
-                          {location.name}
+                          {grid.long_name}
                         </span>
                         <span className='font-normal text-gray-500 capitalize text-sm mb-2'>
-                          {location.country}
+                          {grid.admin_level}
                         </span>
                       </div>
                     </div>

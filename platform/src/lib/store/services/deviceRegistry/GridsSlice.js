@@ -1,13 +1,23 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getAllGridLocationsApi, getSiteSummaryDetails } from '@/core/apis/DeviceRegistry';
+import {
+  getAllGridLocationsApi,
+  getSiteSummaryDetails,
+  getGridLocationDetails,
+} from '@/core/apis/DeviceRegistry';
 
 const initialState = {
+  gridLocationDetails: {},
   gridLocations: [],
   sitesSummary: [],
   success: false,
   errors: null,
   selectedLocations: [],
 };
+
+export const getGridLocation = createAsyncThunk('/get/grid', async (gridID) => {
+  const response = await getGridLocationDetails(gridID);
+  return response;
+});
 
 export const getAllGridLocations = createAsyncThunk('/get/grids', async () => {
   const response = await getAllGridLocationsApi();
@@ -48,6 +58,17 @@ export const gridsSlice = createSlice({
         state.success = false;
       })
       .addCase(getSitesSummary.rejected, (state, action) => {
+        state.errors = action.payload;
+        state.success = false;
+      })
+      .addCase(getGridLocation.fulfilled, (state, action) => {
+        state.gridLocationDetails = action.payload;
+        state.success = action.payload.success;
+      })
+      .addCase(getGridLocation.pending, (state) => {
+        state.success = false;
+      })
+      .addCase(getGridLocation.rejected, (state, action) => {
         state.errors = action.payload;
         state.success = false;
       });

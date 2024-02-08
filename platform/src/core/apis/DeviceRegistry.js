@@ -1,10 +1,26 @@
 import createAxiosInstance from './axiosConfig';
-import { SITES_URL, ANALYTICS_URL, GRIDS_URL, DEVICES } from '../urls/deviceRegistry';
+import {
+  SITES_URL,
+  ANALYTICS_URL,
+  GRIDS_URL,
+  DEVICES,
+  GRID_LOCATIONS_URL,
+} from '../urls/deviceRegistry';
 
 // Get grid locations
 export const getAllGridLocationsApi = async () => {
   try {
     const response = await createAxiosInstance().get(`${GRIDS_URL}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Get grid location details
+export const getGridLocationDetails = async (gridID) => {
+  try {
+    const response = await createAxiosInstance().get(`${GRID_LOCATIONS_URL}/${gridID}`);
     return response.data;
   } catch (error) {
     throw error;
