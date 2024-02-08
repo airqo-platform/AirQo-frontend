@@ -304,7 +304,7 @@ Running `Webpack` build (production)
 
 ### Docker
 
-Build the application docker image with the command below. Make sure that your `google_application_credentials.json` file is at the root of the website folder just as your .env file.
+Build the application docker image with the command below. Make sure that your `google_application_credentials.json` file is at the root of the website folder just as your .env file
 
     docker build . \
         --build-arg REACT_WEB_STATIC_HOST=<<enter REACT_WEB_STATIC_HOST value>> \
