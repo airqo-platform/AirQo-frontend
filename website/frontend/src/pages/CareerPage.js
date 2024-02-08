@@ -9,7 +9,7 @@ import { isEmpty } from 'underscore';
 import { groupBy } from 'underscore';
 import SectionLoader from '../components/LoadSpinner/SectionLoader';
 import SEO from 'utilities/seo';
-import { format } from 'date-fns';
+import { useTranslation, Trans } from 'react-i18next';
 
 const JobListing = ({ title, uniqueTitle, type, key }) => {
   const navigate = useNavigate();
@@ -50,6 +50,7 @@ const DepartmentListing = ({ department, listing }) => {
 
 const CareerPage = () => {
   useInitScrollTop();
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const careerListing = useCareerListingData();
   const departments = useCareerDepartmentsData();
@@ -100,23 +101,21 @@ const CareerPage = () => {
         />
         <div className="careers-banner">
           <div className="text-container">
-            <div className="sub-text">Careers {'>'} Welcome to AirQo</div>
-            <div className="main-text">Join our team</div>
-            <div className="text-brief">
-              Be part of a team pioneering air quality monitoring in Africa. Together, we work
-              passionately towards our vision for Clean Air for all African Cities
-            </div>
+            <div className="sub-text">{t('about.careers.header.breadCrumb')}</div>
+            <div className="main-text">{t('about.careers.header.title')}</div>
+            <div className="text-brief">{t('about.careers.header.subText')}</div>
           </div>
         </div>
+
         {loading ? (
           <SectionLoader />
         ) : (
           <div className="content">
             <div className="container">
-              <div className="label">Categories</div>
+              <div className="label">{t('about.careers.categories.label')}</div>
               <div className="tags">
                 <span className={selectedTagClassName('all')} onClick={onTagClick('all')}>
-                  Open positions
+                  {t('about.careers.categories.btnText')}
                 </span>
                 {departments.length > 0 ? (
                   departments.map((department) => (
@@ -146,16 +145,18 @@ const CareerPage = () => {
                   );
                 })
               ) : (
-                <div className="no-listing">We currently have no open positions. </div>
+                <div className="no-listing">{t('about.careers.categories.noListing')}</div>
               )}
 
               <div className="self-intro">
                 <span>
-                  Don’t see a <br />
-                  position that fits you perfectly? Introduce yourself here{' '}
+                  <Trans i18nKey="about.careers.categories.selfIntro.text">
+                    Don’t see a <br />
+                    position that fits you perfectly? Introduce yourself here
+                  </Trans>
                 </span>
                 <a href="mailto:careers@airqo.net" className="mail-link">
-                  careers@airqo.net
+                  {t('about.careers.categories.selfIntro.cta')}
                 </a>
               </div>
             </div>

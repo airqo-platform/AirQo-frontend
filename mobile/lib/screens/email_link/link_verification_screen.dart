@@ -2,6 +2,7 @@
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/enum_constants.dart';
+import 'package:app/screens/dashboard/dashboard_view.dart';
 import 'package:app/screens/email_authentication/email_auth_widgets.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -14,11 +15,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../widgets/auth_widgets.dart';
-import '../home_page.dart';
 import '../on_boarding/on_boarding_widgets.dart';
-import '../on_boarding/profile_setup_screen.dart';
 
-Future<void> verifyEmailAuthCode(BuildContext context) async {
+Future<void> verifyLinkAuthCode(BuildContext context) async {
   await Navigator.of(context).push(
     PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) =>
@@ -184,7 +183,7 @@ class _EmailAuthVerificationWidgetState
                         await Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(builder: (context) {
-                            return const HomePage();
+                            return const DashboardView();
                           }),
                           (r) => false,
                         );
@@ -192,7 +191,7 @@ class _EmailAuthVerificationWidgetState
                         await Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(builder: (context) {
-                            return const ProfileSetupScreen();
+                            return const DashboardView();
                           }),
                           (r) => false,
                         );
@@ -220,7 +219,7 @@ class _EmailAuthVerificationWidgetState
       email: emailAuthModel.emailAddress,
     );
 
-    final user = FirebaseAuth.instance.currentUser;
+    final user = CustomAuth.getUser();
 
     try {
       if (user != null) {
@@ -255,12 +254,10 @@ class _EmailAuthVerificationWidgetState
     );
 
     try {
-      final currentUser = FirebaseAuth.instance.currentUser;
+      final currentUser = CustomAuth.getUser();
       if (currentUser != null) {
-        // Link the email credential with the existing user
         await currentUser.linkWithCredential(emailCredential);
       } else {
-        // Perform email authentication if not signed in with phone number
         final bool authenticationSuccessful =
             await CustomAuth.firebaseSignIn(emailCredential);
         if (!mounted) return;
@@ -281,11 +278,6 @@ class _EmailAuthVerificationWidgetState
           .add(const SetEmailVerificationStatus(
             AuthenticationStatus.success,
           ));
-
-      // Check if account linking was done, skip postSignInActions
-      if (currentUser == null) {
-        await AppService.postSignInActions(context);
-      }
     } catch (exception, stackTrace) {
       Navigator.pop(context);
       await showDialog<void>(

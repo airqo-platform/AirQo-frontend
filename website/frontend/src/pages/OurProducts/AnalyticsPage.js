@@ -10,44 +10,44 @@ import Section3Image from '../../assets/img/OurProducts/Analytics/analytics-dash
 import NavTab from '../../components/nav/NavTab';
 import UserManual from 'assets/docs/AirQoAnalyticsPlatformUserGuide.pdf';
 import { FileDownloadOutlined } from '@mui/icons-material';
+import { useTranslation, Trans } from 'react-i18next';
 
 const AnalyticsPage = () => {
   useInitScrollTop();
+  const { t } = useTranslation();
   return (
     <Page>
       <div className="product-page analytics">
         <Header
-          pageTitle={'Air quality analytics Dashboard'}
-          title={'Access and visualise air quality data in African Cities.'}
-          subText={
-            'If we can’t measure air pollution, we can’t manage it: Access, track, analyse and download insightful air quality data across major cities in Africa.'
-          }>
+          pageTitle={t('products.Analytics.header.pageTitle')}
+          title={t('products.Analytics.header.title')}
+          subText={t('products.Analytics.header.subText')}>
           <img src={HeaderImage} alt="" />
         </Header>
         <div className="content">
           <div className="grid-wrapper column section">
             <div className="row">
               <h2 className="left title">
-                <span className="blue">Real-time</span> air quality analytics for African Cities
+                <Trans i18nKey="products.Analytics.first.title">
+                  <span className="blue">Real-time</span> air quality analytics for African Cities
+                </Trans>
               </h2>
-              <p className="right">
-                Air pollution in many cities in Africa is under-monitored in part due to the
-                logistical constraints of setting up and maintaining a monitoring network, coupled
-                with the expertise to process and analyse data.
-              </p>
+              <p className="right">{t('products.Analytics.first.subText')}</p>
             </div>
             <div className="overlap-section">
               <div className="lapping-left card" style={{ backgroundColor: '#ebfff5' }}>
-                <h5>Timely access to data</h5>
+                <h5>{t('products.Analytics.second.title')}</h5>
                 <p>
-                  The air quality analytics dashboard is an intuitive software dashboard that allows
-                  you to have timely access to historic, real-time, and forecast actionable air
-                  quality information across our monitored urban spaces in Africa.
-                  <br />
-                  <br />
-                  We want to see citizens and decision-makers in Africa Cities have timely access to
-                  air quality trends, patterns and insights to inform data-driven decisions to
-                  tackle air pollution.
+                  <Trans i18nKey="products.Analytics.second.subText">
+                    The air quality analytics dashboard is an intuitive software dashboard that
+                    allows you to have timely access to historic, real-time, and forecast actionable
+                    air quality information across our monitored urban spaces in Africa.
+                    <br />
+                    <br />
+                    We want to see citizens and decision-makers in Africa Cities have timely access
+                    to air quality trends, patterns and insights to inform data-driven decisions to
+                    tackle air pollution.
+                  </Trans>
                   <br />
                   <a
                     href={`${UserManual}?#view=FitH`}
@@ -55,15 +55,15 @@ const AnalyticsPage = () => {
                     download="AirQo_Analytics_Platform_User_Manual.pdf"
                     rel="noreferrer noopener">
                     <button className="download-button">
-                      User Guide <FileDownloadOutlined />
+                      {t('products.Analytics.second.cta')} <FileDownloadOutlined />
                     </button>
                   </a>
                 </p>
               </div>
               <div className="lapping-left image" id="section-1">
                 <img src={Section1Image} alt="" />
-                <div className='image-overlap'>
-                <img src={Section1OverlapImage} alt="" style={{objectPosition:'0px'}}/>
+                <div className="image-overlap">
+                  <img src={Section1OverlapImage} alt="" style={{ objectPosition: '0px' }} />
                 </div>
               </div>
             </div>
@@ -73,14 +73,16 @@ const AnalyticsPage = () => {
               <div
                 className="lapping-right card larger-top smaller-width"
                 style={{ backgroundColor: '#ebfff5' }}>
-                <h5>Gain insights to take action</h5>
+                <h5>{t('products.Analytics.third.title')}</h5>
                 <p>
-                  With our air quality analytics dashboard, you can view, historical, real-time or
-                  forecast calibrated data in locations that matter to you. <br />
-                  <br />
-                  You can generate, compare and download air quality data in various African Cities
-                  and develop evidence-informed actions for air pollution.
-                  <br/>
+                  <Trans i18nKey="products.Analytics.third.subText">
+                    With our air quality analytics dashboard, you can view, historical, real-time or
+                    forecast calibrated data in locations that matter to you. <br />
+                    <br />
+                    You can generate, compare and download air quality data in various African
+                    Cities and develop evidence-informed actions for air pollution.
+                    <br />
+                  </Trans>
                 </p>
               </div>
               <div className="lapping-right image" id="section-2">
@@ -91,15 +93,17 @@ const AnalyticsPage = () => {
           <div className="grid-full column section landscape-section">
             <div className="column smaller-width">
               <h2 className="left title">
-                <span className="blue">Easy to use</span> interface
+                <Trans i18nKey="products.Analytics.fourth.title">
+                  <span className="blue">Easy to use</span> interface
+                </Trans>
               </h2>
-              <p className="right">
-                Our visualization charts are designed to help you easily interpret and gain insights
-                into the data while giving you access to air quality trends in African Cities over
-                time. With our easy-to-use interface, you can track and visualise air quality trends
-                over time.
-              </p>
-              <NavTab text="Explore data" path="/explore-data" hideArrow filled />
+              <p className="right">{t('products.Analytics.fourth.subText')}</p>
+              <NavTab
+                text={t('products.Analytics.fourth.cta')}
+                path="/explore-data"
+                hideArrow
+                filled
+              />
             </div>
             <div className="image">
               <img src={Section3Image} alt="" />

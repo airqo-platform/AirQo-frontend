@@ -7,9 +7,11 @@ import SEO from 'utilities/seo';
 import { loadPressData } from '../../../reduxStore/Press/PressSlice';
 import { isEmpty } from 'underscore';
 import Loadspinner from '../../components/LoadSpinner';
+import { useTranslation } from 'react-i18next';
 
 const Press = () => {
   useInitScrollTop();
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const allPressData = useSelector((state) => state.pressData.pressData);
   const pressData = allPressData.filter((event) => event.website_category === 'airqo');
@@ -48,11 +50,12 @@ const Press = () => {
             <div className="page-header">
               <div className="content">
                 <div className="title-wrapper">
-                  <h2>In the Press</h2>
-                  <span className="sub-title">Stories about AirQo that we think you'll love</span>
+                  <h2>{t('about.press.header.title')}</h2>
+                  <span className="sub-title">{t('about.press.header.subText')}</span>
                 </div>
               </div>
             </div>
+
             <div className="page-body">
               <div className="content">
                 <div className="list-cards">
@@ -91,14 +94,18 @@ const Press = () => {
               {numArticlesToShow > 5 && (
                 <div className="show-less" onClick={handleShowLess}>
                   <span>
-                    <a>See Less {'<-'} </a>
+                    <a>
+                      {t('about.press.buttons.showLess')} {'<-'}{' '}
+                    </a>
                   </span>
                 </div>
               )}
               {numArticlesToShow < sortedArticles.length && (
                 <div className="show-more" onClick={handleShowMore}>
                   <span>
-                    <a>See More {'->'} </a>
+                    <a>
+                      {t('about.press.buttons.showMore')} {'->'}{' '}
+                    </a>
                   </span>
                 </div>
               )}

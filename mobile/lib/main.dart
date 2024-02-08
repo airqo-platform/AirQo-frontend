@@ -59,8 +59,7 @@ void main() async {
     );
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    });
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {});
 
     runApp(configuredApp);
   } catch (exception, stackTrace) {
@@ -69,14 +68,13 @@ void main() async {
         title: 'AirQo',
         theme: customTheme(),
         localizationsDelegates: const [
+          LgMaterialLocalizations.delegate,
+          LgCupertinoLocalizations.delegate,
+          LgWidgetsLocalizations.delegate,
           AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
-          LgMaterialLocalizations.delegate,
-          LgCupertinoLocalizations.delegate,
-          LgWidgetsLocalizations.delegate,
-
         ],
         supportedLocales: const [
           Locale('en'), // English

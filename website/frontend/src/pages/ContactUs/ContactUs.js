@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import ContactUs from '.';
 import Cards from './cards';
 import { useInitScrollTop } from 'utilities/customHooks';
@@ -8,10 +8,10 @@ const ContactUsPage = () => {
   return (
     <>
       <ContactUs>
-        <Cards/>
+        <Cards />
       </ContactUs>
     </>
-  )
-}
+  );
+};
 
 export default ContactUsPage;

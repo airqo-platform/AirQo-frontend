@@ -341,5 +341,17 @@
   "languages": "Langues",
   "dataProvider":"Fournisseur de données: {placeholder}",
   "reDOLesson": "Refaire la leçon",
-  "reDoQuiz": "Refaire le quiz"
-  }
+  "reDoQuiz": "Refaire le quiz",
+  "addYourEmail":"Ajoutez votre e-mail",
+  "yourEmailHasBeenAdded":"Votre e-mail a été ajouté",
+  "add":"ajouter",
+  "skip":"sauter",
+  "oopsSomethingWentWrongPleaseTryAgainLater":"Oups quelque chose a mal tourné! Veuillez réessayer plus tard",
+  "tryAgainLater":"réessayez plus tard",
+  "yourEmailIsAlreadyRegistered":"Votre e-mail est déjà enregistré",
+  "weAreShufflingThingsAroundForYou":"Nous mélangeons des choses pour vous .....",
+  "youWouldBeRequiredToAddYourEmailToYourProfileOnTheMobileAppToEnableYouAccessThe" : " Vous devrez ajouter votre e-mail à votre profil sur l'application mobile pour vous permettre d'accéder au ",
+  "withOneAccount":" avec un compte.",
+  "addMyEmail":"ajouter mon e-mail",
+  "remindMeLater":"Rappelez-moi plus tard"
+}

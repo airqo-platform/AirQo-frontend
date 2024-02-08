@@ -342,5 +342,17 @@
     "dataProvider":"Mtoa Huduma: {placeholder}",
     "reDOLesson": "Fanya tena somo",
     "reDoQuiz": "Fanya tena mtihani",
-    "continueLearning" : "Endelea kujifunza"
+    "continueLearning" : "Endelea kujifunza",
+    "addYourEmail":"Ongeza Barua pepe yako",
+    "yourEmailHasBeenAdded":"Barua pepe yako imeongezwa",
+    "add":"Ongeza",
+    "skip":"ruka",
+    "oopsSomethingWentWrongPleaseTryAgainLater":"Lo kuna hitilafu! Tafadhali jaribu tena baadaye",
+    "tryAgainLater":"Jaribu tena baadaye",
+    "yourEmailIsAlreadyRegistered":"Barua pepe yako tayari imesajiliwa",
+    "weAreShufflingThingsAroundForYou":"Tunachanganya mambo kwa ajili yako....",
+    "youWouldBeRequiredToAddYourEmailToYourProfileOnTheMobileAppToEnableYouAccessThe":" Utahitajika kuongeza barua pepe yako kwenye wasifu wako kwenye programu ya simu ili kukuwezesha kufikia ",
+    "withOneAccount":" na akaunti moja.",
+    "addMyEmail":"Ongeza barua pepe yangu",
+    "remindMeLater":"Nikumbushe baadaye"
 }
