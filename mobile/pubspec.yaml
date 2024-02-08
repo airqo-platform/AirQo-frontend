@@ -123,7 +123,7 @@ flutter_native_splash:
     # 640 pixels in diameter.
     # App icon without an icon background: This should be 1152×1152 pixels, and fit within a circle
     # 768 pixels in diameter.
-    image: assets/images/airQo-logo.png
+    image: assets/images/airQo-logo2.png
 
     # Splash screen background color.
     color: "#ffffff"
@@ -139,6 +139,6 @@ flutter_native_splash:
     # parameters from above.
     # image_dark: assets/images/airQo-logo.png
 
-    # color_dark: "#ffffff"
+    color_dark: "#ffffff"
     #icon_background_color_dark: "#eeeeee"
 
