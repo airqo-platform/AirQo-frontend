@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import cloudinary
 import dj_database_url
+from django.utils.translation import gettext_lazy as _
 
 # from dotenv import load_dotenv
 
@@ -179,9 +180,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
 LANGUAGES = [
-    ('en', 'English'),
-    ('fr', 'French'),
+    ('en', _('English')),
+    ('fr', _('French')),
 ]
+
 
 LANGUAGE_CODE = "en-us"
 
