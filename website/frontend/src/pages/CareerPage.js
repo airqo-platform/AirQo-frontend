@@ -60,9 +60,6 @@ const CareerPage = () => {
   const [groupedKeys, setGroupedKeys] = useState(Object.keys(groupedListing));
   const [selectedTag, setSelectedTag] = useState('all');
 
-  console.log('groupedListing', groupedListing);
-  console.log('groupedKeys', careerListing);
-
   const filterGroups = (value) => {
     setSelectedTag(value);
     if (groupedListing) {
@@ -83,16 +80,17 @@ const CareerPage = () => {
   };
 
   useEffect(() => {
-    setLoading(true);
-    dispatch(loadCareersListingData());
-    dispatch(loadCareersDepartmentsData());
-    setLoading(false);
+    const fetchData = async () => {
+      setLoading(true);
+      await dispatch(loadCareersListingData());
+      await dispatch(loadCareersDepartmentsData());
+      setLoading(false);
+    };
+    fetchData();
   }, [language]);
 
   useEffect(() => {
-    setLoading(true);
     setGroupedKeys(Object.keys(groupedListing));
-    setLoading(false);
   }, [careerListing]);
 
   return (
@@ -112,7 +110,15 @@ const CareerPage = () => {
         </div>
 
         {loading ? (
-          <SectionLoader />
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '100vh'
+            }}>
+            <SectionLoader />
+          </div>
         ) : (
           <div className="content">
             <div className="container">
