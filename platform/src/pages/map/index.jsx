@@ -278,6 +278,7 @@ const index = () => {
           </div>
         </>
         <AirQoMap
+          showSideBar={showSideBar}
           mapboxApiAccessToken={MAP_ACCESS_TOKEN}
           customStyle='flex-grow h-screen w-full relative bg-[#e6e4e0]'
         />

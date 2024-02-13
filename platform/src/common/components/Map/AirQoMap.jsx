@@ -5,6 +5,8 @@ import LayerIcon from '@/icons/map/layerIcon';
 import RefreshIcon from '@/icons/map/refreshIcon';
 import ShareIcon from '@/icons/map/shareIcon';
 import { CustomGeolocateControl, CustomZoomControl } from './components/MapControls';
+import LayerModal from './components/LayerModal';
+import MapImage from '@/images/map/dd1.png';
 
 const AirQoMap = ({
   latitude = 0.3201412790664193,
@@ -12,6 +14,7 @@ const AirQoMap = ({
   zoom = 13,
   customStyle,
   mapboxApiAccessToken,
+  showSideBar,
 }) => {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
@@ -34,12 +37,12 @@ const AirQoMap = ({
   }
 
   const mapStyles = [
-    { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets' },
-    { url: 'mapbox://styles/mapbox/outdoors-v11', name: 'Outdoors' },
-    { url: 'mapbox://styles/mapbox/light-v10', name: 'Light' },
-    { url: 'mapbox://styles/mapbox/dark-v10', name: 'Dark' },
-    { url: 'mapbox://styles/mapbox/satellite-v9', name: 'Satellite' },
-    { url: 'mapbox://styles/mapbox/satellite-streets-v11', name: 'Satellite Streets' },
+    { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets', image: MapImage },
+    // { url: 'mapbox://styles/mapbox/outdoors-v11', name: 'Outdoors' },
+    { url: 'mapbox://styles/mapbox/light-v10', name: 'Light', image: MapImage },
+    { url: 'mapbox://styles/mapbox/dark-v10', name: 'Dark', image: MapImage },
+    { url: 'mapbox://styles/mapbox/satellite-v9', name: 'Satellite', image: MapImage },
+    // { url: 'mapbox://styles/mapbox/satellite-streets-v11', name: 'Satellite Streets' },
   ];
 
   useEffect(() => {
@@ -131,25 +134,15 @@ const AirQoMap = ({
                 className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
                 <LayerIcon />
               </button>
-              {isOpen && (
-                <div className='origin-top-right absolute right-2 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5'>
-                  <div
-                    className='py-1 w-full'
-                    role='menu'
-                    aria-orientation='vertical'
-                    aria-labelledby='options-menu'>
-                    {mapStyles.map((style, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setMapStyle(style.url)}
-                        className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                        role='menuitem'>
-                        {style.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <LayerModal
+                isOpen={isOpen}
+                onClose={() => setIsOpen(false)}
+                mapStyles={mapStyles}
+                showSideBar={showSideBar}
+                onStyleSelect={(style) => {
+                  setMapStyle(style.url);
+                }}
+              />
             </div>
           </div>
           <button
