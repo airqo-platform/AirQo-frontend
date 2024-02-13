@@ -7,9 +7,12 @@ import Spinner from '@/components/Spinner';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { verifyCohortID } from '@/core/apis/DeviceRegistry';
+import { useDispatch } from 'react-redux';
+import { addCohort } from '@/lib/store/services/deviceRegistry/CohortSlice';
 
 const ConfirmOrganizationCohortToken = () => {
   const router = useRouter();
+  const dispatch = useDispatch();
   const { id } = router.query;
   const [token, setToken] = useState('');
   const [tokenErrorMsg, setTokenErrorMsg] = useState('');
@@ -30,7 +33,10 @@ const ConfirmOrganizationCohortToken = () => {
 
     try {
       await verifyCohortID(token);
-      router.push(`/account/creation/organisation/verify/${id}/create-org/details`);
+      router.push({
+        pathname: `/account/creation/organisation/verify/${id}/create-org/details`,
+        query: { token, id },
+      });
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -102,10 +108,10 @@ const ConfirmOrganizationCohortToken = () => {
           <div className='mt-8 w-full flex justify-start'>
             <div className='flex flex-col gap-3'>
               <div className='text-sm text-blue-960 font-medium'>Don't have a token?</div>
-              <div className='text-sm text-blue-900'>
+              {/* <div className='text-sm text-blue-900'>
                 {' '}
                 <Link href='/account/login'>Contact admin</Link>
-              </div>
+              </div> */}
               <div className='text-sm text-blue-900'>
                 {' '}
                 <Link href='/account/login'>Proceed as an individual</Link>

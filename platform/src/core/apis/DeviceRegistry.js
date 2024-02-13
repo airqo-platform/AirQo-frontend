@@ -38,3 +38,9 @@ export const verifyCohortID = async (cohortID) => {
     .get(`${DEVICES}/cohorts/verify/${cohortID}`)
     .then((response) => response.data);
 };
+
+export const updateCohortDetails = async (body, cohortID) => {
+  return await createAxiosInstance()
+    .put(`${DEVICES}/cohorts/${cohortID}`, body)
+    .then((response) => response.data);
+};

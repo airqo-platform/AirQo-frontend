@@ -6,30 +6,32 @@ import { useDispatch, useSelector } from 'react-redux';
 import SearchIcon from '@/icons/Common/search_md.svg';
 import Spinner from '@/components/Spinner';
 import { useRouter } from 'next/router';
+import Toast from '@/components/Toast';
+import Link from 'next/link';
+import LocationIcon from '@/icons/LocationIcon';
+import CloseIcon from '@/icons/close_icon';
+import InfoCircle from '@/icons/Alerts/Info_circle';
+import { isEmpty } from 'underscore';
+import countries from 'i18n-iso-countries';
+import englishLocale from 'i18n-iso-countries/langs/en.json';
 import {
   setOrgDetails,
   setOrgUpdateDetails,
   postOrganisationCreationDetails,
   updateOrganisationDetails,
 } from '@/lib/store/services/account/CreationSlice';
-import Toast from '@/components/Toast';
-import Link from 'next/link';
-import LocationIcon from '@/icons/LocationIcon';
-import CloseIcon from '@/icons/close_icon';
 import { getSitesSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
-import countries from 'i18n-iso-countries';
-import englishLocale from 'i18n-iso-countries/langs/en.json';
 import {
   setCustomisedLocations,
   updateUserPreferences,
   postUserPreferences,
 } from '@/lib/store/services/account/UserDefaultsSlice';
-import InfoCircle from '@/icons/Alerts/Info_circle';
+import { updateCohort } from '@/lib/store/services/deviceRegistry/CohortSlice';
 
 const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { id } = router.query;
+  const { id, token } = router.query;
   const [orgName, setOrgName] = useState('');
   const [orgWebsite, setOrgWebsite] = useState('');
   const [orgDescription, setOrgDescription] = useState('');
@@ -58,6 +60,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
     };
     try {
       const response = await dispatch(postOrganisationCreationDetails(orgData));
+
       if (!response.payload.success) {
         setCreationErrors({
           state: true,
@@ -67,9 +70,22 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
         try {
           const response = await dispatch(postUserPreferences(createPreference));
           if (response.payload.success) {
-            handleComponentSwitch();
+            // update selected cohort preference
+            const data = {
+              user_id: id,
+              cohort_ids: [token],
+            };
+            const updateUserPrefResponse = await dispatch(updateUserPreferences(data));
+            if (updateUserPrefResponse.payload.success) {
+              handleComponentSwitch();
+            } else {
+              setCreationErrors({
+                state: true,
+                message: updateUserPrefResponse.payload.message,
+              });
+            }
           } else {
-            setCreationError({
+            setCreationErrors({
               state: true,
               message: response.payload.message,
             });
@@ -83,6 +99,12 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (isEmpty(token)) {
+      router.push(`/account/creation/organisation/verify/${id}/create-org/token-confirmation`);
+    }
+  }, []);
 
   return (
     <div className='lg:mb-3 md:mb-5 w-full'>
@@ -376,7 +398,7 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
 
   return (
     <div className='w-full'>
-      <ProgressComponent colorFirst colorSecond />
+      <ProgressComponent colorFirst colorSecond colorThird />
       <div className='w-full'>
         <h2 className='text-3xl text-black font-semibold w-full lg:w-10/12 md:mt-20 lg:mt-2'>
           Tell us about your organization
