@@ -6,30 +6,32 @@ import { useDispatch, useSelector } from 'react-redux';
 import SearchIcon from '@/icons/Common/search_md.svg';
 import Spinner from '@/components/Spinner';
 import { useRouter } from 'next/router';
+import Toast from '@/components/Toast';
+import Link from 'next/link';
+import LocationIcon from '@/icons/LocationIcon';
+import CloseIcon from '@/icons/close_icon';
+import InfoCircle from '@/icons/Alerts/Info_circle';
+import { isEmpty } from 'underscore';
+import countries from 'i18n-iso-countries';
+import englishLocale from 'i18n-iso-countries/langs/en.json';
 import {
   setOrgDetails,
   setOrgUpdateDetails,
   postOrganisationCreationDetails,
   updateOrganisationDetails,
 } from '@/lib/store/services/account/CreationSlice';
-import Toast from '@/components/Toast';
-import Link from 'next/link';
-import LocationIcon from '@/icons/LocationIcon';
-import CloseIcon from '@/icons/close_icon';
 import { getSitesSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
-import countries from 'i18n-iso-countries';
-import englishLocale from 'i18n-iso-countries/langs/en.json';
 import {
   setCustomisedLocations,
   updateUserPreferences,
   postUserPreferences,
 } from '@/lib/store/services/account/UserDefaultsSlice';
-import InfoCircle from '@/icons/Alerts/Info_circle';
+import { updateCohort } from '@/lib/store/services/deviceRegistry/CohortSlice';
 
 const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { id } = router.query;
+  const { id, token } = router.query;
   const [orgName, setOrgName] = useState('');
   const [orgWebsite, setOrgWebsite] = useState('');
   const [orgDescription, setOrgDescription] = useState('');
@@ -58,6 +60,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
     };
     try {
       const response = await dispatch(postOrganisationCreationDetails(orgData));
+
       if (!response.payload.success) {
         setCreationErrors({
           state: true,
@@ -67,9 +70,22 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
         try {
           const response = await dispatch(postUserPreferences(createPreference));
           if (response.payload.success) {
-            handleComponentSwitch();
+            // update selected cohort preference
+            const data = {
+              user_id: id,
+              cohort_ids: [token],
+            };
+            const updateUserPrefResponse = await dispatch(updateUserPreferences(data));
+            if (updateUserPrefResponse.payload.success) {
+              handleComponentSwitch();
+            } else {
+              setCreationErrors({
+                state: true,
+                message: updateUserPrefResponse.payload.message,
+              });
+            }
           } else {
-            setCreationError({
+            setCreationErrors({
               state: true,
               message: response.payload.message,
             });
@@ -84,9 +100,15 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
     setLoading(false);
   };
 
+  useEffect(() => {
+    if (isEmpty(token)) {
+      router.push(`/account/creation/organisation/verify/${id}/create-org/token-confirmation`);
+    }
+  }, []);
+
   return (
     <div className='lg:mb-3 md:mb-5 w-full'>
-      <ProgressComponent colorFirst={true} />
+      <ProgressComponent colorFirst colorSecond />
       <div className='w-full'>
         <h2 className='text-3xl text-black font-semibold lg:w-10/12 md:mt-20 lg:mt-2'>
           Tell us about your organisation
@@ -176,7 +198,8 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
                   onChange={(e) => setOrgDescription(e.target.value)}
                   className='text-sm textarea textarea-lg border border-input-light-outline w-full focus:border-input-outline'
                   rows={4}
-                  placeholder='Enter a description...'></textarea>
+                  placeholder='Enter a description...'
+                ></textarea>
                 <span className='text-xs flex space-x-1 text-grey-300 mt-2'>
                   <InfoCircle />
                   <span>Write a short description</span>
@@ -191,7 +214,8 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
                   type='submit'
                   onClick={handleSubmit}
                   className='w-full btn rounded-[12px] bg-blue-900 text-sm outline-none border-none hover:bg-blue-950'
-                  style={{ textTransform: 'none' }}>
+                  style={{ textTransform: 'none' }}
+                >
                   {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
                 </button>
               </div>
@@ -200,7 +224,8 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
                 <button
                   type='submit'
                   className='w-full btn btn-disabled rounded-[12px] bg-white text-sm outline-none border-none'
-                  style={{ textTransform: 'none' }}>
+                  style={{ textTransform: 'none' }}
+                >
                   Continue
                 </button>
               </div>
@@ -373,7 +398,7 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
 
   return (
     <div className='w-full'>
-      <ProgressComponent colorFirst={true} colorSecond={true} />
+      <ProgressComponent colorFirst colorSecond colorThird />
       <div className='w-full'>
         <h2 className='text-3xl text-black font-semibold w-full lg:w-10/12 md:mt-20 lg:mt-2'>
           Tell us about your organization
@@ -388,7 +413,8 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
               <div className='mt-2 w-full'>
                 <select
                   className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'
-                  onChange={(e) => setOrgIndustry(e.target.value)}>
+                  onChange={(e) => setOrgIndustry(e.target.value)}
+                >
                   {industryList.map((country, key) => (
                     <option key={key} value={country}>
                       {country}
@@ -404,7 +430,8 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
               <div className='mt-2 w-full flex flex-row'>
                 <select
                   className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'
-                  onChange={(e) => setOrgCountry(e.target.value)}>
+                  onChange={(e) => setOrgCountry(e.target.value)}
+                >
                   {Object.entries(countryList).map(([code, country], key) => (
                     <option key={code} value={country}>
                       {country}
@@ -420,7 +447,8 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
               <div className='mt-2 w-full'>
                 <select
                   className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'
-                  onChange={(e) => setOrgTimeZone(e.target.value)}>
+                  onChange={(e) => setOrgTimeZone(e.target.value)}
+                >
                   {timeZoneList.map((zone, key) => (
                     <option key={key} value={zone}>
                       {zone}
@@ -436,7 +464,8 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
                 type='submit'
                 onClick={handleSubmit}
                 className='w-full btn rounded-[12px] bg-blue-900 text-sm outline-none border-none hover:bg-blue-950'
-                style={{ textTransform: 'none' }}>
+                style={{ textTransform: 'none' }}
+              >
                 {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
               </button>
             </div>
@@ -538,7 +567,7 @@ const CreateOrganisationDetailsPageThree = () => {
 
   return (
     <div className='relative h-[600px] w-full'>
-      <ProgressComponent colorFirst={true} colorSecond={true} colorThird={true} />
+      <ProgressComponent colorFirst colorSecond colorThird colorFourth />
       <div className='w-full h-auto'>
         <h2 className='text-3xl text-black font-semibold w-full lg:w-10/12 md:mt-20 lg:mt-2'>
           Choose locations you are interested in
@@ -568,7 +597,8 @@ const CreateOrganisationDetailsPageThree = () => {
                 <div
                   className={`bg-white max-h-48 overflow-y-scroll px-3 pt-2 pr-1 my-1 border border-input-light-outline rounded-md ${
                     inputSelect ? 'hidden' : 'relative'
-                  }`}>
+                  }`}
+                >
                   {filteredLocations.length > 0 ? (
                     filteredLocations.map((location, key) => (
                       <div
@@ -576,7 +606,8 @@ const CreateOrganisationDetailsPageThree = () => {
                         onClick={() => {
                           handleLocationSelect(location);
                         }}
-                        key={key}>
+                        key={key}
+                      >
                         <LocationIcon />
                         <div className='text-sm ml-1 text-black capitalize'>{location.name}</div>
                       </div>
@@ -603,7 +634,8 @@ const CreateOrganisationDetailsPageThree = () => {
                 locationArray.map((location, key) => (
                   <div
                     className='bg-green-150 flex flex-row items-center mr-2 px-3 py-1 rounded-xl mb-2'
-                    key={key}>
+                    key={key}
+                  >
                     <span className='text-sm text-blue-600 font-semibold mr-1'>
                       {location.name}
                     </span>
@@ -627,7 +659,8 @@ const CreateOrganisationDetailsPageThree = () => {
                     type='submit'
                     onClick={handleSubmit}
                     style={{ textTransform: 'none' }}
-                    className='w-full btn bg-blue-900 rounded-[12px] text-sm outline-none border-none hover:bg-blue-950'>
+                    className='w-full btn bg-blue-900 rounded-[12px] text-sm outline-none border-none hover:bg-blue-950'
+                  >
                     {loading ? (
                       <Spinner data-testid='spinner' width={25} height={25} />
                     ) : (
@@ -640,7 +673,8 @@ const CreateOrganisationDetailsPageThree = () => {
                   <button
                     type='submit'
                     style={{ textTransform: 'none' }}
-                    className='w-full btn btn-disabled bg-white rounded-[12px] text-sm outline-none border-none'>
+                    className='w-full btn btn-disabled bg-white rounded-[12px] text-sm outline-none border-none'
+                  >
                     Continue
                   </button>
                 </div>
@@ -677,7 +711,8 @@ const CreateOrganisationDetails = () => {
       childrenTop={'mt-8'}
       rightText={
         "What you've built here is so much better for air pollution monitoring than anything else on the market!"
-      }>
+      }
+    >
       {nextComponent === 'pageOne' && (
         <CreateOrganisationDetailsPageOne handleComponentSwitch={() => handleSwitchTo('pageTwo')} />
       )}
