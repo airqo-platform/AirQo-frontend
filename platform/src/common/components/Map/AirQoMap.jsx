@@ -22,17 +22,16 @@ const AirQoMap = ({
   const urls = new URL(window.location.href);
   const urlParams = new URLSearchParams(urls.search);
   const gridData = useSelector((state) => state.grids.gridLocationDetails);
+  const success = useSelector((state) => state.grids.success);
   let filteredGridsData = {};
 
-  if (gridData) {
+  if (gridData && gridData.grids && gridData.grids.length > 0) {
     filteredGridsData = {
       centers: gridData.grids[0].centers,
       sites: gridData.grids[0].sites,
       _id: gridData.grids[0]._id,
     };
   }
-
-  console.log(filteredGridsData);
 
   const mapStyles = [
     { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets' },
