@@ -1,6 +1,4 @@
 import Button from '@/components/Button';
-import CloseIcon from '@/icons/close_icon';
-import { useState } from 'react';
 
 export const DialogWrapper = ({
   children,

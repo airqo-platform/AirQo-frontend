@@ -35,7 +35,13 @@ const ContactAdminModal = ({ open, onClose }) => {
   };
 
   const handleContactAdmin = async () => {
-    if (fullName === '' || email === '' || message === '') return;
+    if (fullName === '' || email === '' || message === '') {
+      setErrorMessage('Please fill in all fields');
+      setTimeout(() => {
+        setErrorMessage('');
+      }, 3000);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -74,17 +80,6 @@ const ContactAdminModal = ({ open, onClose }) => {
       loading={loading}
     >
       <div>
-        {successMessage && (
-          <div className='flex flex-row items-start text-xs text-green-600 bg-green-50 py-2 px-2 rounded'>
-            <span>{successMessage}</span>
-          </div>
-        )}
-        {errorMessage && (
-          <div className='flex flex-row items-start text-xs text-red-600 py-2'>
-            <HintIcon className='w-8 h-8 mr-2' />
-            <span>{errorMessage}</span>
-          </div>
-        )}
         <div className='flex justify-between items-center'>
           <h2 className='self-stretch text-gray-700 text-lg font-medium leading-relaxed'>
             Contact Admin Support
@@ -138,6 +133,17 @@ const ContactAdminModal = ({ open, onClose }) => {
             </div>
           </div>
         </div>
+        {successMessage && (
+          <div className='flex flex-row items-start text-xs text-green-600 bg-green-50 py-2 px-2 rounded'>
+            <span>{successMessage}</span>
+          </div>
+        )}
+        {errorMessage && (
+          <div className='flex flex-row items-center text-xs text-red-600 bg-red-50 px-2 rounded'>
+            <HintIcon className='w-8 h-8 mr-1 pt-2' />
+            <span>{errorMessage}</span>
+          </div>
+        )}
       </div>
     </DialogWrapper>
   );
