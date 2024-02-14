@@ -14,15 +14,20 @@ const UserCreationSuccess = () => {
   const verifyOrgManagerEmail = async (userId, userToken) => {
     try {
       await verifyUserEmailApi(userId, userToken);
-      router.push(`/account/creation/organisation/verify/${id}/create-org/details`);
+      router.push({
+        pathname: `/account/creation/organisation/verify/${id}/create-org/token-confirmation`,
+        query: { id },
+      });
     } catch {}
   };
 
   useEffect(() => {
-    dispatch(setUserId(id));
-    setTimeout(() => {
-      verifyOrgManagerEmail(id, token);
-    }, 4000);
+    if (id) {
+      dispatch(setUserId(id));
+      setTimeout(() => {
+        verifyOrgManagerEmail(id, token);
+      }, 4000);
+    }
   }, [router, id]);
 
   return (

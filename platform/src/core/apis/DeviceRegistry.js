@@ -48,3 +48,15 @@ export const getRecentMeasurements = async (params) => {
     .get(`${DEVICES}/measurements/recent`, { params })
     .then((response) => response.data);
 };
+
+export const verifyCohortID = async (cohortID) => {
+  return await createAxiosInstance(false)
+    .get(`${DEVICES}/cohorts/verify/${cohortID}`)
+    .then((response) => response.data);
+};
+
+export const updateCohortDetails = async (body, cohortID) => {
+  return await createAxiosInstance()
+    .put(`${DEVICES}/cohorts/${cohortID}`, body)
+    .then((response) => response.data);
+};
