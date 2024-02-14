@@ -8,10 +8,8 @@ import HomeIcon from '@/icons/map/homeIcon';
 import { useRouter } from 'next/router';
 import { AirQualityLegend } from '@/components/Map/components/Legend';
 import allCountries from '@/components/Map/components/countries';
-import {
-  getGridLocation,
-  getAllGridLocations,
-} from '@/lib/store/services/deviceRegistry/GridsSlice';
+import { getAllGridLocations } from '@/lib/store/services/deviceRegistry/GridsSlice';
+import { setCenter, setZoom } from '@/lib/store/services/map/MapSlice';
 import SearchComponent from '@/components/search/SearchField';
 
 const MAP_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -136,8 +134,16 @@ const index = () => {
     setSelectedTab(tab);
   };
 
-  const handleLocationSelect = async (id) => {
-    dispatch(getGridLocation(id));
+  const handleLocationSelect = (data) => {
+    if (data && 'latitude' in data && 'longitude' in data) {
+      const newData = {
+        latitude: data.latitude,
+        longitude: data.longitude,
+      };
+      dispatch(setCenter(newData));
+    } else {
+      console.error('Invalid data:', data);
+    }
   };
 
   return (
@@ -182,7 +188,7 @@ const index = () => {
                           key={sites._id}
                           className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer hover:bg-blue-100 p-2 rounded-lg'
                           onClick={() => {
-                            // handleLocationSelect(sites._id);
+                            handleLocationSelect(sites);
                           }}>
                           <div className='p-2 rounded-full bg-gray-100'>
                             <LocationIcon />
@@ -225,7 +231,7 @@ const index = () => {
                             key={grid._id}
                             className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer hover:bg-blue-100 p-2 rounded-lg'
                             onClick={() => {
-                              handleLocationSelect(grid._id);
+                              handleLocationSelect(grid);
                             }}>
                             <div className='p-2 rounded-full bg-gray-100'>
                               <LocationIcon />

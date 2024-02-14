@@ -9,14 +9,16 @@ import LayerModal from './components/LayerModal';
 import MapImage from '@/images/map/dd1.png';
 import Loader from '@/components/Spinner';
 
-const AirQoMap = ({
-  latitude = 0.3201412790664193,
-  longitude = 32.56389785939493,
-  zoom = 13,
-  customStyle,
-  mapboxApiAccessToken,
-  showSideBar,
-}) => {
+const mapStyles = [
+  { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets', image: MapImage },
+  // { url: 'mapbox://styles/mapbox/outdoors-v11', name: 'Outdoors' },
+  { url: 'mapbox://styles/mapbox/light-v10', name: 'Light', image: MapImage },
+  { url: 'mapbox://styles/mapbox/dark-v10', name: 'Dark', image: MapImage },
+  { url: 'mapbox://styles/mapbox/satellite-v9', name: 'Satellite', image: MapImage },
+  // { url: 'mapbox://styles/mapbox/satellite-streets-v11', name: 'Satellite Streets' },
+];
+
+const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -26,32 +28,33 @@ const AirQoMap = ({
   const urls = new URL(window.location.href);
   const urlParams = new URLSearchParams(urls.search);
   const success = useSelector((state) => state.grids.success);
-  // const gridData = useSelector((state) => state.grids.gridLocationDetails);
+  const mapdata = useSelector((state) => state.map);
 
-  // console.log('gridData', gridData);
+  console.log('mapdata', mapdata);
 
-  const mapStyles = [
-    { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets', image: MapImage },
-    // { url: 'mapbox://styles/mapbox/outdoors-v11', name: 'Outdoors' },
-    { url: 'mapbox://styles/mapbox/light-v10', name: 'Light', image: MapImage },
-    { url: 'mapbox://styles/mapbox/dark-v10', name: 'Dark', image: MapImage },
-    { url: 'mapbox://styles/mapbox/satellite-v9', name: 'Satellite', image: MapImage },
-    // { url: 'mapbox://styles/mapbox/satellite-streets-v11', name: 'Satellite Streets' },
-  ];
+  // Capture the lat, lng and zoom from the URL
+  const lat = urlParams.get('lat');
+  const lng = urlParams.get('lng');
+  const zm = urlParams.get('zm');
+
+  // Animate to new location when longitude and latitude change
+  useEffect(() => {
+    if (mapRef.current && mapdata.center.latitude && mapdata.center.longitude) {
+      mapRef.current.flyTo({
+        center: [mapdata.center.longitude, mapdata.center.latitude],
+        essential: true,
+      });
+    }
+  }, [mapdata.center]);
 
   useEffect(() => {
-    // this will capture the lat, lng and zoom from the URL
-    const lat = urlParams.get('lat');
-    const lng = urlParams.get('lng');
-    const zm = urlParams.get('zm');
-
     mapboxgl.accessToken = mapboxApiAccessToken;
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: mapStyle,
-      center: [lng || longitude, lat || latitude],
-      zoom: zm || zoom,
+      center: [lng || mapdata.center.longitude, lat || mapdata.center.latitude],
+      zoom: zm || mapdata.zoom,
     });
 
     mapRef.current = map;
