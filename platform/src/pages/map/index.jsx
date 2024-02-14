@@ -98,6 +98,10 @@ const index = () => {
   const [isFocused, setIsFocused] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const isAdmin = true;
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences);
+
+  // getting user selected sites
+  const selectedSites = preferenceData?.map((pref) => pref.selected_sites).flat();
 
   useEffect(() => {
     if (gridsData.length === 0) {
@@ -124,12 +128,6 @@ const index = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, [router.pathname]);
 
-  const filteredGrids = gridsData.map((grid) => ({
-    _id: grid._id,
-    admin_level: grid.admin_level,
-    long_name: grid.long_name,
-  }));
-
   const handleHomeClick = () => {
     router.push('/Home');
   };
@@ -138,8 +136,8 @@ const index = () => {
     setSelectedTab(tab);
   };
 
-  const handleLocationSelect = (gridID) => {
-    dispatch(getGridLocation(gridID));
+  const handleLocationSelect = async (id) => {
+    dispatch(getGridLocation(id));
   };
 
   return (
@@ -179,22 +177,22 @@ const index = () => {
                     <div className='space-y-2 max-h-[445px] overflow-y-scroll'>
                       <label className='font-medium text-gray-600 text-sm'>Suggestions</label>
                       <hr />
-                      {filteredGrids.map((grid) => (
+                      {selectedSites.map((sites) => (
                         <div
-                          key={grid._id}
+                          key={sites._id}
                           className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer hover:bg-blue-100 p-2 rounded-lg'
                           onClick={() => {
-                            handleLocationSelect(grid._id);
+                            // handleLocationSelect(sites._id);
                           }}>
                           <div className='p-2 rounded-full bg-gray-100'>
                             <LocationIcon />
                           </div>
-                          <div className='ml-3 flex flex-col item-start border-b w-full'>
-                            <span className='font-normal text-black capitalize text-lg'>
-                              {grid.long_name}
+                          <div className='ml-3 flex flex-col item-start border-b w-full relative'>
+                            <span className='font-normal text-black capitalize text-lg overflow-ellipsis overflow-hidden w-full'>
+                              {sites.name}
                             </span>
                             <span className='font-normal text-gray-500 capitalize text-sm mb-2'>
-                              {grid.admin_level}
+                              {sites.region + ',' + sites.country}
                             </span>
                           </div>
                         </div>

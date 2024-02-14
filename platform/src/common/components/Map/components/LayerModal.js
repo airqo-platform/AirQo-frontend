@@ -27,7 +27,7 @@ const Option = ({ isSelected, children, onSelect, image }) => (
     className={`flex flex-col items-center space-y-3 ${isSelected ? 'border-blue-500' : ''}`}>
     <div
       className={`w-14 h-14 relative rounded-md ${
-        isSelected ? 'border-2 border-blue-500 ring-4 ring-light-blue-200' : ''
+        isSelected ? 'border-2 border-blue-500 ring-4 ring-light-blue-100' : ''
       }`}>
       <Image src={image} alt={children} layout='fill' objectFit='cover' className='rounded-md' />
     </div>
@@ -69,7 +69,7 @@ const LayerModal = ({ isOpen, onClose, mapStyles, onStyleSelect, showSideBar }) 
   if (!isOpen) return null;
 
   return (
-    <div className='fixed z-10 inset-0 overflow-y-auto'>
+    <div className='fixed z-10 inset-0 overflow-y-auto z-50'>
       <div className='flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0'>
         <div className='fixed inset-0 transition-opacity' aria-hidden='true'>
           <div className='absolute inset-0 bg-transparent'></div>
@@ -81,7 +81,7 @@ const LayerModal = ({ isOpen, onClose, mapStyles, onStyleSelect, showSideBar }) 
           ref={modalRef}
           className={`absolute h-auto top-1/2 transform -translate-y-1/2 bg-white rounded-lg overflow-hidden shadow-xl sm:max-w-lg sm:w-full ${
             showSideBar
-              ? 'w-[375px] md:max-w-sm md:left-[calc(50%+200px)] transform md:-translate-x-[calc(50%-15px)] lg:-translate-x-[calc(50%-60px)]'
+              ? 'w-[375px] md:max-w-sm md:left-[calc(50%+200px)] transform md:-translate-x-[calc(50%-15px)] lg:-translate-x-[calc(50%-40px)]'
               : 'md:left-[56%] transform md:-translate-x-1/2'
           }`}>
           <div className='p-6 text-left'>

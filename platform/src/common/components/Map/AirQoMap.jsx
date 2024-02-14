@@ -7,6 +7,7 @@ import ShareIcon from '@/icons/map/shareIcon';
 import { CustomGeolocateControl, CustomZoomControl } from './components/MapControls';
 import LayerModal from './components/LayerModal';
 import MapImage from '@/images/map/dd1.png';
+import Loader from '@/components/Spinner';
 
 const AirQoMap = ({
   latitude = 0.3201412790664193,
@@ -24,17 +25,10 @@ const AirQoMap = ({
   const [refresh, setRefresh] = useState(false);
   const urls = new URL(window.location.href);
   const urlParams = new URLSearchParams(urls.search);
-  const gridData = useSelector((state) => state.grids.gridLocationDetails);
   const success = useSelector((state) => state.grids.success);
-  let filteredGridsData = {};
+  // const gridData = useSelector((state) => state.grids.gridLocationDetails);
 
-  if (gridData && gridData.grids && gridData.grids.length > 0) {
-    filteredGridsData = {
-      centers: gridData.grids[0].centers,
-      sites: gridData.grids[0].sites,
-      _id: gridData.grids[0]._id,
-    };
-  }
+  // console.log('gridData', gridData);
 
   const mapStyles = [
     { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets', image: MapImage },
@@ -159,6 +153,11 @@ const AirQoMap = ({
           </button>
         </div>
       </div>
+      {/* <div className='flex items-center justify-center h-screen z-50'>
+        <div className='bg-white p-4 rounded-md shadow-md'>
+          <Loader width={32} height={32} />
+        </div>
+      </div> */}
     </>
   );
 };
