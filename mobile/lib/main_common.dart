@@ -144,7 +144,8 @@ class _AirQoAppState extends State<AirQoApp> {
           LgCupertinoLocalizations.delegate,
           LgWidgetsLocalizations.delegate,
         ],
-        supportedLocales: const [
+        supportedLocales: 
+        const [
           Locale('en'), //English
           Locale('fr'), //French
           Locale('pt'), //Portuguese

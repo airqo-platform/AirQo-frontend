@@ -12,7 +12,7 @@ import 'package:app/services/services.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferencesHelper.instance;
-  final savedLanguageCode = prefs.getString('selectedLanguage') ?? 'en';
+  final savedLanguageCode = prefs.getString('language') ?? 'en';
   final savedLocale = Locale(savedLanguageCode);
   
   await Firebase.initializeApp(

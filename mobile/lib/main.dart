@@ -41,7 +41,7 @@ void main() async {
     overlays: [SystemUiOverlay.bottom, SystemUiOverlay.top],
   );
   final prefs = await SharedPreferencesHelper.instance;
-  final savedLanguageCode = prefs.getString('selectedLanguage') ?? 'en';
+  final savedLanguageCode = prefs.getString('language') ?? 'en';
   final savedLocale = Locale(savedLanguageCode);
   Workmanager().initialize(callbackDispatcher, isInDebugMode: kDebugMode);
   try {
