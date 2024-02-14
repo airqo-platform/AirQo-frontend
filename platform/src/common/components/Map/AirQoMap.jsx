@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import mapboxgl from 'mapbox-gl';
 import LayerIcon from '@/icons/map/layerIcon';
 import RefreshIcon from '@/icons/map/refreshIcon';
 import ShareIcon from '@/icons/map/shareIcon';
 import { CustomGeolocateControl, CustomZoomControl } from './components/MapControls';
+import { setCenter, setZoom } from '@/lib/store/services/map/MapSlice';
 import LayerModal from './components/LayerModal';
 import MapImage from '@/images/map/dd1.png';
 import Loader from '@/components/Spinner';
@@ -18,7 +19,16 @@ const mapStyles = [
   // { url: 'mapbox://styles/mapbox/satellite-streets-v11', name: 'Satellite Streets' },
 ];
 
+const initialState = {
+  center: {
+    latitude: 0.3201412790664193,
+    longitude: 32.56389785939493,
+  },
+  zoom: 13,
+};
+
 const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
+  const dispatch = useDispatch();
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -27,25 +37,21 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   const [refresh, setRefresh] = useState(false);
   const urls = new URL(window.location.href);
   const urlParams = new URLSearchParams(urls.search);
-  const success = useSelector((state) => state.grids.success);
   const mapdata = useSelector((state) => state.map);
 
-  console.log('mapdata', mapdata);
-
-  // Capture the lat, lng and zoom from the URL
   const lat = urlParams.get('lat');
   const lng = urlParams.get('lng');
   const zm = urlParams.get('zm');
 
-  // Animate to new location when longitude and latitude change
   useEffect(() => {
     if (mapRef.current && mapdata.center.latitude && mapdata.center.longitude) {
       mapRef.current.flyTo({
         center: [mapdata.center.longitude, mapdata.center.latitude],
+        zoom: mapdata.zoom,
         essential: true,
       });
     }
-  }, [mapdata.center]);
+  }, [mapdata.center, mapdata.zoom]);
 
   useEffect(() => {
     mapboxgl.accessToken = mapboxApiAccessToken;
@@ -76,8 +82,10 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
 
     return () => {
       map.remove();
+      dispatch(setCenter(initialState.center));
+      dispatch(setZoom(initialState.zoom));
     };
-  }, [mapStyle, mapboxApiAccessToken, refresh]);
+  }, [mapStyle, mapboxApiAccessToken]);
 
   // generate code to close dropdown when clicked outside
   useEffect(() => {
@@ -94,7 +102,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   const refreshMap = () => {
     const map = mapRef.current;
     map.setStyle(map.getStyle());
-    setRefresh(!refresh);
+    // setRefresh(!refresh);
   };
 
   const shareLocation = () => {
@@ -119,8 +127,23 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   };
 
   return (
-    <>
+    <div className='relative w-auto h-auto'>
+      {/* Map */}
       <div ref={mapContainerRef} className={customStyle} />
+      {/* Loader */}
+      {refresh && (
+        <div
+          className={`absolute inset-0 flex items-center justify-center z-40 ${
+            showSideBar ? 'ml-96' : ''
+          }`}>
+          <div className='bg-white w-[70px] h-[70px] flex justify-center items-center rounded-md shadow-md'>
+            <span className='ml-2'>
+              <Loader width={32} height={32} />
+            </span>
+          </div>
+        </div>
+      )}
+      {/* Map control buttons */}
       <div className='absolute top-4 right-0'>
         <div className='flex flex-col gap-4'>
           <div className='relative'>
@@ -156,12 +179,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
           </button>
         </div>
       </div>
-      {/* <div className='flex items-center justify-center h-screen z-50'>
-        <div className='bg-white p-4 rounded-md shadow-md'>
-          <Loader width={32} height={32} />
-        </div>
-      </div> */}
-    </>
+    </div>
   );
 };
 

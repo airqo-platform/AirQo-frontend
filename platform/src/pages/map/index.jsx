@@ -141,6 +141,7 @@ const index = () => {
         longitude: data.longitude,
       };
       dispatch(setCenter(newData));
+      dispatch(setZoom(13));
     } else {
       console.error('Invalid data:', data);
     }
@@ -174,7 +175,15 @@ const index = () => {
                       <SearchComponent />
                     </div>
                     <div className='flex justify-between items-center'>
-                      <button className='px-4 py-2 rounded-full bg-blue-500 text-white'>All</button>
+                      <button
+                        onClick={() => {
+                          dispatch(setCenter({ latitude: 16.1532, longitude: 13.1691 }));
+                          dispatch(setZoom(1.5));
+                          setShowSideBar(false);
+                        }}
+                        className='px-4 py-2 rounded-full bg-blue-500 text-white'>
+                        All
+                      </button>
                       <CountryList
                         selectedCountry={selectedCountry}
                         setSelectedCountry={setSelectedCountry}
