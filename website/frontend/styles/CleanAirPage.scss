@@ -130,11 +130,11 @@
       padding: 20px 0 10px 0;
     }
 
+    // split section
     .splitSection-section {
       display: grid;
       grid-template-columns: $gridColumn;
       padding: 80px 0;
-      background-color: $aq-blue-1;
 
       .backdrop {
         grid-column: 2 / 3;
@@ -336,6 +336,179 @@
       }
     }
 
+    // text split section
+    .textSplit-section {
+      .container {
+        max-width: $maxWidth;
+        margin: 0 auto;
+        padding: 60px 16px;
+      }
+
+      .grid-wrapper {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+
+        .title-section,
+        .content-section {
+          width: 100%;
+          height: auto;
+          display: flex;
+          justify-content: flex-start;
+          align-items: flex-start;
+          color: #353e52;
+
+          h1 {
+            font-size: 48px;
+            font-weight: 500;
+            line-height: 56px;
+            margin: 0;
+            padding: 0;
+          }
+
+          p,
+          div {
+            font-size: 24px;
+            line-height: 32px;
+            font-weight: 400;
+            margin: 0;
+            padding: 0;
+          }
+        }
+      }
+
+      .partners-wrapper {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        .partner-logos {
+          width: 100%;
+          height: auto;
+          display: flex;
+          flex-direction: column;
+          flex-wrap: wrap;
+          justify-content: center;
+          align-items: center;
+
+          .grid-container {
+            display: flex;
+            flex-wrap: wrap;
+            width: 100%;
+            height: auto;
+            padding: 0;
+            margin: 0;
+          }
+
+          .cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 16px;
+            box-sizing: border-box;
+            height: 144px;
+            width: 100%;
+            max-width: 260px;
+            border: 1px solid $aq-blue-2;
+            cursor: pointer;
+          }
+
+          img.logo {
+            width: 100%;
+            max-height: 110px;
+            object-fit: contain;
+          }
+
+          .partners-toggle-button {
+            outline: none;
+            border: none;
+            margin: 20px auto;
+            color: #145dff;
+            background: none;
+            cursor: pointer;
+          }
+        }
+      }
+    }
+
+    // Register Banner
+    .banner {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 46px;
+      align-self: stretch;
+      padding: 40px;
+      background: linear-gradient(150deg, #f2f1f6 45.54%, #eef7ff 100%);
+      border-radius: 8px;
+
+      .banner-image {
+        width: 230px;
+        border-radius: 10px;
+        height: 220px;
+        object-fit: cover;
+        object-position: center;
+      }
+
+      .banner-content {
+        width: 100%;
+        padding-left: 20px;
+
+        p {
+          font-size: 28px;
+          line-height: 42px;
+          font-weight: 400;
+          color: #353e52;
+          margin-bottom: 20px;
+          margin-top: 0;
+        }
+
+        .register-button {
+          padding: 20px 20px;
+          background-color: #007bff;
+          color: #fff;
+          border: none;
+          cursor: pointer;
+        }
+      }
+    }
+
+    // Events
+    .events {
+      .events-title {
+        color: white;
+        background-color: blue;
+      }
+
+      .event-cards {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+
+        .event-card {
+          width: calc(100% / 5 - 20px); // Adjust as needed for margins/gutters
+          margin: 10px;
+
+          .event-image {
+            width: 100%;
+            height: auto;
+          }
+
+          .event-title,
+          .event-subtitle,
+          .event-date {
+            margin: 10px 0;
+          }
+
+          .event-button {
+            display: inline-block;
+            margin-top: 10px;
+          }
+        }
+      }
+    }
+
     .single-section {
       position: relative;
       width: 100%;
@@ -407,7 +580,7 @@
         .acronym-image {
           object-fit: contain;
           object-position: center;
-        } 
+        }
 
         .join-now {
           color: #121723;
@@ -505,7 +678,7 @@
               .goal-image-container {
                 position: relative;
                 overflow: hidden;
-                
+
                 .goal-image {
                   border-radius: 16px;
                   width: 231px;
@@ -519,13 +692,6 @@
           }
         }
       }
-    }
-
-    .separator-1 {
-      max-width: $maxWidth;
-      border: 16px solid $aq-blue-3;
-      margin-top: 0px;
-      margin-bottom: 0;
     }
 
     .article {
@@ -904,8 +1070,30 @@
         display: flex;
         justify-content: flex-start;
         flex-wrap: wrap;
-        margin: 10px auto;
         padding: 0 16px;
+
+        .membership-img-wrapper {
+          border-radius: 10px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
+          height: 313px;
+          margin-top: 60px;
+          padding: 0;
+          overflow: hidden;
+          position: relative;
+
+          .membership-img {
+            position: absolute;
+            top: 74%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+          }
+        }
 
         .event-intro-image {
           .events-image {
@@ -980,14 +1168,25 @@
         }
 
         .partners-intro {
-          font-size: 36px;
-          font-weight: 500;
-          line-height: 44px;
-          color: $aq-black-5;
-          font-style: normal;
-          margin-top: 70px;
-          width: 80%;
-          height: auto;
+          margin-bottom: 40px;
+          p {
+            font-size: 24px;
+            line-height: 36px;
+            font-weight: 400;
+            color: #353e52;
+            margin: 0;
+            padding: 0;
+            margin: 35px 0;
+          }
+
+          h2 {
+            font-size: 40px;
+            line-height: 60px;
+            font-weight: 600;
+            color: #121723;
+            margin: 0;
+            padding: 0;
+          }
         }
 
         .partners-list {
@@ -1138,6 +1337,10 @@
           .event-intro-image {
             padding: 40px 0;
           }
+          .membership-img-wrapper {
+            margin-top: 20px;
+            height: 200px;
+          }
         }
       }
 
@@ -1149,6 +1352,7 @@
         gap: 15px;
         padding: 0;
         margin-top: 40px;
+
         .resource-menu {
           .title-wrapper {
             display: flex;
@@ -1156,6 +1360,7 @@
             justify-content: space-between;
             align-items: center;
           }
+
           .resource-menu-icon {
             display: flex;
           }
@@ -1171,13 +1376,20 @@
         height: auto;
       }
 
+      .textSplit-section {
+        .container {
+          padding: 20px 16px;
+        }
+        .grid-container {
+          justify-content: center;
+        }
+      }
+
       .single-section {
         padding: 0;
+
         .content {
-          .content-h {
-            font-size: 24px;
-            line-height: 32px;
-          }
+          .content-h,
           .content-p {
             font-size: 24px;
             line-height: 32px;
@@ -1185,8 +1397,10 @@
 
           .goals-container {
             padding: 16px;
+
             .goals {
               gap: 20px;
+
               .goal {
                 display: grid;
                 grid-template-columns: 1fr;
@@ -1204,14 +1418,12 @@
                   content: '';
                   top: -15px;
                 }
+
                 .goal-content {
-                  .goal-title {
+                  .goal-title,
+                  .goal-p {
                     font-size: 24px;
                     line-height: 32px;
-                  }
-                  .goal-p {
-                    font-size: 20px;
-                    line-height: 28px;
                   }
                 }
               }
@@ -1235,7 +1447,8 @@
         margin: 0;
         margin-top: 40px;
 
-        .backdrop {
+        .backdrop,
+        .backdrop-rev {
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -1255,26 +1468,16 @@
           }
         }
 
-        // Reverse the backdrop
         .backdrop-rev {
-          display: flex;
           flex-direction: column-reverse;
-          align-items: center;
-          padding: 16px;
           justify-items: center;
 
           .splitSection-image {
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: auto;
 
             .splitSection-img {
-              float: none;
               height: 100%;
-              width: 100%;
-              max-height: 450px;
-              object-fit: contain;
               border-radius: 8px;
             }
           }
@@ -1295,28 +1498,28 @@
           .events-section {
             .event-wrapper {
               flex-wrap: wrap;
+
               .event-container {
                 flex-direction: column;
 
                 .event-content {
                   display: block;
                   margin-left: 0;
-                  h1 {
-                    margin-top: 15px;
+
+                  h1,
+                  p,
+                  .event-btn span {
                     font-size: 20px;
                     line-height: 20px;
                   }
-                  p {
+
+                  p,
+                  .event-btn span {
                     font-size: 14px;
                     line-height: 14px;
                   }
-                  .event-btn {
-                    span {
-                      font-size: 14px;
-                      line-height: 14px;
-                    }
-                  }
                 }
+
                 img {
                   margin-bottom: 25px;
                   width: 100%;
@@ -1341,6 +1544,9 @@
           }
         }
       }
+      .banner {
+        flex-direction: column;
+      }
       .Hero {
         .hero-content {
           .hero-title {
@@ -1352,11 +1558,9 @@
           margin-bottom: 20px;
         }
       }
-
       .report-card {
         padding: 60px 20px;
       }
-
       .article {
         position: relative;
         width: 100%;
@@ -1370,32 +1574,22 @@
           }
         }
       }
-
       .breaker {
         display: none;
       }
-
-      .splitSection-section.title-section {
-        margin-top: 0;
-        .backdrop-rev {
-          grid-gap: 0;
-        }
-      }
-
       .splitSection-section {
         width: 100%;
         padding: 40px 0;
         margin: 0;
         margin-top: 40px;
-
-        .backdrop {
+        .backdrop,
+        .backdrop-rev {
           .splitSection-image {
             margin: 0;
             padding: 0;
             display: block;
             height: auto;
             width: 100%;
-
             .splitSection-img {
               float: none;
               height: auto;
@@ -1404,31 +1598,22 @@
             }
           }
         }
-
-        // Reverse the backdrop
         .backdrop-rev {
           .splitSection-image {
-            margin: 0;
-            padding: 0;
             display: flex;
             justify-content: center;
             align-content: center;
-            height: auto;
-            width: 100%;
-
             .splitSection-img {
-              float: none;
               height: 100%;
-              width: 100%;
-              object-fit: contain;
               border-radius: 8px;
             }
           }
         }
       }
-
       .single-section {
         padding: 0;
+        margin-bottom: 0px;
+        margin-top: 80px;
         .content {
           .content-h {
             font-size: 24px;
@@ -1438,11 +1623,9 @@
             font-size: 20px;
             line-height: 28px;
           }
-
           .acronym-content-container {
             top: 20px;
           }
-
           .goals-container {
             padding: 0 16px;
             .goals {
@@ -1467,7 +1650,6 @@
           }
         }
       }
-
       .CleanAir-highlights {
         .highlights-wrapper {
           .events-section {
@@ -1490,12 +1672,6 @@
           }
         }
       }
-
-      .single-section {
-        margin-bottom: 0px;
-        margin-top: 80px;
-      }
-
       .partners {
         .partners-wrapper {
           .partners-intro {

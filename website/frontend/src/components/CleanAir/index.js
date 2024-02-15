@@ -1,4 +1,7 @@
 export { default as SingleSection } from './Sections/SingleSection';
+export { default as SplitTextSection } from './Sections/Split_Text_section';
+export { default as RegisterSection } from './Sections/RegisterSection';
+export { default as IntroSection } from './Sections/IntroSection';
 export { default as SplitSection } from './Sections/SplitSection';
 export { default as ButtonCTA } from './CTAs/ButtonCTA';
 export { default as SecondaryNav } from './SecondaryNav';

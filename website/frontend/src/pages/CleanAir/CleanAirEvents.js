@@ -4,14 +4,12 @@ import { isEmpty } from 'underscore';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { getAllEvents } from '../../../reduxStore/Events/EventSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { ButtonCTA } from 'components/CleanAir';
-import EventsNavigation from '../Events/Navigation';
-import { SplitSection } from 'components/CleanAir';
-import EventCard from '../Events/EventCard';
-import event2 from 'assets/img/cleanAir/events.png';
+import { RegisterSection, IntroSection } from 'components/CleanAir';
+import eventImage from 'assets/img/cleanAir/events.png';
 import useWindowSize from 'utilities/customHooks';
 import Loadspinner from 'src/components/LoadSpinner/SectionLoader';
 import { useTranslation, Trans } from 'react-i18next';
+import Membership from 'assets/img/cleanAir/membership.png';
 
 const ITEMS_PER_PAGE = 9;
 
@@ -89,110 +87,38 @@ const CleanAirEvents = () => {
         description="CLEAN-Air Africa Network is a network of African cities, governments, and partners committed to improving air quality and reducing carbon emissions through sustainable transport and mobility solutions."
       />
 
-      <div className="partners">
-        <div className="partners-wrapper">
-          <p className="partners-intro">
-            <Trans i18nKey="cleanAirSite.events.section1">
-              The CLEAN-Air Network provides a platform for facilitating engagement activities
-              including conferences, webinars, workshops, training and community campaigns.
-              <br />
-              <br />
-              Partners will have access to shared resources in the form of social media toolkits,
-              press release templates, digital banners, etc. that can be customised to suit every
-              activity. Members will also have access to a diverse pool of experts who can be
-              invited to participate in different engagement activities, either as speakers or
-              co-organizers, etc.
-            </Trans>
-          </p>
-        </div>
-      </div>
+      {/* Intro section */}
+      <IntroSection image={eventImage} subtext1={t('cleanAirSite.events.section1.text')} />
 
-      {/* <div className="partners">
-        <div className="partners-wrapper">
-          <div className="event-intro-image">
-            <img src={event1} alt="CLEAN-Air Africa Network Events" className="events-image" />
+      {/* Events Navigation */}
+      <div class="events">
+        <h1 class="events-title">Upcoming Events</h1>
+        <div class="event-cards">
+          <div class="event-card">
+            <img src="image.jpg" alt="Event Image" class="event-image" />
+            <h2 class="event-title">Climate and Clean Air Conference 2024</h2>
+            <p class="event-subtitle">Healthy Air for All? Responding to a changing environment.</p>
+            <p class="event-date">21st February, 2024</p>
+            <button class="event-button">Read more</button>
           </div>
         </div>
-      </div> */}
 
-      <div>
-        <hr className="separator-1" />
-      </div>
+        <hr />
 
-      <div>
-        <SplitSection
-          content={t('cleanAirSite.events.section2.subText')}
-          showButton={true}
-          customBtn={
-            <ButtonCTA
-              label={t('cleanAirSite.events.section2.cta')}
-              link="https://docs.google.com/forms/d/14jKDs2uCtMy2a_hzyCiJnu9i0GbxITX_DJxVB4GGP5c/edit"
-              style={{
-                width: '200px',
-                marginTop: '10px'
-              }}
-            />
-          }
-          imgURL={event2}
-          bgColor="#FFFFFF"
-          wrapperPadding="0"
-          reverse
-          titleSection={true}
-        />
-      </div>
-
-      <div className="list-page events">
-        <div className="page-body" id="top_body">
-          <div className="content">
-            <EventsNavigation navTabs={navTabs} />
-            <div className="event-cards">
-              {eventsToShow
-                .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
-                .map((event) => (
-                  <EventCard
-                    key={event.id}
-                    image={event.event_image}
-                    title={event.title}
-                    subText={event.title_subtext}
-                    startDate={event.start_date}
-                    endDate={event.end_date}
-                    link={event.unique_title}
-                    web_category={event.website_category}
-                  />
-                ))}
-            </div>
+        <h1 class="events-title">Past Events</h1>
+        <div class="event-cards">
+          <div class="event-card">
+            <img src="image.jpg" alt="Event Image" class="event-image" />
+            <h2 class="event-title">Climate and Clean Air Conference 2024</h2>
+            <p class="event-subtitle">Healthy Air for All? Responding to a changing environment.</p>
+            <p class="event-date">21st February, 2024</p>
+            <button class="event-button">Read more</button>
           </div>
-          {loading ? <Loadspinner /> : null}
-          {!loading &&
-          upcomingEvents.length === 0 &&
-          selectedNavTab === t('cleanAirSite.events.subNavs.upcoming') ? (
-            <div className="no-events">{t('cleanAirSite.events.noEvents')}</div>
-          ) : null}
-          {eventsToShow.length > ITEMS_PER_PAGE && (
-            <ul className="pagination">
-              <li className="page-item">
-                <a
-                  disabled={currentPage === 1}
-                  className="page-link"
-                  onClick={() => handlePageChange('prev')}>
-                  {'<'}
-                </a>
-              </li>
-              <li className="page-item">
-                <a className={'page-link page-number active'}>{currentPage}</a>
-              </li>
-              <li className="page-item">
-                <a
-                  disabled={currentPage === totalPages}
-                  className="page-link"
-                  onClick={() => handlePageChange('next')}>
-                  {'>'}
-                </a>
-              </li>
-            </ul>
-          )}
         </div>
       </div>
+
+      {/* Register Membership */}
+      <RegisterSection link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform" />
     </div>
   );
 };
