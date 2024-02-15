@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { SplitSection, SingleSection, MainHighlight, ButtonCTA } from 'components/CleanAir';
-import Section11 from 'assets/img/cleanAir/clean1.jpg';
-import Section2 from 'assets/img/cleanAir/mission.jpeg';
-import Section4 from 'assets/img/cleanAir/synergy.jpg';
-import Section5 from 'assets/img/cleanAir/goals.JPG';
-import Placeholder from 'assets/img/cleanAir/placeholder.png';
-import Placeholder2 from 'assets/img/cleanAir/placeholder2.png';
-import Placeholder3 from 'assets/img/cleanAir/placeholder3.png';
+import Section1 from 'assets/img/cleanAir/section1.png';
+import Section2 from 'assets/img/cleanAir/section2.png';
+import Section3 from 'assets/img/cleanAir/section3.png';
+import Section4 from 'assets/img/cleanAir/section4.png';
+import Placeholder1 from 'assets/img/cleanAir/goal1.png';
+import Placeholder2 from 'assets/img/cleanAir/goal2.png';
+import Placeholder3 from 'assets/img/cleanAir/goal3.png';
 import SEO from 'utilities/seo';
 import { useTranslation, Trans } from 'react-i18next';
 
@@ -19,17 +19,17 @@ const CleanAirAbout = () => {
     {
       title: t('cleanAirSite.about.section5.subSections.first.title'),
       content: t('cleanAirSite.about.section5.subSections.first.subText'),
-      imgURL: Section5
+      imgURL: Placeholder1
     },
     {
       title: t('cleanAirSite.about.section5.subSections.second.title'),
       content: t('cleanAirSite.about.section5.subSections.second.subText'),
-      imgURL: Placeholder3
+      imgURL: Placeholder2
     },
     {
       title: t('cleanAirSite.about.section5.subSections.third.title'),
       content: t('cleanAirSite.about.section5.subSections.third.subText'),
-      imgURL: Placeholder2
+      imgURL: Placeholder3
     }
   ];
 
@@ -43,7 +43,7 @@ const CleanAirAbout = () => {
       {/* section 1 */}
       <div className="Hero">
         <span className="image-container">
-          <img src={Section11} />
+          <img src={Section1} />
         </span>
         <div className="hero-content">
           <div>
@@ -73,6 +73,7 @@ const CleanAirAbout = () => {
       {/* section 2 */}
       <div className="page-section">
         <SingleSection
+          bgColor="#EDF3FF"
           content={
             <>
               <div className="acronym-content-container">
@@ -107,10 +108,9 @@ const CleanAirAbout = () => {
                   </Trans>
                 </p>
               </div>
-              <img srcSet={Placeholder} className="acronym-image" />
+              <img srcSet={Section2} className="acronym-image" />
             </>
           }
-          bgColor="#EDF3FF"
         />
       </div>
 
@@ -126,7 +126,7 @@ const CleanAirAbout = () => {
             objectFit: 'cover',
             maxHeight: '400px'
           }}
-          imgURL={Section2}
+          imgURL={Section3}
           pillBgColor="#ECF2FF"
           pillTextColor="#135DFF"
           reverse={false}
