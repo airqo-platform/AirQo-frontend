@@ -108,7 +108,16 @@ const CleanAirAbout = () => {
                   </Trans>
                 </p>
               </div>
-              <img srcSet={Section2} className="acronym-image" />
+              <div
+                style={{
+                  display: 'flex',
+                  height: '500px',
+                  justifyContent: 'top',
+                  alignItems: 'center',
+                  overflow: 'hidden'
+                }}>
+                <img srcSet={Section2} className="acronym-image" />
+              </div>
             </>
           }
         />

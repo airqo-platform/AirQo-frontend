@@ -230,7 +230,7 @@
             width: 100%;
             height: auto;
             border-radius: 8px;
-            object-fit: contain;
+            object-fit: cover;
           }
         }
       }
@@ -405,14 +405,9 @@
         }
 
         .acronym-image {
-          width: 100vw;
-          height: 400px;
-          position: relative;
-          overflow: hidden;
-          margin-bottom: -1rem;
-          object-fit: cover;
-          object-position: bottom;
-        }
+          object-fit: contain;
+          object-position: center;
+        } 
 
         .join-now {
           color: #121723;
@@ -510,16 +505,13 @@
               .goal-image-container {
                 position: relative;
                 overflow: hidden;
-                width: auto;
-                height: auto;
-
+                
                 .goal-image {
                   border-radius: 16px;
                   width: 231px;
-                  height: 174px;
                   position: relative;
                   overflow: hidden;
-                  object-fit: cover;
+                  object-fit: contain;
                   object-position: center;
                 }
               }
@@ -1028,6 +1020,7 @@
       }
     }
 
+    // resources
     .resources-container {
       display: grid;
       width: 100%;
@@ -1191,6 +1184,7 @@
           }
 
           .goals-container {
+            padding: 16px;
             .goals {
               gap: 20px;
               .goal {
