@@ -56,7 +56,7 @@ Now Install homebrew
 
 #### Direnv
 
-Install `direnv` on your local machine, and set it up so it works
+Install `direnv` on your local machine, & set it up so it works
 in your shell. These are the instructions for the (default) bash shell. If
 you're using a different shell, you probably know where to configure it for
 yours or the check the [direnv setup page](https://direnv.net/docs/hook.html) for your shell:
