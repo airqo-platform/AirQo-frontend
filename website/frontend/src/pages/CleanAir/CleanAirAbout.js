@@ -73,10 +73,9 @@ const CleanAirAbout = () => {
 
       {/* section 2 */}
       <div className="page-section">
-        <SingleSection
-          bgColor="#EDF3FF"
-          content={
-            <>
+        <div className="acronym-section-container">
+          <div className="acronym-section">
+            <div className="content">
               <div className="acronym-content-container">
                 <p>
                   <Trans i18nKey="cleanAirSite.about.section2.acronym">
@@ -98,30 +97,17 @@ const CleanAirAbout = () => {
                       href="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
                       target="_blank"
                       rel="noopener noreferrer">
-                      <b
-                        style={{
-                          color: '#135DFF'
-                        }}>
-                        {' '}
-                        Join the network
-                      </b>
+                      Join the network
                     </a>
                   </Trans>
                 </p>
               </div>
-              <div
-                style={{
-                  display: 'flex',
-                  height: '500px',
-                  justifyContent: 'top',
-                  alignItems: 'center',
-                  overflow: 'hidden'
-                }}>
-                <img srcSet={Section2} className="acronym-image" />
-              </div>
-            </>
-          }
-        />
+            </div>
+          </div>
+          <div className="acronym-image-container">
+            <img src={Section2} alt="Descriptive text" className="acronym-image" />
+          </div>
+        </div>
       </div>
 
       {/* section 3 */}
@@ -152,7 +138,7 @@ const CleanAirAbout = () => {
           imgURL={Section4}
           imageStyle={{
             height: '420px',
-            objectFit: 'cover'
+            objectFit: 'contain'
           }}
           pillBgColor="#ECF2FF"
           pillTextColor="#135DFF"

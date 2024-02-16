@@ -65,6 +65,7 @@ const CleanAirEvents = () => {
 
     return filteredEvents;
   }, [allEventsData, selectedMonth]);
+
   const upcomingEvents = useMemo(() => getUpcomingEvents(eventsApiData), [eventsApiData]);
   const pastEvents = useMemo(() => getPastEvents(eventsApiData), [eventsApiData]);
 
@@ -81,7 +82,7 @@ const CleanAirEvents = () => {
           setLoading(false);
         });
     }
-  }, [eventsApiData, dispatch]);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -114,9 +115,7 @@ const CleanAirEvents = () => {
   const routeToDetails = useCallback(
     (events) => (event) => {
       event.preventDefault();
-      if (events.web_category === 'cleanair')
-        navigate(`/clean-air/event-details/${events.unique_title}/`);
-      else navigate(`/events/${events.unique_title}/`);
+      navigate(`/clean-air/event-details/${events.unique_title}/`);
     },
     [navigate]
   );
@@ -359,7 +358,7 @@ const CleanAirEvents = () => {
                   {currentEvents.map((event) => (
                     <div className="event-card" key={event.id}>
                       <img src={event.event_image} alt="Event Image" className="event-image" />
-                      <div className="even-card-details">
+                      <div className="even-card-details" onClick={routeToDetails(event)}>
                         <h2 className="event-title">
                           {event.title.length > 50 ? event.title.slice(0, 50) + '...' : event.title}
                         </h2>
