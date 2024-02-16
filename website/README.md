@@ -151,7 +151,7 @@ or
 
     sudo systemctl start postgresql
 
-Now we need to create a new user in postgresql.
+Now we need to create a new user in Postgresql.
 
     sudo su postgres
 
