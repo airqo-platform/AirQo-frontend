@@ -276,14 +276,15 @@
       }
     },
     "publications": {
-      "title": "RESOURCE <br /> <2>CENTER</2>",
+      "title": "Resource center",
       "navs": {
         "toolkits": "toolkits",
         "reports": "technical reports",
         "workshops": "workshop reports",
         "research": "research publications"
       },
-      "noResources": "No Resources available"
+      "noResources": "No Resources available",
+      "cardBtnText": "Read more"
     },
     "bottomCTA": {
       "left": {

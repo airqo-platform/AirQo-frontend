@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { isEmpty } from 'underscore';
 import SEO from 'utilities/seo';
 import { useInitScrollTop } from 'utilities/customHooks';
@@ -111,7 +111,7 @@ const CleanAirPartners = () => {
       <SplitTextSection
         content={t('cleanAirSite.membership.policyPartners.subText')}
         title={t('cleanAirSite.membership.policyPartners.title')}
-        lists={[]}
+        lists={lists}
         bgColor="#FFFFFF"
       />
 

@@ -12,67 +12,15 @@ import DoneIcon from '@mui/icons-material/Done';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import Slide from '@mui/material/Slide';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 
 const days = (date_1, date_2) => {
   let difference = date_1.getTime() - date_2.getTime();
   let TotalDays = Math.ceil(difference / (1000 * 3600 * 24));
   return TotalDays;
-};
-
-const DownArrow = () => {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={20} height={21} viewBox="0 0 20 21" fill="none">
-      <path
-        d="M5 8.453l5 5 5-5"
-        stroke="#000"
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-};
-
-const LeftArrow = ({ width, height, fill }) => {
-  return (
-    <svg
-      fill={fill || '#000'}
-      viewBox="0 0 512 512"
-      xmlSpace="preserve"
-      xmlns="http://www.w3.org/2000/svg"
-      width={width || 16}
-      height={height || 16}>
-      <path d="M297.2 478l20.7-21.6L108.7 256 317.9 55.6 297.2 34 65.5 256l231.7 222zM194.1 256L425.8 34l20.7 21.6L237.3 256l209.2 200.4-20.7 21.6-231.7-222z" />
-    </svg>
-  );
-};
-
-const RightArrow = ({ width, height, fill }) => {
-  return (
-    <svg
-      fill={fill || '#000'}
-      viewBox="0 0 512 512"
-      data-name="Layer 1"
-      xmlns="http://www.w3.org/2000/svg"
-      width={width || 16}
-      height={height || 16}>
-      <path d="M214.78 478l-20.67-21.57L403.27 256 194.11 55.57 214.78 34l231.68 222zm103.11-222L86.22 34 65.54 55.57 274.7 256 65.54 456.43 86.22 478z" />
-    </svg>
-  );
-};
-
-const FilterIcon = () => {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={16} height={17} viewBox="0 0 16 17" fill="none">
-      <path
-        d="M4 8.953h8m-10-4h12m-8 8h4"
-        stroke="#000"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
 };
 
 const CleanAirEvents = () => {
@@ -91,6 +39,7 @@ const CleanAirEvents = () => {
   const [filter, setFilter] = useState();
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [hideEvents, setHideEvents] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Refs
   const dateRef = useRef();
@@ -123,7 +72,15 @@ const CleanAirEvents = () => {
   // Effects
   useEffect(() => {
     if (isEmpty(eventsApiData)) {
-      dispatch(getAllEvents());
+      setLoading(true);
+      dispatch(getAllEvents())
+        .then(() => {
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error(error);
+          setLoading(false);
+        });
     }
   }, [eventsApiData, dispatch]);
 
@@ -236,11 +193,22 @@ const CleanAirEvents = () => {
       />
 
       {/* Events */}
+      {loading ? (
+        <div
+          style={{
+            position: 'relative',
+            margin: '60px auto'
+          }}>
+          <Loadspinner />
+        </div>
+      ) : null}
       <div
         style={{
+          position: 'relative',
           width: '100%',
           height: 'auto',
-          backgroundColor: '#EDF3FF'
+          backgroundColor: '#EDF3FF',
+          display: loading ? 'none' : 'block'
         }}>
         <div className="events">
           <div className="events-header">
@@ -251,7 +219,7 @@ const CleanAirEvents = () => {
                   <span style={{ marginRight: '10px' }}>
                     {t('cleanAirSite.events.dropdowns.date.btnLabel')}
                   </span>{' '}
-                  <DownArrow />
+                  <KeyboardArrowDownIcon />
                 </button>
                 <Slide direction="down" in={openDate}>
                   <ul className="drop-down-list" ref={dateRef}>
@@ -273,7 +241,7 @@ const CleanAirEvents = () => {
               </div>
               <div style={{ position: 'relative' }}>
                 <button onClick={() => setOpenFilter(!openFilter)}>
-                  <FilterIcon />{' '}
+                  <FilterListIcon />{' '}
                   <span style={{ marginLeft: '10px' }}>
                     {t('cleanAirSite.events.dropdowns.filter.btnLabel')}
                   </span>
@@ -367,7 +335,7 @@ const CleanAirEvents = () => {
                   cursor: 'pointer',
                   outline: 'none'
                 }}>
-                <DownArrow />
+                <KeyboardArrowDownIcon />
               </button>
             </div>
           </div>
@@ -401,7 +369,9 @@ const CleanAirEvents = () => {
                         setCurrentPage(currentPage - 1);
                       }}
                       disabled={currentPage === 1}>
-                      <LeftArrow fill={currentPage === 1 ? '#D1D1D1' : '#000'} />
+                      <KeyboardDoubleArrowLeftIcon
+                        sx={{ fill: currentPage === 1 ? '#D1D1D1' : '#000' }}
+                      />
                     </button>
                     <p>
                       {currentPage} of {totalPages}
@@ -411,7 +381,9 @@ const CleanAirEvents = () => {
                         setCurrentPage(currentPage + 1);
                       }}
                       disabled={currentPage === totalPages}>
-                      <RightArrow fill={currentPage === totalPages ? '#D1D1D1' : '#000'} />
+                      <KeyboardDoubleArrowRightIcon
+                        sx={{ fill: currentPage === totalPages ? '#D1D1D1' : '#000' }}
+                      />
                     </button>
                   </div>
                 </>
