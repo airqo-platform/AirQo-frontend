@@ -18,6 +18,7 @@ const IntroSection = ({ subtext1, subtext2, image, imagePosition }) => (
           style={{
             top: imagePosition
           }}
+          loading="lazy"
         />
       </div>
       <div className="partners-intro">

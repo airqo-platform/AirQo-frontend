@@ -64,7 +64,12 @@ const Split_Text_section = ({ bgColor, content, title, lists, loading }) => {
                 <div className="grid-container">
                   {currentItems.map((item) => (
                     <div className="cell" key={item.id} onClick={onLogoClick(item)}>
-                      <img className="logo" src={item.partner_logo} alt={item.partner_name} />
+                      <img
+                        className="logo"
+                        src={item.partner_logo}
+                        alt={item.partner_name}
+                        loading="lazy"
+                      />
                     </div>
                   ))}
                 </div>

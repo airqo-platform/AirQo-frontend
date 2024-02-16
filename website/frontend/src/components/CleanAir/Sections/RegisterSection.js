@@ -12,7 +12,7 @@ const RegisterSection = ({ link }) => {
   return (
     <div className="partners">
       <div className="banner">
-        <img className="banner-image" src={Team} alt="Team" />
+        <img className="banner-image" src={Team} alt="Team" loading="lazy" />
         <div className="banner-content">
           <p>
             <Trans i18nKey="cleanAirSite.membership.individualSection.subText" />

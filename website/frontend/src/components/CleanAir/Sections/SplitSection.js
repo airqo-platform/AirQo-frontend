@@ -57,7 +57,7 @@ const SplitSection = ({
             ))}
         </div>
         <div className="splitSection-image">
-          <img className="splitSection-img" src={imgURL} style={imageStyle} alt="" />
+          <img className="splitSection-img" src={imgURL} style={imageStyle} alt="" loading="lazy" />
         </div>
       </div>
     </div>
