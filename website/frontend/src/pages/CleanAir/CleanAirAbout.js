@@ -40,6 +40,7 @@ const CleanAirAbout = () => {
         siteTitle="CLEAN-Air Network"
         description="An African led, multi-region network bringing together a community of practice for air quality solutions and air quality management across Africa."
       />
+
       {/* section 1 */}
       <div className="Hero">
         <span className="image-container">

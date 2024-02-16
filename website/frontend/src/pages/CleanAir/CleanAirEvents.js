@@ -4,9 +4,8 @@ import { isEmpty } from 'underscore';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { getAllEvents } from '../../../reduxStore/Events/EventSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { RegisterSection, IntroSection } from 'components/CleanAir';
+import { RegisterSection, IntroSection, RotatingLoopIcon } from 'components/CleanAir';
 import eventImage from 'assets/img/cleanAir/events.png';
-import Loadspinner from 'src/components/LoadSpinner/SectionLoader';
 import { useTranslation, Trans } from 'react-i18next';
 import DoneIcon from '@mui/icons-material/Done';
 import { format } from 'date-fns';
@@ -196,10 +195,14 @@ const CleanAirEvents = () => {
       {loading ? (
         <div
           style={{
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
             position: 'relative',
-            margin: '60px auto'
+            padding: '50px 0'
           }}>
-          <Loadspinner />
+          <RotatingLoopIcon />
         </div>
       ) : null}
       <div

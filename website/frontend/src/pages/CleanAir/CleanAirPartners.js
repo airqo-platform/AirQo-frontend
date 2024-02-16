@@ -16,6 +16,7 @@ const CleanAirPartners = () => {
   const dispatch = useDispatch();
   const partnersData = usePartnersData();
   const { width } = useWindowSize();
+  const isLoading = isEmpty(partnersData);
 
   useEffect(() => {
     if (isEmpty(partnersData)) {
@@ -49,39 +50,6 @@ const CleanAirPartners = () => {
     });
   }, [width]);
 
-  const lists = [
-    {
-      id: 1,
-      partner_name: 'Partner 1',
-      partner_logo: 'https://via.placeholder.com/150',
-      descriptions: 'Some description'
-    },
-    {
-      id: 2,
-      partner_name: 'Partner 2',
-      partner_logo: 'https://via.placeholder.com/150',
-      descriptions: 'Some description'
-    },
-    {
-      id: 3,
-      partner_name: 'Partner 3',
-      partner_logo: 'https://via.placeholder.com/150',
-      descriptions: 'Some description'
-    },
-    {
-      id: 4,
-      partner_name: 'Partner 3',
-      partner_logo: 'https://via.placeholder.com/150',
-      descriptions: 'Some description'
-    },
-    {
-      id: 5,
-      partner_name: 'Partner 3',
-      partner_logo: 'https://via.placeholder.com/150',
-      descriptions: 'Some description'
-    }
-  ];
-
   return (
     <div className="page-wrapper">
       {/* SEO */}
@@ -101,6 +69,7 @@ const CleanAirPartners = () => {
 
       {/* Implementing Partners */}
       <SplitTextSection
+        loading={isLoading}
         content={t('cleanAirSite.membership.implementingPartners.subText')}
         title={t('cleanAirSite.membership.implementingPartners.title')}
         lists={implementingPartners}
@@ -109,6 +78,7 @@ const CleanAirPartners = () => {
 
       {/* Policy Partners */}
       <SplitTextSection
+        loading={isLoading}
         content={t('cleanAirSite.membership.policyPartners.subText')}
         title={t('cleanAirSite.membership.policyPartners.title')}
         lists={policyPartners}
@@ -117,6 +87,7 @@ const CleanAirPartners = () => {
 
       {/* Private Sector Partners */}
       <SplitTextSection
+        loading={isLoading}
         content={t('cleanAirSite.membership.privateSector.subText')}
         title={t('cleanAirSite.membership.privateSector.title')}
         lists={privateSectorPartners}
@@ -125,6 +96,7 @@ const CleanAirPartners = () => {
 
       {/* Supporting Partners */}
       <SplitTextSection
+        loading={isLoading}
         content={t('cleanAirSite.membership.supportingPartners.subText')}
         title={t('cleanAirSite.membership.supportingPartners.title')}
         lists={supportPartners}

@@ -6,9 +6,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setActiveResource } from 'reduxStore/CleanAirNetwork/CleanAir';
 import { ReportComponent } from 'components/CleanAir';
 import { getAllCleanAirApi } from 'apis/index.js';
-import Loadspinner from 'src/components/LoadSpinner/SectionLoader';
 import { useTranslation } from 'react-i18next';
-import { RegisterSection, IntroSection } from 'components/CleanAir';
+import { RegisterSection, IntroSection, RotatingLoopIcon } from 'components/CleanAir';
 import ResourceImage from 'assets/img/cleanAir/resource.png';
 import DoneIcon from '@mui/icons-material/Done';
 import Slide from '@mui/material/Slide';
@@ -172,9 +171,12 @@ const CleanAirPublications = () => {
         <div
           style={{
             position: 'relative',
-            margin: '60px auto'
+            padding: '50px 0',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
           }}>
-          <Loadspinner />
+          <RotatingLoopIcon />
         </div>
       )}
       <div
