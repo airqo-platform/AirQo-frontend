@@ -94,6 +94,7 @@ const CleanAirPartners = () => {
       {/* section 1 */}
       <IntroSection
         image={Membership}
+        imagePosition={'70%'}
         subtext1={t('cleanAirSite.membership.section1.subText')}
         subtext2={t('cleanAirSite.membership.section1.intro')}
       />

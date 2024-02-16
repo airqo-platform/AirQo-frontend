@@ -7,11 +7,18 @@ const RenderHTMLContent = ({ content }) =>
     <p>{content}</p>
   );
 
-const IntroSection = ({ subtext1, subtext2, image }) => (
+const IntroSection = ({ subtext1, subtext2, image, imagePosition }) => (
   <div className="partners">
     <div className="partners-wrapper">
       <div className="membership-img-wrapper">
-        <img src={image} alt="Membership" className="membership-img" />
+        <img
+          src={image}
+          alt="Membership"
+          className="membership-img"
+          style={{
+            top: imagePosition
+          }}
+        />
       </div>
       <div className="partners-intro">
         <RenderHTMLContent content={subtext1} />
