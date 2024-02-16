@@ -103,7 +103,7 @@ const CleanAirPartners = () => {
       <SplitTextSection
         content={t('cleanAirSite.membership.implementingPartners.subText')}
         title={t('cleanAirSite.membership.implementingPartners.title')}
-        lists={lists}
+        lists={implementingPartners}
         bgColor="#ECF2FF"
       />
 
@@ -111,7 +111,7 @@ const CleanAirPartners = () => {
       <SplitTextSection
         content={t('cleanAirSite.membership.policyPartners.subText')}
         title={t('cleanAirSite.membership.policyPartners.title')}
-        lists={lists}
+        lists={policyPartners}
         bgColor="#FFFFFF"
       />
 
@@ -119,7 +119,7 @@ const CleanAirPartners = () => {
       <SplitTextSection
         content={t('cleanAirSite.membership.privateSector.subText')}
         title={t('cleanAirSite.membership.privateSector.title')}
-        lists={lists}
+        lists={privateSectorPartners}
         bgColor="#ECF2FF"
       />
 
@@ -127,7 +127,7 @@ const CleanAirPartners = () => {
       <SplitTextSection
         content={t('cleanAirSite.membership.supportingPartners.subText')}
         title={t('cleanAirSite.membership.supportingPartners.title')}
-        lists={lists}
+        lists={supportPartners}
         bgColor="#FFFFFF"
       />
 

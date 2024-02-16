@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
+import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+
+const ITEMS_PER_PAGE = 8;
 
 const Split_Text_section = ({ bgColor, content, title, lists }) => {
   const { t } = useTranslation();
@@ -16,15 +19,13 @@ const Split_Text_section = ({ bgColor, content, title, lists }) => {
     }
   };
 
-  const [itemsToShow, setItemsToShow] = useState(8);
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(lists.length / ITEMS_PER_PAGE);
 
-  const showMoreItems = (setItems, increment) => {
-    setItems((prevState) => prevState + increment);
-  };
-
-  const showLessItems = (setItems, decrement, minItems) => {
-    setItems((prevState) => (prevState > minItems ? prevState - decrement : minItems));
-  };
+  const currentItems = lists.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
     <div className="textSplit-section" style={{ backgroundColor: bgColor }}>
@@ -42,30 +43,41 @@ const Split_Text_section = ({ bgColor, content, title, lists }) => {
           </div>
         </div>
       </div>
-      {lists.length > 0 && (
+      {currentItems.length > 0 && (
         <div className="container">
           <div className="partners-wrapper">
             <div className="partner-logos">
               <div className="grid-container">
-                {lists.slice(0, itemsToShow).map((item) => (
+                {currentItems.map((item) => (
                   <div className="cell" key={item.id} onClick={onLogoClick(item)}>
                     <img className="logo" src={item.partner_logo} alt={item.partner_name} />
                   </div>
                 ))}
               </div>
-              {itemsToShow < lists.length && (
-                <button
-                  className="partners-toggle-button"
-                  onClick={() => showMoreItems(setItemsToShow, 8)}>
-                  {t('cleanAirSite.cta.showMore')}
-                </button>
-              )}
-              {itemsToShow > 8 && (
-                <button
-                  className="partners-toggle-button"
-                  onClick={() => showLessItems(setItemsToShow, 8, 8)}>
-                  {t('cleanAirSite.cta.showLess')}
-                </button>
+              {lists.length > ITEMS_PER_PAGE && (
+                <div className="events">
+                  <div className="event-cards">
+                    <div className="pagination">
+                      <button
+                        onClick={() => setCurrentPage(currentPage - 1)}
+                        disabled={currentPage === 1}>
+                        <KeyboardDoubleArrowLeftIcon
+                          sx={{ fill: currentPage === 1 ? '#D1D1D1' : '#000' }}
+                        />
+                      </button>
+                      <p>
+                        {currentPage} of {totalPages}
+                      </p>
+                      <button
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        disabled={currentPage === totalPages}>
+                        <KeyboardDoubleArrowRightIcon
+                          sx={{ fill: currentPage === totalPages ? '#D1D1D1' : '#000' }}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>

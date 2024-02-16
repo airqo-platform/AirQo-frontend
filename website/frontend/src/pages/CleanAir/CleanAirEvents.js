@@ -222,7 +222,12 @@ const CleanAirEvents = () => {
                   <KeyboardArrowDownIcon />
                 </button>
                 <Slide direction="down" in={openDate}>
-                  <ul className="drop-down-list" ref={dateRef}>
+                  <ul
+                    className="drop-down-list"
+                    ref={dateRef}
+                    style={{
+                      left: window.innerWidth < 768 ? '0' : ''
+                    }}>
                     {dates.map((date) => (
                       <li
                         key={date.value}
@@ -247,7 +252,12 @@ const CleanAirEvents = () => {
                   </span>
                 </button>
                 <Slide direction="down" in={openFilter}>
-                  <ul className="drop-down-list" ref={filterRef}>
+                  <ul
+                    className="drop-down-list"
+                    ref={filterRef}
+                    style={{
+                      left: window.innerWidth < 768 ? '0' : ''
+                    }}>
                     <div className="label">{t('cleanAirSite.events.dropdowns.filter.label1')}</div>
                     <div>
                       {filterOption1.map((option) => (

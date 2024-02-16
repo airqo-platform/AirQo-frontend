@@ -16,75 +16,6 @@ import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArro
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
-const toolkitData = [
-  {
-    title: 'Air Quality Monitoring Toolkit',
-    authors: 'AirQo and Makerere University',
-    link: 'https://airqo.net',
-    resourceFile: 'https://airqo.net'
-  },
-  {
-    title: 'Air Quality Monitoring Toolkit',
-    authors: 'AirQo and Makerere University',
-    link: 'https://airqo.net',
-    resourceFile: 'https://airqo.net'
-  },
-  {
-    title: 'Air Quality Monitoring Toolkit',
-    authors: 'AirQo and Makerere University',
-    link: 'https://airqo.net',
-    resourceFile: 'https://airqo.net'
-  },
-  {
-    title: 'Air Quality Monitoring Toolkit',
-    authors: 'AirQo and Makerere University',
-    link: 'https://airqo.net',
-    resourceFile: 'https://airqo.net'
-  },
-  {
-    title: 'Air Quality Monitoring Toolkit',
-    authors: 'AirQo and Makerere University',
-    link: 'https://airqo.net',
-    resourceFile: 'https://airqo.net'
-  },
-  {
-    title: 'Air Quality Monitoring Toolkit',
-    authors: 'AirQo and Makerere University',
-    link: 'https://airqo.net',
-    resourceFile: 'https://airqo.net'
-  },
-  {
-    title: 'Air Quality Monitoring Toolkit',
-    authors: 'AirQo and Makerere University',
-    link: 'https://airqo.net',
-    resourceFile: 'https://airqo.net'
-  },
-  {
-    title: 'Air Quality Monitoring Toolkit',
-    authors: 'AirQo and Makerere University',
-    link: 'https://airqo.net',
-    resourceFile: 'https://airqo.net'
-  },
-  {
-    title: 'Air Quality Monitoring Toolkit',
-    authors: 'AirQo and Makerere University',
-    link: 'https://airqo.net',
-    resourceFile: 'https://airqo.net'
-  },
-  {
-    title: 'Air Quality Monitoring Toolkit',
-    authors: 'AirQo and Makerere University',
-    link: 'https://airqo.net',
-    resourceFile: 'https://airqo.net'
-  },
-  {
-    title: 'Air Quality Monitoring Toolkit',
-    authors: 'AirQo and Makerere University',
-    link: 'https://airqo.net',
-    resourceFile: 'https://airqo.net'
-  }
-];
-
 const CleanAirPublications = () => {
   useInitScrollTop();
   const { t } = useTranslation();
@@ -120,9 +51,9 @@ const CleanAirPublications = () => {
       });
   }, []);
 
-  // const toolkitData = cleanAirResources.filter(
-  //   (resource) => resource.resource_category === 'toolkit'
-  // );
+  const toolkitData = cleanAirResources.filter(
+    (resource) => resource.resource_category === 'toolkit'
+  );
   const technicalReportData = cleanAirResources.filter(
     (resource) => resource.resource_category === 'technical_report'
   );
@@ -178,28 +109,31 @@ const CleanAirPublications = () => {
         {currentItems.map((item, index) => (
           <ReportComponent
             key={index}
-            title={item.title}
-            authors={item.authors}
-            link={item.link}
-            resourceCategory={activeResource}
+            title={item.resource_title}
+            authors_title={item.author_title}
+            authors={item.resource_authors}
+            link={item.resource_link}
+            resourceCategory={item.resource_category}
             linkTitle={item.link_title || t('cleanAirSite.publications.cardBtnText')}
             showSecondAuthor={showSecondAuthor}
             resourceFile={item.resource_file}
           />
         ))}
-        <div className="pagination">
-          <button onClick={handleClickPrev} disabled={currentPage === 1}>
-            <KeyboardDoubleArrowLeftIcon sx={{ fill: currentPage === 1 ? '#D1D1D1' : '#000' }} />
-          </button>
-          <p>
-            {currentPage} of {totalPages}
-          </p>
-          <button onClick={handleClickNext} disabled={currentPage === totalPages}>
-            <KeyboardDoubleArrowRightIcon
-              sx={{ fill: currentPage === totalPages ? '#D1D1D1' : '#000' }}
-            />
-          </button>
-        </div>
+        {data.length > ITEMS_PER_PAGE && (
+          <div className="pagination">
+            <button onClick={handleClickPrev} disabled={currentPage === 1}>
+              <KeyboardDoubleArrowLeftIcon sx={{ fill: currentPage === 1 ? '#D1D1D1' : '#000' }} />
+            </button>
+            <p>
+              {currentPage} of {totalPages}
+            </p>
+            <button onClick={handleClickNext} disabled={currentPage === totalPages}>
+              <KeyboardDoubleArrowRightIcon
+                sx={{ fill: currentPage === totalPages ? '#D1D1D1' : '#000' }}
+              />
+            </button>
+          </div>
+        )}
       </div>
     );
   };

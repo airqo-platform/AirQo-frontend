@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 const ReportComponent = ({
   title,
+  authors_title,
   authors,
   link,
   linkTitle,
@@ -17,7 +18,9 @@ const ReportComponent = ({
       <div className="report-card-body">
         <div className="category-type">{resourceCategory}</div>
         <div className="main-text">{title}</div>
-        <div className="author">{t('about.publications.reportCard.authors.author1')}</div>
+        <div className="author">
+          {authors_title || t('about.publications.reportCard.authors.author1')}
+        </div>
         <div className="team">{authors}</div>
         {showSecondAuthor && (
           <>
