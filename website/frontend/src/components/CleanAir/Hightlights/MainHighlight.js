@@ -56,7 +56,11 @@ const Highlight = () => {
             </div>
             <div className="event-wrapper">
               <div className="event-container">
-                <img src={featuredEvent.event_image} alt={featuredEvent.unique_title} />
+                <img
+                  src={featuredEvent.event_image}
+                  alt={featuredEvent.unique_title}
+                  loading="lazy"
+                />
                 <div className="event-content">
                   <h1>{featuredEvent.title}</h1>
                   <p>{featuredEvent.title_subtext}</p>

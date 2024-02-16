@@ -306,7 +306,12 @@ const CleanAirEvents = () => {
             {upcomingEvents.length > 0 ? (
               upcomingEvents.map((event) => (
                 <div className="event-card" key={event.id}>
-                  <img src={event.event_image} alt="Event Image" className="event-image" />
+                  <img
+                    src={event.event_image}
+                    alt="Event Image"
+                    className="event-image"
+                    loading="lazy"
+                  />
                   <div className="even-card-details">
                     <h2 className="event-title">
                       {event.title.length > 50 ? event.title.slice(0, 50) + '...' : event.title}
@@ -357,7 +362,12 @@ const CleanAirEvents = () => {
                 <>
                   {currentEvents.map((event) => (
                     <div className="event-card" key={event.id}>
-                      <img src={event.event_image} alt="Event Image" className="event-image" />
+                      <img
+                        src={event.event_image}
+                        alt="Event Image"
+                        className="event-image"
+                        loading="lazy"
+                      />
                       <div className="even-card-details" onClick={routeToDetails(event)}>
                         <h2 className="event-title">
                           {event.title.length > 50 ? event.title.slice(0, 50) + '...' : event.title}
