@@ -83,7 +83,7 @@ Brew installation
 
     brew install postgresql@13.4
 
-After installing, follow the post-install console output and put the correct path to postgresql@13.4 in your `bash_profile` or `.zshrc` file.
+After installing, follow the post-install console outputs and put the correct path to postgresql@13.4 in your `bash_profile` or `.zshrc` file.
 
 start the local service
 
