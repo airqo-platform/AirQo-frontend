@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import SEO from 'utilities/seo';
-import { isEmpty } from 'underscore';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { getAllEvents } from '../../../reduxStore/Events/EventSlice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -29,6 +28,7 @@ const CleanAirEvents = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const allEventsData = useSelector((state) => state.eventsData.events);
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
   const navigate = useNavigate();
 
   // State
@@ -46,43 +46,44 @@ const CleanAirEvents = () => {
 
   // Derived data
   const eventsApiData = useMemo(() => {
-    const filteredEvents = allEventsData.filter((event) => event.website_category === 'cleanair');
+    return allEventsData.filter((event) => {
+      if (event.website_category !== 'cleanair') {
+        return false;
+      }
 
-    // If a month is selected, filter the events based on the selected month
-    if (selectedMonth) {
-      return filteredEvents.filter((event) => {
+      if (selectedMonth) {
         const eventDate = new Date(event.start_date);
-        console.log(eventDate.getMonth(), selectedMonth);
-        return eventDate.getMonth() === selectedMonth;
-      });
-    }
+        if (eventDate.getMonth() !== selectedMonth) {
+          return false;
+        }
+      }
 
-    // TODO: Add filter for format to model
-    // If a filter is selected, filter the events based on the selected filter
-    // if (filter) {
-    //   return filteredEvents.filter((event) => event.format === filter);
-    // }
+      if (filter && filter !== 'all' && filter !== 'others' && event.event_category !== filter) {
+        return false;
+      }
 
-    return filteredEvents;
-  }, [allEventsData, selectedMonth]);
+      return true;
+    });
+  }, [allEventsData, selectedMonth, filter]);
 
   const upcomingEvents = useMemo(() => getUpcomingEvents(eventsApiData), [eventsApiData]);
   const pastEvents = useMemo(() => getPastEvents(eventsApiData), [eventsApiData]);
 
   // Effects
   useEffect(() => {
-    if (isEmpty(eventsApiData)) {
+    const fetchAllEvents = async () => {
       setLoading(true);
-      dispatch(getAllEvents())
-        .then(() => {
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error(error);
-          setLoading(false);
-        });
-    }
-  }, []);
+      try {
+        await dispatch(getAllEvents());
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllEvents();
+  }, [language, dispatch]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -162,10 +163,14 @@ const CleanAirEvents = () => {
   ];
 
   const filterOption1 = [
-    { label: t('cleanAirSite.events.dropdowns.filter.options1.1'), value: 'webinar' },
-    { label: t('cleanAirSite.events.dropdowns.filter.options1.2'), value: 'workshop' },
-    { label: t('cleanAirSite.events.dropdowns.filter.options1.3'), value: 'conference' },
-    { label: t('cleanAirSite.events.dropdowns.filter.options1.4'), value: 'others' }
+    { label: t('cleanAirSite.events.dropdowns.filter.options1.1'), value: 'all' },
+    { label: t('cleanAirSite.events.dropdowns.filter.options1.2'), value: 'webinar' },
+    { label: t('cleanAirSite.events.dropdowns.filter.options1.3'), value: 'workshop' },
+    { label: t('cleanAirSite.events.dropdowns.filter.options1.4'), value: 'marathon' },
+    { label: t('cleanAirSite.events.dropdowns.filter.options1.5'), value: 'conference' },
+    { label: t('cleanAirSite.events.dropdowns.filter.options1.6'), value: 'summit' },
+    { label: t('cleanAirSite.events.dropdowns.filter.options1.7'), value: 'commemoration' },
+    { label: t('cleanAirSite.events.dropdowns.filter.options1.8'), value: 'others' }
   ];
 
   const filterOption2 = [

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { isEmpty } from 'underscore';
 import SEO from 'utilities/seo';
 import { useInitScrollTop } from 'utilities/customHooks';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { SplitTextSection, RegisterSection, IntroSection } from 'components/CleanAir';
 import { usePartnersData } from '../../../reduxStore/Partners/selectors';
 import { loadPartnersData } from '../../../reduxStore/Partners/operations';
@@ -17,12 +17,11 @@ const CleanAirPartners = () => {
   const partnersData = usePartnersData();
   const { width } = useWindowSize();
   const isLoading = isEmpty(partnersData);
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   useEffect(() => {
-    if (isEmpty(partnersData)) {
-      dispatch(loadPartnersData());
-    }
-  }, []);
+    dispatch(loadPartnersData());
+  }, [language]);
 
   const cleanAirPartners = partnersData.filter(
     (partner) => partner.website_category === 'cleanair'

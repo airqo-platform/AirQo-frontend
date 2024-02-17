@@ -51,6 +51,22 @@ class Event(BaseModel):
     event_tag = models.CharField(
         max_length=40, default=EventTag.Untagged, choices=EventTag.choices, null=True, blank=True
     )
+
+    class EventCategory(models.TextChoices):
+        NoneCategory = "none", "None"
+        Webinar = "webinar", "Webinar"
+        Workshop = "workshop", "Workshop"
+        Marathon = "marathon", "Marathon"
+        Conference = "conference", "Conference"
+        Summit = "summit", "Summit"
+        Commemoration = "commemoration", "Commemoration"
+        InPerson = "in-person", "In-person"
+        Hybrid = "hybrid", "Hybrid"
+
+    event_category = models.CharField(
+        max_length=40, default=EventCategory.NoneCategory, choices=EventCategory.choices, null=True, blank=True
+    )
+
     event_image = CloudinaryField(
         "EventImage", overwrite=True, resource_type="image")
     background_image = CloudinaryField(

@@ -6,8 +6,10 @@ import { useNavigate } from 'react-router-dom';
 import { AccessTimeOutlined, CalendarMonth } from '@mui/icons-material';
 import { format } from 'date-fns';
 import Spinner from '../loaders/Spinner';
+import { useTranslation, Trans } from 'react-i18next';
 
 const Highlight = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const eventsData = useSelector((state) => state.eventsData.events);
@@ -51,7 +53,7 @@ const Highlight = () => {
           <div className="events-section">
             <div className="pill-con">
               <span id="first-pill">
-                <p>Featured Event</p>
+                <p>{t('cleanAirSite.about.highlightSection.tag')}</p>
               </span>
             </div>
             <div className="event-wrapper">
@@ -84,7 +86,7 @@ const Highlight = () => {
                           {featuredEvent.end_time.slice(0, -3)}
                         </span>
                       ) : (
-                        <span>All Day</span>
+                        <span>{t('cleanAirSite.about.highlightSection.tag2')}</span>
                       )}
                     </span>
                   </div>
@@ -97,7 +99,7 @@ const Highlight = () => {
                         onClick={() =>
                           navigate(`/clean-air/event-details/${featuredEvent.unique_title}/`)
                         }>
-                        Read More {' -->'}
+                        {t('cleanAirSite.about.highlightSection.cta')} {' -->'}
                       </button>
                     </div>
                   </div>

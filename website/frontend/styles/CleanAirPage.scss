@@ -70,6 +70,11 @@
     }
   }
 
+  .highlight {
+    color: #135dff;
+    font-weight: bold;
+  }
+
   .page-container {
     z-index: 1;
     position: relative;
@@ -670,7 +675,6 @@
     }
 
     .acronym-section-container {
-      height: 1000px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -680,18 +684,19 @@
       margin: 0 auto;
       padding: 0;
       width: 100%;
+      background-color: $aq-blue-1;
     }
 
     .acronym-section {
+      position: relative;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      justify-content: flex-start;
+      align-items: inherit;
       margin: 0 auto;
       padding: 0 16px;
       width: 100%;
-      height: auto;
-      background-color: $aq-blue-1;
+      height: 100%;
 
       .content {
         width: auto;
@@ -806,15 +811,15 @@
       }
     }
 
-    @media screen and (min-width: 768px) {
-      .acronym-section-container {
-        height: 700px;
-      }
-    }
-
     @media screen and (min-width: 1024px) {
       .acronym-section-container {
         height: 1000px;
+      }
+      .acronym-section {
+        background-image: url('assets/img/cleanAir/section2.png');
+        background-size: cover;
+        background-position: 50% 50%;
+        background-repeat: no-repeat;
       }
     }
 

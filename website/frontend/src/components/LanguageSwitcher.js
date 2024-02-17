@@ -15,8 +15,8 @@ const LanguageSwitcher = () => {
   const ref = useRef(null);
 
   const lngs = {
-    en: { nativeName: 'English' }
-    // fr: { nativeName: 'French' }
+    en: { nativeName: 'English' },
+    fr: { nativeName: 'French' }
   };
 
   // Ensure language is a key in lngs

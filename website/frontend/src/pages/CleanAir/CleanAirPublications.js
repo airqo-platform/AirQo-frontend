@@ -4,7 +4,7 @@ import { useInitScrollTop } from 'utilities/customHooks';
 import { useDispatch, useSelector } from 'react-redux';
 import { setActiveResource } from 'reduxStore/CleanAirNetwork/CleanAir';
 import { ReportComponent } from 'components/CleanAir';
-import { getAllCleanAirApi } from 'apis/index.js';
+import { getAllCleanAirApi } from 'apis/index';
 import { useTranslation } from 'react-i18next';
 import { RegisterSection, IntroSection, RotatingLoopIcon } from 'components/CleanAir';
 import ResourceImage from 'assets/img/cleanAir/resource.png';
@@ -14,6 +14,8 @@ import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArro
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
+const ITEMS_PER_PAGE = 3;
+
 const CleanAirPublications = () => {
   useInitScrollTop();
   const { t } = useTranslation();
@@ -22,18 +24,33 @@ const CleanAirPublications = () => {
   const [openfilter, setFilter] = useState(false);
   const [cleanAirResources, setCleanAirResources] = useState([]);
   const activeResource = useSelector((state) => state.cleanAirData.activeResource);
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+
   const resources = [
     t('cleanAirSite.publications.navs.toolkits'),
     t('cleanAirSite.publications.navs.reports'),
     t('cleanAirSite.publications.navs.workshops'),
     t('cleanAirSite.publications.navs.research')
   ];
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    dispatch(setActiveResource(t('cleanAirSite.publications.navs.toolkits')));
-    dispatch(fetchCleanAirData());
-  }, [language]);
+    const fetchCleanAirApi = async () => {
+      try {
+        setLoading(true);
+        const response = await getAllCleanAirApi(language);
+        setCleanAirResources(response);
+        dispatch(setActiveResource(t('cleanAirSite.publications.navs.toolkits')));
+      } catch (error) {
+        console.error('Failed to fetch clean air API:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCleanAirApi();
+  }, [language, dispatch]);
 
   const toolkitData = cleanAirResources.filter(
     (resource) => resource.resource_category === 'toolkit'
@@ -48,10 +65,25 @@ const CleanAirPublications = () => {
     (resource) => resource.resource_category === 'research_publication'
   );
 
-  const ITEMS_PER_PAGE = 3;
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setFilter(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [filterRef]);
+
+  const handleFilterSelect = (filter) => {
+    dispatch(setActiveResource(filter));
+    setFilter(false);
+  };
 
   const renderData = (data, showSecondAuthor) => {
-    const [currentPage, setCurrentPage] = useState(1);
     const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
 
     const handleClickNext = () => {
@@ -120,24 +152,6 @@ const CleanAirPublications = () => {
         )}
       </div>
     );
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (filterRef.current && !filterRef.current.contains(event.target)) {
-        setFilter(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [filterRef]);
-
-  const handleFilterSelect = (filter) => {
-    dispatch(setActiveResource(filter));
-    setFilter(false);
   };
 
   return (

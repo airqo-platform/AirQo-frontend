@@ -2,7 +2,6 @@ import React from 'react';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { SplitSection, SingleSection, MainHighlight, ButtonCTA } from 'components/CleanAir';
 import Section1 from 'assets/img/cleanAir/section1.png';
-import Section2 from 'assets/img/cleanAir/section2.png';
 import Section3 from 'assets/img/cleanAir/section3.png';
 import Section4 from 'assets/img/cleanAir/section4.png';
 import Placeholder1 from 'assets/img/cleanAir/goal1.png';
@@ -50,7 +49,7 @@ const CleanAirAbout = () => {
           <div>
             <p className="hero-title">
               <Trans i18nKey="cleanAirSite.about.section1.title">
-                The CLEAN-Air <br className="breaker" /> Network
+                The CLEAN-Air <br /> Network
               </Trans>
             </p>
             <p className="hero-sub">
@@ -79,13 +78,7 @@ const CleanAirAbout = () => {
               <div className="acronym-content-container">
                 <p>
                   <Trans i18nKey="cleanAirSite.about.section2.acronym">
-                    <b
-                      style={{
-                        color: '#135DFF'
-                      }}>
-                      CLEAN-Air
-                    </b>
-                    , is an acronym coined from
+                    <span className="highlight">CLEAN-Air</span>, is an acronym coined from
                   </Trans>
                 </p>
                 <h2 className="content-h">{t('cleanAirSite.about.section2.title')}</h2>
@@ -103,9 +96,6 @@ const CleanAirAbout = () => {
                 </p>
               </div>
             </div>
-          </div>
-          <div className="acronym-image-container">
-            <img src={Section2} alt="Descriptive text" className="acronym-image" />
           </div>
         </div>
       </div>
@@ -160,9 +150,9 @@ const CleanAirAbout = () => {
                   alignItems: 'flex-start'
                 }}>
                 <span id="first-pill" style={{ backgroundColor: '#FFF' }}>
-                  <p style={{ color: '#135DFF' }}>Goals</p>
+                  <p style={{ color: '#135DFF' }}>{t('cleanAirSite.about.section5.pillTitle')}</p>
                 </span>
-                <h2 className="content-h">CLEAN Air Goals</h2>
+                <h2 className="content-h">{t('cleanAirSite.about.section5.title')}</h2>
               </div>
 
               <div className="goals">
