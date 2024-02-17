@@ -174,7 +174,7 @@ const CleanAirEvents = () => {
   ];
 
   const filterOption2 = [
-    { label: t('cleanAirSite.events.dropdowns.filter.options2.1'), value: 'online' },
+    { label: t('cleanAirSite.events.dropdowns.filter.options2.1'), value: 'all' },
     { label: t('cleanAirSite.events.dropdowns.filter.options2.2'), value: 'in-person' },
     { label: t('cleanAirSite.events.dropdowns.filter.options2.3'), value: 'hybrid' },
     { label: t('cleanAirSite.events.dropdowns.filter.options2.4'), value: 'others' }
