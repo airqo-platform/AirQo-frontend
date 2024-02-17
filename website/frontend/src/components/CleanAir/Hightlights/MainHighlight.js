@@ -5,6 +5,7 @@ import { isEmpty } from 'underscore';
 import { useNavigate } from 'react-router-dom';
 import { AccessTimeOutlined, CalendarMonth } from '@mui/icons-material';
 import { format } from 'date-fns';
+import Spinner from '../loaders/Spinner';
 
 const Highlight = () => {
   const navigate = useNavigate();
@@ -28,7 +29,19 @@ const Highlight = () => {
   const featuredEvent = latestEvents[0];
 
   if (latestEvents.length === 0) {
-    return null;
+    return (
+      <div
+        style={{
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          position: 'relative',
+          padding: '50px 0'
+        }}>
+        <Spinner />
+      </div>
+    );
   }
 
   return (
@@ -43,7 +56,11 @@ const Highlight = () => {
             </div>
             <div className="event-wrapper">
               <div className="event-container">
-                <img src={featuredEvent.event_image} alt={featuredEvent.unique_title} />
+                <img
+                  src={featuredEvent.event_image}
+                  alt={featuredEvent.unique_title}
+                  loading="lazy"
+                />
                 <div className="event-content">
                   <h1>{featuredEvent.title}</h1>
                   <p>{featuredEvent.title_subtext}</p>
