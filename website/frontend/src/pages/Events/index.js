@@ -7,7 +7,6 @@ import { useInitScrollTop } from 'utilities/customHooks';
 import EventCard from './EventCard';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllEvents } from '../../../reduxStore/Events/EventSlice';
-import { isEmpty } from 'underscore';
 import Loadspinner from '../../components/LoadSpinner';
 import { useTranslation } from 'react-i18next';
 
@@ -25,6 +24,7 @@ const EventsPage = () => {
   const navTabs = [`${t('about.events.navTabs.upcoming')}`, `${t('about.events.navTabs.past')}`];
   const selectedNavTab = useSelector((state) => state.eventsNavTab.tab);
   const allEventsData = useSelector((state) => state.eventsData.events);
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   const eventsApiData = allEventsData.filter((event) => event.website_category === 'airqo');
 
@@ -41,10 +41,8 @@ const EventsPage = () => {
   const loading = useSelector((state) => state.eventsData.loading);
 
   useEffect(() => {
-    if (isEmpty(eventsApiData)) {
-      dispatch(getAllEvents());
-    }
-  }, [selectedNavTab]);
+    dispatch(getAllEvents());
+  }, [language]);
 
   // hook to handle see more/less button
   const [numEventsToShow, setNumEventsToShow] = useState(9);

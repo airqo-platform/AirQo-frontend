@@ -107,7 +107,7 @@ const CalibrationPage = () => {
               </h2>
               <p className="right ">{t('products.calibrate.fourth.subText')}</p>
               <NavTab
-                text="Calibration guide"
+                text={t('products.calibrate.fourth.cta')}
                 path="https://wiki.airqo.net/#/calibration/ml_based_approach"
                 externalLink
                 hideArrow

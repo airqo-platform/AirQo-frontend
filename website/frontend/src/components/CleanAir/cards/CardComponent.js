@@ -1,7 +1,9 @@
 import React from 'react';
 import { FileDownloadOutlined } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 const CardComponent = ({ title, authors, link, linkTitle, downloadLink }) => {
+  const { t } = useTranslation();
   return (
     <div className="card-container article">
       <div className="title">
@@ -11,7 +13,7 @@ const CardComponent = ({ title, authors, link, linkTitle, downloadLink }) => {
       <div className="cta-links">
         {link !== null ? (
           <a className="link" href={link} target="_blank" rel="noreferrer noopener">
-            <small>{linkTitle || 'Read More'}</small>
+            <small>{linkTitle || t('cleanAirSite.publications.card.readmore')}</small>
           </a>
         ) : (
           <span />
@@ -19,7 +21,8 @@ const CardComponent = ({ title, authors, link, linkTitle, downloadLink }) => {
         {downloadLink !== null ? (
           <a className="link" href={downloadLink} target="_blank">
             <small>
-              Download <FileDownloadOutlined />{' '}
+              {t('cleanAirSite.publications.card.download')}
+              <FileDownloadOutlined />{' '}
             </small>
           </a>
         ) : (

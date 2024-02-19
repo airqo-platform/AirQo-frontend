@@ -133,7 +133,11 @@ const EventDetails = () => {
                               <tr>
                                 {event.partner.map((partner) => (
                                   <td key={partner.id}>
-                                    <img src={partner.partner_logo} alt={partner.name} />
+                                    <img
+                                      src={partner.partner_logo}
+                                      alt={partner.name}
+                                      loading="lazy"
+                                    />
                                   </td>
                                 ))}
                               </tr>

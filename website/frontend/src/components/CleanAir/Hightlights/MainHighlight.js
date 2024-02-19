@@ -5,8 +5,11 @@ import { isEmpty } from 'underscore';
 import { useNavigate } from 'react-router-dom';
 import { AccessTimeOutlined, CalendarMonth } from '@mui/icons-material';
 import { format } from 'date-fns';
+import Spinner from '../loaders/Spinner';
+import { useTranslation, Trans } from 'react-i18next';
 
 const Highlight = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const eventsData = useSelector((state) => state.eventsData.events);
@@ -28,7 +31,19 @@ const Highlight = () => {
   const featuredEvent = latestEvents[0];
 
   if (latestEvents.length === 0) {
-    return null;
+    return (
+      <div
+        style={{
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          position: 'relative',
+          padding: '50px 0'
+        }}>
+        <Spinner />
+      </div>
+    );
   }
 
   return (
@@ -38,12 +53,16 @@ const Highlight = () => {
           <div className="events-section">
             <div className="pill-con">
               <span id="first-pill">
-                <p>Featured Event</p>
+                <p>{t('cleanAirSite.about.highlightSection.tag')}</p>
               </span>
             </div>
             <div className="event-wrapper">
               <div className="event-container">
-                <img src={featuredEvent.event_image} alt={featuredEvent.unique_title} />
+                <img
+                  src={featuredEvent.event_image}
+                  alt={featuredEvent.unique_title}
+                  loading="lazy"
+                />
                 <div className="event-content">
                   <h1>{featuredEvent.title}</h1>
                   <p>{featuredEvent.title_subtext}</p>
@@ -67,7 +86,7 @@ const Highlight = () => {
                           {featuredEvent.end_time.slice(0, -3)}
                         </span>
                       ) : (
-                        <span>All Day</span>
+                        <span>{t('cleanAirSite.about.highlightSection.tag2')}</span>
                       )}
                     </span>
                   </div>
@@ -80,7 +99,7 @@ const Highlight = () => {
                         onClick={() =>
                           navigate(`/clean-air/event-details/${featuredEvent.unique_title}/`)
                         }>
-                        Read More {' -->'}
+                        {t('cleanAirSite.about.highlightSection.cta')} {' -->'}
                       </button>
                     </div>
                   </div>

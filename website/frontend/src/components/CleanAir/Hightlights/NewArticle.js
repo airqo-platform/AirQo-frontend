@@ -15,6 +15,7 @@ const NewArticle = ({ icon, date, title, subtitle, url }) => {
               className="image"
               src={icon}
               alt="icon"
+              loading="lazy"
               style={{
                 background: `url(${icon}),lightgray 50% contain no-repeat`
               }}

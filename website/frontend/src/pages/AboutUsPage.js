@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-scroll';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { useTeamData } from 'reduxStore/Team/selectors';
@@ -31,6 +31,7 @@ const AboutUsPage = () => {
   const navigate = useNavigate();
   const showModal = () => dispatch(showGetInvolvedModal(true));
   const partnersData = allPartnersData.filter((partner) => partner.website_category === 'airqo');
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   const [togglePartnersDisplay, setTogglePartnersDisplay] = useState(false);
 
@@ -55,10 +56,11 @@ const AboutUsPage = () => {
   };
 
   useEffect(() => {
-    if (isEmpty(teamData)) dispatch(loadTeamData());
-    if (isEmpty(partnersData)) dispatch(loadPartnersData());
-    if (isEmpty(boardData)) dispatch(loadBoardData());
-  }, [partnersData, teamData]);
+    dispatch(loadTeamData());
+    dispatch(loadPartnersData());
+    dispatch(loadBoardData());
+  }, [language]);
+
   return (
     <Page>
       <div className="AboutUsPage">

@@ -45,8 +45,6 @@ class SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    final locale = Localizations.localeOf(context);
-    AirQoApp.setLocale(context, locale);
 
     return FutureBuilder<void>(
       future: _initializationFuture,
