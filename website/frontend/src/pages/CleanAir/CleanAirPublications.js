@@ -129,7 +129,7 @@ const CleanAirPublications = () => {
             authors_title={item.author_title}
             authors={item.resource_authors}
             link={item.resource_link}
-            resourceCategory={item.resource_category}
+            resourceCategory={activeResource}
             linkTitle={item.link_title || t('cleanAirSite.publications.cardBtnText')}
             showSecondAuthor={showSecondAuthor}
             resourceFile={item.resource_file}
