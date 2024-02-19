@@ -1,3 +1,4 @@
+
 from django.db import models
 from backend.utils.models import BaseModel
 from author.decorators import with_author
@@ -7,6 +8,8 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
 # Create your models here.
+
+
 @with_author
 class Event(BaseModel):
     title = models.CharField(max_length=100)
@@ -48,8 +51,26 @@ class Event(BaseModel):
     event_tag = models.CharField(
         max_length=40, default=EventTag.Untagged, choices=EventTag.choices, null=True, blank=True
     )
-    event_image = CloudinaryField("EventImage", overwrite=True, resource_type="image")
-    background_image = CloudinaryField("BackgroundImage", overwrite=True, resource_type="image")
+
+    class EventCategory(models.TextChoices):
+        NoneCategory = "none", "None"
+        Webinar = "webinar", "Webinar"
+        Workshop = "workshop", "Workshop"
+        Marathon = "marathon", "Marathon"
+        Conference = "conference", "Conference"
+        Summit = "summit", "Summit"
+        Commemoration = "commemoration", "Commemoration"
+        InPerson = "in-person", "In-person"
+        Hybrid = "hybrid", "Hybrid"
+
+    event_category = models.CharField(
+        max_length=40, default=EventCategory.NoneCategory, choices=EventCategory.choices, null=True, blank=True
+    )
+
+    event_image = CloudinaryField(
+        "EventImage", overwrite=True, resource_type="image")
+    background_image = CloudinaryField(
+        "BackgroundImage", overwrite=True, resource_type="image")
     location_name = models.CharField(max_length=100, null=True, blank=True)
     location_link = models.URLField(null=True, blank=True)
     event_details = QuillField()
@@ -61,10 +82,12 @@ class Event(BaseModel):
     def __str__(self):
         return self.title
 
+
 @receiver(pre_save, dispatch_uid="append_short_name", sender=Event)
 def append_short_name(sender, instance, *args, **kwargs):
     if not instance.unique_title:
         instance.unique_title = instance.generate_unique_title()
+
 
 @with_author
 class Inquiry(BaseModel):
@@ -79,11 +102,13 @@ class Inquiry(BaseModel):
         related_name="inquiry",
         on_delete=models.deletion.SET_NULL,
     )
+
     class Meta:
         ordering = ['order']
 
     def __str__(self):
         return f"Inquiry - {self.inquiry}"
+
 
 @with_author
 class Program(BaseModel):
@@ -97,11 +122,13 @@ class Program(BaseModel):
         related_name="program",
         on_delete=models.deletion.SET_NULL,
     )
+
     class Meta:
         ordering = ['order']
 
     def __str__(self):
         return f"Program - {self.session}"
+
 
 @with_author
 class Session(BaseModel):
@@ -113,17 +140,20 @@ class Session(BaseModel):
     order = models.IntegerField(default=1)
     program = models.ForeignKey(
         Program,
-        null = True,
+        null=True,
         blank=True,
         related_name="session",
         on_delete=models.deletion.SET_NULL,
     )
+
     class Meta:
         ordering = ['order']
 
+
 @with_author
 class PartnerLogo(BaseModel):
-    partner_logo = CloudinaryField('PartnerImage', overwrite=True, resource_type="image")
+    partner_logo = CloudinaryField(
+        'PartnerImage', overwrite=True, resource_type="image")
     name = models.CharField(max_length=70)
     order = models.IntegerField(default=1)
     event = models.ForeignKey(
@@ -133,11 +163,13 @@ class PartnerLogo(BaseModel):
         related_name="partner",
         on_delete=models.deletion.SET_NULL,
     )
+
     class Meta:
         ordering = ['order']
 
     def __str__(self):
         return f"Partner - {self.name}"
+
 
 @with_author
 class Resource(BaseModel):
@@ -152,6 +184,7 @@ class Resource(BaseModel):
         related_name="resource",
         on_delete=models.deletion.SET_NULL,
     )
+
     class Meta:
         ordering = ['order']
 

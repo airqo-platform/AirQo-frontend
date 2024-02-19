@@ -2,9 +2,10 @@ import { createSlice } from '@reduxjs/toolkit';
 import { getAllEventsApi } from '../../apis';
 import { isEmpty } from 'underscore';
 
-export const getAllEvents = () => async (dispatch) => {
+export const getAllEvents = () => async (dispatch, getState) => {
+  const lang = getState().eventsNavTab.languageTab;
   dispatch(isLoading(true));
-  await getAllEventsApi()
+  await getAllEventsApi(lang)
     .then((res) => {
       if (isEmpty(res || [])) return;
       dispatch(getEventsReducer(res));
@@ -30,7 +31,7 @@ export const eventSlice = createSlice({
     isLoading: (state, action) => {
       state.loading = action.payload;
     }
-  },
+  }
 });
 
 export const { getEventsReducer, getEventsFailure, isLoading } = eventSlice.actions;

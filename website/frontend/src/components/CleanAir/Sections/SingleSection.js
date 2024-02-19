@@ -15,7 +15,7 @@ const SingleSection = ({
     className={`single-section ${removeTopMargin ? 'no-top' : ''}`}
     style={{ backgroundColor: bgColor, padding }}>
     <div className="content">
-      <span className="content-p">{content}</span>
+      <div className="content-p">{content}</div>
       {btnText && link && (
         <div className="button">
           <ButtonCTA label={btnText} link={link} style={btnStyle} />
@@ -29,7 +29,7 @@ SingleSection.propTypes = {
   bgColor: PropTypes.string,
   btnText: PropTypes.string,
   padding: PropTypes.string,
-  content: PropTypes.string.isRequired,
+  content: PropTypes.any.isRequired,
   link: PropTypes.string,
   btnStyle: PropTypes.object,
   removeTopMargin: PropTypes.bool

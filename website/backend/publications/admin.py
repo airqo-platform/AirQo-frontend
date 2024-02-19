@@ -1,9 +1,12 @@
+from modeltranslation.admin import TranslationAdmin
 from django.contrib import admin
 from .models import Publication
+from .translation import *
+
 
 @admin.register(Publication)
-class PublicationAdmin(admin.ModelAdmin):
-    list_display = ("title", "category","authors")
+class PublicationAdmin(TranslationAdmin):
+    list_display = ("title", "category", "authors")
     list_filter = ("category", "created")
     list_per_page = 10
     search_fields = ("title", "category", "authors")
