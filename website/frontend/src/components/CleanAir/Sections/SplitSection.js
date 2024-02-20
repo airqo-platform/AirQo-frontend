@@ -15,10 +15,14 @@ const SplitSection = ({
   imageStyle,
   showButton,
   children,
-  customBtn, wrapperPadding, titleSection
+  customBtn,
+  wrapperPadding,
+  titleSection
 }) => {
   return (
-    <div className={titleSection ? "splitSection-section title-section" : "splitSection-section"} style={{ backgroundColor: bgColor, padding: wrapperPadding }}>
+    <div
+      className={titleSection ? 'splitSection-section title-section' : 'splitSection-section'}
+      style={{ backgroundColor: bgColor, padding: wrapperPadding }}>
       <div className={` ${reverse ? 'backdrop-rev' : 'backdrop'}`}>
         <div className="splitSection-content">
           {pillTitle && (
@@ -53,7 +57,7 @@ const SplitSection = ({
             ))}
         </div>
         <div className="splitSection-image">
-          <img className="splitSection-img" src={imgURL} style={imageStyle} alt="" />
+          <img className="splitSection-img" src={imgURL} style={imageStyle} alt="" loading="lazy" />
         </div>
       </div>
     </div>

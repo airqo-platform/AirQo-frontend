@@ -1,9 +1,11 @@
 from django.contrib import admin
-
+from modeltranslation.admin import TranslationAdmin
+from .translation import *
 from .models import Highlight, Tag
 
+
 @admin.register(Highlight)
-class HighlightAdmin(admin.ModelAdmin):
+class HighlightAdmin(TranslationAdmin):
     list_display = ("title", "highlight_tags", "image_preview", "created")
     list_filter = ("tags", "created")
     list_per_page = 8
@@ -40,9 +42,10 @@ class HighlightAdmin(admin.ModelAdmin):
 
     image_preview.allow_tags = True
 
+
 @admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
-    list_display = ("id","name", "created" )
+class TagAdmin(TranslationAdmin):
+    list_display = ("id", "name", "created")
     list_filter = ("name", )
     list_per_page = 10
     search_fields = ("name", "id")

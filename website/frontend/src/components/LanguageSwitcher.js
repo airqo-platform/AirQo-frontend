@@ -10,7 +10,7 @@ const LanguageSwitcher = () => {
   const dispatch = useDispatch();
   const { t, i18n } = useTranslation();
   const languageTab = useSelector((state) => state.eventsNavTab.languageTab);
-  const [language, setLanguage] = useState(localStorage.getItem('language') || languageTab);
+  const [language, setLanguage] = useState(languageTab || localStorage.getItem('language'));
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -52,7 +52,7 @@ const LanguageSwitcher = () => {
       i18n.changeLanguage(localLanguage);
       dispatch(setLanguageTab(localLanguage));
     }
-  }, []);
+  }, [languageTab, i18n, dispatch]);
 
   return (
     <div className="lang-container">

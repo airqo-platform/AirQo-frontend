@@ -1,89 +1,56 @@
 import React, { useEffect, useState, useRef } from 'react';
 import SEO from 'utilities/seo';
 import { useInitScrollTop } from 'utilities/customHooks';
-import { isEmpty } from 'underscore';
 import { useDispatch, useSelector } from 'react-redux';
 import { setActiveResource } from 'reduxStore/CleanAirNetwork/CleanAir';
 import { ReportComponent } from 'components/CleanAir';
-import { getAllCleanAirApi } from 'apis/index.js';
-import ListIcon from '@mui/icons-material/List';
-import CloseIcon from '@mui/icons-material/Close';
-import useWindowSize from 'utilities/customHooks';
-import Loadspinner from 'src/components/LoadSpinner/SectionLoader';
-import { useTranslation, Trans } from 'react-i18next';
+import { getAllCleanAirApi } from 'apis/index';
+import { useTranslation } from 'react-i18next';
+import { RegisterSection, IntroSection, RotatingLoopIcon } from 'components/CleanAir';
+import ResourceImage from 'assets/img/cleanAir/resource.png';
+import DoneIcon from '@mui/icons-material/Done';
+import Slide from '@mui/material/Slide';
+import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
-const ResourceMenuItem = ({ activeResource, resource, dispatch, setToggle }) => {
-  const { width } = useWindowSize();
-  const isActive = activeResource === resource;
-  const className = isActive ? 'active' : 'resource-menu-item-link';
-  const onClick = () => {
-    dispatch(setActiveResource(resource));
-    if (width < 1081) {
-      setToggle();
-    }
-  };
-
-  return (
-    <li className={className} onClick={onClick}>
-      {resource.charAt(0).toUpperCase() + resource.slice(1)}
-    </li>
-  );
-};
+const ITEMS_PER_PAGE = 3;
 
 const CleanAirPublications = () => {
   useInitScrollTop();
   const { t } = useTranslation();
-  const menuRef = useRef(null);
+  const filterRef = useRef(null);
   const dispatch = useDispatch();
-  const [toggle, setToggle] = useState(false);
+  const [openfilter, setFilter] = useState(false);
   const [cleanAirResources, setCleanAirResources] = useState([]);
   const activeResource = useSelector((state) => state.cleanAirData.activeResource);
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+
   const resources = [
     t('cleanAirSite.publications.navs.toolkits'),
     t('cleanAirSite.publications.navs.reports'),
     t('cleanAirSite.publications.navs.workshops'),
     t('cleanAirSite.publications.navs.research')
   ];
-  const { width } = useWindowSize();
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isEmpty(activeResource)) {
-      dispatch(setActiveResource(t('cleanAirSite.publications.navs.toolkits')));
-    }
-  }, [activeResource]);
-
-  useEffect(() => {
-    setLoading(true);
-    getAllCleanAirApi()
-      .then((response) => {
+    const fetchCleanAirApi = async () => {
+      try {
+        setLoading(true);
+        const response = await getAllCleanAirApi(language);
         setCleanAirResources(response);
+        dispatch(setActiveResource(t('cleanAirSite.publications.navs.toolkits')));
+      } catch (error) {
+        console.error('Failed to fetch clean air API:', error);
+      } finally {
         setLoading(false);
-      })
-      .catch((error) => {
-        console.log(error);
-        setLoading(false);
-      });
-  }, []);
+      }
+    };
 
-  useEffect(() => {
-    const resourceMenuItem = document.querySelector('.menu-wrapper');
-    if (width < 1081) {
-      resourceMenuItem.style.display = 'none';
-    } else {
-      resourceMenuItem.style.display = 'block';
-    }
-  }, [width]);
-
-  const handleToggle = () => {
-    setToggle(!toggle);
-    const resourceMenuItem = document.querySelector('.menu-wrapper');
-    if (toggle) {
-      resourceMenuItem.style.display = 'none';
-    } else {
-      resourceMenuItem.style.display = 'block';
-    }
-  };
+    fetchCleanAirApi();
+  }, [language, dispatch]);
 
   const toolkitData = cleanAirResources.filter(
     (resource) => resource.resource_category === 'toolkit'
@@ -98,20 +65,43 @@ const CleanAirPublications = () => {
     (resource) => resource.resource_category === 'research_publication'
   );
 
-  const ITEMS_PER_PAGE = 4;
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setFilter(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [filterRef]);
+
+  const handleFilterSelect = (filter) => {
+    dispatch(setActiveResource(filter));
+    setFilter(false);
+  };
 
   const renderData = (data, showSecondAuthor) => {
-    const indexOfLastItem = activePage * ITEMS_PER_PAGE;
-    const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
-    const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
 
-    if (loading) {
-      return (
-        <div style={{ marginTop: '100px' }}>
-          <Loadspinner />
-        </div>
-      );
-    }
+    const handleClickNext = () => {
+      if (currentPage < totalPages) {
+        setCurrentPage(currentPage + 1);
+      }
+    };
+
+    const handleClickPrev = () => {
+      if (currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
+    };
+
+    const currentItems = data.slice(
+      (currentPage - 1) * ITEMS_PER_PAGE,
+      currentPage * ITEMS_PER_PAGE
+    );
 
     if (currentItems.length === 0 || !currentItems) {
       return (
@@ -123,101 +113,44 @@ const CleanAirPublications = () => {
             color: '#808080',
             justifyContent: 'center',
             alignItems: 'center',
-            marginTop: '50px'
+            marginTop: '60px'
           }}>
           <h1>{t('cleanAirSite.publications.noResources')}</h1>
         </div>
       );
     }
 
-    return currentItems.map((resource, index) => (
-      <div key={index}>
-        <ReportComponent
-          title={resource.resource_title}
-          authors={resource.resource_authors}
-          link={resource.resource_link}
-          linkTitle="Read Journal"
-          showSecondAuthor={showSecondAuthor}
-          resourceFile={resource.resource_file}
-        />
-      </div>
-    ));
-  };
-
-  const [activePage, setActivePage] = useState(1);
-
-  const handlePageChange = (pageNumber) => {
-    setActivePage(pageNumber);
-  };
-
-  useEffect(() => {
-    setActivePage(1);
-  }, [activeResource]);
-
-  const renderPagination = () => {
-    let data;
-    switch (activeResource) {
-      case t('cleanAirSite.publications.navs.toolkits'):
-        data = toolkitData;
-        break;
-      case t('cleanAirSite.publications.navs.reports'):
-        data = technicalReportData;
-        break;
-      case t('cleanAirSite.publications.navs.workshops'):
-        data = workshopReportData;
-        break;
-      case t('cleanAirSite.publications.navs.research'):
-        data = researchPublicationData;
-        break;
-      default:
-        data = [];
-    }
-
-    if (data.length <= ITEMS_PER_PAGE) {
-      return null;
-    }
-
-    const pageNumbers = [];
-    for (let i = 1; i <= Math.ceil(data.length / ITEMS_PER_PAGE); i++) {
-      pageNumbers.push(i);
-    }
-
-    const handlePrevPage = () => {
-      if (activePage > 1) {
-        setActivePage(activePage - 1);
-      }
-      document.getElementById('top-menu-sec').scrollIntoView();
-    };
-
-    const handleNextPage = () => {
-      if (activePage < pageNumbers.length) {
-        setActivePage(activePage + 1);
-      }
-      document.getElementById('top-menu-sec').scrollIntoView();
-    };
-
     return (
-      <nav className="list-page events">
-        <ul className="pagination">
-          <li className="page-item">
-            <a onClick={handlePrevPage} className="page-link">
-              {'<'}
-            </a>
-          </li>
-          {pageNumbers.map((number) => (
-            <li key={number} className="page-item">
-              <a onClick={() => handlePageChange(number)} className="page-link">
-                {number}
-              </a>
-            </li>
-          ))}
-          <li className="page-item">
-            <a onClick={handleNextPage} className="page-link">
-              {'>'}
-            </a>
-          </li>
-        </ul>
-      </nav>
+      <div>
+        {currentItems.map((item, index) => (
+          <ReportComponent
+            key={index}
+            title={item.resource_title}
+            authors_title={item.author_title}
+            authors={item.resource_authors}
+            link={item.resource_link}
+            resourceCategory={activeResource}
+            linkTitle={item.link_title || t('cleanAirSite.publications.cardBtnText')}
+            showSecondAuthor={showSecondAuthor}
+            resourceFile={item.resource_file}
+          />
+        ))}
+        {data.length > ITEMS_PER_PAGE && (
+          <div className="pagination">
+            <button onClick={handleClickPrev} disabled={currentPage === 1}>
+              <KeyboardDoubleArrowLeftIcon sx={{ fill: currentPage === 1 ? '#D1D1D1' : '#000' }} />
+            </button>
+            <p>
+              {currentPage} of {totalPages}
+            </p>
+            <button onClick={handleClickNext} disabled={currentPage === totalPages}>
+              <KeyboardDoubleArrowRightIcon
+                sx={{ fill: currentPage === totalPages ? '#D1D1D1' : '#000' }}
+              />
+            </button>
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -229,54 +162,89 @@ const CleanAirPublications = () => {
         description="CLEAN-Air Africa Network is a network of African cities and partners committed to improving air quality and reducing carbon emissions through knowledge sharing and capacity building."
       />
 
-      <div>
-        <div className="partners">
-          <div className="partners-wrapper" style={{ marginTop: '20px' }}>
-            <div className="resources-container">
-              <div className="resource-menu" id="top-menu-sec">
-                <div className="title-wrapper">
-                  <h1 className="resource-menu-title">
-                    <Trans i18nKey="cleanAirSite.publications.title">
-                      RESOURCE
-                      <br />
-                      <span>CENTER</span>
-                    </Trans>
-                  </h1>
+      {/* section 1 */}
+      <IntroSection image={ResourceImage} imagePosition={'48%'} />
 
-                  <div className="resource-menu-icon" onClick={handleToggle}>
-                    {toggle ? <CloseIcon fontSize="large" /> : <ListIcon fontSize="large" />}
-                  </div>
-                </div>
-                <div className="menu-wrapper" ref={menuRef}>
-                  <ul className="resource-menu-item">
+      {/* section 2 */}
+      {loading && (
+        <div
+          style={{
+            position: 'relative',
+            padding: '50px 0',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+          <RotatingLoopIcon />
+        </div>
+      )}
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: 'auto',
+          margin: '70px auto',
+          backgroundColor: '#EDF3FF',
+          display: loading ? 'none' : 'block'
+        }}>
+        <div className="events">
+          <div className="events-header">
+            <h1 className="events-title">{t('cleanAirSite.publications.title')}</h1>
+            <div className="events-header-buttons">
+              <div style={{ position: 'relative' }}>
+                <button onClick={() => setFilter(!openfilter)}>
+                  <span style={{ marginRight: '10px', textTransform: 'capitalize' }}>
+                    {activeResource}
+                  </span>{' '}
+                  <KeyboardArrowDownIcon />
+                </button>
+                <Slide direction="down" in={openfilter}>
+                  <ul
+                    className="drop-down-list"
+                    ref={filterRef}
+                    style={{
+                      width: '240px'
+                    }}>
                     {resources.map((resource) => (
-                      <ResourceMenuItem
+                      <li
                         key={resource}
-                        activeResource={activeResource}
-                        resource={resource}
-                        dispatch={dispatch}
-                        setToggle={handleToggle}
-                      />
+                        style={{
+                          textTransform: 'capitalize',
+                          backgroundColor: resource === activeResource ? '#EBF5FF' : ''
+                        }}
+                        onClick={() => {
+                          handleFilterSelect(resource);
+                        }}>
+                        {resource}
+                        {resource === activeResource && (
+                          <DoneIcon sx={{ stroke: '#145FFF', width: '16px', height: '16px' }} />
+                        )}
+                      </li>
                     ))}
                   </ul>
-                </div>
-              </div>
-
-              <div className="resource-body">
-                {activeResource === t('cleanAirSite.publications.navs.toolkits') &&
-                  renderData(toolkitData, false)}
-                {activeResource === t('cleanAirSite.publications.navs.reports') &&
-                  renderData(technicalReportData, true)}
-                {activeResource === t('cleanAirSite.publications.navs.workshops') &&
-                  renderData(workshopReportData, true)}
-                {activeResource === t('cleanAirSite.publications.navs.research') &&
-                  renderData(researchPublicationData)}
-                {renderPagination(activeResource)}
+                </Slide>
               </div>
             </div>
           </div>
+          <div className="resource-body">
+            {activeResource === t('cleanAirSite.publications.navs.toolkits') && (
+              <div className="reports">{renderData(toolkitData, false)}</div>
+            )}
+            {activeResource === t('cleanAirSite.publications.navs.reports') && (
+              <div className="reports">{renderData(technicalReportData, true)}</div>
+            )}
+            {activeResource === t('cleanAirSite.publications.navs.workshops') && (
+              <div className="reports">{renderData(workshopReportData, false)}</div>
+            )}
+            {activeResource === t('cleanAirSite.publications.navs.research') && (
+              <div className="reports">{renderData(researchPublicationData, true)}</div>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Register Membership */}
+      <RegisterSection link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform" />
     </div>
   );
 };
