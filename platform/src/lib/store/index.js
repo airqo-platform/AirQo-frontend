@@ -30,7 +30,7 @@ const rootReducer = combineReducers({
   collocation: collocationReducer,
   selectedCollocateDevices: selectedCollocateDevicesReducer,
   collocationData: collocationDataReducer,
-  map: mapSlice.reducer,
+  [mapSlice.name]: mapSlice.reducer,
   [createAccountSlice.name]: createAccountSlice.reducer,
   [userLoginSlice.name]: userLoginSlice.reducer,
   [chartSlice.name]: chartSlice.reducer,
