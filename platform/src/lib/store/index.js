@@ -18,6 +18,7 @@ import { cardSlice } from './services/checklists/CheckList';
 import checklistsReducer from './services/checklists/CheckData';
 import analyticsReducer from './services/charts/ChartData';
 import { groupInfoSlice } from './services/groups/GroupInfoSlice';
+import { mapSlice } from './services/map/MapSlice';
 
 const persistConfig = {
   key: 'root',
@@ -29,6 +30,7 @@ const rootReducer = combineReducers({
   collocation: collocationReducer,
   selectedCollocateDevices: selectedCollocateDevicesReducer,
   collocationData: collocationDataReducer,
+  map: mapSlice.reducer,
   [createAccountSlice.name]: createAccountSlice.reducer,
   [userLoginSlice.name]: userLoginSlice.reducer,
   [chartSlice.name]: chartSlice.reducer,
