@@ -73,7 +73,7 @@ const index = () => {
   const [selectedTab, setSelectedTab] = useState('locations');
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedSite, setSelectedSite] = useState(null);
-  const { sites } = useSelector((state) => state.grids.sitesSummary);
+  const siteData = useSelector((state) => state.grids.sitesSummary);
   const [isFocused, setIsFocused] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const isAdmin = true;
@@ -83,7 +83,7 @@ const index = () => {
   const selectedSites = preferenceData?.map((pref) => pref.selected_sites).flat();
 
   useEffect(() => {
-    if (sites.length === 0) {
+    if (siteData.sites.length === 0) {
       try {
         dispatch(getSitesSummary());
       } catch (error) {
@@ -146,7 +146,7 @@ const index = () => {
   };
 
   // Ensure allCountries and sites are defined and are arrays
-  if (!Array.isArray(allCountries) || !Array.isArray(sites)) {
+  if (!Array.isArray(allCountries) || !Array.isArray(siteData.sites)) {
     console.error('allCountries or sites is not defined or not an array');
     return;
   }
@@ -159,7 +159,7 @@ const index = () => {
   let seenCountries = new Set();
   let result = [];
 
-  for (const grid of sites) {
+  for (const grid of siteData.sites) {
     // Check if grid and grid.country exist
     if (grid && grid.country) {
       const lowerCaseCountry = grid.country.toLowerCase();
