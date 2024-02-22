@@ -145,39 +145,43 @@ const index = () => {
     }
   };
 
+  // Ensure allCountries and sites are defined and are arrays
+  if (!Array.isArray(allCountries) || !Array.isArray(sites)) {
+    console.error('allCountries or sites is not defined or not an array');
+    return;
+  }
+
   // Create a map of all countries for efficient lookup
   const countryMap = new Map(
     allCountries.map((country) => [country.country.toLowerCase(), country]),
   );
 
   let seenCountries = new Set();
-  const result = sites.reduce((acc, grid) => {
+  let result = [];
+
+  for (const grid of sites) {
     // Check if grid and grid.country exist
     if (grid && grid.country) {
       const lowerCaseCountry = grid.country.toLowerCase();
 
       // Skip if this country has already been processed
-      if (seenCountries.has(lowerCaseCountry)) {
-        return acc;
-      }
+      if (!seenCountries.has(lowerCaseCountry)) {
+        seenCountries.add(lowerCaseCountry);
 
-      seenCountries.add(lowerCaseCountry);
+        const matchingCountry = countryMap.get(lowerCaseCountry);
 
-      const matchingCountry = countryMap.get(lowerCaseCountry);
-
-      if (matchingCountry) {
-        // Push the new object into the accumulator array
-        acc.push({
-          ...grid,
-          flag: matchingCountry.flag,
-          country: matchingCountry.country,
-          code: matchingCountry.code,
-        });
+        if (matchingCountry) {
+          // Push the new object into the result array
+          result.push({
+            ...grid,
+            flag: matchingCountry.flag,
+            country: matchingCountry.country,
+            code: matchingCountry.code,
+          });
+        }
       }
     }
-
-    return acc;
-  }, []);
+  }
 
   return (
     <Layout noTopNav={false}>
