@@ -83,7 +83,13 @@ const index = () => {
   const selectedSites = preferenceData?.map((pref) => pref.selected_sites).flat();
 
   useEffect(() => {
-    if (sites.length === 0) dispatch(getSitesSummary());
+    if (sites.length === 0) {
+      try {
+        dispatch(getSitesSummary());
+      } catch (error) {
+        console.error('Failed to fetch sites summary:', error);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -106,7 +112,11 @@ const index = () => {
   }, [router.pathname]);
 
   const handleHomeClick = () => {
-    router.push('/Home');
+    try {
+      router.push('/Home');
+    } catch (error) {
+      console.error('Failed to navigate to home:', error);
+    }
   };
 
   const handleSelectedTab = (tab) => {
@@ -119,50 +129,55 @@ const index = () => {
 
   const handleLocationSelect = (data) => {
     if (data && 'latitude' in data && 'longitude' in data) {
-      dispatch(
-        setLocation({
-          country: data.country,
-          city: data.city,
-        }),
-      );
-      setSelectedSite(data);
+      try {
+        dispatch(
+          setLocation({
+            country: data.country,
+            city: data.city,
+          }),
+        );
+        setSelectedSite(data);
+      } catch (error) {
+        console.error('Failed to set location:', error);
+      }
     } else {
       console.error('Invalid data:', data);
     }
   };
 
+  // Create a map of all countries for efficient lookup
+  const countryMap = new Map(
+    allCountries.map((country) => [country.country.toLowerCase(), country]),
+  );
+
   let seenCountries = new Set();
-  const result = [];
-  // const result = sites
-  //   .map((grid) => {
-  //     // Check if grid and grid.country exist
-  //     if (grid && grid.country) {
-  //       const lowerCaseCountry = grid.country.toLowerCase();
+  const result = sites.reduce((acc, grid) => {
+    // Check if grid and grid.country exist
+    if (grid && grid.country) {
+      const lowerCaseCountry = grid.country.toLowerCase();
 
-  //       // Skip if this country has already been processed
-  //       if (seenCountries.has(lowerCaseCountry)) {
-  //         return null;
-  //       }
+      // Skip if this country has already been processed
+      if (seenCountries.has(lowerCaseCountry)) {
+        return acc;
+      }
 
-  //       seenCountries.add(lowerCaseCountry);
+      seenCountries.add(lowerCaseCountry);
 
-  //       const matchingCountry = allCountries.find(
-  //         (country) => country.country.toLowerCase() === lowerCaseCountry,
-  //       );
+      const matchingCountry = countryMap.get(lowerCaseCountry);
 
-  //       if (matchingCountry) {
-  //         return {
-  //           ...grid,
-  //           flag: matchingCountry.flag,
-  //           country: matchingCountry.country,
-  //           code: matchingCountry.code,
-  //         };
-  //       }
-  //     }
+      if (matchingCountry) {
+        // Push the new object into the accumulator array
+        acc.push({
+          ...grid,
+          flag: matchingCountry.flag,
+          country: matchingCountry.country,
+          code: matchingCountry.code,
+        });
+      }
+    }
 
-  //     return null;
-  //   })
-  //   .filter((item) => item !== null);
+    return acc;
+  }, []);
 
   return (
     <Layout noTopNav={false}>
