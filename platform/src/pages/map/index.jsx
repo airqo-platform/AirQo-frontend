@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import CloseIcon from '@/icons/close_icon';
 import LocationIcon from '@/icons/LocationIcon';
-import SearchIcon from '@/icons/Common/search_md.svg';
 import MenuIcon from '@/icons/map/menuIcon';
 import AirQoMap from '@/components/Map/AirQoMap';
 import HomeIcon from '@/icons/map/homeIcon';
 import { useRouter } from 'next/router';
 import { AirQualityLegend } from '@/components/Map/components/Legend';
 import allCountries from '@/components/Map/components/countries';
+import SearchField from '@/components/Search/SearchField';
 
 const MAP_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -66,20 +66,6 @@ const TabSelector = ({ selectedTab, setSelectedTab }) => {
           AirQlouds
         </div>
       </div>
-    </div>
-  );
-};
-
-const SearchField = () => {
-  return (
-    <div className='w-full flex flex-row items-center justify-start'>
-      <div className='flex items-center justify-center pl-3 bg-white border h-12 rounded-lg rounded-r-none border-r-0 border-input-light-outline focus:border-input-light-outline'>
-        <SearchIcon />
-      </div>
-      <input
-        placeholder='Search Villages, Cities or Country'
-        className='input text-sm text-secondary-neutral-light-800 w-full h-12 ml-0 rounded-lg bg-white border-l-0 rounded-l-none border-input-light-outline focus:border-input-light-outline'
-      />
     </div>
   );
 };

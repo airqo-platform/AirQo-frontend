@@ -18,6 +18,7 @@ import { cardSlice } from './services/checklists/CheckList';
 import checklistsReducer from './services/checklists/CheckData';
 import analyticsReducer from './services/charts/ChartData';
 import { groupInfoSlice } from './services/groups/GroupInfoSlice';
+import { mapSlice } from './services/map/MapSlice';
 
 const persistConfig = {
   key: 'root',
@@ -40,6 +41,7 @@ const rootReducer = combineReducers({
   checklists: checklistsReducer,
   analytics: analyticsReducer,
   [groupInfoSlice.name]: groupInfoSlice.reducer,
+  map: mapSlice.reducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -49,7 +51,7 @@ const store = () =>
     reducer: persistedReducer,
     middleware: getDefaultMiddleware({
       thunk: true,
-      immutableCheck: true,
+      immutableCheck: false,
       serializableCheck: false,
     }),
   });
