@@ -14,6 +14,7 @@ import SearchField from '@/components/search/SearchField';
 
 const MAP_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
+// tab selector
 const TabSelector = ({ selectedTab, setSelectedTab }) => {
   return (
     <div className='mt-6'>
@@ -37,10 +38,25 @@ const TabSelector = ({ selectedTab, setSelectedTab }) => {
   );
 };
 
+// country list
 const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
   const dispatch = useDispatch();
 
-  const sortedData = [...data].sort((a, b) => a.country.localeCompare(b.country));
+  let sortedData = [];
+  try {
+    sortedData = [...data].sort((a, b) => a.country.localeCompare(b.country));
+  } catch (error) {
+    console.error('Error sorting data:', error);
+  }
+
+  const handleCountryClick = (country) => {
+    try {
+      setSelectedCountry(country);
+      dispatch(setLocation({ country: country.country }));
+    } catch (error) {
+      console.error('Error setting location:', error);
+    }
+  };
 
   return (
     <div className='flex space-x-4 overflow-x-auto py-4 ml-4 map-scrollbar'>
@@ -50,18 +66,51 @@ const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
           className={`flex items-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 p-2  min-w-max space-x-2 m-0 ${
             selectedCountry?.country === country.country ? 'border-2 border-blue-400' : ''
           }`}
-          onClick={() => {
-            setSelectedCountry(country);
-            dispatch(
-              setLocation({
-                country: country.country,
-              }),
-            );
-          }}>
+          onClick={() => handleCountryClick(country)}>
           <img src={country.flag} alt={country.country} width={20} height={20} />
           <span>{country.country}</span>
         </div>
       ))}
+    </div>
+  );
+};
+
+// Search area
+const SectionCards = ({ searchResults, handleLocationSelect }) => {
+  if (!Array.isArray(searchResults)) {
+    console.error('Invalid prop: searchResults must be an array');
+    return null;
+  }
+
+  if (typeof handleLocationSelect !== 'function') {
+    console.error('Invalid prop: handleLocationSelect must be a function');
+    return null;
+  }
+
+  return searchResults.length > 0 ? (
+    <div className='space-y-2 max-h-[445px] overflow-y-scroll mt-4'>
+      <hr />
+      {searchResults.map((grid) => (
+        <div
+          key={grid._id}
+          className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer hover:bg-blue-100 p-2 rounded-lg'
+          onClick={() => handleLocationSelect(grid)}>
+          <div className='p-2 rounded-full bg-gray-100'>
+            <LocationIcon />
+          </div>
+          <div className='ml-3 flex flex-col item-start border-b w-full'>
+            <span className='font-normal text-black capitalize text-lg'>{grid.name}</span>
+            <span className='font-normal text-gray-500 capitalize text-sm mb-2'>
+              {grid.region + ',' + grid.country}
+            </span>
+          </div>
+        </div>
+      ))}
+      <hr />
+    </div>
+  ) : (
+    <div className='flex justify-center items-center h-80'>
+      <p className='text-gray-500 text-sm font-normal'>No results found</p>
     </div>
   );
 };
@@ -81,6 +130,9 @@ const index = () => {
 
   // getting user selected sites
   const selectedSites = preferenceData?.map((pref) => pref.selected_sites).flat();
+
+  // site details
+  const siteDetails = siteData.sites;
 
   useEffect(() => {
     if (siteData.sites.length === 0) {
@@ -145,43 +197,20 @@ const index = () => {
     }
   };
 
-  // Ensure allCountries and sites are defined and are arrays
-  if (!Array.isArray(allCountries) || !Array.isArray(siteData.sites)) {
-    console.error('allCountries or sites is not defined or not an array');
-    return;
-  }
+  let uniqueCountries = [];
+  let countryData = [];
 
-  // Create a map of all countries for efficient lookup
-  const countryMap = new Map(
-    allCountries.map((country) => [country.country.toLowerCase(), country]),
-  );
-
-  let seenCountries = new Set();
-  let result = [];
-
-  for (const grid of siteData.sites) {
-    // Check if grid and grid.country exist
-    if (grid && grid.country) {
-      const lowerCaseCountry = grid.country.toLowerCase();
-
-      // Skip if this country has already been processed
-      if (!seenCountries.has(lowerCaseCountry)) {
-        seenCountries.add(lowerCaseCountry);
-
-        const matchingCountry = countryMap.get(lowerCaseCountry);
-
-        if (matchingCountry) {
-          // Push the new object into the result array
-          result.push({
-            ...grid,
-            flag: matchingCountry.flag,
-            country: matchingCountry.country,
-            code: matchingCountry.code,
-          });
-        }
+  siteDetails.forEach((site) => {
+    if (!uniqueCountries.includes(site.country)) {
+      uniqueCountries.push(site.country);
+      let countryDetails = allCountries.find((data) => data.country === site.country);
+      if (countryDetails) {
+        countryData.push({ ...site, ...countryDetails });
+      } else {
+        return;
       }
     }
-  }
+  });
 
   return (
     <Layout noTopNav={false}>
@@ -204,64 +233,40 @@ const index = () => {
                 </div>
                 {!isAdmin && <hr />}
               </div>
-              {selectedTab === 'locations' &&
-                (!isFocused ? (
-                  <div className='px-4 space-y-4'>
+              {selectedTab === 'locations' && (
+                <>
+                  {/* section 1 */}
+                  <div className={`px-4 space-y-4 ${isFocused ? 'hidden' : ''}`}>
                     <div onMouseDown={() => setIsFocused(true)}>
                       <SearchField />
                     </div>
-                    {/* {result.length > 0 && (
-                      <>
-                        <div className='flex justify-between items-center'>
-                          <button
-                            onClick={() => {
-                              dispatch(setCenter({ latitude: 16.1532, longitude: 13.1691 }));
-                              dispatch(setZoom(1.5));
-                              setShowSideBar(false);
-                              setSelectedSite(null);
-                            }}
-                            className='px-4 py-2 rounded-full bg-blue-500 text-white'>
-                            All
-                          </button>
-                          <CountryList
-                            data={result}
-                            selectedCountry={selectedCountry}
-                            setSelectedCountry={setSelectedCountry}
-                          />
-                        </div>
-                        <div className='space-y-2 max-h-[445px] overflow-y-scroll map-scrollbar'>
-                          <label className='font-medium text-gray-600 text-sm'>Suggestions</label>
-                          <hr />
-                          {selectedSites.map((sites) => (
-                            <div
-                              key={sites._id}
-                              className={`flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer hover:bg-grey-100 p-2 rounded-lg ${
-                                sites._id === selectedSite?._id ? 'bg-blue-100' : ''
-                              }`}
-                              onClick={() => {
-                                handleLocationSelect(sites);
-                              }}>
-                              <div className='p-2 rounded-full bg-gray-100'>
-                                <LocationIcon />
-                              </div>
-                              <div className='ml-3 flex flex-col item-start border-b w-full relative'>
-                                <span className='font-normal text-black capitalize text-lg overflow-ellipsis overflow-hidden w-full'>
-                                  {sites.name}
-                                </span>
-                                <span className='font-normal text-gray-500 capitalize text-sm mb-2'>
-                                  {sites.region + ',' + sites.country}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                          <hr />
-                        </div>
-                      </>
-                    )} */}
+                    <div className='flex justify-between items-center'>
+                      <button
+                        onClick={() => {
+                          dispatch(setCenter({ latitude: 16.1532, longitude: 13.1691 }));
+                          dispatch(setZoom(1.5));
+                          setShowSideBar(false);
+                          setSelectedSite(null);
+                        }}
+                        className='px-4 py-2 rounded-full bg-blue-500 text-white'>
+                        All
+                      </button>
+                      <CountryList
+                        data={countryData}
+                        selectedCountry={selectedCountry}
+                        setSelectedCountry={setSelectedCountry}
+                      />
+                    </div>
+                    <div className='space-y-4 max-h-[445px] overflow-y-scroll map-scrollbar'>
+                      <label className='font-medium text-gray-600 text-sm'>Suggestions</label>
+                      <SectionCards
+                        searchResults={selectedSites}
+                        handleLocationSelect={handleLocationSelect}
+                      />
+                    </div>
                   </div>
-                ) : (
-                  // Search focused view
-                  <div className='px-4 pt-4'>
+                  {/* Section 2 */}
+                  <div className={`px-4 pt-4 ${isFocused ? '' : 'hidden'}`}>
                     <div className='w-full flex justify-start items-center'>
                       <button
                         onClick={() => setIsFocused(false)}
@@ -270,43 +275,17 @@ const index = () => {
                       </button>
                     </div>
                     <SearchField
-                      data={siteData.sites}
+                      data={siteDetails}
                       onSearch={handleSearch}
                       searchKeys={['city', 'village', 'country']}
                     />
-                    {/* {searchResults.length > 0 ? (
-                      <div className='space-y-2 max-h-[445px] overflow-y-scroll mt-4'>
-                        <label className='font-medium text-gray-600 text-sm'>Results</label>
-                        <hr />
-                        {searchResults.map((grid) => (
-                          <div
-                            key={grid._id}
-                            className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer hover:bg-blue-100 p-2 rounded-lg'
-                            onClick={() => {
-                              handleLocationSelect(grid);
-                            }}>
-                            <div className='p-2 rounded-full bg-gray-100'>
-                              <LocationIcon />
-                            </div>
-                            <div className='ml-3 flex flex-col item-start border-b w-full'>
-                              <span className='font-normal text-black capitalize text-lg'>
-                                {grid.name}
-                              </span>
-                              <span className='font-normal text-gray-500 capitalize text-sm mb-2'>
-                                {grid.region + ',' + grid.country}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                        <hr />
-                      </div>
-                    ) : (
-                      <div className='flex justify-center items-center h-80'>
-                        <p className='text-gray-500 text-sm font-normal'>No results found</p>
-                      </div>
-                    )} */}
+                    <SectionCards
+                      searchResults={searchResults}
+                      handleLocationSelect={handleLocationSelect}
+                    />
                   </div>
-                ))}
+                </>
+              )}
             </div>
           )}
           <div
