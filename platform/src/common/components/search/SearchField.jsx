@@ -28,9 +28,8 @@ const SearchField = ({ data, onSearch, searchKey }) => {
 
   const clearSearch = () => {
     setSearchTerm(''); // Clear the search term
-    if (onSearch) {
-      onSearch(data); // Reset the search results
-    }
+    // i want to clear the suggestions here
+    onSearch([]);
   };
 
   return (
@@ -43,7 +42,6 @@ const SearchField = ({ data, onSearch, searchKey }) => {
         className='input pl-10 text-sm text-secondary-neutral-light-800 w-full h-12 ml-0 rounded-lg bg-white border-input-light-outline focus:border-input-light-outline'
         value={searchTerm}
         onChange={handleSearch}
-        list='suggestions'
       />
       {searchTerm && (
         <span
@@ -52,18 +50,6 @@ const SearchField = ({ data, onSearch, searchKey }) => {
           x
         </span>
       )}
-      <datalist
-        id='suggestions'
-        style={{
-          maxHeight: '200px',
-          overflowY: 'auto',
-          backgroundColor: 'white',
-          boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-        }}>
-        {suggestions.map((item, index) => (
-          <option key={index} value={item[searchKey]} />
-        ))}
-      </datalist>
     </div>
   );
 };

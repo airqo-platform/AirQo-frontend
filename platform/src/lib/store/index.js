@@ -30,13 +30,13 @@ const rootReducer = combineReducers({
   collocation: collocationReducer,
   selectedCollocateDevices: selectedCollocateDevicesReducer,
   collocationData: collocationDataReducer,
-  [mapSlice.name]: mapSlice.reducer,
   [createAccountSlice.name]: createAccountSlice.reducer,
   [userLoginSlice.name]: userLoginSlice.reducer,
   [chartSlice.name]: chartSlice.reducer,
   [gridsSlice.name]: gridsSlice.reducer,
   [defaultsSlice.name]: defaultsSlice.reducer,
   [cardSlice.name]: cardSlice.reducer,
+  map: mapSlice.reducer,
   userDefaults: userDefaultsReducer,
   [recentMeasurementsSlice.name]: recentMeasurementsSlice.reducer,
   checklists: checklistsReducer,
@@ -51,7 +51,7 @@ const store = () =>
     reducer: persistedReducer,
     middleware: getDefaultMiddleware({
       thunk: true,
-      immutableCheck: true,
+      immutableCheck: false,
       serializableCheck: false,
     }),
   });

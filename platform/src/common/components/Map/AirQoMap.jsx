@@ -9,6 +9,7 @@ import { setCenter, setZoom } from '@/lib/store/services/map/MapSlice';
 import LayerModal from './components/LayerModal';
 import MapImage from '@/images/map/dd1.png';
 import Loader from '@/components/Spinner';
+import axios from 'axios';
 
 const mapStyles = [
   { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets', image: MapImage },
@@ -35,32 +36,34 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/streets-v11');
   const [isOpen, setIsOpen] = useState(false);
   const [refresh, setRefresh] = useState(false);
+  const [loading, setLoading] = useState(false);
   const urls = new URL(window.location.href);
   const urlParams = new URLSearchParams(urls.search);
-  const mapdata = useSelector((state) => state.map);
+  const mapData = useSelector((state) => state.map);
 
   const lat = urlParams.get('lat');
   const lng = urlParams.get('lng');
   const zm = urlParams.get('zm');
 
   useEffect(() => {
-    if (mapRef.current && mapdata.center.latitude && mapdata.center.longitude) {
+    if (mapRef.current && mapData.center.latitude && mapData.center.longitude) {
       mapRef.current.flyTo({
-        center: [mapdata.center.longitude, mapdata.center.latitude],
-        zoom: mapdata.zoom,
+        center: [mapData.center.longitude, mapData.center.latitude],
+        zoom: mapData.zoom,
         essential: true,
       });
     }
-  }, [mapdata.center, mapdata.zoom]);
+  }, [mapData.center, mapData.zoom]);
 
+  // Init map
   useEffect(() => {
     mapboxgl.accessToken = mapboxApiAccessToken;
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: mapStyle,
-      center: [lng || mapdata.center.longitude, lat || mapdata.center.latitude],
-      zoom: zm || mapdata.zoom,
+      center: [lng, lat],
+      zoom: zm,
     });
 
     mapRef.current = map;
@@ -86,6 +89,58 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
       dispatch(setZoom(initialState.zoom));
     };
   }, [mapStyle, mapboxApiAccessToken]);
+
+  // Boundaries for a country
+  useEffect(() => {
+    const map = mapRef.current;
+
+    if (map) {
+      setLoading(true);
+
+      if (map.getLayer('country-boundaries')) {
+        map.removeLayer('country-boundaries');
+      }
+
+      if (map.getSource('country-boundaries')) {
+        map.removeSource('country-boundaries');
+      }
+
+      fetch(
+        `https://nominatim.openstreetmap.org/search?country=${mapData.country}&polygon_geojson=1&format=json`,
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          setLoading(false);
+
+          if (data && data.length > 0) {
+            const boundaryData = data[0].geojson;
+
+            map.addSource('country-boundaries', {
+              type: 'geojson',
+              data: boundaryData,
+            });
+
+            map.addLayer({
+              id: 'country-boundaries',
+              type: 'fill',
+              source: 'country-boundaries',
+              paint: {
+                'fill-color': '#0000FF', // Blue color
+                'fill-opacity': 0.2, // Lower opacity for a more transparent fill
+                'fill-outline-color': '#0000FF', // Blue color for the boundary line
+              },
+            });
+
+            const { lat, lon } = data[0];
+            map.flyTo({ center: [lon, lat], zoom: 5 });
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching country boundaries:', error);
+          setLoading(false);
+        });
+    }
+  }, [mapData.country]);
 
   // generate code to close dropdown when clicked outside
   useEffect(() => {
@@ -131,18 +186,19 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
       {/* Map */}
       <div ref={mapContainerRef} className={customStyle} />
       {/* Loader */}
-      {refresh && (
-        <div
-          className={`absolute inset-0 flex items-center justify-center z-40 ${
-            showSideBar ? 'ml-96' : ''
-          }`}>
-          <div className='bg-white w-[70px] h-[70px] flex justify-center items-center rounded-md shadow-md'>
-            <span className='ml-2'>
-              <Loader width={32} height={32} />
-            </span>
+      {refresh ||
+        (loading && (
+          <div
+            className={`absolute inset-0 flex items-center justify-center z-40 ${
+              showSideBar ? 'ml-96' : ''
+            }`}>
+            <div className='bg-white w-[70px] h-[70px] flex justify-center items-center rounded-md shadow-md'>
+              <span className='ml-2'>
+                <Loader width={32} height={32} />
+              </span>
+            </div>
           </div>
-        </div>
-      )}
+        ))}
       {/* Map control buttons */}
       <div className='absolute top-4 right-0'>
         <div className='flex flex-col gap-4'>

@@ -1,13 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import {
-  getAllGridLocationsApi,
-  getSiteSummaryDetails,
-  getGridLocationDetails,
-} from '@/core/apis/DeviceRegistry';
+import { getSiteSummaryDetails, getGridLocationDetails } from '@/core/apis/DeviceRegistry';
 
 const initialState = {
   gridLocationDetails: {},
-  gridLocations: [],
   sitesSummary: [],
   success: false,
   errors: null,
@@ -16,11 +11,6 @@ const initialState = {
 
 export const getGridLocation = createAsyncThunk('/get/grid', async (gridID) => {
   const response = await getGridLocationDetails(gridID);
-  return response;
-});
-
-export const getAllGridLocations = createAsyncThunk('/get/grids', async () => {
-  const response = await getAllGridLocationsApi();
   return response;
 });
 
@@ -39,17 +29,6 @@ export const gridsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getAllGridLocations.fulfilled, (state, action) => {
-        state.gridLocations = action.payload.grids;
-        state.success = action.payload.success;
-      })
-      .addCase(getAllGridLocations.pending, (state) => {
-        state.success = false;
-      })
-      .addCase(getAllGridLocations.rejected, (state, action) => {
-        state.errors = action.payload;
-        state.success = action.payload.success;
-      })
       .addCase(getSitesSummary.fulfilled, (state, action) => {
         state.sitesSummary = action.payload;
         state.success = action.payload.success;

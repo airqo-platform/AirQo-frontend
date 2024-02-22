@@ -1,6 +1,7 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
+  country: '',
   center: {
     latitude: 0.3201412790664193,
     longitude: 32.56389785939493,
@@ -18,7 +19,10 @@ export const mapSlice = createSlice({
     setZoom: (state, action) => {
       state.zoom = action.payload;
     },
+    setCountry: (state, action) => {
+      state.country = action.payload;
+    },
   },
 });
 
-export const { setCenter, setZoom } = mapSlice.actions;
+export const { setCenter, setZoom, setCountry } = mapSlice.actions;
