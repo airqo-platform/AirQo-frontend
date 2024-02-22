@@ -171,20 +171,20 @@ const index = () => {
   };
 
   // Assuming siteDetails and allCountries are defined
-  // let uniqueCountries = [];
-  // let result = [];
+  let uniqueCountries = [];
+  let countryData = [];
 
-  // siteDetails.forEach((site) => {
-  //   if (!uniqueCountries.includes(site.country)) {
-  //     uniqueCountries.push(site.country);
-  //     let countryDetails = allCountries.find((data) => data.country === site.country);
-  //     if (countryDetails) {
-  //       result.push({ ...site, ...countryDetails });
-  //     } else {
-  //       result.push(site);
-  //     }
-  //   }
-  // });
+  siteDetails.forEach((site) => {
+    if (!uniqueCountries.includes(site.country)) {
+      uniqueCountries.push(site.country);
+      let countryDetails = allCountries.find((data) => data.country === site.country);
+      if (countryDetails) {
+        countryData.push({ ...site, ...countryDetails });
+      } else {
+        return;
+      }
+    }
+  });
 
   // console.log(result);
 
@@ -227,7 +227,7 @@ const index = () => {
                         All
                       </button>
                       <CountryList
-                        data={filteredCountries}
+                        data={countryData}
                         selectedCountry={selectedCountry}
                         setSelectedCountry={setSelectedCountry}
                       />
