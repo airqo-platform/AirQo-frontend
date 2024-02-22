@@ -9,7 +9,7 @@ import HomeIcon from '@/icons/map/homeIcon';
 import { useRouter } from 'next/router';
 import { AirQualityLegend } from '@/components/Map/components/Legend';
 import allCountries from '@/components/Map/components/countries';
-import SearchField from '@/components/Search/SearchField';
+import SearchField from '@/components/search/SearchField';
 import { getSitesSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
 
 const countries = [
