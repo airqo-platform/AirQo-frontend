@@ -132,37 +132,37 @@ const index = () => {
   };
 
   let seenCountries = new Set();
+  const result = [];
+  // const result = sites
+  //   .map((grid) => {
+  //     // Check if grid and grid.country exist
+  //     if (grid && grid.country) {
+  //       const lowerCaseCountry = grid.country.toLowerCase();
 
-  const result = sites
-    .map((grid) => {
-      // Check if grid and grid.country exist
-      if (grid && grid.country) {
-        const lowerCaseCountry = grid.country.toLowerCase();
+  //       // Skip if this country has already been processed
+  //       if (seenCountries.has(lowerCaseCountry)) {
+  //         return null;
+  //       }
 
-        // Skip if this country has already been processed
-        if (seenCountries.has(lowerCaseCountry)) {
-          return null;
-        }
+  //       seenCountries.add(lowerCaseCountry);
 
-        seenCountries.add(lowerCaseCountry);
+  //       const matchingCountry = allCountries.find(
+  //         (country) => country.country.toLowerCase() === lowerCaseCountry,
+  //       );
 
-        const matchingCountry = allCountries.find(
-          (country) => country.country.toLowerCase() === lowerCaseCountry,
-        );
+  //       if (matchingCountry) {
+  //         return {
+  //           ...grid,
+  //           flag: matchingCountry.flag,
+  //           country: matchingCountry.country,
+  //           code: matchingCountry.code,
+  //         };
+  //       }
+  //     }
 
-        if (matchingCountry) {
-          return {
-            ...grid,
-            flag: matchingCountry.flag,
-            country: matchingCountry.country,
-            code: matchingCountry.code,
-          };
-        }
-      }
-
-      return null;
-    })
-    .filter((item) => item !== null);
+  //     return null;
+  //   })
+  //   .filter((item) => item !== null);
 
   return (
     <Layout noTopNav={false}>
