@@ -57,7 +57,6 @@ const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
                 country: country.country,
               }),
             );
-            dispatch(setZoom(5));
           }}>
           <img src={country.flag} alt={country.country} width={20} height={20} />
           <span>{country.country}</span>
@@ -126,7 +125,6 @@ const index = () => {
           city: data.city,
         }),
       );
-      dispatch(setZoom(11));
       setSelectedSite(data);
     } else {
       console.error('Invalid data:', data);

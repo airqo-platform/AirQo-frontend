@@ -26,9 +26,12 @@ const SearchField = ({ data, onSearch, searchKeys = [] }) => {
       const searchValue = searchEvent.target.value;
       setSearchTerm(searchValue);
       const searchResults = fuse.search(searchValue);
-      onSearch(searchResults.map((result) => result.item));
+      if (searchResults) {
+        onSearch(searchResults.map((result) => result.item));
+      } else {
+        onSearch([]);
+      }
     } catch (err) {
-      setError('An error occurred while searching. Please try again.');
       console.error('Error searching:', err);
     }
   };

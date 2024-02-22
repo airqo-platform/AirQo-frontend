@@ -78,7 +78,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
         const geolocateControl = new CustomGeolocateControl();
         map.addControl(geolocateControl, 'bottom-right');
       } catch (error) {
-        console.log('Error adding map controls', error);
+        console.error('Error adding map controls:', error);
       }
     });
 
@@ -92,10 +92,9 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   // Boundaries for a country
   useEffect(() => {
     const map = mapRef.current;
+    setLoading(true);
 
     if (map) {
-      setLoading(true);
-
       if (map.getLayer('location-boundaries')) {
         map.removeLayer('location-boundaries');
       }
@@ -114,7 +113,12 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
           queryString,
         )}&polygon_geojson=1&format=json`,
       )
-        .then((response) => response.json())
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
         .then((data) => {
           setLoading(false);
 
@@ -138,7 +142,10 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
             });
 
             const { lat, lon } = data[0];
-            map.flyTo({ center: [lon, lat], zoom: mapData.zoom || 13, essential: true });
+            map.flyTo({
+              center: [lon, lat],
+              zoom: mapData.location.city && mapData.location.country ? 10 : 5,
+            });
 
             // Add zoomend event listener
             map.on('zoomend', function () {
