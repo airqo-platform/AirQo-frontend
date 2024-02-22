@@ -1,34 +1,40 @@
 import React, { useState, useMemo } from 'react';
+import Fuse from 'fuse.js';
 import SearchIcon from '@/icons/Common/search_md.svg';
 
-const SearchField = ({ data, onSearch, searchKey }) => {
+const SearchField = ({ data, onSearch, searchKeys = [] }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const handleSearch = (event) => {
-    const term = event.target.value;
-    setSearchTerm(term);
-    if (onSearch) {
-      const results = data.filter(
-        (item) =>
-          typeof item === 'object' &&
-          item !== null &&
-          searchKey in item &&
-          item[searchKey].toLowerCase().includes(term.toLowerCase()),
-      );
-      onSearch(results);
+  const fuse = useMemo(
+    () =>
+      new Fuse(data, {
+        keys: searchKeys,
+        isCaseSensitive: false,
+        includeScore: true,
+        shouldSort: true,
+        includeMatches: true,
+        threshold: 0.6,
+        location: 0,
+        distance: 100,
+        minMatchCharLength: 1,
+      }),
+    [data, searchKeys],
+  );
+
+  const handleSearch = (searchEvent) => {
+    try {
+      const searchValue = searchEvent.target.value;
+      setSearchTerm(searchValue);
+      const searchResults = fuse.search(searchValue);
+      onSearch(searchResults.map((result) => result.item));
+    } catch (err) {
+      setError('An error occurred while searching. Please try again.');
+      console.error('Error searching:', err);
     }
   };
 
-  const suggestions = useMemo(
-    () =>
-      data?.filter((item) => item[searchKey].toLowerCase().includes(searchTerm.toLowerCase())) ||
-      [],
-    [searchTerm, data, searchKey],
-  );
-
   const clearSearch = () => {
-    setSearchTerm(''); // Clear the search term
-    // i want to clear the suggestions here
+    setSearchTerm('');
     onSearch([]);
   };
 
@@ -39,7 +45,7 @@ const SearchField = ({ data, onSearch, searchKey }) => {
       </div>
       <input
         placeholder='Search Villages, Cities or Country'
-        className='input pl-10 text-sm text-secondary-neutral-light-800 w-full h-12 ml-0 rounded-lg bg-white border-input-light-outline focus:border-input-light-outline'
+        className='input pl-10 text-sm text-secondary-neutral-light-800 w-full h-12 ml-0 rounded-lg bg-white border-input-light-outline focus:border-input-light-outline focus:ring-2 focus:ring-light-blue-500'
         value={searchTerm}
         onChange={handleSearch}
       />
@@ -54,4 +60,4 @@ const SearchField = ({ data, onSearch, searchKey }) => {
   );
 };
 
-export default React.memo(SearchField);
+export default SearchField;

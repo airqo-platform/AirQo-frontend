@@ -10,7 +10,7 @@ import { AirQualityLegend } from '@/components/Map/components/Legend';
 import allCountries from '@/components/Map/components/countries';
 import { getSitesSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import { setCenter, setZoom, setLocation } from '@/lib/store/services/map/MapSlice';
-import SearchComponent from '@/components/search/SearchField';
+import SearchField from '@/components/search/SearchField';
 
 const MAP_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -114,6 +114,10 @@ const index = () => {
     setSelectedTab(tab);
   };
 
+  const handleSearch = (results) => {
+    setSearchResults(results);
+  };
+
   const handleLocationSelect = (data) => {
     if (data && 'latitude' in data && 'longitude' in data) {
       dispatch(
@@ -187,7 +191,7 @@ const index = () => {
                 (!isFocused ? (
                   <div className='px-4 space-y-4'>
                     <div onMouseDown={() => setIsFocused(true)}>
-                      <SearchComponent />
+                      <SearchField />
                     </div>
                     {result.length > 0 && (
                       <>
@@ -248,12 +252,10 @@ const index = () => {
                         Back
                       </button>
                     </div>
-                    <SearchComponent
-                      data={result}
-                      onSearch={(e) => {
-                        setSearchResults(e);
-                      }}
-                      searchKey={'search_name'}
+                    <SearchField
+                      data={sites}
+                      onSearch={handleSearch}
+                      searchKeys={['city', 'village', 'country']}
                     />
                     {searchResults.length > 0 ? (
                       <div className='space-y-2 max-h-[445px] overflow-y-scroll mt-4'>

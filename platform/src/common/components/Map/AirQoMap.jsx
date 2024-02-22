@@ -87,7 +87,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
       dispatch(setCenter(initialState.center));
       dispatch(setZoom(initialState.zoom));
     };
-  }, [mapStyle, mapboxApiAccessToken]);
+  }, [mapStyle, mapboxApiAccessToken, refresh]);
 
   // Boundaries for a country
   useEffect(() => {
@@ -104,13 +104,11 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
         map.removeSource('location-boundaries');
       }
 
-      // Construct the query string based on the available data
       let queryString = mapData.location.country;
       if (mapData.location.city) {
         queryString = mapData.location.city + ', ' + queryString;
       }
 
-      // Fetch GeoJSON data from OpenStreetMap API for a specific location within a country
       fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
           queryString,
@@ -141,6 +139,14 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
 
             const { lat, lon } = data[0];
             map.flyTo({ center: [lon, lat], zoom: mapData.zoom || 13, essential: true });
+
+            // Add zoomend event listener
+            map.on('zoomend', function () {
+              const zoom = map.getZoom();
+              // Adjust fill opacity based on zoom level
+              const opacity = zoom > 12 ? 0 : 0.2;
+              map.setPaintProperty('location-boundaries', 'fill-opacity', opacity);
+            });
           }
         })
         .catch((error) => {
@@ -165,7 +171,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   const refreshMap = () => {
     const map = mapRef.current;
     map.setStyle(map.getStyle());
-    // setRefresh(!refresh);
+    setRefresh(!refresh);
   };
 
   const shareLocation = () => {
