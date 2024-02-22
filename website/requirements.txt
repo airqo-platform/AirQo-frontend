@@ -14,3 +14,5 @@ invoke
 psycopg2-binary
 django-storages[google]
 gunicorn
+django-modeltranslation
+python-dotenv

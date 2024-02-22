@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Pagination from './pagination';
 import Post from './post';
 import { useHighlightsData } from '../../../reduxStore/Highlights/selectors';
@@ -9,11 +9,12 @@ import ImageLoader from '../LoadSpinner/ImageLoader';
 const HighlightsSection = () => {
   const dispatch = useDispatch();
   const highlightsData = useHighlightsData();
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   useEffect(() => {
     dispatch(loadTagsData());
     dispatch(loadHighlightsData());
-  }, [highlightsData.length]);
+  }, [highlightsData.length, language]);
 
   const highlights = highlightsData.slice(0, 3);
 
@@ -76,7 +77,7 @@ const HighlightsSection = () => {
           </div>
         </div>
       ) : (
-        <span/>
+        <span />
       )}
     </>
   );

@@ -24,7 +24,11 @@ const categoryMapper = {
   developer: 'developers'
 };
 
-const BoxWrapper = ({ children }) => <div className="GetInvolvedModalWrapper">{children}</div>;
+const BoxWrapper = React.forwardRef(({ children }, ref) => (
+  <div ref={ref} className="GetInvolvedModalWrapper">
+    {children}
+  </div>
+));
 
 const GetInvolvedTab = ({ icon, category, infoText }) => {
   const dispatch = useDispatch();
@@ -244,7 +248,7 @@ const GetInvolvedModal = () => {
 
   return (
     <Modal open={getInvolvedData.openModal} onClose={hideModal}>
-      <BoxWrapper>
+      <BoxWrapper tabIndex={-1}>
         <Box className="GetInvolvedModal">
           {!getInvolvedData.complete && <GetInvolvedRegistryContent />}
           {getInvolvedData.complete && <GetInvolvedComplete t={t} />}

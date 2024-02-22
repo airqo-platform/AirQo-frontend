@@ -7,8 +7,9 @@ const initialState = {
   error: null
 };
 
-export const loadPressData = createAsyncThunk('get/press', async () => {
-  const response = await getAllPressApi();
+export const loadPressData = createAsyncThunk('get/press', async (_, thunkAPI) => {
+  const lang = thunkAPI.getState().eventsNavTab.languageTab;
+  const response = await getAllPressApi(lang);
   return response;
 });
 
@@ -33,7 +34,7 @@ const pressSlice = createSlice({
         state.error = action.error.message;
         state.loading = false;
       });
-  },
+  }
 });
 
 export const { getPressData } = pressSlice.actions;
