@@ -210,7 +210,7 @@ const index = () => {
                     <div onMouseDown={() => setIsFocused(true)}>
                       <SearchField />
                     </div>
-                    {result.length > 0 && (
+                    {/* {result.length > 0 && (
                       <>
                         <div className='flex justify-between items-center'>
                           <button
@@ -257,7 +257,7 @@ const index = () => {
                           <hr />
                         </div>
                       </>
-                    )}
+                    )} */}
                   </div>
                 ) : (
                   // Search focused view
@@ -270,11 +270,11 @@ const index = () => {
                       </button>
                     </div>
                     <SearchField
-                      data={sites}
+                      data={siteData.sites}
                       onSearch={handleSearch}
                       searchKeys={['city', 'village', 'country']}
                     />
-                    {searchResults.length > 0 ? (
+                    {/* {searchResults.length > 0 ? (
                       <div className='space-y-2 max-h-[445px] overflow-y-scroll mt-4'>
                         <label className='font-medium text-gray-600 text-sm'>Results</label>
                         <hr />
@@ -304,7 +304,7 @@ const index = () => {
                       <div className='flex justify-center items-center h-80'>
                         <p className='text-gray-500 text-sm font-normal'>No results found</p>
                       </div>
-                    )}
+                    )} */}
                   </div>
                 ))}
             </div>
