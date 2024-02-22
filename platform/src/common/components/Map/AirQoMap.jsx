@@ -1,68 +1,41 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
 import mapboxgl from 'mapbox-gl';
 import LayerIcon from '@/icons/map/layerIcon';
 import RefreshIcon from '@/icons/map/refreshIcon';
 import ShareIcon from '@/icons/map/shareIcon';
 import { CustomGeolocateControl, CustomZoomControl } from './components/MapControls';
-import { setCenter, setZoom } from '@/lib/store/services/map/MapSlice';
-import LayerModal from './components/LayerModal';
-import MapImage from '@/images/map/dd1.png';
-import Loader from '@/components/Spinner';
 
-const mapStyles = [
-  { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets', image: MapImage },
-  // { url: 'mapbox://styles/mapbox/outdoors-v11', name: 'Outdoors' },
-  { url: 'mapbox://styles/mapbox/light-v10', name: 'Light', image: MapImage },
-  { url: 'mapbox://styles/mapbox/dark-v10', name: 'Dark', image: MapImage },
-  { url: 'mapbox://styles/mapbox/satellite-v9', name: 'Satellite', image: MapImage },
-  // { url: 'mapbox://styles/mapbox/satellite-streets-v11', name: 'Satellite Streets' },
-];
-
-const initialState = {
-  center: {
-    latitude: 0.3201,
-    longitude: 32.5638,
-  },
-  zoom: 12,
-};
-
-const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
-  const dispatch = useDispatch();
+const AirQoMap = ({
+  latitude = 0.3201412790664193,
+  longitude = 32.56389785939493,
+  zoom = 13,
+  customStyle,
+  mapboxApiAccessToken,
+}) => {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const dropdownRef = useRef(null);
   const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/streets-v11');
   const [isOpen, setIsOpen] = useState(false);
   const [refresh, setRefresh] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const urls = new URL(window.location.href);
-  const urlParams = new URLSearchParams(urls.search);
-  const mapData = useSelector((state) => state.map);
 
-  const lat = urlParams.get('lat');
-  const lng = urlParams.get('lng');
-  const zm = urlParams.get('zm');
+  const mapStyles = [
+    { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets' },
+    { url: 'mapbox://styles/mapbox/outdoors-v11', name: 'Outdoors' },
+    { url: 'mapbox://styles/mapbox/light-v10', name: 'Light' },
+    { url: 'mapbox://styles/mapbox/dark-v10', name: 'Dark' },
+    { url: 'mapbox://styles/mapbox/satellite-v9', name: 'Satellite' },
+    { url: 'mapbox://styles/mapbox/satellite-streets-v11', name: 'Satellite Streets' },
+  ];
 
-  useEffect(() => {
-    if (mapRef.current && mapData.center.latitude && mapData.center.longitude) {
-      mapRef.current.flyTo({
-        center: [mapData.center.longitude, mapData.center.latitude],
-        zoom: mapData.zoom,
-        essential: true,
-      });
-    }
-  }, [mapData.center, mapData.zoom]);
-
-  // Init map
   useEffect(() => {
     mapboxgl.accessToken = mapboxApiAccessToken;
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: mapStyle,
-      center: [lng || mapData.center.longitude, lat || mapData.center.latitude],
-      zoom: zm || mapData.zoom,
+      center: [longitude, latitude],
+      zoom: zoom,
     });
 
     mapRef.current = map;
@@ -78,90 +51,14 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
         const geolocateControl = new CustomGeolocateControl();
         map.addControl(geolocateControl, 'bottom-right');
       } catch (error) {
-        console.error('Error adding map controls:', error);
+        console.log('Error adding map controls', error);
       }
     });
 
     return () => {
       map.remove();
-      dispatch(setCenter(initialState.center));
-      dispatch(setZoom(initialState.zoom));
     };
   }, [mapStyle, mapboxApiAccessToken, refresh]);
-
-  // Boundaries for a country
-  useEffect(() => {
-    const map = mapRef.current;
-
-    if (map) {
-      setLoading(true);
-      if (map.getLayer('location-boundaries')) {
-        map.removeLayer('location-boundaries');
-      }
-
-      if (map.getSource('location-boundaries')) {
-        map.removeSource('location-boundaries');
-      }
-
-      let queryString = mapData.location.country;
-      if (mapData.location.city) {
-        queryString = mapData.location.city + ', ' + queryString;
-      }
-
-      fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-          queryString,
-        )}&polygon_geojson=1&format=json`,
-      )
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((data) => {
-          setLoading(false);
-
-          if (data && data.length > 0) {
-            const boundaryData = data[0].geojson;
-
-            map.addSource('location-boundaries', {
-              type: 'geojson',
-              data: boundaryData,
-            });
-
-            map.addLayer({
-              id: 'location-boundaries',
-              type: 'fill',
-              source: 'location-boundaries',
-              paint: {
-                'fill-color': '#0000FF',
-                'fill-opacity': 0.2,
-                'fill-outline-color': '#0000FF',
-              },
-            });
-
-            const { lat, lon } = data[0];
-            map.flyTo({
-              center: [lon, lat],
-              zoom: mapData.location.city && mapData.location.country ? 10 : 5,
-            });
-
-            // Add zoomend event listener
-            map.on('zoomend', function () {
-              const zoom = map.getZoom();
-              // Adjust fill opacity based on zoom level
-              const opacity = zoom > 10 ? 0 : 0.2;
-              map.setPaintProperty('location-boundaries', 'fill-opacity', opacity);
-            });
-          }
-        })
-        .catch((error) => {
-          console.error('Error fetching location boundaries:', error);
-          setLoading(false);
-        });
-    }
-  }, [mapData.location]);
 
   // generate code to close dropdown when clicked outside
   useEffect(() => {
@@ -203,24 +100,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   };
 
   return (
-    <div className='relative w-auto h-auto'>
-      {/* Map */}
+    <>
       <div ref={mapContainerRef} className={customStyle} />
-      {/* Loader */}
-      {refresh ||
-        (loading && (
-          <div
-            className={`absolute inset-0 flex items-center justify-center z-40 ${
-              showSideBar ? 'ml-96' : ''
-            }`}>
-            <div className='bg-white w-[70px] h-[70px] flex justify-center items-center rounded-md shadow-md'>
-              <span className='ml-2'>
-                <Loader width={32} height={32} />
-              </span>
-            </div>
-          </div>
-        ))}
-      {/* Map control buttons */}
       <div className='absolute top-4 right-0'>
         <div className='flex flex-col gap-4'>
           <div className='relative'>
@@ -231,15 +112,25 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
                 className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
                 <LayerIcon />
               </button>
-              <LayerModal
-                isOpen={isOpen}
-                onClose={() => setIsOpen(false)}
-                mapStyles={mapStyles}
-                showSideBar={showSideBar}
-                onStyleSelect={(style) => {
-                  setMapStyle(style.url);
-                }}
-              />
+              {isOpen && (
+                <div className='origin-top-right absolute right-2 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5'>
+                  <div
+                    className='py-1 w-full'
+                    role='menu'
+                    aria-orientation='vertical'
+                    aria-labelledby='options-menu'>
+                    {mapStyles.map((style, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setMapStyle(style.url)}
+                        className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                        role='menuitem'>
+                        {style.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           <button
@@ -256,7 +147,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
