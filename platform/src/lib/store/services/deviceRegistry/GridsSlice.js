@@ -29,26 +29,30 @@ export const gridsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(getSitesSummary.pending, (state) => {
+        state.success = false;
+        state.errors = null;
+        state.sitesSummary = [];
+      })
       .addCase(getSitesSummary.fulfilled, (state, action) => {
         state.sitesSummary = action.payload;
         state.success = action.payload.success;
       })
-      .addCase(getSitesSummary.pending, (state) => {
+      .addCase(getSitesSummary.rejected, (state, action) => {
+        state.errors = action.error.message;
         state.success = false;
       })
-      .addCase(getSitesSummary.rejected, (state, action) => {
-        state.errors = action.payload;
+      .addCase(getGridLocation.pending, (state) => {
         state.success = false;
+        state.errors = null;
+        state.gridLocationDetails = {};
       })
       .addCase(getGridLocation.fulfilled, (state, action) => {
         state.gridLocationDetails = action.payload;
         state.success = action.payload.success;
       })
-      .addCase(getGridLocation.pending, (state) => {
-        state.success = false;
-      })
       .addCase(getGridLocation.rejected, (state, action) => {
-        state.errors = action.payload;
+        state.errors = action.error.message;
         state.success = false;
       });
   },

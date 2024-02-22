@@ -92,9 +92,9 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   // Boundaries for a country
   useEffect(() => {
     const map = mapRef.current;
-    setLoading(true);
 
     if (map) {
+      setLoading(true);
       if (map.getLayer('location-boundaries')) {
         map.removeLayer('location-boundaries');
       }
@@ -151,7 +151,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
             map.on('zoomend', function () {
               const zoom = map.getZoom();
               // Adjust fill opacity based on zoom level
-              const opacity = zoom > 12 ? 0 : 0.2;
+              const opacity = zoom > 10 ? 0 : 0.2;
               map.setPaintProperty('location-boundaries', 'fill-opacity', opacity);
             });
           }

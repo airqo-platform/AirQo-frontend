@@ -18,9 +18,10 @@ export const mapSlice = createSlice({
   reducers: {
     setCenter: (state, action) => {
       if (action.payload && action.payload.latitude && action.payload.longitude) {
-        state.center = action.payload;
+        state.center = { ...state.center, ...action.payload };
       }
     },
+
     setZoom: (state, action) => {
       if (action.payload && typeof action.payload === 'number') {
         state.zoom = action.payload;

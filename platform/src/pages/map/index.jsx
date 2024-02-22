@@ -43,7 +43,7 @@ const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
   const sortedData = [...data].sort((a, b) => a.country.localeCompare(b.country));
 
   return (
-    <div className='flex space-x-4 overflow-x-auto py-4 ml-4'>
+    <div className='flex space-x-4 overflow-x-auto py-4 ml-4 map-scrollbar'>
       {sortedData.map((country, index) => (
         <div
           key={index}
@@ -210,7 +210,7 @@ const index = () => {
                             setSelectedCountry={setSelectedCountry}
                           />
                         </div>
-                        <div className='space-y-2 max-h-[445px] overflow-y-scroll'>
+                        <div className='space-y-2 max-h-[445px] overflow-y-scroll map-scrollbar'>
                           <label className='font-medium text-gray-600 text-sm'>Suggestions</label>
                           <hr />
                           {selectedSites.map((sites) => (

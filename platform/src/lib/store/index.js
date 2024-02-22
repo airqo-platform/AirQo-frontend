@@ -51,7 +51,7 @@ const store = () =>
     reducer: persistedReducer,
     middleware: getDefaultMiddleware({
       thunk: true,
-      immutableCheck: false,
+      immutableCheck: true,
       serializableCheck: false,
     }),
   });
