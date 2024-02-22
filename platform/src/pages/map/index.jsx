@@ -12,10 +12,12 @@ import { getSitesSummary } from '@/lib/store/services/deviceRegistry/GridsSlice'
 import { setCenter, setZoom, setLocation } from '@/lib/store/services/map/MapSlice';
 import SearchField from '@/components/search/SearchField';
 
-const MAP_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-
 // tab selector
 const TabSelector = ({ selectedTab, setSelectedTab }) => {
+  if (typeof setSelectedTab !== 'function') {
+    console.error('Invalid prop: setSelectedTab must be a function');
+    return null;
+  }
   return (
     <div className='mt-6'>
       <div className='flex flex-row justify-center items-center bg-secondary-neutral-light-25 rounded-md border border-secondary-neutral-light-50 p-1'>
@@ -41,6 +43,11 @@ const TabSelector = ({ selectedTab, setSelectedTab }) => {
 // country list
 const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
   const dispatch = useDispatch();
+
+  if (typeof setSelectedCountry !== 'function') {
+    console.error('Invalid prop: setSelectedCountry must be a function');
+    return null;
+  }
 
   let sortedData = [];
   try {
@@ -122,20 +129,22 @@ const index = () => {
   const [selectedTab, setSelectedTab] = useState('locations');
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedSite, setSelectedSite] = useState(null);
-  const siteData = useSelector((state) => state.grids.sitesSummary);
+  const siteData = useSelector((state) => state.grids?.sitesSummary);
   const [isFocused, setIsFocused] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const isAdmin = true;
-  const preferenceData = useSelector((state) => state.defaults.individual_preferences);
+  const preferenceData = useSelector((state) => state.defaults?.individual_preferences);
 
   // getting user selected sites
-  const selectedSites = preferenceData?.map((pref) => pref.selected_sites).flat();
+  const selectedSites = preferenceData
+    ? preferenceData.map((pref) => pref.selected_sites).flat()
+    : [];
 
-  // site details
-  const siteDetails = siteData.sites;
+  // site details with a check for siteData and siteData.sites being defined
+  const siteDetails = siteData?.sites || [];
 
   useEffect(() => {
-    if (siteData.sites.length === 0) {
+    if (siteDetails.length === 0) {
       try {
         dispatch(getSitesSummary());
       } catch (error) {
@@ -203,7 +212,10 @@ const index = () => {
   siteDetails.forEach((site) => {
     if (!uniqueCountries.includes(site.country)) {
       uniqueCountries.push(site.country);
-      let countryDetails = allCountries.find((data) => data.country === site.country);
+
+      // Added a check for allCountries being defined
+      let countryDetails = allCountries?.find((data) => data.country === site.country);
+
       if (countryDetails) {
         countryData.push({ ...site, ...countryDetails });
       } else {
@@ -314,7 +326,7 @@ const index = () => {
         </>
         <AirQoMap
           showSideBar={showSideBar}
-          mapboxApiAccessToken={MAP_ACCESS_TOKEN}
+          mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
           customStyle='flex-grow h-screen w-full relative bg-[#e6e4e0]'
         />
       </div>
