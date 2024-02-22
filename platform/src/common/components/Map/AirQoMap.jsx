@@ -9,7 +9,6 @@ import { setCenter, setZoom } from '@/lib/store/services/map/MapSlice';
 import LayerModal from './components/LayerModal';
 import MapImage from '@/images/map/dd1.png';
 import Loader from '@/components/Spinner';
-import axios from 'axios';
 
 const mapStyles = [
   { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets', image: MapImage },
@@ -25,7 +24,7 @@ const initialState = {
     latitude: 0.3201412790664193,
     longitude: 32.56389785939493,
   },
-  zoom: 13,
+  zoom: 12,
 };
 
 const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
@@ -97,16 +96,25 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
     if (map) {
       setLoading(true);
 
-      if (map.getLayer('country-boundaries')) {
-        map.removeLayer('country-boundaries');
+      if (map.getLayer('location-boundaries')) {
+        map.removeLayer('location-boundaries');
       }
 
-      if (map.getSource('country-boundaries')) {
-        map.removeSource('country-boundaries');
+      if (map.getSource('location-boundaries')) {
+        map.removeSource('location-boundaries');
       }
 
+      // Construct the query string based on the available data
+      let queryString = mapData.location.country;
+      if (mapData.location.city) {
+        queryString = mapData.location.city + ', ' + queryString;
+      }
+
+      // Fetch GeoJSON data from OpenStreetMap API for a specific location within a country
       fetch(
-        `https://nominatim.openstreetmap.org/search?country=${mapData.country}&polygon_geojson=1&format=json`,
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+          queryString,
+        )}&polygon_geojson=1&format=json`,
       )
         .then((response) => response.json())
         .then((data) => {
@@ -115,32 +123,32 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
           if (data && data.length > 0) {
             const boundaryData = data[0].geojson;
 
-            map.addSource('country-boundaries', {
+            map.addSource('location-boundaries', {
               type: 'geojson',
               data: boundaryData,
             });
 
             map.addLayer({
-              id: 'country-boundaries',
+              id: 'location-boundaries',
               type: 'fill',
-              source: 'country-boundaries',
+              source: 'location-boundaries',
               paint: {
-                'fill-color': '#0000FF', // Blue color
-                'fill-opacity': 0.2, // Lower opacity for a more transparent fill
-                'fill-outline-color': '#0000FF', // Blue color for the boundary line
+                'fill-color': '#0000FF',
+                'fill-opacity': 0.2,
+                'fill-outline-color': '#0000FF',
               },
             });
 
             const { lat, lon } = data[0];
-            map.flyTo({ center: [lon, lat], zoom: 5 });
+            map.flyTo({ center: [lon, lat], zoom: mapData.zoom || 13, essential: true });
           }
         })
         .catch((error) => {
-          console.error('Error fetching country boundaries:', error);
+          console.error('Error fetching location boundaries:', error);
           setLoading(false);
         });
     }
-  }, [mapData.country]);
+  }, [mapData.location]);
 
   // generate code to close dropdown when clicked outside
   useEffect(() => {

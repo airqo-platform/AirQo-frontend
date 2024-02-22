@@ -9,7 +9,7 @@ import { useRouter } from 'next/router';
 import { AirQualityLegend } from '@/components/Map/components/Legend';
 import allCountries from '@/components/Map/components/countries';
 import { getSitesSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
-import { setCenter, setZoom, setCountry } from '@/lib/store/services/map/MapSlice';
+import { setCenter, setZoom, setLocation } from '@/lib/store/services/map/MapSlice';
 import SearchComponent from '@/components/search/SearchField';
 
 const MAP_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -51,15 +51,13 @@ const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
             selectedCountry?.country === country.country ? 'border-2 border-blue-400' : ''
           }`}
           onClick={() => {
-            // dispatch(
-            //   setCenter({
-            //     latitude: country.latitude,
-            //     longitude: country.longitude,
-            //   }),
-            // );
-            // dispatch(setZoom(5));
             setSelectedCountry(country);
-            dispatch(setCountry(country.country));
+            dispatch(
+              setLocation({
+                country: country.country,
+              }),
+            );
+            dispatch(setZoom(5));
           }}>
           <img src={country.flag} alt={country.country} width={20} height={20} />
           <span>{country.country}</span>
@@ -118,12 +116,13 @@ const index = () => {
 
   const handleLocationSelect = (data) => {
     if (data && 'latitude' in data && 'longitude' in data) {
-      const newData = {
-        latitude: data.latitude,
-        longitude: data.longitude,
-      };
-      dispatch(setCenter(newData));
-      dispatch(setZoom(13));
+      dispatch(
+        setLocation({
+          country: data.country,
+          city: data.city,
+        }),
+      );
+      dispatch(setZoom(11));
       setSelectedSite(data);
     } else {
       console.error('Invalid data:', data);
