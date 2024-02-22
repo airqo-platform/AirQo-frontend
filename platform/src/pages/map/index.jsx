@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
+import CloseIcon from '@/icons/close_icon';
 import LocationIcon from '@/icons/LocationIcon';
 import MenuIcon from '@/icons/map/menuIcon';
 import AirQoMap from '@/components/Map/AirQoMap';
@@ -8,8 +9,40 @@ import HomeIcon from '@/icons/map/homeIcon';
 import { useRouter } from 'next/router';
 import { AirQualityLegend } from '@/components/Map/components/Legend';
 import allCountries from '@/components/Map/components/countries';
-import SearchField from '@/components/search/SearchField';
+import SearchField from '@/components/Search/SearchField';
 import { getSitesSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
+
+const countries = [
+  {
+    id: 1,
+    name: 'Uganda',
+    flag: 'UG',
+  },
+  {
+    id: 2,
+    name: 'Kenya',
+    flag: 'KE',
+  },
+  {
+    id: 3,
+    name: 'Nigeria',
+    flag: 'NG',
+  },
+  {
+    id: 4,
+    name: 'Rwanda',
+    flag: 'RW',
+  },
+  {
+    id: 5,
+    name: 'Tanzania',
+    flag: 'TZ',
+  },
+];
+
+const filteredCountries = allCountries.filter((country) =>
+  countries.find((c) => c.name === country.country),
+);
 
 const TabSelector = ({ selectedTab, setSelectedTab }) => {
   return (
@@ -37,28 +70,40 @@ const TabSelector = ({ selectedTab, setSelectedTab }) => {
 const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
   const dispatch = useDispatch();
 
+  // Check if data is not null or undefined
+  if (!data) {
+    return <div className='w-full text-center'>No data available</div>;
+  }
+
+  // Sort data
   const sortedData = [...data].sort((a, b) => a.country.localeCompare(b.country));
+
+  // Handle click event
+  const handleClick = (country) => {
+    setSelectedCountry(country);
+    dispatch(setLocation({ country: country.country }));
+  };
 
   return (
     <div className='flex space-x-4 overflow-x-auto py-4 ml-4 map-scrollbar'>
-      {sortedData.map((country, index) => (
-        <div
-          key={index}
-          className={`flex items-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 p-2  min-w-max space-x-2 m-0 ${
-            selectedCountry?.country === country.country ? 'border-2 border-blue-400' : ''
-          }`}
-          onClick={() => {
-            setSelectedCountry(country);
-            dispatch(
-              setLocation({
-                country: country.country,
-              }),
-            );
-          }}>
-          <img src={country.flag} alt={country.country} width={20} height={20} />
-          <span>{country.country}</span>
-        </div>
-      ))}
+      {sortedData.map((country, index) => {
+        // Check if country and flag properties exist
+        if (!country || !country.flag) {
+          return <div key={index}>Country data is incomplete</div>;
+        }
+
+        return (
+          <div
+            key={index}
+            className={`flex items-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 p-2  min-w-max space-x-2 m-0 ${
+              selectedCountry?.country === country.country ? 'border-2 border-blue-400' : ''
+            }`}
+            onClick={() => handleClick(country)}>
+            <img src={country.flag} alt={country.country} width={20} height={20} />
+            <span>{country.country}</span>
+          </div>
+        );
+      })}
     </div>
   );
 };
@@ -125,49 +170,23 @@ const index = () => {
     setSearchResults(results);
   };
 
-  const locations = [
-    {
-      id: 1,
-      name: 'Kampala',
-      country: 'Central, Uganda',
-    },
-    {
-      id: 2,
-      name: 'Nairobi',
-      country: 'Central, Kenya',
-    },
-    {
-      id: 3,
-      name: 'kiambu',
-      country: 'Eastern, Kenya',
-    },
-    {
-      id: 4,
-      name: 'Kitgum',
-      country: 'Northern, Uganda',
-    },
-    {
-      id: 5,
-      name: 'Kigaali',
-      country: 'Central, Rwanda',
-    },
-  ];
-
   // Assuming siteDetails and allCountries are defined
-  let uniqueCountries = [];
-  let result = [];
+  // let uniqueCountries = [];
+  // let result = [];
 
-  siteDetails.forEach((site) => {
-    if (!uniqueCountries.includes(site.country)) {
-      uniqueCountries.push(site.country);
-      let countryDetails = allCountries.find((data) => data.country === site.country);
-      if (countryDetails) {
-        result.push({ ...site, ...countryDetails });
-      } else {
-        return;
-      }
-    }
-  });
+  // siteDetails.forEach((site) => {
+  //   if (!uniqueCountries.includes(site.country)) {
+  //     uniqueCountries.push(site.country);
+  //     let countryDetails = allCountries.find((data) => data.country === site.country);
+  //     if (countryDetails) {
+  //       result.push({ ...site, ...countryDetails });
+  //     } else {
+  //       result.push(site);
+  //     }
+  //   }
+  // });
+
+  // console.log(result);
 
   return (
     <Layout noTopNav={false}>
@@ -208,7 +227,7 @@ const index = () => {
                         All
                       </button>
                       <CountryList
-                        data={result}
+                        data={filteredCountries}
                         selectedCountry={selectedCountry}
                         setSelectedCountry={setSelectedCountry}
                       />
