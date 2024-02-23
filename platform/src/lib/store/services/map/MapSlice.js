@@ -17,28 +17,20 @@ export const mapSlice = createSlice({
   initialState,
   reducers: {
     setCenter: (state, action) => {
-      if (action.payload && action.payload.latitude && action.payload.longitude) {
-        state.center = { ...state.center, ...action.payload };
+      const { latitude, longitude } = action.payload || {};
+      if (latitude && longitude) {
+        state.center = { ...state.center, latitude, longitude };
       }
     },
 
     setZoom: (state, action) => {
-      if (action.payload && typeof action.payload === 'number') {
+      if (typeof action.payload === 'number') {
         state.zoom = action.payload;
       }
     },
     setLocation: (state, action) => {
-      // Reset the location state
-      state.location = { country: '', city: '' };
-
-      if (action.payload) {
-        if (action.payload.country) {
-          state.location.country = action.payload.country;
-        }
-        if (action.payload.city) {
-          state.location.city = action.payload.city;
-        }
-      }
+      const { country = '', city = '' } = action.payload || {};
+      state.location = { country, city };
     },
   },
 });
