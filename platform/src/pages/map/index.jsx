@@ -167,11 +167,7 @@ const index = () => {
   }, [router.pathname]);
 
   const handleHomeClick = () => {
-    try {
-      router.push('/Home');
-    } catch (error) {
-      console.error('Failed to navigate to home:', error);
-    }
+    router.push('/Home');
   };
 
   const handleSelectedTab = (tab) => {
