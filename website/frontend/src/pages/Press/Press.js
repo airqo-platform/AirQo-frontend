@@ -12,16 +12,10 @@ import { useTranslation } from 'react-i18next';
 const Press = () => {
   useInitScrollTop();
   const { t } = useTranslation();
-  const dispatch = useDispatch();
   const allPressData = useSelector((state) => state.pressData.pressData);
-  const language = useSelector((state) => state.eventsNavTab.languageTab);
   const pressData = allPressData.filter((event) => event.website_category === 'airqo');
   const loading = useSelector((state) => state.pressData.loading);
   const [numArticlesToShow, setNumArticlesToShow] = useState(5);
-
-  useEffect(() => {
-    dispatch(loadPressData());
-  }, [language]);
 
   const sortedArticles = [...pressData].sort((a, b) => new Date(b.date) - new Date(a.date));
 

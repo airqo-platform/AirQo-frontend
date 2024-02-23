@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState } from 'react';
 import { useInitScrollTop } from 'utilities/customHooks';
 import SEO from 'utilities/seo';
-import { loadPublicationsData } from '../../../reduxStore/Publications/operations';
 import { usePublicationsData } from '../../../reduxStore/Publications/selectors';
 import Page from '../Page';
 import CardComponent from './CardComponent';
@@ -15,9 +13,6 @@ const PublicationsPage = () => {
   const { t } = useTranslation();
   const [selectedTab, setSelectedTab] = useState('Research');
   const onClickTabItem = (tab) => setSelectedTab(tab);
-  const language = useSelector((state) => state.eventsNavTab.languageTab);
-
-  const dispatch = useDispatch();
   const publicationsData = usePublicationsData();
 
   const filterData = (categories) => {
@@ -46,10 +41,6 @@ const PublicationsPage = () => {
   const totalGuides = GuidesData.length;
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  useEffect(() => {
-    dispatch(loadPublicationsData());
-  }, [publicationsData.length, language]);
 
   return (
     <Page>

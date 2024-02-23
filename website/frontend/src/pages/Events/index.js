@@ -41,7 +41,7 @@ const EventsPage = () => {
   const loading = useSelector((state) => state.eventsData.loading);
 
   useEffect(() => {
-    dispatch(getAllEvents());
+    if (eventsApiData.length === 0) dispatch(getAllEvents(language));
   }, [language]);
 
   // hook to handle see more/less button

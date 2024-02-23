@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import SEO from 'utilities/seo';
 import { useInitScrollTop } from 'utilities/customHooks';
-import { getAllEvents } from '../../../reduxStore/Events/EventSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   RegisterSection,
@@ -30,9 +29,9 @@ const CleanAirEvents = () => {
 
   // Hooks
   const { t } = useTranslation();
-  const dispatch = useDispatch();
+
   const allEventsData = useSelector((state) => state.eventsData.events);
-  const language = useSelector((state) => state.eventsNavTab.languageTab);
+
   const navigate = useNavigate();
 
   // State
@@ -40,10 +39,11 @@ const CleanAirEvents = () => {
   const [openDate, setOpenDate] = useState(false);
   const [openFilter, setOpenFilter] = useState(false);
   const [selectedDate, setSelectedDate] = useState();
-  const [filter, setFilter] = useState();
-  const [selectedMonth, setSelectedMonth] = useState(null);
+  const [filter, setFilter] = useState('all');
+  const [selectedMonth, setSelectedMonth] = useState(0);
   const [hideEvents, setHideEvents] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const loading = useSelector((state) => state.eventsData.loading);
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   // Refs
   const dateRef = useRef();
@@ -56,9 +56,9 @@ const CleanAirEvents = () => {
         return false;
       }
 
-      if (selectedMonth) {
+      if (selectedMonth !== 0) {
         const eventDate = new Date(event.start_date);
-        if (eventDate.getMonth() !== selectedMonth) {
+        if (eventDate.getMonth() !== selectedMonth - 1) {
           return false;
         }
       }
@@ -69,26 +69,10 @@ const CleanAirEvents = () => {
 
       return true;
     });
-  }, [allEventsData, selectedMonth, filter]);
+  }, [allEventsData, selectedMonth, filter, language]);
 
   const upcomingEvents = useMemo(() => getUpcomingEvents(eventsApiData), [eventsApiData]);
   const pastEvents = useMemo(() => getPastEvents(eventsApiData), [eventsApiData]);
-
-  // Effects
-  useEffect(() => {
-    const fetchAllEvents = async () => {
-      setLoading(true);
-      try {
-        await dispatch(getAllEvents());
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAllEvents();
-  }, [language, dispatch]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -153,18 +137,19 @@ const CleanAirEvents = () => {
   } = usePagination(upcomingEvents, itemsPerPage);
 
   const dates = [
-    { month: t('cleanAirSite.events.dropdowns.date.options.1'), value: 1 },
-    { month: t('cleanAirSite.events.dropdowns.date.options.2'), value: 2 },
-    { month: t('cleanAirSite.events.dropdowns.date.options.3'), value: 3 },
-    { month: t('cleanAirSite.events.dropdowns.date.options.4'), value: 4 },
-    { month: t('cleanAirSite.events.dropdowns.date.options.5'), value: 5 },
-    { month: t('cleanAirSite.events.dropdowns.date.options.6'), value: 6 },
-    { month: t('cleanAirSite.events.dropdowns.date.options.7'), value: 7 },
-    { month: t('cleanAirSite.events.dropdowns.date.options.8'), value: 8 },
-    { month: t('cleanAirSite.events.dropdowns.date.options.9'), value: 9 },
-    { month: t('cleanAirSite.events.dropdowns.date.options.10'), value: 10 },
-    { month: t('cleanAirSite.events.dropdowns.date.options.11'), value: 11 },
-    { month: t('cleanAirSite.events.dropdowns.date.options.12'), value: 12 }
+    { month: t('cleanAirSite.events.dropdowns.filter.options1.1'), value: 1 },
+    { month: t('cleanAirSite.events.dropdowns.date.options.1'), value: 2 },
+    { month: t('cleanAirSite.events.dropdowns.date.options.2'), value: 3 },
+    { month: t('cleanAirSite.events.dropdowns.date.options.3'), value: 4 },
+    { month: t('cleanAirSite.events.dropdowns.date.options.4'), value: 5 },
+    { month: t('cleanAirSite.events.dropdowns.date.options.5'), value: 6 },
+    { month: t('cleanAirSite.events.dropdowns.date.options.6'), value: 7 },
+    { month: t('cleanAirSite.events.dropdowns.date.options.7'), value: 8 },
+    { month: t('cleanAirSite.events.dropdowns.date.options.8'), value: 9 },
+    { month: t('cleanAirSite.events.dropdowns.date.options.9'), value: 10 },
+    { month: t('cleanAirSite.events.dropdowns.date.options.10'), value: 11 },
+    { month: t('cleanAirSite.events.dropdowns.date.options.11'), value: 12 },
+    { month: t('cleanAirSite.events.dropdowns.date.options.12'), value: 13 }
   ];
 
   const filterOption1 = [
