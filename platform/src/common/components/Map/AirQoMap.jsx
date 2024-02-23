@@ -90,78 +90,78 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   }, [mapStyle, mapboxApiAccessToken, refresh]);
 
   // Boundaries for a country
-  // useEffect(() => {
-  //   const map = mapRef.current;
+  useEffect(() => {
+    const map = mapRef.current;
 
-  //   if (map) {
-  //     setLoading(true);
-  //     if (map.getLayer('location-boundaries')) {
-  //       map.removeLayer('location-boundaries');
-  //     }
+    if (map) {
+      setLoading(true);
+      if (map.getLayer('location-boundaries')) {
+        map.removeLayer('location-boundaries');
+      }
 
-  //     if (map.getSource('location-boundaries')) {
-  //       map.removeSource('location-boundaries');
-  //     }
+      if (map.getSource('location-boundaries')) {
+        map.removeSource('location-boundaries');
+      }
 
-  //     let queryString = mapData.location.country;
-  //     if (mapData.location.city) {
-  //       queryString = mapData.location.city + ', ' + queryString;
-  //     }
+      let queryString = mapData.location.country;
+      if (mapData.location.city) {
+        queryString = mapData.location.city + ', ' + queryString;
+      }
 
-  //     fetch(
-  //       `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-  //         queryString,
-  //       )}&polygon_geojson=1&format=json`,
-  //     )
-  //       .then((response) => {
-  //         if (!response.ok) {
-  //           throw new Error(`HTTP error! status: ${response.status}`);
-  //         }
-  //         return response.json();
-  //       })
-  //       .then((data) => {
-  //         setLoading(false);
+      fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+          queryString,
+        )}&polygon_geojson=1&format=json`,
+      )
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          setLoading(false);
 
-  //         if (data && data.length > 0) {
-  //           const boundaryData = data[0].geojson;
+          if (data && data.length > 0) {
+            const boundaryData = data[0].geojson;
 
-  //           map.addSource('location-boundaries', {
-  //             type: 'geojson',
-  //             data: boundaryData,
-  //           });
+            map.addSource('location-boundaries', {
+              type: 'geojson',
+              data: boundaryData,
+            });
 
-  //           map.addLayer({
-  //             id: 'location-boundaries',
-  //             type: 'fill',
-  //             source: 'location-boundaries',
-  //             paint: {
-  //               'fill-color': '#0000FF',
-  //               'fill-opacity': 0.2,
-  //               'fill-outline-color': '#0000FF',
-  //             },
-  //           });
+            map.addLayer({
+              id: 'location-boundaries',
+              type: 'fill',
+              source: 'location-boundaries',
+              paint: {
+                'fill-color': '#0000FF',
+                'fill-opacity': 0.2,
+                'fill-outline-color': '#0000FF',
+              },
+            });
 
-  //           const { lat, lon } = data[0];
-  //           map.flyTo({
-  //             center: [lon, lat],
-  //             zoom: mapData.location.city && mapData.location.country ? 10 : 5,
-  //           });
+            const { lat, lon } = data[0];
+            map.flyTo({
+              center: [lon, lat],
+              zoom: mapData.location.city && mapData.location.country ? 10 : 5,
+            });
 
-  //           // Add zoomend event listener
-  //           map.on('zoomend', function () {
-  //             const zoom = map.getZoom();
-  //             // Adjust fill opacity based on zoom level
-  //             const opacity = zoom > 10 ? 0 : 0.2;
-  //             map.setPaintProperty('location-boundaries', 'fill-opacity', opacity);
-  //           });
-  //         }
-  //       })
-  //       .catch((error) => {
-  //         console.error('Error fetching location boundaries:', error);
-  //         setLoading(false);
-  //       });
-  //   }
-  // }, [mapData.location]);
+            // Add zoomend event listener
+            map.on('zoomend', function () {
+              const zoom = map.getZoom();
+              // Adjust fill opacity based on zoom level
+              const opacity = zoom > 10 ? 0 : 0.2;
+              map.setPaintProperty('location-boundaries', 'fill-opacity', opacity);
+            });
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching location boundaries:', error);
+          setLoading(false);
+        });
+    }
+  }, [mapData.location]);
 
   // generate code to close dropdown when clicked outside
   useEffect(() => {
