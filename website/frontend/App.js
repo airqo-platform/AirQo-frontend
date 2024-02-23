@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState, useCallback } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
@@ -56,21 +56,17 @@ const FetchData = () => {
   const dispatch = useDispatch();
   const language = useSelector((state) => state.eventsNavTab.languageTab);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      await Promise.all([
-        dispatch(getAllEvents(language)),
-        dispatch(fetchCleanAirData(language)),
-        dispatch(loadPublicationsData()),
-        dispatch(loadPressData()),
-        dispatch(loadPartnersData()),
-        dispatch(loadCareersListingData()),
-        dispatch(loadCareersDepartmentsData())
-      ]);
-    };
-
-    fetchData();
+  const fetchData = useCallback(() => {
+    dispatch(getAllEvents(language));
+    dispatch(fetchCleanAirData(language));
+    dispatch(loadPublicationsData());
+    dispatch(loadPressData());
+    dispatch(loadPartnersData());
+    dispatch(loadCareersListingData());
+    dispatch(loadCareersDepartmentsData());
   }, [language, dispatch]);
+
+  useEffect(fetchData, [fetchData]);
 
   return null;
 };
