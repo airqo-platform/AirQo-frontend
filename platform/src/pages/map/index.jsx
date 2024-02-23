@@ -44,40 +44,40 @@ const TabSelector = ({ selectedTab, setSelectedTab }) => {
 const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
   const dispatch = useDispatch();
 
-  if (typeof setSelectedCountry !== 'function') {
-    console.error('Invalid prop: setSelectedCountry must be a function');
-    return null;
+  // Check if data is not null or undefined
+  if (!data || !Array.isArray(data) || data.length === 0) {
+    return <div className='w-full text-center'>No data available</div>;
   }
 
-  let sortedData = [];
-  try {
-    sortedData = [...data].sort((a, b) => a.country.localeCompare(b.country));
-  } catch (error) {
-    console.error('Error sorting data:', error);
-  }
+  // Sort data
+  const sortedData = [...data].sort((a, b) => a.country.localeCompare(b.country));
 
-  const handleCountryClick = (country) => {
-    try {
-      setSelectedCountry(country);
-      dispatch(setLocation({ country: country.country }));
-    } catch (error) {
-      console.error('Error setting location:', error);
-    }
+  // Handle click event
+  const handleClick = (country) => {
+    setSelectedCountry(country);
+    dispatch(setLocation({ country: country.country }));
   };
 
   return (
     <div className='flex space-x-4 overflow-x-auto py-4 ml-4 map-scrollbar'>
-      {sortedData.map((country, index) => (
-        <div
-          key={index}
-          className={`flex items-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 p-2  min-w-max space-x-2 m-0 ${
-            selectedCountry?.country === country.country ? 'border-2 border-blue-400' : ''
-          }`}
-          onClick={() => handleCountryClick(country)}>
-          <img src={country.flag} alt={country.country} width={20} height={20} />
-          <span>{country.country}</span>
-        </div>
-      ))}
+      {sortedData.map((country, index) => {
+        // Check if country and flag properties exist
+        if (!country || !country.flag) {
+          return <div key={index}>Country data is incomplete</div>;
+        }
+
+        return (
+          <div
+            key={index}
+            className={`flex items-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 p-2  min-w-max space-x-2 m-0 ${
+              selectedCountry?.country === country.country ? 'border-2 border-blue-400' : ''
+            }`}
+            onClick={() => handleClick(country)}>
+            <img src={country.flag} alt={country.country} width={20} height={20} />
+            <span>{country.country}</span>
+          </div>
+        );
+      })}
     </div>
   );
 };
@@ -179,14 +179,10 @@ const index = () => {
   };
 
   const handleLocationSelect = (data) => {
-    if (data && 'latitude' in data && 'longitude' in data) {
+    const { country, city } = data || {};
+    if (country && city) {
       try {
-        dispatch(
-          setLocation({
-            country: data.country,
-            city: data.city,
-          }),
-        );
+        dispatch(setLocation({ country, city }));
         setSelectedSite(data);
       } catch (error) {
         console.error('Failed to set location:', error);
@@ -199,20 +195,21 @@ const index = () => {
   let uniqueCountries = [];
   let countryData = [];
 
-  siteDetails.forEach((site) => {
-    if (!uniqueCountries.includes(site.country)) {
-      uniqueCountries.push(site.country);
+  if (Array.isArray(siteDetails) && siteDetails.length > 0) {
+    siteDetails.forEach((site) => {
+      if (!uniqueCountries.includes(site.country)) {
+        uniqueCountries.push(site.country);
 
-      // Added a check for allCountries being defined
-      let countryDetails = allCountries?.find((data) => data.country === site.country);
+        let countryDetails = allCountries?.find((data) => data.country === site.country);
 
-      if (countryDetails) {
-        countryData.push({ ...site, ...countryDetails });
-      } else {
-        return;
+        if (countryDetails) {
+          countryData.push({ ...site, ...countryDetails });
+        }
       }
-    }
-  });
+    });
+  } else {
+    console.error('Invalid data: siteDetails must be an array');
+  }
 
   return (
     <Layout noTopNav={false}>
