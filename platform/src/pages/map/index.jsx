@@ -1,47 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import Layout from '@/components/Layout';
-import CloseIcon from '@/icons/close_icon';
 import LocationIcon from '@/icons/LocationIcon';
-import SearchIcon from '@/icons/Common/search_md.svg';
 import MenuIcon from '@/icons/map/menuIcon';
 import AirQoMap from '@/components/Map/AirQoMap';
 import HomeIcon from '@/icons/map/homeIcon';
 import { useRouter } from 'next/router';
 import { AirQualityLegend } from '@/components/Map/components/Legend';
 import allCountries from '@/components/Map/components/countries';
+import { getSitesSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
+import { setCenter, setZoom, setLocation } from '@/lib/store/services/map/MapSlice';
+import SearchField from '@/components/search/SearchField';
 import withAuth from '@/core/utils/protectedRoute';
 
-const MAP_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-
-const countries = [
-  {
-    id: 1,
-    name: 'Uganda',
-    flag: 'UG',
-  },
-  {
-    id: 2,
-    name: 'Kenya',
-    flag: 'KE',
-  },
-  {
-    id: 3,
-    name: 'Nigeria',
-    flag: 'NG',
-  },
-  {
-    id: 4,
-    name: 'Rwanda',
-    flag: 'RW',
-  },
-  {
-    id: 5,
-    name: 'Tanzania',
-    flag: 'TZ',
-  },
-];
-
+// tab selector
 const TabSelector = ({ selectedTab, setSelectedTab }) => {
+  if (typeof setSelectedTab !== 'function') {
+    console.error('Invalid prop: setSelectedTab must be a function');
+    return null;
+  }
   return (
     <div className='mt-6'>
       <div className='flex flex-row justify-center items-center bg-secondary-neutral-light-25 rounded-md border border-secondary-neutral-light-50 p-1'>
@@ -49,73 +26,127 @@ const TabSelector = ({ selectedTab, setSelectedTab }) => {
           onClick={() => setSelectedTab('locations')}
           className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
             selectedTab === 'locations' ? 'border rounded-md bg-white shadow-sm' : ''
-          }`}
-        >
+          }`}>
           Locations
         </div>
         <div
           onClick={() => setSelectedTab('sites')}
           className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
             selectedTab === 'sites' ? 'border rounded-md bg-white shadow-sm' : ''
-          }`}
-        >
+          }`}>
           Sites
         </div>
-        <div
-          onClick={() => setSelectedTab('airqlouds')}
-          className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
-            selectedTab === 'airqlouds' ? 'border rounded-md bg-white shadow-sm' : ''
-          }`}
-        >
-          AirQlouds
-        </div>
       </div>
     </div>
   );
 };
 
-const SearchField = () => {
+// country list
+const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
+  const dispatch = useDispatch();
+
+  // Check if data is not null or undefined
+  if (!data || !Array.isArray(data) || data.length === 0) {
+    return <div className='w-full text-center'>No data available</div>;
+  }
+
+  // Sort data
+  const sortedData = [...data].sort((a, b) => a.country.localeCompare(b.country));
+
+  // Handle click event
+  const handleClick = (country) => {
+    setSelectedCountry(country);
+    dispatch(setLocation({ country: country.country }));
+  };
+
   return (
-    <div className='w-full flex flex-row items-center justify-start'>
-      <div className='flex items-center justify-center pl-3 bg-white border h-12 rounded-lg rounded-r-none border-r-0 border-input-light-outline focus:border-input-light-outline'>
-        <SearchIcon />
-      </div>
-      <input
-        placeholder='Search Villages, Cities or Country'
-        className='input text-sm text-secondary-neutral-light-800 w-full h-12 ml-0 rounded-lg bg-white border-l-0 rounded-l-none border-input-light-outline focus:border-input-light-outline'
-      />
+    <div className='flex space-x-4 overflow-x-auto py-4 ml-4 map-scrollbar'>
+      {sortedData.map((country, index) => {
+        // Check if country and flag properties exist
+        if (!country || !country.flag) {
+          return <div key={index}>Country data is incomplete</div>;
+        }
+
+        return (
+          <div
+            key={index}
+            className={`flex items-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 p-2  min-w-max space-x-2 m-0 ${
+              selectedCountry?.country === country.country ? 'border-2 border-blue-400' : ''
+            }`}
+            onClick={() => handleClick(country)}>
+            <img src={country.flag} alt={country.country} width={20} height={20} />
+            <span>{country.country}</span>
+          </div>
+        );
+      })}
     </div>
   );
 };
 
-const filteredCountries = allCountries.filter((country) =>
-  countries.find((c) => c.name === country.country),
-);
+// Search area
+const SectionCards = ({ searchResults, handleLocationSelect }) => {
+  if (!Array.isArray(searchResults)) {
+    console.error('Invalid prop: searchResults must be an array');
+    return null;
+  }
 
-const CountryList = ({ selectedCountry, setSelectedCountry }) => (
-  <div className='flex space-x-4 overflow-x-auto py-4 ml-4'>
-    {filteredCountries.map((country, index) => (
-      <div
-        key={index}
-        className='flex items-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 p-2  min-w-max space-x-2 m-0'
-        style={{
-          backgroundColor: selectedCountry?.country === country.country ? '#77A9FF' : '',
-        }}
-        onClick={() => setSelectedCountry(country)}
-      >
-        <img src={country.flag} alt={country.country} width={20} height={20} />
-        <span>{country.country}</span>
-      </div>
-    ))}
-  </div>
-);
+  if (typeof handleLocationSelect !== 'function') {
+    console.error('Invalid prop: handleLocationSelect must be a function');
+    return null;
+  }
+
+  return searchResults.length > 0 ? (
+    <div className='space-y-2 max-h-[445px] overflow-y-auto mt-4 map-scrollbar'>
+      <hr />
+      {searchResults.map((grid) => (
+        <div
+          key={grid._id}
+          className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer hover:bg-blue-100 p-2 rounded-lg'
+          onClick={() => handleLocationSelect(grid)}>
+          <div className='p-2 rounded-full bg-gray-100'>
+            <LocationIcon />
+          </div>
+          <div className='ml-3 flex flex-col item-start border-b w-full'>
+            <span className='font-normal text-black capitalize text-lg'>{grid.name}</span>
+            <span className='font-normal text-gray-500 capitalize text-sm mb-2'>
+              {grid.region + ',' + grid.country}
+            </span>
+          </div>
+        </div>
+      ))}
+      <hr />
+    </div>
+  ) : (
+    <div className='flex justify-center items-center h-80'>
+      <p className='text-gray-500 text-sm font-normal'>No results found</p>
+    </div>
+  );
+};
 
 const index = () => {
+  const dispatch = useDispatch();
   const router = useRouter();
-  const [location, setLocation] = useState();
   const [showSideBar, setShowSideBar] = useState(true);
   const [selectedTab, setSelectedTab] = useState('locations');
   const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedSite, setSelectedSite] = useState(null);
+  const siteData = useSelector((state) => state.grids?.sitesSummary);
+  const [isFocused, setIsFocused] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const isAdmin = true;
+  const preferenceData = useSelector((state) => state.defaults?.individual_preferences);
+
+  // getting user selected sites
+  const selectedSites = preferenceData
+    ? preferenceData.map((pref) => pref.selected_sites).flat()
+    : [];
+
+  // site details with a check for siteData and siteData.sites being defined
+  const siteDetails = siteData?.sites || [];
+
+  useEffect(() => {
+    dispatch(getSitesSummary());
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -144,133 +175,148 @@ const index = () => {
     setSelectedTab(tab);
   };
 
-  const handleLocationSelect = () => {
-    setLocation();
+  const handleSearch = (results) => {
+    setSearchResults(results);
   };
 
-  const locations = [
-    {
-      id: 1,
-      name: 'Kampala',
-      country: 'Central, Uganda',
-    },
-    {
-      id: 2,
-      name: 'Nairobi',
-      country: 'Central, Kenya',
-    },
-    {
-      id: 3,
-      name: 'kiambu',
-      country: 'Eastern, Kenya',
-    },
-    {
-      id: 4,
-      name: 'Kitgum',
-      country: 'Northern, Uganda',
-    },
-    {
-      id: 5,
-      name: 'Kigaali',
-      country: 'Central, Rwanda',
-    },
-  ];
+  const handleLocationSelect = (data) => {
+    const { country, city } = data || {};
+    if (country && city) {
+      try {
+        dispatch(setLocation({ country, city }));
+        setSelectedSite(data);
+      } catch (error) {
+        console.error('Failed to set location:', error);
+      }
+    } else {
+      console.error('Invalid data:', data);
+    }
+  };
+
+  let uniqueCountries = [];
+  let countryData = [];
+
+  if (Array.isArray(siteDetails) && siteDetails.length > 0) {
+    siteDetails.forEach((site) => {
+      if (!uniqueCountries.includes(site.country)) {
+        uniqueCountries.push(site.country);
+
+        let countryDetails = allCountries?.find((data) => data.country === site.country);
+
+        if (countryDetails) {
+          countryData.push({ ...site, ...countryDetails });
+        }
+      }
+    });
+  } else {
+    console.error('Invalid data: siteDetails must be an array');
+  }
 
   return (
     <Layout noTopNav={false}>
       <div className='relative'>
         <>
           {showSideBar && (
-            <div className='absolute left-0 top-0 w-[280px] h-full md:w-[400px] bg-white shadow-lg shadow-right space-y-4 z-50 overflow-y-auto'>
-              <div className='px-4 pt-4'>
-                <div className='w-full flex justify-between items-center'>
-                  <div>
+            <div className='absolute left-0 top-0 w-[280px] h-full md:w-[400px] bg-white shadow-lg shadow-right space-y-4 z-50 overflow-y-auto map-scrollbar'>
+              <div className={!isFocused ? 'space-y-4' : 'hidden'}>
+                <div className='px-4 pt-4'>
+                  <div className='w-full flex justify-start items-center'>
                     <label className='font-medium text-xl'>Map</label>
                   </div>
-                  <button
-                    className='p-2 border rounded-xl hover:bg-gray-100'
-                    onClick={() => setShowSideBar(!showSideBar)}
-                  >
-                    <CloseIcon width={15} height={15} fill={'#6F87A1'} />
-                  </button>
+                  <p className='text-gray-500 text-sm font-normal w-auto md:w-[316.681px;] mt-6'>
+                    Navigate, Explore, and Understand Air Quality Data with Precision, Right Down to
+                    Your Neighborhood
+                  </p>
+                  {!isAdmin && (
+                    <TabSelector selectedTab={selectedTab} setSelectedTab={handleSelectedTab} />
+                  )}
                 </div>
-                <p className='text-gray-500 text-sm font-normal w-auto md:w-[316.681px;] mt-6'>
-                  Navigate, Explore, and Understand Air Quality Data with Precision, Right Down to
-                  Your Neighborhood
-                </p>
-                <TabSelector selectedTab={selectedTab} setSelectedTab={handleSelectedTab} />
+                {!isAdmin && <hr />}
               </div>
-              <hr />
-              <div className='px-4 space-y-4'>
-                <SearchField />
-                <div className='flex justify-between items-center'>
-                  <button className='px-4 py-2 rounded-full bg-blue-500 text-white'>All</button>
-                  <CountryList
-                    selectedCountry={selectedCountry}
-                    setSelectedCountry={setSelectedCountry}
-                  />
-                </div>
-                <div className='space-y-2'>
-                  <label className='font-medium text-gray-600 text-sm'>Suggestions</label>
-                  <hr />
-                  {locations.map((location) => (
-                    <div
-                      key={location.id}
-                      className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer hover:bg-blue-100 p-2 rounded-lg'
-                      onClick={() => {
-                        handleLocationSelect();
-                      }}
-                    >
-                      <div className='p-2 rounded-full bg-gray-100'>
-                        <LocationIcon />
-                      </div>
-                      <div className='ml-3 flex flex-col item-start border-b w-full'>
-                        <span className='font-normal text-black capitalize text-lg'>
-                          {location.name}
-                        </span>
-                        <span className='font-normal text-gray-500 capitalize text-sm mb-2'>
-                          {location.country}
-                        </span>
-                      </div>
+              {selectedTab === 'locations' && (
+                <>
+                  {/* section 1 */}
+                  <div className={`px-4 space-y-4 ${isFocused ? 'hidden' : ''}`}>
+                    <div onMouseDown={() => setIsFocused(true)}>
+                      <SearchField />
                     </div>
-                  ))}
-                  <hr />
-                </div>
-              </div>
+                    <div className='flex justify-between items-center'>
+                      <button
+                        onClick={() => {
+                          dispatch(setCenter({ latitude: 16.1532, longitude: 13.1691 }));
+                          dispatch(setZoom(1.5));
+                          setShowSideBar(false);
+                          setSelectedSite(null);
+                        }}
+                        className='px-4 py-2 rounded-full bg-blue-500 text-white'>
+                        All
+                      </button>
+                      <CountryList
+                        data={countryData}
+                        selectedCountry={selectedCountry}
+                        setSelectedCountry={setSelectedCountry}
+                      />
+                    </div>
+                    <div className='space-y-4 max-h-[445px] overflow-y-auto map-scrollbar'>
+                      <label className='font-medium text-gray-600 text-sm'>Suggestions</label>
+                      <SectionCards
+                        searchResults={selectedSites}
+                        handleLocationSelect={handleLocationSelect}
+                      />
+                    </div>
+                  </div>
+                  {/* Section 2 */}
+                  <div className={`px-4 pt-4 ${isFocused ? '' : 'hidden'}`}>
+                    <div className='w-full flex justify-start items-center'>
+                      <button
+                        onClick={() => setIsFocused(false)}
+                        className='font-medium text-xl focus:outline-none mb-2'>
+                        Back
+                      </button>
+                    </div>
+                    <SearchField
+                      data={siteDetails}
+                      onSearch={handleSearch}
+                      searchKeys={['city', 'village', 'country']}
+                    />
+                    <SectionCards
+                      searchResults={searchResults}
+                      handleLocationSelect={handleLocationSelect}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           )}
           <div
-            className={`absolute bottom-4 ${
+            className={`absolute bottom-2 ${
               showSideBar ? 'left-[calc(280px+15px)] md:left-[calc(400px+15px)]' : 'left-[15px]'
-            } z-50`}
-          >
+            } z-50`}>
             <AirQualityLegend />
           </div>
-        </>
-        <div className='h-auto w-full relative bg-[#ebe7e1]'>
-          {!showSideBar && (
-            <div className='absolute top-4 left-3 z-50 '>
-              <div className='flex flex-col space-y-4'>
-                <button
-                  className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-                  onClick={() => setShowSideBar(!showSideBar)}
-                >
-                  <MenuIcon />
-                </button>
-                <button
-                  className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-                  onClick={() => handleHomeClick()}
-                >
-                  <HomeIcon />
-                </button>
-              </div>
+          <div
+            className={`absolute top-4 ${
+              showSideBar ? 'left-[calc(280px+15px)] md:left-[calc(400px+15px)]' : 'left-[15px]'
+            } z-50`}>
+            <div className='flex flex-col space-y-4'>
+              <button
+                className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
+                onClick={() => setShowSideBar(!showSideBar)}>
+                <MenuIcon />
+              </button>
+              <button
+                className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
+                onClick={() => handleHomeClick()}>
+                <HomeIcon />
+              </button>
             </div>
-          )}
-          <AirQoMap
-            mapboxApiAccessToken={MAP_ACCESS_TOKEN}
-            customStyle='flex-grow h-screen w-full relative'
-          />
-        </div>
+          </div>
+        </>
+        <AirQoMap
+          showSideBar={showSideBar}
+          mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
+          customStyle='flex-grow h-screen w-full relative bg-[#e6e4e0]'
+        />
       </div>
     </Layout>
   );
