@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
-import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import Spinner from '../loaders/Spinner';
+import { usePagination, Pagination } from '../pagination/Pagination';
 
 const ITEMS_PER_PAGE = 8;
 
@@ -21,12 +20,9 @@ const Split_Text_section = ({ bgColor, content, title, lists, loading }) => {
     }
   };
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(lists.length / ITEMS_PER_PAGE);
-
-  const currentItems = lists.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
+  const { currentItems, currentPage, setCurrentPage, totalPages } = usePagination(
+    lists,
+    ITEMS_PER_PAGE
   );
 
   return (
@@ -74,31 +70,11 @@ const Split_Text_section = ({ bgColor, content, title, lists, loading }) => {
                     </div>
                   ))}
                 </div>
-                {lists.length > ITEMS_PER_PAGE && (
-                  <div className="events">
-                    <div className="event-cards">
-                      <div className="pagination">
-                        <button
-                          onClick={() => setCurrentPage(currentPage - 1)}
-                          disabled={currentPage === 1}>
-                          <KeyboardDoubleArrowLeftIcon
-                            sx={{ fill: currentPage === 1 ? '#D1D1D1' : '#000' }}
-                          />
-                        </button>
-                        <p>
-                          {currentPage} of {totalPages}
-                        </p>
-                        <button
-                          onClick={() => setCurrentPage(currentPage + 1)}
-                          disabled={currentPage === totalPages}>
-                          <KeyboardDoubleArrowRightIcon
-                            sx={{ fill: currentPage === totalPages ? '#D1D1D1' : '#000' }}
-                          />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <Pagination
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                  totalPages={totalPages}
+                />
               </div>
             </div>
           </div>

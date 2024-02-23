@@ -12,3 +12,5 @@ export { default as BottomCTAS } from './CTAs/BottomCTAs';
 export { default as CardComponent } from './cards/CardComponent';
 export { default as ReportComponent } from './cards/ReportComponent';
 export { default as SecondaryNavComponent } from './SecondaryNav';
+
+export { usePagination, Pagination } from './pagination/Pagination';

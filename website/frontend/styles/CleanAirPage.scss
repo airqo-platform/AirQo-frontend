@@ -413,10 +413,11 @@
             cursor: pointer;
           }
 
-          img.logo {
+          .logo {
             width: 100%;
             max-height: 110px;
             object-fit: contain;
+            mix-blend-mode: multiply;
           }
 
           .partners-toggle-button {

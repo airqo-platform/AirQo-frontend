@@ -3,17 +3,21 @@ import SEO from 'utilities/seo';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { getAllEvents } from '../../../reduxStore/Events/EventSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { RegisterSection, IntroSection, RotatingLoopIcon } from 'components/CleanAir';
+import {
+  RegisterSection,
+  IntroSection,
+  RotatingLoopIcon,
+  usePagination,
+  Pagination
+} from 'components/CleanAir';
 import eventImage from 'assets/img/cleanAir/events.png';
-import { useTranslation, Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import DoneIcon from '@mui/icons-material/Done';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import Slide from '@mui/material/Slide';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
-import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 
 const days = (date_1, date_2) => {
   let difference = date_1.getTime() - date_2.getTime();
@@ -32,6 +36,7 @@ const CleanAirEvents = () => {
   const navigate = useNavigate();
 
   // State
+  const itemsPerPage = 3;
   const [openDate, setOpenDate] = useState(false);
   const [openFilter, setOpenFilter] = useState(false);
   const [selectedDate, setSelectedDate] = useState();
@@ -132,20 +137,20 @@ const CleanAirEvents = () => {
     setOpenFilter(false);
   };
 
-  // State
-  const [currentPage, setCurrentPage] = useState(1);
-  const eventsPerPage = 3;
+  // Pagination
+  const {
+    currentItems: currentPastEvents,
+    currentPage: currentPastPage,
+    setCurrentPage: setCurrentPastPage,
+    totalPages: totalPastPages
+  } = usePagination(pastEvents, itemsPerPage);
 
-  // Derived data
-  const currentEvents = useMemo(() => getCurrentEvents(pastEvents), [pastEvents, currentPage]);
-  const totalPages = Math.ceil(pastEvents.length / eventsPerPage);
-
-  // Helper functions
-  function getCurrentEvents(events) {
-    const indexOfLastEvent = currentPage * eventsPerPage;
-    const indexOfFirstEvent = indexOfLastEvent - eventsPerPage;
-    return events.slice(indexOfFirstEvent, indexOfLastEvent);
-  }
+  const {
+    currentItems: currentUpcomingEvents,
+    currentPage: currentUpcomingPage,
+    setCurrentPage: setCurrentUpcomingPage,
+    totalPages: totalUpcomingPages
+  } = usePagination(upcomingEvents, itemsPerPage);
 
   const dates = [
     { month: t('cleanAirSite.events.dropdowns.date.options.1'), value: 1 },
@@ -192,7 +197,7 @@ const CleanAirEvents = () => {
       <IntroSection
         image={eventImage}
         subtext1={t('cleanAirSite.events.section1.text')}
-        imagePosition={'90%'}
+        imagePosition={'50%'}
       />
 
       {/* Events */}
@@ -308,33 +313,41 @@ const CleanAirEvents = () => {
             </div>
           </div>
           <div className="event-cards">
-            {upcomingEvents.length > 0 ? (
-              upcomingEvents.map((event) => (
-                <div className="event-card" key={event.id}>
-                  <img
-                    src={event.event_image}
-                    alt="Event Image"
-                    className="event-image"
-                    loading="lazy"
-                  />
-                  <div className="even-card-details">
-                    <h2 className="event-title">
-                      {event.title.length > 50 ? event.title.slice(0, 50) + '...' : event.title}
-                    </h2>
-                    <p className="event-subtitle">
-                      {event.title_subtext.length > 100
-                        ? event.title_subtext.slice(0, 100) + '...'
-                        : event.title_subtext}
-                    </p>
-                    <p className="event-date">
-                      {format(new Date(event.start_date), 'dd MMMM, yyyy')}
-                    </p>
-                    <button className="event-button" onClick={routeToDetails(event)}>
-                      {t('cleanAirSite.events.card.btnText')}
-                    </button>
+            {currentUpcomingEvents.length > 0 ? (
+              <>
+                {currentUpcomingEvents.map((event) => (
+                  <div className="event-card" key={event.id}>
+                    <img
+                      src={event.event_image}
+                      alt="Event Image"
+                      className="event-image"
+                      loading="lazy"
+                    />
+                    <div className="even-card-details">
+                      <h2 className="event-title">
+                        {event.title.length > 50 ? event.title.slice(0, 50) + '...' : event.title}
+                      </h2>
+                      <p className="event-subtitle">
+                        {event.title_subtext.length > 100
+                          ? event.title_subtext.slice(0, 100) + '...'
+                          : event.title_subtext}
+                      </p>
+                      <p className="event-date">
+                        {format(new Date(event.start_date), 'dd MMMM, yyyy')}
+                      </p>
+                      <button className="event-button" onClick={routeToDetails(event)}>
+                        {t('cleanAirSite.events.card.btnText')}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+                {/* Pagination */}
+                <Pagination
+                  currentPage={currentUpcomingPage}
+                  setCurrentPage={setCurrentUpcomingPage}
+                  totalPages={totalUpcomingPages}
+                />
+              </>
             ) : (
               <div className="no-events">
                 <p>{t('cleanAirSite.events.noEvents')}</p>
@@ -363,9 +376,9 @@ const CleanAirEvents = () => {
           </div>
           {hideEvents && (
             <div className="event-cards">
-              {currentEvents.length > 0 ? (
+              {currentPastEvents.length > 0 ? (
                 <>
-                  {currentEvents.map((event) => (
+                  {currentPastEvents.map((event) => (
                     <div className="event-card" key={event.id}>
                       <img
                         src={event.event_image}
@@ -390,29 +403,11 @@ const CleanAirEvents = () => {
                     </div>
                   ))}
                   {/* Pagination */}
-                  <div className="pagination">
-                    <button
-                      onClick={() => {
-                        setCurrentPage(currentPage - 1);
-                      }}
-                      disabled={currentPage === 1}>
-                      <KeyboardDoubleArrowLeftIcon
-                        sx={{ fill: currentPage === 1 ? '#D1D1D1' : '#000' }}
-                      />
-                    </button>
-                    <p>
-                      {currentPage} of {totalPages}
-                    </p>
-                    <button
-                      onClick={() => {
-                        setCurrentPage(currentPage + 1);
-                      }}
-                      disabled={currentPage === totalPages}>
-                      <KeyboardDoubleArrowRightIcon
-                        sx={{ fill: currentPage === totalPages ? '#D1D1D1' : '#000' }}
-                      />
-                    </button>
-                  </div>
+                  <Pagination
+                    currentPage={currentPastPage}
+                    setCurrentPage={setCurrentPastPage}
+                    totalPages={totalPastPages}
+                  />
                 </>
               ) : (
                 <div className="no-events">
