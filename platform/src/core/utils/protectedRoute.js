@@ -30,6 +30,7 @@ const useIdleTimer = (action, idleTime) => {
 export default function withAuth(Component) {
   return function WithAuthComponent(props) {
     const storedUserGroup = localStorage.getItem('activeGroup');
+    const storedToken = localStorage.getItem('token');
 
     const dispatch = useDispatch();
     const router = useRouter();
@@ -70,7 +71,7 @@ export default function withAuth(Component) {
     }, [userCredentials]);
 
     useEffect(() => {
-      if (!storedUserGroup) {
+      if (!storedUserGroup || !storedToken) {
         localStorage.clear();
         dispatch(resetStore());
         dispatch(resetChartStore());
