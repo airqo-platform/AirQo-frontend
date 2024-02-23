@@ -29,6 +29,8 @@ const useIdleTimer = (action, idleTime) => {
 
 export default function withAuth(Component) {
   return function WithAuthComponent(props) {
+    const storedUserGroup = localStorage.getItem('activeGroup');
+
     const dispatch = useDispatch();
     const router = useRouter();
     const userInfo = useSelector((state) => state.login.userInfo);
@@ -66,6 +68,18 @@ export default function withAuth(Component) {
         router.push('/account/login');
       }
     }, [userCredentials]);
+
+    useEffect(() => {
+      if (!storedUserGroup) {
+        localStorage.clear();
+        dispatch(resetStore());
+        dispatch(resetChartStore());
+        dispatch(clearIndividualPreferences());
+        dispatch(resetAllTasks());
+        dispatch(resetChecklist());
+        router.push('/account/login');
+      }
+    }, [storedUserGroup]);
 
     return userCredentials.success && <Component {...props} />;
   };
@@ -108,6 +122,6 @@ export const checkAccess = (requiredPermission) => {
       currentRole.role_permissions &&
       currentRole.role_permissions.map((item) => item.permission);
 
-    return permissions.includes(requiredPermission);
+    return permissions && permissions.includes(requiredPermission);
   }
 };
