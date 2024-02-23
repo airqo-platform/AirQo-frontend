@@ -7,6 +7,8 @@ const actionTypes = {
   FETCH_USER_PREFERENCES: 'userPreferences/fetch',
 };
 
+const initialState = { defaults: null, preferences: null, status: 'idle', error: null };
+
 // getting user defaults
 export const fetchUserDefaults = createAsyncThunk(
   actionTypes.FETCH_USER_DEFAULTS,
@@ -36,14 +38,9 @@ export const fetchUserPreferences = createAsyncThunk(
 
 const userDefaultsSlice = createSlice({
   name: 'userDefaults',
-  initialState: { defaults: null, preferences: null, status: 'idle', error: null },
+  initialState,
   reducers: {
-    clearChartStore: (state) => {
-      state.defaults = null;
-      state.status = 'idle';
-      state.preferences = null;
-      state.error = null;
-    },
+    clearChartStore: () => initialState,
   },
   extraReducers: (builder) => {
     builder

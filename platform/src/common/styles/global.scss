@@ -19,9 +19,12 @@ select:focus {
   outline: none !important;
 }
 
+.map-scrollbar::-webkit-scrollbar {
+  height: 2px;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   display: none;
-  height: 0;
 }
 
 /* Hide the default scrollbar */

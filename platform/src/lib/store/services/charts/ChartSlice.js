@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-const defaultChartSites = process.env.NEXT_PUBLIC_DEFAULT_CHART_SITES.split(',');
+const defaultChartSites = process.env.NEXT_PUBLIC_DEFAULT_CHART_SITES?.split(',') || [];
 
 const getStartDate = () => {
   const startDate = new Date();
@@ -66,27 +66,8 @@ export const chartSlice = createSlice({
     setRefreshChart: (state, action) => {
       state.refreshChart = action.payload;
     },
-    clearAll: (state) => {
-      state.chartType = '';
-      state.timeFrame = '';
-      state.pollutionType = '';
-      state.organizationName = '';
-      state.chartDataRange = {};
-      state.chartSites = [];
-      state.userDefaultID = null;
-      state.chartAnalyticsData = [];
-      state.refreshChart = false;
-    },
     resetChartStore: (state) => {
-      state.chartType = defaultChartType;
-      state.timeFrame = defaultTimeFrame;
-      state.pollutionType = defaultPollutionType;
-      state.organizationName = defaultOrganizationName;
-      state.chartDataRange = defaultChartDataRange;
-      state.chartSites = defaultChartSites;
-      state.userDefaultID = null;
-      state.chartAnalyticsData = [];
-      state.chartTab = defaultChartTab;
+      Object.assign(state, initialState);
     },
   },
 });
@@ -103,7 +84,6 @@ export const {
   setDefaultID,
   setChartData,
   setRefreshChart,
-  clearAll,
 } = chartSlice.actions;
 
 export default chartSlice.reducer;

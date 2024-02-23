@@ -1,12 +1,10 @@
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import {
   getUserPreferencesApi,
-  patchUserPreferencesApi,
-  postUserDefaultsApi,
-  postUserPreferencesApi,
-  updateUserDefaultsApi,
   updateUserPreferencesApi,
+  postUserPreferencesApi,
+  patchUserPreferencesApi,
 } from '@/core/apis/Account';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   locationsData: {},
@@ -90,41 +88,55 @@ export const defaultsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(postUserPreferences.pending, (state) => {
+        state.success = false;
+        state.errors = null;
+        state.post_response = [];
+      })
       .addCase(postUserPreferences.fulfilled, (state, action) => {
         state.post_response = action.payload;
         state.success = action.payload.success;
       })
-      .addCase(postUserPreferences.pending, (state) => {
+      .addCase(postUserPreferences.rejected, (state, action) => {
+        state.errors = action.error.message;
         state.success = false;
       })
-      .addCase(postUserPreferences.rejected, (state, action) => {
-        state.errors = action.payload;
+      .addCase(updateUserPreferences.pending, (state) => {
         state.success = false;
+        state.errors = null;
+        state.update_response = [];
       })
       .addCase(updateUserPreferences.fulfilled, (state, action) => {
         state.update_response = action.payload;
         state.success = action.payload.success;
       })
-      .addCase(updateUserPreferences.pending, (state) => {
+      .addCase(updateUserPreferences.rejected, (state, action) => {
+        state.errors = action.error.message;
         state.success = false;
       })
-      .addCase(updateUserPreferences.rejected, (state, action) => {
-        state.errors = action.payload;
+      .addCase(getIndividualUserPreferences.pending, (state) => {
         state.success = false;
+        state.errors = null;
+        state.individual_preferences = [];
       })
       .addCase(getIndividualUserPreferences.fulfilled, (state, action) => {
         state.individual_preferences = action.payload.preferences;
         state.success = action.payload.success;
       })
-      .addCase(getIndividualUserPreferences.pending, (state) => {
+      .addCase(getIndividualUserPreferences.rejected, (state, action) => {
+        state.errors = action.error.message;
         state.success = false;
       })
-      .addCase(getIndividualUserPreferences.rejected, (state, action) => {
-        state.errors = action.payload;
+      .addCase(replaceUserPreferences.pending, (state) => {
         state.success = false;
+        state.errors = null;
+      })
+      .addCase(replaceUserPreferences.fulfilled, (state, action) => {
+        state.individual_preferences = action.payload.preferences;
+        state.success = action.payload.success;
       })
       .addCase(replaceUserPreferences.rejected, (state, action) => {
-        state.errors = action.payload;
+        state.errors = action.error.message;
         state.success = false;
       });
   },

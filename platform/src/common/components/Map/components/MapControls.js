@@ -30,7 +30,6 @@ export class CustomZoomControl {
 
     const div = document.createElement('div');
     div.className = 'flex items-center justify-center h-full w-full';
-
     button.appendChild(div);
 
     const root = createRoot(div);
@@ -47,10 +46,22 @@ export class CustomZoomControl {
 
   onAdd(map) {
     this.map = map;
+    this.map.on('moveend', this.updateUrlWithMapState);
     return this.container;
   }
 
+  updateUrlWithMapState = () => {
+    const center = this.map.getCenter();
+    const zoom = this.map.getZoom();
+    const url = new URL(window.location);
+    url.searchParams.set('lat', center.lat.toFixed(4));
+    url.searchParams.set('lng', center.lng.toFixed(4));
+    url.searchParams.set('zm', zoom);
+    window.history.pushState({}, '', url);
+  };
+
   onRemove() {
+    this.map.off('moveend', this.updateUrlWithMapState);
     this.container.parentNode.removeChild(this.container);
     this.map = undefined;
   }

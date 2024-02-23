@@ -1,16 +1,16 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getAllGridLocationsApi, getSiteSummaryDetails } from '@/core/apis/DeviceRegistry';
+import { getSiteSummaryDetails, getGridLocationDetails } from '@/core/apis/DeviceRegistry';
 
 const initialState = {
-  gridLocations: [],
+  gridLocationDetails: {},
   sitesSummary: [],
   success: false,
   errors: null,
   selectedLocations: [],
 };
 
-export const getAllGridLocations = createAsyncThunk('/get/grids', async () => {
-  const response = await getAllGridLocationsApi();
+export const getGridLocation = createAsyncThunk('/get/grid', async (gridID) => {
+  const response = await getGridLocationDetails(gridID);
   return response;
 });
 
@@ -29,26 +29,30 @@ export const gridsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getAllGridLocations.fulfilled, (state, action) => {
-        state.gridLocations = action.payload.grids;
-        state.success = action.payload.success;
-      })
-      .addCase(getAllGridLocations.pending, (state) => {
+      .addCase(getSitesSummary.pending, (state) => {
         state.success = false;
-      })
-      .addCase(getAllGridLocations.rejected, (state, action) => {
-        state.errors = action.payload;
-        state.success = action.payload.success;
+        state.errors = null;
+        state.sitesSummary = [];
       })
       .addCase(getSitesSummary.fulfilled, (state, action) => {
         state.sitesSummary = action.payload;
         state.success = action.payload.success;
       })
-      .addCase(getSitesSummary.pending, (state) => {
+      .addCase(getSitesSummary.rejected, (state, action) => {
+        state.errors = action.error.message;
         state.success = false;
       })
-      .addCase(getSitesSummary.rejected, (state, action) => {
-        state.errors = action.payload;
+      .addCase(getGridLocation.pending, (state) => {
+        state.success = false;
+        state.errors = null;
+        state.gridLocationDetails = {};
+      })
+      .addCase(getGridLocation.fulfilled, (state, action) => {
+        state.gridLocationDetails = action.payload;
+        state.success = action.payload.success;
+      })
+      .addCase(getGridLocation.rejected, (state, action) => {
+        state.errors = action.error.message;
         state.success = false;
       });
   },
