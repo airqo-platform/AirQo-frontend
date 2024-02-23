@@ -1,5 +1,10 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getSiteSummaryDetails, getGridLocationDetails } from '@/core/apis/DeviceRegistry';
+import {
+  getUserPreferencesApi,
+  updateUserPreferencesApi,
+  postUserPreferencesApi,
+  patchUserPreferencesApi,
+} from '@/core/apis/Account';
 
 const initialState = {
   locationsData: {},

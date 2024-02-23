@@ -96,7 +96,7 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
   }
 
   return searchResults.length > 0 ? (
-    <div className='space-y-2 max-h-[445px] overflow-y-scroll mt-4'>
+    <div className='space-y-2 max-h-[445px] overflow-y-auto mt-4 map-scrollbar'>
       <hr />
       {searchResults.map((grid) => (
         <div
@@ -217,7 +217,7 @@ const index = () => {
       <div className='relative'>
         <>
           {showSideBar && (
-            <div className='absolute left-0 top-0 w-[280px] h-full md:w-[400px] bg-white shadow-lg shadow-right space-y-4 z-50 overflow-y-auto'>
+            <div className='absolute left-0 top-0 w-[280px] h-full md:w-[400px] bg-white shadow-lg shadow-right space-y-4 z-50 overflow-y-auto map-scrollbar'>
               <div className={!isFocused ? 'space-y-4' : 'hidden'}>
                 <div className='px-4 pt-4'>
                   <div className='w-full flex justify-start items-center'>
@@ -257,7 +257,7 @@ const index = () => {
                         setSelectedCountry={setSelectedCountry}
                       />
                     </div>
-                    <div className='space-y-4 max-h-[445px] overflow-y-scroll map-scrollbar'>
+                    <div className='space-y-4 max-h-[445px] overflow-y-auto map-scrollbar'>
                       <label className='font-medium text-gray-600 text-sm'>Suggestions</label>
                       <SectionCards
                         searchResults={selectedSites}
