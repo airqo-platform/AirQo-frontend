@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { withStyles } from '@material-ui/styles';
-import { CardContent } from '@material-ui/core';
+import { Button, CardContent } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import { clearErrors, loginUser } from 'redux/Join/actions';
 import Grid from '@material-ui/core/Grid';
@@ -115,8 +115,34 @@ class Login extends Component {
   };
   render() {
     const { errors } = this.state;
+
     return (
       <AlertMinimal>
+        <Alert
+          style={{
+            padding: '10px 20px',
+            borderRadius: 0
+          }}
+          action={
+            <Button
+              href="https://analytics.airqo.net/account/login"
+              target="_blank"
+              variant="text"
+              color="primary"
+              style={{ width: '90px' }}
+            >
+              Sign in
+            </Button>
+          }
+          severity={'info'}
+        >
+          <div style={{ textAlign: 'left' }}>
+            <h6 style={{ margin: 0, paddingBottom: '8px' }}>A fresh look is here!🎉</h6>
+            <p style={{ margin: 0 }}>
+              Upgrade to the new AirQo analytics today with a more modern look and better features
+            </p>
+          </div>
+        </Alert>
         <div
           className="container"
           style={{
