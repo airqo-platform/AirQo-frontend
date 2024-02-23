@@ -144,13 +144,7 @@ const index = () => {
   const siteDetails = siteData?.sites || [];
 
   useEffect(() => {
-    if (siteDetails.length === 0) {
-      try {
-        dispatch(getSitesSummary());
-      } catch (error) {
-        console.error('Failed to fetch sites summary:', error);
-      }
-    }
+    dispatch(getSitesSummary());
   }, []);
 
   useEffect(() => {
