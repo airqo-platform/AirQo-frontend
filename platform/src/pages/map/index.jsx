@@ -9,6 +9,7 @@ import HomeIcon from '@/icons/map/homeIcon';
 import { useRouter } from 'next/router';
 import { AirQualityLegend } from '@/components/Map/components/Legend';
 import allCountries from '@/components/Map/components/countries';
+import withAuth from '@/core/utils/protectedRoute';
 
 const MAP_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -48,21 +49,24 @@ const TabSelector = ({ selectedTab, setSelectedTab }) => {
           onClick={() => setSelectedTab('locations')}
           className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
             selectedTab === 'locations' ? 'border rounded-md bg-white shadow-sm' : ''
-          }`}>
+          }`}
+        >
           Locations
         </div>
         <div
           onClick={() => setSelectedTab('sites')}
           className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
             selectedTab === 'sites' ? 'border rounded-md bg-white shadow-sm' : ''
-          }`}>
+          }`}
+        >
           Sites
         </div>
         <div
           onClick={() => setSelectedTab('airqlouds')}
           className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
             selectedTab === 'airqlouds' ? 'border rounded-md bg-white shadow-sm' : ''
-          }`}>
+          }`}
+        >
           AirQlouds
         </div>
       </div>
@@ -97,7 +101,8 @@ const CountryList = ({ selectedCountry, setSelectedCountry }) => (
         style={{
           backgroundColor: selectedCountry?.country === country.country ? '#77A9FF' : '',
         }}
-        onClick={() => setSelectedCountry(country)}>
+        onClick={() => setSelectedCountry(country)}
+      >
         <img src={country.flag} alt={country.country} width={20} height={20} />
         <span>{country.country}</span>
       </div>
@@ -184,7 +189,8 @@ const index = () => {
                   </div>
                   <button
                     className='p-2 border rounded-xl hover:bg-gray-100'
-                    onClick={() => setShowSideBar(!showSideBar)}>
+                    onClick={() => setShowSideBar(!showSideBar)}
+                  >
                     <CloseIcon width={15} height={15} fill={'#6F87A1'} />
                   </button>
                 </div>
@@ -213,7 +219,8 @@ const index = () => {
                       className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer hover:bg-blue-100 p-2 rounded-lg'
                       onClick={() => {
                         handleLocationSelect();
-                      }}>
+                      }}
+                    >
                       <div className='p-2 rounded-full bg-gray-100'>
                         <LocationIcon />
                       </div>
@@ -235,7 +242,8 @@ const index = () => {
           <div
             className={`absolute bottom-4 ${
               showSideBar ? 'left-[calc(280px+15px)] md:left-[calc(400px+15px)]' : 'left-[15px]'
-            } z-50`}>
+            } z-50`}
+          >
             <AirQualityLegend />
           </div>
         </>
@@ -245,12 +253,14 @@ const index = () => {
               <div className='flex flex-col space-y-4'>
                 <button
                   className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-                  onClick={() => setShowSideBar(!showSideBar)}>
+                  onClick={() => setShowSideBar(!showSideBar)}
+                >
                   <MenuIcon />
                 </button>
                 <button
                   className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-                  onClick={() => handleHomeClick()}>
+                  onClick={() => handleHomeClick()}
+                >
                   <HomeIcon />
                 </button>
               </div>
@@ -265,5 +275,4 @@ const index = () => {
     </Layout>
   );
 };
-
-export default index;
+export default withAuth(index);
