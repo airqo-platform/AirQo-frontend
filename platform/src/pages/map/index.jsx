@@ -11,6 +11,7 @@ import allCountries from '@/components/Map/components/countries';
 import { getSitesSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import { setCenter, setZoom, setLocation } from '@/lib/store/services/map/MapSlice';
 import SearchField from '@/components/search/SearchField';
+import withAuth from '@/core/utils/protectedRoute';
 
 // tab selector
 const TabSelector = ({ selectedTab, setSelectedTab }) => {
