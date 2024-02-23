@@ -4,23 +4,24 @@ import {
   LOAD_TEAM_SUCCESS,
   LOAD_TEAM_FAILURE,
   UPDATE_TEAM_LOADER_SUCCESS,
-  UPDATE_TEAM_LOADER_FAILURE,
+  UPDATE_TEAM_LOADER_FAILURE
 } from './actions';
 
-export const loadTeamData = () => async (dispatch) => {
+export const loadTeamData = () => async (dispatch, getState) => {
+  const lang = getState().eventsNavTab.languageTab;
   dispatch({ type: UPDATE_TEAM_LOADER_SUCCESS, payload: { loading: true } });
-  await getAllTeamMembersApi()
+  await getAllTeamMembersApi(lang)
     .then((resData) => {
       if (isEmpty(resData || [])) return;
       dispatch({
         type: LOAD_TEAM_SUCCESS,
-        payload: resData,
+        payload: resData
       });
     })
     .catch((err) => {
       dispatch({
         type: LOAD_TEAM_FAILURE,
-        payload: err && err.message,
+        payload: err && err.message
       });
     });
 

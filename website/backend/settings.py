@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import cloudinary
 import dj_database_url
+from django.utils.translation import gettext_lazy as _
 
 # from dotenv import load_dotenv
 
@@ -89,6 +90,7 @@ INSTALLED_APPS = [
     # Third-party apps
     "cloudinary",
     "rest_framework",
+    'modeltranslation',
     "drf_yasg",
     'django_quill',
     # My apps
@@ -112,6 +114,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -168,6 +171,12 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
+LANGUAGES = [
+    ('en', _('English')),
+    ('fr', _('French')),
+]
+
+
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "Africa/Kampala"
@@ -177,6 +186,10 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, "locale"),
+]
 
 
 # Static files (CSS, JavaScript, Images)

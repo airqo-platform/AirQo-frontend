@@ -7,9 +7,10 @@ import {
   UPDATE_BOARD_LOADER_FAILURE
 } from './actions';
 
-export const loadBoardData = () => async (dispatch) => {
+export const loadBoardData = () => async (dispatch, getState) => {
+  const lang = getState().eventsNavTab.languageTab;
   dispatch({ type: UPDATE_BOARD_LOADER_SUCCESS, payload: { loading: true } });
-  await getBoardMembersApi()
+  await getBoardMembersApi(lang)
     .then((resData) => {
       if (isEmpty(resData || [])) return;
       dispatch({

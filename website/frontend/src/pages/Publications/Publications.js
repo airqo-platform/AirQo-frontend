@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useInitScrollTop } from 'utilities/customHooks';
 import SEO from 'utilities/seo';
 import { loadPublicationsData } from '../../../reduxStore/Publications/operations';
@@ -15,6 +15,7 @@ const PublicationsPage = () => {
   const { t } = useTranslation();
   const [selectedTab, setSelectedTab] = useState('Research');
   const onClickTabItem = (tab) => setSelectedTab(tab);
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   const dispatch = useDispatch();
   const publicationsData = usePublicationsData();
@@ -48,7 +49,7 @@ const PublicationsPage = () => {
 
   useEffect(() => {
     dispatch(loadPublicationsData());
-  }, [publicationsData.length]);
+  }, [publicationsData.length, language]);
 
   return (
     <Page>
