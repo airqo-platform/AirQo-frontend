@@ -8,6 +8,7 @@ import { loadPressData } from '../../../reduxStore/Press/PressSlice';
 import { isEmpty } from 'underscore';
 import Loadspinner from '../../components/LoadSpinner';
 import { useTranslation } from 'react-i18next';
+import SectionLoader from '../../components/LoadSpinner/SectionLoader';
 
 const Press = () => {
   useInitScrollTop();
@@ -30,16 +31,24 @@ const Press = () => {
 
   return (
     <>
-      {loading ? (
-        <Loadspinner />
-      ) : (
-        <Page>
+      <Page>
+        <SEO
+          title="Press"
+          siteTitle="AirQo"
+          description="Find stories about AirQo that we think you'll love."
+        />
+        {loading ? (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '50vh'
+            }}>
+            <SectionLoader />
+          </div>
+        ) : (
           <div className="list-page">
-            <SEO
-              title="Press"
-              siteTitle="AirQo"
-              description="Find stories about AirQo that we think you'll love."
-            />
             <div className="page-header">
               <div className="content">
                 <div className="title-wrapper">
@@ -103,8 +112,8 @@ const Press = () => {
               )}
             </div>
           </div>
-        </Page>
-      )}
+        )}
+      </Page>
     </>
   );
 };
