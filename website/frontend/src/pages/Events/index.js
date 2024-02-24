@@ -7,7 +7,7 @@ import { useInitScrollTop } from 'utilities/customHooks';
 import EventCard from './EventCard';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllEvents } from '../../../reduxStore/Events/EventSlice';
-import Loadspinner from '../../components/LoadSpinner';
+import SectionLoader from '../../components/LoadSpinner/SectionLoader';
 import { useTranslation } from 'react-i18next';
 
 const EventsPage = () => {
@@ -55,16 +55,24 @@ const EventsPage = () => {
 
   return (
     <>
-      {loading ? (
-        <Loadspinner />
-      ) : (
-        <Page>
+      <Page>
+        <SEO
+          title="Events"
+          siteTitle="AirQo"
+          description="Advancing air quality management in African cities"
+        />
+        {loading ? (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '50vh'
+            }}>
+            <SectionLoader />
+          </div>
+        ) : (
           <div className="list-page events">
-            <SEO
-              title="Events"
-              siteTitle="AirQo"
-              description="Advancing air quality management in African cities"
-            />
             {featuredEvents.length > 0 &&
               featuredEvents
                 .slice(0, 1)
@@ -146,8 +154,8 @@ const EventsPage = () => {
               </div>
             </div>
           </div>
-        </Page>
-      )}
+        )}
+      </Page>
     </>
   );
 };
