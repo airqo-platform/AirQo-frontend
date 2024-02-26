@@ -8,7 +8,6 @@ import { AirQualityLegend } from '@/components/Map/components/Legend';
 import Sidebar from '@/components/Map/components/Sidebar';
 import { getSitesSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import withAuth from '@/core/utils/protectedRoute';
-import { getMapReadings } from '@/core/apis/deviceRegistry';
 
 const index = () => {
   const dispatch = useDispatch();
