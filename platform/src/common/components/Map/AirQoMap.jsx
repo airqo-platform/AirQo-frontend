@@ -46,12 +46,15 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   const zm = urlParams.get('zm');
 
   useEffect(() => {
-    if (mapRef.current && mapData.center.latitude && mapData.center.longitude) {
-      mapRef.current.flyTo({
-        center: [mapData.center.longitude, mapData.center.latitude],
-        zoom: mapData.zoom,
-        essential: true,
-      });
+    if (mapRef.current && mapData.center && mapData.zoom) {
+      const { latitude, longitude } = mapData.center;
+      if (latitude && longitude) {
+        mapRef.current.flyTo({
+          center: [longitude, latitude],
+          zoom: mapData.zoom,
+          essential: true,
+        });
+      }
     }
   }, [mapData.center, mapData.zoom]);
 
