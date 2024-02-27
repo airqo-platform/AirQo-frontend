@@ -166,7 +166,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
   };
 
   return (
-    <div className='absolute left-0 top-0 w-auto h-full md:w-[400px] bg-white shadow-lg shadow-right space-y-4 z-50 overflow-y-auto map-scrollbar'>
+    <div className='absolute left-0 top-0 w-full h-full md:max-w-[400px] bg-white shadow-lg shadow-right space-y-4 z-50 overflow-y-auto map-scrollbar'>
       <div className={!isFocused ? 'space-y-4' : 'hidden'}>
         <div className='px-4 pt-4'>
           <div className='w-full flex justify-between items-center'>
@@ -177,7 +177,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
               <CloseIcon />
             </button>
           </div>
-          <p className='text-gray-500 text-sm font-normal w-auto md:w-[316.681px;] mt-6'>
+          <p className='text-gray-500 text-sm font-normal w-auto mt-6'>
             Navigate, Explore, and Understand Air Quality Data with Precision, Right Down to Your
             Neighborhood
           </p>
@@ -186,7 +186,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
         {!isAdmin && <hr />}
       </div>
       {selectedTab === 'locations' && (
-        <>
+        <div>
           {/* section 1 */}
           <div className={`px-4 space-y-4 ${isFocused ? 'hidden' : ''}`}>
             <div onMouseDown={() => setIsFocused(true)}>
@@ -218,7 +218,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
             </div>
           </div>
           {/* Section 2 */}
-          <div className={`px-4 pt-4 ${isFocused ? '' : 'hidden'}`}>
+          <div className={`px-4 pt-4 w-auto ${isFocused ? '' : 'hidden'}`}>
             <div className='w-full flex justify-start items-center'>
               <button
                 onClick={() => setIsFocused(false)}
@@ -236,7 +236,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
               handleLocationSelect={handleLocationSelect}
             />
           </div>
-        </>
+        </div>
       )}
     </div>
   );
