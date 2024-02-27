@@ -49,11 +49,11 @@ The tool allows you to upload a CSV containing your low-cost sensor PM concentra
 
 ## Getting Started
 
-AirQalibrate is available to anyone with access to AirQo’s air quality [analytics platform](https://platform.airqo.net/dashboard). To create an account follow this [link](https://airqo.africa/explore-data/get-started).
+AirQalibrate is available to anyone with access to AirQo’s air quality [analytics platform](https://platform.airqo.net/). To create an account follow this [link](https://airqo.africa/explore-data/get-started).
 
 To open AirQualibrate, follow these steps:
 
-1. Login to the [analytics platform](https://platform.airqo.net/dashboard).
+1. Login to the [analytics platform](https://platform.airqo.net/).
 2. From the top banner, open the AirQo Apps menu.
 3. From the Apps menu, click on calibrate App icon to open the calibrate UI
    <img src='_media/airqalibrate_3.png' alt='calibrate_app_icon_that_opens_the_calibrate_ui' />
