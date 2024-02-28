@@ -10,6 +10,9 @@ import LayerModal from './components/LayerModal';
 import MapImage from '@/images/map/dd1.png';
 import Loader from '@/components/Spinner';
 import axios from 'axios';
+import Supercluster from 'supercluster';
+import { createPopupHTML, createClusterHTML, getIcon, images } from './components/MapNodes';
+import { getMapReadings } from '@/core/apis/DeviceRegistry';
 
 const mapStyles = [
   { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets', image: MapImage },
@@ -40,55 +43,183 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   const urls = new URL(window.location.href);
   const urlParams = new URLSearchParams(urls.search);
   const mapData = useSelector((state) => state.map);
+  const [pollutant, setPollutant] = useState('pm2_5');
 
   const lat = urlParams.get('lat');
   const lng = urlParams.get('lng');
   const zm = urlParams.get('zm');
 
   useEffect(() => {
-    if (mapRef.current && mapData.center.latitude && mapData.center.longitude) {
-      mapRef.current.flyTo({
-        center: [mapData.center.longitude, mapData.center.latitude],
-        zoom: mapData.zoom,
-        essential: true,
-      });
+    if (mapRef.current && mapData.center && mapData.zoom) {
+      const { latitude, longitude } = mapData.center;
+      if (latitude && longitude) {
+        mapRef.current.flyTo({
+          center: [longitude, latitude],
+          zoom: mapData.zoom,
+          essential: true,
+        });
+      }
     }
   }, [mapData.center, mapData.zoom]);
 
+  // Node data
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const response = await getMapReadings();
+      const data = response.measurements
+        .filter((item) => item.siteDetails)
+        .map((item) => ({
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [
+              item.siteDetails.approximate_longitude,
+              item.siteDetails.approximate_latitude,
+            ],
+          },
+          properties: {
+            _id: item.siteDetails._id,
+            no2: item.no2.value,
+            pm10: item.pm10.value,
+            pm2_5: item.pm2_5.value,
+            createdAt: item.createdAt,
+            time: item.time,
+            aqi: getIcon(item[pollutant].value),
+          },
+        }));
+      setLoading(false);
+      return data;
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+    }
+  };
+
   // Init map
   useEffect(() => {
-    mapboxgl.accessToken = mapboxApiAccessToken;
+    const initializeMap = async () => {
+      mapboxgl.accessToken = mapboxApiAccessToken;
+      const map = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: mapStyle,
+        center: [lng || mapData.center.longitude, lat || mapData.center.latitude],
+        zoom: zm || mapData.zoom,
+      });
 
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: mapStyle,
-      center: [lng || mapData.center.longitude, lat || mapData.center.latitude],
-      zoom: zm || mapData.zoom,
-    });
+      mapRef.current = map;
 
-    mapRef.current = map;
+      let markers = []; // Store all markers
 
-    // Add controls upon map load
-    map.on('load', () => {
-      map.resize();
+      map.on('load', async () => {
+        map.resize();
 
-      try {
         const zoomControl = new CustomZoomControl();
         map.addControl(zoomControl, 'bottom-right');
 
         const geolocateControl = new CustomGeolocateControl();
         map.addControl(geolocateControl, 'bottom-right');
-      } catch (error) {
-        console.error('Error adding map controls:', error);
-      }
-    });
+
+        // Load all the images
+        try {
+          await Promise.all(
+            Object.keys(images).map(
+              (key) =>
+                new Promise((resolve, reject) => {
+                  map.loadImage(images[key], (error, image) => {
+                    if (error) {
+                      console.error(`Failed to load image ${key}: `, error);
+                      reject(error);
+                    } else {
+                      map.addImage(key, image);
+                      resolve();
+                    }
+                  });
+                }),
+            ),
+          );
+        } catch (error) {
+          console.error('Error loading images: ', error);
+        }
+
+        // Load data
+        let data;
+        try {
+          data = await fetchData();
+        } catch (error) {
+          console.error('Error fetching data: ', error);
+          return;
+        }
+
+        // Create a supercluster
+        const index = new Supercluster({
+          radius: 40,
+          maxZoom: 16,
+        });
+        index.load(data);
+        const updateClusters = () => {
+          const zoom = map.getZoom();
+          const bounds = map.getBounds();
+          const bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()];
+          const clusters = index.getClusters(bbox, Math.floor(zoom));
+
+          // Remove existing markers
+          markers.forEach((marker) => marker.remove());
+          markers = [];
+
+          // Add unclustered points as custom HTML markers
+          clusters.forEach((feature) => {
+            const el = document.createElement('div');
+            el.className = 'flex justify-center items-center bg-white rounded-full p-2 shadow-md';
+            el.style.cursor = 'pointer';
+
+            if (!feature.properties.cluster) {
+              el.innerHTML = `<img src="${
+                images[feature.properties.aqi]
+              }" alt="AQI Icon" class="w-8 h-8">`;
+              el.id = feature.properties._id;
+              el.addEventListener('mouseenter', () => {
+                el.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+                el.style.padding = '18px';
+              });
+              el.addEventListener('mouseleave', () => {
+                el.style.backgroundColor = 'white';
+                el.style.padding = '8px';
+              });
+
+              // Add popup to unclustered node
+              const popup = new mapboxgl.Popup({ offset: 25, closeButton: false }).setHTML(
+                createPopupHTML({ feature, images }),
+              );
+              const marker = new mapboxgl.Marker(el)
+                .setLngLat(feature.geometry.coordinates)
+                .setPopup(popup)
+                .addTo(map);
+              markers.push(marker);
+            } else {
+              el.innerHTML = createClusterHTML({ feature, images });
+              const marker = new mapboxgl.Marker(el)
+                .setLngLat(feature.geometry.coordinates)
+                .addTo(map);
+              markers.push(marker);
+            }
+          });
+        };
+
+        map.on('zoomend', updateClusters);
+        map.on('moveend', updateClusters);
+        updateClusters();
+      });
+    };
+
+    initializeMap();
 
     return () => {
-      map.remove();
+      mapRef.current.remove();
       dispatch(setCenter(initialState.center));
       dispatch(setZoom(initialState.zoom));
     };
-  }, [mapStyle, mapboxApiAccessToken, refresh]);
+  }, [mapStyle, mapboxApiAccessToken, refresh, pollutant]);
 
   // Boundaries for a country
   useEffect(() => {
