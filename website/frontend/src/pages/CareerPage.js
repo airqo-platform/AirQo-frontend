@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useInitScrollTop } from 'utilities/customHooks';
 import Page from './Page';
-import { loadCareersListingData, loadCareersDepartmentsData } from 'reduxStore/Careers/operations';
-import { useCareerListingData, useCareerDepartmentsData } from 'reduxStore/Careers/selectors';
+import {
+  useCareerListingData,
+  useCareerDepartmentsData,
+  useCareerLoadingData
+} from 'reduxStore/Careers/selectors';
 import { groupBy } from 'underscore';
 import SectionLoader from '../components/LoadSpinner/SectionLoader';
 import SEO from 'utilities/seo';
 import { useTranslation, Trans } from 'react-i18next';
+import { useSelector } from 'react-redux';
 
 const JobListing = ({ title, uniqueTitle, type, key }) => {
   const navigate = useNavigate();
@@ -50,12 +53,11 @@ const DepartmentListing = ({ department, listing }) => {
 const CareerPage = () => {
   useInitScrollTop();
   const { t } = useTranslation();
-  const dispatch = useDispatch();
   const careerListing = useCareerListingData();
   const departments = useCareerDepartmentsData();
-  const [loading, setLoading] = useState(false);
-  const language = useSelector((state) => state.eventsNavTab.languageTab);
+  const loading = useCareerLoadingData();
   const groupedListing = groupBy(Object.values(careerListing), (v) => v['department']['name']);
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   const [groupedKeys, setGroupedKeys] = useState(Object.keys(groupedListing));
   const [selectedTag, setSelectedTag] = useState('all');
@@ -80,18 +82,8 @@ const CareerPage = () => {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      await dispatch(loadCareersListingData());
-      await dispatch(loadCareersDepartmentsData());
-      setLoading(false);
-    };
-    fetchData();
-  }, [language]);
-
-  useEffect(() => {
     setGroupedKeys(Object.keys(groupedListing));
-  }, [careerListing]);
+  }, [careerListing, language]);
 
   return (
     <Page>
@@ -115,7 +107,7 @@ const CareerPage = () => {
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              height: '100vh'
+              height: '50vh'
             }}>
             <SectionLoader />
           </div>
@@ -143,9 +135,15 @@ const CareerPage = () => {
               {groupedKeys.length > 0 ? (
                 groupedKeys.map((groupedKey) => {
                   const departmentListing = groupedListing[groupedKey];
+
+                  if (!departmentListing) {
+                    return null;
+                  }
+
                   const listing = departmentListing.filter(
                     (job) => new Date(job.closing_date).getTime() >= new Date().getTime()
                   );
+
                   return (
                     <DepartmentListing
                       department={listing.length > 0 ? groupedKey : null}

@@ -13,6 +13,7 @@ import Slide from '@mui/material/Slide';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import { fetchCleanAirData } from 'reduxStore/CleanAirNetwork/CleanAir';
 
 const ITEMS_PER_PAGE = 3;
 
@@ -22,11 +23,11 @@ const CleanAirPublications = () => {
   const filterRef = useRef(null);
   const dispatch = useDispatch();
   const [openfilter, setFilter] = useState(false);
-  const [cleanAirResources, setCleanAirResources] = useState([]);
+  const cleanAirResources = useSelector((state) => state.cleanAirData.airData);
+  const loading = useSelector((state) => state.cleanAirData.loading);
   const activeResource = useSelector((state) => state.cleanAirData.activeResource);
   const language = useSelector((state) => state.eventsNavTab.languageTab);
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(false);
 
   const resources = [
     t('cleanAirSite.publications.navs.toolkits'),
@@ -36,21 +37,8 @@ const CleanAirPublications = () => {
   ];
 
   useEffect(() => {
-    const fetchCleanAirApi = async () => {
-      try {
-        setLoading(true);
-        const response = await getAllCleanAirApi(language);
-        setCleanAirResources(response);
-        dispatch(setActiveResource(t('cleanAirSite.publications.navs.toolkits')));
-      } catch (error) {
-        console.error('Failed to fetch clean air API:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCleanAirApi();
-  }, [language, dispatch]);
+    dispatch(setActiveResource(t('cleanAirSite.publications.navs.toolkits')));
+  }, [dispatch, language]);
 
   const toolkitData = cleanAirResources.filter(
     (resource) => resource.resource_category === 'toolkit'

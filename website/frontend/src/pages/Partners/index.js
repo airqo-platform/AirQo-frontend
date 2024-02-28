@@ -11,14 +11,9 @@ import { loadPartnersData } from '../../../reduxStore/Partners/operations';
 const PartnerDetailPage = () => {
   useInitScrollTop();
   const { uniqueTitle } = useParams();
-  const dispatch = useDispatch();
 
   const partnerDetails = usePartnersData();
   const partner = partnerDetails.filter((p) => p.unique_title === uniqueTitle) || {};
-
-  useEffect(() => {
-    if (isEmpty(partnerDetails)) dispatch(loadPartnersData());
-  }, []);
 
   return (
     <PageMini>

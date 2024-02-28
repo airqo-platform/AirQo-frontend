@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState, useCallback } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
@@ -37,8 +37,39 @@ import PartnerDetailPage from './src/pages/Partners';
 import Error404 from 'src/pages/ErrorPages/Error404';
 import { ExploreApp } from './src/pages/ExploreData';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import { fetchCleanAirData } from 'reduxStore/CleanAirNetwork/CleanAir';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllEvents } from 'reduxStore/Events/EventSlice';
+import { loadPublicationsData } from 'reduxStore/Publications/operations';
+import { usePublicationsData } from 'reduxStore/Publications/selectors';
+import { loadPressData } from 'reduxStore/Press/PressSlice';
+import { loadPartnersData } from 'reduxStore/Partners/operations';
+import { usePartnersData } from 'reduxStore/Partners/selectors';
+import { loadCareersListingData } from 'reduxStore/Careers/operations';
+import { useCareerListingData } from 'reduxStore/Careers/selectors';
+import { loadCareersDepartmentsData } from 'reduxStore/Careers/operations';
+import { useCareerDepartmentsData } from 'reduxStore/Careers/selectors';
 
 store.dispatch(loadAirQloudSummaryData());
+
+const FetchData = () => {
+  const dispatch = useDispatch();
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
+
+  const fetchData = useCallback(() => {
+    dispatch(getAllEvents(language));
+    dispatch(fetchCleanAirData(language));
+    dispatch(loadPublicationsData());
+    dispatch(loadPressData());
+    dispatch(loadPartnersData());
+    dispatch(loadCareersListingData());
+    dispatch(loadCareersDepartmentsData());
+  }, [language, dispatch]);
+
+  useEffect(fetchData, [fetchData]);
+
+  return null;
+};
 
 const App = () => {
   const [showScroll, setShowScroll] = useState(false);
@@ -64,6 +95,7 @@ const App = () => {
   return (
     <Provider store={store}>
       <I18nextProvider i18n={i18n}>
+        <FetchData />
         <Router>
           <Suspense fallback={<Loadspinner />}>
             <Routes>

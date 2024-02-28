@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import NotificationBanner from 'src/components/NotificationBanner';
 import LanguageSwitcher from 'src/components/LanguageSwitcher';
 import Footer from 'src/components/Footer';

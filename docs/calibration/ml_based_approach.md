@@ -33,7 +33,7 @@ The machine learning models are trained periodically in order to capture seasona
 
 ## Step 3: Deploying the model to a data Pipeline
 
-Data from all devices on the AirQo network is streamed in near real-time, cleaned and stored in the cloud. After every hour, the data for each device is averaged and calibrated before it is made available to external users through an API or data download feature on our [analytics platform](https://platform.airqo.net/dashboard). Calibrated data is also used to perform additional analysis and generate insights; results from this analysis are displayed through graphs and maps that can be accessed through the analytics platform, AirQo website or mobile application.
+Data from all devices on the AirQo network is streamed in near real-time, cleaned and stored in the cloud. After every hour, the data for each device is averaged and calibrated before it is made available to external users through an API or data download feature on our [analytics platform](https://platform.airqo.net/). Calibrated data is also used to perform additional analysis and generate insights; results from this analysis are displayed through graphs and maps that can be accessed through the analytics platform, AirQo website or mobile application.
 
 | <img src='_media/ml_based_approach_bam_3.png' alt='visual_representation_of_the_data_pipeline' /> |
 | :-----------------------------------------------------------------------------------------------: |

@@ -2,7 +2,7 @@ import createAxiosInstance from './axiosConfig';
 import {
   SITES_URL,
   ANALYTICS_URL,
-  GRIDS_SUMMARY_URL,
+  READINGS_URL,
   DEVICES,
   GRID_LOCATIONS_URL,
 } from '../urls/deviceRegistry';
@@ -58,5 +58,11 @@ export const verifyCohortID = async (cohortID) => {
 export const updateCohortDetails = async (body, cohortID) => {
   return await createAxiosInstance()
     .put(`${DEVICES}/cohorts/${cohortID}`, body)
+    .then((response) => response.data);
+};
+
+export const getMapReadings = async () => {
+  return await createAxiosInstance(false)
+    .get(READINGS_URL)
     .then((response) => response.data);
 };
