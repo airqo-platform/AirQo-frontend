@@ -21,6 +21,7 @@ const EventDetails = () => {
   const eventData = allEventsData.filter((event) => event.website_category === 'airqo');
   const eventDetails = eventData.filter((event) => event.unique_title === uniqueTitle) || {};
   const loading = useSelector((state) => state.eventsData.loading);
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   useEffect(() => {
     if (isEmpty(eventData)) {

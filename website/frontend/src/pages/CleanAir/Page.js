@@ -7,12 +7,10 @@ import Loadspinner from 'components/LoadSpinner';
 import LanguageSwitcher from 'components/LanguageSwitcher';
 
 const CleanAirPageContainer = ({ children }) => {
-  const { pressDataLoading, eventsDataLoading } = useSelector((state) => ({
-    pressDataLoading: state?.pressData?.loading,
-    eventsDataLoading: state?.eventsData?.loading
-  }));
+  const eventsLoading = useSelector((state) => state.eventsData.loading);
+  const pressLoading = useSelector((state) => state.cleanAirData.loading);
 
-  if (pressDataLoading && eventsDataLoading) {
+  if (eventsLoading && pressLoading) {
     return <Loadspinner />;
   }
 

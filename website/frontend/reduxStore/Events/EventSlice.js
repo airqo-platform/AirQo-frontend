@@ -1,18 +1,19 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { getAllEventsApi } from '../../apis';
 import { isEmpty } from 'underscore';
 
-export const getAllEvents = () => async (dispatch, getState) => {
-  const lang = getState().eventsNavTab.languageTab;
-  dispatch(isLoading(true));
-  await getAllEventsApi(lang)
-    .then((res) => {
-      if (isEmpty(res || [])) return;
-      dispatch(getEventsReducer(res));
-    })
-    .catch((err) => dispatch(getEventsFailure(err.message)));
-  dispatch(isLoading(false));
-};
+// Async thunk for fetching all events
+export const getAllEvents = createAsyncThunk(
+  'getEvents/fetchAll',
+  async (lang, { rejectWithValue }) => {
+    try {
+      const response = await getAllEventsApi(lang);
+      return response;
+    } catch (err) {
+      return rejectWithValue(err.response.data);
+    }
+  }
+);
 
 export const eventSlice = createSlice({
   name: 'getEvents',
@@ -21,19 +22,21 @@ export const eventSlice = createSlice({
     events: [],
     errorMessage: ''
   },
-  reducers: {
-    getEventsReducer: (state, action) => {
-      state.events = action.payload;
-    },
-    getEventsFailure: (state, action) => {
-      state.errorMessage = action.payload;
-    },
-    isLoading: (state, action) => {
-      state.loading = action.payload;
-    }
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(getAllEvents.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getAllEvents.fulfilled, (state, action) => {
+        state.loading = false;
+        state.events = action.payload;
+      })
+      .addCase(getAllEvents.rejected, (state, action) => {
+        state.loading = false;
+        state.errorMessage = action.error.message;
+      });
   }
 });
-
-export const { getEventsReducer, getEventsFailure, isLoading } = eventSlice.actions;
 
 export default eventSlice.reducer;

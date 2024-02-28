@@ -106,7 +106,7 @@ INSTALLED_APPS = [
     'backend.africancities.apps.AfricanCitiesConfig',
     'backend.press.apps.PressConfig',
     'backend.impact.apps.ImpactConfig',
-    'backend.cleanair.apps.CleanAirConfig'
+    'backend.cleanair.apps.CleanAirConfig',
 ]
 
 MIDDLEWARE = [
