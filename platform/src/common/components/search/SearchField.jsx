@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import Fuse from 'fuse.js';
 import SearchIcon from '@/icons/Common/search_md.svg';
 
-const SearchField = ({ data, onSearch, searchKeys = [], onClearSearch }) => {
+const SearchField = ({ data, onSearch = () => {}, searchKeys = [], onClearSearch = () => {} }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState(null);
 

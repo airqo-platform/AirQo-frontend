@@ -17,7 +17,14 @@ import Footer from './components/Footer';
 import ShortCuts from './components/ShortCuts';
 import CalendarHeader from './components/CalendarHeader';
 
-const Calendar = ({ initialMonth1, initialMonth2, handleValueChange, closeDatePicker }) => {
+const Calendar = ({
+  initialMonth1,
+  initialMonth2,
+  handleValueChange,
+  closeDatePicker,
+  showAsSingle = false,
+  useRange = true,
+}) => {
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const [selectedDays1, setSelectedDays1] = useState([]);
   const [selectedDays2, setSelectedDays2] = useState([]);
@@ -75,7 +82,8 @@ const Calendar = ({ initialMonth1, initialMonth2, handleValueChange, closeDatePi
             (selectedRange.end && isSameDay(day, selectedRange.end)) || isEndOfWeek
               ? 'rounded-r-full'
               : ''
-          }`}>
+          }`}
+        >
           <button
             onClick={() => handleDayClick(day, setSelectedDays)}
             className={`
@@ -94,7 +102,8 @@ const Calendar = ({ initialMonth1, initialMonth2, handleValueChange, closeDatePi
               }
               hover:border-blue-600 hover:text-blue-600 hover:rounded-full hover:border dark:hover:border-gray-500 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600 
               disabled:text-gray-300 disabled:pointer-events-none md:w-14 lg:w-16
-            `}>
+            `}
+          >
             {format(day, 'd')}
           </button>
         </div>
@@ -131,7 +140,8 @@ const Calendar = ({ initialMonth1, initialMonth2, handleValueChange, closeDatePi
                 {daysOfWeek.map((day) => (
                   <span
                     key={day}
-                    className='flex text-gray-600 items-center justify-center w-10 h-10 font-semibold rounded-lg'>
+                    className='flex text-gray-600 items-center justify-center w-10 h-10 font-semibold rounded-lg'
+                  >
                     {day}
                   </span>
                 ))}
@@ -139,33 +149,36 @@ const Calendar = ({ initialMonth1, initialMonth2, handleValueChange, closeDatePi
               </div>
             </div>
             {/* calendar section two */}
-            <div className='flex flex-col px-6 pt-5 pb-6'>
-              <CalendarHeader
-                month={format(month2, 'MMMM yyyy')}
-                onNext={() => {
-                  const nextMonth = addMonths(month2, 1);
-                  if (!isSameMonth(nextMonth, month1)) {
-                    setMonth2(nextMonth);
-                  }
-                }}
-                onPrev={() => {
-                  const prevMonth = subMonths(month2, 1);
-                  if (!isSameMonth(prevMonth, month1)) {
-                    setMonth2(prevMonth);
-                  }
-                }}
-              />
-              <div className='grid grid-cols-7 text-xs text-center text-gray-900 space-y-[1px]'>
-                {daysOfWeek.map((day) => (
-                  <span
-                    key={day}
-                    className='flex text-gray-600 items-center justify-center w-10 h-10 font-semibold rounded-lg'>
-                    {day}
-                  </span>
-                ))}
-                {renderDays(month2, selectedDays2, setSelectedDays2)}
+            {useRange && (
+              <div className='flex flex-col px-6 pt-5 pb-6'>
+                <CalendarHeader
+                  month={format(month2, 'MMMM yyyy')}
+                  onNext={() => {
+                    const nextMonth = addMonths(month2, 1);
+                    if (!isSameMonth(nextMonth, month1)) {
+                      setMonth2(nextMonth);
+                    }
+                  }}
+                  onPrev={() => {
+                    const prevMonth = subMonths(month2, 1);
+                    if (!isSameMonth(prevMonth, month1)) {
+                      setMonth2(prevMonth);
+                    }
+                  }}
+                />
+                <div className='grid grid-cols-7 text-xs text-center text-gray-900 space-y-[1px]'>
+                  {daysOfWeek.map((day) => (
+                    <span
+                      key={day}
+                      className='flex text-gray-600 items-center justify-center w-10 h-10 font-semibold rounded-lg'
+                    >
+                      {day}
+                    </span>
+                  ))}
+                  {renderDays(month2, selectedDays2, setSelectedDays2)}
+                </div>
               </div>
-            </div>
+            )}
           </div>
           {/* footer section */}
           <Footer

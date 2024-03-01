@@ -5,7 +5,14 @@ import allCountries from './countries.json';
 import SearchField from '@/components/search/SearchField';
 import LocationIcon from '@/icons/LocationIcon';
 import CloseIcon from '@/icons/close_icon';
+import ArrowLeftIcon from '@/icons/arrow_left.svg';
 import Button from '@/components/Button';
+import Image from 'next/image';
+import { getIcon, images } from './MapNodes';
+import CustomDropdown from '../../Dropdowns/CustomDropdown';
+import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
+import Calendar from '../../Calendar/Calendar';
+import Datepicker from 'react-tailwindcss-datepicker';
 
 // tab selector
 const TabSelector = ({ selectedTab, setSelectedTab }) => {
@@ -165,6 +172,87 @@ const SidebarHeader = ({ selectedTab, handleSelectedTab, isAdmin }) => (
   </div>
 );
 
+const WeekPrediction = ({ siteDetails }) => {
+  const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const airQualityReadings = [10, 2, 55, 25, 75, 90, 154]; // Replace with actual air quality readings
+  const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'short' }).charAt(0);
+  const [value, setValue] = useState(new Date());
+
+  const handleDateValueChange = (value) => {
+    setValue(value);
+  };
+
+  return (
+    <div>
+      <div className='mb-5'>
+        <CustomDropdown
+          trigger={
+            <Button
+              className='flex flex-row-reverse shadow rounded-lg text-sm text-secondary-neutral-light-600 font-medium leading-tight bg-white h-8'
+              variant='outlined'
+              Icon={ChevronDownIcon}
+            >
+              Hello world
+            </Button>
+          }
+          dropdownWidth='224px'
+          dropStyle={{
+            top: '41px',
+            zIndex: 999,
+            maxHeight: '320px',
+            overflowY: 'scroll',
+            overflowX: 'hidden',
+            display: 'block',
+          }}
+        >
+          <Calendar
+            handleValueChange={handleDateValueChange}
+            closeDatePicker={() => {}}
+            initialMonth1={new Date()}
+            initialMonth2={new Date()}
+            useRange={false}
+          />
+        </CustomDropdown>
+      </div>
+      <div className='flex justify-between items-center gap-2'>
+        {weekDays.map((day, index) => (
+          <div
+            key={index}
+            className={`rounded-[40px] px-0.5 pt-1.5 pb-0.5 flex flex-col justify-center items-center gap-2 shadow ${
+              day.charAt(0) === currentDay ? 'bg-blue-600' : 'bg-secondary-neutral-dark-50'
+            }`}
+          >
+            <div className='flex flex-col items-center justify-start gap-[3px]'>
+              <div
+                className={`text-center text-sm font-semibold leading-tight ${
+                  day.charAt(0) === currentDay
+                    ? 'text-primary-300'
+                    : 'text-secondary-neutral-dark-400'
+                }`}
+              >
+                {day.charAt(0)}
+              </div>
+              <div
+                className={`text-center text-sm font-medium leading-tight ${
+                  day.charAt(0) === currentDay ? 'text-white' : 'text-secondary-neutral-dark-200'
+                }`}
+              >
+                {airQualityReadings[index]}
+              </div>
+            </div>
+            <Image
+              src={images[getIcon(airQualityReadings[index])]}
+              alt='Air Quality Icon'
+              width={32}
+              height={32}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSideBar }) => {
   const dispatch = useDispatch();
   const [isFocused, setIsFocused] = useState(false);
@@ -172,6 +260,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
   const [selectedSite, setSelectedSite] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
+  const [showLocationDetails, setShowLocationDetails] = useState(false);
 
   let uniqueCountries = [];
   let countryData = [];
@@ -198,6 +287,8 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
 
   const handleLocationSelect = (data) => {
     const { country, city } = data || {};
+    setShowLocationDetails(true);
+    setIsFocused(false);
     if (country && city) {
       try {
         dispatch(setLocation({ country, city }));
@@ -220,14 +311,14 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
 
   return (
     <div className='absolute left-0 top-0 w-full h-full md:max-w-[400px] bg-white shadow-lg shadow-right space-y-4 z-50 overflow-y-auto map-scrollbar'>
-      <div className={`${!isFocused ? 'space-y-4' : 'hidden'} px-4 pt-4`}>
+      <div className={`${!isFocused && !showLocationDetails ? 'space-y-4' : 'hidden'} px-4 pt-4`}>
         <SidebarHeader selectedTab={selectedTab} handleSelectedTab={handleSelectedTab} isAdmin />
         {!isAdmin && <hr />}
       </div>
       {selectedTab === 'locations' && (
         <div>
           {/* section 1 */}
-          <div className={`${isFocused ? 'hidden' : ''}`}>
+          <div className={`${isFocused || showLocationDetails ? 'hidden' : ''}`}>
             <div onMouseDown={() => setIsFocused(true)} className='mt-5 px-4'>
               <SearchField />
             </div>
@@ -281,7 +372,11 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
           </div>
 
           {/* Section 2 */}
-          <div className={`flex flex-col gap-5 px-4 pt-4 w-auto ${isFocused ? '' : 'hidden'}`}>
+          <div
+            className={`flex flex-col gap-5 px-4 pt-4 w-auto ${
+              isFocused && !showLocationDetails ? '' : 'hidden'
+            }`}
+          >
             <SidebarHeader
               selectedTab={selectedTab}
               handleSelectedTab={handleSelectedTab}
@@ -298,6 +393,21 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
               handleLocationSelect={handleLocationSelect}
             />
           </div>
+
+          {selectedSite && (
+            <div>
+              <div className='flex items-center gap-2 text-black-800 mb-4 mx-4'>
+                <ArrowLeftIcon />
+                <h3 className='text-xl font-medium leading-7'>{selectedSite.name}</h3>
+              </div>
+
+              <div className='mx-4'>
+                <WeekPrediction siteDetails={selectedSite} />
+              </div>
+
+              <div className='border border-secondary-neutral-light-100 my-5' />
+            </div>
+          )}
         </div>
       )}
     </div>
