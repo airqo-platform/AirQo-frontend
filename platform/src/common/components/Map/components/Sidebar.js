@@ -13,6 +13,7 @@ import CustomDropdown from '../../Dropdowns/CustomDropdown';
 import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
 import Calendar from '../../Calendar/Calendar';
 import Datepicker from 'react-tailwindcss-datepicker';
+import { format } from 'date-fns';
 
 // tab selector
 const TabSelector = ({ selectedTab, setSelectedTab }) => {
@@ -177,14 +178,15 @@ const WeekPrediction = ({ siteDetails }) => {
   const airQualityReadings = [10, 2, 55, 25, 75, 90, null]; // Replace with actual air quality readings
   const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'short' }).charAt(0);
   const [value, setValue] = useState(new Date());
+  const [openDatePicker, setOpenDatePicker] = useState(false);
 
   const handleDateValueChange = (value) => {
-    setValue(value);
+    setValue(new Date(value.start));
   };
 
   return (
-    <div>
-      <div className='mb-5'>
+    <div className='relative'>
+      <div className='mb-5 relative'>
         <CustomDropdown
           trigger={
             <Button
@@ -192,22 +194,14 @@ const WeekPrediction = ({ siteDetails }) => {
               variant='outlined'
               Icon={ChevronDownIcon}
             >
-              Hello world
+              {format(value, 'MMM dd, yyyy')}
             </Button>
           }
           dropdownWidth='224px'
-          dropStyle={{
-            top: '41px',
-            zIndex: 999,
-            maxHeight: '320px',
-            overflowY: 'scroll',
-            overflowX: 'hidden',
-            display: 'block',
-          }}
         >
           <Calendar
             handleValueChange={handleDateValueChange}
-            closeDatePicker={() => {}}
+            closeDatePicker={() => setOpenDatePicker(false)}
             initialMonth1={new Date()}
             initialMonth2={new Date()}
             useRange={false}

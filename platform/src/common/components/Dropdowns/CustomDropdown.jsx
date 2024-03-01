@@ -28,7 +28,8 @@ const CustomDropdown = ({ trigger, children, className, id, dropdownWidth = '200
           className={`absolute mt-2 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-50 ${className}`}
           style={{
             width: dropdownWidth,
-          }}>
+          }}
+        >
           <div className='py-1'>{children}</div>
         </div>
       )}

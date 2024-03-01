@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   format,
   startOfMonth,
@@ -32,9 +32,18 @@ const Calendar = ({
   const [month2, setMonth2] = useState(initialMonth2);
   const [selectedRange, setSelectedRange] = useState({ start: null, end: null });
 
+  useEffect(() => {
+    if (!useRange && showAsSingle) {
+      setSelectedRange({ start: new Date(), end: null });
+      setSelectedDays1((prev) => [...prev, new Date()]);
+    }
+  }, [useRange, showAsSingle]);
+
   const handleDayClick = (day, setSelectedDays) => {
     setSelectedDays((prev) => [...prev, day]);
-    if (!selectedRange.start) {
+    if (!useRange) {
+      setSelectedRange({ start: day, end: null });
+    } else if (!selectedRange.start) {
       setSelectedRange({ start: day, end: null });
     } else if (!selectedRange.end) {
       if (isBefore(day, selectedRange.start)) {
@@ -112,27 +121,47 @@ const Calendar = ({
   };
 
   return (
-    <div className='flex flex-col items-center justify-center w-auto bg-none md:flex-row mb-10'>
-      <div className='z-50 flex flex-col border border-gray-100 bg-white shadow-lg rounded-xl max-w-full min-w-[260px] md:min-w-[660px] lg:min-w-[800px]'>
+    <div
+      className={
+        !showAsSingle && useRange
+          ? 'flex flex-col items-center justify-center w-full bg-none md:flex-row mb-10'
+          : ''
+      }
+    >
+      <div
+        className={`z-50 border border-gray-100 bg-white shadow-lg rounded-xl ${
+          !showAsSingle && useRange
+            ? 'max-w-full min-w-[260px] md:min-w-[660px] lg:min-w-[800px]'
+            : 'w-[328px]'
+        }`}
+      >
         <div className='flex flex-col'>
           <div className='divide-x flex flex-col md:flex-row lg:flex-row'>
             {/* shortcut section */}
-            <ShortCuts setSelectedRange={setSelectedRange} />
+            {!showAsSingle && useRange && <ShortCuts setSelectedRange={setSelectedRange} />}
 
             {/* calendar section one */}
             <div className='flex flex-col px-6 pt-5 pb-6'>
               <CalendarHeader
-                month={format(month1, 'MMMM yyyy')}
+                month={format(useRange ? month1 : month2, 'MMMM yyyy')}
                 onNext={() => {
-                  const nextMonth = addMonths(month1, 1);
-                  if (!isSameMonth(nextMonth, month2)) {
-                    setMonth1(nextMonth);
+                  const nextMonth = addMonths(useRange ? month1 : month2, 1);
+                  if (useRange) {
+                    if (!isSameMonth(nextMonth, month2)) {
+                      setMonth1(nextMonth);
+                    }
+                  } else {
+                    setMonth2(nextMonth);
                   }
                 }}
                 onPrev={() => {
-                  const prevMonth = subMonths(month1, 1);
-                  if (!isSameMonth(prevMonth, month2)) {
-                    setMonth1(prevMonth);
+                  const prevMonth = subMonths(useRange ? month1 : month2, 1);
+                  if (useRange) {
+                    if (!isSameMonth(prevMonth, month2)) {
+                      setMonth1(prevMonth);
+                    }
+                  } else {
+                    setMonth2(prevMonth);
                   }
                 }}
               />
@@ -182,6 +211,7 @@ const Calendar = ({
           </div>
           {/* footer section */}
           <Footer
+            useRange={useRange}
             selectedRange={selectedRange}
             setSelectedRange={setSelectedRange}
             handleValueChange={handleValueChange}
