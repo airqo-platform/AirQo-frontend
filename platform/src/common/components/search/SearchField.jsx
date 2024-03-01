@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import Fuse from 'fuse.js';
 import SearchIcon from '@/icons/Common/search_md.svg';
 
-const SearchField = ({ data, onSearch, searchKeys = [] }) => {
+const SearchField = ({ data, onSearch, searchKeys = [], onClearSearch }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState(null);
 
@@ -42,6 +42,7 @@ const SearchField = ({ data, onSearch, searchKeys = [] }) => {
     setSearchTerm('');
     onSearch([]);
     setError(null);
+    onClearSearch();
   };
 
   return (

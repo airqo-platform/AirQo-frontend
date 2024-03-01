@@ -125,7 +125,7 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
           </div>
         </div>
       ))}
-      {searchResults.length > 6 && !showAllResults && (
+      {searchResults.length > 4 && !showAllResults && (
         <div className='flex justify-center my-4'>
           <Button
             variant='primaryText'
@@ -144,6 +144,19 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
     </div>
   );
 };
+
+// Sidebar header
+const SidebarHeader = ({ selectedTab, handleSelectedTab, isAdmin }) => (
+  <div>
+    <div className='w-full'>
+      <label className='font-medium text-xl text-gray-900'>Air Quality Map</label>
+    </div>
+    <p className='text-gray-500 text-sm font-medium w-auto mt-2'>
+      Navigate air quality analytics with precision and actionable tips.
+    </p>
+    {!isAdmin && <TabSelector selectedTab={selectedTab} setSelectedTab={handleSelectedTab} />}
+  </div>
+);
 
 const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSideBar }) => {
   const dispatch = useDispatch();
@@ -194,24 +207,14 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
     setSearchResults(results);
   };
 
+  const handleClearSearch = () => {
+    setIsFocused(false);
+  };
+
   return (
     <div className='absolute left-0 top-0 w-full h-full md:max-w-[400px] bg-white shadow-lg shadow-right space-y-4 z-50 overflow-y-auto map-scrollbar'>
-      <div className={!isFocused ? 'space-y-4' : 'hidden'}>
-        <div className='px-4 pt-4'>
-          <div className='w-full flex justify-between items-center'>
-            <label className='font-medium text-xl text-gray-900'>Air Quality Map</label>
-            <button
-              onClick={() => setShowSideBar(false)}
-              className='focus:outline-none border rounded-md hover:cursor-pointer block md:hidden'
-            >
-              <CloseIcon />
-            </button>
-          </div>
-          <p className='text-gray-500 text-sm font-medium w-auto mt-2'>
-            Navigate air quality analytics with precision and actionable tips.
-          </p>
-          {!isAdmin && <TabSelector selectedTab={selectedTab} setSelectedTab={handleSelectedTab} />}
-        </div>
+      <div className={`${!isFocused ? 'space-y-4' : 'hidden'} px-4 pt-4`}>
+        <SidebarHeader selectedTab={selectedTab} handleSelectedTab={handleSelectedTab} isAdmin />
         {!isAdmin && <hr />}
       </div>
       {selectedTab === 'locations' && (
@@ -271,18 +274,16 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
           </div>
 
           {/* Section 2 */}
-          <div className={`px-4 pt-4 w-auto ${isFocused ? '' : 'hidden'}`}>
-            <div className='w-full flex justify-start items-center'>
-              <button
-                onClick={() => setIsFocused(false)}
-                className='font-medium text-xl focus:outline-none mb-2'
-              >
-                Back
-              </button>
-            </div>
+          <div className={`flex flex-col gap-5 px-4 pt-4 w-auto ${isFocused ? '' : 'hidden'}`}>
+            <SidebarHeader
+              selectedTab={selectedTab}
+              handleSelectedTab={handleSelectedTab}
+              isAdmin
+            />
             <SearchField
               data={siteDetails}
               onSearch={handleSearch}
+              onClearSearch={handleClearSearch}
               searchKeys={['city', 'village', 'country']}
             />
             <SectionCards
