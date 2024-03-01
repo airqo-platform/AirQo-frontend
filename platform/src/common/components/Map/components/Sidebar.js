@@ -174,7 +174,7 @@ const SidebarHeader = ({ selectedTab, handleSelectedTab, isAdmin }) => (
 
 const WeekPrediction = ({ siteDetails }) => {
   const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const airQualityReadings = [10, 2, 55, 25, 75, 90, 154]; // Replace with actual air quality readings
+  const airQualityReadings = [10, 2, 55, 25, 75, 90, null]; // Replace with actual air quality readings
   const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'short' }).charAt(0);
   const [value, setValue] = useState(new Date());
 
@@ -237,11 +237,15 @@ const WeekPrediction = ({ siteDetails }) => {
                   day.charAt(0) === currentDay ? 'text-white' : 'text-secondary-neutral-dark-200'
                 }`}
               >
-                {airQualityReadings[index]}
+                {airQualityReadings[index] ? airQualityReadings[index] : '-'}
               </div>
             </div>
             <Image
-              src={images[getIcon(airQualityReadings[index])]}
+              src={
+                airQualityReadings[index] && getIcon(airQualityReadings[index])
+                  ? images[getIcon(airQualityReadings[index])]
+                  : images['Unknown']
+              }
               alt='Air Quality Icon'
               width={32}
               height={32}

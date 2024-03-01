@@ -6,6 +6,7 @@ export const images = {
   Unhealthy: '/images/map/Unhealthy.png',
   VeryUnhealthy: '/images/map/VeryUnhealthy.png',
   Hazardous: '/images/map/Hazardous.png',
+  Unknown: '/images/map/UnknownAQ.png',
 };
 
 export const getIcon = (aqiValue) => {
