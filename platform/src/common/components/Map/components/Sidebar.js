@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCenter, setZoom, setLocation } from '@/lib/store/services/map/MapSlice';
 import allCountries from './countries.json';
 import SearchField from '@/components/search/SearchField';
 import LocationIcon from '@/icons/LocationIcon';
 import CloseIcon from '@/icons/close_icon';
+import Button from '@/components/Button';
 
 // tab selector
 const TabSelector = ({ selectedTab, setSelectedTab }) => {
@@ -19,14 +20,16 @@ const TabSelector = ({ selectedTab, setSelectedTab }) => {
           onClick={() => setSelectedTab('locations')}
           className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
             selectedTab === 'locations' ? 'border rounded-md bg-white shadow-sm' : ''
-          }`}>
+          }`}
+        >
           Locations
         </div>
         <div
           onClick={() => setSelectedTab('sites')}
           className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
             selectedTab === 'sites' ? 'border rounded-md bg-white shadow-sm' : ''
-          }`}>
+          }`}
+        >
           Sites
         </div>
       </div>
@@ -53,7 +56,7 @@ const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
   };
 
   return (
-    <div className='flex space-x-4 overflow-x-auto py-4 ml-4 map-scrollbar'>
+    <div className='flex space-x-2 ml-2'>
       {sortedData.map((country, index) => {
         // Check if country and flag properties exist
         if (!country || !country.flag) {
@@ -63,12 +66,15 @@ const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
         return (
           <div
             key={index}
-            className={`flex items-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 p-2  min-w-max space-x-2 m-0 ${
+            className={`flex items-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 py-[6px] px-[10px]  min-w-max space-x-2 m-0 ${
               selectedCountry?.country === country.country ? 'border-2 border-blue-400' : ''
             }`}
-            onClick={() => handleClick(country)}>
+            onClick={() => handleClick(country)}
+          >
             <img src={country.flag} alt={country.country} width={20} height={20} />
-            <span>{country.country}</span>
+            <span className='text-sm text-secondary-neutral-light-600 font-medium'>
+              {country.country}
+            </span>
           </div>
         );
       })}
@@ -88,26 +94,49 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
     return null;
   }
 
-  return searchResults.length > 0 ? (
-    <div className='space-y-2 mt-4 map-scrollbar'>
-      <hr />
-      {searchResults.map((grid) => (
+  const [showAllResults, setShowAllResults] = useState(false);
+
+  const visibleResults = showAllResults ? searchResults : searchResults.slice(0, 6);
+
+  const handleShowMore = () => {
+    setShowAllResults(true);
+  };
+
+  useEffect(() => {
+    setShowAllResults(false);
+  }, [searchResults]);
+
+  return visibleResults.length > 0 ? (
+    <div className='mt-4 map-scrollbar'>
+      {visibleResults.map((grid) => (
         <div
           key={grid._id}
-          className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer hover:bg-blue-100 p-2 rounded-lg'
-          onClick={() => handleLocationSelect(grid)}>
-          <div className='p-2 rounded-full bg-gray-100'>
-            <LocationIcon />
-          </div>
-          <div className='ml-3 flex flex-col item-start border-b w-full'>
-            <span className='font-normal text-black capitalize text-lg'>{grid.name}</span>
-            <span className='font-normal text-gray-500 capitalize text-sm mb-2'>
+          className='flex flex-row justify-between items-center mb-4 text-sm w-full hover:cursor-pointer hover:bg-blue-100 px-4 py-[14px] rounded-xl border border-secondary-neutral-light-100 shadow'
+          onClick={() => handleLocationSelect(grid)}
+        >
+          <div className='flex flex-col item-start w-full'>
+            <span className='text-base font-medium text-black capitalize'>{grid.name}</span>
+            <span className='font-medium text-secondary-neutral-light-300 capitalize text-sm leading-tight'>
               {grid.region + ',' + grid.country}
             </span>
           </div>
+          <div className='p-2 rounded-full bg-secondary-neutral-light-50'>
+            <LocationIcon fill='#9EA3AA' />
+          </div>
         </div>
       ))}
-      <hr />
+      {searchResults.length > 6 && !showAllResults && (
+        <div className='flex justify-center my-4'>
+          <Button
+            variant='primaryText'
+            className='text-sm font-medium'
+            paddingStyles='py-4'
+            onClick={handleShowMore}
+          >
+            Show More
+          </Button>
+        </div>
+      )}
     </div>
   ) : (
     <div className='flex justify-center items-center h-80'>
@@ -170,16 +199,16 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
       <div className={!isFocused ? 'space-y-4' : 'hidden'}>
         <div className='px-4 pt-4'>
           <div className='w-full flex justify-between items-center'>
-            <label className='font-medium text-xl'>Map</label>
+            <label className='font-medium text-xl text-gray-900'>Air Quality Map</label>
             <button
               onClick={() => setShowSideBar(false)}
-              className='focus:outline-none border rounded-md hover:cursor-pointer block md:hidden'>
+              className='focus:outline-none border rounded-md hover:cursor-pointer block md:hidden'
+            >
               <CloseIcon />
             </button>
           </div>
-          <p className='text-gray-500 text-sm font-normal w-auto mt-6'>
-            Navigate, Explore, and Understand Air Quality Data with Precision, Right Down to Your
-            Neighborhood
+          <p className='text-gray-500 text-sm font-medium w-auto mt-2'>
+            Navigate air quality analytics with precision and actionable tips.
           </p>
           {!isAdmin && <TabSelector selectedTab={selectedTab} setSelectedTab={handleSelectedTab} />}
         </div>
@@ -188,41 +217,66 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
       {selectedTab === 'locations' && (
         <div>
           {/* section 1 */}
-          <div className={`px-4 space-y-4 ${isFocused ? 'hidden' : ''}`}>
-            <div onMouseDown={() => setIsFocused(true)}>
+          <div className={`${isFocused ? 'hidden' : ''}`}>
+            <div onMouseDown={() => setIsFocused(true)} className='mt-5 px-4'>
               <SearchField />
             </div>
-            <div className='flex justify-between items-center'>
-              <button
-                onClick={() => {
-                  dispatch(setCenter({ latitude: 16.1532, longitude: 13.1691 }));
-                  dispatch(setZoom(1.5));
-                  setShowSideBar(false);
-                  setSelectedSite(null);
-                }}
-                className='px-4 py-2 rounded-full bg-blue-500 text-white'>
-                All
-              </button>
-              <CountryList
-                data={countryData}
-                selectedCountry={selectedCountry}
-                setSelectedCountry={setSelectedCountry}
-              />
-            </div>
-            <div className='space-y-4 overflow-y-auto map-scrollbar'>
-              <label className='font-medium text-gray-600 text-sm'>Suggestions</label>
-              <SectionCards
-                searchResults={selectedSites}
-                handleLocationSelect={handleLocationSelect}
-              />
+            <div>
+              <div className='flex justify-between items-center mt-5 overflow-x-auto map-scrollbar custom-scrollbar px-4'>
+                <button
+                  onClick={() => {
+                    dispatch(setCenter({ latitude: 16.1532, longitude: 13.1691 }));
+                    dispatch(setZoom(1.5));
+                    setShowSideBar(false);
+                    setSelectedSite(null);
+                  }}
+                  className='py-[6px] px-[10px] rounded-full bg-blue-500 text-white text-sm font-medium'
+                >
+                  All
+                </button>
+                <CountryList
+                  data={countryData}
+                  selectedCountry={selectedCountry}
+                  setSelectedCountry={setSelectedCountry}
+                />
+              </div>
+
+              <div className='border border-secondary-neutral-light-100 my-5' />
+
+              <div className='overflow-y-auto map-scrollbar px-4'>
+                <div className='flex justify-between items-center'>
+                  <div className='flex gap-1'>
+                    <div className='font-medium text-secondary-neutral-dark-400 text-sm'>
+                      Sort by:
+                    </div>
+                    <select className='rounded-md m-0 p-0 text-sm font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none'>
+                      <option value=''>Near me</option>
+                    </select>
+                  </div>
+                  <Button
+                    className='text-sm font-medium'
+                    paddingStyles='p-0'
+                    variant='primaryText'
+                    onClick={() => {}}
+                  >
+                    Filters
+                  </Button>
+                </div>
+                <SectionCards
+                  searchResults={selectedSites}
+                  handleLocationSelect={handleLocationSelect}
+                />
+              </div>
             </div>
           </div>
+
           {/* Section 2 */}
           <div className={`px-4 pt-4 w-auto ${isFocused ? '' : 'hidden'}`}>
             <div className='w-full flex justify-start items-center'>
               <button
                 onClick={() => setIsFocused(false)}
-                className='font-medium text-xl focus:outline-none mb-2'>
+                className='font-medium text-xl focus:outline-none mb-2'
+              >
                 Back
               </button>
             </div>

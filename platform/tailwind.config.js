@@ -101,6 +101,10 @@ module.exports = {
           800: '#3C4555',
           900: '#333946',
         },
+        'secondary-neutral-dark': {
+          400: '#7A7F87',
+          700: '#3E4147',
+        },
         success: {
           50: '#ECFDF3',
           700: '#057747',
