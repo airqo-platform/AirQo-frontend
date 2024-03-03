@@ -10,17 +10,17 @@ export const images = {
 
 export const getIcon = (aqiValue) => {
   if (aqiValue > 300) {
-    return 'Hazardous';
+    return { icon: 'Hazardous', color: '#D95BA3' };
   } else if (aqiValue > 200) {
-    return 'VeryUnhealthy';
+    return { icon: 'VeryUnhealthy', color: '#AC5CD9' };
   } else if (aqiValue > 150) {
-    return 'Unhealthy';
+    return { icon: 'Unhealthy', color: '#F7453C' };
   } else if (aqiValue > 100) {
-    return 'UnhealthyForSensitiveGroups';
+    return { icon: 'UnhealthyForSensitiveGroups', color: '#FF851F' };
   } else if (aqiValue > 50) {
-    return 'ModerateAir';
+    return { icon: 'ModerateAir', color: '#FFD633' };
   } else {
-    return 'GoodAir';
+    return { icon: 'GoodAir', color: '#34C759' };
   }
 };
 
@@ -38,28 +38,29 @@ export const createClusterNode = ({ feature, images }) => {
 // Map Popup modal
 export const createPopupHTML = ({ feature, images }) => {
   return `
-    <div class="flex flex-col gap-2 break-all shadow-sm">
-      <div class="flex items-center gap-2">
-        <img src="${images[feature.properties.aqi]}" alt="AQI Icon" class="w-8 h-8">
-        <div class="text-lg font-bold">${feature.properties.aqi}</div>
+    <div class="flex flex-col gap-2 p-3 bg-white rounded-lg shadow-lg" style="min-width: 250px; width: max-content;">
+      <div class="text-gray-500 text-xs">
+        ${new Date(feature.properties.createdAt).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: '2-digit',
+        })}
       </div>
-      <div class="flex flex-col gap-1">
-        <div class="flex items-center gap-1">
-          <div class="text-gray-500">PM2.5:</div>
-          <div class="text-black font-bold">${feature.properties.pm2_5}</div>
+      <div class="flex justify-between gap-2 w-full items-center">
+        <div class="flex items-center space-x-2">
+          <div class="rounded-full bg-blue-500 w-3 h-3"></div>
+          <div class="text-[#3C4555] font-medium text-[12px]">
+            ${feature.properties.location}
+          </div>
         </div>
-        <div class="flex items-center gap-1">
-          <div class="text-gray-500">PM10:</div>
-          <div class="text-black font-bold">${feature.properties.pm10}</div>
-        </div>
-        <div class="flex items-center gap-1">
-          <div class="text-gray-500">NO2:</div>
-          <div class="text-black font-bold">${feature.properties.no2}</div>
-        </div>
+        <div class="text-black font-bold text-lg">${feature.properties.pm2_5.toFixed(2)} µg/m³</div>
       </div>
-      <div class="text-gray-500">Last updated: ${new Date(
-        feature.properties.createdAt,
-      ).toLocaleString()}</div>
+      <div class="flex justify-between gap-5 items-center w-full">
+        <p
+          style="color: ${feature.properties.aqi.color}; font-size: 12px; font-weight: 500;"
+        >Air Quality is ${feature.properties.airQuality}</p>    
+        <img src="${images[feature.properties.aqi.icon]}" alt="AQI Icon" class="w-8 h-8">
+      </div>
     </div>
   `;
 };

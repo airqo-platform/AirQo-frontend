@@ -62,3 +62,19 @@ select:focus {
 }
 
 /* Map Styles */
+.mapboxgl-popup.my-custom-popup {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.mapboxgl-popup.my-custom-popup .mapboxgl-popup-content {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.mapboxgl-popup.my-custom-popup .mapboxgl-popup-tip {
+  display: block;
+  width: 0;
+  height: 0;
+  transform: rotate(180deg);
+}

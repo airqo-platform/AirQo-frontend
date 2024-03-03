@@ -74,6 +74,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
           },
           properties: {
             _id: item.siteDetails._id,
+            location: item.siteDetails.location_name,
+            airQuality: item.aqi_category,
             no2: item.no2.value,
             pm10: item.pm10.value,
             pm2_5: item.pm2_5.value,
@@ -185,34 +187,42 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
               // Add unclustered points as custom HTML markers
               clusters.forEach((feature) => {
                 const el = document.createElement('div');
-                el.className =
-                  'flex justify-center items-center bg-white rounded-full p-2 shadow-md';
+
                 el.style.cursor = 'pointer';
 
                 if (!feature.properties.cluster) {
+                  el.className =
+                    'flex justify-center items-center bg-white rounded-full p-2 shadow-md w-14 h-14 hover:w-20 hover:h-20';
                   el.innerHTML = `<img src="${
-                    images[feature.properties.aqi]
-                  }" alt="AQI Icon" class="w-8 h-8">`;
+                    images[feature.properties.aqi.icon]
+                  }" alt="AQI Icon" class="w-full h-full">`;
                   el.id = feature.properties._id;
-                  el.addEventListener('mouseenter', () => {
-                    el.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
-                    el.style.padding = '18px';
-                  });
-                  el.addEventListener('mouseleave', () => {
-                    el.style.backgroundColor = 'white';
-                    el.style.padding = '8px';
-                  });
 
                   // Add popup to unclustered node
-                  const popup = new mapboxgl.Popup({ offset: 25, closeButton: false }).setHTML(
-                    createPopupHTML({ feature, images }),
-                  );
+                  const popup = new mapboxgl.Popup({
+                    offset: 40,
+                    closeButton: false,
+                    maxWidth: 'none',
+                    className: 'my-custom-popup',
+                  }).setHTML(createPopupHTML({ feature, images }));
+
                   const marker = new mapboxgl.Marker(el)
                     .setLngLat(feature.geometry.coordinates)
                     .setPopup(popup)
                     .addTo(map);
+
+                  // Show the popup when the user hovers over the node
+                  el.addEventListener('mouseenter', () => {
+                    marker.togglePopup(); // Open the popup
+                  });
+                  el.addEventListener('mouseleave', () => {
+                    marker.togglePopup(); // Close the popup
+                  });
+
                   markers.push(marker);
                 } else {
+                  el.className =
+                    'flex justify-center items-center bg-white rounded-full p-2 shadow-md';
                   el.innerHTML = createClusterNode({ feature, images });
                   const marker = new mapboxgl.Marker(el)
                     .setLngLat(feature.geometry.coordinates)
