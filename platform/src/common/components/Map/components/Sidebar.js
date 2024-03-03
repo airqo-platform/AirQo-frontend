@@ -420,7 +420,10 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
               />
             )}
 
-            {reduxSearchTerm && reduxSearchTerm.length < 4 && <SearchResultsSkeleton />}
+            {reduxSearchTerm &&
+              reduxSearchTerm.length < 4 &&
+              searchResults &&
+              searchResults.length === 0 && <SearchResultsSkeleton />}
             {reduxSearchTerm.length > 3 && (
               <SectionCards
                 searchResults={searchResults}

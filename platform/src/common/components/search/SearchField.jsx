@@ -69,7 +69,10 @@ const SearchField = ({ data, onSearch = () => {}, searchKeys = [], onClearSearch
           </span>
         )}
       </div>
-      {searchTerm && (
+      {searchTerm && searchTerm.length < 4 && (
+        <div className='bg-secondary-neutral-dark-50 rounded-lg w-full h-5' />
+      )}
+      {searchTerm && searchTerm.length > 3 && (
         <p className='text-sm font-medium leading-tight text-secondary-neutral-dark-400'>
           Results for <span className='text-secondary-neutral-dark-700'>"{searchTerm}"</span>
         </p>
