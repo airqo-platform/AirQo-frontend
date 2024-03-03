@@ -19,6 +19,7 @@ import checklistsReducer from './services/checklists/CheckData';
 import analyticsReducer from './services/charts/ChartData';
 import { groupInfoSlice } from './services/groups/GroupInfoSlice';
 import { mapSlice } from './services/map/MapSlice';
+import { locationSearchSlice } from './services/search/LocationSearchSlice';
 
 const persistConfig = {
   key: 'root',
@@ -42,6 +43,7 @@ const rootReducer = combineReducers({
   checklists: checklistsReducer,
   analytics: analyticsReducer,
   [groupInfoSlice.name]: groupInfoSlice.reducer,
+  [locationSearchSlice.name]: locationSearchSlice.reducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

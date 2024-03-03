@@ -103,6 +103,7 @@ module.exports = {
         },
         'secondary-neutral-dark': {
           50: '#F6F6F7',
+          100: '#E2E3E5',
           200: '#C4C7CB',
           400: '#7A7F87',
           700: '#3E4147',
