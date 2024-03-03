@@ -11,8 +11,9 @@ import MapImage from '@/images/map/dd1.png';
 import Loader from '@/components/Spinner';
 import axios from 'axios';
 import Supercluster from 'supercluster';
-import { createPopupHTML, createClusterHTML, getIcon, images } from './components/MapNodes';
+import { createPopupHTML, createClusterNode, getIcon, images } from './components/MapNodes';
 import { getMapReadings } from '@/core/apis/DeviceRegistry';
+import Toast from '../Toast';
 
 const mapStyles = [
   { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets', image: MapImage },
@@ -36,6 +37,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   const urlParams = new URLSearchParams(urls.search);
   const mapData = useSelector((state) => state.map);
   const [pollutant, setPollutant] = useState('pm2_5');
+  const [toastMessage, setToastMessage] = useState(null);
 
   const lat = urlParams.get('lat');
   const lng = urlParams.get('lng');
@@ -211,7 +213,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
                     .addTo(map);
                   markers.push(marker);
                 } else {
-                  el.innerHTML = createClusterHTML({ feature, images });
+                  el.innerHTML = createClusterNode({ feature, images });
                   const marker = new mapboxgl.Marker(el)
                     .setLngLat(feature.geometry.coordinates)
                     .addTo(map);
@@ -348,9 +350,11 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
 
       navigator.clipboard.writeText(url.toString());
 
-      alert('Location URL copied to clipboard');
+      // Display toast notification
+      setToastMessage('Location URL copied to clipboard');
     } catch (error) {
       console.error('Error sharing location', error);
+      setToastMessage('Error sharing location');
     }
   };
 
@@ -408,6 +412,18 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
           </button>
         </div>
       </div>
+
+      {/* Toast */}
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          clearData={() => setToastMessage(null)}
+          type='success'
+          timeout={3000}
+          dataTestId='map-toast'
+          size='lg'
+        />
+      )}
     </div>
   );
 };

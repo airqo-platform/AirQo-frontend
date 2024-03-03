@@ -25,7 +25,7 @@ export const getIcon = (aqiValue) => {
 };
 
 // Cluster Html
-export const createClusterHTML = ({ feature, images }) => {
+export const createClusterNode = ({ feature, images }) => {
   return `
     <div class="flex -space-x-3 rtl:space-x-reverse">
       <img class="w-8 h-8 border-2 border-white rounded-full z-20" src="${images['GoodAir']}" alt="AQI Icon">

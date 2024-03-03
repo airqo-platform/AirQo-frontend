@@ -166,7 +166,11 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
   };
 
   return (
-    <div className='absolute left-0 top-0 w-full h-full md:max-w-[400px] bg-white shadow-lg shadow-right space-y-4 z-50 overflow-y-auto map-scrollbar'>
+    <div
+      className='absolute left-0 top-0 w-full h-full md:max-w-[400px] bg-white shadow-lg shadow-right space-y-4 z-50 overflow-y-auto map-scrollbar'
+      style={{
+        zIndex: 1000,
+      }}>
       <div className={!isFocused ? 'space-y-4' : 'hidden'}>
         <div className='px-4 pt-4'>
           <div className='w-full flex justify-between items-center'>

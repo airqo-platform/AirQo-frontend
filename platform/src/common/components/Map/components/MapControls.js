@@ -56,7 +56,7 @@ export class CustomZoomControl {
     const url = new URL(window.location);
     url.searchParams.set('lat', center.lat.toFixed(4));
     url.searchParams.set('lng', center.lng.toFixed(4));
-    url.searchParams.set('zm', zoom);
+    url.searchParams.set('zm', zoom.toFixed(2));
     window.history.pushState({}, '', url);
   };
 
