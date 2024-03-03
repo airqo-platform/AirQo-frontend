@@ -5,7 +5,7 @@ import LayerIcon from '@/icons/map/layerIcon';
 import RefreshIcon from '@/icons/map/refreshIcon';
 import ShareIcon from '@/icons/map/shareIcon';
 import { CustomGeolocateControl, CustomZoomControl } from './components/MapControls';
-import { setCenter, setZoom } from '@/lib/store/services/map/MapSlice';
+import { setCenter, setZoom, clearData } from '@/lib/store/services/map/MapSlice';
 import LayerModal from './components/LayerModal';
 import MapImage from '@/images/map/dd1.png';
 import Loader from '@/components/Spinner';
@@ -22,14 +22,6 @@ const mapStyles = [
   { url: 'mapbox://styles/mapbox/satellite-v9', name: 'Satellite', image: MapImage },
   // { url: 'mapbox://styles/mapbox/satellite-streets-v11', name: 'Satellite Streets' },
 ];
-
-const initialState = {
-  center: {
-    latitude: 0.3201,
-    longitude: 32.5638,
-  },
-  zoom: 12,
-};
 
 const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   const dispatch = useDispatch();
@@ -96,128 +88,154 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
     }
   };
 
+  useEffect(() => {
+    dispatch(clearData());
+  }, []);
+
   // Init map
   useEffect(() => {
     const initializeMap = async () => {
-      mapboxgl.accessToken = mapboxApiAccessToken;
-      const map = new mapboxgl.Map({
-        container: mapContainerRef.current,
-        style: mapStyle,
-        center: [lng || mapData.center.longitude, lat || mapData.center.latitude],
-        zoom: zm || mapData.zoom,
-      });
-
-      mapRef.current = map;
-
-      let markers = []; // Store all markers
-
-      map.on('load', async () => {
-        map.resize();
-
-        const zoomControl = new CustomZoomControl();
-        map.addControl(zoomControl, 'bottom-right');
-
-        const geolocateControl = new CustomGeolocateControl();
-        map.addControl(geolocateControl, 'bottom-right');
-
-        // Load all the images
-        try {
-          await Promise.all(
-            Object.keys(images).map(
-              (key) =>
-                new Promise((resolve, reject) => {
-                  map.loadImage(images[key], (error, image) => {
-                    if (error) {
-                      console.error(`Failed to load image ${key}: `, error);
-                      reject(error);
-                    } else {
-                      map.addImage(key, image);
-                      resolve();
-                    }
-                  });
-                }),
-            ),
-          );
-        } catch (error) {
-          console.error('Error loading images: ', error);
-        }
-
-        // Load data
-        let data;
-        try {
-          data = await fetchData();
-        } catch (error) {
-          console.error('Error fetching data: ', error);
-          return;
-        }
-
-        // Create a supercluster
-        const index = new Supercluster({
-          radius: 40,
-          maxZoom: 16,
+      try {
+        mapboxgl.accessToken = mapboxApiAccessToken;
+        const map = new mapboxgl.Map({
+          container: mapContainerRef.current,
+          style: mapStyle,
+          center: [lng || mapData.center.longitude, lat || mapData.center.latitude],
+          zoom: zm || mapData.zoom,
         });
-        index.load(data);
-        const updateClusters = () => {
-          const zoom = map.getZoom();
-          const bounds = map.getBounds();
-          const bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()];
-          const clusters = index.getClusters(bbox, Math.floor(zoom));
 
-          // Remove existing markers
-          markers.forEach((marker) => marker.remove());
-          markers = [];
+        mapRef.current = map;
 
-          // Add unclustered points as custom HTML markers
-          clusters.forEach((feature) => {
-            const el = document.createElement('div');
-            el.className = 'flex justify-center items-center bg-white rounded-full p-2 shadow-md';
-            el.style.cursor = 'pointer';
+        let markers = []; // Store all markers
 
-            if (!feature.properties.cluster) {
-              el.innerHTML = `<img src="${
-                images[feature.properties.aqi]
-              }" alt="AQI Icon" class="w-8 h-8">`;
-              el.id = feature.properties._id;
-              el.addEventListener('mouseenter', () => {
-                el.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
-                el.style.padding = '18px';
-              });
-              el.addEventListener('mouseleave', () => {
-                el.style.backgroundColor = 'white';
-                el.style.padding = '8px';
-              });
+        map.on('load', async () => {
+          map.resize();
 
-              // Add popup to unclustered node
-              const popup = new mapboxgl.Popup({ offset: 25, closeButton: false }).setHTML(
-                createPopupHTML({ feature, images }),
-              );
-              const marker = new mapboxgl.Marker(el)
-                .setLngLat(feature.geometry.coordinates)
-                .setPopup(popup)
-                .addTo(map);
-              markers.push(marker);
-            } else {
-              el.innerHTML = createClusterHTML({ feature, images });
-              const marker = new mapboxgl.Marker(el)
-                .setLngLat(feature.geometry.coordinates)
-                .addTo(map);
-              markers.push(marker);
+          const zoomControl = new CustomZoomControl();
+          map.addControl(zoomControl, 'bottom-right');
+
+          const geolocateControl = new CustomGeolocateControl();
+          map.addControl(geolocateControl, 'bottom-right');
+
+          // Load all the images
+          try {
+            await Promise.all(
+              Object.keys(images).map(
+                (key) =>
+                  new Promise((resolve, reject) => {
+                    map.loadImage(images[key], (error, image) => {
+                      if (error) {
+                        console.error(`Failed to load image ${key}: `, error);
+                        reject(error);
+                      } else {
+                        map.addImage(key, image);
+                        resolve();
+                      }
+                    });
+                  }),
+              ),
+            );
+          } catch (error) {
+            console.error('Error loading images: ', error);
+          }
+
+          // Load data
+          let data;
+          try {
+            data = await fetchData();
+            if (!data) {
+              throw new Error('No data returned from fetchData');
             }
-          });
-        };
+          } catch (error) {
+            console.error('Error fetching data: ', error);
+            return;
+          }
 
-        map.on('zoomend', updateClusters);
-        map.on('moveend', updateClusters);
-        updateClusters();
-      });
+          // Create a supercluster
+          const index = new Supercluster({
+            radius: 40,
+            maxZoom: 16,
+          });
+
+          try {
+            index.load(data);
+          } catch (error) {
+            console.error('Error loading data into Supercluster: ', error);
+            return;
+          }
+
+          const updateClusters = () => {
+            try {
+              const zoom = map.getZoom();
+              const bounds = map.getBounds();
+              const bbox = [
+                bounds.getWest(),
+                bounds.getSouth(),
+                bounds.getEast(),
+                bounds.getNorth(),
+              ];
+              const clusters = index.getClusters(bbox, Math.floor(zoom));
+
+              // Remove existing markers
+              markers.forEach((marker) => marker.remove());
+              markers = [];
+
+              // Add unclustered points as custom HTML markers
+              clusters.forEach((feature) => {
+                const el = document.createElement('div');
+                el.className =
+                  'flex justify-center items-center bg-white rounded-full p-2 shadow-md';
+                el.style.cursor = 'pointer';
+
+                if (!feature.properties.cluster) {
+                  el.innerHTML = `<img src="${
+                    images[feature.properties.aqi]
+                  }" alt="AQI Icon" class="w-8 h-8">`;
+                  el.id = feature.properties._id;
+                  el.addEventListener('mouseenter', () => {
+                    el.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+                    el.style.padding = '18px';
+                  });
+                  el.addEventListener('mouseleave', () => {
+                    el.style.backgroundColor = 'white';
+                    el.style.padding = '8px';
+                  });
+
+                  // Add popup to unclustered node
+                  const popup = new mapboxgl.Popup({ offset: 25, closeButton: false }).setHTML(
+                    createPopupHTML({ feature, images }),
+                  );
+                  const marker = new mapboxgl.Marker(el)
+                    .setLngLat(feature.geometry.coordinates)
+                    .setPopup(popup)
+                    .addTo(map);
+                  markers.push(marker);
+                } else {
+                  el.innerHTML = createClusterHTML({ feature, images });
+                  const marker = new mapboxgl.Marker(el)
+                    .setLngLat(feature.geometry.coordinates)
+                    .addTo(map);
+                  markers.push(marker);
+                }
+              });
+            } catch (error) {
+              console.error('Error updating clusters: ', error);
+            }
+          };
+
+          map.on('zoomend', updateClusters);
+          map.on('moveend', updateClusters);
+          updateClusters();
+        });
+      } catch (error) {
+        console.error('Error initializing the Map: ', error);
+      }
     };
 
     initializeMap();
 
     return () => {
       mapRef.current.remove();
-      dispatch(setCenter(initialState.center));
-      dispatch(setZoom(initialState.zoom));
     };
   }, [mapStyle, mapboxApiAccessToken, refresh, pollutant]);
 
