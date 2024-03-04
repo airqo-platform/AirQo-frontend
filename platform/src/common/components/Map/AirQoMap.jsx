@@ -191,6 +191,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
                 el.style.cursor = 'pointer';
 
                 if (!feature.properties.cluster) {
+                  // unclustered
                   el.className =
                     'flex justify-center items-center bg-white rounded-full p-2 shadow-md w-14 h-14 hover:w-20 hover:h-20';
                   el.innerHTML = `<img src="${
@@ -200,7 +201,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
 
                   // Add popup to unclustered node
                   const popup = new mapboxgl.Popup({
-                    offset: 40,
+                    offset: 38,
                     closeButton: false,
                     maxWidth: 'none',
                     className: 'my-custom-popup',
@@ -221,6 +222,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
 
                   markers.push(marker);
                 } else {
+                  // clustered
                   el.className =
                     'flex justify-center items-center bg-white rounded-full p-2 shadow-md';
                   el.innerHTML = createClusterNode({ feature, images });
