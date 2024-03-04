@@ -59,6 +59,29 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+// Inactive clients are not allowed to generate tokens so show a modal to the user
+const InactiveClientModal = (props) => {
+  const { open, onClose } = props;
+  return (
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>Client Inactive</DialogTitle>
+      <DialogContent>
+        <p>
+          You cannot generate a token for an inactive client, reach out to support for assistance at
+          <a href="mailto:ochiengpaul442@gmail.com"> info@airqo.net</a> or send an activation
+          request.
+        </p>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Close</Button>
+        <Button onClick={onClose} color="primary" variant="contained">
+          Activation Request
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 const RegisterClient = (props) => {
   const dispatch = useDispatch();
   const classes = useStyles();
@@ -315,6 +338,7 @@ const GenerateToken = (props) => {
   const [refresh, setRefresh] = useState(false);
   const [generated, setGenerated] = useState(false);
   const [editData, setEditData] = useState({});
+  const [isInactiveModalOpen, setIsInactiveModalOpen] = useState(false);
   let userID = '';
   if (mappedAuth && mappedAuth.user) {
     userID = mappedAuth.user._id;
@@ -363,6 +387,11 @@ const GenerateToken = (props) => {
 
   const handleTokenGeneration = async (res) => {
     try {
+      if (!res.isActive) {
+        setIsInactiveModalOpen(true);
+        return;
+      }
+
       setLoading((prevLoading) => ({ ...prevLoading, [res.client_id]: true }));
       const response = await generateTokenApi(res);
       dispatch(
@@ -460,6 +489,37 @@ const GenerateToken = (props) => {
                   label: 'Client IP Address'
                 },
                 {
+                  id: 'isActive',
+                  label: 'Client Status',
+                  format: (value, rowData) => {
+                    return (
+                      <div>
+                        {rowData.isActive || generated[rowData._id] ? (
+                          <span
+                            style={{
+                              color: 'white',
+                              padding: '6px',
+                              borderRadius: '10px',
+                              background: 'green'
+                            }}>
+                            Activated
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              color: 'white',
+                              padding: '6px',
+                              borderRadius: '10px',
+                              background: 'red'
+                            }}>
+                            Not Activated
+                          </span>
+                        )}
+                      </div>
+                    );
+                  }
+                },
+                {
                   id: 'createdAt',
                   label: 'Registered Date',
                   format: (value, rowData) => {
@@ -484,7 +544,8 @@ const GenerateToken = (props) => {
                         onClick={() => {
                           let res = {
                             name: rowData.name,
-                            client_id: rowData._id
+                            client_id: rowData._id,
+                            isActive: rowData.isActive ? rowData.isActive : false
                           };
                           if (generated[rowData._id]) {
                             dispatch(
@@ -626,6 +687,10 @@ const GenerateToken = (props) => {
         onClose={handleCloseEdit}
         data={editData}
         onEdit={() => setRefresh(!refresh)}
+      />
+      <InactiveClientModal
+        open={isInactiveModalOpen}
+        onClose={() => setIsInactiveModalOpen(false)}
       />
     </>
   );
