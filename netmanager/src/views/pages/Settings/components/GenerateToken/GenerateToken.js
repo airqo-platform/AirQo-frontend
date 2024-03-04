@@ -68,8 +68,7 @@ const InactiveClientModal = (props) => {
       <DialogContent>
         <p>
           You cannot generate a token for an inactive client, reach out to support for assistance at
-          <a href="mailto:ochiengpaul442@gmail.com"> info@airqo.net</a> or send an activation
-          request.
+          <a href="mailto:info@airqo.net"> info@airqo.net</a> or send an activation request.
         </p>
       </DialogContent>
       <DialogActions>
