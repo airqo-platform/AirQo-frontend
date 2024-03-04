@@ -20,14 +20,13 @@ import {
 } from './components/MapNodes';
 import { getMapReadings } from '@/core/apis/DeviceRegistry';
 import Toast from '../Toast';
+import useOutsideClick from '@/core/utils/useOutsideClick';
 
 const mapStyles = [
   { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets', image: MapImage },
-  // { url: 'mapbox://styles/mapbox/outdoors-v11', name: 'Outdoors' },
   { url: 'mapbox://styles/mapbox/light-v10', name: 'Light', image: MapImage },
   { url: 'mapbox://styles/mapbox/dark-v10', name: 'Dark', image: MapImage },
   { url: 'mapbox://styles/mapbox/satellite-v9', name: 'Satellite', image: MapImage },
-  // { url: 'mapbox://styles/mapbox/satellite-streets-v11', name: 'Satellite Streets' },
 ];
 
 const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
@@ -46,15 +45,30 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   const [NodeType, setNodeType] = useState('Emoji');
   const [pollutant, setPollutant] = useState('pm2_5');
   const [selectedSite, setSelectedSite] = useState(null);
+  useOutsideClick(dropdownRef, () => setIsOpen(false));
 
   const lat = urlParams.get('lat');
   const lng = urlParams.get('lng');
   const zm = urlParams.get('zm');
 
+  /**
+   * Clear data on unmount
+   * @sideEffect
+   * - Clear data
+   */
   useEffect(() => {
     dispatch(clearData());
   }, []);
 
+  /**
+   * Set the map center and zoom
+   * when the mapData changes
+   * @param {Object} mapData - Map data
+   * @param {Object} mapRef - Map reference
+   * @returns {void}
+   * @sideEffect
+   * - Fly to the new center and zoom
+   */
   useEffect(() => {
     if (mapRef.current && mapData.center && mapData.zoom) {
       const { latitude, longitude } = mapData.center;
@@ -68,12 +82,14 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
     }
   }, [mapData.center, mapData.zoom]);
 
-  // Node data
+  /**
+   * Fetch data from the API
+   * @returns {Promise<Array>} - Array of data
+   */
   const fetchData = async () => {
     try {
       setLoading(true);
       const response = await getMapReadings();
-      console.log('response', response);
       const data = response.measurements
         .filter((item) => item.siteDetails)
         .map((item) => ({
@@ -105,7 +121,9 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
     }
   };
 
-  // Init map
+  /**
+   * Initialize the map
+   */
   useEffect(() => {
     const initializeMap = async () => {
       try {
@@ -119,7 +137,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
 
         mapRef.current = map;
 
-        let markers = []; // Store all markers
+        let markers = [];
 
         map.on('load', async () => {
           map.resize();
@@ -130,7 +148,9 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
           const geolocateControl = new CustomGeolocateControl();
           map.addControl(geolocateControl, 'bottom-right');
 
-          // Load all the images
+          /**
+           * Load images
+           */
           try {
             await Promise.all(
               Object.keys(images).map(
@@ -164,7 +184,9 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
             return;
           }
 
-          // Create a supercluster
+          /**
+           * Initialize Supercluster
+           */
           const index = new Supercluster({
             radius: 40,
             maxZoom: 16,
@@ -177,6 +199,9 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
             return;
           }
 
+          /**
+           * Update clusters
+           */
           const updateClusters = () => {
             try {
               const zoom = map.getZoom();
@@ -201,6 +226,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
 
                 if (!feature.properties.cluster) {
                   // unclustered
+                  el.style.zIndex = 555;
                   el.innerHTML = UnclusteredNode({ feature, images, NodeType });
 
                   // Add popup to unclustered node
@@ -208,7 +234,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
                     anchor: 'top',
                     offset: NodeType === 'Node' ? 35 : NodeType === 'Number' ? 42 : 58,
                     closeButton: false,
-                    maxWidth: 'none',
+                    maxWidth: '250px',
                     className: 'my-custom-popup',
                   }).setHTML(createPopupHTML({ feature, images }));
 
@@ -219,10 +245,10 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
 
                   // Show the popup when the user hovers over the node
                   el.addEventListener('mouseenter', () => {
-                    marker.togglePopup(); // Open the popup
+                    marker.togglePopup();
                   });
                   el.addEventListener('mouseleave', () => {
-                    marker.togglePopup(); // Close the popup
+                    marker.togglePopup();
                   });
 
                   // Set selectedSite when the user clicks on the node
@@ -239,6 +265,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
                   markers.push(marker);
                 } else {
                   // clustered
+                  el.zIndex = 444;
                   el.className =
                     'flex justify-center items-center bg-white rounded-full p-2 shadow-md';
                   el.innerHTML = createClusterNode({ feature, images, NodeType });
@@ -269,7 +296,9 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
     };
   }, [mapStyle, mapboxApiAccessToken, refresh, pollutant, NodeType]);
 
-  // Boundaries for a country
+  /**
+   * Fetch location boundaries
+   */
   useEffect(() => {
     const map = mapRef.current;
 
@@ -345,24 +374,22 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
     fetchLocationBoundaries();
   }, [mapData.location]);
 
-  // generate code to close dropdown when clicked outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [dropdownRef]);
-
+  /**
+   * Refresh the map
+   */
   const refreshMap = () => {
     const map = mapRef.current;
     map.setStyle(map.getStyle());
     setRefresh(!refresh);
   };
 
+  /**
+   * Share location URL
+   * @sideEffect
+   * - Copy URL to clipboard
+   * - Display toast notification
+   * @returns {void}
+   */
   const shareLocation = () => {
     try {
       const map = mapRef.current;
@@ -390,6 +417,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
     <div className='relative w-auto h-auto'>
       {/* Map */}
       <div ref={mapContainerRef} className={customStyle} />
+
       {/* Loader */}
       {refresh ||
         (loading && (
@@ -404,6 +432,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
             </div>
           </div>
         ))}
+
       {/* Map control buttons */}
       <div className='absolute top-4 right-0'>
         <div className='flex flex-col gap-4'>

@@ -17,18 +17,29 @@ const index = () => {
   const isAdmin = true;
   const preferenceData = useSelector((state) => state.defaults?.individual_preferences);
 
-  // getting user selected sites
+  /**
+   * Selected sites
+   */
   const selectedSites = preferenceData
     ? preferenceData.map((pref) => pref.selected_sites).flat()
     : [];
 
-  // site details with a check for siteData and siteData.sites being defined
+  /**
+   * Site details
+   */
   const siteDetails = siteData?.sites || [];
 
+  /**
+   * Fetch site details
+   * @returns {void}
+   */
   useEffect(() => {
     dispatch(getSitesSummary());
   }, []);
 
+  /**
+   * Show/hide sidebar on window resize
+   */
   useEffect(() => {
     const handleResize = () => {
       if (
