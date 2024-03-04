@@ -63,11 +63,15 @@ select:focus {
 
 /* Map Styles */
 .mapboxgl-popup.my-custom-popup {
+  padding: 0;
+  margin: 0;
   background-color: transparent;
   box-shadow: none;
 }
 
 .mapboxgl-popup.my-custom-popup .mapboxgl-popup-content {
+  padding: 0;
+  margin: 0;
   background-color: transparent;
   box-shadow: none;
 }
@@ -82,7 +86,7 @@ select:focus {
   align-items: center;
   justify-content: center;
   background-color: #fff;
-  color: #fff; // Add this line
+  color: #fff;
   padding: 5px;
   width: 56px;
   height: 56px;

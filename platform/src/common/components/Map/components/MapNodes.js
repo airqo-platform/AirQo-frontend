@@ -8,19 +8,56 @@ export const images = {
   Hazardous: '/images/map/Hazardous.png',
 };
 
-export const getIcon = (aqiValue) => {
-  if (aqiValue > 300) {
-    return { icon: 'Hazardous', color: '#D95BA3' };
-  } else if (aqiValue > 200) {
-    return { icon: 'VeryUnhealthy', color: '#AC5CD9' };
-  } else if (aqiValue > 150) {
-    return { icon: 'Unhealthy', color: '#F7453C' };
-  } else if (aqiValue > 100) {
-    return { icon: 'UnhealthyForSensitiveGroups', color: '#FF851F' };
-  } else if (aqiValue > 50) {
-    return { icon: 'ModerateAir', color: '#FFD633' };
-  } else {
-    return { icon: 'GoodAir', color: '#34C759' };
+const markerDetails = {
+  pm2_5: [
+    { limit: 500.5, category: 'Invalid' },
+    { limit: 250.5, category: 'Hazardous' },
+    { limit: 150.5, category: 'VeryUnhealthy' },
+    { limit: 55.5, category: 'Unhealthy' },
+    { limit: 35.5, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 12.1, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
+  ],
+  pm10: [
+    { limit: 604.1, category: 'Invalid' },
+    { limit: 424.1, category: 'Hazardous' },
+    { limit: 354.1, category: 'VeryUnhealthy' },
+    { limit: 254.1, category: 'Unhealthy' },
+    { limit: 154.1, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 54.1, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
+  ],
+  no2: [
+    { limit: 2049.1, category: 'Invalid' },
+    { limit: 1249.1, category: 'Hazardous' },
+    { limit: 649.1, category: 'VeryUnhealthy' },
+    { limit: 360.1, category: 'Unhealthy' },
+    { limit: 100.1, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 53.1, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
+  ],
+};
+
+const colors = {
+  Invalid: '#000000',
+  Hazardous: '#D95BA3',
+  VeryUnhealthy: '#AC5CD9',
+  Unhealthy: '#F7453C',
+  UnhealthyForSensitiveGroups: '#FF851F',
+  ModerateAir: '#FFD633',
+  GoodAir: '#34C759',
+};
+
+export const getAQICategory = (pollutant, value) => {
+  if (!markerDetails.hasOwnProperty(pollutant)) {
+    throw new Error(`Invalid pollutant: ${pollutant}`);
+  }
+
+  const categories = markerDetails[pollutant];
+  for (let i = 0; i < categories.length; i++) {
+    if (value >= categories[i].limit) {
+      return { icon: categories[i].category, color: colors[categories[i].category] };
+    }
   }
 };
 

@@ -15,7 +15,7 @@ import {
   createPopupHTML,
   createClusterNode,
   UnclusteredNode,
-  getIcon,
+  getAQICategory,
   images,
 } from './components/MapNodes';
 import { getMapReadings } from '@/core/apis/DeviceRegistry';
@@ -73,6 +73,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
     try {
       setLoading(true);
       const response = await getMapReadings();
+      console.log('response', response);
       const data = response.measurements
         .filter((item) => item.siteDetails)
         .map((item) => ({
@@ -86,14 +87,14 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
           },
           properties: {
             _id: item.siteDetails._id,
-            location: item.siteDetails.location_name,
+            location: item.siteDetails.name,
             airQuality: item.aqi_category,
             no2: item.no2.value,
             pm10: item.pm10.value,
             pm2_5: item.pm2_5.value,
             createdAt: item.createdAt,
             time: item.time,
-            aqi: getIcon(item[pollutant].value),
+            aqi: getAQICategory(pollutant, item[pollutant].value),
           },
         }));
       setLoading(false);
@@ -204,7 +205,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
 
                   // Add popup to unclustered node
                   const popup = new mapboxgl.Popup({
-                    offset: NodeType === 'Number' || NodeType === 'Node' ? 25 : 45,
+                    anchor: 'top',
+                    offset: NodeType === 'Node' ? 35 : NodeType === 'Number' ? 42 : 58,
                     closeButton: false,
                     maxWidth: 'none',
                     className: 'my-custom-popup',
@@ -418,6 +420,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
                 onClose={() => setIsOpen(false)}
                 mapStyles={mapStyles}
                 showSideBar={showSideBar}
+                disabled='Heatmap'
                 onMapDetailsSelect={(detail) => {
                   setNodeType(detail);
                 }}

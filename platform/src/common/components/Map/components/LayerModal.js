@@ -21,10 +21,13 @@ const mapDetails = [
   },
 ];
 
-const Option = ({ isSelected, children, onSelect, image }) => (
+const Option = ({ isSelected, children, onSelect, image, disabled }) => (
   <button
     onClick={onSelect}
-    className={`flex flex-col items-center space-y-3 ${isSelected ? 'border-blue-500' : ''}`}>
+    className={`flex flex-col items-center space-y-3 ${isSelected ? 'border-blue-500' : ''} ${
+      disabled ? 'opacity-50 cursor-not-allowed' : ''
+    }`}
+    disabled={disabled}>
     <div
       className={`w-14 h-14 relative rounded-md ${
         isSelected ? 'border-2 border-blue-500 ring-4 ring-light-blue-100' : ''
@@ -42,6 +45,7 @@ const LayerModal = ({
   mapStyles,
   onStyleSelect,
   showSideBar,
+  disabled,
 }) => {
   const [selectedStyle, setSelectedStyle] = useState(mapStyles[0]);
   const [selectedMapDetail, setSelectedMapDetail] = useState(mapDetails[0]);
@@ -100,6 +104,7 @@ const LayerModal = ({
                   key={detail.name}
                   isSelected={detail.name === selectedMapDetail.name}
                   onSelect={() => handleSelectDetail(detail)}
+                  disabled={detail.name === disabled}
                   image={detail.image}>
                   {detail.name}
                 </Option>
