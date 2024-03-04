@@ -42,9 +42,10 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   const urls = new URL(window.location.href);
   const urlParams = new URLSearchParams(urls.search);
   const mapData = useSelector((state) => state.map);
-  const [pollutant, setPollutant] = useState('pm2_5');
   const [toastMessage, setToastMessage] = useState(null);
   const [NodeType, setNodeType] = useState('Emoji');
+  const [pollutant, setPollutant] = useState('pm2_5');
+  const [selectedSite, setSelectedSite] = useState(null);
 
   const lat = urlParams.get('lat');
   const lng = urlParams.get('lng');
@@ -220,6 +221,17 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
                   });
                   el.addEventListener('mouseleave', () => {
                     marker.togglePopup(); // Close the popup
+                  });
+
+                  // Set selectedSite when the user clicks on the node
+                  el.addEventListener('click', () => {
+                    setSelectedSite({
+                      _id: feature.properties._id,
+                      coordinates: {
+                        lat: feature.geometry.coordinates[1],
+                        lng: feature.geometry.coordinates[0],
+                      },
+                    });
                   });
 
                   markers.push(marker);
