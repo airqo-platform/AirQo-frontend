@@ -475,6 +475,8 @@ const GenerateToken = (props) => {
               title="Registered Clients"
               onButtonClick={handleOpen}
               ButtonText="Add Client"
+              refreshButton={true}
+              onRefreshClick={() => setRefresh(!refresh)}
               columns={[
                 {
                   id: 'name',
