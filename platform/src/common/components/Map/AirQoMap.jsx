@@ -5,13 +5,19 @@ import LayerIcon from '@/icons/map/layerIcon';
 import RefreshIcon from '@/icons/map/refreshIcon';
 import ShareIcon from '@/icons/map/shareIcon';
 import { CustomGeolocateControl, CustomZoomControl } from './components/MapControls';
-import { setCenter, setZoom, clearData } from '@/lib/store/services/map/MapSlice';
+import { clearData } from '@/lib/store/services/map/MapSlice';
 import LayerModal from './components/LayerModal';
 import MapImage from '@/images/map/dd1.png';
 import Loader from '@/components/Spinner';
 import axios from 'axios';
 import Supercluster from 'supercluster';
-import { createPopupHTML, createClusterNode, getIcon, images } from './components/MapNodes';
+import {
+  createPopupHTML,
+  createClusterNode,
+  UnclusteredNode,
+  getIcon,
+  images,
+} from './components/MapNodes';
 import { getMapReadings } from '@/core/apis/DeviceRegistry';
 import Toast from '../Toast';
 
@@ -38,10 +44,15 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   const mapData = useSelector((state) => state.map);
   const [pollutant, setPollutant] = useState('pm2_5');
   const [toastMessage, setToastMessage] = useState(null);
+  const [NodeType, setNodeType] = useState('Emoji');
 
   const lat = urlParams.get('lat');
   const lng = urlParams.get('lng');
   const zm = urlParams.get('zm');
+
+  useEffect(() => {
+    dispatch(clearData());
+  }, []);
 
   useEffect(() => {
     if (mapRef.current && mapData.center && mapData.zoom) {
@@ -91,10 +102,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    dispatch(clearData());
-  }, []);
 
   // Init map
   useEffect(() => {
@@ -192,16 +199,11 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
 
                 if (!feature.properties.cluster) {
                   // unclustered
-                  el.className =
-                    'flex justify-center items-center bg-white rounded-full p-2 shadow-md w-14 h-14 hover:w-20 hover:h-20';
-                  el.innerHTML = `<img src="${
-                    images[feature.properties.aqi.icon]
-                  }" alt="AQI Icon" class="w-full h-full">`;
-                  el.id = feature.properties._id;
+                  el.innerHTML = UnclusteredNode({ feature, images, NodeType });
 
                   // Add popup to unclustered node
                   const popup = new mapboxgl.Popup({
-                    offset: 38,
+                    offset: NodeType === 'Number' || NodeType === 'Node' ? 25 : 45,
                     closeButton: false,
                     maxWidth: 'none',
                     className: 'my-custom-popup',
@@ -225,7 +227,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
                   // clustered
                   el.className =
                     'flex justify-center items-center bg-white rounded-full p-2 shadow-md';
-                  el.innerHTML = createClusterNode({ feature, images });
+                  el.innerHTML = createClusterNode({ feature, images, NodeType });
                   const marker = new mapboxgl.Marker(el)
                     .setLngLat(feature.geometry.coordinates)
                     .addTo(map);
@@ -251,7 +253,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
     return () => {
       mapRef.current.remove();
     };
-  }, [mapStyle, mapboxApiAccessToken, refresh, pollutant]);
+  }, [mapStyle, mapboxApiAccessToken, refresh, pollutant, NodeType]);
 
   // Boundaries for a country
   useEffect(() => {
@@ -404,6 +406,9 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
                 onClose={() => setIsOpen(false)}
                 mapStyles={mapStyles}
                 showSideBar={showSideBar}
+                onMapDetailsSelect={(detail) => {
+                  setNodeType(detail);
+                }}
                 onStyleSelect={(style) => {
                   setMapStyle(style.url);
                 }}

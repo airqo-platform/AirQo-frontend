@@ -35,13 +35,21 @@ const Option = ({ isSelected, children, onSelect, image }) => (
   </button>
 );
 
-const LayerModal = ({ isOpen, onClose, mapStyles, onStyleSelect, showSideBar }) => {
+const LayerModal = ({
+  isOpen,
+  onClose,
+  onMapDetailsSelect,
+  mapStyles,
+  onStyleSelect,
+  showSideBar,
+}) => {
   const [selectedStyle, setSelectedStyle] = useState(mapStyles[0]);
   const [selectedMapDetail, setSelectedMapDetail] = useState(mapDetails[0]);
   const modalRef = useRef();
 
   const handleApply = () => {
     onStyleSelect(selectedStyle);
+    onMapDetailsSelect(selectedMapDetail.name);
     onClose();
   };
 

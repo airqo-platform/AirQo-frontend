@@ -73,24 +73,78 @@ select:focus {
 }
 
 .mapboxgl-popup.my-custom-popup .mapboxgl-popup-tip {
-  display: block;
+  display: none;
   transform: rotate(180deg);
 }
 
-/* Define the animation */
-@keyframes customAni {
-  0% {
-    transform: scale(0.5);
-    transform-origin: 50% 0%;
+.unClustered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  color: #fff; // Add this line
+  padding: 5px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  position: relative;
+  transition: transform 0.3s ease-in-out;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 
-  100% {
-    transform: scale(1);
-    transform-origin: 50% 0%;
+  &:hover {
+    transform: scale(1.5);
+
+    &::after {
+      opacity: 1; // Show the pointer on hover
+    }
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; // Position the pointer at the bottom
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    opacity: 0;
+    border-color: inherit;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid currentColor; // Use currentColor here
+    transition: opacity 0.3s ease-in-out; // Add this line for a smooth transition
   }
 }
 
-/* Apply the animation to the 'unclustered' class */
-.unclustered {
-  animation: customAni 2s ease-in-out 0s infinite normal none;
+.unClustered-Node-Number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  position: relative;
+  padding: 8px;
+  transition: transform 0.3s ease-in-out;
+
+  &:hover {
+    transform: scale(1.5);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 7px solid currentColor;
+    transition: opacity 0.3s ease-in-out;
+  }
 }

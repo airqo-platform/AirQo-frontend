@@ -24,8 +24,56 @@ export const getIcon = (aqiValue) => {
   }
 };
 
-// Cluster Html
-export const createClusterNode = ({ feature, images }) => {
+// unClustered node component
+export const UnclusteredNode = ({ feature, images, NodeType }) => {
+  if (NodeType === 'Number') {
+    return `
+    <div id="${feature.properties._id}" class="unClustered-Node-Number shadow-md"
+    style="background-color: ${feature.properties.aqi.color}; color: ${
+      feature.properties.aqi.color
+    }; width: 40px; height: 40px;"
+  >
+    <p class="text-[#000] text-xs font-bold">${feature.properties.pm2_5.toFixed(2)}</p>
+</div>
+
+  `;
+  }
+
+  if (NodeType === 'Node') {
+    return `
+    <div id="${feature.properties._id}" class="unClustered-Node-Number shadow-md"
+      style="background-color: ${feature.properties.aqi.color};color: ${feature.properties.aqi.color}; width: 30px; height: 30px;"
+    >
+    </div>
+  `;
+  }
+
+  return `
+    <div id="${feature.properties._id}" class="unClustered shadow-md">
+      <img src="${images[feature.properties.aqi.icon]}" alt="AQI Icon" class="w-full h-full">
+    </div>
+  `;
+};
+
+// Cluster Node HTML
+export const createClusterNode = ({ feature, images, NodeType }) => {
+  if (NodeType === 'Number' || NodeType === 'Node') {
+    return `
+      <div class="flex -space-x-3 rtl:space-x-reverse items-center justify-center">
+          <div class="w-8 h-8 z-20 rounded-full border-white flex justify-center items-center text-[8px] overflow-hidden" style="background:#34C759">${
+            NodeType !== 'Node' ? '12.02' : ''
+          }</div>
+          <div class="w-8 h-8 z-10 rounded-full border-white flex justify-center items-center text-[8px] overflow-hidden" style="background:#D95BA3">${
+            NodeType !== 'Node' ? '112.23' : ''
+          }</div>
+      </div>
+
+      <div class="text-black text-sm font-bold ml-2">${
+        feature.properties.point_count_abbreviated
+      } + </div>
+    `;
+  }
+
   return `
     <div class="flex -space-x-3 rtl:space-x-reverse">
       <img class="w-8 h-8 border-2 border-white rounded-full z-20" src="${images['GoodAir']}" alt="AQI Icon">
@@ -57,7 +105,7 @@ export const createPopupHTML = ({ feature, images }) => {
       </div>
       <div class="flex justify-between gap-5 items-center w-full">
         <p
-          style="color: ${feature.properties.aqi.color}; font-size: 12px; font-weight: 500;"
+          style="color: ${feature.properties.aqi.color}; font-size: 14px; font-weight: 500;"
         >Air Quality is ${feature.properties.airQuality}</p>    
         <img src="${images[feature.properties.aqi.icon]}" alt="AQI Icon" class="w-8 h-8">
       </div>
