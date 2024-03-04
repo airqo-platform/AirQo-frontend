@@ -68,6 +68,7 @@ select:focus {
   background-color: transparent;
   box-shadow: none;
   z-index: 666;
+  max-width: 250px;
 }
 
 .my-custom-popup .mapboxgl-popup-content {

@@ -234,7 +234,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
                     anchor: 'top',
                     offset: NodeType === 'Node' ? 35 : NodeType === 'Number' ? 42 : 58,
                     closeButton: false,
-                    maxWidth: '250px',
+                    maxWidth: 'none',
                     className: 'my-custom-popup',
                   }).setHTML(createPopupHTML({ feature, images }));
 
@@ -359,7 +359,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
           // Add zoomend event listener
           map.on('zoomend', function () {
             const zoom = map.getZoom();
-            // Adjust fill opacity based on zoom level
             const opacity = zoom > 10 ? 0 : 0.2;
             map.setPaintProperty('location-boundaries', 'fill-opacity', opacity);
           });
