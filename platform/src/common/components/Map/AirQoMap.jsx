@@ -478,6 +478,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant })
           timeout={3000}
           dataTestId='map-toast'
           size='lg'
+          bgColor='bg-blue-600'
+          position='bottom'
         />
       )}
     </div>
