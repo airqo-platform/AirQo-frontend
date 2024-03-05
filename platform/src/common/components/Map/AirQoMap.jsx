@@ -150,30 +150,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant })
           const geolocateControl = new CustomGeolocateControl(setToastMessage);
           map.addControl(geolocateControl, 'bottom-right');
 
-          /**
-           * Load images
-           */
-          try {
-            await Promise.all(
-              Object.keys(images).map(
-                (key) =>
-                  new Promise((resolve, reject) => {
-                    map.loadImage(images[key], (error, image) => {
-                      if (error) {
-                        console.error(`Failed to load image ${key}: `, error);
-                        reject(error);
-                      } else {
-                        map.addImage(key, image);
-                        resolve();
-                      }
-                    });
-                  }),
-              ),
-            );
-          } catch (error) {
-            console.error('Error loading images: ', error);
-          }
-
           // Load data
           let data;
           try {
@@ -203,6 +179,13 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant })
 
           /**
            * Update clusters
+           * @sideEffect
+           * - Update clusters on zoom and move
+           * - Add popup to unclustered nodes
+           * - Set selectedSite when the user clicks on the node
+           * - Remove existing markers
+           * - Add unclustered points as custom HTML markers
+           * - Add clustered points as custom HTML markers
            */
           const updateClusters = () => {
             try {
@@ -228,7 +211,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant })
 
                 if (!feature.properties.cluster) {
                   // unclustered
-                  el.style.zIndex = 555;
+                  el.style.zIndex = 1;
                   el.innerHTML = UnclusteredNode({ feature, images, NodeType });
 
                   // Add popup to unclustered node
@@ -248,9 +231,11 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant })
                   // Show the popup when the user hovers over the node
                   el.addEventListener('mouseenter', () => {
                     marker.togglePopup();
+                    el.style.zIndex = 9999;
                   });
                   el.addEventListener('mouseleave', () => {
                     marker.togglePopup();
+                    el.style.zIndex = 1;
                   });
 
                   // Set selectedSite when the user clicks on the node
@@ -270,7 +255,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant })
                   el.zIndex = 444;
                   el.className =
                     'flex justify-center items-center bg-white rounded-full p-2 shadow-md';
-                  el.innerHTML = createClusterNode({ feature, images, NodeType });
+                  el.innerHTML = createClusterNode({ feature, NodeType });
                   const marker = new mapboxgl.Marker(el)
                     .setLngLat(feature.geometry.coordinates)
                     .addTo(map);

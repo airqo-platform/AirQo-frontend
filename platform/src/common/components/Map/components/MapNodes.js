@@ -1,11 +1,22 @@
+import { renderToString } from 'react-dom/server';
+
+import GoodAir from '@/icons/Charts/GoodAir';
+import ModerateAir from '@/icons/Charts/Moderate';
+import UnhealthyForSensitiveGroups from '@/icons/Charts/UnhealthySG';
+import Unhealthy from '@/icons/Charts/Unhealthy';
+import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
+import Hazardous from '@/icons/Charts/Hazardous';
+
 // icon images
 export const images = {
-  GoodAir: '/images/map/GoodAir.png',
-  ModerateAir: '/images/map/Moderate.png',
-  UnhealthyForSensitiveGroups: '/images/map/UnhealthySG.png',
-  Unhealthy: '/images/map/Unhealthy.png',
-  VeryUnhealthy: '/images/map/VeryUnhealthy.png',
-  Hazardous: '/images/map/Hazardous.png',
+  GoodAir: `data:image/svg+xml,${encodeURIComponent(renderToString(<GoodAir />))}`,
+  ModerateAir: `data:image/svg+xml,${encodeURIComponent(renderToString(<ModerateAir />))}`,
+  UnhealthyForSensitiveGroups: `data:image/svg+xml,${encodeURIComponent(
+    renderToString(<UnhealthyForSensitiveGroups />),
+  )}`,
+  Unhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<Unhealthy />))}`,
+  VeryUnhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<VeryUnhealthy />))}`,
+  Hazardous: `data:image/svg+xml,${encodeURIComponent(renderToString(<Hazardous />))}`,
   Invalid: '/images/map/Invalid.png',
 };
 
@@ -62,6 +73,9 @@ const getRandomKey = (obj) => {
 
 /**
  * Get AQI category based on pollutant and value
+ * @param {String} pollutant
+ * @param {Number} value
+ * @returns {Object}
  */
 export const getAQICategory = (pollutant, value) => {
   if (!markerDetails.hasOwnProperty(pollutant)) {
@@ -78,42 +92,56 @@ export const getAQICategory = (pollutant, value) => {
 
 /**
  * Create HTML for unClustered nodes
+ * @param {Object} feature
+ * @param {String} NodeType
+ * @returns {String}
  */
-export const UnclusteredNode = ({ feature, images, NodeType }) => {
-  if (NodeType === 'Number') {
-    return `
-    <div id="${feature.properties._id}"        class="unClustered-Number shadow-md"
-        style="background-color: ${feature.properties.aqi.color}; color: ${
-      feature.properties.aqi.color
-    }; width: 40px; height: 40px;"
+export const UnclusteredNode = ({ feature, NodeType }) => {
+  // Check if feature.properties.aqi is defined
+  if (feature.properties && feature.properties.aqi) {
+    const Icon = images[feature.properties.aqi.icon];
+
+    if (NodeType === 'Number') {
+      return `
+      <div id="${feature.properties._id}" class="unClustered-Number shadow-md"
+          style="background-color: ${feature.properties.aqi.color}; color: ${
+        feature.properties.aqi.color
+      }; width: 40px; height: 40px;"
+        >
+        <p class="text-[#000] text-xs font-bold">${feature.properties.pm2_5.toFixed(2)}</p>
+        <span class="arrow"></span>
+      </div>
+      `;
+    }
+
+    if (NodeType === 'Node') {
+      return `
+      <div id="${feature.properties._id}" class="unClustered-Node shadow-md"
+        style="background-color: ${feature.properties.aqi.color}; color: ${feature.properties.aqi.color}; width: 30px; height: 30px;"
       >
-      <p class="text-[#000] text-xs font-bold">${feature.properties.pm2_5.toFixed(2)}</p>
-      <span class="arrow"></span>
-    </div>
+        <span class="arrow"></span> 
+      </div>
+      `;
+    }
 
-  `;
-  }
-
-  if (NodeType === 'Node') {
     return `
-    <div id="${feature.properties._id}" class="unClustered-Node shadow-md"
-      style="background-color: ${feature.properties.aqi.color};color: ${feature.properties.aqi.color}; width: 30px; height: 30px;"
-    >
-      <span class="arrow"></span> 
-    </div>
-  `;
+      <div id="${feature.properties._id}" class="unClustered shadow-md">
+        <img src="${Icon}" alt="AQI Icon" class="w-full h-full" />
+        <span class="arrow"></span>
+      </div>
+    `;
+  } else {
+    // Handle the case where feature.properties.aqi is not defined
+    console.error('feature.properties.aqi is not defined for feature: ', feature);
+    return '';
   }
-
-  return `
-    <div id="${feature.properties._id}" class="unClustered shadow-md">
-      <img src="${images[feature.properties.aqi.icon]}" alt="AQI Icon" class="w-full h-full">
-      <span class="arrow"></span>
-    </div>
-  `;
 };
 
 /**
  * Create HTML for Clustered nodes
+ * @param {Object} feature
+ * @param {String} NodeType
+ * @returns {String}
  */
 export const createClusterNode = ({ feature, NodeType }) => {
   // Randomly select two different colors
@@ -129,6 +157,9 @@ export const createClusterNode = ({ feature, NodeType }) => {
     firstImageKey = getRandomKey(images);
     secondImageKey = getRandomKey(images);
   } while (firstImageKey === secondImageKey);
+
+  const FirstIcon = images[firstImageKey];
+  const SecondIcon = images[secondImageKey];
 
   if (NodeType === 'Number' || NodeType === 'Node') {
     return `
@@ -149,8 +180,8 @@ export const createClusterNode = ({ feature, NodeType }) => {
 
   return `
     <div class="flex -space-x-3 rtl:space-x-reverse">
-      <img class="w-8 h-8 border-2 border-white rounded-full z-20" src="${images[firstImageKey]}" alt="AQI Icon">
-      <img class="w-8 h-8 border-2 border-white rounded-full z-10" src="${images[secondImageKey]}" alt="AQI Icon">
+      <img class="w-8 h-8 border-2 border-white rounded-full z-20" src="${FirstIcon}" alt="AQI Icon">
+      <img class="w-8 h-8 border-2 border-white rounded-full z-10" src="${SecondIcon}" alt="AQI Icon">
     </div>
     <div class="text-black text-sm font-bold ml-2">${feature.properties.point_count_abbreviated} + </div>
   `;
@@ -158,8 +189,16 @@ export const createClusterNode = ({ feature, NodeType }) => {
 
 /**
  * Create HTML for Popup
+ * @param {Object} feature
+ * @param {Object} images
+ * @returns {String}
  */
 export const createPopupHTML = ({ feature, images }) => {
+  if (!feature || !feature.properties) {
+    console.error('Invalid feature properties');
+    return '';
+  }
+
   return `
     <div class="flex flex-col gap-2 p-3 bg-white rounded-lg shadow-lg" style="min-width: 250px; width: max-content;">
       <div class="text-gray-500 text-xs font-normal font-sans leading-none">
