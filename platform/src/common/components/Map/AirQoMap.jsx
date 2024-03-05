@@ -29,7 +29,7 @@ const mapStyles = [
   { url: 'mapbox://styles/mapbox/satellite-v9', name: 'Satellite', image: MapImage },
 ];
 
-const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
+const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant }) => {
   const dispatch = useDispatch();
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
@@ -41,9 +41,11 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   const urls = new URL(window.location.href);
   const urlParams = new URLSearchParams(urls.search);
   const mapData = useSelector((state) => state.map);
-  const [toastMessage, setToastMessage] = useState(null);
+  const [toastMessage, setToastMessage] = useState({
+    message: '',
+    type: '',
+  });
   const [NodeType, setNodeType] = useState('Emoji');
-  const [pollutant, setPollutant] = useState('pm2_5');
   const [selectedSite, setSelectedSite] = useState(null);
   useOutsideClick(dropdownRef, () => setIsOpen(false));
 
@@ -145,7 +147,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
           const zoomControl = new CustomZoomControl();
           map.addControl(zoomControl, 'bottom-right');
 
-          const geolocateControl = new CustomGeolocateControl();
+          const geolocateControl = new CustomGeolocateControl(setToastMessage);
           map.addControl(geolocateControl, 'bottom-right');
 
           /**
@@ -405,10 +407,15 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
       navigator.clipboard.writeText(url.toString());
 
       // Display toast notification
-      setToastMessage('Location URL copied to clipboard');
+      setToastMessage({
+        message: 'Location URL copied to clipboard',
+        type: 'success',
+      });
     } catch (error) {
-      console.error('Error sharing location', error);
-      setToastMessage('Error sharing location');
+      setToastMessage({
+        message: 'Failed to copy location URL to clipboard',
+        type: 'error',
+      });
     }
   };
 
@@ -474,11 +481,11 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
       </div>
 
       {/* Toast */}
-      {toastMessage && (
+      {toastMessage.message !== '' && (
         <Toast
-          message={toastMessage}
-          clearData={() => setToastMessage(null)}
-          type='success'
+          message={toastMessage.message}
+          clearData={() => setToastMessage({ message: '', type: '' })}
+          type={toastMessage.type}
           timeout={3000}
           dataTestId='map-toast'
           size='lg'
