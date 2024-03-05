@@ -4,10 +4,10 @@
 
 [![AirQo next platform](https://img.shields.io/endpoint?url=https://dashboard.cypress.io/badge/simple/ap5jjk/staging&style=flat&logo=cypress)](https://dashboard.cypress.io/projects/ap5jjk/runs) [![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/branch/staging/graph/badge.svg)](https://codecov.io/gh/airqo-platform/AirQo-frontend)
 
-## Table of contents.
+## Table of contents
 
 - [Platform beta](#platform-beta)
-  - [Table of contents.](#table-of-contents)
+  - [Table of contents](#table-of-contents)
   - [Prerequisites](#prerequisites)
   - [Getting started here](#getting-started-here)
   - [Running the application](#running-the-application)
