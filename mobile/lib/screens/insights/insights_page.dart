@@ -1,7 +1,6 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -38,10 +37,17 @@ Future<void> navigateToInsights(
   );
 }
 
-class InsightsPage extends StatelessWidget {
+class InsightsPage extends StatefulWidget {
   const InsightsPage(this.airQualityReading, {super.key});
 
   final AirQualityReading airQualityReading;
+
+  @override
+  State<InsightsPage> createState() => _InsightsPageState();
+}
+
+class _InsightsPageState extends State<InsightsPage> {
+  AirQualityReading get airQualityReading => widget.airQualityReading;
 
   @override
   Widget build(BuildContext context) {
@@ -53,9 +59,23 @@ class InsightsPage extends StatelessWidget {
         child: SingleChildScrollView(
           child: BlocBuilder<InsightsBloc, InsightsState>(
             builder: (context, state) {
+
+              Insight todayInsight = Insight.fromAirQualityReading(
+                airQualityReading,
+              );
+              List<Insight> updatedInsights = [
+                todayInsight,
+                ...state.insights.sublist(1),
+              ];
+              state = state.copyWith(
+                name: airQualityReading.name,
+                selectedInsight: todayInsight,
+                insights: updatedInsights,
+              );
+
               AirQualityReading selectedAirQualityReading =
                   airQualityReading.copyWith(
-                pm2_5: state.selectedInsight.pm2_5,
+                pm2_5: airQualityReading.pm2_5,
               );
               return Column(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -64,37 +84,9 @@ class InsightsPage extends StatelessWidget {
                   const SizedBox(
                     height: 38,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: Text(
-                      state.selectedInsight.shortDate(context),
-                      style: CustomTextStyle.headline8(context)
-                          ?.copyWith(fontSize: 20),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 14,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: Text(
-                      state.selectedInsight.dateTime.timelineString(context),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.black.withOpacity(0.5),
-                          ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
+                  
                   InsightsCalendar(selectedAirQualityReading),
-                  Visibility(
-                    visible: state.selectedInsight.dateTime
-                            .isAfter(DateTime.now()) &&
-                        DateTime.now().hour < 12,
-                    child: ForecastContainer(state.selectedInsight),
-                  ),
-                  HealthTipsWidget(state.selectedInsight),
+                  
                   const SizedBox(
                     height: 21,
                   ),
