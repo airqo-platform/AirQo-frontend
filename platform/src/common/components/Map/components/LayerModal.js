@@ -1,23 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
-import MapImage from '@/images/map/dd1.png';
+import Node from '@/images/map/Node.png';
+import Emoji from '@/images/map/Emoji.png';
+import Heatmap from '@/images/map/Heatmap.png';
+import Node_Number from '@/images/map/Node_Number.png';
 import Image from 'next/image';
 
 const mapDetails = [
   {
     name: 'Emoji',
-    image: MapImage,
+    image: Emoji,
   },
   {
     name: 'Heatmap',
-    image: MapImage,
+    image: Heatmap,
   },
   {
     name: 'Node',
-    image: MapImage,
+    image: Node,
   },
   {
     name: 'Number',
-    image: MapImage,
+    image: Node_Number,
   },
 ];
 
@@ -29,10 +32,10 @@ const Option = ({ isSelected, children, onSelect, image, disabled }) => (
     }`}
     disabled={disabled}>
     <div
-      className={`w-14 h-14 relative rounded-md ${
+      className={`w-14 h-14 relative rounded-lg ${
         isSelected ? 'border-2 border-blue-500 ring-4 ring-light-blue-100' : ''
-      }`}>
-      <Image src={image} alt={children} layout='fill' objectFit='cover' className='rounded-md' />
+      } border-2`}>
+      <Image src={image} alt={children} layout='fill' objectFit='cover' className='rounded-lg' />
     </div>
     <span>{children}</span>
   </button>

@@ -161,6 +161,9 @@ export const createClusterNode = ({ feature, NodeType }) => {
   const FirstIcon = images[firstImageKey];
   const SecondIcon = images[secondImageKey];
 
+  const count = feature.properties.point_count_abbreviated;
+  const countDisplay = count > 2 ? `${count - 2} + ` : '';
+
   if (NodeType === 'Number' || NodeType === 'Node') {
     return `
       <div class="flex -space-x-3 rtl:space-x-reverse items-center justify-center">
@@ -172,9 +175,7 @@ export const createClusterNode = ({ feature, NodeType }) => {
           }">${NodeType !== 'Node' ? '112.23' : ''}</div>
       </div>
 
-      <div class="text-black text-sm font-bold ml-2">${
-        feature.properties.point_count_abbreviated
-      } + </div>
+      <div class="text-black text-sm font-bold ml-2">${countDisplay}</div>
     `;
   }
 
@@ -183,7 +184,9 @@ export const createClusterNode = ({ feature, NodeType }) => {
       <img class="w-8 h-8 border-2 border-white rounded-full z-20" src="${FirstIcon}" alt="AQI Icon">
       <img class="w-8 h-8 border-2 border-white rounded-full z-10" src="${SecondIcon}" alt="AQI Icon">
     </div>
-    <div class="text-black text-sm font-bold ml-2">${feature.properties.point_count_abbreviated} + </div>
+    <div class="text-black text-sm font-bold ml-2" style="${
+      countDisplay ? 'block' : 'none'
+    }">${countDisplay}</div>
   `;
 };
 

@@ -5,9 +5,10 @@ import LayerIcon from '@/icons/map/layerIcon';
 import RefreshIcon from '@/icons/map/refreshIcon';
 import ShareIcon from '@/icons/map/shareIcon';
 import { CustomGeolocateControl, CustomZoomControl } from './components/MapControls';
+import { getMapReadings } from '@/core/apis/DeviceRegistry';
 import { clearData } from '@/lib/store/services/map/MapSlice';
+import useOutsideClick from '@/core/utils/useOutsideClick';
 import LayerModal from './components/LayerModal';
-import MapImage from '@/images/map/dd1.png';
 import Loader from '@/components/Spinner';
 import axios from 'axios';
 import Supercluster from 'supercluster';
@@ -18,15 +19,18 @@ import {
   getAQICategory,
   images,
 } from './components/MapNodes';
-import { getMapReadings } from '@/core/apis/DeviceRegistry';
 import Toast from '../Toast';
-import useOutsideClick from '@/core/utils/useOutsideClick';
+
+import DarkMode from '@/images/map/dark.png';
+import LightMode from '@/images/map/light.png';
+import SatelliteMode from '@/images/map/satellite.png';
+import StreetsMode from '@/images/map/street.png';
 
 const mapStyles = [
-  { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets', image: MapImage },
-  { url: 'mapbox://styles/mapbox/light-v10', name: 'Light', image: MapImage },
-  { url: 'mapbox://styles/mapbox/dark-v10', name: 'Dark', image: MapImage },
-  { url: 'mapbox://styles/mapbox/satellite-v9', name: 'Satellite', image: MapImage },
+  { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets', image: StreetsMode },
+  { url: 'mapbox://styles/mapbox/light-v10', name: 'Light', image: LightMode },
+  { url: 'mapbox://styles/mapbox/dark-v10', name: 'Dark', image: DarkMode },
+  { url: 'mapbox://styles/mapbox/satellite-v9', name: 'Satellite', image: SatelliteMode },
 ];
 
 const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant }) => {
