@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Node from '@/images/map/Node.png';
 import Emoji from '@/images/map/Emoji.png';
 import Heatmap from '@/images/map/Heatmap.png';
-import Node_Number from '@/images/map/Node_Number.png';
+import Node_Number from '@/images/map/Node_number.png';
 import Image from 'next/image';
 
 const mapDetails = [
