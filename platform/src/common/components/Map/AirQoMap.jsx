@@ -5,33 +5,35 @@ import LayerIcon from '@/icons/map/layerIcon';
 import RefreshIcon from '@/icons/map/refreshIcon';
 import ShareIcon from '@/icons/map/shareIcon';
 import { CustomGeolocateControl, CustomZoomControl } from './components/MapControls';
-import { setCenter, setZoom } from '@/lib/store/services/map/MapSlice';
+import { getMapReadings } from '@/core/apis/DeviceRegistry';
+import { clearData } from '@/lib/store/services/map/MapSlice';
+import useOutsideClick from '@/core/utils/useOutsideClick';
 import LayerModal from './components/LayerModal';
-import MapImage from '@/images/map/dd1.png';
 import Loader from '@/components/Spinner';
 import axios from 'axios';
 import Supercluster from 'supercluster';
-import { createPopupHTML, createClusterHTML, getIcon, images } from './components/MapNodes';
-import { getMapReadings } from '@/core/apis/DeviceRegistry';
+import {
+  createPopupHTML,
+  createClusterNode,
+  UnclusteredNode,
+  getAQICategory,
+  images,
+} from './components/MapNodes';
+import Toast from '../Toast';
+
+import DarkMode from '@/images/map/dark.png';
+import LightMode from '@/images/map/light.png';
+import SatelliteMode from '@/images/map/satellite.png';
+import StreetsMode from '@/images/map/street.png';
 
 const mapStyles = [
-  { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets', image: MapImage },
-  // { url: 'mapbox://styles/mapbox/outdoors-v11', name: 'Outdoors' },
-  { url: 'mapbox://styles/mapbox/light-v10', name: 'Light', image: MapImage },
-  { url: 'mapbox://styles/mapbox/dark-v10', name: 'Dark', image: MapImage },
-  { url: 'mapbox://styles/mapbox/satellite-v9', name: 'Satellite', image: MapImage },
-  // { url: 'mapbox://styles/mapbox/satellite-streets-v11', name: 'Satellite Streets' },
+  { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets', image: StreetsMode },
+  { url: 'mapbox://styles/mapbox/light-v10', name: 'Light', image: LightMode },
+  { url: 'mapbox://styles/mapbox/dark-v10', name: 'Dark', image: DarkMode },
+  { url: 'mapbox://styles/mapbox/satellite-v9', name: 'Satellite', image: SatelliteMode },
 ];
 
-const initialState = {
-  center: {
-    latitude: 0.3201,
-    longitude: 32.5638,
-  },
-  zoom: 12,
-};
-
-const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
+const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant }) => {
   const dispatch = useDispatch();
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
@@ -43,12 +45,36 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
   const urls = new URL(window.location.href);
   const urlParams = new URLSearchParams(urls.search);
   const mapData = useSelector((state) => state.map);
-  const [pollutant, setPollutant] = useState('pm2_5');
+  const [toastMessage, setToastMessage] = useState({
+    message: '',
+    type: '',
+  });
+  const [NodeType, setNodeType] = useState('Emoji');
+  const [selectedSite, setSelectedSite] = useState(null);
+  useOutsideClick(dropdownRef, () => setIsOpen(false));
 
   const lat = urlParams.get('lat');
   const lng = urlParams.get('lng');
   const zm = urlParams.get('zm');
 
+  /**
+   * Clear data on unmount
+   * @sideEffect
+   * - Clear data
+   */
+  useEffect(() => {
+    dispatch(clearData());
+  }, []);
+
+  /**
+   * Set the map center and zoom
+   * when the mapData changes
+   * @param {Object} mapData - Map data
+   * @param {Object} mapRef - Map reference
+   * @returns {void}
+   * @sideEffect
+   * - Fly to the new center and zoom
+   */
   useEffect(() => {
     if (mapRef.current && mapData.center && mapData.zoom) {
       const { latitude, longitude } = mapData.center;
@@ -62,7 +88,10 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
     }
   }, [mapData.center, mapData.zoom]);
 
-  // Node data
+  /**
+   * Fetch data from the API
+   * @returns {Promise<Array>} - Array of data
+   */
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -80,12 +109,14 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
           },
           properties: {
             _id: item.siteDetails._id,
+            location: item.siteDetails.name,
+            airQuality: item.aqi_category,
             no2: item.no2.value,
             pm10: item.pm10.value,
             pm2_5: item.pm2_5.value,
             createdAt: item.createdAt,
             time: item.time,
-            aqi: getIcon(item[pollutant].value),
+            aqi: getAQICategory(pollutant, item[pollutant].value),
           },
         }));
       setLoading(false);
@@ -96,132 +127,169 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
     }
   };
 
-  // Init map
+  /**
+   * Initialize the map
+   */
   useEffect(() => {
     const initializeMap = async () => {
-      mapboxgl.accessToken = mapboxApiAccessToken;
-      const map = new mapboxgl.Map({
-        container: mapContainerRef.current,
-        style: mapStyle,
-        center: [lng || mapData.center.longitude, lat || mapData.center.latitude],
-        zoom: zm || mapData.zoom,
-      });
-
-      mapRef.current = map;
-
-      let markers = []; // Store all markers
-
-      map.on('load', async () => {
-        map.resize();
-
-        const zoomControl = new CustomZoomControl();
-        map.addControl(zoomControl, 'bottom-right');
-
-        const geolocateControl = new CustomGeolocateControl();
-        map.addControl(geolocateControl, 'bottom-right');
-
-        // Load all the images
-        try {
-          await Promise.all(
-            Object.keys(images).map(
-              (key) =>
-                new Promise((resolve, reject) => {
-                  map.loadImage(images[key], (error, image) => {
-                    if (error) {
-                      console.error(`Failed to load image ${key}: `, error);
-                      reject(error);
-                    } else {
-                      map.addImage(key, image);
-                      resolve();
-                    }
-                  });
-                }),
-            ),
-          );
-        } catch (error) {
-          console.error('Error loading images: ', error);
-        }
-
-        // Load data
-        let data;
-        try {
-          data = await fetchData();
-        } catch (error) {
-          console.error('Error fetching data: ', error);
-          return;
-        }
-
-        // Create a supercluster
-        const index = new Supercluster({
-          radius: 40,
-          maxZoom: 16,
+      try {
+        mapboxgl.accessToken = mapboxApiAccessToken;
+        const map = new mapboxgl.Map({
+          container: mapContainerRef.current,
+          style: mapStyle,
+          center: [lng || mapData.center.longitude, lat || mapData.center.latitude],
+          zoom: zm || mapData.zoom,
         });
-        index.load(data);
-        const updateClusters = () => {
-          const zoom = map.getZoom();
-          const bounds = map.getBounds();
-          const bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()];
-          const clusters = index.getClusters(bbox, Math.floor(zoom));
 
-          // Remove existing markers
-          markers.forEach((marker) => marker.remove());
-          markers = [];
+        mapRef.current = map;
 
-          // Add unclustered points as custom HTML markers
-          clusters.forEach((feature) => {
-            const el = document.createElement('div');
-            el.className = 'flex justify-center items-center bg-white rounded-full p-2 shadow-md';
-            el.style.cursor = 'pointer';
+        let markers = [];
 
-            if (!feature.properties.cluster) {
-              el.innerHTML = `<img src="${
-                images[feature.properties.aqi]
-              }" alt="AQI Icon" class="w-8 h-8">`;
-              el.id = feature.properties._id;
-              el.addEventListener('mouseenter', () => {
-                el.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
-                el.style.padding = '18px';
-              });
-              el.addEventListener('mouseleave', () => {
-                el.style.backgroundColor = 'white';
-                el.style.padding = '8px';
-              });
+        map.on('load', async () => {
+          map.resize();
 
-              // Add popup to unclustered node
-              const popup = new mapboxgl.Popup({ offset: 25, closeButton: false }).setHTML(
-                createPopupHTML({ feature, images }),
-              );
-              const marker = new mapboxgl.Marker(el)
-                .setLngLat(feature.geometry.coordinates)
-                .setPopup(popup)
-                .addTo(map);
-              markers.push(marker);
-            } else {
-              el.innerHTML = createClusterHTML({ feature, images });
-              const marker = new mapboxgl.Marker(el)
-                .setLngLat(feature.geometry.coordinates)
-                .addTo(map);
-              markers.push(marker);
+          const zoomControl = new CustomZoomControl();
+          map.addControl(zoomControl, 'bottom-right');
+
+          const geolocateControl = new CustomGeolocateControl(setToastMessage);
+          map.addControl(geolocateControl, 'bottom-right');
+
+          // Load data
+          let data;
+          try {
+            data = await fetchData();
+            if (!data) {
+              throw new Error('No data returned from fetchData');
             }
-          });
-        };
+          } catch (error) {
+            console.error('Error fetching data: ', error);
+            return;
+          }
 
-        map.on('zoomend', updateClusters);
-        map.on('moveend', updateClusters);
-        updateClusters();
-      });
+          /**
+           * Initialize Supercluster
+           */
+          const index = new Supercluster({
+            radius: 40,
+            maxZoom: 16,
+          });
+
+          try {
+            index.load(data);
+          } catch (error) {
+            console.error('Error loading data into Supercluster: ', error);
+            return;
+          }
+
+          /**
+           * Update clusters
+           * @sideEffect
+           * - Update clusters on zoom and move
+           * - Add popup to unclustered nodes
+           * - Set selectedSite when the user clicks on the node
+           * - Remove existing markers
+           * - Add unclustered points as custom HTML markers
+           * - Add clustered points as custom HTML markers
+           */
+          const updateClusters = () => {
+            try {
+              const zoom = map.getZoom();
+              const bounds = map.getBounds();
+              const bbox = [
+                bounds.getWest(),
+                bounds.getSouth(),
+                bounds.getEast(),
+                bounds.getNorth(),
+              ];
+              const clusters = index.getClusters(bbox, Math.floor(zoom));
+
+              // Remove existing markers
+              markers.forEach((marker) => marker.remove());
+              markers = [];
+
+              // Add unclustered points as custom HTML markers
+              clusters.forEach((feature) => {
+                const el = document.createElement('div');
+
+                el.style.cursor = 'pointer';
+
+                if (!feature.properties.cluster) {
+                  // unclustered
+                  el.style.zIndex = 1;
+                  el.innerHTML = UnclusteredNode({ feature, images, NodeType });
+
+                  // Add popup to unclustered node
+                  const popup = new mapboxgl.Popup({
+                    anchor: 'top',
+                    offset: NodeType === 'Node' ? 35 : NodeType === 'Number' ? 42 : 58,
+                    closeButton: false,
+                    maxWidth: 'none',
+                    className: 'my-custom-popup',
+                  }).setHTML(createPopupHTML({ feature, images }));
+
+                  const marker = new mapboxgl.Marker(el)
+                    .setLngLat(feature.geometry.coordinates)
+                    .setPopup(popup)
+                    .addTo(map);
+
+                  // Show the popup when the user hovers over the node
+                  el.addEventListener('mouseenter', () => {
+                    marker.togglePopup();
+                    el.style.zIndex = 9999;
+                  });
+                  el.addEventListener('mouseleave', () => {
+                    marker.togglePopup();
+                    el.style.zIndex = 1;
+                  });
+
+                  // Set selectedSite when the user clicks on the node
+                  el.addEventListener('click', () => {
+                    setSelectedSite({
+                      _id: feature.properties._id,
+                      coordinates: {
+                        lat: feature.geometry.coordinates[1],
+                        lng: feature.geometry.coordinates[0],
+                      },
+                    });
+                  });
+
+                  markers.push(marker);
+                } else {
+                  // clustered
+                  el.zIndex = 444;
+                  el.className =
+                    'flex justify-center items-center bg-white rounded-full p-2 shadow-md';
+                  el.innerHTML = createClusterNode({ feature, NodeType });
+                  const marker = new mapboxgl.Marker(el)
+                    .setLngLat(feature.geometry.coordinates)
+                    .addTo(map);
+                  markers.push(marker);
+                }
+              });
+            } catch (error) {
+              console.error('Error updating clusters: ', error);
+            }
+          };
+
+          map.on('zoomend', updateClusters);
+          map.on('moveend', updateClusters);
+          updateClusters();
+        });
+      } catch (error) {
+        console.error('Error initializing the Map: ', error);
+      }
     };
 
     initializeMap();
 
     return () => {
       mapRef.current.remove();
-      dispatch(setCenter(initialState.center));
-      dispatch(setZoom(initialState.zoom));
     };
-  }, [mapStyle, mapboxApiAccessToken, refresh, pollutant]);
+  }, [mapStyle, mapboxApiAccessToken, refresh, pollutant, NodeType]);
 
-  // Boundaries for a country
+  /**
+   * Fetch location boundaries
+   */
   useEffect(() => {
     const map = mapRef.current;
 
@@ -282,7 +350,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
           // Add zoomend event listener
           map.on('zoomend', function () {
             const zoom = map.getZoom();
-            // Adjust fill opacity based on zoom level
             const opacity = zoom > 10 ? 0 : 0.2;
             map.setPaintProperty('location-boundaries', 'fill-opacity', opacity);
           });
@@ -297,24 +364,22 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
     fetchLocationBoundaries();
   }, [mapData.location]);
 
-  // generate code to close dropdown when clicked outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [dropdownRef]);
-
+  /**
+   * Refresh the map
+   */
   const refreshMap = () => {
     const map = mapRef.current;
     map.setStyle(map.getStyle());
     setRefresh(!refresh);
   };
 
+  /**
+   * Share location URL
+   * @sideEffect
+   * - Copy URL to clipboard
+   * - Display toast notification
+   * @returns {void}
+   */
   const shareLocation = () => {
     try {
       const map = mapRef.current;
@@ -330,9 +395,16 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
 
       navigator.clipboard.writeText(url.toString());
 
-      alert('Location URL copied to clipboard');
+      // Display toast notification
+      setToastMessage({
+        message: 'Location URL copied to clipboard',
+        type: 'success',
+      });
     } catch (error) {
-      console.error('Error sharing location', error);
+      setToastMessage({
+        message: 'Failed to copy location URL to clipboard',
+        type: 'error',
+      });
     }
   };
 
@@ -340,6 +412,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
     <div className='relative w-auto h-auto'>
       {/* Map */}
       <div ref={mapContainerRef} className={customStyle} />
+
       {/* Loader */}
       {refresh ||
         (loading && (
@@ -354,6 +427,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
             </div>
           </div>
         ))}
+
       {/* Map control buttons */}
       <div className='absolute top-4 right-0'>
         <div className='flex flex-col gap-4'>
@@ -370,6 +444,10 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
                 onClose={() => setIsOpen(false)}
                 mapStyles={mapStyles}
                 showSideBar={showSideBar}
+                disabled='Heatmap'
+                onMapDetailsSelect={(detail) => {
+                  setNodeType(detail);
+                }}
                 onStyleSelect={(style) => {
                   setMapStyle(style.url);
                 }}
@@ -390,6 +468,20 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar }) => {
           </button>
         </div>
       </div>
+
+      {/* Toast */}
+      {toastMessage.message !== '' && (
+        <Toast
+          message={toastMessage.message}
+          clearData={() => setToastMessage({ message: '', type: '' })}
+          type={toastMessage.type}
+          timeout={3000}
+          dataTestId='map-toast'
+          size='lg'
+          bgColor='bg-blue-600'
+          position='bottom'
+        />
+      )}
     </div>
   );
 };

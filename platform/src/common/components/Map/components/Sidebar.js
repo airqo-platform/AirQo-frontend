@@ -19,7 +19,10 @@ import axios from 'axios';
 const MAPBOX_URL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
-// tab selector
+/**
+ * TabSelector
+ * @description Tab selector component
+ */
 const TabSelector = ({ selectedTab, setSelectedTab }) => {
   if (typeof setSelectedTab !== 'function') {
     console.error('Invalid prop: setSelectedTab must be a function');
@@ -49,7 +52,10 @@ const TabSelector = ({ selectedTab, setSelectedTab }) => {
   );
 };
 
-// country list
+/**
+ * CountryList
+ * @description Country list component
+ */
 const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
   const dispatch = useDispatch();
 
@@ -101,7 +107,10 @@ const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
   );
 };
 
-// Search area
+/**
+ * SectionCards
+ * @description Section cards component
+ */
 const SectionCards = ({ searchResults, handleLocationSelect }) => {
   if (!Array.isArray(searchResults)) {
     console.error('Invalid prop: searchResults must be an array');
@@ -241,7 +250,7 @@ const WeekPrediction = ({ siteDetails }) => {
               src={
                 airQualityReadings[index] && getIcon(airQualityReadings[index])
                   ? images[getIcon(airQualityReadings[index])]
-                  : images['Unknown']
+                  : images['Invalid']
               }
               alt='Air Quality Icon'
               width={32}
