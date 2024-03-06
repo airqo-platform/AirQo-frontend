@@ -27,7 +27,7 @@ const Toast = ({ message, type, timeout, dataTestId, size, clearData, bgColor, p
   return visible ? (
     <div
       className={`absolute ${
-        position === 'top' ? 'top-5' : 'bottom-5'
+        !position ? 'top-5' : 'bottom-5'
       } left-0 right-0 z-50 flex justify-center items-center mx-4`}
       data-testid={dataTestId}>
       <div className={containerStyles}>

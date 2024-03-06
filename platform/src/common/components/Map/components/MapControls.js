@@ -145,6 +145,7 @@ export class CustomGeolocateControl {
     this.setToastMessage({
       message: 'Location tracked successfully.',
       type: 'success',
+      bgColor: 'bg-blue-600',
     });
 
     this.map.flyTo({

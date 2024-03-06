@@ -61,44 +61,44 @@ const index = () => {
 
   return (
     <MapLayout noTopNav={false}>
-      <div className='relative'>
-        <>
-          {showSideBar && (
-            <Sidebar
-              siteDetails={siteDetails}
-              selectedSites={selectedSites}
-              isAdmin={isAdmin}
-              showSideBar={showSideBar}
-              setShowSideBar={setShowSideBar}
-            />
-          )}
-          <div className={`${showSideBar ? 'hidden' : ''} md:block`}>
-            <div
-              className={`absolute bottom-2 ${
-                showSideBar ? 'left-[calc(280px+15px)] md:left-[calc(400px+15px)]' : 'left-[15px]'
-              } `}
-              style={{ zIndex: 900 }}>
-              <AirQualityLegend pollutant={pollutant} />
-            </div>
-            <div
-              className={`absolute top-4 ${
-                showSideBar ? 'left-[calc(280px+15px)] md:left-[calc(400px+15px)]' : 'left-[15px]'
-              } z-50`}>
-              <div className='flex flex-col space-y-4'>
-                <button
-                  className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-                  onClick={() => setShowSideBar(!showSideBar)}>
-                  <MenuIcon />
-                </button>
-              </div>
+      <div className='relative flex w-full h-full'>
+        {showSideBar && (
+          <Sidebar
+            siteDetails={siteDetails}
+            selectedSites={selectedSites}
+            isAdmin={isAdmin}
+            showSideBar={showSideBar}
+            setShowSideBar={setShowSideBar}
+          />
+        )}
+        <div className={`${showSideBar ? 'hidden' : ''} md:block`}>
+          <div
+            className={`absolute bottom-2 ${
+              showSideBar ? 'left-[calc(280px+15px)] md:left-[calc(400px+15px)]' : 'left-[15px]'
+            } `}
+            style={{ zIndex: 900 }}>
+            <AirQualityLegend pollutant={pollutant} />
+          </div>
+          <div
+            className={`absolute top-4 ${
+              showSideBar ? 'left-[calc(280px+15px)] md:left-[calc(400px+15px)]' : 'left-[15px]'
+            } z-50`}>
+            <div className='flex flex-col space-y-4'>
+              <button
+                className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
+                onClick={() => setShowSideBar(!showSideBar)}>
+                <MenuIcon />
+              </button>
             </div>
           </div>
-        </>
+        </div>
+
         <AirQoMap
           showSideBar={showSideBar}
           mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
           customStyle='flex-grow h-screen w-full relative bg-[#e6e4e0]'
           pollutant={pollutant}
+          resizeMap={showSideBar}
         />
       </div>
     </MapLayout>

@@ -35,7 +35,14 @@ const Option = ({ isSelected, children, onSelect, image, disabled }) => (
       className={`w-14 h-14 relative rounded-lg ${
         isSelected ? 'border-2 border-blue-500 ring-4 ring-light-blue-100' : ''
       } border-2`}>
-      <Image src={image} alt={children} layout='fill' objectFit='cover' className='rounded-lg' />
+      <Image
+        src={image}
+        alt={children}
+        layout='fill'
+        objectFit='cover'
+        className='rounded-lg'
+        loading='eager'
+      />
     </div>
     <span>{children}</span>
   </button>
@@ -84,7 +91,7 @@ const LayerModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className='fixed inset-0 overflow-y-auto z-50' style={{ zIndex: 777 }}>
+    <div className='fixed inset-0 overflow-y-auto z-30'>
       <div className='flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0'>
         <div className='fixed inset-0 transition-opacity' aria-hidden='true'>
           <div className='absolute inset-0 bg-[#4e4e4e3b]'></div>

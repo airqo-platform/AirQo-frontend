@@ -33,7 +33,7 @@ const mapStyles = [
   { url: 'mapbox://styles/mapbox/satellite-v9', name: 'Satellite', image: SatelliteMode },
 ];
 
-const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant }) => {
+const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, resizeMap }) => {
   const dispatch = useDispatch();
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
@@ -48,6 +48,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant })
   const [toastMessage, setToastMessage] = useState({
     message: '',
     type: '',
+    bgColor: '',
   });
   const [NodeType, setNodeType] = useState('Emoji');
   const [selectedSite, setSelectedSite] = useState(null);
@@ -288,6 +289,17 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant })
   }, [mapStyle, mapboxApiAccessToken, refresh, pollutant, NodeType]);
 
   /**
+   * Resize the map
+   * @sideEffect
+   * - Resizes the map
+   */
+  useEffect(() => {
+    if (!resizeMap) {
+      mapRef.current.resize();
+    }
+  }, [!resizeMap]);
+
+  /**
    * Fetch location boundaries
    */
   useEffect(() => {
@@ -399,6 +411,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant })
       setToastMessage({
         message: 'Location URL copied to clipboard',
         type: 'success',
+        bgColor: 'bg-blue-600',
       });
     } catch (error) {
       setToastMessage({
@@ -409,17 +422,14 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant })
   };
 
   return (
-    <div className='relative w-auto h-auto'>
+    <div className='relative w-full h-full'>
       {/* Map */}
       <div ref={mapContainerRef} className={customStyle} />
 
       {/* Loader */}
       {refresh ||
         (loading && (
-          <div
-            className={`absolute inset-0 flex items-center justify-center z-40 ${
-              showSideBar ? 'ml-96' : ''
-            }`}>
+          <div className={`absolute inset-0 flex items-center justify-center z-40`}>
             <div className='bg-white w-[70px] h-[70px] flex justify-center items-center rounded-md shadow-md'>
               <span className='ml-2'>
                 <Loader width={32} height={32} />
@@ -478,7 +488,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant })
           timeout={3000}
           dataTestId='map-toast'
           size='lg'
-          bgColor='bg-blue-600'
+          bgColor={toastMessage.bgColor}
           position='bottom'
         />
       )}
