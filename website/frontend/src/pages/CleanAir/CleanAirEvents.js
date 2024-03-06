@@ -115,12 +115,14 @@ const CleanAirEvents = () => {
   );
 
   const handleDateSelect = (value) => {
+    setFilter('all');
     setSelectedDate(value);
     setSelectedMonth(value - 1);
     setOpenDate(false);
   };
 
   const handleFilterSelect = (value) => {
+    setSelectedDate(1);
     setFilter(value);
     setOpenFilter(false);
   };
