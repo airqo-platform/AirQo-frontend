@@ -8,9 +8,9 @@ import LanguageSwitcher from 'components/LanguageSwitcher';
 
 const CleanAirPageContainer = ({ children }) => {
   const eventsLoading = useSelector((state) => state.eventsData.loading);
-  const pressLoading = useSelector((state) => state.cleanAirData.loading);
+  const resourcesLoading = useSelector((state) => state.cleanAirData.loading);
 
-  if (eventsLoading && pressLoading) {
+  if (eventsLoading && resourcesLoading) {
     return <Loadspinner />;
   }
 

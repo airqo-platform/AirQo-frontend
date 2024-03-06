@@ -27,6 +27,17 @@ const CleanAirPublications = () => {
   const language = useSelector((state) => state.eventsNavTab.languageTab);
   const [currentPage, setCurrentPage] = useState(1);
 
+  /**
+   * @description set the active resource in the redux store
+   */
+  useEffect(() => {
+    dispatch(setActiveResource(t('cleanAirSite.publications.navs.toolkits')));
+  }, [dispatch, language]);
+
+  /**
+   * @description Dropdown list of resources
+   * @type {Array}
+   */
   const resources = [
     t('cleanAirSite.publications.navs.toolkits'),
     t('cleanAirSite.publications.navs.reports'),
@@ -34,10 +45,13 @@ const CleanAirPublications = () => {
     t('cleanAirSite.publications.navs.research')
   ];
 
-  useEffect(() => {
-    dispatch(setActiveResource(t('cleanAirSite.publications.navs.toolkits')));
-  }, [dispatch, language]);
-
+  /**
+   * @description filter resources based on the resource category
+   * @type {Array} toolkitData
+   * @type {Array} technicalReportData
+   * @type {Array} workshopReportData
+   * @type {Array} researchPublicationData
+   */
   const toolkitData = cleanAirResources.filter(
     (resource) => resource.resource_category === 'toolkit'
   );
@@ -56,6 +70,12 @@ const CleanAirPublications = () => {
     setFilter(false);
   };
 
+  /**
+   * @description render the resource data cards
+   * @param {Array} data
+   * @param {Boolean} showSecondAuthor
+   * @returns {JSX.Element}
+   */
   const renderData = (data, showSecondAuthor) => {
     const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
 
@@ -129,6 +149,7 @@ const CleanAirPublications = () => {
 
   return (
     <div className="page-wrapper">
+      {/* SEO */}
       <SEO
         title="Partners"
         siteTitle="CLEAN-Air Network"

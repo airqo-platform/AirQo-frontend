@@ -12,19 +12,21 @@ import { useTranslation } from 'react-i18next';
 const EventsPage = () => {
   useInitScrollTop();
   const { t } = useTranslation();
-
-  const days = (date_1, date_2) => {
-    let difference = date_1.getTime() - date_2.getTime();
-    let TotalDays = Math.ceil(difference / (1000 * 3600 * 24));
-    return TotalDays;
-  };
-
+  const loading = useSelector((state) => state.eventsData.loading);
+  const [numEventsToShow, setNumEventsToShow] = useState(9);
   const navTabs = [`${t('about.events.navTabs.upcoming')}`, `${t('about.events.navTabs.past')}`];
   const selectedNavTab = useSelector((state) => state.eventsNavTab.tab);
   const allEventsData = useSelector((state) => state.eventsData.events);
 
+  /**
+   * @description filter events data based on the website category and event tag
+   * @param {Array} allEventsData
+   * @returns {Array} eventsApiData
+   * @returns {Array} featuredEvents
+   * @returns {Array} upcomingEvents
+   * @returns {Array} pastEvents
+   */
   const eventsApiData = allEventsData.filter((event) => event.website_category === 'airqo');
-
   const featuredEvents = eventsApiData.filter((event) => event.event_tag === 'featured');
   const upcomingEvents = eventsApiData.filter((event) => {
     if (event.end_date !== null) return days(new Date(event.end_date), new Date()) >= 1;
@@ -35,12 +37,21 @@ const EventsPage = () => {
     return days(new Date(event.start_date), new Date()) <= -1;
   });
 
-  const loading = useSelector((state) => state.eventsData.loading);
+  /**
+   * @description function to calculate the difference between two dates
+   * @param {Date} date_1
+   * @param {Date} date_2
+   * @returns {Number} TotalDays
+   */
+  const days = (date_1, date_2) => {
+    let difference = date_1.getTime() - date_2.getTime();
+    let TotalDays = Math.ceil(difference / (1000 * 3600 * 24));
+    return TotalDays;
+  };
 
-  // hook to handle see more/less button
-  const [numEventsToShow, setNumEventsToShow] = useState(9);
-
-  // for handling see less button
+  /**
+   * @description function to handle the see less button
+   */
   const handleSeeLess = () => {
     setNumEventsToShow(9);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -49,11 +60,13 @@ const EventsPage = () => {
   return (
     <>
       <Page>
+        {/* SEO */}
         <SEO
           title="Events"
           siteTitle="AirQo"
           description="Advancing air quality management in African cities"
         />
+
         {loading ? (
           <div
             style={{

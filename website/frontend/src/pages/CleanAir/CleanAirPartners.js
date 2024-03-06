@@ -1,25 +1,17 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { isEmpty } from 'underscore';
 import SEO from 'utilities/seo';
 import { useInitScrollTop } from 'utilities/customHooks';
-import { useDispatch, useSelector } from 'react-redux';
 import { SplitTextSection, RegisterSection, IntroSection } from 'components/CleanAir';
 import { usePartnersData } from '../../../reduxStore/Partners/selectors';
-import { loadPartnersData } from '../../../reduxStore/Partners/operations';
 import Membership from 'assets/img/cleanAir/membership.png';
 import { useTranslation } from 'react-i18next';
 
 const CleanAirPartners = () => {
   useInitScrollTop();
   const { t } = useTranslation();
-  const dispatch = useDispatch();
   const partnersData = usePartnersData();
   const isLoading = isEmpty(partnersData);
-  const language = useSelector((state) => state.eventsNavTab.languageTab);
-
-  useEffect(() => {
-    dispatch(loadPartnersData());
-  }, [language]);
 
   const cleanAirPartners = partnersData.filter(
     (partner) => partner.website_category === 'cleanair'

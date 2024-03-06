@@ -9,6 +9,7 @@ import Loadspinner from '../../components/LoadSpinner';
 import PageMini from '../PageMini';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from 'src/components/LanguageSwitcher';
+import { Link } from 'react-router-dom';
 
 const EventDetails = () => {
   useInitScrollTop();
@@ -43,9 +44,9 @@ const EventDetails = () => {
                     <div className="content">
                       <div className="breadcrumb">
                         <span>
-                          <a href="/clean-air">
+                          <Link to="/clean-air">
                             {t('cleanAirSite.eventsDetails.header.breadCrumb')}
-                          </a>
+                          </Link>
                         </span>
                         <span style={{ fontFamily: 'monospace' }}>{'>'}</span>
                         <span style={{ color: '#A8B2C7' }}>{event.title}</span>
