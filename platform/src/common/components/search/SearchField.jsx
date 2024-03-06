@@ -1,40 +1,26 @@
-import React, { useState, useMemo } from 'react';
-import Fuse from 'fuse.js';
+import React, { useState, useEffect, useRef } from 'react';
 import SearchIcon from '@/icons/Common/search_md.svg';
 import { useDispatch } from 'react-redux';
-import { addSearchResults, addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
+import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import CloseIcon from '@/icons/close_icon';
 
-const SearchField = ({ data, onSearch = () => {}, searchKeys = [], onClearSearch = () => {} }) => {
+const SearchField = ({ onSearch = () => {}, onClearSearch = () => {}, focus = true }) => {
   const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState('');
+  const inputRef = useRef(null);
 
-  const fuse = useMemo(
-    () =>
-      new Fuse(data, {
-        keys: searchKeys,
-        isCaseSensitive: false,
-        includeScore: true,
-        shouldSort: true,
-        includeMatches: true,
-        threshold: 0.6,
-        location: 0,
-        distance: 100,
-        minMatchCharLength: 1,
-      }),
-    [data, searchKeys],
-  );
+  useEffect(() => {
+    if (focus) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   const handleSearch = (searchEvent) => {
     try {
       const searchValue = searchEvent.target.value;
       setSearchTerm(searchValue);
       dispatch(addSearchTerm(searchValue));
-      if (data.length > 0) {
-        const searchResults = fuse.search(searchValue);
-        dispatch(addSearchResults(searchResults.map((result) => result.item)));
-        onSearch(searchResults.map((result) => result.item));
-      }
+      onSearch();
     } catch (err) {
       console.error('Error searching:', err);
     }
@@ -42,10 +28,8 @@ const SearchField = ({ data, onSearch = () => {}, searchKeys = [], onClearSearch
 
   const clearSearch = () => {
     setSearchTerm('');
-    onSearch([]);
     onClearSearch();
     dispatch(addSearchTerm(''));
-    dispatch(addSearchResults([]));
   };
 
   return (
@@ -55,6 +39,7 @@ const SearchField = ({ data, onSearch = () => {}, searchKeys = [], onClearSearch
           <SearchIcon />
         </div>
         <input
+          ref={inputRef}
           placeholder='Search villages, cities or country'
           className='input pl-10 text-sm font-medium text-secondary-neutral-light-800 w-full h-12 ml-0 rounded-lg bg-white border-input-light-outline focus:border-input-light-outline focus:ring-2 focus:ring-light-blue-500'
           value={searchTerm}

@@ -14,6 +14,10 @@ import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
 import Calendar from '../../Calendar/Calendar';
 import Datepicker from 'react-tailwindcss-datepicker';
 import { format } from 'date-fns';
+import axios from 'axios';
+
+const MAPBOX_URL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
 // tab selector
 const TabSelector = ({ selectedTab, setSelectedTab }) => {
@@ -121,52 +125,42 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
     setShowAllResults(false);
   }, [searchResults]);
 
-  return visibleResults.length > 0 ? (
-    <div className='map-scrollbar flex flex-col gap-4 my-5 px-4'>
-      {visibleResults.map((grid) => (
-        <div
-          key={grid._id}
-          className='flex flex-row justify-between items-center text-sm w-full hover:cursor-pointer hover:bg-blue-100 px-4 py-[14px] rounded-xl border border-secondary-neutral-light-100 shadow'
-          onClick={() => handleLocationSelect(grid)}
-        >
-          <div className='flex flex-col item-start w-full'>
-            <span className='text-base font-medium text-black capitalize'>{grid.name}</span>
-            <span className='font-medium text-secondary-neutral-light-300 capitalize text-sm leading-tight'>
-              {grid.region + ',' + grid.country}
-            </span>
-          </div>
-          <div className='p-2 rounded-full bg-secondary-neutral-light-50'>
-            <LocationIcon fill='#9EA3AA' />
-          </div>
-        </div>
-      ))}
-      {searchResults.length > 4 && !showAllResults && (
-        <div className='flex justify-center my-4'>
-          <Button
-            variant='primaryText'
-            className='text-sm font-medium'
-            paddingStyles='py-4'
-            onClick={handleShowMore}
+  return (
+    visibleResults.length > 0 && (
+      <div className='map-scrollbar flex flex-col gap-4 my-5 px-4'>
+        {visibleResults.map((grid) => (
+          <div
+            key={grid._id}
+            className='flex flex-row justify-between items-center text-sm w-full hover:cursor-pointer hover:bg-blue-100 px-4 py-[14px] rounded-xl border border-secondary-neutral-light-100 shadow'
+            onClick={() => handleLocationSelect(grid)}
           >
-            Show More
-          </Button>
-        </div>
-      )}
-    </div>
-  ) : (
-    <div className='flex flex-col justify-center items-center h-60 w-full px-6'>
-      <div className='p-5 rounded-full bg-secondary-neutral-light-50 border border-secondary-neutral-light-25 mb-2.5'>
-        <LocationIcon fill='#9EA3AA' />
+            <div className='flex flex-col item-start w-full'>
+              <span className='text-base font-medium text-black capitalize'>
+                {grid && grid.place_name && grid.place_name.split(',')[0]}
+              </span>
+              <span className='font-medium text-secondary-neutral-light-300 capitalize text-sm leading-tight'>
+                {grid && grid.place_name && grid.place_name.split(',').slice(1).join(',')}
+              </span>
+            </div>
+            <div className='p-2 rounded-full bg-secondary-neutral-light-50'>
+              <LocationIcon fill='#9EA3AA' />
+            </div>
+          </div>
+        ))}
+        {searchResults.length > 4 && !showAllResults && (
+          <div className='flex justify-center my-4'>
+            <Button
+              variant='primaryText'
+              className='text-sm font-medium'
+              paddingStyles='py-4'
+              onClick={handleShowMore}
+            >
+              Show More
+            </Button>
+          </div>
+        )}
       </div>
-      <div className='my-4'>
-        <div className='text-secondary-neutral-dark-700 text-base font-medium text-center mb-1'>
-          No results found
-        </div>
-        <div className='text-center text-sm font-medium leading-tight text-secondary-neutral-dark-400 w-[244px]'>
-          Please try again with a different location name
-        </div>
-      </div>
-    </div>
+    )
   );
 };
 
@@ -262,7 +256,7 @@ const WeekPrediction = ({ siteDetails }) => {
 
 // search results skeleton
 const SearchResultsSkeleton = () => (
-  <div className='flex flex-col gap-4 animate-pulse px-4'>
+  <div className='flex flex-col gap-4 animate-pulse px-4 mt-5'>
     <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
     <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
     <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
@@ -280,6 +274,8 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const [showLocationDetails, setShowLocationDetails] = useState(false);
+  const [isLoading, setLoading] = useState(false);
+  const [showNoResultsMsg, setShowNoResultsMsg] = useState(false);
 
   const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
 
@@ -322,13 +318,38 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
     }
   };
 
-  const handleSearch = (results) => {
-    setSearchResults(results);
+  const handleSearch = async () => {
+    setLoading(true);
+    if (reduxSearchTerm && reduxSearchTerm.length > 3) {
+      try {
+        const response = await axios.get(
+          `${MAPBOX_URL}/${reduxSearchTerm}.json?fuzzyMatch=true&limit=8&proximity=32.5638%2C0.3201&autocomplete=true&access_token=${MAPBOX_TOKEN}`,
+        );
+
+        if (response.data && response.data.features) {
+          setSearchResults(response.data.features);
+        } else {
+          setShowNoResultsMsg(true);
+        }
+      } catch (error) {
+        console.error('Failed to search:', error);
+      }
+      setLoading(false);
+    } else {
+      setSearchResults([]);
+    }
   };
 
   const handleClearSearch = () => {
     setIsFocused(false);
+    setSearchResults([]);
   };
+
+  useEffect(() => {
+    if (reduxSearchTerm !== '' && reduxSearchTerm.length < 4) {
+      setLoading(true);
+    }
+  }, [reduxSearchTerm]);
 
   return (
     <div className='absolute left-0 top-0 w-full h-full md:w-[340px] bg-white shadow-lg shadow-right z-50 overflow-y-auto map-scrollbar'>
@@ -336,129 +357,134 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
         <SidebarHeader selectedTab={selectedTab} handleSelectedTab={handleSelectedTab} isAdmin />
         {!isAdmin && <hr />}
       </div>
-      {selectedTab === 'locations' && (
-        <div>
-          {/* section 1 */}
-          <div className={`${isFocused || showLocationDetails ? 'hidden' : ''}`}>
-            <div onMouseDown={() => setIsFocused(true)} className='mt-5 px-4'>
-              <SearchField />
-            </div>
-            <div>
-              <div className='flex justify-between items-center mt-5 overflow-x-auto map-scrollbar custom-scrollbar px-4'>
-                <button
-                  onClick={() => {
-                    dispatch(setCenter({ latitude: 16.1532, longitude: 13.1691 }));
-                    dispatch(setZoom(1.5));
-                    setShowSideBar(false);
-                    setSelectedSite(null);
-                  }}
-                  className='py-[6px] px-[10px] rounded-full bg-blue-500 text-white text-sm font-medium'
-                >
-                  All
-                </button>
-                <CountryList
-                  data={countryData}
-                  selectedCountry={selectedCountry}
-                  setSelectedCountry={setSelectedCountry}
-                />
-              </div>
-
-              <div className='border border-secondary-neutral-light-100 my-5' />
-
-              <div className='overflow-y-auto map-scrollbar'>
-                <div className='flex justify-between items-center px-4'>
-                  <div className='flex gap-1'>
-                    <div className='font-medium text-secondary-neutral-dark-400 text-sm'>
-                      Sort by:
-                    </div>
-                    <select className='rounded-md m-0 p-0 text-sm font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none'>
-                      <option value=''>Near me</option>
-                    </select>
-                  </div>
-                  <Button
-                    className='text-sm font-medium'
-                    paddingStyles='p-0'
-                    variant='primaryText'
-                    onClick={() => {}}
-                  >
-                    Filters
-                  </Button>
-                </div>
-                <SectionCards
-                  searchResults={selectedSites}
-                  handleLocationSelect={handleLocationSelect}
-                />
-              </div>
-            </div>
+      <div>
+        {/* section 1 */}
+        <div className={`${isFocused || showLocationDetails ? 'hidden' : ''}`}>
+          <div onMouseDown={() => setIsFocused(true)} className='mt-5 px-4'>
+            <SearchField focus={false} />
           </div>
-
-          {/* Section 2 */}
-          <div
-            className={`flex flex-col pt-4 w-auto ${
-              isFocused && !showLocationDetails ? '' : 'hidden'
-            }`}
-          >
-            <div className='flex flex-col gap-5 px-4'>
-              <SidebarHeader
-                selectedTab={selectedTab}
-                handleSelectedTab={handleSelectedTab}
-                isAdmin
-              />
-              <SearchField
-                data={siteDetails}
-                onSearch={handleSearch}
-                onClearSearch={handleClearSearch}
-                searchKeys={['city', 'village', 'country']}
+          <div>
+            <div className='flex justify-between items-center mt-5 overflow-x-auto map-scrollbar custom-scrollbar px-4'>
+              <button
+                onClick={() => {
+                  dispatch(setCenter({ latitude: 16.1532, longitude: 13.1691 }));
+                  dispatch(setZoom(1.5));
+                  setShowSideBar(false);
+                  setSelectedSite(null);
+                }}
+                className='py-[6px] px-[10px] rounded-full bg-blue-500 text-white text-sm font-medium'
+              >
+                All
+              </button>
+              <CountryList
+                data={countryData}
+                selectedCountry={selectedCountry}
+                setSelectedCountry={setSelectedCountry}
               />
             </div>
 
-            {reduxSearchTerm && (
-              <div
-                className={`border border-secondary-neutral-light-100 ${
-                  reduxSearchTerm.length > 0 && 'mt-3 mb-5'
-                }`}
-              />
-            )}
+            <div className='border border-secondary-neutral-light-100 my-5' />
 
-            {reduxSearchTerm &&
-              reduxSearchTerm.length < 4 &&
-              searchResults &&
-              searchResults.length === 0 && <SearchResultsSkeleton />}
-            {reduxSearchTerm.length > 3 && (
+            <div className='overflow-y-auto map-scrollbar'>
+              <div className='flex justify-between items-center px-4'>
+                <div className='flex gap-1'>
+                  <div className='font-medium text-secondary-neutral-dark-400 text-sm'>
+                    Sort by:
+                  </div>
+                  <select className='rounded-md m-0 p-0 text-sm font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none'>
+                    <option value=''>Near me</option>
+                  </select>
+                </div>
+                <Button
+                  className='text-sm font-medium'
+                  paddingStyles='p-0'
+                  variant='primaryText'
+                  onClick={() => {}}
+                >
+                  Filters
+                </Button>
+              </div>
               <SectionCards
-                searchResults={searchResults}
+                searchResults={selectedSites}
                 handleLocationSelect={handleLocationSelect}
               />
-            )}
+            </div>
+          </div>
+        </div>
+
+        {/* Section 2 */}
+        <div
+          className={`flex flex-col pt-4 w-auto ${
+            isFocused && !showLocationDetails ? '' : 'hidden'
+          }`}
+        >
+          <div className={`flex flex-col gap-5 px-4`}>
+            <SidebarHeader
+              selectedTab={selectedTab}
+              handleSelectedTab={handleSelectedTab}
+              isAdmin
+            />
+            <SearchField onSearch={handleSearch} onClearSearch={handleClearSearch} focus={true} />
           </div>
 
-          {selectedSite && (
-            <div>
-              <div className='bg-secondary-neutral-dark-50 pt-6 pb-5'>
-                <div className='flex items-center gap-2 text-black-800 mb-4 mx-4'>
-                  <Button
-                    paddingStyles='p-0'
-                    onClick={() => {
-                      setIsFocused(false);
-                      setShowLocationDetails(false);
-                      setSelectedSite(null);
-                    }}
-                  >
-                    <ArrowLeftIcon />
-                  </Button>
-                  <h3 className='text-xl font-medium leading-7'>{selectedSite.name}</h3>
-                </div>
+          {reduxSearchTerm && (
+            <div
+              className={`border border-secondary-neutral-light-100 ${
+                reduxSearchTerm.length > 0 && 'mt-3'
+              }`}
+            />
+          )}
 
-                <div className='mx-4'>
-                  <WeekPrediction siteDetails={selectedSite} />
+          {isLoading && <SearchResultsSkeleton />}
+
+          {showNoResultsMsg && searchResults && searchResults.length === 0 ? (
+            <div className='flex flex-col justify-center items-center h-60 w-full px-6'>
+              <div className='p-5 rounded-full bg-secondary-neutral-light-50 border border-secondary-neutral-light-25 mb-2.5'>
+                <LocationIcon fill='#9EA3AA' />
+              </div>
+              <div className='my-4'>
+                <div className='text-secondary-neutral-dark-700 text-base font-medium text-center mb-1'>
+                  No results found
+                </div>
+                <div className='text-center text-sm font-medium leading-tight text-secondary-neutral-dark-400 w-[244px]'>
+                  Please try again with a different location name
                 </div>
               </div>
-
-              <div className='border border-secondary-neutral-light-100 my-5' />
             </div>
+          ) : (
+            <SectionCards
+              searchResults={searchResults}
+              handleLocationSelect={handleLocationSelect}
+            />
           )}
         </div>
-      )}
+
+        {selectedSite && (
+          <div>
+            <div className='bg-secondary-neutral-dark-50 pt-6 pb-5'>
+              <div className='flex items-center gap-2 text-black-800 mb-4 mx-4'>
+                <Button
+                  paddingStyles='p-0'
+                  onClick={() => {
+                    setIsFocused(false);
+                    setShowLocationDetails(false);
+                    setSelectedSite(null);
+                  }}
+                >
+                  <ArrowLeftIcon />
+                </Button>
+                <h3 className='text-xl font-medium leading-7'>{selectedSite.name}</h3>
+              </div>
+
+              <div className='mx-4'>
+                <WeekPrediction siteDetails={selectedSite} />
+              </div>
+            </div>
+
+            <div className='border border-secondary-neutral-light-100 my-5' />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
