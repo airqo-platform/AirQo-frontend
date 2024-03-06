@@ -5,6 +5,11 @@ import MinusIcon from '@/icons/map/minusIcon';
 import { createRoot } from 'react-dom/client';
 import mapboxgl from 'mapbox-gl';
 
+/**
+ * CustomZoomControl
+ * @description Custom mapbox zoom control
+ * @returns {HTMLElement} container
+ */
 export class CustomZoomControl {
   constructor() {
     this.container = this.createContainer();
@@ -56,7 +61,7 @@ export class CustomZoomControl {
     const url = new URL(window.location);
     url.searchParams.set('lat', center.lat.toFixed(4));
     url.searchParams.set('lng', center.lng.toFixed(4));
-    url.searchParams.set('zm', zoom);
+    url.searchParams.set('zm', zoom.toFixed(2));
     window.history.pushState({}, '', url);
   };
 
@@ -67,21 +72,30 @@ export class CustomZoomControl {
   }
 }
 
+/**
+ * CustomGeolocateControl
+ * @description Custom mapbox geolocate control
+ * @returns {HTMLElement} container
+ * @param {Function} setToastMessage
+ */
 export class CustomGeolocateControl {
-  constructor() {
-    this.container = this.createContainer();
-    this.geolocateButton = this.createButton('Locate Me', <GeoIcon />, () => this.locate());
+  constructor(setToastMessage) {
+    this.setToastMessage = setToastMessage;
+    this.container = this._createContainer();
+    this.geolocateButton = this._createButton('Locate Me', <GeoIcon />, () => this._locate());
     this.container.appendChild(this.geolocateButton);
   }
 
-  createContainer() {
+  // creates the GEO container
+  _createContainer() {
     const container = document.createElement('div');
     container.className =
       'mapboxgl-ctrl mapboxgl-ctrl-group flex flex-col items-center justify-center rounded-full shadow-md overflow-hidden bg-white p-2 m-2';
     return container;
   }
 
-  createButton(title, component, onClick) {
+  // creates the GEO button
+  _createButton(title, component, onClick) {
     const button = document.createElement('button');
     button.className =
       'inline-flex items-center justify-center w-[50px] h-[50px] rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500';
@@ -110,65 +124,91 @@ export class CustomGeolocateControl {
     this.map = undefined;
   }
 
-  locate() {
+  _locate() {
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by your browser.');
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        this.map.flyTo({
-          center: [position.coords.longitude, position.coords.latitude],
-          zoom: 14,
-          speed: 1,
-        });
-
-        // Create and add the marker
-        new mapboxgl.Marker({
-          color: 'blue',
-          scale: 0.5,
-        })
-          .setLngLat([position.coords.longitude, position.coords.latitude])
-          .addTo(this.map);
-
-        // Add a source and layer for the circle
-        this.map.addSource('circle-source', {
-          type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: [
-              {
-                type: 'Feature',
-                geometry: {
-                  type: 'Point',
-                  coordinates: [position.coords.longitude, position.coords.latitude],
-                },
-              },
-            ],
-          },
-        });
-
-        this.map.addLayer({
-          id: 'circle-layer',
-          type: 'circle',
-          source: 'circle-source',
-          paint: {
-            'circle-radius': 50,
-            'circle-color': '#0000ff',
-            'circle-opacity': 0.2,
-          },
-        });
-      },
-      (error) => {
-        console.error('Geolocation error:', error);
-        // Handle errors appropriately
-      },
+      (position) => this._handleGeolocationSuccess(position),
+      (error) => this._handleGeolocationError(error),
       {
-        enableHighAccuracy: true, // Use high accuracy
+        enableHighAccuracy: true,
         timeout: 5000,
         maximumAge: 0,
       },
     );
+  }
+
+  _handleGeolocationSuccess(position) {
+    this.setToastMessage({
+      message: 'Location tracked successfully.',
+      type: 'success',
+    });
+
+    this.map.flyTo({
+      center: [position.coords.longitude, position.coords.latitude],
+      zoom: 14,
+      speed: 1,
+    });
+
+    // Use the default Mapbox marker icon
+    new mapboxgl.Marker()
+      .setLngLat([position.coords.longitude, position.coords.latitude])
+      .addTo(this.map);
+
+    // Check if the source already exists
+    if (!this.map.getSource('circle-source')) {
+      this.map.addSource('circle-source', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              geometry: {
+                type: 'Point',
+                coordinates: [position.coords.longitude, position.coords.latitude],
+              },
+            },
+          ],
+        },
+      });
+    }
+
+    // Add the layer if it doesn't exist
+    if (!this.map.getLayer('circle-layer')) {
+      this.map.addLayer({
+        id: 'circle-layer',
+        type: 'circle',
+        source: 'circle-source',
+        paint: {
+          // Use a stepped expression to increase the circle radius as the zoom level increases
+          'circle-radius': [
+            'step',
+            ['zoom'],
+            20, // circle radius at zoom levels less than 14
+            14,
+            50, // circle radius at zoom level 14
+            16,
+            100, // circle radius at zoom level 16
+            18,
+            200, // circle radius at zoom level 18
+            20,
+            400, // circle radius at zoom level 20
+          ],
+          'circle-color': '#0000ff',
+          'circle-opacity': 0.2,
+        },
+      });
+    }
+  }
+
+  _handleGeolocationError(error) {
+    this.setToastMessage({
+      message: 'Error tracking location.',
+      type: 'error',
+    });
   }
 }

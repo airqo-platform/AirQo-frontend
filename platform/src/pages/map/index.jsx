@@ -16,19 +16,31 @@ const index = () => {
   const siteData = useSelector((state) => state.grids?.sitesSummary);
   const isAdmin = true;
   const preferenceData = useSelector((state) => state.defaults?.individual_preferences);
+  const [pollutant, setPollutant] = useState('pm2_5');
 
-  // getting user selected sites
+  /**
+   * Selected sites
+   */
   const selectedSites = preferenceData
     ? preferenceData.map((pref) => pref.selected_sites).flat()
     : [];
 
-  // site details with a check for siteData and siteData.sites being defined
+  /**
+   * Site details
+   */
   const siteDetails = siteData?.sites || [];
 
+  /**
+   * Fetch site details
+   * @returns {void}
+   */
   useEffect(() => {
     dispatch(getSitesSummary());
   }, []);
 
+  /**
+   * Show/hide sidebar on window resize
+   */
   useEffect(() => {
     const handleResize = () => {
       if (
@@ -64,8 +76,9 @@ const index = () => {
             <div
               className={`absolute bottom-2 ${
                 showSideBar ? 'left-[calc(280px+15px)] md:left-[calc(400px+15px)]' : 'left-[15px]'
-              } z-50`}>
-              <AirQualityLegend />
+              } `}
+              style={{ zIndex: 900 }}>
+              <AirQualityLegend pollutant={pollutant} />
             </div>
             <div
               className={`absolute top-4 ${
@@ -85,6 +98,7 @@ const index = () => {
           showSideBar={showSideBar}
           mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
           customStyle='flex-grow h-screen w-full relative bg-[#e6e4e0]'
+          pollutant={pollutant}
         />
       </div>
     </MapLayout>

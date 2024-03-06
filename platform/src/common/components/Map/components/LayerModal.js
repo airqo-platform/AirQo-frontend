@@ -1,47 +1,62 @@
 import React, { useState, useRef, useEffect } from 'react';
-import MapImage from '@/images/map/dd1.png';
+import Node from '@/images/map/Node.png';
+import Emoji from '@/images/map/Emoji.png';
+import Heatmap from '@/images/map/Heatmap.png';
+import Node_Number from '@/images/map/Node_number.png';
 import Image from 'next/image';
 
 const mapDetails = [
   {
     name: 'Emoji',
-    image: MapImage,
+    image: Emoji,
   },
   {
     name: 'Heatmap',
-    image: MapImage,
+    image: Heatmap,
   },
   {
     name: 'Node',
-    image: MapImage,
+    image: Node,
   },
   {
     name: 'Number',
-    image: MapImage,
+    image: Node_Number,
   },
 ];
 
-const Option = ({ isSelected, children, onSelect, image }) => (
+const Option = ({ isSelected, children, onSelect, image, disabled }) => (
   <button
     onClick={onSelect}
-    className={`flex flex-col items-center space-y-3 ${isSelected ? 'border-blue-500' : ''}`}>
+    className={`flex flex-col items-center space-y-3 ${isSelected ? 'border-blue-500' : ''} ${
+      disabled ? 'opacity-50 cursor-not-allowed' : ''
+    }`}
+    disabled={disabled}>
     <div
-      className={`w-14 h-14 relative rounded-md ${
+      className={`w-14 h-14 relative rounded-lg ${
         isSelected ? 'border-2 border-blue-500 ring-4 ring-light-blue-100' : ''
-      }`}>
-      <Image src={image} alt={children} layout='fill' objectFit='cover' className='rounded-md' />
+      } border-2`}>
+      <Image src={image} alt={children} layout='fill' objectFit='cover' className='rounded-lg' />
     </div>
     <span>{children}</span>
   </button>
 );
 
-const LayerModal = ({ isOpen, onClose, mapStyles, onStyleSelect, showSideBar }) => {
+const LayerModal = ({
+  isOpen,
+  onClose,
+  onMapDetailsSelect,
+  mapStyles,
+  onStyleSelect,
+  showSideBar,
+  disabled,
+}) => {
   const [selectedStyle, setSelectedStyle] = useState(mapStyles[0]);
   const [selectedMapDetail, setSelectedMapDetail] = useState(mapDetails[0]);
   const modalRef = useRef();
 
   const handleApply = () => {
     onStyleSelect(selectedStyle);
+    onMapDetailsSelect(selectedMapDetail.name);
     onClose();
   };
 
@@ -69,10 +84,10 @@ const LayerModal = ({ isOpen, onClose, mapStyles, onStyleSelect, showSideBar }) 
   if (!isOpen) return null;
 
   return (
-    <div className='fixed z-10 inset-0 overflow-y-auto z-50'>
+    <div className='fixed inset-0 overflow-y-auto z-50' style={{ zIndex: 777 }}>
       <div className='flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0'>
         <div className='fixed inset-0 transition-opacity' aria-hidden='true'>
-          <div className='absolute inset-0 bg-transparent'></div>
+          <div className='absolute inset-0 bg-[#4e4e4e3b]'></div>
         </div>
         <span
           className='hidden sm:inline-block sm:align-middle sm:h-screen'
@@ -92,6 +107,7 @@ const LayerModal = ({ isOpen, onClose, mapStyles, onStyleSelect, showSideBar }) 
                   key={detail.name}
                   isSelected={detail.name === selectedMapDetail.name}
                   onSelect={() => handleSelectDetail(detail)}
+                  disabled={detail.name === disabled}
                   image={detail.image}>
                   {detail.name}
                 </Option>

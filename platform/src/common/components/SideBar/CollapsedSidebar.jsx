@@ -11,7 +11,11 @@ import { checkAccess } from '@/core/utils/protectedRoute';
 const CollapsedSidebar = () => {
   return (
     <div className='w-[88px]'>
-      <div className='flex bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200'>
+      <div
+        className='flex bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200'
+        style={{
+          zIndex: 1000,
+        }}>
         <div className='flex flex-col items-center justify-center'>
           <div className='p-4 justify-between items-center flex'>
             <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />

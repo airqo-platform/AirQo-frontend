@@ -6,10 +6,10 @@ const initialState = {
     city: '',
   },
   center: {
-    latitude: 0.3201412790664193,
-    longitude: 32.56389785939493,
+    latitude: 2.4672,
+    longitude: 9.8977,
   },
-  zoom: 12,
+  zoom: 3.0141218806815315,
 };
 
 export const mapSlice = createSlice({
@@ -28,11 +28,16 @@ export const mapSlice = createSlice({
         state.zoom = action.payload;
       }
     },
+
     setLocation: (state, action) => {
       const { country = '', city = '' } = action.payload || {};
       state.location = { country, city };
     },
+
+    clearData: (state) => {
+      return initialState;
+    },
   },
 });
 
-export const { setCenter, setZoom, setLocation } = mapSlice.actions;
+export const { setCenter, setZoom, setLocation, clearData } = mapSlice.actions;
