@@ -9,6 +9,18 @@ import { useSelector } from 'react-redux';
 import SectionLoader from '../../components/LoadSpinner/SectionLoader';
 import { useTranslation } from 'react-i18next';
 
+/**
+ * @description function to calculate the difference between two dates
+ * @param {Date} date_1
+ * @param {Date} date_2
+ * @returns {Number} TotalDays
+ */
+const days = (date_1, date_2) => {
+  let difference = date_1.getTime() - date_2.getTime();
+  let TotalDays = Math.ceil(difference / (1000 * 3600 * 24));
+  return TotalDays;
+};
+
 const EventsPage = () => {
   useInitScrollTop();
   const { t } = useTranslation();
@@ -36,18 +48,6 @@ const EventsPage = () => {
     if (event.end_date !== null) return days(new Date(event.end_date), new Date()) <= 0;
     return days(new Date(event.start_date), new Date()) <= -1;
   });
-
-  /**
-   * @description function to calculate the difference between two dates
-   * @param {Date} date_1
-   * @param {Date} date_2
-   * @returns {Number} TotalDays
-   */
-  const days = (date_1, date_2) => {
-    let difference = date_1.getTime() - date_2.getTime();
-    let TotalDays = Math.ceil(difference / (1000 * 3600 * 24));
-    return TotalDays;
-  };
 
   /**
    * @description function to handle the see less button

@@ -18,6 +18,12 @@ import Slide from '@mui/material/Slide';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import FilterListIcon from '@mui/icons-material/FilterList';
 
+/**
+ * @description function to calculate the difference between two dates
+ * @param {Date} date_1
+ * @param {Date} date_2
+ * @returns {Number} TotalDays
+ */
 const days = (date_1, date_2) => {
   let difference = date_1.getTime() - date_2.getTime();
   let TotalDays = Math.ceil(difference / (1000 * 3600 * 24));
