@@ -126,6 +126,8 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
 
   const visibleResults = showAllResults ? searchResults : searchResults.slice(0, 6);
 
+  console.log('visibleResults', visibleResults);
+
   const handleShowMore = () => {
     setShowAllResults(true);
   };
