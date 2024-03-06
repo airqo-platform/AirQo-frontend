@@ -16,9 +16,9 @@ import cloudinary
 import dj_database_url
 from django.utils.translation import gettext_lazy as _
 
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 
-# load_dotenv()
+load_dotenv()
 
 
 # Read environment

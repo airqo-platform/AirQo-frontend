@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import SEO from 'utilities/seo';
-import { useInitScrollTop } from 'utilities/customHooks';
+import { useInitScrollTop, useClickOutside } from 'utilities/customHooks';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   RegisterSection,
@@ -26,15 +26,9 @@ const days = (date_1, date_2) => {
 
 const CleanAirEvents = () => {
   useInitScrollTop();
-
-  // Hooks
   const { t } = useTranslation();
-
   const allEventsData = useSelector((state) => state.eventsData.events);
-
   const navigate = useNavigate();
-
-  // State
   const itemsPerPage = 3;
   const [openDate, setOpenDate] = useState(false);
   const [openFilter, setOpenFilter] = useState(false);
@@ -46,8 +40,8 @@ const CleanAirEvents = () => {
   const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   // Refs
-  const dateRef = useRef();
-  const filterRef = useRef();
+  const dateRef = useClickOutside(() => setOpenDate(false));
+  const filterRef = useClickOutside(() => setOpenFilter(false));
 
   // Derived data
   const eventsApiData = useMemo(() => {
@@ -73,19 +67,6 @@ const CleanAirEvents = () => {
 
   const upcomingEvents = useMemo(() => getUpcomingEvents(eventsApiData), [eventsApiData]);
   const pastEvents = useMemo(() => getPastEvents(eventsApiData), [eventsApiData]);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dateRef.current && !dateRef.current.contains(event.target)) {
-        setOpenDate(false);
-      }
-      if (filterRef.current && !filterRef.current.contains(event.target)) {
-        setOpenFilter(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   // Helper functions
   function getUpcomingEvents(events) {

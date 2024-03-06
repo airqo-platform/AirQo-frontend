@@ -7,7 +7,6 @@ import { SplitTextSection, RegisterSection, IntroSection } from 'components/Clea
 import { usePartnersData } from '../../../reduxStore/Partners/selectors';
 import { loadPartnersData } from '../../../reduxStore/Partners/operations';
 import Membership from 'assets/img/cleanAir/membership.png';
-import useWindowSize from 'utilities/customHooks';
 import { useTranslation } from 'react-i18next';
 
 const CleanAirPartners = () => {
@@ -15,7 +14,6 @@ const CleanAirPartners = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const partnersData = usePartnersData();
-  const { width } = useWindowSize();
   const isLoading = isEmpty(partnersData);
   const language = useSelector((state) => state.eventsNavTab.languageTab);
 
@@ -36,18 +34,6 @@ const CleanAirPartners = () => {
   const privateSectorPartners = cleanAirPartners.filter(
     (partner) => partner.type === 'ca-private-sector'
   );
-
-  useEffect(() => {
-    let backdropRevElements = document.querySelectorAll('.backdrop-rev');
-
-    backdropRevElements.forEach((element) => {
-      if (width < 1081) {
-        element.style.flexDirection = 'column';
-      } else {
-        element.style.flexDirection = 'column-reverse';
-      }
-    });
-  }, [width]);
 
   return (
     <div className="page-wrapper">
