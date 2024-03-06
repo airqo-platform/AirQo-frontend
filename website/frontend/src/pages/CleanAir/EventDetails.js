@@ -1,10 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { AccessTimeOutlined, CalendarMonth, PlaceOutlined } from '@mui/icons-material';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { useParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
-import { getAllEvents } from '../../../reduxStore/Events/EventSlice';
 import { format } from 'date-fns';
 import Loadspinner from '../../components/LoadSpinner';
 import PageMini from '../PageMini';
@@ -15,18 +14,11 @@ const EventDetails = () => {
   useInitScrollTop();
   const { t } = useTranslation();
   const { uniqueTitle } = useParams();
-  const dispatch = useDispatch();
 
   const allEventsData = useSelector((state) => state.eventsData.events);
   const eventData = allEventsData.filter((event) => event.website_category === 'cleanair');
   const eventDetails = eventData.filter((event) => event.unique_title === uniqueTitle) || {};
   const loading = useSelector((state) => state.eventsData.loading);
-
-  useEffect(() => {
-    if (isEmpty(eventData)) {
-      dispatch(getAllEvents());
-    }
-  }, []);
 
   return (
     <>

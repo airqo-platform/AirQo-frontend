@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import SEO from 'utilities/seo';
 import { useInitScrollTop, useClickOutside } from 'utilities/customHooks';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import {
   RegisterSection,
   IntroSection,

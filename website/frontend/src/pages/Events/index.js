@@ -1,19 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Page from '../Page';
 import SEO from 'utilities/seo';
 import EventsHeader from './Header';
 import EventsNavigation from './Navigation';
 import { useInitScrollTop } from 'utilities/customHooks';
 import EventCard from './EventCard';
-import { useDispatch, useSelector } from 'react-redux';
-import { getAllEvents } from '../../../reduxStore/Events/EventSlice';
+import { useSelector } from 'react-redux';
 import SectionLoader from '../../components/LoadSpinner/SectionLoader';
 import { useTranslation } from 'react-i18next';
 
 const EventsPage = () => {
   useInitScrollTop();
   const { t } = useTranslation();
-  const dispatch = useDispatch();
 
   const days = (date_1, date_2) => {
     let difference = date_1.getTime() - date_2.getTime();
@@ -24,7 +22,6 @@ const EventsPage = () => {
   const navTabs = [`${t('about.events.navTabs.upcoming')}`, `${t('about.events.navTabs.past')}`];
   const selectedNavTab = useSelector((state) => state.eventsNavTab.tab);
   const allEventsData = useSelector((state) => state.eventsData.events);
-  const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   const eventsApiData = allEventsData.filter((event) => event.website_category === 'airqo');
 
@@ -39,10 +36,6 @@ const EventsPage = () => {
   });
 
   const loading = useSelector((state) => state.eventsData.loading);
-
-  useEffect(() => {
-    if (eventsApiData.length === 0) dispatch(getAllEvents(language));
-  }, [language]);
 
   // hook to handle see more/less button
   const [numEventsToShow, setNumEventsToShow] = useState(9);
