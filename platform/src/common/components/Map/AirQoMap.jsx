@@ -291,7 +291,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   /**
    * Resize the map
    * @sideEffect
-   * - Resizes the map
+   * - Resizes the map when the window is resized and side bar is closed
    */
   useEffect(() => {
     if (!resizeMap) {
