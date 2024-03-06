@@ -23,24 +23,62 @@ const index = () => {
    */
   const siteDetails = siteData?.sites || [];
 
+  // const findNearbySites = (location) => {
+  //   try {
+  //     const { lat, long } = location;
+  //     let distance = 10;
+  //     let nearbySites = [];
+
+  //     nearbySites =
+  //       siteDetails &&
+  //       siteDetails.filter((site) => {
+  //         const siteLat = site.latitude;
+  //         const siteLong = site.longitude;
+  //         const siteDistance = Math.sqrt(Math.pow(lat - siteLat, 2) + Math.pow(long - siteLong, 2));
+  //         return siteDistance < distance;
+  //       });
+
+  //     return nearbySites;
+  //   } catch (error) {
+  //     console.error('Error finding nearby sites:', error);
+  //     return [];
+  //   }
+  // };
+
   const findNearbySites = (location) => {
     try {
       const { lat, long } = location;
-      let distance = 10;
-      let nearbySites = [];
+      const maxDistance = 0.1;
+      const numberOfNearestSites = 6;
+      let nearestSites = [];
 
-      nearbySites =
-        siteDetails &&
-        siteDetails.filter((site) => {
+      siteData &&
+        siteData.forEach((site) => {
           const siteLat = site.latitude;
           const siteLong = site.longitude;
           const siteDistance = Math.sqrt(Math.pow(lat - siteLat, 2) + Math.pow(long - siteLong, 2));
-          return siteDistance < distance;
+
+          console.log('siteDistance', siteDistance);
+
+          if (siteDistance < maxDistance) {
+            if (nearestSites.length < numberOfNearestSites) {
+              nearestSites.push({ ...site, distance: siteDistance });
+            } else {
+              const maxDistanceSite = nearestSites.reduce((prev, current) =>
+                prev.distance > current.distance ? prev : current,
+              );
+
+              if (siteDistance < maxDistanceSite.distance) {
+                const index = nearestSites.indexOf(maxDistanceSite);
+                nearestSites[index] = { ...site, distance: siteDistance };
+              }
+            }
+          }
         });
 
-      return nearbySites;
+      return nearestSites;
     } catch (error) {
-      console.error('Error finding nearby sites:', error);
+      console.error('Error finding nearest sites:', error);
       return [];
     }
   };
