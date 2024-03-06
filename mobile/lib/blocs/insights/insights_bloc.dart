@@ -9,7 +9,8 @@ part 'insights_state.dart';
 
 class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
   InsightsBloc()
-      : super(InsightsState("",
+      : super(InsightsState(
+            name: "",
             selectedInsight: Insight.initializeEmpty(DateTime.now()))) {
     on<InitializeInsightsPage>(_onInitializeInsightsPage);
     on<SwitchInsight>(_onSwitchInsight);
@@ -85,40 +86,52 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     InitializeInsightsPage event,
     Emitter<InsightsState> emit,
   ) async {
-    List<Insight> insights = [];
+    try {
+      List<Insight> insights = [];
 
-    Insight todayInsight = Insight.fromAirQualityReading(
-      event.airQualityReading,
-    );
-    insights.add(todayInsight);
-    insights.addAll(List<Insight>.generate(
-      6,
-      (int index) => Insight.initializeEmpty(
-        todayInsight.dateTime.add(Duration(days: index + 1)),
-      ),
-    ).toList());
+      Insight todayInsight = Insight.fromAirQualityReading(
+        event.airQualityReading,
+      );
+      insights.add(todayInsight);
+      insights.addAll(List<Insight>.generate(
+        6,
+        (int index) => Insight.initializeEmpty(
+          todayInsight.dateTime.add(Duration(days: index + 1)),
+        ),
+      ).toList());
 
-    emit(InsightsState(
-      event.airQualityReading.name,
-      selectedInsight: todayInsight,
-      insights: insights.toList(),
-    ));
+      InsightsState newState = InsightsState(
+        name: event.airQualityReading.name,
+        selectedInsight: todayInsight,
+        insights: insights.toList(),
+      );
+      emit(newState);
 
-    String siteId = event.airQualityReading.referenceSite;
-    List<Forecast> forecast = await HiveService().getForecast(siteId);
-    insights = _onAddForecastData(insights, forecast);
-    emit(state.copyWith(
-      selectedInsight: todayInsight,
-      insights: insights.toList(),
-    ));
+      String siteId = event.airQualityReading.referenceSite;
 
-    forecast = await AirqoApiClient().fetchForecast(siteId);
-    insights = _onAddForecastData(insights, forecast);
-    emit(state.copyWith(
-      selectedInsight: todayInsight,
-      insights: insights.toList(),
-    ));
+      List<Forecast> forecast = await HiveService().getForecast(siteId);
+      insights = _onAddForecastData(insights, forecast);
 
-    HiveService().saveForecast(forecast, siteId);
+      newState = InsightsState(
+        name: event.airQualityReading.name,
+        selectedInsight: todayInsight,
+        insights: insights.toList(),
+      );
+      emit(newState);
+
+      forecast = await AirqoApiClient().fetchForecast(siteId);
+      insights = _onAddForecastData(insights, forecast);
+      newState = InsightsState(
+        name: event.airQualityReading.name,
+        selectedInsight: todayInsight,
+        insights: insights.toList(),
+      );
+
+      emit(newState);
+
+      HiveService().saveForecast(forecast, siteId);
+    } catch (err) {
+      print("Error while initialising insights: $err");
+    }
   }
 }
