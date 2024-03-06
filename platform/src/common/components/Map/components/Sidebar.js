@@ -145,10 +145,12 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
           >
             <div className='flex flex-col item-start w-full'>
               <span className='text-base font-medium text-black capitalize'>
-                {grid && grid.place_name && grid.place_name.split(',')[0]}
+                {(grid && grid.place_name && grid.place_name.split(',')[0]) ||
+                  (grid && grid.location_name && grid.location_name.split(',')[0])}
               </span>
               <span className='font-medium text-secondary-neutral-light-300 capitalize text-sm leading-tight'>
-                {grid && grid.place_name && grid.place_name.split(',').slice(1).join(',')}
+                {(grid && grid.place_name && grid.place_name.split(',').slice(1).join(',')) ||
+                  (grid && grid.location_name && grid.location_name.split(',').slice(1).join(','))}
               </span>
             </div>
             <div className='p-2 rounded-full bg-secondary-neutral-light-50'>
@@ -337,6 +339,9 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
 
         if (response.data && response.data.features) {
           setSearchResults(response.data.features);
+          if (response.data.features.length === 0) {
+            setShowNoResultsMsg(true);
+          }
         } else {
           setShowNoResultsMsg(true);
         }
@@ -413,10 +418,14 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                   Filters
                 </Button>
               </div>
-              <SectionCards
-                searchResults={selectedSites}
-                handleLocationSelect={handleLocationSelect}
-              />
+              {selectedSites && selectedSites.length > 0 ? (
+                <SectionCards
+                  searchResults={selectedSites}
+                  handleLocationSelect={handleLocationSelect}
+                />
+              ) : (
+                <SearchResultsSkeleton />
+              )}
             </div>
           </div>
         </div>

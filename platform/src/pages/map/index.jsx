@@ -15,20 +15,59 @@ const index = () => {
   const [showSideBar, setShowSideBar] = useState(true);
   const siteData = useSelector((state) => state.grids?.sitesSummary);
   const isAdmin = true;
-  const preferenceData = useSelector((state) => state.defaults?.individual_preferences);
   const [pollutant, setPollutant] = useState('pm2_5');
-
-  /**
-   * Selected sites
-   */
-  const selectedSites = preferenceData
-    ? preferenceData.map((pref) => pref.selected_sites).flat()
-    : [];
+  const [selectedSites, setSelectedSites] = useState([]);
 
   /**
    * Site details
    */
   const siteDetails = siteData?.sites || [];
+
+  const findNearbySites = (location) => {
+    try {
+      const { lat, long } = location;
+      let distance = 10;
+      let nearbySites = [];
+
+      nearbySites =
+        siteDetails &&
+        siteDetails.filter((site) => {
+          const siteLat = site.latitude;
+          const siteLong = site.longitude;
+          const siteDistance = Math.sqrt(Math.pow(lat - siteLat, 2) + Math.pow(long - siteLong, 2));
+          return siteDistance < distance;
+        });
+
+      return nearbySites;
+    } catch (error) {
+      console.error('Error finding nearby sites:', error);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    const storedUserLocation = localStorage.getItem('userLocation')
+      ? JSON.parse(localStorage.getItem('userLocation'))
+      : null;
+    if (!storedUserLocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        localStorage.setItem(
+          'userLocation',
+          JSON.stringify({ lat: position.coords.latitude, long: position.coords.longitude }),
+        );
+      });
+    }
+  }, [siteData]);
+
+  useEffect(() => {
+    const storedUserLocation = localStorage.getItem('userLocation')
+      ? JSON.parse(localStorage.getItem('userLocation'))
+      : null;
+
+    if (storedUserLocation) {
+      setSelectedSites(findNearbySites(storedUserLocation));
+    }
+  }, [siteData]);
 
   /**
    * Fetch site details
@@ -72,22 +111,25 @@ const index = () => {
               setShowSideBar={setShowSideBar}
             />
           )}
-          <div className={`${showSideBar ? 'hidden' : ''} md:block`}>
+          <div className={`${showSideBar ? 'hidden' : ''} md:hidden`}>
             <div
               className={`absolute bottom-2 ${
-                showSideBar ? 'left-[calc(280px+15px)] md:left-[calc(400px+15px)]' : 'left-[15px]'
+                showSideBar ? 'left-[calc(280px+15px)] md:left-[calc(340px+15px)]' : 'left-[15px]'
               } `}
-              style={{ zIndex: 900 }}>
+              style={{ zIndex: 900 }}
+            >
               <AirQualityLegend pollutant={pollutant} />
             </div>
             <div
               className={`absolute top-4 ${
-                showSideBar ? 'left-[calc(280px+15px)] md:left-[calc(400px+15px)]' : 'left-[15px]'
-              } z-50`}>
+                showSideBar ? 'left-[calc(280px+15px)] md:left-[calc(340px+15px)]' : 'left-[15px]'
+              } z-50`}
+            >
               <div className='flex flex-col space-y-4'>
                 <button
                   className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-                  onClick={() => setShowSideBar(!showSideBar)}>
+                  onClick={() => setShowSideBar(!showSideBar)}
+                >
                   <MenuIcon />
                 </button>
               </div>
