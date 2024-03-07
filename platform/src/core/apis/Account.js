@@ -10,6 +10,8 @@ import {
   USER_PREFERENCES_URL,
   USER_CHECKLISTS_UPSERT_URL,
   USER_CHECKLISTS_URL,
+  FORGOT_PWD_URL,
+  RESET_PWD_URL,
 } from '../urls/authentication';
 import axios from 'axios';
 import createAxiosInstance from './axiosConfig';
@@ -22,6 +24,24 @@ if (typeof window !== 'undefined') {
 const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN;
 
 axios.defaults.headers.common.Authorization = jwtToken;
+
+export const forgotPasswordApi = async (data) => {
+  try {
+    const response = await createAxiosInstance().post(FORGOT_PWD_URL, data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const resetPasswordApi = async (data) => {
+  try {
+    const response = await createAxiosInstance().post(RESET_PWD_URL, data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
 
 // Register User Details
 export const postUserCreationDetails = async (data) => {
@@ -147,29 +167,27 @@ export const updateUserPreferencesApi = async (data) => {
   } catch (error) {
     throw error;
   }
-}
+};
 
 // Get Individual User preferences
 export const getUserPreferencesApi = async (identifier) => {
   try {
     const response = await createAxiosInstance().get(`${USER_PREFERENCES_URL}/${identifier}`);
     return response.data;
-  }
-  catch (error) {
+  } catch (error) {
     throw error;
   }
-}
+};
 
 // Patch/Replace User Preferences
 export const patchUserPreferencesApi = async (data) => {
   try {
     const response = await createAxiosInstance().patch(`${USER_PREFERENCES_URL}/replace`, data);
     return response.data;
-  }
-  catch (error) {
+  } catch (error) {
     throw error;
   }
-}
+};
 
 // User Defaults
 export const getUserDefaults = async () => {

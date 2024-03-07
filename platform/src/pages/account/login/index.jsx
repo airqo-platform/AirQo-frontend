@@ -132,8 +132,14 @@ const UserLogin = () => {
           <div>
             <span className='text-sm text-grey-300'>Don't have an account?</span>
             <span className='text-sm text-blue-900 font-medium'>
-              {' '}
               <Link href='/account/creation'>Register here</Link>
+            </span>
+          </div>
+        </div>
+        <div className='mt-8 flex justify-center w-full'>
+          <div>
+            <span className='text-sm text-blue-900 font-medium'>
+              <Link href='/account/forgotPwd'>Forgot Password</Link>
             </span>
           </div>
         </div>
