@@ -34,8 +34,12 @@ const index = () => {
     }
 
     try {
-      const response = await forgotPasswordApi(email);
-      if (response.status === 'success') {
+      const data = {
+        email,
+        version,
+      };
+      const response = await forgotPasswordApi(data);
+      if (response.success === true) {
         setLoading(false);
         setEmail('');
         return setToastMessage({
@@ -50,6 +54,7 @@ const index = () => {
       });
     } catch (error) {
       setLoading(false);
+      setEmail('');
       return setToastMessage({
         message: 'An error occurred. Please try again',
         type: 'error',
@@ -75,6 +80,7 @@ const index = () => {
               <div className='mt-2 w-full'>
                 <input
                   type='email'
+                  value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder='e.g. greta.nagawa@gmail.com'
                   className={`input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500`}
@@ -95,7 +101,7 @@ const index = () => {
         <div className='mt-8 w-full flex justify-center'>
           <div>
             <span className='text-sm text-blue-900 font-medium'>
-              <Link href='/account/login'>Login</Link>
+              <Link href='/account/forgotPwd/reset'>Login</Link>
             </span>
           </div>
         </div>

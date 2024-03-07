@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import Link from 'next/link';
 import VisibilityOffIcon from '@/icons/Account/visibility_off.svg';
 import VisibilityOnIcon from '@/icons/Account/visibility_on.svg';
 import AccountPageLayout from '@/components/Account/Layout';
 import Toast from '@/components/Toast';
+import Spinner from '@/components/Spinner';
 import { useRouter } from 'next/router';
 import { resetPasswordApi } from '@/core/apis/Account';
 
@@ -17,7 +17,7 @@ const index = () => {
     message: '',
     type: '',
   });
-  const { token, version } = router.query;
+  const { token } = router.query;
 
   const [loading, setLoading] = useState(false);
 
@@ -26,9 +26,10 @@ const index = () => {
    * @param {Object} e - The event object
    * @returns {void} - Returns nothing
    */
-  const handlePasswordReset = (e) => {
+  const handlePasswordReset = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     if (Password !== confirmPassword) {
       setLoading(false);
       return setToastMessage({
@@ -36,31 +37,40 @@ const index = () => {
         type: 'error',
       });
     }
-    resetPasswordApi({ password: Password, resetPasswordToken: token })
-      .then((response) => {
-        setLoading(false);
-        if (response.status === 'success') {
-          return setToastMessage({
-            message: response.message,
-            type: 'success',
-          });
-        }
 
-        // redirect to login page
-        router.push('/account/login');
+    const data = {
+      password: Password,
+      resetPasswordToken: token,
+    };
 
-        return setToastMessage({
+    console.log(data);
+    try {
+      const response = await resetPasswordApi(data);
+      setLoading(false);
+
+      if (response.success) {
+        setToastMessage({
+          message: response.message,
+          type: 'success',
+        });
+
+        // redirect to login page after 1 second
+        setTimeout(() => {
+          router.push('/account/login');
+        }, 1000);
+      } else {
+        setToastMessage({
           message: response.message,
           type: 'error',
         });
-      })
-      .catch((error) => {
-        setLoading(false);
-        return setToastMessage({
-          message: 'An error occurred. Please try again',
-          type: 'error',
-        });
+      }
+    } catch (error) {
+      setLoading(false);
+      setToastMessage({
+        message: 'An error occurred. Please try again',
+        type: 'error',
       });
+    }
   };
 
   const togglePasswordVisibility = () => {
