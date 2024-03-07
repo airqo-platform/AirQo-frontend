@@ -61,10 +61,13 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   /**
    * Clear data on unmount
    * @sideEffect
-   * - Clear data
+   * - Clear data on unmount when lat, lng and zm are not present
+   * @returns {void}
    */
   useEffect(() => {
-    dispatch(clearData());
+    if (!lat && !lng && !zm) {
+      dispatch(clearData());
+    }
   }, []);
 
   /**
