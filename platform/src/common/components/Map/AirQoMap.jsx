@@ -130,6 +130,13 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
 
   /**
    * Initialize the map
+   * @sideEffect
+   * - Initialize the map
+   * - Add map controls
+   * - Load data
+   * - Update clusters
+   * - Fetch location boundaries
+   * @returns {void}
    */
   useEffect(() => {
     const initializeMap = async () => {
