@@ -101,7 +101,7 @@ const index = () => {
         <div className='mt-8 w-full flex justify-center'>
           <div>
             <span className='text-sm text-blue-900 font-medium'>
-              <Link href='/account/forgotPwd/reset'>Login</Link>
+              <Link href='/account/login'>Login</Link>
             </span>
           </div>
         </div>

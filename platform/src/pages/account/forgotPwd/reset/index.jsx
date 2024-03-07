@@ -43,7 +43,6 @@ const index = () => {
       resetPasswordToken: token,
     };
 
-    console.log(data);
     try {
       const response = await resetPasswordApi(data);
       setLoading(false);
