@@ -6,10 +6,10 @@ const initialState = {
     city: '',
   },
   center: {
-    latitude: 2.4672,
-    longitude: 9.8977,
+    latitude: 2.5768,
+    longitude: 25.1601,
   },
-  zoom: 3.0141218806815315,
+  zoom: 3.01,
 };
 
 export const mapSlice = createSlice({
