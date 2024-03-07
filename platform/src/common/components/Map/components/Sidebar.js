@@ -487,7 +487,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                     Sort by:
                   </div>
                   <select className='rounded-md m-0 p-0 text-sm font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none'>
-                    <option value='custom'>My locations</option>
+                    <option value='custom'>Suggested</option>
                     {/* <option value='near_me'>Near me</option> */}
                   </select>
                 </div>

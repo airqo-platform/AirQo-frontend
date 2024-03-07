@@ -17,12 +17,30 @@ const index = () => {
   const isAdmin = true;
   const [pollutant, setPollutant] = useState('pm2_5');
   const preferences = useSelector((state) => state.defaults.individual_preferences) || [];
-  const selectedSites = preferences ? preferences.map((pref) => pref.selected_sites).flat() : [];
+  const [selectedSites, setSelectedSites] = useState([]);
+  const chartSites = useSelector((state) => state.chart.chartSites);
 
   /**
    * Site details
    */
   const siteDetails = siteData?.sites || [];
+
+  useEffect(() => {
+    const preferencesSelectedSitesData = preferences
+      ? preferences.map((pref) => pref.selected_sites).flat()
+      : [];
+    if (preferencesSelectedSitesData.length === 0) {
+      if (siteDetails) {
+        siteDetails.forEach((site) => {
+          if (chartSites.includes(site.site_id)) {
+            setSelectedSites((prev) => [...prev, site]);
+          }
+        });
+      }
+    } else {
+      setSelectedSites(preferencesSelectedSitesData);
+    }
+  }, [preferences, siteDetails]);
 
   useEffect(() => {
     const storedUserLocation = localStorage.getItem('userLocation')
