@@ -188,7 +188,7 @@ const Home = () => {
                   </Button>
                   <a
                     onClick={handleModel}
-                    className='text-blue-600 text-sm font-normal mt-2 cursor-pointer'>
+                    className='text-blue-600 text-sm font-normal mt-2 cursor-pointer hidden'>
                     Show me how
                   </a>
                 </div>
@@ -200,7 +200,7 @@ const Home = () => {
                 }}>
                 <div
                   onClick={handleModel}
-                  className='absolute z-50 inset-0 flex items-center justify-center cursor-pointer'>
+                  className='absolute z-50 inset-0 flex items-center justify-center cursor-pointer hidden'>
                   <PlayIcon />
                 </div>
                 <Image src={AnalyticsImage} alt='Analytics Image' width={600} height={350} />

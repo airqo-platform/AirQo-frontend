@@ -264,6 +264,12 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
                   const marker = new mapboxgl.Marker(el)
                     .setLngLat(feature.geometry.coordinates)
                     .addTo(map);
+
+                  // Add click event to zoom in when a user clicks on a cluster
+                  el.addEventListener('click', () => {
+                    map.flyTo({ center: feature.geometry.coordinates, zoom: zoom + 2 });
+                  });
+
                   markers.push(marker);
                 }
               });
