@@ -495,7 +495,27 @@ const GenerateToken = (props) => {
                   format: (value, rowData) => {
                     return (
                       <div>
-                        {rowData.isActive || generated[rowData._id] ? (
+                        {rowData.isActive === true ? (
+                          <span
+                            style={{
+                              color: 'white',
+                              padding: '6px',
+                              borderRadius: '10px',
+                              background: 'green'
+                            }}>
+                            Activated
+                          </span>
+                        ) : rowData.isActive === false ? (
+                          <span
+                            style={{
+                              color: 'white',
+                              padding: '6px',
+                              borderRadius: '10px',
+                              background: 'red'
+                            }}>
+                            Not Activated
+                          </span>
+                        ) : generated[rowData._id] ? (
                           <span
                             style={{
                               color: 'white',

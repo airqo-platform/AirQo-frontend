@@ -7,7 +7,8 @@ import {
   SCHEDULE_EXPORT_DATA,
   CLIENT_URI,
   GENERATE_TOKEN_URI,
-  GET_USER_STATS_URI
+  GET_USER_STATS_URI,
+  ACTIVATE_USER_CLIENT
 } from 'config/urls/analytics';
 import createAxiosInstance from './axiosConfig';
 
@@ -84,6 +85,12 @@ export const getClientsApi = async () => {
 export const generateTokenApi = async (data) => {
   const response = await createAxiosInstance().post(GENERATE_TOKEN_URI, data);
   return response.data;
+};
+
+export const activateUserClientApi = async (data) => {
+  return await createAxiosInstance()
+    .post(`${ACTIVATE_USER_CLIENT}/${data._id}`, data)
+    .then((response) => response.data);
 };
 
 export const getUserStatsApi = async () => {

@@ -218,7 +218,7 @@ const allUserManagementPages = [
     permission: 'APPROVE_AND_DECLINE_NETWORK_CANDIDATES'
   },
   {
-    title: 'Client Activation',
+    title: 'Clients',
     href: '/clients-activation',
     icon: <AppsIcon />,
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS'
