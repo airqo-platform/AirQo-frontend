@@ -194,13 +194,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
 
           /**
            * Update clusters
-           * @sideEffect
-           * - Update clusters on zoom and move
-           * - Add popup to unclustered nodes
-           * - Set selectedSite when the user clicks on the node
-           * - Remove existing markers
-           * - Add unclustered points as custom HTML markers
-           * - Add clustered points as custom HTML markers
            */
           const updateClusters = () => {
             try {
@@ -227,7 +220,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
                 if (!feature.properties.cluster) {
                   // unclustered
                   el.style.zIndex = 1;
-                  el.innerHTML = UnclusteredNode({ feature, images, NodeType });
+                  el.innerHTML = UnclusteredNode({ feature, NodeType });
 
                   // Add popup to unclustered node
                   const popup = new mapboxgl.Popup({
@@ -269,7 +262,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
                   // clustered
                   el.zIndex = 444;
                   el.className =
-                    'flex justify-center items-center bg-white rounded-full p-2 shadow-md';
+                    'clustered flex justify-center items-center bg-white rounded-full p-2 shadow-md';
                   el.innerHTML = createClusterNode({ feature, NodeType });
                   const marker = new mapboxgl.Marker(el)
                     .setLngLat(feature.geometry.coordinates)

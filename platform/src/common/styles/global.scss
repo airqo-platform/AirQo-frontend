@@ -159,3 +159,10 @@ select:focus {
 .unClustered-Number {
   @include unClusteredStyles(88%);
 }
+
+.clustered {
+  &:hover {
+    border: 1px solid #002499;
+    z-index: 10000;
+  }
+}
