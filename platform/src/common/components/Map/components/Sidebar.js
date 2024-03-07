@@ -147,12 +147,14 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
           >
             <div className='flex flex-col item-start w-full'>
               <span className='text-base font-medium text-black capitalize'>
-                {(grid && grid.place_name && grid.place_name.split(',')[0]) ||
-                  (grid && grid.location_name && grid.location_name.split(',')[0])}
+                {grid && grid.place_name
+                  ? grid.place_name.split(',')[0]
+                  : grid.name && grid.name.split(',')[0]}
               </span>
               <span className='font-medium text-secondary-neutral-light-300 capitalize text-sm leading-tight'>
-                {(grid && grid.place_name && grid.place_name.split(',').slice(1).join(',')) ||
-                  (grid && grid.location_name && grid.location_name.split(',').slice(1).join(','))}
+                {grid && grid.place_name
+                  ? grid.place_name.split(',').slice(1).join(',')
+                  : (grid.name && grid.name.split(',').slice(1).join(',')) || grid.search_name}
               </span>
             </div>
             <div className='p-2 rounded-full bg-secondary-neutral-light-50'>
@@ -312,6 +314,8 @@ const SearchResultsSkeleton = () => (
 const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSideBar }) => {
   const dispatch = useDispatch();
   const [isFocused, setIsFocused] = useState(false);
+  const [countryData, setCountryData] = useState([]);
+  const [uniqueCountries, setUniqueCountries] = useState([]);
   const [selectedTab, setSelectedTab] = useState('locations');
   const [selectedSite, setSelectedSite] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState(null);
@@ -324,25 +328,26 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
     type: '',
     bgColor: '',
   });
+  const [locationSearchPreferences, setLocationSearchPreferences] = useState({
+    custom: [],
+    nearMe: [],
+  });
   const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const airQualityReadings = [10, 2, 55, 25, 75, 90, null]; // Replace with actual air quality readings
   const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
 
   const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
 
-  let uniqueCountries = [];
-  let countryData = [];
-
   useEffect(() => {
     if (Array.isArray(siteDetails) && siteDetails.length > 0) {
       siteDetails.forEach((site) => {
         if (!uniqueCountries.includes(site.country)) {
-          uniqueCountries.push(site.country);
+          setUniqueCountries([...uniqueCountries, site.country]);
 
           let countryDetails = allCountries?.find((data) => data.country === site.country);
 
           if (countryDetails) {
-            countryData.push({ ...site, ...countryDetails });
+            setCountryData([...countryData, { ...site, ...countryDetails }]);
           }
         }
       });
@@ -353,6 +358,13 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
       });
     }
   }, [siteDetails]);
+
+  useEffect(() => {
+    if (selectedSites) {
+      setLocationSearchPreferences({ ...locationSearchPreferences, custom: selectedSites });
+      setSearchResults(selectedSites);
+    }
+  }, [selectedSites, isFocused]);
 
   const handleSelectedTab = (tab) => {
     setSelectedTab(tab);
@@ -435,7 +447,11 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
             <SearchField focus={false} />
           </div>
           <div>
-            <div className='flex items-center mt-5 overflow-x-auto map-scrollbar custom-scrollbar px-4'>
+            <div
+              className={`flex items-center mt-5 ${
+                countryData ? 'overflow-x-auto map-scrollbar custom-scrollbar' : 'overflow-x-hidden'
+              } px-4`}
+            >
               <button
                 onClick={() => {
                   dispatch(setCenter({ latitude: 16.1532, longitude: 13.1691 }));
@@ -463,7 +479,8 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                     Sort by:
                   </div>
                   <select className='rounded-md m-0 p-0 text-sm font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none'>
-                    <option value=''>Near me</option>
+                    <option value='custom'>My locations</option>
+                    {/* <option value='near_me'>Near me</option> */}
                   </select>
                 </div>
                 <Button
@@ -549,7 +566,11 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                 >
                   <ArrowLeftIcon />
                 </Button>
-                <h3 className='text-xl font-medium leading-7'>{selectedSite.place_name}</h3>
+                <h3 className='text-xl font-medium leading-7'>
+                  {selectedSite.place_name ||
+                    (selectedSite.name && selectedSite.name) ||
+                    selectedSite.search_name}
+                </h3>
               </div>
 
               <div className='mx-4'>
@@ -598,7 +619,12 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                 isCollapsed
                 children={
                   <p className='text-xl font-bold leading-7 text-secondary-neutral-dark-950'>
-                    <span className='text-blue-500'>{selectedSite.place_name.split(',')[0]}'s</span>{' '}
+                    <span className='text-blue-500'>
+                      {selectedSite.place_name ||
+                        selectedSite.name.split(',')[0] ||
+                        selectedSite.search_name}
+                      's
+                    </span>{' '}
                     Air Quality is expected to be Good today. Enjoy the day with confidence in the
                     clean air around you.
                   </p>

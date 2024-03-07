@@ -13,75 +13,16 @@ const index = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const [showSideBar, setShowSideBar] = useState(true);
-  const siteData = useSelector((state) => state.grids?.sitesSummary);
+  const siteData = useSelector((state) => state.grids.sitesSummary);
   const isAdmin = true;
   const [pollutant, setPollutant] = useState('pm2_5');
-  const [selectedSites, setSelectedSites] = useState([]);
+  const preferences = useSelector((state) => state.defaults.individual_preferences) || [];
+  const selectedSites = preferences ? preferences.map((pref) => pref.selected_sites).flat() : [];
 
   /**
    * Site details
    */
   const siteDetails = siteData?.sites || [];
-
-  // const findNearbySites = (location) => {
-  //   try {
-  //     const { lat, long } = location;
-  //     let distance = 10;
-  //     let nearbySites = [];
-
-  //     nearbySites =
-  //       siteDetails &&
-  //       siteDetails.filter((site) => {
-  //         const siteLat = site.latitude;
-  //         const siteLong = site.longitude;
-  //         const siteDistance = Math.sqrt(Math.pow(lat - siteLat, 2) + Math.pow(long - siteLong, 2));
-  //         return siteDistance < distance;
-  //       });
-
-  //     return nearbySites;
-  //   } catch (error) {
-  //     console.error('Error finding nearby sites:', error);
-  //     return [];
-  //   }
-  // };
-
-  const findNearbySites = (location) => {
-    try {
-      const { lat, long } = location;
-      const maxDistance = 0.1;
-      const numberOfNearestSites = 6;
-      let nearestSites = [];
-
-      siteData &&
-        siteData.forEach((site) => {
-          const siteLat = site.latitude;
-          const siteLong = site.longitude;
-          const siteDistance = Math.sqrt(Math.pow(lat - siteLat, 2) + Math.pow(long - siteLong, 2));
-
-          console.log('siteDistance', siteDistance);
-
-          if (siteDistance < maxDistance) {
-            if (nearestSites.length < numberOfNearestSites) {
-              nearestSites.push({ ...site, distance: siteDistance });
-            } else {
-              const maxDistanceSite = nearestSites.reduce((prev, current) =>
-                prev.distance > current.distance ? prev : current,
-              );
-
-              if (siteDistance < maxDistanceSite.distance) {
-                const index = nearestSites.indexOf(maxDistanceSite);
-                nearestSites[index] = { ...site, distance: siteDistance };
-              }
-            }
-          }
-        });
-
-      return nearestSites;
-    } catch (error) {
-      console.error('Error finding nearest sites:', error);
-      return [];
-    }
-  };
 
   useEffect(() => {
     const storedUserLocation = localStorage.getItem('userLocation')
@@ -97,22 +38,14 @@ const index = () => {
     }
   }, [siteData]);
 
-  useEffect(() => {
-    const storedUserLocation = localStorage.getItem('userLocation')
-      ? JSON.parse(localStorage.getItem('userLocation'))
-      : null;
-
-    if (storedUserLocation) {
-      setSelectedSites(findNearbySites(storedUserLocation));
-    }
-  }, [siteData]);
-
   /**
    * Fetch site details
    * @returns {void}
    */
   useEffect(() => {
-    dispatch(getSitesSummary());
+    if (!siteDetails) {
+      dispatch(getSitesSummary());
+    }
   }, []);
 
   /**
