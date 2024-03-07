@@ -8,13 +8,14 @@ import CloseIcon from '@/icons/close_icon';
 import ArrowLeftIcon from '@/icons/arrow_left.svg';
 import Button from '@/components/Button';
 import Image from 'next/image';
-import { getIcon, images } from './MapNodes';
+import { getAQIcon, getIcon, images } from './MapNodes';
 import CustomDropdown from '../../Dropdowns/CustomDropdown';
 import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
 import Calendar from '../../Calendar/Calendar';
 import Datepicker from 'react-tailwindcss-datepicker';
 import { format } from 'date-fns';
 import axios from 'axios';
+import WindIcon from '@/icons/Common/wind.svg';
 
 const MAPBOX_URL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -126,8 +127,6 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
 
   const visibleResults = showAllResults ? searchResults : searchResults.slice(0, 6);
 
-  console.log('visibleResults', visibleResults);
-
   const handleShowMore = () => {
     setShowAllResults(true);
   };
@@ -191,10 +190,7 @@ const SidebarHeader = ({ selectedTab, handleSelectedTab, isAdmin }) => (
 );
 
 // Week prediction
-const WeekPrediction = ({ siteDetails }) => {
-  const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const airQualityReadings = [10, 2, 55, 25, 75, 90, null]; // Replace with actual air quality readings
-  const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+const WeekPrediction = ({ siteDetails, currentDay, airQualityReadings, weekDays }) => {
   const [value, setValue] = useState(new Date());
   const [openDatePicker, setOpenDatePicker] = useState(false);
 
@@ -252,8 +248,8 @@ const WeekPrediction = ({ siteDetails }) => {
             </div>
             <Image
               src={
-                airQualityReadings[index] && getIcon(airQualityReadings[index])
-                  ? images[getIcon(airQualityReadings[index])]
+                airQualityReadings[index] && getAQIcon('pm2_5', airQualityReadings[index])
+                  ? images[getAQIcon('pm2_5', airQualityReadings[index])]
                   : images['Invalid']
               }
               alt='Air Quality Icon'
@@ -263,6 +259,33 @@ const WeekPrediction = ({ siteDetails }) => {
           </div>
         ))}
       </div>
+    </div>
+  );
+};
+
+const LocationDetailItem = ({ title, children, isCollapsed = true }) => {
+  const [collapsed, setCollapsed] = useState(isCollapsed);
+
+  return (
+    <div className='p-3 bg-white rounded-lg shadow border border-secondary-neutral-dark-100 flex-col justify-center items-center'>
+      <div
+        className={`flex justify-between items-center ${collapsed && 'mb-2'} cursor-pointer`}
+        onClick={() => setCollapsed(!collapsed)}
+      >
+        <div className='flex justify-start items-center gap-3'>
+          <div className='w-10 h-10 rounded-full bg-secondary-neutral-dark-50 p-2 flex items-center justify-center text-xl font-bold'>
+            🚨
+          </div>
+          <h3 className='text-lg font-medium leading-relaxed text-secondary-neutral-dark-950'>
+            {title}
+          </h3>
+        </div>
+        <div className='w-7 h-7 rounded-full flex items-center justify-center bg-white'>
+          <ChevronDownIcon className='text-secondary-neutral-dark-950 w-4 h-4' />
+        </div>
+      </div>
+
+      {collapsed && children}
     </div>
   );
 };
@@ -289,6 +312,9 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
   const [showLocationDetails, setShowLocationDetails] = useState(false);
   const [isLoading, setLoading] = useState(false);
   const [showNoResultsMsg, setShowNoResultsMsg] = useState(false);
+  const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const airQualityReadings = [10, 2, 55, 25, 75, 90, null]; // Replace with actual air quality readings
+  const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
 
   const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
 
@@ -316,18 +342,16 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
   };
 
   const handleLocationSelect = (data) => {
-    const { country, city } = data || {};
+    console.log(data);
+    // const { country, city } = data || {};
     setShowLocationDetails(true);
     setIsFocused(false);
-    if (country && city) {
-      try {
-        dispatch(setLocation({ country, city }));
-        setSelectedSite(data);
-      } catch (error) {
-        console.error('Failed to set location:', error);
-      }
-    } else {
-      console.error('Invalid data:', data);
+
+    try {
+      // dispatch(setLocation({ country, city }));
+      setSelectedSite(data);
+    } catch (error) {
+      console.error('Failed to set location:', error);
     }
   };
 
@@ -359,6 +383,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
   const handleClearSearch = () => {
     setIsFocused(false);
     setSearchResults([]);
+    setShowNoResultsMsg(false);
   };
 
   useEffect(() => {
@@ -380,7 +405,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
             <SearchField focus={false} />
           </div>
           <div>
-            <div className='flex justify-between items-center mt-5 overflow-x-auto map-scrollbar custom-scrollbar px-4'>
+            <div className='flex items-center mt-5 overflow-x-auto map-scrollbar custom-scrollbar px-4'>
               <button
                 onClick={() => {
                   dispatch(setCenter({ latitude: 16.1532, longitude: 13.1691 }));
@@ -493,15 +518,62 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                 >
                   <ArrowLeftIcon />
                 </Button>
-                <h3 className='text-xl font-medium leading-7'>{selectedSite.name}</h3>
+                <h3 className='text-xl font-medium leading-7'>{selectedSite.place_name}</h3>
               </div>
 
               <div className='mx-4'>
-                <WeekPrediction siteDetails={selectedSite} />
+                <WeekPrediction
+                  siteDetails={selectedSite}
+                  weekDays={weekDays}
+                  currentDay={currentDay}
+                  airQualityReadings={airQualityReadings}
+                />
               </div>
             </div>
 
             <div className='border border-secondary-neutral-light-100 my-5' />
+
+            <div className='mx-4 mb-5 flex flex-col gap-4'>
+              <div className='px-3 pt-3 pb-4 bg-secondary-neutral-dark-50 rounded-lg shadow border border-secondary-neutral-dark-100 flex justify-between items-center'>
+                <div className='flex flex-col gap-1'>
+                  <div className='flex items-center gap-1'>
+                    <div className='w-4 h-4 rounded-lg bg-secondary-neutral-dark-100 flex items-center justify-center'>
+                      <WindIcon />
+                    </div>
+                    <p className='text-sm font-medium leading-tight text-secondary-neutral-dark-300'>
+                      PM2.5
+                    </p>
+                  </div>
+                  <div
+                    className={`text-2xl font-extrabold leading-normal text-secondary-neutral-light-800`}
+                  >
+                    {airQualityReadings[3] ? airQualityReadings[3] : '-'}
+                  </div>
+                </div>
+                <Image
+                  src={
+                    airQualityReadings[3] && getAQIcon('pm2_5', airQualityReadings[3])
+                      ? images[getAQIcon('pm2_5', airQualityReadings[3])]
+                      : images['Invalid']
+                  }
+                  alt='Air Quality Icon'
+                  width={80}
+                  height={80}
+                />
+              </div>
+
+              <LocationDetailItem
+                title='Air Quality Alerts'
+                isCollapsed
+                children={
+                  <p className='text-xl font-bold leading-7 text-secondary-neutral-dark-950'>
+                    <span className='text-blue-500'>{selectedSite.place_name.split(',')[0]}'s</span>{' '}
+                    Air Quality is expected to be Good today. Enjoy the day with confidence in the
+                    clean air around you.
+                  </p>
+                }
+              />
+            </div>
           </div>
         )}
       </div>

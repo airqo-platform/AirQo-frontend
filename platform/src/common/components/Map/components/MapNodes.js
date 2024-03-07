@@ -90,6 +90,19 @@ export const getAQICategory = (pollutant, value) => {
   }
 };
 
+export const getAQIcon = (pollutant, value) => {
+  if (!markerDetails.hasOwnProperty(pollutant)) {
+    throw new Error(`Invalid pollutant: ${pollutant}`);
+  }
+
+  const categories = markerDetails[pollutant];
+  for (let i = 0; i < categories.length; i++) {
+    if (value >= categories[i].limit) {
+      return categories[i].category;
+    }
+  }
+};
+
 /**
  * Create HTML for unClustered nodes
  * @param {Object} feature
