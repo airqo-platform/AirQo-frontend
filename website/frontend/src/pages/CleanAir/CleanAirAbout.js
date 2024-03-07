@@ -14,6 +14,10 @@ const CleanAirAbout = () => {
   useInitScrollTop();
   const { t } = useTranslation();
 
+  /**
+   * @description goals of the CLEAN-Air Network
+   * @type {Array} goals
+   */
   const goals = [
     {
       title: t('cleanAirSite.about.section5.subSections.first.title'),

@@ -1,33 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { AccessTimeOutlined, CalendarMonth, PlaceOutlined } from '@mui/icons-material';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { useParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
-import { getAllEvents } from '../../../reduxStore/Events/EventSlice';
 import { format } from 'date-fns';
 import Loadspinner from '../../components/LoadSpinner';
 import PageMini from '../PageMini';
-import { setActiveTab } from '../../../reduxStore/CleanAirNetwork/CleanAir';
 import { useTranslation } from 'react-i18next';
 
 const EventDetails = () => {
   useInitScrollTop();
   const { t } = useTranslation();
   const { uniqueTitle } = useParams();
-  const dispatch = useDispatch();
 
   const allEventsData = useSelector((state) => state.eventsData.events);
   const eventData = allEventsData.filter((event) => event.website_category === 'airqo');
   const eventDetails = eventData.filter((event) => event.unique_title === uniqueTitle) || {};
   const loading = useSelector((state) => state.eventsData.loading);
-  const language = useSelector((state) => state.eventsNavTab.languageTab);
-
-  useEffect(() => {
-    if (isEmpty(eventData)) {
-      dispatch(getAllEvents());
-    }
-  }, []);
 
   return (
     <PageMini>
@@ -50,7 +41,9 @@ const EventDetails = () => {
                   <div className="content">
                     <div className="breadcrumb">
                       <span>
-                        <a href="/events">{t('about.events.eventsDetails.header.breadCrumb')}</a>
+                        <Link to="/events">
+                          {t('about.events.eventsDetails.header.breadCrumb')}
+                        </Link>
                       </span>
                       <span style={{ fontFamily: 'monospace' }}>{'>'}</span>
                       <span style={{ color: '#A8B2C7' }}>{event.title}</span>

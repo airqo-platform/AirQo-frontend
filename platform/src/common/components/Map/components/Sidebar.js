@@ -177,10 +177,16 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
 };
 
 // Sidebar header
-const SidebarHeader = ({ selectedTab, handleSelectedTab, isAdmin }) => (
+const SidebarHeader = ({ selectedTab, handleSelectedTab, isAdmin, setShowSideBar }) => (
   <div>
-    <div className='w-full'>
+    <div className='w-full flex justify-between items-center'>
       <label className='font-medium text-xl text-gray-900'>Air Quality Map</label>
+      <button
+        onClick={() => setShowSideBar(false)}
+        className='focus:outline-none border rounded-md hover:cursor-pointer block md:hidden'
+      >
+        <CloseIcon />
+      </button>
     </div>
     <p className='text-gray-500 text-sm font-medium w-auto mt-2'>
       Navigate air quality analytics with precision and actionable tips.
@@ -393,9 +399,18 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
   }, [reduxSearchTerm]);
 
   return (
-    <div className='absolute left-0 top-0 w-full h-full md:w-[340px] bg-white shadow-lg shadow-right z-50 overflow-y-auto map-scrollbar'>
+    <div
+      className={`${
+        window.innerWidth < 768 ? 'absolute left-0 top-0' : 'relative'
+      } w-full h-full md:w-[340px] bg-white shadow-lg shadow-right z-50 overflow-y-auto map-scrollbar`}
+    >
       <div className={`${!isFocused && !showLocationDetails ? 'space-y-4' : 'hidden'} px-4 pt-4`}>
-        <SidebarHeader selectedTab={selectedTab} handleSelectedTab={handleSelectedTab} isAdmin />
+        <SidebarHeader
+          selectedTab={selectedTab}
+          handleSelectedTab={handleSelectedTab}
+          isAdmin
+          setShowSideBar={setShowSideBar}
+        />
         {!isAdmin && <hr />}
       </div>
       <div>
@@ -468,6 +483,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
               selectedTab={selectedTab}
               handleSelectedTab={handleSelectedTab}
               isAdmin
+              setShowSideBar={setShowSideBar}
             />
             <SearchField onSearch={handleSearch} onClearSearch={handleClearSearch} focus={true} />
           </div>
