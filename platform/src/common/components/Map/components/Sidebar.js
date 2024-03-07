@@ -17,6 +17,7 @@ import { format } from 'date-fns';
 import axios from 'axios';
 import WindIcon from '@/icons/Common/wind.svg';
 import Toast from '../../Toast';
+import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 
 const MAPBOX_URL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -379,13 +380,17 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
   };
 
   const handleLocationSelect = (data) => {
-    console.log(data);
-    // const { country, city } = data || {};
     setShowLocationDetails(true);
     setIsFocused(false);
 
     try {
-      // dispatch(setLocation({ country, city }));
+      dispatch(
+        setCenter({
+          latitude: data?.geometry?.coordinates[1] || data?.latitude || 0,
+          longitude: data?.geometry?.coordinates[0] || data?.longitude || 0,
+        }),
+      );
+      dispatch(setZoom(11));
       setSelectedSite(data);
     } catch (error) {
       console.error('Failed to set location:', error);
@@ -464,7 +469,6 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                 onClick={() => {
                   dispatch(setCenter({ latitude: 16.1532, longitude: 13.1691 }));
                   dispatch(setZoom(1.5));
-                  setShowSideBar(false);
                   setSelectedSite(null);
                 }}
                 className='py-[6px] px-[10px] rounded-full bg-blue-500 text-white text-sm font-medium'
@@ -570,6 +574,8 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                     setIsFocused(false);
                     setShowLocationDetails(false);
                     setSelectedSite(null);
+                    setSearchResults(selectedSites);
+                    dispatch(addSearchTerm(''));
                   }}
                 >
                   <ArrowLeftIcon />
