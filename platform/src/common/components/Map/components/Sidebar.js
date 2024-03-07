@@ -340,17 +340,22 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
 
   useEffect(() => {
     if (Array.isArray(siteDetails) && siteDetails.length > 0) {
+      const newUniqueCountries = [];
+      const newCountryData = [];
+
       siteDetails.forEach((site) => {
-        if (!uniqueCountries.includes(site.country)) {
-          setUniqueCountries([...uniqueCountries, site.country]);
+        let countryDetails = allCountries?.find((data) => data.country === site.country);
 
-          let countryDetails = allCountries?.find((data) => data.country === site.country);
-
-          if (countryDetails) {
-            setCountryData([...countryData, { ...site, ...countryDetails }]);
+        if (countryDetails) {
+          if (!newUniqueCountries.includes(site.country)) {
+            newUniqueCountries.push(site.country);
+            newCountryData.push({ ...site, ...countryDetails });
           }
         }
       });
+
+      setUniqueCountries(newUniqueCountries);
+      setCountryData(newCountryData);
     } else {
       setToastMessage({
         message: 'Oops! Server down',
@@ -361,7 +366,10 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
 
   useEffect(() => {
     if (selectedSites) {
-      setLocationSearchPreferences({ ...locationSearchPreferences, custom: selectedSites });
+      setLocationSearchPreferences((prevLocationSearchPreferences) => ({
+        ...prevLocationSearchPreferences,
+        custom: selectedSites,
+      }));
       setSearchResults(selectedSites);
     }
   }, [selectedSites, isFocused]);
