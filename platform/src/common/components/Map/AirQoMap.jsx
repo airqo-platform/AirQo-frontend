@@ -460,6 +460,9 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
           <div className='relative'>
             <div className='relative inline-block' ref={dropdownRef}>
               <button
+                style={{
+                  zIndex: 888,
+                }}
                 onClick={() => setIsOpen(!isOpen)}
                 title='Map Layers'
                 className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
@@ -481,12 +484,18 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
             </div>
           </div>
           <button
+            style={{
+              zIndex: 888,
+            }}
             onClick={refreshMap}
             title='Refresh Map'
             className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
             <RefreshIcon />
           </button>
           <button
+            style={{
+              zIndex: 888,
+            }}
             onClick={shareLocation}
             title='Share Location'
             className='inline-flex items-center justify-center w-[50px] h-[50px] text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
