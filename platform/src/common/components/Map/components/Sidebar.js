@@ -16,6 +16,7 @@ import Datepicker from 'react-tailwindcss-datepicker';
 import { format } from 'date-fns';
 import axios from 'axios';
 import WindIcon from '@/icons/Common/wind.svg';
+import Toast from '../../Toast';
 
 const MAPBOX_URL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -318,6 +319,11 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
   const [showLocationDetails, setShowLocationDetails] = useState(false);
   const [isLoading, setLoading] = useState(false);
   const [showNoResultsMsg, setShowNoResultsMsg] = useState(false);
+  const [toastMessage, setToastMessage] = useState({
+    message: '',
+    type: '',
+    bgColor: '',
+  });
   const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const airQualityReadings = [10, 2, 55, 25, 75, 90, null]; // Replace with actual air quality readings
   const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
@@ -327,21 +333,26 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
   let uniqueCountries = [];
   let countryData = [];
 
-  if (Array.isArray(siteDetails) && siteDetails.length > 0) {
-    siteDetails.forEach((site) => {
-      if (!uniqueCountries.includes(site.country)) {
-        uniqueCountries.push(site.country);
+  useEffect(() => {
+    if (Array.isArray(siteDetails) && siteDetails.length > 0) {
+      siteDetails.forEach((site) => {
+        if (!uniqueCountries.includes(site.country)) {
+          uniqueCountries.push(site.country);
 
-        let countryDetails = allCountries?.find((data) => data.country === site.country);
+          let countryDetails = allCountries?.find((data) => data.country === site.country);
 
-        if (countryDetails) {
-          countryData.push({ ...site, ...countryDetails });
+          if (countryDetails) {
+            countryData.push({ ...site, ...countryDetails });
+          }
         }
-      }
-    });
-  } else {
-    console.error('Invalid data: siteDetails must be an array');
-  }
+      });
+    } else {
+      setToastMessage({
+        message: 'Oops! Server down',
+        type: 'error',
+      });
+    }
+  }, [siteDetails]);
 
   const handleSelectedTab = (tab) => {
     setSelectedTab(tab);
@@ -402,7 +413,11 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
     <div
       className={`${
         window.innerWidth < 768 ? 'absolute left-0 top-0' : 'relative'
-      } w-full h-full md:w-[340px] bg-white shadow-lg shadow-right z-50 overflow-y-auto map-scrollbar`}
+      } w-full md:w-[340px] bg-white shadow-lg shadow-right z-50 ${
+        searchResults && searchResults.length > 0
+          ? 'overflow-y-auto map-scrollbar h-full'
+          : 'h-screen overflow-y-hidden'
+      }`}
     >
       <div className={`${!isFocused && !showLocationDetails ? 'space-y-4' : 'hidden'} px-4 pt-4`}>
         <SidebarHeader
@@ -593,6 +608,17 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
           </div>
         )}
       </div>
+      {toastMessage.message !== '' && (
+        <Toast
+          message={toastMessage.message}
+          clearData={() => setToastMessage({ message: '', type: '' })}
+          type={toastMessage.type}
+          timeout={3000}
+          dataTestId='sidebar-toast'
+          size='lg'
+          position='bottom'
+        />
+      )}
     </div>
   );
 };

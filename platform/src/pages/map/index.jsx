@@ -139,7 +139,7 @@ const index = () => {
   return (
     <MapLayout noTopNav={false}>
       <div className='relative flex w-full h-full'>
-        <>
+        <div>
           {showSideBar && (
             <Sidebar
               siteDetails={siteDetails}
@@ -149,22 +149,22 @@ const index = () => {
               setShowSideBar={setShowSideBar}
             />
           )}
-          <div className={`${showSideBar ? 'hidden' : ''} relative left-4 z-50 md:block`}>
-            <div className={`absolute bottom-2 z-[900]`} style={{ zIndex: 900 }}>
-              <AirQualityLegend pollutant={pollutant} />
-            </div>
-            <div className={`absolute top-4`}>
-              <div className='flex flex-col space-y-4'>
-                <button
-                  className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-                  onClick={() => setShowSideBar(!showSideBar)}
-                >
-                  <MenuIcon />
-                </button>
-              </div>
+        </div>
+        <div className={`${showSideBar ? 'hidden' : ''} relative left-4 z-50 md:block`}>
+          <div className={`absolute bottom-2 z-[900]`} style={{ zIndex: 900 }}>
+            <AirQualityLegend pollutant={pollutant} />
+          </div>
+          <div className={`absolute top-4 lg:hidden`}>
+            <div className='flex flex-col space-y-4'>
+              <button
+                className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
+                onClick={() => setShowSideBar(!showSideBar)}
+              >
+                <MenuIcon />
+              </button>
             </div>
           </div>
-        </>
+        </div>
 
         <AirQoMap
           showSideBar={showSideBar}
