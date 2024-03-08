@@ -90,13 +90,13 @@ export const generateTokenApi = async (data) => {
 
 export const activateUserClientApi = async (data) => {
   return await createAxiosInstance()
-    .get(`${ACTIVATE_USER_CLIENT}/${data._id}`, data)
+    .post(`${ACTIVATE_USER_CLIENT}/${data._id}`, data)
     .then((response) => response.data);
 };
 
 export const activationRequestApi = async (ID) => {
   return await createAxiosInstance()
-    .post(`${ACTIVATION_REQUEST_URI}/${ID}`)
+    .get(`${ACTIVATION_REQUEST_URI}/${ID}`)
     .then((response) => response.data);
 };
 
