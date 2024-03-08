@@ -2,6 +2,18 @@ import React from 'react';
 import { FileDownloadOutlined } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 
+/**
+ * @description Card component for the publications page
+ * @param {String} title
+ * @param {String} authors_title
+ * @param {String} authors
+ * @param {String} link
+ * @param {String} linkTitle
+ * @param {Boolean} showSecondAuthor
+ * @param {String} resourceFile
+ * @param {String} resourceCategory
+ * @returns {JSX.Element}
+ */
 const ReportComponent = ({
   title,
   authors_title,

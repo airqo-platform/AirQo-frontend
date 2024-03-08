@@ -4,6 +4,11 @@ import { setActiveTab } from '../../../../reduxStore/CleanAirNetwork/CleanAir';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 
+/**
+ * @description Secondary navigation component for the CleanAir site
+ * @param {Array} disabledTabs
+ * @returns {JSX.Element}
+ */
 const SecondaryNavComponent = ({ disabledTabs }) => {
   const { t } = useTranslation();
   const tabs = [

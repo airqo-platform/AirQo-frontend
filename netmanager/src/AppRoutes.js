@@ -56,6 +56,7 @@ const Teams = lazy(() => import('./views/pages/Teams/Teams'));
 const TeamsView = lazy(() => import('./views/pages/Teams/TeamsView'));
 const SimRegistry = lazy(() => import('./views/components/SIM/SimRegistry'));
 const UserStats = lazy(() => import('./views/pages/UserStats/UserStats'));
+const ClientActivation = lazy(() => import('./views/pages/clients'));
 
 const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
@@ -122,6 +123,12 @@ const AppRoutes = ({ auth, logoutUser }) => {
               layout={MainLayout}
             />
             <PrivateRoute component={CandidateList} exact layout={MainLayout} path="/candidates" />
+            <PrivateRoute
+              component={ClientActivation}
+              exact
+              layout={MainLayout}
+              path="/clients-activation"
+            />
             <PrivateRoute component={Roles} exact layout={MainLayout} path="/roles" />
             <PrivateRoute component={Settings} exact layout={MainLayout} path="/settings" />
             <PrivateRoute component={Organisation} exact layout={MainLayout} path="/networks" />

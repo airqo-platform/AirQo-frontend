@@ -6,7 +6,10 @@ import SearchField from '@/components/search/SearchField';
 import LocationIcon from '@/icons/LocationIcon';
 import CloseIcon from '@/icons/close_icon';
 
-// tab selector
+/**
+ * TabSelector
+ * @description Tab selector component
+ */
 const TabSelector = ({ selectedTab, setSelectedTab }) => {
   if (typeof setSelectedTab !== 'function') {
     console.error('Invalid prop: setSelectedTab must be a function');
@@ -34,7 +37,10 @@ const TabSelector = ({ selectedTab, setSelectedTab }) => {
   );
 };
 
-// country list
+/**
+ * CountryList
+ * @description Country list component
+ */
 const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
   const dispatch = useDispatch();
 
@@ -76,7 +82,10 @@ const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
   );
 };
 
-// Search area
+/**
+ * SectionCards
+ * @description Section cards component
+ */
 const SectionCards = ({ searchResults, handleLocationSelect }) => {
   if (!Array.isArray(searchResults)) {
     console.error('Invalid prop: searchResults must be an array');
@@ -116,6 +125,10 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
   );
 };
 
+/**
+ * Sidebar
+ * @description Sidebar component
+ */
 const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSideBar }) => {
   const dispatch = useDispatch();
   const [isFocused, setIsFocused] = useState(false);
@@ -166,7 +179,10 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
   };
 
   return (
-    <div className='absolute left-0 top-0 w-full h-full md:max-w-[400px] bg-white shadow-lg shadow-right space-y-4 z-50 overflow-y-auto map-scrollbar'>
+    <div
+      className={`w-auto h-full md:max-w-[400px] bg-white shadow-lg shadow-right space-y-4 z-50 overflow-y-auto map-scrollbar z-50 ${
+        window.innerWidth < 768 ? 'absolute left-0 top-0' : ''
+      }`}>
       <div className={!isFocused ? 'space-y-4' : 'hidden'}>
         <div className='px-4 pt-4'>
           <div className='w-full flex justify-between items-center'>

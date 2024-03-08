@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // Hook
 export default function useWindowSize() {
@@ -6,7 +6,7 @@ export default function useWindowSize() {
   // Learn more here: https://joshwcomeau.com/react/the-perils-of-rehydration/
   const [windowSize, setWindowSize] = useState({
     width: undefined,
-    height: undefined,
+    height: undefined
   });
   useEffect(() => {
     // Handler to call on window resize
@@ -14,7 +14,7 @@ export default function useWindowSize() {
       // Set window width/height to state
       setWindowSize({
         width: window.innerWidth,
-        height: window.innerHeight,
+        height: window.innerHeight
       });
     }
     // Add event listener
@@ -37,7 +37,7 @@ export const useIntersectionObserver = ({
   target,
   onIntersect,
   threshold = 0.1,
-  rootMargin = "0px"
+  rootMargin = '0px'
 }) => {
   useEffect(() => {
     const observer = new IntersectionObserver(onIntersect, {
@@ -50,4 +50,23 @@ export const useIntersectionObserver = ({
       observer.unobserve(current);
     };
   });
+};
+
+export const useClickOutside = (onClickOutside) => {
+  const ref = useRef();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (ref.current && !ref.current.contains(event.target)) {
+        onClickOutside();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onClickOutside]);
+
+  return ref;
 };

@@ -41,14 +41,10 @@ import { fetchCleanAirData } from 'reduxStore/CleanAirNetwork/CleanAir';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllEvents } from 'reduxStore/Events/EventSlice';
 import { loadPublicationsData } from 'reduxStore/Publications/operations';
-import { usePublicationsData } from 'reduxStore/Publications/selectors';
 import { loadPressData } from 'reduxStore/Press/PressSlice';
 import { loadPartnersData } from 'reduxStore/Partners/operations';
-import { usePartnersData } from 'reduxStore/Partners/selectors';
 import { loadCareersListingData } from 'reduxStore/Careers/operations';
-import { useCareerListingData } from 'reduxStore/Careers/selectors';
 import { loadCareersDepartmentsData } from 'reduxStore/Careers/operations';
-import { useCareerDepartmentsData } from 'reduxStore/Careers/selectors';
 
 store.dispatch(loadAirQloudSummaryData());
 

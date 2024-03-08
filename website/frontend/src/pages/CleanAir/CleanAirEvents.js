@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import SEO from 'utilities/seo';
-import { useInitScrollTop } from 'utilities/customHooks';
-import { useDispatch, useSelector } from 'react-redux';
+import { useInitScrollTop, useClickOutside } from 'utilities/customHooks';
+import { useSelector } from 'react-redux';
 import {
   RegisterSection,
   IntroSection,
@@ -18,6 +18,12 @@ import Slide from '@mui/material/Slide';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import FilterListIcon from '@mui/icons-material/FilterList';
 
+/**
+ * @description function to calculate the difference between two dates
+ * @param {Date} date_1
+ * @param {Date} date_2
+ * @returns {Number} TotalDays
+ */
 const days = (date_1, date_2) => {
   let difference = date_1.getTime() - date_2.getTime();
   let TotalDays = Math.ceil(difference / (1000 * 3600 * 24));
@@ -26,15 +32,9 @@ const days = (date_1, date_2) => {
 
 const CleanAirEvents = () => {
   useInitScrollTop();
-
-  // Hooks
   const { t } = useTranslation();
-
   const allEventsData = useSelector((state) => state.eventsData.events);
-
   const navigate = useNavigate();
-
-  // State
   const itemsPerPage = 3;
   const [openDate, setOpenDate] = useState(false);
   const [openFilter, setOpenFilter] = useState(false);
@@ -45,11 +45,20 @@ const CleanAirEvents = () => {
   const loading = useSelector((state) => state.eventsData.loading);
   const language = useSelector((state) => state.eventsNavTab.languageTab);
 
-  // Refs
-  const dateRef = useRef();
-  const filterRef = useRef();
+  /**
+   * @description Custom hook to handle click outside of the date and filter dropdowns
+   * @param {Function} callback
+   * @returns {Object} dateRef
+   */
+  const dateRef = useClickOutside(() => setOpenDate(false));
+  const filterRef = useClickOutside(() => setOpenFilter(false));
 
-  // Derived data
+  /**
+   * @description filter events data based on the website category.
+   * @returns {Array} eventsApiData
+   * @returns {Array} upcomingEvents
+   * @returns {Array} pastEvents
+   */
   const eventsApiData = useMemo(() => {
     return allEventsData.filter((event) => {
       if (event.website_category !== 'cleanair') {
@@ -74,20 +83,12 @@ const CleanAirEvents = () => {
   const upcomingEvents = useMemo(() => getUpcomingEvents(eventsApiData), [eventsApiData]);
   const pastEvents = useMemo(() => getPastEvents(eventsApiData), [eventsApiData]);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dateRef.current && !dateRef.current.contains(event.target)) {
-        setOpenDate(false);
-      }
-      if (filterRef.current && !filterRef.current.contains(event.target)) {
-        setOpenFilter(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Helper functions
+  /**
+   * @description function to get upcoming events and past events
+   * @param {Array} events
+   * @returns {Array} upcomingEvents
+   * @returns {Array} pastEvents
+   */
   function getUpcomingEvents(events) {
     return events.filter((event) => {
       if (event.end_date !== null) return days(new Date(event.end_date), new Date()) >= 1;
@@ -102,6 +103,9 @@ const CleanAirEvents = () => {
     });
   }
 
+  /**
+   * @description function to route to event details page
+   */
   const routeToDetails = useCallback(
     (events) => (event) => {
       event.preventDefault();
@@ -111,17 +115,21 @@ const CleanAirEvents = () => {
   );
 
   const handleDateSelect = (value) => {
+    setFilter('all');
     setSelectedDate(value);
     setSelectedMonth(value - 1);
     setOpenDate(false);
   };
 
   const handleFilterSelect = (value) => {
+    setSelectedDate(1);
     setFilter(value);
     setOpenFilter(false);
   };
 
-  // Pagination
+  /**
+   * @description Custom hook to handle pagination
+   */
   const {
     currentItems: currentPastEvents,
     currentPage: currentPastPage,
@@ -136,6 +144,12 @@ const CleanAirEvents = () => {
     totalPages: totalUpcomingPages
   } = usePagination(upcomingEvents, itemsPerPage);
 
+  /**
+   * @description dropdown options for date and filter
+   * @returns {Array} dates
+   * @returns {Array} filterOption1
+   * @returns {Array} filterOption2
+   */
   const dates = [
     { month: t('cleanAirSite.events.dropdowns.filter.options1.1'), value: 1 },
     { month: t('cleanAirSite.events.dropdowns.date.options.1'), value: 2 },

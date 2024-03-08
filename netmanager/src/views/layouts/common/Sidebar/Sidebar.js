@@ -44,6 +44,7 @@ import GridOnIcon from '@material-ui/icons/GridOn';
 import GrainIcon from '@material-ui/icons/Grain';
 import GroupAddIcon from '@material-ui/icons/GroupAdd';
 import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';
+import AppsIcon from '@material-ui/icons/Apps';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -217,6 +218,12 @@ const allUserManagementPages = [
     permission: 'APPROVE_AND_DECLINE_NETWORK_CANDIDATES'
   },
   {
+    title: 'Clients',
+    href: '/clients-activation',
+    icon: <AppsIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS'
+  },
+  {
     title: 'Account',
     href: '/account',
     icon: <AccountBoxIcon />
@@ -361,8 +368,7 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}
-    >
+      variant={variant}>
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />
