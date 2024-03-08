@@ -14,6 +14,8 @@ import {
 } from '@material-ui/core';
 import { activateUserClientApi, getClientsApi } from '../../apis/analytics';
 import { Close as CloseIcon } from '@material-ui/icons';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import { useDispatch } from 'react-redux';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -60,6 +62,7 @@ const ConfirmDialog = ({ open, handleClose, handleConfirm, loading, title, conte
 };
 
 const Index = () => {
+  const dispatch = useDispatch();
   const classes = useStyles();
   const [isLoading, setIsLoading] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -104,10 +107,22 @@ const Index = () => {
     activateUserClientApi(data)
       .then((response) => {
         setRefresh(!refresh);
-        setError({ type: 'success', message: 'Client activated successfully' });
+        dispatch(
+          updateMainAlert({
+            message: 'Client activated successfully',
+            show: true,
+            severity: 'success'
+          })
+        );
       })
       .catch((error) => {
-        setError({ type: 'error', message: 'Failed to activate client' });
+        dispatch(
+          updateMainAlert({
+            message: 'Failed to activate client',
+            show: true,
+            severity: 'error'
+          })
+        );
       })
       .finally(() => {
         setIsLoading(false);
@@ -125,10 +140,22 @@ const Index = () => {
     activateUserClientApi(data)
       .then((response) => {
         setRefresh(!refresh);
-        setError({ type: 'success', message: 'Client deactivated successfully' });
+        dispatch(
+          updateMainAlert({
+            message: 'Client deactivated successfully',
+            show: true,
+            severity: 'success'
+          })
+        );
       })
       .catch((error) => {
-        setError({ type: 'error', message: 'Failed to deactivate client' });
+        dispatch(
+          updateMainAlert({
+            message: 'Failed to deactivate client',
+            show: true,
+            severity: 'error'
+          })
+        );
       })
       .finally(() => {
         setIsLoading(false);
@@ -170,25 +197,6 @@ const Index = () => {
             {deactivatedClients}
           </h3>
         </div>
-
-        {error.message && (
-          <Alert
-            severity={error.type}
-            style={{ margin: '20px 0' }}
-            action={
-              <IconButton
-                aria-label="close"
-                color="inherit"
-                size="small"
-                onClick={() => {
-                  setError({ type: '', message: '' });
-                }}>
-                <CloseIcon fontSize="inherit" />
-              </IconButton>
-            }>
-            {error.message}
-          </Alert>
-        )}
 
         <CustomMaterialTable
           title="Clients"
@@ -239,8 +247,18 @@ const Index = () => {
                       size="small"
                       style={{ backgroundColor: 'green', color: 'white' }}
                       onClick={() => {
-                        setOpenActivate(true);
-                        setSelectedClient(row);
+                        if (row.isActive) {
+                          dispatch(
+                            updateMainAlert({
+                              message: 'Client is already activated',
+                              show: true,
+                              severity: 'info'
+                            })
+                          );
+                        } else {
+                          setOpenActivate(true);
+                          setSelectedClient(row);
+                        }
                       }}>
                       Activate
                     </Button>
@@ -250,12 +268,23 @@ const Index = () => {
                       margin: 2
                     }}>
                     <Button
+                      disabled={true}
                       variant="contained"
                       color="primary"
                       size="small"
                       onClick={() => {
-                        setOpenDeactivate(true);
-                        setSelectedClient(row);
+                        if (!row.isActive) {
+                          dispatch(
+                            updateMainAlert({
+                              message: 'Client is already deactivated',
+                              show: true,
+                              severity: 'info'
+                            })
+                          );
+                        } else {
+                          setOpenDeactivate(true);
+                          setSelectedClient(row);
+                        }
                       }}>
                       Deactivate
                     </Button>

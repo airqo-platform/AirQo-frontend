@@ -47,6 +47,8 @@ export const GENERATE_TOKEN_URI = `${BASE_ANALYTICS_URL_V2}/users/tokens`;
 
 export const ACTIVATE_USER_CLIENT = `${BASE_ANALYTICS_URL_V2}/users/clients/activate`;
 
+export const ACTIVATION_REQUEST_URI = `${BASE_ANALYTICS_URL_V2}/users/clients/activate-request`;
+
 // Teams
 export const CREATE_TEAM_URI = `${BASE_ANALYTICS_URL_V2}/users/groups`;
 

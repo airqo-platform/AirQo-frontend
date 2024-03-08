@@ -8,7 +8,8 @@ import {
   createClientApi,
   getClientsApi,
   updateClientApi,
-  generateTokenApi
+  generateTokenApi,
+  activationRequestApi
 } from 'views/apis/analytics';
 import { useDispatch } from 'react-redux';
 import { updateMainAlert } from 'redux/MainAlert/operations';
@@ -61,20 +62,59 @@ const useStyles = makeStyles((theme) => ({
 
 // Inactive clients are not allowed to generate tokens so show a modal to the user
 const InactiveClientModal = (props) => {
-  const { open, onClose } = props;
+  const { open, onClose, selectedClient } = props;
+  const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleActivationRequest = async () => {
+    setIsLoading(true);
+    try {
+      const clientID = selectedClient?.client_id;
+      const response = await activationRequestApi(clientID);
+      if (response.success === true) {
+        dispatch(
+          updateMainAlert({
+            message: 'Activation request sent successfully',
+            show: true,
+            severity: 'success'
+          })
+        );
+      } else {
+        dispatch(
+          updateMainAlert({
+            message: 'Activation request failed',
+            show: true,
+            severity: 'error'
+          })
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      dispatch(
+        updateMainAlert({
+          message: 'Activation request failed',
+          show: true,
+          severity: 'error'
+        })
+      );
+    }
+    setIsLoading(false);
+    onClose();
+  };
+
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Client Inactive</DialogTitle>
       <DialogContent>
         <p>
           You cannot generate a token for an inactive client, reach out to support for assistance at
-          <a href="mailto:info@airqo.net"> info@airqo.net</a> or send an activation request.
+          <a href="mailto:support@airqo.net"> support@airqo.net</a> or send an activation request.
         </p>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Close</Button>
-        <Button onClick={onClose} color="primary" variant="contained">
-          Activation Request
+        <Button onClick={handleActivationRequest} color="primary" variant="contained">
+          {isLoading ? <CircularProgress size={24} /> : 'Activation Request'}
         </Button>
       </DialogActions>
     </Dialog>
@@ -338,6 +378,7 @@ const GenerateToken = (props) => {
   const [generated, setGenerated] = useState(false);
   const [editData, setEditData] = useState({});
   const [isInactiveModalOpen, setIsInactiveModalOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState(null);
   let userID = '';
   if (mappedAuth && mappedAuth.user) {
     userID = mappedAuth.user._id;
@@ -579,6 +620,7 @@ const GenerateToken = (props) => {
                             return;
                           } else {
                             handleTokenGeneration(res);
+                            setSelectedClient(res);
                           }
                         }}>
                         {loading[rowData._id] ? (
@@ -674,22 +716,6 @@ const GenerateToken = (props) => {
                     );
                   }
                 }
-                // {
-                //   id: 'delete',
-                //   label: 'Delete',
-                //   format: (value, rowData) => {
-                //     return (
-                //       <Button
-                //         variant="outlined"
-                //         color="primary"
-                //         onClick={() => {
-                //           handleDeleteToken(rowData._id);
-                //         }}>
-                //         <DeleteIcon />
-                //       </Button>
-                //     );
-                //   }
-                // }
               ]}
               rows={result}
               loading={isLoading}
@@ -712,6 +738,7 @@ const GenerateToken = (props) => {
       <InactiveClientModal
         open={isInactiveModalOpen}
         onClose={() => setIsInactiveModalOpen(false)}
+        selectedClient={selectedClient}
       />
     </>
   );
