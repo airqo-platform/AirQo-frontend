@@ -36,7 +36,7 @@ export const forgotPasswordApi = async (data) => {
 
 export const resetPasswordApi = async (data) => {
   try {
-    const response = await createAxiosInstance().post(RESET_PWD_URL, data);
+    const response = await createAxiosInstance().put(RESET_PWD_URL, data);
     return response.data;
   } catch (error) {
     throw error;
