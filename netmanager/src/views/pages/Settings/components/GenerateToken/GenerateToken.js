@@ -8,7 +8,8 @@ import {
   createClientApi,
   getClientsApi,
   updateClientApi,
-  generateTokenApi
+  generateTokenApi,
+  activationRequestApi
 } from 'views/apis/analytics';
 import { useDispatch } from 'react-redux';
 import { updateMainAlert } from 'redux/MainAlert/operations';
@@ -58,6 +59,67 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'flex-end'
   }
 }));
+
+// Inactive clients are not allowed to generate tokens so show a modal to the user
+const InactiveClientModal = (props) => {
+  const { open, onClose, selectedClient } = props;
+  const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleActivationRequest = async () => {
+    setIsLoading(true);
+    try {
+      const clientID = selectedClient?.client_id;
+      const response = await activationRequestApi(clientID);
+      if (response.success === true) {
+        dispatch(
+          updateMainAlert({
+            message: 'Activation request sent successfully',
+            show: true,
+            severity: 'success'
+          })
+        );
+      } else {
+        dispatch(
+          updateMainAlert({
+            message: 'Activation request failed',
+            show: true,
+            severity: 'error'
+          })
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      dispatch(
+        updateMainAlert({
+          message: 'Activation request failed',
+          show: true,
+          severity: 'error'
+        })
+      );
+    }
+    setIsLoading(false);
+    onClose();
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>Client Inactive</DialogTitle>
+      <DialogContent>
+        <p>
+          You cannot generate a token for an inactive client, reach out to support for assistance at
+          <a href="mailto:support@airqo.net"> support@airqo.net</a> or send an activation request.
+        </p>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Close</Button>
+        <Button onClick={handleActivationRequest} color="primary" variant="contained">
+          {isLoading ? <CircularProgress size={24} /> : 'Activation Request'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
 
 const RegisterClient = (props) => {
   const dispatch = useDispatch();
@@ -315,6 +377,8 @@ const GenerateToken = (props) => {
   const [refresh, setRefresh] = useState(false);
   const [generated, setGenerated] = useState(false);
   const [editData, setEditData] = useState({});
+  const [isInactiveModalOpen, setIsInactiveModalOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState(null);
   let userID = '';
   if (mappedAuth && mappedAuth.user) {
     userID = mappedAuth.user._id;
@@ -363,6 +427,11 @@ const GenerateToken = (props) => {
 
   const handleTokenGeneration = async (res) => {
     try {
+      if (!res.isActive) {
+        setIsInactiveModalOpen(true);
+        return;
+      }
+
       setLoading((prevLoading) => ({ ...prevLoading, [res.client_id]: true }));
       const response = await generateTokenApi(res);
       dispatch(
@@ -446,6 +515,8 @@ const GenerateToken = (props) => {
               title="Registered Clients"
               onButtonClick={handleOpen}
               ButtonText="Add Client"
+              refreshButton={true}
+              onRefreshClick={() => setRefresh(!refresh)}
               columns={[
                 {
                   id: 'name',
@@ -458,6 +529,57 @@ const GenerateToken = (props) => {
                 {
                   id: 'ip_address',
                   label: 'Client IP Address'
+                },
+                {
+                  id: 'isActive',
+                  label: 'Client Status',
+                  format: (value, rowData) => {
+                    return (
+                      <div>
+                        {rowData.isActive === true ? (
+                          <span
+                            style={{
+                              color: 'white',
+                              padding: '6px',
+                              borderRadius: '10px',
+                              background: 'green'
+                            }}>
+                            Activated
+                          </span>
+                        ) : rowData.isActive === false ? (
+                          <span
+                            style={{
+                              color: 'white',
+                              padding: '6px',
+                              borderRadius: '10px',
+                              background: 'red'
+                            }}>
+                            Not Activated
+                          </span>
+                        ) : generated[rowData._id] ? (
+                          <span
+                            style={{
+                              color: 'white',
+                              padding: '6px',
+                              borderRadius: '10px',
+                              background: 'green'
+                            }}>
+                            Activated
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              color: 'white',
+                              padding: '6px',
+                              borderRadius: '10px',
+                              background: 'red'
+                            }}>
+                            Not Activated
+                          </span>
+                        )}
+                      </div>
+                    );
+                  }
                 },
                 {
                   id: 'createdAt',
@@ -484,7 +606,8 @@ const GenerateToken = (props) => {
                         onClick={() => {
                           let res = {
                             name: rowData.name,
-                            client_id: rowData._id
+                            client_id: rowData._id,
+                            isActive: rowData.isActive ? rowData.isActive : false
                           };
                           if (generated[rowData._id]) {
                             dispatch(
@@ -497,6 +620,7 @@ const GenerateToken = (props) => {
                             return;
                           } else {
                             handleTokenGeneration(res);
+                            setSelectedClient(res);
                           }
                         }}>
                         {loading[rowData._id] ? (
@@ -592,22 +716,6 @@ const GenerateToken = (props) => {
                     );
                   }
                 }
-                // {
-                //   id: 'delete',
-                //   label: 'Delete',
-                //   format: (value, rowData) => {
-                //     return (
-                //       <Button
-                //         variant="outlined"
-                //         color="primary"
-                //         onClick={() => {
-                //           handleDeleteToken(rowData._id);
-                //         }}>
-                //         <DeleteIcon />
-                //       </Button>
-                //     );
-                //   }
-                // }
               ]}
               rows={result}
               loading={isLoading}
@@ -626,6 +734,11 @@ const GenerateToken = (props) => {
         onClose={handleCloseEdit}
         data={editData}
         onEdit={() => setRefresh(!refresh)}
+      />
+      <InactiveClientModal
+        open={isInactiveModalOpen}
+        onClose={() => setIsInactiveModalOpen(false)}
+        selectedClient={selectedClient}
       />
     </>
   );
