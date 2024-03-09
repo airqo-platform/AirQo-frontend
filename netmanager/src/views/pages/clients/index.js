@@ -16,6 +16,7 @@ import { activateUserClientApi, getClientsApi } from '../../apis/analytics';
 import { Close as CloseIcon } from '@material-ui/icons';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { useDispatch } from 'react-redux';
+import { withPermission } from '../../containers/PageAccess';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -243,22 +244,16 @@ const Index = () => {
                       margin: 2
                     }}>
                     <Button
+                      disabled={row.isActive}
                       variant="contained"
                       size="small"
-                      style={{ backgroundColor: 'green', color: 'white' }}
+                      style={{
+                        background: row.isActive ? 'grey' : 'green',
+                        color: 'white'
+                      }}
                       onClick={() => {
-                        if (row.isActive) {
-                          dispatch(
-                            updateMainAlert({
-                              message: 'Client is already activated',
-                              show: true,
-                              severity: 'info'
-                            })
-                          );
-                        } else {
-                          setOpenActivate(true);
-                          setSelectedClient(row);
-                        }
+                        setOpenActivate(true);
+                        setSelectedClient(row);
                       }}>
                       Activate
                     </Button>
@@ -273,18 +268,8 @@ const Index = () => {
                       color="primary"
                       size="small"
                       onClick={() => {
-                        if (!row.isActive) {
-                          dispatch(
-                            updateMainAlert({
-                              message: 'Client is already deactivated',
-                              show: true,
-                              severity: 'info'
-                            })
-                          );
-                        } else {
-                          setOpenDeactivate(true);
-                          setSelectedClient(row);
-                        }
+                        setOpenDeactivate(true);
+                        setSelectedClient(row);
                       }}>
                       Deactivate
                     </Button>
@@ -336,4 +321,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default withPermission(Index, 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');
