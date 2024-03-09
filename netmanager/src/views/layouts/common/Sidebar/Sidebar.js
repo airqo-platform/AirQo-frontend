@@ -331,6 +331,7 @@ const Sidebar = (props) => {
         const selectedAdminPages = excludePages(allUserManagementPages, [
           'Users',
           'Candidates',
+          'Clients',
           'Roles',
           'Logs'
         ]);
@@ -353,6 +354,7 @@ const Sidebar = (props) => {
       const selectedAdminPages = excludePages(allUserManagementPages, [
         'Users',
         'Candidates',
+        'Clients',
         'Roles',
         'Logs'
       ]);
