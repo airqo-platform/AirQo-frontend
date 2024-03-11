@@ -22,7 +22,7 @@ const Footer = ({ selectedRange, setSelectedRange, handleValueChange, close, use
   };
 
   return (
-    <div className='flex flex-col items-center justify-between px-6 py-4 border-t border-gray-100 md:flex-row'>
+    <div className='flex flex-col items-center justify-between px-6 py-4 border-t border-gray-100 md:flex-row w-auto'>
       {useRange && (
         <div className='hidden md:flex md:items-center md:space-x-2'>
           <input
@@ -31,6 +31,7 @@ const Footer = ({ selectedRange, setSelectedRange, handleValueChange, close, use
             value={selectedRange.start ? format(selectedRange.start, 'MMM d, yyyy') : ''}
             className='flex items-center w-full px-4 py-3 text-sm border border-gray-300 text-gray-600 rounded-md focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none md:w-32'
             placeholder='Start date'
+            disabled
           />
           <div className='p-2'>
             <span className='text-gray-600 text-[16px]'>-</span>
@@ -41,6 +42,7 @@ const Footer = ({ selectedRange, setSelectedRange, handleValueChange, close, use
             value={selectedRange.end ? format(selectedRange.end, 'MMM d, yyyy') : ''}
             className='flex items-center w-full px-4 py-3 text-sm border border-gray-300 text-gray-600 rounded-md focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none md:w-32'
             placeholder='End date'
+            disabled
           />
         </div>
       )}

@@ -40,18 +40,22 @@ const Calendar = ({
   }, [useRange, showAsSingle]);
 
   const handleDayClick = (day, setSelectedDays) => {
-    setSelectedDays((prev) => [...prev, day]);
     if (!useRange) {
-      setSelectedRange({ start: day, end: null });
+      const newDay = new Date(month2.getFullYear(), month2.getMonth(), day.getDate());
+      setSelectedDays((prev) => [...prev, newDay]);
+      setSelectedRange({ start: newDay, end: null });
     } else if (!selectedRange.start) {
+      setSelectedDays((prev) => [...prev, day]);
       setSelectedRange({ start: day, end: null });
     } else if (!selectedRange.end) {
+      setSelectedDays((prev) => [...prev, day]);
       if (isBefore(day, selectedRange.start)) {
         setSelectedRange({ start: day, end: selectedRange.start });
       } else {
         setSelectedRange({ start: selectedRange.start, end: day });
       }
     } else {
+      setSelectedDays([day]);
       setSelectedRange({ start: day, end: null });
     }
   };
@@ -98,7 +102,9 @@ const Calendar = ({
             className={`
               w-10 h-10 text-sm flex justify-center items-center 
               ${
-                selectedDays.includes(day) || isStartOrEndDay
+                selectedDays.includes(day) ||
+                isStartOrEndDay ||
+                (showAsSingle && !useRange && isSameDay(day, selectedRange.start))
                   ? 'bg-blue-600 dark:bg-blue-500 rounded-full text-red-50 hover:text-red-50'
                   : ''
               }
@@ -124,15 +130,15 @@ const Calendar = ({
     <div
       className={
         !showAsSingle && useRange
-          ? 'flex flex-col items-center justify-center w-full bg-none md:flex-row mb-10'
+          ? 'flex flex-col items-center justify-center w-full bg-none md:flex-row mb-10 z-[900]'
           : ''
       }
     >
       <div
-        className={`z-50 border border-gray-100 bg-white shadow-lg rounded-xl ${
+        className={`z-[900] border border-gray-100 bg-white shadow-lg rounded-xl ${
           !showAsSingle && useRange
             ? 'max-w-full min-w-[260px] md:min-w-[660px] lg:min-w-[800px]'
-            : 'w-[328px]'
+            : 'max-w-[328px] w-full min-w-40'
         }`}
       >
         <div className='flex flex-col'>
@@ -174,7 +180,7 @@ const Calendar = ({
                     {day}
                   </span>
                 ))}
-                {renderDays(month1, selectedDays1, setSelectedDays1)}
+                {renderDays(month1, selectedDays1, setSelectedDays1, selectedRange)}
               </div>
             </div>
             {/* calendar section two */}

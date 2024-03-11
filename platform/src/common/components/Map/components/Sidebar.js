@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCenter, setZoom, setLocation } from '@/lib/store/services/map/MapSlice';
 import allCountries from './countries.json';
@@ -142,7 +142,7 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
       <div className='map-scrollbar flex flex-col gap-4 my-5 px-4'>
         {visibleResults.map((grid) => (
           <div
-            key={grid._id}
+            key={grid._id || grid.id}
             className='flex flex-row justify-between items-center text-sm w-full hover:cursor-pointer hover:bg-blue-100 px-4 py-[14px] rounded-xl border border-secondary-neutral-light-100 shadow'
             onClick={() => handleLocationSelect(grid)}
           >
@@ -203,26 +203,37 @@ const SidebarHeader = ({ selectedTab, handleSelectedTab, isAdmin, setShowSideBar
 const WeekPrediction = ({ siteDetails, currentDay, airQualityReadings, weekDays }) => {
   const [value, setValue] = useState(new Date());
   const [openDatePicker, setOpenDatePicker] = useState(false);
+  const dropdownRef = useRef(null);
 
   const handleDateValueChange = (value) => {
     setValue(new Date(value.start));
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDatePicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className='relative'>
+    <div className='relative' ref={dropdownRef}>
       <div className='mb-5 relative'>
-        <CustomDropdown
-          trigger={
-            <Button
-              className='flex flex-row-reverse shadow rounded-lg text-sm text-secondary-neutral-light-600 font-medium leading-tight bg-white h-8'
-              variant='outlined'
-              Icon={ChevronDownIcon}
-            >
-              {format(value, 'MMM dd, yyyy')}
-            </Button>
-          }
-          dropdownWidth='224px'
+        <Button
+          className='flex flex-row-reverse shadow rounded-lg text-sm text-secondary-neutral-light-600 font-medium leading-tight bg-white h-8 my-1'
+          variant='outlined'
+          Icon={ChevronDownIcon}
+          onClick={() => setOpenDatePicker(!openDatePicker)}
         >
+          {format(value, 'MMM dd, yyyy')}
+        </Button>
+
+        {openDatePicker && (
           <Calendar
             handleValueChange={handleDateValueChange}
             closeDatePicker={() => setOpenDatePicker(false)}
@@ -230,7 +241,7 @@ const WeekPrediction = ({ siteDetails, currentDay, airQualityReadings, weekDays 
             initialMonth2={new Date()}
             useRange={false}
           />
-        </CustomDropdown>
+        )}
       </div>
       <div className='flex justify-between items-center gap-2'>
         {weekDays.map((day, index) => (
@@ -438,7 +449,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
     <div
       className={`${
         window.innerWidth < 768 ? 'absolute left-0 top-0' : 'relative'
-      } w-full md:w-[340px] bg-white shadow-lg shadow-right z-50 ${
+      } w-full md:w-[340px] bg-white shadow-lg shadow-right z-50 overflow-x-hidden ${
         searchResults && searchResults.length > 0
           ? 'overflow-y-auto map-scrollbar h-full'
           : 'h-screen overflow-y-hidden'
@@ -456,7 +467,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
       <div>
         {/* section 1 */}
         <div className={`${isFocused || showLocationDetails ? 'hidden' : ''}`}>
-          <div onMouseDown={() => setIsFocused(true)} className='mt-5 px-4'>
+          <div onClick={() => setIsFocused(true)} className='mt-5 px-4'>
             <SearchField focus={false} />
           </div>
           <div>
