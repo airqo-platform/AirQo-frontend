@@ -30,6 +30,10 @@ const Home = () => {
     setStep(completedCards.length);
   }, [cardCheckList]);
 
+  useEffect(() => {
+    dispatch(completeTask(1));
+  }, []);
+
   const handleModel = () => {
     setOpen(!open);
     const card = cardCheckList.find((card) => card.id === 1);
@@ -120,6 +124,10 @@ const Home = () => {
 
             <div className='w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5'>
               {steps.map((step, index) => {
+                if (index === 0) {
+                  return null; // Skip displaying the card for the first step
+                }
+
                 const card = cardCheckList.find((card) => card.id === index + 1);
 
                 const statusText = card && card.completed === true ? 'Done' : 'Start';
@@ -132,7 +140,8 @@ const Home = () => {
                   <div
                     key={index}
                     className='w-full h-[250px] flex flex-col justify-between items-start border-[0.5px] rounded-xl border-grey-150 py-5 px-3 space-y-5 focus:outline-blue-600 focus:ring-2 focus:shadow-lg focus:border-blue-600'
-                    tabIndex={0}>
+                    tabIndex={0}
+                  >
                     <div className='w-full'>
                       {card && card.completed === true ? (
                         <div className='w-14 h-14 flex justify-center items-center rounded-full bg-blue-900'>
@@ -141,7 +150,8 @@ const Home = () => {
                       ) : (
                         <div
                           className='text-base w-14 h-14 flex justify-center items-center font-medium rounded-full'
-                          style={{ background: '#F5F5FF' }}>
+                          style={{ background: '#F5F5FF' }}
+                        >
                           <span className='text-blue-600'>{index + 1}</span>
                         </div>
                       )}
@@ -157,7 +167,8 @@ const Home = () => {
                             <a
                               onClick={step.func}
                               className={statusColor}
-                              target={index === 3 ? '_blank' : ''}>
+                              target={index === 3 ? '_blank' : ''}
+                            >
                               {card && card.status === 'inProgress' ? 'Resume' : statusText}
                             </a>
                           </Link>
@@ -183,12 +194,14 @@ const Home = () => {
                   <Button
                     path='/analytics'
                     className='bg-blue-900 text-white rounded-lg w-32 h-12'
-                    dataTestId='get-started-button'>
+                    dataTestId='get-started-button'
+                  >
                     Start here
                   </Button>
                   <a
                     onClick={handleModel}
-                    className='text-blue-600 text-sm font-normal mt-2 cursor-pointer hidden'>
+                    className='text-blue-600 text-sm font-normal mt-2 cursor-pointer hidden'
+                  >
                     Show me how
                   </a>
                 </div>
@@ -197,10 +210,12 @@ const Home = () => {
                 className='rounded-md p-9 relative'
                 style={{
                   background: '#145DFF08',
-                }}>
+                }}
+              >
                 <div
                   onClick={handleModel}
-                  className='absolute z-50 inset-0 flex items-center justify-center cursor-pointer hidden'>
+                  className='absolute z-50 inset-0 flex items-center justify-center cursor-pointer hidden'
+                >
                   <PlayIcon />
                 </div>
                 <Image src={AnalyticsImage} alt='Analytics Image' width={600} height={350} />
