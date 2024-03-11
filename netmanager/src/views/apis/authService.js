@@ -11,6 +11,7 @@ import {
   GET_LOGS
 } from 'config/urls/authService';
 import createAxiosInstance from './axiosConfig';
+import data from '../pages/CandidateList/data';
 
 export const updateUserPasswordApi = async (userId, tenant, userData) => {
   return await createAxiosInstance()
