@@ -591,7 +591,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                 >
                   <ArrowLeftIcon />
                 </Button>
-                <h3 className='text-xl font-medium leading-7'>
+                <h3 className='text-xl font-medium leading-7 capitalize'>
                   {selectedSite.place_name ||
                     (selectedSite.name && selectedSite.name) ||
                     selectedSite.search_name}
@@ -644,7 +644,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                 isCollapsed
                 children={
                   <p className='text-xl font-bold leading-7 text-secondary-neutral-dark-950'>
-                    <span className='text-blue-500'>
+                    <span className='text-blue-500 capitalize'>
                       {selectedSite.place_name ||
                         selectedSite.name.split(',')[0] ||
                         selectedSite.search_name}
