@@ -12,6 +12,7 @@ import Slide from '@mui/material/Slide';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import CleanAirPageContainer from './Page';
 
 const ITEMS_PER_PAGE = 3;
 
@@ -149,101 +150,103 @@ const CleanAirPublications = () => {
   };
 
   return (
-    <div className="page-wrapper">
-      {/* SEO */}
-      <SEO
-        title="Partners"
-        siteTitle="CLEAN-Air Network"
-        description="CLEAN-Air Africa Network is a network of African cities and partners committed to improving air quality and reducing carbon emissions through knowledge sharing and capacity building."
-      />
+    <CleanAirPageContainer>
+      <div className="page-wrapper">
+        {/* SEO */}
+        <SEO
+          title="Partners"
+          siteTitle="CLEAN-Air Network"
+          description="CLEAN-Air Africa Network is a network of African cities and partners committed to improving air quality and reducing carbon emissions through knowledge sharing and capacity building."
+        />
 
-      {/* section 1 */}
-      <IntroSection image={ResourceImage} imagePosition={'48%'} />
+        {/* section 1 */}
+        <IntroSection image={ResourceImage} imagePosition={'48%'} />
 
-      {/* section 2 */}
-      {loading && (
+        {/* section 2 */}
+        {loading && (
+          <div
+            style={{
+              position: 'relative',
+              padding: '50px 0',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+            <RotatingLoopIcon />
+          </div>
+        )}
         <div
           style={{
             position: 'relative',
-            padding: '50px 0',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
+            width: '100%',
+            height: 'auto',
+            margin: '70px auto',
+            backgroundColor: '#EDF3FF',
+            display: loading ? 'none' : 'block'
           }}>
-          <RotatingLoopIcon />
-        </div>
-      )}
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: 'auto',
-          margin: '70px auto',
-          backgroundColor: '#EDF3FF',
-          display: loading ? 'none' : 'block'
-        }}>
-        <div className="events">
-          <div className="events-header">
-            <h1 className="events-title">{t('cleanAirSite.publications.title')}</h1>
-            <div className="events-header-buttons">
-              <div style={{ position: 'relative' }}>
-                <button onClick={() => setFilter(!openfilter)}>
-                  <span style={{ marginRight: '10px', textTransform: 'capitalize' }}>
-                    {activeResource}
-                  </span>{' '}
-                  <KeyboardArrowDownIcon />
-                </button>
-                <Slide direction="down" in={openfilter}>
-                  <ul
-                    className="drop-down-list"
-                    ref={filterRef}
-                    style={{
-                      width: '240px'
-                    }}>
-                    {resources.map((resource) => (
-                      <li
-                        key={resource}
-                        style={{
-                          textTransform: 'capitalize',
-                          backgroundColor: resource === activeResource ? '#EBF5FF' : ''
-                        }}
-                        onClick={() => {
-                          handleFilterSelect(resource);
-                        }}>
-                        {resource}
-                        {resource === activeResource && (
-                          <DoneIcon sx={{ stroke: '#145FFF', width: '16px', height: '16px' }} />
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </Slide>
+          <div className="events">
+            <div className="events-header">
+              <h1 className="events-title">{t('cleanAirSite.publications.title')}</h1>
+              <div className="events-header-buttons">
+                <div style={{ position: 'relative' }}>
+                  <button onClick={() => setFilter(!openfilter)}>
+                    <span style={{ marginRight: '10px', textTransform: 'capitalize' }}>
+                      {activeResource}
+                    </span>{' '}
+                    <KeyboardArrowDownIcon />
+                  </button>
+                  <Slide direction="down" in={openfilter}>
+                    <ul
+                      className="drop-down-list"
+                      ref={filterRef}
+                      style={{
+                        width: '240px'
+                      }}>
+                      {resources.map((resource) => (
+                        <li
+                          key={resource}
+                          style={{
+                            textTransform: 'capitalize',
+                            backgroundColor: resource === activeResource ? '#EBF5FF' : ''
+                          }}
+                          onClick={() => {
+                            handleFilterSelect(resource);
+                          }}>
+                          {resource}
+                          {resource === activeResource && (
+                            <DoneIcon sx={{ stroke: '#145FFF', width: '16px', height: '16px' }} />
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </Slide>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="resource-body">
-            {activeResource === t('cleanAirSite.events.dropdowns.filter.options1.1') && (
-              <div className="reports">{renderData(cleanAirResources, false)}</div>
-            )}
-            {activeResource === t('cleanAirSite.publications.navs.toolkits') && (
-              <div className="reports">{renderData(toolkitData, false)}</div>
-            )}
-            {activeResource === t('cleanAirSite.publications.navs.reports') && (
-              <div className="reports">{renderData(technicalReportData, true)}</div>
-            )}
-            {activeResource === t('cleanAirSite.publications.navs.workshops') && (
-              <div className="reports">{renderData(workshopReportData, false)}</div>
-            )}
-            {activeResource === t('cleanAirSite.publications.navs.research') && (
-              <div className="reports">{renderData(researchPublicationData, true)}</div>
-            )}
+            <div className="resource-body">
+              {activeResource === t('cleanAirSite.events.dropdowns.filter.options1.1') && (
+                <div className="reports">{renderData(cleanAirResources, false)}</div>
+              )}
+              {activeResource === t('cleanAirSite.publications.navs.toolkits') && (
+                <div className="reports">{renderData(toolkitData, false)}</div>
+              )}
+              {activeResource === t('cleanAirSite.publications.navs.reports') && (
+                <div className="reports">{renderData(technicalReportData, true)}</div>
+              )}
+              {activeResource === t('cleanAirSite.publications.navs.workshops') && (
+                <div className="reports">{renderData(workshopReportData, false)}</div>
+              )}
+              {activeResource === t('cleanAirSite.publications.navs.research') && (
+                <div className="reports">{renderData(researchPublicationData, true)}</div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Register Membership */}
-      <RegisterSection link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform" />
-    </div>
+        {/* Register Membership */}
+        <RegisterSection link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform" />
+      </div>
+    </CleanAirPageContainer>
   );
 };
 

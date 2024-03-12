@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import Slide from '@mui/material/Slide';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import CleanAirPageContainer from './Page';
 
 /**
  * @description function to calculate the difference between two dates
@@ -185,199 +186,141 @@ const CleanAirEvents = () => {
   ];
 
   return (
-    <div className="page-wrapper">
-      <SEO
-        title="Events"
-        siteTitle="CLEAN-Air Network"
-        description="CLEAN-Air Africa Network is a network of African cities, governments, and partners committed to improving air quality and reducing carbon emissions through sustainable transport and mobility solutions."
-      />
+    <CleanAirPageContainer>
+      <div className="page-wrapper">
+        <SEO
+          title="Events"
+          siteTitle="CLEAN-Air Network"
+          description="CLEAN-Air Africa Network is a network of African cities, governments, and partners committed to improving air quality and reducing carbon emissions through sustainable transport and mobility solutions."
+        />
 
-      {/* Intro section */}
-      <IntroSection
-        image={eventImage}
-        subtext1={t('cleanAirSite.events.section1.text')}
-        imagePosition={'50%'}
-      />
+        {/* Intro section */}
+        <IntroSection
+          image={eventImage}
+          subtext1={t('cleanAirSite.events.section1.text')}
+          imagePosition={'50%'}
+        />
 
-      {/* Events */}
-      {loading ? (
+        {/* Events */}
+        {loading ? (
+          <div
+            style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              position: 'relative',
+              padding: '50px 0'
+            }}>
+            <RotatingLoopIcon />
+          </div>
+        ) : null}
         <div
           style={{
-            width: '100%',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
             position: 'relative',
-            padding: '50px 0'
+            width: '100%',
+            height: 'auto',
+            backgroundColor: '#EDF3FF',
+            display: loading ? 'none' : 'block'
           }}>
-          <RotatingLoopIcon />
-        </div>
-      ) : null}
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: 'auto',
-          backgroundColor: '#EDF3FF',
-          display: loading ? 'none' : 'block'
-        }}>
-        <div className="events">
-          <div className="events-header">
-            <h1 className="events-title">{t('cleanAirSite.events.sectionTitles.upcoming')}</h1>
-            <div className="events-header-buttons">
-              <div style={{ position: 'relative' }}>
-                <button onClick={() => setOpenDate(!openDate)}>
-                  <span style={{ marginRight: '10px' }}>
-                    {t('cleanAirSite.events.dropdowns.date.btnLabel')}
-                  </span>{' '}
-                  <KeyboardArrowDownIcon />
-                </button>
-                <Slide direction="down" in={openDate}>
-                  <ul
-                    className="drop-down-list"
-                    ref={dateRef}
-                    style={{
-                      left: window.innerWidth < 768 ? '0' : ''
-                    }}>
-                    {dates.map((date) => (
-                      <li
-                        key={date.value}
-                        style={{
-                          backgroundColor: date.value === selectedDate ? '#EBF5FF' : ''
-                        }}
-                        onClick={() => handleDateSelect(date.value)}>
-                        {date.month}
-                        {date.value === selectedDate && (
-                          <DoneIcon sx={{ stroke: '#145FFF', width: '16px', height: '16px' }} />
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </Slide>
-              </div>
-              <div style={{ position: 'relative' }}>
-                <button onClick={() => setOpenFilter(!openFilter)}>
-                  <FilterListIcon />{' '}
-                  <span style={{ marginLeft: '10px' }}>
-                    {t('cleanAirSite.events.dropdowns.filter.btnLabel')}
-                  </span>
-                </button>
-                <Slide direction="down" in={openFilter}>
-                  <ul
-                    className="drop-down-list"
-                    ref={filterRef}
-                    style={{
-                      left: window.innerWidth < 768 ? '0' : ''
-                    }}>
-                    <div className="label">{t('cleanAirSite.events.dropdowns.filter.label1')}</div>
-                    <div>
-                      {filterOption1.map((option) => (
+          <div className="events">
+            <div className="events-header">
+              <h1 className="events-title">{t('cleanAirSite.events.sectionTitles.upcoming')}</h1>
+              <div className="events-header-buttons">
+                <div style={{ position: 'relative' }}>
+                  <button onClick={() => setOpenDate(!openDate)}>
+                    <span style={{ marginRight: '10px' }}>
+                      {t('cleanAirSite.events.dropdowns.date.btnLabel')}
+                    </span>{' '}
+                    <KeyboardArrowDownIcon />
+                  </button>
+                  <Slide direction="down" in={openDate}>
+                    <ul
+                      className="drop-down-list"
+                      ref={dateRef}
+                      style={{
+                        left: window.innerWidth < 768 ? '0' : ''
+                      }}>
+                      {dates.map((date) => (
                         <li
-                          key={option.value}
+                          key={date.value}
                           style={{
-                            backgroundColor: option.value === filter ? '#EBF5FF' : ''
+                            backgroundColor: date.value === selectedDate ? '#EBF5FF' : ''
                           }}
-                          onClick={() => {
-                            handleFilterSelect(option.value);
-                          }}>
-                          {option.label}
-                          {option.value === filter && (
+                          onClick={() => handleDateSelect(date.value)}>
+                          {date.month}
+                          {date.value === selectedDate && (
                             <DoneIcon sx={{ stroke: '#145FFF', width: '16px', height: '16px' }} />
                           )}
                         </li>
                       ))}
-                    </div>
-                    <div className="label">{t('cleanAirSite.events.dropdowns.filter.label2')}</div>
-                    <div>
-                      {filterOption2.map((option) => (
-                        <li
-                          key={option.value}
-                          style={{
-                            backgroundColor: option.value === filter ? '#EBF5FF' : ''
-                          }}
-                          onClick={() => {
-                            setFilter(option.value);
-                            setOpenFilter(false);
-                          }}>
-                          {option.label}
-                          {option.value === filter && (
-                            <DoneIcon sx={{ stroke: '#145FFF', width: '16px', height: '16px' }} />
-                          )}
-                        </li>
-                      ))}
-                    </div>
-                  </ul>
-                </Slide>
+                    </ul>
+                  </Slide>
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <button onClick={() => setOpenFilter(!openFilter)}>
+                    <FilterListIcon />{' '}
+                    <span style={{ marginLeft: '10px' }}>
+                      {t('cleanAirSite.events.dropdowns.filter.btnLabel')}
+                    </span>
+                  </button>
+                  <Slide direction="down" in={openFilter}>
+                    <ul
+                      className="drop-down-list"
+                      ref={filterRef}
+                      style={{
+                        left: window.innerWidth < 768 ? '0' : ''
+                      }}>
+                      <div className="label">
+                        {t('cleanAirSite.events.dropdowns.filter.label1')}
+                      </div>
+                      <div>
+                        {filterOption1.map((option) => (
+                          <li
+                            key={option.value}
+                            style={{
+                              backgroundColor: option.value === filter ? '#EBF5FF' : ''
+                            }}
+                            onClick={() => {
+                              handleFilterSelect(option.value);
+                            }}>
+                            {option.label}
+                            {option.value === filter && (
+                              <DoneIcon sx={{ stroke: '#145FFF', width: '16px', height: '16px' }} />
+                            )}
+                          </li>
+                        ))}
+                      </div>
+                      <div className="label">
+                        {t('cleanAirSite.events.dropdowns.filter.label2')}
+                      </div>
+                      <div>
+                        {filterOption2.map((option) => (
+                          <li
+                            key={option.value}
+                            style={{
+                              backgroundColor: option.value === filter ? '#EBF5FF' : ''
+                            }}
+                            onClick={() => {
+                              setFilter(option.value);
+                              setOpenFilter(false);
+                            }}>
+                            {option.label}
+                            {option.value === filter && (
+                              <DoneIcon sx={{ stroke: '#145FFF', width: '16px', height: '16px' }} />
+                            )}
+                          </li>
+                        ))}
+                      </div>
+                    </ul>
+                  </Slide>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="event-cards">
-            {currentUpcomingEvents.length > 0 ? (
-              <>
-                {currentUpcomingEvents.map((event) => (
-                  <div className="event-card" key={event.id}>
-                    <img
-                      src={event.event_image}
-                      alt="Event Image"
-                      className="event-image"
-                      loading="lazy"
-                    />
-                    <div className="even-card-details">
-                      <h2 className="event-title">
-                        {event.title.length > 50 ? event.title.slice(0, 50) + '...' : event.title}
-                      </h2>
-                      <p className="event-subtitle">
-                        {event.title_subtext.length > 100
-                          ? event.title_subtext.slice(0, 100) + '...'
-                          : event.title_subtext}
-                      </p>
-                      <p className="event-date">
-                        {format(new Date(event.start_date), 'dd MMMM, yyyy')}
-                      </p>
-                      <button className="event-button" onClick={routeToDetails(event)}>
-                        {t('cleanAirSite.events.card.btnText')}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {/* Pagination */}
-                <Pagination
-                  currentPage={currentUpcomingPage}
-                  setCurrentPage={setCurrentUpcomingPage}
-                  totalPages={totalUpcomingPages}
-                />
-              </>
-            ) : (
-              <div className="no-events">
-                <p>{t('cleanAirSite.events.noEvents')}</p>
-              </div>
-            )}
-          </div>
-
-          <hr />
-
-          <div className="events-header">
-            <h1 className="events-title">{t('cleanAirSite.events.sectionTitles.past')}</h1>
-            <div>
-              <button
-                onClick={() => {
-                  setHideEvents(!hideEvents);
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  outline: 'none'
-                }}>
-                <KeyboardArrowDownIcon />
-              </button>
-            </div>
-          </div>
-          {hideEvents && (
             <div className="event-cards">
-              {currentPastEvents.length > 0 ? (
+              {currentUpcomingEvents.length > 0 ? (
                 <>
-                  {currentPastEvents.map((event) => (
+                  {currentUpcomingEvents.map((event) => (
                     <div className="event-card" key={event.id}>
                       <img
                         src={event.event_image}
@@ -385,7 +328,7 @@ const CleanAirEvents = () => {
                         className="event-image"
                         loading="lazy"
                       />
-                      <div className="even-card-details" onClick={routeToDetails(event)}>
+                      <div className="even-card-details">
                         <h2 className="event-title">
                           {event.title.length > 50 ? event.title.slice(0, 50) + '...' : event.title}
                         </h2>
@@ -394,8 +337,10 @@ const CleanAirEvents = () => {
                             ? event.title_subtext.slice(0, 100) + '...'
                             : event.title_subtext}
                         </p>
-                        <p className="event-date">{event.date}</p>
-                        <button className="event-button">
+                        <p className="event-date">
+                          {format(new Date(event.start_date), 'dd MMMM, yyyy')}
+                        </p>
+                        <button className="event-button" onClick={routeToDetails(event)}>
                           {t('cleanAirSite.events.card.btnText')}
                         </button>
                       </div>
@@ -403,9 +348,9 @@ const CleanAirEvents = () => {
                   ))}
                   {/* Pagination */}
                   <Pagination
-                    currentPage={currentPastPage}
-                    setCurrentPage={setCurrentPastPage}
-                    totalPages={totalPastPages}
+                    currentPage={currentUpcomingPage}
+                    setCurrentPage={setCurrentUpcomingPage}
+                    totalPages={totalUpcomingPages}
                   />
                 </>
               ) : (
@@ -414,13 +359,77 @@ const CleanAirEvents = () => {
                 </div>
               )}
             </div>
-          )}
-        </div>
-      </div>
 
-      {/* Register Membership */}
-      <RegisterSection link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform" />
-    </div>
+            <hr />
+
+            <div className="events-header">
+              <h1 className="events-title">{t('cleanAirSite.events.sectionTitles.past')}</h1>
+              <div>
+                <button
+                  onClick={() => {
+                    setHideEvents(!hideEvents);
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}>
+                  <KeyboardArrowDownIcon />
+                </button>
+              </div>
+            </div>
+            {hideEvents && (
+              <div className="event-cards">
+                {currentPastEvents.length > 0 ? (
+                  <>
+                    {currentPastEvents.map((event) => (
+                      <div className="event-card" key={event.id}>
+                        <img
+                          src={event.event_image}
+                          alt="Event Image"
+                          className="event-image"
+                          loading="lazy"
+                        />
+                        <div className="even-card-details" onClick={routeToDetails(event)}>
+                          <h2 className="event-title">
+                            {event.title.length > 50
+                              ? event.title.slice(0, 50) + '...'
+                              : event.title}
+                          </h2>
+                          <p className="event-subtitle">
+                            {event.title_subtext.length > 100
+                              ? event.title_subtext.slice(0, 100) + '...'
+                              : event.title_subtext}
+                          </p>
+                          <p className="event-date">{event.date}</p>
+                          <button className="event-button">
+                            {t('cleanAirSite.events.card.btnText')}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {/* Pagination */}
+                    <Pagination
+                      currentPage={currentPastPage}
+                      setCurrentPage={setCurrentPastPage}
+                      totalPages={totalPastPages}
+                    />
+                  </>
+                ) : (
+                  <div className="no-events">
+                    <p>{t('cleanAirSite.events.noEvents')}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Register Membership */}
+        <RegisterSection link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform" />
+      </div>
+    </CleanAirPageContainer>
   );
 };
 
