@@ -177,7 +177,12 @@ const Index = () => {
             marginBottom: 20
           }}>
           <div>
-            <h3>Client Management</h3>
+            <h3
+              style={{
+                fontSize: window.innerWidth < 600 ? '1.5rem' : '2rem'
+              }}>
+              Client Management
+            </h3>
           </div>
           <div>
             <Button
@@ -211,25 +216,29 @@ const Index = () => {
               render: (row) => (
                 <div>
                   {row.isActive ? (
-                    <span
+                    <div
                       style={{
                         color: 'white',
                         padding: '6px',
                         borderRadius: '10px',
-                        background: 'green'
+                        background: 'green',
+                        textAlign: 'center',
+                        maxWidth: '130px'
                       }}>
                       Activated
-                    </span>
+                    </div>
                   ) : (
-                    <span
+                    <div
                       style={{
                         color: 'white',
                         padding: '6px',
                         borderRadius: '10px',
-                        background: 'red'
+                        background: 'red',
+                        textAlign: 'center',
+                        maxWidth: '130px'
                       }}>
                       Not Activated
-                    </span>
+                    </div>
                   )}
                 </div>
               )
@@ -238,8 +247,12 @@ const Index = () => {
               field: 'actions',
               title: 'Actions',
               render: (row) => (
-                <div>
-                  <span
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'center'
+                  }}>
+                  <div
                     style={{
                       margin: 2
                     }}>
@@ -257,13 +270,13 @@ const Index = () => {
                       }}>
                       Activate
                     </Button>
-                  </span>
-                  <span
+                  </div>
+                  <div
                     style={{
                       margin: 2
                     }}>
                     <Button
-                      disabled={true}
+                      disabled={!row.isActive}
                       variant="contained"
                       color="primary"
                       size="small"
@@ -273,7 +286,7 @@ const Index = () => {
                       }}>
                       Deactivate
                     </Button>
-                  </span>
+                  </div>
                 </div>
               )
             }
