@@ -31,7 +31,7 @@ const CleanAirPublications = () => {
    * @description set the active resource in the redux store
    */
   useEffect(() => {
-    dispatch(setActiveResource(t('cleanAirSite.publications.navs.toolkits')));
+    dispatch(setActiveResource(t('cleanAirSite.events.dropdowns.filter.options1.1')));
   }, [dispatch, language]);
 
   /**
@@ -39,6 +39,7 @@ const CleanAirPublications = () => {
    * @type {Array}
    */
   const resources = [
+    t('cleanAirSite.events.dropdowns.filter.options1.1'),
     t('cleanAirSite.publications.navs.toolkits'),
     t('cleanAirSite.publications.navs.reports'),
     t('cleanAirSite.publications.navs.workshops'),
@@ -122,7 +123,7 @@ const CleanAirPublications = () => {
             authors_title={item.author_title}
             authors={item.resource_authors}
             link={item.resource_link}
-            resourceCategory={activeResource}
+            resourceCategory={item.resource_category.replace(/_/g, ' ')}
             linkTitle={item.link_title || t('cleanAirSite.publications.cardBtnText')}
             showSecondAuthor={showSecondAuthor}
             resourceFile={item.resource_file}
@@ -221,6 +222,9 @@ const CleanAirPublications = () => {
             </div>
           </div>
           <div className="resource-body">
+            {activeResource === t('cleanAirSite.events.dropdowns.filter.options1.1') && (
+              <div className="reports">{renderData(cleanAirResources, false)}</div>
+            )}
             {activeResource === t('cleanAirSite.publications.navs.toolkits') && (
               <div className="reports">{renderData(toolkitData, false)}</div>
             )}
