@@ -12,6 +12,7 @@ import { Link, useLocation } from 'react-router-dom';
  */
 const SecondaryNavComponent = ({ disabledTabs }) => {
   const { t } = useTranslation();
+  const activeTab = useSelector((state) => state.cleanAirData.activeTab);
   const tabs = [
     t('cleanAirSite.subNav.about'),
     t('cleanAirSite.subNav.membership'),
@@ -22,6 +23,7 @@ const SecondaryNavComponent = ({ disabledTabs }) => {
   const location = useLocation();
 
   useEffect(() => {
+    dispatch(setActiveTab(tabs[0]));
     const currentTab = tabs.findIndex((tab) => location.pathname.includes(tab.toLowerCase()));
     if (currentTab !== -1 && !disabledTabs.includes(currentTab)) {
       dispatch(setActiveTab(tabs[currentTab]));
@@ -34,9 +36,9 @@ const SecondaryNavComponent = ({ disabledTabs }) => {
         {tabs.map((tab, index) => (
           <Link to={`/clean-air/${tab.toLowerCase()}`} key={index}>
             <li
-              className={`${location.pathname.includes(tab.toLowerCase()) ? 'active' : ''} ${
-                disabledTabs.includes(index) ? 'disabled' : ''
-              }`}
+              className={`${
+                location.pathname.includes(tab.toLowerCase()) || activeTab === tab ? 'active' : ''
+              } ${disabledTabs.includes(index) ? 'disabled' : ''}`}
               onClick={() => {
                 if (!disabledTabs.includes(index)) {
                   dispatch(setActiveTab(tab));
