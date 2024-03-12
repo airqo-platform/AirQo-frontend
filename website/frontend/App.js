@@ -122,6 +122,7 @@ const App = () => {
               <Route path="/products/api" element={<APIPage />} />
               <Route path="/download-apps" element={<QRCodeRedirectPage />} />
               <Route path="/products/calibrate" element={<CalibrationPage />} />
+              <Route path="/clean-air" element={<CleanAirPage />} />
               <Route path="/clean-air/about" element={<CleanAirPage />} />
               <Route path="/clean-air/membership" element={<CleanAirMemberPage />} />
               <Route path="/clean-air/events" element={<CleanAirEventsPage />} />
