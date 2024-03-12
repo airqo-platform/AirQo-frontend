@@ -11,8 +11,9 @@ const Button = ({
   color,
   bgColor,
   Icon,
+  paddingStyles = 'px-4 py-3',
 }) => {
-  let buttonClass = `flex justify-center items-center px-4 py-3 rounded sm:gap-1 ${className}`;
+  let buttonClass = `flex justify-center items-center ${paddingStyles} rounded sm:gap-1 ${className}`;
   let textColor = '';
   let backgroundColor = '';
   let border = '';
@@ -28,6 +29,8 @@ const Button = ({
   } else if (variant === 'disabled') {
     backgroundColor = 'bg-secondary-neutral-light-100';
     textColor = 'text-secondary-neutral-light-600';
+  } else if (variant === 'primaryText') {
+    textColor = 'text-blue-600';
   }
 
   if (bgColor) {

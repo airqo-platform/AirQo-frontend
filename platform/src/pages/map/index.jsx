@@ -13,29 +13,57 @@ const index = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const [showSideBar, setShowSideBar] = useState(true);
-  const siteData = useSelector((state) => state.grids?.sitesSummary);
+  const siteData = useSelector((state) => state.grids.sitesSummary);
   const isAdmin = true;
-  const preferenceData = useSelector((state) => state.defaults?.individual_preferences);
   const [pollutant, setPollutant] = useState('pm2_5');
-
-  /**
-   * Selected sites
-   */
-  const selectedSites = preferenceData
-    ? preferenceData.map((pref) => pref.selected_sites).flat()
-    : [];
+  const preferences = useSelector((state) => state.defaults.individual_preferences) || [];
+  const [selectedSites, setSelectedSites] = useState([]);
+  const chartSites = useSelector((state) => state.chart.chartSites);
 
   /**
    * Site details
    */
   const siteDetails = siteData?.sites || [];
 
+  useEffect(() => {
+    const preferencesSelectedSitesData = preferences
+      ? preferences.map((pref) => pref.selected_sites).flat()
+      : [];
+    if (preferencesSelectedSitesData.length === 0) {
+      if (siteDetails) {
+        siteDetails.forEach((site) => {
+          if (chartSites.includes(site.site_id)) {
+            setSelectedSites((prev) => [...prev, site]);
+          }
+        });
+      }
+    } else {
+      setSelectedSites(preferencesSelectedSitesData);
+    }
+  }, [preferences, siteDetails]);
+
+  useEffect(() => {
+    const storedUserLocation = localStorage.getItem('userLocation')
+      ? JSON.parse(localStorage.getItem('userLocation'))
+      : null;
+    if (!storedUserLocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        localStorage.setItem(
+          'userLocation',
+          JSON.stringify({ lat: position.coords.latitude, long: position.coords.longitude }),
+        );
+      });
+    }
+  }, [siteData]);
+
   /**
    * Fetch site details
    * @returns {void}
    */
   useEffect(() => {
-    dispatch(getSitesSummary());
+    if (!siteDetails) {
+      dispatch(getSitesSummary());
+    }
   }, []);
 
   /**
@@ -62,24 +90,27 @@ const index = () => {
   return (
     <MapLayout noTopNav={false}>
       <div className='relative flex w-full h-full'>
-        {showSideBar && (
-          <Sidebar
-            siteDetails={siteDetails}
-            selectedSites={selectedSites}
-            isAdmin={isAdmin}
-            showSideBar={showSideBar}
-            setShowSideBar={setShowSideBar}
-          />
-        )}
+        <div>
+          {showSideBar && (
+            <Sidebar
+              siteDetails={siteDetails}
+              selectedSites={selectedSites}
+              isAdmin={isAdmin}
+              showSideBar={showSideBar}
+              setShowSideBar={setShowSideBar}
+            />
+          )}
+        </div>
         <div className={`${showSideBar ? 'hidden' : ''} relative left-4 z-50 md:block`}>
-          <div className={`absolute bottom-2`} style={{ zIndex: 900 }}>
+          <div className={`absolute bottom-2 z-[900]`} style={{ zIndex: 900 }}>
             <AirQualityLegend pollutant={pollutant} />
           </div>
-          <div className={`absolute top-4`}>
+          <div className={`absolute top-4 lg:hidden`}>
             <div className='flex flex-col space-y-4'>
               <button
-                className={`inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md lg:hidden`}
-                onClick={() => setShowSideBar(!showSideBar)}>
+                className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
+                onClick={() => setShowSideBar(!showSideBar)}
+              >
                 <MenuIcon />
               </button>
             </div>
