@@ -87,7 +87,7 @@ const LanguageSwitcher = () => {
         <div className="clean-air-link">
           <p className="desktop-view">
             {t('topBanners.languageSwitcher.cleanAirText')}
-            <Link to="/clean-air">
+            <Link to="/clean-air/about">
               <span>
                 {t('topBanners.languageSwitcher.linkText')}
                 <ArrowRightAltIcon

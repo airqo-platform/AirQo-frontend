@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setActiveTab } from '../../../../reduxStore/CleanAirNetwork/CleanAir';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
+import { Link, useLocation } from 'react-router-dom';
 
 /**
  * @description Secondary navigation component for the CleanAir site
@@ -18,34 +19,32 @@ const SecondaryNavComponent = ({ disabledTabs }) => {
     t('cleanAirSite.subNav.resources')
   ];
   const dispatch = useDispatch();
-  const activeTab = useSelector((state) => state.cleanAirData.activeTab);
-  const [selectedTab, setSelectedTab] = useState(tabs[0]);
+  const location = useLocation();
 
   useEffect(() => {
-    setSelectedTab(activeTab);
-  }, []);
-
-  const handleTabClick = (tab) => {
-    if (!disabledTabs.includes(tab)) {
-      setSelectedTab(tab);
-      dispatch(setActiveTab(tab));
+    const currentTab = tabs.findIndex((tab) => location.pathname.includes(tab.toLowerCase()));
+    if (currentTab !== -1 && !disabledTabs.includes(currentTab)) {
+      dispatch(setActiveTab(tabs[currentTab]));
     }
-  };
+  }, [location, dispatch, tabs, disabledTabs]);
 
   return (
     <div className="header-subnav">
       <ul className="tabs">
         {tabs.map((tab, index) => (
-          <li
-            key={index}
-            className={`${selectedTab === index ? 'active' : ''} ${
-              disabledTabs.includes(index) ? 'disabled' : ''
-            }`}
-            onClick={() => {
-              handleTabClick(index);
-            }}>
-            <span>{tab}</span>
-          </li>
+          <Link to={`/clean-air/${tab.toLowerCase()}`} key={index}>
+            <li
+              className={`${location.pathname.includes(tab.toLowerCase()) ? 'active' : ''} ${
+                disabledTabs.includes(index) ? 'disabled' : ''
+              }`}
+              onClick={() => {
+                if (!disabledTabs.includes(index)) {
+                  dispatch(setActiveTab(tab));
+                }
+              }}>
+              <span>{tab}</span>
+            </li>
+          </Link>
         ))}
       </ul>
     </div>
