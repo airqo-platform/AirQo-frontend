@@ -40,7 +40,7 @@ const index = () => {
     } else {
       setSelectedSites(preferencesSelectedSitesData);
     }
-  }, [preferences, siteDetails]);
+  }, [preferences, chartSites]);
 
   useEffect(() => {
     const storedUserLocation = localStorage.getItem('userLocation')

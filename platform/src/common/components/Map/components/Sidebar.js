@@ -234,13 +234,15 @@ const WeekPrediction = ({ siteDetails, currentDay, airQualityReadings, weekDays 
         </Button>
 
         {openDatePicker && (
-          <Calendar
-            handleValueChange={handleDateValueChange}
-            closeDatePicker={() => setOpenDatePicker(false)}
-            initialMonth1={new Date()}
-            initialMonth2={new Date()}
-            useRange={false}
-          />
+          <div className='absolute z-[900]'>
+            <Calendar
+              handleValueChange={handleDateValueChange}
+              closeDatePicker={() => setOpenDatePicker(false)}
+              initialMonth1={new Date()}
+              initialMonth2={new Date()}
+              useRange={false}
+            />
+          </div>
         )}
       </div>
       <div className='flex justify-between items-center gap-2'>

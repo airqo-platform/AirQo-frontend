@@ -102,9 +102,7 @@ const Calendar = ({
             className={`
               w-10 h-10 text-sm flex justify-center items-center 
               ${
-                selectedDays.includes(day) ||
-                isStartOrEndDay ||
-                (showAsSingle && !useRange && isSameDay(day, selectedRange.start))
+                selectedDays.includes(day) || isStartOrEndDay
                   ? 'bg-blue-600 dark:bg-blue-500 rounded-full text-red-50 hover:text-red-50'
                   : ''
               }
