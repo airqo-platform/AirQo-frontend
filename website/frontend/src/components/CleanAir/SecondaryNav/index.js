@@ -5,46 +5,42 @@ import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 
-/**
- * @description Secondary navigation component for the CleanAir site
- * @param {Array} disabledTabs
- * @returns {JSX.Element}
- */
 const SecondaryNavComponent = ({ disabledTabs }) => {
   const { t } = useTranslation();
   const activeTab = useSelector((state) => state.cleanAirData.activeTab);
   const tabs = [
-    t('cleanAirSite.subNav.about'),
-    t('cleanAirSite.subNav.membership'),
-    t('cleanAirSite.subNav.events'),
-    t('cleanAirSite.subNav.resources')
+    { label: t('cleanAirSite.subNav.about'), linkName: 'about' },
+    { label: t('cleanAirSite.subNav.membership'), linkName: 'membership' },
+    { label: t('cleanAirSite.subNav.events'), linkName: 'events' },
+    { label: t('cleanAirSite.subNav.resources'), linkName: 'resources' }
   ];
+
   const dispatch = useDispatch();
   const location = useLocation();
-
   useEffect(() => {
-    dispatch(setActiveTab(tabs[0]));
-    const currentTab = tabs.findIndex((tab) => location.pathname.includes(tab.toLowerCase()));
+    const currentTab = tabs.findIndex((tab) => location.pathname.includes(tab.linkName));
     if (currentTab !== -1 && !disabledTabs.includes(currentTab)) {
       dispatch(setActiveTab(tabs[currentTab]));
     }
-  }, [location, dispatch, tabs, disabledTabs]);
+  }, [location]); // Only re-run the effect if location changes
 
   return (
     <div className="header-subnav">
       <ul className="tabs">
         {tabs.map((tab, index) => (
-          <Link to={`/clean-air/${tab.toLowerCase()}`} key={index}>
+          <Link to={`/clean-air/${tab.linkName}`} key={index}>
             <li
               className={`${
-                location.pathname.includes(tab.toLowerCase()) || activeTab === tab ? 'active' : ''
+                location.pathname.includes(tab.linkName) || activeTab.linkName === tab.linkName
+                  ? 'active'
+                  : ''
               } ${disabledTabs.includes(index) ? 'disabled' : ''}`}
               onClick={() => {
                 if (!disabledTabs.includes(index)) {
                   dispatch(setActiveTab(tab));
                 }
               }}>
-              <span>{tab}</span>
+              <span>{tab.label}</span>
             </li>
           </Link>
         ))}
