@@ -22,7 +22,7 @@ const SecondaryNavComponent = ({ disabledTabs }) => {
     if (currentTab !== -1 && !disabledTabs.includes(currentTab)) {
       dispatch(setActiveTab(tabs[currentTab]));
     }
-  }, [location]); // Only re-run the effect if location changes
+  }, [location]);
 
   return (
     <div className="header-subnav">
@@ -31,9 +31,7 @@ const SecondaryNavComponent = ({ disabledTabs }) => {
           <Link to={`/clean-air/${tab.linkName}`} key={index}>
             <li
               className={`${
-                location.pathname.includes(tab.linkName) || activeTab.linkName === tab.linkName
-                  ? 'active'
-                  : ''
+                location.pathname.includes(tab.linkName) || activeTab === index ? 'active' : ''
               } ${disabledTabs.includes(index) ? 'disabled' : ''}`}
               onClick={() => {
                 if (!disabledTabs.includes(index)) {
