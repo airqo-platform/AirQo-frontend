@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import CalendarIcon from '@/icons/calendar.svg';
 import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
 import { useSelector, useDispatch } from 'react-redux';
 import { setChartDataRange } from '@/lib/store/services/charts/ChartSlice';
 import Calendar from './Calendar';
+import useOutsideClick from '@/core/utils/useOutsideClick';
 import {
   differenceInDays,
   isSameDay,
@@ -15,15 +16,19 @@ import {
   subDays,
 } from 'date-fns';
 
-const CustomCalendar = ({
-  initialStartDate,
-  initialEndDate,
-  id,
-  Icon,
-  dropdown,
-  position,
-  className,
-}) => {
+/**
+ * @param {Object} props
+ * @param {Date} props.initialStartDate
+ * @param {Date} props.initialEndDate
+ *  @param {String} props.id
+ * @param {Function} props.Icon
+ * @param {Boolean} props.dropdown
+ * @param {String} props.position
+ * @param {String} props.className
+ * @returns {JSX.Element}
+ * @description CustomCalendar component
+ */
+const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, className }) => {
   const dispatch = useDispatch();
   const [openDatePicker, setOpenDatePicker] = useState(false);
   const chartData = useSelector((state) => state.chart);
@@ -32,6 +37,14 @@ const CustomCalendar = ({
     endDate: initialEndDate,
   });
 
+  /**
+   * @returns {void}
+   * @description Handles the value change
+   * @param {Object} newValue
+   * @param {Date} newValue.start
+   * @param {Date} newValue.end
+   * @returns {void}
+   */
   const handleValueChange = (newValue) => {
     const handleDateChange = (newValue) => {
       const startDate = new Date(newValue.start);
@@ -88,6 +101,12 @@ const CustomCalendar = ({
     handleDateChange(newValue);
   };
 
+  /**
+   * @returns {void}
+   * @description Renders the hidden input for the date picker
+   * @returns {JSX.Element}
+   * @description DatePickerHiddenInput component
+   */
   const DatePickerHiddenInput = () => (
     <Calendar
       initialMonth1={new Date(2023, 1)}
@@ -96,37 +115,33 @@ const CustomCalendar = ({
       closeDatePicker={() => setOpenDatePicker(false)}
     />
   );
+
+  /**
+   * @returns {void}
+   * @description Handles the click event
+   * @param {Event} event
+   */
   const handleClick = (event) => {
     event.stopPropagation();
     setOpenDatePicker(!openDatePicker);
   };
 
-  const handleClickOutside = (event) => {
-    if (event.target.closest('.date-picker-container') === null) {
-      setOpenDatePicker(false);
-    }
-  };
-
-  useEffect(() => {
-    if (openDatePicker) {
-      document.addEventListener('click', handleClickOutside);
-      localStorage.setItem('collapsed', true);
-    } else {
-      document.removeEventListener('click', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, [openDatePicker]);
+  /**
+   * @returns {void}
+   * @description Handles the outside click event
+   * @param {String} selector
+   * @param {Function} callback
+   */
+  useOutsideClick('.date-picker-container', () => {
+    setOpenDatePicker(false);
+  });
 
   return (
     <div className='relative cursor-pointer date-picker-container'>
       <button
         onClick={handleClick}
         type='button'
-        className='relative border border-grey-750 rounded flex items-center justify-between gap-2 px-4 py-3'
-      >
+        className='relative border border-grey-750 rounded flex items-center justify-between gap-2 px-4 py-3'>
         {Icon ? <Icon /> : <CalendarIcon />}
         <span className='hidden sm:inline-block text-sm font-medium'>
           {chartData.chartDataRange.label}
@@ -136,8 +151,7 @@ const CustomCalendar = ({
       <div
         className={`absolute top-[50px] z-[900] ${className} ${
           openDatePicker ? 'block' : 'hidden'
-        }`}
-      >
+        }`}>
         <DatePickerHiddenInput />
       </div>
     </div>
