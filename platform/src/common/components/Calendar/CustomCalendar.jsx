@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import CalendarIcon from '@/icons/calendar.svg';
 import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
 import { useSelector, useDispatch } from 'react-redux';
@@ -29,6 +29,7 @@ import {
  * @description CustomCalendar component
  */
 const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, className }) => {
+  const containerRef = useRef(null);
   const dispatch = useDispatch();
   const [openDatePicker, setOpenDatePicker] = useState(false);
   const chartData = useSelector((state) => state.chart);
@@ -132,12 +133,12 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
    * @param {String} selector
    * @param {Function} callback
    */
-  useOutsideClick('.date-picker-container', () => {
+  useOutsideClick(containerRef, () => {
     setOpenDatePicker(false);
   });
 
   return (
-    <div className='relative cursor-pointer date-picker-container'>
+    <div className='relative cursor-pointer date-picker-container' ref={containerRef}>
       <button
         onClick={handleClick}
         type='button'
