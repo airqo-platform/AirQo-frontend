@@ -26,19 +26,13 @@ const index = () => {
   const siteDetails = siteData?.sites || [];
 
   useEffect(() => {
-    const preferencesSelectedSitesData = preferences
-      ? preferences.map((pref) => pref.selected_sites).flat()
-      : [];
-    if (preferencesSelectedSitesData.length === 0) {
-      if (siteDetails) {
-        siteDetails.forEach((site) => {
-          if (chartSites.includes(site.site_id)) {
-            setSelectedSites((prev) => [...prev, site]);
-          }
-        });
-      }
-    } else {
+    const preferencesSelectedSitesData = preferences?.map((pref) => pref.selected_sites).flat();
+
+    if (preferencesSelectedSitesData?.length > 0) {
       setSelectedSites(preferencesSelectedSitesData);
+    } else if (siteDetails) {
+      const selectedSites = siteDetails.filter((site) => chartSites.includes(site.site_id));
+      setSelectedSites(selectedSites);
     }
   }, [preferences, chartSites]);
 
@@ -109,8 +103,7 @@ const index = () => {
             <div className='flex flex-col space-y-4'>
               <button
                 className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-                onClick={() => setShowSideBar(!showSideBar)}
-              >
+                onClick={() => setShowSideBar(!showSideBar)}>
                 <MenuIcon />
               </button>
             </div>

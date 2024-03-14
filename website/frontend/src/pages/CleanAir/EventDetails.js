@@ -10,9 +10,11 @@ import PageMini from '../PageMini';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from 'src/components/LanguageSwitcher';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const EventDetails = () => {
   useInitScrollTop();
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const { uniqueTitle } = useParams();
 
@@ -43,11 +45,16 @@ const EventDetails = () => {
                     }}>
                     <div className="content">
                       <div className="breadcrumb">
-                        <span>
-                          <Link to="/clean-air">
-                            {t('cleanAirSite.eventsDetails.header.breadCrumb')}
-                          </Link>
-                        </span>
+                        <button
+                          onClick={() => navigate(-1)}
+                          style={{
+                            color: '#A8B2C7',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer'
+                          }}>
+                          {t('cleanAirSite.eventsDetails.header.breadCrumb')}
+                        </button>
                         <span style={{ fontFamily: 'monospace' }}>{'>'}</span>
                         <span style={{ color: '#A8B2C7' }}>{event.title}</span>
                       </div>
