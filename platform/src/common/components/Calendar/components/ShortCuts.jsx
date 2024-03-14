@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   startOfDay,
   endOfDay,
@@ -43,6 +43,12 @@ const timePeriods = [
   },
 ];
 
+/**
+ * @param {Object} props
+ * @param {Function} props.setSelectedRange
+ * @returns {JSX.Element}
+ * @description ShortCuts component
+ */
 const ShortCuts = ({ setSelectedRange }) => {
   const handleShortcutClick = (range) => {
     setSelectedRange({ start: range()[0], end: range()[1] });
