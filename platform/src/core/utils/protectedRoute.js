@@ -48,7 +48,6 @@ export default function withAuth(Component) {
 
       // Check the status of the updateUserChecklists request
       if (updateUserChecklists.rejected.match(action)) {
-        setIsLoading(false);
         return;
       }
 
