@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   format,
   startOfMonth,
@@ -22,8 +22,7 @@ const Calendar = ({
   initialMonth2,
   handleValueChange,
   closeDatePicker,
-  showAsSingle = false,
-  useRange = true,
+  showTwoCalendars = true,
 }) => {
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const [selectedDays1, setSelectedDays1] = useState([]);
@@ -32,34 +31,38 @@ const Calendar = ({
   const [month2, setMonth2] = useState(initialMonth2);
   const [selectedRange, setSelectedRange] = useState({ start: null, end: null });
 
-  useEffect(() => {
-    if (!useRange && showAsSingle) {
-      setSelectedRange({ start: new Date(), end: null });
-      setSelectedDays1((prev) => [...prev, new Date()]);
-    }
-  }, [useRange, showAsSingle]);
-
-  const handleDayClick = (day, setSelectedDays) => {
-    if (!useRange) {
-      const newDay = new Date(month2.getFullYear(), month2.getMonth(), day.getDate());
-      setSelectedDays((prev) => [...prev, newDay]);
-      setSelectedRange({ start: newDay, end: null });
-    } else if (!selectedRange.start) {
-      setSelectedDays((prev) => [...prev, day]);
-      setSelectedRange({ start: day, end: null });
-    } else if (!selectedRange.end) {
-      setSelectedDays((prev) => [...prev, day]);
-      if (isBefore(day, selectedRange.start)) {
-        setSelectedRange({ start: day, end: selectedRange.start });
-      } else {
-        setSelectedRange({ start: selectedRange.start, end: day });
-      }
+  /**
+   * @param {Date} day
+   * @param {Function} setSelectedDays
+   * @returns {void}
+   * @description Handles the click event on a day
+   */
+  const handleDayClick = (event, day, setSelectedDays) => {
+    event.stopPropagation();
+    setSelectedDays((prev) => [...prev, day]);
+    if (!showTwoCalendars) {
+      setSelectedRange({ start: day, end: day });
     } else {
-      setSelectedDays([day]);
-      setSelectedRange({ start: day, end: null });
+      if (!selectedRange.start) {
+        setSelectedRange({ start: day, end: null });
+      } else if (!selectedRange.end) {
+        setSelectedRange({
+          start: isBefore(day, selectedRange.start) ? day : selectedRange.start,
+          end: isBefore(day, selectedRange.start) ? selectedRange.start : day,
+        });
+      } else {
+        setSelectedRange({ start: day, end: null });
+      }
     }
   };
 
+  /**
+   * @param {Date} month
+   * @param {Date[]} selectedDays
+   * @param {Function} setSelectedDays
+   * @returns {JSX.Element[]}
+   * @description Renders the days of the month
+   */
   const renderDays = (month, selectedDays, setSelectedDays) => {
     const startDay = startOfWeek(startOfMonth(month));
     const endDay = endOfWeek(endOfMonth(month));
@@ -69,18 +72,18 @@ const Calendar = ({
     });
 
     return daysOfMonth.map((day, index) => {
-      let isStartOrEndDay =
+      const isStartOrEndDay =
         (selectedRange.start && isSameDay(day, selectedRange.start)) ||
         (selectedRange.end && isSameDay(day, selectedRange.end));
-      let isInBetween =
+      const isInBetween =
         selectedRange.start &&
         selectedRange.end &&
         isWithinInterval(day, selectedRange) &&
         !isStartOrEndDay;
-      let isStartOfWeek = index % 7 === 0;
-      let isEndOfWeek = index % 7 === 6;
-      let isToday = isSameDay(day, new Date());
-      let isCurrentMonth = isSameMonth(day, month);
+      const isStartOfWeek = index % 7 === 0;
+      const isEndOfWeek = index % 7 === 6;
+      const isToday = isSameDay(day, new Date());
+      const isCurrentMonth = isSameMonth(day, month);
 
       return (
         <div
@@ -95,10 +98,9 @@ const Calendar = ({
             (selectedRange.end && isSameDay(day, selectedRange.end)) || isEndOfWeek
               ? 'rounded-r-full'
               : ''
-          }`}
-        >
+          }`}>
           <button
-            onClick={() => handleDayClick(day, setSelectedDays)}
+            onClick={(event) => handleDayClick(event, day, setSelectedDays)}
             className={`
               w-10 h-10 text-sm flex justify-center items-center 
               ${
@@ -115,8 +117,7 @@ const Calendar = ({
               }
               hover:border-blue-600 hover:text-blue-600 hover:rounded-full hover:border dark:hover:border-gray-500 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600 
               disabled:text-gray-300 disabled:pointer-events-none md:w-14 lg:w-16
-            `}
-          >
+            `}>
             {format(day, 'd')}
           </button>
         </div>
@@ -124,98 +125,102 @@ const Calendar = ({
     });
   };
 
+  /**
+   * @param {Date} month
+   * @param {Date[]} selectedDays
+   * @param {Function} setSelectedDays
+   * @param {Function} onNextMonth
+   * @param {Function} onPrevMonth
+   * @returns {JSX.Element}
+   * @description Renders the calendar section
+   */
+  const CalendarSection = ({ month, selectedDays, setSelectedDays, onNextMonth, onPrevMonth }) => (
+    <div className='flex flex-col px-6 pt-5 pb-6'>
+      <CalendarHeader
+        month={format(month, 'MMMM yyyy')}
+        onNext={onNextMonth}
+        onPrev={onPrevMonth}
+      />
+      <div className='grid grid-cols-7 text-xs text-center text-gray-900 space-y-[1px]'>
+        {daysOfWeek.map((day) => (
+          <span
+            key={day}
+            className='flex text-gray-600 items-center justify-center w-10 h-10 font-semibold rounded-lg'>
+            {day}
+          </span>
+        ))}
+        {renderDays(month, selectedDays, setSelectedDays)}
+      </div>
+    </div>
+  );
+
   return (
     <div
       className={
-        !showAsSingle && useRange
+        showTwoCalendars
           ? 'flex flex-col items-center justify-center w-full bg-none md:flex-row mb-10 z-[900]'
           : ''
-      }
-    >
+      }>
       <div
         className={`z-[900] border border-gray-100 bg-white shadow-lg rounded-xl ${
-          !showAsSingle && useRange
+          showTwoCalendars
             ? 'max-w-full min-w-[260px] md:min-w-[660px] lg:min-w-[800px]'
             : 'max-w-[328px] w-full min-w-40'
-        }`}
-      >
+        }`}>
+        {/* Main Body */}
         <div className='flex flex-col'>
           <div className='divide-x flex flex-col md:flex-row lg:flex-row'>
             {/* shortcut section */}
-            {!showAsSingle && useRange && <ShortCuts setSelectedRange={setSelectedRange} />}
+            {showTwoCalendars && <ShortCuts setSelectedRange={setSelectedRange} />}
 
-            {/* calendar section one */}
-            <div className='flex flex-col px-6 pt-5 pb-6'>
-              <CalendarHeader
-                month={format(useRange ? month1 : month2, 'MMMM yyyy')}
-                onNext={() => {
-                  const nextMonth = addMonths(useRange ? month1 : month2, 1);
-                  if (useRange) {
-                    if (!isSameMonth(nextMonth, month2)) {
-                      setMonth1(nextMonth);
-                    }
-                  } else {
+            {/* Calendar One */}
+            <CalendarSection
+              month={month1}
+              selectedDays={selectedDays1}
+              setSelectedDays={setSelectedDays1}
+              onNextMonth={(event) => {
+                event.stopPropagation();
+                const nextMonth = addMonths(month1, 1);
+                if (!showTwoCalendars || !isSameMonth(nextMonth, month2)) {
+                  setMonth1(nextMonth);
+                }
+              }}
+              onPrevMonth={(event) => {
+                event.stopPropagation();
+                const prevMonth = subMonths(month1, 1);
+                if (!showTwoCalendars || !isSameMonth(prevMonth, month2)) {
+                  setMonth1(prevMonth);
+                }
+              }}
+            />
+
+            {/* Calendar two */}
+            {showTwoCalendars && (
+              <CalendarSection
+                month={month2}
+                selectedDays={selectedDays2}
+                setSelectedDays={setSelectedDays2}
+                onNextMonth={(event) => {
+                  event.stopPropagation();
+                  const nextMonth = addMonths(month2, 1);
+                  if (!isSameMonth(nextMonth, month1)) {
                     setMonth2(nextMonth);
                   }
                 }}
-                onPrev={() => {
-                  const prevMonth = subMonths(useRange ? month1 : month2, 1);
-                  if (useRange) {
-                    if (!isSameMonth(prevMonth, month2)) {
-                      setMonth1(prevMonth);
-                    }
-                  } else {
+                onPrevMonth={(event) => {
+                  event.stopPropagation();
+                  const prevMonth = subMonths(month2, 1);
+                  if (!isSameMonth(prevMonth, month1)) {
                     setMonth2(prevMonth);
                   }
                 }}
               />
-              <div className='grid grid-cols-7 text-xs text-center text-gray-900 space-y-[1px]'>
-                {daysOfWeek.map((day) => (
-                  <span
-                    key={day}
-                    className='flex text-gray-600 items-center justify-center w-10 h-10 font-semibold rounded-lg'
-                  >
-                    {day}
-                  </span>
-                ))}
-                {renderDays(month1, selectedDays1, setSelectedDays1, selectedRange)}
-              </div>
-            </div>
-            {/* calendar section two */}
-            {useRange && (
-              <div className='flex flex-col px-6 pt-5 pb-6'>
-                <CalendarHeader
-                  month={format(month2, 'MMMM yyyy')}
-                  onNext={() => {
-                    const nextMonth = addMonths(month2, 1);
-                    if (!isSameMonth(nextMonth, month1)) {
-                      setMonth2(nextMonth);
-                    }
-                  }}
-                  onPrev={() => {
-                    const prevMonth = subMonths(month2, 1);
-                    if (!isSameMonth(prevMonth, month1)) {
-                      setMonth2(prevMonth);
-                    }
-                  }}
-                />
-                <div className='grid grid-cols-7 text-xs text-center text-gray-900 space-y-[1px]'>
-                  {daysOfWeek.map((day) => (
-                    <span
-                      key={day}
-                      className='flex text-gray-600 items-center justify-center w-10 h-10 font-semibold rounded-lg'
-                    >
-                      {day}
-                    </span>
-                  ))}
-                  {renderDays(month2, selectedDays2, setSelectedDays2)}
-                </div>
-              </div>
             )}
           </div>
+
           {/* footer section */}
           <Footer
-            useRange={useRange}
+            showTwoCalendars={showTwoCalendars}
             selectedRange={selectedRange}
             setSelectedRange={setSelectedRange}
             handleValueChange={handleValueChange}

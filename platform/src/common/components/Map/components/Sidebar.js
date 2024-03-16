@@ -240,7 +240,7 @@ const WeekPrediction = ({ siteDetails, currentDay, airQualityReadings, weekDays 
               closeDatePicker={() => setOpenDatePicker(false)}
               initialMonth1={new Date()}
               initialMonth2={new Date()}
-              useRange={false}
+              showTwoCalendars={false}
             />
           </div>
         )}
