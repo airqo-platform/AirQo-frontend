@@ -371,10 +371,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
       setUniqueCountries(newUniqueCountries);
       setCountryData(newCountryData);
     } else {
-      setToastMessage({
-        message: 'Oops! Server down',
-        type: 'error',
-      });
+      console.error('Oops! Unable to load sites and show countries');
     }
   }, [siteDetails]);
 
