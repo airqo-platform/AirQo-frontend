@@ -23,7 +23,7 @@ const createAxiosInstance = (isJWT = true) => {
       } else {
         // Remove the JWT header and use a query parameter
         delete config.headers['Authorization'];
-        config.params = { ...config.params, token: API_TOKEN };
+        config.params = { ...config.params, token: API_TOKEN.trim() };
       }
       // config.withCredentials = true;
       config.baseURL = NEXT_PUBLIC_API_BASE_URL;
