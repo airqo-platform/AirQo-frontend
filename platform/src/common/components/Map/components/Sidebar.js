@@ -449,7 +449,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
       className={`${
         window.innerWidth < 768 ? 'absolute left-0 top-0' : 'relative'
       } w-full md:w-[340px] bg-white shadow-lg shadow-right z-50 overflow-x-hidden ${
-        searchResults && searchResults.length > 0
+        (searchResults && searchResults.length > 0) || showLocationDetails
           ? 'overflow-y-auto map-scrollbar h-full'
           : 'h-screen overflow-y-hidden'
       }`}
@@ -495,32 +495,32 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
             <div className='border border-secondary-neutral-light-100 my-5' />
 
             <div className='overflow-y-auto map-scrollbar'>
-              <div className='flex justify-between items-center px-4'>
-                <div className='flex gap-1'>
-                  <div className='font-medium text-secondary-neutral-dark-400 text-sm'>
-                    Sort by:
+              {selectedSites && selectedSites.length > 0 && (
+                <>
+                  <div className='flex justify-between items-center px-4'>
+                    <div className='flex gap-1'>
+                      <div className='font-medium text-secondary-neutral-dark-400 text-sm'>
+                        Sort by:
+                      </div>
+                      <select className='rounded-md m-0 p-0 text-sm font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none'>
+                        <option value='custom'>Suggested</option>
+                        {/* <option value='near_me'>Near me</option> */}
+                      </select>
+                    </div>
+                    <Button
+                      className='text-sm font-medium'
+                      paddingStyles='p-0'
+                      variant='primaryText'
+                      onClick={() => {}}
+                    >
+                      Filters
+                    </Button>
                   </div>
-                  <select className='rounded-md m-0 p-0 text-sm font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none'>
-                    <option value='custom'>Suggested</option>
-                    {/* <option value='near_me'>Near me</option> */}
-                  </select>
-                </div>
-                <Button
-                  className='text-sm font-medium'
-                  paddingStyles='p-0'
-                  variant='primaryText'
-                  onClick={() => {}}
-                >
-                  Filters
-                </Button>
-              </div>
-              {selectedSites && selectedSites.length > 0 ? (
-                <SectionCards
-                  searchResults={selectedSites}
-                  handleLocationSelect={handleLocationSelect}
-                />
-              ) : (
-                <SearchResultsSkeleton />
+                  <SectionCards
+                    searchResults={selectedSites}
+                    handleLocationSelect={handleLocationSelect}
+                  />
+                </>
               )}
             </div>
           </div>
