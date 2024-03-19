@@ -23,12 +23,46 @@ const Home = () => {
   const [open, setOpen] = useState(false);
 
   const [step, setStep] = useState(0);
-  const totalSteps = 4;
+  const totalSteps = 3;
+
+  const steps = [
+    {
+      label: 'Introduction AirQo Analytics demo video',
+      time: '1 min',
+      link: '#',
+      func: () => handleModel(),
+      disabled: true,
+    },
+    {
+      label: 'Choose location you most interested in',
+      time: '2 min',
+      link: '/analytics',
+      func: () => handleCardClick(1),
+    },
+    {
+      label: 'Complete your AirQo Analytics profile',
+      time: '4 min',
+      link: '/settings',
+      func: () => handleCardClick(2),
+    },
+    {
+      label: 'Practical ways to reduce air pollution',
+      time: '1 min',
+      link: 'https://blog.airqo.net/',
+      func: () => handleCardClick(3),
+    },
+  ];
 
   useEffect(() => {
-    const completedCards = cardCheckList.filter((card) => card.completed === true);
+    const completedCards = cardCheckList.filter((card, index) => {
+      // Skip the disabled step
+      if (steps[index] && steps[index].disabled) {
+        return false;
+      }
+      return card.completed === true;
+    });
     setStep(completedCards.length);
-  }, [cardCheckList]);
+  }, [cardCheckList, steps]);
 
   const handleModel = () => {
     setOpen(!open);
@@ -48,8 +82,8 @@ const Home = () => {
   };
 
   const handleCardClick = (id) => {
-    if (id === 4) {
-      dispatch(completeTask(4));
+    if (id === 3) {
+      dispatch(completeTask(3));
     } else {
       const card = cardCheckList.find((card) => card.id === id);
       if (card) {
@@ -65,33 +99,6 @@ const Home = () => {
       }
     }
   };
-
-  const steps = [
-    {
-      label: 'Introduction AirQo Analytics demo video',
-      time: '1 min',
-      link: '#',
-      func: () => handleModel(),
-    },
-    {
-      label: 'Choose location you most interested in',
-      time: '2 min',
-      link: '/analytics',
-      func: () => handleCardClick(2),
-    },
-    {
-      label: 'Complete your AirQo Analytics profile',
-      time: '4 min',
-      link: '/settings',
-      func: () => handleCardClick(3),
-    },
-    {
-      label: 'Practical ways to reduce air pollution',
-      time: '1 min',
-      link: 'https://blog.airqo.net/',
-      func: () => handleCardClick(4),
-    },
-  ];
 
   return (
     <Layout noBorderBottom pageTitle='Home'>
@@ -120,6 +127,10 @@ const Home = () => {
 
             <div className='w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5'>
               {steps.map((step, index) => {
+                if (step.disabled) {
+                  return null;
+                }
+
                 const card = cardCheckList.find((card) => card.id === index + 1);
 
                 const statusText = card && card.completed === true ? 'Done' : 'Start';
@@ -142,7 +153,7 @@ const Home = () => {
                         <div
                           className='text-base w-14 h-14 flex justify-center items-center font-medium rounded-full'
                           style={{ background: '#F5F5FF' }}>
-                          <span className='text-blue-600'>{index + 1}</span>
+                          <span className='text-blue-600'>{index === 0 ? index + 1 : index}</span>
                         </div>
                       )}
                     </div>
@@ -188,7 +199,7 @@ const Home = () => {
                   </Button>
                   <a
                     onClick={handleModel}
-                    className='text-blue-600 text-sm font-normal mt-2 cursor-pointer'>
+                    className='text-blue-600 text-sm font-normal mt-2 cursor-pointer hidden'>
                     Show me how
                   </a>
                 </div>
@@ -200,7 +211,7 @@ const Home = () => {
                 }}>
                 <div
                   onClick={handleModel}
-                  className='absolute z-50 inset-0 flex items-center justify-center cursor-pointer'>
+                  className='absolute z-50 inset-0 flex items-center justify-center cursor-pointer hidden'>
                   <PlayIcon />
                 </div>
                 <Image src={AnalyticsImage} alt='Analytics Image' width={600} height={350} />

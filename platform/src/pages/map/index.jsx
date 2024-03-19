@@ -13,22 +13,56 @@ const index = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const [showSideBar, setShowSideBar] = useState(true);
-  const siteData = useSelector((state) => state.grids?.sitesSummary);
+  const siteData = useSelector((state) => state.grids.sitesSummary);
   const isAdmin = true;
-  const preferenceData = useSelector((state) => state.defaults?.individual_preferences);
+  const [pollutant, setPollutant] = useState('pm2_5');
+  const preferences = useSelector((state) => state.defaults.individual_preferences) || [];
+  const [selectedSites, setSelectedSites] = useState([]);
+  const chartSites = useSelector((state) => state.chart.chartSites);
 
-  // getting user selected sites
-  const selectedSites = preferenceData
-    ? preferenceData.map((pref) => pref.selected_sites).flat()
-    : [];
-
-  // site details with a check for siteData and siteData.sites being defined
+  /**
+   * Site details
+   */
   const siteDetails = siteData?.sites || [];
 
   useEffect(() => {
-    dispatch(getSitesSummary());
+    const preferencesSelectedSitesData = preferences?.map((pref) => pref.selected_sites).flat();
+
+    if (preferencesSelectedSitesData?.length > 0) {
+      setSelectedSites(preferencesSelectedSitesData);
+    } else if (siteDetails) {
+      const selectedSites = siteDetails.filter((site) => chartSites.includes(site.site_id));
+      setSelectedSites(selectedSites);
+    }
+  }, [preferences, chartSites]);
+
+  useEffect(() => {
+    const storedUserLocation = localStorage.getItem('userLocation')
+      ? JSON.parse(localStorage.getItem('userLocation'))
+      : null;
+    if (!storedUserLocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        localStorage.setItem(
+          'userLocation',
+          JSON.stringify({ lat: position.coords.latitude, long: position.coords.longitude }),
+        );
+      });
+    }
+  }, [siteData]);
+
+  /**
+   * Fetch site details
+   * @returns {void}
+   */
+  useEffect(() => {
+    if (!siteDetails) {
+      dispatch(getSitesSummary());
+    }
   }, []);
 
+  /**
+   * Show/hide sidebar on window resize
+   */
   useEffect(() => {
     const handleResize = () => {
       if (
@@ -49,8 +83,8 @@ const index = () => {
 
   return (
     <MapLayout noTopNav={false}>
-      <div className='relative'>
-        <>
+      <div className='relative flex w-full h-full'>
+        <div>
           {showSideBar && (
             <Sidebar
               siteDetails={siteDetails}
@@ -60,31 +94,28 @@ const index = () => {
               setShowSideBar={setShowSideBar}
             />
           )}
-          <div className={`${showSideBar ? 'hidden' : ''} md:block`}>
-            <div
-              className={`absolute bottom-2 ${
-                showSideBar ? 'left-[calc(280px+15px)] md:left-[calc(400px+15px)]' : 'left-[15px]'
-              } z-50`}>
-              <AirQualityLegend />
-            </div>
-            <div
-              className={`absolute top-4 ${
-                showSideBar ? 'left-[calc(280px+15px)] md:left-[calc(400px+15px)]' : 'left-[15px]'
-              } z-50`}>
-              <div className='flex flex-col space-y-4'>
-                <button
-                  className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-                  onClick={() => setShowSideBar(!showSideBar)}>
-                  <MenuIcon />
-                </button>
-              </div>
+        </div>
+        <div className={`${showSideBar ? 'hidden' : ''} relative left-4 z-50 md:block`}>
+          <div className={`absolute bottom-2 z-[900]`} style={{ zIndex: 900 }}>
+            <AirQualityLegend pollutant={pollutant} />
+          </div>
+          <div className={`absolute top-4 lg:hidden`}>
+            <div className='flex flex-col space-y-4'>
+              <button
+                className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
+                onClick={() => setShowSideBar(!showSideBar)}>
+                <MenuIcon />
+              </button>
             </div>
           </div>
-        </>
+        </div>
+
         <AirQoMap
           showSideBar={showSideBar}
           mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
           customStyle='flex-grow h-screen w-full relative bg-[#e6e4e0]'
+          pollutant={pollutant}
+          resizeMap={showSideBar}
         />
       </div>
     </MapLayout>

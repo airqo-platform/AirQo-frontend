@@ -101,6 +101,15 @@ module.exports = {
           800: '#3C4555',
           900: '#333946',
         },
+        'secondary-neutral-dark': {
+          50: '#F6F6F7',
+          100: '#E2E3E5',
+          200: '#C4C7CB',
+          300: '#9EA3AA',
+          400: '#7A7F87',
+          700: '#3E4147',
+          950: '#1C1D20',
+        },
         success: {
           50: '#ECFDF3',
           700: '#057747',
@@ -108,6 +117,7 @@ module.exports = {
         primary: {
           50: '#EBF5FF',
           100: '#D6E9FF',
+          300: '#8AC4FF',
           600: '#145FFF',
         },
       },

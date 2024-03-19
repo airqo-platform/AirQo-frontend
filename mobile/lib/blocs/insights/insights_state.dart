@@ -2,17 +2,19 @@ part of 'insights_bloc.dart';
 
 class InsightsState extends Equatable {
   const InsightsState(
-    this.name, {
+     {
+    required this.name,
     this.insights = const [],
     required this.selectedInsight,
   });
 
   InsightsState copyWith({
+    String? name,
     Insight? selectedInsight,
     List<Insight>? insights,
   }) {
     return InsightsState(
-      name,
+      name: name ?? this.name,
       insights: insights ?? this.insights,
       selectedInsight: selectedInsight ?? this.selectedInsight,
     );

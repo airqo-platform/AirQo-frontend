@@ -8,6 +8,10 @@ import { format } from 'date-fns';
 import Spinner from '../loaders/Spinner';
 import { useTranslation, Trans } from 'react-i18next';
 
+/**
+ * @description Highlight component for the CleanAir site
+ * @returns {JSX.Element}
+ */
 const Highlight = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();

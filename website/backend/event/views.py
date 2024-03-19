@@ -1,17 +1,21 @@
+from django.db.models import Prefetch
 from django.utils import translation
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny
-from .models import Event
+from .models import Event, Inquiry, Program, Session, PartnerLogo, Resource
 from .serializers import EventSerializer
-
-# Create your views here.
 
 
 class EventViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Event.objects.all()
+    queryset = Event.objects.prefetch_related(
+        Prefetch('inquiry'),
+        Prefetch('program'),
+        Prefetch('partner'),
+        Prefetch('resource'),
+    )
     serializer_class = EventSerializer
     permission_classes = [AllowAny]
-    
+
     def list(self, request, *args, **kwargs):
         language = request.session.get('django_language')
         if language is None:

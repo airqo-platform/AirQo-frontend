@@ -2,6 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
+/**
+ * @description BottomCTAs component
+ * @returns {JSX.Element}
+ */
 const BottomCTAs = () => {
   const { t } = useTranslation();
   return (
