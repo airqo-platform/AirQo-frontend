@@ -18,8 +18,19 @@ import {
 import SearchIcon from '@material-ui/icons/Search';
 import ClearIcon from '@material-ui/icons/Clear';
 import AddIcon from '@material-ui/icons/Add';
+import RefreshIcon from '@material-ui/icons/Refresh';
 
-const DataTable = ({ title, columns, rows, onRowClick, loading, ButtonText, onButtonClick }) => {
+const DataTable = ({
+  title,
+  columns,
+  rows,
+  onRowClick,
+  loading,
+  ButtonText,
+  onButtonClick,
+  refreshButton,
+  onRefreshClick
+}) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState('');
@@ -68,7 +79,9 @@ const DataTable = ({ title, columns, rows, onRowClick, loading, ButtonText, onBu
         }}>
         <div>
           {title && (
-            <Typography variant="h5" style={{ fontWeight: 'bold', color: '#3f51b5' }}>
+            <Typography
+              variant="h5"
+              style={{ fontWeight: 'bold', color: '#3f51b5', display: 'flex', alignItems: 'left' }}>
               {title}
             </Typography>
           )}
@@ -80,6 +93,16 @@ const DataTable = ({ title, columns, rows, onRowClick, loading, ButtonText, onBu
               startIcon={<AddIcon />}
               style={{ marginTop: '10px' }}>
               {ButtonText}
+            </Button>
+          ) : null}
+          {refreshButton ? (
+            <Button
+              onClick={onRefreshClick}
+              color="primary"
+              variant="outlined"
+              startIcon={<RefreshIcon />}
+              style={{ marginTop: '10px', padding: '5px', marginLeft: '10px' }}>
+              Refresh
             </Button>
           ) : null}
         </div>

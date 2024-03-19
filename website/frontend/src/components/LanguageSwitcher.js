@@ -5,6 +5,7 @@ import { setLanguageTab } from '../../reduxStore/EventsNav/NavigationSlice';
 import LanguageOutlinedIcon from '@mui/icons-material/LanguageOutlined';
 import DoneIcon from '@mui/icons-material/Done';
 import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
+import { Link } from 'react-router-dom';
 
 const LanguageSwitcher = () => {
   const dispatch = useDispatch();
@@ -86,7 +87,7 @@ const LanguageSwitcher = () => {
         <div className="clean-air-link">
           <p className="desktop-view">
             {t('topBanners.languageSwitcher.cleanAirText')}
-            <a href="/clean-air">
+            <Link to="/clean-air/about">
               <span>
                 {t('topBanners.languageSwitcher.linkText')}
                 <ArrowRightAltIcon
@@ -101,12 +102,12 @@ const LanguageSwitcher = () => {
                   }}
                 />
               </span>
-            </a>
+            </Link>
           </p>
           <p className="mobile-view">
-            <a href="/clean-air">
+            <Link to="/clean-air">
               <span>{t('topBanners.languageSwitcher.mobileViewLinkText')}</span>
-            </a>
+            </Link>
           </p>
         </div>
       </div>

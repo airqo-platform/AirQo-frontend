@@ -4,7 +4,6 @@ import 'package:animations/animations.dart';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
-import 'package:app/screens/favourite_places/favourite_places_page.dart';
 import 'package:app/screens/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/on_boarding/setup_complete_screen.dart';
 import 'package:app/services/services.dart';
@@ -13,13 +12,13 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:app/main_common.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/screens/phone_authentication/phone_auth_screen.dart';
 import 'introduction_screen.dart';
 import 'location_setup_screen.dart';
 import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
+import 'package:app/screens/insights/insights_page.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -90,7 +89,8 @@ class SplashScreenState extends State<SplashScreen>
     context.read<SearchHistoryBloc>().add(const SyncSearchHistory());
 
     final prefs = await SharedPreferences.getInstance();
-    final notifsNavigator = prefs.getString("pushNotificationTarget") ?? "None";
+    final List<String> notifsNavigator =
+        prefs.getStringList("pushNotificationTarget") ?? [];
 
     _dynamicLinkSubscription =
         FirebaseDynamicLinks.instance.onLink.listen((linkData) async {
@@ -118,19 +118,32 @@ class SplashScreenState extends State<SplashScreen>
       } else {
         await _proceedWithSplashAnimation();
       }
-    } else if (notifsNavigator != "None") {
+    } else if (notifsNavigator.isNotEmpty) {
       CloudAnalytics.logNotificationOpen();
-      switch (notifsNavigator) {
-        case "favorites":
-          await prefs.setString("pushNotificationTarget", "None");
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) {
-              return const FavouritePlacesPage();
-            }),
-            (r) => false,
-          );
+      final subject = notifsNavigator[0];
+
+      switch (subject) {
+        case "daily_air_quality":
+          try {
+            await prefs.setStringList("pushNotificationTarget", []);
+            final siteId = notifsNavigator[1];
+            List<AirQualityReading> airQualityReadings =
+                HiveService().getAirQualityReadings();
+
+            AirQualityReading airQualityReading = airQualityReadings.firstWhere(
+              (element) => element.placeId == siteId,
+            );
+
+            await navigateToInsights(
+                navigatorKey.currentContext!, airQualityReading);
+          } catch (err) {
+            await logException(err, null);
+            await _proceedWithSplashAnimation();
+          }
+
           break;
+        default:
+          await _proceedWithSplashAnimation();
       }
     } else {
       await _proceedWithSplashAnimation();

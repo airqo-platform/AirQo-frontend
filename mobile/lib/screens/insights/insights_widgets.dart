@@ -361,107 +361,189 @@ class InsightsDayReading extends StatelessWidget {
   }
 }
 
-class InsightsCalendar extends StatelessWidget {
+class InsightsCalendar extends StatefulWidget {
   const InsightsCalendar(this.airQualityReading, {super.key});
 
   final AirQualityReading airQualityReading;
+
+  @override
+  State<InsightsCalendar> createState() => _InsightsCalendarState();
+}
+
+class _InsightsCalendarState extends State<InsightsCalendar> {
+  AirQualityReading get airQualityReading => widget.airQualityReading;
+  late InsightsState state;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<InsightsBloc>().add(FetchForecast(airQualityReading));
+    Insight todayInsight = Insight.fromAirQualityReading(
+      airQualityReading,
+    );
+    InsightsState state = context.read<InsightsBloc>().state;
+    state = state.copyWith(
+      name: airQualityReading.name,
+      selectedInsight: todayInsight,
+    );
+  }
+
+  bool isInitialised = false;
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<InsightsBloc, InsightsState>(
       builder: (context, state) {
         context.read<InsightsBloc>().add(FetchForecast(airQualityReading));
-        return AnimatedPadding(
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeIn,
-          padding: const EdgeInsets.symmetric(horizontal: 15.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  ),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(
-                      height: 24,
+
+        Insight todayInsight = Insight.fromAirQualityReading(
+          airQualityReading,
+        );
+        List<Insight> updatedInsights = [
+          todayInsight,
+          ...state.insights.sublist(1),
+        ];
+        if (!isInitialised) {
+          state = state.copyWith(
+            selectedInsight: todayInsight,
+          );
+          isInitialised = true;
+        }
+        state = state.copyWith(
+          name: airQualityReading.name,
+          insights: updatedInsights,
+        );
+
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Text(
+                state.selectedInsight.shortDate(context),
+                style:
+                    CustomTextStyle.headline8(context)?.copyWith(fontSize: 20),
+              ),
+            ),
+            const SizedBox(
+              height: 14,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Text(
+                state.selectedInsight.dateTime.timelineString(context),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.black.withOpacity(0.5),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 30,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: state.insights
-                            .map(
-                              (e) => InsightsDayReading(
-                                e,
-                                isActive: e == state.selectedInsight,
-                              ),
-                            )
-                            .toList(),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 21,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                      ),
-                      child: InsightAirQualityWidget(
-                        state.selectedInsight,
-                        name: state.name,
+              ),
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+            AnimatedPadding(
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeIn,
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
                       ),
                     ),
-                    const SizedBox(
-                      height: 9,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 25,
-                      ),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          AppLocalizations.of(context)!.dataProvider(airQualityReading.dataProvider),
-                          style: CustomTextStyle.bodyText4(context)?.copyWith(
-                            color: CustomColors.appColorBlack.withOpacity(0.3),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(
+                          height: 24,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: state.insights
+                                .map(
+                                  (e) => InsightsDayReading(
+                                    e,
+                                    isActive: e == state.selectedInsight,
+                                  ),
+                                )
+                                .toList(),
                           ),
                         ),
-                      ),
+                        const SizedBox(
+                          height: 21,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
+                          child: InsightAirQualityWidget(
+                            state.selectedInsight,
+                            name: state.name,
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 9,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 25,
+                          ),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              AppLocalizations.of(context)!
+                                  .dataProvider(airQualityReading.dataProvider),
+                              style:
+                                  CustomTextStyle.bodyText4(context)?.copyWith(
+                                color:
+                                    CustomColors.appColorBlack.withOpacity(0.3),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 9,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
+                          child: InsightAirQualityMessageWidget(
+                            state.selectedInsight,
+                            airQualityReading.name,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(
-                      height: 9,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                      ),
-                      child: InsightAirQualityMessageWidget(
-                        state.selectedInsight,
-                        airQualityReading.name,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  const Divider(
+                    color: Color(0xffC4C4C4),
+                    height: 1.0,
+                  ),
+                  SizedBox(
+                    height: 57,
+                    child: AirQualityActions(airQualityReading),
+                  ),
+                  Visibility(
+                    visible: state.selectedInsight.dateTime
+                            .isAfter(DateTime.now()) &&
+                        DateTime.now().hour < 12,
+                    child: ForecastContainer(state.selectedInsight),
+                  ),
+                  HealthTipsWidget(state.selectedInsight),
+                ],
               ),
-              const Divider(
-                color: Color(0xffC4C4C4),
-                height: 1.0,
-              ),
-              SizedBox(
-                height: 57,
-                child: AirQualityActions(airQualityReading),
-              ),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );

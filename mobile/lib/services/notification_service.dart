@@ -196,12 +196,12 @@ class NotificationService {
   @pragma('vm:entry-point')
   static Future<void> handleNotifications(RemoteMessage message) async {
     final notificationData = (message.data);
-    final notificationTarget = notificationData.values.first;
+    final subject = notificationData['subject'];
+    final siteId = notificationData['site'];
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-        "pushNotificationTarget", notificationTarget as String);
+    await prefs.setStringList(
+        "pushNotificationTarget", [subject as String, siteId as String]);
     await CloudAnalytics.logNotificationReceive();
-    
   }
 }

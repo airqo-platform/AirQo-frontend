@@ -2,6 +2,12 @@ import React, { useState, useMemo } from 'react';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 
+/**
+ * @description Custom hook for pagination
+ * @param {Array} items
+ * @param {Number} itemsPerPage
+ * @returns {Object}
+ */
 const usePagination = (items, itemsPerPage) => {
   // State
   const [currentPage, setCurrentPage] = useState(1);
@@ -18,6 +24,13 @@ const usePagination = (items, itemsPerPage) => {
   return { currentItems, currentPage, setCurrentPage, totalPages };
 };
 
+/**
+ * @description Pagination component
+ * @param {Number} currentPage
+ * @param {Function} setCurrentPage
+ * @param {Number} totalPages
+ * @returns {JSX.Element}
+ */
 const Pagination = ({ currentPage, setCurrentPage, totalPages }) =>
   totalPages > 1 && (
     <div className="events">

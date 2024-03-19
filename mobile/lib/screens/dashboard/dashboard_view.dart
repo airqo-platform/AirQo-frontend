@@ -5,6 +5,7 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
+import 'package:app/screens/insights/insights_page.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -546,19 +547,30 @@ class _DashboardViewState extends State<DashboardView>
   Future<void> _checkNotificationsNavigator() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.reload();
-    final notifsNavigator = prefs.getString("pushNotificationTarget");
+    final List<String> notifsNavigator =
+        prefs.getStringList("pushNotificationTarget") ?? [];
 
-    if (notifsNavigator == "favorites") {
-      prefs.setString("pushNotificationTarget", "None");
-      CloudAnalytics.logNotificationOpen();
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) {
-            return const FavouritePlacesPage();
-          },
-        ),
-      );
+    if (notifsNavigator.isNotEmpty) {
+      final subject = notifsNavigator[0];
+
+      switch (subject) {
+        case "daily_air_quality":
+          try {
+            await prefs.setStringList("pushNotificationTarget", []);
+            final siteId = notifsNavigator[1];
+            List<AirQualityReading> airQualityReadings =
+                HiveService().getAirQualityReadings();
+
+            AirQualityReading airQualityReading = airQualityReadings.firstWhere(
+              (element) => element.placeId == siteId,
+            );
+
+            await navigateToInsights(context, airQualityReading);
+          } catch (err) {
+            await logException(err, null);
+          }
+          break;
+      }
     }
   }
 
