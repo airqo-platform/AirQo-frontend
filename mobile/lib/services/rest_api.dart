@@ -10,9 +10,7 @@ import 'package:app/utils/utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/retry.dart';
-import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
@@ -186,12 +184,17 @@ class AirqoApiClient {
 
   Future<List<Forecast>> fetchForecast(String siteId) async {
     final forecasts = <Forecast>[];
+    final prefs = await SharedPreferencesHelper.instance;
+    final locale = prefs.getString("language") ?? "en";
+    final queryParams = <String, String>{}
+      ..putIfAbsent('site_id', () => siteId);
+    if (locale != "en") {
+      queryParams.putIfAbsent('language', () => locale);
+    }
 
     try {
       final body = await _performGetRequest(
-        {
-          "site_id": siteId,
-        },
+        queryParams,
         AirQoUrls.forecast,
         apiService: ApiService.forecast,
       );
@@ -248,6 +251,83 @@ class AirqoApiClient {
     }
 
     return null;
+  }
+
+  Future<void> syncPlatformAccount() async {
+    try {
+      await Future.delayed(const Duration(minutes: 1));
+      final user = await CloudStore.getProfile();
+      String url = addQueryParameters({}, AirQoUrls.syncPlatformAccount);
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
+      if (user.emailAddress != "") {
+        final requestBody = {
+          "firebase_uid": user.userId,
+          "email": user.emailAddress,
+        };
+        if (user.phoneNumber != "") {
+          requestBody["phoneNumber"] = user.phoneNumber;
+        }
+
+        if (user.firstName != "") {
+          requestBody["firstName"] = user.firstName;
+        }
+
+        if (user.lastName != "") {
+          requestBody["lastName"] = user.lastName;
+        }
+        var response = await client.post(
+          Uri.parse(url),
+          headers: headers,
+          body: jsonEncode(requestBody),
+        );
+        final responseBody = json.decode(response.body);
+
+        if (responseBody['success'] == true) {
+          Profile userToUpdate = user;
+          if (responseBody['syncOperation'] == "Created") {
+            userToUpdate = user.copyWith(
+              analyticsMongoID: responseBody['user']['_id'] as String,
+            );
+          }
+
+          if (responseBody['syncOperation'] == "Updated") {
+            userToUpdate = user.copyWith(
+              analyticsMongoID: responseBody['user'][0]['_id'] as String,
+            );
+            if (user.phoneNumber == "") {
+              userToUpdate = userToUpdate.copyWith(
+                phoneNumber: responseBody['user']['phoneNumber'] as String,
+              );
+            }
+
+            if (user.firstName == "") {
+              userToUpdate = userToUpdate.copyWith(
+                firstName: responseBody['user']['firstName'] as String,
+              );
+            }
+
+            if (user.lastName == "") {
+              userToUpdate = userToUpdate.copyWith(
+                lastName: responseBody['user']['lastName'] as String,
+              );
+            }
+          }
+
+          await CloudStore.updateProfile(userToUpdate);
+        }
+
+        return;
+      } else {}
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return;
   }
 
   Future<List<LocationHistory>> fetchLocationHistory(String userId) async {
@@ -348,23 +428,10 @@ class AirqoApiClient {
   }
 
   Future<List<AirQualityReading>> fetchAirQualityReadings() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferencesHelper.instance;
     final locale = prefs.getString("language") ?? "en";
     final airQualityReadings = <AirQualityReading>[];
     final queryParams = <String, String>{}
-      ..putIfAbsent('recent', () => 'yes')
-      ..putIfAbsent('metadata', () => 'site_id')
-      ..putIfAbsent('external', () => 'no')
-      ..putIfAbsent(
-        'startTime',
-        () => '${DateFormat('yyyy-MM-dd').format(
-          DateTime.now().toUtc().subtract(
-                const Duration(days: 1),
-              ),
-        )}T00:00:00Z',
-      )
-      ..putIfAbsent('frequency', () => 'hourly')
-      ..putIfAbsent('tenant', () => 'airqo')
       ..putIfAbsent('token', () => Config.airqoApiV2Token);
 
     if (locale != "en") {
@@ -395,7 +462,7 @@ class AirqoApiClient {
   }
 
   Future<List<KyaLesson>> fetchKyaLessons(String userId) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferencesHelper.instance;
     final locale = prefs.getString("language") ?? "en";
     final lessons = <KyaLesson>[];
     final queryParams = <String, String>{}
@@ -403,7 +470,7 @@ class AirqoApiClient {
     if (locale != "en") {
       queryParams.putIfAbsent('language', () => locale);
     }
-    
+
     String url = "${AirQoUrls.kya}/lessons/users/$userId";
     if (userId.isEmpty) {
       url = "${AirQoUrls.kya}/lessons";
@@ -461,7 +528,7 @@ class AirqoApiClient {
   }
 
   Future<List<Quiz>> fetchQuizzes(String userId) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferencesHelper.instance;
     final locale = prefs.getString("language") ?? "en";
     final quizzes = <Quiz>[];
     final queryParams = <String, String>{}

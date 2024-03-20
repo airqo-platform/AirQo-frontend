@@ -1,28 +1,22 @@
-import axios from 'axios';
 import {
-  GET_DATA_MAP,
+  GET_MAP_READING_URI,
   GET_SITES,
   DOWNLOAD_CUSTOMISED_DATA_URI,
   D3_CHART_DATA_URI,
   GENERATE_AIRQLOUD_DATA_SUMMARY_URI,
   SCHEDULE_EXPORT_DATA,
-  CREATE_CLIENT_URI,
-  GET_CLIENTS_URI,
-  GENERATE_TOKEN_URI
+  CLIENT_URI,
+  GENERATE_TOKEN_URI,
+  GET_USER_STATS_URI,
+  ACTIVATE_USER_CLIENT,
+  ACTIVATION_REQUEST_URI
 } from 'config/urls/analytics';
-import { BASE_AUTH_TOKEN } from 'utils/envVariables';
-import { isEmpty } from 'validate.js';
-
-const jwtToken = localStorage.getItem('jwtToken');
-axios.defaults.headers.common.Authorization = jwtToken;
-
-export const getMonitoringSitesInfoApi = async (pm25Category) => {
-  return await axios.get(GET_DATA_MAP + pm25Category).then((response) => response.data);
-};
+import createAxiosInstance from './axiosConfig';
 
 export const getSitesApi = async () => {
-  axios.defaults.headers.common.Authorization = jwtToken;
-  return await axios.get(GET_SITES).then((response) => response.data);
+  return await createAxiosInstance()
+    .get(GET_SITES)
+    .then((response) => response.data);
 };
 
 export const downloadDataApi = async (data) => {
@@ -30,46 +24,83 @@ export const downloadDataApi = async (data) => {
     service: 'data-export'
   };
 
-  return axios
+  return createAxiosInstance()
     .post(DOWNLOAD_CUSTOMISED_DATA_URI, data, { headers })
     .then((response) => response.data);
 };
 
 export const loadD3ChartDataApi = async (data) => {
-  return await axios.post(D3_CHART_DATA_URI, data).then((response) => response.data);
+  return await createAxiosInstance()
+    .post(D3_CHART_DATA_URI, data)
+    .then((response) => response.data);
 };
 
 export const scheduleExportDataApi = async (data) => {
-  return await axios.post(SCHEDULE_EXPORT_DATA, data).then((response) => response.data);
+  return await createAxiosInstance()
+    .post(SCHEDULE_EXPORT_DATA, data)
+    .then((response) => response.data);
 };
 
 export const refreshScheduleExportDataApi = async (requestId) => {
-  return await axios
+  return await createAxiosInstance()
     .patch(SCHEDULE_EXPORT_DATA, { params: { requestId } })
     .then((response) => response.data);
 };
 
 export const getScheduleExportDataApi = async (USERID) => {
-  return await axios
+  return await createAxiosInstance()
     .get(SCHEDULE_EXPORT_DATA, { params: { userId: USERID } })
     .then((response) => response.data);
 };
 
 export const generateAirQloudDataSummaryApi = async (data) => {
-  return await axios
+  return await createAxiosInstance()
+    .post(GENERATE_AIRQLOUD_DATA_SUMMARY_URI, data)
+    .then((response) => response.data);
+};
+
+export const generateGridDataSummaryApi = async (data) => {
+  return await createAxiosInstance()
     .post(GENERATE_AIRQLOUD_DATA_SUMMARY_URI, data)
     .then((response) => response.data);
 };
 
 export const createClientApi = async (data) => {
-  return await axios.post(CREATE_CLIENT_URI, data).then((response) => response.data);
+  return await createAxiosInstance()
+    .post(CLIENT_URI, data)
+    .then((response) => response.data);
+};
+
+export const updateClientApi = async (data, client_id) => {
+  return await createAxiosInstance()
+    .put(CLIENT_URI + '/' + client_id, data)
+    .then((response) => response.data);
 };
 
 export const getClientsApi = async () => {
-  return await axios.get(GET_CLIENTS_URI).then((response) => response.data);
+  return await createAxiosInstance()
+    .get(CLIENT_URI)
+    .then((response) => response.data);
 };
 
 export const generateTokenApi = async (data) => {
-  const response = await axios.post(GENERATE_TOKEN_URI, data);
+  const response = await createAxiosInstance().post(GENERATE_TOKEN_URI, data);
+  return response.data;
+};
+
+export const activateUserClientApi = async (data) => {
+  return await createAxiosInstance()
+    .post(`${ACTIVATE_USER_CLIENT}/${data._id}`, data)
+    .then((response) => response.data);
+};
+
+export const activationRequestApi = async (ID) => {
+  return await createAxiosInstance()
+    .get(`${ACTIVATION_REQUEST_URI}/${ID}`)
+    .then((response) => response.data);
+};
+
+export const getUserStatsApi = async () => {
+  const response = await createAxiosInstance().get(GET_USER_STATS_URI);
   return response.data;
 };

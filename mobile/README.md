@@ -141,6 +141,45 @@ flutter run --flavor airqo -t lib/main.dart
 ```bash
 flutter run --flavor airqo -t lib/main.dart --release
 ```
+## **ShoreBird**
+
+### **Setup ShoreBird**
+Install the Shorebird CLI (Refer to docs.shorebird.dev for the OS specific commands)
+
+Login using shorebird command
+
+
+```bash
+shorebird login
+```
+#### **Initialize shorebird**
+This creates file shorebird.yaml
+
+```bash
+shorebird init
+```
+#### **Publish a Release**
+```bash
+shorebird release android --flavor airqo
+```
+iOS(alpha)
+##### Still in alpha
+```bash
+shorebird release ios-alpha --flavor airqo
+```
+#### **Preview**
+To  run on  a device or emulator
+```bash
+ shorebird preview --flavor airqo -t lib/main.dart
+```
+#### **Push Updates**
+To  run on  a device or emulator
+```bash
+ shorebird patch --flavor airqo -t lib/main.dart
+```
+
+
+
 
 ### **Running the application in Github Actions - Firebase App Distribution(CI/CD)**
 

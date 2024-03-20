@@ -39,35 +39,33 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
               SizedBox(
                 height: 215,
                 width: 373,
-                child: Padding(
+                child: Container(
                   padding: const EdgeInsets.fromLTRB(2, 10, 2, 10),
-                  child: Container(
-                    child: CachedNetworkImage(
-                      imageUrl: quiz.imageUrl,
-                      imageBuilder: (context, imageProvider) => Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          image: DecorationImage(
-                            fit: BoxFit.cover,
-                            image: imageProvider,
-                          ),
+                  child: CachedNetworkImage(
+                    imageUrl: quiz.imageUrl,
+                    imageBuilder: (context, imageProvider) => Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        image: DecorationImage(
+                          fit: BoxFit.cover,
+                          image: imageProvider,
                         ),
                       ),
-                      placeholder: (context, url) =>
-                          const ContainerLoadingAnimation(
-                        radius: 8,
-                        height: 215,
+                    ),
+                    placeholder: (context, url) =>
+                        const ContainerLoadingAnimation(
+                      radius: 8,
+                      height: 215,
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16.0),
+                        color: Colors.grey,
                       ),
-                      errorWidget: (context, url, error) => Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16.0),
-                          color: Colors.grey,
-                        ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.error,
-                            color: Colors.white,
-                          ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.error,
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -84,7 +82,6 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     SizedBox(
-                      //width: MediaQuery.of(context).size.width * 0.8,
                       width: 275,
                       height: 44,
                       child: AutoSizeText(
@@ -109,7 +106,6 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                           color: Color(0xFF485972),
                           fontSize: 15.24,
                           fontWeight: FontWeight.w400,
-                          // height: 1.50,
                         ),
                       ),
                     ),

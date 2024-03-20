@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import DataTable from './Table';
 import ErrorBoundary from '../../ErrorBoundary/ErrorBoundary';
-import HorizontalLoader from '../../components/HorizontalLoader/HorizontalLoader';
+import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
+
 import { makeStyles } from '@material-ui/styles';
 import { useHistory } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
@@ -91,6 +92,7 @@ const CreateTeam = ({
 
   const handleCreateTeam = async () => {
     setIsLoading(true);
+    dispatch(loadStatus(true));
     setErrors({
       name: team.name ? '' : 'Team Name is required',
       description: team.description ? '' : 'Team Description is required'
@@ -98,6 +100,7 @@ const CreateTeam = ({
 
     if (team.name && team.description) {
       let teamData = {
+        user_id: JSON.parse(localStorage.getItem('currentUser'))?._id,
         grp_title: team.name,
         grp_description: team.description
       };
@@ -117,7 +120,8 @@ const CreateTeam = ({
         if (err.response.status === 409) {
           setErrors({
             showError: true,
-            errorMessage: 'Team with this name already exists.'
+            errorMessage:
+              'There is a duplicate record. Please try again or contact your Network administrator.'
           });
         } else {
           setErrors({
@@ -128,6 +132,7 @@ const CreateTeam = ({
       }
     }
     setIsLoading(false);
+    dispatch(loadStatus(false));
   };
 
   return (
@@ -231,7 +236,6 @@ const Teams = () => {
         })
         .catch((err) => {
           console.error(err);
-          alert(err.message);
         })
         .finally(() => {
           setLoading(false);
@@ -239,11 +243,8 @@ const Teams = () => {
     }
   }, [refresh]);
 
-  const teams2 = [{}];
-
   return (
     <ErrorBoundary>
-      <HorizontalLoader loading={isLoading} />
       <div className={classes.root}>
         <div
           style={{
@@ -303,6 +304,7 @@ const Teams = () => {
             event.preventDefault();
             history.push(`/teams/${row._id}`);
           }}
+          isLoading={loading}
           data={teams}
           options={{
             search: true,

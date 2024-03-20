@@ -5,7 +5,6 @@ import 'package:app/services/services.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -61,7 +60,7 @@ class _ForYouPageState extends State<ForYouPage>
                       }
                     },
                     onFinish: () async {
-                      final prefs = await SharedPreferences.getInstance();
+                      final prefs = await SharedPreferencesHelper.instance;
                       if (prefs.getBool(Config.restartTourShowcase) == true) {
                         Future.delayed(
                           Duration.zero,
@@ -166,7 +165,7 @@ class _ForYouPageState extends State<ForYouPage>
   }
 
   Future<void> _showcaseToggle() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferencesHelper.instance;
     if (prefs.getBool(Config.forYouPageShowcase) == null) {
       _startShowcase();
       await _appService.stopShowcase(Config.forYouPageShowcase);

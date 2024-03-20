@@ -3,10 +3,11 @@ import { stripTrailingSlash } from './utils';
 const WEBSITE_BASE_URL = stripTrailingSlash(process.env.REACT_APP_WEBSITE_BASE_URL);
 const NETMANAGER_BASE_URL = process.env.REACT_APP_NETMANAGER_URL;
 
-const BASE_AIRQLOUDS_URL =
-  process.env.REACT_APP_BASE_AIRQLOUDS_URL || process.env.REACT_NETMANAGER_BASE_URL;
+const BASE_AIRQLOUDS_URL = stripTrailingSlash(
+  process.env.REACT_APP_BASE_AIRQLOUDS_URL || process.env.REACT_NETMANAGER_BASE_URL
+);
 
-export const AIRQLOUD_SUMMARY = `${BASE_AIRQLOUDS_URL}/devices/airqlouds/summary?tenant=airqo`;
+export const AIRQLOUD_SUMMARY = `${BASE_AIRQLOUDS_URL}/devices/grids/summary`;
 
 const BASE_NEWSLETTER_URL = stripTrailingSlash(
   process.env.REACT_APP_BASE_NEWSLETTER_URL || process.env.REACT_NETMANAGER_BASE_URL

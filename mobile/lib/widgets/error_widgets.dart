@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../main_common.dart';
 import '../screens/home_page.dart';
 import '../screens/search/search_page.dart';
 
@@ -499,8 +500,7 @@ class AppCrushWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context);
-    AppService().setLocale(locale.languageCode);
-    
+    AirQoApp.setLocale(context, locale);
     return Scaffold(
       appBar: null,
       body: AppSafeArea(

@@ -1,6 +1,6 @@
-# The AirQo Website.
+# AirQo Website.
 
----
+##
 
 - [Prerequisites](#prerequisites)
   - [OSX, Linux, Windows](#osx-linux-windows)
@@ -50,7 +50,7 @@ Change directory into the `website` folder of the cloned `AirQo-frontend` folder
 
 #### HomeBrew
 
-Install homebrew
+Now Install homebrew
 
     /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
@@ -83,7 +83,7 @@ Brew installation
 
     brew install postgresql@13.4
 
-After installing, follow the post-install console output and put the correct path to postgresql@13.4 in your `bash_profile` or `.zshrc` file.
+After installing, follow the post-install console outputs and put the correct path to postgresql@13.4 in your `bash_profile` or `.zshrc` file.
 
 start the local service
 
@@ -151,7 +151,7 @@ or
 
     sudo systemctl start postgresql
 
-Now we need to create a new user in postgresql.
+Now we need to create a new user in Postgresql.
 
     sudo su postgres
 

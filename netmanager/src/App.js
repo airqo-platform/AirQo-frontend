@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React from 'react';
+import React, { useEffect } from 'react';
 import './App.css';
 
 import jwt_decode from 'jwt-decode';
@@ -14,14 +14,12 @@ import { setOrganization } from './redux/Join/actions';
 import { setDefaultAirQloud } from './redux/AirQloud/operations';
 import { loadSites } from './redux/Dashboard/operations';
 import AppRoutes from './AppRoutes';
-import { loadPM25HeatMapData, loadPM25SensorData } from './redux/MapData/operations';
+import { loadPM25HeatMapData } from './redux/MapData/operations';
 
 // Check for token to keep user logged in
 if (localStorage.jwtToken) {
-  // Set auth token header auth
   const token = localStorage.jwtToken;
   setAuthToken(token);
-  // Decode token and get user info and exp
   const decoded = jwt_decode(token);
   let currentUser = decoded;
 
@@ -33,27 +31,41 @@ if (localStorage.jwtToken) {
   // Set user and isAuthenticated
   store.dispatch(setCurrentUser(currentUser));
   // Check for expired token
-  const currentTime = Date.now() / 1000; // to get in milliseconds
+  const currentTime = Date.now() / 1000;
   if (decoded.exp < currentTime) {
-    // Logout user
     store.dispatch(logoutUser());
-    // Redirect to the landing page
+
     window.location.href = './';
   }
   store.dispatch(setOrganization());
   store.dispatch(setDefaultAirQloud());
   store.dispatch(loadSites());
   store.dispatch(loadPM25HeatMapData());
-  store.dispatch(loadPM25SensorData());
 } else {
   store.dispatch(setOrganization());
-  store.dispatch(setDefaultAirQloud());
-  store.dispatch(loadSites());
   store.dispatch(loadPM25HeatMapData());
-  store.dispatch(loadPM25SensorData());
 }
 
 const App = () => {
+  // disabling feature
+  useEffect(() => {
+    if (process.env.REACT_APP_ALLOW_DEV_TOOLS === 'staging') {
+      return;
+    } else {
+      // Disable context menu (right click)
+      document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+      });
+
+      // Disable F12 key (open developer tools)
+      document.addEventListener('keydown', (e) => {
+        if (e.keyCode === 123) {
+          e.preventDefault();
+        }
+      });
+    }
+  }, []);
+
   return (
     <Provider store={store}>
       <ThemeProvider theme={theme}>

@@ -12,6 +12,7 @@ class Profile extends Equatable {
   factory Profile.initialize() {
     return Profile(
       userId: "userId",
+      analyticsMongoID: "",
       emailAddress: "emailAddress",
       phoneNumber: "",
       device: "",
@@ -45,6 +46,7 @@ class Profile extends Equatable {
     required this.isAnonymous,
     required this.isSignedIn,
     required this.lastRated,
+    required this.analyticsMongoID,
   });
 
   @JsonKey(defaultValue: '')
@@ -92,6 +94,9 @@ class Profile extends Equatable {
   @JsonKey(required: false, name: "last_rated")
   final DateTime? lastRated;
 
+  @JsonKey(defaultValue: "", required: false)
+  final String? analyticsMongoID;
+
   DateTime get nextRatingDate {
     Duration duration = const Duration(days: 180);
     return lastRated == null
@@ -115,6 +120,7 @@ class Profile extends Equatable {
     bool? isAnonymous,
     bool? isSignedIn,
     DateTime? lastRated,
+    String? analyticsMongoID,
   }) {
     return Profile(
       title: title ?? this.title,
@@ -132,6 +138,7 @@ class Profile extends Equatable {
       isAnonymous: isAnonymous ?? this.isAnonymous,
       isSignedIn: isSignedIn ?? this.isSignedIn,
       lastRated: lastRated ?? this.lastRated,
+      analyticsMongoID: analyticsMongoID ?? this.analyticsMongoID,
     );
   }
 
@@ -154,5 +161,6 @@ class Profile extends Equatable {
         isAnonymous,
         isSignedIn,
         lastRated,
+        analyticsMongoID,
       ];
 }

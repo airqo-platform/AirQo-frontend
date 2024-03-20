@@ -8,7 +8,7 @@ import { setActiveGrid, setActiveCohort } from 'redux/Analytics/operations';
 const customStyles = {
   control: (defaultStyles) => ({
     ...defaultStyles,
-    textTransform: 'uppercase',
+    textTransform: 'capitalize',
     borderColor: '#eee',
     width: '100%',
     fontSize: '14px',
@@ -29,6 +29,15 @@ const customStyles = {
     textAlign: 'center',
     justifyContent: 'center'
   })
+};
+
+export const formatString = (string) => {
+  return string
+    .replace(/_/g, ' ')
+    .replace(/\w\S*/g, (txt) => {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    })
+    .replace('Id', 'ID');
 };
 
 const AnalyticsAirqloudsDropDown = ({ isCohort, airqloudsData }) => {
@@ -57,7 +66,7 @@ const AnalyticsAirqloudsDropDown = ({ isCohort, airqloudsData }) => {
       value: airqloud,
       label: (
         <div className="airqloud">
-          <span className="name">{airqloud.name}</span>
+          <span className="name">{formatString(airqloud.name)}</span>
           <span className="count">
             {isCohort
               ? !isEmpty(airqloud.devices)
@@ -92,7 +101,7 @@ const AnalyticsAirqloudsDropDown = ({ isCohort, airqloudsData }) => {
         <Select
           value={{
             value: isCohort ? activeCohort : activeGrid,
-            label: isCohort ? activeCohort.name : activeGrid.name
+            label: isCohort ? formatString(activeCohort.name) : formatString(activeGrid.name)
           }}
           options={options}
           onChange={handleAirQloudChange}

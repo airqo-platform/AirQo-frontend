@@ -37,7 +37,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const AvailableUsersTable = (props) => {
-  const { className, mappeduserState, users, ...rest } = props;
+  const { className, mappeduserState, users, loadData, ...rest } = props;
   const dispatch = useDispatch();
   const [isLoading, setLoading] = useState(false);
   const classes = useStyles();
@@ -84,6 +84,7 @@ const AvailableUsersTable = (props) => {
           title={'Users'}
           userPreferencePaginationKey={'users'}
           data={!isEmpty(users) ? users : []}
+          isLoading={loadData}
           columns={[
             {
               title: 'Full Name',

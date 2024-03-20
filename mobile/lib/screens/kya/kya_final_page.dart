@@ -22,8 +22,12 @@ class KyaFinalPage extends StatefulWidget {
 class _KyaFinalPageState extends State<KyaFinalPage> {
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    return PopScope(
+      onPopInvoked: ((didPop) {
+        if (didPop) {
+          _onWillPop();
+        }
+      }),
       child: OfflineBanner(
           child: Scaffold(
         appBar: AppBar(
@@ -105,11 +109,13 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
           UpdateKyaProgress(
             widget.kyaLesson.copyWith(
               activeTask: 1,
-              status: KyaLessonStatus.pendingCompletion,
+              status: KyaLessonStatus.complete,
+              hasCompleted: true,
             ),
             updateRemote: true,
           ),
         );
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       List<KyaLesson> completeLessons =
           context.read<KyaBloc>().state.lessons.filterInCompleteLessons();

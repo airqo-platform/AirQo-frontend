@@ -169,7 +169,7 @@ class SignUpSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(
-            height: 48,
+            height: 15,
           ),
           AnimatedPadding(
             duration: const Duration(milliseconds: 500),
@@ -212,7 +212,7 @@ class SignUpSection extends StatelessWidget {
             child: const SignUpButton(),
           ),
           const SizedBox(
-            height: 40,
+            height: 30,
           ),
         ],
       ),
@@ -857,7 +857,7 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
                         ? Colors.transparent
                         : CustomColors.appColorBlue,
                   ),
-                  child: Text(
+                  child: AutoSizeText(
                     AppLocalizations.of(context)!.save,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -879,14 +879,31 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(60);
 }
 
-class EditCredentialsField extends StatelessWidget {
+class EditCredentialsField extends StatefulWidget {
   const EditCredentialsField({
     super.key,
     required this.authMethod,
     required this.profile,
+    this.isSaveClicked = false,
   });
+
   final AuthMethod authMethod;
   final Profile profile;
+  final bool isSaveClicked;
+
+  @override
+  EditCredentialsFieldState createState() => EditCredentialsFieldState();
+}
+
+class EditCredentialsFieldState extends State<EditCredentialsField> {
+  late bool isReadOnly;
+
+  @override
+  void initState() {
+    super.initState();
+    // Set the initial readOnly status based on whether the email is present
+    isReadOnly = widget.profile.emailAddress.isNotEmpty;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -895,7 +912,7 @@ class EditCredentialsField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          authMethod == AuthMethod.email
+          widget.authMethod == AuthMethod.email
               ? AppLocalizations.of(context)!.email
               : AppLocalizations.of(context)!.phoneNumber,
           style: TextStyle(
@@ -907,16 +924,44 @@ class EditCredentialsField extends StatelessWidget {
           height: 4,
         ),
         TextFormField(
-          initialValue: authMethod == AuthMethod.email
-              ? profile.emailAddress
-              : profile.phoneNumber,
+          initialValue: widget.authMethod == AuthMethod.email
+              ? widget.profile.emailAddress
+              : widget.profile.phoneNumber,
           enableSuggestions: false,
-          readOnly: true,
+          readOnly: widget.isSaveClicked || isReadOnly,
           style: TextStyle(color: CustomColors.inactiveColor),
+          onChanged: (value) {
+            if (widget.authMethod == AuthMethod.email &&
+                !widget.isSaveClicked) {
+              context.read<ProfileBloc>().add(
+                    UpdateProfile(
+                      widget.profile.copyWith(emailAddress: value),
+                    ),
+                  );
+            }
+          },
+          onTap: () {
+            // Allow editing when the user taps the field
+            if (!widget.isSaveClicked) {
+              setState(() {
+                isReadOnly = false;
+              });
+            }
+          },
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white,
             hintText: '-',
+            suffixIcon: isReadOnly
+                ? null
+                : Container(
+                    padding: const EdgeInsets.all(10),
+                    height: 20,
+                    width: 20,
+                    child: SvgPicture.asset(
+                      'assets/icon/profile_edit.svg',
+                    ),
+                  ),
             focusedBorder: OutlineInputBorder(
               borderSide:
                   const BorderSide(color: Colors.transparent, width: 1.0),
@@ -995,7 +1040,7 @@ class GuestProfileView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(
-              height: 20,
+              height: 15,
             ),
             const Row(
               children: [
@@ -1019,12 +1064,9 @@ class GuestProfileView extends StatelessWidget {
         horizontalPadding: 16.0,
         child: Column(
           children: <Widget>[
-            SizedBox(
-              height: 8,
-            ),
             SignUpSection(),
             SizedBox(
-              height: 16,
+              height: 8,
             ),
             SettingsButton(),
             SizedBox(

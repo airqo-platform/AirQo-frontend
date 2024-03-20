@@ -24,8 +24,8 @@ import { Bar } from 'react-chartjs-2';
 import domtoimage from 'dom-to-image';
 import JsPDF from 'jspdf';
 import palette from 'theme/palette';
-import axios from 'axios';
-import { DAILY_MEAN_AVERAGES_URI } from 'config/urls/analytics';
+import createAxiosInstance from 'views/apis/axiosConfig';
+import { DAILY_MEAN_AVERAGES_URI, DEVICE_MEAN_AVERAGES_URI } from 'config/urls/analytics';
 import { roundToEndOfDay, roundToStartOfDay } from 'utils/dateTime';
 import { isEmpty, unzip, zip } from 'underscore';
 import moment from 'moment';
@@ -34,7 +34,6 @@ import { flattenSiteOptions } from 'utils/sites';
 import { usePollutantsOptions } from 'utils/customHooks';
 import OutlinedSelect from '../../../components/CustomSelects/OutlinedSelect';
 import PropTypes from 'prop-types';
-import { BASE_AUTH_TOKEN } from 'utils/envVariables';
 
 function appendLeadingZeroes(n) {
   if (n <= 9) {
@@ -75,6 +74,7 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
     if (isGrids) {
       const siteOptions = [];
       !isEmpty(analyticsSites) &&
@@ -85,17 +85,20 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
     } else {
       setAverageChartSites(flattenSiteOptions(airqloud.siteOptions));
     }
+    setLoading(false);
   }, [analyticsSites, airqloud]);
 
   useEffect(() => {
+    setLoading(true);
     if (isCohorts) {
       const deviceOptions = [];
       !isEmpty(analyticsDevices) &&
         analyticsDevices.map((device) => {
-          deviceOptions.push(device._id);
+          deviceOptions.push(device.long_name.toLowerCase());
         });
       setAverageChartDevices(deviceOptions);
     }
+    setLoading(false);
   }, [analyticsDevices]);
 
   const handlePollutantChange = (pollutant) => {
@@ -150,15 +153,15 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
 
   const annotationMapper = {
     pm2_5: {
-      value: 25,
+      value: 15,
       label_content: 'WHO AQG'
     },
     pm10: {
-      value: 50,
+      value: 45,
       label_content: 'WHO AQG'
     },
     no2: {
-      value: 40,
+      value: 25,
       label_content: 'WHO AQG'
     }
   };
@@ -311,7 +314,7 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
           categoryPercentage: numLocations > 0 ? 1 / numLocations : 0.5,
           ticks: {
             fontColor: 'black',
-            callback: (value) => `${value.substr(0, 7)}`
+            callback: (value) => `${value.substr(0, 11)}`
           },
           gridLines: {
             display: false,
@@ -319,7 +322,7 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
           },
           scaleLabel: {
             display: true,
-            labelString: 'Locations'
+            labelString: isCohorts ? 'Devices' : 'Locations'
           }
         }
       ],
@@ -352,10 +355,9 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
   const fetchAndSetAverages = (pollutant) => {
     setLoading(true);
     const jwtToken = localStorage.getItem('jwtToken');
-    axios.defaults.headers.common.Authorization = jwtToken;
-    axios
+    createAxiosInstance()
       .post(
-        DAILY_MEAN_AVERAGES_URI,
+        isCohorts ? DEVICE_MEAN_AVERAGES_URI : DAILY_MEAN_AVERAGES_URI,
         isCohorts
           ? {
               startDate: roundToStartOfDay(startDate).toISOString(),
@@ -559,48 +561,35 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
     handleModalClose();
     fetchAndSetAverages(tempPollutant);
   };
+
   useEffect(() => {
     if (isCohorts) {
       if (!isEmpty(averageChartDevices)) {
-        setLoading(true);
         fetchAndSetAverages(pollutant);
-        setLoading(false);
       }
 
       if (isEmpty(averageChartDevices)) {
-        setLoading(true);
-
-        setTimeout(() => {
-          setLoading(false);
-          setAllLocations([]);
-          setDisplayedLocations([]);
-          setAverages({
-            labels: [],
-            average_values: [],
-            background_colors: []
-          });
-        }, 1000);
+        setAllLocations([]);
+        setDisplayedLocations([]);
+        setAverages({
+          labels: [],
+          average_values: [],
+          background_colors: []
+        });
       }
     } else {
       if (!isEmpty(averageChartSites)) {
-        setLoading(true);
         fetchAndSetAverages(pollutant);
-        setLoading(false);
       }
 
       if (isEmpty(averageChartSites)) {
-        setLoading(true);
-
-        setTimeout(() => {
-          setLoading(false);
-          setAllLocations([]);
-          setDisplayedLocations([]);
-          setAverages({
-            labels: [],
-            average_values: [],
-            background_colors: []
-          });
-        }, 1000);
+        setAllLocations([]);
+        setDisplayedLocations([]);
+        setAverages({
+          labels: [],
+          average_values: [],
+          background_colors: []
+        });
       }
     }
   }, [averageChartSites, modalOpen, averageChartDevices]);
@@ -695,7 +684,7 @@ const AveragesChart = ({ classes, analyticsSites, isGrids, isCohorts, analyticsD
               border: 'none'
             }}
           >
-            View all Locations <ArrowForwardIcon />
+            View all {isCohorts ? 'Devices' : 'Locations'} <ArrowForwardIcon />
           </Button>
         </CardActions>
       </Card>

@@ -80,6 +80,8 @@ class Config {
 
   static double get refreshIndicatorExtent => 30;
 
+  static String get notificationsTopic => 'push-notifications';
+
   static double refreshIndicatorPadding(int index) {
     return index == 0 ? 16.0 : 0.0;
   }
@@ -115,14 +117,11 @@ class Config {
 
 class AppConfig extends InheritedWidget {
   const AppConfig({
-    Key? key,
-    required Widget child,
+    super.key,
+    required super.child,
     required this.environment,
     required this.appTitle,
-  }) : super(
-          key: key,
-          child: child,
-        );
+  });
   final Environment environment;
   final String appTitle;
 

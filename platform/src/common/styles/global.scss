@@ -19,6 +19,14 @@ select:focus {
   outline: none !important;
 }
 
+.map-scrollbar::-webkit-scrollbar {
+  height: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Hide the default scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -26,16 +34,135 @@ select:focus {
 
 /* Track */
 ::-webkit-scrollbar-track {
-  background-color: #F3F6F8;
+  background-color: #f3f6f8;
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background-color: #9EB0C2;
+  background-color: #9eb0c2;
   border-radius: 4px;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
   background-color: #555;
+}
+
+@keyframes slide-in {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out forwards;
+}
+
+/* Map Styles */
+.my-custom-popup {
+  padding: 0;
+  margin: 0;
+  background-color: transparent;
+  box-shadow: none;
+  z-index: 666;
+  max-width: 250px;
+}
+
+.my-custom-popup .mapboxgl-popup-content {
+  padding: 0;
+  margin: 0;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.my-custom-popup .mapboxgl-popup-tip {
+  display: none;
+  transform: rotate(180deg);
+}
+
+@mixin unClusteredStyles($top: 83%) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  position: relative;
+  padding: 8px;
+  transition: transform 0.3s ease-in-out;
+
+  .arrow {
+    position: absolute;
+    top: $top;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    width: 16px;
+    height: 16px;
+    z-index: 1;
+    background-color: currentColor;
+    border-radius: 4px;
+    border: none;
+    outline: none;
+    box-shadow: none;
+  }
+
+  &:hover {
+    transform: scale(1.5);
+  }
+}
+
+.unClustered {
+  @include unClusteredStyles;
+  background-color: #fff;
+  color: #fff;
+  padding: 5px;
+  width: 56px;
+  height: 56px;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 2;
+  }
+
+  .arrow {
+    position: absolute;
+    top: 80%;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 16px;
+    height: 16px;
+    z-index: 1;
+    background-color: currentColor;
+    border-radius: 4px;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    opacity: 0;
+  }
+
+  &:hover {
+    transform: scale(1.5);
+
+    .arrow {
+      opacity: 1;
+    }
+  }
+}
+
+.unClustered-Node {
+  @include unClusteredStyles;
+}
+
+.unClustered-Number {
+  @include unClusteredStyles(88%);
+}
+
+.clustered {
+  &:hover {
+    border: 1px solid #002499;
+    z-index: 10000;
+  }
 }

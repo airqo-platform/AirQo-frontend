@@ -16,9 +16,12 @@ const Table = ({ collocationDevices, isLoading }) => {
   const [currentSortOrder, setCurrentSortOrder] = useState('');
 
   useEffect(() => {
-    const filterList = collocationDevices.filter((row) =>
-      Object.values(row).join('').toLowerCase().includes(searchTerm.toLowerCase()),
-    );
+    const filterList =
+      collocationDevices &&
+      collocationDevices.length > 0 &&
+      collocationDevices.filter((row) =>
+        Object.values(row).join('').toLowerCase().includes(searchTerm.toLowerCase()),
+      );
     setFilteredData(filterList);
   }, [searchTerm, collocationDevices]);
 
@@ -216,7 +219,7 @@ const Table = ({ collocationDevices, isLoading }) => {
       </div>
       <div className='overflow-x-scroll md:overflow-x-hidden'>
         <DataTable
-          filteredData={filteredData.length > 0 && filteredData}
+          filteredData={filteredData && filteredData.length > 0 && filteredData}
           collocationDevices={collocationDevices}
           isLoading={isLoading}
         />

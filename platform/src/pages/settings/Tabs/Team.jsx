@@ -21,7 +21,7 @@ const Team = ({ users, loading }) => {
   return (
     <div data-testid='team-tab'>
       <ContentBox>
-        <div className='flex justify-between items-center px-6 py-5'>
+        <div className='flex justify-between items-center px-6 py-5 flex-wrap sm:flex-nowrap gap-2'>
           <h3 className='text-secondary-neutral-light-800 font-medium text-lg'>Team members</h3>
           <Button
             onClick={() => setOpen(!open)}

@@ -64,7 +64,12 @@ const ExportDownloads = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
 
-  let userId = JSON.parse(localStorage.getItem('currentUser'))?._id;
+  let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+  let userId = '';
+  if (currentUser) {
+    userId = currentUser._id;
+  }
+
   const [scheduledRequests, setScheduledRequests] = useState([]);
 
   const getScheduledRequests = () => {
@@ -134,8 +139,7 @@ const ExportDownloads = () => {
                         : downloads.status.toLowerCase() === 'no data'
                         ? classes.noDataLink
                         : classes.waitingLink
-                    }
-                  >
+                    }>
                     {downloads.status}
                   </Typography>
                 );

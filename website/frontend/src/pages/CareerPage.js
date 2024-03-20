@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useInitScrollTop } from 'utilities/customHooks';
 import Page from './Page';
-import { loadCareersListingData, loadCareersDepartmentsData } from 'reduxStore/Careers/operations';
-import { useCareerListingData, useCareerDepartmentsData } from 'reduxStore/Careers/selectors';
-import { isEmpty } from 'underscore';
+import {
+  useCareerListingData,
+  useCareerDepartmentsData,
+  useCareerLoadingData
+} from 'reduxStore/Careers/selectors';
 import { groupBy } from 'underscore';
 import SectionLoader from '../components/LoadSpinner/SectionLoader';
 import SEO from 'utilities/seo';
-import { format } from 'date-fns';
+import { useTranslation, Trans } from 'react-i18next';
+import { useSelector } from 'react-redux';
 
 const JobListing = ({ title, uniqueTitle, type, key }) => {
   const navigate = useNavigate();
@@ -50,21 +52,23 @@ const DepartmentListing = ({ department, listing }) => {
 
 const CareerPage = () => {
   useInitScrollTop();
-  const dispatch = useDispatch();
+  const { t } = useTranslation();
   const careerListing = useCareerListingData();
   const departments = useCareerDepartmentsData();
-  const [loading, setLoading] = useState(false);
-
+  const loading = useCareerLoadingData();
   const groupedListing = groupBy(Object.values(careerListing), (v) => v['department']['name']);
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   const [groupedKeys, setGroupedKeys] = useState(Object.keys(groupedListing));
   const [selectedTag, setSelectedTag] = useState('all');
 
   const filterGroups = (value) => {
     setSelectedTag(value);
-    const allKeys = Object.keys(groupedListing);
-    if (value === 'all') return setGroupedKeys(allKeys);
-    return setGroupedKeys(allKeys.filter((v) => v === value));
+    if (groupedListing) {
+      const allKeys = Object.keys(groupedListing);
+      if (value === 'all') return setGroupedKeys(allKeys);
+      return setGroupedKeys(allKeys.filter((v) => v === value));
+    }
   };
 
   const onTagClick = (value) => (event) => {
@@ -78,17 +82,8 @@ const CareerPage = () => {
   };
 
   useEffect(() => {
-    setLoading(true);
-    if (isEmpty(careerListing)) dispatch(loadCareersListingData());
-    if (isEmpty(departments)) dispatch(loadCareersDepartmentsData());
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    setLoading(true);
     setGroupedKeys(Object.keys(groupedListing));
-    setLoading(false);
-  }, [careerListing]);
+  }, [careerListing, language]);
 
   return (
     <Page>
@@ -100,23 +95,29 @@ const CareerPage = () => {
         />
         <div className="careers-banner">
           <div className="text-container">
-            <div className="sub-text">Careers {'>'} Welcome to AirQo</div>
-            <div className="main-text">Join our team</div>
-            <div className="text-brief">
-              Be part of a team pioneering air quality monitoring in Africa. Together, we work
-              passionately towards our vision for Clean Air for all African Cities
-            </div>
+            <div className="sub-text">{t('about.careers.header.breadCrumb')}</div>
+            <div className="main-text">{t('about.careers.header.title')}</div>
+            <div className="text-brief">{t('about.careers.header.subText')}</div>
           </div>
         </div>
+
         {loading ? (
-          <SectionLoader />
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '50vh'
+            }}>
+            <SectionLoader />
+          </div>
         ) : (
           <div className="content">
             <div className="container">
-              <div className="label">Categories</div>
+              <div className="label">{t('about.careers.categories.label')}</div>
               <div className="tags">
                 <span className={selectedTagClassName('all')} onClick={onTagClick('all')}>
-                  Open positions
+                  {t('about.careers.categories.btnText')}
                 </span>
                 {departments.length > 0 ? (
                   departments.map((department) => (
@@ -134,9 +135,15 @@ const CareerPage = () => {
               {groupedKeys.length > 0 ? (
                 groupedKeys.map((groupedKey) => {
                   const departmentListing = groupedListing[groupedKey];
+
+                  if (!departmentListing) {
+                    return null;
+                  }
+
                   const listing = departmentListing.filter(
                     (job) => new Date(job.closing_date).getTime() >= new Date().getTime()
                   );
+
                   return (
                     <DepartmentListing
                       department={listing.length > 0 ? groupedKey : null}
@@ -146,16 +153,18 @@ const CareerPage = () => {
                   );
                 })
               ) : (
-                <div className="no-listing">We currently have no open positions. </div>
+                <div className="no-listing">{t('about.careers.categories.noListing')}</div>
               )}
 
               <div className="self-intro">
                 <span>
-                  Don’t see a <br />
-                  position that fits you perfectly? Introduce yourself here{' '}
+                  <Trans i18nKey="about.careers.categories.selfIntro.text">
+                    Don’t see a <br />
+                    position that fits you perfectly? Introduce yourself here
+                  </Trans>
                 </span>
                 <a href="mailto:careers@airqo.net" className="mail-link">
-                  careers@airqo.net
+                  {t('about.careers.categories.selfIntro.cta')}
                 </a>
               </div>
             </div>

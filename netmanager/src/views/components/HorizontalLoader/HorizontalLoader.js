@@ -41,9 +41,8 @@ const HorizontalLoader = ({ loading }) => {
       style={{
         zIndex: loading ? 9999 : -1,
         position: 'fixed',
-        top: '0',
-        left: '0',
-        right: '0',
+        width: '100%',
+        left: 0,
         height: '4px'
       }}>
       {loading && (

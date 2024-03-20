@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { useHistory, useParams } from 'react-router-dom';
 import { ArrowBackIosRounded } from '@material-ui/icons';
@@ -23,16 +23,17 @@ import { makeStyles } from '@material-ui/styles';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
 import { generateAirQloudDataSummaryApi } from 'views/apis/analytics';
-import { generateAirQloudUptimeSummaryApi } from '../../apis/deviceMonitoring';
+import {
+  generateAirQloudUptimeSummaryApi,
+  getGridUptimeSummaryApi
+} from '../../apis/deviceMonitoring';
 import Typography from '@material-ui/core/Typography';
-// redux
-import { useSelectedAirqloudData } from 'redux/AirQloud/selectors';
-import { getAirqloudDetails, removeAirQloudData, refreshAirQloud } from 'redux/AirQloud/operations';
 
 // css
 import 'react-leaflet-fullscreen/dist/styles.css';
 import 'assets/css/location-registry.css';
 import { isEmpty } from 'underscore';
+import { generateGridDataSummaryApi } from '../../apis/analytics';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -53,137 +54,12 @@ const gridItemStyle = {
   margin: '5px 0'
 };
 
-const AirQloudForm = ({ airqloud }) => {
-  const history = useHistory();
-  const dispatch = useDispatch();
-
-  return (
-    <Paper
-      style={{
-        margin: '0 auto',
-        minHeight: '400px',
-        padding: '20px 20px',
-        maxWidth: '1500px'
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Button
-          color="primary"
-          onClick={() => dispatch(refreshAirQloud(airqloud.long_name, airqloud._id))}
-        >
-          Refresh AirQloud
-        </Button>
-      </div>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          fontSize: '1.2rem',
-          fontWeight: 'bold',
-          margin: '20px 0'
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: '5px'
-          }}
-        >
-          <ArrowBackIosRounded
-            style={{ color: '#3f51b5', cursor: 'pointer' }}
-            onClick={() => {
-              history.push('/airqlouds');
-              dispatch(removeAirQloudData());
-            }}
-          />
-        </div>
-        AirQloud Details
-      </div>
-      <Grid container spacing={1}>
-        <Grid items xs={12} sm={6} style={gridItemStyle}>
-          <TextField
-            id="name"
-            label="name"
-            variant="outlined"
-            value={airqloud.long_name}
-            fullWidth
-            required
-          />
-        </Grid>
-        <Grid items xs={12} sm={6} style={gridItemStyle}>
-          <TextField
-            id="name"
-            label="AirQloud ID"
-            value={airqloud.name}
-            variant="outlined"
-            fullWidth
-            required
-          />
-        </Grid>
-        <Grid items xs={12} sm={6} style={gridItemStyle}>
-          <TextField
-            id="admin_level"
-            label="Administrative Level"
-            value={airqloud.admin_level}
-            variant="outlined"
-            fullWidth
-            required
-          />
-        </Grid>
-        <Grid items xs={12} sm={6} style={gridItemStyle}>
-          <TextField
-            id="isCustom"
-            label="Is Custom"
-            variant="outlined"
-            value={(airqloud.isCustom && 'Yes') || 'No'}
-            fullWidth
-          />
-        </Grid>
-        <Grid items xs={12} sm={6} style={gridItemStyle}>
-          <TextField
-            id="siteCount"
-            label="Site Count"
-            variant="outlined"
-            value={(airqloud.sites && airqloud.sites.length) || 0}
-            fullWidth
-          />
-        </Grid>
-        {/*<Grid*/}
-        {/*  container*/}
-        {/*  alignItems="flex-end"*/}
-        {/*  alignContent="flex-end"*/}
-        {/*  justify="flex-end"*/}
-        {/*  xs={12}*/}
-        {/*  style={{ margin: "10px 0" }}*/}
-        {/*>*/}
-        {/*  <Button variant="contained" onClick={handleCancel}>*/}
-        {/*    Cancel*/}
-        {/*  </Button>*/}
-
-        {/*  <Button*/}
-        {/*    variant="contained"*/}
-        {/*    color="primary"*/}
-        {/*    disabled={weightedBool(manualDisable, isEqual(site, siteInfo))}*/}
-        {/*    onClick={handleSubmit}*/}
-        {/*    style={{ marginLeft: "10px" }}*/}
-        {/*  >*/}
-        {/*    Save Changes*/}
-        {/*  </Button>*/}
-        {/*</Grid>*/}
-      </Grid>
-    </Paper>
-  );
-};
-
 const AirQloudView = (props) => {
-  const { className, ...rest } = props;
+  const { className, airqloud, ...rest } = props;
+  console.log('airqloud', airqloud);
   const classes = useStyles();
   useInitScrollTop();
-  let params = useParams();
-  const history = useHistory();
   const dispatch = useDispatch();
-  const airqloud = useSelectedAirqloudData(params.id);
 
   const [loading, setLoading] = useState(false);
   const [startDate, setStartDate] = useState(null);
@@ -214,11 +90,14 @@ const AirQloudView = (props) => {
 
     setLoading(true);
 
-    let data = {
-      startDateTime: roundToStartOfDay(new Date(uptimeStartDate).toISOString()),
-      endDateTime: roundToEndOfDay(new Date(uptimeEndDate).toISOString()),
-      airqloud: params.id
-    };
+    let data = {};
+    if (airqloud) {
+      data = {
+        startDateTime: roundToStartOfDay(new Date(uptimeStartDate).toISOString()),
+        endDateTime: roundToEndOfDay(new Date(uptimeEndDate).toISOString()),
+        grid: airqloud._id
+      };
+    }
 
     generateAirQloudUptimeReportFunc(data);
   };
@@ -228,17 +107,20 @@ const AirQloudView = (props) => {
 
     setLoading(true);
 
-    let data = {
-      startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
-      endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
-      airqloud: params.id
-    };
+    let data = {};
+    if (airqloud) {
+      data = {
+        startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
+        endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
+        grid: airqloud._id
+      };
+    }
 
     generateAirQloudDataReportFunc(data);
   };
 
   const generateAirQloudDataReportFunc = async (body) => {
-    await generateAirQloudDataSummaryApi(body)
+    await generateGridDataSummaryApi(body)
       .then((response) => response.data)
       .then((resData) => {
         //TODO: Populate the charts and reports to be displayed.
@@ -251,7 +133,7 @@ const AirQloudView = (props) => {
           setDataSummaryReady(true);
           dispatch(
             updateMainAlert({
-              message: 'AirQloud Data Summary Report Generated ',
+              message: 'Grid Data Summary Report Generated ',
               show: true,
               severity: 'success'
             })
@@ -285,7 +167,7 @@ const AirQloudView = (props) => {
   };
 
   const generateAirQloudUptimeReportFunc = async (body) => {
-    await generateAirQloudUptimeSummaryApi(body)
+    await getGridUptimeSummaryApi(body)
       .then((response) => response.data)
       .then((resData) => {
         //TODO: Populate the charts and reports to be displayed.
@@ -297,7 +179,7 @@ const AirQloudView = (props) => {
           setUptimeSummaryReady(true);
           dispatch(
             updateMainAlert({
-              message: 'AirQloud uptime report successfully generated',
+              message: 'Grid uptime report successfully generated',
               show: true,
               severity: 'success'
             })
@@ -331,92 +213,28 @@ const AirQloudView = (props) => {
       });
   };
 
-  useEffect(() => {
-    dispatch(getAirqloudDetails(params.id));
-  }, []);
-
   return (
     <ErrorBoundary>
       <div
         style={{
           width: '96%',
           margin: ' 20px auto'
-        }}
-      >
-        <AirQloudForm airqloud={airqloud} key={`${airqloud._id}`} />
-
-        <div>
-          <div
-            style={{
-              margin: '50px auto',
-              maxWidth: '1500px'
-            }}
-          >
-            <CustomMaterialTable
-              title="AirQloud Sites details"
-              userPreferencePaginationKey={'siteDevices'}
-              columns={[
-                {
-                  title: 'Site Name',
-                  field: 'name'
-                },
-                {
-                  title: 'Site ID',
-                  field: 'generated_name'
-                },
-                {
-                  title: 'District',
-                  field: 'district'
-                },
-                {
-                  title: 'Region',
-                  field: 'region'
-                },
-                {
-                  title: 'Country',
-                  field: 'country'
-                }
-              ]}
-              data={airqloud.sites || []}
-              onRowClick={(event, rowData) => {
-                event.preventDefault();
-                return history.push(`/sites/${rowData._id}/`);
-              }}
-              options={{
-                search: true,
-                exportButton: true,
-                searchFieldAlignment: 'right',
-                showTitle: true,
-                searchFieldStyle: {
-                  fontFamily: 'Open Sans'
-                },
-                headerStyle: {
-                  fontFamily: 'Open Sans',
-                  fontSize: 14,
-                  fontWeight: 600
-                }
-              }}
-            />
-          </div>
-        </div>
-
+        }}>
         <div
           style={{
             margin: '50px auto',
             // minHeight: "400px",
             maxWidth: '1500px'
-          }}
-        >
+          }}>
           <div className={classes.rootxx}>
             <Grid container spacing={4}>
               <Grid item xs={12}>
                 <Card
                   {...rest}
                   className={clsx(classes.root, className)}
-                  style={{ overflow: 'visible' }}
-                >
+                  style={{ overflow: 'visible' }}>
                   <Typography className={classes.cardTitle}>
-                    Generate AirQloud Data Summary Report
+                    Generate Grid Data Summary Report
                   </Typography>
                   <p>
                     Select the time period of your interest to generate the report for this airqloud
@@ -462,8 +280,7 @@ const AirQloudView = (props) => {
                           color="primary"
                           variant="outlined"
                           type="submit"
-                          disabled={disableReportGenerationBtn()}
-                        >
+                          disabled={disableReportGenerationBtn()}>
                           {' '}
                           Generate Data Summary Report
                         </Button>
@@ -492,8 +309,7 @@ const AirQloudView = (props) => {
           style={{
             margin: '50px auto',
             maxWidth: '1500px'
-          }}
-        >
+          }}>
           {dataSummaryReady ? (
             <div className={classes.rootxx}>
               <Grid container spacing={4}>
@@ -501,10 +317,9 @@ const AirQloudView = (props) => {
                   <Card
                     {...rest}
                     className={clsx(classes.root, className)}
-                    style={{ overflow: 'visible' }}
-                  >
+                    style={{ overflow: 'visible' }}>
                     <Typography className={clsx(classes.cardTitle, classes.titleSpacing)}>
-                      {`Data Summary For ${airQloudDataSummaryReport.airqloud} From ${formatDate(
+                      {`Data Summary For ${airQloudDataSummaryReport.grid} From ${formatDate(
                         airQloudDataSummaryReport.start_date_time,
                         'YYYY-MM-DD'
                       )} to ${formatDate(airQloudDataSummaryReport.end_date_time, 'YYYY-MM-DD')}`}
@@ -518,8 +333,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            >
+                              variant="body2">
                               Hourly Records
                             </Typography>
                             <Typography variant="h3">
@@ -532,8 +346,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            >
+                              variant="body2">
                               Calibrated Records
                             </Typography>
                             <Typography variant="h3">
@@ -546,8 +359,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            >
+                              variant="body2">
                               Uncalibrated Records
                             </Typography>
                             <Typography variant="h3">
@@ -560,8 +372,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            >
+                              variant="body2">
                               Calibrated Records(%)
                             </Typography>
                             <Typography variant="h3">
@@ -574,8 +385,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            >
+                              variant="body2">
                               UnCalibrated Records (%)
                             </Typography>
                             <Typography variant="h3">
@@ -586,7 +396,7 @@ const AirQloudView = (props) => {
 
                         <Grid item md={12} xs={12}>
                           <CustomMaterialTable
-                            title="AirQloud Sites Data Summary "
+                            title="Grid Sites Data Summary "
                             userPreferencePaginationKey={'siteDevices'}
                             columns={[
                               {
@@ -634,7 +444,7 @@ const AirQloudView = (props) => {
 
                         <Grid item md={12} xs={12}>
                           <CustomMaterialTable
-                            title="AirQloud Devices Data Summary "
+                            title="Grid Devices Data Summary "
                             userPreferencePaginationKey={'airqloudDevices'}
                             columns={[
                               {
@@ -687,7 +497,7 @@ const AirQloudView = (props) => {
             </div>
           ) : (
             <Paper style={{ textAlign: 'center', padding: '50px' }}>
-              <p>AirQloud data summary report will appear here</p>
+              <p>Grid data summary report will appear here</p>
             </Paper>
           )}
         </div>
@@ -697,19 +507,15 @@ const AirQloudView = (props) => {
             margin: '50px auto',
             // minHeight: "400px",
             maxWidth: '1500px'
-          }}
-        >
+          }}>
           <div className={classes.rootxx}>
             <Grid container spacing={4}>
               <Grid item xs={12}>
                 <Card
                   {...rest}
                   className={clsx(classes.root, className)}
-                  style={{ overflow: 'visible' }}
-                >
-                  <Typography className={classes.cardTitle}>
-                    Generate AirQloud Uptime Report
-                  </Typography>
+                  style={{ overflow: 'visible' }}>
+                  <Typography className={classes.cardTitle}>Generate Grid Uptime Report</Typography>
                   <p>
                     Select the time period of your interest to view the uptime report for this
                     airqloud
@@ -755,10 +561,9 @@ const AirQloudView = (props) => {
                           color="primary"
                           variant="outlined"
                           type="submit"
-                          disabled={disableUptimeReportGenerationBtn()}
-                        >
+                          disabled={disableUptimeReportGenerationBtn()}>
                           {' '}
-                          Generate Uptime Report for the AirQloud
+                          Generate Uptime Report for the Grid
                         </Button>
                         {loading && (
                           <CircularProgress
@@ -785,8 +590,7 @@ const AirQloudView = (props) => {
           style={{
             margin: '50px auto',
             maxWidth: '1500px'
-          }}
-        >
+          }}>
           {uptimeSummaryReady ? (
             <div className={classes.rootxx}>
               <Grid container spacing={4}>
@@ -794,11 +598,10 @@ const AirQloudView = (props) => {
                   <Card
                     {...rest}
                     className={clsx(classes.root, className)}
-                    style={{ overflow: 'visible' }}
-                  >
+                    style={{ overflow: 'visible' }}>
                     <Typography className={clsx(classes.cardTitle, classes.titleSpacing)}>
                       {`Uptime Statistics For ${
-                        airQloudUptimeSummaryReport.airqloud_name
+                        airQloudUptimeSummaryReport.grid_name
                       } From ${formatDate(
                         airQloudUptimeSummaryReport.start_date_time,
                         'YYYY-MM-DD'
@@ -813,8 +616,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            >
+                              variant="body2">
                               Uptime (%)
                             </Typography>
                             <Typography variant="h3">
@@ -827,8 +629,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            >
+                              variant="body2">
                               Downtime (%)
                             </Typography>
                             <Typography variant="h3">
@@ -841,8 +642,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            >
+                              variant="body2">
                               Data Points
                             </Typography>
                             <Typography variant="h3">
@@ -855,8 +655,7 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            >
+                              variant="body2">
                               Hourly Threshold
                             </Typography>
                             <Typography variant="h3">
@@ -869,15 +668,14 @@ const AirQloudView = (props) => {
                               className={classes.title}
                               color="textSecondary"
                               gutterBottom
-                              variant="body2"
-                            ></Typography>
+                              variant="body2"></Typography>
                             <Typography variant="h3"></Typography>
                           </Grid>
                         </Grid>
 
                         <Grid item md={12} xs={12}>
                           <CustomMaterialTable
-                            title="AirQloud Sites Uptime Summarry "
+                            title="Grid Sites Uptime Summarry "
                             userPreferencePaginationKey={'siteDevices'}
                             columns={[
                               {
@@ -918,7 +716,7 @@ const AirQloudView = (props) => {
 
                         <Grid item md={12} xs={12}>
                           <CustomMaterialTable
-                            title="AirQloud Devices Uptime Summary "
+                            title="Grid Devices Uptime Summary "
                             userPreferencePaginationKey={'airqloudDevices'}
                             columns={[
                               {
@@ -964,7 +762,7 @@ const AirQloudView = (props) => {
             </div>
           ) : (
             <Paper style={{ textAlign: 'center', padding: '50px' }}>
-              <p>AirQloud uptime report will appear here</p>
+              <p>Grid uptime report will appear here</p>
             </Paper>
           )}
         </div>

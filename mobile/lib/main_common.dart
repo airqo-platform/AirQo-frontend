@@ -21,11 +21,39 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:app/utils/custom_localisation.dart';
 
-class AirQoApp extends StatelessWidget {
-  const AirQoApp(this.initialLink, {super.key});
+class AirQoApp extends StatefulWidget {
+  const AirQoApp(this.initialLink, {super.key, required this.locale});
 
   final PendingDynamicLinkData? initialLink;
+
+  final Locale locale;
+
+  @override
+  State<AirQoApp> createState() => _AirQoAppState();
+  static Future<void> setLocale(BuildContext context, Locale newLocale) async {
+    _AirQoAppState? state = context.findAncestorStateOfType<_AirQoAppState>();
+    state?.setLocale(newLocale);
+  }
+}
+
+class _AirQoAppState extends State<AirQoApp> {
+  Locale? _locale;
+
+  void setLocale(Locale locale) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        _locale = locale;
+      });
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    getLocale().then((locale) => {setLocale(locale)});
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,11 +140,16 @@ class AirQoApp extends StatelessWidget {
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
+          LgMaterialLocalizations.delegate,
+          LgCupertinoLocalizations.delegate,
+          LgWidgetsLocalizations.delegate,
         ],
         supportedLocales: const [
           Locale('en'), //English
           Locale('fr'), //French
           Locale('pt'), //Portuguese
+          Locale('sw'), //Swahili
+          Locale('lg'), //Luganda
         ],
         navigatorKey: navigatorKey,
         navigatorObservers: [
@@ -124,8 +157,9 @@ class AirQoApp extends StatelessWidget {
         ],
         title: config.appTitle,
         theme: customTheme(),
+        locale: _locale,
         home: OfflineBanner(
-          child: SplashScreen(initialLink),
+          child: SplashScreen(widget.initialLink),
         ),
       ),
     );

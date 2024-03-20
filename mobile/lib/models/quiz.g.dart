@@ -18,6 +18,7 @@ Quiz _$QuizFromJson(Map<String, dynamic> json) => Quiz(
       status: $enumDecodeNullable(_$QuizStatusEnumMap, json['status']) ??
           QuizStatus.todo,
       completionMessage: json['completion_message'] as String,
+      hasCompleted: json['hasCompleted'] as bool? ?? false,
       shareLink: json['share_link'] as String? ?? '',
     );
 
@@ -28,6 +29,7 @@ Map<String, dynamic> _$QuizToJson(Quiz instance) => <String, dynamic>{
       'questions': instance.questions.map((e) => e.toJson()).toList(),
       'completion_message': instance.completionMessage,
       '_id': instance.id,
+      'hasCompleted': instance.hasCompleted,
       'active_question': instance.activeQuestion,
       'status': _$QuizStatusEnumMap[instance.status]!,
       'share_link': instance.shareLink,

@@ -1,156 +1,171 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState } from 'react';
 import { useInitScrollTop } from 'utilities/customHooks';
 import SEO from 'utilities/seo';
-import { loadPublicationsData } from '../../../reduxStore/Publications/operations';
-import { usePublicationsData } from '../../../reduxStore/Publications/selectors';
+import {
+  usePublicationsData,
+  usePublicationsLoadingData
+} from '../../../reduxStore/Publications/selectors';
 import Page from '../Page';
 import CardComponent from './CardComponent';
 import Pagination from './Pagination';
 import ReportComponent from './ReportComponent';
+import { useTranslation } from 'react-i18next';
+import SectionLoader from '../../components/LoadSpinner/SectionLoader';
 
 const PublicationsPage = () => {
   useInitScrollTop();
+  const { t } = useTranslation();
   const [selectedTab, setSelectedTab] = useState('Research');
   const onClickTabItem = (tab) => setSelectedTab(tab);
-
-  const dispatch = useDispatch();
   const publicationsData = usePublicationsData();
-  const ResearchData = publicationsData.filter(
-    (publication) => publication.category === 'research'
-  );
-  const ReportsData = publicationsData.filter(
-    (publication) => publication.category === 'technical' || publication.category === 'policy'
-  );
-  const GuidesData = publicationsData.filter(
-    (publication) => publication.category === 'guide' || publication.category === 'manual'
-  );
+  const loading = usePublicationsLoadingData();
 
-  const [currentpage, setCurrentPage] = useState(1);
+  const filterData = (categories) => {
+    return publicationsData.filter((publication) => categories.includes(publication.category));
+  };
+
+  const ResearchData = filterData(['research']);
+  const ReportsData = filterData(['technical', 'policy']);
+  const GuidesData = filterData(['guide', 'manual']);
+
+  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
-  const lastItem = currentpage * itemsPerPage;
-  const firstItem = lastItem - itemsPerPage;
-  const currentResearch = ResearchData.slice(firstItem, lastItem);
-  const currentReports = ReportsData.slice(firstItem, lastItem);
-  const currentGuides = GuidesData.slice(firstItem, lastItem);
+
+  const paginateData = (data) => {
+    const lastItem = currentPage * itemsPerPage;
+    const firstItem = lastItem - itemsPerPage;
+    return data.slice(firstItem, lastItem);
+  };
+
+  const currentResearch = paginateData(ResearchData);
+  const currentReports = paginateData(ReportsData);
+  const currentGuides = paginateData(GuidesData);
+
   const totalResearch = ResearchData.length;
   const totalReports = ReportsData.length;
   const totalGuides = GuidesData.length;
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  useEffect(() => {
-    dispatch(loadPublicationsData());
-  }, [publicationsData.length]);
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
     <Page>
-      <div className="list-page">
-        <SEO
-          title="Publications"
-          siteTitle="AirQo Publications"
-          description="Discover AirQo's latest collection of research publications"
-        />
-        <div className="page-header">
-          <div className="content">
-            <div className="title-wrapper">
-              <h2>Resources</h2>
-              <span className="sub-title">
-                Discover our latest collection of resources
-              </span>
-            </div>
-            <div className="nav">
-              <span id="tab1">
-                <button
-                  className={selectedTab === 'Research' ? 'selected' : 'unselected'}
-                  onClick={() => {
-                    paginate(1);
-                    onClickTabItem('Research');
-                  }}>
-                  Research Publications
-                </button>
-              </span>
-              <span id="tab2">
-                <button
-                  className={selectedTab === 'Reports' ? 'selected' : 'unselected'}
-                  onClick={() => {
-                    paginate(1);
-                    onClickTabItem('Reports');
-                  }}>
-                  Technical reports and Policy documents
-                </button>
-              </span>
-              <span id="tab3">
-                <button
-                  className={selectedTab === 'Guides' ? 'selected' : 'unselected'}
-                  onClick={() => {
-                    paginate(1);
-                    onClickTabItem('Guides');
-                  }}>
-                  Guides and manuals
-                </button>
-              </span>
+      <SEO
+        title="Publications"
+        siteTitle="AirQo Publications"
+        description="Discover AirQo's latest collection of research publications"
+      />
+      {loading ? (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '50vh'
+          }}>
+          <SectionLoader />
+        </div>
+      ) : (
+        <div className="list-page">
+          <div className="page-header">
+            <div className="content">
+              <div className="title-wrapper">
+                <h2>{t('about.publications.header.title')}</h2>
+                <span className="sub-title">{t('about.publications.header.subText')}</span>
+              </div>
+              <div className="nav">
+                <span id="tab1">
+                  <button
+                    className={selectedTab === 'Research' ? 'selected' : 'unselected'}
+                    onClick={() => {
+                      paginate(1);
+                      onClickTabItem('Research');
+                    }}>
+                    {t('about.publications.subNav.research')}
+                  </button>
+                </span>
+                <span id="tab2">
+                  <button
+                    className={selectedTab === 'Reports' ? 'selected' : 'unselected'}
+                    onClick={() => {
+                      paginate(1);
+                      onClickTabItem('Reports');
+                    }}>
+                    {t('about.publications.subNav.reports')}
+                  </button>
+                </span>
+                <span id="tab3">
+                  <button
+                    className={selectedTab === 'Guides' ? 'selected' : 'unselected'}
+                    onClick={() => {
+                      paginate(1);
+                      onClickTabItem('Guides');
+                    }}>
+                    {t('about.publications.subNav.guides')}
+                  </button>
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="page-body">
-          <div className="content">
-            {selectedTab === 'Research' ? (
-              currentResearch.map((publication) => (
-                <div className="press-cards-lg publication">
-                  <div className="card-lg">
-                    <CardComponent
-                      title={publication.title}
-                      authors={publication.authors}
-                      link={publication.link}
-                      linkTitle={publication.link_title}
-                      downloadLink={publication.resource_file}
-                    />
+          <div className="page-body">
+            <div className="content">
+              {selectedTab === 'Research' ? (
+                currentResearch.map((publication) => (
+                  <div className="press-cards-lg publication">
+                    <div className="card-lg">
+                      <CardComponent
+                        title={publication.title}
+                        authors={publication.authors}
+                        link={publication.link}
+                        linkTitle={publication.link_title}
+                        downloadLink={publication.resource_file}
+                      />
+                    </div>
                   </div>
-                </div>
-              ))
-            ) : (
-              <div />
-            )}
-            {selectedTab === 'Reports' ? (
-              currentReports.map((publication) => (
-                <ReportComponent
-                  title={publication.title}
-                  authors={publication.authors}
-                  link={publication.link}
-                  linkTitle={publication.link_title}
-                  showSecondAuthor={true}
-                  resourceFile={publication.resource_file}
-                />
-              ))
-            ) : (
-              <div />
-            )}
-            {selectedTab === 'Guides' ? (
-              currentGuides.map((guide) => (
-                <ReportComponent
-                  title={guide.title}
-                  authors={guide.authors}
-                  link={guide.link}
-                  linkTitle={guide.link_title}
-                  showSecondAuthor={false}
-                  resourceFile={guide.resource_file}
-                />
-              ))
-            ) : (
-              <div />
-            )}
+                ))
+              ) : (
+                <div />
+              )}
+              {selectedTab === 'Reports' ? (
+                currentReports.map((publication) => (
+                  <ReportComponent
+                    title={publication.title}
+                    authors={publication.authors}
+                    link={publication.link}
+                    linkTitle={publication.link_title}
+                    showSecondAuthor={true}
+                    resourceFile={publication.resource_file}
+                  />
+                ))
+              ) : (
+                <div />
+              )}
+              {selectedTab === 'Guides' ? (
+                currentGuides.map((guide) => (
+                  <ReportComponent
+                    title={guide.title}
+                    authors={guide.authors}
+                    link={guide.link}
+                    linkTitle={guide.link_title}
+                    showSecondAuthor={false}
+                    resourceFile={guide.resource_file}
+                  />
+                ))
+              ) : (
+                <div />
+              )}
+            </div>
           </div>
+          <Pagination
+            itemsPerPage={itemsPerPage}
+            totalItems={
+              (selectedTab === 'Research' && totalResearch) ||
+              (selectedTab === 'Reports' && totalReports) ||
+              (selectedTab === 'Guides' && totalGuides)
+            }
+            paginate={paginate}
+          />
         </div>
-        <Pagination
-          itemsPerPage={itemsPerPage}
-          totalItems={
-            (selectedTab === 'Research' && totalResearch) ||
-            (selectedTab === 'Reports' && totalReports) ||
-            (selectedTab === 'Guides' && totalGuides)
-          }
-          paginate={paginate}
-        />
-      </div>
+      )}
     </Page>
   );
 };

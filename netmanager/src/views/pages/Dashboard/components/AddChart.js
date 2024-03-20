@@ -370,43 +370,43 @@ const AddChart = ({
                   required
                 />
               </Grid>
-              {/*<Grid item md={12} xs={12}>*/}
-              {/*  <TextField*/}
-              {/*    // classes={{ root: classes.root }}*/}
-              {/*    select*/}
-              {/*    name="userRoles"*/}
-              {/*    id="userRoles"*/}
-              {/*    variant="outlined"*/}
-              {/*    label="userRoles"*/}
-              {/*    fullWidth*/}
-              {/*    SelectProps={{*/}
-              {/*      multiple: true,*/}
-              {/*      value: [],*/}
-              {/*      // onChange: handleFieldChange*/}
-              {/*    }}*/}
-              {/*  >*/}
-              {/*    <MenuItem value="admin">Admin</MenuItem>*/}
-              {/*    <MenuItem value="user1">User1</MenuItem>*/}
-              {/*    <MenuItem value="user2">User2</MenuItem>*/}
-              {/*  </TextField>*/}
-              {/*</Grid>*/}
-              <Grid item md={12} xs={12}>
-                <OutlinedSelect
-                  fullWidth
-                  label="Sites"
-                  value={defaultsData.sites}
-                  options={siteOptions}
-                  onChange={handleSelectChange('sites')}
-                  error={!!errors.sites}
-                  helperText={errors.sites}
-                  isMulti
-                  variant="outlined"
-                  margin="dense"
-                  required
-                  scrollable
-                  height={'100px'}
-                />
-              </Grid>
+              {isCohorts ? (
+                <Grid item md={12} xs={12}>
+                  <OutlinedSelect
+                    fullWidth
+                    label="Devices"
+                    value={defaultsData.devices}
+                    options={deviceOptions}
+                    onChange={handleSelectChange('devices')}
+                    error={!!errors.devices}
+                    helperText={errors.devices}
+                    isMulti
+                    variant="outlined"
+                    margin="dense"
+                    required
+                    scrollable
+                    height={'100px'}
+                  />
+                </Grid>
+              ) : (
+                <Grid item md={12} xs={12}>
+                  <OutlinedSelect
+                    fullWidth
+                    label="Sites"
+                    value={defaultsData.sites}
+                    options={siteOptions}
+                    onChange={handleSelectChange('sites')}
+                    error={!!errors.sites}
+                    helperText={errors.sites}
+                    isMulti
+                    variant="outlined"
+                    margin="dense"
+                    required
+                    scrollable
+                    height={'100px'}
+                  />
+                </Grid>
+              )}
 
               <Grid item md={12} xs={12}>
                 <OutlinedSelect

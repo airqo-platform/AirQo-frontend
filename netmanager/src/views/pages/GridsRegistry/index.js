@@ -7,6 +7,7 @@ import GridsTable from './GridsTable';
 import BreadCrumb from './breadcrumb';
 import { withPermission } from '../../containers/PageAccess';
 import { fetchGridsSummary } from 'redux/Analytics/operations';
+import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -20,17 +21,16 @@ const useStyles = makeStyles((theme) => ({
 const GridsRegistry = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const grids = useSelector((state) => state.analytics.gridsSummary);
 
   useEffect(() => {
     setLoading(true);
     const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
-    dispatch(fetchGridsSummary(activeNetwork.net_name));
-    setTimeout(() => {
+    dispatch(fetchGridsSummary(activeNetwork.net_name)).then(() => {
       setLoading(false);
-    }, 5000);
+    });
   }, []);
 
   const handleClose = () => {
@@ -40,6 +40,20 @@ const GridsRegistry = () => {
   const handleOpen = () => {
     setOpen(true);
   };
+
+  if (loading) {
+    return (
+      <Box
+        height={'60vh'}
+        width={'100%'}
+        color="blue"
+        display={'flex'}
+        justifyContent={'center'}
+        alignItems={'center'}>
+        <LargeCircularLoader loading={loading} />
+      </Box>
+    );
+  }
 
   return (
     <ErrorBoundary>
@@ -51,19 +65,7 @@ const GridsRegistry = () => {
           </Button>
         </BreadCrumb>
         <div className={classes.content}>
-          {loading ? (
-            <Box
-              height={'60vh'}
-              width={'100%'}
-              color="blue"
-              display={'flex'}
-              justifyContent={'center'}
-              alignItems={'center'}
-              fontSize={'20px'}
-            >
-              Fetching grids...
-            </Box>
-          ) : grids && grids.length > 0 ? (
+          {grids && grids.length > 0 ? (
             <GridsTable gridsList={grids} />
           ) : (
             <Box
@@ -71,8 +73,7 @@ const GridsRegistry = () => {
               textAlign={'center'}
               display={'flex'}
               justifyContent={'center'}
-              alignItems={'center'}
-            >
+              alignItems={'center'}>
               <Typography variant="body2" color="textSecondary">
                 No grids found
               </Typography>

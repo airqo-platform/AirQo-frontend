@@ -43,6 +43,8 @@ import SimCardIcon from '@material-ui/icons/SimCard';
 import GridOnIcon from '@material-ui/icons/GridOn';
 import GrainIcon from '@material-ui/icons/Grain';
 import GroupAddIcon from '@material-ui/icons/GroupAdd';
+import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';
+import AppsIcon from '@material-ui/icons/Apps';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -92,28 +94,19 @@ const allMainPages = [
     icon: <AspectRatioIcon />
   },
   {
+    title: 'Analytics',
+    href: '/analytics',
+    icon: <TimelineIcon />,
+    isNew: true
+  },
+  {
     title: 'Map',
     href: '/map',
     icon: <MapIcon />
   },
   {
-    title: 'Dashboard',
-    href: '/dashboard',
-    icon: <DashboardIcon />
-  },
-  {
-    title: 'Analytics',
-    href: '/analytics',
-    icon: <TimelineIcon />
-  },
-  {
     title: 'Export data',
-    href: '/export-data',
-    nested: true,
-    nestItems: [
-      { title: 'Export Options', href: '/export-data/options' },
-      { title: 'Scheduled', href: '/export-data/scheduled' }
-    ],
+    href: '/export-data/options',
     icon: <CloudDownloadIcon />
   },
   {
@@ -133,8 +126,11 @@ const allMainPages = [
       { title: 'Network Map', href: '/manager/map' },
       { title: 'Network Statistics', href: '/manager/stats' },
       { title: 'Network Activity Logs', href: '/manager/activities' },
-      { title: 'Fault Detection', href: '/manager/fault_detection' }
-    ]
+      { title: 'Fault Detection', href: '/manager/fault_detection' },
+
+      { title: 'Network Activity Logs', href: '/manager/activities' }
+    ],
+    isNew: true
   },
   {
     title: 'Device Registry',
@@ -153,36 +149,30 @@ const allMainPages = [
     title: 'Host Registry',
     href: '/hosts',
     icon: <PeopleOutline />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
+    isNew: true
   },
   {
     title: 'SIM Registry',
     href: '/sim',
     icon: <SimCardIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES'
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES',
+    isNew: true
   },
-  {
-    title: 'AirQloud Registry',
-    href: '/airqlouds',
-    icon: <AirQloudIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
-  },
-  {
-    title: 'Heat Map',
-    href: '/heatMap',
-    icon: <BubbleChartIcon />
-  },
+
   {
     title: 'Cohorts Registry',
     href: '/cohorts',
     icon: <GroupWorkIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
+    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS',
+    isNew: true
   },
   {
     title: 'Grids Registry',
     href: '/grids',
     icon: <GrainIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
+    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS',
+    isNew: true
   }
 ];
 
@@ -202,7 +192,8 @@ const allUserManagementPages = [
   {
     title: 'Teams',
     href: '/teams',
-    icon: <GroupAddIcon />
+    icon: <GroupAddIcon />,
+    isNew: true
   },
   {
     title: 'Users',
@@ -213,13 +204,14 @@ const allUserManagementPages = [
     nested: true,
     nestItems: [
       { title: 'Assigned Users', href: '/admin/users/assigned-users' },
-      { title: 'Available Users', href: '/admin/users/available-users' }
+      { title: 'Available Users', href: '/admin/users/available-users' },
+      { title: 'User Statistics', href: '/admin/users/users-statistics' }
     ]
   },
   {
     title: 'Roles',
     href: '/roles',
-    icon: <SupervisorAccountIcon />,
+    icon: <AssignmentIndIcon />,
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_ROLES'
   },
   {
@@ -227,6 +219,12 @@ const allUserManagementPages = [
     href: '/candidates',
     icon: <SupervisedUserCircleIcon />,
     permission: 'APPROVE_AND_DECLINE_NETWORK_CANDIDATES'
+  },
+  {
+    title: 'Clients',
+    href: '/clients-activation',
+    icon: <AppsIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS'
   },
   {
     title: 'Account',
@@ -321,6 +319,28 @@ const Sidebar = (props) => {
           setUserPages(selectedUserPages);
           setAdminPages(selectedAdminPages);
         }
+      } else {
+        const selectedUserPages = excludePages(allMainPages, [
+          'Locate',
+          'Network Monitoring',
+          'Location Registry',
+          'Device Registry',
+          'Host Registry',
+          'SIM Registry',
+          'Site Registry',
+          'Cohorts Registry',
+          'Grids Registry'
+        ]);
+        const selectedAdminPages = excludePages(allUserManagementPages, [
+          'Users',
+          'Candidates',
+          'Clients',
+          'Roles',
+          'Logs'
+        ]);
+        setUserPages(selectedUserPages);
+        setAdminPages(selectedAdminPages);
+        setLoading(false);
       }
     } else {
       const selectedUserPages = excludePages(allMainPages, [
@@ -331,13 +351,13 @@ const Sidebar = (props) => {
         'Host Registry',
         'SIM Registry',
         'Site Registry',
-        'AirQloud Registry',
         'Cohorts Registry',
         'Grids Registry'
       ]);
       const selectedAdminPages = excludePages(allUserManagementPages, [
         'Users',
         'Candidates',
+        'Clients',
         'Roles',
         'Logs'
       ]);

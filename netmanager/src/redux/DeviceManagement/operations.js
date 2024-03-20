@@ -24,7 +24,7 @@ import {
   getUptimeLeaderboardApi
 } from 'views/apis/deviceMonitoring';
 import { updateDevices } from '../../utils/deviceStatus';
-import { generateAirQloudUptimeSummaryApi } from '../../views/apis/deviceMonitoring';
+import { getGridUptimeSummaryApi } from '../../views/apis/deviceMonitoring';
 
 export const loadUptimeLeaderboardData = (params) => async (dispatch) => {
   return await getUptimeLeaderboardApi(params)
@@ -151,7 +151,7 @@ export const loadSingleDeviceUptime = (params) => async (dispatch) => {
 };
 
 export const loadAirqloudUptime = (params) => async (dispatch) => {
-  return await generateAirQloudUptimeSummaryApi(params)
+  return await getGridUptimeSummaryApi(params)
     .then((responseData) => {
       dispatch({
         type: LOAD_AIRQLOUD_UPTIME_SUCCESS,

@@ -34,7 +34,10 @@ const CandidateList = (props) => {
   return (
     <ErrorBoundary>
       <div className={classes.root}>
-        <UsersListBreadCrumb category="Candidates" usersTable={`${activeNetwork.net_name}`} />
+        <UsersListBreadCrumb
+          category="Candidates"
+          usersTable={`${activeNetwork.net_name === 'airqo' ? 'AirQo' : activeNetwork.net_name}`}
+        />
         <div className={classes.content}>
           <CandidatesTable candidates={candidates} />
         </div>

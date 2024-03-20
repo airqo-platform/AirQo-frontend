@@ -35,8 +35,12 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: const OnBoardingTopBar(),
-        body: WillPopScope(
-          onWillPop: onWillPop,
+        body: PopScope(
+          onPopInvoked: ((didPop) {
+            if (didPop) {
+              onWillPop();
+            }
+          }),
           child: AppSafeArea(
             backgroundColor: Colors.white,
             horizontalPadding: 24,

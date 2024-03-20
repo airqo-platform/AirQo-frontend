@@ -22,7 +22,7 @@ enum QuizStatus {
   @JsonValue("IN_PROGRESS")
   inProgress,
   @JsonValue("COMPLETE")
-  complete;
+  complete,
 }
 
 enum KyaLessonStatus {
@@ -30,8 +30,6 @@ enum KyaLessonStatus {
   todo,
   @JsonValue("IN_PROGRESS")
   inProgress,
-  @JsonValue("PENDING_COMPLETION")
-  pendingCompletion,
   @JsonValue("COMPLETE")
   complete;
 }

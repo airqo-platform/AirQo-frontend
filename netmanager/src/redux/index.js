@@ -19,6 +19,7 @@ import deviceOverviewReducer from './DeviceOverview/OverviewSlice';
 import googlePlacesReducer from './GooglePlaces/reducer';
 import LogsReducer from './Logs/reducer';
 import AnalyticsReducer from './Analytics/reducer';
+import HorizontalLoaderSlice from './HorizontalLoader/index.js';
 
 export default combineReducers({
   auth: authReducer,
@@ -40,5 +41,6 @@ export default combineReducers({
   deviceOverviewData: deviceOverviewReducer,
   googlePlaces: googlePlacesReducer,
   logs: LogsReducer,
-  analytics: AnalyticsReducer
+  analytics: AnalyticsReducer,
+  HorizontalLoader: HorizontalLoaderSlice
 });

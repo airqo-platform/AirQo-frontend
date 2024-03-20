@@ -4,27 +4,27 @@ import MapWrapper from 'assets/img/MapWrapper.png';
 import useWindowSize from 'utilities/customHooks';
 import { Link } from 'react-router-dom';
 import { NETMANAGER_URL } from '../../../config/urls';
+import { useTranslation } from 'react-i18next';
 
 const MapSection = () => {
   const windowSize = useWindowSize();
   const largeScreen = 1440;
+  const { t } = useTranslation();
   return (
     <div className="map-section">
       <div className="backdrop">
         <div className="map-content">
           <span id="first-pill">
-            <p>Air Quality Map</p>
+            <p>{t("homepage.mapSection.pill")}</p>
           </span>
-          <h3 className="content-h">Live air quality insights across Africa</h3>
+          <h3 className="content-h">{t("homepage.mapSection.title")}</h3>
           <span className="content-p">
-            <p>
-              Visualize hourly air quality information with a single click, over our growing network
-              across African cities
+            <p>{t("homepage.mapSection.subText")}
             </p>
           </span>
           <Link to={`${NETMANAGER_URL}/map`} target='_blank'>
             <span id="second-pill">
-              <p>View Map {'-->'}</p>
+              <p>{t("homepage.mapSection.cta")} {'-->'}</p>
             </span>
           </Link>
         </div>

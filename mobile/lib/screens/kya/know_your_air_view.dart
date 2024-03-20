@@ -1,19 +1,20 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
-import 'package:app/models/models.dart';
-import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../quiz/quiz_view.dart';
-import 'kya_title_page.dart';
 import 'kya_widgets.dart';
 
-class KnowYourAirView extends StatelessWidget {
+class KnowYourAirView extends StatefulWidget {
   const KnowYourAirView({super.key});
 
+  @override
+  State<KnowYourAirView> createState() => _KnowYourAirViewState();
+}
+
+class _KnowYourAirViewState extends State<KnowYourAirView> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<KyaBloc, KyaState>(
@@ -26,55 +27,41 @@ class KnowYourAirView extends StatelessWidget {
             },
           );
         }
-        final completeKya = state.lessons
-            .where((lesson) => lesson.status == KyaLessonStatus.complete)
-            .toList();
-        final completeQuizzes = state.quizzes
-            .where((quiz) => quiz.status == QuizStatus.complete)
-            .toList();
 
-        if (completeKya.isEmpty && completeQuizzes.isEmpty) {
-          List<KyaLesson> inCompleteLessons =
-              state.lessons.filterInCompleteLessons();
-          return NoCompleteKyaWidget(
-            callBack: () async {
-              if (inCompleteLessons.isEmpty) {
-                showSnackBar(
-                  context,
-                  AppLocalizations.of(context)!.oopsNoLessonsAtTheMoment,
-                );
-              } else {
-                await _startKyaLessons(context, inCompleteLessons.first);
-              }
-            },
+        final allQuizzes = state.quizzes.toList();
+        final allLessons = state.lessons.toList();
+        List<Widget> children = [];
+
+        if (allQuizzes.isNotEmpty) {
+          children.addAll(
+            allQuizzes
+                .map(
+                  (quiz) => Column(
+                    children: [
+                      QuizCard(
+                        quiz,
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                )
+                .toList(),
           );
         }
-
-        List<Widget> children = [];
-        children.addAll(completeQuizzes
-            .map(
-              (quiz) => Column(
-                children: [
-                  QuizCard(
-                    quiz,
-                  ),
-                  const SizedBox(height: 10),
-                ],
-              ),
-            )
-            .toList());
-        children.addAll(completeKya
-            .map(
-              (lesson) => Column(
-                children: [
-                  KyaLessonCardWidget(
-                    lesson,
-                  ),
-                  const SizedBox(height: 10),
-                ],
-              ),
-            )
-            .toList());
+        if (allLessons.isNotEmpty) {
+          children.addAll(allLessons
+              .map(
+                (lesson) => Column(
+                  children: [
+                    KyaLessonCardWidget(
+                      lesson,
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              )
+              .toList());
+        }
 
         return AppRefreshIndicator(
           sliverChildDelegate: SliverChildBuilderDelegate(
@@ -105,16 +92,5 @@ class KnowYourAirView extends StatelessWidget {
   void _refresh(BuildContext context) {
     context.read<KyaBloc>().add(const FetchKya());
     context.read<KyaBloc>().add(const FetchQuizzes());
-  }
-
-  Future<void> _startKyaLessons(BuildContext context, KyaLesson kya) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          return KyaTitlePage(kya);
-        },
-      ),
-    );
   }
 }

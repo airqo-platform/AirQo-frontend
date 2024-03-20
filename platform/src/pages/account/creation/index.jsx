@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import AccountPageLayout from '@/components/Account/Layout';
 import { useRouter } from 'next/router';
 import GoogleLogo from '@/icons/Common/google_logo.svg';
 import { getGoogleAuthDetails } from '@/core/apis/Account';
-import RadioComponent from '@/components/Account/RadioComponent';
+import CheckComponent from '@/components/Account/CheckComponent';
 
 const userRoles = [
   {
@@ -14,7 +13,7 @@ const userRoles = [
   {
     title: 'Organisation',
     subText:
-      'Beyond data, gain access to network management tools. Drive meaningful change, one location at a time. Shape a cleaner future for all',
+      'Beyond data, gain access to network management tools. Drive meaningful change, one location at a time. Shape a cleaner future for all.',
   },
 ];
 
@@ -22,44 +21,51 @@ const UserDesignation = () => {
   const [clickedRole, setClickedRole] = useState('');
   const router = useRouter();
 
-  const routeToIndividualCreation = () => {
-    router.push('/account/creation/individual/register');
+  const routeToCreation = () => {
+    if (clickedRole) {
+      router.push(`/account/creation/${clickedRole.toLowerCase()}/register`);
+    }
   };
 
-  const routeToOrganisationCreation = () => {
-    router.push('/account/creation/organisation/register');
+  const handleRoleClick = (roleTitle) => {
+    setClickedRole((prevRole) => (prevRole === roleTitle ? '' : roleTitle));
   };
+
   return (
-    <AccountPageLayout childrenHeight={'lg:h-[580]'}>
-      {clickedRole === '' && (
-        <div className='w-full'>
-          <h2 className='text-3xl text-black-700 font-medium'>
-            How are you planning to use AirQo Analytics?
-          </h2>
-          <p className='text-xl text-black-700 font-normal mt-3'>
-            We'll streamline your setup experience accordingly
-          </p>
-          <div className='mt-10'>
-            <div className='w-full grid grid-cols-1 gap-y-8'>
-              {userRoles.map((role, index) => (
-                <div
-                  key={index}
-                  className='w-full'
-                  onClick={() => {
-                    setTimeout(() => {
-                      setClickedRole(role.title);
-                    }, 1200);
-                  }}>
-                  <RadioComponent text={role.title} width={'w-full'} subText={role.subText} />
-                </div>
-              ))}
-            </div>
+    <div className='relative w-screen h-screen bg-white overflow-x-hidden'>
+      <div className='absolute left-0 right-0 top-0 bottom-0 mb-0 mt-14 sm:mt-20 lg:mt-44 mx-auto w-11/12 lg:w-7/12 h-auto flex flex-col items-center'>
+        <h2 className='text-3xl text-black-700 font-semibold text-center'>
+          How are you planning to use AirQo Analytics?
+        </h2>
+        <p className='text-xl text-black-700 font-normal mt-3 text-center'>
+          We'll streamline your setup experience accordingly
+        </p>
+        <div className='mt-10 flex justify-center items-center'>
+          <div className='flex flex-col lg:flex-row lg:items-stretch lg:ml-20'>
+            {userRoles.map((role, index) => (
+              <div
+                key={index}
+                className='w-full cursor-pointer mb-8 lg:w-10/12 lg:mb-0 flex flex-col'
+                onClick={() => handleRoleClick(role.title)}>
+                <CheckComponent
+                  text={role.title}
+                  width={'w-full lg:w-10/12'}
+                  subText={role.subText}
+                  checked={clickedRole === role.title}
+                />
+              </div>
+            ))}
           </div>
         </div>
-      )}
-      {clickedRole === 'Individual' && routeToIndividualCreation()}
-      {clickedRole === 'Organisation' && routeToOrganisationCreation()}
-    </AccountPageLayout>
+        {clickedRole && (
+          <button
+            onClick={routeToCreation}
+            className='mt-6 w-[262px] flex justify-center items-center px-4 py-2 bg-blue-600 text-white rounded-[12px]'>
+            Continue
+          </button>
+        )}
+      </div>
+    </div>
   );
 };
 

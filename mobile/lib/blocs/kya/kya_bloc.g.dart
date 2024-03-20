@@ -13,9 +13,11 @@ KyaState _$KyaStateFromJson(Map<String, dynamic> json) => KyaState(
       quizzes: (json['quizzes'] as List<dynamic>)
           .map((e) => Quiz.fromJson(e as Map<String, dynamic>))
           .toList(),
+      hasCompleted: Map<String, bool>.from(json['hasCompleted'] as Map),
     );
 
 Map<String, dynamic> _$KyaStateToJson(KyaState instance) => <String, dynamic>{
       'lessons': instance.lessons,
       'quizzes': instance.quizzes,
+      'hasCompleted': instance.hasCompleted,
     };

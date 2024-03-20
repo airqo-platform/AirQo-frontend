@@ -12,3 +12,14 @@
 .copyable-icon:hover {
   fill: #0366d6;
 }
+
+.copyable-scrollable-text {
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  font-family: monospace;
+}
+
+.copyable-scrollable-text::-webkit-scrollbar {
+  display: none;
+}

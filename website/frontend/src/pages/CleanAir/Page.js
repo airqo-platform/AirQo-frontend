@@ -1,33 +1,28 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import Footer from 'components/Footer';
 import TopBar from 'components/nav/TopBar';
-import { useSelector } from 'react-redux';
-import HeaderImage from 'assets/img/cleanAir/headerImage.png';
-import { BottomCTAS, HeaderComponent } from 'components/CleanAir';
+import { BottomCTAS, SecondaryNavComponent } from 'components/CleanAir';
 import Loadspinner from 'components/LoadSpinner';
+import LanguageSwitcher from 'components/LanguageSwitcher';
 
 const CleanAirPageContainer = ({ children }) => {
-  const { pressDataLoading, eventsDataLoading } = useSelector((state) => ({
-    pressDataLoading: state?.pressData?.loading,
-    eventsDataLoading: state?.eventsData?.loading
-  }));
+  const eventsLoading = useSelector((state) => state.eventsData.loading);
+  const resourcesLoading = useSelector((state) => state.cleanAirData.loading);
 
-  if (pressDataLoading && eventsDataLoading) {
+  if (eventsLoading && resourcesLoading) {
     return <Loadspinner />;
   }
 
   return (
-    <div className="Page Clean-air-page">
+    <div className="Page">
+      <LanguageSwitcher />
       <TopBar />
-      <HeaderComponent
-        title="CLEAN-Air Africa Network"
-        pageTitle="CLEAN-Air Africa Network"
-        style={{
-          backgroundImage: `url(${HeaderImage})`
-        }}
-      />
-      <div className="page-wrapper page-container">{children}</div>
-      <BottomCTAS />
+      <div className="Clean-air-page">
+        <SecondaryNavComponent />
+        <div className="page-wrapper page-container">{children}</div>
+        <BottomCTAS />
+      </div>
       <Footer />
     </div>
   );

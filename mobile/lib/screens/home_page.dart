@@ -4,6 +4,7 @@ import 'package:animations/animations.dart';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
+import 'package:app/screens/email_link/email_link_page.dart';
 import 'package:app/screens/profile/profile_view.dart';
 import 'package:app/screens/settings/update_screen.dart';
 import 'package:app/services/services.dart';
@@ -16,7 +17,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -51,8 +51,12 @@ class _HomePageState extends State<HomePage> {
     return OfflineBanner(
       child: Scaffold(
         backgroundColor: CustomColors.appBodyColor,
-        body: WillPopScope(
-          onWillPop: _onWillPop,
+        body: PopScope(
+          onPopInvoked: ((didPop) {
+            if (didPop) {
+              _onWillPop();
+            }
+          }),
           child: PageTransitionSwitcher(
             transitionBuilder: (
               Widget child,
@@ -91,7 +95,7 @@ class _HomePageState extends State<HomePage> {
           ),
           child: ShowCaseWidget(
             onFinish: () async {
-              final prefs = await SharedPreferences.getInstance();
+              final prefs = await SharedPreferencesHelper.instance;
               if (prefs.getBool(Config.restartTourShowcase) == true) {
                 Future.delayed(
                   Duration.zero,
@@ -238,6 +242,24 @@ class _HomePageState extends State<HomePage> {
         });
       }
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final user = CustomAuth.getUser();
+      if ((user != null && user.phoneNumber != null)) {
+        if (user.email != null) {
+          return;
+        } else if (user.isAnonymous) {
+          return;
+        }
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) {
+          await bottomSheetEmailLink(context);
+        }
+      }
+    });
+  }
+
+  Future<void> showEmailLinkBottomSheet(BuildContext context) async {
+    await bottomSheetEmailLink(context);
   }
 
   Future<void> _initializeDynamicLinks() async {

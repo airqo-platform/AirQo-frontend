@@ -35,6 +35,24 @@ class CloudAnalytics {
     );
   }
 
+  static Future<void> logAllowNotification() async {
+    await CloudAnalytics.logEvent(
+      CloudAnalyticsEvent.allowNotification,
+    );
+  }
+
+  static Future<void> logNotificationOpen() async {
+    await CloudAnalytics.logEvent(
+      CloudAnalyticsEvent.notificationOpen,
+    );
+  }
+
+  static Future<void> logNotificationReceive() async {
+    await CloudAnalytics.logEvent(
+      CloudAnalyticsEvent.notificationReceive,
+    );
+  }
+
   static Future<void> logSignOutEvents() async {
     try {
       await Future.wait([]);

@@ -51,8 +51,8 @@ const PermissionDenied = () => {
               Reach out to your administrator if you think this is a mistake.
             </Typography>
             <Button variant="contained" color="primary" className={classes.button}>
-              <Link to="/dashboard" className={classes.subTitle}>
-                Back to dashboard
+              <Link to="/analytics" className={classes.subTitle}>
+                Back to analytics
               </Link>
             </Button>
             <p className={classes.errorCode}>Error code: 403 forbidden access</p>

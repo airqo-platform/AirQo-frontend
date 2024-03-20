@@ -6,11 +6,15 @@ export const GENERATE_CUSTOMISABLE_CHARTS_URI = `${BASE_ANALYTICS_URL_V2}/analyt
 
 export const DAILY_MEAN_AVERAGES_URI = `${BASE_ANALYTICS_URL_V2}/analytics/dashboard/historical/daily-averages`;
 
+export const DEVICE_MEAN_AVERAGES_URI = `${BASE_ANALYTICS_URL_V2}/analytics/dashboard/historical/daily-averages-devices`;
+
 export const DOWNLOAD_CUSTOMISED_DATA_URI = `${BASE_ANALYTICS_URL_V2}/analytics/data-download`;
 
 export const D3_CHART_DATA_URI = `${BASE_ANALYTICS_URL_V2}/analytics/dashboard/chart/d3/data`;
 
 export const EXCEEDANCES_URI = `${BASE_ANALYTICS_URL_V2}/analytics/dashboard/exceedances`;
+
+export const DEVICE_EXCEEDANCES_URI = `${BASE_ANALYTICS_URL_V2}/analytics/dashboard/exceedances-devices`;
 
 export const GET_SITES = `${BASE_ANALYTICS_URL_V2}/analytics/dashboard/sites`;
 
@@ -37,14 +41,19 @@ export const GENERATE_AIRQLOUD_DATA_SUMMARY_URI = `${BASE_ANALYTICS_URL_V2}/anal
 export const GENERATE_ACCESS_TOKEN = `${BASE_ANALYTICS_URL_V2}/users/tokens`;
 
 // Token generation and management
-export const CREATE_CLIENT_URI = `${BASE_ANALYTICS_URL_V2}/users/clients`;
-
-export const GET_CLIENTS_URI = `${BASE_ANALYTICS_URL_V2}/users/clients`;
+export const CLIENT_URI = `${BASE_ANALYTICS_URL_V2}/users/clients`;
 
 export const GENERATE_TOKEN_URI = `${BASE_ANALYTICS_URL_V2}/users/tokens`;
+
+export const ACTIVATE_USER_CLIENT = `${BASE_ANALYTICS_URL_V2}/users/clients/activate`;
+
+export const ACTIVATION_REQUEST_URI = `${BASE_ANALYTICS_URL_V2}/users/clients/activate-request`;
 
 // Teams
 export const CREATE_TEAM_URI = `${BASE_ANALYTICS_URL_V2}/users/groups`;
 
 // SIM
 export const GET_SIM_URI = `${BASE_ANALYTICS_URL_V2}/incentives/sims`;
+
+// USER STATS
+export const GET_USER_STATS_URI = `${BASE_ANALYTICS_URL_V2}/users/stats`;

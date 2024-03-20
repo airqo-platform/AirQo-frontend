@@ -6,7 +6,7 @@ import Select from 'react-select';
 
 import { Map, FeatureGroup, LayerGroup, TileLayer, Marker, Popup } from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
-import axios from 'axios';
+import createAxiosInstance from '../../apis/axiosConfig';
 import L from 'leaflet';
 import FullscreenControl from 'react-leaflet-fullscreen';
 import 'react-leaflet-fullscreen/dist/styles.css';
@@ -116,7 +116,7 @@ class Maps extends React.Component {
   // Retrieve previously saved planning space by this current user
   // added from locateSave
   onOpenClicked = () => {
-    axios
+    createAxiosInstance()
       .get(GET_LOCATE_MAP + '?userId=' + this.props.auth.user._id)
       .then((res) => {
         this.setState({ savedPlan: res.data });
@@ -134,7 +134,7 @@ class Maps extends React.Component {
     this.setState((prevState) => ({ openSave: !prevState.openSave }));
     // make api call
     // console.log("plan: ", this.state.plan);
-    axios
+    createAxiosInstance()
       .post(
         SAVE_LOCATE_MAP,
         {
@@ -206,7 +206,7 @@ class Maps extends React.Component {
   // update saved space
   onUpdatePlanSpace = () => {
     console.log('onUpdate: ', this.state.selected_name);
-    axios
+    createAxiosInstance()
       .put(
         UPDATE_LOCATE_MAP +
           '?userId=' +
@@ -244,7 +244,7 @@ class Maps extends React.Component {
   // Delete previously saved space
   onDeletePlanSpace = (name) => {
     console.log('onDelete :', name);
-    axios
+    createAxiosInstance()
       .delete(DELETE_LOCATE_MAP + '?userId=' + this.props.auth.user._id + '&spaceName=' + name)
       .then((res) => {
         console.log(res.data);
@@ -282,7 +282,7 @@ class Maps extends React.Component {
       polygon: this.state.isPlanSelected == true ? this.state.selected_plan : this.state.plan
     };
     console.log(api_data);
-    axios
+    createAxiosInstance()
       .post(RUN_LOCATE_MODEL, api_data, {
         headers: { 'Content-Type': 'application/json' }
       })
@@ -522,8 +522,7 @@ class Maps extends React.Component {
                 disabled={this.state.btnSubmit === false ? 'true' : ''}
                 color="secondary"
                 variant="contained"
-                size="small"
-              >
+                size="small">
                 Submit
               </Button>
               <Button
@@ -533,8 +532,7 @@ class Maps extends React.Component {
                 onClick={this.handleClear}
                 color="secondary"
                 variant="contained"
-                size="small"
-              >
+                size="small">
                 Clear Space
               </Button>
             </CardActions>
@@ -590,8 +588,7 @@ class Maps extends React.Component {
                           <Button
                             variant="contained"
                             size="small"
-                            onClick={this.onDeletePlanSpace.bind(this, s.space_name)}
-                          >
+                            onClick={this.onDeletePlanSpace.bind(this, s.space_name)}>
                             <CloseIcon style={btnStyles} />
                           </Button>
                         </ListItem>
@@ -606,8 +603,7 @@ class Maps extends React.Component {
           <Dialog
             open={this.state.openSave}
             onClose={this.handleSaveClose}
-            aria-labelledby="form-dialog-title"
-          >
+            aria-labelledby="form-dialog-title">
             {/* <DialogTitle id="form-dialog-title">Save Planning Space</DialogTitle> */}
             <DialogContent>
               <DialogContentText>
@@ -642,8 +638,7 @@ class Maps extends React.Component {
             open={this.state.confirmDialog}
             onClose={this.handleConfirmClose}
             aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
-          >
+            aria-describedby="alert-dialog-description">
             {/* <DialogTitle id="alert-dialog-title">
           {"Use Google's location service?"}
         </DialogTitle> */}
@@ -665,8 +660,7 @@ class Maps extends React.Component {
         <div className={'locate-map-container'}>
           <Map
             center={[this.props.mapDefaults.lat, this.props.mapDefaults.lng]}
-            zoom={this.props.mapDefaults.zoom}
-          >
+            zoom={this.props.mapDefaults.zoom}>
             <TileLayer
               attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
               url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
@@ -701,8 +695,7 @@ class Maps extends React.Component {
                   }}
                   onMouseOut={(e) => {
                     e.target.closePopup();
-                  }}
-                >
+                  }}>
                   <Popup>
                     <span>
                       <span>
@@ -724,8 +717,7 @@ class Maps extends React.Component {
             <FeatureGroup
               ref={(reactFGref) => {
                 this._onFeatureGroupReady(reactFGref);
-              }}
-            >
+              }}>
               <EditControl
                 ref="edit"
                 position="topright"

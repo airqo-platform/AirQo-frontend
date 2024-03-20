@@ -5,4 +5,4 @@ const BASE_DEVICE_MONITORING_URL = stripTrailingSlash(process.env.NEXT_PUBLIC_AP
 
 export const COLLOCATION = `${BASE_DEVICE_MONITORING_URL}/monitor/collocation`;
 
-export const DELETE_COLLOCATION_DEVICE = `${COLLOCATION}?TOKEN=${NEXT_PUBLIC_API_TOKEN}`;
+export const DELETE_COLLOCATION_DEVICE = `${COLLOCATION}`;

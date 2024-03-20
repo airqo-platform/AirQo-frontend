@@ -14,8 +14,10 @@ class Partner(BaseModel):
         Policy = "policy", "Policy"
         Funder = "funder", "Funder"
         Research = "research", "Research"
-        Network = "network", "Network Partner"
-        Support = "support", "Supporting Partner"
+        Network = "ca-network", "Clean air Network Partner"
+        Support = "ca-support", "Clean air Supporting Partner"
+        Forum = "ca-forum", "Clean air Policy Forum"
+        Private = "ca-private-sector", "Clean air private sector"
 
     partner_image = CloudinaryField("PartnerImage", overwrite=True, resource_type="image", null=True, blank=True)
     partner_logo = CloudinaryField("PartnerLogo", overwrite=True, resource_type="image")

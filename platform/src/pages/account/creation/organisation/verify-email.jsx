@@ -4,14 +4,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import SideImage from '@/images/Account/OrganisationSideQuote.png';
 import { createUser } from '@/lib/store/services/account/CreationSlice';
 import Toast from '@/components/Toast';
-import { useRouter } from 'next/router';
 
 const VerifyUserEmail = () => {
   const dispatch = useDispatch();
-  const router = useRouter();
   const userEmail = useSelector((state) => state.creation.userData.email);
   const userData = useSelector((state) => state.creation.userData);
   const errors = useSelector((state) => state.creation.errors);
+  const success = useSelector((state) => state.creation.success);
   const [verificationErrors, setVerificationErrors] = useState(false);
 
   const handleSubmit = async () => {
@@ -20,8 +19,6 @@ const VerifyUserEmail = () => {
       const res = await dispatch(createUser(userData));
       if (!success) {
         setVerificationErrors(true);
-      }else{
-        router.push('/account/creation/organisation/user-success')
       }
       return res;
     } catch (err) {
@@ -30,7 +27,7 @@ const VerifyUserEmail = () => {
   };
 
   return (
-    <AccountPageLayout rightImage={SideImage}>
+    <AccountPageLayout rightImage={SideImage} pageTitle={'Verify Email | AirQo'}>
       {verificationErrors && (
         <Toast
           type={'error'}

@@ -5,6 +5,7 @@ class KyaState extends Equatable {
   const KyaState({
     required this.lessons,
     required this.quizzes,
+    required this.hasCompleted,
   });
 
   factory KyaState.fromJson(Map<String, dynamic> json) =>
@@ -15,14 +16,17 @@ class KyaState extends Equatable {
   KyaState copyWith({
     List<KyaLesson>? lessons,
     List<Quiz>? quizzes,
+    Map<String, bool>? hasCompleted,
   }) =>
       KyaState(
         lessons: lessons ?? this.lessons,
         quizzes: quizzes ?? this.quizzes,
+        hasCompleted: hasCompleted ?? this.hasCompleted,
       );
 
   final List<KyaLesson> lessons;
   final List<Quiz> quizzes;
+  final Map<String, bool> hasCompleted;
 
   @override
   List<Object> get props {

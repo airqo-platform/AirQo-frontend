@@ -4,7 +4,7 @@ import datetime
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-from django.utils.timezone import utc
+from datetime import timezone
 import django.utils.timezone
 import django_extensions.db.fields
 
@@ -20,12 +20,16 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='BulletDescription',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', django_extensions.db.fields.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
+                ('created', django_extensions.db.fields.CreationDateTimeField(
+                    auto_now_add=True, verbose_name='created')),
+                ('modified', django_extensions.db.fields.ModificationDateTimeField(
+                    auto_now=True, verbose_name='modified')),
                 ('name', models.CharField(max_length=30)),
                 ('order', models.IntegerField(default=1)),
-                ('author', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='bulletdescription_create', to=settings.AUTH_USER_MODEL, verbose_name='author')),
+                ('author', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                 related_name='bulletdescription_create', to=settings.AUTH_USER_MODEL, verbose_name='author')),
             ],
             options={
                 'get_latest_by': 'modified',
@@ -56,46 +60,58 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='career',
             name='apply_url',
-            field=models.URLField(default=datetime.datetime(2022, 7, 12, 20, 52, 5, 796544, tzinfo=utc), max_length=250),
+            field=models.URLField(default=datetime.datetime(
+                2022, 7, 12, 20, 52, 5, 796544, tzinfo=timezone.utc), max_length=250),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='career',
             name='author',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='career_create', to=settings.AUTH_USER_MODEL, verbose_name='author'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                    related_name='career_create', to=settings.AUTH_USER_MODEL, verbose_name='author'),
         ),
         migrations.AddField(
             model_name='career',
             name='created',
-            field=django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, default=django.utils.timezone.now, verbose_name='created'),
+            field=django_extensions.db.fields.CreationDateTimeField(
+                auto_now_add=True, default=django.utils.timezone.now, verbose_name='created'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='career',
             name='modified',
-            field=django_extensions.db.fields.ModificationDateTimeField(auto_now=True, verbose_name='modified'),
+            field=django_extensions.db.fields.ModificationDateTimeField(
+                auto_now=True, verbose_name='modified'),
         ),
         migrations.AddField(
             model_name='career',
             name='type',
-            field=models.CharField(choices=[('full-time', 'Full Time'), ('part-time', 'Part Time'), ('contract', 'Contract'), ('temporary', 'Temporary'), ('internship', 'Internship'), ('graduate-training', 'Graduate Training')], default='full-time', max_length=30),
+            field=models.CharField(choices=[('full-time', 'Full Time'), ('part-time', 'Part Time'), ('contract', 'Contract'), ('temporary',
+                                   'Temporary'), ('internship', 'Internship'), ('graduate-training', 'Graduate Training')], default='full-time', max_length=30),
         ),
         migrations.AddField(
             model_name='career',
             name='updated_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='career_update', to=settings.AUTH_USER_MODEL, verbose_name='last updated by'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                    related_name='career_update', to=settings.AUTH_USER_MODEL, verbose_name='last updated by'),
         ),
         migrations.CreateModel(
             name='JobDescription',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', django_extensions.db.fields.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
+                ('created', django_extensions.db.fields.CreationDateTimeField(
+                    auto_now_add=True, verbose_name='created')),
+                ('modified', django_extensions.db.fields.ModificationDateTimeField(
+                    auto_now=True, verbose_name='modified')),
                 ('description', models.TextField()),
                 ('order', models.IntegerField(default=1)),
-                ('author', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='jobdescription_create', to=settings.AUTH_USER_MODEL, verbose_name='author')),
-                ('career', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='descriptions', to='career.career')),
-                ('updated_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='jobdescription_update', to=settings.AUTH_USER_MODEL, verbose_name='last updated by')),
+                ('author', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                 related_name='jobdescription_create', to=settings.AUTH_USER_MODEL, verbose_name='author')),
+                ('career', models.ForeignKey(blank=True, null=True,
+                 on_delete=django.db.models.deletion.SET_NULL, related_name='descriptions', to='career.career')),
+                ('updated_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                 related_name='jobdescription_update', to=settings.AUTH_USER_MODEL, verbose_name='last updated by')),
             ],
             options={
                 'get_latest_by': 'modified',
@@ -105,12 +121,17 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Department',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', django_extensions.db.fields.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
+                ('created', django_extensions.db.fields.CreationDateTimeField(
+                    auto_now_add=True, verbose_name='created')),
+                ('modified', django_extensions.db.fields.ModificationDateTimeField(
+                    auto_now=True, verbose_name='modified')),
                 ('name', models.CharField(max_length=30)),
-                ('author', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='department_create', to=settings.AUTH_USER_MODEL, verbose_name='author')),
-                ('updated_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='department_update', to=settings.AUTH_USER_MODEL, verbose_name='last updated by')),
+                ('author', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                 related_name='department_create', to=settings.AUTH_USER_MODEL, verbose_name='author')),
+                ('updated_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                 related_name='department_update', to=settings.AUTH_USER_MODEL, verbose_name='last updated by')),
             ],
             options={
                 'get_latest_by': 'modified',
@@ -120,14 +141,20 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='BulletPoint',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', django_extensions.db.fields.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
+                ('created', django_extensions.db.fields.CreationDateTimeField(
+                    auto_now_add=True, verbose_name='created')),
+                ('modified', django_extensions.db.fields.ModificationDateTimeField(
+                    auto_now=True, verbose_name='modified')),
                 ('description', models.TextField()),
                 ('order', models.IntegerField(default=1)),
-                ('Bullet', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='bullet_points', to='career.bulletdescription')),
-                ('author', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='bulletpoint_create', to=settings.AUTH_USER_MODEL, verbose_name='author')),
-                ('updated_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='bulletpoint_update', to=settings.AUTH_USER_MODEL, verbose_name='last updated by')),
+                ('Bullet', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                 related_name='bullet_points', to='career.bulletdescription')),
+                ('author', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                 related_name='bulletpoint_create', to=settings.AUTH_USER_MODEL, verbose_name='author')),
+                ('updated_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                 related_name='bulletpoint_update', to=settings.AUTH_USER_MODEL, verbose_name='last updated by')),
             ],
             options={
                 'get_latest_by': 'modified',
@@ -137,16 +164,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='bulletdescription',
             name='career',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='bullets', to='career.career'),
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='bullets', to='career.career'),
         ),
         migrations.AddField(
             model_name='bulletdescription',
             name='updated_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='bulletdescription_update', to=settings.AUTH_USER_MODEL, verbose_name='last updated by'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                    related_name='bulletdescription_update', to=settings.AUTH_USER_MODEL, verbose_name='last updated by'),
         ),
         migrations.AddField(
             model_name='career',
             name='department',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='careers', to='career.department'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                    related_name='careers', to='career.department'),
         ),
     ]

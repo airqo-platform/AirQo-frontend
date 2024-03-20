@@ -1,6 +1,15 @@
 import React from 'react';
 import NilePost from 'icons/press/np.svg';
 
+/**
+ * @description NewArticle component
+ * @param {String} icon
+ * @param {String} date
+ * @param {String} title
+ * @param {String} subtitle
+ * @param {String} url
+ * @returns {JSX.Element}
+ */
 const NewArticle = ({ icon, date, title, subtitle, url }) => {
   return (
     <div className="article">
@@ -15,6 +24,7 @@ const NewArticle = ({ icon, date, title, subtitle, url }) => {
               className="image"
               src={icon}
               alt="icon"
+              loading="lazy"
               style={{
                 background: `url(${icon}),lightgray 50% contain no-repeat`
               }}

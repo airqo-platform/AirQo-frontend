@@ -1,29 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { AccessTimeOutlined, CalendarMonth, PlaceOutlined } from '@mui/icons-material';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { useParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
-import { getAllEvents } from '../../../reduxStore/Events/EventSlice';
 import { format } from 'date-fns';
 import Loadspinner from '../../components/LoadSpinner';
 import PageMini from '../PageMini';
+import { useTranslation } from 'react-i18next';
 
 const EventDetails = () => {
   useInitScrollTop();
+  const { t } = useTranslation();
   const { uniqueTitle } = useParams();
-  const dispatch = useDispatch();
 
   const allEventsData = useSelector((state) => state.eventsData.events);
   const eventData = allEventsData.filter((event) => event.website_category === 'airqo');
   const eventDetails = eventData.filter((event) => event.unique_title === uniqueTitle) || {};
   const loading = useSelector((state) => state.eventsData.loading);
-
-  useEffect(() => {
-    if (isEmpty(eventData)) {
-      dispatch(getAllEvents());
-    }
-  }, []);
 
   return (
     <PageMini>
@@ -46,7 +41,9 @@ const EventDetails = () => {
                   <div className="content">
                     <div className="breadcrumb">
                       <span>
-                        <a href="/events">Events</a>
+                        <Link to="/events">
+                          {t('about.events.eventsDetails.header.breadCrumb')}
+                        </Link>
                       </span>
                       <span style={{ fontFamily: 'monospace' }}>{'>'}</span>
                       <span style={{ color: '#A8B2C7' }}>{event.title}</span>
@@ -57,10 +54,11 @@ const EventDetails = () => {
                     </div>
                   </div>
                 </div>
+
                 <div className="detail-body">
                   <div className="event-details">
                     <div className="time">
-                      <h3>Event Details</h3>
+                      <h3>{t('about.events.eventsDetails.eventBody.time.title')}</h3>
                       <span className="item">
                         <CalendarMonth />
                         <span>
@@ -82,7 +80,7 @@ const EventDetails = () => {
                               {event.start_time.slice(0, -3)} - {event.end_time.slice(0, -3)}
                             </span>
                           ) : (
-                            <span>All Day</span>
+                            <span>{t('about.events.eventsDetails.eventBody.time.time')}</span>
                           )}
                         </span>
                       </div>
@@ -104,7 +102,9 @@ const EventDetails = () => {
                     {event.registration_link && (
                       <div className="register">
                         <a href={event.registration_link} target="_blank" rel="noopener noreferrer">
-                          <button>Register</button>
+                          <button>
+                            {t('about.events.eventsDetails.eventBody.register.btnText')}
+                          </button>
                         </a>
                       </div>
                     )}
@@ -130,7 +130,7 @@ const EventDetails = () => {
                     <div dangerouslySetInnerHTML={{ __html: event.html }} className="html"></div>
                     {event.program.length > 0 ? (
                       <div className="program">
-                        <h3>Event Program</h3>
+                        <h3>{t('about.events.eventsDetails.eventBody.program.title')}</h3>
                         {event.program.map((program) => (
                           <div key={program.id}>
                             <details>
@@ -164,7 +164,9 @@ const EventDetails = () => {
                     )}
                     {event.inquiry.length > 0 ? (
                       <div className="inquiry">
-                        <h4>For any inquiries and clarifications:</h4>
+                        <h4>
+                          {t('about.events.eventsDetails.eventBody.inquiry_resources.title1')}
+                        </h4>
                         {event.inquiry.map((inq) => (
                           <div key={inq.id}>
                             <span>{inq.inquiry}</span>: <span>{inq.role}</span> -{' '}
@@ -177,7 +179,9 @@ const EventDetails = () => {
                     )}
                     {event.resource.length > 0 ? (
                       <div className="inquiry">
-                        <h4>Access the Event Resources here:</h4>
+                        <h4>
+                          {t('about.events.eventsDetails.eventBody.inquiry_resources.title2')}
+                        </h4>
                         {event.resource.map((res) => (
                           <div key={res.id}>
                             {res.link || res.resource ? (

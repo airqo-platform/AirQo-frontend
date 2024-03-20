@@ -15,31 +15,36 @@ from decouple import config
 import dj_database_url
 import environ
 import os
+import dotenv
+
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # env = environ.Env()
+dotenv.load_dotenv()
 
-# environ.Env.read_env()
+# env.read_env()
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config("SECRET_KEY")
-
+SECRET_KEY = os.getenv("SECRET_KEY")
+ 
+    
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config("DEBUG", default=False, cast=bool)
+DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['staging-platform.airqo.net','platform.airqo.net']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',  # CORS HEADERS
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -55,6 +60,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # CORS HEADERS
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -65,6 +71,15 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CORS_ALLOWED_ORIGINS = [
+    "https://staging-platform.airqo.net",
+    "https://platform.airqo.net",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://staging-platform.airqo.net",
+    "https://platform.airqo.net",
+]
 ROOT_URLCONF = 'Inventory.urls'
 
 TEMPLATES = [
@@ -89,20 +104,23 @@ WSGI_APPLICATION = 'Inventory.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME':  'AirQoHardWare',
-#         'USER': 'postgres',
-#         'PASSWORD': '',
-#         'HOST': 'localhost'
-#     }
-# }
-
-
 DATABASES = {
-    'default' : dj_database_url.parse(os.environ.get('DATABASE_URL'))
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
+    }
 }
+
+
+
+# DATABASES = {
+#     "default": dj_database_url.config(default=env("DATABASE_URL"))
+#     }
+
 
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
@@ -145,11 +163,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# STATICFILES_DIRS = [
-#     BASE_DIR / "static",
-# ]
-
-# STATIC_ROOT = (BASE_DIR/"assets/")
+STATIC_ROOT = (BASE_DIR/"assets/")
 
 # MEDIA_ROOT = (BASE_DIR/'media/')
 
@@ -163,13 +177,13 @@ LOGIN_URL = 'login'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_FROM = config("EMAIL_FROM")
-EMAIL_PORT = config("EMAIL_PORT", cast=int)
-EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool)
-EMAIL_HOST_USER = config("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD =config("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
-PASSWORD_RESET_TIMEOUT = config("PASSWORD_RESET_TIMEOUT", cast=int)
+EMAIL_FROM = os.getenv("EMAIL_FROM")
+EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD =os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
+PASSWORD_RESET_TIMEOUT = os.getenv("PASSWORD_RESET_TIMEOUT")
 
 
 # Default primary key field type

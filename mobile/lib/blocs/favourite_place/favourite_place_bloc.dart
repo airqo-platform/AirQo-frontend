@@ -40,11 +40,15 @@ class FavouritePlaceBloc
     favouritePlaces = _updateAirQuality(favouritePlaces);
     List<FavouritePlace> favouritePlacesList = favouritePlaces.toList();
     favouritePlacesList.sortByAirQuality();
-    emit(favouritePlacesList);
-    await AirqoApiClient().syncFavouritePlaces(
-      favouritePlacesList,
-      clear: true,
-    );
+    if (!emit.isDone) {
+      await AirqoApiClient().syncFavouritePlaces(
+        favouritePlacesList,
+        clear: true,
+      );
+      if (!emit.isDone) {
+        emit(favouritePlacesList);
+      }
+    }
   }
 
   Future<void> _onUpdateFavouritePlace(
@@ -60,7 +64,7 @@ class FavouritePlaceBloc
       favouritePlaces.add(event.favouritePlace);
     }
 
-    _onEmitFavouritePlaces(favouritePlaces, emit);
+    await _onEmitFavouritePlaces(favouritePlaces, emit);
 
     if (favouritePlaces.length >= 5) {
       await CloudAnalytics.logEvent(

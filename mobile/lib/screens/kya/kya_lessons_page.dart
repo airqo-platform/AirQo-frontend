@@ -61,6 +61,15 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               InkWell(
                 onTap: () async {
                   await popNavigation(context);
+                  context.read<KyaBloc>().add(
+                        UpdateKyaProgress(
+                          widget.kyaLesson.copyWith(
+                            activeTask: currentLesson,
+                            status: KyaLessonStatus.inProgress,
+                          ),
+                          updateRemote: true,
+                        ),
+                      );
                 },
                 child: SvgPicture.asset(
                   'assets/icon/close.svg',
@@ -193,18 +202,18 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                           isActive: kyaLesson.activeTask > 1,
                         ),
                       ),
-                          const SizedBox(
-                            width: 38,
-                          ),
-                          GestureDetector(
-                            onTap: () => {
-                              currentLesson >= widget.kyaLesson.tasks.length
-                                  ? _onEnd()
-                                  : _swipeController.swipeLeft()
-                            },
-                            child: const CircularKyaButton(
-                              icon: 'assets/icon/next_arrow.svg',
-                            ),
+                      const SizedBox(
+                        width: 38,
+                      ),
+                      GestureDetector(
+                        onTap: () => {
+                          currentLesson >= widget.kyaLesson.tasks.length
+                              ? _onEnd()
+                              : _swipeController.swipeLeft()
+                        },
+                        child: const CircularKyaButton(
+                          icon: 'assets/icon/next_arrow.svg',
+                        ),
                       ),
                     ],
                   ),

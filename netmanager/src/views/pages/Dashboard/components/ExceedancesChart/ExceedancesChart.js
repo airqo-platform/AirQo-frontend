@@ -20,9 +20,9 @@ import {
 } from '@material-ui/core';
 import { MoreHoriz } from '@material-ui/icons';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
-import axios from 'axios';
+import createAxiosInstance from 'views/apis/axiosConfig';
 import palette from 'theme/palette';
-import { EXCEEDANCES_URI } from 'config/urls/analytics';
+import { EXCEEDANCES_URI, DEVICE_EXCEEDANCES_URI } from 'config/urls/analytics';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import domtoimage from 'dom-to-image';
@@ -33,7 +33,6 @@ import { usePollutantsOptions } from 'utils/customHooks';
 import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
 import { flattenSiteOptions } from 'utils/sites';
 import OutlinedSelect from 'views/components/CustomSelects/OutlinedSelect';
-import { BASE_AUTH_TOKEN } from 'utils/envVariables';
 import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
@@ -59,8 +58,8 @@ const ExceedancesChart = (props) => {
     chartContainer,
     idSuffix,
     analyticsSites,
-    isGrids,
-    isCohorts,
+    isGrids = false,
+    isCohorts = false,
     analyticsDevices,
     ...rest
   } = props;
@@ -124,6 +123,7 @@ const ExceedancesChart = (props) => {
   const [dataset, setDataset] = useState([]);
 
   useEffect(() => {
+    setLoading(true);
     if (isGrids) {
       const siteOptions = [];
       !isEmpty(analyticsSites) &&
@@ -134,17 +134,20 @@ const ExceedancesChart = (props) => {
     } else {
       setAverageChartSites(flattenSiteOptions(airqloud.siteOptions));
     }
+    setLoading(false);
   }, [analyticsSites, airqloud]);
 
   useEffect(() => {
+    setLoading(true);
     if (isCohorts) {
       const deviceOptions = [];
       !isEmpty(analyticsDevices) &&
         analyticsDevices.map((device) => {
-          deviceOptions.push(device._id);
+          deviceOptions.push(device.long_name.toLowerCase());
         });
       setAverageChartDevices(deviceOptions);
     }
+    setLoading(false);
   }, [analyticsDevices]);
 
   useEffect(() => {
@@ -161,14 +164,9 @@ const ExceedancesChart = (props) => {
       }
 
       if (isEmpty(averageChartDevices)) {
-        setLoading(true);
-
-        setTimeout(() => {
-          setLoading(false);
-          setDataset([]);
-          setLocations([]);
-          setAllLocations([]);
-        }, 1000);
+        setDataset([]);
+        setLocations([]);
+        setAllLocations([]);
       }
     } else {
       if (!isEmpty(averageChartSites)) {
@@ -183,14 +181,10 @@ const ExceedancesChart = (props) => {
       }
 
       if (isEmpty(averageChartSites)) {
-        setLoading(true);
-
-        setTimeout(() => {
-          setLoading(false);
-          setDataset([]);
-          setLocations([]);
-          setAllLocations([]);
-        }, 1000);
+        setLoading(false);
+        setDataset([]);
+        setLocations([]);
+        setAllLocations([]);
       }
     }
   }, [averageChartSites, averageChartDevices]);
@@ -231,17 +225,18 @@ const ExceedancesChart = (props) => {
       `${tempPollutant.label} Exceedances Over the Past 28 Days Based on ${tempStandard.label}`
     );
     try {
-      const jwtToken = localStorage.getItem('jwtToken');
-      axios.defaults.headers.common.Authorization = jwtToken;
-      const response = await axios.post(EXCEEDANCES_URI, filter);
+      const response = await createAxiosInstance().post(
+        isCohorts ? DEVICE_EXCEEDANCES_URI : EXCEEDANCES_URI,
+        filter
+      );
       const responseData = response.data;
       const exceedanceData = responseData.data;
       exceedanceData.sort((a, b) => {
         const a0 = isCohorts
-          ? a.device.name.trim()
+          ? a.device_id.trim()
           : (a.site.name || a.site.description || a.site.generated_name).trim();
         const b0 = isCohorts
-          ? b.device.name.trim()
+          ? b.device_id.trim()
           : (b.site.name || b.site.description || b.site.generated_name).trim();
         if (a0 < b0) return -1;
         if (a0 > b0) return 1;
@@ -252,7 +247,7 @@ const ExceedancesChart = (props) => {
       const myLocations = exceedanceData
         .map((element) =>
           isCohorts
-            ? element.device.name
+            ? element.device_id
             : element.site.name || element.site.description || element.site.generated_name
         )
         .slice(0, maxLocations);
@@ -266,7 +261,11 @@ const ExceedancesChart = (props) => {
         myDataset = labels.map((label, index) => ({
           label,
           data: exceedanceData
-            .map((element) => element.exceedance[properties[index]])
+            .map((element) =>
+              isCohorts
+                ? element.exceedances[properties[index]]
+                : element.exceedance[properties[index]]
+            )
             .slice(0, maxLocations),
           backgroundColor: colors[index],
           borderColor: 'rgba(0,0,0,1)',
@@ -276,7 +275,9 @@ const ExceedancesChart = (props) => {
         myDataset = [
           {
             label: 'Exceedances',
-            data: exceedanceData.map((element) => element.exceedance).slice(0, maxLocations),
+            data: exceedanceData
+              .map((element) => (isCohorts ? element.exceedances : element.exceedance))
+              .slice(0, maxLocations),
             backgroundColor: palette.primary.main,
             //borderColor: 'rgba(0,0,0,1)',
             borderWidth: 1
@@ -290,9 +291,9 @@ const ExceedancesChart = (props) => {
           {
             label: 'Exceedances',
             data: exceedanceData.map((element) => [
-              isCohorts ? element.device : element.site,
+              isCohorts ? element.device_id : element.site,
               element.total,
-              element.exceedance
+              isCohorts ? element.exceedances : element.exceedance
             ]),
 
             backgroundColor: palette.primary.main,
@@ -305,9 +306,9 @@ const ExceedancesChart = (props) => {
           {
             // label: "Exceedances",
             data: exceedanceData.map((element) => [
-              isCohorts ? element.device : element.site,
+              isCohorts ? element.device_id : element.site,
               element.total,
-              element.exceedance
+              isCohorts ? element.exceedances : element.exceedance
             ]),
 
             backgroundColor: palette.primary.main,
@@ -681,7 +682,7 @@ const ExceedancesChart = (props) => {
                           stacked: true,
                           scaleLabel: {
                             display: true,
-                            labelString: 'Locations',
+                            labelString: isCohorts ? 'Devices' : 'Locations',
                             // fontWeight: 4,
                             // fontColor: "black",
                             fontSize: 15,
@@ -689,7 +690,7 @@ const ExceedancesChart = (props) => {
                           },
                           ticks: {
                             fontColor: 'black',
-                            callback: (value) => `${value.substr(0, 7)}`
+                            callback: (value) => `${value.substr(0, 11)}`
                           },
                           gridLines: {
                             display: false,

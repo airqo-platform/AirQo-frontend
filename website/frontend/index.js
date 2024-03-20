@@ -5,6 +5,8 @@ import './styles/index.scss';
 
 import App from './App';
 
+import './i18n';
+
 const app = document.getElementById('app');
 
 const root = createRoot(app)

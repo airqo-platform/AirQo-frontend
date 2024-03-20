@@ -33,8 +33,7 @@ import LoadingOverlay from 'react-loading-overlay';
 import UsersListBreadCrumb from '../Breadcrumb';
 // dropdown component
 import Dropdown from 'react-select';
-// Horizontal loader
-import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -55,13 +54,6 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'flex-end'
   }
 }));
-
-function withMyHook(Component) {
-  return function WrappedComponent(props) {
-    const classes = useStyles();
-    return <Component {...props} classes={classes} />;
-  };
-}
 
 // dropdown component styles
 const customStyles = {
@@ -97,18 +89,10 @@ const customStyles = {
 };
 
 const UsersTable = (props) => {
-  //the props
-  //need to get the ones from the state
-  /***
-   * if we are to take the prop value which was provided at UserList:
-   *
-   */
-
   const { className, mappeduserState, roles, ...rest } = props;
   const [userDelState, setUserDelState] = useState({ open: false, user: {} });
 
   const dispatch = useDispatch();
-  const collaborators = mappeduserState.collaborators;
   const editUser = mappeduserState.userToEdit;
   const [updatedUser, setUpdatedUser] = useState({});
   const [showEditPopup, setShowEditPopup] = useState(false);
@@ -157,18 +141,24 @@ const UsersTable = (props) => {
 
   const submitEditUser = (e) => {
     setIsLoading(true);
+    dispatch(loadStatus(true));
     setLoading(true);
     e.preventDefault();
     if (updatedUser.userName !== '') {
-      const data = { ...updatedUser, id: props.mappeduserState.userToEdit._id };
+      const data = {
+        ...updatedUser,
+        id: props.mappeduserState.userToEdit._id,
+        networks: updatedUser.networks.map((network) => network._id)
+      };
       // update user role
-      if (props.mappeduserState.userToEdit.role) {
-        if (updatedUser.role !== props.mappeduserState.userToEdit.role._id) {
-          assignUserToRoleApi(updatedUser.role, {
-            user: props.mappeduserState.userToEdit._id
-          }).then((res) => {
+      if (updatedUser.role) {
+        assignUserToRoleApi(updatedUser.role, {
+          user: props.mappeduserState.userToEdit._id
+        })
+          .then((res) => {
             dispatch(fetchNetworkUsers(activeNetwork._id));
             setIsLoading(false);
+            dispatch(loadStatus(false));
             dispatch(
               updateMainAlert({
                 message: 'User successfully added to the organisation',
@@ -177,14 +167,25 @@ const UsersTable = (props) => {
               })
             );
             setLoading(false);
+          })
+          .catch((error) => {
+            dispatch(
+              updateMainAlert({
+                message: error.response.data.errors.message,
+                show: true,
+                severity: 'error'
+              })
+            );
+            setIsLoading(false);
+            dispatch(loadStatus(false));
           });
-        }
       }
       hideEditDialog();
       props.mappedEditUser(data);
     }
     setTimeout(() => {
       setIsLoading(false);
+      dispatch(loadStatus(false));
     }, 2000);
     setLoading(false);
   };
@@ -201,6 +202,7 @@ const UsersTable = (props) => {
   const deleteUser = async () => {
     // Set loading to true when deleting
     setIsLoading(true);
+    dispatch(loadStatus(true));
     try {
       await props.mappedConfirmDeleteUser(userDelState.user);
       hideDeleteDialog();
@@ -210,6 +212,7 @@ const UsersTable = (props) => {
     } finally {
       // Set loading to false when done
       setIsLoading(false);
+      dispatch(loadStatus(false));
     }
   };
 
@@ -222,11 +225,12 @@ const UsersTable = (props) => {
   }, []);
 
   // If roles is null or undefined will return empty array
-  const options = roles?.map((role) => ({ value: role._id, label: role.role_name })) ?? [];
+  const options =
+    (roles && roles.map((role) => ({ value: role._id, label: role.role_name }))) || [];
 
   // checking if userToEdit is undefined or null
   const [selectedOption, setSelectedOption] = useState(
-    props.mappeduserState.userToEdit?.role
+    props.mappeduserState.userToEdit && props.mappeduserState.userToEdit.role
       ? {
           value: props.mappeduserState.userToEdit.role._id,
           label: props.mappeduserState.userToEdit.role.role_name
@@ -243,8 +247,6 @@ const UsersTable = (props) => {
     <>
       <UsersListBreadCrumb category={'Users'} usersTable={'Assigned Users'} />
       <Card {...rest} className={clsx(classes.root, className)}>
-        {/* custome Horizontal loader indicator */}
-        <HorizontalLoader loading={loading} />
         <CustomMaterialTable
           title={'Users'}
           userPreferencePaginationKey={'users'}
@@ -302,7 +304,7 @@ const UsersTable = (props) => {
                       Update
                     </Button>
 
-                    <Button style={{ color: 'red' }} onClick={() => showDeleteDialog(user)}>
+                    <Button disabled={true} color="info" onClick={() => showDeleteDialog(user)}>
                       Delete
                     </Button>
                   </div>

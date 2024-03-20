@@ -21,7 +21,9 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
 
   const handleSelectAllDevices = (e) => {
     const allDevices = [];
-    collocationDevices.map((device) => allDevices.push(device.device));
+    if (collocationDevices && collocationDevices.length > 0) {
+      collocationDevices.map((device) => allDevices.push(device.device));
+    }
     if (e.target.checked) {
       dispatch(addDevices(allDevices));
     } else {
@@ -48,7 +50,11 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
           <th scope='col' className='font-normal w-[61px] pb-3 px-6'>
             <input
               type='checkbox'
-              checked={selectedCollocateDevices.length === collocationDevices.length}
+              checked={
+                collocationDevices &&
+                collocationDevices.length > 0 &&
+                selectedCollocateDevices.length === collocationDevices.length
+              }
               onChange={handleSelectAllDevices}
             />
           </th>
@@ -67,7 +73,7 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
         </tr>
       </thead>
       <tbody>
-        {paginatedData.length > 0 &&
+        {paginatedData.length > 0 ? (
           paginatedData.map((device, index) => {
             return (
               <tr className='border-b border-b-slate-300' key={index}>
@@ -91,7 +97,17 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
                 <td scope='row' className='w-[145px] px-4 py-3'></td>
               </tr>
             );
-          })}
+          })
+        ) : (
+          <tr className='border-b border-b-slate-300'>
+            <td
+              colSpan={5}
+              className='w-full py-3 px-6 text-center text-secondary-neutral-light-500'
+            >
+              No devices found
+            </td>
+          </tr>
+        )}
       </tbody>
     </table>
   );

@@ -1,17 +1,24 @@
 # Platform beta
+
 [![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/graph/badge.svg?token=LsBcFL42rz)](https://codecov.io/gh/airqo-platform/AirQo-frontend)
 
 [![AirQo next platform](https://img.shields.io/endpoint?url=https://dashboard.cypress.io/badge/simple/ap5jjk/staging&style=flat&logo=cypress)](https://dashboard.cypress.io/projects/ap5jjk/runs) [![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/branch/staging/graph/badge.svg)](https://codecov.io/gh/airqo-platform/AirQo-frontend)
 
 ## Table of contents
 
-1. [Prerequisites](#prerequisites)
-2. [Getting started](#getting-started)
-3. [Running the application](#running-the-application)
-   - [Cypress tests](#cypress-tests)
-   - [The linter](#the-linter)
-   - [The server](#the-server)
-4. [Folder Structure](#folder-structure)
+- [Platform beta](#platform-beta)
+  - [Table of contents](#table-of-contents)
+  - [Prerequisites](#prerequisites)
+  - [Getting started here](#getting-started-here)
+  - [Running the application](#running-the-application)
+    - [Cypress tests](#cypress-tests)
+    - [The linter](#the-linter)
+    - [The server](#the-server)
+  - [Folder Structure](#folder-structure)
+    - [src folder](#src-folder)
+    - [public folder](#public-folder)
+    - [cypress folder](#cypress-folder)
+    - [Top-level configuration](#top-level-configuration)
 
 ## Prerequisites
 
@@ -19,9 +26,9 @@
 - [NodeJs](https://nodejs.org/en/) v16 or later
 - [Yarn](https://classic.yarnpkg.com/lang/en/)
 
-## Getting started
+## Getting started here
 
-a) To get started, start by cloning the repository
+a) In order to get started here, you start by cloning the repository
 
     git clone https://github.com/airqo-platform/AirQo-frontend.git
 

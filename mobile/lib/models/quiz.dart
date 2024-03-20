@@ -18,6 +18,7 @@ class Quiz extends Equatable {
     required this.activeQuestion,
     required this.status,
     required this.completionMessage,
+    required this.hasCompleted,
     this.shareLink,
   });
   @JsonKey(name: 'image')
@@ -37,6 +38,9 @@ class Quiz extends Equatable {
 
   @JsonKey(name: '_id')
   final String id;
+
+  @JsonKey(defaultValue: false)
+  final bool hasCompleted;
 
   @JsonKey(name: 'active_question', defaultValue: 1)
   final int activeQuestion;
@@ -59,6 +63,7 @@ class Quiz extends Equatable {
       completionMessage: '',
       shareLink: '',
       activeQuestion: 1,
+      hasCompleted: false,
       status: QuizStatus.todo,
     );
   }
@@ -69,6 +74,7 @@ class Quiz extends Equatable {
     String? shareLink,
     QuizStatus? status,
     int? activeQuestion,
+    bool? hasCompleted,
   }) {
     return Quiz(
       title: title,
@@ -76,6 +82,7 @@ class Quiz extends Equatable {
       completionMessage: completionMessage,
       imageUrl: imageUrl,
       id: id,
+      hasCompleted: hasCompleted ?? this.hasCompleted,
       questions: questions,
       status: status ?? this.status,
       activeQuestion: activeQuestion ?? this.activeQuestion,
@@ -97,13 +104,12 @@ class Quiz extends Equatable {
 
 @JsonSerializable(explicitToJson: true)
 class QuizQuestion extends Equatable {
-  const QuizQuestion({
-    required this.id,
-    required this.title,
-    required this.context,
-    required this.answers,
-      required this.questionPosition
-  });
+  const QuizQuestion(
+      {required this.id,
+      required this.title,
+      required this.context,
+      required this.answers,
+      required this.questionPosition});
 
   factory QuizQuestion.fromJson(Map<String, dynamic> json) {
     return _$QuizQuestionFromJson(json);

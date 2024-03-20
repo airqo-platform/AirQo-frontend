@@ -17,7 +17,6 @@ import ConfirmDialog from './views/containers/ConfirmDialog';
 // lazy imports
 const Landing = lazy(() => import('./views/layouts/Landing'));
 const Account = lazy(() => import('./views/pages/Account'));
-const AnalyticsDashboard = lazy(() => import('./views/pages/Dashboard'));
 const DeviceView = lazy(() => import('./views/components/DataDisplay/DeviceView'));
 const ManagerMap = lazy(() =>
   import('./views/components/DataDisplay/DeviceManagement/ManagementMap')
@@ -59,6 +58,8 @@ const GridsDetails = lazy(() => import('./views/pages/GridsRegistry/GridsDetails
 const Teams = lazy(() => import('./views/pages/Teams/Teams'));
 const TeamsView = lazy(() => import('./views/pages/Teams/TeamsView'));
 const SimRegistry = lazy(() => import('./views/components/SIM/SimRegistry'));
+const UserStats = lazy(() => import('./views/pages/UserStats/UserStats'));
+const ClientActivation = lazy(() => import('./views/pages/clients'));
 
 const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
@@ -105,12 +106,6 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <Route exact path="/forgot/:tenant?" component={ForgotPassword} />
             <Route exact path="/reset" component={ResetPassword} />
             <Route exact path="/request-access/:tenant?" component={Register} />
-            <PrivateRoute
-              exact
-              path="/dashboard"
-              component={AnalyticsDashboard}
-              layout={MainLayout}
-            />
             <PrivateRoute exact path="/analytics" component={Analytics} layout={MainLayout} />
             <PrivateRoute
               exact
@@ -124,7 +119,19 @@ const AppRoutes = ({ auth, logoutUser }) => {
               component={AvailableUserList}
               layout={MainLayout}
             />
+            <PrivateRoute
+              exact
+              path="/admin/users/users-statistics"
+              component={UserStats}
+              layout={MainLayout}
+            />
             <PrivateRoute component={CandidateList} exact layout={MainLayout} path="/candidates" />
+            <PrivateRoute
+              component={ClientActivation}
+              exact
+              layout={MainLayout}
+              path="/clients-activation"
+            />
             <PrivateRoute component={Roles} exact layout={MainLayout} path="/roles" />
             <PrivateRoute component={Settings} exact layout={MainLayout} path="/settings" />
             <PrivateRoute component={Organisation} exact layout={MainLayout} path="/networks" />
@@ -163,20 +170,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <PrivateRoute exact path="/sites" component={SiteRegistry} layout={MainLayout} />
             <PrivateRoute exact path="/sites/:id" component={SiteView} layout={MainLayout} />
             <PrivateRoute exact path="/sim" component={SimRegistry} layout={MainLayout} />
-            <PrivateRoute exact path="/heatMap" component={HeatMapOverlay} layout={MainLayout} />
 
-            <PrivateRoute
-              exact
-              path="/airqlouds"
-              component={AirQloudRegistry}
-              layout={MainLayout}
-            />
-            <PrivateRoute
-              exact
-              path="/airqlouds/:id"
-              component={AirQloudView}
-              layout={MainLayout}
-            />
             <PrivateRoute exact path="/overview" component={Overview} layout={MainLayout} />
             <PrivateRoute
               exact

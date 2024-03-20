@@ -68,10 +68,7 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    if (isEmpty(recentEventsData.features))
-      dispatch(
-        loadMapEventsData({ recent: 'yes', external: 'no', metadata: 'site_id', active: 'yes' })
-      );
+    if (isEmpty(recentEventsData.features)) dispatch(loadMapEventsData());
   }, []);
 
   useEffect(() => {
@@ -123,14 +120,7 @@ const Dashboard = () => {
   );
 
   useEffect(() => {
-    if (isEmpty(userDefaultGraphs)) {
-      dispatch(loadUserDefaultGraphData(false, ''));
-    }
-  }, []);
-
-  // componentWillUnmount
-  useEffect(() => {
-    return () => dispatch(loadUserDefaultGraphData(false, ''));
+    dispatch(loadUserDefaultGraphData(false, ''));
   }, []);
 
   return (

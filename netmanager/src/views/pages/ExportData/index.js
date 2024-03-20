@@ -246,7 +246,8 @@ const ExportData = (props) => {
         hidden={value !== index}
         id={`data-export-tabpanel-${index}`}
         aria-labelledby={`data-export-tab-${index}`}
-        {...other}>
+        {...other}
+      >
         {value === index && <div sx={{ p: 3 }}>{children}</div>}
       </div>
     );
@@ -428,7 +429,7 @@ const ExportData = (props) => {
           const csvData = Papa.unparse(resData);
           exportData(csvData, filename, 'text/csv;charset=utf-8;');
         }
-        clearExportData();
+
         setLoading(false);
         dispatch(
           updateMainAlert({
@@ -457,7 +458,6 @@ const ExportData = (props) => {
           );
         }
 
-        clearExportData();
         setLoading(false);
       });
   };
@@ -493,7 +493,7 @@ const ExportData = (props) => {
 
     if (Difference_In_Days > 28) {
       setSnackbarMessage(
-        'For time periods greater than a month, please use scheduling to avoid timeouts!'
+        'For time periods greater than a month, please reduce the time difference to a week to avoid timeouts!'
       );
       handleClickSnackbar();
     }
@@ -626,9 +626,10 @@ const ExportData = (props) => {
           paddingBottom={'12px'}
           color={'grey.700'}
           fontSize={'14px'}
-          fontWeight={300}>
-          Customize the data you want to download. We recommend scheduling your downloads for bulky
-          data/time periods greater than a month to avoid timeouts.
+          fontWeight={300}
+        >
+          Customize the data you want to download. We recommend downloading data for shorter time
+          periods like a week or a month to avoid timeouts.
         </Box>
 
         <Grid container spacing={4}>
@@ -638,7 +639,8 @@ const ExportData = (props) => {
               className={clsx(classes.root, className)}
               style={{
                 overflow: 'visible'
-              }}>
+              }}
+            >
               <Tabs
                 value={value}
                 onChange={handleChangeTabPanel}
@@ -649,7 +651,8 @@ const ExportData = (props) => {
                 classes={{
                   root: classes.tabs, // Apply custom styles to the root element
                   indicator: classes.indicator // Apply custom styles to the indicator element
-                }}>
+                }}
+              >
                 <Tab disableTouchRipple label="Export by Sites" {...a11yProps(0)} />
                 <Tab disableTouchRipple label="Export by Devices" {...a11yProps(1)} />
                 <Tab disableTouchRipple label="Export by AirQlouds" {...a11yProps(2)} />
@@ -766,26 +769,41 @@ const ExportData = (props) => {
 
                   <Divider />
                   <CardActions>
-                    <Box display="flex" justifyContent="center" width="100%" className="step-2">
+                    <Box
+                      display={{
+                        xs: 'block',
+                        md: 'flex'
+                      }}
+                      justifyContent="center"
+                      width={'100%'}
+                      className="step-2"
+                    >
                       <Button
                         color="primary"
-                        variant="outlined"
+                        variant="contained"
                         type="submit"
                         style={{ marginRight: '15px' }}
-                        disabled={disableDownloadBtn('sites')}>
+                        disabled={disableDownloadBtn('sites')}
+                      >
                         {' '}
-                        Download Data
+                        {loading ? 'Downloading Data...' : 'Download Data'}
                       </Button>
                       <Button
                         color="primary"
                         variant="outlined"
-                        onClick={scheduleExportData}
-                        disabled={disableDownloadBtn('sites')}>
+                        onClick={clearExportData}
+                        style={{ marginRight: '15px' }}
+                      >
                         {' '}
-                        Schedule Download
+                        Reset
                       </Button>
                     </Box>
                   </CardActions>
+                  {!loading && disableDownloadBtn('sites') && (
+                    <p style={{ marginTop: '10px', color: 'red' }}>
+                      {`Please fill in all the required fields`}
+                    </p>
+                  )}
                 </form>
               </TabPanel>
 
@@ -904,26 +922,41 @@ const ExportData = (props) => {
 
                   <Divider />
                   <CardActions>
-                    <Box display="flex" justifyContent="center" width="100%">
+                    <Box
+                      display={{
+                        xs: 'block',
+                        md: 'flex'
+                      }}
+                      justifyContent="center"
+                      width={'100%'}
+                      className="step-2"
+                    >
                       <Button
                         color="primary"
-                        variant="outlined"
+                        variant="contained"
                         type="submit"
                         style={{ marginRight: '15px' }}
-                        disabled={disableDownloadBtn('devices')}>
+                        disabled={disableDownloadBtn('devices')}
+                      >
                         {' '}
-                        Download Data
+                        {loading ? 'Downloading Data...' : 'Download Data'}
                       </Button>
                       <Button
                         color="primary"
                         variant="outlined"
-                        onClick={scheduleExportData}
-                        disabled={disableDownloadBtn('devices')}>
+                        onClick={clearExportData}
+                        style={{ marginRight: '15px' }}
+                      >
                         {' '}
-                        Schedule Download
+                        Reset
                       </Button>
                     </Box>
                   </CardActions>
+                  {!loading && disableDownloadBtn('devices') && (
+                    <p style={{ marginTop: '10px', color: 'red' }}>
+                      {`Please fill in all the required fields`}
+                    </p>
+                  )}
                 </form>
               </TabPanel>
 
@@ -1041,26 +1074,41 @@ const ExportData = (props) => {
 
                   <Divider />
                   <CardActions>
-                    <Box display="flex" justifyContent="center" width="100%">
+                    <Box
+                      display={{
+                        xs: 'block',
+                        md: 'flex'
+                      }}
+                      justifyContent="center"
+                      width={'100%'}
+                      className="step-2"
+                    >
                       <Button
                         color="primary"
-                        variant="outlined"
+                        variant="contained"
                         type="submit"
                         style={{ marginRight: '15px' }}
-                        disabled={disableDownloadBtn('airqlouds')}>
+                        disabled={disableDownloadBtn('airqlouds')}
+                      >
                         {' '}
-                        Download Data
+                        {loading ? 'Downloading Data...' : 'Download Data'}
                       </Button>
                       <Button
                         color="primary"
                         variant="outlined"
-                        onClick={scheduleExportData}
-                        disabled={disableDownloadBtn('airqlouds')}>
+                        onClick={clearExportData}
+                        style={{ marginRight: '15px' }}
+                      >
                         {' '}
-                        Schedule Download
+                        Reset
                       </Button>
                     </Box>
                   </CardActions>
+                  {!loading && disableDownloadBtn('airqlouds') && (
+                    <p style={{ marginTop: '10px', color: 'red' }}>
+                      {`Please fill in all the required fields`}
+                    </p>
+                  )}
                 </form>
               </TabPanel>
 
@@ -1178,26 +1226,41 @@ const ExportData = (props) => {
 
                   <Divider />
                   <CardActions>
-                    <Box display="flex" justifyContent="center" width="100%">
+                    <Box
+                      display={{
+                        xs: 'block',
+                        md: 'flex'
+                      }}
+                      justifyContent="center"
+                      width={'100%'}
+                      className="step-2"
+                    >
                       <Button
                         color="primary"
-                        variant="outlined"
+                        variant="contained"
                         type="submit"
                         style={{ marginRight: '15px' }}
-                        disabled={disableDownloadBtn('regions')}>
+                        disabled={disableDownloadBtn('regions')}
+                      >
                         {' '}
-                        Download Data
+                        {loading ? 'Downloading Data...' : 'Download Data'}
                       </Button>
                       <Button
                         color="primary"
                         variant="outlined"
-                        onClick={scheduleExportData}
-                        disabled={disableDownloadBtn('regions')}>
+                        onClick={clearExportData}
+                        style={{ marginRight: '15px' }}
+                      >
                         {' '}
-                        Schedule Download
+                        Reset
                       </Button>
                     </Box>
                   </CardActions>
+                  {!loading && disableDownloadBtn('regions') && (
+                    <p style={{ marginTop: '10px', color: 'red' }}>
+                      {`Please fill in all the required fields`}
+                    </p>
+                  )}
                 </form>
               </TabPanel>
             </Card>
@@ -1219,7 +1282,8 @@ const ExportData = (props) => {
                 size="small"
                 aria-label="close"
                 color="inherit"
-                onClick={handleClickSnackbar}>
+                onClick={handleClickSnackbar}
+              >
                 <CloseIcon fontSize="small" />
               </IconButton>
             </React.Fragment>

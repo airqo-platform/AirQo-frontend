@@ -157,7 +157,7 @@ class DashboardLocationButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom:12.0),
+      padding: const EdgeInsets.only(bottom: 12.0),
       child: OutlinedButton(
         onPressed: () async {
           await LocationService.requestLocation();
@@ -254,7 +254,7 @@ class DashboardTopCard extends StatelessWidget {
               width: 8,
             ),
             AutoSizeText(
-              maxLines: 2,
+              maxLines: 3,
               minFontSize: 1,
               title,
               style: CustomTextStyle.bodyText4(context)?.copyWith(
@@ -374,7 +374,7 @@ class KyaDashboardAvatar extends StatelessWidget {
   }
 }
 
-List<Widget> completeKyaWidgets(
+List<Widget> kyaHeaderWidget(
     List<KyaLesson> completeLessons, List<Quiz> completeQuizzes) {
   final widgets = <Widget>[];
   try {

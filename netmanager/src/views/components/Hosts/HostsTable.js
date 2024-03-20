@@ -15,7 +15,7 @@ import { isEmpty } from 'underscore';
 import Alert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/styles';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
-import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
 import { getAllDeviceHosts, createDeviceHost } from '../../apis/deviceRegistry';
 import { useSitesData } from 'redux/SiteRegistry/selectors';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
@@ -25,6 +25,7 @@ import RemoveIcon from '@material-ui/icons/Remove';
 import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
 import Tooltip from '@material-ui/core/Tooltip';
+import UsersListBreadCrumb from '../../pages/UserList/components/Breadcrumb';
 
 const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
@@ -160,8 +161,6 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
 
   const handleAddHost = async () => {
     try {
-      setLoading(true);
-
       const hostCopy = {
         first_name: host.first_name,
         last_name: host.last_name,
@@ -173,6 +172,19 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
         phone_number_4: host.phone_numbers[3]
       };
 
+      if (
+        !hostCopy.first_name ||
+        !hostCopy.last_name ||
+        !hostCopy.site_id ||
+        !hostCopy.network ||
+        !hostCopy.phone_number
+      ) {
+        throw new Error('One or more required fields are empty. Please fill them before sending.');
+      }
+
+      setLoading(true);
+      dispatch(loadStatus(true));
+
       ['phone_number_2', 'phone_number_3', 'phone_number_4'].forEach((key) => {
         if (!hostCopy[key]) {
           delete hostCopy[key];
@@ -181,6 +193,7 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
 
       const response = await createDeviceHost(hostCopy);
       setLoading(false);
+      dispatch(loadStatus(false));
       if (response.success) {
         handleCloseDialog();
         dispatch(
@@ -192,11 +205,11 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
         );
         onHostAdded();
       } else {
-        setErrorMessage(response.errors.message || 'An error occurred. Please try again.');
-        setShowError(true);
+        throw new Error(response.errors.message || 'An error occurred. Please try again.');
       }
     } catch (error) {
-      console.error(error);
+      setLoading(false);
+      dispatch(loadStatus(false));
       setErrorMessage(error.message || 'An error occurred. Please try again.');
       setShowError(true);
     }
@@ -214,10 +227,12 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
   useEffect(() => {
     if (isEmpty(sitesData)) {
       setLoading(true);
+      dispatch(loadStatus(true));
       if (!isEmpty(activeNetwork)) {
         dispatch(loadSitesData(activeNetwork.net_name));
       }
       setLoading(false);
+      dispatch(loadStatus(false));
     }
   }, []);
 
@@ -366,28 +381,34 @@ const HostsTable = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [addHostDialog, setAddHostDialog] = useState(false);
   const [refreshData, setRefreshData] = useState(false);
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   const getHosts = async () => {
     try {
       setIsLoading(true);
+      dispatch(loadStatus(true));
       const response = await getAllDeviceHosts();
       const { hosts } = response;
       const filteredHosts = hosts.filter((host) => host.network === activeNetwork.net_name);
       setHosts(filteredHosts);
       setIsLoading(false);
+      dispatch(loadStatus(false));
     } catch (error) {
       console.log(error);
       setIsLoading(false);
+      dispatch(loadStatus(false));
     }
   };
 
   useEffect(() => {
     if (isEmpty(sitesdata)) {
       setLoading(true);
+      dispatch(loadStatus(true));
       if (!isEmpty(activeNetwork)) {
         dispatch(loadSitesData(activeNetwork.net_name));
       }
       setLoading(false);
+      dispatch(loadStatus(false));
     }
   }, []);
 
@@ -397,12 +418,15 @@ const HostsTable = () => {
 
   return (
     <>
-      <HorizontalLoader loading={loading} />
       <div className={classes.actionButtonContainer}>
         <Button variant="contained" color="primary" onClick={() => setAddHostDialog(true)}>
           Add Host
         </Button>
       </div>
+      <UsersListBreadCrumb
+        category="Host Registry"
+        usersTable={`${activeNetwork.net_name === 'airqo' ? 'AirQo' : activeNetwork.net_name}`}
+      />
 
       <CustomMaterialTable
         userPreferencePaginationKey={'hosts-table'}
@@ -462,7 +486,7 @@ const HostsTable = () => {
           event.preventDefault();
           history.push(`/hosts/${data._id}`);
         }}
-        data={hosts || []}
+        data={hosts}
         isLoading={isLoading}
         options={{
           search: true,

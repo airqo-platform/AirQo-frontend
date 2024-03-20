@@ -1,21 +1,25 @@
 import React from 'react';
 import ApiSectionImg from "assets/img/ApiSection.png";
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
-const ApiSection = () => (
-    <div className="Apisection">
-        <div className="Apisection-details">
-            <h3>Air Quality API</h3>
-            <h1>Amplify air quality impact through our API</h1>
-            <p>Are you a developer? We invite you to leverage our open-air quality data on your App </p>
-            <div className="Apisection-details-btn">
-                <Link to="/products/api">Get Started {'-->'}</Link>
+const ApiSection = () => {
+    const { t } = useTranslation();
+    return (
+        <div className="Apisection">
+            <div className="Apisection-details">
+                <h3>{t("homepage.apiSection.pill")}</h3>
+                <h1>{t("homepage.apiSection.title")}</h1>
+                <p>{t("homepage.apiSection.subText")} </p>
+                <div className="Apisection-details-btn">
+                    <Link to="/products/api">{t("homepage.apiSection.cta")} {'-->'}</Link>
+                </div>
+            </div>
+            <div className="api-section-img">
+                <img src={ApiSectionImg} />
             </div>
         </div>
-        <div className="api-section-img">
-            <img src={ApiSectionImg}/>
-        </div>
-    </div>
-);
+    )
+};
 
 export default ApiSection;

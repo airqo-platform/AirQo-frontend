@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/enum_constants.dart';
 import 'package:app/screens/email_authentication/email_auth_widgets.dart';
@@ -6,6 +8,7 @@ import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -57,8 +60,12 @@ class _EmailAuthVerificationWidgetState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const OnBoardingTopBar(backgroundColor: Colors.white),
-      body: WillPopScope(
-        onWillPop: onWillPop,
+      body: PopScope(
+        onPopInvoked: ((didPop) {
+          if (didPop) {
+            onWillPop();
+          }
+        }),
         child: AppSafeArea(
           horizontalPadding: 24,
           backgroundColor: Colors.white,
@@ -204,9 +211,7 @@ class _EmailAuthVerificationWidgetState
     );
   }
 
-  Future<void> _authenticate() async {
-    loadingScreen(context);
-
+  Future<void> linkAccounts() async {
     final emailAuthModel =
         context.read<EmailVerificationBloc>().state.emailAuthModel;
 
@@ -215,28 +220,71 @@ class _EmailAuthVerificationWidgetState
       email: emailAuthModel.emailAddress,
     );
 
+    final user = FirebaseAuth.instance.currentUser;
+
     try {
-      final bool authenticationSuccessful =
-          await CustomAuth.firebaseSignIn(emailCredential);
-      if (!mounted) return;
+      if (user != null) {
+        await user.linkWithCredential(emailCredential);
+        context.read<EmailVerificationBloc>().add(
+              const SetEmailVerificationStatus(
+                AuthenticationStatus.success,
+              ),
+            );
+        await AirqoApiClient().syncPlatformAccount();
+      }
+    } catch (error) {
+      context.read<EmailVerificationBloc>().add(
+            const SetEmailVerificationStatus(
+              AuthenticationStatus.error,
+            ),
+          );
+      if (kDebugMode) {
+        print('Error linking accounts: $error');
+      }
+    }
+  }
 
-      Navigator.pop(context);
+  Future<void> _authenticate() async {
+    loadingScreen(context);
 
-      if (authenticationSuccessful) {
-        context
-            .read<EmailVerificationBloc>()
-            .add(const SetEmailVerificationStatus(
-              AuthenticationStatus.success,
-            ));
-        await AppService.postSignInActions(context);
+    final emailAuthModel =
+        context.read<EmailVerificationBloc>().state.emailAuthModel;
+    final emailCredential = EmailAuthProvider.credentialWithLink(
+      emailLink: emailAuthModel.signInLink,
+      email: emailAuthModel.emailAddress,
+    );
+
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        // Link the email credential with the existing user
+        await currentUser.linkWithCredential(emailCredential);
       } else {
-        await showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext _) {
-            return const AuthFailureDialog();
-          },
-        );
+        // Perform email authentication if not signed in with phone number
+        final bool authenticationSuccessful =
+            await CustomAuth.firebaseSignIn(emailCredential);
+        if (!mounted) return;
+
+        if (!authenticationSuccessful) {
+          await showDialog<void>(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext _) {
+              return const AuthFailureDialog();
+            },
+          );
+        }
+      }
+
+      context
+          .read<EmailVerificationBloc>()
+          .add(const SetEmailVerificationStatus(
+            AuthenticationStatus.success,
+          ));
+
+      // Check if account linking was done, skip postSignInActions
+      if (currentUser == null) {
+        await AppService.postSignInActions(context);
       }
     } catch (exception, stackTrace) {
       Navigator.pop(context);

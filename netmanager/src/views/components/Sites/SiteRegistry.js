@@ -26,16 +26,18 @@ const useStyles = makeStyles((theme) => ({
 
 const SiteRegistry = () => {
   const classes = useStyles();
-  const [refresh, setRefresh] = useState(false);
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   return (
     <ErrorBoundary>
       <div className={classes.root}>
-        <SiteToolbar setRefresh={() => setRefresh(!refresh)} />
-        <UsersListBreadCrumb category="Site Registry" usersTable={`${activeNetwork.net_name}`} />
+        <SiteToolbar />
+        <UsersListBreadCrumb
+          category="Site Registry"
+          usersTable={`${activeNetwork.net_name === 'airqo' ? 'AirQo' : activeNetwork.net_name}`}
+        />
         <div className={classes.content}>
-          <SitesTable refresh={refresh} setRefresh={setRefresh} />
+          <SitesTable />
         </div>
       </div>
     </ErrorBoundary>

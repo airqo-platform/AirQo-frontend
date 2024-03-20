@@ -93,20 +93,14 @@ const DataTable = ({ title, columns, rows, onRowClick, loading }) => {
             </TableRow>
           </TableHead>
           <TableBody style={{ backgroundColor: 'white' }}>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={columns.length} style={{ textAlign: 'center' }}>
-                  <CircularProgress />
-                </TableCell>
-              </TableRow>
-            ) : filteredRows.length > 0 ? (
+            {filteredRows.length > 0 ? (
               filteredRows
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row) => (
                   <TableRow
                     key={row.id}
                     hover
-                    onClick={() => onRowClick(row)}
+                    onClick={() => onRowClick && onRowClick(row)}
                     style={{ cursor: 'pointer' }}>
                     {columns.map((column) => (
                       <TableCell key={column.id} style={column.cellStyle}>
@@ -125,27 +119,25 @@ const DataTable = ({ title, columns, rows, onRowClick, loading }) => {
           </TableBody>
         </Table>
       </TableContainer>
-      {!loading && (
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={filteredRows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onChangePage={handleChangePage}
-          onChangeRowsPerPage={handleChangeRowsPerPage}
-          SelectProps={{
-            style: {
-              display: 'flex',
-              alignItems: 'center',
-              color: '#3f51b5',
-              position: 'relative',
-              fontWeight: 'bold',
-              padding: '10px'
-            }
-          }}
-        />
-      )}
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={filteredRows.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onChangePage={handleChangePage}
+        onChangeRowsPerPage={handleChangeRowsPerPage}
+        SelectProps={{
+          style: {
+            display: 'flex',
+            alignItems: 'center',
+            color: '#3f51b5',
+            position: 'relative',
+            fontWeight: 'bold',
+            padding: '10px'
+          }
+        }}
+      />
     </Paper>
   );
 };

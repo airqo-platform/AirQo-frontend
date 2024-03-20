@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:app/blocs/kya/kya_bloc.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:app/screens/quiz/quiz_widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -31,7 +33,15 @@ Future<dynamic> bottomSheetQuizConffeti(
             Navigator.of(context).pop();
             completer.complete();
           });
-
+          context.read<KyaBloc>().add(
+                UpdateQuizProgress(
+                  quiz.copyWith(
+                    status: QuizStatus.complete,
+                    hasCompleted: true,
+                    activeQuestion: 1,
+                  ),
+                ),
+              );
           return SizedBox(
             height: MediaQuery.of(context).size.height * 0.9,
             width: MediaQuery.of(context).size.width,

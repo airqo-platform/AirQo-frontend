@@ -1,158 +1,192 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Section, MainHighlight } from 'components/CleanAir';
-import Section1 from 'assets/img/cleanAir/section1.jpg';
-import Section2 from 'assets/img/cleanAir/section2.png';
+import { useInitScrollTop } from 'utilities/customHooks';
+import { SplitSection, SingleSection, MainHighlight, ButtonCTA } from 'components/CleanAir';
+import Section1 from 'assets/img/cleanAir/section1.png';
 import Section3 from 'assets/img/cleanAir/section3.png';
 import Section4 from 'assets/img/cleanAir/section4.png';
-import Section5 from 'assets/img/cleanAir/section5.png';
-
-const Button = ({ className, label, onClick, style }) => (
-  <button className={className || 'button-hero'} onClick={onClick} style={style}>
-    {label}
-  </button>
-);
+import Placeholder1 from 'assets/img/cleanAir/goal1.png';
+import Placeholder2 from 'assets/img/cleanAir/goal2.png';
+import Placeholder3 from 'assets/img/cleanAir/goal3.png';
+import SEO from 'utilities/seo';
+import { useTranslation, Trans } from 'react-i18next';
+import CleanAirPageContainer from './Page';
 
 const CleanAirAbout = () => {
+  useInitScrollTop();
+  const { t } = useTranslation();
+
+  /**
+   * @description goals of the CLEAN-Air Network
+   * @type {Array} goals
+   */
+  const goals = [
+    {
+      title: t('cleanAirSite.about.section5.subSections.first.title'),
+      content: t('cleanAirSite.about.section5.subSections.first.subText'),
+      imgURL: Placeholder1
+    },
+    {
+      title: t('cleanAirSite.about.section5.subSections.second.title'),
+      content: t('cleanAirSite.about.section5.subSections.second.subText'),
+      imgURL: Placeholder2
+    },
+    {
+      title: t('cleanAirSite.about.section5.subSections.third.title'),
+      content: t('cleanAirSite.about.section5.subSections.third.subText'),
+      imgURL: Placeholder3
+    }
+  ];
+
   return (
-    <>
-      {/* section 1 */}
-      <div className="Hero">
-        <span className="image-container">
-          <img src={Section1} />
-        </span>
-        <div className="hero-content">
-          <div>
-            <p className="hero-title">
-              The CLEAN-Air Africa <br className="breaker" /> Network
-            </p>
-            <p className="hero-sub">
-              <span className="fact">An African-led, multi-region network</span> <br />
-              bringing together a community of practice for air quality solutions and air quality
-              management across Africa.
-            </p>
-            <div className="hero-buttons">
-              <Link
-                to="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
-                target="_blank"
-                rel="noopener noreferrer">
-                <Button
-                  label="Join the Network"
-                  style={{
-                    width: '200px'
-                  }}
-                />
-              </Link>
+    <CleanAirPageContainer>
+      <div className="page-wrapper about-page">
+        <SEO
+          title="About"
+          siteTitle="CLEAN-Air Network"
+          description="An African led, multi-region network bringing together a community of practice for air quality solutions and air quality management across Africa."
+        />
+
+        {/* section 1 */}
+        <div className="Hero">
+          <span className="image-container">
+            <img src={Section1} />
+          </span>
+          <div className="hero-content">
+            <div>
+              <p className="hero-title">
+                <Trans i18nKey="cleanAirSite.about.section1.title">
+                  The CLEAN-Air <br /> Network
+                </Trans>
+              </p>
+              <p className="hero-sub">
+                <Trans i18nKey="cleanAirSite.about.section1.subText">
+                  <span className="fact">An African-led, multi-regional network</span> <br />
+                  bringing together a community of practice for air quality solutions and air
+                  quality management across Africa.
+                </Trans>
+              </p>
+              <ButtonCTA
+                label={t('cleanAirSite.about.section1.cta')}
+                link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
+                style={{
+                  width: '200px'
+                }}
+              />
             </div>
           </div>
         </div>
-      </div>
-      {/* section 2 */}
-      <Section
-        pillTitle="CLEAN-Air Mission"
-        title="Our mission is"
-        content="To strengthen regional networks for sustained partnerships and enable partners to co-develop solutions that enhance the capacity for air quality monitoring and managements across selected cities in Africa."
-        btnText={'Learn how -->'}
-        showButton={false}
-        link="#"
-        imgURL={Section2}
-        bgColor="#EDF3FF"
-        pillBgColor="#FFFFFF"
-        pillTextColor="#000000"
-      />
-      {/* section 3 */}
-      <Section
-        pillTitle="CLEAN-Air"
-        content="CLEAN-Air, an acronym coined from ‘Championing Liveable urban Environments through African Networks for Air’, brings together stakeholders and researchers in air quality management from over 16 cities across the African continent to share best practices and knowledge on developing and implementing air quality management solutions."
-        imgURL={Section3}
-        imageStyle={{
-          width: '214px',
-          height: '214px',
-          objectFit: 'cover'
-        }}
-        bgColor="#FFFFFF"
-        pillBgColor="#ECF2FF"
-        pillTextColor="#135DFF"
-        reverse
-        showButton={false}
-      />
-      {/* section 4 */}
-      <Section
-        pillTitle="CLEAN-Air Membership"
-        title="A Synergy for air quality in Africa"
-        content="Are you an organisation or individual interested in air quality in Africa? We implore you to join the CLEAN-Air Africa Network."
-        link="#"
-        btnText={'Get involved -->'}
-        imgURL={Section4}
-        imageStyle={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover'
-        }}
-        bgColor="#EDF3FF"
-        pillBgColor="#FFFFFF"
-        pillTextColor="#000000"
-        showButton={false}
-      />
-      {/* section 5 */}
-      <Section
-        pillTitle="CLEAN-Air Goals"
-        content={
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr',
-              gap: '1rem'
-            }}>
-            <div>
-              <span
-                style={{
-                  fontWeight: 'bold',
-                  fontSize: '1.5rem',
-                  color: '#135DFF'
-                }}>
-                Enhancing Regional Capacity
-              </span>
-              :  We are dedicated to improving capacity in air quality monitoring, modeling, data
-              management and access through scaling up of ongoing localized initiatives in African
-              Cities.
-            </div>
-            <div>
-              <span
-                style={{
-                  fontWeight: 'bold',
-                  fontSize: '1.5rem',
-                  color: '#135DFF'
-                }}>
-                Driving awareness
-              </span>
-              :  We are committed to fostering a deeper understanding, awareness and appreciation of
-              air quality issues through evidence-informed and participatory advocacy approaches.
-            </div>
-            <div>
-              <span
-                style={{
-                  fontWeight: 'bold',
-                  fontSize: '1.5rem',
-                  color: '#135DFF'
-                }}>
-                Building clean air solutions
-              </span>
-              :  We are not just a network; we are a nexus for developing tangible clean air
-              solutions and comprehensive frameworks that cater specifically to the unique
-              challenges faced by African cities.
+
+        {/* section 2 */}
+        <div className="page-section">
+          <div className="acronym-section-container">
+            <div className="acronym-section">
+              <div className="content">
+                <div className="acronym-content-container">
+                  <p>
+                    <Trans i18nKey="cleanAirSite.about.section2.acronym">
+                      <span className="highlight">CLEAN-Air</span>, is an acronym coined from
+                    </Trans>
+                  </p>
+                  <h2 className="content-h">{t('cleanAirSite.about.section2.title')}</h2>
+                  <p>{t('cleanAirSite.about.section2.subText')}</p>
+                  <p className="join-now">
+                    <Trans i18nKey="cleanAirSite.about.section2.cta">
+                      Are you an organization or individual interested in air quality in Africa?
+                      <a
+                        href="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
+                        target="_blank"
+                        rel="noopener noreferrer">
+                        Join the network
+                      </a>
+                    </Trans>
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-        }
-        imgURL={Section5}
-        bgColor="#FFFFFF"
-        pillBgColor="#ECF2FF"
-        pillTextColor="#135DFF"
-        showButton={false}
-      />
-      {/* section 6 */}
-      <MainHighlight />
-    </>
+        </div>
+
+        {/* section 3 */}
+        <div className="page-section">
+          <SplitSection
+            pillTitle={t('cleanAirSite.about.section3.pillTitle')}
+            title={t('cleanAirSite.about.section3.title')}
+            content={t('cleanAirSite.about.section3.subText')}
+            showButton={false}
+            link="#"
+            imageStyle={{
+              objectFit: 'cover',
+              maxHeight: '400px'
+            }}
+            imgURL={Section3}
+            pillBgColor="#ECF2FF"
+            pillTextColor="#135DFF"
+            reverse={false}
+          />
+        </div>
+
+        {/* section 4 */}
+        <div className="page-section">
+          <SplitSection
+            pillTitle={t('cleanAirSite.about.section4.pillTitle')}
+            title={t('cleanAirSite.about.section4.title')}
+            content={t('cleanAirSite.about.section4.subText')}
+            imgURL={Section4}
+            imageStyle={{
+              height: '420px',
+              objectFit: 'contain'
+            }}
+            pillBgColor="#ECF2FF"
+            pillTextColor="#135DFF"
+            showButton={false}
+            reverse={true}
+          />
+        </div>
+
+        {/* section 5 */}
+        <div className="page-section">
+          <SingleSection
+            content={
+              <div className="goals-container">
+                <div
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start'
+                  }}>
+                  <span id="first-pill" style={{ backgroundColor: '#FFF' }}>
+                    <p style={{ color: '#135DFF' }}>{t('cleanAirSite.about.section5.pillTitle')}</p>
+                  </span>
+                  <h2 className="content-h">{t('cleanAirSite.about.section5.title')}</h2>
+                </div>
+
+                <div className="goals">
+                  {goals.map((goal, index) => (
+                    <div className={`goal ${index === 0 ? 'first' : ''}`} key={index}>
+                      <div className="goal-image-container">
+                        <img src={goal.imgURL} className="goal-image" />
+                      </div>
+                      <div className="goal-content">
+                        <h3 className="goal-title">{goal.title}</h3>
+                        <p className="goal-p">{goal.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            }
+            padding="5rem 0"
+            bgColor="#EDF3FF"
+          />
+        </div>
+
+        {/* section 6 */}
+        <div className="page-section">
+          <MainHighlight />
+        </div>
+      </div>
+    </CleanAirPageContainer>
   );
 };
 

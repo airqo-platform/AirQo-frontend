@@ -1,5 +1,5 @@
 // for representing chained operations using redux-thunk
-import axios from 'axios';
+import createAxiosInstance from '../../views/apis/axiosConfig';
 import { isEmpty } from 'underscore';
 import {
   LOAD_USER_DEFAULT_GRAPHS_SUCCESS,
@@ -68,7 +68,7 @@ export const setUserDefaultGraphData = (filter) => {
   return async (dispatch, getState) => {
     const user = getState().auth.user._id;
     const { chartTitle } = filter;
-    return await axios
+    return await createAxiosInstance()
       .put(DEFAULTS_URI, filter, {
         params: { user, chartTitle }
       })

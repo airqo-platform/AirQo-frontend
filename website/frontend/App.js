@@ -1,6 +1,8 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect, useState, useCallback } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
+import { I18nextProvider } from 'react-i18next';
+import i18n from './i18n';
 
 import Loadspinner from './src/components/LoadSpinner';
 
@@ -26,57 +28,127 @@ const MobileAppPage = React.lazy(() => import('src/pages/OurProducts/MobileAppPa
 const APIPage = React.lazy(() => import('src/pages/OurProducts/ApiPage'));
 const CalibrationPage = React.lazy(() => import('src/pages/OurProducts/CalibrationPage'));
 const QRCodeRedirectPage = React.lazy(() => import('src/pages/ExploreData/Redirect'));
-const CleanAirPage = React.lazy(()=>import('src/pages/CleanAir'))
-const CleanAirEventsPage = React.lazy(() => import('src/pages/CleanAir/CleanAirEvents'))
-const CleanAirPartnersPage = React.lazy(() => import('src/pages/CleanAir/CleanAirPartners'))
-const CleanAirPressPage = React.lazy(() => import('src/pages/CleanAir/CleanAirPress'))
+const CleanAirPage = React.lazy(() => import('src/pages/CleanAir/CleanAirAbout'));
+const CleanAirMemberPage = React.lazy(() => import('src/pages/CleanAir/CleanAirPartners'));
+const CleanAirEventsPage = React.lazy(() => import('src/pages/CleanAir/CleanAirEvents'));
+const CleanAirResourcesPage = React.lazy(() => import('src/pages/CleanAir/CleanAirPublications'));
+const CleanAirEventsDetailsPage = React.lazy(() => import('src/pages/CleanAir/EventDetails'));
 
 import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
 import store from './store';
 import PartnerDetailPage from './src/pages/Partners';
 import Error404 from 'src/pages/ErrorPages/Error404';
 import { ExploreApp } from './src/pages/ExploreData';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import { fetchCleanAirData } from 'reduxStore/CleanAirNetwork/CleanAir';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllEvents } from 'reduxStore/Events/EventSlice';
+import { loadPublicationsData } from 'reduxStore/Publications/operations';
+import { loadPressData } from 'reduxStore/Press/PressSlice';
+import { loadPartnersData } from 'reduxStore/Partners/operations';
+import { loadCareersListingData } from 'reduxStore/Careers/operations';
+import { loadCareersDepartmentsData } from 'reduxStore/Careers/operations';
 
 store.dispatch(loadAirQloudSummaryData());
 
+const FetchData = () => {
+  const dispatch = useDispatch();
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
+
+  const fetchData = useCallback(() => {
+    dispatch(getAllEvents(language));
+    dispatch(fetchCleanAirData(language));
+    dispatch(loadPublicationsData());
+    dispatch(loadPressData());
+    dispatch(loadPartnersData());
+    dispatch(loadCareersListingData());
+    dispatch(loadCareersDepartmentsData());
+  }, [language, dispatch]);
+
+  useEffect(fetchData, [fetchData]);
+
+  return null;
+};
+
 const App = () => {
+  const [showScroll, setShowScroll] = useState(false);
+
+  const checkScrollTop = () => {
+    const shouldShowScroll = window.scrollY >= 400;
+    if (showScroll !== shouldShowScroll) {
+      setShowScroll(shouldShowScroll);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('scroll', checkScrollTop);
+    return () => window.removeEventListener('scroll', checkScrollTop);
+  }, [showScroll]);
+
+  const ScrollTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
   return (
     <Provider store={store}>
-      <Router>
-        <Suspense fallback={<Loadspinner />}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/solutions/research" element={<ResearchPage />} />
-            <Route path="/solutions/communities" element={<CommunityPage />} />
-            <Route path="/solutions/african-cities" element={<AfricanCitiesPage />} />
-            <Route path="/careers" element={<CareerPage />} />
-            <Route path="/careers/:uniqueTitle" element={<CareerDetailPage />} />
-            <Route path="/about-us" element={<AboutUsPage />} />
-            <Route path="/press" element={<Press />} />
-            <Route path="/legal" element={<LegalPage />} />
-            <Route path="/contact" element={<ContactUsPage />} />
-            <Route path="/contact/form" element={<ContactForm />} />
-            <Route path="/contact/sent" element={<Feedback />} />
-            <Route path="/explore-data" element={<ExploreData />} />
-            <Route path="/explore-data/download-apps" element={<ExploreApp />} />
-            <Route path="/partners/:uniqueTitle" element={<PartnerDetailPage />} />
-            <Route path="/resources" element={<PublicationsPage />} />
-            <Route path="/events" element={<EventsPage />} />
-            <Route path="/events/:uniqueTitle" element={<EventsDetailsPage />} />
-            <Route path="/products/monitor" element={<MonitorPage />} />
-            <Route path="/products/analytics" element={<AnalyticsPage />} />
-            <Route path="/products/mobile-app" element={<MobileAppPage />} />
-            <Route path="/products/api" element={<APIPage />} />
-            <Route path="/download-apps" element={<QRCodeRedirectPage />} />
-            <Route path="/products/calibrate" element={<CalibrationPage />} />
-            <Route path="/clean-air" element={<CleanAirPage />}/>
-            <Route path='/clean-air/events' element={<CleanAirEventsPage />} />
-            <Route path='/clean-air/partners' element={<CleanAirPartnersPage />} />
-            <Route path='/clean-air/press' element={<CleanAirPressPage />} />
-            <Route path="*" element={<Error404 />} />
-          </Routes>
-        </Suspense>
-      </Router>
+      <I18nextProvider i18n={i18n}>
+        <FetchData />
+        <Router>
+          <Suspense fallback={<Loadspinner />}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/solutions/research" element={<ResearchPage />} />
+              <Route path="/solutions/communities" element={<CommunityPage />} />
+              <Route path="/solutions/african-cities" element={<AfricanCitiesPage />} />
+              <Route path="/careers" element={<CareerPage />} />
+              <Route path="/careers/:uniqueTitle" element={<CareerDetailPage />} />
+              <Route path="/about-us" element={<AboutUsPage />} />
+              <Route path="/press" element={<Press />} />
+              <Route path="/legal" element={<LegalPage />} />
+              <Route path="/contact" element={<ContactUsPage />} />
+              <Route path="/contact/form" element={<ContactForm />} />
+              <Route path="/contact/sent" element={<Feedback />} />
+              <Route path="/explore-data" element={<ExploreData />} />
+              <Route path="/explore-data/download-apps" element={<ExploreApp />} />
+              <Route path="/partners/:uniqueTitle" element={<PartnerDetailPage />} />
+              <Route path="/resources" element={<PublicationsPage />} />
+              <Route path="/events" element={<EventsPage />} />
+              <Route path="/events/:uniqueTitle" element={<EventsDetailsPage />} />
+              <Route path="/products/monitor" element={<MonitorPage />} />
+              <Route path="/products/analytics" element={<AnalyticsPage />} />
+              <Route path="/products/mobile-app" element={<MobileAppPage />} />
+              <Route path="/products/api" element={<APIPage />} />
+              <Route path="/download-apps" element={<QRCodeRedirectPage />} />
+              <Route path="/products/calibrate" element={<CalibrationPage />} />
+              <Route path="/clean-air" element={<CleanAirPage />} />
+              <Route path="/clean-air/about" element={<CleanAirPage />} />
+              <Route path="/clean-air/membership" element={<CleanAirMemberPage />} />
+              <Route path="/clean-air/events" element={<CleanAirEventsPage />} />
+              <Route path="/clean-air/resources" element={<CleanAirResourcesPage />} />
+              <Route
+                path="/clean-air/event-details/:uniqueTitle"
+                element={<CleanAirEventsDetailsPage />}
+              />
+              <Route path="*" element={<Error404 />} />
+            </Routes>
+          </Suspense>
+        </Router>
+      </I18nextProvider>
+      {/* scroll top button */}
+      {showScroll && (
+        <div className="scroll-top" onClick={ScrollTop}>
+          <ArrowUpwardIcon
+            className="scroll-top-icon"
+            sx={{
+              width: '40px',
+              height: '40px',
+              color: '#FFF'
+            }}
+          />
+        </div>
+      )}
     </Provider>
   );
 };

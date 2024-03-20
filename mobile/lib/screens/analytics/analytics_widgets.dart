@@ -6,6 +6,7 @@ import 'package:app/screens/insights/insights_page.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -248,21 +249,11 @@ class AnalyticsCard extends StatelessWidget {
                                         );
                                       },
                                     ),
-                                    const SizedBox(
-                                      height: 8,
-                                    ),
                                     Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Container(
-                                          constraints: BoxConstraints(
-                                            maxWidth: MediaQuery.of(context)
-                                                    .size
-                                                    .width /
-                                                3.2,
-                                          ),
-                                          child: Text(
+                                        Text(
                                             airQualityReading.dateTime
                                                 .analyticsCardString(context),
                                             maxLines: 1,
@@ -272,7 +263,6 @@ class AnalyticsCard extends StatelessWidget {
                                               color:
                                                   Colors.black.withOpacity(0.3),
                                             ),
-                                          ),
                                         ),
                                         const SizedBox(
                                           width: 4.0,
@@ -457,7 +447,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                       ),
                     ),
                     const SizedBox(width: 8.0),
-                    Text(
+                    AutoSizeText(
                       AppLocalizations.of(context)!.viewMoreInsights,
                       style: CustomTextStyle.caption3(context)?.copyWith(
                         color: appColors.appColorBlue,

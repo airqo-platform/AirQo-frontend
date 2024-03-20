@@ -14,7 +14,6 @@ import { isEmpty } from 'underscore';
 import Alert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/styles';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
-import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import Select from 'react-select';
 import RemoveIcon from '@material-ui/icons/Remove';
@@ -26,6 +25,8 @@ import { getSimsApi, createSimApi, checkSimStatusApi } from '../../apis/accessCo
 import DeleteIcon from '@material-ui/icons/Delete';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import { withPermission } from '../../containers/PageAccess';
+import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
+import UsersListBreadCrumb from '../../pages/UserList/components/Breadcrumb';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -65,40 +66,8 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const customStyles = {
-  control: (base, state) => ({
-    ...base,
-    height: '50px',
-    marginTop: '10px',
-    marginBottom: '10px',
-    borderColor: state.isFocused ? '#3f51b5' : '#9a9a9a',
-    '&:hover': {
-      borderColor: state.isFocused ? 'black' : 'black'
-    },
-    boxShadow: state.isFocused ? '0 0 1px 1px #3f51b5' : null
-  }),
-  option: (provided, state) => ({
-    ...provided,
-    borderBottom: '1px dotted pink',
-    color: state.isSelected ? 'white' : 'blue',
-    textAlign: 'left'
-  }),
-  input: (provided, state) => ({
-    ...provided,
-    height: '40px',
-    borderColor: state.isFocused ? '#3f51b5' : 'black'
-  }),
-  placeholder: (provided, state) => ({
-    ...provided,
-    color: '#000'
-  }),
-  menu: (provided, state) => ({
-    ...provided,
-    zIndex: 9999
-  })
-};
-
 const RegisterSim = ({ setCreateSimDialog, CreateSimDialog, setIsLoading, setRefresh }) => {
+  const dispatch = useDispatch();
   const classes = useStyles();
 
   const [sim, setSim] = useState({
@@ -142,9 +111,11 @@ const RegisterSim = ({ setCreateSimDialog, CreateSimDialog, setIsLoading, setRef
       });
     } else {
       setIsLoading(true);
+      dispatch(loadStatus(true));
       createSimApi(sim)
         .then((res) => {
           setIsLoading(false);
+          dispatch(loadStatus(false));
           if (res.success) {
             setCreateSimDialog(false);
             resetForm();
@@ -159,6 +130,7 @@ const RegisterSim = ({ setCreateSimDialog, CreateSimDialog, setIsLoading, setRef
         })
         .catch((err) => {
           setIsLoading(false);
+          dispatch(loadStatus(false));
           setErrors({
             msisdn: err.message,
             showError: true,
@@ -239,6 +211,7 @@ const SimRegistry = () => {
   const [refresh, setRefresh] = useState(false);
   const [CreateSimDialog, setCreateSimDialog] = useState(false);
   const [simData, setSimData] = useState([]);
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   useEffect(() => {
     setLoading(true);
@@ -253,33 +226,33 @@ const SimRegistry = () => {
       })
       .catch((err) => {
         setLoading(false);
-        dispatch(updateMainAlert({ message: err.message, show: true, severity: 'error' }));
       });
   }, [refresh]);
 
-  const checkSimStatus = (id) => {
+  const checkSimStatus = async (id) => {
     setIsLoading(true);
-    checkSimStatusApi(id)
-      .then((res) => {
-        setIsLoading(false);
-        if (res.success) {
-          dispatch(updateMainAlert({ message: res.message, show: true, severity: 'success' }));
-          setRefresh(true);
-        } else {
-          dispatch(updateMainAlert({ message: res.message, show: true, severity: 'error' }));
-        }
-      })
-      .catch((err) => {
-        setIsLoading(false);
-        dispatch(updateMainAlert({ message: err.message, show: true, severity: 'error' }));
-      });
+    dispatch(loadStatus(true));
+    try {
+      const res = await checkSimStatusApi(id);
+      setIsLoading(false);
+      dispatch(loadStatus(false));
+      if (res.success) {
+        dispatch(updateMainAlert({ message: res.message, show: true, severity: 'success' }));
+        setRefresh(true);
+      } else {
+        dispatch(updateMainAlert({ message: res.message, show: true, severity: 'error' }));
+      }
+    } catch (err) {
+      setIsLoading(false);
+      dispatch(loadStatus(false));
+      dispatch(updateMainAlert({ message: err.message, show: true, severity: 'error' }));
+    }
   };
 
   const handleDelete = (id) => {};
 
   return (
     <>
-      <HorizontalLoader loading={isLoading} />
       <div className={classes.root}>
         <div
           style={{
@@ -292,10 +265,15 @@ const SimRegistry = () => {
             Register SIM
           </Button>
         </div>
+        <UsersListBreadCrumb
+          category="SIM Registry"
+          usersTable={`${activeNetwork.net_name === 'airqo' ? 'AirQo' : activeNetwork.net_name}`}
+        />
 
         <CustomMaterialTable
           pointerCursor
           userPreferencePaginationKey={'SIM'}
+          isLoading={loading}
           title="SIM Registry"
           columns={[
             {

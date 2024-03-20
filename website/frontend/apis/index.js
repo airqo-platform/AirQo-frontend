@@ -19,98 +19,76 @@ import {
   CLEAN_AIR_URL
 } from '../config/urls';
 
-const API_TOKEN = process.env.REACT_APP_AUTHORIZATION_TOKEN;
+const apiCall = async (url, method, data = null) => {
+  const config = {
+    method: method,
+    url: url,
+    data: data
+  };
 
-export const getAirQloudSummaryApi = async () =>
-  await axios
-    .get(AIRQLOUD_SUMMARY, {
-      params: {
-        token: API_TOKEN
+  try {
+    const response = await axios(config);
+    return response.data;
+  } catch (error) {
+    return;
+  }
+};
+
+const fetchData = async (url, lang) => {
+  return await axios
+    .get(url, {
+      headers: {
+        'Accept-Language': lang
       }
     })
     .then((response) => response.data);
+};
 
-export const newsletterSubscriptionApi = async (data) =>
-  await axios
-    .post(NEWSLETTER_SUBSCRIPTION, data, {
-      params: {
-        token: API_TOKEN
-      }
-    })
-    .then((response) => response.data);
+export const getAirQloudSummaryApi = () => apiCall(AIRQLOUD_SUMMARY, 'get');
 
-export const contactUsApi = async (data) =>
-  await axios
-    .post(INQUIRY_URL, data, {
-      params: {
-        token: API_TOKEN
-      }
-    })
-    .then((response) => response.data);
+export const newsletterSubscriptionApi = (data) => apiCall(NEWSLETTER_SUBSCRIPTION, 'post', data);
 
-export const sendInquiryApi = async (data) =>
-  await axios
-    .post(INQUIRY_URL, data, {
-      params: {
-        token: API_TOKEN
-      }
-    })
-    .then((response) => response.data);
+export const contactUsApi = (data) => apiCall(INQUIRY_URL, 'post', data);
 
-export const requestDataAccessApi = async (data) =>
-  await axios
-    .post(EXPLORE_DATA_URL, data, {
-      params: {
-        token: API_TOKEN
-      }
-    })
-    .then((response) => response.data);
+export const sendInquiryApi = (data) => apiCall(INQUIRY_URL, 'post', data);
 
-// Careers endpoints
-export const getAllCareersApi = async () =>
-  await axios.get(CAREERS_URL).then((response) => response.data);
+export const requestDataAccessApi = (data) => apiCall(EXPLORE_DATA_URL, 'post', data);
 
-export const getAllDepartmentsApi = async () =>
-  await axios.get(DEPARTMENTS_URL).then((response) => response.data);
+// Careers endpoint
+export const getAllCareersApi = async (lang) => fetchData(CAREERS_URL, lang);
 
-// Teams endpoints
-export const getAllTeamMembersApi = async () =>
-  await axios.get(TEAMS_URL).then((response) => response.data);
+// Departments endpoint
+export const getAllDepartmentsApi = async (lang) => fetchData(DEPARTMENTS_URL, lang);
 
-// Highlights endpoints
-export const getAllHighlightsApi = async () =>
-  await axios.get(HIGHLIGHTS_URL).then((response) => response.data);
-export const getAllTagsApi = async () =>
-  await axios.get(TAGS_URL).then((response) => response.data);
+// Teams endpoint
+export const getAllTeamMembersApi = async (lang) => fetchData(TEAMS_URL, lang);
 
-// Partners endpoints
-export const getAllPartnersApi = async () =>
-  await axios.get(PARTNERS_URL).then((response) => response.data);
+// Highlights endpoint
+export const getAllHighlightsApi = async (lang) => fetchData(HIGHLIGHTS_URL, lang);
 
-// Board Members endpoints
-export const getBoardMembersApi = async () =>
-  await axios.get(BOARD_MEMBERS_URL).then((response) => response.data);
+// Tags endpoint
+export const getAllTagsApi = async (lang) => fetchData(TAGS_URL, lang);
 
-// Publications endpoints
-export const getAllPublicationsApi = async () =>
-  await axios.get(PUBLICATIONS_URL).then((response) => response.data);
+// Partners endpoint
+export const getAllPartnersApi = async (lang) => fetchData(PARTNERS_URL, lang);
 
-// Press endpoints
-export const getAllPressApi = async () =>
-  await axios.get(PRESS_URL).then((response) => response.data);
+// Board Members endpoint
+export const getBoardMembersApi = async (lang) => fetchData(BOARD_MEMBERS_URL, lang);
+
+// Publications endpoint
+export const getAllPublicationsApi = async (lang) => fetchData(PUBLICATIONS_URL, lang);
 
 // Events endpoint
-export const getAllEventsApi = async () =>
-  await axios.get(EVENTS_URL).then((response) => response.data);
+export const getAllPressApi = async (lang) => fetchData(PRESS_URL, lang);
 
-// African Cities endpoint
-export const getAllCitiesApi = async () =>
-  await axios.get(CITIES_URL).then((response) => response.data);
+// Events endpoint
+export const getAllEventsApi = async (lang) => fetchData(EVENTS_URL, lang);
+
+// Cities endpoint
+export const getAllCitiesApi = async (lang) => fetchData(CITIES_URL, lang);
 
 // Impact Numbers endpoint
-export const getAllImpactNumbersApi = async () =>
-  await axios.get(IMPACT_URL).then((response) => response.data);
+export const getAllImpactNumbersApi = async () => fetchData(IMPACT_URL, null);
 
-// Clean Air endpoints
-export const getAllCleanAirApi = async () =>
-  await axios.get(CLEAN_AIR_URL).then((response) => response.data);
+// Clean Air endpoint
+export const getAllCleanAirApi = async (lang) => fetchData(CLEAN_AIR_URL, lang);
