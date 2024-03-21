@@ -181,8 +181,14 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
 };
 
 // Sidebar header
-const SidebarHeader = ({ selectedTab, handleSelectedTab, isAdmin, setShowSideBar }) => (
-  <div>
+const SidebarHeader = ({
+  selectedTab,
+  handleSelectedTab,
+  isAdmin,
+  setShowSideBar,
+  handleHeaderClick = () => {},
+}) => (
+  <div onClick={handleHeaderClick}>
     <div className='w-full flex justify-between items-center'>
       <label className='font-medium text-xl text-gray-900'>Air Quality Map</label>
       <button
@@ -445,6 +451,15 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
     }
   }, [reduxSearchTerm]);
 
+  const handleHeaderClick = () => {
+    setIsFocused(false);
+    setShowLocationDetails(false);
+    setSelectedSite(null);
+    dispatch(addSearchTerm(''));
+    setSearchResults([]);
+    setShowNoResultsMsg(false);
+  };
+
   return (
     <div
       className={`${
@@ -541,6 +556,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
               handleSelectedTab={handleSelectedTab}
               isAdmin
               setShowSideBar={setShowSideBar}
+              handleHeaderClick={handleHeaderClick}
             />
             <SearchField onSearch={handleSearch} onClearSearch={handleClearSearch} focus={focus} />
           </div>
@@ -587,7 +603,6 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                     setIsFocused(false);
                     setShowLocationDetails(false);
                     setSelectedSite(null);
-                    setSearchResults(selectedSites);
                     dispatch(addSearchTerm(''));
                     setSearchResults([]);
                     setShowNoResultsMsg(false);
