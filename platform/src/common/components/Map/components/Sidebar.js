@@ -588,6 +588,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                     setSearchResults(selectedSites);
                     dispatch(addSearchTerm(''));
                     setSearchResults([]);
+                    setShowNoResultsMsg(false);
                   }}
                 >
                   <ArrowLeftIcon />
