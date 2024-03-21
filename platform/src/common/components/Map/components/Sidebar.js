@@ -450,7 +450,9 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
       className={`${
         window.innerWidth < 768 ? 'absolute left-0 top-0' : 'relative'
       } w-full md:w-[340px] bg-white shadow-lg shadow-right z-50 overflow-x-hidden ${
-        (searchResults && searchResults.length > 0) || showLocationDetails
+        (searchResults && searchResults.length > 0) ||
+        showLocationDetails ||
+        (selectedSites && selectedSites.length > 0)
           ? 'overflow-y-auto map-scrollbar h-full'
           : 'h-screen overflow-y-hidden'
       }`}
