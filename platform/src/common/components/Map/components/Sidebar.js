@@ -352,6 +352,8 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
 
   const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
 
+  const focus = isFocused || reduxSearchTerm.length > 0;
+
   useEffect(() => {
     if (Array.isArray(siteDetails) && siteDetails.length > 0) {
       const newUniqueCountries = [];
@@ -467,7 +469,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
         {/* section 1 */}
         <div className={`${isFocused || showLocationDetails ? 'hidden' : ''}`}>
           <div onClick={() => setIsFocused(true)} className='mt-5 px-4'>
-            <SearchField focus={false} />
+            <SearchField focus={focus} />
           </div>
           <div>
             <div
@@ -539,7 +541,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
               isAdmin
               setShowSideBar={setShowSideBar}
             />
-            <SearchField onSearch={handleSearch} onClearSearch={handleClearSearch} focus={true} />
+            <SearchField onSearch={handleSearch} onClearSearch={handleClearSearch} focus={focus} />
           </div>
 
           {reduxSearchTerm && (
@@ -586,6 +588,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                     setSelectedSite(null);
                     setSearchResults(selectedSites);
                     dispatch(addSearchTerm(''));
+                    setSearchResults([]);
                   }}
                 >
                   <ArrowLeftIcon />
