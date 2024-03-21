@@ -181,8 +181,14 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
 };
 
 // Sidebar header
-const SidebarHeader = ({ selectedTab, handleSelectedTab, isAdmin, setShowSideBar }) => (
-  <div>
+const SidebarHeader = ({
+  selectedTab,
+  handleSelectedTab,
+  isAdmin,
+  setShowSideBar,
+  handleHeaderClick = () => {},
+}) => (
+  <div onClick={handleHeaderClick}>
     <div className='w-full flex justify-between items-center'>
       <label className='font-medium text-xl text-gray-900'>Air Quality Map</label>
       <button
@@ -352,6 +358,8 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
 
   const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
 
+  const focus = isFocused || reduxSearchTerm.length > 0;
+
   useEffect(() => {
     if (Array.isArray(siteDetails) && siteDetails.length > 0) {
       const newUniqueCountries = [];
@@ -381,7 +389,6 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
         ...prevLocationSearchPreferences,
         custom: selectedSites,
       }));
-      setSearchResults(selectedSites);
     }
   }, [selectedSites, isFocused]);
 
@@ -444,12 +451,23 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
     }
   }, [reduxSearchTerm]);
 
+  const handleHeaderClick = () => {
+    setIsFocused(false);
+    setShowLocationDetails(false);
+    setSelectedSite(null);
+    dispatch(addSearchTerm(''));
+    setSearchResults([]);
+    setShowNoResultsMsg(false);
+  };
+
   return (
     <div
       className={`${
         window.innerWidth < 768 ? 'absolute left-0 top-0' : 'relative'
       } w-full md:w-[340px] bg-white shadow-lg shadow-right z-50 overflow-x-hidden ${
-        searchResults && searchResults.length > 0
+        (searchResults && searchResults.length > 0) ||
+        showLocationDetails ||
+        (selectedSites && selectedSites.length > 0)
           ? 'overflow-y-auto map-scrollbar h-full'
           : 'h-screen overflow-y-hidden'
       }`}
@@ -467,7 +485,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
         {/* section 1 */}
         <div className={`${isFocused || showLocationDetails ? 'hidden' : ''}`}>
           <div onClick={() => setIsFocused(true)} className='mt-5 px-4'>
-            <SearchField focus={false} />
+            <SearchField focus={focus} />
           </div>
           <div>
             <div
@@ -495,32 +513,32 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
             <div className='border border-secondary-neutral-light-100 my-5' />
 
             <div className='overflow-y-auto map-scrollbar'>
-              <div className='flex justify-between items-center px-4'>
-                <div className='flex gap-1'>
-                  <div className='font-medium text-secondary-neutral-dark-400 text-sm'>
-                    Sort by:
+              {selectedSites && selectedSites.length > 0 && (
+                <>
+                  <div className='flex justify-between items-center px-4'>
+                    <div className='flex gap-1'>
+                      <div className='font-medium text-secondary-neutral-dark-400 text-sm'>
+                        Sort by:
+                      </div>
+                      <select className='rounded-md m-0 p-0 text-sm font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none'>
+                        <option value='custom'>Suggested</option>
+                        {/* <option value='near_me'>Near me</option> */}
+                      </select>
+                    </div>
+                    <Button
+                      className='text-sm font-medium'
+                      paddingStyles='p-0'
+                      variant='primaryText'
+                      onClick={() => {}}
+                    >
+                      Filters
+                    </Button>
                   </div>
-                  <select className='rounded-md m-0 p-0 text-sm font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none'>
-                    <option value='custom'>Suggested</option>
-                    {/* <option value='near_me'>Near me</option> */}
-                  </select>
-                </div>
-                <Button
-                  className='text-sm font-medium'
-                  paddingStyles='p-0'
-                  variant='primaryText'
-                  onClick={() => {}}
-                >
-                  Filters
-                </Button>
-              </div>
-              {selectedSites && selectedSites.length > 0 ? (
-                <SectionCards
-                  searchResults={selectedSites}
-                  handleLocationSelect={handleLocationSelect}
-                />
-              ) : (
-                <SearchResultsSkeleton />
+                  <SectionCards
+                    searchResults={selectedSites}
+                    handleLocationSelect={handleLocationSelect}
+                  />
+                </>
               )}
             </div>
           </div>
@@ -538,8 +556,9 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
               handleSelectedTab={handleSelectedTab}
               isAdmin
               setShowSideBar={setShowSideBar}
+              handleHeaderClick={handleHeaderClick}
             />
-            <SearchField onSearch={handleSearch} onClearSearch={handleClearSearch} focus={true} />
+            <SearchField onSearch={handleSearch} onClearSearch={handleClearSearch} focus={focus} />
           </div>
 
           {reduxSearchTerm && (
@@ -584,8 +603,9 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                     setIsFocused(false);
                     setShowLocationDetails(false);
                     setSelectedSite(null);
-                    setSearchResults(selectedSites);
                     dispatch(addSearchTerm(''));
+                    setSearchResults([]);
+                    setShowNoResultsMsg(false);
                   }}
                 >
                   <ArrowLeftIcon />
