@@ -383,7 +383,6 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
         ...prevLocationSearchPreferences,
         custom: selectedSites,
       }));
-      setSearchResults(selectedSites);
     }
   }, [selectedSites, isFocused]);
 
