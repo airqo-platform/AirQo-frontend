@@ -7,7 +7,7 @@ This application is used for monitoring , device registration, location registra
 `npm` Is our package manager of choice here. Check out setup instructions [here](https://nodejs.org/dist/) if you don't have it installed already. <br/><br/>
 **Note: This project is currently using node version 14.**
 
-To run the app, enter the project directory <br/>
+To run the app, enter the project directory, <br/>
 
 **a) Add the `.env` file**
 
