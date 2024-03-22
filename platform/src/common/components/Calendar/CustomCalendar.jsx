@@ -110,8 +110,8 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
    */
   const DatePickerHiddenInput = () => (
     <Calendar
-      initialMonth1={new Date(2023, 1)}
-      initialMonth2={new Date(2023, 2)}
+      initialMonth1={new Date(new Date().getFullYear(), new Date().getMonth() - 1)}
+      initialMonth2={new Date()}
       handleValueChange={handleValueChange}
       closeDatePicker={() => setOpenDatePicker(false)}
     />
@@ -142,7 +142,8 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
       <button
         onClick={handleClick}
         type='button'
-        className='relative border border-grey-750 rounded flex items-center justify-between gap-2 px-4 py-3'>
+        className='relative border border-grey-750 rounded flex items-center justify-between gap-2 px-4 py-3'
+      >
         {Icon ? <Icon /> : <CalendarIcon />}
         <span className='hidden sm:inline-block text-sm font-medium'>
           {chartData.chartDataRange.label}
@@ -152,7 +153,8 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
       <div
         className={`absolute top-[50px] z-[900] ${className} ${
           openDatePicker ? 'block' : 'hidden'
-        }`}>
+        }`}
+      >
         <DatePickerHiddenInput />
       </div>
     </div>
