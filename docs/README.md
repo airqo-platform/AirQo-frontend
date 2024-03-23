@@ -2,7 +2,7 @@
 
 With this reference, you can explore and interact with all publicly availed AirQo resources.
 
-Jump straight to your desired documentation
+Jump straight to your desired documentation:
 
 - [API](api/)
 - [Calibration](calibration/)
