@@ -60,11 +60,16 @@ const ReportView = () => {
         data: base64data, // Store the whole base64 string including MIME type
         date: new Date().toISOString(),
       })
-      // Save updated array to localStorage
-      localStorage.setItem('savedFiles', JSON.stringify(savedFiles))
-      // Set a timestamp for when the data was stored
-      localStorage.setItem('timestamp', Date.now().toString())
-      toast.success('File saved successfully')
+      // Check if there's enough space in localStorage
+      if (JSON.stringify(savedFiles).length < localStorage.remainingSpace) {
+        // Save updated array to localStorage
+        localStorage.setItem('savedFiles', JSON.stringify(savedFiles))
+        // Set a timestamp for when the data was stored
+        localStorage.setItem('timestamp', Date.now().toString())
+        toast.success('File saved successfully')
+      } else {
+        toast.error('Not enough space in local storage')
+      }
     }
     reader.onerror = function () {
       toast.error('An error occurred while reading the file')
