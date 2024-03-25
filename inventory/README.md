@@ -1,2 +1,2 @@
-# AirQo Hardware Inventory
+# AirQo Hardware Inventory.
 metadata.

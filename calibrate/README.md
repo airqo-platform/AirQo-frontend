@@ -7,7 +7,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 - This project requires [Node version 14](https://nodejs.org/dist/) and
 - [NPM](https://docs.npmjs.com/).
 
-## Prerequisites
+## Prerequisites.
 
 Use the [.env.sample](./.env.sample) to create a personal `.env` file.
 
