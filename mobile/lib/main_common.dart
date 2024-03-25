@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
+import 'package:app/new_authentication/new_theme.dart';
 import 'package:app/screens/offline_banner.dart';
 import 'package:app/screens/on_boarding/splash_screen.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
@@ -156,7 +157,9 @@ class _AirQoAppState extends State<AirQoApp> {
           FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
         ],
         title: config.appTitle,
-        theme: customTheme(),
+        theme: CustomTheme.lightTheme,
+        darkTheme: CustomTheme.darkTheme,
+        themeMode: ThemeMode.system,
         locale: _locale,
         home: OfflineBanner(
           child: SplashScreen(widget.initialLink),

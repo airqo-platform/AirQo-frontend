@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
+import 'package:app/new_authentication/landing.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/screens/insights/insights_page.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
@@ -488,7 +489,7 @@ class _DashboardViewState extends State<DashboardView>
             context,
             MaterialPageRoute(
               builder: (context) {
-                return const SearchPage();
+                return const MyHomePage();
               },
             ),
           );

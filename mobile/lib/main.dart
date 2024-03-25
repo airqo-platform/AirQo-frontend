@@ -1,6 +1,7 @@
 import 'package:app/constants/constants.dart';
 import 'package:app/main_common.dart';
 import 'package:app/models/models.dart';
+import 'package:app/new_authentication/new_theme.dart';
 import 'package:app/services/widget_service.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/custom_localisation.dart';
@@ -66,7 +67,9 @@ void main() async {
     runApp(
       MaterialApp(
         title: 'AirQo',
-        theme: customTheme(),
+        theme: CustomTheme.lightTheme,
+        darkTheme: CustomTheme.darkTheme,
+        themeMode: ThemeMode.system,
         localizationsDelegates: const [
           LgMaterialLocalizations.delegate,
           LgCupertinoLocalizations.delegate,
