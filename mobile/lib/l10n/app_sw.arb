@@ -354,5 +354,9 @@
     "youWouldBeRequiredToAddYourEmailToYourProfileOnTheMobileAppToEnableYouAccessThe":" Utahitajika kuongeza barua pepe yako kwenye wasifu wako kwenye programu ya simu ili kukuwezesha kufikia ",
     "withOneAccount":" na akaunti moja.",
     "addMyEmail":"Ongeza barua pepe yangu",
-    "remindMeLater":"Nikumbushe baadaye"
+    "remindMeLater":"Nikumbushe baadaye",
+    "addMyEmailToMyProfile":"Ongeza barua pepe yangu kwenye wasifu wangu",
+    "addYourEmailToYourProfileToEnableYouToAccessThe" : "Ongeza barua pepe yako kwenye wasifu wako ili uweze kufikia ",
+    "accessDeeperAirQualityInsights":"fikia maelezo zaidi ya ubora wa hewa",
+    "usingYourAirQoMobileAppAccount":"Kwa kutumia akaunti yako ya programu ya simu ya AirQo"
 }
