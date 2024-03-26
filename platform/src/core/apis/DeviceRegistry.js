@@ -45,7 +45,7 @@ export const getAnalyticsData = async (body) => {
 
 export const getRecentMeasurements = async (params) => {
   return await createAxiosInstance(false)
-    .get(`${DEVICES}/measurements/recent`, { params })
+    .get(`${DEVICES}/readings/recent`, { params })
     .then((response) => response.data);
 };
 

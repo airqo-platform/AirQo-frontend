@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EmailLinkActionButton extends StatelessWidget {
   const EmailLinkActionButton({
@@ -115,7 +116,7 @@ class EmailLinkErrorMessage extends StatelessWidget {
                 ),
                 Expanded(
                   child: AutoSizeText(
-                    'Your Email is already registered ',
+                    AppLocalizations.of(context)!.yourEmailIsAlreadyRegistered,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
@@ -189,12 +190,20 @@ class SkipLinkButtons extends StatelessWidget {
             children: [
               const SizedBox(height: 8),
               GestureDetector(
-                onTap: () {
-                  Navigator.push(
+                onTap: () async {
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  prefs.setInt(
+                    'remindMeLaterTimestamp',
+                    DateTime.now().millisecondsSinceEpoch,
+                  );
+                  Navigator.pop(context);
+                  Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const HomePage(),
-                    ),
+                    MaterialPageRoute(builder: (context) {
+                      return const HomePage();
+                    }),
+                    (r) => true,
                   );
                 },
                 child: Text(
