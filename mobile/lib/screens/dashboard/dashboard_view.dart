@@ -129,7 +129,6 @@ class _DashboardViewState extends State<DashboardView>
                           final favouritePlaces = favouritePlacesWidgets(
                             state.take(3).toList(),
                           );
-
                           return Flexible(
                             child: CustomShowcaseWidget(
                               showcaseKey: _favoritesShowcaseKey,

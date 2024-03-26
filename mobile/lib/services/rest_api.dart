@@ -314,7 +314,6 @@ class AirqoApiClient {
               );
             }
           }
-
           await CloudStore.updateProfile(userToUpdate);
         }
 

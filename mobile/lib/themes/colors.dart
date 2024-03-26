@@ -194,7 +194,24 @@ class CustomColors {
   static Color get appColorRed => const Color(0xffFF0000);
 
   static Color get appColorBlack => const Color(0xff121723);
+
+  // ! additions by OJ these are the basic colors and can be referenced to other parts of the app using the design file.
+  static Color get newAppColorBlack => const Color(0xff1c1d20);
+// the main blue color for the app
+  static Color get newBlueColor => const Color(0xff145eff);
+
+// the color that has the 'air filter card'
+  static Color get cardColor => const Color(0xff2E2F33);
+
+//  basically for the headline texts
+  static Color get headlineTextColor => const Color(0xff9ea3aa);
+  static Color get headline2TextColor => const Color(0xff60646c);
+
+
+  //! end of additions
+
   static Color get quizColorBlack => const Color(0xff1F232D);
+
 
   static Color get appColorBlue => const Color(0xff145DFF);
 
