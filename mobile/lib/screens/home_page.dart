@@ -250,7 +250,6 @@ class _HomePageState extends State<HomePage> {
         } else if (user.isAnonymous) {
           return;
         }
-        await Future.delayed(const Duration(seconds: 2));
         if (mounted) {
           await bottomSheetEmailLink(context);
         }
