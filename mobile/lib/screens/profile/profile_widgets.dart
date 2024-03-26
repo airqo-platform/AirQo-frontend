@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
+import 'package:app/screens/email_link/confirm_account_details.dart';
 import 'package:app/screens/notification/notification_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -10,12 +11,15 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../feedback/feedback_page.dart';
@@ -1075,6 +1079,131 @@ class GuestProfileView extends StatelessWidget {
             GuestFeedbackButton(),
             Spacer(),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class LinkAccountReminder extends StatelessWidget {
+  const LinkAccountReminder({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      color: const Color.fromARGB(255, 184, 217, 255),
+      elevation: 1,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: SizedBox(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                AppLocalizations.of(context)!.accessDeeperAirQualityInsights,
+                style: const TextStyle(
+                  color: Color.fromARGB(197, 0, 0, 0),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              RichText(
+                textAlign: TextAlign.start,
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: AppLocalizations.of(context)!
+                          .addYourEmailToYourProfileToEnableYouToAccessThe,
+                      style: const TextStyle(
+                        color: Color(0xFF485972),
+                        fontSize: 13.24,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    TextSpan(
+                      text: "AirQo analytics ",
+                      style: TextStyle(
+                        color: CustomColors.appColorBlue,
+                        fontSize: 13.24,
+                        fontWeight: FontWeight.w400,
+                        decoration: TextDecoration.underline,
+                      ),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () async {
+                          Uri url = Uri.parse('https://platform.airqo.net');
+                          if (await canLaunchUrl(url)) {
+                            await launchUrl(
+                              url,
+                              mode: LaunchMode.inAppBrowserView,
+                            );
+                          } else {
+                            throw 'Could not launch $url';
+                          }
+                        },
+                    ),
+                    TextSpan(
+                      text: AppLocalizations.of(context)!
+                          .usingYourAirQoMobileAppAccount,
+                      style: const TextStyle(
+                        color: Color(0xFF485972),
+                        fontSize: 13.24,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              MaterialButton(
+                height: 40,
+                color: CustomColors.appBodyColor,
+                onPressed: () async {
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (context) {
+                      return const EmailLinkScreen();
+                    },
+                  ));
+                },
+                padding: const EdgeInsets.only(top: 8, bottom: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16, right: 10),
+                      child: Text(
+                          AppLocalizations.of(context)!.addMyEmailToMyProfile,
+                          style: TextStyle(
+                            color: CustomColors.appColorBlue,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                          )),
+                    ),
+                    const SizedBox(width: 10),
+                    Container(
+                      height: 35,
+                      width: 35,
+                      decoration: const BoxDecoration(
+                        color: Color.fromARGB(255, 184, 217, 255),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 18,
+                        color: CustomColors.appColorBlue,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
