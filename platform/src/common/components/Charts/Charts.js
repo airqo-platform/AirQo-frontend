@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   LineChart,
   Line,
@@ -33,12 +33,6 @@ const truncate = (str) => {
   return str.length > 10 ? str.substr(0, 10 - 1) + '...' : str;
 };
 
-/**
- * @param {Number} value
- * @returns {Object}
- * @description Get air quality level text, icon and color based on the value
- * @returns {Object} { airQualityText, AirQualityIcon, airQualityColor }
- */
 const getAirQualityLevelText = (value) => {
   let airQualityText = '';
   let AirQualityIcon = null;
@@ -73,11 +67,6 @@ const getAirQualityLevelText = (value) => {
   return { airQualityText, AirQualityIcon, airQualityColor };
 };
 
-/**
- * @param {Object} props
- * @returns {JSX.Element}
- * @description Custom tooltip component for line graph
- */
 const CustomTooltipLineGraph = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const hoveredPoint = payload[0];
@@ -98,7 +87,7 @@ const CustomTooltipLineGraph = ({ active, payload }) => {
                 day: 'numeric',
               })}
             </span>
-            <div className='flex justify-between w-full mb-1 mt-2'>
+            <p className='flex justify-between w-full mb-1 mt-2'>
               <div className='flex items-center text-xs font-medium leading-[14px] text-gray-600'>
                 <div className='w-[10px] h-[10px] bg-blue-700 rounded-xl mr-2'></div>
                 {truncate(hoveredPoint.name)}
@@ -106,7 +95,7 @@ const CustomTooltipLineGraph = ({ active, payload }) => {
               <div className='text-xs font-medium leading-[14px] text-gray-600'>
                 {reduceDecimalPlaces(hoveredPoint.value) + ' μg/m3'}
               </div>
-            </div>
+            </p>
             <div className='flex justify-between items-center w-full'>
               <div className={`${airQualityColor} text-xs font-medium leading-[14px] `}>
                 {airQualityText}
@@ -119,7 +108,7 @@ const CustomTooltipLineGraph = ({ active, payload }) => {
               <div className='w-full h-[2px] bg-transparent my-1 border-t border-dotted border-gray-300' />
               <div className='p-2 space-y-1'>
                 {otherPoints.map((point, index) => (
-                  <div key={index} className='flex justify-between w-full mb-1'>
+                  <p key={index} className='flex justify-between w-full mb-1'>
                     <div className='flex items-center text-xs font-medium leading-[14px] text-gray-400'>
                       <div className='w-[10px] h-[10px] bg-gray-400 rounded-xl mr-2'></div>
                       {truncate(point.name)}
@@ -127,7 +116,7 @@ const CustomTooltipLineGraph = ({ active, payload }) => {
                     <div className='text-xs font-medium leading-[14px] text-gray-400'>
                       {reduceDecimalPlaces(point.value) + ' μg/m3'}
                     </div>
-                  </div>
+                  </p>
                 ))}
               </div>
             </>
@@ -139,68 +128,48 @@ const CustomTooltipLineGraph = ({ active, payload }) => {
   return '';
 };
 
-/**
- * @param {Object} props
- * @returns {JSX.Element}
- * @description Custom tooltip component for bar graph
- */
 const CustomTooltipBarGraph = ({ active, payload }) => {
   if (active && payload && payload.length) {
-    const date = new Date(payload[0].payload.time).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    const hoveredPoint = payload[0];
+
+    const { airQualityText, AirQualityIcon, airQualityColor } = getAirQualityLevelText(
+      hoveredPoint.value,
+    );
 
     return (
       <div className='bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none'>
-        <span className='text-sm text-gray-300 px-2'>{date}</span>
-        {payload.map((hoveredPoint, index) => {
-          const { airQualityText, AirQualityIcon, airQualityColor } = getAirQualityLevelText(
-            hoveredPoint.value,
-          );
-          const barColor = colors[index % colors.length];
-
-          return (
-            <div className='flex flex-col space-y-1' key={hoveredPoint.dataKey}>
-              <div className='flex flex-col items-start justify-between w-full h-auto p-2'>
-                <div className='flex justify-between w-full mb-1 mt-2'>
-                  <div className='flex items-center text-xs font-medium leading-[14px] text-gray-600'>
-                    <div
-                      style={{
-                        width: '10px',
-                        height: '10px',
-                        backgroundColor: barColor,
-                        borderRadius: '50%',
-                        marginRight: '2px',
-                      }}></div>
-                    {truncate(hoveredPoint.dataKey)}
-                  </div>
-                  <div className='text-xs font-medium leading-[14px] text-gray-600'>
-                    {reduceDecimalPlaces(hoveredPoint.value) + ' μg/m3'}
-                  </div>
-                </div>
-                <div className='flex justify-between items-center w-full'>
-                  <div className={`${airQualityColor} text-xs font-medium leading-[14px] `}>
-                    {airQualityText}
-                  </div>
-                  <AirQualityIcon width={30} height={30} />
-                </div>
+        <div className='flex flex-col space-y-1'>
+          <div className='flex flex-col items-start justify-between w-full h-auto p-2'>
+            <span className='text-sm text-gray-300'>
+              {new Date(hoveredPoint.payload.time).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </span>
+            <p className='flex justify-between w-full mb-1 mt-2'>
+              <div className='flex items-center text-xs font-medium leading-[14px] text-gray-600'>
+                <div className='w-[10px] h-[10px] bg-blue-700 rounded-xl mr-2'></div>
+                {truncate(hoveredPoint.name)}
               </div>
+              <div className='text-xs font-medium leading-[14px] text-gray-600'>
+                {reduceDecimalPlaces(hoveredPoint.value) + ' μg/m3'}
+              </div>
+            </p>
+            <div className='flex justify-between items-center w-full'>
+              <div className={`${airQualityColor} text-xs font-medium leading-[14px] `}>
+                {airQualityText}
+              </div>
+              <AirQualityIcon width={30} height={30} />
             </div>
-          );
-        })}
+          </div>
+        </div>
       </div>
     );
   }
-  return null;
+  return '';
 };
 
-/**
- * @param {Object} props
- * @returns {JSX.Element}
- * @description Custom axis tick component for line chart
- */
 const CustomizedAxisTick = ({ x, y, payload }) => {
   return (
     <g transform={`translate(${x},${y})`}>
@@ -214,11 +183,6 @@ const CustomizedAxisTick = ({ x, y, payload }) => {
   );
 };
 
-/**
- * @param {Object} props
- * @returns {JSX.Element}
- * @description Custom dot component for line chart
- */
 const CustomDot = (props) => {
   const { cx, cy, fill, payload } = props;
 
@@ -229,10 +193,6 @@ const CustomDot = (props) => {
   return <circle cx={cx} cy={cy} r={6} fill={fill} />;
 };
 
-/**
- * Custom legend tooltip component
- * @param {Object} props
- */
 const CustomLegendTooltip = ({ tooltipText, children, direction, themeClass }) => {
   const [visible, setVisible] = useState(false);
 
@@ -259,10 +219,6 @@ const CustomLegendTooltip = ({ tooltipText, children, direction, themeClass }) =
   );
 };
 
-/**
- * Customized legend component
- * @param {Object} props
- */
 const renderCustomizedLegend = (props) => {
   const { payload } = props;
 
@@ -299,11 +255,7 @@ const renderCustomizedLegend = (props) => {
   );
 };
 
-/**
- * @returns {Object}
- * @description Custom hook to fetch analytics data
- * @returns {Object} { analyticsData, isLoading, error, loadingTime }
- */
+// Custom hook to fetch analytics data
 const useAnalytics = () => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
@@ -351,11 +303,6 @@ const useAnalytics = () => {
   return { analyticsData, isLoading, error, loadingTime };
 };
 
-/**
- * @param {Object} props
- * @returns {JSX.Element}
- * @description displays the chart based on the chart type
- */
 const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
   const chartData = useSelector((state) => state.chart);
   const { analyticsData, isLoading, error, loadingTime } = useAnalytics();
@@ -373,57 +320,59 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
     return () => clearTimeout(timeoutId);
   }, [isLoading, loadingTime]);
 
-  const transformedData = useMemo(() => {
-    return analyticsData.reduce((acc, curr) => {
-      if (!acc[curr.time]) {
-        acc[curr.time] = {
-          time: curr.time,
-        };
-      }
-      acc[curr.time][curr.name] = curr.value;
-      return acc;
-    }, {});
-  }, [analyticsData]);
+  // Error state
+  if (error) {
+    return (
+      <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
+        <p className='text-red-500'>
+          Oops! Something went wrong. Please try again later or contact support.
+        </p>
+      </div>
+    );
+  }
 
-  const dataForChart = useMemo(() => Object.values(transformedData), [transformedData]);
+  // Loading state
+  if (isLoading || !hasLoaded) {
+    return (
+      <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
+        <p className='text-blue-500'>
+          <Spinner />
+          {showLoadingMessage && (
+            <span className='text-yellow-500 mt-2'>
+              The data is taking longer than expected to load. Please hang on a bit longer.
+            </span>
+          )}
+        </p>
+      </div>
+    );
+  }
+
+  // No data for this time range
+  if (hasLoaded && (analyticsData === null || analyticsData.length === 0)) {
+    return (
+      <div className='ml-10 flex justify-center items-center w-full h-full'>
+        No data for this time range
+      </div>
+    );
+  }
+
+  const transformedData = analyticsData.reduce((acc, curr) => {
+    if (!acc[curr.time]) {
+      acc[curr.time] = {
+        time: curr.time,
+      };
+    }
+    acc[curr.time][curr.name] = curr.value;
+    return acc;
+  }, {});
+
+  const dataForChart = Object.values(transformedData);
 
   let allKeys = new Set();
   if (dataForChart.length > 0) {
     allKeys = new Set(Object.keys(dataForChart[0]));
   }
 
-  if (error) {
-    return (
-      <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
-        <p className='text-red-500'>Oops! Something went wrong. Please try again later.</p>
-      </div>
-    );
-  }
-
-  if (isLoading || !hasLoaded) {
-    return (
-      <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
-        <div className='text-yellow-500'>
-          <Spinner />
-          {showLoadingMessage && (
-            <span className='mt-2'>
-              The data is taking longer than expected to load. Please hang on a bit longer.
-            </span>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  if (hasLoaded && (analyticsData === null || analyticsData.length === 0)) {
-    return (
-      <p className='ml-10 flex justify-center items-center w-full h-full'>
-        No data for this time range
-      </p>
-    );
-  }
-
-  // Render chart based on chart type
   const renderChart = () => {
     if (chartType === 'line') {
       return (
@@ -535,7 +484,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
             wrapperStyle={{ bottom: 0, right: 0, position: 'absolute' }}
           />
           <Tooltip
-            content={<CustomTooltipLineGraph />}
+            content={<CustomTooltipBarGraph />}
             cursor={{ fill: '#eee', fillOpacity: 0.3 }}
           />
         </BarChart>
