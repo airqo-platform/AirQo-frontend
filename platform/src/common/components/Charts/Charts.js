@@ -129,23 +129,23 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
   if (isLoading || !hasLoaded) {
     return (
       <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
-        <p className='text-blue-500'>
+        <div className='text-yellow-500'>
           <Spinner />
           {showLoadingMessage && (
-            <span className='text-yellow-500 mt-2'>
+            <span className='mt-2'>
               The data is taking longer than expected to load. Please hang on a bit longer.
             </span>
           )}
-        </p>
+        </div>
       </div>
     );
   }
 
   if (hasLoaded && (analyticsData === null || analyticsData.length === 0)) {
     return (
-      <div className='ml-10 flex justify-center items-center w-full h-full'>
+      <p className='ml-10 flex justify-center items-center w-full h-full'>
         No data for this time range
-      </div>
+      </p>
     );
   }
 
@@ -169,14 +169,14 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
                 type='monotone'
                 stroke={colors[index % colors.length]}
                 strokeWidth={2}
-                dot={CustomDot}
+                dot={<CustomDot />}
                 activeDot={{ r: 6 }}
               />
             ))}
           <CartesianGrid stroke='#ccc' strokeDasharray='5 5' vertical={false} />
           <XAxis
             dataKey='time'
-            tick={CustomizedAxisTick}
+            tick={<CustomizedAxisTick />}
             tickLine={false}
             axisLine={false}
             padding={{ left: 30, right: 30 }}
@@ -208,7 +208,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
             wrapperStyle={{ bottom: 0, right: 0, position: 'absolute' }}
           />
           <Tooltip
-            content={CustomTooltipLineGraph}
+            content={<CustomTooltipLineGraph />}
             cursor={{
               stroke: '#aaa',
               strokeOpacity: 0.3,
@@ -233,7 +233,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
               <Bar key={key} dataKey={key} fill={colors[index % colors.length]} barSize={15} />
             ))}
           <CartesianGrid stroke='#ccc' strokeDasharray='5 5' vertical={false} />
-          <XAxis dataKey='time' tickLine={false} tick={CustomizedAxisTick} axisLine={false} />
+          <XAxis dataKey='time' tickLine={false} tick={<CustomizedAxisTick />} axisLine={false} />
           <YAxis
             axisLine={false}
             fontSize={12}
@@ -260,7 +260,10 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
             content={renderCustomizedLegend}
             wrapperStyle={{ bottom: 0, right: 0, position: 'absolute' }}
           />
-          <Tooltip content={CustomTooltipLineGraph} cursor={{ fill: '#eee', fillOpacity: 0.3 }} />
+          <Tooltip
+            content={<CustomTooltipLineGraph />}
+            cursor={{ fill: '#eee', fillOpacity: 0.3 }}
+          />
         </BarChart>
       );
     }
