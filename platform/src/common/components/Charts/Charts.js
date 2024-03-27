@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   LineChart,
   Line,
@@ -25,7 +25,10 @@ import {
   colors,
 } from './components';
 
-// Custom hook to fetch analytics data
+/**
+ * @description Custom hook to fetch analytics data
+ * @returns {Object} analyticsData, isLoading, error, loadingTime
+ */
 const useAnalytics = () => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
@@ -73,6 +76,13 @@ const useAnalytics = () => {
   return { analyticsData, isLoading, error, loadingTime };
 };
 
+/**
+ * @description Charts component
+ * @param {String} chartType - Type of chart to render
+ * @param {String} width - Width of the chart
+ * @param {String} height - Height of the chart
+ * @returns {React.Component} Charts
+ */
 const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
   const chartData = useSelector((state) => state.chart);
   const { analyticsData, isLoading, error, loadingTime } = useAnalytics();
@@ -95,7 +105,8 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
     return (
       <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
         <p className='text-red-500'>
-          Oops! Something went wrong. Please try again later or contact support.
+          An error has occurred. Please try again later or reach out to our support team for
+          assistance.
         </p>
       </div>
     );
@@ -109,7 +120,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
           <Spinner />
           {showLoadingMessage && (
             <span className='text-yellow-500 mt-2'>
-              The data is taking longer than expected to load. Please hang on a bit longer.
+              The data is currently being processed. We appreciate your patience.
             </span>
           )}
         </div>
@@ -121,7 +132,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
   if (hasLoaded && (analyticsData === null || analyticsData.length === 0)) {
     return (
       <div className='ml-10 flex justify-center items-center w-full h-full'>
-        No data for this time range
+        There is no data available for the selected time range.
       </div>
     );
   }
