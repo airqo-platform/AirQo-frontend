@@ -13,7 +13,7 @@ export const reduceDecimalPlaces = (num) => {
 };
 
 export const truncate = (str) => {
-  return str.length > 10 ? str.substr(0, 10 - 1) + '...' : str;
+  return str.length > 20 ? str.substr(0, 20 - 1) + '...' : str;
 };
 
 /**
@@ -235,7 +235,7 @@ export const renderCustomizedLegend = (props) => {
   });
 
   return (
-    <div className='p-2 flex flex-wrap justify-start md:justify-end items-center w-full'>
+    <div className='p-2 flex flex-wrap space-x-3 justify-start md:justify-end items-center w-full'>
       {sortedPayload.map((entry, index) => (
         <div
           key={index}
