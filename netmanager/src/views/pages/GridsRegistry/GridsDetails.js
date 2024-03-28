@@ -188,6 +188,20 @@ const GridForm = ({ grid }) => {
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <label style={{ textAlign: 'left' }}>Grid ID</label>
+          <Box
+            style={{
+              backgroundColor: '#f0f0f0',
+              padding: '5px',
+              borderRadius: '5px',
+              fontFamily: 'monospace',
+              fontSize: '18px'
+            }}
+          >
+            <Copyable width="100%" value={grid._id} />
+          </Box>
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
           <TextField
             select
             id="visibility"
