@@ -182,7 +182,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
           <XAxis
             dataKey='time'
             tick={<CustomizedAxisTick />}
-            tickLine={false}
+            tickLine={true}
             axisLine={false}
             padding={{ left: 30, right: 30 }}
           />
@@ -238,7 +238,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
               <Bar key={key} dataKey={key} fill={colors[index % colors.length]} barSize={15} />
             ))}
           <CartesianGrid stroke='#ccc' strokeDasharray='5 5' vertical={false} />
-          <XAxis dataKey='time' tickLine={false} tick={<CustomizedAxisTick />} axisLine={false} />
+          <XAxis dataKey='time' tickLine={true} tick={<CustomizedAxisTick />} axisLine={false} />
           <YAxis
             axisLine={false}
             fontSize={12}
