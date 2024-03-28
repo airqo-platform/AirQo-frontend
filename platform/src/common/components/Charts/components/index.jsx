@@ -213,36 +213,6 @@ export const CustomDot = (props) => {
 };
 
 /**
- * Custom legend tooltip component
- * @param {Object} props
- */
-const CustomLegendTooltip = ({ tooltipText, children, direction, themeClass }) => {
-  const [visible, setVisible] = useState(false);
-
-  const tooltipClass = {
-    top: 'bottom-full mb-3',
-    bottom: 'top-full mt-3',
-  }[direction];
-
-  return (
-    <div
-      className='relative'
-      onMouseEnter={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}>
-      {children}
-      {visible && (
-        <div
-          className={`absolute ${tooltipClass} ${
-            themeClass ? themeClass : 'bg-white text-center text-gray-700'
-          } p-2 w-48 rounded-md shadow-lg z-10`}>
-          <p className='text-sm'>{tooltipText}</p>
-        </div>
-      )}
-    </div>
-  );
-};
-
-/**
  * Customized legend component
  * @param {Object} props
  */
@@ -265,18 +235,18 @@ export const renderCustomizedLegend = (props) => {
   });
 
   return (
-    <div className='p-2 md:p-0 flex flex-wrap flex-col md:flex-row md:justify-end mt-2 space-y-2 md:space-y-0 md:space-x-4 outline-none'>
+    <div className='p-2 flex flex-wrap justify-start md:justify-end items-center w-full'>
       {sortedPayload.map((entry, index) => (
-        <CustomLegendTooltip key={`item-${index}`} tooltipText={entry.value} direction='top'>
-          <div
-            style={{ color: '#485972' }}
-            className='flex w-full items-center text-sm outline-none'>
-            <span
-              className='w-[10px] h-[10px] rounded-xl mr-1 ml-1 outline-none'
-              style={{ backgroundColor: entry.color }}></span>
-            {truncate(entry.value)}
-          </div>
-        </CustomLegendTooltip>
+        <div
+          key={index}
+          style={{ color: '#485972' }}
+          className='tooltip tooltip-top flex items-center text-sm outline-none'
+          data-tip={entry.value}>
+          <span
+            className='w-[10px] h-[10px] rounded-xl mr-1 ml-1 outline-none'
+            style={{ backgroundColor: entry.color }}></span>
+          {truncate(entry.value)}
+        </div>
       ))}
     </div>
   );

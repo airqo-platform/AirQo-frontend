@@ -11,7 +11,7 @@ import Toast from '@/components/Toast';
 import { RxInfoCircled } from 'react-icons/rx';
 import { completeTask } from '@/lib/store/services/checklists/CheckList';
 
-const tabs = ['Locations'];
+const tabs = ['Locations', 'Pollutants'];
 
 const CustomiseLocationsComponent = ({ toggleCustomise }) => {
   const dispatch = useDispatch();
@@ -111,20 +111,23 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
             Select any 4 locations you would like to feature on your overview page.
           </p>
         </div>
-        <div className='mt-6'>
-          <div className='flex flex-row justify-center items-center bg-secondary-neutral-light-25 rounded-md border border-secondary-neutral-light-50 p-1'>
-            {tabs.map((tab) => (
-              <div
-                key={tab}
-                onClick={() => setSelectedTab(tab)}
-                className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
-                  selectedTab === tab ? 'border rounded-md bg-white shadow-sm' : ''
-                }`}>
-                {tab}
-              </div>
-            ))}
+        {false && (
+          <div className='mt-6'>
+            {/* Tab section */}
+            <div className='flex flex-row justify-center items-center bg-secondary-neutral-light-25 rounded-md border border-secondary-neutral-light-50 p-1'>
+              {tabs.map((tab) => (
+                <div
+                  key={tab}
+                  onClick={() => setSelectedTab(tab)}
+                  className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
+                    selectedTab === tab ? 'border rounded-md bg-white shadow-sm' : ''
+                  }`}>
+                  {tab}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
         {selectedTab === tabs[0] && (
           <LocationsContentComponent selectedLocations={customisedLocations} />
         )}
