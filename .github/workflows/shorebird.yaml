@@ -1,0 +1,36 @@
+name: Push Patches
+
+on:
+  workflow_dispatch:
+    inputs:
+      push_patches:
+        description: "shorebird"
+        required: false
+        type: boolean
+
+jobs:
+  push_patches:
+    name: Push Patches
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Shorebird
+        uses: shorebirdtech/setup-shorebird@v0
+
+      # Authenticate with Shorebird using the CI token
+      - name: Authenticate with Shorebird
+        run: shorebird login:ci
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+
+      # Push patches for Android
+      - name: Push Patches for Android
+        # Set any additional options if needed, e.g., --flavor, --target
+        run: shorebird patch --force --flavor airqo -t lib/main.dart
+
+      # Push patches for iOS (if needed)
+      # - name: Push Patches for iOS
+      #   run: shorebird patch ios
