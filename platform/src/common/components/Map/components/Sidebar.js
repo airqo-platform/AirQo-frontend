@@ -18,6 +18,7 @@ import axios from 'axios';
 import WindIcon from '@/icons/Common/wind.svg';
 import Toast from '../../Toast';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
+import { setOpenLocationDetails, setSelectedLocation } from '@/lib/store/services/map/MapSlice';
 
 const MAPBOX_URL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -340,6 +341,8 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
   const [selectedSite, setSelectedSite] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
+  const openLocationDetailsSection = useSelector((state) => state.map.showLocationDetails);
+  const selectedLocationDetails = useSelector((state) => state.map.selectedLocation);
   const [showLocationDetails, setShowLocationDetails] = useState(false);
   const [isLoading, setLoading] = useState(false);
   const [showNoResultsMsg, setShowNoResultsMsg] = useState(false);
@@ -359,6 +362,12 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
   const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
 
   const focus = isFocused || reduxSearchTerm.length > 0;
+
+  useEffect(() => {
+    dispatch(setOpenLocationDetails(false));
+    dispatch(setSelectedLocation(null));
+    dispatch(addSearchTerm(''));
+  }, []);
 
   useEffect(() => {
     if (Array.isArray(siteDetails) && siteDetails.length > 0) {
@@ -392,12 +401,20 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
     }
   }, [selectedSites, isFocused]);
 
+  useEffect(() => {
+    setShowLocationDetails(openLocationDetailsSection);
+  }, [openLocationDetailsSection]);
+
+  useEffect(() => {
+    setSelectedSite(selectedLocationDetails);
+  }, [selectedLocationDetails]);
+
   const handleSelectedTab = (tab) => {
     setSelectedTab(tab);
   };
 
   const handleLocationSelect = (data) => {
-    setShowLocationDetails(true);
+    dispatch(setOpenLocationDetails(true));
     setIsFocused(false);
 
     try {
@@ -408,7 +425,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
         }),
       );
       dispatch(setZoom(11));
-      setSelectedSite(data);
+      dispatch(setSelectedLocation(data));
     } catch (error) {
       console.error('Failed to set location:', error);
     }
@@ -453,8 +470,8 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
 
   const handleHeaderClick = () => {
     setIsFocused(false);
-    setShowLocationDetails(false);
-    setSelectedSite(null);
+    dispatch(setOpenLocationDetails(false));
+    dispatch(setSelectedLocation(null));
     dispatch(addSearchTerm(''));
     setSearchResults([]);
     setShowNoResultsMsg(false);
@@ -497,7 +514,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                 onClick={() => {
                   dispatch(setCenter({ latitude: 16.1532, longitude: 13.1691 }));
                   dispatch(setZoom(1.5));
-                  setSelectedSite(null);
+                  dispatch(setSelectedLocation(null));
                 }}
                 className='py-[6px] px-[10px] rounded-full bg-blue-500 text-white text-sm font-medium'
               >
@@ -601,8 +618,8 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                   paddingStyles='p-0'
                   onClick={() => {
                     setIsFocused(false);
-                    setShowLocationDetails(false);
-                    setSelectedSite(null);
+                    dispatch(setOpenLocationDetails(false));
+                    dispatch(setSelectedLocation(null));
                     dispatch(addSearchTerm(''));
                     setSearchResults([]);
                     setShowNoResultsMsg(false);
@@ -611,9 +628,10 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                   <ArrowLeftIcon />
                 </Button>
                 <h3 className='text-xl font-medium leading-7 capitalize'>
-                  {selectedSite.place_name ||
-                    (selectedSite.name && selectedSite.name) ||
-                    selectedSite.search_name}
+                  {selectedSite?.place_name ||
+                    (selectedSite?.name && selectedSite.name) ||
+                    selectedSite?.search_name ||
+                    selectedSite?.location}
                 </h3>
               </div>
 
@@ -664,9 +682,10 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                 children={
                   <p className='text-xl font-bold leading-7 text-secondary-neutral-dark-950'>
                     <span className='text-blue-500 capitalize'>
-                      {selectedSite.place_name ||
-                        selectedSite.name.split(',')[0] ||
-                        selectedSite.search_name}
+                      {selectedSite?.place_name ||
+                        selectedSite?.name?.split(',')[0] ||
+                        selectedSite?.search_name ||
+                        selectedSite?.location}
                       's
                     </span>{' '}
                     Air Quality is expected to be Good today. Enjoy the day with confidence in the

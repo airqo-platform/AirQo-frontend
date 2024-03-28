@@ -10,6 +10,8 @@ const initialState = {
     longitude: 25.1601,
   },
   zoom: 3.01,
+  showLocationDetails: false,
+  selectedLocation: null,
 };
 
 export const mapSlice = createSlice({
@@ -37,7 +39,22 @@ export const mapSlice = createSlice({
     clearData: (state) => {
       return initialState;
     },
+
+    setOpenLocationDetails: (state, action) => {
+      state.showLocationDetails = action.payload;
+    },
+
+    setSelectedLocation: (state, action) => {
+      state.selectedLocation = action.payload;
+    },
   },
 });
 
-export const { setCenter, setZoom, setLocation, clearData } = mapSlice.actions;
+export const {
+  setCenter,
+  setZoom,
+  setLocation,
+  clearData,
+  setOpenLocationDetails,
+  setSelectedLocation,
+} = mapSlice.actions;
