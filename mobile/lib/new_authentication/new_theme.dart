@@ -28,8 +28,8 @@ class CustomTheme {
         AppColors(
           appBodyColor: Color(0xffF2F1F6),
           appColorBlack: Color(0xff121723),
-          appColorBlue: Color(0xff145DFF),
-          appColorDisabled: Color(0xff145DFF),
+          appColorBlue: Color(0xff145eff),
+          appColorDisabled: Color(0xff145eff),
           appLoadingColor: Color(0xffEBEAEF),
           appPicColor: Color(0xffFF79C1),
           greyColor: Color(0xffD1D3D9),
@@ -61,21 +61,21 @@ class CustomTheme {
     return _buildTheme(
       brightness: Brightness.dark,
       appBarTheme: const AppBarTheme(
-        backgroundColor: Color.fromARGB(52, 55, 59, 1),
+        backgroundColor: Color(0xff1c1d20),
         elevation: 0.0,
       ),
       colorScheme: const ColorScheme(
         brightness: Brightness.dark,
-        primary: Color.fromARGB(204, 0, 0, 0),
+        primary: Color(0xff1c1d20),
         error: Color(0xFFCF6679),
         onError: Colors.white,
         background: Color(0xFF121723),
         onBackground: Colors.white,
         surface: Color(0xFF1A1D26),
         onSurface: Colors.white,
-        onPrimary: Colors.black,
+        onPrimary: Color(0xff1c1d20),
         secondary: Color(0xFFFFCC80),
-        onSecondary: Colors.black,
+        onSecondary: Color(0xff1c1d20),
       ),
       textTheme: _buildTextTheme(brightness: Brightness.dark),
       inputDecorationTheme:
@@ -83,9 +83,9 @@ class CustomTheme {
       extensions: const [
         AppColors(
           appBodyColor: Color(0xffF2F1F6),
-          appColorBlack: Color(0xff121723),
-          appColorBlue: Color(0xff145DFF),
-          appColorDisabled: Color(0xff145DFF),
+          appColorBlack: Color(0xff1c1d20),
+          appColorBlue: Color(0xff145eff),
+          appColorDisabled: Color(0xff145eff),
           appLoadingColor: Color(0xffEBEAEF),
           appPicColor: Color(0xffFF79C1),
           greyColor: Color(0xffD1D3D9),
@@ -128,10 +128,12 @@ class CustomTheme {
       primaryColor: colorScheme.primary,
       primaryColorLight: colorScheme.primaryContainer,
       primaryColorDark: colorScheme.primaryContainer,
-      canvasColor: brightness == Brightness.light ? Colors.white : Colors.black,
+      canvasColor: brightness == Brightness.light
+          ? Colors.white
+          : const Color(0xff2E2F33),
       scaffoldBackgroundColor: brightness == Brightness.light
           ? Colors.white
-          : const Color.fromARGB(52, 0, 0, 0),
+          : const Color(0xff2E2F33),
       appBarTheme: appBarTheme,
       iconTheme: IconThemeData(
         color: brightness == Brightness.light
@@ -174,7 +176,7 @@ class CustomTheme {
     );
 
     final baseColor =
-        brightness == Brightness.light ? Colors.black : Colors.white;
+        brightness == Brightness.light ? const Color(0xff60646c) : Colors.white;
 
     return TextTheme(
       displayLarge: headlineTextStyle.copyWith(
@@ -245,7 +247,7 @@ class CustomTheme {
   static InputDecorationTheme _buildInputDecorationTheme(
       {required Brightness brightness}) {
     final baseColor =
-        brightness == Brightness.light ? Colors.black : Colors.white;
+        brightness == Brightness.light ? const Color(0xff60646c) : Colors.white;
 
     return InputDecorationTheme(
       contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),

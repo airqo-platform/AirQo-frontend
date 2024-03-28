@@ -1,21 +1,22 @@
-import 'package:app/new_authentication/create_account2.dart';
 import 'package:app/new_authentication/widgets.dart';
 import 'package:app/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-class UserDetailsPage extends StatefulWidget {
-  const UserDetailsPage({super.key});
+class UserDetailsPage2 extends StatefulWidget {
+  const UserDetailsPage2({super.key});
 
   @override
-  UserDetailsPageState createState() => UserDetailsPageState();
+  UserDetailsPage2State createState() => UserDetailsPage2State();
 }
 
-class UserDetailsPageState extends State<UserDetailsPage> {
+class UserDetailsPage2State extends State<UserDetailsPage2> {
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _birthdayController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   final _pageController = PageController();
   int _currentPage = 0; // Track the current page index
 
@@ -72,7 +73,6 @@ class UserDetailsPageState extends State<UserDetailsPage> {
     return Scaffold(
       backgroundColor: const Color(0xff34373B),
       appBar: AppBar(
-        backgroundColor: const Color(0xff34373B),
         title: Column(
           children: [
             Text(
@@ -112,37 +112,37 @@ class UserDetailsPageState extends State<UserDetailsPage> {
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: NameEditField(
-                  focusedBorderColor: const Color(0xffE1E7EC),
-                  fillColor: const Color(0xff2E2F33),
-                  hintText: 'Enter your first name',
+                child: EmailEditField(
+                  focusedBorderColor: Theme.of(context).focusColor,
+                  fillColor: Theme.of(context).inputDecorationTheme.focusColor,
+                  hintText: 'Enter your email',
                   valueChange: (value) {},
-                  label: 'First Name',
-                  controller: _firstNameController,
+                  label: 'Email',
+                  controller: _emailController,
                 ),
               ),
               const SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: NameEditField(
-                  label: 'Last Name',
-                  hintText: 'Enter your last name',
+                child: PhoneNumberEditField(
+                  label: 'Phone Number',
+                  hintText: 'Enter your phone number',
                   valueChange: (value) {},
-                  focusedBorderColor: const Color(0xffE1E7EC),
-                  fillColor: const Color(0xff2E2F33),
+                  focusedBorderColor: Theme.of(context).focusColor,
+                  fillColor: Theme.of(context).inputDecorationTheme.focusColor,
                   controller: _lastNameController,
                 ),
               ),
               const SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: DateEditField(
-                  focusedBorderColor: const Color(0xffE1E7EC),
-                  fillColor: const Color(0xff2E2F33),
-                  label: 'Birthday',
-                  hintText: ' DD  •  MM  •  YEAR',
+                child: PasswordEditField(
+                  focusedBorderColor: Theme.of(context).focusColor,
+                  fillColor: Theme.of(context).inputDecorationTheme.focusColor,
+                  label: 'Password',
+                  hintText: 'Enter your password',
                   valueChange: (value) {},
-                  controller: _birthdayController,
+                  controller: _passwordController,
                 ),
               ),
               const SizedBox(height: 20),
@@ -157,12 +157,12 @@ class UserDetailsPageState extends State<UserDetailsPage> {
                       _submitForm();
 
                       // Navigate to the next page
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const UserDetailsPage2(),
-                        ),
-                      );
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (context) => const UserDetailsPage(),
+                      //   ),
+                      // );
                     }
                   },
                 ),

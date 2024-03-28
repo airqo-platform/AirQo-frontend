@@ -63,7 +63,7 @@ android {
             useLegacyPackaging = true
         }
     }
-    compileSdkVersion 33
+    compileSdkVersion 34
     ndkVersion flutter.ndkVersion
 
     compileOptions {

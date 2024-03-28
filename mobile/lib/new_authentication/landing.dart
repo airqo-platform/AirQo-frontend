@@ -1,4 +1,5 @@
 import 'package:app/new_authentication/create_account.dart';
+import 'package:app/new_authentication/create_account3.dart';
 import 'package:app/new_authentication/widgets.dart';
 import 'package:app/themes/colors.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -24,6 +25,7 @@ class _MyHomePageState extends State<MyHomePage> {
       screen3(context),
     ];
     return Scaffold(
+      backgroundColor: const Color(0xff34373B),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -78,8 +80,9 @@ class _MyHomePageState extends State<MyHomePage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: NextButton(
+                  textColor: Colors.white,
                   text: 'Create Account',
-                  buttonColor: CustomColors.appColorBlue,
+                  buttonColor: const Color(0xff145FFF),
                   callBack: () {
                     Navigator.push(
                       context,
@@ -98,10 +101,19 @@ class _MyHomePageState extends State<MyHomePage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: NextButton(
-                  textColor: CustomColors.appColorBlack,
+                  textColor: Color(0xff485972),
                   text: 'Login here',
                   buttonColor: CustomColors.appBodyColor,
-                  callBack: () {},
+                  callBack: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return const UserDetailsPage3();
+                        },
+                      ),
+                    );
+                  },
                 ),
               ),
               const SizedBox(
@@ -149,7 +161,7 @@ Widget screen1(BuildContext context) {
                 color: Colors.transparent,
                 image: DecorationImage(
                   image: AssetImage(
-                    'assets/images/airQo_logo.png',
+                    'assets/images/airQo-logo.png',
                   ),
                 ),
               ),
@@ -201,10 +213,11 @@ Widget screen1(BuildContext context) {
 }
 
 Widget screen2(BuildContext context) {
-  return Padding(
+  return Container(
+    color: Theme.of(context).primaryColor,
     padding: const EdgeInsets.fromLTRB(
       0,
-      100,
+      70,
       0,
       0,
     ),
@@ -325,7 +338,8 @@ Widget buildImage(String urlImage) {
 }
 
 Widget screen3(BuildContext context) {
-  return Padding(
+  return Container(
+    color: Theme.of(context).primaryColor,
     padding: const EdgeInsets.fromLTRB(
       0,
       70,
