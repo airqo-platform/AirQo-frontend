@@ -43,15 +43,14 @@ const SearchField = ({ onSearch = () => {}, onClearSearch = () => {}, focus = tr
         <input
           ref={inputRef}
           placeholder='Search villages, cities or country'
-          className='input pl-10 text-sm font-medium text-secondary-neutral-light-800 w-full h-12 ml-0 rounded-lg bg-white border-input-light-outline focus:border-input-light-outline focus:ring-2 focus:ring-light-blue-500'
+          className='input pl-10 text-sm text-secondary-neutral-light-800 w-full h-12 ml-0 rounded-lg bg-white border-input-light-outline focus:border-input-light-outline focus:ring-2 focus:ring-light-blue-500'
           value={reduxSearchTerm}
           onChange={handleSearch}
         />
         {reduxSearchTerm && (
           <span
             className='absolute flex justify-center items-center mr-2 h-5 w-5 right-0 pb-[2px] cursor-pointer'
-            onClick={clearSearch}
-          >
+            onClick={clearSearch}>
             <CloseIcon />
           </span>
         )}

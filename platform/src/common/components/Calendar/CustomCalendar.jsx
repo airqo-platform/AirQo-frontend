@@ -142,19 +142,14 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
       <button
         onClick={handleClick}
         type='button'
-        className='relative border border-grey-750 rounded flex items-center justify-between gap-2 px-4 py-3'
-      >
+        className='relative border border-grey-750 rounded flex items-center justify-between gap-2 px-4 py-3'>
         {Icon ? <Icon /> : <CalendarIcon />}
         <span className='hidden sm:inline-block text-sm font-medium'>
           {chartData.chartDataRange.label}
         </span>
         {dropdown && <ChevronDownIcon />}
       </button>
-      <div
-        className={`absolute top-[50px] z-[900] ${className} ${
-          openDatePicker ? 'block' : 'hidden'
-        }`}
-      >
+      <div className={`absolute top-[50px]  ${className} ${openDatePicker ? 'block' : 'hidden'}`}>
         <DatePickerHiddenInput />
       </div>
     </div>
