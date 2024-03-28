@@ -60,9 +60,9 @@ To open AirQualibrate, follow these steps:
 
 4. Upload a CSV containing your raw low-cost sensor’s data and assign each field on the UI a corresponding column in the CSV.
 
-   a. If your CSV contains reference monitor data, select <b>Yes</b> under the reference monitor data section and specify the pollutant measured by the reference monitor from the drop-down menu else select <b>No</b>. The reference monitor data show be from a monitor collocated with the low-cost monitors being calibrated.
+   a. If your CSV contains reference monitor data, select <b>Yes</b> under the reference monitor data section and specify the pollutant measured by the reference monitor from the drop-down menu else select <b>No</b>. The reference monitor data should be from a monitor collocated with the low-cost monitors being calibrated.
 
-   b. If you select <b>Yes</b> under the reference monitor data section, the model will be trained will collocation data from your devices, then the low-cost sensor data will be calibrated using this model. If you select <b>No</b>, your data will be calibrated with a model trained using collocation data from AirQo and BAM devices
+   b. If you select <b>Yes</b> under the reference monitor data section, the model will be trained with collocation data from your devices, then the low-cost sensor data will be calibrated using this model. If you select <b>No</b>, your data will be calibrated with a model trained using collocation data from AirQo and BAM devices
 
 5. Hit the calibrate data button to begin the calibration process. This may take a while depending on the amount of data uploaded.
 
