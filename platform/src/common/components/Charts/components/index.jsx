@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import GoodAir from '@/icons/Charts/GoodAir';
 import Hazardous from '@/icons/Charts/Hazardous';
 import Moderate from '@/icons/Charts/Moderate';
 import Unhealthy from '@/icons/Charts/Unhealthy';
 import UnhealthySG from '@/icons/Charts/UnhealthySG';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
+import { format } from 'date-fns';
 
 export const colors = ['#11225A', '#0A46EB', '#297EFF', '#B8D9FF'];
 
@@ -235,7 +236,7 @@ export const renderCustomizedLegend = (props) => {
   });
 
   return (
-    <div className='p-2 flex flex-wrap space-x-3 justify-start md:justify-end items-center w-full'>
+    <div className='p-2 flex flex-wrap md:space-x-3 justify-start md:justify-end items-center w-full'>
       {sortedPayload.map((entry, index) => (
         <div
           key={index}
