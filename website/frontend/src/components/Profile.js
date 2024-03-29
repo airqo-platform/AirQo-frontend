@@ -5,26 +5,15 @@ import LinkedIn from '../icons/footer/LinkedIn.svg';
 import Modal from './Modal';
 
 const Image = (props) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-
   return (
-    <React.Fragment>
+    <>
       <img
-        className="profile-image profile-image-thumb"
+        className={`profile-image ${props.src ? 'profile-image-loaded' : 'profile-image-thumb'}`}
         alt={props.alt}
-        src={props.thumb}
-        style={{ visibility: isLoaded ? 'hidden' : 'visible' }}
+        src={props.src ? props.src : props.thumb}
+        loading="lazy"
       />
-      <img
-        onLoad={() => {
-          setIsLoaded(true);
-        }}
-        className="profile-image profile-image-loaded"
-        style={{ opacity: isLoaded ? 1 : 0 }}
-        alt={props.alt}
-        src={props.src}
-      />
-    </React.Fragment>
+    </>
   );
 };
 
@@ -66,7 +55,12 @@ const Profile = ({ ImgPath, name, title, twitter, linkedin, biography, about }) 
                 </div>
               </div>
               <div
-                style={{ fontSize: '22px', fontWeight: '400', cursor: 'pointer', fontFamily:'sans-serif' }}
+                style={{
+                  fontSize: '22px',
+                  fontWeight: '400',
+                  cursor: 'pointer',
+                  fontFamily: 'sans-serif'
+                }}
                 onClick={() => setShow(false)}>
                 {'X'}
               </div>
@@ -75,7 +69,7 @@ const Profile = ({ ImgPath, name, title, twitter, linkedin, biography, about }) 
               <span>{isVisible && <img src={ImgPath} alt={`${name}'s Profile`} />}</span>
               <span className="bio-text">
                 {about ? (
-                  <p className='description'>{about}</p>
+                  <p className="description">{about}</p>
                 ) : (
                   (biography || []).map((desc) => (
                     <p className="description" key={desc.id}>
