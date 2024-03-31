@@ -163,6 +163,11 @@ const TopBar = () => {
                     <h3>{t('navbar.about.subnav.contact')}</h3>
                   </Link>
                 </div>
+                <div className="dropdown-list-item">
+                  <Link to="/clean-air/events/forum">
+                    <h3>Forum-Event</h3>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
