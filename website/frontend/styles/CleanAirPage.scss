@@ -1628,6 +1628,10 @@
           background-color: $background-color;
           overflow-x: scroll;
 
+          &::-webkit-scrollbar {
+            display: none;
+          }
+
           ul {
             list-style-type: none;
             display: flex;
