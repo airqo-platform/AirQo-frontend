@@ -3,7 +3,7 @@ import Page from 'src/pages/CleanAir/Page';
 import { AccessTimeOutlined, CalendarMonth, PlaceOutlined } from '@mui/icons-material';
 import { Pagination, usePagination } from 'components/CleanAir/pagination/Pagination';
 import { SplitTextSection } from 'components/CleanAir';
-import ProfileImage from 'assets/img/CleanAir/prof.jpg';
+import ProfileImage from 'src/assets/img/cleanAir/prof.jpg';
 import Profile from 'components/Profile';
 
 const ITEMS_PER_PAGE = 6;
