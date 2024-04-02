@@ -1522,50 +1522,90 @@
       }
     }
 
+    $primary-color: #145fff;
+    $hover-color: #0e4dff;
+    $font-color: #353e52;
+    $font-color-light: #353e52a3;
+    $background-color: #f2f1f6;
+    $dot-color: #d9d9d9;
+
     .CleanAirForumEvent {
       .container {
         padding: 0 16px;
         max-width: $maxWidth;
         margin: 0 auto;
       }
+
       .header {
-        background-image: url('assets/img/cleanAir/section2.png');
-        background-size: cover;
-        background-position: 40% 65%;
-        background-repeat: no-repeat;
+        background: {
+          image: url('assets/img/cleanAir/section2.png');
+          size: cover;
+          position: 40% 65%;
+          repeat: no-repeat;
+        }
         height: 400px;
         display: flex;
         flex-direction: column;
+
         .header-info-con {
           width: 100%;
           height: 100%;
           display: flex;
+          padding: 5px 16px;
           flex-direction: column;
           justify-content: center;
+
           .header-info {
+            margin-bottom: 10px;
             display: flex;
-            justify-content: space-between;
-            font-size: small;
-            color: grey;
+            flex-wrap: wrap;
+            justify-content: flex-start;
 
             span {
-              margin-right: 10px;
+              display: flex;
+              align-items: center;
+              font-size: 16px;
+              font-weight: 400;
+              margin-right: 15px;
+
+              span {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background-color: $dot-color;
+              }
+
+              .icon {
+                margin-right: 10px;
+              }
             }
           }
         }
 
-        h1 {
-          font-size: large;
-          color: #333333;
-        }
+        .header-main-info {
+          margin-bottom: 50px;
 
-        h2 {
-          font-size: medium;
-          color: #666666;
+          h1,
+          h2 {
+            margin: 0;
+            padding: 0;
+          }
+
+          h1 {
+            font-size: 48px;
+            font-weight: 800;
+            color: #333333;
+          }
+
+          h2 {
+            font-size: 40px;
+            font-weight: 500;
+            color: $font-color;
+          }
         }
 
         .register-btn {
-          background-color: #145fff;
+          background-color: $primary-color;
           display: flex;
           width: 234px;
           height: 56px;
@@ -1578,34 +1618,207 @@
           cursor: pointer;
 
           &:hover {
-            background-color: #0e4dff;
+            background-color: $hover-color;
           }
         }
 
         .navigation {
           width: 100%;
           height: 74px;
-          background-color: #f2f1f6;
+          background-color: $background-color;
+          overflow-x: scroll;
+
           ul {
             list-style-type: none;
             display: flex;
             justify-content: flex-start;
-            align-items: center;
             height: 100%;
 
             li {
-              display: inline-block;
+              display: inline-flex;
+              align-items: center;
               margin-right: 30px;
               text-decoration: none;
+              width: auto;
+              height: 100%;
+              position: relative;
 
-              a {
+              &:first-child::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 2px;
+                background-color: #353e52;
+              }
+
+              span {
                 text-decoration: none;
-                color: #353e52a3;
-                font-size: 18px;
+                color: $font-color-light;
+                font-size: 16px;
+                cursor: pointer;
 
                 &:hover {
-                  color: #353e52;
+                  color: $font-color;
                 }
+              }
+            }
+          }
+        }
+      }
+
+      .body {
+        color: #353e52;
+        font-size: 24px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 150%;
+
+        .separator {
+          margin-top: 10px;
+          margin-bottom: 40px;
+          height: 2px;
+          flex-shrink: 0;
+          background-color: #353e52;
+        }
+
+        .section_title {
+          color: #353e52;
+          font-size: 32px;
+          font-style: normal;
+          font-weight: 500;
+          line-height: 140%;
+          padding: 0;
+          margin: 0;
+        }
+
+        .about {
+          scroll-margin-top: 6rem;
+          max-width: 92%;
+          margin-bottom: 40px;
+
+          .intro {
+            margin-bottom: 40px;
+            p {
+              a {
+                cursor: pointer;
+                color: #353e52;
+                font-size: 24px;
+                font-style: normal;
+                font-weight: 400;
+                line-height: 150%;
+                text-decoration-line: underline;
+              }
+            }
+          }
+
+          .engagements_list {
+            div {
+              margin-bottom: 20px;
+
+              h3 {
+                font-size: 24px;
+                line-height: 150%;
+              }
+
+              p {
+                font-size: 24px;
+                font-weight: 400;
+                line-height: 120%;
+              }
+            }
+          }
+        }
+
+        .forum_partners {
+          scroll-margin-top: 6rem;
+          margin-bottom: 40px;
+        }
+
+        .speakers {
+          scroll-margin-top: 6rem;
+          margin-bottom: 40px;
+          .AboutUsPage__pictorial {
+            display: flex;
+            flex-wrap: wrap;
+            .profile {
+              padding: 20px;
+              background: #f2f1f6;
+
+              .profile-image {
+                border-radius: 10px;
+              }
+
+              .img-preview-container {
+                margin-bottom: 10px;
+              }
+
+              .info {
+                .info-left {
+                  span {
+                    color: #135dff;
+                    font-size: 18px;
+                    font-style: normal;
+                    font-weight: 400;
+                    line-height: 26px;
+                    cursor: pointer;
+                  }
+                }
+              }
+            }
+
+            .showMoreLessBtn {
+              width: 100%;
+              display: flex;
+              justify-content: center;
+
+              button {
+                color: #135dff;
+                display: flex;
+                padding: 16px 32px;
+                justify-content: center;
+                align-items: center;
+                border-radius: 1px;
+                border: none;
+                font-size: 16px;
+                background: rgba(19, 93, 255, 0.06);
+                cursor: pointer;
+              }
+            }
+          }
+        }
+
+        .schedule {
+          scroll-margin-top: 6rem;
+          margin-bottom: 40px;
+          .event {
+            background-color: #f0f0f0;
+            margin-bottom: 15px;
+            padding: 30px;
+
+            p {
+              font-size: 24px;
+              font-style: normal;
+              font-weight: 400;
+              line-height: 32px;
+              padding: 0;
+              margin: 0;
+            }
+
+            .date {
+              font-weight: bold;
+            }
+          }
+        }
+
+        .registration {
+          scroll-margin-top: 6rem;
+          .engagements_list {
+            div {
+              span {
+                color: #135dff;
+                cursor: pointer;
               }
             }
           }
@@ -1958,6 +2171,38 @@
                     margin-top: 15px;
                   }
                 }
+              }
+            }
+          }
+        }
+      }
+
+      .CleanAirForumEvent {
+        .header {
+          height: auto;
+
+          .header-main-info {
+            margin-bottom: 10px;
+            h1 {
+              font-size: 30px;
+            }
+
+            h2 {
+              font-size: 24px;
+            }
+          }
+
+          .register-btn {
+            width: 200px;
+            height: 50px;
+            margin-bottom: 20px;
+          }
+
+          .body {
+            .speakers {
+              margin-bottom: 40px;
+              .AboutUsPage__pictorial {
+                justify-content: center;
               }
             }
           }

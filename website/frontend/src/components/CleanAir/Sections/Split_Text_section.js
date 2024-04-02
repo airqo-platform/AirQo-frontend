@@ -11,7 +11,6 @@ const Split_Text_section = ({ bgColor, content, title, lists, loading }) => {
   const navigate = useNavigate();
 
   const onLogoClick = (data) => (event) => {
-    console.log(data);
     event.preventDefault();
     if (data.descriptions.length > 0) {
       navigate(`/partners/${data.unique_title}`);

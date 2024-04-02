@@ -165,7 +165,9 @@ const TopBar = () => {
                 </div>
                 <div className="dropdown-list-item">
                   <Link to="/clean-air/events/forum">
-                    <h3>Forum-Event</h3>
+                    <h3>
+                      Forum-Event <span>New</span>
+                    </h3>
                   </Link>
                 </div>
               </div>

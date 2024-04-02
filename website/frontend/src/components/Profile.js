@@ -17,7 +17,16 @@ const Image = (props) => {
   );
 };
 
-const Profile = ({ ImgPath, name, title, twitter, linkedin, biography, about }) => {
+const Profile = ({
+  ImgPath,
+  name,
+  title,
+  twitter,
+  linkedin,
+  biography,
+  about,
+  readBioBtn = false
+}) => {
   const ref = useRef();
   const [isVisible, setIsVisible] = useState(false);
   const [show, setShow] = useState(false);
@@ -89,6 +98,7 @@ const Profile = ({ ImgPath, name, title, twitter, linkedin, biography, about }) 
         <div className="info-left">
           <h3>{name}</h3>
           <h6>{title}</h6>
+          {readBioBtn && <span onClick={() => setShow(true)}>Read Bio</span>}
         </div>
         <div className="social-container" target="_blank" rel="noopener noreferrer">
           {linkedin && (
