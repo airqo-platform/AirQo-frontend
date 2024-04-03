@@ -537,6 +537,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
         }
       } else {
         setLoading(false);
+        setWeeklyPredictions([]);
       }
     };
 
