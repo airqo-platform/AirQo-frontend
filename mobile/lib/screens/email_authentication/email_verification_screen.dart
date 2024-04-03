@@ -257,7 +257,6 @@ class _EmailAuthVerificationWidgetState
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
-        await CustomAuth.firebaseSignIn(emailCredential);
 
         Navigator.pop(context);
 
