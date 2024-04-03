@@ -103,6 +103,30 @@ export const getAQIcon = (pollutant, value) => {
   }
 };
 
+export const getAQIMessage = (pollutant, value) => {
+  if (!markerDetails.hasOwnProperty(pollutant)) {
+    throw new Error(`Invalid pollutant: ${pollutant}`);
+  }
+
+  const aqiCategory = getAQICategory(pollutant, value);
+
+  if (aqiCategory?.icon === 'GoodAir') {
+    return 'Enjoy the day with confidence in the clean air around you.';
+  } else if (aqiCategory?.icon === 'ModerateAir') {
+    return 'Today is a great day for an outdoor activity.';
+  } else if (aqiCategory?.icon === 'UnhealthyForSensitiveGroups') {
+    return 'Reduce the intensity of your outdoor activities.';
+  } else if (aqiCategory?.icon === 'Unhealthy') {
+    return 'Avoid activities that make you breathe more rapidly. Today is the perfect day to spend indoors reading.';
+  } else if (aqiCategory?.icon === 'VeryUnhealthy') {
+    return 'Reduce the intensity of your outdoor activities. Try to stay indoors until the air quality improves.';
+  } else if (aqiCategory?.icon === 'Hazardous') {
+    return 'If you have to spend a lot of time outside, disposable masks like the N95 are helpful.';
+  } else {
+    return '';
+  }
+};
+
 /**
  * Create HTML for unClustered nodes
  * @param {Object} feature
