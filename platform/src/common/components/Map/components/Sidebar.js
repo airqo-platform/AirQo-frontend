@@ -728,7 +728,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                   <div
                     className={`text-2xl font-extrabold leading-normal text-secondary-neutral-light-800`}
                   >
-                    {selectedSite?.pm2_5?.toFixed(2)}
+                    {selectedSite?.pm2_5?.toFixed(2) || '-'}
                   </div>
                 </div>
                 <Image
