@@ -5,9 +5,9 @@
 - [AirQo Website.](#airqo-website)
   - [](#)
   - [Prerequisites](#prerequisites)
-      - [OSX, Linux, Windows](#osx-linux-windows)
-      - [Docker](#docker)
-      - [Git](#git)
+    - [OSX, Linux, Windows](#osx-linux-windows)
+    - [Docker](#docker)
+    - [Git](#git)
   - [Setting up the development environment](#setting-up-the-development-environment)
     - [Clone the repository](#clone-the-repository)
     - [OSX](#osx)
@@ -327,7 +327,7 @@ Build the application docker image with the command below. Make sure that your `
         --build-arg REACT_APP_GEO_LOCATION_URL=<<enter REACT_APP_GEO_LOCATION_URL value>> \
         --tag <<enter an image tag of choice>>
 
-Run the website application container with the command bellow.
+Run the website application container with the command bellow
 
     docker run -d \
         -p 8080:8080 \
