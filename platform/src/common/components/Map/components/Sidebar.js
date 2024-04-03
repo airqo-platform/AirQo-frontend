@@ -379,7 +379,6 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
   const dispatch = useDispatch();
   const [isFocused, setIsFocused] = useState(false);
   const [countryData, setCountryData] = useState([]);
-  const [uniqueCountries, setUniqueCountries] = useState([]);
   const [selectedTab, setSelectedTab] = useState('locations');
   const [selectedSite, setSelectedSite] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState(null);
@@ -400,7 +399,6 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
   });
   const [weeklyPredictions, setWeeklyPredictions] = useState([]);
   const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const airQualityReadings = [10, 2, 55, 25, 75, 90, null]; // Replace with actual air quality readings
   const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
 
   const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
@@ -429,7 +427,6 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
         }
       });
 
-      setUniqueCountries(newUniqueCountries);
       setCountryData(newCountryData);
     } else {
       console.error('Oops! Unable to load sites and show countries');
