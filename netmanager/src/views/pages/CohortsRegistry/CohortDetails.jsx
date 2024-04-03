@@ -328,13 +328,16 @@ const CohortForm = ({ cohort }) => {
             id="_id"
             label="Cohort ID"
             variant="outlined"
-            value={cohort._id}
             fullWidth
             required
             style={{
               marginBottom: '20px'
             }}
             InputLabelProps={{ shrink: true }}
+            InputProps={{
+              startAdornment: cohort._id && <Copyable width="100%" value={cohort._id} />,
+              style: { fontSize: '16px', color: '#263238' }
+            }}
             disabled
           />
         </Grid>

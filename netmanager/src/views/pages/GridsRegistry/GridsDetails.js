@@ -192,7 +192,6 @@ const GridForm = ({ grid }) => {
             id="_id"
             label="Grid ID"
             variant="outlined"
-            value={grid._id}
             fullWidth
             required
             style={{
@@ -200,6 +199,10 @@ const GridForm = ({ grid }) => {
             }}
             InputLabelProps={{ shrink: true }}
             disabled
+            InputProps={{
+              startAdornment: grid._id && <Copyable width="100%" value={grid._id} />,
+              style: { fontSize: '16px', color: '#263238' }
+            }}
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
