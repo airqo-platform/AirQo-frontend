@@ -355,6 +355,9 @@
     "youWouldBeRequiredToAddYourEmailToYourProfileOnTheMobileAppToEnableYouAccessThe":" Wandibadde weetaaga okwongera email yo ku profile yo ku app y'essimu okukusobozesa okuyingira mu ",
     "withOneAccount":" nga erina akawunti emu.",
     "addMyEmail":"Yongerako email yange",
-    "remindMeLater":"Nzijukiza oluvannyuma"
-
+    "remindMeLater":"Nzijukiza oluvannyuma",
+    "addMyEmailToMyProfile":"Yongerako email yange ku profile yange",
+    "addYourEmailToYourProfileToEnableYouToAccessThe" : "Yongerako email yo ku profile yo okukusobozesa okuyingira mu ",
+    "accessDeeperAirQualityInsights":"okwekenenya okw'omutindo gw'empewo",
+    "usingYourAirQoMobileAppAccount":"okuva ku akawunti yo ku app ya AirQo"
 }
