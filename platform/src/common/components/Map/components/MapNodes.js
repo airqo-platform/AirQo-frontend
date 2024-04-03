@@ -60,6 +60,18 @@ const colors = {
   GoodAir: '#34C759',
 };
 
+const messages = {
+  GoodAir: 'Enjoy the day with confidence in the clean air around you.',
+  ModerateAir: 'Today is a great day for an outdoor activity.',
+  UnhealthyForSensitiveGroups: 'Reduce the intensity of your outdoor activities.',
+  Unhealthy:
+    'Avoid activities that make you breathe more rapidly. Today is the perfect day to spend indoors reading.',
+  VeryUnhealthy:
+    'Reduce the intensity of your outdoor activities. Try to stay indoors until the air quality improves.',
+  Hazardous:
+    'If you have to spend a lot of time outside, disposable masks like the N95 are helpful.',
+};
+
 /**
  * Get random key from object
  * @param {Object} obj
@@ -110,21 +122,7 @@ export const getAQIMessage = (pollutant, value) => {
 
   const aqiCategory = getAQICategory(pollutant, value);
 
-  if (aqiCategory?.icon === 'GoodAir') {
-    return 'Enjoy the day with confidence in the clean air around you.';
-  } else if (aqiCategory?.icon === 'ModerateAir') {
-    return 'Today is a great day for an outdoor activity.';
-  } else if (aqiCategory?.icon === 'UnhealthyForSensitiveGroups') {
-    return 'Reduce the intensity of your outdoor activities.';
-  } else if (aqiCategory?.icon === 'Unhealthy') {
-    return 'Avoid activities that make you breathe more rapidly. Today is the perfect day to spend indoors reading.';
-  } else if (aqiCategory?.icon === 'VeryUnhealthy') {
-    return 'Reduce the intensity of your outdoor activities. Try to stay indoors until the air quality improves.';
-  } else if (aqiCategory?.icon === 'Hazardous') {
-    return 'If you have to spend a lot of time outside, disposable masks like the N95 are helpful.';
-  } else {
-    return '';
-  }
+  return messages[aqiCategory?.icon] || '';
 };
 
 /**
