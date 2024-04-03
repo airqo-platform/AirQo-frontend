@@ -1,23 +1,29 @@
-# Node runtime as the base image
-FROM node:18.19.1
+FROM node:18.19.1 AS builder
 
-# Setting the working directory in the container to /app
+# Set the working directory inside the container
 WORKDIR /app
 
-# Coping package.json and yarn.lock into the root directory of the app
 COPY package.json yarn.lock ./
 
-# Installing project dependencies
 RUN yarn install --frozen-lockfile
 
-# Copy the rest of the project into the app directory
+# Copy the rest of your application code
 COPY . .
 
-# Build the app
+# Build application
 RUN yarn build
 
-# Exposing the port 5173 for Vite
-EXPOSE 5173
+# Create the production image
+FROM nginx:1.21.3
 
-# Starting the app
-CMD ["yarn", "dev"]
+# Copy the compiled files from the builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy the Nginx configuration file
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Start Nginx in the foreground
+CMD ["nginx", "-g", "daemon off;"]
