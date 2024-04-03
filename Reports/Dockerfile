@@ -16,14 +16,13 @@ RUN yarn build
 # Create the production image
 FROM nginx:1.21.3
 
-# Copy the compiled files from the builder stage
+# Coping the compiled files from the builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy the Nginx configuration file
+# Coping the Nginx configuration file
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expose port 80
 EXPOSE 80
 
-# Start Nginx in the foreground
+# Start Nginx server
 CMD ["nginx", "-g", "daemon off;"]
