@@ -2,7 +2,7 @@ replicaCount: 1
 image:
   repository: eu.gcr.io/airqo-250220/airqo-prod-docs
   pullPolicy: Always
-  tag: prod-608a640a-1688550587
+  tag: prod-92bce929-1711399864
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: ''
