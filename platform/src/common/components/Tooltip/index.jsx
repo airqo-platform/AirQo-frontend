@@ -14,7 +14,7 @@ const CustomTooltip = ({ children, tooltipsText, position }) => {
             `absolute right-full top-1/2 z-20 mr-3 -translate-y-1/2 rounded bg-secondary-neutral-light-900 px-3 py-3 text-sm font-semibold text-white text-center opacity-0 group-hover:opacity-100`) ||
           (position === 'bottom' &&
             `absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 rounded bg-secondary-neutral-light-900 px-3 py-3 text-sm font-semibold text-white text-center opacity-0 group-hover:opacity-100`)
-        }`}
+        } ${!tooltipsText && 'hidden'}`}
       >
         <span
           className={`${

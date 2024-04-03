@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Tabs from '@/components/Tabs';
 import Tab from '@/components/Tabs/Tab';
 import withAuth from '@/core/utils/protectedRoute';
@@ -19,6 +19,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import PrintReportModal from '@/components/Modal/PrintReportModal';
 import TabButtons from '@/components/Button/TabButtons';
+import useOutsideClick from '@/core/utils/useOutsideClick';
 
 const AuthenticatedHomePage = () => {
   const dispatch = useDispatch();
@@ -33,10 +34,15 @@ const AuthenticatedHomePage = () => {
     message: '',
     show: false,
   });
+  const customiseRef = useRef();
   const [customise, setCustomise] = useState(false);
 
+  useOutsideClick(customiseRef, () => {
+    if (customise) setCustomise(false);
+  });
+
   const toggleCustomise = () => {
-    customise ? setCustomise(false) : setCustomise(true);
+    setCustomise(!customise);
   };
 
   useEffect(() => {
@@ -166,6 +172,7 @@ const AuthenticatedHomePage = () => {
       },
     ];
   };
+
   return (
     <Layout topbarTitle={'Analytics'} noBorderBottom pageTitle={'Analytics'}>
       <AlertBox
@@ -193,7 +200,11 @@ const AuthenticatedHomePage = () => {
             <Explore toggleCustomize={toggleCustomise} />
           </Tab>
         </Tabs>
-        {customise && <CustomiseLocationsComponent toggleCustomise={toggleCustomise} />}
+        {customise && (
+          <div ref={customiseRef}>
+            <CustomiseLocationsComponent toggleCustomise={toggleCustomise} />
+          </div>
+        )}
       </div>
       {openConfirmModal && (
         <ExportDataModal
