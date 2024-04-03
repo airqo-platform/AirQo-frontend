@@ -324,18 +324,19 @@ const CohortForm = ({ cohort }) => {
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
-          <label style={{ textAlign: 'left' }}>Cohort ID</label>
-          <Box
+          <TextField
+            id="_id"
+            label="Cohort ID"
+            variant="outlined"
+            value={cohort._id}
+            fullWidth
+            required
             style={{
-              backgroundColor: '#f0f0f0',
-              padding: '5px',
-              borderRadius: '5px',
-              fontFamily: 'monospace',
-              fontSize: '18px'
+              marginBottom: '20px'
             }}
-          >
-            <Copyable width="100%" value={cohort._id} />
-          </Box>
+            InputLabelProps={{ shrink: true }}
+            disabled
+          />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
           <TextField
