@@ -535,6 +535,8 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
         } finally {
           setLoading(false);
         }
+      } else {
+        setLoading(false);
       }
     };
 
@@ -741,11 +743,11 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                 />
               </div>
 
-              {selectedSite?.airQuality && (
-                <LocationDetailItem
-                  title='Air Quality Alerts'
-                  isCollapsed
-                  children={
+              <LocationDetailItem
+                title='Air Quality Alerts'
+                isCollapsed
+                children={
+                  selectedSite?.airQuality ? (
                     <p className='text-xl font-bold leading-7 text-secondary-neutral-dark-950'>
                       <span className='text-blue-500 capitalize'>
                         {selectedSite?.place_name ||
@@ -757,9 +759,13 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                       Air Quality is expected to be {selectedSite?.airQuality} today.{' '}
                       {getAQIMessage('pm2_5', selectedSite?.pm2_5?.toFixed(2))}
                     </p>
-                  }
-                />
-              )}
+                  ) : (
+                    <p className='text-xl font-bold leading-7 text-secondary-neutral-dark-950'>
+                      No air quality for this place.
+                    </p>
+                  )
+                }
+              />
             </div>
           </div>
         )}
