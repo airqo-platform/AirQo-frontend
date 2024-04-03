@@ -1,5 +1,6 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
+import 'package:app/themes/app_theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,6 +34,35 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
         List<Widget> children = [];
 
         if (allQuizzes.isNotEmpty) {
+          children.add(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                margin: const EdgeInsets.only(
+                  bottom: 6,
+                ),
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height * 0.05,
+                decoration: const BoxDecoration(
+                  color: Color.fromARGB(158, 255, 255, 255),
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(16.0),
+                  ),
+                ),
+                padding: const EdgeInsets.only(
+                  bottom: 6,
+                  left: 10,
+                  top: 5,
+                  right: 10,
+                ),
+                child: Text(
+                  'Quiz',
+                  style: CustomTextStyle.headline8(context),
+                ),
+              ),
+            ),
+          );
+
           children.addAll(
             allQuizzes
                 .map(
@@ -48,7 +78,38 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
                 .toList(),
           );
         }
+
         if (allLessons.isNotEmpty) {
+          // Add section title for Lessons
+          children.add(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                margin: const EdgeInsets.only(
+                  bottom: 6,
+                ),
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height * 0.05,
+                decoration: const BoxDecoration(
+                  color: Color.fromARGB(158, 255, 255, 255),
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(16.0),
+                  ),
+                ),
+                padding: const EdgeInsets.only(
+                  bottom: 6,
+                  left: 10,
+                  top: 5,
+                  right: 10,
+                ),
+                child: Text(
+                  'KYA',
+                  style: CustomTextStyle.headline8(context),
+                ),
+              ),
+            ),
+          );
+
           children.addAll(allLessons
               .map(
                 (lesson) => Column(
