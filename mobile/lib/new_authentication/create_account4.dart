@@ -1,3 +1,4 @@
+import 'package:app/new_authentication/on_boarding.dart';
 import 'package:app/new_authentication/widgets.dart';
 import 'package:app/themes/colors.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -257,23 +258,22 @@ class VerificationPageState extends State<VerificationPage> {
                                 ),
                                 const SizedBox(height: 30),
                                 NextButton(
-                                  textColor: Colors.white,
-                                  text: 'Continue',
-                                  buttonColor: const Color(0xff145FFF),
-                                  callBack: () {
-                                    if (_formKey.currentState!.validate()) {
-                                      _submitForm();
+                                    textColor: Colors.white,
+                                    text: 'Continue',
+                                    buttonColor: const Color(0xff145FFF),
+                                    callBack: () {
+                                      // if (_formKey.currentState!.validate()) {
+                                      //   _submitForm();
 
                                       // Navigate to the next page
-                                      // Navigator.push(
-                                      //   context,
-                                      //   MaterialPageRoute(
-                                      //     builder: (context) => const UserDetailsPage(),
-                                      //   ),
-                                      // );
-                                    }
-                                  },
-                                ),
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const NotificationsSetupScreen(),
+                                        ),
+                                      );
+                                    }),
                               ],
                             ),
                           ),

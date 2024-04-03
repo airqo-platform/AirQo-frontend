@@ -29,6 +29,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
   Widget build(BuildContext context) {
     return OfflineBanner(
       child: Scaffold(
+        backgroundColor: Theme.of(context).backgroundColor,
         appBar: const OnBoardingTopBar(),
         body: PopScope(
           onPopInvoked: ((didPop) {
