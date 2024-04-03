@@ -353,5 +353,9 @@
     "youWouldBeRequiredToAddYourEmailToYourProfileOnTheMobileAppToEnableYouAccessThe":" Você deverá adicionar seu e-mail ao seu perfil no aplicativo móvel para permitir o acesso ao ",
     "withOneAccount":" com uma conta.",
     "addMyEmail":"Adicionar meu e-mail",
-    "remindMeLater":"Lembre-me mais tarde"
+    "remindMeLater":"Lembre-me mais tarde",
+	"addMyEmailToMyProfile":"Adicionar meu e-mail ao meu perfil",
+    "addYourEmailToYourProfileToEnableYouToAccessThe" : "Adicione seu e-mail ao seu perfil para permitir o acesso ao ",
+    "accessDeeperAirQualityInsights":"acesso a insights mais profundos sobre a qualidade do ar",
+    "usingYourAirQoMobileAppAccount":"Usando sua conta do aplicativo móvel AirQo"
 	}
