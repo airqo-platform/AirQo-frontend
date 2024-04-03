@@ -21,10 +21,10 @@ const CleanAirForumEvent = () => {
 
   const links = [
     { name: 'About', url: 'about' },
-    { name: 'Partners', url: 'partners' },
-    { name: 'Speakers', url: 'speakers' },
     { name: 'Schedule', url: 'schedule' },
+    { name: 'Speakers', url: 'speakers' },
     { name: 'Registration', url: 'registration' },
+    { name: 'Partners', url: 'partners' },
     { name: 'Travel logistics', url: 'travel' },
     { name: 'Support', url: 'support' }
   ];
@@ -136,6 +136,16 @@ const CleanAirForumEvent = () => {
       id: 3,
       date: '5th April 2023',
       title: 'Scaling-up Participatory Air Quality Management for African Cities'
+    },
+    {
+      id: 4,
+      date: '6th April 2023',
+      title: 'Scaling-up Participatory Air Quality Management for African Cities'
+    },
+    {
+      id: 5,
+      date: '7th April 2023',
+      title: 'Scaling-up Participatory Air Quality Management for African Cities'
     }
   ];
 
@@ -199,16 +209,16 @@ const CleanAirForumEvent = () => {
           <div className="about" ref={refMapping.about}>
             <section className="intro">
               <p>
-                The 2024 edition of the <a>CLEAN AIR</a> engagement brings together communities of
-                practice in Africa to promote Africa-led collaborations and multi-regional
+                The 2024 edition of the <a>CLEAN-Air</a> engagement brings together communities of
+                practice in Africa to promote knowledge sharing, collaborations and multi-regional
                 partnerships that particularly emphasizes the need to strengthen regional networks
                 for sustained interventions.
               </p>
               <p>
-                The forum is a build-up from the success of the inaugural CLEAN-Air workshop held in
-                Kampala in 2023. You can <a>access the full Kampala Forum report here</a>. This
-                year's forum aims to further our collective efforts in advancing air quality
-                initiatives across the continent. 
+                The forum follows the success of the inaugural CLEAN-Air workshop held in Kampala in
+                2023. You can <a>access the full Kampala Forum report here</a>. This y ear's forum
+                aims to further our collective efforts in advancing air quality initiatives across
+                the continent.
               </p>
             </section>
 
@@ -250,7 +260,7 @@ const CleanAirForumEvent = () => {
               }
               title={
                 <h2 className="section_title">
-                  The 4-day engagement aims to achieve the following objectives:
+                  The 5-day engagement aims to achieve the following objectives:
                 </h2>
               }
               bgColor="#FFFFFF"
