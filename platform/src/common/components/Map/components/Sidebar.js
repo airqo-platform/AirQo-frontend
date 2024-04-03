@@ -19,7 +19,7 @@ import WindIcon from '@/icons/Common/wind.svg';
 import Toast from '../../Toast';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import { setOpenLocationDetails, setSelectedLocation } from '@/lib/store/services/map/MapSlice';
-import { dailyPredictionsApi } from '../../../../core/apis/predict';
+import { dailyPredictionsApi } from '@/core/apis/predict';
 import Spinner from '@/components/Spinner';
 
 const MAPBOX_URL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
@@ -728,14 +728,14 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                   <div
                     className={`text-2xl font-extrabold leading-normal text-secondary-neutral-light-800`}
                   >
-                    {selectedSite?.pm2_5?.toFixed(0)}
+                    {selectedSite?.pm2_5?.toFixed(2)}
                   </div>
                 </div>
                 <Image
                   src={
-                    selectedSite?.pm2_5?.toFixed(0) &&
-                    getAQIcon('pm2_5', selectedSite?.pm2_5?.toFixed(0))
-                      ? images[getAQIcon('pm2_5', selectedSite?.pm2_5?.toFixed(0))]
+                    selectedSite?.pm2_5?.toFixed(2) &&
+                    getAQIcon('pm2_5', selectedSite?.pm2_5?.toFixed(2))
+                      ? images[getAQIcon('pm2_5', selectedSite?.pm2_5?.toFixed(2))]
                       : images['Invalid']
                   }
                   alt='Air Quality Icon'
@@ -758,7 +758,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                         's
                       </span>{' '}
                       Air Quality is expected to be {selectedSite?.airQuality} today.{' '}
-                      {getAQIMessage('pm2_5', selectedSite?.pm2_5?.toFixed(0))}
+                      {getAQIMessage('pm2_5', selectedSite?.pm2_5?.toFixed(2))}
                     </p>
                   }
                 />
