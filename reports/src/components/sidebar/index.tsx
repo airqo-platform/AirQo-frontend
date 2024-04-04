@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NavLink } from 'react-router-dom'
-import React, { useEffect } from 'react'
+import React from 'react'
 import Logo from '/images/airqo.png'
-import { useSelector } from 'src/services/redux/utils'
 import Files from 'src/assets/icons/Files'
 import Reports from 'src/assets/icons/Reports'
 import Settings from 'src/assets/icons/Settings'
@@ -40,15 +39,6 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
 
 const Index: React.FC = () => {
   const currentYear = new Date().getFullYear()
-  const darkMode = useSelector((state) => state.darkMode.darkMode)
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-  }, [darkMode])
 
   return (
     <div className="h-screen">

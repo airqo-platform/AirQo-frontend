@@ -11,6 +11,7 @@ const ReportForm = lazy(() => import('./components/reports'))
 const ReportView = lazy(() => import('./components/reports/ReportView'))
 const Files = lazy(() => import('./pages/Files'))
 const Settings = lazy(() => import('./pages/settings'))
+const LoginPage = lazy(() => import('./pages/account/login'))
 
 const App = () => {
   return (
@@ -25,6 +26,7 @@ const App = () => {
             }
           >
             <Routes>
+              <Route path="login" element={<LoginPage />} />
               <Route path="/*" element={<Reports />}>
                 <Route index element={<ReportForm />} />
                 <Route path="view" element={<ReportView />} />

@@ -14,9 +14,7 @@ export default defineConfig({
       },
     },
   },
-  build: {
-    target: 'es2017',
-  },
+  base: '/',
   define: {
     global: 'window',
   },
@@ -26,15 +24,6 @@ export default defineConfig({
       define: { global: 'globalThis' },
       // Enable esbuild polyfill plugins
       plugins: [NodeGlobalsPolyfillPlugin({ buffer: true })],
-    },
-  },
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5173',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
     },
   },
 })
