@@ -1756,6 +1756,7 @@
         line-height: 150%;
 
         section {
+          scroll-margin-top: 9.5rem;
           margin-bottom: 40px;
         }
 
@@ -1778,7 +1779,6 @@
         }
 
         .about {
-          scroll-margin-top: 6rem;
           max-width: 92%;
 
           .intro {
@@ -1814,10 +1814,6 @@
           }
         }
 
-        .forum_partners {
-          scroll-margin-top: 6rem;
-        }
-
         .Funding_partners {
           width: 100%;
           .image-con {
@@ -1836,7 +1832,6 @@
         }
 
         .speakers {
-          scroll-margin-top: 6rem;
           .AboutUsPage__pictorial {
             display: flex;
             flex-wrap: wrap;
@@ -1888,7 +1883,6 @@
         }
 
         .schedule {
-          scroll-margin-top: 6rem;
           .event {
             background-color: #f0f0f0;
             margin-bottom: 15px;
@@ -1928,7 +1922,6 @@
         }
 
         .registration {
-          scroll-margin-top: 6rem;
           .engagements_list {
             div {
               span {
