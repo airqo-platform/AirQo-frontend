@@ -358,5 +358,8 @@
     "addMyEmailToMyProfile":"Ongeza barua pepe yangu kwenye wasifu wangu",
     "addYourEmailToYourProfileToEnableYouToAccessThe" : "Ongeza barua pepe yako kwenye wasifu wako ili uweze kufikia ",
     "accessDeeperAirQualityInsights":"fikia maelezo zaidi ya ubora wa hewa",
-    "usingYourAirQoMobileAppAccount":"Kwa kutumia akaunti yako ya programu ya simu ya AirQo"
+    "usingYourAirQoMobileAppAccount":"Kwa kutumia akaunti yako ya programu ya simu ya AirQo",
+    "all":"Zote",
+    "lessons":"Masomo",
+    "quiz":"Mtihani"
 }

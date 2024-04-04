@@ -1,13 +1,15 @@
-import 'package:app/models/models.dart';
-import 'package:app/services/services.dart';
-import 'package:app/themes/theme.dart';
-import 'package:app/utils/utils.dart';
-import 'package:app/widgets/widgets.dart';
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
+
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 
 import 'kya_title_page.dart';
 
@@ -496,3 +498,4 @@ class KyaLoadingWidget extends StatelessWidget {
     );
   }
 }
+
