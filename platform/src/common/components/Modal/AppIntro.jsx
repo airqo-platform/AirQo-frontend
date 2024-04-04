@@ -1,14 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import Analytics from '@/images/Home/analytics.png';
-import Export from '@/images/Home/export.png';
-import Settings from '@/images/Home/settings.png';
 import Image from 'next/image';
 
 /**
  * @description Carousel component that displays the AppIntro slides.
  * @returns {JSX.Element} AppIntro component
  */
-const Carousel = () => {
+const Carousel = ({ IntroList }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const slideRef = useRef(null);
 
@@ -25,25 +22,6 @@ const Carousel = () => {
     slideRef.current.style.transition = 'all 0.5s ease-in-out';
     slideRef.current.style.transform = `translateX(-${currentSlide * 100}%)`;
   }, [currentSlide]);
-
-  //IntroList is an array of objects containing the image, name and text for each slide.
-  const IntroList = [
-    {
-      image: Analytics,
-      name: 'Analytics',
-      text: 'The Analytics feature provides comprehensive insights into air quality data.',
-    },
-    {
-      image: Export,
-      name: 'Export',
-      text: 'The Export feature allows you to download air quality data for offline analysis.',
-    },
-    {
-      image: Settings,
-      name: 'Settings',
-      text: 'The Settings feature lets you customize your AirQo Analytics experience.',
-    },
-  ];
 
   return (
     <div id='default-carousel' className='relative w-full h-full'>
@@ -127,7 +105,7 @@ const Carousel = () => {
  * @param {boolean} props.isOpen - The state of the modal
  * @param {Function} props.setIsOpen - The function to set the state of the modal
  */
-const AppIntro = ({ isOpen, setIsOpen }) => {
+const AppIntro = ({ isOpen, setIsOpen, features }) => {
   return (
     <div className='flex items-center justify-center'>
       {isOpen && (
@@ -151,7 +129,7 @@ const AppIntro = ({ isOpen, setIsOpen }) => {
                       Welcome to AirQo Analytics
                     </h3>
                     <div className='mt-2 relative'>
-                      <Carousel />
+                      <Carousel IntroList={features} />
                     </div>
                   </div>
                 </div>

@@ -14,6 +14,28 @@ import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
 import CustomModal from '@/components/Modal/videoModals/CustomModal';
 import StepProgress from '@/components/steppers/CircularStepper';
 import AppIntro from '../../common/components/Modal/AppIntro';
+import Analytics from '@/images/Home/analytics.png';
+import Export from '@/images/Home/export.png';
+import Settings from '@/images/Home/settings.png';
+
+//IntroList is an array of objects containing the image, name and text for each slide.
+const IntroList = [
+  {
+    image: Analytics,
+    name: 'Analytics',
+    text: 'The Analytics feature provides comprehensive insights into air quality data.',
+  },
+  {
+    image: Export,
+    name: 'Export',
+    text: 'The Export feature allows you to download air quality data for offline analysis.',
+  },
+  {
+    image: Settings,
+    name: 'Settings',
+    text: 'The Settings feature lets you customize your AirQo Analytics experience.',
+  },
+];
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -114,7 +136,8 @@ const Home = () => {
 
   return (
     <Layout noBorderBottom pageTitle='Home'>
-      <AppIntro isOpen={showModal} setIsOpen={setShowModal} />
+      {/* App Intro Modal */}
+      <AppIntro isOpen={showModal} setIsOpen={setShowModal} features={IntroList} />
       {checkListStatus === 'loading' && checkListData.length === 0 ? (
         <HomeSkeleton />
       ) : (
