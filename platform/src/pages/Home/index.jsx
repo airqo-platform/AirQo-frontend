@@ -13,6 +13,7 @@ import { startTask, completeTask, updateTitle } from '@/lib/store/services/check
 import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
 import CustomModal from '@/components/Modal/videoModals/CustomModal';
 import StepProgress from '@/components/steppers/CircularStepper';
+import AppIntro from '../../common/components/Modal/AppIntro';
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -21,6 +22,7 @@ const Home = () => {
   const userData = JSON.parse(localStorage.getItem('loggedUser'));
   const checkListStatus = useSelector((state) => state.checklists.status);
   const [open, setOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   const [step, setStep] = useState(0);
   const totalSteps = 3;
@@ -100,8 +102,19 @@ const Home = () => {
     }
   };
 
+  // Show the intro modal only once
+  useEffect(() => {
+    const isFirstTimeIntroModal = localStorage.getItem('isFirstTimeIntroModal');
+
+    if (isFirstTimeIntroModal === null) {
+      setShowModal(true);
+      localStorage.setItem('isFirstTimeIntroModal', 'true');
+    }
+  }, []);
+
   return (
     <Layout noBorderBottom pageTitle='Home'>
+      <AppIntro isOpen={showModal} setIsOpen={setShowModal} />
       {checkListStatus === 'loading' && checkListData.length === 0 ? (
         <HomeSkeleton />
       ) : (
