@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Page from 'src/pages/CleanAir/Page';
 import { AccessTimeOutlined, CalendarMonth, PlaceOutlined } from '@mui/icons-material';
 import { Pagination, usePagination } from 'components/CleanAir/pagination/Pagination';
@@ -8,7 +8,36 @@ import Profile from 'components/Profile';
 
 const ITEMS_PER_PAGE = 6;
 
+const upArrow = () => {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M18 15L12 9L6 15"
+        stroke="#536A87"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+const downArrow = () => {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M6 9L12 15L18 9"
+        stroke="#536A87"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
 const CleanAirForumEvent = () => {
+  const wrapperRef = useRef(null);
+  const [showAccordion, setShowAccordion] = useState(null);
   const refMapping = {
     about: useRef(null),
     partners: useRef(null),
@@ -149,6 +178,30 @@ const CleanAirForumEvent = () => {
     }
   ];
 
+  const support = [
+    {
+      id: 1,
+      supportType: 'Communications and Visibility',
+      name: 'John Doe',
+      position: 'CEO, Company 1',
+      email: 'Johe@gmail.com'
+    },
+    {
+      id: 2,
+      supportType: 'Logistics and Operations',
+      name: 'Jane Doe',
+      position: 'CEO, Company 2',
+      email: 'Makr@gmail.com'
+    },
+    {
+      id: 3,
+      supportType: 'Programme and Content',
+      name: 'John Doe',
+      position: 'CEO, Company 3',
+      email: 'sam@gmail.com'
+    }
+  ];
+
   const { currentItems, currentPage, setCurrentPage, totalPages } = usePagination(
     lists,
     ITEMS_PER_PAGE
@@ -158,9 +211,66 @@ const CleanAirForumEvent = () => {
 
   const displayedProfiles = isExpanded ? profiles : profiles.slice(0, ITEMS_PER_PAGE);
 
+  const handleClickOutside = (event) => {
+    if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+      setShowAccordion(null);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const [isSticky, setSticky] = useState(false);
+
+  const checkScrollTop = () => {
+    // Get the position of the body element
+    const navPosition = refMapping['about'].current
+      ? refMapping['about'].current.getBoundingClientRect().top + 200
+      : 0;
+
+    if (!isSticky && window.pageYOffset >= navPosition) {
+      setSticky(true);
+    } else if (isSticky && window.pageYOffset < navPosition) {
+      setSticky(false);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('scroll', checkScrollTop);
+    return () => {
+      window.removeEventListener('scroll', checkScrollTop);
+    };
+  }, [isSticky]);
+
   return (
     <Page showNewsLetter={true} showBottomCTAS={false} showSubNav={false}>
       <div className="CleanAirForumEvent">
+        {isSticky && (
+          <header
+            className="headerScroll"
+            style={isSticky ? { position: 'fixed', top: 78, zIndex: 1000, width: '100%' } : {}}>
+            <nav className="navigation">
+              <ul className="container">
+                {links.map((link) => (
+                  <li key={link.name}>
+                    <span
+                      onClick={(e) => {
+                        e.preventDefault();
+                        refMapping[link.url].current.scrollIntoView({ behavior: 'smooth' });
+                      }}>
+                      {link.name}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </header>
+        )}
+
         <header className="header">
           <div className="header-info-con container">
             <div className="header-info">
@@ -180,8 +290,11 @@ const CleanAirForumEvent = () => {
               </span>
             </div>
             <div className="header-main-info">
-              <h1>CLEAN Air Forum</h1>
-              <h2>Participatory air quality management</h2>
+              <h1>CLEAN-Air Forum</h1>
+              <h2>
+                Advancing collaborations and multi-regional partnerships for clean air actions in
+                African cities
+              </h2>
             </div>
             <div>
               <button className="register-btn">Register here.</button>
@@ -206,8 +319,8 @@ const CleanAirForumEvent = () => {
         </header>
 
         <div className="body container">
-          <div className="about" ref={refMapping.about}>
-            <section className="intro">
+          <section className="about" ref={refMapping.about}>
+            <div className="intro">
               <p>
                 The 2024 edition of the <a>CLEAN-Air</a> engagement brings together communities of
                 practice in Africa to promote knowledge sharing, collaborations and multi-regional
@@ -220,10 +333,169 @@ const CleanAirForumEvent = () => {
                 aims to further our collective efforts in advancing air quality initiatives across
                 the continent.
               </p>
-            </section>
+            </div>
+          </section>
 
-            <div className="separator" />
+          <section>
+            <div className="header-info-con">
+              <div className="header-info">
+                <span>
+                  <CalendarMonth className="icon" />
+                  1st July, 2024 - 5th July, 2024
+                </span>
+                <span>
+                  <span />
+                  <AccessTimeOutlined className="icon" />
+                  08:00 - 17:00
+                </span>
+                <span>
+                  <span />
+                  <PlaceOutlined className="icon" />
+                  Lagos, Nigeria
+                </span>
+              </div>
+            </div>
+          </section>
 
+          <section className="speakers" ref={refMapping.speakers}>
+            <h2 style={{ marginBottom: '20px' }} className="section_title">
+              Programme committee
+            </h2>
+            <div className="AboutUsPage__pictorial">
+              {displayedProfiles.map((profile) => (
+                <div key={profile.id}>
+                  <Profile
+                    name={profile.name}
+                    title={profile.title}
+                    about={profile.biography}
+                    ImgPath={profile.profile_image}
+                    readBioBtn={true}
+                  />
+                </div>
+              ))}
+              {profiles.length > ITEMS_PER_PAGE && (
+                <div className="showMoreLessBtn">
+                  <button onClick={() => setIsExpanded(!isExpanded)}>
+                    {isExpanded ? 'Show Less' : 'Show More'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </section>
+
+          <div className="separator" />
+
+          <section className="forum_partners" ref={refMapping.partners}>
+            <SplitTextSection
+              lists={[]}
+              content={
+                <div style={{}}>
+                  <div className="partners-wrapper">
+                    <div className="partner-logos">
+                      <div className="grid-container">
+                        {currentItems.map((item) => (
+                          <div className="cell" key={item.id}>
+                            <img
+                              className="logo"
+                              src={item.partner_logo}
+                              alt={item.partner_name}
+                              loading="lazy"
+                            />
+                          </div>
+                        ))}
+                      </div>
+
+                      <Pagination
+                        currentPage={currentPage}
+                        setCurrentPage={setCurrentPage}
+                        totalPages={totalPages}
+                      />
+                    </div>
+                  </div>
+                </div>
+              }
+              title={<h2 className="section_title">Partners</h2>}
+              bgColor="#FFFFFF"
+            />
+          </section>
+
+          <div className="separator" />
+
+          <section className="about registration" ref={refMapping.registration}>
+            <SplitTextSection
+              lists={[]}
+              content={
+                <div className="engagements_list">
+                  <div>
+                    <div>
+                      <p>
+                        We look forward to welcoming you to Lagos, Nigeria! Register your interest.
+                        <span onClick={null}>Register here</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              }
+              title={<h2 className="section_title">Registration</h2>}
+              bgColor="#FFFFFF"
+            />
+          </section>
+
+          <section className="Funding_partners">
+            <SplitTextSection
+              lists={[]}
+              content={
+                <div>
+                  <div className="image-con">
+                    <img src="https://via.placeholder.com/150" alt="Funding Partner" />
+                    <img src="https://via.placeholder.com/150" alt="Funding Partner" />
+                  </div>
+                </div>
+              }
+              title={<h2 className="section_title">Funding Partners</h2>}
+              bgColor="#FFFFFF"
+            />
+          </section>
+
+          <div className="separator" />
+
+          <section className="speakers" ref={refMapping.speakers}>
+            <h2 style={{ marginBottom: '20px' }} className="section_title">
+              Speakers
+            </h2>
+            <p>
+              Meet the CLEAN-Air Forum speakers!
+              <br />
+              <br />
+              We're thrilled to host distinguished speakers from across the globe, alongside
+              prominent city leaders and researchers representing various countries, who will serve
+              as key presenters.
+            </p>
+            <div className="AboutUsPage__pictorial">
+              {displayedProfiles.map((profile) => (
+                <div key={profile.id}>
+                  <Profile
+                    name={profile.name}
+                    title={profile.title}
+                    about={profile.biography}
+                    ImgPath={profile.profile_image}
+                    readBioBtn={true}
+                  />
+                </div>
+              ))}
+              {profiles.length > ITEMS_PER_PAGE && (
+                <div className="showMoreLessBtn">
+                  <button onClick={() => setIsExpanded(!isExpanded)}>
+                    {isExpanded ? 'Show Less' : 'Show More'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </section>
+
+          <div className="separator" />
+
+          <section className="about">
             <SplitTextSection
               lists={[]}
               content={
@@ -260,86 +532,11 @@ const CleanAirForumEvent = () => {
               }
               title={
                 <h2 className="section_title">
-                  The 5-day engagement aims to achieve the following objectives:
+                  The 4-day engagement aims to achieve the following objectives:
                 </h2>
               }
               bgColor="#FFFFFF"
             />
-          </div>
-
-          <div className="separator" />
-
-          <section className="forum_partners" ref={refMapping.partners}>
-            <SplitTextSection
-              lists={[]}
-              content={
-                <div style={{}}>
-                  <div className="partners-wrapper">
-                    <div className="partner-logos">
-                      <div className="grid-container">
-                        {currentItems.map((item) => (
-                          <div
-                            className="cell"
-                            key={item.id}
-                            style={{
-                              flex: '0 0 calc(50% - 20px)',
-                              '@media (min-width: 768px)': {
-                                flex: '0 0 calc(33.333% - 20px)'
-                              },
-                              '@media (max-width: 768px)': {
-                                flex: '0 0 100%'
-                              }
-                            }}>
-                            <img
-                              className="logo"
-                              src={item.partner_logo}
-                              alt={item.partner_name}
-                              loading="lazy"
-                            />
-                          </div>
-                        ))}
-                      </div>
-
-                      <Pagination
-                        currentPage={currentPage}
-                        setCurrentPage={setCurrentPage}
-                        totalPages={totalPages}
-                      />
-                    </div>
-                  </div>
-                </div>
-              }
-              title={<h2 className="section_title">Partners</h2>}
-              bgColor="#FFFFFF"
-            />
-          </section>
-
-          <div className="separator" />
-
-          <section className="speakers" ref={refMapping.speakers}>
-            <h2 style={{ marginBottom: '20px' }} className="section_title">
-              Speakers
-            </h2>
-            <div className="AboutUsPage__pictorial">
-              {displayedProfiles.map((profile) => (
-                <div key={profile.id}>
-                  <Profile
-                    name={profile.name}
-                    title={profile.title}
-                    about={profile.biography}
-                    ImgPath={profile.profile_image}
-                    readBioBtn={true}
-                  />
-                </div>
-              ))}
-              {profiles.length > ITEMS_PER_PAGE && (
-                <div className="showMoreLessBtn">
-                  <button onClick={() => setIsExpanded(!isExpanded)}>
-                    {isExpanded ? 'Show Less' : 'Show More'}
-                  </button>
-                </div>
-              )}
-            </div>
           </section>
 
           <div className="separator" />
@@ -348,42 +545,41 @@ const CleanAirForumEvent = () => {
             <h2 style={{ marginBottom: '20px' }} className="section_title">
               Schedule
             </h2>
-
-            <div class="schedule">
+            <div className="schedule" ref={wrapperRef}>
               {schedules.map((schedule) => (
-                <div class="event" key={schedule.id}>
-                  <p class="date">{schedule.date}</p>
-                  <p class="title">{schedule.title}</p>
+                <div
+                  className="event"
+                  key={schedule.id}
+                  onClick={() => setShowAccordion(schedule.id)}>
+                  <div className="event-head">
+                    <div>
+                      <p className="date">{schedule.date}</p>
+                      <p className="title">{schedule.title}</p>
+                    </div>
+                    <div>
+                      {showAccordion === schedule.id ? (
+                        <span>{upArrow()}</span>
+                      ) : (
+                        <span>{downArrow()}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {showAccordion === schedule.id && (
+                    <>
+                      <div className="line" />
+                      <div className="event-details">
+                        <p>
+                          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed nonne
+                          merninisti licere mihi ista probare, quae sunt a te dicta? Duo Reges:
+                          constructio interrete. Quae cum dixisset paulumque institisset, Quid est?{' '}
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
-          </section>
-
-          <div className="separator" />
-
-          <section className="about registration" ref={refMapping.registration}>
-            <SplitTextSection
-              lists={[]}
-              content={
-                <div className="engagements_list">
-                  <div>
-                    <div>
-                      <h3>Visa to Nigeria</h3>
-                      <p>Download the Visa invitation letter</p>
-                      <span onClick={null}>Download here</span>
-                    </div>
-                  </div>
-                  <div>
-                    <div>
-                      <p>We look forward to welcoming you to Lagos, Nigeria!</p>
-                      <span onClick={null}>Register here</span>
-                    </div>
-                  </div>
-                </div>
-              }
-              title={<h2 className="section_title">Registration</h2>}
-              bgColor="#FFFFFF"
-            />
           </section>
 
           <div className="separator" />
@@ -398,36 +594,24 @@ const CleanAirForumEvent = () => {
                   make sure to check all vaccination requirements before traveling.
                 </div>
               }
-              title={<h2 className="section_title">Vaccination</h2>}
+              title={<h2 className="section_title">Travel Logistics</h2>}
               bgColor="#FFFFFF"
             />
           </section>
-
-          <div className="separator" />
 
           <section className="about support" ref={refMapping.support}>
             <SplitTextSection
               lists={[]}
               content={
                 <div className="engagements_list">
-                  <div>
-                    <h3>Programme and General Inquiries</h3>
-                    <p>Deo Okure</p>
-                    <p>Air Quality Scientist and Programmmes Manager </p>
-                    <p>dokure@airqo.net</p>
-                  </div>
-                  <div>
-                    <h3>Logistics and Travel arrangements</h3>
-                    <p>Dora Bampangana</p>
-                    <p>Project Administrator</p>
-                    <p>dora@airqo.net</p>
-                  </div>
-                  <div>
-                    <h3>Communications and Visibility</h3>
-                    <p>Maclina Birungi</p>
-                    <p>Marketing and Communications Lead</p>
-                    <p>maclina@airqo.net</p>
-                  </div>
+                  {support.map((support) => (
+                    <div key={support.id}>
+                      <h3>{support.supportType}</h3>
+                      <p>{support.name}</p>
+                      <p>{support.position}</p>
+                      <a href={`mailto:${support.email}`}>{support.email}</a>
+                    </div>
+                  ))}
                 </div>
               }
               title={<h2 className="section_title">Support</h2>}

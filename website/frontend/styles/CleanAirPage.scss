@@ -357,6 +357,12 @@
           align-items: flex-start;
           color: #353e52;
 
+          font-size: 48px;
+          font-weight: 500;
+          line-height: 56px;
+          margin: 0;
+          padding: 0;
+
           h1 {
             font-size: 48px;
             font-weight: 500;
@@ -401,6 +407,7 @@
           }
 
           .cell {
+            flex: 0 0 calc(50% - 20px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -411,6 +418,18 @@
             max-width: 260px;
             border: 1px solid $aq-blue-2;
             cursor: pointer;
+          }
+
+          @media (min-width: 768px) {
+            .cell {
+              flex: 0 0 calc(50% - 20px);
+            }
+          }
+
+          @media (max-width: 768px) {
+            .cell {
+              flex: 0 0 100%;
+            }
           }
 
           .logo {
@@ -1536,6 +1555,91 @@
         margin: 0 auto;
       }
 
+      .header-info-con {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        .header-info {
+          margin-bottom: 10px;
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: flex-start;
+
+          span {
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+            font-weight: 400;
+            margin-right: 15px;
+
+            span {
+              width: 10px;
+              height: 10px;
+              border-radius: 50%;
+              background-color: $dot-color;
+            }
+
+            .icon {
+              margin-right: 10px;
+            }
+          }
+        }
+      }
+
+      .headerScroll {
+        .navigation {
+          width: 100%;
+          height: 74px;
+          background-color: $background-color;
+          overflow-x: scroll;
+
+          &::-webkit-scrollbar {
+            display: none;
+          }
+
+          ul {
+            list-style-type: none;
+            display: flex;
+            justify-content: flex-start;
+            height: 100%;
+
+            li {
+              display: inline-flex;
+              align-items: center;
+              margin-right: 30px;
+              text-decoration: none;
+              width: auto;
+              height: 100%;
+              position: relative;
+
+              &:first-child::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 2px;
+                background-color: #353e52;
+              }
+
+              span {
+                text-decoration: none;
+                color: $font-color-light;
+                font-size: 16px;
+                cursor: pointer;
+
+                &:hover {
+                  color: $font-color;
+                }
+              }
+            }
+          }
+        }
+      }
+
       .header {
         background: {
           image: url('assets/img/cleanAir/section2.png');
@@ -1546,41 +1650,6 @@
         height: 400px;
         display: flex;
         flex-direction: column;
-
-        .header-info-con {
-          width: 100%;
-          height: 100%;
-          display: flex;
-          padding: 5px 16px;
-          flex-direction: column;
-          justify-content: center;
-
-          .header-info {
-            margin-bottom: 10px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: flex-start;
-
-            span {
-              display: flex;
-              align-items: center;
-              font-size: 16px;
-              font-weight: 400;
-              margin-right: 15px;
-
-              span {
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
-                background-color: $dot-color;
-              }
-
-              .icon {
-                margin-right: 10px;
-              }
-            }
-          }
-        }
 
         .header-main-info {
           margin-bottom: 50px;
@@ -1627,6 +1696,13 @@
           height: 74px;
           background-color: $background-color;
           overflow-x: scroll;
+
+          // sticky navigation on scroll
+          .nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+          }
 
           &::-webkit-scrollbar {
             display: none;
@@ -1679,6 +1755,10 @@
         font-weight: 400;
         line-height: 150%;
 
+        section {
+          margin-bottom: 40px;
+        }
+
         .separator {
           margin-top: 10px;
           margin-bottom: 40px;
@@ -1700,7 +1780,6 @@
         .about {
           scroll-margin-top: 6rem;
           max-width: 92%;
-          margin-bottom: 40px;
 
           .intro {
             margin-bottom: 40px;
@@ -1737,12 +1816,27 @@
 
         .forum_partners {
           scroll-margin-top: 6rem;
-          margin-bottom: 40px;
+        }
+
+        .Funding_partners {
+          width: 100%;
+          .image-con {
+            display: flex;
+            flex-wrap: wrap;
+
+            img {
+              width: 100%;
+              max-width: 130px;
+              margin: 10px;
+              height: auto;
+              object-fit: contain;
+              object-position: center;
+            }
+          }
         }
 
         .speakers {
           scroll-margin-top: 6rem;
-          margin-bottom: 40px;
           .AboutUsPage__pictorial {
             display: flex;
             flex-wrap: wrap;
@@ -1795,11 +1889,28 @@
 
         .schedule {
           scroll-margin-top: 6rem;
-          margin-bottom: 40px;
           .event {
             background-color: #f0f0f0;
             margin-bottom: 15px;
             padding: 30px;
+            cursor: pointer;
+
+            .event-head {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            }
+
+            &:hover {
+              background-color: #e0e0e0;
+            }
+
+            .line {
+              width: 100%;
+              height: 1px;
+              background-color: #353e52;
+              margin: 20px 0;
+            }
 
             p {
               font-size: 24px;
@@ -1825,6 +1936,13 @@
                 cursor: pointer;
               }
             }
+          }
+        }
+
+        .support {
+          a {
+            color: #135dff;
+            cursor: pointer;
           }
         }
       }
@@ -2207,6 +2325,9 @@
               margin-bottom: 40px;
               .AboutUsPage__pictorial {
                 justify-content: center;
+                img {
+                  max-height: 200px;
+                }
               }
             }
           }

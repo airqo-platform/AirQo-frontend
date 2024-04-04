@@ -28,14 +28,12 @@ const Split_Text_section = ({ bgColor, content, title, lists, loading }) => {
     <div className="textSplit-section" style={{ backgroundColor: bgColor }}>
       <div className="container">
         <div className="grid-wrapper">
-          <div className="title-section">
-            <h1>{title}</h1>
-          </div>
+          <div className="title-section">{title}</div>
           <div className="content-section">
             {/<[a-z][\s\S]*>/i.test(content) ? (
               <div dangerouslySetInnerHTML={{ __html: content }} />
             ) : (
-              <p>{content}</p>
+              <div>{content}</div>
             )}
           </div>
         </div>
