@@ -29,6 +29,7 @@ const Carousel = ({ IntroList }) => {
         <div ref={slideRef} className='flex w-full h-full'>
           {IntroList.map((item, index) => (
             <div key={item.name} className='w-full flex-none text-center' data-carousel-item>
+              <h2 className='text-lg font-bold'>{item.name}</h2>
               <Image
                 src={item.image}
                 alt={item.name}
@@ -123,11 +124,6 @@ const AppIntro = ({ isOpen, setIsOpen, features }) => {
               <div className='bg-white px-2 pt-3 pb-2 sm:p-4 sm:pb-2'>
                 <div className='sm:flex sm:items-start'>
                   <div className='mt-3 text-center sm:mt-0 sm:ml-2 sm:text-left w-full h-full'>
-                    <h3
-                      className='text-lg leading-6 text-center font-medium text-gray-900'
-                      id='modal-title'>
-                      Welcome to AirQo Analytics
-                    </h3>
                     <div className='mt-2 relative'>
                       <Carousel IntroList={features} />
                     </div>

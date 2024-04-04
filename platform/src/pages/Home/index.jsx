@@ -22,18 +22,18 @@ import Settings from '@/images/Home/settings.png';
 const IntroList = [
   {
     image: Analytics,
-    name: 'Analytics',
-    text: 'The Analytics feature provides comprehensive insights into air quality data.',
+    name: 'Get Insights',
+    text: 'Track air pollution in places you care about.',
   },
   {
     image: Export,
-    name: 'Export',
-    text: 'The Export feature allows you to download air quality data for offline analysis.',
+    name: 'Data Download',
+    text: 'Download air quality data for offline analysis.',
   },
   {
     image: Settings,
-    name: 'Settings',
-    text: 'The Settings feature lets you customize your AirQo Analytics experience.',
+    name: 'Customize',
+    text: 'Personalize your experience with AirQo Analytics.',
   },
 ];
 
