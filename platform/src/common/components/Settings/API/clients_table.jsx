@@ -2,29 +2,38 @@ import { useEffect, useState } from 'react';
 import Skeleton from '../../Collocation/DeviceStatus/Table/Skeleton';
 import moment from 'moment';
 import { getUserDetails } from '@/core/apis/Account';
-import CopyIcon from '@/icons/Common/copy.svg';
+import EditIcon from '@/icons/Common/edit-pencil.svg';
 import { useSelector } from 'react-redux';
 import Toast from '@/components/Toast';
+import { addClients } from '@/lib/store/services/apiClient';
+import { isEmpty } from 'underscore';
+import { useDispatch } from 'react-redux';
+import EditClientForm from './EditClientForm';
 
 const ClientsTable = () => {
-  const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
-  const [focusedRowIndex, setFocusedRowIndex] = useState(null);
-  const [clientDetails, setClientDetails] = useState([]);
+  const dispatch = useDispatch();
   const [showAlert, setShowAlert] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [openEditForm, setOpenEditForm] = useState(false);
+  const [selectedClient, setSelectedClient] = useState(null);
   const userInfo = useSelector((state) => state.login.userInfo);
+  const clients = useSelector((state) => state.apiClient.clients);
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      try {
-        const res = await getUserDetails(userInfo?._id);
-        if (res.success === true) {
-          setClientDetails(res.users[0].clients);
+      if (isEmpty(clients)) {
+        try {
+          const res = await getUserDetails(userInfo?._id);
+          if (res.success === true) {
+            dispatch(addClients(res.users[0].clients));
+          }
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setIsLoading(false);
         }
-      } catch (error) {
-        console.error(error);
-      } finally {
+      } else {
         setIsLoading(false);
       }
     };
@@ -42,9 +51,6 @@ const ClientsTable = () => {
           <tr className='text-secondary-neutral-light-500 text-xs border-y border-y-secondary-neutral-light-100 bg-secondary-neutral-light-25'>
             <th scope='col' className='font-medium w-[200px] px-4 py-3 opacity-40'>
               Client name
-            </th>
-            <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
-              Client ID
             </th>
             <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
               IP Address
@@ -66,19 +72,10 @@ const ClientsTable = () => {
           <Skeleton />
         ) : (
           <tbody>
-            {clientDetails?.length > 0 ? (
-              clientDetails?.map((client, index) => {
+            {clients?.length > 0 ? (
+              clients?.map((client, index) => {
                 return (
-                  <tr
-                    className={`border-b border-b-secondary-neutral-light-100 ${
-                      hoveredRowIndex === index ? 'bg-secondary-neutral-light-25' : ''
-                    } ${focusedRowIndex === index ? 'bg-gray-200' : ''}`}
-                    key={index}
-                    onMouseEnter={() => setHoveredRowIndex(index)}
-                    onMouseLeave={() => setHoveredRowIndex(null)}
-                    onFocus={() => setFocusedRowIndex(index)}
-                    onBlur={() => setFocusedRowIndex(null)}
-                  >
+                  <tr className={`border-b border-b-secondary-neutral-light-100`} key={index}>
                     <td
                       scope='row'
                       className='w-[200px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-800'
@@ -89,19 +86,18 @@ const ClientsTable = () => {
                       scope='row'
                       className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
                     >
-                      {client?._id}
-                    </td>
-                    <td
-                      scope='row'
-                      className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
-                    >
                       {client?.ip_address}
                     </td>
-                    <td
-                      scope='row'
-                      className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
-                    >
-                      {client?.isActive ? 'Activated' : 'Not Activated'}
+                    <td scope='row' className='w-[138px] px-4 py-3'>
+                      <div
+                        className={`px-2 py-[2px] rounded-2xl w-auto inline-flex justify-center text-sm leading-5 items-center mx-auto ${
+                          client?.isActive
+                            ? 'bg-success-50 text-success-700'
+                            : 'bg-secondary-neutral-light-50 text-secondary-neutral-light-500'
+                        }`}
+                      >
+                        {client?.isActive ? 'Activated' : 'Not Activated'}
+                      </div>
                     </td>
                     <td
                       scope='row'
@@ -109,11 +105,24 @@ const ClientsTable = () => {
                     >
                       {moment(client?.createdAt).format('MMM DD, YYYY')}
                     </td>
-                    <td
-                      scope='row'
-                      className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
-                    >
-                      Generate Token
+                    <td scope='row' className='w-[138px] px-4 py-3'>
+                      <div
+                        title={
+                          !client?.isActive ? 'Tap to generate token' : 'Token already generated'
+                        }
+                        className={`px-4 py-2 rounded-2xl w-auto inline-flex justify-center text-sm leading-5 items-center mx-auto ${
+                          !client?.isActive
+                            ? 'bg-success-700 text-success-50 cursor-pointer'
+                            : 'bg-secondary-neutral-light-50 text-secondary-neutral-light-500'
+                        }`}
+                        onClick={() => {
+                          if (!client?.isActive) {
+                            // Generate token
+                          }
+                        }}
+                      >
+                        Generate
+                      </div>
                     </td>
                     <td
                       scope='row'
@@ -122,14 +131,11 @@ const ClientsTable = () => {
                       <div
                         className='w-9 h-9 p-2.5 bg-white rounded border border-gray-200 justify-center items-center gap-2 cursor-pointer'
                         onClick={() => {
-                          navigator.clipboard.writeText(client?.token);
-                          setShowAlert(true);
-                          setTimeout(() => {
-                            setShowAlert(false);
-                          }, 6000);
+                          setOpenEditForm(true);
+                          setSelectedClient(client);
                         }}
                       >
-                        <CopyIcon className='w-4 h-4' />
+                        <EditIcon className='w-4 h-4' />
                       </div>
                     </td>
                   </tr>
@@ -145,6 +151,13 @@ const ClientsTable = () => {
           </tbody>
         )}
       </table>
+      <EditClientForm
+        open={openEditForm}
+        closeModal={() => setOpenEditForm(false)}
+        cIP={selectedClient?.ip_address}
+        cName={selectedClient?.name}
+        clientID={selectedClient?._id}
+      />
     </div>
   );
 };

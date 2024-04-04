@@ -4,7 +4,6 @@ import Button from '@/components/Button';
 
 const Modal = ({ description, confirmButton, handleConfirm, display, closeModal }) => {
   const [loading, setLoading] = useState(false);
-  console.log(loading);
   const handleClick = async () => {
     setLoading(true);
     try {

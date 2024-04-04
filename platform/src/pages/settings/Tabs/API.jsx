@@ -4,21 +4,23 @@ import Button from '@/components/Button';
 import AddIcon from '@/icons/Actions/plus.svg';
 import TokenTable from '@/components/Settings/API/tokens_table';
 import ClientsTable from '@/components/Settings/API/clients_table';
+import AddClientForm from '@/components/Settings/API/AddClientForm';
 
 const API = () => {
+  const [showAddClientForm, setShowAddClientForm] = useState(false);
+
   return (
     <div data-testid='api-tab' className='px-3 lg:px-16 mb-5 flex flex-col gap-10'>
       <ContentBox noMargin>
         <div className='px-3 py-4 md:flex justify-between items-center gap-5'>
           <div>
-            <h3 className='text-grey-710 font-medium text-sm'>API clients</h3>
+            <h3 className='text-grey-710 font-medium text-lg'>API clients</h3>
             <p className='text-grey-500 text-sm md:max-w-[640px] w-full'>
-              To generate an API token, you'll need to create a client. Clients are used to generate
-              API tokens that can be used to authenticate with the API.
+              Clients are used to generate API tokens that can be used to authenticate with the API.
             </p>
           </div>
           <Button
-            onClick={() => {}}
+            onClick={() => setShowAddClientForm(true)}
             className='w-[152px] h-11 flex justify-center items-center gap-2 rounded py-3 px-4 mr-5 my-4 md:mb-0 bg-blue-600 text-white text-sm font-medium'
           >
             <AddIcon /> Create client
@@ -32,7 +34,7 @@ const API = () => {
       </ContentBox>
       <ContentBox noMargin>
         <div className='px-3 py-4'>
-          <h3 className='text-grey-710 font-medium text-sm'>API tokens</h3>
+          <h3 className='text-grey-710 font-medium text-lg'>API tokens</h3>
           <p className='text-grey-500 text-sm'>
             Your secret API keys are listed below. Remember to keep them secure and never share
             them.
@@ -42,6 +44,9 @@ const API = () => {
           <TokenTable />
         </div>
       </ContentBox>
+      {showAddClientForm && (
+        <AddClientForm open={showAddClientForm} closeModal={() => setShowAddClientForm(false)} />
+      )}
     </div>
   );
 };

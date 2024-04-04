@@ -5,14 +5,15 @@ import { getClientsApi } from '@/core/apis/Settings';
 import CopyIcon from '@/icons/Common/copy.svg';
 import { useSelector } from 'react-redux';
 import Toast from '@/components/Toast';
+import { useDispatch } from 'react-redux';
+import { addClientsDetails } from '@/lib/store/services/apiClient';
 
 const TokenTable = () => {
-  const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
-  const [focusedRowIndex, setFocusedRowIndex] = useState(null);
-  const [clientDetails, setClientDetails] = useState([]);
+  const dispatch = useDispatch();
   const [showAlert, setShowAlert] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const userInfo = useSelector((state) => state.login.userInfo);
+  const clientsData = useSelector((state) => state.apiClient.clientsDetails);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -20,7 +21,7 @@ const TokenTable = () => {
       try {
         const response = await getClientsApi(userInfo?._id);
         if (response.success === true) {
-          setClientDetails(response.clients);
+          dispatch(addClientsDetails(response.clients));
         }
       } catch (error) {
         console.error(error);
@@ -31,14 +32,16 @@ const TokenTable = () => {
     fetchData();
   }, []);
 
-  const result = clientDetails
-    .flatMap((item) => item.access_token || [])
-    .map((token) => ({
-      clientName: token && token.name ? token.name : undefined,
-      createdAt: token && token.createdAt ? token.createdAt : undefined,
-      expiresAt: token && token.expires ? token.expires : undefined,
-      token: token && token.token ? token.token : undefined,
-    }));
+  let result =
+    clientsData?.length > 0 &&
+    clientsData
+      .flatMap((item) => item.access_token || [])
+      .map((token) => ({
+        clientName: clientsData.find((client) => client._id === token.client_id)?.name,
+        createdAt: token && token.createdAt ? token.createdAt : undefined,
+        expiresAt: token && token.expires ? token.expires : undefined,
+        token: token && token.token ? token.token : undefined,
+      }));
 
   return (
     <div className='overflow-x-scroll'>
@@ -72,16 +75,7 @@ const TokenTable = () => {
             {result?.length > 0 ? (
               result.map((client, index) => {
                 return (
-                  <tr
-                    className={`border-b border-b-secondary-neutral-light-100 ${
-                      hoveredRowIndex === index ? 'bg-secondary-neutral-light-25' : ''
-                    } ${focusedRowIndex === index ? 'bg-gray-200' : ''}`}
-                    key={index}
-                    onMouseEnter={() => setHoveredRowIndex(index)}
-                    onMouseLeave={() => setHoveredRowIndex(null)}
-                    onFocus={() => setFocusedRowIndex(index)}
-                    onBlur={() => setFocusedRowIndex(null)}
-                  >
+                  <tr className={`border-b border-b-secondary-neutral-light-100`} key={index}>
                     <td
                       scope='row'
                       className='w-[200px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-800'
