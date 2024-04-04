@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import Skeleton from '../../Collocation/DeviceStatus/Table/Skeleton';
 import moment from 'moment';
-import { getClientsApi } from '@/core/apis/Settings';
+import { getUserDetails } from '@/core/apis/Account';
 import CopyIcon from '@/icons/Common/copy.svg';
 import { useSelector } from 'react-redux';
 import Toast from '@/components/Toast';
 
-const TokenTable = () => {
+const ClientsTable = () => {
   const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
   const [focusedRowIndex, setFocusedRowIndex] = useState(null);
   const [clientDetails, setClientDetails] = useState([]);
@@ -18,9 +18,9 @@ const TokenTable = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const response = await getClientsApi(userInfo?._id);
-        if (response.success === true) {
-          setClientDetails(response.clients);
+        const res = await getUserDetails(userInfo?._id);
+        if (res.success === true) {
+          setClientDetails(res.users[0].clients);
         }
       } catch (error) {
         console.error(error);
@@ -31,21 +31,12 @@ const TokenTable = () => {
     fetchData();
   }, []);
 
-  const result = clientDetails
-    .flatMap((item) => item.access_token || [])
-    .map((token) => ({
-      clientName: token && token.name ? token.name : undefined,
-      createdAt: token && token.createdAt ? token.createdAt : undefined,
-      expiresAt: token && token.expires ? token.expires : undefined,
-      token: token && token.token ? token.token : undefined,
-    }));
-
   return (
     <div className='overflow-x-scroll'>
       {showAlert && <Toast type={'success'} message={'Token copied to clipboard!'} />}
       <table
         className='border-collapse rounded-lg text-xs text-left w-full mb-6'
-        data-testid='settings-tokens-table'
+        data-testid='settings-clients-table'
       >
         <thead>
           <tr className='text-secondary-neutral-light-500 text-xs border-y border-y-secondary-neutral-light-100 bg-secondary-neutral-light-25'>
@@ -53,13 +44,19 @@ const TokenTable = () => {
               Client name
             </th>
             <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
-              Token
+              Client ID
+            </th>
+            <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
+              IP Address
+            </th>
+            <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
+              Status
             </th>
             <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
               Created date
             </th>
             <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
-              Expires at
+              Generate token
             </th>
             <th scope='col' className='font-medium w-24 px-4 py-3 opacity-40'></th>
           </tr>
@@ -69,8 +66,8 @@ const TokenTable = () => {
           <Skeleton />
         ) : (
           <tbody>
-            {result?.length > 0 ? (
-              result.map((client, index) => {
+            {clientDetails?.length > 0 ? (
+              clientDetails?.map((client, index) => {
                 return (
                   <tr
                     className={`border-b border-b-secondary-neutral-light-100 ${
@@ -86,15 +83,25 @@ const TokenTable = () => {
                       scope='row'
                       className='w-[200px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-800'
                     >
-                      {client?.clientName}
+                      {client?.name}
                     </td>
                     <td
                       scope='row'
                       className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
                     >
-                      {client?.token
-                        ? `${client.token.slice(0, 2)}..........${client.token.slice(-2)}`
-                        : ''}
+                      {client?._id}
+                    </td>
+                    <td
+                      scope='row'
+                      className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
+                    >
+                      {client?.ip_address}
+                    </td>
+                    <td
+                      scope='row'
+                      className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
+                    >
+                      {client?.isActive ? 'Activated' : 'Not Activated'}
                     </td>
                     <td
                       scope='row'
@@ -106,7 +113,7 @@ const TokenTable = () => {
                       scope='row'
                       className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
                     >
-                      {moment(client?.expiresAt).format('MMM DD, YYYY')}
+                      Generate Token
                     </td>
                     <td
                       scope='row'
@@ -142,4 +149,4 @@ const TokenTable = () => {
   );
 };
 
-export default TokenTable;
+export default ClientsTable;
