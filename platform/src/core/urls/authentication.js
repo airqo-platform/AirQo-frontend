@@ -30,3 +30,5 @@ export const USER_CHECKLISTS_UPSERT_URL = `${BASE_AUTH_URL}/users/checklist/upse
 export const FORGOT_PWD_URL = `${BASE_AUTH_URL}/users/forgotPassword`;
 
 export const RESET_PWD_URL = `${BASE_AUTH_URL}/users/updatePasswordViaEmail`;
+
+export const CLIENT_URI = `${BASE_AUTH_URL}/users/clients`;
