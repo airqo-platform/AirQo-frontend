@@ -18,7 +18,7 @@ The template currently uses two official plugins:
 
 The template comes with a basic ESLint configuration. If you are developing a production application, we recommend expanding the configuration to enable type-aware lint rules. Here's how you can do it:
 
-## Getting Started
+## Getting Started.
 
 To get started with this template, clone the repository and install the dependencies:
 
