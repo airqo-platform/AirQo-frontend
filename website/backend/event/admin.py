@@ -4,46 +4,35 @@ import nested_admin
 from .models import Event, Program, Session, PartnerLogo, Inquiry, Resource
 from modeltranslation.admin import TranslationAdmin, TranslationStackedInline, TranslationTabularInline
 
-# Create a new class that inherits from both NestedTabularInline and TranslationTabularInline
 
-
-class TranslationNestedTabularInline(TranslationTabularInline, nested_admin.NestedTabularInline):
-    pass
-
-# Register your models here.
-
-
-class InquiryInline(nested_admin.NestedTabularInline):
-    model = Inquiry
-    extra = 0
+class InquiryInline(TranslationTabularInline, nested_admin.NestedStackedInline):
     fields = ('inquiry', 'role', 'email', 'order')
     readonly_fields = ('author', 'updated_by')
+    model = Inquiry
+    extra = 0
 
 
-class SessionInline(TranslationStackedInline):
+class SessionInline(TranslationTabularInline, nested_admin.NestedStackedInline):
+    readonly_fields = ('author', 'updated_by')
     model = Session
     extra = 0
-    fields = ('session_title', 'session_details',
-              'venue', 'start_time', 'end_time', 'order')
+
+
+class ProgramInline(TranslationTabularInline, nested_admin.NestedTabularInline):
     readonly_fields = ('author', 'updated_by')
-
-
-class ProgramInline(TranslationNestedTabularInline):  # Use the new class here
     model = Program
-    extra = 0
-    fields = ('date', 'program_details', 'order')
-    readonly_fields = ('author', 'updated_by')
     inlines = [SessionInline]
+    extra = 0
 
 
-class PartnerLogoInline(TranslationNestedTabularInline):  # And here
+class PartnerLogoInline(TranslationTabularInline, nested_admin.NestedTabularInline):
     model = PartnerLogo
     extra = 0
     fields = ('name', 'partner_logo', 'order')
     readonly_fields = ('author', 'updated_by')
 
 
-class ResourceInline(TranslationNestedTabularInline):  # And here
+class ResourceInline(TranslationTabularInline, nested_admin.NestedTabularInline):
     model = Resource
     extra = 0
     fields = ('title', 'link', 'resource', 'order')
