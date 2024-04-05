@@ -5,14 +5,42 @@ import { getUserDetails } from '@/core/apis/Account';
 import EditIcon from '@/icons/Common/edit-pencil.svg';
 import { useSelector } from 'react-redux';
 import Toast from '@/components/Toast';
-import { addClients } from '@/lib/store/services/apiClient';
+import { addClients, addClientsDetails } from '@/lib/store/services/apiClient';
 import { isEmpty } from 'underscore';
 import { useDispatch } from 'react-redux';
 import EditClientForm from './EditClientForm';
+import { generateTokenApi } from '@/core/apis/Settings';
+import Button from '@/components/Button';
+
+const Modal = ({ title, message, open, onClose }) => {
+  useEffect(() => {
+    if (open) {
+      const modal = document.getElementById('my_modal_2');
+      modal.showModal();
+    }
+  }, [open]);
+
+  return (
+    <dialog id='my_modal_2' className='modal'>
+      <div className='modal-box'>
+        {title && <h3 className='font-bold text-lg'>{title}</h3>}
+        <p className='py-4'>{message}</p>
+        <form method='dialog' className='modal-backdrop'>
+          <button onClick={onClose}>Close</button>
+        </form>
+      </div>
+    </dialog>
+  );
+};
 
 const ClientsTable = () => {
   const dispatch = useDispatch();
-  const [showAlert, setShowAlert] = useState(false);
+  const [isError, setIsError] = useState({
+    isError: false,
+    message: '',
+    type: '',
+  });
+  const [showInfoModal, setShowInfoModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [openEditForm, setOpenEditForm] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
@@ -40,9 +68,42 @@ const ClientsTable = () => {
     fetchData();
   }, []);
 
+  const handleGenerateToken = async (res) => {
+    setIsLoading(true);
+    const setErrorState = (message, type) => {
+      setIsError({
+        isError: true,
+        message,
+        type,
+      });
+    };
+    if (!res?.isActive) {
+      setShowInfoModal(true);
+      setTimeout(() => {
+        setShowInfoModal(false);
+      }, 5000);
+      setIsLoading(false);
+    } else {
+      try {
+        const response = await generateTokenApi(res);
+        if (response.success === true) {
+          setErrorState('Token generated', 'success');
+        }
+        const resp = await getClientsApi(userInfo?._id);
+        if (resp.success === true) {
+          dispatch(addClientsDetails(res.client_id));
+        }
+      } catch (error) {
+        setErrorState(error.message, 'error');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
   return (
     <div className='overflow-x-scroll'>
-      {showAlert && <Toast type={'success'} message={'Token copied to clipboard!'} />}
+      {isError.isError && <Toast type={isError.type} message={isError.message} />}
       <table
         className='border-collapse rounded-lg text-xs text-left w-full mb-6'
         data-testid='settings-clients-table'
@@ -106,7 +167,7 @@ const ClientsTable = () => {
                       {moment(client?.createdAt).format('MMM DD, YYYY')}
                     </td>
                     <td scope='row' className='w-[138px] px-4 py-3'>
-                      <div
+                      <Button
                         title={
                           !client?.isActive ? 'Tap to generate token' : 'Token already generated'
                         }
@@ -115,14 +176,19 @@ const ClientsTable = () => {
                             ? 'bg-success-700 text-success-50 cursor-pointer'
                             : 'bg-secondary-neutral-light-50 text-secondary-neutral-light-500'
                         }`}
+                        disabled={showInfoModal}
                         onClick={() => {
-                          if (!client?.isActive) {
-                            // Generate token
-                          }
+                          let res = {
+                            name: client.name,
+                            client_id: client._id,
+                            isActive: client.isActive ? client.isActive : false,
+                          };
+
+                          handleGenerateToken(res);
                         }}
                       >
                         Generate
-                      </div>
+                      </Button>
                     </td>
                     <td
                       scope='row'
@@ -151,6 +217,7 @@ const ClientsTable = () => {
           </tbody>
         )}
       </table>
+
       <EditClientForm
         open={openEditForm}
         closeModal={() => setOpenEditForm(false)}
@@ -158,6 +225,13 @@ const ClientsTable = () => {
         cName={selectedClient?.name}
         clientID={selectedClient?._id}
       />
+
+      {showInfoModal && (
+        <Toast
+          type='info'
+          message='You cannot generate a token for an inactive client, reach out to support for assistance at support@airqo.net or send an activation request'
+        />
+      )}
     </div>
   );
 };
