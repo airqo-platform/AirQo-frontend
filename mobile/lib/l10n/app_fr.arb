@@ -357,5 +357,6 @@
   "addMyEmailToMyProfile":"Ajoutez mon e-mail à mon profil",
   "addYourEmailToYourProfileToEnableYouToAccessThe" : "Ajoutez votre e-mail à votre profil pour vous permettre d'accéder au ",
   "accessDeeperAirQualityInsights":"Accéder à des informations plus approfondies sur la qualité de l'air",
-  "usingYourAirQoMobileAppAccount":"En utilisant votre compte AirQo Mobile App"
+  "usingYourAirQoMobileAppAccount":"En utilisant votre compte AirQo Mobile App",
+  "enterYourEmailAddress":"Entrez votre adresse e-mail"
 }
