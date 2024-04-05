@@ -359,5 +359,9 @@
     "addMyEmailToMyProfile":"Yongerako email yange ku profile yange",
     "addYourEmailToYourProfileToEnableYouToAccessThe" : "Yongerako email yo ku profile yo okukusobozesa okuyingira mu ",
     "accessDeeperAirQualityInsights":"okwekenenya okw'omutindo gw'empewo",
-    "usingYourAirQoMobileAppAccount":"okuva ku akawunti yo ku app ya AirQo"
+    "usingYourAirQoMobileAppAccount":"okuva ku akawunti yo ku app ya AirQo",
+    "all":"Byonna",
+    "lessons":"Misomo",
+    "quiz":"Ekibuuzo"
+    "enterYourEmailAddress":"Ssaamu email yo"
 }
