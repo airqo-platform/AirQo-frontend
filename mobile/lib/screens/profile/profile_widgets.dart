@@ -1177,13 +1177,17 @@ class LinkAccountReminder extends StatelessWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(left: 16, right: 10),
-                      child: Text(
-                          AppLocalizations.of(context)!.addMyEmailToMyProfile,
-                          style: TextStyle(
-                            color: CustomColors.appColorBlue,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                          )),
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.535, 
+                        child: AutoSizeText(
+                          overflow:  TextOverflow.ellipsis,
+                            AppLocalizations.of(context)!.addMyEmailToMyProfile,
+                            style: TextStyle(
+                              color: CustomColors.appColorBlue,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                            )),
+                      ),
                     ),
                     const SizedBox(width: 10),
                     Container(
