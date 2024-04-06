@@ -2,9 +2,9 @@ from modeltranslation.translator import register, TranslationOptions
 from .models import *
 
 
-@register(Inquiry)
-class InquiryTranslationOptions(TranslationOptions):
-    fields = ('inquiry', 'role',)
+# @register(Inquiry)
+# class InquiryTranslationOptions(TranslationOptions):
+#     fields = ('inquiry', 'role',)
 
 
 @register(Program)

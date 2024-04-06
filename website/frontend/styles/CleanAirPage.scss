@@ -407,8 +407,8 @@
           }
 
           .cell {
-            flex: 0 0 calc(50% - 20px);
             display: flex;
+            flex-grow: 1;
             justify-content: center;
             align-items: center;
             padding: 0 16px;
@@ -422,7 +422,7 @@
 
           @media (min-width: 768px) {
             .cell {
-              flex: 0 0 calc(50% - 20px);
+              flex: 0 0 calc(50% - 0px);
             }
           }
 
@@ -1561,12 +1561,24 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
+        padding: 15px 16px;
+
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(255, 255, 255, 0.4);
+        }
 
         .header-info {
           margin-bottom: 10px;
           display: flex;
           flex-wrap: wrap;
           justify-content: flex-start;
+          z-index: 999 * 5;
 
           span {
             display: flex;
@@ -1647,12 +1659,14 @@
           position: 40% 65%;
           repeat: no-repeat;
         }
-        height: 400px;
+        height: auto;
         display: flex;
         flex-direction: column;
+        position: relative;
 
         .header-main-info {
           margin-bottom: 50px;
+          z-index: 999 * 5;
 
           h1,
           h2 {
@@ -1756,14 +1770,18 @@
         line-height: 150%;
 
         section {
-          scroll-margin-top: 9.5rem;
+          scroll-margin-top: 10rem;
           margin-bottom: 40px;
+          .container {
+            margin: 0;
+            padding: 0;
+          }
         }
 
         .separator {
           margin-top: 10px;
           margin-bottom: 40px;
-          height: 2px;
+          height: 1px;
           flex-shrink: 0;
           background-color: #353e52;
         }
@@ -1783,16 +1801,15 @@
 
           .intro {
             margin-bottom: 40px;
-            p {
-              a {
-                cursor: pointer;
-                color: #353e52;
-                font-size: 24px;
-                font-style: normal;
-                font-weight: 400;
-                line-height: 150%;
-                text-decoration-line: underline;
-              }
+
+            a {
+              cursor: pointer;
+              color: #353e52;
+              font-size: 24px;
+              font-style: normal;
+              font-weight: 400;
+              line-height: 150%;
+              text-decoration-line: underline;
             }
           }
 
@@ -1814,8 +1831,13 @@
           }
         }
 
-        .Funding_partners {
+        .Funding_partners,
+        .forum_partners {
           width: 100%;
+          .content-section {
+            display: block;
+          }
+
           .image-con {
             display: flex;
             flex-wrap: wrap;
@@ -1895,17 +1917,6 @@
               align-items: center;
             }
 
-            &:hover {
-              background-color: #e0e0e0;
-            }
-
-            .line {
-              width: 100%;
-              height: 1px;
-              background-color: #353e52;
-              margin: 20px 0;
-            }
-
             p {
               font-size: 24px;
               font-style: normal;
@@ -1918,16 +1929,63 @@
             .date {
               font-weight: bold;
             }
+
+            .event-details {
+              display: grid;
+              grid-template-columns: 1fr 3fr;
+              grid-template-rows: 1fr;
+              grid-gap: 20px;
+              justify-items: flex-start;
+              margin-top: 10px;
+              padding: 10px 0;
+              width: 100%;
+              height: auto;
+              position: relative;
+              border-top: 1px solid #353e52;
+
+              @media (max-width: $mainBreakPoint) {
+                grid-template-columns: 1fr;
+              }
+
+              .event-details__time {
+                p {
+                  margin: 0;
+                  padding: 0;
+                  font-style: normal;
+                  font-weight: 600;
+                  line-height: 32px;
+                }
+              }
+
+              .event-details__content {
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+
+                .title {
+                  font-style: normal;
+                  font-weight: 600;
+                  line-height: 32px;
+                }
+              }
+            }
           }
         }
 
         .registration {
           .engagements_list {
-            div {
-              span {
-                color: #135dff;
-                cursor: pointer;
-              }
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+              font-size: 24px;
+              line-height: 150%;
+            }
+            a {
+              color: #135dff;
+              cursor: pointer;
             }
           }
         }

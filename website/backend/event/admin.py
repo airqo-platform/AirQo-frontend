@@ -1,11 +1,11 @@
+import nested_admin
 from .translation import *
 from django.contrib import admin
-import nested_admin
 from .models import Event, Program, Session, PartnerLogo, Inquiry, Resource
 from modeltranslation.admin import TranslationAdmin, TranslationStackedInline, TranslationTabularInline
 
 
-class InquiryInline(TranslationTabularInline, nested_admin.NestedStackedInline):
+class InquiryInline(nested_admin.NestedStackedInline):
     fields = ('inquiry', 'role', 'email', 'order')
     readonly_fields = ('author', 'updated_by')
     model = Inquiry
@@ -13,12 +13,16 @@ class InquiryInline(TranslationTabularInline, nested_admin.NestedStackedInline):
 
 
 class SessionInline(TranslationTabularInline, nested_admin.NestedStackedInline):
+    fields = ('session_title', 'session_details',
+              'venue', 'start_time', 'end_time', 'order')
     readonly_fields = ('author', 'updated_by')
     model = Session
     extra = 0
 
 
-class ProgramInline(TranslationTabularInline, nested_admin.NestedTabularInline):
+class ProgramInline(nested_admin.NestedTabularInline):
+    fields = ('date', 'program_details_en',
+              'program_details_fr', 'order')  # Add translated fields here
     readonly_fields = ('author', 'updated_by')
     model = Program
     inlines = [SessionInline]
