@@ -232,9 +232,8 @@ const CleanAirForumEvent = () => {
                   ? forumEvents[0].background_image
                   : BackgroundImage
               })`,
-
               backgroundSize: 'cover',
-              backgroundPosition: 'center',
+              backgroundPosition: '40% 65%',
               backgroundRepeat: 'no-repeat'
             }}>
             <div className="header-info-con container">
