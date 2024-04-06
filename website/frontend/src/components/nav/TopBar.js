@@ -10,8 +10,11 @@ import { useTranslation, Trans } from 'react-i18next';
 import PublicIcon from '@mui/icons-material/Public';
 
 const TopBar = () => {
+  // Translation hook
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const showModal = () => dispatch(showGetInvolvedModal(true));
+  const [showEvent, setShowEvent] = useState(false);
 
   const toggleMenu = () => {
     setOpenItem(null);
@@ -50,8 +53,25 @@ const TopBar = () => {
       return;
     }
   };
-  // Translation hook
-  const { t } = useTranslation();
+
+  useEffect(() => {
+    checkEventDate();
+  }, []);
+
+  const checkEventDate = () => {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+
+    // Show the event link starting from February (5 months before July)
+    if (currentMonth >= 1 && currentMonth < 7) {
+      setShowEvent(true);
+    }
+
+    // Hide the event link after July has ended
+    if (currentMonth >= 7) {
+      setShowEvent(false);
+    }
+  };
 
   return (
     <div className="TopBar">
@@ -163,11 +183,13 @@ const TopBar = () => {
                     <h3>{t('navbar.about.subnav.contact')}</h3>
                   </Link>
                 </div>
-                <div className="dropdown-list-item">
-                  <Link to="/clean-air/events/forum">
-                    <h3>{t('navbar.about.subnav.forumEvent')}</h3>
-                  </Link>
-                </div>
+                {showEvent && (
+                  <div className="dropdown-list-item">
+                    <Link to="/clean-air/events/forum">
+                      <h3>{t('navbar.about.subnav.forumEvent')}</h3>
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </div>
