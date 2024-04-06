@@ -58,7 +58,8 @@
         "resources": "Ressources",
         "press": "Presse",
         "careers": "Carrières",
-        "contact": "Nous Contacter"
+        "contact": "Nous Contacter",
+        "forumEvent": "Forum-Événement"
       }
     },
     "getInvolved": "S'engager",
@@ -308,6 +309,32 @@
     "cta": {
       "showMore": "Afficher plus",
       "showLess": "Afficher moins"
+    },
+
+    "Forum": {
+      "subNav": {
+        "about": "À propos",
+        "speakers": "Conférenciers",
+        "schedule": "Programme",
+        "registration": "Inscription",
+        "partners": "Partenaires",
+        "Travel": "Logistique de voyage"
+      },
+      "sections": {
+        "committee": "Comité de programme",
+        "schedule": "Programme",
+        "speakers": {
+          "title": "Conférenciers",
+          "subText": "Rencontrez les conférenciers du Forum CLEAN-Air ! <br /> Nous sommes ravis d'accueillir des conférenciers renommés du monde entier, aux côtés de dirigeants et de chercheurs de premier plan de différents pays, qui seront des présentateurs clés."
+        },
+        "registration": "Inscription",
+        "partners": {
+          "fund": "Partenaires financiers",
+          "others": "Autres partenaires"
+        },
+        "travel": "Logistique de voyage",
+        "support": "Soutien"
+      }
     }
   },
   "homepage": {

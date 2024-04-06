@@ -6,7 +6,7 @@ import MenuIcon from 'assets/svg/Menu.svg';
 import CloseIcon from 'assets/svg/Close.svg';
 import { Link } from 'react-router-dom';
 import NavTab from './NavTab';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import PublicIcon from '@mui/icons-material/Public';
 
 const TopBar = () => {
@@ -165,9 +165,7 @@ const TopBar = () => {
                 </div>
                 <div className="dropdown-list-item">
                   <Link to="/clean-air/events/forum">
-                    <h3>
-                      Forum-Event <span>New</span>
-                    </h3>
+                    <h3>{t('navbar.about.subnav.forumEvent')}</h3>
                   </Link>
                 </div>
               </div>

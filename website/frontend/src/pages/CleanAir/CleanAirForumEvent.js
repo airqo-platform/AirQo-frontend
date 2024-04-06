@@ -8,6 +8,7 @@ import Profile from 'components/Profile';
 import { getAllCleanAirForumEventsApi } from '../../../apis';
 import { format } from 'date-fns';
 import SectionLoader from 'components/LoadSpinner/SectionLoader';
+import { useTranslation, Trans } from 'react-i18next';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -49,6 +50,7 @@ const downArrow = () => {
  *
  */
 const CleanAirForumEvent = () => {
+  const { t } = useTranslation();
   // Refs
   const wrapperRef = useRef(null);
 
@@ -178,12 +180,12 @@ const CleanAirForumEvent = () => {
     return `${hours}:${minutes} ${modifier}`;
   };
   const links = [
-    hasAbout && { name: 'About', url: 'about' },
-    hasSpeakers && { name: 'Speakers', url: 'speakers' },
-    hasSchedule && { name: 'Schedule', url: 'schedule' },
-    hasRegistration && { name: 'Registration', url: 'registration' },
-    hasPartners && { name: 'Partners', url: 'partners' },
-    hasTravel && { name: 'Travel Logistics', url: 'travel' }
+    hasAbout && { name: t('cleanAirSite.Forum.subNav.about'), url: 'about' },
+    hasSpeakers && { name: t('cleanAirSite.Forum.subNav.speakers'), url: 'speakers' },
+    hasSchedule && { name: t('cleanAirSite.Forum.subNav.schedule'), url: 'schedule' },
+    hasRegistration && { name: t('cleanAirSite.Forum.subNav.registration'), url: 'registration' },
+    hasPartners && { name: t('cleanAirSite.Forum.subNav.partners'), url: 'partners' },
+    hasTravel && { name: t('cleanAirSite.Forum.subNav.Travel'), url: 'travel' }
   ].filter(Boolean);
 
   return (
@@ -343,7 +345,7 @@ const CleanAirForumEvent = () => {
                 <div className="separator" />
                 <section className="speakers" ref={refMapping.speakers}>
                   <h2 style={{ marginBottom: '20px' }} className="section_title">
-                    Programme committee
+                    {t('cleanAirSite.Forum.sections.committee')}
                   </h2>
                   <div className="AboutUsPage__pictorial">
                     {displayedCommittee.map((profile) => (
@@ -374,7 +376,7 @@ const CleanAirForumEvent = () => {
                 <div className="separator" />
                 <section className="schedule" ref={refMapping.schedule}>
                   <h2 style={{ marginBottom: '20px' }} className="section_title">
-                    Schedule
+                    {t('cleanAirSite.Forum.sections.schedule')}
                   </h2>
                   <div className="schedule" ref={wrapperRef}>
                     {schedule.map((schedule) => (
@@ -427,13 +429,10 @@ const CleanAirForumEvent = () => {
                 <div className="separator" />
                 <section className="speakers" ref={refMapping.speakers}>
                   <h2 style={{ marginBottom: '20px' }} className="section_title">
-                    Speakers
+                    {t('cleanAirSite.Forum.sections.speakers.title')}
                   </h2>
                   <p>
-                    Meet the CLEAN-Air Forum speakers!
-                    <br /> We're thrilled to host distinguished speakers from across the globe,
-                    alongside prominent city leaders and researchers representing various countries,
-                    who will serve as key presenters.
+                    <Trans i18nKey="cleanAirSite.Forum.sections.speakers.subText" />
                   </p>
                   <div className="AboutUsPage__pictorial">
                     {displayedSpeakers.map((profile) => (
@@ -472,7 +471,12 @@ const CleanAirForumEvent = () => {
                         </div>
                       </div>
                     }
-                    title={<h2 className="section_title">Registration</h2>}
+                    title={
+                      <h2 className="section_title">
+                        {' '}
+                        {t('cleanAirSite.Forum.sections.registration')}
+                      </h2>
+                    }
                     bgColor="#FFFFFF"
                   />
                 </section>
@@ -507,7 +511,11 @@ const CleanAirForumEvent = () => {
                         </div>
                       </div>
                     }
-                    title={<h2 className="section_title">Funding Partners</h2>}
+                    title={
+                      <h2 className="section_title">
+                        {t('cleanAirSite.Forum.sections.partners.fund')}
+                      </h2>
+                    }
                     bgColor="#FFFFFF"
                   />
                 </section>
@@ -550,7 +558,11 @@ const CleanAirForumEvent = () => {
                         </div>
                       </div>
                     }
-                    title={<h2 className="section_title">Other Partners</h2>}
+                    title={
+                      <h2 className="section_title">
+                        {t('cleanAirSite.Forum.sections.partners.others')}
+                      </h2>
+                    }
                     bgColor="#FFFFFF"
                   />
                 </section>
@@ -564,7 +576,9 @@ const CleanAirForumEvent = () => {
                   <SplitTextSection
                     lists={[]}
                     content={<div dangerouslySetInnerHTML={{ __html: travelLogistics }} />}
-                    title={<h2 className="section_title">Travel Logistics</h2>}
+                    title={
+                      <h2 className="section_title">{t('cleanAirSite.Forum.sections.travel')}</h2>
+                    }
                     bgColor="#FFFFFF"
                   />
                 </section>
@@ -587,7 +601,9 @@ const CleanAirForumEvent = () => {
                       ))}
                     </div>
                   }
-                  title={<h2 className="section_title">Support</h2>}
+                  title={
+                    <h2 className="section_title">{t('cleanAirSite.Forum.sections.support')}</h2>
+                  }
                   bgColor="#FFFFFF"
                 />
               </section>
