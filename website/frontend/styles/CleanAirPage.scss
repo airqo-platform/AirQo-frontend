@@ -357,6 +357,12 @@
           align-items: flex-start;
           color: #353e52;
 
+          font-size: 48px;
+          font-weight: 500;
+          line-height: 56px;
+          margin: 0;
+          padding: 0;
+
           h1 {
             font-size: 48px;
             font-weight: 500;
@@ -402,6 +408,7 @@
 
           .cell {
             display: flex;
+            flex-grow: 1;
             justify-content: center;
             align-items: center;
             padding: 0 16px;
@@ -411,6 +418,18 @@
             max-width: 260px;
             border: 1px solid $aq-blue-2;
             cursor: pointer;
+          }
+
+          @media (min-width: 768px) {
+            .cell {
+              flex: 0 0 calc(50% - 0px);
+            }
+          }
+
+          @media (max-width: 768px) {
+            .cell {
+              flex: 0 0 100%;
+            }
           }
 
           .logo {
@@ -1521,6 +1540,470 @@
         }
       }
     }
+
+    $primary-color: #145fff;
+    $hover-color: #0e4dff;
+    $font-color: #353e52;
+    $font-color-light: #353e52a3;
+    $background-color: #f2f1f6;
+    $dot-color: #d9d9d9;
+
+    .CleanAirForumEvent {
+      .container {
+        padding: 0 16px;
+        max-width: $maxWidth;
+        margin: 0 auto;
+      }
+
+      .header-info-con {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 15px 16px;
+
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .header-info {
+          margin-bottom: 10px;
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: flex-start;
+          z-index: 999 * 5;
+
+          span {
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+            font-weight: 400;
+            margin-right: 15px;
+
+            span {
+              width: 10px;
+              height: 10px;
+              border-radius: 50%;
+              background-color: $dot-color;
+            }
+
+            .icon {
+              margin-right: 10px;
+            }
+          }
+        }
+      }
+
+      .headerScroll {
+        .navigation {
+          width: 100%;
+          height: 74px;
+          background-color: $background-color;
+          overflow-x: scroll;
+
+          &::-webkit-scrollbar {
+            display: none;
+          }
+
+          ul {
+            list-style-type: none;
+            display: flex;
+            justify-content: flex-start;
+            height: 100%;
+
+            li {
+              display: inline-flex;
+              align-items: center;
+              margin-right: 30px;
+              text-decoration: none;
+              width: auto;
+              height: 100%;
+              position: relative;
+
+              &:first-child::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 2px;
+                background-color: #353e52;
+              }
+
+              span {
+                text-decoration: none;
+                color: $font-color-light;
+                font-size: 16px;
+                cursor: pointer;
+
+                &:hover {
+                  color: $font-color;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .header {
+        background: {
+          image: url('assets/img/cleanAir/section2.png');
+          size: cover;
+          position: 40% 65%;
+          repeat: no-repeat;
+        }
+        height: auto;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+
+        .header-main-info {
+          margin-bottom: 50px;
+          z-index: 999 * 5;
+
+          h1,
+          h2 {
+            margin: 0;
+            padding: 0;
+          }
+
+          h1 {
+            font-size: 48px;
+            font-weight: 800;
+            color: #333333;
+          }
+
+          h2 {
+            font-size: 40px;
+            font-weight: 500;
+            color: $font-color;
+          }
+        }
+
+        .register-btn {
+          background-color: $primary-color;
+          display: flex;
+          width: 234px;
+          height: 56px;
+          padding: 16px 32px;
+          justify-content: center;
+          align-items: center;
+          gap: 10px;
+          color: #ffffff;
+          border: none;
+          cursor: pointer;
+
+          &:hover {
+            background-color: $hover-color;
+          }
+        }
+
+        .navigation {
+          width: 100%;
+          height: 74px;
+          background-color: $background-color;
+          overflow-x: scroll;
+
+          // sticky navigation on scroll
+          .nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+          }
+
+          &::-webkit-scrollbar {
+            display: none;
+          }
+
+          ul {
+            list-style-type: none;
+            display: flex;
+            justify-content: flex-start;
+            height: 100%;
+
+            li {
+              display: inline-flex;
+              align-items: center;
+              margin-right: 30px;
+              text-decoration: none;
+              width: auto;
+              height: 100%;
+              position: relative;
+
+              &:first-child::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 2px;
+                background-color: #353e52;
+              }
+
+              span {
+                text-decoration: none;
+                color: $font-color-light;
+                font-size: 16px;
+                cursor: pointer;
+
+                &:hover {
+                  color: $font-color;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .body {
+        color: #353e52;
+        font-size: 24px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 150%;
+
+        section {
+          scroll-margin-top: 10rem;
+          margin-bottom: 40px;
+          .container {
+            margin: 0;
+            padding: 0;
+          }
+        }
+
+        .separator {
+          margin-top: 10px;
+          margin-bottom: 40px;
+          height: 1px;
+          flex-shrink: 0;
+          background-color: #353e52;
+        }
+
+        .section_title {
+          color: #353e52;
+          font-size: 32px;
+          font-style: normal;
+          font-weight: 500;
+          line-height: 140%;
+          padding: 0;
+          margin: 0;
+        }
+
+        .about {
+          max-width: 92%;
+
+          .intro {
+            margin-bottom: 40px;
+
+            a {
+              cursor: pointer;
+              color: #353e52;
+              font-size: 24px;
+              font-style: normal;
+              font-weight: 400;
+              line-height: 150%;
+              text-decoration-line: underline;
+            }
+          }
+
+          .engagements_list {
+            div {
+              margin-bottom: 20px;
+
+              h3 {
+                font-size: 24px;
+                line-height: 150%;
+              }
+
+              p {
+                font-size: 24px;
+                font-weight: 400;
+                line-height: 120%;
+              }
+            }
+          }
+        }
+
+        .Funding_partners,
+        .forum_partners {
+          width: 100%;
+          .content-section {
+            display: block;
+          }
+
+          .image-con {
+            display: flex;
+            flex-wrap: wrap;
+
+            img {
+              width: 100%;
+              max-width: 130px;
+              margin: 10px;
+              height: auto;
+              object-fit: contain;
+              object-position: center;
+            }
+          }
+        }
+
+        .speakers {
+          .AboutUsPage__pictorial {
+            display: flex;
+            flex-wrap: wrap;
+            .profile {
+              padding: 20px;
+              background: #f2f1f6;
+
+              .profile-image {
+                border-radius: 10px;
+              }
+
+              .img-preview-container {
+                margin-bottom: 10px;
+              }
+
+              .info {
+                .info-left {
+                  span {
+                    color: #135dff;
+                    font-size: 18px;
+                    font-style: normal;
+                    font-weight: 400;
+                    line-height: 26px;
+                    cursor: pointer;
+                  }
+                }
+              }
+            }
+
+            .showMoreLessBtn {
+              width: 100%;
+              display: flex;
+              justify-content: center;
+
+              button {
+                color: #135dff;
+                display: flex;
+                padding: 16px 32px;
+                justify-content: center;
+                align-items: center;
+                border-radius: 1px;
+                border: none;
+                font-size: 16px;
+                background: rgba(19, 93, 255, 0.06);
+                cursor: pointer;
+              }
+            }
+          }
+        }
+
+        .schedule {
+          .event {
+            background-color: #f0f0f0;
+            margin-bottom: 15px;
+            padding: 30px;
+            cursor: pointer;
+
+            .event-head {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            }
+
+            p {
+              font-size: 24px;
+              font-style: normal;
+              font-weight: 400;
+              line-height: 32px;
+              padding: 0;
+              margin: 0;
+            }
+
+            .date {
+              font-weight: bold;
+            }
+
+            .event-details {
+              display: grid;
+              grid-template-columns: 1fr 3fr;
+              grid-template-rows: 1fr;
+              grid-gap: 20px;
+              justify-items: flex-start;
+              margin-top: 10px;
+              padding: 10px 0;
+              width: 100%;
+              height: auto;
+              position: relative;
+              border-top: 1px solid #353e52;
+
+              @media (max-width: $mainBreakPoint) {
+                grid-template-columns: 1fr;
+              }
+
+              .event-details__time {
+                p {
+                  margin: 0;
+                  padding: 0;
+                  font-style: normal;
+                  font-weight: 600;
+                  line-height: 32px;
+                }
+              }
+
+              .event-details__content {
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+
+                .title {
+                  font-style: normal;
+                  font-weight: 600;
+                  line-height: 32px;
+                }
+              }
+            }
+          }
+        }
+
+        .registration {
+          .engagements_list {
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+              font-size: 24px;
+              line-height: 150%;
+            }
+            a {
+              color: #135dff;
+              cursor: pointer;
+            }
+          }
+        }
+
+        .support {
+          a {
+            color: #135dff;
+            cursor: pointer;
+          }
+        }
+      }
+
+      @media (max-width: 768px) {
+        body {
+          font-size: 16px;
+        }
+      }
+    }
   }
 
   /****************************************************/
@@ -1866,6 +2349,41 @@
                   h1 {
                     margin-top: 15px;
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .CleanAirForumEvent {
+        .header {
+          height: auto;
+
+          .header-main-info {
+            margin-bottom: 10px;
+            h1 {
+              font-size: 30px;
+            }
+
+            h2 {
+              font-size: 24px;
+            }
+          }
+
+          .register-btn {
+            width: 200px;
+            height: 50px;
+            margin-bottom: 20px;
+          }
+
+          .body {
+            .speakers {
+              margin-bottom: 40px;
+              .AboutUsPage__pictorial {
+                justify-content: center;
+                img {
+                  max-height: 200px;
                 }
               }
             }

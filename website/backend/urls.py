@@ -55,28 +55,34 @@ api_router.register(r'event', event_views.EventViewSet)
 api_router.register(r'african_city', city_views.AfricanCityViewSet)
 api_router.register(r'press', press_views.PressViewSet)
 api_router.register(r'impact', impact_views.ImpactViewSet)
-api_router.register(r'cleanair_resources', cleanair_views.CleanAirResourceViewSet)
+api_router.register(r'cleanair_resources',
+                    cleanair_views.CleanAirResourceViewSet)
+api_router.register(r'forum_events', cleanair_views.ForumEventViewSet)
 
 # Config DRF Auto-Swagger Generation
 schema_view = get_schema_view(
-   openapi.Info(
-      title="AirQo Website API",
-      default_version='v1',
-      description="AirQo website swagger documentation",
-      # terms_of_service="https://www.google.com/policies/terms/",
-      contact=openapi.Contact(email="airqo.analytics@gmail.com"),
-      # license=openapi.License(name="BSD License"),
-   ),
-   public=True,
-   permission_classes=[permissions.AllowAny],
+    openapi.Info(
+        title="AirQo Website API",
+        default_version='v1',
+        description="AirQo website swagger documentation",
+        # terms_of_service="https://www.google.com/policies/terms/",
+        contact=openapi.Contact(email="airqo.analytics@gmail.com"),
+        # license=openapi.License(name="BSD License"),
+    ),
+    public=True,
+    permission_classes=[permissions.AllowAny],
 )
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include(api_router.urls)),
-    re_path(r'^api/?$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    re_path(r'^api/doc(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    re_path(r'^api/doc/?$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    re_path(r'^api/redoc/?$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    re_path(r'^api/?$', schema_view.with_ui('swagger',
+            cache_timeout=0), name='schema-swagger-ui'),
+    re_path(r'^api/doc(?P<format>\.json|\.yaml)$',
+            schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    re_path(r'^api/doc/?$', schema_view.with_ui('swagger',
+            cache_timeout=0), name='schema-swagger-ui'),
+    re_path(r'^api/redoc/?$', schema_view.with_ui('redoc',
+            cache_timeout=0), name='schema-redoc'),
     path('', include('frontend.urls')),
 ]

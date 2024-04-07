@@ -33,6 +33,7 @@ const CleanAirMemberPage = React.lazy(() => import('src/pages/CleanAir/CleanAirP
 const CleanAirEventsPage = React.lazy(() => import('src/pages/CleanAir/CleanAirEvents'));
 const CleanAirResourcesPage = React.lazy(() => import('src/pages/CleanAir/CleanAirPublications'));
 const CleanAirEventsDetailsPage = React.lazy(() => import('src/pages/CleanAir/EventDetails'));
+const CleanAirForumEvent = React.lazy(() => import('src/pages/CleanAir/CleanAirForumEvent'));
 
 import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
 import store from './store';
@@ -127,6 +128,7 @@ const App = () => {
               <Route path="/clean-air/membership" element={<CleanAirMemberPage />} />
               <Route path="/clean-air/events" element={<CleanAirEventsPage />} />
               <Route path="/clean-air/resources" element={<CleanAirResourcesPage />} />
+              <Route path="/clean-air/events/forum" element={<CleanAirForumEvent />} />
               <Route
                 path="/clean-air/event-details/:uniqueTitle"
                 element={<CleanAirEventsDetailsPage />}
