@@ -58,7 +58,8 @@
         "resources": "Resources",
         "press": "Press",
         "careers": "Careers",
-        "contact": "Contact Us"
+        "contact": "Contact Us",
+        "forumEvent": "Forum-Event"
       }
     },
     "getInvolved": "Get Involved",
@@ -308,6 +309,31 @@
     "cta": {
       "showMore": "Show more",
       "showLess": "Show less"
+    },
+    "Forum": {
+      "subNav": {
+        "about": "About",
+        "speakers": "Speakers",
+        "schedule": "Schedule",
+        "registration": "Registration",
+        "partners": "Partners",
+        "Travel": "Travel Logistics"
+      },
+      "sections": {
+        "committee": "Programme committee",
+        "schedule": "Schedule",
+        "speakers": {
+          "title": "Speakers",
+          "subText": "Meet the CLEAN-Air Forum speakers! <br /> We're thrilled to host distinguished speakers from across the globe, alongside prominent city leaders and researchers representing various countries, who will serve as key presenters."
+        },
+        "registration": "Registration",
+        "partners": {
+          "fund": "Funding Partners",
+          "others": "Other Partners"
+        },
+        "travel": "Travel Logistics",
+        "support": "Support"
+      }
     }
   },
   "homepage": {
