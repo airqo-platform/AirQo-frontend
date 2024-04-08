@@ -330,8 +330,9 @@
         },
         "registration": "Inscription",
         "partners": {
-          "fund": "Partenaires financiers",
-          "others": "Autres partenaires"
+          "fund": "Partenaires de financement",
+          "others": "Autres partenaires",
+          "coConvening": "Partenaires co-organisateurs"
         },
         "travel": "Logistique de voyage",
         "support": "Soutien"

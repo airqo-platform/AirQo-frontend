@@ -63,6 +63,7 @@ const Schedule = ({ schedule, registration }) => {
 
     return `${hours}:${minutes} ${modifier}`;
   };
+
   return (
     <>
       {schedule && schedule.length > 0 && (
@@ -104,7 +105,7 @@ const Schedule = ({ schedule, registration }) => {
                             {session.html !== '<p><br></p>' && (
                               <p
                                 className="description"
-                                dangerouslySetInnerHTML={{ __html: session.html }}
+                                dangerouslySetInnerHTML={{ __html: session.session_details_html }}
                               />
                             )}
                           </div>

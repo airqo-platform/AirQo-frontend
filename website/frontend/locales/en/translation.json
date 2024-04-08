@@ -331,7 +331,8 @@
         "registration": "Registration",
         "partners": {
           "fund": "Funding Partners",
-          "others": "Other Partners"
+          "others": "Other Partners",
+          "coConvening": "Co-convening Partners"
         },
         "travel": "Travel Logistics",
         "support": "Support"

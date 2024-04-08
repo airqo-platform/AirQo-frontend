@@ -34,8 +34,10 @@ class PartnerSerializer(serializers.ModelSerializer):
 
 
 class SessionSerializer(serializers.ModelSerializer):
-    html = serializers.CharField(source='session_details.html')
-    plain = serializers.CharField(source='session_details.plain')
+    session_details_html = serializers.SerializerMethodField()
+
+    def get_session_details_html(self, obj):
+        return obj.session_details.html
 
     class Meta:
         model = Session
