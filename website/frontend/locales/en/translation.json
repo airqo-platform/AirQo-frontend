@@ -311,11 +311,13 @@
       "showLess": "Show less"
     },
     "Forum": {
+      "header": {
+        "register": "Register here"
+      },
       "subNav": {
         "about": "About",
         "speakers": "Speakers",
-        "schedule": "Schedule",
-        "registration": "Registration",
+        "schedule": "Schedule & Registration",
         "partners": "Partners",
         "Travel": "Travel Logistics"
       },

@@ -1,48 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Page from 'src/pages/CleanAir/Page';
 import { AccessTimeOutlined, CalendarMonth, PlaceOutlined } from '@mui/icons-material';
-import { Pagination, usePagination } from 'components/CleanAir/pagination/Pagination';
-import { SplitTextSection } from 'components/CleanAir';
 import BackgroundImage from 'assets/img/cleanAir/section2.png';
-import Profile from 'components/Profile';
 import { getAllCleanAirForumEventsApi } from '../../../apis';
 import { format } from 'date-fns';
 import SectionLoader from 'components/LoadSpinner/SectionLoader';
-import { useTranslation, Trans } from 'react-i18next';
-
-const ITEMS_PER_PAGE = 6;
-
-/**
- * upArrow and downArrow components
- * @returns {React.Component}
- * @description SVG components for up and down arrows
- */
-const upArrow = () => {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M18 15L12 9L6 15"
-        stroke="#536A87"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-};
-const downArrow = () => {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M6 9L12 15L18 9"
-        stroke="#536A87"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-};
+import { useTranslation } from 'react-i18next';
+import About from './ForumEventsPages/About';
+import Schedule from './ForumEventsPages/Schedule';
+import Speakers from './ForumEventsPages/Speakers';
+import Partners from './ForumEventsPages/Partners';
+import Travel from './ForumEventsPages/Travel';
 
 /**
  * CleanAirForumEvent component
@@ -51,13 +19,7 @@ const downArrow = () => {
  */
 const CleanAirForumEvent = () => {
   const { t } = useTranslation();
-  // Refs
-  const wrapperRef = useRef(null);
-
-  // State variables for UI elements and data
-  const [showAccordion, setShowAccordion] = useState(null);
   const [isSticky, setSticky] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
 
   // State variables for different data sections
   const [forumEvents, setForumEvents] = useState([]);
@@ -72,27 +34,42 @@ const CleanAirForumEvent = () => {
   const [schedule, setSchedule] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [hasAbout, setHasAbout] = useState(false);
-  const [hasSpeakers, setHasSpeakers] = useState(false);
-  const [hasSchedule, setHasSchedule] = useState(false);
-  const [hasRegistration, setHasRegistration] = useState(false);
-  const [hasTravel, setHasTravel] = useState(false);
-  const [hasPartners, setHasPartners] = useState(false);
-
-  // Pagination setup for OtherPartners
-  const { currentItems, currentPage, setCurrentPage, totalPages } = usePagination(
-    OtherPartners || [],
-    ITEMS_PER_PAGE
-  );
+  const links = [
+    { name: t('cleanAirSite.Forum.subNav.about'), url: 'about' },
+    { name: t('cleanAirSite.Forum.subNav.schedule'), url: 'schedule' },
+    { name: t('cleanAirSite.Forum.subNav.speakers'), url: 'speakers' },
+    { name: t('cleanAirSite.Forum.subNav.partners'), url: 'partners' },
+    { name: t('cleanAirSite.Forum.subNav.Travel'), url: 'travel' }
+  ];
 
   const refMapping = {
     about: useRef(null),
     partners: useRef(null),
     speakers: useRef(null),
     schedule: useRef(null),
-    registration: useRef(null),
-    travel: useRef(null)
+    travel: useRef(null),
+    navigation: useRef(null)
   };
+
+  const [activeSection, setActiveSection] = useState(
+    window.location.hash.replace('#', '') || 'about'
+  );
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash) {
+        setActiveSection(hash);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    // Cleanup function to remove the event listener when the component unmounts
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
 
   // Fetch and process forum events data
   useEffect(() => {
@@ -123,41 +100,13 @@ const CleanAirForumEvent = () => {
     fetchEvents();
   }, []);
 
-  // Set state for each section based on ref
-  useEffect(() => {
-    setHasAbout(refMapping.about.current !== null);
-    setHasSpeakers(refMapping.speakers.current !== null);
-    setHasSchedule(refMapping.schedule.current !== null);
-    setHasRegistration(refMapping.registration.current !== null);
-    setHasTravel(refMapping.travel.current !== null);
-    setHasPartners(refMapping.partners.current !== null);
-  }, [refMapping]);
-
   // Helper function to filter by category
   const filterByCategory = (array, category) => array.filter((item) => item.category === category);
 
-  // Display logic for committee and speakers
-  const displayedCommittee = isExpanded ? committee : committee?.slice(0, ITEMS_PER_PAGE);
-  const displayedSpeakers = isExpanded ? speakers : speakers?.slice(0, ITEMS_PER_PAGE);
-
-  // Use useCallback to prevent unnecessary re-renders
-  const handleClickOutside = useCallback((event) => {
-    if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
-      setShowAccordion(null);
-    }
-  }, []);
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [handleClickOutside]);
-
   // Use useCallback to prevent unnecessary re-renders
   const checkScrollTop = useCallback(() => {
-    const navPosition = refMapping['about'].current
-      ? refMapping['about'].current.getBoundingClientRect().top + 200
+    const navPosition = refMapping['navigation'].current
+      ? refMapping['navigation'].current.getBoundingClientRect().top + 200
       : 0;
 
     setSticky(window.pageYOffset >= navPosition);
@@ -169,24 +118,6 @@ const CleanAirForumEvent = () => {
       window.removeEventListener('scroll', checkScrollTop);
     };
   }, [checkScrollTop]);
-
-  // Use ternary operator for cleaner code
-  const convertTime24to12 = (time24) => {
-    let [hours, minutes] = time24.split(':');
-    const modifier = hours >= 12 ? 'pm' : 'am';
-
-    hours = hours % 12 || 12;
-
-    return `${hours}:${minutes} ${modifier}`;
-  };
-  const links = [
-    hasAbout && { name: t('cleanAirSite.Forum.subNav.about'), url: 'about' },
-    hasSpeakers && { name: t('cleanAirSite.Forum.subNav.speakers'), url: 'speakers' },
-    hasSchedule && { name: t('cleanAirSite.Forum.subNav.schedule'), url: 'schedule' },
-    hasRegistration && { name: t('cleanAirSite.Forum.subNav.registration'), url: 'registration' },
-    hasPartners && { name: t('cleanAirSite.Forum.subNav.partners'), url: 'partners' },
-    hasTravel && { name: t('cleanAirSite.Forum.subNav.Travel'), url: 'travel' }
-  ].filter(Boolean);
 
   return (
     <Page showNewsLetter={true} showBottomCTAS={false} showSubNav={false}>
@@ -213,7 +144,7 @@ const CleanAirForumEvent = () => {
                       <span
                         onClick={(e) => {
                           e.preventDefault();
-                          refMapping[link.url].current.scrollIntoView({ behavior: 'smooth' });
+                          window.location.hash = link.url;
                         }}>
                         {link.name}
                       </span>
@@ -278,334 +209,45 @@ const CleanAirForumEvent = () => {
                       window.open(forumEvents[0].registration_link, '_blank');
                     }
                   }}>
-                  Register here.
+                  {t('cleanAirSite.Forum.header.register')}
                 </button>
               </div>
             </div>
 
-            <nav className="navigation">
+            <nav className="navigation" ref={refMapping['navigation']}>
               <ul className="container">
-                {links.map(
-                  (link) =>
-                    refMapping[link.url] &&
-                    refMapping[link.url].current && (
-                      <li key={link.name}>
-                        <span
-                          onClick={(e) => {
-                            e.preventDefault();
-                            try {
-                              refMapping[link.url].current.scrollIntoView({ behavior: 'smooth' });
-                            } catch (error) {
-                              console.error('Error scrolling to section:', error);
-                            }
-                          }}>
-                          {link.name}
-                        </span>
-                      </li>
-                    )
-                )}
+                {links.map((link) => (
+                  <li
+                    key={link.name}
+                    className={
+                      window.location.hash.replace('#', '') === link.url ? 'activeClass' : ''
+                    }>
+                    <span
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.location.hash = link.url;
+                      }}>
+                      {link.name}
+                    </span>
+                  </li>
+                ))}
               </ul>
             </nav>
           </header>
 
           <div className="body container">
-            <section className="about" ref={refMapping.about}>
-              <div className="intro">
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: forumEvents.length > 0 && forumEvents[0].introduction_html
-                  }}
-                />
-              </div>
-            </section>
-
-            {engagements && engagements.objectives.length > 0 && (
-              <section className="about">
-                <SplitTextSection
-                  lists={[]}
-                  content={
-                    <div className="engagements_list">
-                      {engagements.objectives.map((objective) => (
-                        <div key={objective.id}>
-                          <h3>{objective.title}</h3>
-                          <p>{objective.details}</p>
-                        </div>
-                      ))}
-                    </div>
-                  }
-                  title={<h2 className="section_title">{engagements.title}</h2>}
-                  bgColor="#FFFFFF"
-                />
-              </section>
+            {activeSection === 'about' && (
+              <About forumEvents={forumEvents} engagements={engagements} committee={committee} />
             )}
-
-            {committee && committee.length > 0 && (
-              <>
-                <div className="separator" />
-                <section className="speakers" ref={refMapping.speakers}>
-                  <h2 style={{ marginBottom: '20px' }} className="section_title">
-                    {t('cleanAirSite.Forum.sections.committee')}
-                  </h2>
-                  <div className="AboutUsPage__pictorial">
-                    {displayedCommittee.map((profile) => (
-                      <div key={profile.id}>
-                        <Profile
-                          name={profile.name}
-                          title={profile.title}
-                          about={profile.biography}
-                          ImgPath={profile.picture}
-                          readBioBtn={true}
-                        />
-                      </div>
-                    ))}
-                    {committee.length > ITEMS_PER_PAGE && (
-                      <div className="showMoreLessBtn">
-                        <button onClick={() => setIsExpanded(!isExpanded)}>
-                          {isExpanded ? 'Show Less' : 'Show More'}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </section>
-              </>
+            {activeSection === 'schedule' && (
+              <Schedule schedule={schedule} registration={registration} />
             )}
-
-            {schedule && schedule.length > 0 && (
-              <>
-                <div className="separator" />
-                <section className="schedule" ref={refMapping.schedule}>
-                  <h2 style={{ marginBottom: '20px' }} className="section_title">
-                    {t('cleanAirSite.Forum.sections.schedule')}
-                  </h2>
-                  <div className="schedule" ref={wrapperRef}>
-                    {schedule.map((schedule) => (
-                      <div
-                        className="event"
-                        key={schedule.id}
-                        onClick={() => setShowAccordion(schedule.id)}>
-                        <div className="event-head">
-                          <div>
-                            <p className="date">{schedule.title}</p>
-                            <p className="title">{schedule.program_details}</p>
-                          </div>
-                          <div>
-                            {showAccordion === schedule.id ? (
-                              <span>{upArrow()}</span>
-                            ) : (
-                              <span>{downArrow()}</span>
-                            )}
-                          </div>
-                        </div>
-
-                        {showAccordion === schedule.id &&
-                          schedule.sessions.map((session, index) => (
-                            <div key={session.id}>
-                              <div className="event-details">
-                                <div className="event-details__time">
-                                  <p>{convertTime24to12(session.start_time)}</p>
-                                </div>
-                                <div className="event-details__content">
-                                  <p className="title">{session.session_title}</p>
-                                  {session.html !== '<p><br></p>' && (
-                                    <p
-                                      className="description"
-                                      dangerouslySetInnerHTML={{ __html: session.html }}
-                                    />
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              </>
+            {activeSection === 'speakers' && <Speakers speakers={speakers} />}
+            {activeSection === 'partners' && (
+              <Partners FundingPartners={FundingPartners} OtherPartners={OtherPartners} />
             )}
-
-            {speakers && speakers.length > 0 && (
-              <>
-                <div className="separator" />
-                <section className="speakers" ref={refMapping.speakers}>
-                  <h2 style={{ marginBottom: '20px' }} className="section_title">
-                    {t('cleanAirSite.Forum.sections.speakers.title')}
-                  </h2>
-                  <p>
-                    <Trans i18nKey="cleanAirSite.Forum.sections.speakers.subText" />
-                  </p>
-                  <div className="AboutUsPage__pictorial">
-                    {displayedSpeakers.map((profile) => (
-                      <div key={profile.id}>
-                        <Profile
-                          name={profile.name}
-                          title={profile.title}
-                          about={profile.biography}
-                          ImgPath={profile.picture}
-                          readBioBtn={true}
-                        />
-                      </div>
-                    ))}
-                    {speakers.length > ITEMS_PER_PAGE && (
-                      <div className="showMoreLessBtn">
-                        <button onClick={() => setIsExpanded(!isExpanded)}>
-                          {isExpanded ? 'Show Less' : 'Show More'}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </section>
-              </>
-            )}
-
-            {registration && (
-              <>
-                <div className="separator" />
-                <section className="about registration" ref={refMapping.registration}>
-                  <SplitTextSection
-                    lists={[]}
-                    content={
-                      <div className="engagements_list">
-                        <div>
-                          <div dangerouslySetInnerHTML={{ __html: registration }} />
-                        </div>
-                      </div>
-                    }
-                    title={
-                      <h2 className="section_title">
-                        {' '}
-                        {t('cleanAirSite.Forum.sections.registration')}
-                      </h2>
-                    }
-                    bgColor="#FFFFFF"
-                  />
-                </section>
-              </>
-            )}
-
-            {FundingPartners && FundingPartners.length > 0 && (
-              <>
-                <div className="separator" />
-                <section className="Funding_partners" ref={refMapping.partners}>
-                  <SplitTextSection
-                    lists={[]}
-                    content={
-                      <div className="partners-wrapper">
-                        <div className="partner-logos">
-                          <div className="grid-container">
-                            {FundingPartners.map((item) => (
-                              <a
-                                className="cell"
-                                key={item.id}
-                                href={item.website_link}
-                                target="_blank">
-                                <img
-                                  className="logo"
-                                  src={item.partner_logo}
-                                  alt={item.name}
-                                  loading="lazy"
-                                />
-                              </a>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    }
-                    title={
-                      <h2 className="section_title">
-                        {t('cleanAirSite.Forum.sections.partners.fund')}
-                      </h2>
-                    }
-                    bgColor="#FFFFFF"
-                  />
-                </section>
-              </>
-            )}
-
-            {OtherPartners && OtherPartners.length > 0 && (
-              <>
-                <div className="separator" />
-                <section className="forum_partners">
-                  <SplitTextSection
-                    lists={[]}
-                    content={
-                      <div style={{}}>
-                        <div className="partners-wrapper">
-                          <div className="partner-logos">
-                            <div className="grid-container">
-                              {currentItems.map((item) => (
-                                <a
-                                  className="cell"
-                                  key={item.id}
-                                  href={item.website_link}
-                                  target="_blank">
-                                  <img
-                                    className="logo"
-                                    src={item.partner_logo}
-                                    alt={item.name}
-                                    loading="lazy"
-                                  />
-                                </a>
-                              ))}
-                            </div>
-
-                            <Pagination
-                              currentPage={currentPage}
-                              setCurrentPage={setCurrentPage}
-                              totalPages={totalPages}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    }
-                    title={
-                      <h2 className="section_title">
-                        {t('cleanAirSite.Forum.sections.partners.others')}
-                      </h2>
-                    }
-                    bgColor="#FFFFFF"
-                  />
-                </section>
-              </>
-            )}
-
-            {travelLogistics && (
-              <>
-                <div className="separator" />
-                <section className="about travel" ref={refMapping.travel}>
-                  <SplitTextSection
-                    lists={[]}
-                    content={<div dangerouslySetInnerHTML={{ __html: travelLogistics }} />}
-                    title={
-                      <h2 className="section_title">{t('cleanAirSite.Forum.sections.travel')}</h2>
-                    }
-                    bgColor="#FFFFFF"
-                  />
-                </section>
-              </>
-            )}
-
-            {support && support.length > 0 && (
-              <section className="about support">
-                <SplitTextSection
-                  lists={[]}
-                  content={
-                    <div className="engagements_list">
-                      {support.map((support) => (
-                        <div key={support.id}>
-                          <h3>{support.query}</h3>
-                          <p>{support.name}</p>
-                          <p>{support.role}</p>
-                          <a href={`mailto:${support.email}`}>{support.email}</a>
-                        </div>
-                      ))}
-                    </div>
-                  }
-                  title={
-                    <h2 className="section_title">{t('cleanAirSite.Forum.sections.support')}</h2>
-                  }
-                  bgColor="#FFFFFF"
-                />
-              </section>
+            {activeSection === 'travel' && (
+              <Travel travelLogistics={travelLogistics} support={support} />
             )}
           </div>
         </div>

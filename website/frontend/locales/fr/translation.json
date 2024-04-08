@@ -310,13 +310,14 @@
       "showMore": "Afficher plus",
       "showLess": "Afficher moins"
     },
-
     "Forum": {
+      "header": {
+        "register": "Inscrivez-vous ici"
+      },
       "subNav": {
         "about": "À propos",
         "speakers": "Conférenciers",
-        "schedule": "Programme",
-        "registration": "Inscription",
+        "schedule": "Programme et inscription",
         "partners": "Partenaires",
         "Travel": "Logistique de voyage"
       },
