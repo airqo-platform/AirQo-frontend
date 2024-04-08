@@ -5,18 +5,54 @@ import { SplitTextSection } from 'components/CleanAir';
 
 const ITEMS_PER_PAGE = 6;
 
-const Partners = ({ FundingPartners, OtherPartners }) => {
+const Partners = ({ FundingPartners, HostPartner, CoConveningPartner }) => {
   const { t } = useTranslation();
-  // Pagination setup for OtherPartners
+  // Pagination setup for HostPartner
   const { currentItems, currentPage, setCurrentPage, totalPages } = usePagination(
-    OtherPartners || [],
+    HostPartner || [],
     ITEMS_PER_PAGE
   );
 
   return (
     <>
+      {CoConveningPartner && CoConveningPartner.length > 0 && (
+        <>
+          <div className="separator" />
+          <section className="CoConvening_partners">
+            <SplitTextSection
+              lists={[]}
+              content={
+                <div className="partners-wrapper">
+                  <div className="partner-logos">
+                    <div className="grid-container">
+                      {CoConveningPartner.map((item) => (
+                        <a className="cell" key={item.id} href={item.website_link} target="_blank">
+                          <img
+                            className="logo"
+                            src={item.partner_logo}
+                            alt={item.name}
+                            loading="lazy"
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              }
+              title={
+                <h2 className="section_title">
+                  {t('cleanAirSite.Forum.sections.partners.coConvening')}
+                </h2>
+              }
+              bgColor="#FFFFFF"
+            />
+          </section>
+        </>
+      )}
+
       {FundingPartners && FundingPartners.length > 0 && (
         <>
+          <div className="separator" />
           <section className="Funding_partners">
             <SplitTextSection
               lists={[]}
@@ -47,7 +83,7 @@ const Partners = ({ FundingPartners, OtherPartners }) => {
         </>
       )}
 
-      {OtherPartners && OtherPartners.length > 0 && (
+      {HostPartner && HostPartner.length > 0 && (
         <>
           <div className="separator" />
           <section className="forum_partners">
@@ -91,8 +127,24 @@ const Partners = ({ FundingPartners, OtherPartners }) => {
               bgColor="#FFFFFF"
             />
           </section>
+          <div className="separator" />
         </>
       )}
+
+      {/* if both are empty */}
+      {CoConveningPartner.length === 0 &&
+        FundingPartners.length === 0 &&
+        HostPartner.length === 0 && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '50vh'
+            }}>
+            No content available
+          </div>
+        )}
     </>
   );
 };

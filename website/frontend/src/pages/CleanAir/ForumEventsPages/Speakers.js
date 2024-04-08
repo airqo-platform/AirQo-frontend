@@ -12,6 +12,7 @@ const Speakers = ({ speakers }) => {
     <>
       {speakers && speakers.length > 0 && (
         <>
+          <div className="separator" />
           <section className="speakers">
             <h2 style={{ marginBottom: '20px' }} className="section_title">
               {t('cleanAirSite.Forum.sections.speakers.title')}
@@ -41,6 +42,19 @@ const Speakers = ({ speakers }) => {
             </div>
           </section>
         </>
+      )}
+
+      {/* if both are empty */}
+      {speakers && speakers.length === 0 && (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '50vh'
+          }}>
+          No content available
+        </div>
       )}
     </>
   );

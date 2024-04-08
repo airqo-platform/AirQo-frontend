@@ -11,6 +11,7 @@ import Schedule from './ForumEventsPages/Schedule';
 import Speakers from './ForumEventsPages/Speakers';
 import Partners from './ForumEventsPages/Partners';
 import Travel from './ForumEventsPages/Travel';
+import { ButtonCTA } from 'components/CleanAir';
 
 /**
  * CleanAirForumEvent component
@@ -27,7 +28,8 @@ const CleanAirForumEvent = () => {
   const [committee, setCommittee] = useState(null);
   const [speakers, setSpeakers] = useState(null);
   const [FundingPartners, setFundingPartners] = useState(null);
-  const [OtherPartners, setOtherPartners] = useState(null);
+  const [HostPartner, setHostPartners] = useState(null);
+  const [CoConveningPartner, setCoConveningPartner] = useState(null);
   const [travelLogistics, setTravelLogistics] = useState(null);
   const [support, setSupport] = useState(null);
   const [registration, setRegistration] = useState(null);
@@ -85,7 +87,8 @@ const CleanAirForumEvent = () => {
           setCommittee(filterByCategory(event.persons, 'Committee Member'));
           setSpeakers(filterByCategory(event.persons, 'Speaker'));
           setFundingPartners(filterByCategory(event.partners, 'Funding Partner'));
-          setOtherPartners(filterByCategory(event.partners, 'Other Partner'));
+          setHostPartners(filterByCategory(event.partners, 'Host Partner'));
+          setCoConveningPartner(filterByCategory(event.partners, 'Co-Convening Partner'));
           setTravelLogistics(event.travel_logistics_html);
           setRegistration(event.registration_details_html);
           setSupport(event.supports);
@@ -106,7 +109,7 @@ const CleanAirForumEvent = () => {
   // Use useCallback to prevent unnecessary re-renders
   const checkScrollTop = useCallback(() => {
     const navPosition = refMapping['navigation'].current
-      ? refMapping['navigation'].current.getBoundingClientRect().top + 200
+      ? refMapping['navigation'].current.getBoundingClientRect().top + 600
       : 0;
 
     setSticky(window.pageYOffset >= navPosition);
@@ -155,19 +158,56 @@ const CleanAirForumEvent = () => {
             </header>
           )}
 
-          <header
-            className="header"
-            style={{
-              backgroundImage: `url(${
-                forumEvents.length > 0 && forumEvents[0].background_image
-                  ? forumEvents[0].background_image
-                  : BackgroundImage
-              })`,
-              backgroundSize: 'cover',
-              backgroundPosition: '40% 65%',
-              backgroundRepeat: 'no-repeat'
-            }}>
-            <div className="header-info-con container">
+          {/* Main header section */}
+          <header className="header">
+            <div className="Hero">
+              <span className="image-container">
+                <img src={forumEvents[0].background_image || BackgroundImage} />
+              </span>
+              <div className="hero-content">
+                <div>
+                  <p className="hero-title">{forumEvents.length > 0 && forumEvents[0].title}</p>
+                  <p className="hero-sub">
+                    {forumEvents.length > 0 && forumEvents[0].title_subtext}
+                  </p>
+                  <ButtonCTA
+                    label={t('cleanAirSite.Forum.header.register')}
+                    link={forumEvents[0].registration_link}
+                    style={{
+                      width: '200px'
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <nav className="navigation" ref={refMapping['navigation']}>
+              <ul className="container">
+                {links.map((link) => (
+                  <li
+                    key={link.name}
+                    className={
+                      (window.location.hash ? window.location.hash.replace('#', '') : 'about') ===
+                      link.url
+                        ? 'activeClass'
+                        : ''
+                    }>
+                    <span
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.location.hash = link.url;
+                      }}>
+                      {link.name}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </header>
+
+          {/* Section content */}
+          <div className="body container">
+            <div className="time-data-info">
               <div className="header-info">
                 <span>
                   <CalendarMonth className="icon" />
@@ -194,48 +234,8 @@ const CleanAirForumEvent = () => {
                   {forumEvents.length > 0 && forumEvents[0].location_name}
                 </span>
               </div>
-              <div className="header-main-info">
-                <h1>{forumEvents.length > 0 && forumEvents[0].title}</h1>
-                <h2>{forumEvents.length > 0 && forumEvents[0].title_subtext}</h2>
-              </div>
-              <div
-                style={{
-                  zIndex: 1000
-                }}>
-                <button
-                  className="register-btn"
-                  onClick={() => {
-                    if (forumEvents.length > 0) {
-                      window.open(forumEvents[0].registration_link, '_blank');
-                    }
-                  }}>
-                  {t('cleanAirSite.Forum.header.register')}
-                </button>
-              </div>
             </div>
 
-            <nav className="navigation" ref={refMapping['navigation']}>
-              <ul className="container">
-                {links.map((link) => (
-                  <li
-                    key={link.name}
-                    className={
-                      window.location.hash.replace('#', '') === link.url ? 'activeClass' : ''
-                    }>
-                    <span
-                      onClick={(e) => {
-                        e.preventDefault();
-                        window.location.hash = link.url;
-                      }}>
-                      {link.name}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </header>
-
-          <div className="body container">
             {activeSection === 'about' && (
               <About forumEvents={forumEvents} engagements={engagements} committee={committee} />
             )}
@@ -244,7 +244,11 @@ const CleanAirForumEvent = () => {
             )}
             {activeSection === 'speakers' && <Speakers speakers={speakers} />}
             {activeSection === 'partners' && (
-              <Partners FundingPartners={FundingPartners} OtherPartners={OtherPartners} />
+              <Partners
+                FundingPartners={FundingPartners}
+                HostPartner={HostPartner}
+                CoConveningPartner={CoConveningPartner}
+              />
             )}
             {activeSection === 'travel' && (
               <Travel travelLogistics={travelLogistics} support={support} />

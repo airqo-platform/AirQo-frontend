@@ -11,6 +11,7 @@ const Index = ({ committee, engagements, forumEvents }) => {
   const displayedCommittee = isExpanded ? committee : committee?.slice(0, ITEMS_PER_PAGE);
   return (
     <>
+      <div className="separator" />
       <section className="about">
         <div className="intro">
           <div
@@ -68,6 +69,19 @@ const Index = ({ committee, engagements, forumEvents }) => {
             </div>
           </section>
         </>
+      )}
+
+      {/* if both are empty */}
+      {committee.length === 0 && engagements && engagements.objectives.length === 0 && (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '50vh'
+          }}>
+          No content available
+        </div>
       )}
     </>
   );

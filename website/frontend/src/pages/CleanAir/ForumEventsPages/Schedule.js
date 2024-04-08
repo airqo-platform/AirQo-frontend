@@ -67,6 +67,7 @@ const Schedule = ({ schedule, registration }) => {
     <>
       {schedule && schedule.length > 0 && (
         <>
+          <div className="separator" />
           <section className="schedule">
             <h2 style={{ marginBottom: '20px' }} className="section_title">
               {t('cleanAirSite.Forum.sections.schedule')}
@@ -137,6 +138,19 @@ const Schedule = ({ schedule, registration }) => {
             />
           </section>
         </>
+      )}
+
+      {/* if both are empty */}
+      {schedule.length === 0 && !registration && (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '50vh'
+          }}>
+          No content available
+        </div>
       )}
     </>
   );

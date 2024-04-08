@@ -8,6 +8,7 @@ const Travel = ({ travelLogistics, support }) => {
     <>
       {travelLogistics && (
         <>
+          <div className="separator" />
           <section className="about travel">
             <SplitTextSection
               lists={[]}
@@ -39,6 +40,19 @@ const Travel = ({ travelLogistics, support }) => {
             bgColor="#FFFFFF"
           />
         </section>
+      )}
+
+      {/* if both are empty */}
+      {!travelLogistics && support.length === 0 && (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '50vh'
+          }}>
+          No content available
+        </div>
       )}
     </>
   );
