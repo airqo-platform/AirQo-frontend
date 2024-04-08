@@ -330,9 +330,9 @@
         },
         "registration": "Registration",
         "partners": {
-          "fund": "Funding Partners",
-          "others": "Other Partners",
-          "coConvening": "Co-convening Partners"
+          "fund": "Funding partners",
+          "others": "Host partners",
+          "coConvening": "Co-convening partners"
         },
         "travel": "Travel Logistics",
         "support": "Support"
