@@ -614,18 +614,20 @@ class CustomTextStyle {
 
   static TextStyle? headline11(BuildContext context) {
     return Theme.of(context).textTheme.titleLarge?.copyWith(
-          fontSize: 28.0,
-          fontWeight: FontWeight.w700,
+          fontSize: 18.0,
+          color: Color(0xff6F87A1),
+          fontWeight: FontWeight.w600,
           fontStyle: FontStyle.normal,
-          letterSpacing: 16 * -0.01,
-          height: 32.0 / 28.0,
+          // letterSpacing: 16 * -0.01,
+          // height: 32.0 / 28.0,
         );
   }
 
   static TextStyle? headline7(BuildContext context) {
     return Theme.of(context).textTheme.titleLarge?.copyWith(
           fontSize: 24.0,
-          fontWeight: FontWeight.w700,
+          color: Color(0xff3F4B5F),
+          fontWeight: FontWeight.w900,
           fontStyle: FontStyle.normal,
           height: 32.0 / 24.0,
         );
