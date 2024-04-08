@@ -181,7 +181,7 @@ const TopBar = () => {
                 </div>
                 {showEvent && (
                   <div className="dropdown-list-item">
-                    <Link to="/clean-air/events/forum">
+                    <Link to="/clean-air/forum">
                       <h3>{t('navbar.about.subnav.forumEvent')}</h3>
                     </Link>
                   </div>
