@@ -163,6 +163,7 @@ const TopBar = () => {
                     <h3>{t('navbar.about.subnav.events')}</h3>
                   </Link>
                 </div>
+
                 <div className="dropdown-list-item">
                   <Link to="/resources">
                     <h3>{t('navbar.about.subnav.resources')}</h3>
@@ -178,11 +179,6 @@ const TopBar = () => {
                     <h3>{t('navbar.about.subnav.careers')}</h3>
                   </Link>
                 </div>
-                <div className="dropdown-list-item">
-                  <Link to="/contact">
-                    <h3>{t('navbar.about.subnav.contact')}</h3>
-                  </Link>
-                </div>
                 {showEvent && (
                   <div className="dropdown-list-item">
                     <Link to="/clean-air/events/forum">
@@ -190,6 +186,11 @@ const TopBar = () => {
                     </Link>
                   </div>
                 )}
+                <div className="dropdown-list-item">
+                  <Link to="/contact">
+                    <h3>{t('navbar.about.subnav.contact')}</h3>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
