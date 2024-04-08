@@ -123,7 +123,6 @@ const CleanAirForumEvent = () => {
       window.removeEventListener('scroll', checkScrollTop);
     };
   }, [checkScrollTop]);
-  console.log('schedule', schedule);
 
   return (
     <Page showNewsLetter={true} showBottomCTAS={false} showSubNav={false}>

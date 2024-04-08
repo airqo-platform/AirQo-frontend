@@ -233,7 +233,7 @@ class Support(BaseModel):
 class Person(BaseModel):
     name = models.CharField(max_length=100)
     title = models.CharField(max_length=100, blank=True)
-    biography = models.TextField(blank=True, null=True)
+    bio = QuillField(blank=True, null=True)
     category = models.CharField(
         max_length=50, choices=CategoryChoices.choices(), default=CategoryChoices.SPEAKER)
     picture = CloudinaryField(

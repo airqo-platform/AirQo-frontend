@@ -26,8 +26,8 @@ const Speakers = ({ speakers }) => {
                   <Profile
                     name={profile.name}
                     title={profile.title}
-                    about={profile.biography}
                     ImgPath={profile.picture}
+                    htmlBio={profile.bio_html}
                     readBioBtn={true}
                   />
                 </div>

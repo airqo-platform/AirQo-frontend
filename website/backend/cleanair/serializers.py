@@ -60,6 +60,12 @@ class SupportSerializer(serializers.ModelSerializer):
 
 class PersonSerializer(serializers.ModelSerializer):
     picture = serializers.SerializerMethodField()
+    bio_html = serializers.SerializerMethodField()
+
+    def get_bio_html(self, obj):
+        if obj.bio:
+            return obj.bio.html
+        return None
 
     def get_picture(self, obj):
         return obj.picture.url
