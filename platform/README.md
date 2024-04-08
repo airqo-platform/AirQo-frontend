@@ -20,7 +20,7 @@
     - [cypress folder](#cypress-folder)
     - [Top-level configuration](#top-level-configuration)
 
-## Prerequisites
+## Prerequisites.
 
 - [Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
 - [NodeJs](https://nodejs.org/en/) v16 or later
