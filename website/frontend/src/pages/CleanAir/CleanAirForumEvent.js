@@ -50,7 +50,8 @@ const CleanAirForumEvent = () => {
     speakers: useRef(null),
     schedule: useRef(null),
     travel: useRef(null),
-    navigation: useRef(null)
+    navigation: useRef(null),
+    body: useRef(null)
   };
 
   const [activeSection, setActiveSection] = useState(
@@ -62,7 +63,8 @@ const CleanAirForumEvent = () => {
       const hash = window.location.hash.replace('#', '');
       if (hash) {
         setActiveSection(hash);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // i want to scroll to the navigation ref
+        refMapping['body'].current.scrollIntoView({ behavior: 'smooth' });
       }
     };
 
@@ -206,7 +208,7 @@ const CleanAirForumEvent = () => {
           </header>
 
           {/* Section content */}
-          <div className="body container">
+          <div className="body container" ref={refMapping['body']}>
             <div className="time-data-info">
               <div className="header-info">
                 <span>
