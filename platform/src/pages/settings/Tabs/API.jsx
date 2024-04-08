@@ -3,10 +3,12 @@ import ContentBox from '@/components/Layout/content_box';
 import Button from '@/components/Button';
 import AddIcon from '@/icons/Actions/plus.svg';
 import TokenTable from '@/components/Settings/API/tokens_table';
-import ClientsTable from '@/components/Settings/API/clients_table';
+import UserClientsTable from '@/components/Settings/API/UserClientsTable';
 import AddClientForm from '@/components/Settings/API/AddClientForm';
+import AdminClientsTable from '../../../common/components/Settings/API/AdminClientsTable';
+import { checkAccess } from '..';
 
-const API = () => {
+const API = ({ userPermissions }) => {
   const [showAddClientForm, setShowAddClientForm] = useState(false);
 
   return (
@@ -28,7 +30,7 @@ const API = () => {
         </div>
         <div>
           <div className='w-full'>
-            <ClientsTable />
+            <UserClientsTable />
           </div>
         </div>
       </ContentBox>
@@ -44,6 +46,16 @@ const API = () => {
           <TokenTable />
         </div>
       </ContentBox>
+      {userPermissions && checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_USERS', userPermissions) && (
+        <ContentBox noMargin>
+          <div className='px-3 py-4'>
+            <h3 className='text-grey-710 font-medium text-lg'>API clients access</h3>
+          </div>
+          <div className='w-full'>
+            <AdminClientsTable />
+          </div>
+        </ContentBox>
+      )}
       {showAddClientForm && (
         <AddClientForm open={showAddClientForm} closeModal={() => setShowAddClientForm(false)} />
       )}

@@ -12,28 +12,7 @@ import EditClientForm from './EditClientForm';
 import { generateTokenApi } from '@/core/apis/Settings';
 import Button from '@/components/Button';
 
-const Modal = ({ title, message, open, onClose }) => {
-  useEffect(() => {
-    if (open) {
-      const modal = document.getElementById('my_modal_2');
-      modal.showModal();
-    }
-  }, [open]);
-
-  return (
-    <dialog id='my_modal_2' className='modal'>
-      <div className='modal-box'>
-        {title && <h3 className='font-bold text-lg'>{title}</h3>}
-        <p className='py-4'>{message}</p>
-        <form method='dialog' className='modal-backdrop'>
-          <button onClick={onClose}>Close</button>
-        </form>
-      </div>
-    </dialog>
-  );
-};
-
-const ClientsTable = () => {
+const UserClientsTable = () => {
   const dispatch = useDispatch();
   const [isError, setIsError] = useState({
     isError: false,
@@ -139,7 +118,7 @@ const ClientsTable = () => {
                   <tr className={`border-b border-b-secondary-neutral-light-100`} key={index}>
                     <td
                       scope='row'
-                      className='w-[200px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-800'
+                      className='w-[200px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-800 uppercase'
                     >
                       {client?.name}
                     </td>
@@ -236,4 +215,4 @@ const ClientsTable = () => {
   );
 };
 
-export default ClientsTable;
+export default UserClientsTable;

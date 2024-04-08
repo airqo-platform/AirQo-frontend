@@ -15,6 +15,12 @@ export const getClientsApi = async (userID) => {
     .then((response) => response.data);
 };
 
+export const getAllUserClientsApi = async () => {
+  return await createAxiosInstance()
+    .get(CLIENT_URI)
+    .then((response) => response.data);
+};
+
 export const createClientApi = async (data) => {
   return await createAxiosInstance()
     .post(CLIENT_URI, data)

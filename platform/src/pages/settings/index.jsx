@@ -13,7 +13,7 @@ import { isEmpty } from 'underscore';
 import { setChartTab } from '@/lib/store/services/charts/ChartSlice';
 import API from './Tabs/API';
 
-const checkAccess = (requiredPermission, rolePermissions) => {
+export const checkAccess = (requiredPermission, rolePermissions) => {
   const permissions = rolePermissions && rolePermissions.map((item) => item.permission);
 
   return permissions.includes(requiredPermission);
@@ -70,7 +70,7 @@ const Settings = () => {
           <Password />
         </Tab>
         <Tab label='API'>
-          <API />
+          <API userPermissions={userPermissions} />
         </Tab>
         {userPermissions && checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_USERS', userPermissions) && (
           <Tab label='Organisation'>
