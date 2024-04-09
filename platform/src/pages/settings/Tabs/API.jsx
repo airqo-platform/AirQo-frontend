@@ -1,11 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import ContentBox from '@/components/Layout/content_box';
 import Button from '@/components/Button';
 import AddIcon from '@/icons/Actions/plus.svg';
-import TokenTable from '@/components/Settings/API/tokens_table';
 import UserClientsTable from '@/components/Settings/API/UserClientsTable';
 import AddClientForm from '@/components/Settings/API/AddClientForm';
-import AdminClientsTable from '../../../common/components/Settings/API/AdminClientsTable';
+import AdminClientsTable from '@/components/Settings/API/AdminClientsTable';
 import { checkAccess } from '..';
 
 const API = ({ userPermissions }) => {
@@ -16,9 +15,11 @@ const API = ({ userPermissions }) => {
       <ContentBox noMargin>
         <div className='px-3 py-4 md:flex justify-between items-center gap-5'>
           <div>
-            <h3 className='text-grey-710 font-medium text-lg'>API clients</h3>
+            <h3 className='text-grey-710 font-medium text-lg'>API access tokens</h3>
             <p className='text-grey-500 text-sm md:max-w-[640px] w-full'>
               Clients are used to generate API tokens that can be used to authenticate with the API.
+              Your secret API tokens are listed below. Remember to keep them secure and never share
+              them.
             </p>
           </div>
           <Button
@@ -32,18 +33,6 @@ const API = ({ userPermissions }) => {
           <div className='w-full'>
             <UserClientsTable />
           </div>
-        </div>
-      </ContentBox>
-      <ContentBox noMargin>
-        <div className='px-3 py-4'>
-          <h3 className='text-grey-710 font-medium text-lg'>API tokens</h3>
-          <p className='text-grey-500 text-sm'>
-            Your secret API keys are listed below. Remember to keep them secure and never share
-            them.
-          </p>
-        </div>
-        <div className='w-full'>
-          <TokenTable />
         </div>
       </ContentBox>
       {userPermissions && checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_USERS', userPermissions) && (

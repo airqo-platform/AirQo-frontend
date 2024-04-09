@@ -1,4 +1,9 @@
-import { CLIENT_URI, GENERATE_TOKEN_URI, UPDATE_PWD_URL } from '../urls/authentication';
+import {
+  ACTIVATE_USER_CLIENT,
+  CLIENT_URI,
+  GENERATE_TOKEN_URI,
+  UPDATE_PWD_URL,
+} from '../urls/authentication';
 import createAxiosInstance from './axiosConfig';
 
 export const updateUserPasswordApi = async (userId, tenant, userData) => {
@@ -36,4 +41,10 @@ export const updateClientApi = async (data, client_id) => {
 export const generateTokenApi = async (data) => {
   const response = await createAxiosInstance().post(GENERATE_TOKEN_URI, data);
   return response.data;
+};
+
+export const activateUserClientApi = async (data) => {
+  return await createAxiosInstance()
+    .post(`${ACTIVATE_USER_CLIENT}/${data._id}`, data)
+    .then((response) => response.data);
 };

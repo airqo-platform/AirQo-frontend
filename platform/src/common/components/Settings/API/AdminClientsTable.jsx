@@ -4,8 +4,11 @@ import CloseIcon from '@/icons/close_icon';
 import CheckIcon from '@/icons/tickIcon';
 import Toast from '@/components/Toast';
 import { useDispatch } from 'react-redux';
-import { getAllUserClientsApi } from '@/core/apis/Settings';
+import { getAllUserClientsApi, activateUserClientApi } from '@/core/apis/Settings';
 import Pagination from '../../Collocation/AddMonitor/Table/Pagination';
+import Modal from '../../Modal/Modal';
+import { useSelector } from 'react-redux';
+import { performRefresh } from '@/lib/store/services/apiClient';
 
 const AdminClientsTable = () => {
   const dispatch = useDispatch();
@@ -15,11 +18,15 @@ const AdminClientsTable = () => {
     type: '',
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [openEditForm, setOpenEditForm] = useState(false);
+  const [isLoadingActivation, setIsLoadingActivation] = useState(false);
+  const [confirmClientActivation, setConfirmClientActivation] = useState(false);
+  const [confirmClientDeactivation, setConfirmClientDeactivation] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [clients, setClients] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
+  const my_clients = useSelector((state) => state.apiClient.clients);
+  const refresh = useSelector((state) => state.apiClient.refresh);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,10 +44,61 @@ const AdminClientsTable = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [refresh, my_clients]);
 
   const onPageChange = (newPage) => {
     setCurrentPage(newPage);
+  };
+
+  const setErrorState = (message, type) => {
+    setIsError({
+      isError: true,
+      message,
+      type,
+    });
+  };
+
+  const handleActivate = async () => {
+    setIsLoadingActivation(true);
+    const data = {
+      _id: selectedClient._id,
+      isActive: true,
+    };
+    await activateUserClientApi(data)
+      .then((response) => {
+        setErrorState('Client activated successfully', 'success');
+        dispatch(performRefresh());
+      })
+      .catch((error) => {
+        setErrorState('Failed to activate client', 'error');
+      })
+      .finally(() => {
+        setIsLoadingActivation(false);
+        setConfirmClientActivation(false);
+      });
+  };
+
+  const handleDeactivate = async () => {
+    setIsLoadingActivation(true);
+    const data = {
+      _id: selectedClient._id,
+      isActive: false,
+    };
+    await activateUserClientApi(data)
+      .then((response) => {
+        setErrorState('Client deactivated successfully', 'success');
+        setSelectedClient(null);
+        setErrorState('Client activated successfully', 'success');
+        dispatch(performRefresh());
+      })
+      .catch((error) => {
+        setErrorState('Failed to deactivate client', 'error');
+      })
+      .finally(() => {
+        setIsLoadingActivation(false);
+        setConfirmClientDeactivation(false);
+        setSelectedClient(null);
+      });
   };
 
   return (
@@ -117,7 +175,7 @@ const AdminClientsTable = () => {
                           <div
                             className='w-9 h-9 p-2.5 bg-white rounded border border-gray-200 flex justify-center items-center cursor-pointer'
                             onClick={() => {
-                              setOpenEditForm(true);
+                              setConfirmClientActivation(true);
                               setSelectedClient(client);
                             }}
                           >
@@ -126,7 +184,7 @@ const AdminClientsTable = () => {
                           <div
                             className='w-9 h-9 p-2.5 bg-white rounded border border-gray-200 flex justify-center items-center cursor-pointer'
                             onClick={() => {
-                              setOpenEditForm(true);
+                              setConfirmClientDeactivation(true);
                               setSelectedClient(client);
                             }}
                           >
@@ -154,6 +212,22 @@ const AdminClientsTable = () => {
         onPrevClick={() => onPageChange(currentPage - 1)}
         onNextClick={() => onPageChange(currentPage + 1)}
       />
+      <Modal
+        display={confirmClientActivation}
+        handleConfirm={handleActivate}
+        closeModal={() => setConfirmClientActivation(false)}
+        description={`Are you sure you want to activate ${selectedClient?.name} client?`}
+        confirmButtonText='Activate'
+        confirmButton
+      />
+      <Modal
+        display={confirmClientDeactivation}
+        handleConfirm={handleDeactivate}
+        closeModal={() => setConfirmClientDeactivation(false)}
+        description={`Are you sure you want to deactivate ${selectedClient?.name} client?`}
+        confirmButtonText='Deactivate'
+        confirmButton
+      />{' '}
     </div>
   );
 };

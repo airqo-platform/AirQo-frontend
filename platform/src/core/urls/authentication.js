@@ -34,3 +34,5 @@ export const RESET_PWD_URL = `${AUTH_URL}/updatePasswordViaEmail`;
 export const CLIENT_URI = `${AUTH_URL}/clients`;
 
 export const GENERATE_TOKEN_URI = `${AUTH_URL}/tokens`;
+
+export const ACTIVATE_USER_CLIENT = `${CLIENT_URI}/activate`;

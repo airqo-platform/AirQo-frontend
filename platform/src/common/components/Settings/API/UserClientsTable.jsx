@@ -5,12 +5,13 @@ import { getUserDetails } from '@/core/apis/Account';
 import EditIcon from '@/icons/Common/edit-pencil.svg';
 import { useSelector } from 'react-redux';
 import Toast from '@/components/Toast';
-import { addClients, addClientsDetails } from '@/lib/store/services/apiClient';
-import { isEmpty } from 'underscore';
+import { addClients, addClientsDetails, performRefresh } from '@/lib/store/services/apiClient';
 import { useDispatch } from 'react-redux';
 import EditClientForm from './EditClientForm';
-import { generateTokenApi } from '@/core/apis/Settings';
+import { generateTokenApi, getClientsApi } from '@/core/apis/Settings';
 import Button from '@/components/Button';
+import { isEmpty } from 'underscore';
+import CopyIcon from '@/icons/Common/copy.svg';
 
 const UserClientsTable = () => {
   const dispatch = useDispatch();
@@ -21,61 +22,99 @@ const UserClientsTable = () => {
   });
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingToken, setIsLoadingToken] = useState(false);
   const [openEditForm, setOpenEditForm] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const userInfo = useSelector((state) => state.login.userInfo);
   const clients = useSelector((state) => state.apiClient.clients);
+  const clientsDetails = useSelector((state) => state.apiClient.clientsDetails);
+  const refresh = useSelector((state) => state.apiClient.refresh);
+
+  const setErrorState = (message, type) => {
+    setIsError({
+      isError: true,
+      message,
+      type,
+    });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      if (isEmpty(clients)) {
-        try {
-          const res = await getUserDetails(userInfo?._id);
-          if (res.success === true) {
-            dispatch(addClients(res.users[0].clients));
-          }
-        } catch (error) {
-          console.error(error);
-        } finally {
-          setIsLoading(false);
+      try {
+        const res = await getUserDetails(userInfo?._id);
+        if (res.success === true) {
+          dispatch(addClients(res.users[0].clients));
         }
-      } else {
+      } catch (error) {
+        console.error(error);
+      } finally {
         setIsLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [refresh]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await getClientsApi(userInfo?._id);
+        if (response.success === true) {
+          dispatch(addClientsDetails(response.clients));
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, [refresh]);
+
+  const hasAccessToken = (clientId) => {
+    const client =
+      Array.isArray(clientsDetails) && !isEmpty(clientsDetails)
+        ? clientsDetails?.find((client) => client._id === clientId)
+        : [];
+    return client && client.access_token;
+  };
+
+  const getClientToken = (clientID) => {
+    const client =
+      Array.isArray(clientsDetails) && !isEmpty(clientsDetails)
+        ? clientsDetails?.find((client) => client._id === clientID)
+        : [];
+    return client && client.access_token && client.access_token.token;
+  };
+
+  const getClientTokenExpiryDate = (clientID) => {
+    const client =
+      Array.isArray(clientsDetails) && !isEmpty(clientsDetails)
+        ? clientsDetails?.find((client) => client._id === clientID)
+        : [];
+    return client && client.access_token && client.access_token.expires;
+  };
 
   const handleGenerateToken = async (res) => {
-    setIsLoading(true);
-    const setErrorState = (message, type) => {
-      setIsError({
-        isError: true,
-        message,
-        type,
-      });
-    };
+    setIsLoadingToken(true);
     if (!res?.isActive) {
       setShowInfoModal(true);
       setTimeout(() => {
         setShowInfoModal(false);
       }, 5000);
-      setIsLoading(false);
+      setIsLoadingToken(false);
     } else {
       try {
         const response = await generateTokenApi(res);
         if (response.success === true) {
           setErrorState('Token generated', 'success');
         }
-        const resp = await getClientsApi(userInfo?._id);
-        if (resp.success === true) {
-          dispatch(addClientsDetails(res.client_id));
-        }
+        dispatch(performRefresh());
       } catch (error) {
         setErrorState(error.message, 'error');
       } finally {
-        setIsLoading(false);
+        setIsLoadingToken(false);
       }
     }
   };
@@ -96,13 +135,16 @@ const UserClientsTable = () => {
               IP Address
             </th>
             <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
-              Status
+              Client Status
             </th>
             <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
-              Created date
+              Created
             </th>
             <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
-              Generate token
+              Token
+            </th>
+            <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
+              Expires
             </th>
             <th scope='col' className='font-medium w-24 px-4 py-3 opacity-40'></th>
           </tr>
@@ -146,28 +188,51 @@ const UserClientsTable = () => {
                       {moment(client?.createdAt).format('MMM DD, YYYY')}
                     </td>
                     <td scope='row' className='w-[138px] px-4 py-3'>
-                      <Button
-                        title={
-                          !client?.isActive ? 'Tap to generate token' : 'Token already generated'
-                        }
-                        className={`px-4 py-2 rounded-2xl w-auto inline-flex justify-center text-sm leading-5 items-center mx-auto ${
-                          !client?.isActive
-                            ? 'bg-success-700 text-success-50 cursor-pointer'
-                            : 'bg-secondary-neutral-light-50 text-secondary-neutral-light-500'
-                        }`}
-                        disabled={showInfoModal}
-                        onClick={() => {
-                          let res = {
-                            name: client.name,
-                            client_id: client._id,
-                            isActive: client.isActive ? client.isActive : false,
-                          };
+                      {getClientToken(client._id) ? (
+                        <span className='font-medium text-sm leading-5 text-secondary-neutral-light-400 flex items-center gap-2'>
+                          {getClientToken(client._id).slice(0, 2)}....
+                          {getClientToken(client._id).slice(-2)}
+                          <div
+                            className='w-6 h-6 bg-white rounded border border-gray-200 flex justify-center items-center gap-2 cursor-pointer'
+                            onClick={() => {
+                              navigator.clipboard.writeText(getClientToken(client._id));
+                              setErrorState('Token copied to clipboard!', 'success');
+                            }}
+                          >
+                            <CopyIcon />
+                          </div>
+                        </span>
+                      ) : (
+                        <Button
+                          title={
+                            !client?.isActive ? 'Tap to generate token' : 'Token already generated'
+                          }
+                          className={`px-4 py-2 rounded-2xl w-auto inline-flex justify-center text-sm leading-5 items-center mx-auto ${
+                            !hasAccessToken(client._id)
+                              ? 'bg-success-700 text-success-50 cursor-pointer'
+                              : 'bg-secondary-neutral-light-50 text-secondary-neutral-light-500'
+                          }`}
+                          disabled={isLoadingToken}
+                          onClick={() => {
+                            let res = {
+                              name: client.name,
+                              client_id: client._id,
+                              isActive: client.isActive ? client.isActive : false,
+                            };
 
-                          handleGenerateToken(res);
-                        }}
-                      >
-                        Generate
-                      </Button>
+                            handleGenerateToken(res);
+                          }}
+                        >
+                          Generate
+                        </Button>
+                      )}
+                    </td>
+                    <td
+                      scope='row'
+                      className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
+                    >
+                      {getClientTokenExpiryDate(client._id) &&
+                        moment(getClientTokenExpiryDate(client._id)).format('MMM DD, YYYY')}
                     </td>
                     <td
                       scope='row'
