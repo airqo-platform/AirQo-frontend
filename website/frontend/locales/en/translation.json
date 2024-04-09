@@ -316,6 +316,7 @@
       },
       "subNav": {
         "about": "About",
+        "committee": "Programme committee",
         "speakers": "Speakers",
         "schedule": "Schedule & Registration",
         "partners": "Partners",
@@ -325,8 +326,7 @@
         "committee": "Programme committee",
         "schedule": "Schedule",
         "speakers": {
-          "title": "Speakers",
-          "subText": "Meet the CLEAN-Air Forum speakers! <br /> We're thrilled to host distinguished speakers from across the globe, alongside prominent city leaders and researchers representing various countries, who will serve as key presenters."
+          "title": "Speakers"
         },
         "registration": "Registration",
         "partners": {
