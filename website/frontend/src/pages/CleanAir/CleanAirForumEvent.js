@@ -11,6 +11,7 @@ import Schedule from './ForumEventsPages/Schedule';
 import Speakers from './ForumEventsPages/Speakers';
 import Partners from './ForumEventsPages/Partners';
 import Travel from './ForumEventsPages/Travel';
+import CommitteePage from './ForumEventsPages/CommitteePage';
 import { ButtonCTA } from 'components/CleanAir';
 
 /**
@@ -35,9 +36,12 @@ const CleanAirForumEvent = () => {
   const [registration, setRegistration] = useState(null);
   const [schedule, setSchedule] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [committeeText, setCommitteeText] = useState('');
+  const [speakersText, setSpeakersText] = useState('');
 
   const links = [
     { name: t('cleanAirSite.Forum.subNav.about'), url: 'about' },
+    { name: t('cleanAirSite.Forum.subNav.committee'), url: 'committee' },
     { name: t('cleanAirSite.Forum.subNav.schedule'), url: 'schedule' },
     { name: t('cleanAirSite.Forum.subNav.speakers'), url: 'speakers' },
     { name: t('cleanAirSite.Forum.subNav.partners'), url: 'partners' },
@@ -86,6 +90,8 @@ const CleanAirForumEvent = () => {
           // Process and set state for each data section
           setForumEvents(response);
           setEngagements(event.engagements);
+          setCommitteeText(event.Committee_text_section_html);
+          setSpeakersText(event.Speakers_text_section_html);
           setCommittee(filterByCategory(event.persons, 'Committee Member'));
           setSpeakers(filterByCategory(event.persons, 'Speaker'));
           setFundingPartners(filterByCategory(event.partners, 'Funding Partner'));
@@ -241,10 +247,15 @@ const CleanAirForumEvent = () => {
             {activeSection === 'about' && (
               <About forumEvents={forumEvents} engagements={engagements} committee={committee} />
             )}
+            {activeSection === 'committee' && (
+              <CommitteePage committee={committee} sectionText={committeeText} />
+            )}
             {activeSection === 'schedule' && (
               <Schedule schedule={schedule} registration={registration} />
             )}
-            {activeSection === 'speakers' && <Speakers speakers={speakers} />}
+            {activeSection === 'speakers' && (
+              <Speakers speakers={speakers} sectionText={speakersText} />
+            )}
             {activeSection === 'partners' && (
               <Partners
                 FundingPartners={FundingPartners}

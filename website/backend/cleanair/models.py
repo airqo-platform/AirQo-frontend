@@ -54,6 +54,8 @@ class ForumEvent(BaseModel):
     start_time = models.TimeField(blank=True, null=True)
     end_time = models.TimeField(blank=True, null=True)
     introduction = QuillField(blank=True, null=True)
+    Speakers_text_section = QuillField(blank=True, null=True)
+    Committee_text_section = QuillField(blank=True, null=True)
 
     class EventTag(models.TextChoices):
         Untagged = "none", "None"
@@ -190,7 +192,7 @@ class Program(BaseModel):
 
 class Session(BaseModel):
     start_time = models.TimeField(blank=True, null=True)
-    end_time = models.TimeField(blank=True, null=True)
+    end_time = models.TimeField(blank=False, null=True)
     session_title = models.CharField(max_length=150)
     session_details = QuillField(blank=True, null=True)
     order = models.IntegerField(default=1)

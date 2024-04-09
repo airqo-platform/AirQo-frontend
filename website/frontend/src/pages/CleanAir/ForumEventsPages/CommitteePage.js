@@ -1,25 +1,28 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Profile from 'components/Profile';
-import { useTranslation, Trans } from 'react-i18next';
 
 const ITEMS_PER_PAGE = 6;
 
-const Speakers = ({ speakers, sectionText }) => {
+const CommitteePage = ({ committee, sectionText }) => {
   const { t } = useTranslation();
+
   const [isExpanded, setIsExpanded] = useState(false);
-  const displayedSpeakers = isExpanded ? speakers : speakers?.slice(0, ITEMS_PER_PAGE);
+
+  // Display logic for committee and speakers
+  const displayedCommittee = isExpanded ? committee : committee?.slice(0, ITEMS_PER_PAGE);
   return (
     <>
-      {speakers && speakers.length > 0 && (
+      {committee && committee.length > 0 && (
         <>
           <div className="separator" />
           <section className="speakers">
             <h2 style={{ marginBottom: '20px' }} className="section_title">
-              {t('cleanAirSite.Forum.sections.speakers.title')}
+              {t('cleanAirSite.Forum.sections.committee')}
             </h2>
             {sectionText && <div dangerouslySetInnerHTML={{ __html: sectionText }} />}
             <div className="AboutUsPage__pictorial">
-              {displayedSpeakers.map((profile) => (
+              {displayedCommittee.map((profile) => (
                 <div key={profile.id}>
                   <Profile
                     name={profile.name}
@@ -30,7 +33,7 @@ const Speakers = ({ speakers, sectionText }) => {
                   />
                 </div>
               ))}
-              {speakers.length > ITEMS_PER_PAGE && (
+              {committee.length > ITEMS_PER_PAGE && (
                 <div className="showMoreLessBtn">
                   <button onClick={() => setIsExpanded(!isExpanded)}>
                     {isExpanded ? 'Show Less' : 'Show More'}
@@ -41,21 +44,8 @@ const Speakers = ({ speakers, sectionText }) => {
           </section>
         </>
       )}
-
-      {/* if both are empty */}
-      {speakers && speakers.length === 0 && (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '50vh'
-          }}>
-          No content available
-        </div>
-      )}
     </>
   );
 };
 
-export default Speakers;
+export default CommitteePage;

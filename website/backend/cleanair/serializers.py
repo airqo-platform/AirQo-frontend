@@ -85,6 +85,14 @@ class ForumEventSerializer(serializers.ModelSerializer):
     introduction_html = serializers.SerializerMethodField()
     travel_logistics_html = serializers.SerializerMethodField()
     registration_details_html = serializers.SerializerMethodField()
+    Speakers_text_section_html = serializers.SerializerMethodField()
+    Committee_text_section_html = serializers.SerializerMethodField()
+
+    def get_Speakers_text_section_html(self, obj):
+        return obj.Speakers_text_section.html
+
+    def get_Committee_text_section_html(self, obj):
+        return obj.Committee_text_section.html
 
     def get_introduction_html(self, obj):
         return obj.introduction.html
