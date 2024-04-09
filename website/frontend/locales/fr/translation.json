@@ -59,7 +59,7 @@
         "press": "Presse",
         "careers": "Carrières",
         "contact": "Nous Contacter",
-        "forumEvent": "Forum-Événement"
+        "forumEvent": "Forum Air pur"
       }
     },
     "getInvolved": "S'engager",
@@ -310,13 +310,14 @@
       "showMore": "Afficher plus",
       "showLess": "Afficher moins"
     },
-
     "Forum": {
+      "header": {
+        "register": "Inscrivez-vous ici"
+      },
       "subNav": {
         "about": "À propos",
         "speakers": "Conférenciers",
-        "schedule": "Programme",
-        "registration": "Inscription",
+        "schedule": "Programme et inscription",
         "partners": "Partenaires",
         "Travel": "Logistique de voyage"
       },
@@ -329,8 +330,9 @@
         },
         "registration": "Inscription",
         "partners": {
-          "fund": "Partenaires financiers",
-          "others": "Autres partenaires"
+          "fund": "Partenaires de financement",
+          "others": "Partenaires hôtes",
+          "coConvening": "Partenaires co-organisateurs"
         },
         "travel": "Logistique de voyage",
         "support": "Soutien"

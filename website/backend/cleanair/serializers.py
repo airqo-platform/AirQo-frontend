@@ -34,8 +34,10 @@ class PartnerSerializer(serializers.ModelSerializer):
 
 
 class SessionSerializer(serializers.ModelSerializer):
-    html = serializers.CharField(source='session_details.html')
-    plain = serializers.CharField(source='session_details.plain')
+    session_details_html = serializers.SerializerMethodField()
+
+    def get_session_details_html(self, obj):
+        return obj.session_details.html
 
     class Meta:
         model = Session
@@ -58,6 +60,12 @@ class SupportSerializer(serializers.ModelSerializer):
 
 class PersonSerializer(serializers.ModelSerializer):
     picture = serializers.SerializerMethodField()
+    bio_html = serializers.SerializerMethodField()
+
+    def get_bio_html(self, obj):
+        if obj.bio:
+            return obj.bio.html
+        return None
 
     def get_picture(self, obj):
         return obj.picture.url

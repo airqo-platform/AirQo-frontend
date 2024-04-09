@@ -19,11 +19,13 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='partner',
             name='category',
-            field=models.CharField(choices=[('Funding Partner', 'FUNDING_PARTNER'), ('Other Partner', 'OTHER_PARTNER')], default=backend.cleanair.models.PartnerCategoryChoices['OTHER_PARTNER'], max_length=50),
+            field=models.CharField(choices=[('Funding Partner', 'FUNDING_PARTNER'), ('Host Partner', 'HOST_PARTNER'), (
+                'Co-Convening Partner', 'CO_CONVENING_PARTNER')], default=backend.cleanair.models.PartnerCategoryChoices.FUNDING_PARTNER.name, max_length=50),
         ),
         migrations.AlterField(
             model_name='person',
             name='category',
-            field=models.CharField(choices=[('Speaker', 'SPEAKER'), ('Committee Member', 'COMMITTEE_MEMBER')], default=backend.cleanair.models.CategoryChoices['SPEAKER'], max_length=50),
+            field=models.CharField(choices=[('Speaker', 'SPEAKER'), ('Committee Member', 'COMMITTEE_MEMBER')],
+                                   default=backend.cleanair.models.CategoryChoices.SPEAKER.name, max_length=50),
         ),
     ]

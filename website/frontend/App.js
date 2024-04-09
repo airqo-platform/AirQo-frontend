@@ -128,7 +128,7 @@ const App = () => {
               <Route path="/clean-air/membership" element={<CleanAirMemberPage />} />
               <Route path="/clean-air/events" element={<CleanAirEventsPage />} />
               <Route path="/clean-air/resources" element={<CleanAirResourcesPage />} />
-              <Route path="/clean-air/events/forum" element={<CleanAirForumEvent />} />
+              <Route path="/clean-air/forum" element={<CleanAirForumEvent />} />
               <Route
                 path="/clean-air/event-details/:uniqueTitle"
                 element={<CleanAirEventsDetailsPage />}
