@@ -6,9 +6,9 @@ import Toast from '@/components/Toast';
 import { useDispatch } from 'react-redux';
 import { getAllUserClientsApi, activateUserClientApi } from '@/core/apis/Settings';
 import Pagination from '../../Collocation/AddMonitor/Table/Pagination';
-import Modal from '../../Modal/Modal';
 import { useSelector } from 'react-redux';
 import { performRefresh } from '@/lib/store/services/apiClient';
+import DialogWrapper from '../../Modal/DialogWrapper';
 
 const AdminClientsTable = () => {
   const dispatch = useDispatch();
@@ -212,22 +212,31 @@ const AdminClientsTable = () => {
         onPrevClick={() => onPageChange(currentPage - 1)}
         onNextClick={() => onPageChange(currentPage + 1)}
       />
-      <Modal
-        display={confirmClientActivation}
-        handleConfirm={handleActivate}
-        closeModal={() => setConfirmClientActivation(false)}
-        description={`Are you sure you want to activate ${selectedClient?.name} client?`}
-        confirmButtonText='Activate'
-        confirmButton
-      />
-      <Modal
-        display={confirmClientDeactivation}
-        handleConfirm={handleDeactivate}
-        closeModal={() => setConfirmClientDeactivation(false)}
-        description={`Are you sure you want to deactivate ${selectedClient?.name} client?`}
-        confirmButtonText='Deactivate'
-        confirmButton
-      />{' '}
+
+      <DialogWrapper
+        open={confirmClientActivation}
+        onClose={() => setConfirmClientActivation(false)}
+        handleClick={handleActivate}
+        primaryButtonText={'Activate'}
+        loading={isLoadingActivation}
+      >
+        <h3 className='self-stretch text-gray-700 text-lg font-medium leading-relaxed'>
+          Activate client
+        </h3>
+        <div className='text-slate-500 text-sm font-normal leading-tight'>{`Are you sure you want to activate ${selectedClient?.name} client?`}</div>
+      </DialogWrapper>
+      <DialogWrapper
+        open={confirmClientDeactivation}
+        onClose={() => setConfirmClientDeactivation(false)}
+        handleClick={handleDeactivate}
+        primaryButtonText={'Deactivate'}
+        loading={isLoadingActivation}
+      >
+        <h3 className='self-stretch text-gray-700 text-lg font-medium leading-relaxed'>
+          Deactivate client
+        </h3>
+        <div className='text-slate-500 text-sm font-normal leading-tight'>{`Are you sure you want to deactivate ${selectedClient?.name} client?`}</div>
+      </DialogWrapper>
     </div>
   );
 };
