@@ -52,7 +52,9 @@ const Toast = ({ message, type, timeout, dataTestId, size, clearData, bgColor, p
     >
       {type === 'info' ? (
         <div className='fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50'>
-          <div className={`${containerStyles} flex-col justify-center w-96 text-black-900 gap-5`}>
+          <div
+            className={`${containerStyles} flex-col justify-center max-w-96 text-black-900 gap-5`}
+          >
             {getIcon()}
             <p className='ml-2 text-black-900'>{message}</p>
             <Button onClick={handleClose} variant='filled'>
