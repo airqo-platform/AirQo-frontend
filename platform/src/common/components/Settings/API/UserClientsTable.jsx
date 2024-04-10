@@ -96,6 +96,14 @@ const UserClientsTable = () => {
     return client && client.access_token && client.access_token.expires;
   };
 
+  const getClientIPAddress = (clientID) => {
+    const client =
+      Array.isArray(clientsDetails) && !isEmpty(clientsDetails)
+        ? clientsDetails?.find((client) => client._id === clientID)
+        : [];
+    return client && client.access_token && client.access_token.ip_address;
+  };
+
   const handleGenerateToken = async (res) => {
     setIsLoadingToken(true);
     if (!res?.isActive) {
@@ -168,7 +176,7 @@ const UserClientsTable = () => {
                       scope='row'
                       className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
                     >
-                      {client?.ip_address}
+                      {getClientIPAddress(client._id)}
                     </td>
                     <td scope='row' className='w-[138px] px-4 py-3'>
                       <div

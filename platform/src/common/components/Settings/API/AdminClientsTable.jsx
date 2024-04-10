@@ -88,7 +88,6 @@ const AdminClientsTable = () => {
       .then((response) => {
         setErrorState('Client deactivated successfully', 'success');
         setSelectedClient(null);
-        setErrorState('Client activated successfully', 'success');
         dispatch(performRefresh());
       })
       .catch((error) => {
