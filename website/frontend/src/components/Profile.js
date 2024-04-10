@@ -25,7 +25,8 @@ const Profile = ({
   linkedin,
   biography,
   about,
-  readBioBtn = false
+  readBioBtn = false,
+  htmlBio
 }) => {
   const ref = useRef();
   const [isVisible, setIsVisible] = useState(false);
@@ -77,7 +78,9 @@ const Profile = ({
             <div className="biography">
               <span>{isVisible && <img src={ImgPath} alt={`${name}'s Profile`} />}</span>
               <span className="bio-text">
-                {about ? (
+                {htmlBio ? (
+                  <div dangerouslySetInnerHTML={{ __html: htmlBio }} />
+                ) : about ? (
                   <p className="description">{about}</p>
                 ) : (
                   (biography || []).map((desc) => (

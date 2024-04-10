@@ -54,6 +54,8 @@ class ForumEvent(BaseModel):
     start_time = models.TimeField(blank=True, null=True)
     end_time = models.TimeField(blank=True, null=True)
     introduction = QuillField(blank=True, null=True)
+    Speakers_text_section = QuillField(blank=True, null=True)
+    Committee_text_section = QuillField(blank=True, null=True)
 
     class EventTag(models.TextChoices):
         Untagged = "none", "None"
@@ -96,7 +98,8 @@ class ForumEvent(BaseModel):
 
 class PartnerCategoryChoices(Enum):
     FUNDING_PARTNER = "Funding Partner"
-    OTHER_PARTNER = "Other Partner"
+    HOST_PARTNER = "Host Partner"
+    CO_CONVENING_PARTNER = "Co-Convening Partner"
 
     @classmethod
     def choices(cls):
@@ -152,7 +155,7 @@ class Partner(BaseModel):
     website_link = models.URLField(blank=True, null=True)
     order = models.IntegerField(default=1)
     category = models.CharField(
-        max_length=50, choices=PartnerCategoryChoices.choices(), default=PartnerCategoryChoices.OTHER_PARTNER)
+        max_length=50, choices=PartnerCategoryChoices.choices(), default=PartnerCategoryChoices.FUNDING_PARTNER)
     forum_event = models.ForeignKey(
         ForumEvent,
         null=True,
@@ -189,7 +192,7 @@ class Program(BaseModel):
 
 class Session(BaseModel):
     start_time = models.TimeField(blank=True, null=True)
-    end_time = models.TimeField(blank=True, null=True)
+    end_time = models.TimeField(blank=False, null=True)
     session_title = models.CharField(max_length=150)
     session_details = QuillField(blank=True, null=True)
     order = models.IntegerField(default=1)
@@ -232,7 +235,7 @@ class Support(BaseModel):
 class Person(BaseModel):
     name = models.CharField(max_length=100)
     title = models.CharField(max_length=100, blank=True)
-    biography = models.TextField(blank=True, null=True)
+    bio = QuillField(blank=True, null=True)
     category = models.CharField(
         max_length=50, choices=CategoryChoices.choices(), default=CategoryChoices.SPEAKER)
     picture = CloudinaryField(

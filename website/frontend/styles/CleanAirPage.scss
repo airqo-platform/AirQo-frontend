@@ -1555,30 +1555,16 @@
         margin: 0 auto;
       }
 
-      .header-info-con {
-        width: 100%;
-        height: 100%;
+      .time-data-info {
         display: flex;
         flex-direction: column;
         justify-content: center;
-        padding: 15px 16px;
-
-        &::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background-color: rgba(255, 255, 255, 0.4);
-        }
 
         .header-info {
           margin-bottom: 10px;
           display: flex;
           flex-wrap: wrap;
           justify-content: flex-start;
-          z-index: 999 * 5;
 
           span {
             display: flex;
@@ -1602,6 +1588,8 @@
       }
 
       .headerScroll {
+        // shadow bottom
+        box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1);
         .navigation {
           width: 100%;
           height: 74px;
@@ -1627,16 +1615,6 @@
               height: 100%;
               position: relative;
 
-              &:first-child::after {
-                content: '';
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                height: 2px;
-                background-color: #353e52;
-              }
-
               span {
                 text-decoration: none;
                 color: $font-color-light;
@@ -1653,61 +1631,27 @@
       }
 
       .header {
-        background: {
-          image: url('assets/img/cleanAir/section2.png');
-          size: cover;
-          position: 40% 65%;
-          repeat: no-repeat;
-        }
         height: auto;
-        display: flex;
-        flex-direction: column;
         position: relative;
+        margin-top: -45px;
+        margin-bottom: 40px;
 
-        .header-main-info {
-          margin-bottom: 50px;
-          z-index: 999 * 5;
-
-          h1,
-          h2 {
-            margin: 0;
-            padding: 0;
-          }
-
-          h1 {
-            font-size: 48px;
-            font-weight: 800;
-            color: #333333;
-          }
-
-          h2 {
-            font-size: 40px;
-            font-weight: 500;
-            color: $font-color;
-          }
-        }
-
-        .register-btn {
-          background-color: $primary-color;
-          display: flex;
-          width: 234px;
-          height: 56px;
-          padding: 16px 32px;
-          justify-content: center;
-          align-items: center;
-          gap: 10px;
-          color: #ffffff;
-          border: none;
-          cursor: pointer;
-
-          &:hover {
-            background-color: $hover-color;
+        .activeClass {
+          &::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #353e52;
           }
         }
 
         .navigation {
           width: 100%;
           height: 74px;
+          margin-top: 10px;
           background-color: $background-color;
           overflow-x: scroll;
 
@@ -1737,16 +1681,6 @@
               height: 100%;
               position: relative;
 
-              &:first-child::after {
-                content: '';
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                height: 2px;
-                background-color: #353e52;
-              }
-
               span {
                 text-decoration: none;
                 color: $font-color-light;
@@ -1768,9 +1702,9 @@
         font-style: normal;
         font-weight: 400;
         line-height: 150%;
+        scroll-margin-top: 5rem;
 
         section {
-          scroll-margin-top: 10rem;
           margin-bottom: 40px;
           .container {
             margin: 0;

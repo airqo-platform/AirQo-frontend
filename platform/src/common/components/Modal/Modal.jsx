@@ -2,9 +2,15 @@ import React, { useState } from 'react';
 import Close from '@/icons/Actions/close.svg';
 import Button from '@/components/Button';
 
-const Modal = ({ description, confirmButton, handleConfirm, display, closeModal }) => {
+const Modal = ({
+  description,
+  confirmButton,
+  handleConfirm,
+  display,
+  closeModal,
+  confirmButtonText = 'Delete',
+}) => {
   const [loading, setLoading] = useState(false);
-  console.log(loading);
   const handleClick = async () => {
     setLoading(true);
     try {
@@ -47,7 +53,7 @@ const Modal = ({ description, confirmButton, handleConfirm, display, closeModal 
                   disabled={loading}
                   onClick={handleClick}
                 >
-                  {loading ? 'Loading...' : 'Delete'}
+                  {loading ? 'Loading...' : confirmButtonText}
                 </Button>
               )}
 

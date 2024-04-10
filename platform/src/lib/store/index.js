@@ -20,6 +20,7 @@ import analyticsReducer from './services/charts/ChartData';
 import { groupInfoSlice } from './services/groups/GroupInfoSlice';
 import { mapSlice } from './services/map/MapSlice';
 import { locationSearchSlice } from './services/search/LocationSearchSlice';
+import { apiClientSlice } from './services/apiClient/index';
 
 const persistConfig = {
   key: 'root',
@@ -44,6 +45,7 @@ const rootReducer = combineReducers({
   analytics: analyticsReducer,
   [groupInfoSlice.name]: groupInfoSlice.reducer,
   [locationSearchSlice.name]: locationSearchSlice.reducer,
+  [apiClientSlice.name]: apiClientSlice.reducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

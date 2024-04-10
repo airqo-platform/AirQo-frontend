@@ -59,7 +59,7 @@
         "press": "Presse",
         "careers": "Carrières",
         "contact": "Nous Contacter",
-        "forumEvent": "Forum-Événement"
+        "forumEvent": "Forum Air pur"
       }
     },
     "getInvolved": "S'engager",
@@ -310,13 +310,15 @@
       "showMore": "Afficher plus",
       "showLess": "Afficher moins"
     },
-
     "Forum": {
+      "header": {
+        "register": "Inscrivez-vous ici"
+      },
       "subNav": {
         "about": "À propos",
+        "committee": "Comité de programme",
         "speakers": "Conférenciers",
-        "schedule": "Programme",
-        "registration": "Inscription",
+        "schedule": "Calendrier et inscription",
         "partners": "Partenaires",
         "Travel": "Logistique de voyage"
       },
@@ -324,13 +326,13 @@
         "committee": "Comité de programme",
         "schedule": "Programme",
         "speakers": {
-          "title": "Conférenciers",
-          "subText": "Rencontrez les conférenciers du Forum CLEAN-Air ! <br /> Nous sommes ravis d'accueillir des conférenciers renommés du monde entier, aux côtés de dirigeants et de chercheurs de premier plan de différents pays, qui seront des présentateurs clés."
+          "title": "Conférenciers"
         },
         "registration": "Inscription",
         "partners": {
-          "fund": "Partenaires financiers",
-          "others": "Autres partenaires"
+          "fund": "Partenaires de financement",
+          "others": "Partenaires hôtes",
+          "coConvening": "Partenaires co-organisateurs"
         },
         "travel": "Logistique de voyage",
         "support": "Soutien"

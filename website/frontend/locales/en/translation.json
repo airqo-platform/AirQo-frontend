@@ -59,7 +59,7 @@
         "press": "Press",
         "careers": "Careers",
         "contact": "Contact Us",
-        "forumEvent": "Forum-Event"
+        "forumEvent": "Clean-Air forum"
       }
     },
     "getInvolved": "Get Involved",
@@ -311,11 +311,14 @@
       "showLess": "Show less"
     },
     "Forum": {
+      "header": {
+        "register": "Register here"
+      },
       "subNav": {
         "about": "About",
+        "committee": "Programme committee",
         "speakers": "Speakers",
-        "schedule": "Schedule",
-        "registration": "Registration",
+        "schedule": "Schedule & Registration",
         "partners": "Partners",
         "Travel": "Travel Logistics"
       },
@@ -323,13 +326,13 @@
         "committee": "Programme committee",
         "schedule": "Schedule",
         "speakers": {
-          "title": "Speakers",
-          "subText": "Meet the CLEAN-Air Forum speakers! <br /> We're thrilled to host distinguished speakers from across the globe, alongside prominent city leaders and researchers representing various countries, who will serve as key presenters."
+          "title": "Speakers"
         },
         "registration": "Registration",
         "partners": {
-          "fund": "Funding Partners",
-          "others": "Other Partners"
+          "fund": "Funding partners",
+          "others": "Host partners",
+          "coConvening": "Co-convening partners"
         },
         "travel": "Travel Logistics",
         "support": "Support"
