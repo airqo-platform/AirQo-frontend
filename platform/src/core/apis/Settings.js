@@ -1,4 +1,10 @@
-import { UPDATE_PWD_URL } from '../urls/authentication';
+import {
+  ACTIVATE_USER_CLIENT,
+  ACTIVATION_REQUEST_URI,
+  CLIENT_URI,
+  GENERATE_TOKEN_URI,
+  UPDATE_PWD_URL,
+} from '../urls/authentication';
 import createAxiosInstance from './axiosConfig';
 
 export const updateUserPasswordApi = async (userId, tenant, userData) => {
@@ -6,5 +12,46 @@ export const updateUserPasswordApi = async (userId, tenant, userData) => {
     .put(UPDATE_PWD_URL, userData, {
       params: { tenant, id: userId },
     })
+    .then((response) => response.data);
+};
+
+export const getClientsApi = async (userID) => {
+  return await createAxiosInstance()
+    .get(CLIENT_URI, { params: { user_id: userID } })
+    .then((response) => response.data);
+};
+
+export const getAllUserClientsApi = async () => {
+  return await createAxiosInstance()
+    .get(CLIENT_URI)
+    .then((response) => response.data);
+};
+
+export const createClientApi = async (data) => {
+  return await createAxiosInstance()
+    .post(CLIENT_URI, data)
+    .then((response) => response.data);
+};
+
+export const updateClientApi = async (data, client_id) => {
+  return await createAxiosInstance()
+    .put(CLIENT_URI + '/' + client_id, data)
+    .then((response) => response.data);
+};
+
+export const generateTokenApi = async (data) => {
+  const response = await createAxiosInstance().post(GENERATE_TOKEN_URI, data);
+  return response.data;
+};
+
+export const activateUserClientApi = async (data) => {
+  return await createAxiosInstance()
+    .post(`${ACTIVATE_USER_CLIENT}/${data._id}`, data)
+    .then((response) => response.data);
+};
+
+export const activationRequestApi = async (clientID) => {
+  return await createAxiosInstance()
+    .get(`${ACTIVATION_REQUEST_URI}/${clientID}`)
     .then((response) => response.data);
 };

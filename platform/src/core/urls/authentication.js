@@ -23,10 +23,18 @@ export const VERIFY_USER_URL = `${AUTH_URL}/verify`;
 
 export const USER_PREFERENCES_URL = `${AUTH_URL}/preferences`;
 
-export const USER_CHECKLISTS_URL = `${BASE_AUTH_URL}/users/checklist`;
+export const USER_CHECKLISTS_URL = `${AUTH_URL}/checklist`;
 
-export const USER_CHECKLISTS_UPSERT_URL = `${BASE_AUTH_URL}/users/checklist/upsert`;
+export const USER_CHECKLISTS_UPSERT_URL = `${AUTH_URL}/checklist/upsert`;
 
-export const FORGOT_PWD_URL = `${BASE_AUTH_URL}/users/forgotPassword`;
+export const FORGOT_PWD_URL = `${AUTH_URL}/forgotPassword`;
 
-export const RESET_PWD_URL = `${BASE_AUTH_URL}/users/updatePasswordViaEmail`;
+export const RESET_PWD_URL = `${AUTH_URL}/updatePasswordViaEmail`;
+
+export const CLIENT_URI = `${AUTH_URL}/clients`;
+
+export const GENERATE_TOKEN_URI = `${AUTH_URL}/tokens`;
+
+export const ACTIVATE_USER_CLIENT = `${CLIENT_URI}/activate`;
+
+export const ACTIVATION_REQUEST_URI = `${CLIENT_URI}/activate-request`;
