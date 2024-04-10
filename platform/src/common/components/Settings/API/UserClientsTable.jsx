@@ -175,7 +175,7 @@ const UserClientsTable = () => {
             <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
               IP Address
             </th>
-            <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
+            <th scope='col' className='font-medium w-[142px] px-4 py-3 opacity-40'>
               Client Status
             </th>
             <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
@@ -211,7 +211,7 @@ const UserClientsTable = () => {
                     >
                       {getClientIPAddress(client._id)}
                     </td>
-                    <td scope='row' className='w-[138px] px-4 py-3'>
+                    <td scope='row' className='w-[142px] px-4 py-3'>
                       <div
                         className={`px-2 py-[2px] rounded-2xl w-auto inline-flex justify-center text-sm leading-5 items-center mx-auto ${
                           client?.isActive
