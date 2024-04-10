@@ -8,10 +8,12 @@ import Toast from '@/components/Toast';
 import { addClients, addClientsDetails, performRefresh } from '@/lib/store/services/apiClient';
 import { useDispatch } from 'react-redux';
 import EditClientForm from './EditClientForm';
-import { generateTokenApi, getClientsApi } from '@/core/apis/Settings';
+import { generateTokenApi, getClientsApi, activationRequestApi } from '@/core/apis/Settings';
 import Button from '@/components/Button';
 import { isEmpty } from 'underscore';
 import CopyIcon from '@/icons/Common/copy.svg';
+import DialogWrapper from '../../Modal/DialogWrapper';
+import InfoCircleIcon from '@/icons/Common/info_circle.svg';
 
 const UserClientsTable = () => {
   const dispatch = useDispatch();
@@ -20,9 +22,15 @@ const UserClientsTable = () => {
     message: '',
     type: '',
   });
+  const [isActivationRequestError, setIsActivationRequestError] = useState({
+    isError: false,
+    message: '',
+    type: '',
+  });
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingToken, setIsLoadingToken] = useState(false);
+  const [isLoadingActivationRequest, setIsLoadingActivationRequest] = useState(false);
   const [openEditForm, setOpenEditForm] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const userInfo = useSelector((state) => state.login.userInfo);
@@ -108,9 +116,6 @@ const UserClientsTable = () => {
     setIsLoadingToken(true);
     if (!res?.isActive) {
       setShowInfoModal(true);
-      setTimeout(() => {
-        setShowInfoModal(false);
-      }, 5000);
       setIsLoadingToken(false);
     } else {
       try {
@@ -124,6 +129,34 @@ const UserClientsTable = () => {
       } finally {
         setIsLoadingToken(false);
       }
+    }
+  };
+
+  const handleActivationRequest = async () => {
+    const setActivationRequestErrorState = (message, type) => {
+      setIsActivationRequestError({
+        isError: true,
+        message,
+        type,
+      });
+    };
+    setIsLoadingActivationRequest(true);
+    try {
+      const clientID = selectedClient?._id;
+      const response = await activationRequestApi(clientID);
+      if (response.success === true) {
+        setShowInfoModal(false);
+        setTimeout(() => {
+          setActivationRequestErrorState('Activation request sent successfully', 'success');
+        }, 3000);
+      }
+    } catch (error) {
+      setShowInfoModal(false);
+      setTimeout(() => {
+        setActivationRequestErrorState(error.message, 'error');
+      }, 3000);
+    } finally {
+      setIsLoadingActivationRequest(false);
     }
   };
 
@@ -227,7 +260,7 @@ const UserClientsTable = () => {
                               client_id: client._id,
                               isActive: client.isActive ? client.isActive : false,
                             };
-
+                            setSelectedClient(client);
                             handleGenerateToken(res);
                           }}
                         >
@@ -269,7 +302,9 @@ const UserClientsTable = () => {
           </tbody>
         )}
       </table>
-
+      {isActivationRequestError.isError && (
+        <Toast type={isActivationRequestError.type} message={isActivationRequestError.message} />
+      )}
       <EditClientForm
         open={openEditForm}
         closeModal={() => setOpenEditForm(false)}
@@ -278,12 +313,19 @@ const UserClientsTable = () => {
         clientID={selectedClient?._id}
       />
 
-      {showInfoModal && (
-        <Toast
-          type='info'
-          message='You cannot generate a token for an inactive client, reach out to support for assistance at support@airqo.net or send an activation request'
-        />
-      )}
+      <DialogWrapper
+        open={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+        handleClick={handleActivationRequest}
+        primaryButtonText={'Send activation request'}
+        loading={isLoadingActivationRequest}
+        ModalIcon={InfoCircleIcon}
+      >
+        <div className='text-slate-500 text-sm font-normal leading-tight'>
+          You cannot generate a token for an inactive client, reach out to support for assistance at
+          support@airqo.net or send an activation request
+        </div>
+      </DialogWrapper>
     </div>
   );
 };

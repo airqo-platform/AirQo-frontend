@@ -1,5 +1,6 @@
 import {
   ACTIVATE_USER_CLIENT,
+  ACTIVATION_REQUEST_URI,
   CLIENT_URI,
   GENERATE_TOKEN_URI,
   UPDATE_PWD_URL,
@@ -46,5 +47,11 @@ export const generateTokenApi = async (data) => {
 export const activateUserClientApi = async (data) => {
   return await createAxiosInstance()
     .post(`${ACTIVATE_USER_CLIENT}/${data._id}`, data)
+    .then((response) => response.data);
+};
+
+export const activationRequestApi = async (clientID) => {
+  return await createAxiosInstance()
+    .get(`${ACTIVATION_REQUEST_URI}/${clientID}`)
     .then((response) => response.data);
 };
