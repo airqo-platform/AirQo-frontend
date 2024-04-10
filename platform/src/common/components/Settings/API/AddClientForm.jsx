@@ -62,25 +62,21 @@ const AddClientForm = ({ open, closeModal }) => {
       const data = {
         name: clientName,
         user_id: userInfo?._id,
-        ip: ipAddress,
+        ip_address: ipAddress,
       };
 
       const response = await createClientApi(data);
 
-      if (response.success !== true) {
-        throw new Error('Failed to create client');
-      }
+      if (response.success === true) {
+        const res = await getUserDetails(userInfo?._id);
 
-      const res = await getUserDetails(userInfo?._id);
-
-      if (res.success !== true) {
-        throw new Error('Failed to get user details');
+        if (res.success === true) {
+          dispatch(addClients(res.users[0].clients));
+        }
       }
-      dispatch(addClients(res.users[0].clients));
       closeModal();
     } catch (error) {
-      setErrorState(error.message);
-      throw error;
+      setErrorState(error?.response?.data?.message || 'Failed to create client');
     } finally {
       setLoading(false);
     }

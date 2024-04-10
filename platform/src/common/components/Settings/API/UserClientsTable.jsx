@@ -14,6 +14,7 @@ import { isEmpty } from 'underscore';
 import CopyIcon from '@/icons/Common/copy.svg';
 import DialogWrapper from '../../Modal/DialogWrapper';
 import InfoCircleIcon from '@/icons/Common/info_circle.svg';
+import Pagination from '../../Collocation/AddMonitor/Table/Pagination';
 
 const UserClientsTable = () => {
   const dispatch = useDispatch();
@@ -37,6 +38,12 @@ const UserClientsTable = () => {
   const clients = useSelector((state) => state.apiClient.clients);
   const clientsDetails = useSelector((state) => state.apiClient.clientsDetails);
   const refresh = useSelector((state) => state.apiClient.refresh);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4;
+
+  const onPageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
 
   const setErrorState = (message, type) => {
     setIsError({
@@ -53,6 +60,7 @@ const UserClientsTable = () => {
         const res = await getUserDetails(userInfo?._id);
         if (res.success === true) {
           dispatch(addClients(res.users[0].clients));
+          setCurrentPage(1);
         }
       } catch (error) {
         console.error(error);
@@ -102,14 +110,6 @@ const UserClientsTable = () => {
         ? clientsDetails?.find((client) => client._id === clientID)
         : [];
     return client && client.access_token && client.access_token.expires;
-  };
-
-  const getClientIPAddress = (clientID) => {
-    const client =
-      Array.isArray(clientsDetails) && !isEmpty(clientsDetails)
-        ? clientsDetails?.find((client) => client._id === clientID)
-        : [];
-    return client && client.access_token && client.access_token.ip_address;
   };
 
   const handleGenerateToken = async (res) => {
@@ -196,102 +196,106 @@ const UserClientsTable = () => {
         ) : (
           <tbody>
             {clients?.length > 0 ? (
-              clients?.map((client, index) => {
-                return (
-                  <tr className={`border-b border-b-secondary-neutral-light-100`} key={index}>
-                    <td
-                      scope='row'
-                      className='w-[200px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-800 uppercase'
-                    >
-                      {client?.name}
-                    </td>
-                    <td
-                      scope='row'
-                      className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
-                    >
-                      {getClientIPAddress(client._id)}
-                    </td>
-                    <td scope='row' className='w-[142px] px-4 py-3'>
-                      <div
-                        className={`px-2 py-[2px] rounded-2xl w-auto inline-flex justify-center text-sm leading-5 items-center mx-auto ${
-                          client?.isActive
-                            ? 'bg-success-50 text-success-700'
-                            : 'bg-secondary-neutral-light-50 text-secondary-neutral-light-500'
-                        }`}
+              clients
+                .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                .map((client, index) => {
+                  return (
+                    <tr className={`border-b border-b-secondary-neutral-light-100`} key={index}>
+                      <td
+                        scope='row'
+                        className='w-[200px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-800 uppercase'
                       >
-                        {client?.isActive ? 'Activated' : 'Not Activated'}
-                      </div>
-                    </td>
-                    <td
-                      scope='row'
-                      className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
-                    >
-                      {moment(client?.createdAt).format('MMM DD, YYYY')}
-                    </td>
-                    <td scope='row' className='w-[138px] px-4 py-3'>
-                      {getClientToken(client._id) ? (
-                        <span className='font-medium text-sm leading-5 text-secondary-neutral-light-400 flex items-center gap-2'>
-                          {getClientToken(client._id).slice(0, 2)}....
-                          {getClientToken(client._id).slice(-2)}
-                          <div
-                            className='w-6 h-6 bg-white rounded border border-gray-200 flex justify-center items-center gap-2 cursor-pointer'
-                            onClick={() => {
-                              navigator.clipboard.writeText(getClientToken(client._id));
-                              setErrorState('Token copied to clipboard!', 'success');
-                            }}
-                          >
-                            <CopyIcon />
-                          </div>
-                        </span>
-                      ) : (
-                        <Button
-                          title={
-                            !client?.isActive ? 'Tap to generate token' : 'Token already generated'
-                          }
-                          className={`px-4 py-2 rounded-2xl w-auto inline-flex justify-center text-sm leading-5 items-center mx-auto ${
-                            !hasAccessToken(client._id)
-                              ? 'bg-success-700 text-success-50 cursor-pointer'
+                        {client?.name}
+                      </td>
+                      <td
+                        scope='row'
+                        className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
+                      >
+                        {client.ip_address}
+                      </td>
+                      <td scope='row' className='w-[142px] px-4 py-3'>
+                        <div
+                          className={`px-2 py-[2px] rounded-2xl w-auto inline-flex justify-center text-sm leading-5 items-center mx-auto ${
+                            client?.isActive
+                              ? 'bg-success-50 text-success-700'
                               : 'bg-secondary-neutral-light-50 text-secondary-neutral-light-500'
                           }`}
-                          disabled={isLoadingToken}
+                        >
+                          {client?.isActive ? 'Activated' : 'Not Activated'}
+                        </div>
+                      </td>
+                      <td
+                        scope='row'
+                        className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
+                      >
+                        {moment(client?.createdAt).format('MMM DD, YYYY')}
+                      </td>
+                      <td scope='row' className='w-[138px] px-4 py-3'>
+                        {getClientToken(client._id) ? (
+                          <span className='font-medium text-sm leading-5 text-secondary-neutral-light-400 flex items-center gap-2'>
+                            {getClientToken(client._id).slice(0, 2)}....
+                            {getClientToken(client._id).slice(-2)}
+                            <div
+                              className='w-6 h-6 bg-white rounded border border-gray-200 flex justify-center items-center gap-2 cursor-pointer'
+                              onClick={() => {
+                                navigator.clipboard.writeText(getClientToken(client._id));
+                                setErrorState('Token copied to clipboard!', 'success');
+                              }}
+                            >
+                              <CopyIcon />
+                            </div>
+                          </span>
+                        ) : (
+                          <Button
+                            title={
+                              !client?.isActive
+                                ? 'Tap to generate token'
+                                : 'Token already generated'
+                            }
+                            className={`px-4 py-2 rounded-2xl w-auto inline-flex justify-center text-sm leading-5 items-center mx-auto ${
+                              !hasAccessToken(client._id)
+                                ? 'bg-success-700 text-success-50 cursor-pointer'
+                                : 'bg-secondary-neutral-light-50 text-secondary-neutral-light-500'
+                            }`}
+                            disabled={isLoadingToken}
+                            onClick={() => {
+                              let res = {
+                                name: client.name,
+                                client_id: client._id,
+                                isActive: client.isActive ? client.isActive : false,
+                              };
+                              setSelectedClient(client);
+                              handleGenerateToken(res);
+                            }}
+                          >
+                            Generate
+                          </Button>
+                        )}
+                      </td>
+                      <td
+                        scope='row'
+                        className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
+                      >
+                        {getClientTokenExpiryDate(client._id) &&
+                          moment(getClientTokenExpiryDate(client._id)).format('MMM DD, YYYY')}
+                      </td>
+                      <td
+                        scope='row'
+                        className='w-24 px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400 capitalize'
+                      >
+                        <div
+                          className='w-9 h-9 p-2.5 bg-white rounded border border-gray-200 justify-center items-center gap-2 cursor-pointer'
                           onClick={() => {
-                            let res = {
-                              name: client.name,
-                              client_id: client._id,
-                              isActive: client.isActive ? client.isActive : false,
-                            };
+                            setOpenEditForm(true);
                             setSelectedClient(client);
-                            handleGenerateToken(res);
                           }}
                         >
-                          Generate
-                        </Button>
-                      )}
-                    </td>
-                    <td
-                      scope='row'
-                      className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
-                    >
-                      {getClientTokenExpiryDate(client._id) &&
-                        moment(getClientTokenExpiryDate(client._id)).format('MMM DD, YYYY')}
-                    </td>
-                    <td
-                      scope='row'
-                      className='w-24 px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400 capitalize'
-                    >
-                      <div
-                        className='w-9 h-9 p-2.5 bg-white rounded border border-gray-200 justify-center items-center gap-2 cursor-pointer'
-                        onClick={() => {
-                          setOpenEditForm(true);
-                          setSelectedClient(client);
-                        }}
-                      >
-                        <EditIcon className='w-4 h-4' />
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
+                          <EditIcon className='w-4 h-4' />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
             ) : (
               <tr>
                 <td colSpan='6' className='text-center py-3 text-grey-300'>
@@ -302,6 +306,13 @@ const UserClientsTable = () => {
           </tbody>
         )}
       </table>
+      <Pagination
+        currentPage={currentPage}
+        pageSize={itemsPerPage}
+        totalItems={clients?.length}
+        onPrevClick={() => onPageChange(currentPage - 1)}
+        onNextClick={() => onPageChange(currentPage + 1)}
+      />
       {isActivationRequestError.isError && (
         <Toast type={isActivationRequestError.type} message={isActivationRequestError.message} />
       )}
