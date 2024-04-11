@@ -40,8 +40,8 @@ const TeamsTable = ({ users, isLoading }) => {
           <Skeleton />
         ) : (
           <tbody>
-            {users.length > 0 ? (
-              users.map((user, index) => {
+            {users?.length > 0 ? (
+              users?.map((user, index) => {
                 return (
                   <tr
                     className={`border-b border-b-secondary-neutral-light-100 ${
