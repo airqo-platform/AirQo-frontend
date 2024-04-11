@@ -48,7 +48,7 @@ class CleanAirResource(BaseModel):
 @with_author
 class ForumEvent(BaseModel):
     title = models.CharField(max_length=100, default="CLEAN-Air Forum")
-    title_subtext = models.CharField(max_length=90, blank=True)
+    title_subtext = models.TextField(blank=True)
     start_date = models.DateField()
     end_date = models.DateField(blank=True)
     start_time = models.TimeField(blank=True, null=True)
@@ -194,7 +194,7 @@ class Session(BaseModel):
     start_time = models.TimeField(blank=True, null=True)
     end_time = models.TimeField(blank=False, null=True)
     session_title = models.CharField(max_length=150)
-    session_details = QuillField(blank=True, null=True)
+    session_details = QuillField()
     order = models.IntegerField(default=1)
     program = models.ForeignKey(
         Program,

@@ -399,13 +399,13 @@
 
           .grid-container {
             display: flex;
+            justify-content: flex-start;
             flex-wrap: wrap;
             width: 100%;
             height: auto;
             padding: 0;
             margin: 0;
           }
-
           .cell {
             display: flex;
             flex-grow: 1;
@@ -415,6 +415,7 @@
             box-sizing: border-box;
             height: 144px;
             width: 100%;
+            min-width: 255px;
             max-width: 260px;
             border: 1px solid $aq-blue-2;
             cursor: pointer;

@@ -99,6 +99,7 @@ const Partners = ({ FundingPartners, HostPartner, CoConveningPartner }) => {
 
       {FundingPartners && FundingPartners.length > 0 && (
         <>
+          <div className="separator" />
           <section className="Funding_partners">
             <SplitTextSection
               lists={[]}
@@ -126,7 +127,6 @@ const Partners = ({ FundingPartners, HostPartner, CoConveningPartner }) => {
               bgColor="#FFFFFF"
             />
           </section>
-          <div className="separator" />
         </>
       )}
 
