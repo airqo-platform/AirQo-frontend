@@ -21,6 +21,7 @@ const AdminClientsTable = () => {
   const [isLoadingActivation, setIsLoadingActivation] = useState(false);
   const [confirmClientActivation, setConfirmClientActivation] = useState(false);
   const [confirmClientDeactivation, setConfirmClientDeactivation] = useState(false);
+  const [isActivated, setIsActivated] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [clients, setClients] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -172,20 +173,38 @@ const AdminClientsTable = () => {
                           className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400 capitalize flex items-center gap-2'
                         >
                           <div
-                            className='w-9 h-9 p-2.5 bg-white rounded border border-gray-200 flex justify-center items-center cursor-pointer'
+                            className={`w-9 h-9 p-2.5 bg-white rounded border border-gray-200 flex justify-center items-center ${
+                              client?.isActive ? 'cursor-not-allowed' : 'cursor-pointer'
+                            }`}
                             onClick={() => {
+                              if (client?.isActive) {
+                                return;
+                              }
                               setConfirmClientActivation(true);
                               setSelectedClient(client);
                             }}
+                            title={
+                              client?.isActive ? 'Client is already activated' : 'Activate client'
+                            }
                           >
                             <CheckIcon />
                           </div>
                           <div
-                            className='w-9 h-9 p-2.5 bg-white rounded border border-gray-200 flex justify-center items-center cursor-pointer'
+                            className={`w-9 h-9 p-2.5 bg-white rounded border border-gray-200 flex justify-center items-center ${
+                              client?.isActive ? 'cursor-pointer' : 'cursor-not-allowed'
+                            }`}
                             onClick={() => {
+                              if (!client?.isActive) {
+                                return;
+                              }
                               setConfirmClientDeactivation(true);
                               setSelectedClient(client);
                             }}
+                            title={
+                              !client?.isActive
+                                ? 'Client is already deactivated'
+                                : 'Deactivate client'
+                            }
                           >
                             <CloseIcon />
                           </div>
