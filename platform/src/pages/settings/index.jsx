@@ -79,9 +79,7 @@ const Settings = () => {
         )}
         {userGroup &&
           userPermissions &&
-          checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_USERS', userPermissions) &&
-          teamMembers &&
-          !isEmpty(teamMembers) && (
+          checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_USERS', userPermissions) && (
             <Tab label='Team'>
               <Team users={teamMembers} loading={loading} />
             </Tab>

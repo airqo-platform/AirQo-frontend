@@ -38,7 +38,10 @@ const API = ({ userPermissions }) => {
       {userPermissions && checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_USERS', userPermissions) && (
         <ContentBox noMargin>
           <div className='px-3 py-4'>
-            <h3 className='text-grey-710 font-medium text-lg'>API clients access</h3>
+            <h3 className='text-grey-710 font-medium text-lg'>Clients activation manager</h3>
+            <p className='text-grey-500 text-sm md:max-w-[640px] w-full'>
+              Activate or deactivate clients to enable or disable their access to the API.
+            </p>
           </div>
           <div className='w-full'>
             <AdminClientsTable />
