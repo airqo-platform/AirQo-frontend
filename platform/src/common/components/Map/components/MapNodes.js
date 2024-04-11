@@ -131,14 +131,15 @@ export const getAQIMessage = (pollutant, value) => {
  * @param {String} NodeType
  * @returns {String}
  */
-export const UnclusteredNode = ({ feature, NodeType }) => {
+export const UnclusteredNode = ({ feature, NodeType, selectedNode }) => {
   // Check if feature.properties.aqi is defined
   if (feature.properties && feature.properties.aqi) {
     const Icon = images[feature.properties.aqi.icon];
+    const isActive = selectedNode && selectedNode === feature.properties._id ? 'active' : '';
 
     if (NodeType === 'Number') {
       return `
-      <div id="${feature.properties._id}" class="unClustered-Number shadow-md"
+      <div id="${feature.properties._id}" class="unClustered-Number shadow-md ${isActive}"
           style="background-color: ${feature.properties.aqi.color}; color: ${
         feature.properties.aqi.color
       }; width: 40px; height: 40px;"
@@ -151,16 +152,15 @@ export const UnclusteredNode = ({ feature, NodeType }) => {
 
     if (NodeType === 'Node') {
       return `
-      <div id="${feature.properties._id}" class="unClustered-Node shadow-md"
+      <div id="${feature.properties._id}" class="unClustered-Node shadow-md ${isActive}"
         style="background-color: ${feature.properties.aqi.color}; color: ${feature.properties.aqi.color}; width: 30px; height: 30px;"
       >
         <span class="arrow"></span> 
       </div>
       `;
     }
-
     return `
-      <div id="${feature.properties._id}" class="unClustered shadow-md">
+      <div id="${feature.properties._id}" class="unClustered shadow-md ${isActive}">
         <img src="${Icon}" alt="AQI Icon" class="w-full h-full" />
         <span class="arrow"></span>
       </div>

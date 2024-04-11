@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import mapboxgl from 'mapbox-gl';
 import LayerIcon from '@/icons/map/layerIcon';
@@ -10,6 +10,9 @@ import {
   clearData,
   setOpenLocationDetails,
   setSelectedLocation,
+  setMapLoading,
+  setCenter,
+  setZoom,
 } from '@/lib/store/services/map/MapSlice';
 import useOutsideClick from '@/core/utils/useOutsideClick';
 import LayerModal from './components/LayerModal';
@@ -40,7 +43,9 @@ const mapStyles = [
 const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, resizeMap }) => {
   const dispatch = useDispatch();
   const mapContainerRef = useRef(null);
-  const mapRef = useRef(null);
+  const markersRef = useRef([]);
+  const mapRef = useRef();
+  const indexRef = useRef();
   const dropdownRef = useRef(null);
   const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/streets-v11');
   const [isOpen, setIsOpen] = useState(false);
@@ -55,8 +60,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     bgColor: '',
   });
   const [NodeType, setNodeType] = useState('Emoji');
-  const [selectedSite, setSelectedSite] = useState(null);
   useOutsideClick(dropdownRef, () => setIsOpen(false));
+  const [selectedNode, setSelectedNode] = useState(null);
 
   const lat = urlParams.get('lat');
   const lng = urlParams.get('lng');
@@ -94,7 +99,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
         });
       }
     }
-  }, [mapData.center, mapData.zoom]);
+  }, [mapData.center, mapData.zoom, mapRef.current]);
 
   /**
    * Fetch data from the API
@@ -128,12 +133,107 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
           },
         }));
       setLoading(false);
+      dispatch(setMapLoading(false));
       return data;
     } catch (error) {
       console.error(error);
       setLoading(false);
+      dispatch(setMapLoading(false));
     }
   };
+
+  /**
+   * Update clusters
+   */
+  const updateClusters = useCallback(() => {
+    try {
+      const zoom = mapRef.current.getZoom();
+      const bounds = mapRef.current.getBounds();
+      const bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()];
+      const clusters = indexRef.current.getClusters(bbox, Math.floor(zoom));
+
+      // Remove existing markers
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
+
+      // Add unclustered points as custom HTML markers
+      clusters.forEach((feature) => {
+        const el = document.createElement('div');
+        el.style.cursor = 'pointer';
+
+        if (!feature.properties.cluster) {
+          // unclustered
+          el.style.zIndex = 1;
+          el.innerHTML = UnclusteredNode({ feature, NodeType, selectedNode });
+
+          // Add popup to unclustered node
+          const popup = new mapboxgl.Popup({
+            offset: NodeType === 'Node' ? 35 : NodeType === 'Number' ? 42 : 58,
+            closeButton: false,
+            maxWidth: 'none',
+            className: 'my-custom-popup',
+          }).setHTML(createPopupHTML({ feature, images }));
+
+          const marker = new mapboxgl.Marker(el)
+            .setLngLat(feature.geometry.coordinates)
+            .setPopup(popup)
+            .addTo(mapRef.current);
+
+          // Show the popup when the user hovers over the node
+          el.addEventListener('mouseenter', () => {
+            marker.togglePopup();
+            el.style.zIndex = 9999;
+          });
+          el.addEventListener('mouseleave', () => {
+            marker.togglePopup();
+            el.style.zIndex = 1;
+          });
+
+          // Set selectedSite when the user clicks on the node
+          el.addEventListener('click', () => {
+            // If the selected node is the same as the previously selected node, return early
+            if (selectedNode === feature.properties._id) {
+              return;
+            }
+
+            setSelectedNode(feature.properties._id);
+            dispatch(setMapLoading(true));
+            dispatch(setOpenLocationDetails(true));
+            dispatch(setSelectedLocation(feature.properties));
+
+            // set the lat,lng and zoom in the URL
+            dispatch(
+              setCenter({
+                latitude: feature.geometry.coordinates[1],
+                longitude: feature.geometry.coordinates[0],
+              }),
+            );
+            dispatch(setZoom(15));
+          });
+
+          markersRef.current.push(marker);
+        } else {
+          // clustered
+          el.zIndex = 444;
+          el.className =
+            'clustered flex justify-center items-center bg-white rounded-full p-2 shadow-md';
+          el.innerHTML = createClusterNode({ feature, NodeType });
+          const marker = new mapboxgl.Marker(el)
+            .setLngLat(feature.geometry.coordinates)
+            .addTo(mapRef.current);
+
+          // Add click event to zoom in when a user clicks on a cluster
+          el.addEventListener('click', () => {
+            mapRef.current.flyTo({ center: feature.geometry.coordinates, zoom: zoom + 2 });
+          });
+
+          markersRef.current.push(marker);
+        }
+      });
+    } catch (error) {
+      console.error('Error updating clusters: ', error);
+    }
+  }, [selectedNode, NodeType, pollutant, refresh]);
 
   /**
    * Initialize the map
@@ -157,8 +257,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
         });
 
         mapRef.current = map;
-
-        let markers = [];
 
         map.on('load', async () => {
           map.resize();
@@ -196,96 +294,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
             return;
           }
 
-          /**
-           * Update clusters
-           */
-          const updateClusters = () => {
-            try {
-              const zoom = map.getZoom();
-              const bounds = map.getBounds();
-              const bbox = [
-                bounds.getWest(),
-                bounds.getSouth(),
-                bounds.getEast(),
-                bounds.getNorth(),
-              ];
-              const clusters = index.getClusters(bbox, Math.floor(zoom));
-
-              // Remove existing markers
-              markers.forEach((marker) => marker.remove());
-              markers = [];
-
-              // Add unclustered points as custom HTML markers
-              clusters.forEach((feature) => {
-                const el = document.createElement('div');
-
-                el.style.cursor = 'pointer';
-
-                if (!feature.properties.cluster) {
-                  // unclustered
-                  el.style.zIndex = 1;
-                  el.innerHTML = UnclusteredNode({ feature, NodeType });
-
-                  // Add popup to unclustered node
-                  const popup = new mapboxgl.Popup({
-                    anchor: 'top',
-                    offset: NodeType === 'Node' ? 35 : NodeType === 'Number' ? 42 : 58,
-                    closeButton: false,
-                    maxWidth: 'none',
-                    className: 'my-custom-popup',
-                  }).setHTML(createPopupHTML({ feature, images }));
-
-                  const marker = new mapboxgl.Marker(el)
-                    .setLngLat(feature.geometry.coordinates)
-                    .setPopup(popup)
-                    .addTo(map);
-
-                  // Show the popup when the user hovers over the node
-                  el.addEventListener('mouseenter', () => {
-                    marker.togglePopup();
-                    el.style.zIndex = 9999;
-                  });
-                  el.addEventListener('mouseleave', () => {
-                    marker.togglePopup();
-                    el.style.zIndex = 1;
-                  });
-
-                  // Set selectedSite when the user clicks on the node
-                  el.addEventListener('click', () => {
-                    setSelectedSite({
-                      _id: feature.properties._id,
-                      coordinates: {
-                        lat: feature.geometry.coordinates[1],
-                        lng: feature.geometry.coordinates[0],
-                      },
-                    });
-                    dispatch(setOpenLocationDetails(true));
-                    dispatch(setSelectedLocation(feature.properties));
-                  });
-
-                  markers.push(marker);
-                } else {
-                  // clustered
-                  el.zIndex = 444;
-                  el.className =
-                    'clustered flex justify-center items-center bg-white rounded-full p-2 shadow-md';
-                  el.innerHTML = createClusterNode({ feature, NodeType });
-                  const marker = new mapboxgl.Marker(el)
-                    .setLngLat(feature.geometry.coordinates)
-                    .addTo(map);
-
-                  // Add click event to zoom in when a user clicks on a cluster
-                  el.addEventListener('click', () => {
-                    map.flyTo({ center: feature.geometry.coordinates, zoom: zoom + 2 });
-                  });
-
-                  markers.push(marker);
-                }
-              });
-            } catch (error) {
-              console.error('Error updating clusters: ', error);
-            }
-          };
+          // Assign the index instance to indexRef.current
+          indexRef.current = index;
 
           map.on('zoomend', updateClusters);
           map.on('moveend', updateClusters);
@@ -301,7 +311,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     return () => {
       mapRef.current.remove();
     };
-  }, [mapStyle, mapboxApiAccessToken, refresh, pollutant, NodeType]);
+  }, [mapStyle, mapboxApiAccessToken, updateClusters]);
 
   /**
    * Resize the map
@@ -398,6 +408,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     const map = mapRef.current;
     map.setStyle(map.getStyle());
     setRefresh(!refresh);
+    selectedNode && setSelectedNode(null);
   };
 
   /**
@@ -461,8 +472,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 title='Map Layers'
-                className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-              >
+                className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
                 <LayerIcon />
               </button>
               <LayerModal
@@ -483,15 +493,13 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
           <button
             onClick={refreshMap}
             title='Refresh Map'
-            className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-          >
+            className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
             <RefreshIcon />
           </button>
           <button
             onClick={shareLocation}
             title='Share Location'
-            className='inline-flex items-center justify-center w-[50px] h-[50px] text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-          >
+            className='inline-flex items-center justify-center w-[50px] h-[50px] text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
             <ShareIcon />
           </button>
         </div>
