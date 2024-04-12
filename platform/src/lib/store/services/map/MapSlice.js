@@ -12,6 +12,7 @@ const initialState = {
   zoom: 3.01,
   showLocationDetails: false,
   selectedLocation: null,
+  mapLoading: false,
 };
 
 export const mapSlice = createSlice({
@@ -24,28 +25,26 @@ export const mapSlice = createSlice({
         state.center = { ...state.center, latitude, longitude };
       }
     },
-
     setZoom: (state, action) => {
       if (typeof action.payload === 'number') {
         state.zoom = action.payload;
       }
     },
-
     setLocation: (state, action) => {
       const { country = '', city = '' } = action.payload || {};
       state.location = { country, city };
     },
-
     clearData: (state) => {
       return initialState;
     },
-
     setOpenLocationDetails: (state, action) => {
       state.showLocationDetails = action.payload;
     },
-
     setSelectedLocation: (state, action) => {
       state.selectedLocation = action.payload;
+    },
+    setMapLoading: (state, action) => {
+      state.mapLoading = action.payload;
     },
   },
 });
@@ -57,4 +56,5 @@ export const {
   clearData,
   setOpenLocationDetails,
   setSelectedLocation,
+  setMapLoading,
 } = mapSlice.actions;
