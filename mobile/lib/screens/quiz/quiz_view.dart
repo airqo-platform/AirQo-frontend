@@ -129,9 +129,9 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                                             .questions[questionPosition - 2]),
                                   },
                                 setState(
-                                  () => {
-                                    showAnswer = false,
-                                    questionPosition = questionPosition - 1,
+                                  () {
+                                    showAnswer = false;
+                                    questionPosition = questionPosition - 1;
                                   },
                                 ),
                               }
@@ -207,9 +207,9 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                         .read<CurrentQuizQuestionCubit>()
                         .setQuestion(nextQuestion);
                   }
-                  setState(() => {
-                        showAnswer = false,
-                        questionPosition = currentQuestion,
+                  setState(() {
+                        showAnswer = false;
+                        questionPosition = currentQuestion;
                       });
                   context.read<KyaBloc>().add(UpdateQuizProgress(
                       quiz.copyWith(activeQuestion: currentQuestion)));

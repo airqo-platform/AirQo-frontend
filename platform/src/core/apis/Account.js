@@ -61,7 +61,7 @@ export const postUserLoginDetails = async (data) => {
     .then((response) => response.data);
 };
 
-export const getUserDetails = async (userID, token) => {
+export const getUserDetails = async (userID) => {
   return await createAxiosInstance()
     .get(`${USERS_URL}/${userID}`)
     .then((response) => response.data);

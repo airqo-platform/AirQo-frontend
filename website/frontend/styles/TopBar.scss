@@ -80,6 +80,15 @@ h4 {
               padding: 8px 16px;
               cursor: pointer;
 
+              span {
+                background-color: $aq-blue-4;
+                color: $aq-white-0;
+                padding: 2px 4px;
+                border-radius: 4px;
+                font-size: 12px;
+                margin-left: 8px;
+              }
+
               h3 {
                 font-weight: 500;
                 font-size: 16px;
