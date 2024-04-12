@@ -18,20 +18,27 @@ const useStyles = makeStyles((theme) => ({
 
 const faultColumns = [
   {
-    title: 'Device Name',
-    field: 'device_name',
+    title: 'Device ID',
+    field: 'device_id',
     render: (rowData) => {
-      return rowData ? rowData.device_name : '';
+      return rowData ? rowData.device_id : '';
     },
-    cellStyle: { width: '25%' },
     headerStyle: { textAlign: 'left' }
   },
-
   {
     title: 'Correlation Fault',
     field: 'correlation_fault',
     render: (rowData) => {
       return rowData ? rowData.correlation_fault : '';
+    },
+    cellStyle: { width: '25%', textAlign: 'center' },
+    headerStyle: { textAlign: 'center' }
+  },
+  {
+    title: 'Correlation Value',
+    field: 'correlation_value',
+    render: (rowData) => {
+      return rowData ? rowData.correlation_value : '';
     },
     cellStyle: { fontFamily: 'Open Sans', width: '25%', textAlign: 'center' },
     headerStyle: { textAlign: 'center' }
@@ -46,8 +53,26 @@ const faultColumns = [
     headerStyle: { textAlign: 'center' }
   },
   {
-    title: 'Date',
-    field: 'Date',
+    title: 'Fault Count',
+    field: 'fault_count',
+    render: (rowData) => {
+      return rowData ? rowData.fault_count : '';
+    },
+    cellStyle: { width: '25%', textAlign: 'center' },
+    headerStyle: { textAlign: 'center' }
+  },
+  {
+    title: 'Anomaly Percentage',
+    field: 'anomaly_percentage',
+    render: (rowData) => {
+      return rowData ? rowData.anomaly_percentage : '';
+    },
+    cellStyle: { width: '25%', textAlign: 'center' },
+    headerStyle: { textAlign: 'center' }
+  },
+  {
+    title: 'Created At',
+    field: 'created_at',
     render: (rowData) => {
       if (rowData) {
         const date = new Date(rowData.created_at);
@@ -56,7 +81,6 @@ const faultColumns = [
         return '';
       }
     },
-    cellStyle: { width: '25%', textAlign: 'center' },
     headerStyle: { textAlign: 'center' }
   }
 ];
@@ -71,11 +95,7 @@ const ManagementFaults = () => {
       try {
         const response = await faultsPredictApi();
         if (response) {
-          const currentDate = new Date().toISOString().split('T')[0];
-          const filteredFaults = response.filter(
-            (fault) => fault.created_at.split('T')[0] === currentDate
-          );
-          setFaults(filteredFaults);
+          setFaults(response);
         }
       } catch (error) {
         console.log(error);

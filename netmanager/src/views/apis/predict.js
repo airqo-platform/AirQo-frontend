@@ -27,7 +27,7 @@ export const geocoordinatesPredictApi = async (params) => {
 };
 
 export const faultsPredictApi = async () => {
-  return await createAxiosInstance(true)
+  return await createAxiosInstance()
     .get(GET_FAULTS)
     .then((response) => response.data);
 };
