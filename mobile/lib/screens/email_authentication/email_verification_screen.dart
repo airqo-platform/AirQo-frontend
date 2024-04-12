@@ -257,15 +257,19 @@ class _EmailAuthVerificationWidgetState
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
-        // Link the email credential with the existing user
-        await currentUser.linkWithCredential(emailCredential);
+
+        Navigator.pop(context);
+
+        await _linkAccountWithEmailCredential(currentUser, emailCredential);
+
+        await AirqoApiClient().syncPlatformAccount();
       } else {
-        // Perform email authentication if not signed in with phone number
         final bool authenticationSuccessful =
             await CustomAuth.firebaseSignIn(emailCredential);
         if (!mounted) return;
 
         if (!authenticationSuccessful) {
+          Navigator.pop(context);
           await showDialog<void>(
             context: context,
             barrierDismissible: false,
@@ -273,17 +277,13 @@ class _EmailAuthVerificationWidgetState
               return const AuthFailureDialog();
             },
           );
+          return;
         }
-      }
 
-      context
-          .read<EmailVerificationBloc>()
-          .add(const SetEmailVerificationStatus(
-            AuthenticationStatus.success,
-          ));
+        context.read<EmailVerificationBloc>().add(
+            const SetEmailVerificationStatus(AuthenticationStatus.success));
 
-      // Check if account linking was done, skip postSignInActions
-      if (currentUser == null) {
+        Navigator.pop(context);
         await AppService.postSignInActions(context);
       }
     } catch (exception, stackTrace) {
@@ -297,6 +297,11 @@ class _EmailAuthVerificationWidgetState
       );
       await logException(exception, stackTrace);
     }
+  }
+
+  Future<void> _linkAccountWithEmailCredential(
+      User currentUser, AuthCredential emailCredential) async {
+    await currentUser.linkWithCredential(emailCredential);
   }
 
   Future<bool> onWillPop() {

@@ -110,8 +110,8 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
    */
   const DatePickerHiddenInput = () => (
     <Calendar
-      initialMonth1={new Date(2023, 1)}
-      initialMonth2={new Date(2023, 2)}
+      initialMonth1={new Date(new Date().getFullYear(), new Date().getMonth() - 1)}
+      initialMonth2={new Date()}
       handleValueChange={handleValueChange}
       closeDatePicker={() => setOpenDatePicker(false)}
     />
@@ -149,10 +149,7 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
         </span>
         {dropdown && <ChevronDownIcon />}
       </button>
-      <div
-        className={`absolute top-[50px] z-[900] ${className} ${
-          openDatePicker ? 'block' : 'hidden'
-        }`}>
+      <div className={`absolute top-[50px]  ${className} ${openDatePicker ? 'block' : 'hidden'}`}>
         <DatePickerHiddenInput />
       </div>
     </div>

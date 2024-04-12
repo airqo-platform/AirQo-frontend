@@ -177,7 +177,7 @@ const AboutUsPage = () => {
               </div>
             </div>
             <div className="AboutUsPage__pictorial">
-              {teamData.length > 0 ? (
+              {teamData.length > 0 &&
                 teamData.map((member) => (
                   <div key={member.id}>
                     <Profile
@@ -190,10 +190,7 @@ const AboutUsPage = () => {
                       about={member.about}
                     />
                   </div>
-                ))
-              ) : (
-                <div />
-              )}
+                ))}
             </div>
           </div>
 
@@ -207,7 +204,7 @@ const AboutUsPage = () => {
               </div>
             </div>
             <div className="AboutUsPage__pictorial">
-              {boardData.length > 0 ? (
+              {boardData.length > 0 &&
                 boardData.map((member) => (
                   <div key={member.id}>
                     <Profile
@@ -219,10 +216,7 @@ const AboutUsPage = () => {
                       biography={member.descriptions}
                     />
                   </div>
-                ))
-              ) : (
-                <div />
-              )}
+                ))}
             </div>
           </div>
 
@@ -255,7 +249,8 @@ const AboutUsPage = () => {
                 ) : (
                   <span />
                 )}
-                {togglePartnersDisplay && partnerDataGroup.length > 0 ? (
+                {togglePartnersDisplay &&
+                  partnerDataGroup.length > 0 &&
                   partnerDataGroup.slice(3, lastGroupArray).map((partnerGroup, key) => (
                     <tr key={key}>
                       {partnerGroup.map((partner) => (
@@ -264,10 +259,7 @@ const AboutUsPage = () => {
                         </td>
                       ))}
                     </tr>
-                  ))
-                ) : (
-                  <div />
-                )}
+                  ))}
               </tbody>
             </table>
             <button className="partners-toggle-button" onClick={toggleFullPartnersListDisplay}>

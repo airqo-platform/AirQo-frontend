@@ -325,6 +325,24 @@ const CohortForm = ({ cohort }) => {
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
           <TextField
+            id="_id"
+            label="Cohort ID"
+            variant="outlined"
+            fullWidth
+            required
+            style={{
+              marginBottom: '20px'
+            }}
+            InputLabelProps={{ shrink: true }}
+            InputProps={{
+              startAdornment: cohort._id && <Copyable width="100%" value={cohort._id} />,
+              style: { fontSize: '16px', color: '#263238' }
+            }}
+            disabled
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
             select
             id="visibility"
             label="Visibility"
@@ -343,43 +361,45 @@ const CohortForm = ({ cohort }) => {
             <option value={false}>False</option>
           </TextField>
         </Grid>
-        <Grid items xs={12} sm={6} style={gridItemStyle}>
-          <label style={{ textAlign: 'left' }}>Recent Measurements API</label>
-          <Box
-            style={{
-              backgroundColor: '#f0f0f0',
-              padding: '5px',
-              borderRadius: '5px',
-              fontFamily: 'monospace'
-            }}
-          >
-            <Copyable
-              width="100%"
-              value={`${stripTrailingSlash(BASE_ANALYTICS_URL)}/devices/measurements/cohorts/${
-                cohort._id
-              }`}
-              isScrollable
-            />
-          </Box>
-        </Grid>
-        <Grid items xs={12} sm={6} style={gridItemStyle}>
-          <label style={{ textAlign: 'left' }}>Historical Measurements API</label>
-          <Box
-            style={{
-              backgroundColor: '#f0f0f0',
-              padding: '5px',
-              borderRadius: '5px',
-              fontFamily: 'monospace'
-            }}
-          >
-            <Copyable
-              width="100%"
-              value={`${stripTrailingSlash(BASE_ANALYTICS_URL)}/devices/measurements/cohorts/${
-                cohort._id
-              }/historical`}
-              isScrollable
-            />
-          </Box>
+        <Grid container xs={12} sm={12} style={gridItemStyle}>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
+            <label style={{ textAlign: 'left' }}>Recent Measurements API</label>
+            <Box
+              style={{
+                backgroundColor: '#f0f0f0',
+                padding: '5px',
+                borderRadius: '5px',
+                fontFamily: 'monospace'
+              }}
+            >
+              <Copyable
+                width="100%"
+                value={`${stripTrailingSlash(BASE_ANALYTICS_URL)}/devices/measurements/cohorts/${
+                  cohort._id
+                }`}
+                isScrollable
+              />
+            </Box>
+          </Grid>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
+            <label style={{ textAlign: 'left' }}>Historical Measurements API</label>
+            <Box
+              style={{
+                backgroundColor: '#f0f0f0',
+                padding: '5px',
+                borderRadius: '5px',
+                fontFamily: 'monospace'
+              }}
+            >
+              <Copyable
+                width="100%"
+                value={`${stripTrailingSlash(BASE_ANALYTICS_URL)}/devices/measurements/cohorts/${
+                  cohort._id
+                }/historical`}
+                isScrollable
+              />
+            </Box>
+          </Grid>
         </Grid>
 
         <Grid

@@ -6,7 +6,11 @@ import RefreshIcon from '@/icons/map/refreshIcon';
 import ShareIcon from '@/icons/map/shareIcon';
 import { CustomGeolocateControl, CustomZoomControl } from './components/MapControls';
 import { getMapReadings } from '@/core/apis/DeviceRegistry';
-import { clearData } from '@/lib/store/services/map/MapSlice';
+import {
+  clearData,
+  setOpenLocationDetails,
+  setSelectedLocation,
+} from '@/lib/store/services/map/MapSlice';
 import useOutsideClick from '@/core/utils/useOutsideClick';
 import LayerModal from './components/LayerModal';
 import Loader from '@/components/Spinner';
@@ -255,6 +259,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
                         lng: feature.geometry.coordinates[0],
                       },
                     });
+                    dispatch(setOpenLocationDetails(true));
+                    dispatch(setSelectedLocation(feature.properties));
                   });
 
                   markers.push(marker);
@@ -455,7 +461,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 title='Map Layers'
-                className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
+                className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
+              >
                 <LayerIcon />
               </button>
               <LayerModal
@@ -476,13 +483,15 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
           <button
             onClick={refreshMap}
             title='Refresh Map'
-            className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
+            className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
+          >
             <RefreshIcon />
           </button>
           <button
             onClick={shareLocation}
             title='Share Location'
-            className='inline-flex items-center justify-center w-[50px] h-[50px] text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
+            className='inline-flex items-center justify-center w-[50px] h-[50px] text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
+          >
             <ShareIcon />
           </button>
         </div>

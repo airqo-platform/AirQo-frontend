@@ -13,6 +13,29 @@ import { startTask, completeTask, updateTitle } from '@/lib/store/services/check
 import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
 import CustomModal from '@/components/Modal/videoModals/CustomModal';
 import StepProgress from '@/components/steppers/CircularStepper';
+import AppIntro from '../../common/components/Modal/AppIntro';
+import Analytics from '@/images/Home/analytics.png';
+import Export from '@/images/Home/export.png';
+import Settings from '@/images/Home/settings.png';
+
+//IntroList is an array of objects containing the image, name and text for each slide.
+const IntroList = [
+  {
+    image: Analytics,
+    name: 'Get Insights',
+    text: 'Track air pollution in places you care about.',
+  },
+  {
+    image: Export,
+    name: 'Data Download',
+    text: 'Download air quality data for offline analysis.',
+  },
+  {
+    image: Settings,
+    name: 'Customize',
+    text: 'Personalize your experience with AirQo Analytics.',
+  },
+];
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -21,6 +44,7 @@ const Home = () => {
   const userData = JSON.parse(localStorage.getItem('loggedUser'));
   const checkListStatus = useSelector((state) => state.checklists.status);
   const [open, setOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   const [step, setStep] = useState(0);
   const totalSteps = 3;
@@ -100,8 +124,20 @@ const Home = () => {
     }
   };
 
+  // Show the intro modal only once
+  useEffect(() => {
+    const isFirstTimeIntroModal = localStorage.getItem('isFirstTimeIntroModal');
+
+    if (isFirstTimeIntroModal === null) {
+      setShowModal(true);
+      localStorage.setItem('isFirstTimeIntroModal', 'true');
+    }
+  }, []);
+
   return (
     <Layout noBorderBottom pageTitle='Home'>
+      {/* App Intro Modal */}
+      <AppIntro isOpen={showModal} setIsOpen={setShowModal} features={IntroList} />
       {checkListStatus === 'loading' && checkListData.length === 0 ? (
         <HomeSkeleton />
       ) : (

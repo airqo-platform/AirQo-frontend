@@ -1,5 +1,6 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/firebase_service.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,16 @@ class ProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = CustomAuth.getUser();
+    bool showLinkAccountReminder = false;
+
+    if (user != null && user.phoneNumber != null) {
+      if (user.email != null) {
+      } else if (user.isAnonymous) {
+      } else {
+        showLinkAccountReminder = true;
+      }
+    }
     return BlocBuilder<ProfileBloc, Profile>(
       builder: (context, profile) {
         if (profile.isAnonymous) {
@@ -24,9 +35,15 @@ class ProfileView extends StatelessWidget {
           appBar: ProfileViewAppBar(profile),
           body: AppSafeArea(
             horizontalPadding: 16,
-            child: Column(
+            child: ListView(
               children: <Widget>[
                 const SizedBox(height: 10),
+                //TODO new feature loading
+                Visibility(
+                  visible: showLinkAccountReminder,
+                  child: const LinkAccountReminder(),
+                ),
+                const SizedBox(height: 6),
                 ProfileSection(profile),
                 const SizedBox(height: 16),
                 CardSection(
@@ -37,7 +54,7 @@ class ProfileView extends StatelessWidget {
                   isBottomItem: true,
                   isTopItem: true,
                 ),
-                const Spacer(),
+                const SizedBox(height: 10),
                 const SignOutButton(),
                 const SizedBox(height: 10),
               ],

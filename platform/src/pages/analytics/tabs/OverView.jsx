@@ -22,8 +22,6 @@ const OverView = () => {
         dispatch(
           fetchRecentMeasurementsData({
             site_id: sites.join(','),
-            startTime: chartDataRange.startDate,
-            endTime: chartDataRange.endDate,
           }),
         );
       }
@@ -63,7 +61,7 @@ const OverView = () => {
         {!isLoadingMeasurements &&
           displayData.map((event, index) => (
             <AQNumberCard
-              keyValue={index}
+              key={index}
               location={
                 event.siteDetails.search_name ||
                 event.siteDetails.location_name ||

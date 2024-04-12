@@ -17,7 +17,7 @@ Future<dynamic> bottomSheetEmailLink(BuildContext context) async {
   bool shouldShowBottomSheet = true;
   int remindMeLaterTimestamp = prefs.getInt('remindMeLaterTimestamp') ?? 0;
 
-  if (remindMeLaterTimestamp > 0) {
+  if (remindMeLaterTimestamp > 3) {
     DateTime lastRemindTimestamp =
         DateTime.fromMillisecondsSinceEpoch(remindMeLaterTimestamp);
     DateTime now = DateTime.now();
@@ -84,7 +84,8 @@ Future<dynamic> bottomSheetEmailLink(BuildContext context) async {
                         width: 295.53,
                         height: 67,
                         child: AutoSizeText(
-                          AppLocalizations.of(context)!.weAreShufflingThingsAroundForYou,
+                          AppLocalizations.of(context)!
+                              .weAreShufflingThingsAroundForYou,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: CustomColors.quizColorBlack,
@@ -101,8 +102,9 @@ Future<dynamic> bottomSheetEmailLink(BuildContext context) async {
                           textAlign: TextAlign.center,
                           text: TextSpan(
                             children: [
-                               TextSpan(
-                                text:AppLocalizations.of(context)!.youWouldBeRequiredToAddYourEmailToYourProfileOnTheMobileAppToEnableYouAccessThe,
+                              TextSpan(
+                                text: AppLocalizations.of(context)!
+                                    .youWouldBeRequiredToAddYourEmailToYourProfileOnTheMobileAppToEnableYouAccessThe,
                                 style: const TextStyle(
                                   color: Color(0xFF485972),
                                   fontSize: 13.24,
@@ -131,8 +133,9 @@ Future<dynamic> bottomSheetEmailLink(BuildContext context) async {
                                     }
                                   },
                               ),
-                               TextSpan(
-                                text: AppLocalizations.of(context)!.withOneAccount,
+                              TextSpan(
+                                text: AppLocalizations.of(context)!
+                                    .withOneAccount,
                                 style: const TextStyle(
                                   color: Color(0xFF485972),
                                   fontSize: 13.24,
@@ -152,7 +155,7 @@ Future<dynamic> bottomSheetEmailLink(BuildContext context) async {
                             },
                           ));
                         },
-                        child:  EmailLinkActionButton(
+                        child: EmailLinkActionButton(
                           text: AppLocalizations.of(context)!.addMyEmail,
                         ),
                       ),
@@ -165,7 +168,7 @@ Future<dynamic> bottomSheetEmailLink(BuildContext context) async {
                             DateTime.now().millisecondsSinceEpoch,
                           );
                         },
-                        child:  EmailLinkSkipButton(
+                        child: EmailLinkSkipButton(
                           text: AppLocalizations.of(context)!.remindMeLater,
                         ),
                       ),

@@ -189,6 +189,24 @@ const GridForm = ({ grid }) => {
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
           <TextField
+            id="_id"
+            label="Grid ID"
+            variant="outlined"
+            fullWidth
+            required
+            style={{
+              marginBottom: '20px'
+            }}
+            InputLabelProps={{ shrink: true }}
+            disabled
+            InputProps={{
+              startAdornment: grid._id && <Copyable width="100%" value={grid._id} />,
+              style: { fontSize: '16px', color: '#263238' }
+            }}
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
             select
             id="visibility"
             label="Visibility"
@@ -236,43 +254,45 @@ const GridForm = ({ grid }) => {
             onChange={onChangeInputField}
           />
         </Grid>
-        <Grid items xs={12} sm={6} style={gridItemStyle}>
-          <label style={{ textAlign: 'left' }}>Recent Measurements API</label>
-          <Box
-            style={{
-              backgroundColor: '#f0f0f0',
-              padding: '5px',
-              borderRadius: '5px',
-              fontFamily: 'monospace'
-            }}
-          >
-            <Copyable
-              width="100%"
-              value={`${stripTrailingSlash(BASE_ANALYTICS_URL)}/devices/measurements/grids/${
-                grid._id
-              }`}
-              isScrollable
-            />
-          </Box>
-        </Grid>
-        <Grid items xs={12} sm={6} style={gridItemStyle}>
-          <label style={{ textAlign: 'left' }}>Historical Measurements API</label>
-          <Box
-            style={{
-              backgroundColor: '#f0f0f0',
-              padding: '5px',
-              borderRadius: '5px',
-              fontFamily: 'monospace'
-            }}
-          >
-            <Copyable
-              width="100%"
-              value={`${stripTrailingSlash(BASE_ANALYTICS_URL)}/devices/measurements/grids/${
-                grid._id
-              }/historical`}
-              isScrollable
-            />
-          </Box>
+        <Grid container xs={12} sm={12} style={gridItemStyle}>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
+            <label style={{ textAlign: 'left' }}>Recent Measurements API</label>
+            <Box
+              style={{
+                backgroundColor: '#f0f0f0',
+                padding: '5px',
+                borderRadius: '5px',
+                fontFamily: 'monospace'
+              }}
+            >
+              <Copyable
+                width="100%"
+                value={`${stripTrailingSlash(BASE_ANALYTICS_URL)}/devices/measurements/grids/${
+                  grid._id
+                }`}
+                isScrollable
+              />
+            </Box>
+          </Grid>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
+            <label style={{ textAlign: 'left' }}>Historical Measurements API</label>
+            <Box
+              style={{
+                backgroundColor: '#f0f0f0',
+                padding: '5px',
+                borderRadius: '5px',
+                fontFamily: 'monospace'
+              }}
+            >
+              <Copyable
+                width="100%"
+                value={`${stripTrailingSlash(BASE_ANALYTICS_URL)}/devices/measurements/grids/${
+                  grid._id
+                }/historical`}
+                isScrollable
+              />
+            </Box>
+          </Grid>
         </Grid>
 
         <Grid

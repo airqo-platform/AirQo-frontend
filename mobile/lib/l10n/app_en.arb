@@ -363,6 +363,9 @@
     "youWouldBeRequiredToAddYourEmailToYourProfileOnTheMobileAppToEnableYouAccessThe" :" You would be required to add your email to your profile on the mobile app to enable you access the ",
     "withOneAccount":" with one account.",
     "addMyEmail":"Add my email",
-    "remindMeLater":"Remind me later"
-
-}
+    "remindMeLater":"Remind me later",
+    "addMyEmailToMyProfile":"Add my email to my profile",
+    "addYourEmailToYourProfileToEnableYouToAccessThe" : "Add your email to your profile to enable you to access the ",
+    "accessDeeperAirQualityInsights":"Access deeper Air Quality insights",
+    "usingYourAirQoMobileAppAccount":"using your AirQo mobile app account"
+    }

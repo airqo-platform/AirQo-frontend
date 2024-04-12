@@ -19,33 +19,26 @@ select:focus {
   outline: none !important;
 }
 
-.map-scrollbar::-webkit-scrollbar {
-  height: 2px;
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-/* Hide the default scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
-/* Track */
 ::-webkit-scrollbar-track {
   background-color: #f3f6f8;
 }
 
-/* Handle */
 ::-webkit-scrollbar-thumb {
   background-color: #9eb0c2;
   border-radius: 4px;
 }
 
-/* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
   background-color: #555;
+}
+
+* {
+  scrollbar-width: none;
+  scrollbar-color: #9eb0c2 #f3f6f8;
 }
 
 @keyframes slide-in {

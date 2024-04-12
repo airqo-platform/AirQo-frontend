@@ -16,7 +16,7 @@ This repo contains the frontend code for the AirQo platform. This includes the c
 
 The AirQo project aims to measure and quantify the scale of air pollution throughout Africa through the design, development and deployment of a network of low-cost air quality sensing devices mounted on either static or mobile objects.
 
-## File Organization
+## File Organization.
 
 This repo is made up of six (6) product sub directories:
 

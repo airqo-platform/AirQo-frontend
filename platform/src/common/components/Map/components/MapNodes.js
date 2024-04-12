@@ -60,6 +60,18 @@ const colors = {
   GoodAir: '#34C759',
 };
 
+const messages = {
+  GoodAir: 'Enjoy the day with confidence in the clean air around you.',
+  ModerateAir: 'Today is a great day for an outdoor activity.',
+  UnhealthyForSensitiveGroups: 'Reduce the intensity of your outdoor activities.',
+  Unhealthy:
+    'Avoid activities that make you breathe more rapidly. Today is the perfect day to spend indoors reading.',
+  VeryUnhealthy:
+    'Reduce the intensity of your outdoor activities. Try to stay indoors until the air quality improves.',
+  Hazardous:
+    'If you have to spend a lot of time outside, disposable masks like the N95 are helpful.',
+};
+
 /**
  * Get random key from object
  * @param {Object} obj
@@ -101,6 +113,16 @@ export const getAQIcon = (pollutant, value) => {
       return categories[i].category;
     }
   }
+};
+
+export const getAQIMessage = (pollutant, value) => {
+  if (!markerDetails.hasOwnProperty(pollutant)) {
+    throw new Error(`Invalid pollutant: ${pollutant}`);
+  }
+
+  const aqiCategory = getAQICategory(pollutant, value);
+
+  return messages[aqiCategory?.icon] || '';
 };
 
 /**

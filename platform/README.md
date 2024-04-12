@@ -32,7 +32,7 @@ a) In order to get started here, you start by cloning the repository
 
     git clone https://github.com/airqo-platform/AirQo-frontend.git
 
-b) Once the repo is cloned, `cd` into the platform folder within the `AirQo-frontend` directory
+b) Once the repo is cloned, `cd` into the platform folder within the `AirQo-frontend` directory.
 
     cd platform
 
