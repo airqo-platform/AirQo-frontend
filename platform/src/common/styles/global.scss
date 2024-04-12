@@ -58,27 +58,6 @@ select:focus {
 }
 
 /* Map Styles */
-.my-custom-popup {
-  padding: 0;
-  margin: 0;
-  background-color: transparent;
-  box-shadow: none;
-  z-index: 666;
-  max-width: 250px;
-}
-
-.my-custom-popup .mapboxgl-popup-content {
-  padding: 0;
-  margin: 0;
-  background-color: transparent;
-  box-shadow: none;
-}
-
-.my-custom-popup .mapboxgl-popup-tip {
-  display: none;
-  transform: rotate(180deg);
-}
-
 @mixin unClusteredStyles($top: 83%) {
   display: flex;
   align-items: center;
@@ -105,6 +84,35 @@ select:focus {
 
   &:hover {
     transform: scale(1.5);
+  }
+
+  &.active {
+    transform: scale(1.5);
+  }
+
+  &.active .arrow {
+    opacity: 1;
+  }
+}
+
+.my-custom-popup {
+  padding: 0;
+  margin: 0;
+  background-color: transparent;
+  box-shadow: none;
+  z-index: 666;
+  max-width: 250px;
+
+  .mapboxgl-popup-content {
+    padding: 0;
+    margin: 0;
+    background-color: transparent;
+    box-shadow: none;
+  }
+
+  .mapboxgl-popup-tip {
+    display: none;
+    transform: rotate(180deg);
   }
 }
 

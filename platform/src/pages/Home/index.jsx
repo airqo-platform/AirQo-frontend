@@ -137,7 +137,7 @@ const Home = () => {
   return (
     <Layout noBorderBottom pageTitle='Home'>
       {/* App Intro Modal */}
-      <AppIntro isOpen={showModal} setIsOpen={setShowModal} features={IntroList} />
+      {/* <AppIntro isOpen={showModal} setIsOpen={setShowModal} features={IntroList} /> */}
       {checkListStatus === 'loading' && checkListData.length === 0 ? (
         <HomeSkeleton />
       ) : (
