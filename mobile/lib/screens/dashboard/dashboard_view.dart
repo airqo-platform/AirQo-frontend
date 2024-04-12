@@ -74,6 +74,7 @@ class _DashboardViewState extends State<DashboardView>
           description: AppLocalizations.of(context)!.clickToSkipTutorial,
           customize: ShowcaseOptions.skip,
           child: AppBar(
+
             automaticallyImplyLeading: false,
             centerTitle: false,
             title: SvgPicture.asset(
@@ -84,12 +85,13 @@ class _DashboardViewState extends State<DashboardView>
             ),
             elevation: 0,
             backgroundColor: CustomColors.appBodyColor,
+            scrolledUnderElevation: 0,
           ),
         ),
       ),
       body: AppSafeArea(
         backgroundColor: CustomColors.appBodyColor,
-        horizontalPadding: 16.0,
+        // horizontalPadding: 16.0,
         child: AnimatedPadding(
           duration: const Duration(milliseconds: 300),
           padding: const EdgeInsets.all(0.0),
@@ -101,12 +103,15 @@ class _DashboardViewState extends State<DashboardView>
                 delegate: _SliverAppBarDelegate(
                   child: BlocBuilder<ProfileBloc, Profile>(
                     builder: (context, state) {
-                      return AutoSizeText(
-                        state.greetings(context),
-                        maxLines: 1,
-                        minFontSize: 24,
-                        overflow: TextOverflow.ellipsis,
-                        style: CustomTextStyle.headline7(context),
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: AutoSizeText(
+                          state.greetings(context),
+                          maxLines: 1,
+                          minFontSize: 24,
+                          overflow: TextOverflow.ellipsis,
+                          style: CustomTextStyle.headline7(context),
+                        ),
                       );
                     },
                   ),
@@ -114,124 +119,127 @@ class _DashboardViewState extends State<DashboardView>
                   maxHeight: 40,
                 ),
               ),
-              SliverAppBar(
-                titleSpacing: 0,
-                stretch: true,
-                toolbarHeight: 80,
-                backgroundColor: CustomColors.appBodyColor,
-                automaticallyImplyLeading: false,
-                title: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  child: Row(
-                    children: [
-                      BlocBuilder<FavouritePlaceBloc, List<FavouritePlace>>(
-                        builder: (context, state) {
-                          final favouritePlaces = favouritePlacesWidgets(
-                            state.take(3).toList(),
-                          );
 
-                          return Flexible(
-                            child: CustomShowcaseWidget(
-                              showcaseKey: _favoritesShowcaseKey,
-                              descriptionHeight: screenSize.height * 0.12,
-                              description: AppLocalizations.of(context)!
-                                  .findTheLatestAirQualityFromYourFavoriteLocations,
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 500),
-                                curve: Curves.easeInOut,
-                                child: DashboardTopCard(
-                                  toolTipType: ToolTipType.favouritePlaces,
-                                  title:
-                                      AppLocalizations.of(context)!.favorites,
-                                  widgetKey: _favToolTipKey,
-                                  nextScreenClickHandler: () async {
-                                    await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) {
-                                          return const FavouritePlacesPage();
-                                        },
-                                      ),
-                                    );
-                                  },
-                                  children: favouritePlaces,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(
-                        width: 16,
-                      ),
-                      BlocBuilder<KyaBloc, KyaState>(
-                        builder: (context, state) {
-                          final allLessons = state.lessons;
-                          final allQuizzes = state.quizzes;
-                          final kyaWidgets =
-                              kyaHeaderWidget(allLessons, allQuizzes);
-                          return Expanded(
-                            child: CustomShowcaseWidget(
-                              showcaseKey: _forYouShowcaseKey,
-                              descriptionWidth: screenSize.width * 0.3,
-                              descriptionHeight: screenSize.height * 0.17,
-                              description: AppLocalizations.of(context)!
-                                  .findAmazingContentSpecificallyDesignedForYouHere,
-                              child: AnimatedContainer(
-                                curve: Curves.easeInOut,
-                                duration: const Duration(milliseconds: 500),
-                                child: DashboardTopCard(
-                                  toolTipType: ToolTipType.forYou,
-                                  title: AppLocalizations.of(context)!.forYou,
-                                  widgetKey: _kyaToolTipKey,
-                                  nextScreenClickHandler: () async {
-                                    await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) {
-                                          return const ForYouPage(
-                                              analytics: false);
-                                        },
-                                      ),
-                                    );
-                                  },
-                                  children: kyaWidgets,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                floating: true,
-                pinned: true,
-              ),
+              // SliverAppBar(
+              //   titleSpacing: 0,
+              //   stretch: true,
+              //   toolbarHeight: 80,
+              //   backgroundColor: CustomColors.appBodyColor,
+              //   automaticallyImplyLeading: false,
+              //   title: Padding(
+              //     padding: const EdgeInsets.symmetric(vertical: 16.0),
+              //     child: Row(
+              //       children: [
+              //         BlocBuilder<FavouritePlaceBloc, List<FavouritePlace>>(
+              //           builder: (context, state) {
+              //             final favouritePlaces = favouritePlacesWidgets(
+              //               state.take(3).toList(),
+              //             );
+
+              //             return Flexible(
+              //               child: CustomShowcaseWidget(
+              //                 showcaseKey: _favoritesShowcaseKey,
+              //                 descriptionHeight: screenSize.height * 0.12,
+              //                 description: AppLocalizations.of(context)!
+              //                     .findTheLatestAirQualityFromYourFavoriteLocations,
+              //                 child: AnimatedContainer(
+              //                   duration: const Duration(milliseconds: 500),
+              //                   curve: Curves.easeInOut,
+              //                   child: DashboardTopCard(
+              //                     toolTipType: ToolTipType.favouritePlaces,
+              //                     title:
+              //                         AppLocalizations.of(context)!.favorites,
+              //                     widgetKey: _favToolTipKey,
+              //                     nextScreenClickHandler: () async {
+              //                       await Navigator.push(
+              //                         context,
+              //                         MaterialPageRoute(
+              //                           builder: (context) {
+              //                             return const FavouritePlacesPage();
+              //                           },
+              //                         ),
+              //                       );
+              //                     },
+              //                     children: favouritePlaces,
+              //                   ),
+              //                 ),
+              //               ),
+              //             );
+              //           },
+              //         ),
+              //         const SizedBox(
+              //           width: 16,
+              //         ),
+              //         BlocBuilder<KyaBloc, KyaState>(
+              //           builder: (context, state) {
+              //             final allLessons = state.lessons;
+              //             final allQuizzes = state.quizzes;
+              //             final kyaWidgets =
+              //                 kyaHeaderWidget(allLessons, allQuizzes);
+              //             return Expanded(
+              //               child: CustomShowcaseWidget(
+              //                 showcaseKey: _forYouShowcaseKey,
+              //                 descriptionWidth: screenSize.width * 0.3,
+              //                 descriptionHeight: screenSize.height * 0.17,
+              //                 description: AppLocalizations.of(context)!
+              //                     .findAmazingContentSpecificallyDesignedForYouHere,
+              //                 child: AnimatedContainer(
+              //                   curve: Curves.easeInOut,
+              //                   duration: const Duration(milliseconds: 500),
+              //                   child: DashboardTopCard(
+              //                     toolTipType: ToolTipType.forYou,
+              //                     title: AppLocalizations.of(context)!.forYou,
+              //                     widgetKey: _kyaToolTipKey,
+              //                     nextScreenClickHandler: () async {
+              //                       await Navigator.push(
+              //                         context,
+              //                         MaterialPageRoute(
+              //                           builder: (context) {
+              //                             return const ForYouPage(
+              //                                 analytics: false);
+              //                           },
+              //                         ),
+              //                       );
+              //                     },
+              //                     children: kyaWidgets,
+              //                   ),
+              //                 ),
+              //               ),
+              //             );
+              //           },
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              //   floating: true,
+              //   pinned: true,
+              // ),
               SliverPersistentHeader(
                 delegate: _SliverAppBarDelegate(
-                  child: Text(
-                    DateTime.now().timelineString(context),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.black.withOpacity(0.5),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      children: [
+                        AutoSizeText(
+                          AppLocalizations.of(context)!.todayAirQuality,
+                          style: CustomTextStyle.headline11(context),
+                          maxLines: 1,
+                          minFontSize: 1,
                         ),
+                        Text(' • ${DateTime.now().timelineString(context)}',
+                            style: TextStyle(
+                              fontSize: 15.0,
+                              color: Color(0xff6F87A1),
+                              fontWeight: FontWeight.w600,
+                              fontStyle: FontStyle.normal,
+                            )),
+                      ],
+                    ),
                   ),
                   minHeight: 20,
                   maxHeight: 20,
                 ),
                 floating: true,
-              ),
-              SliverPersistentHeader(
-                delegate: _SliverAppBarDelegate(
-                  child: AutoSizeText(
-                    AppLocalizations.of(context)!.todayAirQuality,
-                    style: CustomTextStyle.headline11(context),
-                    maxLines: 1,
-                    minFontSize: 1,
-                  ),
-                  minHeight: 25,
-                  maxHeight: 25,
-                ),
               ),
             ],
             body: RefreshIndicator(
@@ -372,22 +380,22 @@ class _DashboardViewState extends State<DashboardView>
                         );
                       },
                     ),
-                    BlocBuilder<KyaBloc, KyaState>(
-                      builder: (context, state) {
-                        List<Quiz> quizzes = state.quizzes;
+                    // BlocBuilder<KyaBloc, KyaState>(
+                    //   builder: (context, state) {
+                    //     List<Quiz> quizzes = state.quizzes;
 
-                        if (quizzes.isEmpty) {
-                          return const SizedBox();
-                        }
-                        Quiz displayedQuiz = quizzes.first;
-                        return AnimatedPadding(
-                          duration: const Duration(milliseconds: 500),
-                          curve: Curves.easeInExpo,
-                          padding: const EdgeInsets.only(top: 16),
-                          child: QuizCard(displayedQuiz),
-                        );
-                      },
-                    ),
+                    //     if (quizzes.isEmpty) {
+                    //       return const SizedBox();
+                    //     }
+                    //     Quiz displayedQuiz = quizzes.first;
+                    //     return AnimatedPadding(
+                    //       duration: const Duration(milliseconds: 500),
+                    //       curve: Curves.easeInExpo,
+                    //       padding: const EdgeInsets.only(top: 16),
+                    //       child: QuizCard(displayedQuiz),
+                    //     );
+                    //   },
+                    // ),
                     BlocConsumer<DashboardBloc, DashboardState>(
                       listener: (context, state) {
                         if (state.scrollToTop) {

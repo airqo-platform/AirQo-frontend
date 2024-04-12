@@ -266,7 +266,7 @@
   "goodMorningName": "Bonjour {placeholder}",
   "goodAfternoonName": "Bon après-midi {placeholder}",
   "goodEveningName": "Bonsoir {placeholder}",
-  "helloName": "Hello {placeholder}",
+  "helloName": "Hi {placeholder}",
   "allYourCompleteTasksWillShowUpHere": "Toutes vos tâches terminées apparaîtront ici",
   "tapThis": "Appuyez sur ceci",
   "iconToUnderstandWhatAirQualityAnalyticsMean": "icône pour comprendre ce que signifient les analyses de la qualité de l'air",

@@ -267,7 +267,7 @@
     "goodMorningName": "Good morning {placeholder}",
     "goodAfternoonName": "Good afternoon {placeholder}",
     "goodEveningName": "Good evening {placeholder}",
-    "helloName": "Hello {placeholder}",
+    "helloName": "Hi {placeholder}",
     "allYourCompleteTasksWillShowUpHere": "All your complete tasks will show up here",
     "tapThis": "Tap this",
     "iconToUnderstandWhatAirQualityAnalyticsMean": "icon to understand what air quality analytics mean",

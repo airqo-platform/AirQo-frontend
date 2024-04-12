@@ -458,21 +458,21 @@ extension ProfileExt on Profile {
   }
 
   String greetings(BuildContext context) {
-    final hour = DateTime.now().hour;
+    // final hour = DateTime.now().hour;
 
-    if (00 <= hour && hour < 12) {
-      return AppLocalizations.of(context)!.goodMorningName(firstName.trim());
-    }
+    // if (00 <= hour && hour < 12) {
+    //   return AppLocalizations.of(context)!.goodMorningName(firstName.trim());
+    // }
 
-    if (12 <= hour && hour < 16) {
-      return AppLocalizations.of(context)!.goodAfternoonName(firstName.trim());
-    }
+    // if (12 <= hour && hour < 16) {
+    //   return AppLocalizations.of(context)!.goodAfternoonName(firstName.trim());
+    // }
 
-    if (16 <= hour && hour <= 23) {
-      return AppLocalizations.of(context)!.goodEveningName(firstName.trim());
-    }
+    // if (16 <= hour && hour <= 23) {
+    //   return AppLocalizations.of(context)!.goodEveningName(firstName.trim());
+    // }
 
-    return AppLocalizations.of(context)!.helloName(firstName.trim());
+    return AppLocalizations.of(context)!.helloName(firstName.trim()) + "👋🏼";
   }
 
   bool requiresRating() {
@@ -507,9 +507,8 @@ extension DateTimeExt on DateTime {
 
   String timelineString(BuildContext context) {
     final locale = Localizations.localeOf(context);
-    final monthFormat = DateFormat.MMMM(locale.toString());
-    return '${getWeekday(context)} $day, ${monthFormat.format(this)}'
-        .toUpperCase();
+    final monthFormat = DateFormat.MMMEd(locale.toString());
+    return '${monthFormat.format(this)}';
   }
 
   DateTime getDateOfFirstDayOfWeek() {
