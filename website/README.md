@@ -2,25 +2,36 @@
 
 ##
 
-- [Prerequisites](#prerequisites)
-  - [OSX, Linux, Windows](#osx-linux-windows)
-  - [Docker](#docker)
-  - [Git](#git)
-- [Setting up the development environment](#setting-up-the-development-environment)
-  - [Clone the repository](#clone-the-repository)
-  - [OSX](#osx)
-  - [Linux](#linux)
-  - [Windows](#windows)
-- [Running the stack](#running-the-stack)
-  - [Create the .envrc and .env files](#create-the-envrc-and-env-files)
-  - [Docker](#docker-1)
-  - [Running the website frontend](#run-the-website-frontend)
-  - [Running the website application](#run-the-website-app)
-- [Database Management](#database-management)
-- [Development Invoke Commands](#development-invoke-commands)
-  - [Running servers](#running-servers)
-  - [Lint checks and auto fixing](#lint-checks-and-auto-fixing)
-  - [Static builds](#static-builds)
+- [AirQo Website.](#airqo-website)
+  - [](#)
+  - [Prerequisites](#prerequisites)
+    - [OSX, Linux, Windows](#osx-linux-windows)
+    - [Docker](#docker)
+    - [Git](#git)
+  - [Setting up the development environment](#setting-up-the-development-environment)
+    - [Clone the repository](#clone-the-repository)
+    - [OSX](#osx)
+      - [HomeBrew](#homebrew)
+      - [Direnv](#direnv)
+      - [PostgreSQL](#postgresql)
+    - [Linux](#linux)
+      - [Pip](#pip)
+      - [PostgreSQL](#postgresql-1)
+      - [Set up PostgreSQL](#set-up-postgresql)
+    - [Windows](#windows)
+      - [Create Python Virtual Environment](#create-python-virtual-environment)
+  - [Running the stack](#running-the-stack)
+    - [Create the `.envrc` and `.env` files](#create-the-envrc-and-env-files)
+    - [OSX, Linux, and Windows](#osx-linux-and-windows)
+      - [Install `Python` and `node` requirements](#install-python-and-node-requirements)
+    - [Run the website frontend](#run-the-website-frontend)
+    - [Run the website app](#run-the-website-app)
+  - [Database Management](#database-management)
+  - [Development Invoke Commands](#development-invoke-commands)
+    - [Running servers](#running-servers)
+    - [Lint checks and auto fixing](#lint-checks-and-auto-fixing)
+      - [Static builds](#static-builds)
+    - [Docker](#docker-1)
 
 ## Prerequisites
 
@@ -316,7 +327,7 @@ Build the application docker image with the command below. Make sure that your `
         --build-arg REACT_APP_GEO_LOCATION_URL=<<enter REACT_APP_GEO_LOCATION_URL value>> \
         --tag <<enter an image tag of choice>>
 
-Run the website application container with the command bellow.
+Run the website application container with the command bellow
 
     docker run -d \
         -p 8080:8080 \

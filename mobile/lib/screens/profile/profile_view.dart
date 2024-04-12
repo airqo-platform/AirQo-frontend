@@ -38,7 +38,6 @@ class ProfileView extends StatelessWidget {
             child: ListView(
               children: <Widget>[
                 const SizedBox(height: 10),
-                //TODO new feature loading
                 Visibility(
                   visible: showLinkAccountReminder,
                   child: const LinkAccountReminder(),

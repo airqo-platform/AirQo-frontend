@@ -72,7 +72,8 @@ const UserLogin = () => {
       pageTitle='AirQo Analytics | Login'
       rightText={
         "What you've built here is so much better for air pollution monitoring than anything else on the market!"
-      }>
+      }
+    >
       <div className='w-full'>
         <h2 className='text-3xl text-black-700 font-medium'>Lets get started</h2>
         <p className='text-xl text-black-700 font-normal mt-3'>
@@ -123,14 +124,15 @@ const UserLogin = () => {
               data-testid='login-btn'
               style={{ textTransform: 'none' }}
               className='w-full btn bg-blue-900 rounded-[12px] text-white text-sm outline-none border-none hover:bg-blue-950'
-              type='submit'>
+              type='submit'
+            >
               {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Login'}
             </button>
           </div>
         </form>
         <div className='mt-8 w-full flex justify-center'>
           <div>
-            <span className='text-sm text-grey-300'>Don't have an account?</span>
+            <span className='text-sm text-grey-300'>Don't have an account? </span>
             <span className='text-sm text-blue-900 font-medium'>
               <Link href='/account/creation'>Register here</Link>
             </span>

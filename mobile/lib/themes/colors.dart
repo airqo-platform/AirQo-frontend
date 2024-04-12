@@ -188,7 +188,8 @@ class AqiColors extends ThemeExtension<AqiColors> {
 }
 
 class CustomColors {
-  static Color get appBodyColor => const Color(0xffF2F1F6);
+  // static Color get appBodyColor => const Color(0xffF2F1F6);
+  static Color get appBodyColor => const Color(0xffF9FAFB);
   static Color get offlineBannerColor => const Color(0xffE6352C);
 
   static Color get appColorRed => const Color(0xffFF0000);
@@ -197,6 +198,8 @@ class CustomColors {
   static Color get quizColorBlack => const Color(0xff1F232D);
 
   static Color get appColorBlue => const Color(0xff145DFF);
+
+  static Color get appColorLightBlue => const Color(0xffD6E9FF);
 
   static Color get appColorValid => const Color(0xff007F5F);
 

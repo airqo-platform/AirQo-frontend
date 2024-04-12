@@ -67,3 +67,6 @@ export const IMPACT_URL = `${WEBSITE_BASE_URL}/impact/`;
 
 // Clean Air Network urls
 export const CLEAN_AIR_URL = `${WEBSITE_BASE_URL}/cleanair_resources/`;
+
+// clean air forum events url
+export const FORUM_EVENTS_URL = `${WEBSITE_BASE_URL}/forum_events/`;

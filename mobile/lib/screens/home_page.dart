@@ -16,6 +16,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -110,96 +111,116 @@ class _HomePageState extends State<HomePage> {
               builder: (context) {
                 _showcaseContext = context;
 
-                return BottomNavigationBar(
-                  selectedIconTheme: Theme.of(context)
-                      .iconTheme
-                      .copyWith(color: CustomColors.appColorBlue, opacity: 0.3),
-                  unselectedIconTheme: Theme.of(context).iconTheme.copyWith(
-                      color: CustomColors.appColorBlack, opacity: 0.3),
-                  items: <BottomNavigationBarItem>[
-                    BottomNavigationBarItem(
-                      icon: CustomShowcaseWidget(
-                        customize: ShowcaseOptions.up,
-                        showcaseKey: _homeShowcaseKey,
-                        description:
-                            AppLocalizations.of(context)!.exploreAirQualityHere,
-                        child: BottomNavIcon(
-                          selectedIndex: _selectedIndex,
-                          icon: Icons.home_rounded,
-                          label: AppLocalizations.of(context)!.home,
-                          index: 0,
-                        ),
-                      ),
-                      label: '',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: CustomShowcaseWidget(
-                        customize: ShowcaseOptions.up,
-                        showcaseKey: _mapShowcaseKey,
-                        descriptionWidth: screenSize.width * 0.3,
-                        descriptionHeight: screenSize.height * 0.09,
-                        description: AppLocalizations.of(context)!
-                            .seeReadingsFromOurMonitorsHere,
-                        child: BottomNavIcon(
-                          icon: Icons.location_on_rounded,
-                          selectedIndex: _selectedIndex,
-                          label: AppLocalizations.of(context)!.airQoMap,
-                          index: 1,
-                        ),
-                      ),
-                      label: '',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Stack(
-                        children: [
-                          CustomShowcaseWidget(
+                return Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: BottomNavigationBar(
+                  
+                    selectedIconTheme: Theme.of(context)
+                        .iconTheme
+                        .copyWith(color: CustomColors.appColorBlue, opacity: 0.3),
+                    unselectedIconTheme: Theme.of(context).iconTheme.copyWith(
+                        color: CustomColors.appColorBlack, opacity: 0.3),
+                    items: <BottomNavigationBarItem>[
+                      BottomNavigationBarItem(
+                        icon: CustomShowcaseWidget(
                             customize: ShowcaseOptions.up,
-                            showcaseKey: _profileShowcaseKey,
-                            descriptionHeight: screenSize.height * 0.13,
-                            descriptionWidth: screenSize.width * 0.23,
+                            showcaseKey: _homeShowcaseKey,
                             description: AppLocalizations.of(context)!
-                                .changeYourPreferencesAndSettingsHere,
-                            child: BottomNavIcon(
-                              icon: Icons.person_rounded,
-                              selectedIndex: _selectedIndex,
-                              label: AppLocalizations.of(context)!.profile,
-                              index: 2,
-                            ),
-                          ),
-                          BlocBuilder<NotificationBloc, List<AppNotification>>(
-                            builder: (context, state) {
-                              return Positioned(
-                                right: 0.0,
-                                child: Container(
-                                  height: 4,
-                                  width: 4,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: state.filterUnRead().isEmpty
-                                        ? Colors.transparent
-                                        : CustomColors.aqiRed,
-                                  ),
+                                .exploreAirQualityHere,
+                            // child: BottomNavIcon(
+                            //   selectedIndex: _selectedIndex,
+                            //   icon: Icons.home_rounded,
+                            //   label: AppLocalizations.of(context)!.home,
+                            //   index: 0,
+                            // ),
+                            child: Column(
+                              children: [
+                                SvgPicture.asset(
+                                  "assets/icon/home_icon.svg",
+                                  height: 18,
                                 ),
-                              );
-                            },
-                          ),
-                        ],
+                                SizedBox(height : 10),
+                                Text(AppLocalizations.of(context)!.home, style:  TextStyle(fontSize: 12),)
+                              ],
+                            )),
+                        label: '',
                       ),
-                      label: '',
-                    ),
-                  ],
-                  currentIndex: _selectedIndex,
-                  selectedItemColor: CustomColors.appColorBlue,
-                  unselectedItemColor:
-                      CustomColors.appColorBlack.withOpacity(0.3),
-                  elevation: 0.0,
-                  backgroundColor: CustomColors.appBodyColor,
-                  onTap: _onItemTapped,
-                  showSelectedLabels: true,
-                  showUnselectedLabels: true,
-                  type: BottomNavigationBarType.fixed,
-                  selectedFontSize: 10,
-                  unselectedFontSize: 10,
+                      BottomNavigationBarItem(
+                        icon: CustomShowcaseWidget(
+                            customize: ShowcaseOptions.up,
+                            showcaseKey: _mapShowcaseKey,
+                            descriptionWidth: screenSize.width * 0.3,
+                            descriptionHeight: screenSize.height * 0.09,
+                            description: AppLocalizations.of(context)!
+                                .seeReadingsFromOurMonitorsHere,
+                            child: Container(
+                              height: 54,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                SvgPicture.asset("assets/icon/airqo_map.svg", height: 20,),
+                                SizedBox(width: 5),
+                                Text("AirQo Map", style: TextStyle(color: Colors.white),)
+                              ],),
+                              decoration: BoxDecoration(
+                                color: CustomColors.appColorBlue,
+                                borderRadius: BorderRadius.circular(198)
+                              ),
+                            )),
+                        label: '',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Stack(
+                          children: [
+                            CustomShowcaseWidget(
+                              customize: ShowcaseOptions.up,
+                              showcaseKey: _profileShowcaseKey,
+                              descriptionHeight: screenSize.height * 0.13,
+                              descriptionWidth: screenSize.width * 0.23,
+                              description: AppLocalizations.of(context)!
+                                  .changeYourPreferencesAndSettingsHere,
+                              child: BottomNavIcon(
+                                icon: Icons.person_rounded,
+                                selectedIndex: _selectedIndex,
+                                label: AppLocalizations.of(context)!.profile,
+                                index: 2,
+                              ),
+                            ),
+                            BlocBuilder<NotificationBloc, List<AppNotification>>(
+                              builder: (context, state) {
+                                return Positioned(
+                                  right: 0.0,
+                                  child: Container(
+                                    height: 4,
+                                    width: 4,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: state.filterUnRead().isEmpty
+                                          ? Colors.transparent
+                                          : CustomColors.aqiRed,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        label: '',
+                      ),
+                    ],
+                    currentIndex: _selectedIndex,
+                    selectedItemColor: CustomColors.appColorBlue,
+                    unselectedItemColor:
+                        CustomColors.appColorBlack.withOpacity(0.3),
+                    elevation: 0.0,
+                    backgroundColor: CustomColors.appBodyColor,
+                    onTap: _onItemTapped,
+                    showSelectedLabels: true,
+                    showUnselectedLabels: true,
+                    type: BottomNavigationBarType.fixed,
+                    selectedFontSize: 10,
+                    unselectedFontSize: 10,
+                  ),
                 );
               },
             ),

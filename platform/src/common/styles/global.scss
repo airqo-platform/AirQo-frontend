@@ -19,6 +19,14 @@ select:focus {
   outline: none !important;
 }
 
+.map-scrollbar::-webkit-scrollbar {
+  height: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -34,11 +42,6 @@ select:focus {
 
 ::-webkit-scrollbar-thumb:hover {
   background-color: #555;
-}
-
-* {
-  scrollbar-width: none;
-  scrollbar-color: #9eb0c2 #f3f6f8;
 }
 
 @keyframes slide-in {

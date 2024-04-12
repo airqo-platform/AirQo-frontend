@@ -14,7 +14,7 @@ The template currently uses two official plugins:
 - @vitejs/plugin-react: This plugin uses Babel for Fast Refresh.
 - @vitejs/plugin-react-swc: This plugin uses SWC for Fast Refresh.
 
-## ESLint Configuration
+## ESLint Configuration.
 
 The template comes with a basic ESLint configuration. If you are developing a production application, we recommend expanding the configuration to enable type-aware lint rules. Here's how you can do it:
 

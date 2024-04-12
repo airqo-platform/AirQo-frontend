@@ -16,7 +16,8 @@ import {
   CITIES_URL,
   PRESS_URL,
   IMPACT_URL,
-  CLEAN_AIR_URL
+  CLEAN_AIR_URL,
+  FORUM_EVENTS_URL
 } from '../config/urls';
 
 const apiCall = async (url, method, data = null) => {
@@ -92,3 +93,6 @@ export const getAllImpactNumbersApi = async () => fetchData(IMPACT_URL, null);
 
 // Clean Air endpoint
 export const getAllCleanAirApi = async (lang) => fetchData(CLEAN_AIR_URL, lang);
+
+// clean air forum events endpoint
+export const getAllCleanAirForumEventsApi = async (lang) => fetchData(FORUM_EVENTS_URL, lang);

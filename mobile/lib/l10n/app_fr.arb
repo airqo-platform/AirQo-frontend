@@ -266,7 +266,7 @@
   "goodMorningName": "Bonjour {placeholder}",
   "goodAfternoonName": "Bon après-midi {placeholder}",
   "goodEveningName": "Bonsoir {placeholder}",
-  "helloName": "Hello {placeholder}",
+  "helloName": "Hi {placeholder}",
   "allYourCompleteTasksWillShowUpHere": "Toutes vos tâches terminées apparaîtront ici",
   "tapThis": "Appuyez sur ceci",
   "iconToUnderstandWhatAirQualityAnalyticsMean": "icône pour comprendre ce que signifient les analyses de la qualité de l'air",
@@ -357,5 +357,9 @@
   "addMyEmailToMyProfile":"Ajoutez mon e-mail à mon profil",
   "addYourEmailToYourProfileToEnableYouToAccessThe" : "Ajoutez votre e-mail à votre profil pour vous permettre d'accéder au ",
   "accessDeeperAirQualityInsights":"Accéder à des informations plus approfondies sur la qualité de l'air",
-  "usingYourAirQoMobileAppAccount":"En utilisant votre compte AirQo Mobile App"
+  "usingYourAirQoMobileAppAccount":"En utilisant votre compte AirQo Mobile App",
+  "all":"Tout",
+  "lessons":"Leçons",
+  "quiz":"Quiz",
+  "enterYourEmailAddress":"Entrez votre adresse e-mail"
 }

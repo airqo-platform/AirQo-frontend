@@ -17,7 +17,17 @@ const Image = (props) => {
   );
 };
 
-const Profile = ({ ImgPath, name, title, twitter, linkedin, biography, about }) => {
+const Profile = ({
+  ImgPath,
+  name,
+  title,
+  twitter,
+  linkedin,
+  biography,
+  about,
+  readBioBtn = false,
+  htmlBio
+}) => {
   const ref = useRef();
   const [isVisible, setIsVisible] = useState(false);
   const [show, setShow] = useState(false);
@@ -68,7 +78,9 @@ const Profile = ({ ImgPath, name, title, twitter, linkedin, biography, about }) 
             <div className="biography">
               <span>{isVisible && <img src={ImgPath} alt={`${name}'s Profile`} />}</span>
               <span className="bio-text">
-                {about ? (
+                {htmlBio ? (
+                  <div dangerouslySetInnerHTML={{ __html: htmlBio }} />
+                ) : about ? (
                   <p className="description">{about}</p>
                 ) : (
                   (biography || []).map((desc) => (
@@ -89,6 +101,7 @@ const Profile = ({ ImgPath, name, title, twitter, linkedin, biography, about }) 
         <div className="info-left">
           <h3>{name}</h3>
           <h6>{title}</h6>
+          {readBioBtn && <span onClick={() => setShow(true)}>Read Bio</span>}
         </div>
         <div className="social-container" target="_blank" rel="noopener noreferrer">
           {linkedin && (

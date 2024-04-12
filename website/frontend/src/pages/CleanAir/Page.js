@@ -5,8 +5,14 @@ import TopBar from 'components/nav/TopBar';
 import { BottomCTAS, SecondaryNavComponent } from 'components/CleanAir';
 import Loadspinner from 'components/LoadSpinner';
 import LanguageSwitcher from 'components/LanguageSwitcher';
+import NewsletterSection from 'src/components/NewsletterSection/NewsletterSection';
 
-const CleanAirPageContainer = ({ children }) => {
+const CleanAirPageContainer = ({
+  children,
+  showNewsLetter = false,
+  showBottomCTAS = true,
+  showSubNav = true
+}) => {
   const eventsLoading = useSelector((state) => state.eventsData.loading);
   const resourcesLoading = useSelector((state) => state.cleanAirData.loading);
 
@@ -19,10 +25,11 @@ const CleanAirPageContainer = ({ children }) => {
       <LanguageSwitcher />
       <TopBar />
       <div className="Clean-air-page">
-        <SecondaryNavComponent />
+        {showSubNav && <SecondaryNavComponent />}
         <div className="page-wrapper page-container">{children}</div>
-        <BottomCTAS />
+        {showBottomCTAS && <BottomCTAS />}
       </div>
+      {showNewsLetter && <NewsletterSection />}
       <Footer />
     </div>
   );

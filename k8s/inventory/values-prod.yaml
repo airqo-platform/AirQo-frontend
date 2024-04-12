@@ -24,7 +24,7 @@ resources:
     memory: 150Mi
 autoscaling:
   minReplicas: 1
-  maxReplicas: 4
+  maxReplicas: 2
   targetMemoryUtilizationPercentage: 70
 affinity:
   nodeAffinity:

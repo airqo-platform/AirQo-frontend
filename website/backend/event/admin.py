@@ -1,49 +1,42 @@
+import nested_admin
 from .translation import *
 from django.contrib import admin
-import nested_admin
 from .models import Event, Program, Session, PartnerLogo, Inquiry, Resource
 from modeltranslation.admin import TranslationAdmin, TranslationStackedInline, TranslationTabularInline
 
-# Create a new class that inherits from both NestedTabularInline and TranslationTabularInline
 
-
-class TranslationNestedTabularInline(TranslationTabularInline, nested_admin.NestedTabularInline):
-    pass
-
-# Register your models here.
-
-
-class InquiryInline(nested_admin.NestedTabularInline):
-    model = Inquiry
-    extra = 0
+class InquiryInline(nested_admin.NestedStackedInline):
     fields = ('inquiry', 'role', 'email', 'order')
     readonly_fields = ('author', 'updated_by')
-
-
-class SessionInline(TranslationStackedInline):
-    model = Session
+    model = Inquiry
     extra = 0
+
+
+class SessionInline(TranslationTabularInline, nested_admin.NestedStackedInline):
     fields = ('session_title', 'session_details',
               'venue', 'start_time', 'end_time', 'order')
     readonly_fields = ('author', 'updated_by')
-
-
-class ProgramInline(TranslationNestedTabularInline):  # Use the new class here
-    model = Program
+    model = Session
     extra = 0
-    fields = ('date', 'program_details', 'order')
+
+
+class ProgramInline(nested_admin.NestedTabularInline):
+    fields = ('date', 'program_details_en',
+              'program_details_fr', 'order')  # Add translated fields here
     readonly_fields = ('author', 'updated_by')
+    model = Program
     inlines = [SessionInline]
+    extra = 0
 
 
-class PartnerLogoInline(TranslationNestedTabularInline):  # And here
+class PartnerLogoInline(TranslationTabularInline, nested_admin.NestedTabularInline):
     model = PartnerLogo
     extra = 0
     fields = ('name', 'partner_logo', 'order')
     readonly_fields = ('author', 'updated_by')
 
 
-class ResourceInline(TranslationNestedTabularInline):  # And here
+class ResourceInline(TranslationTabularInline, nested_admin.NestedTabularInline):
     model = Resource
     extra = 0
     fields = ('title', 'link', 'resource', 'order')

@@ -36,7 +36,7 @@ class ProfileEditPage extends StatelessWidget {
                     height: 40,
                   ),
                   Visibility(
-                    visible: true, // Always show the phone number field
+                    visible: true,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -47,10 +47,9 @@ class ProfileEditPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Visibility(
-                          visible: !isAccountLinked, // Show only if not linked
+                          visible: !isAccountLinked,
                           child: GestureDetector(
                             onTap: () {
-                              // Navigate to EmailVerificationScreen
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -77,7 +76,7 @@ class ProfileEditPage extends StatelessWidget {
                                   decoration: InputDecoration(
                                     filled: true,
                                     fillColor: Colors.white,
-                                    hintText: 'Enter your email address',
+                                    hintText:AppLocalizations.of(context)!.enterYourEmailAddress,
                                     focusedBorder: OutlineInputBorder(
                                       borderSide: const BorderSide(
                                           color: Colors.transparent,
