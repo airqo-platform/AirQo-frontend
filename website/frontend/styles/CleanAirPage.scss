@@ -1804,8 +1804,49 @@
                 margin-bottom: 10px;
               }
 
+              .social-container {
+                a {
+                  width: 20px;
+                  height: 20px;
+                  margin: 0 10px;
+                }
+              }
+
+              .modal-content {
+                .social-container {
+                  display: flex;
+                  justify-content: left;
+                  margin-bottom: 10px;
+                  a {
+                    width: 20px;
+                    height: 20px;
+                    margin: 0 10px;
+                  }
+                }
+
+                .bio-text {
+                  font-size: 16px;
+                  font-weight: 400;
+                  line-height: 26px;
+                }
+              }
+
               .info {
                 .info-left {
+                  width: 100%;
+
+                  .read-bio-btn {
+                    width: 100%;
+                    display: flex;
+                    justify-content: space-between;
+                    margin-top: 5px;
+
+                    span {
+                      display: flex;
+                      align-items: center;
+                    }
+                  }
+
                   span {
                     color: #135dff;
                     font-size: 18px;
@@ -1908,6 +1949,10 @@
         }
 
         .registration {
+          a {
+            color: #135dff;
+            cursor: pointer;
+          }
           .engagements_list {
             h1,
             h2,
@@ -1922,6 +1967,13 @@
               color: #135dff;
               cursor: pointer;
             }
+          }
+        }
+
+        .travel {
+          a {
+            color: #135dff;
+            cursor: pointer;
           }
         }
 

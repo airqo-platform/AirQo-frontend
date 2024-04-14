@@ -4,16 +4,20 @@ import { SplitTextSection } from 'components/CleanAir';
 const Index = ({ engagements, forumEvents }) => {
   return (
     <>
-      <div className="separator" />
-      <section className="about">
-        <div className="intro">
-          <div
-            dangerouslySetInnerHTML={{
-              __html: forumEvents.length > 0 && forumEvents[0].introduction_html
-            }}
-          />
-        </div>
-      </section>
+      {forumEvents[0].introduction_html && (
+        <>
+          <div className="separator" />
+          <section className="about">
+            <div className="intro">
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: forumEvents.length > 0 && forumEvents[0].introduction_html
+                }}
+              />
+            </div>
+          </section>
+        </>
+      )}
       {engagements && engagements.objectives.length > 0 && (
         <section className="about">
           <SplitTextSection
@@ -32,19 +36,6 @@ const Index = ({ engagements, forumEvents }) => {
             bgColor="#FFFFFF"
           />
         </section>
-      )}
-
-      {/* if both are empty */}
-      {engagements && engagements.objectives.length === 0 && (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '50vh'
-          }}>
-          No content available
-        </div>
       )}
     </>
   );

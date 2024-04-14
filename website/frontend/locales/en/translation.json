@@ -326,7 +326,8 @@
         "committee": "Programme committee",
         "schedule": "Schedule",
         "speakers": {
-          "title": "Speakers"
+          "title": "Speakers",
+          "No_data": "We are curating an exceptional lineup of experts. Check back soon for updates!"
         },
         "registration": "Registration",
         "partners": {
@@ -335,7 +336,8 @@
           "coConvening": "Convening partners"
         },
         "travel": "Travel Logistics",
-        "support": "Support"
+        "support": "Support",
+        "No_data": "Coming soon ..."
       }
     }
   },

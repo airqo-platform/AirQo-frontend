@@ -56,15 +56,6 @@ class ForumEvent(BaseModel):
     introduction = QuillField(blank=True, null=True)
     Speakers_text_section = QuillField(blank=True, null=True)
     Committee_text_section = QuillField(blank=True, null=True)
-
-    class EventTag(models.TextChoices):
-        Untagged = "none", "None"
-        Featured = "featured", "Featured"
-
-    event_tag = models.CharField(
-        max_length=40, default=EventTag.Untagged, choices=EventTag.choices, null=True, blank=True
-    )
-
     registration_link = models.URLField(blank=True)
     registration_details = QuillField(blank=True, null=True)
     travel_logistics = QuillField(blank=True, null=True)
@@ -74,7 +65,6 @@ class ForumEvent(BaseModel):
     )
     location_name = models.CharField(max_length=100, blank=True)
     location_link = models.URLField(blank=True)
-
     order = models.IntegerField(default=1)
 
     class Meta:

@@ -102,7 +102,7 @@ const Schedule = ({ schedule, registration }) => {
                           </div>
                           <div className="event-details__content">
                             <p className="title">{session.session_title}</p>
-                            {session.html !== '<p><br></p>' && (
+                            {session.session_details_html && (
                               <p
                                 className="description"
                                 dangerouslySetInnerHTML={{ __html: session.session_details_html }}
@@ -150,7 +150,7 @@ const Schedule = ({ schedule, registration }) => {
             alignItems: 'center',
             height: '50vh'
           }}>
-          No content available
+          {t('cleanAirSite.Forum.sections.No_data')}
         </div>
       )}
     </>

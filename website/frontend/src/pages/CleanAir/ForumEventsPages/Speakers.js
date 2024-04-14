@@ -10,7 +10,7 @@ const Speakers = ({ speakers, sectionText }) => {
   const displayedSpeakers = isExpanded ? speakers : speakers?.slice(0, ITEMS_PER_PAGE);
   return (
     <>
-      {speakers && speakers.length > 0 && (
+      {speakers && speakers.length > 0 ? (
         <>
           <div className="separator" />
           <section className="speakers">
@@ -22,11 +22,20 @@ const Speakers = ({ speakers, sectionText }) => {
               {displayedSpeakers.map((profile) => (
                 <div key={profile.id}>
                   <Profile
-                    name={profile.name}
-                    title={profile.title}
+                    name={
+                      profile.name.length > 28 ? `${profile.name.slice(0, 28)}....` : profile.name
+                    }
+                    title={
+                      profile.title.length > 30
+                        ? `${profile.title.slice(0, 30)}....`
+                        : profile.title
+                    }
+                    cardTitle={profile.title}
                     ImgPath={profile.picture}
                     htmlBio={profile.bio_html}
                     readBioBtn={true}
+                    twitter_forum={profile.twitter}
+                    linkedin_forum={profile.linked_in}
                   />
                 </div>
               ))}
@@ -40,18 +49,16 @@ const Speakers = ({ speakers, sectionText }) => {
             </div>
           </section>
         </>
-      )}
-
-      {/* if both are empty */}
-      {speakers && speakers.length === 0 && (
+      ) : (
         <div
           style={{
             display: 'flex',
             justifyContent: 'center',
+            textAlign: 'center',
             alignItems: 'center',
             height: '50vh'
           }}>
-          No content available
+          {t('cleanAirSite.Forum.sections.speakers.No_data')}
         </div>
       )}
     </>
