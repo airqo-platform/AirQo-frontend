@@ -78,7 +78,8 @@ const Index = ({ engagements, forumEvents }) => {
                 and welcome more partners.
               </p>
               <p>
-                Please get in touch with <a>dokure@airqo.net</a> to discuss further details.
+                Please get in touch with <a href="mailto:dokure@airqo.net">dokure@airqo.net</a> to
+                discuss further details.
               </p>
             </div>
           }
