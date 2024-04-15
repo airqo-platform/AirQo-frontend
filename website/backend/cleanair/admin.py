@@ -21,11 +21,6 @@ class SessionInline(nested_admin.NestedTabularInline):
     extra = 0
 
 
-class PartnerInline(nested_admin.NestedTabularInline):
-    model = Partner
-    extra = 0
-
-
 class SupportInline(nested_admin.NestedTabularInline):
     model = Support
     extra = 0
@@ -49,12 +44,22 @@ class ForumEventAdmin(nested_admin.NestedModelAdmin):
     search_fields = ('title',)
     readonly_fields = ('author', 'updated_by')
     list_per_page = 12
-    inlines = [EngagementInline, PartnerInline, SupportInline]
+    inlines = [EngagementInline, SupportInline]
+
+
+@admin.register(Program)
+class ProgramAdmin(admin.ModelAdmin):
+    list_display = ('title', 'forum_event',)
+    list_filter = ('forum_event',)
+    search_fields = ('title', 'forum_event',)
+    list_per_page = 12
+    inlines = [SessionInline]
 
 
 @admin.register(Person)
 class PersonAdmin(admin.ModelAdmin):
-    list_display = ('name', 'forum_event', 'category', 'image_preview')
+    list_display = ('name', 'forum_event', 'category',
+                    'image_preview', 'order')
     list_filter = ('forum_event',)
     search_fields = ('name', 'category', 'forum_event',)
     list_per_page = 12
@@ -67,10 +72,16 @@ class PersonAdmin(admin.ModelAdmin):
         return format_html(f'<img src="{escape(obj.picture.url)}" height="{width}" />')
 
 
-@admin.register(Program)
-class ProgramAdmin(admin.ModelAdmin):
-    list_display = ('title', 'forum_event',)
+@admin.register(Partner)
+class PartnerAdmin(admin.ModelAdmin):
+    list_display = ('name', 'forum_event', 'category', 'logo_preview', 'order')
     list_filter = ('forum_event',)
-    search_fields = ('title', 'forum_event',)
+    search_fields = ('name', 'category', 'forum_event',)
     list_per_page = 12
-    inlines = [SessionInline]
+
+    # display image preview
+    def logo_preview(self, obj):
+        width, height = 100, 200
+        from django.utils.html import escape, format_html
+
+        return format_html(f'<img src="{escape(obj.partner_logo.url)}" height="{width}" />')

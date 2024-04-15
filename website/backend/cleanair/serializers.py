@@ -11,7 +11,7 @@ class CleanAirResourceSerializer(serializers.ModelSerializer):
 class ObjectiveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Objective
-        fields = '__all__'
+        exclude = ['order']
 
 
 class EngagementSerializer(serializers.ModelSerializer):
@@ -30,7 +30,7 @@ class PartnerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Partner
-        fields = '__all__'
+        exclude = ['order']
 
 
 class SessionSerializer(serializers.ModelSerializer):
@@ -42,7 +42,7 @@ class SessionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Session
-        fields = '__all__'
+        exclude = ['order', 'session_details']
 
 
 class ProgramSerializer(serializers.ModelSerializer):
@@ -50,13 +50,13 @@ class ProgramSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Program
-        fields = '__all__'
+        exclude = ['order']
 
 
 class SupportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Support
-        fields = '__all__'
+        exclude = ['order']
 
 
 class PersonSerializer(serializers.ModelSerializer):
@@ -72,7 +72,7 @@ class PersonSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Person
-        fields = '__all__'
+        exclude = ['bio', 'order']
 
 
 class ForumEventSerializer(serializers.ModelSerializer):
@@ -116,4 +116,5 @@ class ForumEventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ForumEvent
-        fields = '__all__'
+        exclude = ['introduction', 'Speakers_text_section',
+                   'Committee_text_section', 'registration_details', 'travel_logistics', 'order', 'author', 'updated_by']

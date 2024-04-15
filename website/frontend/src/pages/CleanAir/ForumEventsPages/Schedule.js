@@ -54,6 +54,11 @@ const Schedule = ({ schedule, registration }) => {
     };
   }, [handleClickOutside]);
 
+  // Toggle accordion function
+  const toggleAccordion = (id) => {
+    setShowAccordion(showAccordion === id ? null : id);
+  };
+
   // Use ternary operator for cleaner code
   const convertTime24to12 = (time24) => {
     let [hours, minutes] = time24.split(':');
@@ -74,18 +79,18 @@ const Schedule = ({ schedule, registration }) => {
               {t('cleanAirSite.Forum.sections.schedule')}
             </h2>
             <div className="schedule" ref={wrapperRef}>
-              {schedule.map((schedule) => (
+              {schedule.map((scheduleItem) => (
                 <div
                   className="event"
-                  key={schedule.id}
-                  onClick={() => setShowAccordion(schedule.id)}>
+                  key={scheduleItem.id}
+                  onClick={() => toggleAccordion(scheduleItem.id)}>
                   <div className="event-head">
                     <div>
-                      <p className="date">{schedule.title}</p>
-                      <p className="title">{schedule.program_details}</p>
+                      <p className="date">{scheduleItem.title}</p>
+                      <p className="title">{scheduleItem.program_details}</p>
                     </div>
                     <div>
-                      {showAccordion === schedule.id ? (
+                      {showAccordion === scheduleItem.id ? (
                         <span>{upArrow()}</span>
                       ) : (
                         <span>{downArrow()}</span>
@@ -93,8 +98,8 @@ const Schedule = ({ schedule, registration }) => {
                     </div>
                   </div>
 
-                  {showAccordion === schedule.id &&
-                    schedule.sessions.map((session, index) => (
+                  {showAccordion === scheduleItem.id &&
+                    scheduleItem.sessions.map((session, index) => (
                       <div key={session.id}>
                         <div className="event-details">
                           <div className="event-details__time">
@@ -118,7 +123,6 @@ const Schedule = ({ schedule, registration }) => {
           </section>
         </>
       )}
-
       {registration && (
         <>
           <div className="separator" />
