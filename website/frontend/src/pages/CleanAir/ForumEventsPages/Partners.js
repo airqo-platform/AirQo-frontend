@@ -15,7 +15,7 @@ const Partners = ({ FundingPartners, HostPartner, CoConveningPartner }) => {
 
   return (
     <>
-      {CoConveningPartner && CoConveningPartner.length > 0 && (
+      {CoConveningPartner && CoConveningPartner.length > 0 ? (
         <>
           <div className="separator" />
           <section className="CoConvening_partners">
@@ -48,7 +48,7 @@ const Partners = ({ FundingPartners, HostPartner, CoConveningPartner }) => {
             />
           </section>
         </>
-      )}
+      ) : null}
 
       {HostPartner && HostPartner.length > 0 && (
         <>
@@ -99,6 +99,7 @@ const Partners = ({ FundingPartners, HostPartner, CoConveningPartner }) => {
 
       {FundingPartners && FundingPartners.length > 0 && (
         <>
+          <div className="separator" />
           <section className="Funding_partners">
             <SplitTextSection
               lists={[]}
@@ -126,7 +127,6 @@ const Partners = ({ FundingPartners, HostPartner, CoConveningPartner }) => {
               bgColor="#FFFFFF"
             />
           </section>
-          <div className="separator" />
         </>
       )}
 
@@ -141,7 +141,7 @@ const Partners = ({ FundingPartners, HostPartner, CoConveningPartner }) => {
               alignItems: 'center',
               height: '50vh'
             }}>
-            No content available
+            {t('cleanAirSite.Forum.sections.No_data')}
           </div>
         )}
     </>

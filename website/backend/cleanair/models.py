@@ -48,7 +48,7 @@ class CleanAirResource(BaseModel):
 @with_author
 class ForumEvent(BaseModel):
     title = models.CharField(max_length=100, default="CLEAN-Air Forum")
-    title_subtext = models.CharField(max_length=90, blank=True)
+    title_subtext = models.TextField(blank=True)
     start_date = models.DateField()
     end_date = models.DateField(blank=True)
     start_time = models.TimeField(blank=True, null=True)
@@ -56,15 +56,6 @@ class ForumEvent(BaseModel):
     introduction = QuillField(blank=True, null=True)
     Speakers_text_section = QuillField(blank=True, null=True)
     Committee_text_section = QuillField(blank=True, null=True)
-
-    class EventTag(models.TextChoices):
-        Untagged = "none", "None"
-        Featured = "featured", "Featured"
-
-    event_tag = models.CharField(
-        max_length=40, default=EventTag.Untagged, choices=EventTag.choices, null=True, blank=True
-    )
-
     registration_link = models.URLField(blank=True)
     registration_details = QuillField(blank=True, null=True)
     travel_logistics = QuillField(blank=True, null=True)
@@ -74,7 +65,6 @@ class ForumEvent(BaseModel):
     )
     location_name = models.CharField(max_length=100, blank=True)
     location_link = models.URLField(blank=True)
-
     order = models.IntegerField(default=1)
 
     class Meta:
@@ -194,7 +184,7 @@ class Session(BaseModel):
     start_time = models.TimeField(blank=True, null=True)
     end_time = models.TimeField(blank=False, null=True)
     session_title = models.CharField(max_length=150)
-    session_details = QuillField(blank=True, null=True)
+    session_details = QuillField()
     order = models.IntegerField(default=1)
     program = models.ForeignKey(
         Program,

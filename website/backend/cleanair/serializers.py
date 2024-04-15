@@ -11,7 +11,7 @@ class CleanAirResourceSerializer(serializers.ModelSerializer):
 class ObjectiveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Objective
-        fields = '__all__'
+        exclude = ['order']
 
 
 class EngagementSerializer(serializers.ModelSerializer):
@@ -30,18 +30,19 @@ class PartnerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Partner
-        fields = '__all__'
+        exclude = ['order']
 
 
 class SessionSerializer(serializers.ModelSerializer):
     session_details_html = serializers.SerializerMethodField()
 
     def get_session_details_html(self, obj):
-        return obj.session_details.html
+        html = obj.session_details.html
+        return '' if html.strip() == '<p><br></p>' else html
 
     class Meta:
         model = Session
-        fields = '__all__'
+        exclude = ['order', 'session_details']
 
 
 class ProgramSerializer(serializers.ModelSerializer):
@@ -49,13 +50,13 @@ class ProgramSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Program
-        fields = '__all__'
+        exclude = ['order']
 
 
 class SupportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Support
-        fields = '__all__'
+        exclude = ['order']
 
 
 class PersonSerializer(serializers.ModelSerializer):
@@ -63,16 +64,15 @@ class PersonSerializer(serializers.ModelSerializer):
     bio_html = serializers.SerializerMethodField()
 
     def get_bio_html(self, obj):
-        if obj.bio:
-            return obj.bio.html
-        return None
+        html = obj.bio.html
+        return '' if html.strip() == '<p><br></p>' else html
 
     def get_picture(self, obj):
         return obj.picture.url
 
     class Meta:
         model = Person
-        fields = '__all__'
+        exclude = ['bio', 'order']
 
 
 class ForumEventSerializer(serializers.ModelSerializer):
@@ -89,13 +89,16 @@ class ForumEventSerializer(serializers.ModelSerializer):
     Committee_text_section_html = serializers.SerializerMethodField()
 
     def get_Speakers_text_section_html(self, obj):
-        return obj.Speakers_text_section.html
+        html = obj.Speakers_text_section.html
+        return '' if html.strip() == '<p><br></p>' else html
 
     def get_Committee_text_section_html(self, obj):
-        return obj.Committee_text_section.html
+        html = obj.Committee_text_section.html
+        return '' if html.strip() == '<p><br></p>' else html
 
     def get_introduction_html(self, obj):
-        return obj.introduction.html
+        html = obj.introduction.html
+        return '' if html.strip() == '<p><br></p>' else html
 
     def get_background_image(self, obj):
         if obj.background_image is not None:
@@ -104,11 +107,14 @@ class ForumEventSerializer(serializers.ModelSerializer):
             return None
 
     def get_travel_logistics_html(self, obj):
-        return obj.travel_logistics.html
+        html = obj.travel_logistics.html
+        return '' if html.strip() == '<p><br></p>' else html
 
     def get_registration_details_html(self, obj):
-        return obj.registration_details.html
+        html = obj.registration_details.html
+        return '' if html.strip() == '<p><br></p>' else html
 
     class Meta:
         model = ForumEvent
-        fields = '__all__'
+        exclude = ['introduction', 'Speakers_text_section',
+                   'Committee_text_section', 'registration_details', 'travel_logistics', 'order', 'author', 'updated_by']

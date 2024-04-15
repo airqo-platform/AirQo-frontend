@@ -153,6 +153,9 @@ const CleanAirForumEvent = () => {
                   {links.map((link) => (
                     <li key={link.name}>
                       <span
+                        style={{
+                          color: activeSection === link.url ? '#0f4acc' : ''
+                        }}
                         onClick={(e) => {
                           e.preventDefault();
                           window.location.hash = link.url;

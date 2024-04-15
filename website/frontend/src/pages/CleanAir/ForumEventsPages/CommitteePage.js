@@ -13,7 +13,7 @@ const CommitteePage = ({ committee, sectionText }) => {
   const displayedCommittee = isExpanded ? committee : committee?.slice(0, ITEMS_PER_PAGE);
   return (
     <>
-      {committee && committee.length > 0 && (
+      {committee && committee.length > 0 ? (
         <>
           <div className="separator" />
           <section className="speakers">
@@ -25,11 +25,20 @@ const CommitteePage = ({ committee, sectionText }) => {
               {displayedCommittee.map((profile) => (
                 <div key={profile.id}>
                   <Profile
-                    name={profile.name}
-                    title={profile.title}
+                    name={
+                      profile.name.length > 28 ? `${profile.name.slice(0, 28)}....` : profile.name
+                    }
+                    title={
+                      profile.title.length > 30
+                        ? `${profile.title.slice(0, 30)}....`
+                        : profile.title
+                    }
+                    cardTitle={profile.title}
                     ImgPath={profile.picture}
                     htmlBio={profile.bio_html}
                     readBioBtn={true}
+                    twitter_forum={profile.twitter}
+                    linkedin_forum={profile.linked_in}
                   />
                 </div>
               ))}
@@ -43,6 +52,17 @@ const CommitteePage = ({ committee, sectionText }) => {
             </div>
           </section>
         </>
+      ) : (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            textAlign: 'center',
+            alignItems: 'center',
+            height: '50vh'
+          }}>
+          {t('cleanAirSite.Forum.sections.speakers.No_data')}
+        </div>
       )}
     </>
   );

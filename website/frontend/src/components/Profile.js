@@ -21,8 +21,11 @@ const Profile = ({
   ImgPath,
   name,
   title,
+  cardTitle,
   twitter,
   linkedin,
+  twitter_forum,
+  linkedin_forum,
   biography,
   about,
   readBioBtn = false,
@@ -50,7 +53,12 @@ const Profile = ({
             <div className="bio-header-container">
               <div className="bio-header">
                 <div className="name">{name}</div>
-                <div className="title">{title}</div>
+                {cardTitle ? (
+                  <div className="title">{cardTitle}</div>
+                ) : (
+                  <div className="title">{title}</div>
+                )}
+
                 <div className="social-container">
                   {linkedin && (
                     <a href={linkedin} target="_blank" rel="noopener noreferrer">
@@ -60,6 +68,19 @@ const Profile = ({
                   {twitter && (
                     <a href={twitter} target="_blank" rel="noopener noreferrer">
                       <TwitterIcon className="profile_twitter_handle" style={{ padding: '6px' }} />
+                    </a>
+                  )}
+                </div>
+                {/* clean air forum */}
+                <div className="social-container" target="_blank" rel="noopener noreferrer">
+                  {linkedin_forum && (
+                    <a href={linkedin_forum} target="_blank">
+                      <LinkedIn />
+                    </a>
+                  )}
+                  {twitter_forum && (
+                    <a href={twitter_forum} target="_blank" rel="noopener noreferrer">
+                      <TwitterIcon style={{ padding: '6px' }} />
                     </a>
                   )}
                 </div>
@@ -101,20 +122,38 @@ const Profile = ({
         <div className="info-left">
           <h3>{name}</h3>
           <h6>{title}</h6>
-          {readBioBtn && <span onClick={() => setShow(true)}>Read Bio</span>}
-        </div>
-        <div className="social-container" target="_blank" rel="noopener noreferrer">
-          {linkedin && (
-            <a href={linkedin} target="_blank">
-              <LinkedIn />
-            </a>
+          {readBioBtn && (
+            <div className="read-bio-btn">
+              <span onClick={() => setShow(true)}>Read Bio</span>
+              <span className="social-container" target="_blank" rel="noopener noreferrer">
+                {linkedin_forum && (
+                  <a href={linkedin_forum} target="_blank">
+                    <LinkedIn />
+                  </a>
+                )}
+                {twitter_forum && (
+                  <a href={twitter_forum} target="_blank" rel="noopener noreferrer">
+                    <TwitterIcon className="profile_twitter_handle" />
+                  </a>
+                )}
+              </span>
+            </div>
           )}
-          {twitter && (
-            <a href={twitter} target="_blank" rel="noopener noreferrer">
-              <TwitterIcon className="profile_twitter_handle" />
-            </a>
-          )}
         </div>
+        {linkedin_forum || twitter_forum ? null : (
+          <div className="social-container" target="_blank" rel="noopener noreferrer">
+            {linkedin && (
+              <a href={linkedin} target="_blank">
+                <LinkedIn />
+              </a>
+            )}
+            {twitter && (
+              <a href={twitter} target="_blank" rel="noopener noreferrer">
+                <TwitterIcon className="profile_twitter_handle" />
+              </a>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
