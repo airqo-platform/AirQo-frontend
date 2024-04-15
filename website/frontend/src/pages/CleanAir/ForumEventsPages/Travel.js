@@ -51,7 +51,7 @@ const Travel = ({ travelLogistics, support }) => {
             alignItems: 'center',
             height: '50vh'
           }}>
-          No content available
+          {t('cleanAirSite.Forum.sections.No_data')}
         </div>
       )}
     </>

@@ -326,16 +326,18 @@
         "committee": "Comité de programme",
         "schedule": "Programme",
         "speakers": {
-          "title": "Conférenciers"
+          "title": "Conférenciers",
+          "No_data": "Nous organisons une sélection exceptionnelle d’experts. Revenez bientôt pour les mises à jour !"
         },
         "registration": "Inscription",
         "partners": {
           "fund": "Partenaires de financement",
           "others": "Partenaires hôtes",
-          "coConvening": "Partenaires co-organisateurs"
+          "coConvening": "Réunir les partenaires"
         },
         "travel": "Logistique de voyage",
-        "support": "Soutien"
+        "support": "Soutien",
+        "No_data": "À venir ..."
       }
     }
   },

@@ -59,7 +59,7 @@
         "press": "Press",
         "careers": "Careers",
         "contact": "Contact Us",
-        "forumEvent": "Clean-Air forum"
+        "forumEvent": "CLEAN-Air Forum"
       }
     },
     "getInvolved": "Get Involved",
@@ -326,16 +326,18 @@
         "committee": "Programme committee",
         "schedule": "Schedule",
         "speakers": {
-          "title": "Speakers"
+          "title": "Speakers",
+          "No_data": "We are curating an exceptional lineup of experts. Check back soon for updates!"
         },
         "registration": "Registration",
         "partners": {
           "fund": "Funding partners",
           "others": "Host partners",
-          "coConvening": "Co-convening partners"
+          "coConvening": "Convening partners"
         },
         "travel": "Travel Logistics",
-        "support": "Support"
+        "support": "Support",
+        "No_data": "Coming soon ..."
       }
     }
   },
