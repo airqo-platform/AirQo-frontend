@@ -93,7 +93,7 @@ const Speakers = ({ speakers, sectionText, keyNoteSpeakers }) => {
         </>
       )}
 
-      {speakers && speakers.length > 0 && keyNoteSpeakers && keyNoteSpeakers.length > 0 && (
+      {speakers && speakers.length === 0 && keyNoteSpeakers && keyNoteSpeakers.length === 0 && (
         <div
           style={{
             display: 'flex',
