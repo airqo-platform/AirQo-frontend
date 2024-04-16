@@ -325,8 +325,12 @@
       "sections": {
         "committee": "Programme committee",
         "schedule": "Schedule",
+        "about": {
+          "No_data": "Please check back later."
+        },
         "speakers": {
-          "title": "Speakers",
+          "title1": "Speakers",
+          "title2": "Keynote speakers",
           "No_data": "We are curating an exceptional lineup of experts. Check back soon for updates!"
         },
         "registration": "Registration",

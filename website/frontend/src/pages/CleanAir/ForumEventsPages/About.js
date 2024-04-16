@@ -1,7 +1,9 @@
 import React from 'react';
 import { SplitTextSection } from 'components/CleanAir';
+import { useTranslation, Trans } from 'react-i18next';
 
 const Index = ({ engagements, forumEvents }) => {
+  const { t } = useTranslation();
   return (
     <>
       {forumEvents[0].introduction_html && (

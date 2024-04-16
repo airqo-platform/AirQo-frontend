@@ -99,6 +99,7 @@ class PartnerCategoryChoices(Enum):
 class CategoryChoices(Enum):
     SPEAKER = "Speaker"
     COMMITTEE_MEMBER = "Committee Member"
+    KEY_NOTE_SPEAKER = "Key Note Speaker"
 
     @classmethod
     def choices(cls):
