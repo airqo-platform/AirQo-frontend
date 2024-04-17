@@ -44,6 +44,9 @@ const Organisation = lazy(() => import('./views/pages/Organisation'));
 const Logs = lazy(() => import('./views/pages/Logs'));
 const ExportDownloads = lazy(() => import('./views/pages/ExportData/downloads'));
 const ExportData = lazy(() => import('./views/pages/ExportData'));
+const FaultDetection = lazy(() =>
+  import('./views/components/DataDisplay/DeviceManagement/ManagementFaults')
+);
 const Analytics = lazy(() => import('./views/pages/Analytics'));
 const HostRegistry = lazy(() => import('./views/components/Hosts/HostRegistry'));
 const HostView = lazy(() => import('./views/components/Hosts/HostView'));
@@ -154,6 +157,12 @@ const AppRoutes = ({ auth, logoutUser }) => {
               exact
               path="/manager/activities"
               component={SiteActivities}
+              layout={MainLayout}
+            />
+            <PrivateRoute
+              exact
+              path="/manager/fault_detection"
+              component={FaultDetection}
               layout={MainLayout}
             />
             <PrivateRoute exact path="/hosts" component={HostRegistry} layout={MainLayout} />

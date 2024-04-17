@@ -1,4 +1,4 @@
-import { GET_HEATMAP_DATA, GET_GEOCOORDINATES_DATA } from 'config/urls/predict';
+import { GET_HEATMAP_DATA, GET_GEOCOORDINATES_DATA, GET_FAULTS } from 'config/urls/predict';
 import createAxiosInstance from './axiosConfig';
 
 export const heatmapPredictApi = async () => {
@@ -23,5 +23,11 @@ export const heatmapPredictApi = async () => {
 export const geocoordinatesPredictApi = async (params) => {
   return await createAxiosInstance()
     .get(GET_GEOCOORDINATES_DATA, { params })
+    .then((response) => response.data);
+};
+
+export const faultsPredictApi = async () => {
+  return await createAxiosInstance()
+    .get(GET_FAULTS)
     .then((response) => response.data);
 };
