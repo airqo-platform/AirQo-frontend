@@ -28,6 +28,7 @@ const CleanAirForumEvent = () => {
   const [engagements, setEngagements] = useState(null);
   const [committee, setCommittee] = useState(null);
   const [speakers, setSpeakers] = useState(null);
+  const [keyNoteSpeakers, setKeyNoteSpeakers] = useState(null);
   const [FundingPartners, setFundingPartners] = useState(null);
   const [HostPartner, setHostPartners] = useState(null);
   const [CoConveningPartner, setCoConveningPartner] = useState(null);
@@ -94,6 +95,7 @@ const CleanAirForumEvent = () => {
           setSpeakersText(event.Speakers_text_section_html);
           setCommittee(filterByCategory(event.persons, 'Committee Member'));
           setSpeakers(filterByCategory(event.persons, 'Speaker'));
+          setKeyNoteSpeakers(filterByCategory(event.persons, 'Key Note Speaker'));
           setFundingPartners(filterByCategory(event.partners, 'Funding Partner'));
           setHostPartners(filterByCategory(event.partners, 'Host Partner'));
           setCoConveningPartner(filterByCategory(event.partners, 'Co-Convening Partner'));
@@ -257,7 +259,11 @@ const CleanAirForumEvent = () => {
               <Schedule schedule={schedule} registration={registration} />
             )}
             {activeSection === 'speakers' && (
-              <Speakers speakers={speakers} sectionText={speakersText} />
+              <Speakers
+                speakers={speakers}
+                sectionText={speakersText}
+                keyNoteSpeakers={keyNoteSpeakers}
+              />
             )}
             {activeSection === 'partners' && (
               <Partners
@@ -279,7 +285,7 @@ const CleanAirForumEvent = () => {
             alignItems: 'center',
             height: '50vh'
           }}>
-          No data found, please check back later.
+          {t('cleanAirSite.Forum.sections.about.No_data')}
         </div>
       )}
     </Page>

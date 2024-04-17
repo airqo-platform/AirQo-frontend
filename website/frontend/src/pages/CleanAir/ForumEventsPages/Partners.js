@@ -15,9 +15,33 @@ const Partners = ({ FundingPartners, HostPartner, CoConveningPartner }) => {
 
   return (
     <>
+      <div>
+        <div className="separator" />
+        <div className="CoConvening_partners">
+          <h2 className="section_title">Partners</h2>
+          <p>
+            Leveraging the unique expertise and resources of partners to further collective efforts
+            in advancing collaborations and multi-regional partnerships for clean air actions in
+            African cities.
+          </p>
+        </div>
+        <div className="CoConvening_partners">
+          <h2 className="section_title">Sponsorship opportunities </h2>
+          <p>
+            We have put together flexible sponsorship packages including travel scholarships,
+            session sponsorships, exhibitions, cocktail receptions and tailored options. 
+          </p>
+          <p>
+            Sponsorship will help optimize the cost of hosting the forum, and more importantly
+            support in-person participation of the target communities working for a clean air future
+            in Africa. We thank our funding partners for the continued funding support and welcome
+            more partners.
+          </p>
+        </div>
+      </div>
+      <br />
       {CoConveningPartner && CoConveningPartner.length > 0 ? (
         <>
-          <div className="separator" />
           <section className="CoConvening_partners">
             <SplitTextSection
               lists={[]}
