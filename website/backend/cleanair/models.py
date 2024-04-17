@@ -99,6 +99,7 @@ class PartnerCategoryChoices(Enum):
 class CategoryChoices(Enum):
     SPEAKER = "Speaker"
     COMMITTEE_MEMBER = "Committee Member"
+    KEY_NOTE_SPEAKER = "Key Note Speaker"
 
     @classmethod
     def choices(cls):
@@ -184,7 +185,7 @@ class Session(BaseModel):
     start_time = models.TimeField(blank=True, null=True)
     end_time = models.TimeField(blank=False, null=True)
     session_title = models.CharField(max_length=150)
-    session_details = QuillField()
+    session_details = QuillField(blank=False, null=True)
     order = models.IntegerField(default=1)
     program = models.ForeignKey(
         Program,

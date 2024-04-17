@@ -1,27 +1,29 @@
-import nested_admin
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html
 from .models import CleanAirResource, ForumEvent, Partner, Program, Session, Support, Person, Engagement, Objective
+from nested_admin import NestedTabularInline, NestedModelAdmin
 
 # Inlines
 
 
-class ObjectiveInline(nested_admin.NestedTabularInline):
+class ObjectiveInline(NestedTabularInline):
     model = Objective
     extra = 0
 
 
-class EngagementInline(nested_admin.NestedTabularInline):
+class EngagementInline(NestedTabularInline):
     model = Engagement
     inlines = [ObjectiveInline]
     extra = 0
 
 
-class SessionInline(nested_admin.NestedTabularInline):
+class SessionInline(NestedTabularInline):
     model = Session
-    extra = 0
+    extra = 0  # Adjust this value based on your needs
 
 
-class SupportInline(nested_admin.NestedTabularInline):
+class SupportInline(NestedTabularInline):
     model = Support
     extra = 0
 
@@ -38,7 +40,7 @@ class CleanAirResourceAdmin(admin.ModelAdmin):
 
 
 @admin.register(ForumEvent)
-class ForumEventAdmin(nested_admin.NestedModelAdmin):
+class ForumEventAdmin(NestedModelAdmin):
     list_display = ('title', 'start_date', 'end_date', 'author', 'order')
     list_filter = ('start_date', 'end_date')
     search_fields = ('title',)
@@ -48,7 +50,7 @@ class ForumEventAdmin(nested_admin.NestedModelAdmin):
 
 
 @admin.register(Program)
-class ProgramAdmin(admin.ModelAdmin):
+class ProgramAdmin(NestedModelAdmin):
     list_display = ('title', 'forum_event',)
     list_filter = ('forum_event',)
     search_fields = ('title', 'forum_event',)
@@ -64,12 +66,10 @@ class PersonAdmin(admin.ModelAdmin):
     search_fields = ('name', 'category', 'forum_event',)
     list_per_page = 12
 
-    # display image preview
     def image_preview(self, obj):
         width, height = 100, 200
         from django.utils.html import escape, format_html
-
-        return format_html(f'<img src="{escape(obj.picture.url)}" height="{width}" />')
+        return format_html(f'<img src="{escape(obj.picture.url)}" height="{height}" />')
 
 
 @admin.register(Partner)
@@ -79,9 +79,7 @@ class PartnerAdmin(admin.ModelAdmin):
     search_fields = ('name', 'category', 'forum_event',)
     list_per_page = 12
 
-    # display image preview
     def logo_preview(self, obj):
         width, height = 100, 200
         from django.utils.html import escape, format_html
-
-        return format_html(f'<img src="{escape(obj.partner_logo.url)}" height="{width}" />')
+        return format_html(f'<img src="{escape(obj.partner_logo.url)}" height="{height}" />')

@@ -325,8 +325,13 @@
       "sections": {
         "committee": "Comité de programme",
         "schedule": "Programme",
+        "about": {
+          "registrationInfo": "<0>Il s'agira d'une réunion en grande partie en personne avec des sessions hybrides limitées. Vous pouvez <1>enregistrer votre intérêt ici</1>et rester à l'écoute pour plus de détails !</0><1><1> La participation se fait uniquement sur invitation, mais les possibilités de soumission de résumés seront limitées</1 </1><2>Les détails de l'appel à résumés seront partagés séparément.</2>",
+          "No_data": "Veuillez revenir plus tard."
+        },
         "speakers": {
-          "title": "Conférenciers",
+          "title1": "Conférenciers",
+          "title2": "Conférenciers principaux",
           "No_data": "Nous organisons une sélection exceptionnelle d’experts. Revenez bientôt pour les mises à jour !"
         },
         "registration": "Inscription",
