@@ -91,7 +91,7 @@ const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
   };
 
   return (
-    <div className='flex space-x-2 ml-2'>
+    <div className='flex space-x-2 ml-2 mb-5'>
       {sortedData.map((country, index) => {
         // Check if country and flag properties exist
         if (!country || !country.flag) {
@@ -105,7 +105,12 @@ const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
               selectedCountry?.country === country.country ? 'border-2 border-blue-400' : ''
             }`}
             onClick={() => handleClick(country)}>
-            <img src={country.flag} alt={country.country} width={20} height={20} />
+            <img
+              src={`https://flagsapi.com/${country.code.toUpperCase()}/flat/64.png`}
+              alt={country.country}
+              width={20}
+              height={20}
+            />
             <span className='text-sm text-secondary-neutral-light-600 font-medium'>
               {country.country}
             </span>
@@ -590,7 +595,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                     dispatch(setZoom(1.5));
                     dispatch(setSelectedLocation(null));
                   }}
-                  className='py-[6px] px-[10px] rounded-full bg-blue-500 text-white text-sm font-medium'>
+                  className='py-[6px] px-[10px] rounded-full mb-5 bg-blue-500 text-white text-sm font-medium'>
                   All
                 </button>
                 <CountryList
