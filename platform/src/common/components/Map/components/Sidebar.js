@@ -72,7 +72,7 @@ const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
   // Check if data is not null or undefined
   if (!data || !Array.isArray(data) || data.length === 0) {
     return (
-      <div className='flex gap-2 ml-2 animate-pulse'>
+      <div className='flex gap-2 ml-2 animate-pulse mb-5'>
         <div className='bg-secondary-neutral-dark-50 px-4 py-[14px] w-28 h-9 rounded-full dark:bg-gray-700' />
         <div className='bg-secondary-neutral-dark-50 px-4 py-[14px] w-28 h-9 rounded-full dark:bg-gray-700' />
         <div className='bg-secondary-neutral-dark-50 px-4 py-[14px] w-28 h-9 rounded-full dark:bg-gray-700' />
