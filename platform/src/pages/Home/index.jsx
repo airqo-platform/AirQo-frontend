@@ -247,7 +247,7 @@ const Home = () => {
                 }}>
                 <div
                   onClick={handleModel}
-                  className='absolute z-50 inset-0 flex items-center justify-center cursor-pointer hidden'>
+                  className='absolute z-50 inset-0 items-center justify-center cursor-pointer hidden'>
                   <PlayIcon />
                 </div>
                 <Image src={AnalyticsImage} alt='Analytics Image' width={600} height={350} />
