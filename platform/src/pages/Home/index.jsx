@@ -45,7 +45,7 @@ const Home = () => {
   const checkListStatus = useSelector((state) => state.checklists.status);
   const [open, setOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
-
+  const loginCount = userData.loginCount;
   const [step, setStep] = useState(0);
   const totalSteps = 3;
 
@@ -126,18 +126,18 @@ const Home = () => {
 
   // Show the intro modal only once
   useEffect(() => {
-    const isFirstTimeIntroModal = localStorage.getItem('isFirstTimeIntroModal');
+    const hasSeenModal = localStorage.getItem('hasSeenModal');
 
-    if (isFirstTimeIntroModal === null) {
+    if (loginCount === 1 && !hasSeenModal) {
       setShowModal(true);
-      localStorage.setItem('isFirstTimeIntroModal', 'true');
+      localStorage.setItem('hasSeenModal', 'true');
     }
   }, []);
 
   return (
     <Layout noBorderBottom pageTitle='Home'>
       {/* App Intro Modal */}
-      {/* <AppIntro isOpen={showModal} setIsOpen={setShowModal} features={IntroList} /> */}
+      <AppIntro isOpen={showModal} setIsOpen={setShowModal} features={IntroList} />
       {checkListStatus === 'loading' && checkListData.length === 0 ? (
         <HomeSkeleton />
       ) : (
@@ -247,7 +247,7 @@ const Home = () => {
                 }}>
                 <div
                   onClick={handleModel}
-                  className='absolute z-50 inset-0 flex items-center justify-center cursor-pointer hidden'>
+                  className='absolute z-50 inset-0 items-center justify-center cursor-pointer hidden'>
                   <PlayIcon />
                 </div>
                 <Image src={AnalyticsImage} alt='Analytics Image' width={600} height={350} />

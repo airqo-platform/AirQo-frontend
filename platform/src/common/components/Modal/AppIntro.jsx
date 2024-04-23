@@ -48,21 +48,19 @@ const Carousel = ({ IntroList }) => {
         <button
           type='button'
           className='flex justify-center items-center p-2 rounded-full bg-blue-200'
-          onClick={prevSlide}
-        >
+          onClick={prevSlide}>
           <svg
             xmlns='http://www.w3.org/2000/svg'
             width='24'
             height='24'
             viewBox='0 0 24 24'
-            fill='none'
-          >
+            fill='none'>
             <path
               d='M15 18L9 12L15 6'
               stroke='#536A87'
-              stroke-width='1.5'
-              stroke-linecap='round'
-              stroke-linejoin='round'
+              strokeWidth='1.5'
+              strokeLinecap='round'
+              strokeLinejoin='round'
             />
           </svg>
         </button>
@@ -75,28 +73,25 @@ const Carousel = ({ IntroList }) => {
                 index === currentSlide ? 'bg-blue-600' : 'bg-gray-300'
               }`}
               aria-label={`Slide ${index + 1}`}
-              onClick={() => setCurrentSlide(index)}
-            ></button>
+              onClick={() => setCurrentSlide(index)}></button>
           ))}
         </div>
         <button
           type='button'
           className='flex justify-center items-center p-2 rounded-full bg-blue-200'
-          onClick={nextSlide}
-        >
+          onClick={nextSlide}>
           <svg
             xmlns='http://www.w3.org/2000/svg'
             width='24'
             height='24'
             viewBox='0 0 24 24'
-            fill='none'
-          >
+            fill='none'>
             <path
               d='M9 18L15 12L9 6'
               stroke='#536A87'
-              stroke-width='1.5'
-              stroke-linecap='round'
-              stroke-linejoin='round'
+              strokeWidth='1.5'
+              strokeLinecap='round'
+              strokeLinejoin='round'
             />
           </svg>
         </button>
@@ -139,8 +134,7 @@ const AppIntro = ({ isOpen, setIsOpen, features }) => {
                 <button
                   type='button'
                   className='w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm'
-                  onClick={() => setIsOpen(false)}
-                >
+                  onClick={() => setIsOpen(false)}>
                   Close
                 </button>
               </div>

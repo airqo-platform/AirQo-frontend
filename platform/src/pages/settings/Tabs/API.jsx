@@ -19,13 +19,20 @@ const API = ({ userPermissions }) => {
             <p className='text-grey-500 text-sm md:max-w-[640px] w-full'>
               Clients are used to generate API tokens that can be used to authenticate with the API.
               Your secret API tokens are listed below. Remember to keep them secure and never share
-              them.
+              them. <br />
+              <a
+                target='_blank'
+                rel='noopener noreferrer'
+                href='https://docs.airqo.net/airqo-rest-api-documentation'
+                className='text-blue-600'
+                aria-label='Read AirQo REST API Documentation'>
+                Read Docs
+              </a>
             </p>
           </div>
           <Button
             onClick={() => setShowAddClientForm(true)}
-            className='w-[152px] h-11 flex justify-center items-center gap-2 rounded py-3 px-4 mr-5 my-4 md:mb-0 bg-blue-600 text-white text-sm font-medium'
-          >
+            className='w-[152px] h-11 flex justify-center items-center gap-2 rounded py-3 px-4 mr-5 my-4 md:mb-0 bg-blue-600 text-white text-sm font-medium'>
             <AddIcon /> Create client
           </Button>
         </div>
