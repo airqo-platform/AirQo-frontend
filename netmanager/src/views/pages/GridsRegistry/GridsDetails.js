@@ -34,7 +34,7 @@ import HowToApiModal from '../../components/HowToApiModal';
 import { stripTrailingSlash } from '../../../config/utils';
 import Copyable from '../../components/Copy/Copyable';
 
-const BASE_ANALYTICS_URL = stripTrailingSlash(process.env.REACT_APP_BASE_URL_V2);
+const BASE_ANALYTICS_URL = stripTrailingSlash(process.env.REACT_APP_API_BASE_URL);
 
 const gridItemStyle = {
   padding: '5px',
@@ -144,8 +144,7 @@ const GridForm = ({ grid }) => {
         margin: '0 auto',
         padding: '20px 20px',
         maxWidth: '1500px'
-      }}
-    >
+      }}>
       <div
         style={{
           display: 'flex',
@@ -153,15 +152,13 @@ const GridForm = ({ grid }) => {
           fontSize: '1.2rem',
           fontWeight: 'bold',
           margin: '20px 0'
-        }}
-      >
+        }}>
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             padding: '5px'
-          }}
-        >
+          }}>
           <ArrowBackIosRounded
             style={{ color: '#3f51b5', cursor: 'pointer' }}
             onClick={() => {
@@ -219,8 +216,7 @@ const GridForm = ({ grid }) => {
             }}
             required
             InputLabelProps={{ shrink: true }}
-            onChange={handleSelectFieldChange('visibility')}
-          >
+            onChange={handleSelectFieldChange('visibility')}>
             <option value={true}>True</option>
             <option value={false}>False</option>
           </TextField>
@@ -263,8 +259,7 @@ const GridForm = ({ grid }) => {
                 padding: '5px',
                 borderRadius: '5px',
                 fontFamily: 'monospace'
-              }}
-            >
+              }}>
               <Copyable
                 width="100%"
                 value={`${stripTrailingSlash(BASE_ANALYTICS_URL)}/devices/measurements/grids/${
@@ -282,8 +277,7 @@ const GridForm = ({ grid }) => {
                 padding: '5px',
                 borderRadius: '5px',
                 fontFamily: 'monospace'
-              }}
-            >
+              }}>
               <Copyable
                 width="100%"
                 value={`${stripTrailingSlash(BASE_ANALYTICS_URL)}/devices/measurements/grids/${
@@ -301,8 +295,7 @@ const GridForm = ({ grid }) => {
           alignContent="flex-end"
           justify="flex-end"
           xs={12}
-          style={{ margin: '10px 0' }}
-        >
+          style={{ margin: '10px 0' }}>
           <Grid
             items
             xs={12}
@@ -313,8 +306,7 @@ const GridForm = ({ grid }) => {
               fontWeight: 'bold',
               cursor: 'pointer'
             }}
-            onClick={() => setOpenAPIModal(true)}
-          >
+            onClick={() => setOpenAPIModal(true)}>
             <p style={{ width: '100%', textAlign: 'left' }}>How to use the API</p>
           </Grid>
 
@@ -325,8 +317,7 @@ const GridForm = ({ grid }) => {
             style={{
               display: 'flex',
               justifyContent: 'flex-end'
-            }}
-          >
+            }}>
             <Button variant="contained" onClick={handleCancel}>
               Reset
             </Button>
@@ -335,8 +326,7 @@ const GridForm = ({ grid }) => {
               variant="contained"
               color="primary"
               onClick={handleSubmit}
-              style={{ marginLeft: '10px' }}
-            >
+              style={{ marginLeft: '10px' }}>
               Save Changes
             </Button>
           </Grid>
@@ -400,8 +390,7 @@ const GridsDetails = (props) => {
         style={{
           width: '96%',
           margin: ' 20px auto'
-        }}
-      >
+        }}>
         <GridForm grid={activeGridDetails} />
 
         <div>
@@ -409,8 +398,7 @@ const GridsDetails = (props) => {
             style={{
               margin: '50px auto',
               maxWidth: '1500px'
-            }}
-          >
+            }}>
             {loading ? (
               <Box
                 height={'100px'}
@@ -418,8 +406,7 @@ const GridsDetails = (props) => {
                 color="blue"
                 display={'flex'}
                 justifyContent={'center'}
-                alignItems={'center'}
-              >
+                alignItems={'center'}>
                 <LargeCircularLoader loading={loading} />
               </Box>
             ) : (

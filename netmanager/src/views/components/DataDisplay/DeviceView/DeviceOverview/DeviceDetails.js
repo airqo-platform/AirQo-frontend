@@ -16,7 +16,7 @@ import format from 'date-fns/format';
 import { stripTrailingSlash } from '../../../../../config/utils';
 import HowToApiModal from '../../../HowToApiModal';
 
-const BASE_ANALYTICS_URL = stripTrailingSlash(process.env.REACT_APP_BASE_URL_V2);
+const BASE_ANALYTICS_URL = stripTrailingSlash(process.env.REACT_APP_API_BASE_URL);
 
 const DeviceDetails = ({ deviceData }) => {
   const BLANK_PLACE_HOLDER = '-';
