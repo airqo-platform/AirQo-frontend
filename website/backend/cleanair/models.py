@@ -58,6 +58,7 @@ class ForumEvent(BaseModel):
     Committee_text_section = QuillField(blank=True, null=True)
     registration_link = models.URLField(blank=True)
     registration_details = QuillField(blank=True, null=True)
+    sponsorship_details = QuillField(blank=True, null=True)
     travel_logistics = QuillField(blank=True, null=True)
     unique_title = models.CharField(max_length=100, blank=True)
     background_image = CloudinaryField(
