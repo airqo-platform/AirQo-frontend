@@ -52,10 +52,10 @@ const EditClientForm = ({ open, closeModal, cIP = '', cName = '', clientID }) =>
       });
     };
 
-    if (!clientName || !ipAddress) {
+    if (!clientName) {
       setIsError({
         isError: true,
-        message: "Client name or IP address can't be empty",
+        message: "Client name can't be empty",
         type: 'error',
       });
       setLoading(false);
@@ -66,8 +66,11 @@ const EditClientForm = ({ open, closeModal, cIP = '', cName = '', clientID }) =>
       const data = {
         name: clientName,
         user_id: userInfo?._id,
-        ip_address: ipAddress,
       };
+
+      if (ipAddress) {
+        data.ip_address = ipAddress;
+      }
 
       const response = await updateClientApi(data, clientID);
 
@@ -84,11 +87,25 @@ const EditClientForm = ({ open, closeModal, cIP = '', cName = '', clientID }) =>
 
       closeModal();
     } catch (error) {
-      setErrorState(error?.response?.data?.message || 'Failed to create client');
+      setErrorState(error?.response?.data?.message || 'Failed to Edit client');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isError?.isError) {
+      const timer = setTimeout(() => {
+        setIsError({
+          isError: false,
+          message: '',
+          type: '',
+        });
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isError]);
 
   return (
     <DialogWrapper
@@ -97,8 +114,7 @@ const EditClientForm = ({ open, closeModal, cIP = '', cName = '', clientID }) =>
       handleClick={handleSubmit}
       primaryButtonText={'Update'}
       loading={loading}
-      ModalIcon={PersonIcon}
-    >
+      ModalIcon={PersonIcon}>
       {isError?.isError && <Toast type={isError?.type} message={isError?.message} />}
       <h3 className='text-lg font-medium text-secondary-neutral-light-800 leading-[26px] mb-2'>
         Edit client
@@ -117,8 +133,7 @@ const EditClientForm = ({ open, closeModal, cIP = '', cName = '', clientID }) =>
           {clientName?.length > 0 && (
             <button
               className='absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto'
-              onClick={() => handleRemoveInputValue('clientName')}
-            >
+              onClick={() => handleRemoveInputValue('clientName')}>
               ✕
             </button>
           )}
@@ -127,7 +142,7 @@ const EditClientForm = ({ open, closeModal, cIP = '', cName = '', clientID }) =>
         <div className='relative'>
           <input
             type='text'
-            placeholder='Enter ip address'
+            placeholder='Enter ip address (Optional)'
             className='input input-bordered w-full pl-3 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded'
             value={ipAddress}
             onChange={(e) => handleInputValueChange('ipAddress', e.target.value)}
@@ -136,8 +151,7 @@ const EditClientForm = ({ open, closeModal, cIP = '', cName = '', clientID }) =>
           {ipAddress?.length > 0 && (
             <button
               className='absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto'
-              onClick={() => handleRemoveInputValue('ipAddress')}
-            >
+              onClick={() => handleRemoveInputValue('ipAddress')}>
               ✕
             </button>
           )}
