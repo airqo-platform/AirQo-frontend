@@ -83,10 +83,15 @@ class ForumEventSerializer(serializers.ModelSerializer):
     persons = PersonSerializer(many=True, read_only=True)
     background_image = serializers.SerializerMethodField()
     introduction_html = serializers.SerializerMethodField()
+    sponsorship_details_html = serializers.SerializerMethodField()
     travel_logistics_html = serializers.SerializerMethodField()
     registration_details_html = serializers.SerializerMethodField()
     Speakers_text_section_html = serializers.SerializerMethodField()
     Committee_text_section_html = serializers.SerializerMethodField()
+
+    def get_sponsorship_details_html(self, obj):
+        html = obj.sponsorship_details.html
+        return '' if html.strip() == '<p><br></p>' else html
 
     def get_Speakers_text_section_html(self, obj):
         html = obj.Speakers_text_section.html
