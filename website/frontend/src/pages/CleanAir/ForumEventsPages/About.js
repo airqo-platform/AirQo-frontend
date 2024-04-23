@@ -73,37 +73,21 @@ const Index = ({ engagements, forumEvents }) => {
           bgColor="#FFFFFF"
         />
       </section>
-
-      <div className="separator" />
-      <section className="about">
-        <SplitTextSection
-          lists={[]}
-          content={
+      {forumEvents[0].sponsorship_details_html && (
+        <>
+          <div className="separator" />
+          <section className="about">
+            <h2 className="section_title">Sponsorship opportunities</h2>
             <div className="engagements_list">
-              <p style={{ marginBottom: '20px' }}>
-                We have put together flexible sponsorship packages including travel scholarships,
-                session sponsorships, exhibitions, cocktail receptions and tailored options.
-              </p>
-              <p style={{ marginBottom: '20px' }}>
-                Sponsorship will help optimize the cost of hosting the forum, and more importantly,
-                support in-person participation of the target communities working for a clean air
-                future in Africa. We thank our funding partners for the continued funding support
-                and welcome more partners.
-              </p>
-              <p>
-                Please get in touch with <a href="mailto:dokure@airqo.net">dokure@airqo.net</a> to
-                discuss further details.
-              </p>
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: forumEvents.length > 0 && forumEvents[0].sponsorship_details_html
+                }}
+              />
             </div>
-          }
-          title={
-            <h2 className="section_title">
-              Sponsorship <br /> opportunities
-            </h2>
-          }
-          bgColor="#FFFFFF"
-        />
-      </section>
+          </section>
+        </>
+      )}
     </>
   );
 };
