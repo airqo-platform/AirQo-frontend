@@ -165,8 +165,7 @@ const UserClientsTable = () => {
       {isError.isError && <Toast type={isError.type} message={isError.message} />}
       <table
         className='border-collapse rounded-lg text-xs text-left w-full mb-6'
-        data-testid='settings-clients-table'
-      >
+        data-testid='settings-clients-table'>
         <thead>
           <tr className='text-secondary-neutral-light-500 text-xs border-y border-y-secondary-neutral-light-100 bg-secondary-neutral-light-25'>
             <th scope='col' className='font-medium w-[200px] px-4 py-3 opacity-40'>
@@ -203,14 +202,12 @@ const UserClientsTable = () => {
                     <tr className={`border-b border-b-secondary-neutral-light-100`} key={index}>
                       <td
                         scope='row'
-                        className='w-[200px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-800 uppercase'
-                      >
+                        className='w-[200px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-800 uppercase'>
                         {client?.name}
                       </td>
                       <td
                         scope='row'
-                        className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
-                      >
+                        className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'>
                         {client.ip_address}
                       </td>
                       <td scope='row' className='w-[142px] px-4 py-3'>
@@ -219,15 +216,13 @@ const UserClientsTable = () => {
                             client?.isActive
                               ? 'bg-success-50 text-success-700'
                               : 'bg-secondary-neutral-light-50 text-secondary-neutral-light-500'
-                          }`}
-                        >
+                          }`}>
                           {client?.isActive ? 'Activated' : 'Not Activated'}
                         </div>
                       </td>
                       <td
                         scope='row'
-                        className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
-                      >
+                        className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'>
                         {moment(client?.createdAt).format('MMM DD, YYYY')}
                       </td>
                       <td scope='row' className='w-[138px] px-4 py-3'>
@@ -240,8 +235,7 @@ const UserClientsTable = () => {
                               onClick={() => {
                                 navigator.clipboard.writeText(getClientToken(client._id));
                                 setErrorState('Token copied to clipboard!', 'success');
-                              }}
-                            >
+                              }}>
                               <CopyIcon />
                             </div>
                           </span>
@@ -266,30 +260,26 @@ const UserClientsTable = () => {
                               };
                               setSelectedClient(client);
                               handleGenerateToken(res);
-                            }}
-                          >
+                            }}>
                             Generate
                           </Button>
                         )}
                       </td>
                       <td
                         scope='row'
-                        className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
-                      >
+                        className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'>
                         {getClientTokenExpiryDate(client._id) &&
                           moment(getClientTokenExpiryDate(client._id)).format('MMM DD, YYYY')}
                       </td>
                       <td
                         scope='row'
-                        className='w-24 px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400 capitalize'
-                      >
+                        className='w-24 px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400 capitalize'>
                         <div
                           className='w-9 h-9 p-2.5 bg-white rounded border border-gray-200 justify-center items-center gap-2 cursor-pointer'
                           onClick={() => {
                             setOpenEditForm(true);
                             setSelectedClient(client);
-                          }}
-                        >
+                          }}>
                           <EditIcon className='w-4 h-4' />
                         </div>
                       </td>
@@ -330,8 +320,7 @@ const UserClientsTable = () => {
         handleClick={handleActivationRequest}
         primaryButtonText={'Send activation request'}
         loading={isLoadingActivationRequest}
-        ModalIcon={InfoCircleIcon}
-      >
+        ModalIcon={InfoCircleIcon}>
         <div className='text-slate-500 text-sm font-normal leading-tight'>
           You cannot generate a token for an inactive client, reach out to support for assistance at
           support@airqo.net or send an activation request
