@@ -121,7 +121,7 @@ const AddClientForm = ({ open, closeModal }) => {
         <div className='relative'>
           <input
             type='text'
-            placeholder='Enter ip address'
+            placeholder='Enter ip address (optional)'
             className='input input-bordered w-full pl-3 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded'
             value={ipAddress}
             onChange={(e) => handleInputValueChange('ipAddress', e.target.value)}
