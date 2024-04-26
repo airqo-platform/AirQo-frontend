@@ -47,11 +47,11 @@ const AddClientForm = ({ open, closeModal }) => {
       });
     };
 
-    // TODO: Handling cases where clientName or ipAddress is empty
-    if (!clientName || !ipAddress) {
+    // TODO: Handling cases where clientName is empty
+    if (!clientName) {
       setIsError({
         isError: true,
-        message: "Client name or IP address can't be empty",
+        message: "Client name can't be empty",
         type: 'error',
       });
       setLoading(false);
@@ -62,8 +62,12 @@ const AddClientForm = ({ open, closeModal }) => {
       const data = {
         name: clientName,
         user_id: userInfo?._id,
-        ip_address: ipAddress,
       };
+
+      // Add ipAddress to data if it is not empty
+      if (ipAddress) {
+        data.ip_address = ipAddress;
+      }
 
       const response = await createClientApi(data);
 
@@ -89,8 +93,7 @@ const AddClientForm = ({ open, closeModal }) => {
       handleClick={handleSubmit}
       primaryButtonText={'Register'}
       loading={loading}
-      ModalIcon={PersonIcon}
-    >
+      ModalIcon={PersonIcon}>
       {isError?.isError && <Toast type={isError?.type} message={isError?.message} />}
       <h3 className='text-lg font-medium text-secondary-neutral-light-800 leading-[26px] mb-2'>
         Create new client
@@ -109,8 +112,7 @@ const AddClientForm = ({ open, closeModal }) => {
           {clientName?.length > 0 && (
             <button
               className='absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto'
-              onClick={() => handleRemoveInputValue(clientName)}
-            >
+              onClick={() => handleRemoveInputValue(clientName)}>
               ✕
             </button>
           )}
@@ -119,7 +121,7 @@ const AddClientForm = ({ open, closeModal }) => {
         <div className='relative'>
           <input
             type='text'
-            placeholder='Enter ip address'
+            placeholder='Enter ip address (optional)'
             className='input input-bordered w-full pl-3 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded'
             value={ipAddress}
             onChange={(e) => handleInputValueChange('ipAddress', e.target.value)}
@@ -128,8 +130,7 @@ const AddClientForm = ({ open, closeModal }) => {
           {ipAddress?.length > 0 && (
             <button
               className='absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto'
-              onClick={() => handleRemoveInputValue(ipAddress)}
-            >
+              onClick={() => handleRemoveInputValue(ipAddress)}>
               ✕
             </button>
           )}
