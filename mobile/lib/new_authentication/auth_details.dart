@@ -1,20 +1,34 @@
 import 'package:app/new_authentication/widgets.dart';
+import 'package:app/other/lib/cubits/login/login_cubit.dart';
+import 'package:app/other/lib/repositories/auth_repository.dart';
 import 'package:app/themes/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-class UserDetailsPage2 extends StatefulWidget {
-  const UserDetailsPage2({super.key});
+class LoginScreen extends StatelessWidget {
+  const LoginScreen({super.key});
 
   @override
-  UserDetailsPage2State createState() => UserDetailsPage2State();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => LoginCubit(context.read<AuthRepository>()),
+      child: const AuthDetails(),
+    );
+  }
 }
 
-class UserDetailsPage2State extends State<UserDetailsPage2> {
+class AuthDetails extends StatefulWidget {
+  const AuthDetails({super.key});
+
+  @override
+  AuthDetailsState createState() => AuthDetailsState();
+}
+
+class AuthDetailsState extends State<AuthDetails> {
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
-  final _birthdayController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _pageController = PageController();
@@ -25,17 +39,14 @@ class UserDetailsPage2State extends State<UserDetailsPage2> {
     super.initState();
     _firstNameController.addListener(_updateIndicator);
     _lastNameController.addListener(_updateIndicator);
-    _birthdayController.addListener(_updateIndicator);
   }
 
   @override
   void dispose() {
     _firstNameController.removeListener(_updateIndicator);
     _lastNameController.removeListener(_updateIndicator);
-    _birthdayController.removeListener(_updateIndicator);
     _firstNameController.dispose();
     _lastNameController.dispose();
-    _birthdayController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -48,9 +59,6 @@ class UserDetailsPage2State extends State<UserDetailsPage2> {
       }
       if (_lastNameController.text.isNotEmpty) {
         _currentPage = 2;
-      }
-      if (_birthdayController.text.isNotEmpty) {
-        _currentPage = 3;
       }
     });
     _pageController.animateToPage(
@@ -107,6 +115,7 @@ class UserDetailsPage2State extends State<UserDetailsPage2> {
       body: SingleChildScrollView(
         child: Form(
           key: _formKey,
+          
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -175,6 +184,13 @@ class UserDetailsPage2State extends State<UserDetailsPage2> {
   }
 
   void _submitForm() {
-    // TODO Implement form submission logic here
+    // after entering profile details navigate to the next page
+
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (context) => const UserDetailsPage(),
+    //   ),
+    // );
   }
 }

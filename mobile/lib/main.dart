@@ -19,6 +19,8 @@ import 'package:app/services/notification_service.dart';
 import 'firebase_options.dart';
 import 'package:app/services/services.dart';
 
+import 'other/lib/repositories/auth_repository.dart';
+
 @pragma("vm:entry-point")
 void callbackDispatcher() {
   Workmanager().executeTask((taskName, inputData) {
@@ -55,7 +57,11 @@ void main() async {
     AppConfig configuredApp = AppConfig(
       appTitle: 'AirQo',
       environment: Environment.prod,
-      child: AirQoApp(initialLink, locale: savedLocale),
+      child: AirQoApp(
+        initialLink,
+        locale: savedLocale,
+        authRepository: AuthRepository(),
+      ),
     );
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 

@@ -1,21 +1,22 @@
-import 'package:app/new_authentication/create_account2.dart';
-import 'package:app/new_authentication/widgets.dart';
+
+import 'package:app/other/lib/new_authentication/widgets.dart';
 import 'package:app/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-class UserDetailsPage extends StatefulWidget {
-  const UserDetailsPage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  UserDetailsPageState createState() => UserDetailsPageState();
+  LoginPageState createState() => LoginPageState();
 }
 
-class UserDetailsPageState extends State<UserDetailsPage> {
+class LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
-  final _birthdayController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   final _pageController = PageController();
   int _currentPage = 0; // Track the current page index
 
@@ -24,17 +25,14 @@ class UserDetailsPageState extends State<UserDetailsPage> {
     super.initState();
     _firstNameController.addListener(_updateIndicator);
     _lastNameController.addListener(_updateIndicator);
-    _birthdayController.addListener(_updateIndicator);
   }
 
   @override
   void dispose() {
     _firstNameController.removeListener(_updateIndicator);
     _lastNameController.removeListener(_updateIndicator);
-    _birthdayController.removeListener(_updateIndicator);
     _firstNameController.dispose();
     _lastNameController.dispose();
-    _birthdayController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -47,9 +45,6 @@ class UserDetailsPageState extends State<UserDetailsPage> {
       }
       if (_lastNameController.text.isNotEmpty) {
         _currentPage = 2;
-      }
-      if (_birthdayController.text.isNotEmpty) {
-        _currentPage = 3;
       }
     });
     _pageController.animateToPage(
@@ -72,11 +67,10 @@ class UserDetailsPageState extends State<UserDetailsPage> {
     return Scaffold(
       backgroundColor: const Color(0xff34373B),
       appBar: AppBar(
-        backgroundColor: const Color(0xff34373B),
         title: Column(
           children: [
             Text(
-              'Create Account',
+              'Login',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 5),
@@ -112,61 +106,72 @@ class UserDetailsPageState extends State<UserDetailsPage> {
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: NameEditField(
-                  focusedBorderColor: const Color(0xffE1E7EC),
-                  fillColor: const Color(0xff2E2F33),
-                  hintText: 'Enter your first name',
+                child: EmailEditFieldLogin(
+                  focusedBorderColor: Theme.of(context).focusColor,
+                  fillColor: Theme.of(context).inputDecorationTheme.focusColor,
+                  hintText: 'Enter your email',
                   valueChange: (value) {},
-                  label: 'First Name',
-                  controller: _firstNameController,
+                  label: 'Email',
+                  controller: _emailController,
                 ),
               ),
               const SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: NameEditField(
-                  label: 'Last Name',
-                  hintText: 'Enter your last name',
+                child: PasswordEditFieldLogin(
+                  focusedBorderColor: Theme.of(context).focusColor,
+                  fillColor: Theme.of(context).inputDecorationTheme.focusColor,
+                  label: 'Password',
+                  hintText: 'Enter your password',
                   valueChange: (value) {},
-                  focusedBorderColor: const Color(0xffE1E7EC),
-                  fillColor: const Color(0xff2E2F33),
-                  controller: _lastNameController,
+                  controller: _passwordController,
                 ),
               ),
               const SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: DateEditField(
-                  focusedBorderColor: const Color(0xffE1E7EC),
-                  fillColor: const Color(0xff2E2F33),
-                  label: 'Birthday',
-                  hintText: ' DD  •  MM  •  YEAR',
-                  valueChange: (value) {},
-                  controller: _birthdayController,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: NextButton(
+                child: NextButtonLogin(
                   textColor: Colors.white,
-                  text: 'Continue',
+                  text: 'Login',
                   buttonColor: const Color(0xff145FFF),
                   callBack: () {
                     if (_formKey.currentState!.validate()) {
                       _submitForm();
 
                       // Navigate to the next page
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const UserDetailsPage2(),
-                        ),
-                      );
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (context) => const UserDetailsPage(),
+                      //   ),
+                      // );
                     }
                   },
                 ),
               ),
+              SizedBox(
+                width: double.infinity,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Don’t have an account?",
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: CustomColors.appBodyColor.withOpacity(0.6),
+                          ),
+                    ),
+                    Text(
+                      'Create an account',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: CustomColors.appColorBlue.withOpacity(0.6),
+                          ),
+                    ),
+                  ],
+                ),
+              )
             ],
           ),
         ),
@@ -176,5 +181,38 @@ class UserDetailsPageState extends State<UserDetailsPage> {
 
   void _submitForm() {
     // TODO Implement form submission logic here
+  }
+}
+
+class ProceedAsGuest extends StatelessWidget {
+  const ProceedAsGuest({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () async {
+        await _guestSignIn(context);
+      },
+      child: SizedBox(
+        width: double.infinity,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Continue As Guest',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: CustomColors.appBodyColor.withOpacity(0.6),
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _guestSignIn(BuildContext context) async {
+    // TODO Implement guest sign in logic here
   }
 }

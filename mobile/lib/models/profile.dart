@@ -15,6 +15,7 @@ class Profile extends Equatable {
       analyticsMongoID: "",
       emailAddress: "emailAddress",
       phoneNumber: "",
+      birthday: "",
       device: "",
       lastName: "",
       title: "",
@@ -47,10 +48,14 @@ class Profile extends Equatable {
     required this.isSignedIn,
     required this.lastRated,
     required this.analyticsMongoID,
+    required this.birthday,
   });
 
   @JsonKey(defaultValue: '')
   final String title;
+
+  @JsonKey(defaultValue: '')
+  final String? birthday;
 
   @JsonKey(defaultValue: '')
   final String firstName;
@@ -121,6 +126,7 @@ class Profile extends Equatable {
     bool? isSignedIn,
     DateTime? lastRated,
     String? analyticsMongoID,
+    String? birthday,
   }) {
     return Profile(
       title: title ?? this.title,
@@ -139,6 +145,7 @@ class Profile extends Equatable {
       isSignedIn: isSignedIn ?? this.isSignedIn,
       lastRated: lastRated ?? this.lastRated,
       analyticsMongoID: analyticsMongoID ?? this.analyticsMongoID,
+      birthday: birthday ?? this.birthday,
     );
   }
 
@@ -162,5 +169,6 @@ class Profile extends Equatable {
         isSignedIn,
         lastRated,
         analyticsMongoID,
+        birthday,
       ];
 }

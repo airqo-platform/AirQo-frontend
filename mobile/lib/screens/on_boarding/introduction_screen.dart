@@ -20,6 +20,9 @@ import '../settings/update_screen.dart';
 import 'on_boarding_widgets.dart';
 
 class IntroductionScreen extends StatefulWidget {
+
+
+  
   const IntroductionScreen({super.key});
 
   @override

@@ -1,15 +1,20 @@
+import 'package:app/blocs/profile/profile_bloc.dart';
 import 'package:app/constants/config.dart';
+import 'package:app/models/profile.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/services/firebase_service.dart';
 import 'package:app/themes/colors.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/utils/network.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 class StackedWidgets extends StatelessWidget {
   final List<Widget> items;
@@ -69,57 +74,66 @@ class NextButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton(
-        onPressed: () {
-          callBack();
-        },
-        style: OutlinedButton.styleFrom(
-          elevation: 0,
-          side: const BorderSide(
-            color: Colors.transparent,
-          ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(8),
+    Profile previousProfile = context.read<ProfileBloc>().state;
+    return BlocBuilder<ProfileBloc, Profile>(builder: (context, profile) {
+      return SizedBox(
+        width: double.infinity,
+        child: OutlinedButton(
+          onPressed: () {
+            callBack();
+          },
+          style: OutlinedButton.styleFrom(
+            elevation: 0,
+            side: const BorderSide(
+              color: Colors.transparent,
             ),
-          ),
-          backgroundColor: buttonColor ?? const Color(0xff145FFF),
-          foregroundColor: buttonColor ?? const Color(0xff145FFF),
-          padding: const EdgeInsets.symmetric(
-            vertical: 15,
-            horizontal: 10,
-          ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              text ?? AppLocalizations.of(context)!.next,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: textColor ?? Colors.white,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(8),
               ),
             ),
-            Visibility(
-              visible: showIcon,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 11),
-                child: SvgPicture.asset(
-                  'assets/icon/next_arrow.svg',
-                  semanticsLabel: 'Share',
-                  height: 17.42,
-                  width: 10.9,
+            backgroundColor: previousProfile == profile
+                ? Colors.transparent
+                : CustomColors.appColorBlue.withOpacity(0.1),
+            foregroundColor: previousProfile == profile
+                ? Colors.transparent
+                : CustomColors.appColorBlue,
+            padding: const EdgeInsets.symmetric(
+              vertical: 15,
+              horizontal: 10,
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                text ?? AppLocalizations.of(context)!.next,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: previousProfile == profile
+                          ? CustomColors.greyColor
+                          : CustomColors.appColorBlue,
+                    ),
+              ),
+              Visibility(
+                visible: showIcon,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 11),
+                  child: SvgPicture.asset(
+                    'assets/icon/next_arrow.svg',
+                    semanticsLabel: 'Share',
+                    height: 17.42,
+                    width: 10.9,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 }
 
@@ -127,6 +141,7 @@ class NameEditField extends StatelessWidget {
   const NameEditField({
     super.key,
     required this.label,
+    required this.value,
     required this.valueChange,
     required this.hintText,
     required this.focusedBorderColor,
@@ -136,6 +151,8 @@ class NameEditField extends StatelessWidget {
   });
 
   final String label;
+  final String value;
+
   final Function(String) valueChange;
   final String hintText;
   final Color? focusedBorderColor;
@@ -161,9 +178,13 @@ class NameEditField extends StatelessWidget {
           ),
         ),
         TextFormField(
+          initialValue: value,
           controller: controller,
           enableSuggestions: false,
           cursorWidth: 1,
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
           cursorColor: Theme.of(context).dividerColor,
           keyboardType: TextInputType.name,
           decoration: InputDecoration(
@@ -207,7 +228,7 @@ class NameEditField extends StatelessWidget {
   }
 }
 
-class DateEditField extends StatelessWidget {
+class DateEditField extends StatefulWidget {
   const DateEditField({
     super.key,
     required this.label,
@@ -217,6 +238,7 @@ class DateEditField extends StatelessWidget {
     required this.fillColor,
     this.errorText,
     required this.controller,
+    required this.value,
   });
 
   final String label;
@@ -226,17 +248,28 @@ class DateEditField extends StatelessWidget {
   final Color? fillColor;
   final String? errorText;
   final TextEditingController controller;
+  final String? value;
+
+  @override
+  State<DateEditField> createState() => _DateEditFieldState();
+}
+
+class _DateEditFieldState extends State<DateEditField> {
+  CalendarFormat calendarFormat = CalendarFormat.month;
+  DateTime focusedDay = DateTime.now();
+  DateTime? _selectedDay;
 
   @override
   Widget build(BuildContext context) {
-    final dateRegex = RegExp(r'^\d{4}•\d{2}•\d{2}$');
+    final dateRegex = RegExp(r'^\\d{2}-\\d{2}-\\d{4}$');
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           child: Text(
-            label,
+            widget.label,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -245,50 +278,75 @@ class DateEditField extends StatelessWidget {
           ),
         ),
         TextFormField(
-          controller: controller,
+          initialValue: widget.value,
+          controller: widget.controller,
           enableSuggestions: false,
           cursorWidth: 1,
           cursorColor: Theme.of(context).dividerColor,
           keyboardType: TextInputType.datetime,
           decoration: InputDecoration(
             filled: true,
-            fillColor: fillColor,
-            hintText: hintText,
+            fillColor: widget.fillColor,
+            hintText: widget.hintText,
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide(
-                color: errorText != null
+                color: widget.errorText != null
                     ? Theme.of(context).colorScheme.error
-                    : focusedBorderColor ?? Colors.transparent,
+                    : widget.focusedBorderColor ?? Colors.transparent,
                 width: 2.5,
               ),
               borderRadius: BorderRadius.circular(8.0),
             ),
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(
-                color: errorText != null
+                color: widget.errorText != null
                     ? Theme.of(context).colorScheme.error.withOpacity(0.5)
                     : Colors.transparent,
                 width: 1.0,
               ),
               borderRadius: BorderRadius.circular(8.0),
             ),
-            errorText: errorText,
+            errorText: widget.errorText,
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.calendar_today),
+              onPressed: () {
+                _showCalendar(context);
+              },
+            ),
           ),
           validator: (value) {
             if (value!.isEmpty) {
               return 'Please enter your birthday';
             }
             if (!dateRegex.hasMatch(value)) {
-              return errorText ??
-                  'Please enter a valid date in DD  •  MM  •  YEAR format';
+              return widget.errorText ??
+                  'Please enter a valid date in DD - MM - YEAR format';
             }
             return null;
           },
-          onFieldSubmitted: valueChange,
-          onChanged: valueChange,
+          onFieldSubmitted: widget.valueChange,
+          onChanged: widget.valueChange,
         ),
       ],
     );
+  }
+
+  void _showCalendar(BuildContext context) async {
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDay ?? DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+    );
+    if (selectedDate != null) {
+      final formattedDate =
+          '${selectedDate.day.toString().padLeft(2, '0')}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.year}';
+      widget.controller.text = formattedDate;
+      widget.valueChange(formattedDate);
+      setState(() {
+        _selectedDay = selectedDate;
+      });
+    }
   }
 }
 
@@ -314,7 +372,6 @@ class EmailEditField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -360,12 +417,10 @@ class EmailEditField extends StatelessWidget {
             errorText: errorText,
           ),
           validator: (value) {
-            if (value!.isEmpty) {
-              return 'Please enter an email';
+            if (value == null || !value.isValidEmail()) {
+              return AppLocalizations.of(context)!.pleaseEnterAValidEmail;
             }
-            if (!emailRegex.hasMatch(value)) {
-              return errorText ?? 'Invalid email address';
-            }
+
             return null;
           },
           onFieldSubmitted: valueChange,

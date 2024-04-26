@@ -4,6 +4,7 @@ import 'package:animations/animations.dart';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
+import 'package:app/new_authentication/introduction.dart';
 import 'package:app/screens/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/on_boarding/setup_complete_screen.dart';
 import 'package:app/services/services.dart';
@@ -14,7 +15,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/screens/phone_authentication/phone_auth_screen.dart';
-import 'introduction_screen.dart';
 import 'location_setup_screen.dart';
 import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
@@ -44,7 +44,6 @@ class SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-
     return FutureBuilder<void>(
       future: _initializationFuture,
       builder: (context, snapshot) {
@@ -66,7 +65,7 @@ class SplashScreenState extends State<SplashScreen>
             child: _visible
                 ? TaglineWidget(key: UniqueKey(), visible: true)
                 : CustomPaint(
-                    painter: SplashScreenPainter(), // Create a custom painter
+                    painter: SplashScreenPainter(),
                   ),
           ),
         );
@@ -173,7 +172,7 @@ class SplashScreenState extends State<SplashScreen>
             context,
             MaterialPageRoute(builder: (context) {
               if (!profile.isSignedIn) {
-                return const IntroductionScreen();
+                return const IntroductionPage();
               } else {
                 switch (nextPage) {
                   case OnBoardingPage.signup:
@@ -189,7 +188,7 @@ class SplashScreenState extends State<SplashScreen>
                   case OnBoardingPage.home:
                     return const HomePage();
                   default:
-                    return const IntroductionScreen();
+                    return const IntroductionPage();
                 }
               }
             }),

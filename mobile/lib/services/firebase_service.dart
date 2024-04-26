@@ -328,6 +328,36 @@ class CustomAuth {
     return userCredential.user != null;
   }
 
+  static Future<void> signup({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      // Create a new user with the provided email and password
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } catch (_) {
+      // Handle any errors that occurred during the signup process
+    }
+  }
+
+  static Future<void> logInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      // Sign in the user with the provided email and password
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } catch (_) {
+      // Handle any errors that occurred during the login process
+    }
+  }
+
   static User? getUser() {
     return FirebaseAuth.instance.currentUser;
   }

@@ -2,7 +2,11 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
+import 'package:app/new_authentication/login_page.dart';
+import 'package:app/new_authentication/sign_up.dart';
+import 'package:app/screens/home_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -14,7 +18,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../widgets/auth_widgets.dart';
-import '../email_authentication/email_auth_screen.dart';
 import 'phone_auth_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -503,6 +506,69 @@ class SignUpOptions extends StatelessWidget {
   }
 }
 
+class ProceedAsGuest extends StatelessWidget {
+  const ProceedAsGuest({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () async {
+        await _guestSignIn(context);
+      },
+      child: SizedBox(
+        width: double.infinity,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Continue As Guest',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: CustomColors.appBodyColor.withOpacity(0.6),
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _guestSignIn(BuildContext context) async {
+    await hasNetworkConnection().then((hasConnection) async {
+      if (!hasConnection) {
+        showSnackBar(
+            context, AppLocalizations.of(context)!.checkYourInternetConnection);
+        return;
+      }
+
+      loadingScreen(context);
+
+      await CustomAuth.guestSignIn().then((success) async {
+        if (success) {
+          await AppService.postSignOutActions(context, log: false)
+              .then((_) async {
+            await AppService.postSignInActions(context, isGuest: true)
+                .then((_) async {
+              Navigator.pop(context);
+              await Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) {
+                  return const HomePage();
+                }),
+                (r) => true,
+              );
+            });
+          });
+        } else {
+          Navigator.pop(context);
+          showSnackBar(context, Config.guestLogInFailed);
+        }
+      });
+    });
+  }
+}
+
 class LoginOptions extends StatelessWidget {
   const LoginOptions({super.key, required this.authMethod});
 
@@ -526,7 +592,7 @@ class LoginOptions extends StatelessWidget {
                     case AuthMethod.phone:
                       return const PhoneSignUpScreen();
                     case AuthMethod.email:
-                      return const EmailSignUpScreen();
+                      return const EmailSignupScreen();
                   }
                 },
                 transitionsBuilder:

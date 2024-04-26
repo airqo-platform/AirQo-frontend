@@ -1,20 +1,18 @@
-import 'package:app/new_authentication/create_account4.dart';
+import 'package:app/new_authentication/verify_code.dart';
 import 'package:app/new_authentication/widgets.dart';
 import 'package:app/themes/colors.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-class UserDetailsPage3 extends StatefulWidget {
-  const UserDetailsPage3({super.key});
+class ChooseAuthMethod extends StatefulWidget {
+  const ChooseAuthMethod({super.key});
 
   @override
-  UserDetailsPage3State createState() => UserDetailsPage3State();
+  ChooseAuthMethodState createState() => ChooseAuthMethodState();
 }
 
-class UserDetailsPage3State extends State<UserDetailsPage3> {
-  final _formKey = GlobalKey<FormState>();
-
+class ChooseAuthMethodState extends State<ChooseAuthMethod> {
   final _pageController = PageController();
   int _currentPage = 0;
 
@@ -53,8 +51,7 @@ class UserDetailsPage3State extends State<UserDetailsPage3> {
     return Scaffold(
       backgroundColor: const Color(0xff34373B),
       appBar: AppBar(
-              backgroundColor: const Color(0xff34373B),
-
+        backgroundColor: const Color(0xff34373B),
         title: Column(
           children: [
             Text(
@@ -166,17 +163,7 @@ class UserDetailsPage3State extends State<UserDetailsPage3> {
                     text: 'Continue',
                     buttonColor: const Color(0xff145FFF),
                     callBack: () {
-                      // if (_formKey.currentState!.validate()) {
-                      //   _submitForm();
-
-                        // Navigate to the next page
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const VerificationPage(),
-                          ),
-                        );
-                      // }
+                      verifyEmailAuthCode(context);
                     },
                   ),
                 ),
@@ -186,9 +173,5 @@ class UserDetailsPage3State extends State<UserDetailsPage3> {
         ),
       ),
     );
-  }
-
-  void _submitForm() {
-    // TODO Implement form submission logic here
   }
 }

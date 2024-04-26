@@ -3,6 +3,10 @@ import 'dart:io';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/new_authentication/new_theme.dart';
+import 'package:app/other/lib/blocs/app/app_bloc.dart';
+import 'package:app/other/lib/cubits/login/login_cubit.dart';
+import 'package:app/other/lib/cubits/signup/signup_cubit.dart';
+import 'package:app/other/lib/repositories/auth_repository.dart';
 import 'package:app/screens/offline_banner.dart';
 import 'package:app/screens/on_boarding/splash_screen.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
@@ -24,9 +28,15 @@ import 'package:path_provider/path_provider.dart';
 import 'package:app/utils/custom_localisation.dart';
 
 class AirQoApp extends StatefulWidget {
-  const AirQoApp(this.initialLink, {super.key, required this.locale});
+  const AirQoApp(
+    this.initialLink, {
+    super.key,
+    required this.locale,
+    required this.authRepository,
+  });
 
   final PendingDynamicLinkData? initialLink;
+  final AuthRepository authRepository;
 
   final Locale locale;
 
@@ -58,11 +68,24 @@ class _AirQoAppState extends State<AirQoApp> {
   @override
   Widget build(BuildContext context) {
     final config = AppConfig.of(context);
+    AuthRepository authRepository = AuthRepository();
 
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider(
           create: (context) => AirqoApiClient(),
+        ),
+        BlocProvider(
+          create: (context) => LoginCubit(authRepository),
+        ),
+        BlocProvider(
+          create: (context) => AppBloc(authRepository: authRepository),
+        ),
+        BlocProvider(
+          create: (context) => SignupCubit(authRepository),
+        ),
+        RepositoryProvider(
+          create: (context) => AuthRepository(),
         ),
         BlocProvider(
           create: (BuildContext context) => SearchBloc(),

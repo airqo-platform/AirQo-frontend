@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
+import 'package:app/new_authentication/verify_code.dart';
 import 'package:app/screens/email_link/email_link_widgets.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/screens/offline_banner.dart';

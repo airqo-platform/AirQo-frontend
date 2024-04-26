@@ -230,6 +230,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
 
   Future<void> _authenticate() async {
     try {
+      
       final bool success =
           await CustomAuth.firebaseSignIn(phoneAuthModel.phoneAuthCredential);
       if (!mounted) return;

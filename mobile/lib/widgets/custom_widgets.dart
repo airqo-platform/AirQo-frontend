@@ -643,7 +643,7 @@ class BottomNavIcon extends StatelessWidget {
   final int selectedIndex;
   final String label;
   final int index;
-  final  icon;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {

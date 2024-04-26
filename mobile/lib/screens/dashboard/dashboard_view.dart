@@ -4,10 +4,10 @@ import 'dart:math';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:app/new_authentication/landing.dart';
+import 'package:app/new_authentication/sign_up.dart';
+import 'package:app/other/lib/repositories/auth_repository.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/screens/insights/insights_page.dart';
-import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -20,6 +20,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:home_widget/home_widget.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 
@@ -75,7 +76,6 @@ class _DashboardViewState extends State<DashboardView>
           description: AppLocalizations.of(context)!.clickToSkipTutorial,
           customize: ShowcaseOptions.skip,
           child: AppBar(
-
             automaticallyImplyLeading: false,
             centerTitle: false,
             title: SvgPicture.asset(
@@ -497,7 +497,14 @@ class _DashboardViewState extends State<DashboardView>
             context,
             MaterialPageRoute(
               builder: (context) {
-                return const MyHomePage();
+                return MultiProvider(
+                  providers: [
+                    Provider<AuthRepository>.value(
+                      value: context.read<AuthRepository>(),
+                    ),
+                  ],
+                  child: const EmailSignupScreen(),
+                );
               },
             ),
           );

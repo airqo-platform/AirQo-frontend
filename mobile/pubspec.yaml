@@ -81,6 +81,7 @@ dependencies:
   smooth_page_indicator: ^1.1.0
   intl_phone_field: ^3.2.0
   pinput: ^4.0.0
+  table_calendar: ^3.0.9
 
   # Drift previous database => airqo_app_db.sqlite
 

@@ -25,10 +25,12 @@ Profile _$ProfileFromJson(Map<String, dynamic> json) => Profile(
           ? null
           : DateTime.parse(json['last_rated'] as String),
       analyticsMongoID: json['analyticsMongoID'] as String? ?? '',
+      birthday: json['birthday'] as String? ?? '',
     );
 
 Map<String, dynamic> _$ProfileToJson(Profile instance) => <String, dynamic>{
       'title': instance.title,
+      'birthday': instance.birthday,
       'firstName': instance.firstName,
       'userId': instance.userId,
       'lastName': instance.lastName,

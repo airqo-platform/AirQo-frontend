@@ -1,6 +1,8 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/enum_constants.dart';
+import 'package:app/new_authentication/login_page.dart';
+import 'package:app/new_authentication/sign_up.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -205,7 +207,7 @@ class AuthSignUpButton extends StatelessWidget {
                     case AuthMethod.phone:
                       return authProcedure == AuthProcedure.login
                           ? const EmailLoginScreen()
-                          : const EmailSignUpScreen();
+                          : const EmailSignupScreen();
                     case AuthMethod.email:
                       return authProcedure == AuthProcedure.login
                           ? const PhoneLoginScreen()

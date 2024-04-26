@@ -1,8 +1,10 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:app/blocs/profile/profile_bloc.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/enum_constants.dart';
 import 'package:app/models/profile.dart';
-import 'package:app/new_authentication/login.dart';
+import 'package:app/new_authentication/login_page.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/screens/offline_banner.dart';
 import 'package:app/services/firebase_service.dart';
@@ -332,7 +334,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) {
-                    return const LoginPage();
+                    return const EmailLoginScreen();
                   }),
                   (r) => false,
                 );
