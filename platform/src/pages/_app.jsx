@@ -1,3 +1,4 @@
+import 'intro.js/introjs.css';
 import '@/styles/global.scss';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
