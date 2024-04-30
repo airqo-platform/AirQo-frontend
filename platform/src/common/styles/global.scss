@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  overflow: hidden;
+}
+
 /* Remove border click effect for Daisy UI input */
 input:focus {
   border-color: transparent;
@@ -169,4 +173,17 @@ select:focus {
     border: 1px solid #002499;
     z-index: 10000;
   }
+}
+
+// walkthrough styles
+.introjs-helperLayer {
+  box-shadow: 0 0 0 9999px rgba(89, 89, 89, 0.5) !important;
+}
+
+.introjs-nextbutton {
+  background-color: #002499 !important;
+  text-shadow: none !important;
+  color: #fff !important;
+  outline: none !important;
+  border: none !important;
 }
