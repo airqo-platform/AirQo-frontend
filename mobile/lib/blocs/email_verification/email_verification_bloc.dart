@@ -14,6 +14,7 @@ class EmailVerificationBloc
             emailAddress: '',
             signInLink: '',
             reAuthenticationLink: '',
+            password: '',
           ),
           AuthProcedure.signup,
         )) {

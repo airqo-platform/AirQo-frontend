@@ -9,6 +9,7 @@ class EmailAuthModel {
     required this.emailAddress,
     required this.signInLink,
     required this.reAuthenticationLink,
+    required this.password,
   });
 
   factory EmailAuthModel.fromJson(Map<String, dynamic> json) =>
@@ -22,6 +23,12 @@ class EmailAuthModel {
   @JsonKey(name: 'login_link', required: false, defaultValue: '')
   final String signInLink;
 
+  
+
   @JsonKey(name: 'auth_link', required: false, defaultValue: '')
   final String reAuthenticationLink;
+
+  @JsonKey(name: 'password', required: false, defaultValue: '')
+  final String password;
+
 }

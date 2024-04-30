@@ -89,14 +89,19 @@ class _SignOutButtonState extends State<SignOutButton> {
           return;
         }
         loadingScreen(context);
-        await CustomAuth.signOut().then((success) async {
+        await AirqoApiClient().logout().then((success) async {
           Navigator.pop(context);
-          if (success) {
-            await AppService.postSignOutActions(context);
-          } else {
-            showSnackBar(context, Config.signOutFailed);
-          }
+          await AppService.postSignOutActions(context);
         });
+
+        //   await CustomAuth.signOut().then((success) async {
+        //     Navigator.pop(context);
+        //     if (success) {
+        //       await AppService.postSignOutActions(context);
+        //     } else {
+        //       showSnackBar(context, Config.signOutFailed);
+        //     }
+        //   });
       });
     });
   }
@@ -1178,9 +1183,9 @@ class LinkAccountReminder extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(left: 16, right: 10),
                       child: SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.535, 
+                        width: MediaQuery.of(context).size.width * 0.535,
                         child: AutoSizeText(
-                          overflow:  TextOverflow.ellipsis,
+                            overflow: TextOverflow.ellipsis,
                             AppLocalizations.of(context)!.addMyEmailToMyProfile,
                             style: TextStyle(
                               color: CustomColors.appColorBlue,

@@ -9,6 +9,13 @@ class AirQoUrls {
 
   static String get forecast => '${Config.airqoApi}/v2/predict/daily-forecast';
 
+  static String get deleteUser => '${Config.airqoApi}/v2/users/delete';
+
+  static String get userInfo => '${Config.airqoApi}/v2/users/info';
+
+  static String get forgotPassword =>
+      '${Config.airqoApi}/v2/users/forgot-password';
+
   static String get appVersion =>
       '${Config.airqoApi}/v2/view/mobile-app/version-info';
 

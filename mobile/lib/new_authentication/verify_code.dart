@@ -434,43 +434,32 @@ class _EmailAuthVerificationWidgetState
 
     final emailAuthModel =
         context.read<EmailVerificationBloc>().state.emailAuthModel;
-    final emailCredential = EmailAuthProvider.credentialWithLink(
-      emailLink: emailAuthModel.signInLink,
-      email: emailAuthModel.emailAddress,
-    );
 
     try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
+      final bool registrationSuccessful =
+          await AirqoApiClient().signUpWithEmailAndPassword(
+        email: emailAuthModel.emailAddress,
+        password: emailAuthModel.password,
+      );
+
+      if (!registrationSuccessful) {
         Navigator.pop(context);
-
-        await _linkAccountWithEmailCredential(currentUser, emailCredential);
-
-        await AirqoApiClient().syncPlatformAccount();
-      } else {
-        //TODO -  replace with sign in auth
-        final bool authenticationSuccessful =
-            await CustomAuth.firebaseSignIn(emailCredential);
-        if (!mounted) return;
-
-        if (!authenticationSuccessful) {
-          Navigator.pop(context);
-          await showDialog<void>(
-            context: context,
-            barrierDismissible: false,
-            builder: (BuildContext _) {
-              return const AuthFailureDialog();
-            },
-          );
-          return;
-        }
-
-        context.read<EmailVerificationBloc>().add(
-            const SetEmailVerificationStatus(AuthenticationStatus.success));
-
-        Navigator.pop(context);
-        await AppService.postSignInActions(context);
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext _) {
+            return const AuthFailureDialog();
+          },
+        );
+        return;
       }
+
+      context
+          .read<EmailVerificationBloc>()
+          .add(const SetEmailVerificationStatus(AuthenticationStatus.success));
+
+      Navigator.pop(context);
+      await AppService.postSignInActions(context);
     } catch (exception, stackTrace) {
       Navigator.pop(context);
       await showDialog<void>(
@@ -480,12 +469,67 @@ class _EmailAuthVerificationWidgetState
           return const AuthFailureDialog();
         },
       );
-      await logException(exception, stackTrace);
+      await AirqoApiClient.sendErrorToSlack(exception, stackTrace);
     }
   }
 
-  Future<void> _linkAccountWithEmailCredential(
-      User currentUser, AuthCredential emailCredential) async {
-    await currentUser.linkWithCredential(emailCredential);
-  }
+  // Future<void> _authenticate() async {
+  //   loadingScreen(context);
+
+  //   final emailAuthModel =
+  //       context.read<EmailVerificationBloc>().state.emailAuthModel;
+  //   final emailCredential = EmailAuthProvider.credentialWithLink(
+  //     emailLink: emailAuthModel.signInLink,
+  //     email: emailAuthModel.emailAddress,
+  //   );
+
+  //   try {
+  //     final currentUser = FirebaseAuth.instance.currentUser;
+  //     if (currentUser != null) {
+  //       Navigator.pop(context);
+
+  //       await _linkAccountWithEmailCredential(currentUser, emailCredential);
+
+  //       await AirqoApiClient().syncPlatformAccount();
+  //     } else {
+  //       //TODO -  replace with sign in auth
+  //       final bool authenticationSuccessful =
+  //           await CustomAuth.firebaseSignIn(emailCredential);
+  //       if (!mounted) return;
+
+  //       if (!authenticationSuccessful) {
+  //         Navigator.pop(context);
+  //         await showDialog<void>(
+  //           context: context,
+  //           barrierDismissible: false,
+  //           builder: (BuildContext _) {
+  //             return const AuthFailureDialog();
+  //           },
+  //         );
+  //         return;
+  //       }
+
+  //       context.read<EmailVerificationBloc>().add(
+  //           const SetEmailVerificationStatus(AuthenticationStatus.success));
+
+  //       Navigator.pop(context);
+  //       await AppService.postSignInActions(context);
+  //     }
+  //   } catch (exception, stackTrace) {
+  //     Navigator.pop(context);
+  //     await showDialog<void>(
+  //       context: context,
+  //       barrierDismissible: false,
+  //       builder: (BuildContext _) {
+  //         return const AuthFailureDialog();
+  //       },
+  //     );
+  //     await logException(exception, stackTrace);
+  //   }
+  // }
+
+  // Future<void> _linkAccountWithEmailCredential(
+  //     User currentUser, AuthCredential emailCredential) async {
+  //   await currentUser.linkWithCredential(emailCredential);
+  // }
 }

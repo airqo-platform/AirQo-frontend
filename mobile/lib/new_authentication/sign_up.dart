@@ -148,6 +148,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Padding(
+
                       //   padding: const EdgeInsets.symmetric(horizontal: 20),
                       //   child: EmailEditField(
                       //     focusedBorderColor: Theme.of(context).focusColor,
@@ -183,6 +184,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                               keyboardType: TextInputType.emailAddress,
                               style: inputTextStyle(state.status),
                               // decoration: inputDecoration(
+
                               //   state.status,
                               //   hintText: 'Enter your email',
                               //   suffixIconCallback: () {
@@ -284,6 +286,10 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                                 if (formState.validate()) {
                                   formState.save();
                                   await _sendAuthCode();
+
+                                  //verify user email if it exists
+
+                                  //then register user
                                 }
                                 break;
                               case AuthenticationStatus.success:
@@ -296,17 +302,17 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                       const SizedBox(height: 10),
                       SizedBox(
                         width: double.infinity,
-                        child:   GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return const EmailLoginScreen();
-                                    },
-                                  ),
-                                );
-                              },
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return const EmailLoginScreen();
+                                },
+                              ),
+                            );
+                          },
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.center,

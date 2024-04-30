@@ -12,4 +12,5 @@ EmailAuthModel _$EmailAuthModelFromJson(Map<String, dynamic> json) =>
       emailAddress: json['email'] as String,
       signInLink: json['login_link'] as String? ?? '',
       reAuthenticationLink: json['auth_link'] as String? ?? '',
+      password: json['password'] as String? ?? '',
     );

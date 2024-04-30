@@ -82,6 +82,7 @@ dependencies:
   intl_phone_field: ^3.2.0
   pinput: ^4.0.0
   table_calendar: ^3.0.9
+  dio: ^5.4.3+1
 
   # Drift previous database => airqo_app_db.sqlite
 

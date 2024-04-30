@@ -16,6 +16,7 @@ import 'package:uuid/uuid.dart';
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
   Map<String, dynamic> params = queryParams;
   String formattedUrl = '$url?';
+
   params.forEach((key, value) => formattedUrl = "$formattedUrl$key=$value&");
 
   return formattedUrl;
@@ -92,6 +93,100 @@ class AirqoApiClient {
     return null;
   }
 
+  Future<bool> signUpWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final response = await client.post(
+        Uri.parse('${Config.airqoApi}/v2/users/registerUser'),
+        headers: postHeaders,
+        body: jsonEncode({'email': email, 'password': password}),
+      );
+
+      return response.statusCode == 200;
+    } catch (exception, stackTrace) {
+      await sendErrorToSlack(exception, stackTrace);
+    }
+
+    return false;
+  }
+
+  Future<bool> loginWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final response = await client.post(
+        Uri.parse('${Config.airqoApi}/v2/users/loginUser'),
+        headers: postHeaders,
+        body: jsonEncode({'email': email, 'password': password}),
+      );
+
+      return response.statusCode == 200;
+    } catch (exception, stackTrace) {
+      await sendErrorToSlack(exception, stackTrace);
+    }
+
+    return false;
+  }
+
+  Future<void> logout() async {
+    try {
+      await client.get(
+        Uri.parse('${Config.airqoApi}/v2/users/logout'),
+        headers: getHeaders,
+      );
+    } catch (exception, stackTrace) {
+      await sendErrorToSlack(exception, stackTrace);
+    }
+  }
+
+  Future<EmailAuthModel?> forgotPassword(String email) async {
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
+      String url = addQueryParameters({}, AirQoUrls.forgotPassword);
+
+      final response = await client.post(
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode({'email': email}),
+      );
+
+      return EmailAuthModel.fromJson(
+        json.decode(response.body) as Map<String, dynamic>,
+      );
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return null;
+  }
+
+  Future<dynamic> getUserInfo(String userId) async {
+    try {
+      final body = await _performGetRequest(
+        {},
+        "${AirQoUrls.userInfo}/$userId",
+        apiService: ApiService.auth,
+      );
+
+      return body;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return null;
+  }
+
   Future<String> getCarrier(String phoneNumber) async {
     // TODO Transfer this to the backend
     try {
@@ -118,6 +213,32 @@ class AirqoApiClient {
     }
 
     return '';
+  }
+
+  Future<bool> deleteUser(String userId) async {
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
+      String url = addQueryParameters(
+        {'tenant': 'airqo'},
+        "${AirQoUrls.deleteUser}/$userId",
+      );
+
+      final response = await client.delete(
+        Uri.parse(url),
+        headers: headers,
+      );
+
+      return response.statusCode == 200;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return false;
   }
 
   static Future<void> sendErrorToSlack(
@@ -973,3 +1094,4 @@ class SearchApiClient {
     return null;
   }
 }
+
