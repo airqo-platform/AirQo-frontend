@@ -177,13 +177,59 @@ select:focus {
 
 // walkthrough styles
 .introjs-helperLayer {
-  box-shadow: 0 0 0 9999px rgba(89, 89, 89, 0.5) !important;
+  box-shadow: 0 0 0 9999px rgba(89, 89, 89, 0.6) !important;
 }
 
-.introjs-nextbutton {
-  background-color: #002499 !important;
-  text-shadow: none !important;
-  color: #fff !important;
-  outline: none !important;
-  border: none !important;
+.introjs-tooltiptext {
+  padding: 20px;
+}
+
+.introjs-tooltipbuttons {
+  padding: 20px;
+  background-color: #f9fafb;
+  border: none;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  .introjs-button:focus {
+    outline: none;
+    border: none;
+    box-shadow: none;
+  }
+
+  .introjs-prevbutton {
+    border: 1px solid #bcbcbcec;
+    border-radius: 0.25rem;
+    text-shadow: none;
+    text-decoration: none;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    background-color: #fff;
+  }
+
+  .introjs-nextbutton {
+    border-radius: 8px;
+    text-shadow: none;
+    text-decoration: none;
+    color: #fff;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    background-color: #145fff;
+  }
+}
+
+.introjs-skipbutton,
+.introjs-tooltip-header {
+  display: none !important;
 }

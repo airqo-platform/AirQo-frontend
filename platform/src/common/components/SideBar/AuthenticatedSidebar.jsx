@@ -92,7 +92,7 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
           positionPrecedence: ['left', 'right', 'top', 'bottom'],
           hidePrev: true,
           exitOnOverlayClick: false,
-          tooltipClass: 'md:w-[450px] p-4 rounded-lg shadow-lg bg-white text-gray-800',
+          tooltipClass: 'w-[460px] rounded-lg shadow-lg bg-white text-gray-800',
         }}
       />
 
