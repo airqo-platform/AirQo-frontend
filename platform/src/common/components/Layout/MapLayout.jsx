@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import CollapsedSidebar from '@/components/SideBar/CollapsedSidebar';
 import Head from 'next/head';
 

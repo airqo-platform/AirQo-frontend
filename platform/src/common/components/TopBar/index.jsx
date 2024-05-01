@@ -16,19 +16,14 @@ import Spinner from '@/components/Spinner';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import UserIcon from '@/icons/Topbar/userIcon';
 import { clearIndividualPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
+import { toggleSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
 
-const TopBar = ({
-  topbarTitle,
-  noBorderBottom,
-  toggleDrawer,
-  setToggleDrawer,
-  collapsed,
-  setCollapsed,
-}) => {
+const TopBar = ({ topbarTitle, noBorderBottom, toggleDrawer, setToggleDrawer }) => {
   // check if current route contains navPath
   const router = useRouter();
   const dispatch = useDispatch();
   const currentRoute = router.pathname;
+  const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const isCurrentRoute = currentRoute.includes('/Home');
   const userInfo = useSelector((state) => state.login.userInfo);
   const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -98,27 +93,24 @@ const TopBar = ({
     <nav
       className={`sticky top-0 z-50 bg-white w-full px-6 lg:py-0 h-[76px] lg:px-16 ${
         !noBorderBottom && 'border-b-[1px] border-b-grey-750'
-      }`}
-    >
+      }`}>
       <div className='justify-between items-center flex bg-white py-4'>
         {/* Hamburger menu */}
         <button
           type='button'
           className='lg:hidden relative flex items-center justify-start z-10 w-auto focus:outline-none border border-gray-200 rounded-md'
-          onClick={() => setToggleDrawer(!toggleDrawer)}
-        >
+          onClick={() => setToggleDrawer(!toggleDrawer)}>
           <span className='p-2'>
             <MenuBarIcon />
           </span>
         </button>
 
         <div className='font-medium invisible lg:visible text-2xl text-neutral-light-800'>
-          {collapsed ? (
+          {isCollapsed ? (
             <button
               type='button'
-              onClick={() => setCollapsed(!collapsed)}
-              className='focus:outline-none relative -left-14'
-            >
+              onClick={() => dispatch(toggleSidebar())}
+              className='focus:outline-none relative -left-14'>
               <ExpandIcon className='inline-block mr-2' />
             </button>
           ) : null}
@@ -133,16 +125,14 @@ const TopBar = ({
                 data-cy='profile-btn'
                 className='focus:outline-none'
                 type='button'
-                onClick={handleDropdown}
-              >
+                onClick={handleDropdown}>
                 <TopBarItem Image={userInfo.profilePicture || PlaceholderImage} dropdown />
               </button>
               {dropdownVisible && (
                 <div
                   data-cy='topbar-dropdown-menu'
                   onClick={handleDropdownClick}
-                  className='dropdown-menu w-60 h-auto border border-gray-200 absolute z-50 bg-white mt-1 right-0 shadow-lg rounded-lg overflow-hidden'
-                >
+                  className='dropdown-menu w-60 h-auto border border-gray-200 absolute z-50 bg-white mt-1 right-0 shadow-lg rounded-lg overflow-hidden'>
                   <div className='flex items-center space-x-4 p-2'>
                     <div className='relative'>
                       <img
@@ -154,8 +144,7 @@ const TopBar = ({
                     </div>
                     <div
                       className='font-medium dark:text-white'
-                      style={{ overflowWrap: 'break-word', wordWrap: 'break-word' }}
-                    >
+                      style={{ overflowWrap: 'break-word', wordWrap: 'break-word' }}>
                       <div
                         className='capitalize'
                         style={{
@@ -163,8 +152,7 @@ const TopBar = ({
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           maxWidth: '14ch',
-                        }}
-                      >
+                        }}>
                         {userInfo?.firstName + ' ' + userInfo?.lastName}
                       </div>
 
@@ -175,8 +163,7 @@ const TopBar = ({
                           textOverflow: 'ellipsis',
                           maxWidth: '21ch',
                         }}
-                        className='text-xs text-gray-500 dark:text-gray-400 w-full'
-                      >
+                        className='text-xs text-gray-500 dark:text-gray-400 w-full'>
                         {userInfo?.email}
                       </div>
                     </div>
@@ -185,8 +172,7 @@ const TopBar = ({
                   <ul className='dropdown-list p-2'>
                     <li
                       onClick={handleClick('/settings')}
-                      className='flex items-center text-gray-500 hover:text-gray-600 cursor-pointer p-2'
-                    >
+                      className='flex items-center text-gray-500 hover:text-gray-600 cursor-pointer p-2'>
                       <span className='mr-3'>
                         <UserIcon fill='#6F87A1' width={16} height={16} />
                       </span>
@@ -194,8 +180,7 @@ const TopBar = ({
                     </li>
                     <li
                       onClick={handleClick('/settings')}
-                      className='flex items-center text-gray-500 hover:text-gray-600 cursor-pointer p-2'
-                    >
+                      className='flex items-center text-gray-500 hover:text-gray-600 cursor-pointer p-2'>
                       <span className='mr-3'>
                         <SettingsIcon fill='#6F87A1' width={17} height={17} />
                       </span>
@@ -206,8 +191,7 @@ const TopBar = ({
                   <ul className='dropdown-list p-2'>
                     <li
                       onClick={handleLogout}
-                      className='text-gray-500 hover:text-gray-600 cursor-pointer p-2'
-                    >
+                      className='text-gray-500 hover:text-gray-600 cursor-pointer p-2'>
                       Log out
                       {isLoading && (
                         <span className='float-right'>

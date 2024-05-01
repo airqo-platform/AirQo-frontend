@@ -12,10 +12,14 @@ import CollocateIcon from '@/icons/SideBar/CollocateIcon';
 import OrganizationDropdown from '../Dropdowns/OrganizationDropdown';
 import { checkAccess } from '@/core/utils/protectedRoute';
 import CollapsedSidebar from './CollapsedSidebar';
+import { useSelector, useDispatch } from 'react-redux';
+import { toggleSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
 
-const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCollapsed }) => {
+const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer }) => {
+  const dispatch = useDispatch();
   const sideBarDisplayStyle = toggleDrawer ? 'flex fixed left-0 z-50' : 'hidden';
   const size = useWindowSize();
+  const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
 
   // Toggle Dropdown open and close
   const [collocationOpen, setCollocationOpen] = useState(false);
@@ -56,24 +60,22 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
     };
   }, [sidebarRef]);
 
-  return !collapsed ? (
+  return !isCollapsed ? (
     <div className='w-64' ref={sidebarRef}>
       <div
         className={`${
           size.width >= 1024 ? 'flex' : sideBarDisplayStyle
-        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200`}
-      >
+        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200`}>
         <div>
           <div className='p-4 justify-between items-center flex'>
             <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
-            <button type='button' onClick={() => setCollapsed(!collapsed)}>
+            <button type='button' onClick={() => dispatch(toggleSidebar())}>
               <CollapseIcon className='invisible md:invisible lg:visible pt-1 h-full flex flex-col flex-3' />
             </button>
             <button
               type='button'
               className='lg:hidden relative flex items-center justify-end z-10 w-auto focus:outline-none border border-gray-200 rounded-md'
-              onClick={() => setToggleDrawer(!toggleDrawer)}
-            >
+              onClick={() => setToggleDrawer(!toggleDrawer)}>
               <CloseIcon />
             </button>
           </div>
@@ -89,8 +91,7 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
                 Icon={CollocateIcon}
                 dropdown
                 toggleMethod={() => setCollocationOpen(!collocationOpen)}
-                toggleState={collocationOpen}
-              >
+                toggleState={collocationOpen}>
                 <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
                 <SideBarDropdownItem itemLabel='Collocate' itemPath='/collocation/collocate' />
               </SideBarItem>

@@ -1,5 +1,6 @@
-import React from 'react';
-import SideBarItem, { SideBarDropdownItem, SidebarIconItem } from './SideBarItem';
+import React, { useEffect } from 'react';
+import { SidebarIconItem } from './SideBarItem';
+import OrganizationDropdown from '../Dropdowns/OrganizationDropdown';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import HomeIcon from '@/icons/SideBar/HomeIcon';
@@ -7,8 +8,21 @@ import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import CollocateIcon from '@/icons/SideBar/CollocateIcon';
 import { checkAccess } from '@/core/utils/protectedRoute';
+import { useRouter } from 'next/router';
+import { useDispatch } from 'react-redux';
+import { setSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
 
 const CollapsedSidebar = () => {
+  const router = useRouter();
+  const dispatch = useDispatch();
+
+  // if path is not map, set sidebar to false
+  useEffect(() => {
+    if (router.pathname === '/map') {
+      dispatch(setSidebar(true));
+    }
+  }, [router.pathname]);
+
   return (
     <div className='w-[88px]'>
       <div
@@ -19,6 +33,9 @@ const CollapsedSidebar = () => {
         <div className='flex flex-col items-center justify-center'>
           <div className='p-4 justify-between items-center flex'>
             <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
+          </div>
+          <div className='mt-7 mx-4'>
+            <OrganizationDropdown />
           </div>
           <div className='mt-3 mx-2'>
             <SidebarIconItem IconComponent={HomeIcon} navPath='/Home' />

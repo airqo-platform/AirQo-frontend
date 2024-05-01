@@ -34,6 +34,7 @@ const OrganizationDropdown = () => {
   const [selectedGroup, setSelectedGroup] = useState({});
   const preferences = useSelector((state) => state.defaults.individual_preferences);
   const userInfo = useSelector((state) => state.login.userInfo);
+  const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
 
   const handleUpdatePreferences = async (group) => {
     setLoading(true);
@@ -85,8 +86,8 @@ const OrganizationDropdown = () => {
     activeGroup.grp_title && (
       <CustomDropdown
         trigger={
-          <button>
-            <div className='w-56 h-12 pl-2 pr-3 py-2 bg-white rounded border border-gray-200 justify-between items-center inline-flex'>
+          <button className={`${!isCollapsed ? 'w-56' : 'w-auto'}`}>
+            <div className='w-full h-12 pl-2 pr-3 py-2 bg-white rounded border border-gray-200 justify-between items-center inline-flex'>
               <div className='justify-start items-center gap-3 flex'>
                 <div className='w-8 h-8 py-1.5 bg-gray-50 rounded-full justify-center items-center flex gap-3'>
                   <div className='w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight'>
@@ -98,7 +99,10 @@ const OrganizationDropdown = () => {
                       : splitNameIntoList(activeGroup?.grp_title)[0][0]}
                   </div>
                 </div>
-                <div className='pt-0.5 justify-start items-start gap-1 flex'>
+                <div
+                  className={`pt-0.5 justify-start items-start gap-1 ${
+                    !isCollapsed ? 'flex' : 'hidden'
+                  }`}>
                   <div
                     className='text-slate-500 text-sm font-medium uppercase leading-tight text-left'
                     title={formatString(activeGroup?.grp_title)}>
@@ -108,7 +112,10 @@ const OrganizationDropdown = () => {
                   </div>
                 </div>
               </div>
-              <span className={`${userGroups.length > 1 ? 'block' : 'hidden'}`}>
+              <span
+                className={`${userGroups.length > 1 ? 'block' : 'hidden'} ${
+                  !isCollapsed ? 'flex' : 'hidden'
+                }`}>
                 <ChevronDownIcon />
               </span>
             </div>
