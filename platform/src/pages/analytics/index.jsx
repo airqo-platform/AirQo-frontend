@@ -52,7 +52,7 @@ const AuthenticatedHomePage = () => {
 
   const onExit = () => {
     setStepsEnabled(false);
-    Cookies.set('tour2Completed', 'true', { expires: 30 }); // Set a cookie when the tour is completed
+    Cookies.set('tour2Completed', 'true', { expires: 30, sameSite: 'none', secure: true }); // Set a cookie when the tour is completed
   };
 
   // Enable the steps when the component is mounted
