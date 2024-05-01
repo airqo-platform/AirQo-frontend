@@ -53,13 +53,15 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
 
   const onExit = () => {
     setStepsEnabled(false);
-    Cookies.set('tour1Completed', 'true', { expires: 30, sameSite: 'none', secure: true }); // Set a cookie when the tour is completed
+    Cookies.set('tour1Completed', 'true', { expires: 30, sameSite: 'none', secure: true });
   };
 
   // Enable the steps when the component is mounted
   useEffect(() => {
     if (!Cookies.get('tour1Completed') && size.width >= 1024) {
-      setStepsEnabled(true);
+      setTimeout(() => {
+        setStepsEnabled(true);
+      }, 1000);
     }
   }, [size.width]);
 

@@ -52,13 +52,15 @@ const AuthenticatedHomePage = () => {
 
   const onExit = () => {
     setStepsEnabled(false);
-    Cookies.set('tour2Completed', 'true', { expires: 30, sameSite: 'none', secure: true }); // Set a cookie when the tour is completed
+    Cookies.set('tour2Completed', 'true', { expires: 30, sameSite: 'none', secure: true });
   };
 
   // Enable the steps when the component is mounted
   useEffect(() => {
     if (!Cookies.get('tour2Completed') && size.width >= 1024) {
-      setStepsEnabled(true);
+      setTimeout(() => {
+        setStepsEnabled(true);
+      }, 1000);
     }
   }, [size.width]);
 
