@@ -13,7 +13,7 @@ import OrganizationDropdown from '../Dropdowns/OrganizationDropdown';
 import { checkAccess } from '@/core/utils/protectedRoute';
 import CollapsedSidebar from './CollapsedSidebar';
 import { Steps } from 'intro.js-react';
-import { tr } from 'date-fns/locale';
+import Cookies from 'js-cookie';
 
 const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCollapsed }) => {
   const sideBarDisplayStyle = toggleDrawer ? 'flex fixed left-0 z-50' : 'hidden';
@@ -53,12 +53,15 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
 
   const onExit = () => {
     setStepsEnabled(false);
+    Cookies.set('tour1Completed', 'true', { expires: 30 }); // Set a cookie when the tour is completed
   };
 
   // Enable the steps when the component is mounted
   useEffect(() => {
-    setStepsEnabled(true);
-  }, []);
+    if (!Cookies.get('tour1Completed') && size.width >= 1024) {
+      setStepsEnabled(true);
+    }
+  }, [size.width]);
 
   useEffect(() => {
     const collocationOpenState = localStorage.getItem('collocationOpen');
@@ -92,10 +95,9 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer, collapsed, setCol
           positionPrecedence: ['left', 'right', 'top', 'bottom'],
           hidePrev: true,
           exitOnOverlayClick: false,
-          tooltipClass: 'w-[460px] rounded-lg shadow-lg bg-white text-gray-800',
+          tooltipClass: 'rounded-lg shadow-lg bg-white text-gray-800',
         }}
       />
-
       <div className='w-64'>
         <div
           className={`${

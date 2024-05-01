@@ -176,6 +176,12 @@ select:focus {
 }
 
 // walkthrough styles
+.introjs-tooltip {
+  width: 500px;
+  min-width: 300px;
+  max-width: 450px;
+}
+
 .introjs-helperLayer {
   box-shadow: 0 0 0 9999px rgba(89, 89, 89, 0.6) !important;
 }

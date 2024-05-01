@@ -20,9 +20,12 @@ import html2canvas from 'html2canvas';
 import PrintReportModal from '@/components/Modal/PrintReportModal';
 import TabButtons from '@/components/Button/TabButtons';
 import useOutsideClick from '@/core/utils/useOutsideClick';
+import { Steps } from 'intro.js-react';
+import Cookies from 'js-cookie';
 
 const AuthenticatedHomePage = () => {
   const dispatch = useDispatch();
+  const size = useWindowSize();
   const isMobile = useWindowSize().width < 500;
   const chartDataRange = useSelector((state) => state.chart.chartDataRange);
   const chartSites = useSelector((state) => state.chart.chartSites);
@@ -36,6 +39,28 @@ const AuthenticatedHomePage = () => {
   });
   const customiseRef = useRef();
   const [customise, setCustomise] = useState(false);
+
+  // intro.js
+  const [stepsEnabled, setStepsEnabled] = useState(false);
+  const [steps] = useState([
+    {
+      element: '#analytics-step-0',
+      intro:
+        "Customize your analytics experience by selecting the date range and sites you'd like to explore.",
+    },
+  ]);
+
+  const onExit = () => {
+    setStepsEnabled(false);
+    Cookies.set('tour2Completed', 'true', { expires: 30 }); // Set a cookie when the tour is completed
+  };
+
+  // Enable the steps when the component is mounted
+  useEffect(() => {
+    if (!Cookies.get('tour2Completed') && size.width >= 1024) {
+      setStepsEnabled(true);
+    }
+  }, [size.width]);
 
   useOutsideClick(customiseRef, () => {
     if (customise) setCustomise(false);
@@ -139,7 +164,7 @@ const AuthenticatedHomePage = () => {
       {
         label: 'Overview',
         children: (
-          <div className='flex space-x-3 mb-3'>
+          <div className='flex space-x-3 mb-3' id='analytics-step-0'>
             <CustomCalendar
               initialStartDate={new Date()}
               initialEndDate={new Date()}
@@ -175,6 +200,20 @@ const AuthenticatedHomePage = () => {
 
   return (
     <Layout topbarTitle={'Analytics'} noBorderBottom pageTitle={'Analytics'}>
+      <Steps
+        enabled={stepsEnabled}
+        steps={steps}
+        initialStep={0}
+        keyboardNavigation={true}
+        onExit={onExit}
+        options={{
+          showBullets: false,
+          positionPrecedence: ['left', 'right', 'top', 'bottom'],
+          hidePrev: true,
+          exitOnOverlayClick: false,
+          tooltipClass: 'rounded-lg shadow-lg bg-white text-gray-800',
+        }}
+      />
       <AlertBox
         type={alert.type}
         message={alert.message}
