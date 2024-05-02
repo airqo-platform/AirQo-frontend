@@ -171,7 +171,8 @@ class Login extends Component {
                     <b>Login</b>
                   </h4>
                   <p className="grey-text text-darken-1">
-                    Don't have an account? <Link to="/request-access">Request Access</Link>
+                    Don't have an account?{' '}
+                    <a href="https://analytics.airqo.net/account/login">Sign up here</a>
                   </p>
                 </div>
                 <form noValidate onSubmit={this.onSubmit}>
