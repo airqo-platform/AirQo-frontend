@@ -13,18 +13,19 @@ const CommitteePage = ({ committee, sectionText }) => {
   const displayedCommittee = isExpanded ? committee : committee?.slice(0, ITEMS_PER_PAGE);
   return (
     <>
+      <div className="separator" />
+      <h2 style={{ marginBottom: '20px' }} className="section_title">
+        {t('cleanAirSite.Forum.sections.committee')}
+      </h2>
+      {sectionText && (
+        <div className="sub_text_intro_details">
+          <div dangerouslySetInnerHTML={{ __html: sectionText }} />
+        </div>
+      )}
+
       {committee && committee.length > 0 ? (
         <>
-          <div className="separator" />
           <section className="speakers">
-            <h2 style={{ marginBottom: '20px' }} className="section_title">
-              {t('cleanAirSite.Forum.sections.committee')}
-            </h2>
-            {sectionText && (
-              <div className="sub_text_intro_details">
-                <div dangerouslySetInnerHTML={{ __html: sectionText }} />
-              </div>
-            )}
             <div className="AboutUsPage__pictorial">
               {displayedCommittee.map((profile) => (
                 <div key={profile.id}>
@@ -38,6 +39,7 @@ const CommitteePage = ({ committee, sectionText }) => {
                         : profile.title
                     }
                     cardTitle={profile.title}
+                    category="Programme Committee"
                     ImgPath={profile.picture}
                     htmlBio={profile.bio_html}
                     readBioBtn={true}

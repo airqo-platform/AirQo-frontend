@@ -39,6 +39,7 @@ const Speakers = ({ speakers, sectionText, keyNoteSpeakers }) => {
                         : profile.title
                     }
                     cardTitle={profile.title}
+                    category="speaker"
                     ImgPath={profile.picture}
                     htmlBio={profile.bio_html}
                     readBioBtn={true}
