@@ -9,7 +9,7 @@ const Partners = ({
   FundingPartners,
   HostPartner,
   CoConveningPartner,
-  programmePartners,
+  sponsorPartners,
   forumEvents
 }) => {
   const { t } = useTranslation();
@@ -133,6 +133,42 @@ const Partners = ({
         </>
       )}
 
+      {/* Sponsor Partners */}
+      {sponsorPartners && sponsorPartners.length > 0 && (
+        <>
+          <div className="separator" />
+          <section className="Funding_partners">
+            <SplitTextSection
+              lists={[]}
+              content={
+                <div className="partners-wrapper">
+                  <div className="partner-logos">
+                    <div className="grid-container">
+                      {sponsorPartners.map((item) => (
+                        <a className="cell" key={item.id} href={item.website_link} target="_blank">
+                          <img
+                            className="logo"
+                            src={item.partner_logo}
+                            alt={item.name}
+                            loading="lazy"
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              }
+              title={
+                <h2 className="section_title">
+                  {t('cleanAirSite.Forum.sections.partners.sponsor')}
+                </h2>
+              }
+              bgColor="#FFFFFF"
+            />
+          </section>
+        </>
+      )}
+
       {/* Funding Partners */}
       {FundingPartners && FundingPartners.length > 0 && (
         <>
@@ -160,42 +196,6 @@ const Partners = ({
               }
               title={
                 <h2 className="section_title">{t('cleanAirSite.Forum.sections.partners.fund')}</h2>
-              }
-              bgColor="#FFFFFF"
-            />
-          </section>
-        </>
-      )}
-
-      {/* Programme Partners */}
-      {programmePartners && programmePartners.length > 0 && (
-        <>
-          <div className="separator" />
-          <section className="Funding_partners">
-            <SplitTextSection
-              lists={[]}
-              content={
-                <div className="partners-wrapper">
-                  <div className="partner-logos">
-                    <div className="grid-container">
-                      {programmePartners.map((item) => (
-                        <a className="cell" key={item.id} href={item.website_link} target="_blank">
-                          <img
-                            className="logo"
-                            src={item.partner_logo}
-                            alt={item.name}
-                            loading="lazy"
-                          />
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              }
-              title={
-                <h2 className="section_title">
-                  {t('cleanAirSite.Forum.sections.partners.program')}
-                </h2>
               }
               bgColor="#FFFFFF"
             />

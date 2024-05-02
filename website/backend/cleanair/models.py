@@ -66,6 +66,7 @@ class ForumEvent(BaseModel):
     sponsorship_packages = QuillField(blank=True, null=True)
     travel_logistics_vaccination_details = QuillField(blank=True, null=True)
     travel_logistics_visa_details = QuillField(blank=True, null=True)
+    travel_logistics_accommodation_details = QuillField(blank=True, null=True)
     glossary_details = QuillField(blank=True, null=True)
     unique_title = models.CharField(max_length=100, blank=True)
     background_image = CloudinaryField(
@@ -98,7 +99,7 @@ class PartnerCategoryChoices(Enum):
     FUNDING_PARTNER = "Funding Partner"
     HOST_PARTNER = "Host Partner"
     CO_CONVENING_PARTNER = "Co-Convening Partner"
-    PROGRAMME_PARTNER = "Programme Partner"
+    SPONSOR_PARTNER = "Sponsor Partner"
 
     @classmethod
     def choices(cls):

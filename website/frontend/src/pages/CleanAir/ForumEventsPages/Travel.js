@@ -2,10 +2,11 @@ import React from 'react';
 import { SplitTextSection } from 'components/CleanAir';
 import { useTranslation, Trans } from 'react-i18next';
 
-const Travel = ({ vaccinationDetails, support, visaDetails }) => {
+const Travel = ({ vaccinationDetails, support, visaDetails, accommodation }) => {
   const { t } = useTranslation();
   return (
     <>
+      {/* Vaccination Section */}
       {vaccinationDetails && (
         <>
           <div className="separator" />
@@ -20,6 +21,7 @@ const Travel = ({ vaccinationDetails, support, visaDetails }) => {
         </>
       )}
 
+      {/* Visa Section */}
       {visaDetails && (
         <>
           <div className="separator" />
@@ -28,6 +30,23 @@ const Travel = ({ vaccinationDetails, support, visaDetails }) => {
               lists={[]}
               content={<div dangerouslySetInnerHTML={{ __html: visaDetails }} />}
               title={<h2 className="section_title">{t('cleanAirSite.Forum.sections.visa')}</h2>}
+              bgColor="#FFFFFF"
+            />
+          </section>
+        </>
+      )}
+
+      {/* Accommodation section */}
+      {accommodation && (
+        <>
+          <div className="separator" />
+          <section className="about travel">
+            <SplitTextSection
+              lists={[]}
+              content={<div dangerouslySetInnerHTML={{ __html: accommodation }} />}
+              title={
+                <h2 className="section_title">{t('cleanAirSite.Forum.sections.accommodation')}</h2>
+              }
               bgColor="#FFFFFF"
             />
           </section>

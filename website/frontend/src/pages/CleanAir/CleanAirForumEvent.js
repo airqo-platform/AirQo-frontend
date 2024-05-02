@@ -31,10 +31,11 @@ const CleanAirForumEvent = () => {
   const [speakers, setSpeakers] = useState(null);
   const [keyNoteSpeakers, setKeyNoteSpeakers] = useState(null);
   const [FundingPartners, setFundingPartners] = useState(null);
-  const [programmePartners, setProgrammePartners] = useState(null);
+  const [sponsorPartners, setSponsorPartners] = useState(null);
   const [HostPartner, setHostPartners] = useState(null);
   const [CoConveningPartner, setCoConveningPartner] = useState(null);
   const [vaccinationDetails, setVaccinationDetails] = useState(null);
+  const [accommodation, setAccommodation] = useState(null);
   const [visaDetails, setVisaDetails] = useState(null);
   const [glossaryDetails, setGlossaryDetails] = useState(null);
   const [support, setSupport] = useState(null);
@@ -104,11 +105,12 @@ const CleanAirForumEvent = () => {
           setFundingPartners(filterByCategory(event.partners, 'Funding Partner'));
           setHostPartners(filterByCategory(event.partners, 'Host Partner'));
           setCoConveningPartner(filterByCategory(event.partners, 'Co-Convening Partner'));
-          setProgrammePartners(filterByCategory(event.partners, 'Programme Partner'));
+          setSponsorPartners(filterByCategory(event.partners, 'Sponsor Partner'));
           setVaccinationDetails(event.travel_logistics_vaccination_details_html);
           setVisaDetails(event.travel_logistics_visa_details_html);
           setGlossaryDetails(event.glossary_details_html);
           setRegistration(event.registration_details_html);
+          setAccommodation(event.travel_logistics_accommodation_details_html);
           setSupport(event.supports);
           setSchedule(event.programs);
         }
@@ -278,7 +280,7 @@ const CleanAirForumEvent = () => {
                 FundingPartners={FundingPartners}
                 HostPartner={HostPartner}
                 CoConveningPartner={CoConveningPartner}
-                programmePartners={programmePartners}
+                sponsorPartners={sponsorPartners}
                 forumEvents={forumEvents}
               />
             )}
@@ -287,6 +289,7 @@ const CleanAirForumEvent = () => {
                 vaccinationDetails={vaccinationDetails}
                 support={support}
                 visaDetails={visaDetails}
+                accommodation={accommodation}
               />
             )}
             {activeSection === 'glossary' && <Glossary glossaryDetails={glossaryDetails} />}

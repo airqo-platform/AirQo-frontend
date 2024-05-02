@@ -344,10 +344,11 @@
           "fund": "Partenaires financiers",
           "others": "Partenaires d'accueil",
           "coConvening": "Partenaires co-organisateurs",
-          "program": "Partenaires de programme"
+          "sponsor": "Sponsors"
         },
         "travel": "Vaccination",
         "visa": "Lettre d'invitation pour visa",
+        "accommodation": "Hébergement",
         "support": "demandes de renseignements et <br/> clarifications :",
         "glossary": "Glossaire de l'air pur",
         "No_data": "À venir ..."

@@ -343,10 +343,11 @@
           "fund": "Funding partners",
           "others": "Host partners",
           "coConvening": "Convening partners",
-          "program": "Programme partners"
+          "sponsor": "Sponsors"
         },
         "travel": "Vaccination",
         "visa": "Visa invitation letter",
+        "accommodation": "Accommodation",
         "support": "inquiries and <br/> clarifications:",
         "glossary": "Clear Air Glossary",
         "No_data": "Coming soon ..."

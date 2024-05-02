@@ -100,6 +100,11 @@ class ForumEventSerializer(serializers.ModelSerializer):
     Committee_text_section_html = serializers.SerializerMethodField()
     partners_text_section_html = serializers.SerializerMethodField()
     glossary_details_html = serializers.SerializerMethodField()
+    travel_logistics_accommodation_details_html = serializers.SerializerMethodField()
+
+    def get_travel_logistics_accommodation_details_html(self, obj):
+        html = obj.travel_logistics_accommodation_details.html
+        return '' if html.strip() == '<p><br></p>' else html
 
     def get_glossary_details_html(self, obj):
         html = obj.glossary_details.html
@@ -165,5 +170,5 @@ class ForumEventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ForumEvent
-        exclude = ['introduction', 'Speakers_text_section', "glossary_details", "schedule_details", "partners_text_section", "sponsorship_opportunities_about", "sponsorship_opportunities_schedule", "sponsorship_packages",
+        exclude = ['introduction', 'Speakers_text_section', "travel_logistics_accommodation_details", "glossary_details", "schedule_details", "partners_text_section", "sponsorship_opportunities_about", "sponsorship_opportunities_schedule", "sponsorship_packages",
                    'Committee_text_section', 'registration_details', 'travel_logistics_vaccination_details', 'order', 'author', 'updated_by', "sponsorship_opportunities_partners"]
