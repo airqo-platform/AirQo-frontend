@@ -320,7 +320,8 @@
         "speakers": "Speakers",
         "schedule": "Schedule & Registration",
         "partners": "Partners",
-        "Travel": "Travel Logistics"
+        "Travel": "Travel Logistics",
+        "Glossary": "Glossary"
       },
       "sections": {
         "committee": "Programme committee",
@@ -334,13 +335,21 @@
           "No_data": "We are curating an exceptional lineup of experts. Check back soon for updates!"
         },
         "registration": "Registration",
+        "sponsorship": "Sponsorship <br/> opportunities",
+        "sponsorship_partners": "Sponsorship opportunities",
+        "sponsorship_package": "Sponsorship packages",
         "partners": {
+          "label": "Partners",
           "fund": "Funding partners",
           "others": "Host partners",
-          "coConvening": "Convening partners"
+          "coConvening": "Convening partners",
+          "sponsor": "Sponsors"
         },
-        "travel": "Travel Logistics",
-        "support": "Support",
+        "travel": "Vaccination",
+        "visa": "Visa invitation letter",
+        "accommodation": "Accommodation",
+        "support": "inquiries and <br/> clarifications:",
+        "glossary": "Clear Air Glossary",
         "No_data": "Coming soon ..."
       }
     }

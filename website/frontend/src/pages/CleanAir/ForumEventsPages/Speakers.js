@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Profile from 'components/Profile';
+import Profile from 'components/CleanAir/profile/Profile';
 import { useTranslation, Trans } from 'react-i18next';
 
 const ITEMS_PER_PAGE = 6;
@@ -13,16 +13,21 @@ const Speakers = ({ speakers, sectionText, keyNoteSpeakers }) => {
     : keyNoteSpeakers?.slice(0, ITEMS_PER_PAGE);
   return (
     <>
-      {speakers && speakers.length > 0 && (
+      <div className="separator" />
+      {sectionText && (
+        <div className="sub_text_intro_details">
+          <div dangerouslySetInnerHTML={{ __html: sectionText }} />
+        </div>
+      )}
+
+      {keyNoteSpeakers && keyNoteSpeakers.length > 0 && (
         <>
-          <div className="separator" />
           <section className="speakers">
             <h2 style={{ marginBottom: '20px' }} className="section_title">
-              {t('cleanAirSite.Forum.sections.speakers.title1')}
+              {t('cleanAirSite.Forum.sections.speakers.title2')}
             </h2>
-            {sectionText && <div dangerouslySetInnerHTML={{ __html: sectionText }} />}
             <div className="AboutUsPage__pictorial">
-              {displayedSpeakers.map((profile) => (
+              {displayedKeyNoteSpeakers.map((profile) => (
                 <div key={profile.id}>
                   <Profile
                     name={
@@ -34,6 +39,7 @@ const Speakers = ({ speakers, sectionText, keyNoteSpeakers }) => {
                         : profile.title
                     }
                     cardTitle={profile.title}
+                    category="speaker"
                     ImgPath={profile.picture}
                     htmlBio={profile.bio_html}
                     readBioBtn={true}
@@ -54,14 +60,15 @@ const Speakers = ({ speakers, sectionText, keyNoteSpeakers }) => {
         </>
       )}
 
-      {keyNoteSpeakers && keyNoteSpeakers.length > 0 && (
+      {speakers && speakers.length > 0 && (
         <>
+          <div className="separator" />
           <section className="speakers">
             <h2 style={{ marginBottom: '20px' }} className="section_title">
-              {t('cleanAirSite.Forum.sections.speakers.title2')}
+              {t('cleanAirSite.Forum.sections.speakers.title1')}
             </h2>
             <div className="AboutUsPage__pictorial">
-              {displayedKeyNoteSpeakers.map((profile) => (
+              {displayedSpeakers.map((profile) => (
                 <div key={profile.id}>
                   <Profile
                     name={
