@@ -34,7 +34,7 @@ const downArrow = () => {
   );
 };
 
-const Schedule = ({ schedule, registration }) => {
+const Schedule = ({ schedule, registration, forumEvents }) => {
   const { t } = useTranslation();
   // Refs
   const wrapperRef = useRef(null);
@@ -71,13 +71,22 @@ const Schedule = ({ schedule, registration }) => {
 
   return (
     <>
+      <div className="separator" />
+      <h2 style={{ marginBottom: '20px' }} className="section_title">
+        {t('cleanAirSite.Forum.sections.schedule')}
+      </h2>
+
+      {/* Schedule intro */}
+      {forumEvents[0].schedule_details_html && (
+        <div className="sub_text_intro_details">
+          <div dangerouslySetInnerHTML={{ __html: forumEvents[0].schedule_details_html }} />
+        </div>
+      )}
+
+      {/*  Schedule section */}
       {schedule && schedule.length > 0 && (
         <>
-          <div className="separator" />
           <section className="schedule">
-            <h2 style={{ marginBottom: '20px' }} className="section_title">
-              {t('cleanAirSite.Forum.sections.schedule')}
-            </h2>
             <div className="schedule" ref={wrapperRef}>
               {schedule.map((scheduleItem) => (
                 <div
@@ -87,7 +96,10 @@ const Schedule = ({ schedule, registration }) => {
                   <div className="event-head">
                     <div>
                       <p className="date">{scheduleItem.title}</p>
-                      <p className="title">{scheduleItem.program_details}</p>
+                      <p
+                        className="title"
+                        dangerouslySetInnerHTML={{ __html: scheduleItem.sub_text_html }}
+                      />
                     </div>
                     <div>
                       {showAccordion === scheduleItem.id ? (
@@ -123,6 +135,8 @@ const Schedule = ({ schedule, registration }) => {
           </section>
         </>
       )}
+
+      {/* Registration section */}
       {registration && (
         <>
           <div className="separator" />
@@ -144,6 +158,39 @@ const Schedule = ({ schedule, registration }) => {
           </section>
         </>
       )}
+
+      {/* Sponsorship section */}
+      {forumEvents[0].sponsorship_opportunities_schedule_html && (
+        <>
+          <div className="separator" />
+          <section className="about registration">
+            <SplitTextSection
+              lists={[]}
+              content={
+                <div className="engagements_list">
+                  <div>
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html:
+                          forumEvents.length > 0 &&
+                          forumEvents[0].sponsorship_opportunities_schedule_html
+                      }}
+                    />
+                  </div>
+                </div>
+              }
+              title={
+                <h2
+                  className="section_title"
+                  dangerouslySetInnerHTML={{ __html: t('cleanAirSite.Forum.sections.sponsorship') }}
+                />
+              }
+              bgColor="#FFFFFF"
+            />
+          </section>
+        </>
+      )}
+      <div className="separator" />
 
       {/* if both are empty */}
       {schedule.length === 0 && !registration && (

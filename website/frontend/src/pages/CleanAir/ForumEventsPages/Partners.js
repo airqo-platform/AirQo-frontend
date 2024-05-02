@@ -5,7 +5,13 @@ import { SplitTextSection } from 'components/CleanAir';
 
 const ITEMS_PER_PAGE = 6;
 
-const Partners = ({ FundingPartners, HostPartner, CoConveningPartner }) => {
+const Partners = ({
+  FundingPartners,
+  HostPartner,
+  CoConveningPartner,
+  programmePartners,
+  forumEvents
+}) => {
   const { t } = useTranslation();
   // Pagination setup for HostPartner
   const { currentItems, currentPage, setCurrentPage, totalPages } = usePagination(
@@ -18,28 +24,33 @@ const Partners = ({ FundingPartners, HostPartner, CoConveningPartner }) => {
       <div>
         <div className="separator" />
         <div className="CoConvening_partners">
-          <h2 className="section_title">Partners</h2>
-          <p>
-            Leveraging the unique expertise and resources of partners to further collective efforts
-            in advancing collaborations and multi-regional partnerships for clean air actions in
-            African cities.
-          </p>
+          <h2 className="section_title">{t('cleanAirSite.Forum.sections.partners.label')}</h2>
+          <div>
+            {forumEvents[0].partners_text_section_html && (
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: forumEvents[0].partners_text_section_html
+                }}></div>
+            )}
+          </div>
         </div>
-        <div className="CoConvening_partners">
-          <h2 className="section_title">Sponsorship opportunities </h2>
-          <p>
-            We have put together flexible sponsorship packages including travel scholarships,
-            session sponsorships, exhibitions, cocktail receptions and tailored options. 
-          </p>
-          <p>
-            Sponsorship will help optimize the cost of hosting the forum, and more importantly
-            support in-person participation of the target communities working for a clean air future
-            in Africa. We thank our funding partners for the continued funding support and welcome
-            more partners.
-          </p>
-        </div>
+        {forumEvents[0].sponsorship_opportunities_partners_html && (
+          <div className="CoConvening_partners">
+            <h2 className="section_title">
+              {t('cleanAirSite.Forum.sections.sponsorship_partners')} 
+            </h2>
+            <div>
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: forumEvents[0].sponsorship_opportunities_partners_html
+                }}></div>
+            </div>
+          </div>
+        )}
       </div>
       <br />
+
+      {/* Co-Convening Partners */}
       {CoConveningPartner && CoConveningPartner.length > 0 ? (
         <>
           <section className="CoConvening_partners">
@@ -74,6 +85,7 @@ const Partners = ({ FundingPartners, HostPartner, CoConveningPartner }) => {
         </>
       ) : null}
 
+      {/* Host Partners */}
       {HostPartner && HostPartner.length > 0 && (
         <>
           <div className="separator" />
@@ -121,6 +133,7 @@ const Partners = ({ FundingPartners, HostPartner, CoConveningPartner }) => {
         </>
       )}
 
+      {/* Funding Partners */}
       {FundingPartners && FundingPartners.length > 0 && (
         <>
           <div className="separator" />
@@ -147,6 +160,42 @@ const Partners = ({ FundingPartners, HostPartner, CoConveningPartner }) => {
               }
               title={
                 <h2 className="section_title">{t('cleanAirSite.Forum.sections.partners.fund')}</h2>
+              }
+              bgColor="#FFFFFF"
+            />
+          </section>
+        </>
+      )}
+
+      {/* Programme Partners */}
+      {programmePartners && programmePartners.length > 0 && (
+        <>
+          <div className="separator" />
+          <section className="Funding_partners">
+            <SplitTextSection
+              lists={[]}
+              content={
+                <div className="partners-wrapper">
+                  <div className="partner-logos">
+                    <div className="grid-container">
+                      {programmePartners.map((item) => (
+                        <a className="cell" key={item.id} href={item.website_link} target="_blank">
+                          <img
+                            className="logo"
+                            src={item.partner_logo}
+                            alt={item.name}
+                            loading="lazy"
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              }
+              title={
+                <h2 className="section_title">
+                  {t('cleanAirSite.Forum.sections.partners.program')}
+                </h2>
               }
               bgColor="#FFFFFF"
             />

@@ -56,10 +56,17 @@ class ForumEvent(BaseModel):
     introduction = QuillField(blank=True, null=True)
     Speakers_text_section = QuillField(blank=True, null=True)
     Committee_text_section = QuillField(blank=True, null=True)
+    partners_text_section = QuillField(blank=True, null=True)
     registration_link = models.URLField(blank=True)
+    schedule_details = QuillField(blank=True, null=True)
     registration_details = QuillField(blank=True, null=True)
-    sponsorship_details = QuillField(blank=True, null=True)
-    travel_logistics = QuillField(blank=True, null=True)
+    sponsorship_opportunities_about = QuillField(blank=True, null=True)
+    sponsorship_opportunities_schedule = QuillField(blank=True, null=True)
+    sponsorship_opportunities_partners = QuillField(blank=True, null=True)
+    sponsorship_packages = QuillField(blank=True, null=True)
+    travel_logistics_vaccination_details = QuillField(blank=True, null=True)
+    travel_logistics_visa_details = QuillField(blank=True, null=True)
+    glossary_details = QuillField(blank=True, null=True)
     unique_title = models.CharField(max_length=100, blank=True)
     background_image = CloudinaryField(
         "BackgroundImage", overwrite=True, resource_type="image", blank=True, null=True
@@ -91,6 +98,7 @@ class PartnerCategoryChoices(Enum):
     FUNDING_PARTNER = "Funding Partner"
     HOST_PARTNER = "Host Partner"
     CO_CONVENING_PARTNER = "Co-Convening Partner"
+    PROGRAMME_PARTNER = "Programme Partner"
 
     @classmethod
     def choices(cls):
@@ -165,7 +173,7 @@ class Partner(BaseModel):
 
 class Program(BaseModel):
     title = models.CharField(max_length=100)
-    program_details = models.TextField(blank=True)
+    sub_text = QuillField(blank=True, null=True)
     order = models.IntegerField(default=1)
     forum_event = models.ForeignKey(
         ForumEvent,

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import Profile from 'components/Profile';
+import Profile from 'components/CleanAir/profile/Profile';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -20,7 +20,11 @@ const CommitteePage = ({ committee, sectionText }) => {
             <h2 style={{ marginBottom: '20px' }} className="section_title">
               {t('cleanAirSite.Forum.sections.committee')}
             </h2>
-            {sectionText && <div dangerouslySetInnerHTML={{ __html: sectionText }} />}
+            {sectionText && (
+              <div className="sub_text_intro_details">
+                <div dangerouslySetInnerHTML={{ __html: sectionText }} />
+              </div>
+            )}
             <div className="AboutUsPage__pictorial">
               {displayedCommittee.map((profile) => (
                 <div key={profile.id}>

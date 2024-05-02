@@ -11,6 +11,7 @@ import Schedule from './ForumEventsPages/Schedule';
 import Speakers from './ForumEventsPages/Speakers';
 import Partners from './ForumEventsPages/Partners';
 import Travel from './ForumEventsPages/Travel';
+import Glossary from './ForumEventsPages/Glossary';
 import CommitteePage from './ForumEventsPages/CommitteePage';
 import { ButtonCTA } from 'components/CleanAir';
 
@@ -30,9 +31,12 @@ const CleanAirForumEvent = () => {
   const [speakers, setSpeakers] = useState(null);
   const [keyNoteSpeakers, setKeyNoteSpeakers] = useState(null);
   const [FundingPartners, setFundingPartners] = useState(null);
+  const [programmePartners, setProgrammePartners] = useState(null);
   const [HostPartner, setHostPartners] = useState(null);
   const [CoConveningPartner, setCoConveningPartner] = useState(null);
-  const [travelLogistics, setTravelLogistics] = useState(null);
+  const [vaccinationDetails, setVaccinationDetails] = useState(null);
+  const [visaDetails, setVisaDetails] = useState(null);
+  const [glossaryDetails, setGlossaryDetails] = useState(null);
   const [support, setSupport] = useState(null);
   const [registration, setRegistration] = useState(null);
   const [schedule, setSchedule] = useState(null);
@@ -46,7 +50,8 @@ const CleanAirForumEvent = () => {
     { name: t('cleanAirSite.Forum.subNav.schedule'), url: 'schedule' },
     { name: t('cleanAirSite.Forum.subNav.speakers'), url: 'speakers' },
     { name: t('cleanAirSite.Forum.subNav.partners'), url: 'partners' },
-    { name: t('cleanAirSite.Forum.subNav.Travel'), url: 'travel' }
+    { name: t('cleanAirSite.Forum.subNav.Travel'), url: 'travel' },
+    { name: t('cleanAirSite.Forum.subNav.Glossary'), url: 'glossary' }
   ];
 
   const refMapping = {
@@ -99,7 +104,10 @@ const CleanAirForumEvent = () => {
           setFundingPartners(filterByCategory(event.partners, 'Funding Partner'));
           setHostPartners(filterByCategory(event.partners, 'Host Partner'));
           setCoConveningPartner(filterByCategory(event.partners, 'Co-Convening Partner'));
-          setTravelLogistics(event.travel_logistics_html);
+          setProgrammePartners(filterByCategory(event.partners, 'Programme Partner'));
+          setVaccinationDetails(event.travel_logistics_vaccination_details_html);
+          setVisaDetails(event.travel_logistics_visa_details_html);
+          setGlossaryDetails(event.glossary_details_html);
           setRegistration(event.registration_details_html);
           setSupport(event.supports);
           setSchedule(event.programs);
@@ -256,7 +264,7 @@ const CleanAirForumEvent = () => {
               <CommitteePage committee={committee} sectionText={committeeText} />
             )}
             {activeSection === 'schedule' && (
-              <Schedule schedule={schedule} registration={registration} />
+              <Schedule schedule={schedule} registration={registration} forumEvents={forumEvents} />
             )}
             {activeSection === 'speakers' && (
               <Speakers
@@ -270,11 +278,18 @@ const CleanAirForumEvent = () => {
                 FundingPartners={FundingPartners}
                 HostPartner={HostPartner}
                 CoConveningPartner={CoConveningPartner}
+                programmePartners={programmePartners}
+                forumEvents={forumEvents}
               />
             )}
             {activeSection === 'travel' && (
-              <Travel travelLogistics={travelLogistics} support={support} />
+              <Travel
+                vaccinationDetails={vaccinationDetails}
+                support={support}
+                visaDetails={visaDetails}
+              />
             )}
+            {activeSection === 'glossary' && <Glossary glossaryDetails={glossaryDetails} />}
           </div>
         </div>
       ) : (
