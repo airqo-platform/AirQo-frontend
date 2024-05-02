@@ -1721,6 +1721,13 @@
           background-color: #353e52;
         }
 
+        .sub_text_intro_details {
+          margin-bottom: 40px;
+          p {
+            margin: 0;
+          }
+        }
+
         .section_title {
           color: #353e52;
           font-size: 32px;
@@ -1800,6 +1807,10 @@
                 border-radius: 10px;
               }
 
+              .bio-header-container {
+                position: relative;
+              }
+
               .img-preview-container {
                 margin-bottom: 10px;
               }
@@ -1813,6 +1824,7 @@
               }
 
               .modal-content {
+                padding: 10px;
                 .social-container {
                   display: flex;
                   justify-content: left;
@@ -1825,9 +1837,17 @@
                 }
 
                 .bio-text {
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
                   font-size: 16px;
                   font-weight: 400;
                   line-height: 26px;
+
+                  .bio-container {
+                    overflow-y: auto;
+                    max-height: 200px;
+                  }
                 }
               }
 

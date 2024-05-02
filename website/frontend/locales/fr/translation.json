@@ -320,7 +320,8 @@
         "speakers": "Conférenciers",
         "schedule": "Calendrier et inscription",
         "partners": "Partenaires",
-        "Travel": "Logistique de voyage"
+        "Travel": "Logistique de voyage",
+        "Glossary": "Glossaire"
       },
       "sections": {
         "committee": "Comité de programme",
@@ -335,13 +336,21 @@
           "No_data": "Nous organisons une sélection exceptionnelle d’experts. Revenez bientôt pour les mises à jour !"
         },
         "registration": "Inscription",
+        "sponsorship": "Opportunités de parrainage",
+        "sponsorship_partners": "Opportunités de sponsoring",
+        "sponsorship_package": "Forfaits de parrainage",
         "partners": {
-          "fund": "Partenaires de financement",
-          "others": "Partenaires hôtes",
-          "coConvening": "Réunir les partenaires"
+          "label": "Partenaires",
+          "fund": "Partenaires financiers",
+          "others": "Partenaires d'accueil",
+          "coConvening": "Partenaires co-organisateurs",
+          "sponsor": "Sponsors"
         },
-        "travel": "Logistique de voyage",
-        "support": "Soutien",
+        "travel": "Vaccination",
+        "visa": "Lettre d'invitation pour visa",
+        "accommodation": "Hébergement",
+        "support": "demandes de renseignements et <br/> clarifications :",
+        "glossary": "Glossaire de l'air pur",
         "No_data": "À venir ..."
       }
     }
