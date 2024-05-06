@@ -121,7 +121,13 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer }) => {
               ) : (
                 <SideBarItem label='Analytics' Icon={BarChartIcon} navPath='/analytics' />
               )}
-              <hr className='my-3 h-[0.5px] bg-grey-150' />
+              {isCollapsed ? (
+                <hr className='my-3 h-[0.5px] bg-grey-150 transition-all duration-300 ease-in-out' />
+              ) : (
+                <div className='text-xs text-[#6F87A1] px-[10px] my-3 mx-4 font-semibold transition-all duration-300 ease-in-out'>
+                  Network
+                </div>
+              )}
               {checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES') && (
                 <>
                   {isCollapsed ? (

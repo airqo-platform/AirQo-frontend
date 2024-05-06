@@ -59,7 +59,7 @@ export const SidebarIconItem = ({ IconComponent, navPath }) => {
   return (
     <Link href={navPath}>
       <a
-        className={`relative flex items-center p-4 rounded cursor-pointer ${
+        className={`relative flex items-center p-4 rounded-xl cursor-pointer ${
           isCurrentRoute ? 'bg-light-blue' : ''
         } hover:bg-gray-200 transition-all duration-300 ease-in-out`}>
         {isCurrentRoute && (
@@ -81,7 +81,7 @@ const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, t
   return (
     <div
       className={`cursor-pointer ${
-        toggleState && 'bg-sidebar-blue rounded'
+        toggleState && 'bg-sidebar-blue rounded-xl'
       } transition-all duration-300 ease-in-out`}
       role='button'
       tabIndex={0}
@@ -96,7 +96,7 @@ const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, t
             />
             <div
               className={`flex items-center py-3 px-4 w-full ${
-                isCurrentRoute && 'bg-primary-50 rounded'
+                isCurrentRoute && 'bg-primary-50 rounded-xl'
               }`}>
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center mr-4 ${
