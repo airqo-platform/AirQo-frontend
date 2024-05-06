@@ -6,6 +6,7 @@ import {
   setLocation,
   setOpenLocationDetails,
   setSelectedLocation,
+  addSuggestedSites,
 } from '@/lib/store/services/map/MapSlice';
 import allCountries from './countries.json';
 import SearchField from '@/components/search/SearchField';
@@ -66,7 +67,7 @@ const TabSelector = ({ selectedTab, setSelectedTab }) => {
  * CountryList
  * @description Country list component
  */
-const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
+const CountryList = ({ siteDetails, data, selectedCountry, setSelectedCountry }) => {
   const dispatch = useDispatch();
 
   // Check if data is not null or undefined
@@ -88,6 +89,12 @@ const CountryList = ({ data, selectedCountry, setSelectedCountry }) => {
   const handleClick = (country) => {
     setSelectedCountry(country);
     dispatch(setLocation({ country: country.country }));
+    // sort the siteDetails by country and set them as selected Sites
+    const selectedSites = siteDetails.filter((site) => site.country === country.country) || [];
+    if (selectedSites.length > 0) {
+      selectedSites.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    dispatch(addSuggestedSites(selectedSites));
   };
 
   return (
@@ -375,7 +382,7 @@ const SearchResultsSkeleton = () => (
   </div>
 );
 
-const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSideBar }) => {
+const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
   const dispatch = useDispatch();
   const [isFocused, setIsFocused] = useState(false);
   const [countryData, setCountryData] = useState([]);
@@ -405,6 +412,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
   const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
 
   const focus = isFocused || reduxSearchTerm.length > 0;
+  const selectedSites = useSelector((state) => state.map.suggestedSites);
 
   useEffect(() => {
     dispatch(setOpenLocationDetails(false));
@@ -594,6 +602,12 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                     dispatch(setCenter({ latitude: 16.1532, longitude: 13.1691 }));
                     dispatch(setZoom(1.5));
                     dispatch(setSelectedLocation(null));
+                    const selSites = siteDetails
+                      ? [...siteDetails].sort((a, b) => a.name.localeCompare(b.name))
+                      : [];
+                    dispatch(addSuggestedSites(selSites));
+                    setSelectedCountry(null);
+                    dispatch(setLocation(null));
                   }}
                   className='py-[6px] px-[10px] rounded-full mb-5 bg-blue-500 text-white text-sm font-medium'>
                   All
@@ -602,6 +616,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                   data={countryData}
                   selectedCountry={selectedCountry}
                   setSelectedCountry={setSelectedCountry}
+                  siteDetails={siteDetails}
                 />
               </div>
 
@@ -620,13 +635,13 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
                           {/* <option value='near_me'>Near me</option> */}
                         </select>
                       </div>
-                      <Button
+                      {/* <Button
                         className='text-sm font-medium'
                         paddingStyles='p-0'
                         variant='primaryText'
                         onClick={() => {}}>
                         Filters
-                      </Button>
+                      </Button> */}
                     </div>
                     <SectionCards
                       searchResults={selectedSites}

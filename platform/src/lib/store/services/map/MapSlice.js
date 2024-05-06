@@ -13,6 +13,7 @@ const initialState = {
   showLocationDetails: false,
   selectedLocation: null,
   mapLoading: false,
+  suggestedSites: [],
 };
 
 export const mapSlice = createSlice({
@@ -46,6 +47,9 @@ export const mapSlice = createSlice({
     setMapLoading: (state, action) => {
       state.mapLoading = action.payload;
     },
+    addSuggestedSites: (state, action) => {
+      state.suggestedSites = action.payload;
+    },
   },
 });
 
@@ -57,4 +61,5 @@ export const {
   setOpenLocationDetails,
   setSelectedLocation,
   setMapLoading,
+  addSuggestedSites,
 } = mapSlice.actions;
