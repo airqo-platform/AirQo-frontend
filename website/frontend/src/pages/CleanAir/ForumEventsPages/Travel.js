@@ -2,17 +2,18 @@ import React from 'react';
 import { SplitTextSection } from 'components/CleanAir';
 import { useTranslation, Trans } from 'react-i18next';
 
-const Travel = ({ travelLogistics, support }) => {
+const Travel = ({ vaccinationDetails, support, visaDetails, accommodation }) => {
   const { t } = useTranslation();
   return (
     <>
-      {travelLogistics && (
+      {/* Vaccination Section */}
+      {vaccinationDetails && (
         <>
           <div className="separator" />
           <section className="about travel">
             <SplitTextSection
               lists={[]}
-              content={<div dangerouslySetInnerHTML={{ __html: travelLogistics }} />}
+              content={<div dangerouslySetInnerHTML={{ __html: vaccinationDetails }} />}
               title={<h2 className="section_title">{t('cleanAirSite.Forum.sections.travel')}</h2>}
               bgColor="#FFFFFF"
             />
@@ -20,30 +21,71 @@ const Travel = ({ travelLogistics, support }) => {
         </>
       )}
 
+      {/* Visa Section */}
+      {visaDetails && (
+        <>
+          <div className="separator" />
+          <section className="about travel">
+            <SplitTextSection
+              lists={[]}
+              content={<div dangerouslySetInnerHTML={{ __html: visaDetails }} />}
+              title={<h2 className="section_title">{t('cleanAirSite.Forum.sections.visa')}</h2>}
+              bgColor="#FFFFFF"
+            />
+          </section>
+        </>
+      )}
+
+      {/* Accommodation section */}
+      {accommodation && (
+        <>
+          <div className="separator" />
+          <section className="about travel">
+            <SplitTextSection
+              lists={[]}
+              content={<div dangerouslySetInnerHTML={{ __html: accommodation }} />}
+              title={
+                <h2 className="section_title">{t('cleanAirSite.Forum.sections.accommodation')}</h2>
+              }
+              bgColor="#FFFFFF"
+            />
+          </section>
+        </>
+      )}
+
+      {/* Support section */}
       {support && support.length > 0 && (
-        <section className="about support">
-          <SplitTextSection
-            lists={[]}
-            content={
-              <div className="engagements_list">
-                {support.map((support) => (
-                  <div key={support.id}>
-                    <h3>{support.query}</h3>
-                    <p>{support.name}</p>
-                    <p>{support.role}</p>
-                    <a href={`mailto:${support.email}`}>{support.email}</a>
-                  </div>
-                ))}
-              </div>
-            }
-            title={<h2 className="section_title">{t('cleanAirSite.Forum.sections.support')}</h2>}
-            bgColor="#FFFFFF"
-          />
-        </section>
+        <>
+          <div className="separator" />
+          <section className="about support">
+            <SplitTextSection
+              lists={[]}
+              content={
+                <div className="engagements_list">
+                  {support.map((support) => (
+                    <div key={support.id}>
+                      <h3>{support.query}</h3>
+                      <p>{support.name}</p>
+                      <p>{support.role}</p>
+                      <a href={`mailto:${support.email}`}>{support.email}</a>
+                    </div>
+                  ))}
+                </div>
+              }
+              title={
+                <h2
+                  className="section_title"
+                  dangerouslySetInnerHTML={{ __html: t('cleanAirSite.Forum.sections.support') }}
+                />
+              }
+              bgColor="#FFFFFF"
+            />
+          </section>
+        </>
       )}
 
       {/* if both are empty */}
-      {!travelLogistics && support.length === 0 && (
+      {!vaccinationDetails && visaDetails && support.length === 0 && (
         <div
           style={{
             display: 'flex',

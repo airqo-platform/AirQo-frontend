@@ -6,6 +6,7 @@ const Index = ({ engagements, forumEvents }) => {
   const { t } = useTranslation();
   return (
     <>
+      {/* Introduction section */}
       {forumEvents[0].introduction_html && (
         <>
           <div className="separator" />
@@ -20,9 +21,10 @@ const Index = ({ engagements, forumEvents }) => {
           </section>
         </>
       )}
+
+      {/* Engagements section */}
       {engagements && engagements.objectives.length > 0 && (
         <>
-          <div className="separator" />
           <section className="about">
             <SplitTextSection
               lists={[]}
@@ -42,52 +44,72 @@ const Index = ({ engagements, forumEvents }) => {
           </section>
         </>
       )}
-      <div className="separator" />
-      <section className="about">
-        <SplitTextSection
-          lists={[]}
-          content={
-            <div className="engagements_list">
-              <p style={{ marginBottom: '20px' }}>
-                This will be a largely in-person convening with limited hybrid sessions. You can{' '}
-                <a href="https://forms.gle/Bkx2iHM4gMRTLQ757" target="_blank">
-                  register your interest here
-                </a>{' '}
-                and stay tuned for more details!{' '}
-              </p>
-              <p style={{ marginBottom: '20px' }}>
-                <b>
-                  Attendance and participation is by invitation only, but there will be limited
-                  opportunities for abstract submissions
-                </b>
-              </p>
-              <p>Details on call for abstracts will be shared separately.</p>
-            </div>
-          }
-          title={
-            <h2 className="section_title">
-              Registration <br />
-              information
-            </h2>
-          }
-          bgColor="#FFFFFF"
-        />
-      </section>
-      {forumEvents[0].sponsorship_details_html && (
+
+      {/* Sponsorship Opportunities section */}
+      {forumEvents[0].sponsorship_opportunities_about_html && (
         <>
           <div className="separator" />
-          <section className="about">
-            <h2 className="section_title">Sponsorship opportunities</h2>
-            <div className="engagements_list">
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: forumEvents.length > 0 && forumEvents[0].sponsorship_details_html
-                }}
-              />
-            </div>
+          <section className="about registration">
+            <SplitTextSection
+              lists={[]}
+              content={
+                <div className="engagements_list">
+                  <div>
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html:
+                          forumEvents.length > 0 &&
+                          forumEvents[0].sponsorship_opportunities_about_html
+                      }}
+                    />
+                  </div>
+                </div>
+              }
+              title={
+                <h2
+                  className="section_title"
+                  dangerouslySetInnerHTML={{ __html: t('cleanAirSite.Forum.sections.sponsorship') }}
+                />
+              }
+              bgColor="#FFFFFF"
+            />
           </section>
         </>
       )}
+
+      {/* Sponsorship Packages section */}
+      {forumEvents[0].sponsorship_packages_html && (
+        <>
+          <div className="separator" />
+          <section className="about registration">
+            <SplitTextSection
+              lists={[]}
+              content={
+                <div className="engagements_list">
+                  <div>
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: forumEvents.length > 0 && forumEvents[0].sponsorship_packages_html
+                      }}
+                    />
+                  </div>
+                </div>
+              }
+              title={
+                <h2
+                  className="section_title"
+                  dangerouslySetInnerHTML={{
+                    __html: t('cleanAirSite.Forum.sections.sponsorship_package')
+                  }}
+                />
+              }
+              bgColor="#FFFFFF"
+            />
+          </section>
+        </>
+      )}
+
+      <div className="separator" />
     </>
   );
 };
