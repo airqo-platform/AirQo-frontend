@@ -61,7 +61,7 @@ export const SidebarIconItem = ({ IconComponent, navPath }) => {
       <a
         className={`relative flex items-center p-4 rounded cursor-pointer ${
           isCurrentRoute ? 'bg-light-blue' : ''
-        } hover:bg-gray-200`}>
+        } hover:bg-gray-200 transition-all duration-300 ease-in-out`}>
         {isCurrentRoute && (
           <span className='bg-blue-600 w-1 h-1/2 mr-2 absolute rounded-xl -left-2'></span>
         )}
@@ -80,7 +80,9 @@ const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, t
 
   return (
     <div
-      className={`cursor-pointer ${toggleState && 'bg-sidebar-blue rounded'}`}
+      className={`cursor-pointer ${
+        toggleState && 'bg-sidebar-blue rounded'
+      } transition-all duration-300 ease-in-out`}
       role='button'
       tabIndex={0}
       onClick={dropdown && toggleMethod}>

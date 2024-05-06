@@ -39,7 +39,7 @@ const CollapsedSidebar = () => {
   }, [router.pathname, isCollapsed]);
 
   return (
-    <div className='w-[88px]'>
+    <div className='w-[88px] transition-all duration-300 ease-in-out'>
       <div
         className='flex bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200'
         style={{
@@ -70,15 +70,19 @@ const CollapsedSidebar = () => {
                   </div>
                 </div>
                 {dropdown && (
-                  <div
-                    ref={dropdownRef}
-                    className='fixed top-[31%] left-[95px] w-40 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-50'>
-                    <Link href={'/collocation/overview'}>
-                      <div className='w-full p-4 hover:bg-[#f3f6f8] cursor-pointer'>Overview</div>
-                    </Link>
-                    <Link href={'/collocation/collocate'}>
-                      <div className='w-full p-4 hover:bg-[#f3f6f8] cursor-pointer'>Collocate</div>
-                    </Link>
+                  <div className='relative bottom-20'>
+                    <div
+                      ref={dropdownRef}
+                      className='fixed left-24 w-40 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-50'>
+                      <Link href={'/collocation/overview'}>
+                        <div className='w-full p-4 hover:bg-[#f3f6f8] cursor-pointer'>Overview</div>
+                      </Link>
+                      <Link href={'/collocation/collocate'}>
+                        <div className='w-full p-4 hover:bg-[#f3f6f8] cursor-pointer'>
+                          Collocate
+                        </div>
+                      </Link>
+                    </div>
                   </div>
                 )}
               </div>
