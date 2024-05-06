@@ -202,7 +202,7 @@ const SidebarHeader = ({
       <label className='font-medium text-xl text-gray-900'>Air Quality Map</label>
       <button
         onClick={() => setShowSideBar(false)}
-        className='focus:outline-none border rounded-md hover:cursor-pointer block md:hidden'>
+        className='focus:outline-none border rounded-xl hover:cursor-pointer p-2 block md:hidden'>
         <CloseIcon />
       </button>
     </div>
@@ -549,7 +549,7 @@ const Sidebar = ({ siteDetails, selectedSites, isAdmin, showSideBar, setShowSide
     <div
       className={`${
         window.innerWidth < 768 ? 'absolute left-0 top-0' : 'relative'
-      } w-full md:w-[340px] bg-white shadow-lg shadow-right z-50 overflow-x-hidden ${
+      } w-full md:w-[340px] bg-white shadow-lg shadow-right z-[999] overflow-x-hidden ${
         (searchResults && searchResults.length > 0) ||
         showLocationDetails ||
         (selectedSites && selectedSites.length > 0)

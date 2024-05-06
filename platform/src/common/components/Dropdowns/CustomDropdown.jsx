@@ -42,7 +42,7 @@ const CustomDropdown = ({
       {isOpen && (
         <div className={`relative ${isCollapsed ? 'bottom-20' : ''}`}>
           <div
-            className={`${dropdownClass} mt-2 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-50 ${className}`}
+            className={`${dropdownClass} mt-2 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-[1000] ${className}`}
             style={{ width: dropdownWidth }}>
             <div className='py-1'>{children}</div>
           </div>

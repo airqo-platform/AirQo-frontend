@@ -102,7 +102,7 @@ const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, t
                 className={`w-8 h-8 rounded-full flex items-center justify-center mr-4 ${
                   isCurrentRoute && 'text-blue-600'
                 }`}>
-                <Icon fill={isCurrentRoute ? '#145FFF' : '#6F87A1'} />
+                {Icon && <Icon fill={isCurrentRoute ? '#145FFF' : '#6F87A1'} />}
               </div>
 
               <h3

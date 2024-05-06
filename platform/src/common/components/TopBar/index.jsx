@@ -16,9 +16,9 @@ import Spinner from '@/components/Spinner';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import UserIcon from '@/icons/Topbar/userIcon';
 import { clearIndividualPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
-import { toggleSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
+import { toggleSidebar, setToggleDrawer } from '@/lib/store/services/sideBar/SideBarSlice';
 
-const TopBar = ({ topbarTitle, noBorderBottom, toggleDrawer, setToggleDrawer }) => {
+const TopBar = ({ topbarTitle, noBorderBottom }) => {
   // check if current route contains navPath
   const router = useRouter();
   const dispatch = useDispatch();
@@ -91,21 +91,17 @@ const TopBar = ({ topbarTitle, noBorderBottom, toggleDrawer, setToggleDrawer }) 
 
   return (
     <nav
-      className={`sticky top-0 z-50 bg-white w-full px-6 lg:py-0 h-[76px] lg:px-16 ${
+      className={`bg-white w-full px-6 lg:py-0 h-[76px] lg:px-16 ${
         !noBorderBottom && 'border-b-[1px] border-b-grey-750'
       }`}>
-      <div className='justify-between items-center flex bg-white py-4'>
-        {/* Hamburger menu */}
-        <button
-          type='button'
-          className='lg:hidden relative flex items-center justify-start z-10 w-auto focus:outline-none border border-gray-200 rounded-md'
-          onClick={() => setToggleDrawer(!toggleDrawer)}>
-          <span className='p-2'>
-            <MenuBarIcon />
-          </span>
-        </button>
+      <div className='flex justify-between items-center bg-white py-4'>
+        {/* Logo */}
+        <div className='block lg:hidden relative  z-10 w-full'>
+          <AirqoLogo className=' w-[46.56px] h-8' />
+        </div>
 
-        <div className='font-medium invisible lg:visible text-2xl text-neutral-light-800'>
+        {/* sidebar toggle */}
+        <div className='font-medium hidden lg:block text-2xl text-neutral-light-800'>
           {isCollapsed ? (
             <button
               type='button'
@@ -117,7 +113,7 @@ const TopBar = ({ topbarTitle, noBorderBottom, toggleDrawer, setToggleDrawer }) 
           {topbarTitle}
         </div>
 
-        <div className='visible sm:flex justify-end md:justify-between items-center'>
+        <div className='hidden lg:flex justify-end md:justify-between items-center'>
           <div className='flex w-auto'>
             {/* {isCurrentRoute ? null : <TopBarItem Icon={SearchMdIcon} />} */}
             <div className='relative'>
@@ -206,9 +202,15 @@ const TopBar = ({ topbarTitle, noBorderBottom, toggleDrawer, setToggleDrawer }) 
           </div>
         </div>
 
-        {/* <div className='lg:hidden relative flex items-center justify-end  z-10 w-full'>
-          <AirqoLogo className=' w-[46.56px] h-8' />
-        </div> */}
+        {/* Hamburger menu */}
+        <button
+          type='button'
+          className='lg:hidden relative flex items-center justify-start z-10 w-auto focus:outline-none border border-gray-200 rounded-xl'
+          onClick={() => dispatch(setToggleDrawer(true))}>
+          <span className='p-2'>
+            <MenuBarIcon />
+          </span>
+        </button>
       </div>
     </nav>
   );

@@ -28,7 +28,6 @@ const Layout = ({
   const chartData = useSelector((state) => state.chart);
   const userInfo = useSelector((state) => state.login.userInfo);
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
-  const [toggleDrawer, setToggleDrawer] = useState(false);
 
   useEffect(() => {
     const setChartProperties = async () => {
@@ -103,19 +102,14 @@ const Layout = ({
         <title>{pageTitle}</title>
         <meta property='og:title' content={pageTitle} key='title' />
       </Head>
-      <div className=' w-screen h-screen  overflow-x-hidden' data-testid='layout'>
-        <div className=' lg:flex w-screen h-screen'>
-          <div>
-            <AuthenticatedSideBar toggleDrawer={toggleDrawer} setToggleDrawer={setToggleDrawer} />
-          </div>
-          <div className='w-full overflow-x-hidden'>
+      <div className='w-full h-dvh overflow-hidden' data-testid='layout'>
+        <div className='flex'>
+          <AuthenticatedSideBar />
+          <div className='w-full h-dvh overflow-y-auto'>
             {noTopNav && (
-              <TopBar
-                topbarTitle={topbarTitle}
-                noBorderBottom={noBorderBottom}
-                toggleDrawer={toggleDrawer}
-                setToggleDrawer={setToggleDrawer}
-              />
+              <div className='sticky top-0 z-50'>
+                <TopBar topbarTitle={topbarTitle} noBorderBottom={noBorderBottom} />
+              </div>
             )}
             {children}
           </div>
