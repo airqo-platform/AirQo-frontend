@@ -91,7 +91,7 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer }) => {
         <div
           className={`${
             size.width >= 1024 ? 'flex' : sideBarDisplayStyle
-          } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200`}>
+          } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden`}>
           <div>
             <div className='p-4 justify-between items-center flex'>
               <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
@@ -134,7 +134,7 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer }) => {
                     <div className='relative'>
                       <div onClick={toggleDropdown}>
                         <div
-                          className={`relative flex items-center p-4 rounded cursor-pointer ${
+                          className={`relative flex items-center p-4 rounded-xl cursor-pointer ${
                             isCurrentRoute ? 'bg-light-blue' : ''
                           } hover:bg-gray-200`}>
                           {isCurrentRoute && (
@@ -185,7 +185,7 @@ const AuthenticatedSideBar = ({ toggleDrawer, setToggleDrawer }) => {
               )}
             </div>
           </div>
-          <div className='mx-2 mb-3'>
+          <div className='mx-4 mb-3'>
             {isCollapsed ? (
               <SidebarIconItem IconComponent={SettingsIcon} navPath='/settings' />
             ) : (
