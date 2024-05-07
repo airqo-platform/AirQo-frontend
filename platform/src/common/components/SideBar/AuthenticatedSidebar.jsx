@@ -9,6 +9,7 @@ import HomeIcon from '@/icons/SideBar/HomeIcon';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import CollocateIcon from '@/icons/SideBar/CollocateIcon';
+import LogoutIcon from '@/icons/SideBar/LogoutIcon';
 import OrganizationDropdown from '../Dropdowns/OrganizationDropdown';
 import { checkAccess } from '@/core/utils/protectedRoute';
 import PersonIcon from '@/icons/Settings/PersonIcon';
@@ -147,7 +148,11 @@ const AuthenticatedSideBar = () => {
           <div>
             <div className='p-4 flex justify-between items-center'>
               {size.width < 1024 ? (
-                <>
+                <div
+                  className='cursor-pointer'
+                  onClick={() => {
+                    router.push('/settings');
+                  }}>
                   {userInfo.profilePicture ? (
                     <img
                       className='w-12 h-12 rounded-full object-cover'
@@ -159,7 +164,7 @@ const AuthenticatedSideBar = () => {
                       <PersonIcon fill='#485972' />
                     </div>
                   )}
-                </>
+                </div>
               ) : (
                 <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
               )}
@@ -261,7 +266,7 @@ const AuthenticatedSideBar = () => {
             )}
             {size.width < 1024 && (
               <div onClick={handleLogout}>
-                <SideBarItem label={isLoading ? 'Logging out...' : 'Logout'} Icon={null} />
+                <SideBarItem label={isLoading ? 'Logging out...' : 'Logout'} Icon={LogoutIcon} />
               </div>
             )}
           </div>
