@@ -47,7 +47,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   const mapRef = useRef();
   const indexRef = useRef();
   const dropdownRef = useRef(null);
-  const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/streets-v11');
   const [isOpen, setIsOpen] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -59,7 +58,10 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     type: '',
     bgColor: '',
   });
+
+  // Default node type is Emoji and default map style is streets
   const [NodeType, setNodeType] = useState('Emoji');
+  const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/streets-v11');
   useOutsideClick(dropdownRef, () => setIsOpen(false));
   const [selectedNode, setSelectedNode] = useState(null);
 
@@ -110,28 +112,31 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
       setLoading(true);
       const response = await getMapReadings();
       const data = response.measurements
-        .filter((item) => item.siteDetails)
-        .map((item) => ({
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: [
-              item.siteDetails.approximate_longitude,
-              item.siteDetails.approximate_latitude,
-            ],
-          },
-          properties: {
-            _id: item.siteDetails._id,
-            location: item.siteDetails.name,
-            airQuality: item.aqi_category,
-            no2: item.no2.value,
-            pm10: item.pm10.value,
-            pm2_5: item.pm2_5.value,
-            createdAt: item.createdAt,
-            time: item.time,
-            aqi: getAQICategory(pollutant, item[pollutant].value),
-          },
-        }));
+        .filter((item) => item.siteDetails && item.no2 && item.pm10 && item.pm2_5)
+        .map((item) => {
+          const aqi = getAQICategory(pollutant, item[pollutant].value);
+          return {
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: [
+                item.siteDetails.approximate_longitude,
+                item.siteDetails.approximate_latitude,
+              ],
+            },
+            properties: {
+              _id: item.siteDetails._id,
+              location: item.siteDetails.name,
+              airQuality: item.aqi_category,
+              no2: item.no2.value,
+              pm10: item.pm10.value,
+              pm2_5: item.pm2_5.value,
+              createdAt: item.createdAt,
+              time: item.time,
+              aqi: aqi || 'Unknown', // Ensure aqi is always defined
+            },
+          };
+        });
       setLoading(false);
       dispatch(setMapLoading(false));
       return data;
@@ -140,6 +145,49 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
       setLoading(false);
       dispatch(setMapLoading(false));
     }
+  };
+
+  /**
+   * Get the two most common AQIs in a cluster
+   * @param {Object} cluster - Cluster object
+   * @returns {Array} - Array of two most common AQIs
+   * @sideEffect
+   * - Get all original points in the cluster
+   * - Create an object to count the occurrences of each AQI
+   */
+  const getTwoMostCommonAQIs = (cluster) => {
+    // Get all original points in the cluster
+    const leaves = indexRef.current.getLeaves(cluster.properties.cluster_id, Infinity);
+
+    // Create an object to count the occurrences of each AQI
+    const aqiCounts = {};
+    leaves.forEach((leaf) => {
+      const aqi = leaf.properties.airQuality;
+      if (aqiCounts[aqi]) {
+        aqiCounts[aqi]++;
+      } else {
+        aqiCounts[aqi] = 1;
+      }
+    });
+
+    // Sort the AQIs by their counts in descending order
+    const sortedAQIs = Object.entries(aqiCounts).sort((a, b) => b[1] - a[1]);
+
+    // Get the two AQIs with the highest counts
+    let mostCommonAQIs = sortedAQIs.slice(0, 2).map((aqi) => aqi[0]);
+
+    // If there is only one unique AQI, duplicate it
+    if (mostCommonAQIs.length < 2) {
+      mostCommonAQIs = [mostCommonAQIs[0], mostCommonAQIs[0]];
+    }
+
+    // Find the leaves with the most common AQIs
+    const leavesWithMostCommonAQIs = mostCommonAQIs.map((aqi) =>
+      leaves.find((leaf) => leaf.properties.airQuality === aqi),
+    );
+
+    // Return the most common AQIs along with their associated properties
+    return leavesWithMostCommonAQIs.map((leaf) => leaf.properties.aqi);
   };
 
   /**
@@ -217,6 +265,13 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
           el.zIndex = 444;
           el.className =
             'clustered flex justify-center items-center bg-white rounded-full p-2 shadow-md';
+
+          // Get the two most common AQIs in the cluster
+          const mostCommonAQIs = getTwoMostCommonAQIs(feature);
+
+          // Include the most common AQIs in the properties of the cluster feature
+          feature.properties.aqi = mostCommonAQIs;
+
           el.innerHTML = createClusterNode({ feature, NodeType });
           const marker = new mapboxgl.Marker(el)
             .setLngLat(feature.geometry.coordinates)
