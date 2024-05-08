@@ -57,6 +57,9 @@ const TeamsView = lazy(() => import('./views/pages/Teams/TeamsView'));
 const SimRegistry = lazy(() => import('./views/components/SIM/SimRegistry'));
 const UserStats = lazy(() => import('./views/pages/UserStats/UserStats'));
 const ClientActivation = lazy(() => import('./views/pages/clients'));
+const FaultDetection = lazy(() =>
+  import('./views/components/DataDisplay/DeviceManagement/ManagementFaults')
+);
 
 const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
@@ -94,16 +97,16 @@ const AppRoutes = ({ auth, logoutUser }) => {
   }, [auth.isAuthenticated]);
 
   return (
-    <Router>
+    <Router basename="/netmanager">
       <div className="App">
         <Suspense fallback={<LargeCircularLoader loading={true} height={'calc(100vh - 114px)'} />}>
           <Switch>
-            <Route exact path="/netmanager" component={Landing} />
-            <Route exact path="/netmanager/login/:tenant?" component={Login} />
-            <Route exact path="/netmanager/forgot/:tenant?" component={ForgotPassword} />
-            <Route exact path="/netmanager/reset" component={ResetPassword} />
-            <Route exact path="/netmanager/request-access/:tenant?" component={Register} />
-            <PrivateRoute exact path="/netmanager/analytics" component={Analytics} layout={MainLayout} />
+            <Route exact path="/" component={Landing} />
+            <Route exact path="/login/:tenant?" component={Login} />
+            <Route exact path="/forgot/:tenant?" component={ForgotPassword} />
+            <Route exact path="/reset" component={ResetPassword} />
+            <Route exact path="/request-access/:tenant?" component={Register} />
+            <PrivateRoute exact path="/analytics" component={Analytics} layout={MainLayout} />
             <PrivateRoute
               exact
               path="/admin/users/assigned-users"
@@ -144,6 +147,12 @@ const AppRoutes = ({ auth, logoutUser }) => {
             </Route>
             <PrivateRoute component={Account} exact layout={MainLayout} path="/account" />
             <PrivateRoute exact path="/manager/map" component={ManagerMap} layout={MainLayout} />
+            <PrivateRoute
+              exact
+              path="/manager/fault_detection"
+              component={FaultDetection}
+              layout={MainLayout}
+            />
             <PrivateRoute
               exact
               path="/manager/stats"
