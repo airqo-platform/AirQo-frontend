@@ -75,17 +75,6 @@ const messages = {
 };
 
 /**
- * Get random key from object
- * @param {Object} obj
- * @returns {String}
- */
-const getRandomKey = (obj) => {
-  const keys = Object.keys(obj);
-  let key = keys[Math.floor(Math.random() * keys.length)];
-  return key;
-};
-
-/**
  * Get AQI category based on pollutant and value
  * @param {String} pollutant
  * @param {Number} value
@@ -139,8 +128,6 @@ export const UnclusteredNode = ({ feature, NodeType, selectedNode }) => {
     const Icon = images[feature.properties.aqi.icon];
     const isActive = selectedNode && selectedNode === feature.properties._id ? 'active' : '';
 
-    console.log('isActive', isActive);
-
     if (NodeType === 'Number') {
       return `
       <div id="${feature.properties._id}" class="unClustered-Number shadow-md ${isActive}"
@@ -187,10 +174,13 @@ export const createClusterNode = ({ feature, NodeType }) => {
   const [firstAQI, secondAQI] = feature.properties.aqi;
 
   // Get the corresponding colors and icons for the AQIs
-  const firstColor = colors[firstAQI.icon];
-  const secondColor = colors[secondAQI.icon];
-  const FirstIcon = images[firstAQI.icon];
-  const SecondIcon = images[secondAQI.icon];
+  const firstColor = colors[firstAQI.aqi.icon];
+  const secondColor = colors[secondAQI.aqi.icon];
+  const FirstIcon = images[firstAQI.aqi.icon];
+  const SecondIcon = images[secondAQI.aqi.icon];
+
+  const firstAQIValue = (firstAQI.pm2_5 || firstAQI.no2 || firstAQI.pm10).toFixed(2);
+  const secondAQIValue = (secondAQI.pm2_5 || secondAQI.no2 || secondAQI.pm10).toFixed(2);
 
   // Get the correct count for the nodes in the cluster
   const count = feature.properties.point_count;
@@ -199,11 +189,11 @@ export const createClusterNode = ({ feature, NodeType }) => {
   if (NodeType === 'Number' || NodeType === 'Node') {
     return `
       <div class="flex -space-x-3 rtl:space-x-reverse items-center justify-center">
-          <div class="w-8 h-8 z-20 rounded-full border-white flex justify-center items-center text-[8px] overflow-hidden" style="background:${firstColor}">${
-      NodeType !== 'Node' ? firstAQI.value : ''
+          <div class="w-8 h-8 z-20 rounded-full flex justify-center items-center border border-gray-300 text-[8px] overflow-hidden" style="background:${firstColor}">${
+      NodeType !== 'Node' ? firstAQIValue : ''
     }</div>
-          <div class="w-8 h-8 z-10 rounded-full border-white flex justify-center items-center text-[8px] overflow-hidden" style="background:${secondColor}">${
-      NodeType !== 'Node' ? secondAQI.value : ''
+          <div class="w-8 h-8 z-10 rounded-full flex justify-center border border-gray-300 items-center text-[8px] overflow-hidden" style="background:${secondColor}">${
+      NodeType !== 'Node' ? secondAQIValue : ''
     }</div>
       </div>
 

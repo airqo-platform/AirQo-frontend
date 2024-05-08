@@ -187,7 +187,12 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     );
 
     // Return the most common AQIs along with their associated properties
-    return leavesWithMostCommonAQIs.map((leaf) => leaf.properties.aqi);
+    return leavesWithMostCommonAQIs.map((leaf) => ({
+      aqi: leaf.properties.aqi,
+      pm2_5: leaf.properties.pm2_5,
+      pm10: leaf.properties.pm10,
+      no2: leaf.properties.no2,
+    }));
   };
 
   /**
@@ -288,7 +293,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     } catch (error) {
       console.error('Error updating clusters: ', error);
     }
-  }, [selectedNode, NodeType, pollutant, refresh]);
+  }, [selectedNode, NodeType, pollutant, mapStyle, refresh]);
 
   /**
    * Initialize the map
@@ -321,40 +326,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
 
           const geolocateControl = new CustomGeolocateControl(setToastMessage);
           map.addControl(geolocateControl, 'bottom-right');
-
-          // Load data
-          let data;
-          try {
-            data = await fetchData();
-            if (!data) {
-              throw new Error('No data returned from fetchData');
-            }
-          } catch (error) {
-            console.error('Error fetching data: ', error);
-            return;
-          }
-
-          /**
-           * Initialize Supercluster
-           */
-          const index = new Supercluster({
-            radius: 40,
-            maxZoom: 16,
-          });
-
-          try {
-            index.load(data);
-          } catch (error) {
-            console.error('Error loading data into Supercluster: ', error);
-            return;
-          }
-
-          // Assign the index instance to indexRef.current
-          indexRef.current = index;
-
-          map.on('zoomend', updateClusters);
-          map.on('moveend', updateClusters);
-          updateClusters();
         });
       } catch (error) {
         console.error('Error initializing the Map: ', error);
@@ -366,7 +337,51 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     return () => {
       mapRef.current.remove();
     };
-  }, [mapStyle, mapboxApiAccessToken, updateClusters]);
+  }, [mapStyle, NodeType, mapboxApiAccessToken]);
+
+  // Update the clusters
+  useEffect(() => {
+    const clusterUpdate = async () => {
+      const map = mapRef.current;
+
+      // Load data
+      let data;
+      try {
+        data = await fetchData();
+        if (!data) {
+          throw new Error('No data returned from fetchData');
+        }
+      } catch (error) {
+        console.error('Error fetching data: ', error);
+        return;
+      }
+
+      /**
+       * Initialize Supercluster
+       */
+      const index = new Supercluster({
+        radius: 60,
+        maxZoom: 20,
+      });
+
+      try {
+        index.load(data);
+      } catch (error) {
+        console.error('Error loading data into Supercluster: ', error);
+        return;
+      }
+
+      // Assign the index instance to indexRef.current
+      indexRef.current = index;
+
+      map.on('zoomend', updateClusters);
+      map.on('moveend', updateClusters);
+
+      updateClusters();
+    };
+
+    clusterUpdate();
+  }, [selectedNode, NodeType, mapStyle, pollutant, refresh]);
 
   /**
    * Resize the map
