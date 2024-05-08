@@ -155,7 +155,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
    * - Get all original points in the cluster
    * - Create an object to count the occurrences of each AQI
    */
-  const getTwoMostCommonAQIs = (cluster) => {
+  const getTwoMostCommonAQIs = useCallback((cluster) => {
     // Get all original points in the cluster
     const leaves = indexRef.current.getLeaves(cluster.properties.cluster_id, Infinity);
 
@@ -193,7 +193,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
       pm10: leaf.properties.pm10,
       no2: leaf.properties.no2,
     }));
-  };
+  }, []);
 
   /**
    * Update clusters
