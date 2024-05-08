@@ -44,9 +44,6 @@ const Organisation = lazy(() => import('./views/pages/Organisation'));
 const Logs = lazy(() => import('./views/pages/Logs'));
 const ExportDownloads = lazy(() => import('./views/pages/ExportData/downloads'));
 const ExportData = lazy(() => import('./views/pages/ExportData'));
-const FaultDetection = lazy(() =>
-  import('./views/components/DataDisplay/DeviceManagement/ManagementFaults')
-);
 const Analytics = lazy(() => import('./views/pages/Analytics'));
 const HostRegistry = lazy(() => import('./views/components/Hosts/HostRegistry'));
 const HostView = lazy(() => import('./views/components/Hosts/HostView'));
@@ -101,12 +98,12 @@ const AppRoutes = ({ auth, logoutUser }) => {
       <div className="App">
         <Suspense fallback={<LargeCircularLoader loading={true} height={'calc(100vh - 114px)'} />}>
           <Switch>
-            <Route exact path="/netmanager" component={Landing} />
-            <Route exact path="/netmanager/login/:tenant?" component={Login} />
-            <Route exact path="/netmanager/forgot/:tenant?" component={ForgotPassword} />
-            <Route exact path="/netmanager/reset" component={ResetPassword} />
-            <Route exact path="/netmanager/request-access/:tenant?" component={Register} />
-            <PrivateRoute exact path="/netmanager/analytics" component={Analytics} layout={MainLayout} />
+            <Route exact path="/" component={Landing} />
+            <Route exact path="/login/:tenant?" component={Login} />
+            <Route exact path="/forgot/:tenant?" component={ForgotPassword} />
+            <Route exact path="/reset" component={ResetPassword} />
+            <Route exact path="/request-access/:tenant?" component={Register} />
+            <PrivateRoute exact path="/analytics" component={Analytics} layout={MainLayout} />
             <PrivateRoute
               exact
               path="/admin/users/assigned-users"
@@ -157,12 +154,6 @@ const AppRoutes = ({ auth, logoutUser }) => {
               exact
               path="/manager/activities"
               component={SiteActivities}
-              layout={MainLayout}
-            />
-            <PrivateRoute
-              exact
-              path="/manager/fault_detection"
-              component={FaultDetection}
               layout={MainLayout}
             />
             <PrivateRoute exact path="/hosts" component={HostRegistry} layout={MainLayout} />
