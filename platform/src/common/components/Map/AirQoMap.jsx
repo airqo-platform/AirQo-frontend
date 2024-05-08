@@ -360,8 +360,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
        * Initialize Supercluster
        */
       const index = new Supercluster({
-        radius: 30,
-        maxZoom: 18,
+        radius: 60,
+        maxZoom: 20,
       });
 
       try {
