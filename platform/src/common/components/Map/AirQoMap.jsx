@@ -160,30 +160,23 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     const leaves = indexRef.current.getLeaves(cluster.properties.cluster_id, Infinity);
 
     // Create an object to count the occurrences of each AQI
-    const aqiCounts = {};
-    leaves.forEach((leaf) => {
+    const aqiCounts = leaves.reduce((acc, leaf) => {
       const aqi = leaf.properties.airQuality;
-      if (aqiCounts[aqi]) {
-        aqiCounts[aqi]++;
-      } else {
-        aqiCounts[aqi] = 1;
-      }
-    });
+      acc[aqi] = (acc[aqi] || 0) + 1;
+      return acc;
+    }, {});
 
     // Sort the AQIs by their counts in descending order
     const sortedAQIs = Object.entries(aqiCounts).sort((a, b) => b[1] - a[1]);
 
     // Get the two AQIs with the highest counts
-    let mostCommonAQIs = sortedAQIs.slice(0, 2).map((aqi) => aqi[0]);
-
-    // If there is only one unique AQI, duplicate it
-    if (mostCommonAQIs.length < 2) {
-      mostCommonAQIs = [mostCommonAQIs[0], mostCommonAQIs[0]];
-    }
+    let mostCommonAQIs =
+      sortedAQIs.length > 1 ? sortedAQIs.slice(0, 2) : [sortedAQIs[0], sortedAQIs[0]];
+    mostCommonAQIs = mostCommonAQIs.map((aqi) => aqi[0]);
 
     // Find the leaves with the most common AQIs
-    const leavesWithMostCommonAQIs = mostCommonAQIs.map((aqi) =>
-      leaves.find((leaf) => leaf.properties.airQuality === aqi),
+    const leavesWithMostCommonAQIs = leaves.filter((leaf) =>
+      mostCommonAQIs.includes(leaf.properties.airQuality),
     );
 
     // Return the most common AQIs along with their associated properties
