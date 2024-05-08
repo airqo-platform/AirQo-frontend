@@ -98,12 +98,12 @@ const AppRoutes = ({ auth, logoutUser }) => {
       <div className="App">
         <Suspense fallback={<LargeCircularLoader loading={true} height={'calc(100vh - 114px)'} />}>
           <Switch>
-            <Route exact path="/" component={Landing} />
-            <Route exact path="/login/:tenant?" component={Login} />
-            <Route exact path="/forgot/:tenant?" component={ForgotPassword} />
-            <Route exact path="/reset" component={ResetPassword} />
-            <Route exact path="/request-access/:tenant?" component={Register} />
-            <PrivateRoute exact path="/analytics" component={Analytics} layout={MainLayout} />
+            <Route exact path="/netmanager" component={Landing} />
+            <Route exact path="/netmanager/login/:tenant?" component={Login} />
+            <Route exact path="/netmanager/forgot/:tenant?" component={ForgotPassword} />
+            <Route exact path="/netmanager/reset" component={ResetPassword} />
+            <Route exact path="/netmanager/request-access/:tenant?" component={Register} />
+            <PrivateRoute exact path="/netmanager/analytics" component={Analytics} layout={MainLayout} />
             <PrivateRoute
               exact
               path="/admin/users/assigned-users"
