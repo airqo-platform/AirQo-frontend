@@ -4,7 +4,6 @@ import 'package:animations/animations.dart';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
-import 'package:app/screens/email_link/email_link_page.dart';
 import 'package:app/screens/profile/profile_view.dart';
 import 'package:app/screens/settings/update_screen.dart';
 import 'package:app/services/services.dart';
@@ -17,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -25,7 +25,6 @@ import 'for_you_page.dart';
 import 'map/map_view.dart';
 
 import 'offline_banner.dart';
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -242,23 +241,6 @@ class _HomePageState extends State<HomePage> {
         });
       }
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final user = CustomAuth.getUser();
-      if ((user != null && user.phoneNumber != null)) {
-        if (user.email != null) {
-          return;
-        } else if (user.isAnonymous) {
-          return;
-        }
-        if (mounted) {
-          await bottomSheetEmailLink(context);
-        }
-      }
-    });
-  }
-
-  Future<void> showEmailLinkBottomSheet(BuildContext context) async {
-    await bottomSheetEmailLink(context);
   }
 
   Future<void> _initializeDynamicLinks() async {
