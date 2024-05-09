@@ -100,18 +100,22 @@ const Speakers = ({ speakers, sectionText, keyNoteSpeakers }) => {
         </>
       )}
 
-      {speakers && speakers.length === 0 && keyNoteSpeakers && keyNoteSpeakers.length === 0 && (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            textAlign: 'center',
-            alignItems: 'center',
-            height: '50vh'
-          }}>
-          {t('cleanAirSite.Forum.sections.speakers.No_data')}
-        </div>
-      )}
+      {speakers &&
+        speakers.length === 0 &&
+        keyNoteSpeakers &&
+        keyNoteSpeakers.length === 0 &&
+        sectionText === '' && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              textAlign: 'center',
+              alignItems: 'center',
+              height: '50vh'
+            }}>
+            {t('cleanAirSite.Forum.sections.speakers.No_data')}
+          </div>
+        )}
     </>
   );
 };
