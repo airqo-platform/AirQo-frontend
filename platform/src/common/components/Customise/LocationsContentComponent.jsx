@@ -309,10 +309,16 @@ const LocationsContentComponent = ({ selectedLocations }) => {
                   key={location.id}
                 >
                   <LocationIcon />
-                  <div className='text-sm text-black capitalize'>
+                  <div className='text-sm text-black capitalize w-full text-ellipsis text-nowrap'>
                     {location?.place_name?.split(',')[0]}
                     <span className='text-grey-400'>
-                      {location?.place_name?.split(',').slice(1).join(',')}
+                      {location?.place_name?.split(',').slice(1).join(',').length > 16
+                        ? `${location?.place_name
+                            ?.split(',')
+                            .slice(1)
+                            .join(',')
+                            .substring(0, 16)}...`
+                        : location?.place_name?.split(',').slice(1).join(',')}
                     </span>
                   </div>
                 </div>
