@@ -528,11 +528,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
         ))}
 
       {/* Map control buttons */}
-      <div
-        className='absolute top-4 right-0'
-        style={{
-          zIndex: 9999,
-        }}>
+      <div className='absolute top-4 right-0 z-50'>
         <div className='flex flex-col gap-4'>
           <div className='relative'>
             <div className='relative inline-block' ref={dropdownRef}>
