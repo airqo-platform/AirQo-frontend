@@ -21,6 +21,7 @@ import { groupInfoSlice } from './services/groups/GroupInfoSlice';
 import { mapSlice } from './services/map/MapSlice';
 import { locationSearchSlice } from './services/search/LocationSearchSlice';
 import { apiClientSlice } from './services/apiClient/index';
+import sidebarReducer from './services/sideBar/SideBarSlice';
 
 const persistConfig = {
   key: 'root',
@@ -29,6 +30,7 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
   deviceRegistry: deviceRegistryReducer,
+  sidebar: sidebarReducer,
   collocation: collocationReducer,
   selectedCollocateDevices: selectedCollocateDevicesReducer,
   collocationData: collocationDataReducer,

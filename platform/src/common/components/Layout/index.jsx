@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserChecklists } from '@/lib/store/services/checklists/CheckData';
 import { updateCards } from '@/lib/store/services/checklists/CheckList';
 import Head from 'next/head';
+import { toggleSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
 
 const Layout = ({
   pageTitle = 'AirQo Analytics',
@@ -27,10 +28,6 @@ const Layout = ({
   const chartData = useSelector((state) => state.chart);
   const userInfo = useSelector((state) => state.login.userInfo);
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
-  const [toggleDrawer, setToggleDrawer] = useState(false);
-  const [collapsed, setCollapsed] = useState(
-    () => JSON.parse(localStorage.getItem('collapsed')) || false,
-  );
 
   useEffect(() => {
     const setChartProperties = async () => {
@@ -83,16 +80,13 @@ const Layout = ({
 
   useEffect(fetchData, [dispatch, userInfo]);
 
-  useEffect(() => {
-    localStorage.setItem('collapsed', collapsed);
-  }, [collapsed]);
-
   // handling media query change
   useEffect(() => {
     const mediaQuery = window.matchMedia(MAX_WIDTH);
     const handleMediaQueryChange = (e) => {
-      setToggleDrawer(false);
-      setCollapsed(false);
+      if (e.matches) {
+        dispatch(toggleSidebar());
+      }
     };
 
     mediaQuery.addEventListener('change', handleMediaQueryChange);
@@ -108,26 +102,14 @@ const Layout = ({
         <title>{pageTitle}</title>
         <meta property='og:title' content={pageTitle} key='title' />
       </Head>
-      <div className=' w-screen h-screen  overflow-x-hidden' data-testid='layout'>
-        <div className=' lg:flex w-screen h-screen'>
-          <div>
-            <AuthenticatedSideBar
-              toggleDrawer={toggleDrawer}
-              setToggleDrawer={setToggleDrawer}
-              collapsed={collapsed}
-              setCollapsed={setCollapsed}
-            />
-          </div>
-          <div className='w-full overflow-x-hidden'>
+      <div className='w-full h-dvh overflow-hidden' data-testid='layout'>
+        <div className='flex'>
+          <AuthenticatedSideBar />
+          <div className='w-full h-dvh overflow-y-auto'>
             {noTopNav && (
-              <TopBar
-                topbarTitle={topbarTitle}
-                noBorderBottom={noBorderBottom}
-                toggleDrawer={toggleDrawer}
-                setToggleDrawer={setToggleDrawer}
-                collapsed={collapsed}
-                setCollapsed={setCollapsed}
-              />
+              <div className='sticky top-0 z-50'>
+                <TopBar topbarTitle={topbarTitle} noBorderBottom={noBorderBottom} />
+              </div>
             )}
             {children}
           </div>
