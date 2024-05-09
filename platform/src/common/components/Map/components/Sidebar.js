@@ -48,16 +48,14 @@ const TabSelector = ({ selectedTab, setSelectedTab }) => {
           onClick={() => setSelectedTab('locations')}
           className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
             selectedTab === 'locations' ? 'border rounded-md bg-white shadow-sm' : ''
-          }`}
-        >
+          }`}>
           Locations
         </div>
         <div
           onClick={() => setSelectedTab('sites')}
           className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
             selectedTab === 'sites' ? 'border rounded-md bg-white shadow-sm' : ''
-          }`}
-        >
+          }`}>
           Sites
         </div>
       </div>
@@ -113,8 +111,7 @@ const CountryList = ({ siteDetails, data, selectedCountry, setSelectedCountry })
             className={`flex items-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 py-[6px] px-[10px]  min-w-max space-x-2 m-0 ${
               selectedCountry?.country === country.country ? 'border-2 border-blue-400' : ''
             }`}
-            onClick={() => handleClick(country)}
-          >
+            onClick={() => handleClick(country)}>
             <img
               src={`https://flagsapi.com/${country.code.toUpperCase()}/flat/64.png`}
               alt={country.country}
@@ -165,8 +162,7 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
           <div
             key={grid._id || grid.id}
             className='flex flex-row justify-between items-center text-sm w-full hover:cursor-pointer hover:bg-blue-100 px-4 py-[14px] rounded-xl border border-secondary-neutral-light-100 shadow'
-            onClick={() => handleLocationSelect(grid)}
-          >
+            onClick={() => handleLocationSelect(grid)}>
             <div className='flex flex-col item-start w-full'>
               <span className='text-base font-medium text-black capitalize'>
                 {grid && grid.place_name
@@ -190,8 +186,7 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
               variant='primaryText'
               className='text-sm font-medium'
               paddingStyles='py-4'
-              onClick={handleShowMore}
-            >
+              onClick={handleShowMore}>
               Show More
             </Button>
           </div>
@@ -214,8 +209,7 @@ const SidebarHeader = ({
       <label className='font-medium text-xl text-gray-900'>Air Quality Map</label>
       <button
         onClick={() => setShowSideBar(false)}
-        className='focus:outline-none border rounded-md hover:cursor-pointer block md:hidden'
-      >
+        className='focus:outline-none border rounded-md hover:cursor-pointer block md:hidden'>
         <CloseIcon />
       </button>
     </div>
@@ -282,8 +276,7 @@ const WeekPrediction = ({ currentDay, weeklyPredictions, weekDays, loading }) =>
                   currentDay
                     ? 'bg-blue-600'
                     : 'bg-secondary-neutral-dark-100'
-                }`}
-              >
+                }`}>
                 <div className='flex flex-col items-center justify-start gap-[3px]'>
                   <div
                     className={`text-center text-sm font-semibold leading-tight ${
@@ -291,8 +284,7 @@ const WeekPrediction = ({ currentDay, weeklyPredictions, weekDays, loading }) =>
                       currentDay
                         ? 'text-primary-300'
                         : 'text-secondary-neutral-dark-400'
-                    }`}
-                  >
+                    }`}>
                     {new Date(prediction.time)
                       .toLocaleDateString('en-US', { weekday: 'long' })
                       .charAt(0)}
@@ -309,8 +301,7 @@ const WeekPrediction = ({ currentDay, weeklyPredictions, weekDays, loading }) =>
                         }) === currentDay
                           ? 'text-white'
                           : 'text-secondary-neutral-dark-200'
-                      }`}
-                    >
+                      }`}>
                       {prediction?.pm2_5?.toFixed(0)}
                     </div>
                   )}
@@ -330,8 +321,7 @@ const WeekPrediction = ({ currentDay, weeklyPredictions, weekDays, loading }) =>
           : weekDays.map((day) => (
               <div
                 className='rounded-[40px] px-0.5 pt-1.5 pb-0.5 flex flex-col justify-center items-center gap-2 shadow bg-secondary-neutral-dark-100'
-                key={day}
-              >
+                key={day}>
                 <div className='flex flex-col items-center justify-start gap-[3px]'>
                   <div className='text-center text-sm font-semibold leading-tight text-secondary-neutral-dark-400'>
                     {day.charAt(0)}
@@ -361,8 +351,7 @@ const LocationDetailItem = ({ title, children, isCollapsed = true }) => {
     <div className='p-3 bg-white rounded-lg shadow border border-secondary-neutral-dark-100 flex-col justify-center items-center'>
       <div
         className={`flex justify-between items-center ${collapsed && 'mb-2'} cursor-pointer`}
-        onClick={() => setCollapsed(!collapsed)}
-      >
+        onClick={() => setCollapsed(!collapsed)}>
         <div className='flex justify-start items-center gap-3'>
           <div className='w-10 h-10 rounded-full bg-secondary-neutral-dark-50 p-2 flex items-center justify-center text-xl font-bold'>
             🚨
@@ -574,8 +563,7 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
         (selectedSites && selectedSites.length > 0)
           ? 'overflow-y-auto map-scrollbar h-full'
           : 'h-screen overflow-y-hidden'
-      }`}
-    >
+      }`}>
       <div className={`${!isFocused && !showLocationDetails ? 'space-y-4' : 'hidden'} px-4 pt-4`}>
         <SidebarHeader
           selectedTab={selectedTab}
@@ -608,12 +596,11 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
                   countryData
                     ? 'overflow-x-auto map-scrollbar custom-scrollbar'
                     : 'overflow-x-hidden'
-                } px-4`}
-              >
+                } px-4`}>
                 <button
                   onClick={() => {
-                    dispatch(setCenter({ latitude: 16.1532, longitude: 13.1691 }));
-                    dispatch(setZoom(1.5));
+                    dispatch(setCenter({ latitude: 4.15, longitude: 23.12 }));
+                    dispatch(setZoom(2.88));
                     dispatch(setSelectedLocation(null));
                     const selSites = siteDetails
                       ? [...siteDetails].sort((a, b) => a.name.localeCompare(b.name))
@@ -622,8 +609,7 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
                     setSelectedCountry(null);
                     dispatch(setLocation(null));
                   }}
-                  className='py-[6px] px-[10px] rounded-full mb-5 bg-blue-500 text-white text-sm font-medium'
-                >
+                  className='py-[6px] px-[10px] rounded-full mb-5 bg-blue-500 text-white text-sm font-medium'>
                   All
                 </button>
                 <CountryList
@@ -672,8 +658,7 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
         <div
           className={`flex flex-col pt-4 w-auto ${
             isFocused && !showLocationDetails ? '' : 'hidden'
-          }`}
-        >
+          }`}>
           <div className={`flex flex-col gap-5 px-4`}>
             <SidebarHeader
               selectedTab={selectedTab}
@@ -730,8 +715,7 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
                     dispatch(addSearchTerm(''));
                     setSearchResults([]);
                     setShowNoResultsMsg(false);
-                  }}
-                >
+                  }}>
                   <ArrowLeftIcon />
                 </Button>
                 <h3 className='text-xl font-medium leading-7 capitalize'>
@@ -766,8 +750,7 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
                     </p>
                   </div>
                   <div
-                    className={`text-2xl font-extrabold leading-normal text-secondary-neutral-light-800`}
-                  >
+                    className={`text-2xl font-extrabold leading-normal text-secondary-neutral-light-800`}>
                     {selectedSite?.pm2_5?.toFixed(2) || '-'}
                   </div>
                 </div>
