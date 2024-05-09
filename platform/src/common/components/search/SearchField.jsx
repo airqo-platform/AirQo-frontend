@@ -5,7 +5,12 @@ import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import CloseIcon from '@/icons/close_icon';
 import { useSelector } from 'react-redux';
 
-const SearchField = ({ onSearch = () => {}, onClearSearch = () => {}, focus = true }) => {
+const SearchField = ({
+  onSearch = () => {},
+  onClearSearch = () => {},
+  focus = true,
+  showSearchResultsNumber = true,
+}) => {
   const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState('');
   const inputRef = useRef(null);
@@ -50,15 +55,16 @@ const SearchField = ({ onSearch = () => {}, onClearSearch = () => {}, focus = tr
         {reduxSearchTerm && (
           <span
             className='absolute flex justify-center items-center mr-2 h-5 w-5 right-0 pb-[2px] cursor-pointer'
-            onClick={clearSearch}>
+            onClick={clearSearch}
+          >
             <CloseIcon />
           </span>
         )}
       </div>
-      {reduxSearchTerm && reduxSearchTerm.length < 4 && (
+      {showSearchResultsNumber && reduxSearchTerm && reduxSearchTerm.length < 4 && (
         <div className='bg-secondary-neutral-dark-50 rounded-lg w-full h-5' />
       )}
-      {reduxSearchTerm && reduxSearchTerm.length > 3 && (
+      {showSearchResultsNumber && reduxSearchTerm && reduxSearchTerm.length > 3 && (
         <p className='text-sm font-medium leading-tight text-secondary-neutral-dark-400'>
           Results for <span className='text-secondary-neutral-dark-700'>"{reduxSearchTerm}"</span>
         </p>

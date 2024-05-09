@@ -15,6 +15,22 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import Spinner from '@/components/Spinner';
 import AlertBox from '@/components/AlertBox';
 import useOutsideClick from '@/core/utils/useOutsideClick';
+import SearchField from '@/components/search/SearchField';
+import axios from 'axios';
+
+const MAPBOX_URL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+
+const SearchResultsSkeleton = () => (
+  <div className='flex flex-col gap-1 animate-pulse'>
+    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-3' />
+    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-3' />
+    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-3' />
+    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-3' />
+    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-3' />
+    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-3' />
+  </div>
+);
 
 /**
  * @param {Object} props
@@ -38,7 +54,8 @@ const LocationItemCards = ({
     key={location._id}
     ref={innerRef}
     {...draggableProps}
-    {...dragHandleProps}>
+    {...dragHandleProps}
+  >
     <div className='flex flex-row items-center overflow-x-clip'>
       <div>{showActiveStarIcon ? <DragIcon /> : <DragIconLight />}</div>
       <span className='text-sm text-secondary-neutral-light-800 font-medium'>{location.name}</span>
@@ -52,13 +69,15 @@ const LocationItemCards = ({
       {showActiveStarIcon ? (
         <div
           className='bg-primary-600 rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
-          onClick={() => handleLocationSelect(location)}>
+          onClick={() => handleLocationSelect(location)}
+        >
           <StarIcon />
         </div>
       ) : (
         <div
           className='border border-input-light-outline rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
-          onClick={() => handleLocationSelect(location)}>
+          onClick={() => handleLocationSelect(location)}
+        >
           <StarIconLight />
         </div>
       )}
@@ -84,6 +103,8 @@ const LocationsContentComponent = ({ selectedLocations }) => {
   const gridsData = useSelector((state) => state.grids.sitesSummary);
   const gridLocationsData = (gridsData && gridsData.sites) || [];
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingResults, setIsLoadingResults] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
 
   const [location, setLocation] = useState('');
   const [inputSelect, setInputSelect] = useState(false);
@@ -96,6 +117,9 @@ const LocationsContentComponent = ({ selectedLocations }) => {
     message: '',
     type: '',
   });
+  const [isFocused, setIsFocused] = useState(false);
+  const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
+  const focus = isFocused || reduxSearchTerm.length > 0;
 
   useEffect(() => {
     if (gridLocationsData && gridLocationsData.length > 0) {
@@ -139,26 +163,36 @@ const LocationsContentComponent = ({ selectedLocations }) => {
   /**
    * @param {Object} e
    * @returns {void}
-   * @description Filters the locations based on the search query
-   * and updates the filtered locations array
-   */
-  const filterBySearch = (e) => {
-    const query = e.target.value.toLowerCase();
-    const locationList = gridLocationsData.filter((location) =>
-      location.name.toLowerCase().includes(query),
-    );
-    setFilteredLocations(locationList);
-  };
-
-  /**
-   * @param {Object} e
-   * @returns {void}
    * @description Handles the location entry and filters the locations based on the search query
    */
-  const handleLocationEntry = (e) => {
+  const handleLocationEntry = async () => {
     setInputSelect(false);
-    filterBySearch(e);
-    setLocation(e.target.value);
+    setIsLoadingResults(true);
+    if (reduxSearchTerm && reduxSearchTerm.length > 3) {
+      setLocation(reduxSearchTerm);
+      try {
+        const response = await axios.get(
+          `${MAPBOX_URL}/${reduxSearchTerm}.json?fuzzyMatch=true&limit=8&proximity=32.5638%2C0.3201&autocomplete=true&access_token=${MAPBOX_TOKEN}`,
+        );
+
+        if (response.data && response.data.features) {
+          setFilteredLocations(response.data.features);
+        }
+      } catch (error) {
+        console.error('Failed to search:', error);
+      } finally {
+        setIsLoadingResults(false);
+      }
+    } else {
+      setFilteredLocations([]);
+      setIsLoadingResults(false);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setIsFocused(false);
+    setFilteredLocations([]);
+    setLocation('');
   };
 
   /**
@@ -250,35 +284,37 @@ const LocationsContentComponent = ({ selectedLocations }) => {
   return (
     <div>
       <div className='mt-6'>
-        <div className='w-full flex flex-row items-center justify-start'>
-          <div className='flex items-center justify-center pl-3 bg-white border h-12 rounded-lg rounded-r-none border-r-0 border-input-light-outline focus:border-input-light-outline'>
-            <SearchIcon />
-          </div>
-          <input
-            onChange={(e) => {
-              handleLocationEntry(e);
-            }}
-            value={location}
-            placeholder='Search Villages, Cities or Country'
-            className='input text-sm text-secondary-neutral-light-800 w-full h-12 ml-0 rounded-lg bg-white border-l-0 rounded-l-none border-input-light-outline focus:border-input-light-outline'
-          />
-        </div>
-        {location !== '' && (
+        <SearchField
+          onSearch={handleLocationEntry}
+          onClearSearch={handleClearSearch}
+          focus={focus}
+          showSearchResultsNumber={false}
+        />
+        {reduxSearchTerm !== '' && (
           <div
             ref={searchRef}
             className={`bg-white max-h-48 overflow-y-scroll px-3 pt-2 pr-1 my-1 border border-input-light-outline rounded-md ${
               inputSelect ? 'hidden' : 'relative'
-            }`}>
-            {filteredLocations && filteredLocations.length > 0 ? (
+            }`}
+          >
+            {isLoadingResults ? (
+              <SearchResultsSkeleton />
+            ) : filteredLocations && filteredLocations.length > 0 ? (
               filteredLocations.map((location) => (
                 <div
-                  className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer'
+                  className='flex items-center mb-0.5 hover:cursor-pointer gap-2'
                   onClick={() => {
                     handleLocationSelect(location);
                   }}
-                  key={location._id}>
+                  key={location.id}
+                >
                   <LocationIcon />
-                  <div className='text-sm ml-1 text-black capitalize'>{location.name}</div>
+                  <div className='text-sm text-black capitalize'>
+                    {location?.place_name?.split(',')[0]}
+                    <span className='text-grey-400'>
+                      {location?.place_name?.split(',').slice(1).join(',')}
+                    </span>
+                  </div>
                 </div>
               ))
             ) : (
