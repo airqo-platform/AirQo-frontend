@@ -102,8 +102,7 @@ const index = () => {
             <div className='flex flex-col space-y-4'>
               <button
                 className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-                onClick={() => setShowSideBar(!showSideBar)}
-              >
+                onClick={() => setShowSideBar(!showSideBar)}>
                 <MenuIcon />
               </button>
             </div>

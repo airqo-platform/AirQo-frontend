@@ -18,11 +18,12 @@ export const images = {
   VeryUnhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<VeryUnhealthy />))}`,
   Hazardous: `data:image/svg+xml,${encodeURIComponent(renderToString(<Hazardous />))}`,
   Invalid: '/images/map/Invalid.png',
+  undefined: '/images/map/Invalid.png',
 };
 
 const markerDetails = {
   pm2_5: [
-    { limit: 500.5, category: 'Invalid' },
+    { limit: 500.5, category: 'Invalid' || 'undefined' },
     { limit: 250.5, category: 'Hazardous' },
     { limit: 150.5, category: 'VeryUnhealthy' },
     { limit: 55.5, category: 'Unhealthy' },
@@ -31,7 +32,7 @@ const markerDetails = {
     { limit: 0.0, category: 'GoodAir' },
   ],
   pm10: [
-    { limit: 604.1, category: 'Invalid' },
+    { limit: 604.1, category: 'Invalid' || 'undefined' },
     { limit: 424.1, category: 'Hazardous' },
     { limit: 354.1, category: 'VeryUnhealthy' },
     { limit: 254.1, category: 'Unhealthy' },
@@ -40,7 +41,7 @@ const markerDetails = {
     { limit: 0.0, category: 'GoodAir' },
   ],
   no2: [
-    { limit: 2049.1, category: 'Invalid' },
+    { limit: 2049.1, category: 'Invalid' || 'undefined' },
     { limit: 1249.1, category: 'Hazardous' },
     { limit: 649.1, category: 'VeryUnhealthy' },
     { limit: 360.1, category: 'Unhealthy' },
@@ -58,6 +59,7 @@ const colors = {
   UnhealthyForSensitiveGroups: '#FF851F',
   ModerateAir: '#FFD633',
   GoodAir: '#34C759',
+  undefined: '#C6D1DB',
 };
 
 const messages = {
@@ -70,17 +72,6 @@ const messages = {
     'Reduce the intensity of your outdoor activities. Try to stay indoors until the air quality improves.',
   Hazardous:
     'If you have to spend a lot of time outside, disposable masks like the N95 are helpful.',
-};
-
-/**
- * Get random key from object
- * @param {Object} obj
- * @returns {String}
- */
-const getRandomKey = (obj) => {
-  const keys = Object.keys(obj);
-  let key = keys[Math.floor(Math.random() * keys.length)];
-  return key;
 };
 
 /**
@@ -179,35 +170,31 @@ export const UnclusteredNode = ({ feature, NodeType, selectedNode }) => {
  * @returns {String}
  */
 export const createClusterNode = ({ feature, NodeType }) => {
-  // Randomly select two different colors
-  let firstColorKey, secondColorKey;
-  do {
-    firstColorKey = getRandomKey(colors);
-    secondColorKey = getRandomKey(colors);
-  } while (firstColorKey === secondColorKey);
+  // Get the two most common AQIs from the feature properties
+  const [firstAQI, secondAQI] = feature.properties.aqi;
 
-  // Randomly select two different images
-  let firstImageKey, secondImageKey;
-  do {
-    firstImageKey = getRandomKey(images);
-    secondImageKey = getRandomKey(images);
-  } while (firstImageKey === secondImageKey);
+  // Get the corresponding colors and icons for the AQIs
+  const firstColor = colors[firstAQI.aqi.icon];
+  const secondColor = colors[secondAQI.aqi.icon];
+  const FirstIcon = images[firstAQI.aqi.icon];
+  const SecondIcon = images[secondAQI.aqi.icon];
 
-  const FirstIcon = images[firstImageKey];
-  const SecondIcon = images[secondImageKey];
+  const firstAQIValue = (firstAQI.pm2_5 || firstAQI.no2 || firstAQI.pm10).toFixed(2);
+  const secondAQIValue = (secondAQI.pm2_5 || secondAQI.no2 || secondAQI.pm10).toFixed(2);
 
-  const count = feature.properties.point_count_abbreviated;
+  // Get the correct count for the nodes in the cluster
+  const count = feature.properties.point_count;
   const countDisplay = count > 2 ? `${count - 2} + ` : '';
 
   if (NodeType === 'Number' || NodeType === 'Node') {
     return `
       <div class="flex -space-x-3 rtl:space-x-reverse items-center justify-center">
-          <div class="w-8 h-8 z-20 rounded-full border-white flex justify-center items-center text-[8px] overflow-hidden" style="background:${
-            colors[firstColorKey]
-          }">${NodeType !== 'Node' ? '12.02' : ''}</div>
-          <div class="w-8 h-8 z-10 rounded-full border-white flex justify-center items-center text-[8px] overflow-hidden" style="background:${
-            colors[secondColorKey]
-          }">${NodeType !== 'Node' ? '112.23' : ''}</div>
+          <div class="w-8 h-8 z-20 rounded-full flex justify-center items-center border border-gray-300 text-[8px] overflow-hidden" style="background:${firstColor}">${
+      NodeType !== 'Node' ? firstAQIValue : ''
+    }</div>
+          <div class="w-8 h-8 z-10 rounded-full flex justify-center border border-gray-300 items-center text-[8px] overflow-hidden" style="background:${secondColor}">${
+      NodeType !== 'Node' ? secondAQIValue : ''
+    }</div>
       </div>
 
       <div class="text-black text-sm font-bold ml-2">${countDisplay}</div>
@@ -216,8 +203,8 @@ export const createClusterNode = ({ feature, NodeType }) => {
 
   return `
     <div class="flex -space-x-3 rtl:space-x-reverse">
-      <img class="w-8 h-8 border-2 border-white rounded-full z-20" src="${FirstIcon}" alt="AQI Icon">
-      <img class="w-8 h-8 border-2 border-white rounded-full z-10" src="${SecondIcon}" alt="AQI Icon">
+      <img class="w-8 h-8 border-2 border-white rounded-full z-20" src="${FirstIcon}" alt="${FirstIcon}">
+      <img class="w-8 h-8 border-2 border-white rounded-full z-10" src="${SecondIcon}" alt="${SecondIcon}">
     </div>
     <div class="text-black text-sm font-bold ml-2" style="${
       countDisplay ? 'block' : 'none'
@@ -234,6 +221,12 @@ export const createClusterNode = ({ feature, NodeType }) => {
 export const createPopupHTML = ({ feature, images }) => {
   if (!feature || !feature.properties) {
     console.error('Invalid feature properties');
+    return '';
+  }
+
+  // Check if feature.properties.pm2_5 and feature.properties.aqi are defined
+  if (!feature.properties.pm2_5 || !feature.properties.aqi) {
+    console.error('Invalid AQI or PM2.5 data');
     return '';
   }
 
