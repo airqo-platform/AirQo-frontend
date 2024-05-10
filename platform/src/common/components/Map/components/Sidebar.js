@@ -599,8 +599,8 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
                 } px-4`}>
                 <button
                   onClick={() => {
-                    dispatch(setCenter({ latitude: 4.15, longitude: 23.12 }));
-                    dispatch(setZoom(2.88));
+                    dispatch(setCenter({ latitude: 4.413, longitude: 19.8342 }));
+                    dispatch(setZoom(3.12));
                     dispatch(setSelectedLocation(null));
                     const selSites = siteDetails
                       ? [...siteDetails].sort((a, b) => a.name.localeCompare(b.name))
