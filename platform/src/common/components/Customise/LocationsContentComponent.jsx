@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   setSelectedLocations,
   getSitesSummary,
+  setGridsSummary,
 } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import SearchIcon from '@/icons/Common/search_md.svg';
 import LocationIcon from '@/icons/SideBar/Sites.svg';
@@ -17,6 +18,9 @@ import AlertBox from '@/components/AlertBox';
 import useOutsideClick from '@/core/utils/useOutsideClick';
 import SearchField from '@/components/search/SearchField';
 import axios from 'axios';
+import { getNearestSite, getGridsSummaryApi } from '@/core/apis/DeviceRegistry';
+import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
+import allCountries from '../Map/components/countries.json';
 
 const MAPBOX_URL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -97,16 +101,16 @@ const NoSuggestions = ({ message }) => (
   </div>
 );
 
-const LocationsContentComponent = ({ selectedLocations }) => {
+const LocationsContentComponent = ({ selectedLocations, resetSearchData = false }) => {
   const dispatch = useDispatch();
   const searchRef = useRef(null);
-  const gridsData = useSelector((state) => state.grids.sitesSummary);
-  const gridLocationsData = (gridsData && gridsData.sites) || [];
+  const sitesData = useSelector((state) => state.grids.sitesSummary);
+  const gridLocationsData = (sitesData && sitesData.sites) || [];
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingResults, setIsLoadingResults] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
+  const gridsSummaryData = useSelector((state) => state.grids.gridsSummary);
+  const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
 
-  const [location, setLocation] = useState('');
   const [inputSelect, setInputSelect] = useState(false);
   const [locationArray, setLocationArray] = useState(selectedLocations);
   const [filteredLocations, setFilteredLocations] = useState([]);
@@ -118,8 +122,40 @@ const LocationsContentComponent = ({ selectedLocations }) => {
     type: '',
   });
   const [isFocused, setIsFocused] = useState(false);
-  const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
+  const [airqoCountries, setAirqoCountries] = useState([]);
+
   const focus = isFocused || reduxSearchTerm.length > 0;
+
+  useEffect(() => {
+    const fetchGridsData = async () => {
+      if (!gridsSummaryData) {
+        try {
+          const response = await getGridsSummaryApi();
+          if (response && response.success) {
+            dispatch(setGridsSummary(response.grids));
+          }
+        } catch (error) {
+          console.error('Failed to get grids summary:', error);
+        }
+      }
+    };
+    fetchGridsData();
+  }, []);
+
+  useEffect(() => {
+    if (gridsSummaryData && gridsSummaryData.length > 0) {
+      // Check if selected grid admin_level is country
+      const countryNames = gridsSummaryData
+        .filter((grid) => grid.admin_level.toLowerCase() === 'country')
+        .map((country) => country.name.toLowerCase());
+
+      const countryDetails = allCountries.filter((country) =>
+        countryNames.includes(country.country.toLowerCase()),
+      );
+      const countryCodes = countryDetails.map((country) => country.code);
+      setAirqoCountries(countryCodes);
+    }
+  }, [gridsSummaryData]);
 
   useEffect(() => {
     if (gridLocationsData && gridLocationsData.length > 0) {
@@ -169,10 +205,11 @@ const LocationsContentComponent = ({ selectedLocations }) => {
     setInputSelect(false);
     setIsLoadingResults(true);
     if (reduxSearchTerm && reduxSearchTerm.length > 3) {
-      setLocation(reduxSearchTerm);
       try {
         const response = await axios.get(
-          `${MAPBOX_URL}/${reduxSearchTerm}.json?fuzzyMatch=true&limit=8&proximity=32.5638%2C0.3201&autocomplete=true&access_token=${MAPBOX_TOKEN}`,
+          `${MAPBOX_URL}/${reduxSearchTerm}.json?fuzzyMatch=true&limit=8&proximity=32.5638%2C0.3201&autocomplete=true&access_token=${MAPBOX_TOKEN}&country=${airqoCountries.join(
+            ',',
+          )}`,
         );
 
         if (response.data && response.data.features) {
@@ -189,10 +226,10 @@ const LocationsContentComponent = ({ selectedLocations }) => {
     }
   };
 
-  const handleClearSearch = () => {
+  const resetSearch = () => {
+    dispatch(addSearchTerm(''));
     setIsFocused(false);
-    setFilteredLocations([]);
-    setLocation('');
+    setFilteredLocations(unSelectedLocations);
   };
 
   /**
@@ -202,9 +239,9 @@ const LocationsContentComponent = ({ selectedLocations }) => {
    * and resets the search input
    */
   useOutsideClick(searchRef, () => {
+    dispatch(addSearchTerm(''));
     setFilteredLocations(unSelectedLocations);
     setInputSelect(!inputSelect);
-    setLocation('');
   });
 
   /**
@@ -213,32 +250,59 @@ const LocationsContentComponent = ({ selectedLocations }) => {
    * @description Handles the selection of a location and adds it to the selected locations
    * array
    */
-  const handleLocationSelect = (item) => {
-    const newLocationArray = [...locationArray];
-    const index = newLocationArray.findIndex((location) => location._id === item._id);
+  const handleLocationSelect = async (item) => {
+    dispatch(addSearchTerm(''));
+    try {
+      let newLocationValue;
+      if (item?.geometry) {
+        const response = await getNearestSite({
+          latitude: item?.geometry?.coordinates[1],
+          longitude: item?.geometry?.coordinates[0],
+          radius: 4,
+        });
 
-    if (index !== -1) {
-      newLocationArray.splice(index, 1);
-    } else if (newLocationArray.length < 4) {
-      newLocationArray.push(item);
-      const unselectedIndex = unSelectedLocations.findIndex(
-        (location) => location._id === item._id,
-      );
-      unSelectedLocations.splice(unselectedIndex, 1);
-    } else {
-      setIsError({
-        isError: true,
-        message:
-          'You have reached the limit of 4 locations. Please remove a location before adding another.',
-        type: 'error',
-      });
-      return;
+        if (response.sites && response.sites.length > 0) {
+          newLocationValue = { ...response.sites[0], name: item?.place_name };
+        } else {
+          setIsError({
+            isError: true,
+            message: `Can't find air quality for ${
+              item?.place_name?.split(',')[0]
+            }. Please try another location.`,
+            type: 'error',
+          });
+          return;
+        }
+      } else {
+        newLocationValue = item;
+      }
+
+      const newLocationArray = [...locationArray];
+      const index = newLocationArray.findIndex((location) => location._id === newLocationValue._id);
+
+      if (index !== -1) {
+        newLocationArray.splice(index, 1);
+      } else if (newLocationArray.length < 4) {
+        newLocationArray.push(newLocationValue);
+        const unselectedIndex = unSelectedLocations.findIndex(
+          (location) => location._id === newLocationValue._id,
+        );
+        unSelectedLocations.splice(unselectedIndex, 1);
+      } else {
+        setIsError({
+          isError: true,
+          message:
+            'You have reached the limit of 4 locations. Please remove a location before adding another.',
+          type: 'error',
+        });
+        return;
+      }
+      setLocationArray(newLocationArray);
+      setDraggedLocations(newLocationArray);
+      setInputSelect(true);
+    } catch (error) {
+      console.error('Failed to get nearest site:', error);
     }
-
-    setLocationArray(newLocationArray);
-    setDraggedLocations(newLocationArray);
-    setInputSelect(true);
-    setLocation('');
   };
 
   /**
@@ -273,6 +337,22 @@ const LocationsContentComponent = ({ selectedLocations }) => {
     setDraggedLocations(items);
   };
 
+  useEffect(() => {
+    if (reduxSearchTerm !== '' && reduxSearchTerm.length < 4) {
+      setIsLoadingResults(true);
+    }
+  }, [reduxSearchTerm]);
+
+  useEffect(() => {
+    if (resetSearchData) {
+      resetSearch();
+    }
+  }, [resetSearchData]);
+
+  useEffect(() => {
+    resetSearch();
+  }, []);
+
   if (isLoading) {
     return (
       <div className='flex flex-row mt-[100px] justify-center items-center'>
@@ -286,7 +366,7 @@ const LocationsContentComponent = ({ selectedLocations }) => {
       <div className='mt-6'>
         <SearchField
           onSearch={handleLocationEntry}
-          onClearSearch={handleClearSearch}
+          onClearSearch={resetSearch}
           focus={focus}
           showSearchResultsNumber={false}
         />
@@ -309,17 +389,21 @@ const LocationsContentComponent = ({ selectedLocations }) => {
                   key={location.id}
                 >
                   <LocationIcon />
-                  <div className='text-sm text-black capitalize w-full text-ellipsis text-nowrap'>
-                    {location?.place_name?.split(',')[0]}
-                    <span className='text-grey-400'>
-                      {location?.place_name?.split(',').slice(1).join(',').length > 16
-                        ? `${location?.place_name
-                            ?.split(',')
-                            .slice(1)
-                            .join(',')
-                            .substring(0, 16)}...`
-                        : location?.place_name?.split(',').slice(1).join(',')}
-                    </span>
+                  <div className='text-sm text-black capitalize text-nowrap w-56 overflow-hidden text-ellipsis'>
+                    {location?.place_name?.split(',')[0].length > 35
+                      ? location?.place_name?.split(',')[0].substring(0, 35) + '...'
+                      : location?.place_name?.split(',')[0]}
+                    {location?.place_name?.split(',')[0].length < 20 && (
+                      <span className='text-grey-400'>
+                        {location?.place_name?.split(',').slice(1).join(',').length > 16
+                          ? `${location?.place_name
+                              ?.split(',')
+                              .slice(1)
+                              .join(',')
+                              .substring(0, 16)}...`
+                          : location?.place_name?.split(',').slice(1).join(',')}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))

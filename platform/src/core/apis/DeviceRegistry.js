@@ -5,6 +5,7 @@ import {
   READINGS_URL,
   DEVICES,
   GRID_LOCATIONS_URL,
+  NEAREST_SITE_URL,
 } from '../urls/deviceRegistry';
 
 // Get grid locations
@@ -64,5 +65,17 @@ export const updateCohortDetails = async (body, cohortID) => {
 export const getMapReadings = async () => {
   return await createAxiosInstance(false)
     .get(READINGS_URL)
+    .then((response) => response.data);
+};
+
+export const getNearestSite = async (params) => {
+  return await createAxiosInstance(false)
+    .get(NEAREST_SITE_URL, { params })
+    .then((response) => response.data);
+};
+
+export const getGridsSummaryApi = async () => {
+  return await createAxiosInstance()
+    .get(`${DEVICES}/grids/summary`)
     .then((response) => response.data);
 };

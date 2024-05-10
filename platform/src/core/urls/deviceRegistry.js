@@ -1,5 +1,4 @@
 import { stripTrailingSlash } from '../utils/strings';
-import { NEXT_PUBLIC_API_TOKEN } from '../../lib/envConstants';
 
 const BASE_DEVICE_REGISTRY_URL = stripTrailingSlash(process.env.NEXT_PUBLIC_API_BASE_URL);
 
@@ -14,3 +13,5 @@ export const SITES_URL = `${BASE_DEVICE_REGISTRY_URL}/devices/sites`;
 export const ANALYTICS_URL = `${BASE_DEVICE_REGISTRY_URL}/analytics/dashboard/chart/d3/data`;
 
 export const READINGS_URL = `${BASE_DEVICE_REGISTRY_URL}/devices/readings/map`;
+
+export const NEAREST_SITE_URL = `${BASE_DEVICE_REGISTRY_URL}/devices/sites/nearest`;

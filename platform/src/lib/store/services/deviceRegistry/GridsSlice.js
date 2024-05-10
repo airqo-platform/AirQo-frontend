@@ -7,6 +7,7 @@ const initialState = {
   success: false,
   errors: null,
   selectedLocations: [],
+  gridsSummary: [],
 };
 
 export const getGridLocation = createAsyncThunk('/get/grid', async (gridID) => {
@@ -25,6 +26,9 @@ export const gridsSlice = createSlice({
   reducers: {
     setSelectedLocations: (state, action) => {
       state.selectedLocations = action.payload;
+    },
+    setGridsSummary: (state, action) => {
+      state.gridsSummary = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -58,5 +62,5 @@ export const gridsSlice = createSlice({
   },
 });
 
-export const { setSelectedLocations } = gridsSlice.actions;
+export const { setSelectedLocations, setGridsSummary } = gridsSlice.actions;
 export default gridsSlice.reducer;
