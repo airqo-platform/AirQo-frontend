@@ -66,10 +66,35 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   useOutsideClick(dropdownRef, () => setIsOpen(false));
   const [selectedNode, setSelectedNode] = useState(null);
   const [othersLoading, setOthersLoading] = useState(false);
+  const [waqiData, setWaqiData] = useState([]);
 
   const lat = urlParams.get('lat');
   const lng = urlParams.get('lng');
   const zm = urlParams.get('zm');
+
+  /**
+   * Stop loaders after 5 seconds
+   */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+      dispatch(setMapLoading(false));
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  /**
+   * Clear data on unmount
+   * @sideEffect
+   * - Clear data on unmount when lat, lng and zm are not present
+   * @returns {void}
+   */
+  useEffect(() => {
+    if (!lat && !lng && !zm) {
+      dispatch(clearData());
+    }
+  }, []);
 
   /**
    * Initialize the map
@@ -114,18 +139,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
       mapRef.current.remove();
     };
   }, [mapStyle, NodeType, mapboxApiAccessToken]);
-
-  /**
-   * Clear data on unmount
-   * @sideEffect
-   * - Clear data on unmount when lat, lng and zm are not present
-   * @returns {void}
-   */
-  useEffect(() => {
-    if (!lat && !lng && !zm) {
-      dispatch(clearData());
-    }
-  }, []);
 
   /**
    * Set the map center and zoom
@@ -189,6 +202,162 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
       no2: leaf.properties.no2,
     }));
   }, []);
+
+  /**
+   * Fetch data from the API
+   * @returns {Promise<Array>} - Array of data
+   */
+  const fetchAndProcessAQI = async (cities) => {
+    try {
+      const responses = await Promise.allSettled(
+        cities.map((city) =>
+          axios.get(`/api/proxy?city=${city}`).then((response) => {
+            if (!response.data) {
+              console.error(`No data returned for city: ${city}`);
+              return null;
+            }
+            return { city, data: response.data };
+          }),
+        ),
+      );
+
+      return responses
+        .filter(
+          (response) =>
+            response.status === 'fulfilled' &&
+            response.value.data &&
+            response.value.data.data &&
+            response.value.data.data.city,
+        )
+        .map((response) => {
+          const res = response.value.data.data;
+          const waqiPollutant = pollutant === 'pm2_5' ? 'pm25' : pollutant;
+          const aqi = getAQICategory(pollutant, res.iaqi[waqiPollutant]?.v);
+          return {
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: [res.city.geo[1], res.city.geo[0]],
+            },
+            properties: {
+              _id: res.idx,
+              location: res.city.name,
+              airQuality: aqi?.category,
+              no2: res.iaqi.no2?.v,
+              pm10: res.iaqi.pm10?.v,
+              pm2_5: res.iaqi.pm25?.v,
+              createdAt: res.time.s,
+              time: res.time.s,
+              aqi: aqi || 'undefined',
+            },
+          };
+        });
+    } catch (error) {
+      console.error('Error fetching AQI data: ', error);
+      return [];
+    }
+  };
+
+  const processMapReadingsData = (response) => {
+    return response.measurements
+      .filter((item) => item.siteDetails && item.no2 && item.pm10 && item.pm2_5)
+      .map((item) => {
+        const aqi = getAQICategory(pollutant, item[pollutant].value);
+        return {
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [
+              item.siteDetails.approximate_longitude,
+              item.siteDetails.approximate_latitude,
+            ],
+          },
+          properties: {
+            _id: item.siteDetails._id,
+            location: item.siteDetails.name,
+            airQuality: item.aqi_category,
+            no2: item.no2.value,
+            pm10: item.pm10.value,
+            pm2_5: item.pm2_5.value,
+            createdAt: item.createdAt,
+            time: item.time,
+            aqi: aqi || 'Unknown',
+          },
+        };
+      });
+  };
+
+  const fetchAndProcessMapReadings = async () => {
+    try {
+      setLoading(true);
+      const response = await getMapReadings();
+      const mapReadingsData = processMapReadingsData(response);
+      return mapReadingsData;
+    } catch (error) {
+      console.error('Error fetching map readings data: ', error);
+      return [];
+    } finally {
+      setLoading(false);
+      dispatch(setMapLoading(false));
+    }
+  };
+
+  const fetchWaqiData = useCallback(() => {
+    setOthersLoading(true);
+    fetchAndProcessAQI(AQI_FOR_CITIES).then((data) => {
+      setWaqiData((prevData) => [...prevData, ...data]);
+      setOthersLoading(false);
+    });
+  }, []);
+
+  const clusterUpdate = useCallback(async () => {
+    const map = mapRef.current;
+
+    // Load mapReadingsData first
+    let mapReadingsData = await fetchAndProcessMapReadings();
+
+    // Initialize Supercluster with mapReadingsData
+    const index = new Supercluster({
+      radius: 40,
+      maxZoom: 16,
+    });
+
+    try {
+      index.load(mapReadingsData);
+    } catch (error) {
+      console.error('Error loading map readings data into Supercluster: ', error);
+      return;
+    }
+
+    // Assign the index instance to indexRef.current
+    indexRef.current = index;
+
+    map.on('zoomend', updateClusters);
+    map.on('moveend', updateClusters);
+
+    updateClusters();
+
+    // Combine mapReadingsData and waqiData
+    const data = [...mapReadingsData, ...waqiData];
+
+    // Update Supercluster with the combined data
+    try {
+      index.load(data);
+    } catch (error) {
+      console.error('Error loading AQI data into Supercluster: ', error);
+      return;
+    }
+
+    updateClusters();
+  }, [selectedNode, NodeType, mapStyle, pollutant, refresh, waqiData]);
+
+  useEffect(() => {
+    fetchWaqiData();
+  }, [fetchWaqiData]);
+
+  useEffect(() => {
+    clusterUpdate();
+  }, [clusterUpdate]);
 
   /**
    * Update clusters
@@ -289,173 +458,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
       console.error('Error updating clusters: ', error);
     }
   }, [selectedNode, NodeType, pollutant, mapStyle, refresh]);
-
-  /**
-   * Fetch data from the API
-   * @returns {Promise<Array>} - Array of data
-   */
-  const fetchAQI = (cities) => {
-    const responses = cities.map((city) =>
-      axios.get(`/api/proxy?city=${city}`).then((response) => {
-        if (!response.data) {
-          throw new Error(`No data returned for city: ${city}`);
-        }
-        return { city, data: response.data };
-      }),
-    );
-    return responses;
-  };
-
-  const processMapReadingsData = (response) => {
-    return response.measurements
-      .filter((item) => item.siteDetails && item.no2 && item.pm10 && item.pm2_5)
-      .map((item) => {
-        const aqi = getAQICategory(pollutant, item[pollutant].value);
-        return {
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: [
-              item.siteDetails.approximate_longitude,
-              item.siteDetails.approximate_latitude,
-            ],
-          },
-          properties: {
-            _id: item.siteDetails._id,
-            location: item.siteDetails.name,
-            airQuality: item.aqi_category,
-            no2: item.no2.value,
-            pm10: item.pm10.value,
-            pm2_5: item.pm2_5.value,
-            createdAt: item.createdAt,
-            time: item.time,
-            aqi: aqi || 'Unknown',
-          },
-        };
-      });
-  };
-
-  const processWaqiData = (waqiResponses) => {
-    return waqiResponses
-      .filter(
-        (response) =>
-          response.status === 'fulfilled' &&
-          response.value.data &&
-          response.value.data.data &&
-          response.value.data.data.city,
-      )
-      .map((response) => {
-        const res = response.value.data.data;
-        const waqiPollutant = pollutant === 'pm2_5' ? 'pm25' : pollutant;
-        const aqi = getAQICategory(pollutant, res.iaqi[waqiPollutant]?.v);
-        return {
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: [res.city.geo[1], res.city.geo[0]],
-          },
-          properties: {
-            _id: res.idx,
-            location: res.city.name,
-            airQuality: aqi?.category,
-            no2: res.iaqi.no2?.v,
-            pm10: res.iaqi.pm10?.v,
-            pm2_5: res.iaqi.pm25?.v,
-            createdAt: res.time.s,
-            time: res.time.s,
-            aqi: aqi || 'undefined',
-          },
-        };
-      });
-  };
-
-  const fetchMapReadings = async () => {
-    try {
-      setLoading(true);
-      const response = await getMapReadings();
-      const mapReadingsData = processMapReadingsData(response);
-      return mapReadingsData;
-    } catch (error) {
-      throw error;
-    } finally {
-      setLoading(false);
-      dispatch(setMapLoading(false));
-    }
-  };
-
-  const fetchAndProcessAQIData = async (mapReadingsData, waqiPromises) => {
-    try {
-      setOthersLoading(true);
-      const waqiResponses = await Promise.allSettled(waqiPromises);
-      const waqiData = processWaqiData(waqiResponses);
-      const data = [...mapReadingsData, ...waqiData];
-      return data;
-    } catch (error) {
-      throw error;
-    } finally {
-      setOthersLoading(false);
-      dispatch(setMapLoading(false));
-    }
-  };
-
-  // Update the clusters
-  useEffect(() => {
-    const clusterUpdate = async () => {
-      const map = mapRef.current;
-
-      // Load mapReadingsData first
-      let mapReadingsData;
-      try {
-        mapReadingsData = await fetchMapReadings();
-      } catch (error) {
-        console.error('Error fetching map readings data: ', error);
-        return;
-      }
-
-      // Initialize Supercluster with mapReadingsData
-      const index = new Supercluster({
-        radius: 40,
-        maxZoom: 18,
-      });
-
-      try {
-        index.load(mapReadingsData);
-      } catch (error) {
-        console.error('Error loading map readings data into Supercluster: ', error);
-        return;
-      }
-
-      // Assign the index instance to indexRef.current
-      indexRef.current = index;
-
-      map.on('zoomend', updateClusters);
-      map.on('moveend', updateClusters);
-
-      updateClusters();
-
-      // Then load waqiData in the background
-      const waqiPromises = fetchAQI(AQI_FOR_CITIES);
-      let data;
-      try {
-        data = await fetchAndProcessAQIData(mapReadingsData, waqiPromises);
-      } catch (error) {
-        console.error('Error fetching AQI data: ', error);
-        return;
-      }
-
-      // Update Supercluster with the combined data
-      try {
-        index.load(data);
-      } catch (error) {
-        console.error('Error loading AQI data into Supercluster: ', error);
-        return;
-      }
-
-      updateClusters();
-    };
-
-    clusterUpdate();
-  }, [selectedNode, NodeType, mapStyle, pollutant, refresh]);
 
   /**
    * Resize the map
@@ -611,7 +613,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
           <span className='ml-2'>
             <Loader width={20} height={20} />
           </span>
-          Processing other locations...
+          Processing locations...
         </div>
       )}
 
