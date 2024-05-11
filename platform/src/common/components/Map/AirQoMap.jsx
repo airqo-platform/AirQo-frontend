@@ -79,8 +79,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
-      dispatch(setMapLoading(false));
-    }, 10000);
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, [loading, dispatch]);
@@ -264,13 +263,17 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
         );
       });
   };
+
   const fetchAndProcessMapReadings = async () => {
+    setLoadingOthers(true);
     try {
       const response = await getMapReadings();
       return processMapReadingsData(response);
     } catch (error) {
       console.error('Error fetching map readings data: ', error);
       return [];
+    } finally {
+      setLoadingOthers(false);
     }
   };
 
@@ -489,6 +492,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     if (!map) return;
 
     const fetchLocationBoundaries = async () => {
+      setLoading(true);
       if (map.getLayer('location-boundaries')) {
         map.removeLayer('location-boundaries');
       }
@@ -544,11 +548,11 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
             const opacity = zoom > 10 ? 0 : 0.2;
             map.setPaintProperty('location-boundaries', 'fill-opacity', opacity);
           });
-
-          setLoading(false);
         }
       } catch (error) {
         console.error('Error fetching location boundaries:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
