@@ -79,7 +79,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 5000);
+      setLoadingOthers(false);
+    }, 10000);
 
     return () => clearTimeout(timer);
   }, [loading, dispatch]);
