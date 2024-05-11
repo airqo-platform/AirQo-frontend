@@ -203,8 +203,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   });
 
   const fetchAndProcessWaqData = async (cities) => {
+    setLoadingOthers(true);
     try {
-      setLoadingOthers(true);
       const responses = await Promise.allSettled(
         cities.map(async (city) => {
           const response = await axios.get(`/api/proxy?city=${city}`);
@@ -264,17 +264,13 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
         );
       });
   };
-
   const fetchAndProcessMapReadings = async () => {
     try {
-      setLoading(true);
       const response = await getMapReadings();
       return processMapReadingsData(response);
     } catch (error) {
       console.error('Error fetching map readings data: ', error);
       return [];
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -321,13 +317,12 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
         // Combine mapReadingsData and waqData
         const data = [...mapReadingsData, ...waqData];
         index.load(data);
-        setLoadingOthers(false);
         updateClusters();
       } catch (error) {
         console.error('Error loading AQI data into Supercluster: ', error);
       }
     }
-  }, [selectedNode, NodeType, mapStyle, pollutant, refresh, waqData]);
+  }, [selectedNode, NodeType, mapStyle, pollutant, refresh, waqData, mapReadingsData]);
 
   /**
    * Get the two most common AQIs in a cluster.
@@ -611,26 +606,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
       {/* Map */}
       <div ref={mapContainerRef} className={customStyle} />
 
-      {/* Loader */}
-      {loading && (
-        <div className={`absolute inset-0 flex items-center justify-center z-[10000]`}>
-          <div className='bg-white w-[70px] h-[70px] flex justify-center items-center rounded-md shadow-md'>
-            <span className='ml-2'>
-              <Loader width={32} height={32} />
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Loading AQI data */}
-      {loadingOthers && (
-        <div
-          className={`absolute bg-white rounded-md p-2 top-4 right-16 flex items-center justify-center z-[10000]`}>
-          <Loader width={20} height={20} />
-          <span className='ml-2 text-sm'>Loading AQI data...</span>
-        </div>
-      )}
-
       {/* Map control buttons */}
       <div className='absolute top-4 right-0 z-50'>
         <div className='flex flex-col gap-4'>
@@ -671,6 +646,25 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
           </button>
         </div>
       </div>
+
+      {/* Loader */}
+      {loading && (
+        <div className='absolute inset-0 flex items-center justify-center z-[10000]'>
+          <div className='bg-white w-[70px] h-[70px] flex justify-center items-center rounded-md shadow-md'>
+            <span className='ml-2'>
+              <Loader width={32} height={32} />
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Loading AQI data */}
+      {loadingOthers && (
+        <div className='absolute bg-white rounded-md p-2 top-4 right-16 flex items-center justify-center z-[10000]'>
+          <Loader width={20} height={20} />
+          <span className='ml-2 text-sm'>Loading AQI data...</span>
+        </div>
+      )}
 
       {/* Toast */}
       {toastMessage.message !== '' && (
