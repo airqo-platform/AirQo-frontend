@@ -66,14 +66,15 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/streets-v11');
   useOutsideClick(dropdownRef, () => setIsOpen(false));
   const [selectedNode, setSelectedNode] = useState(null);
-  const [waqiData, setWaqiData] = useState([]);
+  const [mapReadingsData, setMapReadingsData] = useState([]);
+  const [waqData, setWaqData] = useState([]);
 
   const lat = urlParams.get('lat');
   const lng = urlParams.get('lng');
   const zm = urlParams.get('zm');
 
   /**
-   * Stop loaders after 5 seconds
+   * Stop loaders after 10 seconds
    */
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -83,6 +84,17 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
 
     return () => clearTimeout(timer);
   }, [loading, dispatch]);
+
+  /**
+   * set sidebar skeleton loader to false after 2 seconds
+   */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      dispatch(setMapLoading(false));
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [dispatch, selectedNode]);
 
   /**
    * Clear data on unmount
@@ -170,6 +182,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
    * @returns {Promise<Array>} - Array of data
    * @returns {Promise<Array>} - Array of data
    */
+
   const createFeature = (id, name, coordinates, aqi, no2, pm10, pm2_5, time) => ({
     type: 'Feature',
     geometry: {
@@ -259,26 +272,28 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
       return [];
     } finally {
       setLoading(false);
-      dispatch(setMapLoading(false));
     }
   };
 
-  const fetchWaqiData = useCallback(() => {
-    setLoadingOthers(true);
-    fetchAndProcessWaqData(AQI_FOR_CITIES)
-      .then((data) => {
-        setWaqiData((prevData) => [...prevData, ...data]);
-      })
-      .catch((error) => {
-        console.error('Error fetching AQI data: ', error);
-        setLoadingOthers(false);
-      });
-  }, []);
+  const fetchAndProcessData = useCallback(async () => {
+    // Only fetch new data if the state variables are empty
+    if (mapReadingsData.length === 0) {
+      const newMapReadingsData = await fetchAndProcessMapReadings();
+      setMapReadingsData(newMapReadingsData);
+    }
+
+    if (waqData.length === 0) {
+      setLoadingOthers(true);
+      const newWaqData = await fetchAndProcessWaqData(AQI_FOR_CITIES);
+      setWaqData(newWaqData);
+      setLoadingOthers(false);
+    }
+  }, [mapReadingsData, waqData]);
 
   const clusterUpdate = useCallback(async () => {
     const map = mapRef.current;
 
-    // Initialize Supercluster
+    // Initialize Super cluster
     const index = new Supercluster({
       radius: 40,
       maxZoom: 16,
@@ -290,10 +305,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     map.on('zoomend', updateClusters);
     map.on('moveend', updateClusters);
 
-    // Fetch and process mapReadingsData
-    let mapReadingsData = await fetchAndProcessMapReadings();
-    let waqiData = [];
-
+    // Use state variables instead of fetching new data
     if (mapReadingsData.length > 0) {
       try {
         index.load(mapReadingsData);
@@ -303,13 +315,10 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
       }
     }
 
-    // Fetch and process waqiData
-    waqiData = await fetchAndProcessWaqData(AQI_FOR_CITIES);
-
-    if (waqiData.length > 0) {
+    if (waqData.length > 0) {
       try {
-        // Combine mapReadingsData and waqiData
-        const data = [...mapReadingsData, ...waqiData];
+        // Combine mapReadingsData and waqData
+        const data = [...mapReadingsData, ...waqData];
         index.load(data);
         setLoadingOthers(false);
         updateClusters();
@@ -317,7 +326,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
         console.error('Error loading AQI data into Supercluster: ', error);
       }
     }
-  }, [selectedNode, NodeType, mapStyle, pollutant, refresh, ...waqiData]);
+  }, [selectedNode, NodeType, mapStyle, pollutant, refresh, mapReadingsData, waqData]);
 
   /**
    * Get the two most common AQIs in a cluster
@@ -457,8 +466,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   }, [clusterUpdate]);
 
   useEffect(() => {
-    fetchWaqiData();
-  }, [fetchWaqiData]);
+    fetchAndProcessData();
+  }, [fetchAndProcessData]);
 
   useEffect(() => {
     clusterUpdate();
