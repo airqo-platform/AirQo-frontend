@@ -327,7 +327,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
         console.error('Error loading AQI data into Supercluster: ', error);
       }
     }
-  }, [selectedNode, NodeType, mapStyle, pollutant, refresh, mapReadingsData, waqData]);
+  }, [selectedNode, NodeType, mapStyle, pollutant, refresh, waqData]);
 
   /**
    * Get the two most common AQIs in a cluster.
