@@ -85,10 +85,10 @@ const AuthenticatedSideBar = () => {
 
   // close sidebar when a link is map route
   useEffect(() => {
-    if (router.pathname === '/map') {
-      dispatch(setSidebar(true));
+    if (router.pathname !== '/map') {
+      dispatch(setSidebar(false));
     }
-  }, [router.pathname, isCollapsed]);
+  }, [router.pathname]);
 
   // if its mobile view, close the sidebar when a link is clicked
   useEffect(() => {
