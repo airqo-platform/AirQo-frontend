@@ -82,7 +82,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     }, 10000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [loading, dispatch]);
 
   /**
    * Clear data on unmount
