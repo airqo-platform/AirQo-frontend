@@ -6,6 +6,7 @@ import UnhealthyForSensitiveGroups from '@/icons/Charts/UnhealthySG';
 import Unhealthy from '@/icons/Charts/Unhealthy';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import Hazardous from '@/icons/Charts/Hazardous';
+import Invalid from '@/icons/Charts/Invalid';
 
 // icon images
 export const images = {
@@ -17,8 +18,8 @@ export const images = {
   Unhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<Unhealthy />))}`,
   VeryUnhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<VeryUnhealthy />))}`,
   Hazardous: `data:image/svg+xml,${encodeURIComponent(renderToString(<Hazardous />))}`,
-  Invalid: '/images/map/Invalid.png',
-  undefined: '/images/map/Invalid.png',
+  Invalid: `data:image/svg+xml,${encodeURIComponent(renderToString(<Invalid />))}`,
+  undefined: `data:image/svg+xml,${encodeURIComponent(renderToString(<Invalid />))}`,
 };
 
 const markerDetails = {

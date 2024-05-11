@@ -440,7 +440,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     } catch (error) {
       console.error('Error updating clusters: ', error);
     }
-  }, [selectedNode, NodeType, pollutant, mapStyle, refresh]);
+  }, [clusterUpdate]);
 
   useEffect(() => {
     fetchWaqiData();

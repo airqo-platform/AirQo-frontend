@@ -28,10 +28,16 @@ export const AQI_FOR_CITIES = [
   'Melbourne',
 
   // North America
-  'New York',
+  'Mountain View',
+  'San Francisco',
   'Los Angeles',
-  'Chicago',
-  'Toronto',
+  'Seattle',
+  'Austin',
+  'Boulder',
+  'Cambridge',
+  'Pittsburgh',
+  'Atlanta',
+  'Detroit',
 
   // South America
   'Sao Paulo',
@@ -43,4 +49,12 @@ export const AQI_FOR_CITIES = [
   'Caracas',
   'Buenos Aires',
   'Brasilia',
+
+  // Africa
+  'cape town',
+  'Johannesburg',
+
+  // UAE
+  'Dubai',
+  'Abu Dhabi',
 ];
