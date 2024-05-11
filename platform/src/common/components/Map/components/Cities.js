@@ -1,26 +1,27 @@
 export const AQI_FOR_CITIES = [
   // Asia
-  'Tokyo',
   'Delhi',
-  'Shanghai',
-  'Beijing',
-  'Jakarta',
-  'Seoul',
   'Mumbai',
   'Bangkok',
-  'Kuala Lumpur',
+  'Jakarta',
   'Hong Kong',
+  'Shanghai',
+  'Beijing',
+  'Seoul',
+  'Tokyo',
+
+  // Canada
+  'Vancouver',
+  'Calgary',
 
   // Europe
   'Moscow',
+  'London',
   'Istanbul',
   'Paris',
-  'London',
   'Berlin',
   'Rome',
   'Madrid',
-  'Athens',
-  'Vienna',
   'Dublin',
 
   // Australia
@@ -42,13 +43,9 @@ export const AQI_FOR_CITIES = [
   // South America
   'Sao Paulo',
   'Buenos Aires',
-  'Rio de Janeiro',
-  'Bogota',
   'Lima',
+  'Bogota',
   'Santiago',
-  'Caracas',
-  'Buenos Aires',
-  'Brasilia',
 
   // Africa
   'cape town',

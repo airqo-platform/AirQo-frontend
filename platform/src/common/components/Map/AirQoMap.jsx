@@ -51,6 +51,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   const [isOpen, setIsOpen] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingOthers, setLoadingOthers] = useState(false);
   const urls = new URL(window.location.href);
   const urlParams = new URLSearchParams(urls.search);
   const mapData = useSelector((state) => state.map);
@@ -78,7 +79,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     const timer = setTimeout(() => {
       setLoading(false);
       dispatch(setMapLoading(false));
-    }, 5000);
+    }, 10000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -263,9 +264,15 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   };
 
   const fetchWaqiData = useCallback(() => {
-    fetchAndProcessWaqData(AQI_FOR_CITIES).then((data) => {
-      setWaqiData((prevData) => [...prevData, ...data]);
-    });
+    setLoadingOthers(true);
+    fetchAndProcessWaqData(AQI_FOR_CITIES)
+      .then((data) => {
+        setWaqiData((prevData) => [...prevData, ...data]);
+      })
+      .catch((error) => {
+        console.error('Error fetching AQI data: ', error);
+        setLoadingOthers(false);
+      });
   }, []);
 
   const clusterUpdate = useCallback(async () => {
@@ -304,12 +311,13 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
         // Combine mapReadingsData and waqiData
         const data = [...mapReadingsData, ...waqiData];
         index.load(data);
+        setLoadingOthers(false);
         updateClusters();
       } catch (error) {
         console.error('Error loading AQI data into Supercluster: ', error);
       }
     }
-  }, [selectedNode, NodeType, mapStyle, pollutant, refresh]);
+  }, [selectedNode, NodeType, mapStyle, pollutant, refresh, ...waqiData]);
 
   /**
    * Get the two most common AQIs in a cluster
@@ -601,6 +609,15 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
               <Loader width={32} height={32} />
             </span>
           </div>
+        </div>
+      )}
+
+      {/* Loading AQI data */}
+      {loadingOthers && (
+        <div
+          className={`absolute bg-white rounded-md p-2 top-4 right-16 flex items-center justify-center z-[10000]`}>
+          <Loader width={20} height={20} />
+          <span className='ml-2 text-sm'>Loading AQI data...</span>
         </div>
       )}
 
