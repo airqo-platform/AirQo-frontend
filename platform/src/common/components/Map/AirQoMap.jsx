@@ -204,6 +204,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
 
   const fetchAndProcessWaqData = async (cities) => {
     try {
+      setLoadingOthers(true);
       const responses = await Promise.allSettled(
         cities.map(async (city) => {
           const response = await axios.get(`/api/proxy?city=${city}`);
@@ -241,6 +242,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     } catch (error) {
       console.error('Error fetching AQI data: ', error);
       return [];
+    } finally {
+      setLoadingOthers(false);
     }
   };
 
@@ -283,10 +286,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     }
 
     if (waqData.length === 0) {
-      setLoadingOthers(true);
       const newWaqData = await fetchAndProcessWaqData(AQI_FOR_CITIES);
       setWaqData(newWaqData);
-      setLoadingOthers(false);
     }
   }, [mapReadingsData, waqData]);
 
