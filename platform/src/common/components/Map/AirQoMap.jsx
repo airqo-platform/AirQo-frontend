@@ -65,7 +65,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/streets-v11');
   useOutsideClick(dropdownRef, () => setIsOpen(false));
   const [selectedNode, setSelectedNode] = useState(null);
-  const [othersLoading, setOthersLoading] = useState(false);
   const [waqiData, setWaqiData] = useState([]);
 
   const lat = urlParams.get('lat');
@@ -163,62 +162,39 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   }, [mapData.center, mapData.zoom, mapRef.current]);
 
   /**
-   * Get the two most common AQIs in a cluster
-   * @param {Object} cluster - Cluster object
-   * @returns {Array} - Array of two most common AQIs
-   * @sideEffect
-   * - Get all original points in the cluster
-   * - Create an object to count the occurrences of each AQI
-   */
-  const getTwoMostCommonAQIs = useCallback((cluster) => {
-    // Get all original points in the cluster
-    const leaves = indexRef.current.getLeaves(cluster.properties.cluster_id, Infinity);
-
-    // Create an object to count the occurrences of each AQI
-    const aqiCounts = leaves.reduce((acc, leaf) => {
-      const aqi = leaf.properties.airQuality;
-      acc[aqi] = (acc[aqi] || 0) + 1;
-      return acc;
-    }, {});
-
-    // Sort the AQIs by their counts in descending order
-    const sortedAQIs = Object.entries(aqiCounts).sort((a, b) => b[1] - a[1]);
-
-    // Get the two AQIs with the highest counts
-    let mostCommonAQIs =
-      sortedAQIs.length > 1 ? sortedAQIs.slice(0, 2) : [sortedAQIs[0], sortedAQIs[0]];
-    mostCommonAQIs = mostCommonAQIs.map((aqi) => aqi[0]);
-
-    // Find the leaves with the most common AQIs
-    const leavesWithMostCommonAQIs = leaves.filter((leaf) =>
-      mostCommonAQIs.includes(leaf.properties.airQuality),
-    );
-
-    // Return the most common AQIs along with their associated properties
-    return leavesWithMostCommonAQIs.map((leaf) => ({
-      aqi: leaf.properties.aqi,
-      pm2_5: leaf.properties.pm2_5,
-      pm10: leaf.properties.pm10,
-      no2: leaf.properties.no2,
-    }));
-  }, []);
-
-  /**
    * Fetch data from the API
    * @returns {Promise<Array>} - Array of data
    */
-  const fetchAndProcessAQI = async (cities) => {
+  const createFeature = (id, name, coordinates, aqi, no2, pm10, pm2_5, time) => ({
+    type: 'Feature',
+    geometry: {
+      type: 'Point',
+      coordinates,
+    },
+    properties: {
+      _id: id,
+      location: name,
+      airQuality: aqi?.category,
+      no2,
+      pm10,
+      pm2_5,
+      createdAt: time,
+      time,
+      aqi: aqi || 'undefined',
+    },
+  });
+
+  const fetchAndProcessWaqData = async (cities) => {
     try {
       const responses = await Promise.allSettled(
-        cities.map((city) =>
-          axios.get(`/api/proxy?city=${city}`).then((response) => {
-            if (!response.data) {
-              console.error(`No data returned for city: ${city}`);
-              return null;
-            }
-            return { city, data: response.data };
-          }),
-        ),
+        cities.map(async (city) => {
+          const response = await axios.get(`/api/proxy?city=${city}`);
+          if (!response.data) {
+            console.error(`No data returned for city: ${city}`);
+            return null;
+          }
+          return { city, data: response.data };
+        }),
       );
 
       return responses
@@ -230,27 +206,19 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
             response.value.data.data.city,
         )
         .map((response) => {
-          const res = response.value.data.data;
+          const cityData = response.value.data.data;
           const waqiPollutant = pollutant === 'pm2_5' ? 'pm25' : pollutant;
-          const aqi = getAQICategory(pollutant, res.iaqi[waqiPollutant]?.v);
-          return {
-            type: 'Feature',
-            geometry: {
-              type: 'Point',
-              coordinates: [res.city.geo[1], res.city.geo[0]],
-            },
-            properties: {
-              _id: res.idx,
-              location: res.city.name,
-              airQuality: aqi?.category,
-              no2: res.iaqi.no2?.v,
-              pm10: res.iaqi.pm10?.v,
-              pm2_5: res.iaqi.pm25?.v,
-              createdAt: res.time.s,
-              time: res.time.s,
-              aqi: aqi || 'undefined',
-            },
-          };
+          const aqi = getAQICategory(pollutant, cityData.iaqi[waqiPollutant]?.v);
+          return createFeature(
+            cityData.idx,
+            cityData.city.name,
+            [cityData.city.geo[1], cityData.city.geo[0]],
+            aqi,
+            cityData.iaqi.no2?.v,
+            cityData.iaqi.pm10?.v,
+            cityData.iaqi.pm25?.v,
+            cityData.time.s,
+          );
         });
     } catch (error) {
       console.error('Error fetching AQI data: ', error);
@@ -263,27 +231,16 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
       .filter((item) => item.siteDetails && item.no2 && item.pm10 && item.pm2_5)
       .map((item) => {
         const aqi = getAQICategory(pollutant, item[pollutant].value);
-        return {
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: [
-              item.siteDetails.approximate_longitude,
-              item.siteDetails.approximate_latitude,
-            ],
-          },
-          properties: {
-            _id: item.siteDetails._id,
-            location: item.siteDetails.name,
-            airQuality: item.aqi_category,
-            no2: item.no2.value,
-            pm10: item.pm10.value,
-            pm2_5: item.pm2_5.value,
-            createdAt: item.createdAt,
-            time: item.time,
-            aqi: aqi || 'Unknown',
-          },
-        };
+        return createFeature(
+          item.siteDetails._id,
+          item.siteDetails.name,
+          [item.siteDetails.approximate_longitude, item.siteDetails.approximate_latitude],
+          aqi,
+          item.no2.value,
+          item.pm10.value,
+          item.pm2_5.value,
+          item.time,
+        );
       });
   };
 
@@ -291,8 +248,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     try {
       setLoading(true);
       const response = await getMapReadings();
-      const mapReadingsData = processMapReadingsData(response);
-      return mapReadingsData;
+      return processMapReadingsData(response);
     } catch (error) {
       console.error('Error fetching map readings data: ', error);
       return [];
@@ -303,10 +259,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   };
 
   const fetchWaqiData = useCallback(() => {
-    setOthersLoading(true);
-    fetchAndProcessAQI(AQI_FOR_CITIES).then((data) => {
+    fetchAndProcessWaqData(AQI_FOR_CITIES).then((data) => {
       setWaqiData((prevData) => [...prevData, ...data]);
-      setOthersLoading(false);
     });
   }, []);
 
@@ -351,13 +305,42 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     updateClusters();
   }, [selectedNode, NodeType, mapStyle, pollutant, refresh, waqiData]);
 
-  useEffect(() => {
-    fetchWaqiData();
-  }, [fetchWaqiData]);
+  /**
+   * Get the two most common AQIs in a cluster
+   * @param {Object} cluster - Cluster object
+   */
+  const getTwoMostCommonAQIs = useCallback((cluster) => {
+    // Get all original points in the cluster
+    const leaves = indexRef.current.getLeaves(cluster.properties.cluster_id, Infinity);
 
-  useEffect(() => {
-    clusterUpdate();
-  }, [clusterUpdate]);
+    // Create an object to count the occurrences of each AQI
+    const aqiCounts = leaves.reduce((acc, leaf) => {
+      const aqi = leaf.properties.airQuality;
+      acc[aqi] = (acc[aqi] || 0) + 1;
+      return acc;
+    }, {});
+
+    // Sort the AQIs by their counts in descending order
+    const sortedAQIs = Object.entries(aqiCounts).sort((a, b) => b[1] - a[1]);
+
+    // Get the two AQIs with the highest counts
+    let mostCommonAQIs =
+      sortedAQIs.length > 1 ? sortedAQIs.slice(0, 2) : [sortedAQIs[0], sortedAQIs[0]];
+    mostCommonAQIs = mostCommonAQIs.map((aqi) => aqi[0]);
+
+    // Find the leaves with the most common AQIs
+    const leavesWithMostCommonAQIs = leaves.filter((leaf) =>
+      mostCommonAQIs.includes(leaf.properties.airQuality),
+    );
+
+    // Return the most common AQIs along with their associated properties
+    return leavesWithMostCommonAQIs.map((leaf) => ({
+      aqi: leaf.properties.aqi,
+      pm2_5: leaf.properties.pm2_5,
+      pm10: leaf.properties.pm10,
+      no2: leaf.properties.no2,
+    }));
+  }, []);
 
   /**
    * Update clusters
@@ -458,6 +441,14 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
       console.error('Error updating clusters: ', error);
     }
   }, [selectedNode, NodeType, pollutant, mapStyle, refresh]);
+
+  useEffect(() => {
+    fetchWaqiData();
+  }, [fetchWaqiData]);
+
+  useEffect(() => {
+    clusterUpdate();
+  }, [clusterUpdate]);
 
   /**
    * Resize the map
@@ -604,16 +595,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
               <Loader width={32} height={32} />
             </span>
           </div>
-        </div>
-      )}
-
-      {/* Loader at top right */}
-      {othersLoading && (
-        <div className='absolute bg-white p-3 rounded-md flex items-center top-4 right-20 z-[10000]'>
-          <span className='ml-2'>
-            <Loader width={20} height={20} />
-          </span>
-          Processing locations...
         </div>
       )}
 
