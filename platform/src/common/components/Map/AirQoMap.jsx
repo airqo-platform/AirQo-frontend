@@ -330,7 +330,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   }, [selectedNode, NodeType, mapStyle, pollutant, refresh, mapReadingsData, waqData]);
 
   /**
-   * Get the two most common AQIs in a cluster
+   * Get the two most common AQIs in a cluster.
    * @param {Object} cluster - Cluster object
    */
   const getTwoMostCommonAQIs = useCallback((cluster) => {
