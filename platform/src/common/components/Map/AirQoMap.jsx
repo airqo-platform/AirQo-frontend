@@ -163,6 +163,10 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
 
   /**
    * Fetch data from the API
+   * and process the data
+   * update the clusters
+   * @param {Array} cities - Array of cities
+   * @returns {Promise<Array>} - Array of data
    * @returns {Promise<Array>} - Array of data
    */
   const createFeature = (id, name, coordinates, aqi, no2, pm10, pm2_5, time) => ({
@@ -267,21 +271,11 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   const clusterUpdate = useCallback(async () => {
     const map = mapRef.current;
 
-    // Load mapReadingsData first
-    let mapReadingsData = await fetchAndProcessMapReadings();
-
-    // Initialize Supercluster with mapReadingsData
+    // Initialize Supercluster
     const index = new Supercluster({
       radius: 40,
       maxZoom: 16,
     });
-
-    try {
-      index.load(mapReadingsData);
-    } catch (error) {
-      console.error('Error loading map readings data into Supercluster: ', error);
-      return;
-    }
 
     // Assign the index instance to indexRef.current
     indexRef.current = index;
@@ -289,21 +283,33 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     map.on('zoomend', updateClusters);
     map.on('moveend', updateClusters);
 
-    updateClusters();
+    // Fetch and process mapReadingsData
+    let mapReadingsData = await fetchAndProcessMapReadings();
+    let waqiData = [];
 
-    // Combine mapReadingsData and waqiData
-    const data = [...mapReadingsData, ...waqiData];
-
-    // Update Supercluster with the combined data
-    try {
-      index.load(data);
-    } catch (error) {
-      console.error('Error loading AQI data into Supercluster: ', error);
-      return;
+    if (mapReadingsData.length > 0) {
+      try {
+        index.load(mapReadingsData);
+        updateClusters();
+      } catch (error) {
+        console.error('Error loading map readings data into Supercluster: ', error);
+      }
     }
 
-    updateClusters();
-  }, [selectedNode, NodeType, mapStyle, pollutant, refresh, waqiData]);
+    // Fetch and process waqiData
+    waqiData = await fetchAndProcessWaqData(AQI_FOR_CITIES);
+
+    if (waqiData.length > 0) {
+      try {
+        // Combine mapReadingsData and waqiData
+        const data = [...mapReadingsData, ...waqiData];
+        index.load(data);
+        updateClusters();
+      } catch (error) {
+        console.error('Error loading AQI data into Supercluster: ', error);
+      }
+    }
+  }, [selectedNode, NodeType, mapStyle, pollutant, refresh]);
 
   /**
    * Get the two most common AQIs in a cluster
@@ -343,7 +349,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   }, []);
 
   /**
-   * Update clusters
+   * Update the clusters on the map
    */
   const updateClusters = useCallback(() => {
     try {
