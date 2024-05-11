@@ -83,7 +83,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     }, 10000);
 
     return () => clearTimeout(timer);
-  }, [loading, dispatch]);
+  }, [loading, dispatch, loadingOthers]);
 
   /**
    * set sidebar skeleton loader to false after 2 seconds
@@ -266,15 +266,12 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   };
 
   const fetchAndProcessMapReadings = async () => {
-    setLoadingOthers(true);
     try {
       const response = await getMapReadings();
       return processMapReadingsData(response);
     } catch (error) {
       console.error('Error fetching map readings data: ', error);
       return [];
-    } finally {
-      setLoadingOthers(false);
     }
   };
 
