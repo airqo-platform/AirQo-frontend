@@ -6,6 +6,7 @@ import UnhealthyForSensitiveGroups from '@/icons/Charts/UnhealthySG';
 import Unhealthy from '@/icons/Charts/Unhealthy';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import Hazardous from '@/icons/Charts/Hazardous';
+import Invalid from '@/icons/Charts/Invalid';
 
 // icon images
 export const images = {
@@ -17,8 +18,8 @@ export const images = {
   Unhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<Unhealthy />))}`,
   VeryUnhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<VeryUnhealthy />))}`,
   Hazardous: `data:image/svg+xml,${encodeURIComponent(renderToString(<Hazardous />))}`,
-  Invalid: '/images/map/Invalid.png',
-  undefined: '/images/map/Invalid.png',
+  Invalid: `data:image/svg+xml,${encodeURIComponent(renderToString(<Invalid />))}`,
+  undefined: `data:image/svg+xml,${encodeURIComponent(renderToString(<Invalid />))}`,
 };
 
 const markerDetails = {
@@ -47,6 +48,33 @@ const markerDetails = {
     { limit: 360.1, category: 'Unhealthy' },
     { limit: 100.1, category: 'UnhealthyForSensitiveGroups' },
     { limit: 53.1, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
+  ],
+  o3: [
+    { limit: 604.1, category: 'Invalid' || 'undefined' },
+    { limit: 504.1, category: 'Hazardous' },
+    { limit: 404.1, category: 'VeryUnhealthy' },
+    { limit: 204.1, category: 'Unhealthy' },
+    { limit: 154.1, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 54.1, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
+  ],
+  co: [
+    { limit: 50.5, category: 'Invalid' || 'undefined' },
+    { limit: 40.5, category: 'Hazardous' },
+    { limit: 30.5, category: 'VeryUnhealthy' },
+    { limit: 10.5, category: 'Unhealthy' },
+    { limit: 4.5, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 2.5, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
+  ],
+  so2: [
+    { limit: 1004.1, category: 'Invalid' || 'undefined' },
+    { limit: 804.1, category: 'Hazardous' },
+    { limit: 604.1, category: 'VeryUnhealthy' },
+    { limit: 304.1, category: 'Unhealthy' },
+    { limit: 185.1, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 75.1, category: 'ModerateAir' },
     { limit: 0.0, category: 'GoodAir' },
   ],
 };
@@ -88,7 +116,11 @@ export const getAQICategory = (pollutant, value) => {
   const categories = markerDetails[pollutant];
   for (let i = 0; i < categories.length; i++) {
     if (value >= categories[i].limit) {
-      return { icon: categories[i].category, color: colors[categories[i].category] };
+      return {
+        icon: categories[i].category,
+        color: colors[categories[i].category],
+        category: categories[i].category,
+      };
     }
   }
 };
@@ -255,7 +287,7 @@ export const createPopupHTML = ({ feature, images }) => {
         <p class="font-semibold text-sm leading-4" style="color: ${
           feature.properties.aqi.color
         };width:30ch;">
-          Air Quality is ${feature.properties.airQuality}
+          Air Quality is ${feature.properties.airQuality.replace(/([A-Z])/g, ' $1').trim()}
         </p>
         <img src="${images[feature.properties.aqi.icon]}" alt="AQI Icon" class="w-8 h-8">
       </div>

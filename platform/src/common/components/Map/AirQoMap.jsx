@@ -32,6 +32,7 @@ import DarkMode from '@/images/map/dark.png';
 import LightMode from '@/images/map/light.png';
 import SatelliteMode from '@/images/map/satellite.png';
 import StreetsMode from '@/images/map/street.png';
+import { AQI_FOR_CITIES } from './components/Cities';
 
 const mapStyles = [
   { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets', image: StreetsMode },
@@ -50,6 +51,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   const [isOpen, setIsOpen] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingOthers, setLoadingOthers] = useState(false);
   const urls = new URL(window.location.href);
   const urlParams = new URLSearchParams(urls.search);
   const mapData = useSelector((state) => state.map);
@@ -64,10 +66,35 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/streets-v11');
   useOutsideClick(dropdownRef, () => setIsOpen(false));
   const [selectedNode, setSelectedNode] = useState(null);
+  const [mapReadingsData, setMapReadingsData] = useState([]);
+  const [waqData, setWaqData] = useState([]);
 
   const lat = urlParams.get('lat');
   const lng = urlParams.get('lng');
   const zm = urlParams.get('zm');
+
+  /**
+   * Stop loaders after 10 seconds
+   */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+      setLoadingOthers(false);
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, [loading, dispatch, loadingOthers]);
+
+  /**
+   * set sidebar skeleton loader to false after 2 seconds
+   */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      dispatch(setMapLoading(false));
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [dispatch, selectedNode]);
 
   /**
    * Clear data on unmount
@@ -80,6 +107,50 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
       dispatch(clearData());
     }
   }, []);
+
+  /**
+   * Initialize the map
+   * @sideEffect
+   * - Initialize the map
+   * - Add map controls
+   * - Load data
+   * - Update clusters
+   * - Fetch location boundaries
+   * @returns {void}
+   */
+  useEffect(() => {
+    const initializeMap = async () => {
+      try {
+        mapboxgl.accessToken = mapboxApiAccessToken;
+        const map = new mapboxgl.Map({
+          container: mapContainerRef.current,
+          style: mapStyle,
+          center: [lng || mapData.center.longitude, lat || mapData.center.latitude],
+          zoom: zm || mapData.zoom,
+        });
+
+        mapRef.current = map;
+
+        map.on('load', async () => {
+          map.resize();
+
+          const zoomControl = new CustomZoomControl();
+          map.addControl(zoomControl, 'bottom-right');
+
+          const geolocateControl = new CustomGeolocateControl(setToastMessage);
+          map.addControl(geolocateControl, 'bottom-right');
+        });
+      } catch (error) {
+        console.error('Error initializing the Map: ', error);
+      }
+    };
+
+    initializeMap();
+
+    return () => {
+      mapRef.current.remove();
+    };
+  }, [mapStyle, NodeType, mapboxApiAccessToken]);
 
   /**
    * Set the map center and zoom
@@ -105,55 +176,158 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
 
   /**
    * Fetch data from the API
+   * and process the data
+   * update the clusters
+   * @param {Array} cities - Array of cities
+   * @returns {Promise<Array>} - Array of data
    * @returns {Promise<Array>} - Array of data
    */
-  const fetchData = async () => {
+
+  const createFeature = (id, name, coordinates, aqi, no2, pm10, pm2_5, time) => ({
+    type: 'Feature',
+    geometry: {
+      type: 'Point',
+      coordinates,
+    },
+    properties: {
+      _id: id,
+      location: name,
+      airQuality: aqi?.category,
+      no2,
+      pm10,
+      pm2_5,
+      createdAt: time,
+      time,
+      aqi: aqi || 'undefined',
+    },
+  });
+
+  const fetchAndProcessWaqData = async (cities) => {
+    setLoadingOthers(true);
     try {
-      setLoading(true);
-      const response = await getMapReadings();
-      const data = response.measurements
-        .filter((item) => item.siteDetails && item.no2 && item.pm10 && item.pm2_5)
-        .map((item) => {
-          const aqi = getAQICategory(pollutant, item[pollutant].value);
-          return {
-            type: 'Feature',
-            geometry: {
-              type: 'Point',
-              coordinates: [
-                item.siteDetails.approximate_longitude,
-                item.siteDetails.approximate_latitude,
-              ],
-            },
-            properties: {
-              _id: item.siteDetails._id,
-              location: item.siteDetails.name,
-              airQuality: item.aqi_category,
-              no2: item.no2.value,
-              pm10: item.pm10.value,
-              pm2_5: item.pm2_5.value,
-              createdAt: item.createdAt,
-              time: item.time,
-              aqi: aqi || 'Unknown', // Ensure aqi is always defined
-            },
-          };
+      const responses = await Promise.allSettled(
+        cities.map(async (city) => {
+          const response = await axios.get(`/api/proxy?city=${city}`);
+          if (!response.data) {
+            console.error(`No data returned for city: ${city}`);
+            return null;
+          }
+          return { city, data: response.data };
+        }),
+      );
+
+      return responses
+        .filter(
+          (response) =>
+            response.status === 'fulfilled' &&
+            response.value.data &&
+            response.value.data.data &&
+            response.value.data.data.city,
+        )
+        .map((response) => {
+          const cityData = response.value.data.data;
+          const waqiPollutant = pollutant === 'pm2_5' ? 'pm25' : pollutant;
+          const aqi = getAQICategory(pollutant, cityData.iaqi[waqiPollutant]?.v);
+          return createFeature(
+            cityData.idx,
+            cityData.city.name,
+            [cityData.city.geo[1], cityData.city.geo[0]],
+            aqi,
+            cityData.iaqi.no2?.v,
+            cityData.iaqi.pm10?.v,
+            cityData.iaqi.pm25?.v,
+            cityData.time.s,
+          );
         });
-      setLoading(false);
-      dispatch(setMapLoading(false));
-      return data;
     } catch (error) {
-      console.error(error);
-      setLoading(false);
-      dispatch(setMapLoading(false));
+      console.error('Error fetching AQI data: ', error);
+      return [];
+    } finally {
+      setLoadingOthers(false);
     }
   };
 
+  const processMapReadingsData = (response) => {
+    return response.measurements
+      .filter((item) => item.siteDetails && item.no2 && item.pm10 && item.pm2_5)
+      .map((item) => {
+        const aqi = getAQICategory(pollutant, item[pollutant].value);
+        return createFeature(
+          item.siteDetails._id,
+          item.siteDetails.name,
+          [item.siteDetails.approximate_longitude, item.siteDetails.approximate_latitude],
+          aqi,
+          item.no2.value,
+          item.pm10.value,
+          item.pm2_5.value,
+          item.time,
+        );
+      });
+  };
+
+  const fetchAndProcessMapReadings = async () => {
+    try {
+      const response = await getMapReadings();
+      return processMapReadingsData(response);
+    } catch (error) {
+      console.error('Error fetching map readings data: ', error);
+      return [];
+    }
+  };
+
+  const fetchAndProcessData = useCallback(async () => {
+    // Only fetch new data if the state variables are empty
+    if (mapReadingsData.length === 0) {
+      const newMapReadingsData = await fetchAndProcessMapReadings();
+      setMapReadingsData(newMapReadingsData);
+    }
+
+    if (waqData.length === 0) {
+      const newWaqData = await fetchAndProcessWaqData(AQI_FOR_CITIES);
+      setWaqData(newWaqData);
+    }
+  }, [mapReadingsData, waqData]);
+
+  const clusterUpdate = useCallback(async () => {
+    const map = mapRef.current;
+
+    // Initialize Super cluster
+    const index = new Supercluster({
+      radius: 40,
+      maxZoom: 16,
+    });
+
+    // Assign the index instance to indexRef.current
+    indexRef.current = index;
+
+    map.on('zoomend', updateClusters);
+    map.on('moveend', updateClusters);
+
+    // Use state variables instead of fetching new data
+    if (mapReadingsData.length > 0) {
+      try {
+        index.load(mapReadingsData);
+        updateClusters();
+      } catch (error) {
+        console.error('Error loading map readings data into Supercluster: ', error);
+      }
+    }
+
+    if (waqData.length > 0) {
+      try {
+        // Combine mapReadingsData and waqData
+        const data = [...mapReadingsData, ...waqData];
+        index.load(data);
+        updateClusters();
+      } catch (error) {
+        console.error('Error loading AQI data into Supercluster: ', error);
+      }
+    }
+  }, [selectedNode, NodeType, mapStyle, pollutant, refresh, waqData, mapReadingsData]);
+
   /**
-   * Get the two most common AQIs in a cluster
+   * Get the two most common AQIs in a cluster.
    * @param {Object} cluster - Cluster object
-   * @returns {Array} - Array of two most common AQIs
-   * @sideEffect
-   * - Get all original points in the cluster
-   * - Create an object to count the occurrences of each AQI
    */
   const getTwoMostCommonAQIs = useCallback((cluster) => {
     // Get all original points in the cluster
@@ -189,7 +363,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   }, []);
 
   /**
-   * Update clusters
+   * Update the clusters on the map
    */
   const updateClusters = useCallback(() => {
     try {
@@ -286,95 +460,15 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     } catch (error) {
       console.error('Error updating clusters: ', error);
     }
-  }, [selectedNode, NodeType, pollutant, mapStyle, refresh]);
+  }, [clusterUpdate]);
 
-  /**
-   * Initialize the map
-   * @sideEffect
-   * - Initialize the map
-   * - Add map controls
-   * - Load data
-   * - Update clusters
-   * - Fetch location boundaries
-   * @returns {void}
-   */
   useEffect(() => {
-    const initializeMap = async () => {
-      try {
-        mapboxgl.accessToken = mapboxApiAccessToken;
-        const map = new mapboxgl.Map({
-          container: mapContainerRef.current,
-          style: mapStyle,
-          center: [lng || mapData.center.longitude, lat || mapData.center.latitude],
-          zoom: zm || mapData.zoom,
-        });
+    fetchAndProcessData();
+  }, [fetchAndProcessData]);
 
-        mapRef.current = map;
-
-        map.on('load', async () => {
-          map.resize();
-
-          const zoomControl = new CustomZoomControl();
-          map.addControl(zoomControl, 'bottom-right');
-
-          const geolocateControl = new CustomGeolocateControl(setToastMessage);
-          map.addControl(geolocateControl, 'bottom-right');
-        });
-      } catch (error) {
-        console.error('Error initializing the Map: ', error);
-      }
-    };
-
-    initializeMap();
-
-    return () => {
-      mapRef.current.remove();
-    };
-  }, [mapStyle, NodeType, mapboxApiAccessToken]);
-
-  // Update the clusters
   useEffect(() => {
-    const clusterUpdate = async () => {
-      const map = mapRef.current;
-
-      // Load data
-      let data;
-      try {
-        data = await fetchData();
-        if (!data) {
-          throw new Error('No data returned from fetchData');
-        }
-      } catch (error) {
-        console.error('Error fetching data: ', error);
-        return;
-      }
-
-      /**
-       * Initialize Supercluster
-       */
-      const index = new Supercluster({
-        radius: 60,
-        maxZoom: 20,
-      });
-
-      try {
-        index.load(data);
-      } catch (error) {
-        console.error('Error loading data into Supercluster: ', error);
-        return;
-      }
-
-      // Assign the index instance to indexRef.current
-      indexRef.current = index;
-
-      map.on('zoomend', updateClusters);
-      map.on('moveend', updateClusters);
-
-      updateClusters();
-    };
-
     clusterUpdate();
-  }, [selectedNode, NodeType, mapStyle, pollutant, refresh]);
+  }, [clusterUpdate]);
 
   /**
    * Resize the map
@@ -397,7 +491,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
 
     const fetchLocationBoundaries = async () => {
       setLoading(true);
-
       if (map.getLayer('location-boundaries')) {
         map.removeLayer('location-boundaries');
       }
@@ -515,18 +608,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
       {/* Map */}
       <div ref={mapContainerRef} className={customStyle} />
 
-      {/* Loader */}
-      {refresh ||
-        (loading && (
-          <div className={`absolute inset-0 flex items-center justify-center z-40`}>
-            <div className='bg-white w-[70px] h-[70px] flex justify-center items-center rounded-md shadow-md'>
-              <span className='ml-2'>
-                <Loader width={32} height={32} />
-              </span>
-            </div>
-          </div>
-        ))}
-
       {/* Map control buttons */}
       <div className='absolute top-4 right-0 z-50'>
         <div className='flex flex-col gap-4'>
@@ -567,6 +648,25 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
           </button>
         </div>
       </div>
+
+      {/* Loader */}
+      {loading && (
+        <div className='absolute inset-0 flex items-center justify-center z-[10000]'>
+          <div className='bg-white w-[70px] h-[70px] flex justify-center items-center rounded-md shadow-md'>
+            <span className='ml-2'>
+              <Loader width={32} height={32} />
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Loading AQI data */}
+      {loadingOthers && (
+        <div className='absolute bg-white rounded-md p-2 top-4 right-16 flex items-center justify-center z-[10000]'>
+          <Loader width={20} height={20} />
+          <span className='ml-2 text-sm'>Loading AQI data...</span>
+        </div>
+      )}
 
       {/* Toast */}
       {toastMessage.message !== '' && (
