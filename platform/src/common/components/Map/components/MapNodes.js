@@ -6,6 +6,7 @@ import UnhealthyForSensitiveGroups from '@/icons/Charts/UnhealthySG';
 import Unhealthy from '@/icons/Charts/Unhealthy';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import Hazardous from '@/icons/Charts/Hazardous';
+import Invalid from '@/icons/Charts/Invalid';
 
 // icon images
 export const images = {
@@ -17,12 +18,13 @@ export const images = {
   Unhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<Unhealthy />))}`,
   VeryUnhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<VeryUnhealthy />))}`,
   Hazardous: `data:image/svg+xml,${encodeURIComponent(renderToString(<Hazardous />))}`,
-  Invalid: '/images/map/Invalid.png',
+  Invalid: `data:image/svg+xml,${encodeURIComponent(renderToString(<Invalid />))}`,
+  undefined: `data:image/svg+xml,${encodeURIComponent(renderToString(<Invalid />))}`,
 };
 
 const markerDetails = {
   pm2_5: [
-    { limit: 500.5, category: 'Invalid' },
+    { limit: 500.5, category: 'Invalid' || 'undefined' },
     { limit: 250.5, category: 'Hazardous' },
     { limit: 150.5, category: 'VeryUnhealthy' },
     { limit: 55.5, category: 'Unhealthy' },
@@ -31,7 +33,7 @@ const markerDetails = {
     { limit: 0.0, category: 'GoodAir' },
   ],
   pm10: [
-    { limit: 604.1, category: 'Invalid' },
+    { limit: 604.1, category: 'Invalid' || 'undefined' },
     { limit: 424.1, category: 'Hazardous' },
     { limit: 354.1, category: 'VeryUnhealthy' },
     { limit: 254.1, category: 'Unhealthy' },
@@ -40,12 +42,39 @@ const markerDetails = {
     { limit: 0.0, category: 'GoodAir' },
   ],
   no2: [
-    { limit: 2049.1, category: 'Invalid' },
+    { limit: 2049.1, category: 'Invalid' || 'undefined' },
     { limit: 1249.1, category: 'Hazardous' },
     { limit: 649.1, category: 'VeryUnhealthy' },
     { limit: 360.1, category: 'Unhealthy' },
     { limit: 100.1, category: 'UnhealthyForSensitiveGroups' },
     { limit: 53.1, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
+  ],
+  o3: [
+    { limit: 604.1, category: 'Invalid' || 'undefined' },
+    { limit: 504.1, category: 'Hazardous' },
+    { limit: 404.1, category: 'VeryUnhealthy' },
+    { limit: 204.1, category: 'Unhealthy' },
+    { limit: 154.1, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 54.1, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
+  ],
+  co: [
+    { limit: 50.5, category: 'Invalid' || 'undefined' },
+    { limit: 40.5, category: 'Hazardous' },
+    { limit: 30.5, category: 'VeryUnhealthy' },
+    { limit: 10.5, category: 'Unhealthy' },
+    { limit: 4.5, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 2.5, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
+  ],
+  so2: [
+    { limit: 1004.1, category: 'Invalid' || 'undefined' },
+    { limit: 804.1, category: 'Hazardous' },
+    { limit: 604.1, category: 'VeryUnhealthy' },
+    { limit: 304.1, category: 'Unhealthy' },
+    { limit: 185.1, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 75.1, category: 'ModerateAir' },
     { limit: 0.0, category: 'GoodAir' },
   ],
 };
@@ -58,6 +87,7 @@ const colors = {
   UnhealthyForSensitiveGroups: '#FF851F',
   ModerateAir: '#FFD633',
   GoodAir: '#34C759',
+  undefined: '#C6D1DB',
 };
 
 const messages = {
@@ -70,17 +100,6 @@ const messages = {
     'Reduce the intensity of your outdoor activities. Try to stay indoors until the air quality improves.',
   Hazardous:
     'If you have to spend a lot of time outside, disposable masks like the N95 are helpful.',
-};
-
-/**
- * Get random key from object
- * @param {Object} obj
- * @returns {String}
- */
-const getRandomKey = (obj) => {
-  const keys = Object.keys(obj);
-  let key = keys[Math.floor(Math.random() * keys.length)];
-  return key;
 };
 
 /**
@@ -97,7 +116,11 @@ export const getAQICategory = (pollutant, value) => {
   const categories = markerDetails[pollutant];
   for (let i = 0; i < categories.length; i++) {
     if (value >= categories[i].limit) {
-      return { icon: categories[i].category, color: colors[categories[i].category] };
+      return {
+        icon: categories[i].category,
+        color: colors[categories[i].category],
+        category: categories[i].category,
+      };
     }
   }
 };
@@ -179,35 +202,31 @@ export const UnclusteredNode = ({ feature, NodeType, selectedNode }) => {
  * @returns {String}
  */
 export const createClusterNode = ({ feature, NodeType }) => {
-  // Randomly select two different colors
-  let firstColorKey, secondColorKey;
-  do {
-    firstColorKey = getRandomKey(colors);
-    secondColorKey = getRandomKey(colors);
-  } while (firstColorKey === secondColorKey);
+  // Get the two most common AQIs from the feature properties
+  const [firstAQI, secondAQI] = feature.properties.aqi;
 
-  // Randomly select two different images
-  let firstImageKey, secondImageKey;
-  do {
-    firstImageKey = getRandomKey(images);
-    secondImageKey = getRandomKey(images);
-  } while (firstImageKey === secondImageKey);
+  // Get the corresponding colors and icons for the AQIs
+  const firstColor = colors[firstAQI.aqi.icon];
+  const secondColor = colors[secondAQI.aqi.icon];
+  const FirstIcon = images[firstAQI.aqi.icon];
+  const SecondIcon = images[secondAQI.aqi.icon];
 
-  const FirstIcon = images[firstImageKey];
-  const SecondIcon = images[secondImageKey];
+  const firstAQIValue = (firstAQI.pm2_5 || firstAQI.no2 || firstAQI.pm10).toFixed(2);
+  const secondAQIValue = (secondAQI.pm2_5 || secondAQI.no2 || secondAQI.pm10).toFixed(2);
 
-  const count = feature.properties.point_count_abbreviated;
+  // Get the correct count for the nodes in the cluster
+  const count = feature.properties.point_count;
   const countDisplay = count > 2 ? `${count - 2} + ` : '';
 
   if (NodeType === 'Number' || NodeType === 'Node') {
     return `
       <div class="flex -space-x-3 rtl:space-x-reverse items-center justify-center">
-          <div class="w-8 h-8 z-20 rounded-full border-white flex justify-center items-center text-[8px] overflow-hidden" style="background:${
-            colors[firstColorKey]
-          }">${NodeType !== 'Node' ? '12.02' : ''}</div>
-          <div class="w-8 h-8 z-10 rounded-full border-white flex justify-center items-center text-[8px] overflow-hidden" style="background:${
-            colors[secondColorKey]
-          }">${NodeType !== 'Node' ? '112.23' : ''}</div>
+          <div class="w-8 h-8 z-20 rounded-full flex justify-center items-center border border-gray-300 text-[8px] overflow-hidden" style="background:${firstColor}">${
+      NodeType !== 'Node' ? firstAQIValue : ''
+    }</div>
+          <div class="w-8 h-8 z-10 rounded-full flex justify-center border border-gray-300 items-center text-[8px] overflow-hidden" style="background:${secondColor}">${
+      NodeType !== 'Node' ? secondAQIValue : ''
+    }</div>
       </div>
 
       <div class="text-black text-sm font-bold ml-2">${countDisplay}</div>
@@ -216,8 +235,8 @@ export const createClusterNode = ({ feature, NodeType }) => {
 
   return `
     <div class="flex -space-x-3 rtl:space-x-reverse">
-      <img class="w-8 h-8 border-2 border-white rounded-full z-20" src="${FirstIcon}" alt="AQI Icon">
-      <img class="w-8 h-8 border-2 border-white rounded-full z-10" src="${SecondIcon}" alt="AQI Icon">
+      <img class="w-8 h-8 border-2 border-white rounded-full z-20" src="${FirstIcon}" alt="${FirstIcon}">
+      <img class="w-8 h-8 border-2 border-white rounded-full z-10" src="${SecondIcon}" alt="${SecondIcon}">
     </div>
     <div class="text-black text-sm font-bold ml-2" style="${
       countDisplay ? 'block' : 'none'
@@ -234,6 +253,12 @@ export const createClusterNode = ({ feature, NodeType }) => {
 export const createPopupHTML = ({ feature, images }) => {
   if (!feature || !feature.properties) {
     console.error('Invalid feature properties');
+    return '';
+  }
+
+  // Check if feature.properties.pm2_5 and feature.properties.aqi are defined
+  if (!feature.properties.pm2_5 || !feature.properties.aqi) {
+    console.error('Invalid AQI or PM2.5 data');
     return '';
   }
 
@@ -262,7 +287,7 @@ export const createPopupHTML = ({ feature, images }) => {
         <p class="font-semibold text-sm leading-4" style="color: ${
           feature.properties.aqi.color
         };width:30ch;">
-          Air Quality is ${feature.properties.airQuality}
+          Air Quality is ${feature.properties.airQuality.replace(/([A-Z])/g, ' $1').trim()}
         </p>
         <img src="${images[feature.properties.aqi.icon]}" alt="AQI Icon" class="w-8 h-8">
       </div>

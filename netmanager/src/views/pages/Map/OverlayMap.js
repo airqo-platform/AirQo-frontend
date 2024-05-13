@@ -649,6 +649,7 @@ const MapContainer = () => {
   const { storedData, storedTimeStamp } = useMemo(getStoredData, []);
   const currentTimeStamp = useMemo(() => new Date().getTime(), []);
   const [monitoringSiteData, setMonitoringSiteData] = useState({});
+  const [loading, setLoading] = useState(true);
 
   const updateLocalStorage = useCallback(
     (data) => {
@@ -698,6 +699,13 @@ const MapContainer = () => {
     }
   }, [dispatch]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const zoom = window.innerWidth <= 768 ? 2.0 : 2.4;
 
   return (
@@ -709,7 +717,7 @@ const MapContainer = () => {
           heatMapData={heatMapData}
           monitoringSiteData={monitoringSiteData}
         />
-        {monitoringSiteData && isEmpty(monitoringSiteData.features) && (
+        {loading && (
           <div className="map-circular-loader">
             <CircularLoader loading={true} />
           </div>

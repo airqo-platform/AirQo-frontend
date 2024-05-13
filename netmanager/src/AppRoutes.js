@@ -44,9 +44,6 @@ const Organisation = lazy(() => import('./views/pages/Organisation'));
 const Logs = lazy(() => import('./views/pages/Logs'));
 const ExportDownloads = lazy(() => import('./views/pages/ExportData/downloads'));
 const ExportData = lazy(() => import('./views/pages/ExportData'));
-const FaultDetection = lazy(() =>
-  import('./views/components/DataDisplay/DeviceManagement/ManagementFaults')
-);
 const Analytics = lazy(() => import('./views/pages/Analytics'));
 const HostRegistry = lazy(() => import('./views/components/Hosts/HostRegistry'));
 const HostView = lazy(() => import('./views/components/Hosts/HostView'));
@@ -60,6 +57,9 @@ const TeamsView = lazy(() => import('./views/pages/Teams/TeamsView'));
 const SimRegistry = lazy(() => import('./views/components/SIM/SimRegistry'));
 const UserStats = lazy(() => import('./views/pages/UserStats/UserStats'));
 const ClientActivation = lazy(() => import('./views/pages/clients'));
+const FaultDetection = lazy(() =>
+  import('./views/components/DataDisplay/DeviceManagement/ManagementFaults')
+);
 
 const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
@@ -97,7 +97,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
   }, [auth.isAuthenticated]);
 
   return (
-    <Router>
+    <Router basename="/netmanager">
       <div className="App">
         <Suspense fallback={<LargeCircularLoader loading={true} height={'calc(100vh - 114px)'} />}>
           <Switch>
@@ -149,6 +149,12 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <PrivateRoute exact path="/manager/map" component={ManagerMap} layout={MainLayout} />
             <PrivateRoute
               exact
+              path="/manager/fault_detection"
+              component={FaultDetection}
+              layout={MainLayout}
+            />
+            <PrivateRoute
+              exact
               path="/manager/stats"
               component={ManagerStats}
               layout={MainLayout}
@@ -157,12 +163,6 @@ const AppRoutes = ({ auth, logoutUser }) => {
               exact
               path="/manager/activities"
               component={SiteActivities}
-              layout={MainLayout}
-            />
-            <PrivateRoute
-              exact
-              path="/manager/fault_detection"
-              component={FaultDetection}
               layout={MainLayout}
             />
             <PrivateRoute exact path="/hosts" component={HostRegistry} layout={MainLayout} />

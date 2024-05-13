@@ -1,6 +1,5 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
-import 'package:app/screens/email_link/confirm_account_details.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -22,9 +21,6 @@ class ProfileEditPage extends StatelessWidget {
           horizontalPadding: 16,
           child: BlocBuilder<ProfileBloc, Profile>(
             builder: (context, profile) {
-              bool isAccountLinked = profile.phoneNumber.isNotEmpty &&
-                  profile.emailAddress.isNotEmpty;
-
               return ListView(
                 physics: const BouncingScrollPhysics(),
                 children: <Widget>[
@@ -36,71 +32,14 @@ class ProfileEditPage extends StatelessWidget {
                     height: 40,
                   ),
                   Visibility(
-                    visible: true,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 16),
-                        EditCredentialsField(
-                          profile: profile,
-                          authMethod: AuthMethod.phone,
-                        ),
-                        const SizedBox(height: 16),
-                        Visibility(
-                          visible: !isAccountLinked,
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const EmailLinkScreen(),
-                                ),
-                              );
-                            },
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Email Address',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: CustomColors.inactiveColor,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                TextFormField(
-                                  initialValue: '',
-                                  onTap: () {
-                                    FocusScope.of(context).unfocus();
-                                  },
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: Colors.white,
-                                    hintText:AppLocalizations.of(context)!.enterYourEmailAddress,
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: const BorderSide(
-                                          color: Colors.transparent,
-                                          width: 1.0),
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: const BorderSide(
-                                          color: Colors.transparent,
-                                          width: 1.0),
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
+                    visible: profile.phoneNumber.isNotEmpty,
+                    child: EditCredentialsField(
+                      profile: profile,
+                      authMethod: AuthMethod.phone,
                     ),
                   ),
                   Visibility(
-                    visible: isAccountLinked,
+                    visible: profile.emailAddress.isNotEmpty,
                     child: EditCredentialsField(
                       profile: profile,
                       authMethod: AuthMethod.email,

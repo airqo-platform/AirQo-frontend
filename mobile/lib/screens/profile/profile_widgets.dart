@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:app/screens/email_link/confirm_account_details.dart';
 import 'package:app/screens/notification/notification_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -11,15 +10,12 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../feedback/feedback_page.dart';
@@ -102,61 +98,6 @@ class _SignOutButtonState extends State<SignOutButton> {
   }
 }
 
-class GuestFeedbackButton extends StatelessWidget {
-  const GuestFeedbackButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: () async {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) {
-              return const FeedbackPage();
-            },
-          ),
-        );
-      },
-      style: OutlinedButton.styleFrom(
-        elevation: 0,
-        side: const BorderSide(
-          color: Colors.transparent,
-        ),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(
-            Radius.circular(8),
-          ),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: CustomColors.appColorBlue,
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-      ),
-      child: ListTile(
-        leading: Container(
-          height: 40,
-          width: 40,
-          decoration: BoxDecoration(
-            color: CustomColors.appColorBlue.withOpacity(0.15),
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Icon(
-              Icons.chat,
-              color: CustomColors.appColorBlue,
-            ),
-          ),
-        ),
-        title: AutoSizeText(
-          AppLocalizations.of(context)!.sendFeedback,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-      ),
-    );
-  }
-}
-
 class SignUpSection extends StatelessWidget {
   const SignUpSection({super.key});
 
@@ -173,11 +114,9 @@ class SignUpSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(
-            height: 15,
+            height: 48,
           ),
-          AnimatedPadding(
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeIn,
+          Padding(
             padding: const EdgeInsets.symmetric(horizontal: 25.0),
             child: AutoSizeText(
               AppLocalizations.of(context)!.personaliseYourExperience,
@@ -191,9 +130,7 @@ class SignUpSection extends StatelessWidget {
           const SizedBox(
             height: 8,
           ),
-          AnimatedPadding(
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeIn,
+          Padding(
             padding: const EdgeInsets.symmetric(horizontal: 55.0),
             child: AutoSizeText(
               AppLocalizations.of(context)!
@@ -209,14 +146,12 @@ class SignUpSection extends StatelessWidget {
           const SizedBox(
             height: 4,
           ),
-          AnimatedPadding(
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeIn,
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: const SignUpButton(),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32),
+            child: SignUpButton(),
           ),
           const SizedBox(
-            height: 30,
+            height: 40,
           ),
         ],
       ),
@@ -861,7 +796,7 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
                         ? Colors.transparent
                         : CustomColors.appColorBlue,
                   ),
-                  child: AutoSizeText(
+                  child: Text(
                     AppLocalizations.of(context)!.save,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -883,31 +818,14 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(60);
 }
 
-class EditCredentialsField extends StatefulWidget {
+class EditCredentialsField extends StatelessWidget {
   const EditCredentialsField({
     super.key,
     required this.authMethod,
     required this.profile,
-    this.isSaveClicked = false,
   });
-
   final AuthMethod authMethod;
   final Profile profile;
-  final bool isSaveClicked;
-
-  @override
-  EditCredentialsFieldState createState() => EditCredentialsFieldState();
-}
-
-class EditCredentialsFieldState extends State<EditCredentialsField> {
-  late bool isReadOnly;
-
-  @override
-  void initState() {
-    super.initState();
-    // Set the initial readOnly status based on whether the email is present
-    isReadOnly = widget.profile.emailAddress.isNotEmpty;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -916,7 +834,7 @@ class EditCredentialsFieldState extends State<EditCredentialsField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          widget.authMethod == AuthMethod.email
+          authMethod == AuthMethod.email
               ? AppLocalizations.of(context)!.email
               : AppLocalizations.of(context)!.phoneNumber,
           style: TextStyle(
@@ -928,44 +846,16 @@ class EditCredentialsFieldState extends State<EditCredentialsField> {
           height: 4,
         ),
         TextFormField(
-          initialValue: widget.authMethod == AuthMethod.email
-              ? widget.profile.emailAddress
-              : widget.profile.phoneNumber,
+          initialValue: authMethod == AuthMethod.email
+              ? profile.emailAddress
+              : profile.phoneNumber,
           enableSuggestions: false,
-          readOnly: widget.isSaveClicked || isReadOnly,
+          readOnly: true,
           style: TextStyle(color: CustomColors.inactiveColor),
-          onChanged: (value) {
-            if (widget.authMethod == AuthMethod.email &&
-                !widget.isSaveClicked) {
-              context.read<ProfileBloc>().add(
-                    UpdateProfile(
-                      widget.profile.copyWith(emailAddress: value),
-                    ),
-                  );
-            }
-          },
-          onTap: () {
-            // Allow editing when the user taps the field
-            if (!widget.isSaveClicked) {
-              setState(() {
-                isReadOnly = false;
-              });
-            }
-          },
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white,
             hintText: '-',
-            suffixIcon: isReadOnly
-                ? null
-                : Container(
-                    padding: const EdgeInsets.all(10),
-                    height: 20,
-                    width: 20,
-                    child: SvgPicture.asset(
-                      'assets/icon/profile_edit.svg',
-                    ),
-                  ),
             focusedBorder: OutlineInputBorder(
               borderSide:
                   const BorderSide(color: Colors.transparent, width: 1.0),
@@ -1044,7 +934,7 @@ class GuestProfileView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(
-              height: 15,
+              height: 20,
             ),
             const Row(
               children: [
@@ -1068,146 +958,16 @@ class GuestProfileView extends StatelessWidget {
         horizontalPadding: 16.0,
         child: Column(
           children: <Widget>[
+            SizedBox(
+              height: 24,
+            ),
             SignUpSection(),
             SizedBox(
-              height: 8,
+              height: 16,
             ),
             SettingsButton(),
-            SizedBox(
-              height: 8,
-            ),
-            GuestFeedbackButton(),
             Spacer(),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class LinkAccountReminder extends StatelessWidget {
-  const LinkAccountReminder({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      color: const Color.fromARGB(255, 184, 217, 255),
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: SizedBox(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                AppLocalizations.of(context)!.accessDeeperAirQualityInsights,
-                style: const TextStyle(
-                  color: Color.fromARGB(197, 0, 0, 0),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 4),
-              RichText(
-                textAlign: TextAlign.start,
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: AppLocalizations.of(context)!
-                          .addYourEmailToYourProfileToEnableYouToAccessThe,
-                      style: const TextStyle(
-                        color: Color(0xFF485972),
-                        fontSize: 13.24,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    TextSpan(
-                      text: "AirQo analytics ",
-                      style: TextStyle(
-                        color: CustomColors.appColorBlue,
-                        fontSize: 13.24,
-                        fontWeight: FontWeight.w400,
-                        decoration: TextDecoration.underline,
-                      ),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () async {
-                          Uri url = Uri.parse('https://platform.airqo.net');
-                          if (await canLaunchUrl(url)) {
-                            await launchUrl(
-                              url,
-                              mode: LaunchMode.inAppBrowserView,
-                            );
-                          } else {
-                            throw 'Could not launch $url';
-                          }
-                        },
-                    ),
-                    TextSpan(
-                      text: AppLocalizations.of(context)!
-                          .usingYourAirQoMobileAppAccount,
-                      style: const TextStyle(
-                        color: Color(0xFF485972),
-                        fontSize: 13.24,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              MaterialButton(
-                height: 40,
-                color: CustomColors.appBodyColor,
-                onPressed: () async {
-                  Navigator.push(context, MaterialPageRoute(
-                    builder: (context) {
-                      return const EmailLinkScreen();
-                    },
-                  ));
-                },
-                padding: const EdgeInsets.only(top: 8, bottom: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16, right: 10),
-                      child: SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.535, 
-                        child: AutoSizeText(
-                          overflow:  TextOverflow.ellipsis,
-                            AppLocalizations.of(context)!.addMyEmailToMyProfile,
-                            style: TextStyle(
-                              color: CustomColors.appColorBlue,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
-                            )),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Container(
-                      height: 35,
-                      width: 35,
-                      decoration: const BoxDecoration(
-                        color: Color.fromARGB(255, 184, 217, 255),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        size: 18,
-                        color: CustomColors.appColorBlue,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );
