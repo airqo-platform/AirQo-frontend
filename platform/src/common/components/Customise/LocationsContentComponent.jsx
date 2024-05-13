@@ -22,17 +22,16 @@ import { getNearestSite, getGridsSummaryApi } from '@/core/apis/DeviceRegistry';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import allCountries from '../Map/components/countries.json';
 
-const MAPBOX_URL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
+const MAPBOX_URL = 'https://nominatim.openstreetmap.org/search';
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
 const SearchResultsSkeleton = () => (
   <div className='flex flex-col gap-1 animate-pulse'>
-    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-3' />
-    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-3' />
-    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-3' />
-    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-3' />
-    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-3' />
-    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-3' />
+    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-6' />
+    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-6' />
+    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-6' />
+    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-6' />
+    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-6' />
   </div>
 );
 
@@ -149,11 +148,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
         .filter((grid) => grid.admin_level.toLowerCase() === 'country')
         .map((country) => country.name.toLowerCase());
 
-      const countryDetails = allCountries.filter((country) =>
-        countryNames.includes(country.country.toLowerCase()),
-      );
-      const countryCodes = countryDetails.map((country) => country.code);
-      setAirqoCountries(countryCodes);
+      setAirqoCountries(countryNames);
     }
   }, [gridsSummaryData]);
 
@@ -206,15 +201,66 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
     setIsLoadingResults(true);
     if (reduxSearchTerm && reduxSearchTerm.length > 3) {
       try {
-        const response = await axios.get(
-          `${MAPBOX_URL}/${reduxSearchTerm}.json?fuzzyMatch=true&limit=8&proximity=32.5638%2C0.3201&autocomplete=true&access_token=${MAPBOX_TOKEN}&country=${airqoCountries.join(
-            ',',
-          )}`,
-        );
+        // Create a new AutocompleteService instance
+        const autocompleteService = new google.maps.places.AutocompleteService();
 
-        if (response.data && response.data.features) {
-          setFilteredLocations(response.data.features);
-        }
+        // Call getPlacePredictions to retrieve autocomplete suggestions
+        autocompleteService.getPlacePredictions(
+          {
+            input: reduxSearchTerm,
+            types: ['establishment'],
+          },
+          (predictions, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+              // Filter predictions to include only those within the specified countries
+              const filteredPredictions = predictions.filter((prediction) => {
+                return airqoCountries.some((country) =>
+                  prediction.description.toLowerCase().includes(country.toLowerCase()),
+                );
+              });
+
+              // Retrieve the details of each prediction to get latitude and longitude
+              const locationPromises = filteredPredictions.map((prediction) => {
+                return new Promise((resolve, reject) => {
+                  const placesService = new google.maps.places.PlacesService(
+                    document.createElement('div'),
+                  );
+                  placesService.getDetails(
+                    { placeId: prediction.place_id },
+                    (place, placeStatus) => {
+                      if (placeStatus === google.maps.places.PlacesServiceStatus.OK) {
+                        resolve({
+                          description: prediction.description,
+                          latitude: place.geometry.location.lat(),
+                          longitude: place.geometry.location.lng(),
+                          place_id: prediction.place_id,
+                        });
+                      } else {
+                        reject(
+                          new Error(`Failed to retrieve details for ${prediction.description}`),
+                        );
+                      }
+                    },
+                  );
+                });
+              });
+
+              // Resolve all location promises to get the latitude and longitude for each prediction
+              Promise.all(locationPromises)
+                .then((locations) => {
+                  setFilteredLocations(locations);
+                  setIsLoadingResults(false);
+                })
+                .catch((error) => {
+                  console.error('Failed to retrieve location details:', error);
+                  setIsLoadingResults(false);
+                });
+            } else {
+              console.error('Autocomplete search failed with status:', status);
+              setIsLoadingResults(false);
+            }
+          },
+        );
       } catch (error) {
         console.error('Failed to search:', error);
       } finally {
@@ -222,7 +268,6 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
       }
     } else {
       setFilteredLocations([]);
-      setIsLoadingResults(false);
     }
   };
 
@@ -254,20 +299,23 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
     dispatch(addSearchTerm(''));
     try {
       let newLocationValue;
-      if (item?.geometry) {
+      if (item?.place_id) {
         const response = await getNearestSite({
-          latitude: item?.geometry?.coordinates[1],
-          longitude: item?.geometry?.coordinates[0],
+          latitude: item?.latitude,
+          longitude: item?.longitude,
           radius: 4,
         });
 
         if (response.sites && response.sites.length > 0) {
-          newLocationValue = { ...response.sites[0], name: item?.place_name };
+          newLocationValue = {
+            ...response.sites[Math.floor(Math.random() * response.sites.length)],
+            name: item?.description,
+          };
         } else {
           setIsError({
             isError: true,
             message: `Can't find air quality for ${
-              item?.place_name?.split(',')[0]
+              item?.description?.split(',')[0]
             }. Please try another location.`,
             type: 'error',
           });
@@ -279,7 +327,6 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
 
       const newLocationArray = [...locationArray];
       const index = newLocationArray.findIndex((location) => location._id === newLocationValue._id);
-
       if (index !== -1) {
         newLocationArray.splice(index, 1);
       } else if (newLocationArray.length < 4) {
@@ -386,22 +433,22 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
                   onClick={() => {
                     handleLocationSelect(location);
                   }}
-                  key={location.id}
+                  key={location.place_id}
                 >
                   <LocationIcon />
-                  <div className='text-sm text-black capitalize text-nowrap w-56 overflow-hidden text-ellipsis'>
-                    {location?.place_name?.split(',')[0].length > 35
-                      ? location?.place_name?.split(',')[0].substring(0, 35) + '...'
-                      : location?.place_name?.split(',')[0]}
-                    {location?.place_name?.split(',')[0].length < 20 && (
+                  <div className='text-sm text-black capitalize text-nowrap w-56 md:w-96 lg:w-72 overflow-hidden text-ellipsis'>
+                    {location?.description?.split(',')[0].length > 35
+                      ? location?.description?.split(',')[0].substring(0, 35) + '...'
+                      : location?.description?.split(',')[0]}
+                    {location?.description?.split(',').length > 1 && (
                       <span className='text-grey-400'>
-                        {location?.place_name?.split(',').slice(1).join(',').length > 16
-                          ? `${location?.place_name
+                        {location?.description?.split(',').slice(1).join(',').length > 35
+                          ? `${location?.description
                               ?.split(',')
                               .slice(1)
                               .join(',')
-                              .substring(0, 16)}...`
-                          : location?.place_name?.split(',').slice(1).join(',')}
+                              .substring(0, 35)}...`
+                          : location?.description?.split(',').slice(1).join(',')}
                       </span>
                     )}
                   </div>
