@@ -104,7 +104,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
   const dispatch = useDispatch();
   const searchRef = useRef(null);
   const sitesData = useSelector((state) => state.grids.sitesSummary);
-  const gridLocationsData = (sitesData && sitesData.sites) || [];
+  const sitesLocationsData = (sitesData && sitesData.sites) || [];
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingResults, setIsLoadingResults] = useState(false);
   const gridsSummaryData = useSelector((state) => state.grids.gridsSummary);
@@ -153,16 +153,10 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
   }, [gridsSummaryData]);
 
   useEffect(() => {
-    if (gridLocationsData && gridLocationsData.length > 0) {
-      setFilteredLocations(gridLocationsData);
-    }
-  }, [gridLocationsData]);
-
-  useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        if (gridLocationsData && gridLocationsData.length < 1) {
+        if (sitesLocationsData && sitesLocationsData.length < 1) {
           await dispatch(getSitesSummary());
         }
       } catch (error) {
@@ -175,12 +169,12 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
   }, []);
 
   useEffect(() => {
-    if (gridLocationsData && gridLocationsData.length > 0) {
+    if (sitesLocationsData && sitesLocationsData.length > 0) {
       try {
         dispatch(setSelectedLocations(locationArray));
         while (unSelectedLocations.length < 8) {
-          const randomIndex = Math.floor(Math.random() * gridLocationsData.length);
-          const randomObject = gridLocationsData[randomIndex];
+          const randomIndex = Math.floor(Math.random() * sitesLocationsData.length);
+          const randomObject = sitesLocationsData[randomIndex];
           if (!unSelectedLocations.find((location) => location._id === randomObject._id)) {
             unSelectedLocations.push(randomObject);
           }
@@ -189,7 +183,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
         return;
       }
     }
-  }, [locationArray, gridLocationsData]);
+  }, [locationArray, sitesLocationsData]);
 
   /**
    * @param {Object} e
@@ -208,7 +202,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
         autocompleteService.getPlacePredictions(
           {
             input: reduxSearchTerm,
-            types: ['establishment'],
+            types: ['establishment', 'geocode'],
           },
           (predictions, status) => {
             if (status === google.maps.places.PlacesServiceStatus.OK) {
@@ -310,6 +304,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
           newLocationValue = {
             ...response.sites[Math.floor(Math.random() * response.sites.length)],
             name: item?.description,
+            long_name: item?.description,
           };
         } else {
           setIsError({
