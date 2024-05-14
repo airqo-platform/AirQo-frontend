@@ -268,7 +268,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
       const response = await getMapReadings();
       return processMapReadingsData(response);
     } catch (error) {
-      console.error('Error fetching map readings data: ', error);
       return [];
     }
   };
@@ -280,7 +279,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
       setMapReadingsData(newMapReadingsData);
     }
 
-    if (waqData.length === 0) {
+    if (waqData.length === 0 || mapReadingsData.length === 0) {
       const newWaqData = await fetchAndProcessWaqData(AQI_FOR_CITIES);
       setWaqData(newWaqData);
     }
