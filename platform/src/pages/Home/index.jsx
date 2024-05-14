@@ -18,25 +18,6 @@ import Analytics from '@/images/Home/analytics.png';
 import Export from '@/images/Home/export.png';
 import Settings from '@/images/Home/settings.png';
 
-//IntroList is an array of objects containing the image, name and text for each slide.
-const IntroList = [
-  {
-    image: Analytics,
-    name: 'Get Insights',
-    text: 'Track air pollution in places you care about.',
-  },
-  {
-    image: Export,
-    name: 'Data Download',
-    text: 'Download air quality data for offline analysis.',
-  },
-  {
-    image: Settings,
-    name: 'Customize',
-    text: 'Personalize your experience with AirQo Analytics.',
-  },
-];
-
 const Home = () => {
   const dispatch = useDispatch();
   const checkListData = useSelector((state) => state.checklists.checklist);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import CollapseIcon from '@/icons/SideBar/Collapse.svg';
 import { useWindowSize } from '@/lib/windowSize';
 import SideBarItem, { SideBarDropdownItem, SidebarIconItem } from './SideBarItem';
@@ -12,6 +12,9 @@ import CollocateIcon from '@/icons/SideBar/CollocateIcon';
 import LogoutIcon from '@/icons/SideBar/LogoutIcon';
 import OrganizationDropdown from '../Dropdowns/OrganizationDropdown';
 import { checkAccess } from '@/core/utils/protectedRoute';
+import CollapsedSidebar from './CollapsedSidebar';
+import { Steps } from 'intro.js-react';
+import Cookies from 'js-cookie';
 import PersonIcon from '@/icons/Settings/PersonIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -47,8 +50,47 @@ const AuthenticatedSideBar = () => {
   const [collocationOpen, setCollocationOpen] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
 
-  // Create a ref for the sidebar
-  const sidebarRef = useRef();
+  // intro.js
+  const [stepsEnabled, setStepsEnabled] = useState(false);
+  const [steps] = useState([
+    {
+      element: '#step-0',
+      intro:
+        "Welcome to the <b>AirQo Analytics Platform!</b> We are committed to providing you with comprehensive air quality data. Let's get started!",
+    },
+    {
+      element: '#step-1',
+      intro:
+        'This is the <b>Analytics Page</b>. Here, you can view detailed air quality data and gain insights into air quality trends. You also have the option to download the data for further analysis.',
+      position: 'right',
+    },
+    {
+      element: '#step-2',
+      intro:
+        'Next, we have the <b>Air Quality Map</b>. This interactive map allows you to visualize air quality data geographically. You can zoom in to specific locations for more detailed information.',
+      position: 'right',
+    },
+    {
+      element: '#step-3',
+      intro:
+        'Finally, this is the <b>Settings Page</b>. Here, you can customize your user experience, manage your account settings, and more. Make sure to explore all the options available to you!',
+      position: 'right',
+    },
+  ]);
+
+  const onExit = () => {
+    setStepsEnabled(false);
+    Cookies.set('tour1Completed', 'true', { expires: 30, sameSite: 'none', secure: true });
+  };
+
+  // Enable the steps when the component is mounted
+  useEffect(() => {
+    if (!Cookies.get('tour1Completed') && size.width >= 1024) {
+      setTimeout(() => {
+        setStepsEnabled(true);
+      }, 1000);
+    }
+  }, [size.width]);
 
   useEffect(() => {
     const collocationOpenState = localStorage.getItem('collocationOpen');
