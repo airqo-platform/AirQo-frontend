@@ -105,7 +105,7 @@ const Layout = ({
       <div className='w-full h-dvh overflow-hidden' data-testid='layout'>
         <div className='flex'>
           <AuthenticatedSideBar />
-          <div className='w-full h-dvh overflow-y-auto'>
+          <div className='w-full h-full overflow-y-auto'>
             {noTopNav && (
               <div className='sticky top-0 z-50'>
                 <TopBar topbarTitle={topbarTitle} noBorderBottom={noBorderBottom} />

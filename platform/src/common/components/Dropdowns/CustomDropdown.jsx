@@ -1,14 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 
-const CustomDropdown = ({
-  trigger,
-  children,
-  className,
-  id,
-  dropdownWidth = '200px',
-  openDropdown = false,
-}) => {
+const CustomDropdown = ({ trigger, children, className, id, openDropdown = false }) => {
   const [isOpen, setIsOpen] = useState(openDropdown);
   const dropdownRef = useRef(null);
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
@@ -42,8 +35,7 @@ const CustomDropdown = ({
       {isOpen && (
         <div className={`relative ${isCollapsed ? 'bottom-20' : ''}`}>
           <div
-            className={`${dropdownClass} mt-2 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-[1000] ${className}`}
-            style={{ width: dropdownWidth }}>
+            className={`${dropdownClass} max-h-[320px] overflow-x-hidden overflow-y-auto mt-2 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-[1000] ${className}`}>
             <div className='py-1'>{children}</div>
           </div>
         </div>
