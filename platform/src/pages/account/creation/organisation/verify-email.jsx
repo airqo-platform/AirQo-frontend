@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import AccountPageLayout from '@/components/Account/Layout';
 import { useDispatch, useSelector } from 'react-redux';
-import SideImage from '@/images/Account/OrganisationSideQuote.png';
 import { createUser } from '@/lib/store/services/account/CreationSlice';
 import Toast from '@/components/Toast';
 
@@ -27,7 +26,7 @@ const VerifyUserEmail = () => {
   };
 
   return (
-    <AccountPageLayout rightImage={SideImage} pageTitle={'Verify Email | AirQo'}>
+    <AccountPageLayout pageTitle={'Verify Email | AirQo'}>
       {verificationErrors && (
         <Toast
           type={'error'}

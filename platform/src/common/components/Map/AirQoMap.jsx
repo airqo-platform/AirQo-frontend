@@ -27,19 +27,43 @@ import {
   images,
 } from './components/MapNodes';
 import Toast from '../Toast';
-
-import DarkMode from '@/images/map/dark.png';
-import LightMode from '@/images/map/light.png';
-import SatelliteMode from '@/images/map/satellite.png';
-import StreetsMode from '@/images/map/street.png';
 import { AQI_FOR_CITIES } from './components/Cities';
-import { set } from 'date-fns';
+
+// Images
+import Node from '@/images/map/Node.webp';
+import Emoji from '@/images/map/Emoji.webp';
+import Heatmap from '@/images/map/Heatmap.webp';
+import Node_Number from '@/images/map/Node_number.webp';
+
+import DarkMode from '@/images/map/dark.webp';
+import LightMode from '@/images/map/light.webp';
+import SatelliteMode from '@/images/map/satellite.webp';
+import StreetsMode from '@/images/map/street.webp';
 
 const mapStyles = [
   { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets', image: StreetsMode },
   { url: 'mapbox://styles/mapbox/light-v10', name: 'Light', image: LightMode },
   { url: 'mapbox://styles/mapbox/dark-v10', name: 'Dark', image: DarkMode },
   { url: 'mapbox://styles/mapbox/satellite-v9', name: 'Satellite', image: SatelliteMode },
+];
+
+const mapDetails = [
+  {
+    name: 'Emoji',
+    image: Emoji,
+  },
+  {
+    name: 'Heatmap',
+    image: Heatmap,
+  },
+  {
+    name: 'Node',
+    image: Node,
+  },
+  {
+    name: 'Number',
+    image: Node_Number,
+  },
 ];
 
 const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, resizeMap }) => {
@@ -182,7 +206,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
    * @returns {Promise<Array>} - Array of data
    * @returns {Promise<Array>} - Array of data
    */
-
   const createFeature = (id, name, coordinates, aqi, no2, pm10, pm2_5, time) => ({
     type: 'Feature',
     geometry: {
@@ -628,6 +651,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
                 isOpen={isOpen}
                 onClose={() => setIsOpen(false)}
                 mapStyles={mapStyles}
+                mapDetails={mapDetails}
                 showSideBar={showSideBar}
                 disabled='Heatmap'
                 onMapDetailsSelect={(detail) => {
