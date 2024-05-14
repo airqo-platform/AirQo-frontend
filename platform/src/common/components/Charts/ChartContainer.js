@@ -130,7 +130,7 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, dow
           </button>
         }
         id='options'
-        className='top-[21px] right-0'>
+        className='top-5 right-0'>
         {isLoading ? (
           <div className='p-2'>
             <Spinner width={20} height={20} />

@@ -75,7 +75,7 @@ const OrganizationDropdown = () => {
       <CustomDropdown
         trigger={
           <button className='w-full'>
-            <div className='w-full h-12 pl-2 pr-3 py-2 bg-white rounded border border-gray-200 justify-between items-center inline-flex'>
+            <div className='w-full h-12 pl-2 pr-3 py-2 bg-white rounded-xl border border-gray-200 justify-between items-center inline-flex'>
               <div className='justify-start items-center gap-3 flex'>
                 <div className='w-8 h-8 py-1.5 bg-gray-50 rounded-full justify-center items-center flex gap-3'>
                   <div className='w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight'>
@@ -104,6 +104,7 @@ const OrganizationDropdown = () => {
             </div>
           </button>
         }
+        sidebar={true}
         id='options'>
         {userInfo?.groups.map((format) => (
           <a

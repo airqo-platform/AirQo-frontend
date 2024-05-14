@@ -10,10 +10,9 @@ const mapLayout = ({ pageTitle = 'AirQo Analytics', children, topbarTitle, noBor
         <meta property='og:title' content={pageTitle} key='title' />
       </Head>
       <div className='w-full h-dvh overflow-hidden' data-testid='layout'>
-        <div className='flex'>
+        <div className='flex transition-all duration-300 ease-in-out'>
           <CollapsedSidebar />
-
-          <div className='w-full w-full h-dvh overflow-y-auto'>{children}</div>
+          <div className='w-full h-dvh overflow-y-auto'>{children}</div>
         </div>
       </div>
     </>

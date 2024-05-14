@@ -5,7 +5,7 @@ import CheckIcon from '@/icons/tickIcon';
 import Link from 'next/link';
 import Button from '@/components/Button';
 import Image from 'next/image';
-import AnalyticsImage from '@/images/Home/analyticsImage.png';
+import AnalyticsImage from '@/images/Home/analyticsImage.webp';
 import PlayIcon from '@/images/Home/playIcon.svg';
 import AnalyticsVideo from '../../../public/videos/analytics.mp4';
 import { useSelector, useDispatch } from 'react-redux';
@@ -13,29 +13,6 @@ import { startTask, completeTask, updateTitle } from '@/lib/store/services/check
 import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
 import CustomModal from '@/components/Modal/videoModals/CustomModal';
 import StepProgress from '@/components/steppers/CircularStepper';
-import AppIntro from '../../common/components/Modal/AppIntro';
-import Analytics from '@/images/Home/analytics.png';
-import Export from '@/images/Home/export.png';
-import Settings from '@/images/Home/settings.png';
-
-//IntroList is an array of objects containing the image, name and text for each slide.
-const IntroList = [
-  {
-    image: Analytics,
-    name: 'Get Insights',
-    text: 'Track air pollution in places you care about.',
-  },
-  {
-    image: Export,
-    name: 'Data Download',
-    text: 'Download air quality data for offline analysis.',
-  },
-  {
-    image: Settings,
-    name: 'Customize',
-    text: 'Personalize your experience with AirQo Analytics.',
-  },
-];
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -147,7 +124,10 @@ const Home = () => {
               </div>
             </div>
 
-            <div className='w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5'>
+            <div
+              className={`w-full grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-${
+                steps.length > 2 ? 3 : steps.length
+              } lg:grid-cols-${steps.length - 1}`}>
               {steps.map((step, index) => {
                 if (step.disabled) {
                   return null;

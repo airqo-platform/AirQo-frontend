@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import SmallLogo from '@/icons/airqo_logo.svg';
 import Image from 'next/image';
-import SideImage from '@/images/Account/SideQuote.png';
-import AnalyticsImage from '@/images/Account/analyticsImage.png';
+import AnalyticsImage from '@/images/Account/analyticsImage.webp';
 import Head from 'next/head';
 
 const AccountPageLayout = ({
@@ -38,8 +37,7 @@ const AccountPageLayout = ({
               <div
                 className={`${
                   childrenTop ? childrenTop : 'mt-16'
-                } flex flex-col justify-center items-start lg:max-w-[360px]`}
-              >
+                } flex flex-col justify-center items-start lg:max-w-[360px]`}>
                 {children}
               </div>
             </div>
@@ -47,8 +45,7 @@ const AccountPageLayout = ({
           <div
             className={`lg:col-span-6 lg:grid hidden ${
               sideBackgroundColor ? sideBackgroundColor : 'bg-green-150'
-            } flex items-center justify-center w-full`}
-          >
+            } flex items-center justify-center w-full`}>
             <div className='px-[64px] py-[26px] relative max-w-4xl h-auto'>
               <h1 className='relative font-medium leading-9 text-[29px] mb-6'>
                 {rightText

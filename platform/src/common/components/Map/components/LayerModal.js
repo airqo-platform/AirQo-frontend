@@ -1,28 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import Node from '@/images/map/Node.png';
-import Emoji from '@/images/map/Emoji.png';
-import Heatmap from '@/images/map/Heatmap.png';
-import Node_Number from '@/images/map/Node_number.png';
 import Image from 'next/image';
-
-const mapDetails = [
-  {
-    name: 'Emoji',
-    image: Emoji,
-  },
-  {
-    name: 'Heatmap',
-    image: Heatmap,
-  },
-  {
-    name: 'Node',
-    image: Node,
-  },
-  {
-    name: 'Number',
-    image: Node_Number,
-  },
-];
 
 const Option = ({ isSelected, children, onSelect, image, disabled }) => (
   <button
@@ -41,7 +18,7 @@ const Option = ({ isSelected, children, onSelect, image, disabled }) => (
         layout='fill'
         objectFit='cover'
         className='rounded-lg'
-        loading='eager'
+        loading='lazy'
       />
     </div>
     <span>{children}</span>
@@ -53,6 +30,7 @@ const LayerModal = ({
   onClose,
   onMapDetailsSelect,
   mapStyles,
+  mapDetails,
   onStyleSelect,
   showSideBar,
   disabled,
