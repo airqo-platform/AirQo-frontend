@@ -8,6 +8,7 @@ import { AirQualityLegend } from '@/components/Map/components/Legend';
 import Sidebar from '@/components/Map/components/Sidebar';
 import { getSitesSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import withAuth from '@/core/utils/protectedRoute';
+import { addSuggestedSites } from '@/lib/store/services/map/MapSlice';
 
 const index = () => {
   const dispatch = useDispatch();
@@ -17,7 +18,6 @@ const index = () => {
   const isAdmin = true;
   const [pollutant, setPollutant] = useState('pm2_5');
   const preferences = useSelector((state) => state.defaults.individual_preferences) || [];
-  const [selectedSites, setSelectedSites] = useState([]);
   const chartSites = useSelector((state) => state.chart.chartSites);
 
   /**
@@ -29,10 +29,10 @@ const index = () => {
     const preferencesSelectedSitesData = preferences?.map((pref) => pref.selected_sites).flat();
 
     if (preferencesSelectedSitesData?.length > 0) {
-      setSelectedSites(preferencesSelectedSitesData);
+      dispatch(addSuggestedSites(preferencesSelectedSitesData));
     } else if (siteDetails) {
       const selectedSites = siteDetails.filter((site) => chartSites.includes(site.site_id));
-      setSelectedSites(selectedSites);
+      dispatch(addSuggestedSites(selectedSites));
     }
   }, [preferences, chartSites]);
 
@@ -88,7 +88,6 @@ const index = () => {
           {showSideBar && (
             <Sidebar
               siteDetails={siteDetails}
-              selectedSites={selectedSites}
               isAdmin={isAdmin}
               showSideBar={showSideBar}
               setShowSideBar={setShowSideBar}

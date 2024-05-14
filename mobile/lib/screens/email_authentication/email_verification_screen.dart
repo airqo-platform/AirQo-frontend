@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/enum_constants.dart';
 import 'package:app/screens/email_authentication/email_auth_widgets.dart';
@@ -8,7 +6,6 @@ import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -211,39 +208,6 @@ class _EmailAuthVerificationWidgetState
     );
   }
 
-  Future<void> linkAccounts() async {
-    final emailAuthModel =
-        context.read<EmailVerificationBloc>().state.emailAuthModel;
-
-    final emailCredential = EmailAuthProvider.credentialWithLink(
-      emailLink: emailAuthModel.signInLink,
-      email: emailAuthModel.emailAddress,
-    );
-
-    final user = FirebaseAuth.instance.currentUser;
-
-    try {
-      if (user != null) {
-        await user.linkWithCredential(emailCredential);
-        context.read<EmailVerificationBloc>().add(
-              const SetEmailVerificationStatus(
-                AuthenticationStatus.success,
-              ),
-            );
-        await AirqoApiClient().syncPlatformAccount();
-      }
-    } catch (error) {
-      context.read<EmailVerificationBloc>().add(
-            const SetEmailVerificationStatus(
-              AuthenticationStatus.error,
-            ),
-          );
-      if (kDebugMode) {
-        print('Error linking accounts: $error');
-      }
-    }
-  }
-
   Future<void> _authenticate() async {
     loadingScreen(context);
 
@@ -255,36 +219,27 @@ class _EmailAuthVerificationWidgetState
     );
 
     try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
+      final bool authenticationSuccessful =
+          await CustomAuth.firebaseSignIn(emailCredential);
+      if (!mounted) return;
 
-        Navigator.pop(context);
+      Navigator.pop(context);
 
-        await _linkAccountWithEmailCredential(currentUser, emailCredential);
-
-        await AirqoApiClient().syncPlatformAccount();
-      } else {
-        final bool authenticationSuccessful =
-            await CustomAuth.firebaseSignIn(emailCredential);
-        if (!mounted) return;
-
-        if (!authenticationSuccessful) {
-          Navigator.pop(context);
-          await showDialog<void>(
-            context: context,
-            barrierDismissible: false,
-            builder: (BuildContext _) {
-              return const AuthFailureDialog();
-            },
-          );
-          return;
-        }
-
-        context.read<EmailVerificationBloc>().add(
-            const SetEmailVerificationStatus(AuthenticationStatus.success));
-
-        Navigator.pop(context);
+      if (authenticationSuccessful) {
+        context
+            .read<EmailVerificationBloc>()
+            .add(const SetEmailVerificationStatus(
+              AuthenticationStatus.success,
+            ));
         await AppService.postSignInActions(context);
+      } else {
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext _) {
+            return const AuthFailureDialog();
+          },
+        );
       }
     } catch (exception, stackTrace) {
       Navigator.pop(context);
@@ -297,11 +252,6 @@ class _EmailAuthVerificationWidgetState
       );
       await logException(exception, stackTrace);
     }
-  }
-
-  Future<void> _linkAccountWithEmailCredential(
-      User currentUser, AuthCredential emailCredential) async {
-    await currentUser.linkWithCredential(emailCredential);
   }
 
   Future<bool> onWillPop() {

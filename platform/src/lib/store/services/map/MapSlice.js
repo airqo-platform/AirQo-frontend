@@ -6,13 +6,14 @@ const initialState = {
     city: '',
   },
   center: {
-    latitude: 2.5768,
-    longitude: 25.1601,
+    latitude: 4.413,
+    longitude: 19.8342,
   },
-  zoom: 3.01,
+  zoom: 3.12,
   showLocationDetails: false,
   selectedLocation: null,
   mapLoading: false,
+  suggestedSites: [],
 };
 
 export const mapSlice = createSlice({
@@ -46,6 +47,9 @@ export const mapSlice = createSlice({
     setMapLoading: (state, action) => {
       state.mapLoading = action.payload;
     },
+    addSuggestedSites: (state, action) => {
+      state.suggestedSites = action.payload;
+    },
   },
 });
 
@@ -57,4 +61,5 @@ export const {
   setOpenLocationDetails,
   setSelectedLocation,
   setMapLoading,
+  addSuggestedSites,
 } = mapSlice.actions;

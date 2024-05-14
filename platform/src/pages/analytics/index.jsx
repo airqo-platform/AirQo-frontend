@@ -181,7 +181,7 @@ const AuthenticatedHomePage = () => {
         show={alert.show}
         hide={() => setAlert({ ...alert, show: false })}
       />
-      <div className='pt-2'>
+      <div className='pt-2 transition-all duration-300 ease-in-out'>
         <Tabs childrenRight={!isMobile && renderChildrenRight()}>
           <Tab label='Overview'>
             {isMobile && (
