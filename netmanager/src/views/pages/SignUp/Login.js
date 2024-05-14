@@ -125,17 +125,15 @@ class Login extends Component {
           }}
           action={
             <Button
-              href="https://analytics.airqo.net/account/login"
+              href={`${process.env.REACT_APP_BASE_ANALYTICS_URL}account/login`}
               target="_blank"
               variant="text"
               color="primary"
-              style={{ width: '90px' }}
-            >
+              style={{ width: '90px' }}>
               Sign in
             </Button>
           }
-          severity={'info'}
-        >
+          severity={'info'}>
           <div style={{ textAlign: 'left' }}>
             <h6 style={{ margin: 0, paddingBottom: '8px' }}>A fresh look is here!🎉</h6>
             <p style={{ margin: 0 }}>
@@ -150,8 +148,7 @@ class Login extends Component {
             height: 'auto',
             backgroundColor: '#fff',
             maxWidth: '1000px'
-          }}
-        >
+          }}>
           <Grid container>
             <Grid
               item
@@ -172,7 +169,9 @@ class Login extends Component {
                   </h4>
                   <p className="grey-text text-darken-1">
                     Don't have an account?{' '}
-                    <a href="https://analytics.airqo.net/account/login">Sign up here</a>
+                    <a href={`${process.env.REACT_APP_BASE_ANALYTICS_URL}account/login`}>
+                      Sign up here
+                    </a>
                   </p>
                 </div>
                 <form noValidate onSubmit={this.onSubmit}>
@@ -181,14 +180,12 @@ class Login extends Component {
                       isEmpty((this.props.errors && this.props.errors.data) || {})
                         ? { display: 'none' }
                         : {}
-                    }
-                  >
+                    }>
                     <Alert
                       severity="error"
                       onClose={() => {
                         this.props.clearErrors();
-                      }}
-                    >
+                      }}>
                       {this.props.errors &&
                         this.props.errors.data &&
                         this.props.errors.data.message}
@@ -230,8 +227,7 @@ class Login extends Component {
                     />
                     <div
                       style={{ display: 'flex', alignItems: 'center' }}
-                      onClick={this.toggleShowPassword}
-                    >
+                      onClick={this.toggleShowPassword}>
                       <Checkbox checked={this.state.showPassword} /> Show password
                     </div>
                   </div>
@@ -242,8 +238,7 @@ class Login extends Component {
                       display: 'flex',
                       justifyContent: 'center',
                       alignItems: 'center'
-                    }}
-                  >
+                    }}>
                     <button
                       style={{
                         width: '150px',
@@ -253,8 +248,7 @@ class Login extends Component {
                       }}
                       type="submit"
                       className="btn waves-effect waves-light hoverable blue accent-3"
-                      disabled={this.state.loading}
-                    >
+                      disabled={this.state.loading}>
                       Login
                     </button>
                   </div>
@@ -266,9 +260,10 @@ class Login extends Component {
                     justifyContent: 'center',
                     alignItems: 'center',
                     marginTop: '5px'
-                  }}
-                >
-                  <Link to="/forgot"> Forgotten Password?</Link>
+                  }}>
+                  <a href={`${process.env.REACT_APP_BASE_ANALYTICS_URL}account/forgotPwd`}>
+                    Forgotten Password?
+                  </a>
                 </div>
               </div>
             </Grid>
