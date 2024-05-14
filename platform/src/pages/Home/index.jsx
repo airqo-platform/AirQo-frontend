@@ -44,8 +44,6 @@ const Home = () => {
   const userData = JSON.parse(localStorage.getItem('loggedUser'));
   const checkListStatus = useSelector((state) => state.checklists.status);
   const [open, setOpen] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const loginCount = userData.loginCount;
   const [step, setStep] = useState(0);
   const totalSteps = 3;
 
@@ -124,25 +122,13 @@ const Home = () => {
     }
   };
 
-  // Show the intro modal only once
-  useEffect(() => {
-    const hasSeenModal = localStorage.getItem('hasSeenModal');
-
-    if (loginCount === 1 && !hasSeenModal) {
-      setShowModal(true);
-      localStorage.setItem('hasSeenModal', 'true');
-    }
-  }, []);
-
   return (
     <Layout noBorderBottom pageTitle='Home'>
-      {/* App Intro Modal */}
-      <AppIntro isOpen={showModal} setIsOpen={setShowModal} features={IntroList} />
       {checkListStatus === 'loading' && checkListData.length === 0 ? (
         <HomeSkeleton />
       ) : (
         <>
-          <div className='px-3 lg:px-16 py-3 space-y-5'>
+          <div className='px-3 lg:px-16 py-3 space-y-5 transition-all duration-300 ease-in-out'>
             <div className='w-full mb-4 md:mb-10'>
               <h1 className='text-[32px] leading-10 font-medium'>
                 Welcome, <span className='capitalize'>{userData?.firstName}</span> 👋

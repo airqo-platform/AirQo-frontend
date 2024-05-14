@@ -33,6 +33,7 @@ import LightMode from '@/images/map/light.png';
 import SatelliteMode from '@/images/map/satellite.png';
 import StreetsMode from '@/images/map/street.png';
 import { AQI_FOR_CITIES } from './components/Cities';
+import { set } from 'date-fns';
 
 const mapStyles = [
   { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets', image: StreetsMode },
@@ -79,7 +80,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
-      setLoadingOthers(false);
     }, 10000);
 
     return () => clearTimeout(timer);
@@ -565,6 +565,11 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
     map.setStyle(map.getStyle());
     setRefresh(!refresh);
     selectedNode && setSelectedNode(null);
+    setToastMessage({
+      message: 'Map refreshed successfully',
+      type: 'success',
+      bgColor: 'bg-blue-600',
+    });
   };
 
   /**
