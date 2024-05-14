@@ -5,7 +5,6 @@ import Moderate from '@/icons/Charts/Moderate';
 import Unhealthy from '@/icons/Charts/Unhealthy';
 import UnhealthySG from '@/icons/Charts/UnhealthySG';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
-import { format } from 'date-fns';
 
 export const colors = ['#11225A', '#0A46EB', '#297EFF', '#B8D9FF'];
 

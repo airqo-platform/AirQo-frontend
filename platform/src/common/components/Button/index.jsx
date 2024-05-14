@@ -57,7 +57,7 @@ const Button = ({
     return (
       <button
         onClick={onClick}
-        className={`${buttonClass} ${textColor} ${backgroundColor} ${border} rounded-xl`}
+        className={`${buttonClass} ${textColor} ${backgroundColor} ${border}`}
         data-testid={dataTestId}
         type={type}
         {...rest}

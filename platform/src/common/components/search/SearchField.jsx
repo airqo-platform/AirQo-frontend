@@ -55,20 +55,21 @@ const SearchField = ({
         {reduxSearchTerm && (
           <span
             className='absolute flex justify-center items-center mr-2 h-5 w-5 right-0 pb-[2px] cursor-pointer'
-            onClick={clearSearch}
-          >
+            onClick={clearSearch}>
             <CloseIcon />
           </span>
         )}
       </div>
-      {showSearchResultsNumber && reduxSearchTerm && reduxSearchTerm.length < 4 && (
-        <div className='bg-secondary-neutral-dark-50 rounded-lg w-full h-5' />
-      )}
-      {showSearchResultsNumber && reduxSearchTerm && reduxSearchTerm.length > 3 && (
-        <p className='text-sm font-medium leading-tight text-secondary-neutral-dark-400'>
-          Results for <span className='text-secondary-neutral-dark-700'>"{reduxSearchTerm}"</span>
-        </p>
-      )}
+
+      {showSearchResultsNumber &&
+        reduxSearchTerm &&
+        (reduxSearchTerm.length < 2 ? (
+          <div className='bg-secondary-neutral-dark-50 rounded-lg w-full h-5' />
+        ) : (
+          <p className='text-sm font-medium leading-tight text-secondary-neutral-dark-400'>
+            Results for <span className='text-secondary-neutral-dark-700'>"{reduxSearchTerm}"</span>
+          </p>
+        ))}
     </>
   );
 };

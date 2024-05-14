@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   setCenter,
@@ -7,6 +7,7 @@ import {
   setOpenLocationDetails,
   setSelectedLocation,
   addSuggestedSites,
+  clearData,
 } from '@/lib/store/services/map/MapSlice';
 import allCountries from './countries.json';
 import SearchField from '@/components/search/SearchField';
@@ -16,16 +17,12 @@ import ArrowLeftIcon from '@/icons/arrow_left.svg';
 import Button from '@/components/Button';
 import Image from 'next/image';
 import { getAQICategory, getAQIMessage, getAQIcon, getIcon, images } from './MapNodes';
-import CustomDropdown from '../../Dropdowns/CustomDropdown';
 import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
-import Calendar from '../../Calendar/Calendar';
-import Datepicker from 'react-tailwindcss-datepicker';
-import { format } from 'date-fns';
 import axios from 'axios';
 import WindIcon from '@/icons/Common/wind.svg';
 import Toast from '../../Toast';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
-
+import { useWindowSize } from '@/lib/windowSize';
 import { dailyPredictionsApi } from '@/core/apis/predict';
 import Spinner from '@/components/Spinner';
 
@@ -38,7 +35,6 @@ const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
  */
 const TabSelector = ({ selectedTab, setSelectedTab }) => {
   if (typeof setSelectedTab !== 'function') {
-    console.error('Invalid prop: setSelectedTab must be a function');
     return null;
   }
   return (
@@ -98,7 +94,7 @@ const CountryList = ({ siteDetails, data, selectedCountry, setSelectedCountry })
   };
 
   return (
-    <div className='flex space-x-2 ml-2 mb-5'>
+    <div className='flex space-x-2 ml-2 mb-2'>
       {sortedData.map((country, index) => {
         // Check if country and flag properties exist
         if (!country || !country.flag) {
@@ -134,18 +130,18 @@ const CountryList = ({ siteDetails, data, selectedCountry, setSelectedCountry })
  */
 const SectionCards = ({ searchResults, handleLocationSelect }) => {
   if (!Array.isArray(searchResults)) {
-    console.error('Invalid prop: searchResults must be an array');
     return null;
   }
 
   if (typeof handleLocationSelect !== 'function') {
-    console.error('Invalid prop: handleLocationSelect must be a function');
     return null;
   }
 
   const [showAllResults, setShowAllResults] = useState(false);
 
-  const visibleResults = showAllResults ? searchResults : searchResults.slice(0, 6);
+  const visibleResults = useMemo(() => {
+    return showAllResults ? searchResults : searchResults.slice(0, 6);
+  }, [showAllResults, searchResults]);
 
   const handleShowMore = () => {
     setShowAllResults(true);
@@ -161,7 +157,7 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
         {visibleResults.map((grid) => (
           <div
             key={grid._id || grid.id}
-            className='flex flex-row justify-between items-center text-sm w-full hover:cursor-pointer hover:bg-blue-100 px-4 py-[14px] rounded-xl border border-secondary-neutral-light-100 shadow'
+            className='flex flex-row justify-between items-center text-sm w-full hover:cursor-pointer hover:bg-blue-100 px-4 py-[14px] rounded-xl border border-secondary-neutral-light-100 shadow-sm'
             onClick={() => handleLocationSelect(grid)}>
             <div className='flex flex-col item-start w-full'>
               <span className='text-base font-medium text-black capitalize'>
@@ -201,24 +197,38 @@ const SidebarHeader = ({
   selectedTab,
   handleSelectedTab,
   isAdmin,
+  isFocused,
   setShowSideBar,
   handleHeaderClick = () => {},
-}) => (
-  <div onClick={handleHeaderClick}>
-    <div className='w-full flex justify-between items-center'>
-      <label className='font-medium text-xl text-gray-900'>Air Quality Map</label>
-      <button
-        onClick={() => setShowSideBar(false)}
-        className='focus:outline-none border rounded-xl hover:cursor-pointer p-2 block md:hidden'>
-        <CloseIcon />
-      </button>
+}) => {
+  const handleCloseClick = useCallback(() => {
+    setShowSideBar(false);
+  }, [setShowSideBar]);
+
+  return (
+    <div>
+      <div className='w-full flex justify-between items-center'>
+        <label className='font-medium text-xl text-gray-900'>Air Quality Map</label>
+        <button
+          onClick={handleCloseClick}
+          className='focus:outline-none border rounded-xl hover:cursor-pointer p-2 block md:hidden'>
+          <CloseIcon />
+        </button>
+        {isFocused && (
+          <button
+            onClick={handleHeaderClick}
+            className='focus:outline-none border rounded-xl hover:cursor-pointer p-2 hidden md:block'>
+            <CloseIcon />
+          </button>
+        )}
+      </div>
+      <p className='text-gray-500 text-sm font-medium w-auto mt-2'>
+        Navigate air quality analytics with precision and actionable tips.
+      </p>
+      {!isAdmin && <TabSelector selectedTab={selectedTab} setSelectedTab={handleSelectedTab} />}
     </div>
-    <p className='text-gray-500 text-sm font-medium w-auto mt-2'>
-      Navigate air quality analytics with precision and actionable tips.
-    </p>
-    {!isAdmin && <TabSelector selectedTab={selectedTab} setSelectedTab={handleSelectedTab} />}
-  </div>
-);
+  );
+};
 
 // Week prediction
 const WeekPrediction = ({ currentDay, weeklyPredictions, weekDays, loading }) => {
@@ -371,16 +381,18 @@ const LocationDetailItem = ({ title, children, isCollapsed = true }) => {
 };
 
 // search results skeleton
-const SearchResultsSkeleton = () => (
-  <div className='flex flex-col gap-4 animate-pulse px-4 mt-5'>
-    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
-    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
-    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
-    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
-    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
-    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
-  </div>
-);
+const SearchResultsSkeleton = () => {
+  const numElements = 6;
+  return (
+    <div className='flex flex-col gap-4 animate-pulse px-4 mt-5'>
+      {Array(numElements)
+        .fill()
+        .map((_, i) => (
+          <div key={i} className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
+        ))}
+    </div>
+  );
+};
 
 const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
   const dispatch = useDispatch();
@@ -405,6 +417,7 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
     custom: [],
     nearMe: [],
   });
+  const windowSize = useWindowSize();
   const [weeklyPredictions, setWeeklyPredictions] = useState([]);
   const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
@@ -463,27 +476,30 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
     setSelectedTab(tab);
   };
 
-  const handleLocationSelect = (data) => {
-    dispatch(setOpenLocationDetails(true));
-    setIsFocused(false);
+  const handleLocationSelect = useCallback(
+    (data) => {
+      dispatch(setOpenLocationDetails(true));
+      setIsFocused(false);
 
-    try {
-      dispatch(
-        setCenter({
-          latitude: data?.geometry?.coordinates[1] || data?.latitude || 0,
-          longitude: data?.geometry?.coordinates[0] || data?.longitude || 0,
-        }),
-      );
-      dispatch(setZoom(11));
-      dispatch(setSelectedLocation(data));
-    } catch (error) {
-      console.error('Failed to set location:', error);
-    }
-  };
+      try {
+        dispatch(
+          setCenter({
+            latitude: data?.geometry?.coordinates[1] || data?.latitude || 0,
+            longitude: data?.geometry?.coordinates[0] || data?.longitude || 0,
+          }),
+        );
+        dispatch(setZoom(11));
+        dispatch(setSelectedLocation(data));
+      } catch (error) {
+        console.error('Failed to set location:', error);
+      }
+    },
+    [dispatch],
+  );
 
   const handleSearch = async () => {
     setLoading(true);
-    if (reduxSearchTerm && reduxSearchTerm.length > 3) {
+    if (reduxSearchTerm && reduxSearchTerm.length >= 1) {
       try {
         const response = await axios.get(
           `${MAPBOX_URL}/${reduxSearchTerm}.json?fuzzyMatch=true&limit=8&proximity=32.5638%2C0.3201&autocomplete=true&access_token=${MAPBOX_TOKEN}`,
@@ -507,14 +523,15 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
   };
 
   const handleClearSearch = () => {
-    setIsFocused(false);
     setSearchResults([]);
     setShowNoResultsMsg(false);
   };
 
   useEffect(() => {
-    if (reduxSearchTerm !== '' && reduxSearchTerm.length < 4) {
+    if (reduxSearchTerm !== '') {
       setLoading(true);
+    } else {
+      setLoading(false);
     }
   }, [reduxSearchTerm]);
 
@@ -551,7 +568,7 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
   return (
     <div
       className={`${
-        window.innerWidth < 768 ? 'absolute left-0 top-0' : 'relative'
+        windowSize < 768 ? 'absolute left-0 top-0' : 'relative'
       } w-full md:w-[340px] bg-white shadow-lg shadow-right z-[999] overflow-x-hidden ${
         (searchResults && searchResults.length > 0) ||
         showLocationDetails ||
@@ -559,6 +576,7 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
           ? 'overflow-y-auto map-scrollbar h-full'
           : 'h-screen overflow-y-hidden'
       }`}>
+      {/* Sidebar Header */}
       <div className={`${!isFocused && !showLocationDetails ? 'space-y-4' : 'hidden'} px-4 pt-4`}>
         <SidebarHeader
           selectedTab={selectedTab}
@@ -568,49 +586,43 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
         />
         {!isAdmin && <hr />}
       </div>
-      <div>
+
+      <div className='h-full'>
         {/* section 1 */}
         {selectedSite && mapLoading ? (
           // show a loading skeleton
           <div className='flex flex-col gap-4 animate-pulse px-4 mt-5'>
-            <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
-            <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
-            <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
-            <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
-            <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
-            <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
+            {Array.from({ length: 6 }, (_, index) => (
+              <div key={index} className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
+            ))}
           </div>
         ) : (
           <div className={`${isFocused || showLocationDetails ? 'hidden' : ''}`}>
             <div onClick={() => setIsFocused(true)} className='mt-5 px-4'>
-              <SearchField focus={focus} />
+              <SearchField />
             </div>
             <div>
-              <div
-                className={`flex items-center mt-5 ${
-                  countryData ? 'overflow-x-auto map-scrollbar' : 'overflow-x-hidden'
-                } px-4`}>
+              <div className='flex items-center mt-5 overflow-hidden px-4 transition-all duration-300 ease-in-out'>
                 <button
                   onClick={() => {
-                    dispatch(setCenter({ latitude: 4.413, longitude: 19.8342 }));
-                    dispatch(setZoom(3.12));
-                    dispatch(setSelectedLocation(null));
+                    dispatch(clearData());
                     const selSites = siteDetails
                       ? [...siteDetails].sort((a, b) => a.name.localeCompare(b.name))
                       : [];
                     dispatch(addSuggestedSites(selSites));
                     setSelectedCountry(null);
-                    dispatch(setLocation(null));
                   }}
-                  className='py-[6px] px-[10px] rounded-full mb-5 bg-blue-500 text-white text-sm font-medium'>
+                  className='py-[6px] px-[10px] rounded-full mb-3 bg-blue-500 text-white text-sm font-medium'>
                   All
                 </button>
-                <CountryList
-                  data={countryData}
-                  selectedCountry={selectedCountry}
-                  setSelectedCountry={setSelectedCountry}
-                  siteDetails={siteDetails}
-                />
+                <div className='country-scroll-bar'>
+                  <CountryList
+                    data={countryData}
+                    selectedCountry={selectedCountry}
+                    setSelectedCountry={setSelectedCountry}
+                    siteDetails={siteDetails}
+                  />
+                </div>
               </div>
 
               <div className='border border-secondary-neutral-light-100 my-5' />
@@ -623,7 +635,7 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
                         <div className='font-medium text-secondary-neutral-dark-400 text-sm'>
                           Sort by:
                         </div>
-                        <select className='rounded-md m-0 p-0 text-sm font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none'>
+                        <select className='rounded-md m-0 p-0 text-sm text-center font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none'>
                           <option value='custom'>Suggested</option>
                           {/* <option value='near_me'>Near me</option> */}
                         </select>
@@ -649,19 +661,25 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
 
         {/* Section 2 */}
         <div
-          className={`flex flex-col pt-4 w-auto ${
+          className={`flex flex-col h-full pt-4 w-auto ${
             isFocused && !showLocationDetails ? '' : 'hidden'
           }`}>
+          {/* Sidebar Header */}
           <div className={`flex flex-col gap-5 px-4`}>
             <SidebarHeader
               selectedTab={selectedTab}
               handleSelectedTab={handleSelectedTab}
               isAdmin
+              isFocused={isFocused}
               setShowSideBar={setShowSideBar}
               handleHeaderClick={handleHeaderClick}
             />
             <SearchField onSearch={handleSearch} onClearSearch={handleClearSearch} focus={focus} />
           </div>
+
+          {reduxSearchTerm === '' && (
+            <div className='border border-secondary-neutral-light-100 mt-8' />
+          )}
 
           {reduxSearchTerm && (
             <div
@@ -671,10 +689,10 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
             />
           )}
 
-          {isLoading && <SearchResultsSkeleton />}
+          {isLoading && searchResults.length === 0 && <SearchResultsSkeleton />}
 
-          {showNoResultsMsg && searchResults && searchResults.length === 0 ? (
-            <div className='flex flex-col justify-center items-center h-60 w-full px-6'>
+          {searchResults && searchResults.length === 0 && reduxSearchTerm === '' && !isLoading ? (
+            <div className='flex flex-col justify-center items-center h-full w-full px-6'>
               <div className='p-5 rounded-full bg-secondary-neutral-light-50 border border-secondary-neutral-light-25 mb-2.5'>
                 <LocationIcon fill='#9EA3AA' />
               </div>
@@ -787,6 +805,7 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
           </div>
         )}
       </div>
+
       {toastMessage.message !== '' && (
         <Toast
           message={toastMessage.message}
