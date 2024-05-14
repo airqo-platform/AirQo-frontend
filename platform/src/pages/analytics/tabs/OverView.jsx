@@ -59,20 +59,22 @@ const OverView = () => {
             : 'grid md:grid-cols-2'
         }`}>
         {!isLoadingMeasurements &&
-          displayData.map((event, index) => (
-            <AQNumberCard
-              key={index}
-              location={
-                event.siteDetails.search_name ||
-                event.siteDetails.location_name ||
-                event.siteDetails.formatted_name ||
-                event.siteDetails.description
-              }
-              reading={event.pm2_5.value}
-              count={displayData.length}
-              pollutant={pollutantType}
-            />
-          ))}
+          displayData.map((event, index) => {
+            return (
+              <AQNumberCard
+                key={index}
+                location={
+                  event.siteDetails.name ||
+                  event.siteDetails.location_name ||
+                  event.siteDetails.formatted_name ||
+                  event.siteDetails.description
+                }
+                reading={event.pm2_5.value}
+                count={displayData.length}
+                pollutant={pollutantType}
+              />
+            );
+          })}
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <ChartContainer chartType='line' chartTitle='Air quality over time' height={300} />
