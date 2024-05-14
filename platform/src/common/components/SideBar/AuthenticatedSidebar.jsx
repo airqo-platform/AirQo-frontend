@@ -132,11 +132,11 @@ const AuthenticatedSideBar = () => {
     <>
       {/* overlay */}
       {toggleDrawer && (
-        <div className='absolute inset-0 w-dvw h-dvh opacity-50 bg-black-700 z-[1000]'></div>
+        <div className='absolute inset-0 w-full h-dvh opacity-50 bg-black-700 z-[1000] transition-all duration-200 ease-in-out'></div>
       )}
       {/* sidebar */}
       <div
-        className={`${isCollapsed ? 'w-[88px]' : 'w-64'} ${
+        className={`${isCollapsed ? 'w-[88px]' : 'w-72'} ${
           size.width < 1024
             ? toggleDrawer
               ? 'fixed right-0 top-0 z-[2000] border-l-grey-750 border-l-[1px]'
@@ -144,9 +144,9 @@ const AuthenticatedSideBar = () => {
             : 'block'
         } transition-all duration-200 ease-in-out`}
         ref={sidebarRef}>
-        <div className='flex bg-white h-dvh lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden'>
+        <div className='flex p-4 bg-white h-dvh lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden'>
           <div>
-            <div className='p-4 flex justify-between items-center'>
+            <div className='pb-4 flex justify-between items-center'>
               {size.width < 1024 ? (
                 <div
                   className='cursor-pointer'
@@ -180,10 +180,10 @@ const AuthenticatedSideBar = () => {
                 </button>
               </div>
             </div>
-            <div className='mt-4 mx-4'>
+            <div className='mt-4'>
               <OrganizationDropdown />
             </div>
-            <div className='mt-11 mx-4'>
+            <div className='mt-11 space-y-3'>
               {isCollapsed ? (
                 <SidebarIconItem IconComponent={HomeIcon} navPath='/Home' />
               ) : (
@@ -258,7 +258,7 @@ const AuthenticatedSideBar = () => {
               )}
             </div>
           </div>
-          <div className='mx-4 mb-3'>
+          <div>
             {isCollapsed ? (
               <SidebarIconItem IconComponent={SettingsIcon} navPath='/settings' />
             ) : (
