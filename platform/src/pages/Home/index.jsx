@@ -142,7 +142,7 @@ const Home = () => {
         <HomeSkeleton />
       ) : (
         <>
-          <div className='px-3 lg:px-16 py-3 space-y-5'>
+          <div className='px-3 lg:px-16 py-3 space-y-5 transition-all duration-300 ease-in-out'>
             <div className='w-full mb-4 md:mb-10'>
               <h1 className='text-[32px] leading-10 font-medium'>
                 Welcome, <span className='capitalize'>{userData?.firstName}</span> 👋
