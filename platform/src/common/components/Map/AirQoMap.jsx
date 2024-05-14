@@ -209,7 +209,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
         cities.map(async (city) => {
           const response = await axios.get(`/api/proxy?city=${city}`);
           if (!response.data) {
-            console.error(`No data returned for city: ${city}`);
             return null;
           }
           return { city, data: response.data };
@@ -240,7 +239,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
           );
         });
     } catch (error) {
-      console.error('Error fetching AQI data: ', error);
       return [];
     } finally {
       setLoadingOthers(false);
