@@ -206,7 +206,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
    * @returns {Promise<Array>} - Array of data
    * @returns {Promise<Array>} - Array of data
    */
-
   const createFeature = (id, name, coordinates, aqi, no2, pm10, pm2_5, time) => ({
     type: 'Feature',
     geometry: {

@@ -569,7 +569,7 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
     <div
       className={`${
         windowSize < 768 ? 'absolute left-0 top-0' : 'relative'
-      } w-full md:w-[340px] bg-white shadow-lg shadow-right z-[999] overflow-x-hidden ${
+      } w-full md:w-[340px] bg-white z-[999] overflow-x-hidden ${
         (searchResults && searchResults.length > 0) ||
         showLocationDetails ||
         (selectedSites && selectedSites.length > 0)
