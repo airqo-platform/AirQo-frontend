@@ -87,6 +87,10 @@ const Register = ({ history, auth, errors, clearErrors, match, registerCandidate
   });
 
   useEffect(() => {
+    window.location.href = `${process.env.REACT_APP_BASE_ANALYTICS_URL}account/login`;
+  }, []);
+
+  useEffect(() => {
     let start = null;
     let timer = null;
 
@@ -285,8 +289,7 @@ const Register = ({ history, auth, errors, clearErrors, match, registerCandidate
           maxWidth: '600px',
           marginTop: '4rem',
           backgroundColor: '#fff'
-        }}
-      >
+        }}>
         <div className="row">
           <div
             className=" offset-s2"
@@ -295,8 +298,7 @@ const Register = ({ history, auth, errors, clearErrors, match, registerCandidate
               height: '15vh',
               padding: '1em',
               position: 'relative'
-            }}
-          >
+            }}>
             {loading && (
               <LinearProgress
                 classes={{ barColorPrimary: classes.barColorPrimary, root: classes.root }}
@@ -435,8 +437,7 @@ const Register = ({ history, auth, errors, clearErrors, match, registerCandidate
                             marginTop: '0.25rem',
                             marginLeft: '1rem'
                           }}
-                          className="invalid-feedback"
-                        >
+                          className="invalid-feedback">
                           {formErrors.country}
                         </div>
                       )}
@@ -467,8 +468,7 @@ const Register = ({ history, auth, errors, clearErrors, match, registerCandidate
                             marginTop: '0.25rem',
                             marginLeft: '1rem'
                           }}
-                          className="invalid-feedback"
-                        >
+                          className="invalid-feedback">
                           {formErrors.category}
                         </div>
                       )}
@@ -497,8 +497,7 @@ const Register = ({ history, auth, errors, clearErrors, match, registerCandidate
 
               <div
                 className="col s12"
-                style={{ paddingLeft: '11.250px', paddingBottom: '20px', paddingTop: '10px' }}
-              >
+                style={{ paddingLeft: '11.250px', paddingBottom: '20px', paddingTop: '10px' }}>
                 <Button
                   variant="contained"
                   color="primary"
@@ -508,8 +507,7 @@ const Register = ({ history, auth, errors, clearErrors, match, registerCandidate
                   style={{
                     backgroundColor: state.disabled ? undefined : 'rgb(48, 103, 226)',
                     padding: '10px 30px' // Increase padding as needed
-                  }}
-                >
+                  }}>
                   REQUEST ACCESS
                 </Button>
               </div>
