@@ -147,7 +147,10 @@ const Home = () => {
               </div>
             </div>
 
-            <div className='w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5'>
+            <div
+              className={`w-full grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-${
+                steps.length > 2 ? 3 : steps.length
+              } lg:grid-cols-${steps.length - 1}`}>
               {steps.map((step, index) => {
                 if (step.disabled) {
                   return null;
