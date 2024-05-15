@@ -266,7 +266,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
             wrapperStyle={{ bottom: 0, right: 0, position: 'absolute' }}
           />
           <Tooltip
-            content={<CustomTooltipBarGraph />}
+            content={<CustomTooltipLineGraph />}
             cursor={{ fill: '#eee', fillOpacity: 0.3 }}
           />
         </BarChart>
