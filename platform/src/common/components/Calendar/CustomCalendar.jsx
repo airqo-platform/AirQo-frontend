@@ -14,6 +14,8 @@ import {
   endOfQuarter,
   subMonths,
   subDays,
+  startOfYear,
+  endOfYear,
 } from 'date-fns';
 
 /**
@@ -47,12 +49,15 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
    * @returns {void}
    */
   const handleValueChange = (newValue) => {
+    if (!newValue || !newValue.start || !newValue.end) {
+      return;
+    }
+
     const handleDateChange = (newValue) => {
       const startDate = new Date(newValue.start);
       const endDate = new Date(newValue.end);
 
       const today = new Date();
-
       const yesterday = subDays(today, 1);
 
       const computedValue = Math.abs(differenceInDays(startDate, endDate));
@@ -63,36 +68,13 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
         label = 'Yesterday';
       } else if (isSameDay(startDate, endDate)) {
         label = 'Today';
-      } else if (computedValue === 7 || computedValue === 6) {
-        label = 'Last 7 days';
-      } else if (computedValue === 30 || computedValue === 29) {
-        label = 'Last 30 days';
-      } else if (computedValue === 90 || computedValue === 89) {
-        label = 'Last 90 days';
-      } else if (computedValue === 365 || computedValue === 364) {
+      } else if (isSameDay(startDate, startOfYear(today)) && isSameDay(endDate, endOfYear(today))) {
         label = 'This year';
-      } else if (computedValue === 730 || computedValue === 729) {
+      } else if (
+        isSameDay(startDate, startOfYear(subDays(today, 365))) &&
+        isSameDay(endDate, endOfYear(subDays(today, 365)))
+      ) {
         label = 'Last year';
-      }
-
-      const thisMonthStart = startOfMonth(today);
-      const lastMonthStart = startOfMonth(subMonths(today, 1));
-      const lastMonthEnd = endOfMonth(subMonths(today, 1));
-
-      if (isSameDay(startDate, thisMonthStart) && isSameDay(endDate, today)) {
-        label = 'This month';
-      } else if (isSameDay(startDate, lastMonthStart) && isSameDay(endDate, lastMonthEnd)) {
-        label = 'Last month';
-      }
-
-      const thisQuarterStart = startOfQuarter(today);
-      const lastQuarterStart = startOfQuarter(subMonths(today, 3));
-      const lastQuarterEnd = endOfQuarter(subMonths(today, 3));
-
-      if (isSameDay(startDate, thisQuarterStart) && isSameDay(endDate, today)) {
-        label = 'This quarter';
-      } else if (isSameDay(startDate, lastQuarterStart) && isSameDay(endDate, lastQuarterEnd)) {
-        label = 'Last quarter';
       }
 
       dispatch(setChartDataRange({ startDate, endDate, label }));
@@ -149,7 +131,12 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
         </span>
         {dropdown && <ChevronDownIcon />}
       </button>
-      <div className={`absolute top-[50px]  ${className} ${openDatePicker ? 'block' : 'hidden'}`}>
+      <div
+        className={`absolute z-50 max-w-[350px] ${className} ${
+          openDatePicker
+            ? 'opacity-100 translate-y-0 visible'
+            : 'opacity-0 -translate-y-2 invisible'
+        } transition-all duration-400 ease-in-out transform`}>
         <DatePickerHiddenInput />
       </div>
     </div>
