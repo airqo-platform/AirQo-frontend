@@ -156,13 +156,14 @@ const Calendar = ({
 
   return (
     <div
-      className={
+      className={`${
         showTwoCalendars
-          ? 'flex flex-col items-center justify-center w-full bg-none md:flex-row mb-10 z-[900]'
+          ? 'flex flex-col items-center justify-center w-full bg-none md:flex-row mb-10'
           : ''
-      }>
+      }
+          `}>
       <div
-        className={`z-[900] border border-gray-100 bg-white shadow-lg rounded-xl ${
+        className={`z-[1000] border border-gray-100 bg-white shadow-lg rounded-xl ${
           showTwoCalendars
             ? 'max-w-full min-w-[260px] md:min-w-[660px] lg:min-w-[800px]'
             : 'max-w-[328px] w-full min-w-40'

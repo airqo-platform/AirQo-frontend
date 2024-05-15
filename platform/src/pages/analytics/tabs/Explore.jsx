@@ -30,7 +30,7 @@ const Explore = ({ toggleCustomize }) => {
             initialStartDate={new Date()}
             initialEndDate={new Date()}
             id='datePicker2'
-            className='left-0'
+            className='md:left-[150px] lg:left-52 top-12'
             position='down'
             dropdown
           />
