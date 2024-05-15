@@ -16,6 +16,8 @@ import {
   subDays,
   startOfYear,
   endOfYear,
+  format,
+  getYear,
 } from 'date-fns';
 
 /**
@@ -62,12 +64,23 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
 
       const computedValue = Math.abs(differenceInDays(startDate, endDate));
 
-      let label = `Last ${computedValue} days`;
+      let label;
 
       if (isSameDay(startDate, yesterday) && isSameDay(endDate, yesterday)) {
         label = 'Yesterday';
       } else if (isSameDay(startDate, endDate)) {
         label = 'Today';
+      } else if (computedValue === 7) {
+        label = 'Last 7 days';
+      } else if (computedValue === 30) {
+        label = 'Last 30 days';
+      } else if (computedValue === 90) {
+        label = 'Last 90 days';
+      } else if (
+        isSameDay(startDate, startOfMonth(today)) &&
+        isSameDay(endDate, endOfMonth(today))
+      ) {
+        label = 'This month';
       } else if (isSameDay(startDate, startOfYear(today)) && isSameDay(endDate, endOfYear(today))) {
         label = 'This year';
       } else if (
@@ -75,6 +88,14 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
         isSameDay(endDate, endOfYear(subDays(today, 365)))
       ) {
         label = 'Last year';
+      } else {
+        const startYear = getYear(startDate);
+        const endYear = getYear(endDate);
+        if (startYear !== endYear) {
+          label = `${format(startDate, 'MMM dd, yyyy')} - ${format(endDate, 'MMM dd, yyyy')}`;
+        } else {
+          label = `${format(startDate, 'MMM dd')} - ${format(endDate, 'MMM dd, yyyy')}`;
+        }
       }
 
       dispatch(setChartDataRange({ startDate, endDate, label }));
