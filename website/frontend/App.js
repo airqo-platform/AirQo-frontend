@@ -16,9 +16,8 @@ import { fetchCleanAirData } from 'reduxStore/CleanAirNetwork/CleanAir';
 import { loadPartnersData } from 'reduxStore/Partners/operations';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllEvents } from 'reduxStore/Events/EventSlice';
-import HomePage from 'src/pages/HomePage';
 
-// const HomePage = React.lazy(() => import('src/pages/HomePage'));
+const HomePage = React.lazy(() => import('src/pages/HomePage'));
 const Press = React.lazy(() => import('src/pages/Press/Press'));
 const LegalPage = React.lazy(() => import('src/pages/Legal'));
 const ResearchPage = React.lazy(() => import('src/pages/OurSolutions/ResearchPage'));
