@@ -125,10 +125,9 @@ const AnalyticsPage = () => {
                 alt=""
                 style={{
                   objectPosition: '0px',
-                  padding: '0 20px',
+                  padding: window.innerWidth < 768 ? '0 20px' : '0 100px',
                   objectFit: 'contain',
                   width: '100%',
-                  height: '100%',
                   borderRadius: '10px'
                 }}
               />
