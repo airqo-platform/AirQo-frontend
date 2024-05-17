@@ -2,12 +2,12 @@ import React from 'react';
 import Page from '../Page';
 import { useInitScrollTop } from 'utilities/customHooks';
 import Header from '../../components/OurProducts/Header';
-import HeaderImage from '../../assets/img/OurProducts/MobileApp/mobile-header.png';
-import Section1Image from '../../assets/img/OurProducts/MobileApp/section-1.png';
-import Section1OverlapImage from '../../assets/img/OurProducts/MobileApp/section-1-bell.png';
-import Section2Image from '../../assets/img/OurProducts/MobileApp/section-2.png';
-import Section2OverlapImage from '../../assets/img/OurProducts/MobileApp/section-2-calendar.png';
-import Section3Image from '../../assets/img/OurProducts/MobileApp/section-3.png';
+import HeaderImage from '../../assets/img/OurProducts/MobileApp/mobile-header.webp';
+import Section1Image from '../../assets/img/OurProducts/MobileApp/section-1.webp';
+import Section1OverlapImage from '../../assets/img/OurProducts/MobileApp/section-1-bell.webp';
+import Section2Image from '../../assets/img/OurProducts/MobileApp/section-2.webp';
+import Section2OverlapImage from '../../assets/img/OurProducts/MobileApp/section-2-calendar.webp';
+import Section3Image from '../../assets/img/OurProducts/MobileApp/section-3.webp';
 import GetApp from '../../components/get-app/GetApp';
 import { useTranslation, Trans } from 'react-i18next';
 

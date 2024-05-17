@@ -1,11 +1,11 @@
 import React from 'react';
 import Header from '../../components/OurProducts/Header';
-import HeaderImage from '../../assets/img/OurProducts/Monitor/monitor.png';
+import HeaderImage from '../../assets/img/OurProducts/Monitor/monitor.webp';
 import Page from '../Page';
-import Section1Image from '../../assets/img/OurProducts/Monitor/section-1.png';
-import Section2Image from '../../assets/img/OurProducts/Monitor/section-2.png';
-import Section3Image from '../../assets/img/OurProducts/Monitor/Africa.png';
-import Section4Image from '../../assets/img/OurProducts/Monitor/activate.png';
+import Section1Image from '../../assets/img/OurProducts/Monitor/section-1.webp';
+import Section2Image from '../../assets/img/OurProducts/Monitor/section-2.webp';
+import Section3Image from '../../assets/img/OurProducts/Monitor/Africa.webp';
+import Section4Image from '../../assets/img/OurProducts/Monitor/activate.webp';
 import UserGuide from '../../assets/docs/AirQoMonitorUserGuideV04.pdf';
 import MaintenanceManual from '../../assets/docs/Binos-Maintenance-Manual.pdf';
 import { FileDownloadOutlined } from '@mui/icons-material';
@@ -108,7 +108,17 @@ const MonitorPage = () => {
                 </p>
               </div>
               <div className="lapping-right image africa">
-                <img src={Section3Image} alt="" />
+                <img
+                  src={Section3Image}
+                  alt=""
+                  style={{
+                    objectPosition: '0px',
+                    objectFit: 'contain',
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: '10px'
+                  }}
+                />
               </div>
             </div>
           </div>

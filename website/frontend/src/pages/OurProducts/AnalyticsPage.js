@@ -1,12 +1,12 @@
 import React from 'react';
 import Header from '../../components/OurProducts/Header';
 import Page from '../Page';
-import HeaderImage from '../../assets/img/OurProducts/Analytics/analytics-header.png';
+import HeaderImage from '../../assets/img/OurProducts/Analytics/analytics-header.webp';
 import { useInitScrollTop } from 'utilities/customHooks';
-import Section1Image from '../../assets/img/OurProducts/Analytics/section-1.png';
-import Section1OverlapImage from '../../assets/img/OurProducts/Analytics/section-1-overlap.png';
-import Section2Image from '../../assets/img/OurProducts/Analytics/section-2.png';
-import Section3Image from '../../assets/img/OurProducts/Analytics/analytics-dashboard.png';
+import Section1Image from '../../assets/img/OurProducts/Analytics/section-1.webp';
+import Section1OverlapImage from '../../assets/img/OurProducts/Analytics/section-1-overlap.webp';
+import Section2Image from '../../assets/img/OurProducts/Analytics/section-2.webp';
+import Section3Image from '../../assets/img/OurProducts/Analytics/analytics-dashboard.webp';
 import NavTab from '../../components/nav/NavTab';
 import UserManual from 'assets/docs/AirQoAnalyticsPlatformUserGuide.pdf';
 import { FileDownloadOutlined } from '@mui/icons-material';
@@ -86,11 +86,25 @@ const AnalyticsPage = () => {
                 </p>
               </div>
               <div className="lapping-right image" id="section-2">
-                <img src={Section2Image} alt="" />
+                <img
+                  src={Section2Image}
+                  alt=""
+                  style={{
+                    objectPosition: '0px',
+                    objectFit: 'contain',
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: '10px'
+                  }}
+                />
               </div>
             </div>
           </div>
-          <div className="grid-full column section landscape-section">
+          <div
+            className="grid-full column section landscape-section"
+            style={{
+              overflow: 'hidden'
+            }}>
             <div className="column smaller-width">
               <h2 className="left title">
                 <Trans i18nKey="products.Analytics.fourth.title">
@@ -106,7 +120,18 @@ const AnalyticsPage = () => {
               />
             </div>
             <div className="image">
-              <img src={Section3Image} alt="" />
+              <img
+                src={Section3Image}
+                alt=""
+                style={{
+                  objectPosition: '0px',
+                  padding: '0 20px',
+                  objectFit: 'contain',
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '10px'
+                }}
+              />
             </div>
           </div>
         </div>

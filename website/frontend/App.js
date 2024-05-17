@@ -6,6 +6,19 @@ import i18n from './i18n';
 
 import Loadspinner from './src/components/LoadSpinner';
 
+import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
+import store from './store';
+import PartnerDetailPage from './src/pages/Partners';
+import Error404 from 'src/pages/ErrorPages/Error404';
+import { ExploreApp } from './src/pages/ExploreData';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import { fetchCleanAirData } from 'reduxStore/CleanAirNetwork/CleanAir';
+import { loadPartnersData } from 'reduxStore/Partners/operations';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllEvents } from 'reduxStore/Events/EventSlice';
+import { loadCareersListingData } from 'reduxStore/Careers/operations';
+import { loadCareersDepartmentsData } from 'reduxStore/Careers/operations';
+
 const HomePage = React.lazy(() => import('src/pages/HomePage'));
 const Press = React.lazy(() => import('src/pages/Press/Press'));
 const LegalPage = React.lazy(() => import('src/pages/Legal'));
@@ -35,21 +48,6 @@ const CleanAirResourcesPage = React.lazy(() => import('src/pages/CleanAir/CleanA
 const CleanAirEventsDetailsPage = React.lazy(() => import('src/pages/CleanAir/EventDetails'));
 const CleanAirForumEvent = React.lazy(() => import('src/pages/CleanAir/CleanAirForumEvent'));
 
-import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
-import store from './store';
-import PartnerDetailPage from './src/pages/Partners';
-import Error404 from 'src/pages/ErrorPages/Error404';
-import { ExploreApp } from './src/pages/ExploreData';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import { fetchCleanAirData } from 'reduxStore/CleanAirNetwork/CleanAir';
-import { useDispatch, useSelector } from 'react-redux';
-import { getAllEvents } from 'reduxStore/Events/EventSlice';
-import { loadPublicationsData } from 'reduxStore/Publications/operations';
-import { loadPressData } from 'reduxStore/Press/PressSlice';
-import { loadPartnersData } from 'reduxStore/Partners/operations';
-import { loadCareersListingData } from 'reduxStore/Careers/operations';
-import { loadCareersDepartmentsData } from 'reduxStore/Careers/operations';
-
 store.dispatch(loadAirQloudSummaryData());
 
 const FetchData = () => {
@@ -59,16 +57,12 @@ const FetchData = () => {
   const fetchData = useCallback(() => {
     dispatch(getAllEvents(language));
     dispatch(fetchCleanAirData(language));
-    dispatch(loadPublicationsData());
-    dispatch(loadPressData());
     dispatch(loadPartnersData());
     dispatch(loadCareersListingData());
     dispatch(loadCareersDepartmentsData());
   }, [language, dispatch]);
 
   useEffect(fetchData, [fetchData]);
-
-  return null;
 };
 
 const App = () => {
@@ -94,10 +88,10 @@ const App = () => {
   };
   return (
     <Provider store={store}>
-      <I18nextProvider i18n={i18n}>
-        <FetchData />
-        <Router>
-          <Suspense fallback={<Loadspinner />}>
+      <Suspense fallback={<Loadspinner />}>
+        <I18nextProvider i18n={i18n}>
+          <Router>
+            <FetchData />
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/solutions/research" element={<ResearchPage />} />
@@ -135,9 +129,9 @@ const App = () => {
               />
               <Route path="*" element={<Error404 />} />
             </Routes>
-          </Suspense>
-        </Router>
-      </I18nextProvider>
+          </Router>
+        </I18nextProvider>
+      </Suspense>
       {/* scroll top button */}
       {showScroll && (
         <div className="scroll-top" onClick={ScrollTop}>
