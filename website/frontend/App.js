@@ -4,6 +4,8 @@ import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 
+import Loadspinner from './src/components/LoadSpinner';
+
 import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
 import store from './store';
 import PartnerDetailPage from './src/pages/Partners';
@@ -14,9 +16,9 @@ import { fetchCleanAirData } from 'reduxStore/CleanAirNetwork/CleanAir';
 import { loadPartnersData } from 'reduxStore/Partners/operations';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllEvents } from 'reduxStore/Events/EventSlice';
+import HomePage from 'src/pages/HomePage';
 
-const LoadSpinner = React.lazy(() => import('src/components/LoadSpinner'));
-const HomePage = React.lazy(() => import('src/pages/HomePage'));
+// const HomePage = React.lazy(() => import('src/pages/HomePage'));
 const Press = React.lazy(() => import('src/pages/Press/Press'));
 const LegalPage = React.lazy(() => import('src/pages/Legal'));
 const ResearchPage = React.lazy(() => import('src/pages/OurSolutions/ResearchPage'));
@@ -84,7 +86,7 @@ const App = () => {
   return (
     <>
       <Provider store={store}>
-        <Suspense fallback={<LoadSpinner />}>
+        <Suspense fallback={<Loadspinner />}>
           <I18nextProvider i18n={i18n}>
             <Router>
               <Routes>
