@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInitScrollTop } from 'utilities/customHooks';
+import { loadCareersListingData, loadCareersDepartmentsData } from 'reduxStore/Careers/operations';
+import { useDispatch } from 'react-redux';
 import Page from './Page';
 import {
   useCareerListingData,
@@ -53,6 +55,7 @@ const DepartmentListing = ({ department, listing }) => {
 const CareerPage = () => {
   useInitScrollTop();
   const { t } = useTranslation();
+  const dispatch = useDispatch();
   const careerListing = useCareerListingData();
   const departments = useCareerDepartmentsData();
   const loading = useCareerLoadingData();
@@ -83,7 +86,9 @@ const CareerPage = () => {
 
   useEffect(() => {
     setGroupedKeys(Object.keys(groupedListing));
-  }, [careerListing, language]);
+    dispatch(loadCareersListingData());
+    dispatch(loadCareersDepartmentsData());
+  }, [careerListing, language, dispatch]);
 
   return (
     <Page>
