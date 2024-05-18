@@ -45,12 +45,13 @@ const VideoPlayer = ({ videoURL, thumbnailURL }) => {
 
   return (
     <video
-      src={videoURL || null}
+      src={videoURL}
       poster={!isVideoLoaded ? thumbnailURL : null}
       autoPlay
       muted
       loop
       onCanPlay={handleVideoCanPlay}
+      onLoadedData={handleVideoCanPlay}
     />
   );
 };
