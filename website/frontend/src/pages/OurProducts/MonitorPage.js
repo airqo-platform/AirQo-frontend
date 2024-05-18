@@ -6,11 +6,14 @@ import Section1Image from '../../assets/img/OurProducts/Monitor/section-1.webp';
 import Section2Image from '../../assets/img/OurProducts/Monitor/section-2.webp';
 import Section3Image from '../../assets/img/OurProducts/Monitor/Africa.webp';
 import Section4Image from '../../assets/img/OurProducts/Monitor/activate.webp';
-import UserGuide from '../../assets/docs/AirQoMonitorUserGuideV04.pdf';
-import MaintenanceManual from '../../assets/docs/Binos-Maintenance-Manual.pdf';
 import { FileDownloadOutlined } from '@mui/icons-material';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { useTranslation, Trans } from 'react-i18next';
+
+const MaintenanceManual =
+  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1716038904/website/docs/Binos-Maintenance-Manual_agusuh.pdf';
+const UserGuide =
+  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1716038903/website/docs/AirQoMonitorUserGuideV04_ogbfjs.pdf';
 
 const MonitorPage = () => {
   useInitScrollTop();

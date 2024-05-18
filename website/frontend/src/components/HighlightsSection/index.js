@@ -4,7 +4,6 @@ import Pagination from './pagination';
 import Post from './post';
 import { useHighlightsData } from '../../../reduxStore/Highlights/selectors';
 import { loadHighlightsData, loadTagsData } from '../../../reduxStore/Highlights/operations';
-import ImageLoader from '../LoadSpinner/ImageLoader';
 
 const HighlightsSection = () => {
   const dispatch = useDispatch();

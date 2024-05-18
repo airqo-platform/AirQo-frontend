@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useInitScrollTop } from 'utilities/customHooks';
 import SEO from 'utilities/seo';
 import {

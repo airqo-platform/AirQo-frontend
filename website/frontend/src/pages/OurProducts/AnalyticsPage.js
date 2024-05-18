@@ -8,9 +8,11 @@ import Section1OverlapImage from '../../assets/img/OurProducts/Analytics/section
 import Section2Image from '../../assets/img/OurProducts/Analytics/section-2.webp';
 import Section3Image from '../../assets/img/OurProducts/Analytics/analytics-dashboard.webp';
 import NavTab from '../../components/nav/NavTab';
-import UserManual from 'assets/docs/AirQoAnalyticsPlatformUserGuide.pdf';
 import { FileDownloadOutlined } from '@mui/icons-material';
 import { useTranslation, Trans } from 'react-i18next';
+
+const UserManual =
+  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1716038899/website/docs/AirQoAnalyticsPlatformUserGuide_ssyebk.pdf';
 
 const AnalyticsPage = () => {
   useInitScrollTop();
