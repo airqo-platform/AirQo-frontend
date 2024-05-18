@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Profile from 'components/CleanAir/profile/Profile';
-import { useTranslation, Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
+import SEO from 'utilities/seo';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -13,6 +14,13 @@ const Speakers = ({ speakers, sectionText, keyNoteSpeakers }) => {
     : keyNoteSpeakers?.slice(0, ITEMS_PER_PAGE);
   return (
     <>
+      {/* SEO */}
+      <SEO
+        title="Speakers at CLEAN-Air Forum"
+        siteTitle="CLEAN-Air Forum"
+        description="Get to know the speakers leading the discussions on air quality management at the CLEAN-Air Forum."
+      />
+
       <div className="separator" />
       {sectionText && (
         <div className="sub_text_intro_details">

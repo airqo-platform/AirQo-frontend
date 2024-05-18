@@ -2,6 +2,7 @@ import React from 'react';
 import { Pagination, usePagination } from 'components/CleanAir/pagination/Pagination';
 import { useTranslation, Trans } from 'react-i18next';
 import { SplitTextSection } from 'components/CleanAir';
+import SEO from 'utilities/seo';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -21,6 +22,13 @@ const Partners = ({
 
   return (
     <>
+      {/* SEO */}
+      <SEO
+        title="Partners of CLEAN-Air Forum"
+        siteTitle="CLEAN-Air Forum"
+        description="Discover the partners collaborating with the CLEAN-Air Forum to improve air quality management in Africa."
+      />
+
       <div>
         <div className="separator" />
         <div className="CoConvening_partners">
