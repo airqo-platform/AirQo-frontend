@@ -39,7 +39,7 @@ const CenteredBox = styled(Box)(({ theme }) => ({
 const VideoPlayer = ({ videoURL, thumbnailURL }) => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
 
-  const handleVideoLoad = () => {
+  const handleVideoCanPlay = () => {
     setIsVideoLoaded(true);
   };
 
@@ -50,7 +50,7 @@ const VideoPlayer = ({ videoURL, thumbnailURL }) => {
       autoPlay
       muted
       loop
-      onLoadedData={handleVideoLoad}
+      onCanPlay={handleVideoCanPlay}
     />
   );
 };
