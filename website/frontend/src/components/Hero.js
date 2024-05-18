@@ -9,7 +9,7 @@ import { Modal, Box, IconButton } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import ReactPlayer from 'react-player/lazy';
 import { useTranslation, Trans } from 'react-i18next';
-import ThumbnailURL from '../assets/img/OurProducts/Monitor/section-1.webp';
+import ThumbnailURL from '../assets/img/OurProducts/Monitor/activate.webp';
 
 const VideoURL = 'https://youtu.be/2NebAd1F8x8';
 

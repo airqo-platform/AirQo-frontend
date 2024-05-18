@@ -52,15 +52,16 @@ const HighlightsSection = () => {
         <div className="highlights-section">
           <div className="highlights-container">
             <div className="content" id="content">
-              {highlights.map((highlight) => (
-                <Post
-                  key={highlight.id}
-                  postImg={highlight.image}
-                  Tags={highlight.tags}
-                  title={highlight.title}
-                  article_title={highlight.link_title}
-                  article_link={highlight.link}
-                />
+              {highlights.map((highlight, index) => (
+                <div key={index}>
+                  <Post
+                    postImg={highlight.image}
+                    Tags={highlight.tags}
+                    title={highlight.title}
+                    article_title={highlight.link_title}
+                    article_link={highlight.link}
+                  />
+                </div>
               ))}
             </div>
             {highlightsData.length > 0 && (
