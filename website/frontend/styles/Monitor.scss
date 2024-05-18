@@ -1,17 +1,16 @@
-@import "lib/variables";
-@import "lib/colors";
-
+@import 'lib/variables';
+@import 'lib/colors';
 
 .Monitor {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    max-width: $columnWidth;
-    margin: 0 auto;
-    padding: 60px 0 30px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: $columnWidth;
+  margin: 0 auto;
+  padding: 60px 0 30px 0;
 
   .monitor-content {
-    width:520px;
+    width: 520px;
   }
 
   .label {
@@ -67,7 +66,7 @@
   }
 
   .Monitor-img {
-    img{
+    img {
       width: 640px;
       height: 551px;
       border-radius: 16px;
@@ -136,34 +135,33 @@
       width: 100%;
       display: flex;
       justify-content: center;
-      
+
       > img {
         width: 500px;
         height: 100%;
         object-fit: cover;
-      
       }
     }
   }
 }
 
-@media screen and(min-width:$mainBreakPoint)and(max-width: $tabBreakPoint){
-  .Monitor{
+@media screen and(min-width:$mainBreakPoint) and(max-width: $tabBreakPoint) {
+  .Monitor {
     flex-direction: column;
     justify-content: flex-start;
     align-items: flex-start;
     padding: 80px 20px;
-    .monitor-content{
+    .monitor-content {
       width: 100%;
     }
-    .text-main{
+    .text-main {
       width: auto;
     }
-    .text-sub{
+    .text-sub {
       width: auto;
     }
-    .Monitor-img{
-      img{
+    .Monitor-img {
+      img {
         width: auto;
         height: auto;
       }
