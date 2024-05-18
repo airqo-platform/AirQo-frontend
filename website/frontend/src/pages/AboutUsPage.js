@@ -8,7 +8,7 @@ import { loadTeamData } from 'reduxStore/Team/operations';
 import Profile from 'components/Profile';
 import Page from './Page';
 
-import TeamImg from 'assets/img/team.png';
+import TeamImg from 'assets/img/team.webp';
 import Vector1 from 'assets/img/about_us_vector_3.png';
 import Vector2 from 'assets/img/about-us-vector-2.png';
 import SEO from 'utilities/seo';
