@@ -12,6 +12,8 @@ import { useTranslation, Trans } from 'react-i18next';
 import ThumbnailURL from '../assets/img/OurProducts/Monitor/activate.webp';
 
 const VideoURL = 'https://youtu.be/2NebAd1F8x8';
+const previewURL =
+  'https://res.cloudinary.com/dbibjvyhm/video/upload/v1716038850/website/videos/opening_jtpafn.mov';
 
 const breakPoint = 580;
 
@@ -34,6 +36,25 @@ const CenteredBox = styled(Box)(({ theme }) => ({
   height: '100%'
 }));
 
+const VideoPlayer = ({ videoURL, thumbnailURL }) => {
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+
+  const handleVideoLoad = () => {
+    setIsVideoLoaded(true);
+  };
+
+  return (
+    <video
+      src={videoURL || null}
+      poster={!isVideoLoaded ? thumbnailURL : null}
+      autoPlay
+      muted
+      loop
+      onLoadedData={handleVideoLoad}
+    />
+  );
+};
+
 const Hero = () => {
   const size = useWindowSize();
   const dispatch = useDispatch();
@@ -50,7 +71,7 @@ const Hero = () => {
       <span>
         <div className="video-container">
           <div className="video-overlay">
-            <video src={VideoURL} poster={ThumbnailURL} autoPlay muted loop />
+            <VideoPlayer videoURL={previewURL} thumbnailURL={ThumbnailURL} />
             <div className="play-button" onClick={openModal}>
               <PlayCircleFilledIcon />
             </div>
