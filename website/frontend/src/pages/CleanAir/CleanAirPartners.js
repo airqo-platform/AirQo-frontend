@@ -4,7 +4,7 @@ import SEO from 'utilities/seo';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { SplitTextSection, RegisterSection, IntroSection } from 'components/CleanAir';
 import { usePartnersData } from '../../../reduxStore/Partners/selectors';
-import Membership from 'assets/img/cleanAir/membership.png';
+import Membership from 'assets/img/cleanAir/membership.webp';
 import { useTranslation } from 'react-i18next';
 import CleanAirPageContainer from './Page';
 

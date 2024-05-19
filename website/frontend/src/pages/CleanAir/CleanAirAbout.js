@@ -1,13 +1,14 @@
 import React from 'react';
+import SEO from 'utilities/seo';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { SplitSection, SingleSection, MainHighlight, ButtonCTA } from 'components/CleanAir';
-import Section1 from 'assets/img/cleanAir/section1.png';
-import Section3 from 'assets/img/cleanAir/section3.png';
-import Section4 from 'assets/img/cleanAir/section4.png';
-import Placeholder1 from 'assets/img/cleanAir/goal1.png';
-import Placeholder2 from 'assets/img/cleanAir/goal2.png';
-import Placeholder3 from 'assets/img/cleanAir/goal3.png';
-import SEO from 'utilities/seo';
+import Section1 from 'assets/img/cleanAir/section1.webp';
+import Section2 from 'assets/img/cleanAir/section2.webp';
+import Section3 from 'assets/img/cleanAir/section3.webp';
+import Section4 from 'assets/img/cleanAir/section4.webp';
+import Placeholder1 from 'assets/img/cleanAir/goal1.webp';
+import Placeholder2 from 'assets/img/cleanAir/goal2.webp';
+import Placeholder3 from 'assets/img/cleanAir/goal3.webp';
 import { useTranslation, Trans } from 'react-i18next';
 import CleanAirPageContainer from './Page';
 
@@ -79,7 +80,11 @@ const CleanAirAbout = () => {
         {/* section 2 */}
         <div className="page-section">
           <div className="acronym-section-container">
-            <div className="acronym-section">
+            <div
+              className="acronym-section"
+              style={{
+                backgroundImage: `url(${Section2})`
+              }}>
               <div className="content">
                 <div className="acronym-content-container">
                   <p>

@@ -9,7 +9,7 @@ import {
   usePagination,
   Pagination
 } from 'components/CleanAir';
-import eventImage from 'assets/img/cleanAir/events.png';
+import eventImage from 'assets/img/cleanAir/events.webp';
 import { useTranslation } from 'react-i18next';
 import DoneIcon from '@mui/icons-material/Done';
 import { format } from 'date-fns';

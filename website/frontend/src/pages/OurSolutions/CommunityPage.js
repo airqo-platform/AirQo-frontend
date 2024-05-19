@@ -1,22 +1,22 @@
 import React from 'react';
 import { useInitScrollTop } from 'utilities/customHooks';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import AirQommunities from 'assets/img/community/AirQommunities.png';
+import AirQommunities from 'assets/img/community/AirQommunities.webp';
 import Blob from 'assets/img/community/AirQo_blob_fill.svg';
-import AssetImg1 from 'assets/img/community/Rectangle 411.jpg';
-import AssetImg2 from 'assets/img/community/Rectangle 405.jpg';
-import AssetImg3 from 'assets/img/community/Rectangle 410.jpg';
-import AssetImg6 from 'assets/img/community/Rectangle 408.png';
-import TrainingImg1 from 'assets/img/community/AirQo_Web_IMG01.jpg';
-import TrainingImg2 from 'assets/img/community/AirQo_Web_IMG10.jpg';
+import AssetImg1 from 'assets/img/community/Rectangle 411.webp';
+import AssetImg2 from 'assets/img/community/Rectangle 405.webp';
+import AssetImg3 from 'assets/img/community/Rectangle 410.webp';
+import AssetImg6 from 'assets/img/community/Rectangle 408.webp';
+import TrainingImg1 from 'assets/img/community/AirQo_Web_IMG01.webp';
+import TrainingImg2 from 'assets/img/community/AirQo_Web_IMG10.webp';
 import CommunityStar from 'assets/img/community/Communities Star.svg';
 import AirQoArrowLeft from 'assets/img/community/AirQo_arrow_left.svg';
-import AirQoQuotes from 'assets/img/community/AirQo_quotes.png';
+import AirQoQuotes from 'assets/img/community/AirQo_quotes.webp';
 import Page from '../Page';
 import { useDispatch } from 'react-redux';
 import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
 import SEO from 'utilities/seo';
-import { useTranslation, Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 const CommunityPage = () => {
   useInitScrollTop();

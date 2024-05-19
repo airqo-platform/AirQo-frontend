@@ -1,11 +1,19 @@
 import React from 'react';
 import { SplitTextSection } from 'components/CleanAir';
-import { useTranslation, Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
+import SEO from 'utilities/seo';
 
 const Travel = ({ vaccinationDetails, support, visaDetails, accommodation }) => {
   const { t } = useTranslation();
   return (
     <>
+      {/* SEO */}
+      <SEO
+        title="Travel Information for CLEAN-Air Forum"
+        siteTitle="CLEAN-Air Forum"
+        description="Find travel information for attending the CLEAN-Air Forum, a key event on air quality management in Africa."
+      />
+
       {/* Vaccination Section */}
       {vaccinationDetails && (
         <>

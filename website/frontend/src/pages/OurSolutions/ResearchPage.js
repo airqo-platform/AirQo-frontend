@@ -1,12 +1,12 @@
 import React from 'react';
 import Page from '../Page';
 import ArrowRight from 'icons/research/arrow-right.svg';
-import ConsultImg2 from 'icons/research/consult-2.png';
-import ConsultLongImg from 'icons/research/consult-long.png';
-import UniversityImg1 from 'assets/img/community/community-9.JPG';
-import UniversityImg2 from 'assets/img/community/AirQo_Web_IMG13.jpg';
-import UniversityImg3 from 'assets/img/community/AirQo_Web_IMG02.jpg';
-import ResearchImg1 from 'assets/img/community/AirQo_Web_IMG06.jpg';
+import ConsultImg2 from 'icons/research/consult-2.webp';
+import ConsultLongImg from 'icons/research/consult-long.webp';
+import UniversityImg1 from 'assets/img/community/community-9.webp';
+import UniversityImg2 from 'assets/img/community/AirQo_Web_IMG13.webp';
+import UniversityImg3 from 'assets/img/community/AirQo_Web_IMG02.webp';
+import ResearchImg1 from 'assets/img/community/AirQo_Web_IMG06.webp';
 import BackgroundShape from 'icons/research/background-shape.svg';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { Link } from 'react-router-dom';

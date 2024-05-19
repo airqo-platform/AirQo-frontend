@@ -6,19 +6,26 @@ import Page from '../Page';
 import SEO from 'utilities/seo';
 import { loadPressData } from '../../../reduxStore/Press/PressSlice';
 import { isEmpty } from 'underscore';
-import Loadspinner from '../../components/LoadSpinner';
 import { useTranslation } from 'react-i18next';
 import SectionLoader from '../../components/LoadSpinner/SectionLoader';
 
 const Press = () => {
   useInitScrollTop();
   const { t } = useTranslation();
+  const dispatch = useDispatch();
   const allPressData = useSelector((state) => state.pressData.pressData);
   const pressData = allPressData.filter((event) => event.website_category === 'airqo');
   const loading = useSelector((state) => state.pressData.loading);
   const [numArticlesToShow, setNumArticlesToShow] = useState(5);
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   const sortedArticles = [...pressData].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  useEffect(() => {
+    if (isEmpty(pressData)) {
+      dispatch(loadPressData());
+    }
+  }, [dispatch, pressData, language]);
 
   const handleShowMore = () => {
     setNumArticlesToShow(numArticlesToShow + 5);

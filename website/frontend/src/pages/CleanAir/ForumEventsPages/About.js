@@ -1,11 +1,19 @@
 import React from 'react';
 import { SplitTextSection } from 'components/CleanAir';
-import { useTranslation, Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
+import SEO from 'utilities/seo';
 
 const Index = ({ engagements, forumEvents }) => {
   const { t } = useTranslation();
   return (
     <>
+      {/* SEO */}
+      <SEO
+        title="About CLEAN-Air Forum"
+        siteTitle="CLEAN-Air Forum"
+        description="Learn about the CLEAN-Air Forum, a platform dedicated to fostering discussions on air quality management in Africa."
+      />
+
       {/* Introduction section */}
       {forumEvents[0].introduction_html && (
         <>

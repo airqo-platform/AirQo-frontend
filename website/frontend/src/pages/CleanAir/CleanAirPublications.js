@@ -6,7 +6,7 @@ import { setActiveResource } from 'reduxStore/CleanAirNetwork/CleanAir';
 import { ReportComponent } from 'components/CleanAir';
 import { useTranslation } from 'react-i18next';
 import { RegisterSection, IntroSection, RotatingLoopIcon } from 'components/CleanAir';
-import ResourceImage from 'assets/img/cleanAir/resource.png';
+import ResourceImage from 'assets/img/cleanAir/resource.webp';
 import DoneIcon from '@mui/icons-material/Done';
 import Slide from '@mui/material/Slide';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';

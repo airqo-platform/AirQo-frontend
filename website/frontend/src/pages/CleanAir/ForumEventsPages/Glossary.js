@@ -1,11 +1,19 @@
 import React from 'react';
 import { SplitTextSection } from 'components/CleanAir';
 import { useTranslation } from 'react-i18next';
+import SEO from 'utilities/seo';
 
 const Glossary = ({ glossaryDetails }) => {
   const { t } = useTranslation();
   return (
     <>
+      {/* SEO */}
+      <SEO
+        title="Glossary of Terms - CLEAN-Air Forum"
+        siteTitle="CLEAN-Air Forum"
+        description="Understand the key terms related to air quality management with the glossary provided by the CLEAN-Air Forum."
+      />
+
       {glossaryDetails ? (
         <>
           <div className="separator" />
