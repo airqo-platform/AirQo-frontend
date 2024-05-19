@@ -1,14 +1,25 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import PageMini from '../PageMini';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { usePartnersData } from '../../../reduxStore/Partners/selectors';
+import { useSelector, useDispatch } from 'react-redux';
+import { loadPartnersData } from 'reduxStore/Partners/operations';
+import { isEmpty } from 'underscore';
 
 const PartnerDetailPage = () => {
   useInitScrollTop();
+  const dispatch = useDispatch();
   const { uniqueTitle } = useParams();
   const partnerDetails = usePartnersData();
   const partner = partnerDetails.filter((p) => p.unique_title === uniqueTitle) || {};
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
+
+  useEffect(() => {
+    if (isEmpty(partner)) {
+      dispatch(loadPartnersData(language));
+    }
+  }, [dispatch, language, partner]);
 
   return (
     <PageMini>

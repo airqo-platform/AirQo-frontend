@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import SEO from 'utilities/seo';
 import { useInitScrollTop, useClickOutside } from 'utilities/customHooks';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   RegisterSection,
   IntroSection,
@@ -18,6 +18,8 @@ import Slide from '@mui/material/Slide';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import CleanAirPageContainer from './Page';
+import { isEmpty } from 'underscore';
+import { getAllEvents } from 'reduxStore/Events/EventSlice';
 
 /**
  * @description function to calculate the difference between two dates
@@ -33,6 +35,7 @@ const days = (date_1, date_2) => {
 
 const CleanAirEvents = () => {
   useInitScrollTop();
+  const dispatch = useDispatch();
   const { t } = useTranslation();
   const allEventsData = useSelector((state) => state.eventsData.events);
   const navigate = useNavigate();
@@ -45,6 +48,12 @@ const CleanAirEvents = () => {
   const [hideEvents, setHideEvents] = useState(true);
   const loading = useSelector((state) => state.eventsData.loading);
   const language = useSelector((state) => state.eventsNavTab.languageTab);
+
+  useEffect(() => {
+    if (isEmpty(allEventsData)) {
+      dispatch(getAllEvents(language));
+    }
+  }, [dispatch, language]);
 
   /**
    * @description Custom hook to handle click outside of the date and filter dropdowns

@@ -18,6 +18,7 @@ import { usePartnersData } from '../../reduxStore/Partners/selectors';
 import { useNavigate } from 'react-router-dom';
 import { useBoardData } from '../../reduxStore/Board/selectors';
 import { loadBoardData } from '../../reduxStore/Board/operations';
+import { loadPartnersData } from 'reduxStore/Partners/operations';
 import { useTranslation } from 'react-i18next';
 
 const AboutUsPage = () => {
@@ -33,34 +34,54 @@ const AboutUsPage = () => {
   const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   useEffect(() => {
-    if (isEmpty(teamData)) {
-      dispatch(loadTeamData());
-    }
-    if (isEmpty(boardData)) {
-      dispatch(loadBoardData());
+    try {
+      if (isEmpty(teamData)) {
+        dispatch(loadTeamData());
+      }
+      if (isEmpty(boardData)) {
+        dispatch(loadBoardData());
+      }
+      if (isEmpty(allPartnersData)) {
+        dispatch(loadPartnersData());
+      }
+    } catch (error) {
+      console.error('An error occurred while loading data: ', error);
     }
   }, [dispatch, teamData, allPartnersData, boardData, language]);
 
   const [togglePartnersDisplay, setTogglePartnersDisplay] = useState(false);
 
   const toggleFullPartnersListDisplay = () => {
-    setTogglePartnersDisplay(!togglePartnersDisplay);
-    document.getElementById('logo-table').scrollIntoView();
+    try {
+      setTogglePartnersDisplay(!togglePartnersDisplay);
+      document.getElementById('logo-table').scrollIntoView();
+    } catch (error) {
+      console.error('An error occurred while toggling partners display: ', error);
+    }
   };
 
-  const partnerDataGroup = partnersData
-    .map((e, i) => {
-      return i % 4 === 0 ? partnersData.slice(i, i + 4) : null;
-    })
-    .filter((e) => {
-      return e;
-    });
+  let partnerDataGroup = [];
+  try {
+    partnerDataGroup = partnersData
+      .map((e, i) => {
+        return i % 4 === 0 ? partnersData.slice(i, i + 4) : null;
+      })
+      .filter((e) => {
+        return e;
+      });
+  } catch (error) {
+    console.error('An error occurred while grouping partner data: ', error);
+  }
 
   const lastGroupArray = partnerDataGroup.length;
 
   const onLogoClick = (uniqueTitle) => (event) => {
     event.preventDefault();
-    navigate(`/partners/${uniqueTitle}/`);
+    try {
+      navigate(`/partners/${uniqueTitle}/`);
+    } catch (error) {
+      console.error('An error occurred while navigating: ', error);
+    }
   };
 
   return (

@@ -114,8 +114,18 @@ const CalibrationPage = () => {
                 filled
               />
             </div>
-            <div className="image">
-              <img src={Section3Image} alt="" />
+            <div>
+              <img
+                src={Section3Image}
+                style={{
+                  objectPosition: '0px',
+                  padding: window.innerWidth < 768 ? '0 20px' : '0 100px',
+                  objectFit: 'contain',
+                  width: '100%',
+                  borderRadius: '10px',
+                  marginTop: '30px'
+                }}
+              />
             </div>
           </div>
         </div>

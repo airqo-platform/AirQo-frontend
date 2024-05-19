@@ -1,32 +1,44 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { isEmpty } from 'underscore';
 import SEO from 'utilities/seo';
-import { useInitScrollTop } from 'utilities/customHooks';
 import { SplitTextSection, RegisterSection, IntroSection } from 'components/CleanAir';
 import { usePartnersData } from '../../../reduxStore/Partners/selectors';
 import Membership from 'assets/img/cleanAir/membership.webp';
 import { useTranslation } from 'react-i18next';
 import CleanAirPageContainer from './Page';
+import { useDispatch, useSelector } from 'react-redux';
+import { loadPartnersData } from 'reduxStore/Partners/operations';
 
 const CleanAirPartners = () => {
-  useInitScrollTop();
   const { t } = useTranslation();
+  const dispatch = useDispatch();
   const partnersData = usePartnersData();
   const isLoading = isEmpty(partnersData);
+  const [implementingPartners, setImplementingPartners] = useState([]);
+  const [policyPartners, setPolicyPartners] = useState([]);
+  const [supportPartners, setSupportPartners] = useState([]);
+  const [privateSectorPartners, setPrivateSectorPartners] = useState([]);
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
 
-  const cleanAirPartners = partnersData.filter(
-    (partner) => partner.website_category === 'cleanair'
-  );
+  useEffect(() => {
+    if (isEmpty(partnersData)) {
+      dispatch(loadPartnersData(language));
+    }
+  }, [dispatch, language]);
 
-  const implementingPartners = cleanAirPartners.filter((partner) => partner.type === 'ca-network');
-
-  const policyPartners = cleanAirPartners.filter((partner) => partner.type === 'ca-forum');
-
-  const supportPartners = cleanAirPartners.filter((partner) => partner.type === 'ca-support');
-
-  const privateSectorPartners = cleanAirPartners.filter(
-    (partner) => partner.type === 'ca-private-sector'
-  );
+  useEffect(() => {
+    if (!isEmpty(partnersData)) {
+      const cleanAirPartners = partnersData.filter(
+        (partner) => partner.website_category === 'cleanair'
+      );
+      setImplementingPartners(cleanAirPartners.filter((partner) => partner.type === 'ca-network'));
+      setPolicyPartners(cleanAirPartners.filter((partner) => partner.type === 'ca-forum'));
+      setSupportPartners(cleanAirPartners.filter((partner) => partner.type === 'ca-support'));
+      setPrivateSectorPartners(
+        cleanAirPartners.filter((partner) => partner.type === 'ca-private-sector')
+      );
+    }
+  }, [partnersData]);
 
   return (
     <CleanAirPageContainer>
