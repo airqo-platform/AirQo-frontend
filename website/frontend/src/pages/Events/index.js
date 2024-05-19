@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Page from '../Page';
 import SEO from 'utilities/seo';
 import EventsHeader from './Header';
 import EventsNavigation from './Navigation';
 import { useInitScrollTop } from 'utilities/customHooks';
 import EventCard from './EventCard';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import SectionLoader from '../../components/LoadSpinner/SectionLoader';
 import { useTranslation } from 'react-i18next';
+import { isEmpty } from 'underscore';
+import { getAllEvents } from 'reduxStore/Events/EventSlice';
 
 /**
  * @description function to calculate the difference between two dates
@@ -24,11 +26,19 @@ const days = (date_1, date_2) => {
 const EventsPage = () => {
   useInitScrollTop();
   const { t } = useTranslation();
+  const dispatch = useDispatch();
   const loading = useSelector((state) => state.eventsData.loading);
   const [numEventsToShow, setNumEventsToShow] = useState(9);
   const navTabs = [`${t('about.events.navTabs.upcoming')}`, `${t('about.events.navTabs.past')}`];
   const selectedNavTab = useSelector((state) => state.eventsNavTab.tab);
   const allEventsData = useSelector((state) => state.eventsData.events);
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
+
+  useEffect(() => {
+    if (isEmpty(allEventsData)) {
+      dispatch(getAllEvents(language));
+    }
+  }, [dispatch, language, allEventsData]);
 
   /**
    * @description filter events data based on the website category and event tag

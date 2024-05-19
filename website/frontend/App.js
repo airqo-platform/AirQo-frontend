@@ -3,19 +3,13 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
-
 import Loadspinner from './src/components/LoadSpinner';
-
 import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
 import store from './store';
 import PartnerDetailPage from './src/pages/Partners';
 import Error404 from 'src/pages/ErrorPages/Error404';
 import { ExploreApp } from './src/pages/ExploreData';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import { fetchCleanAirData } from 'reduxStore/CleanAirNetwork/CleanAir';
-import { loadPartnersData } from 'reduxStore/Partners/operations';
-import { useDispatch, useSelector } from 'react-redux';
-import { getAllEvents } from 'reduxStore/Events/EventSlice';
 
 const HomePage = React.lazy(() => import('src/pages/HomePage'));
 const Press = React.lazy(() => import('src/pages/Press/Press'));
@@ -47,19 +41,6 @@ const CleanAirEventsDetailsPage = React.lazy(() => import('src/pages/CleanAir/Ev
 const CleanAirForumEvent = React.lazy(() => import('src/pages/CleanAir/CleanAirForumEvent'));
 
 store.dispatch(loadAirQloudSummaryData());
-
-const FetchData = () => {
-  const dispatch = useDispatch();
-  const language = useSelector((state) => state.eventsNavTab.languageTab);
-
-  const fetchData = useCallback(() => {
-    dispatch(getAllEvents(language));
-    dispatch(fetchCleanAirData(language));
-    dispatch(loadPartnersData());
-  }, [language, dispatch]);
-
-  useEffect(fetchData, [fetchData]);
-};
 
 const App = () => {
   const [showScroll, setShowScroll] = useState(false);
@@ -128,7 +109,6 @@ const App = () => {
             </Router>
           </I18nextProvider>
         </Suspense>
-        <FetchData />
       </Provider>
       {/* scroll top button */}
       {showScroll && (

@@ -13,6 +13,8 @@ import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArro
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import CleanAirPageContainer from './Page';
+import { fetchCleanAirData } from 'reduxStore/CleanAirNetwork/CleanAir';
+import { isEmpty } from 'underscore';
 
 const ITEMS_PER_PAGE = 3;
 
@@ -27,6 +29,16 @@ const CleanAirPublications = () => {
   const activeResource = useSelector((state) => state.cleanAirData.activeResource);
   const language = useSelector((state) => state.eventsNavTab.languageTab);
   const [currentPage, setCurrentPage] = useState(1);
+
+  /**
+   * @description fetch clean air resources
+   * @type {Array} cleanAirResources
+   */
+  useEffect(() => {
+    if (isEmpty(cleanAirResources)) {
+      dispatch(fetchCleanAirData(language));
+    }
+  }, [dispatch, language]);
 
   /**
    * @description set the active resource in the redux store
