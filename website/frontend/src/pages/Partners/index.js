@@ -1,23 +1,18 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import PageMini from '../PageMini';
-import { isEmpty } from 'underscore';
-
 import { useInitScrollTop } from 'utilities/customHooks';
-import { useDispatch } from 'react-redux';
 import { usePartnersData } from '../../../reduxStore/Partners/selectors';
-import { loadPartnersData } from '../../../reduxStore/Partners/operations';
 
 const PartnerDetailPage = () => {
   useInitScrollTop();
   const { uniqueTitle } = useParams();
-
   const partnerDetails = usePartnersData();
   const partner = partnerDetails.filter((p) => p.unique_title === uniqueTitle) || {};
 
   return (
     <PageMini>
-      {!isEmpty(partner) &&
+      {partner.length > 0 &&
         partner.map((p) => (
           <div className="DetailPage" key={p.id}>
             <div className="content">

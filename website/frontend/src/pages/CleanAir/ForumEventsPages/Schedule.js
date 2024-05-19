@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { SplitTextSection } from 'components/CleanAir';
+import SEO from 'utilities/seo';
 
 /**
  * upArrow and downArrow components
@@ -71,6 +72,13 @@ const Schedule = ({ schedule, registration, forumEvents }) => {
 
   return (
     <>
+      {/* SEO */}
+      <SEO
+        title="Schedule for CLEAN-Air Forum"
+        siteTitle="CLEAN-Air Forum"
+        description="Explore the schedule of events and discussions taking place at the CLEAN-Air Forum on air quality management."
+      />
+
       <div className="separator" />
       <h2 style={{ marginBottom: '20px' }} className="section_title">
         {t('cleanAirSite.Forum.sections.schedule')}

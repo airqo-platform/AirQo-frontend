@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Profile from 'components/CleanAir/profile/Profile';
+import SEO from 'utilities/seo';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -13,6 +14,13 @@ const CommitteePage = ({ committee, sectionText }) => {
   const displayedCommittee = isExpanded ? committee : committee?.slice(0, ITEMS_PER_PAGE);
   return (
     <>
+      {/* SEO */}
+      <SEO
+        title="Committee of CLEAN-Air Forum"
+        siteTitle="CLEAN-Air Forum"
+        description="Meet the committee members driving the discussions on air quality management at the CLEAN-Air Forum."
+      />
+
       <div className="separator" />
       <h2 style={{ marginBottom: '20px' }} className="section_title">
         {t('cleanAirSite.Forum.sections.committee')}

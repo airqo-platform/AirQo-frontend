@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
 import useWindowSize from 'utilities/customHooks';
@@ -7,11 +7,13 @@ import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 import CloseIcon from '@mui/icons-material/Close';
 import { Modal, Box, IconButton } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import vid from '../assets/video/opening.mov';
 import ReactPlayer from 'react-player/lazy';
 import { useTranslation, Trans } from 'react-i18next';
+import ThumbnailURL from '../assets/img/OurProducts/Monitor/activate.webp';
 
 const VideoURL = 'https://youtu.be/2NebAd1F8x8';
+const previewURL =
+  'https://res.cloudinary.com/dbibjvyhm/video/upload/v1716038850/website/videos/opening_jtpafn.mov';
 
 const breakPoint = 580;
 
@@ -34,15 +36,35 @@ const CenteredBox = styled(Box)(({ theme }) => ({
   height: '100%'
 }));
 
+const VideoPlayer = ({ videoURL, thumbnailURL }) => {
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+
+  const handleVideoCanPlay = () => {
+    setIsVideoLoaded(true);
+  };
+
+  return (
+    <video
+      src={videoURL}
+      poster={!isVideoLoaded ? thumbnailURL : null}
+      autoPlay
+      muted
+      loop
+      onCanPlay={handleVideoCanPlay}
+      onLoadedData={handleVideoCanPlay}
+    />
+  );
+};
+
 const Hero = () => {
   const size = useWindowSize();
   const dispatch = useDispatch();
-  const showModal = () => dispatch(showGetInvolvedModal(true));
+  const showModal = useCallback(() => dispatch(showGetInvolvedModal(true)), [dispatch]);
 
   const [modalVisible, setModalVisible] = useState(false);
 
-  const openModal = () => setModalVisible(true);
-  const closeModal = () => setModalVisible(false);
+  const openModal = useCallback(() => setModalVisible(true), []);
+  const closeModal = useCallback(() => setModalVisible(false), []);
 
   const { t } = useTranslation();
   return (
@@ -50,7 +72,7 @@ const Hero = () => {
       <span>
         <div className="video-container">
           <div className="video-overlay">
-            <video src={vid} autoPlay muted loop />
+            <VideoPlayer videoURL={previewURL} thumbnailURL={ThumbnailURL} />
             <div className="play-button" onClick={openModal}>
               <PlayCircleFilledIcon />
             </div>
@@ -65,15 +87,18 @@ const Hero = () => {
             </Trans>
           </p>
           <p className="hero-sub">
-            <span className="fact">“{t("homepage.heroSection.subText.fact")}”</span> <br />
-            {t("homepage.heroSection.subText.desc")}
-
+            <span className="fact">“{t('homepage.heroSection.subText.fact')}”</span> <br />
+            {t('homepage.heroSection.subText.desc')}
           </p>
           <div className="hero-buttons">
             <Link to="/explore-data">
               <Button label={t('navbar.exploreData')} />
             </Link>
-            <Button className="button-get-involved" label={t('navbar.getInvolved')} onClick={showModal} />
+            <Button
+              className="button-get-involved"
+              label={t('navbar.getInvolved')}
+              onClick={showModal}
+            />
           </div>
         </div>
       </div>

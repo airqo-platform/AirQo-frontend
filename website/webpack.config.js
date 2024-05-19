@@ -131,6 +131,11 @@ const config = () => {
             { loader: 'sass-loader' }
           ])
         },
+        // Webp
+        {
+          test: /\.webp$/,
+          type: 'asset/resource'
+        },
 
         // SVGs
         {

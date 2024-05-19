@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Page from 'src/pages/CleanAir/Page';
 import { AccessTimeOutlined, CalendarMonth, PlaceOutlined } from '@mui/icons-material';
-import BackgroundImage from 'assets/img/cleanAir/section2.png';
+import BackgroundImage from 'assets/img/cleanAir/section2.webp';
 import { getAllCleanAirForumEventsApi } from '../../../apis';
 import { format } from 'date-fns';
 import SectionLoader from 'components/LoadSpinner/SectionLoader';

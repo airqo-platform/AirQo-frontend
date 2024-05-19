@@ -3,10 +3,10 @@ import Page from '../Page';
 import { useInitScrollTop } from 'utilities/customHooks';
 import Header from '../../components/OurProducts/Header';
 import NavTab from '../../components/nav/NavTab';
-import HeaderImage from '../../assets/img/OurProducts/Api/HeaderImage.png';
-import Section1Image from '../../assets/img/OurProducts/Api/section-1.jpg';
-import Section2Image from '../../assets/img/OurProducts/Api/section-2.png';
-import Section3Image from '../../assets/img/OurProducts/Api/section-3.png';
+import HeaderImage from '../../assets/img/OurProducts/Api/HeaderImage.webp';
+import Section1Image from '../../assets/img/OurProducts/Api/section-1.webp';
+import Section2Image from '../../assets/img/OurProducts/Api/section-2.webp';
+import Section3Image from '../../assets/img/OurProducts/Api/section-3.webp';
 import { useTranslation, Trans } from 'react-i18next';
 
 const ApiPage = () => {

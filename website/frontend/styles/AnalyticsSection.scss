@@ -1,164 +1,151 @@
-@import "lib/variables";
+@import 'lib/variables';
 
 .AnalyticsSection {
-    position: relative;
-    background-color: $aq-blue-1;
-    width: 100%;
+  position: relative;
+  background-color: $aq-blue-1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 80px 0 0 0;
+
+  .wrapper {
+    max-width: $columnWidth;
+    margin: 0 auto;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 80px 0 0 0;
-    
-    .wrapper {
-        max-width: $columnWidth;
-        margin: 0 auto;
-        display: flex;
-        justify-content: flex-start;
-        flex-flow: column wrap;    
+    justify-content: flex-start;
+    flex-flow: column wrap;
 
-        h3 {
-            background-color: $aq-white-0;
-            color: $aq-blue-2;
-            width: 206px;
-            height: 39px;
-            font-size: $pillFont;
-            font-weight: 500;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 1000px;
-            margin-bottom: 24px;
+    h3 {
+      background-color: $aq-white-0;
+      color: $aq-blue-2;
+      width: 206px;
+      height: 39px;
+      font-size: $pillFont;
+      font-weight: 500;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 1000px;
+      margin-bottom: 24px;
+    }
+
+    .AnalyticsSection-info {
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-start;
+
+      h1 {
+        width: 442px;
+        font-size: $headingFont;
+        line-height: 56px;
+        margin-top: 0;
+        font-weight: 500;
+      }
+
+      &-aside {
+        p {
+          width: 477.24px;
+          font-size: $subTextFont;
+          line-height: 28px;
+          margin-bottom: 36px;
+          font-weight: 400;
         }
 
-        .AnalyticsSection-info {
-            display: flex;
-            justify-content: flex-start;
-            align-items: flex-start;
-
-            h1 {
-                width: 442px;
-                font-size: $headingFont;
-                line-height: 56px;
-                margin-top: 0;
-                font-weight: 500;
-            }
-
-            &-aside {
-                p {
-                    width: 477.24px;
-                    font-size: $subTextFont;
-                    line-height: 28px;
-                    margin-bottom: 36px;
-                    font-weight: 400;
-                }
-
-                &-btn {
-                    color: $aq-blue-0;
-                    display: flex;
-                    align-items: center;
-                    font-size: $linkFont;
-                    font-weight: 500;
-                    font-style: normal;
-                    cursor: pointer;
-                }
-            }
+        &-btn {
+          color: $aq-blue-0;
+          display: flex;
+          align-items: center;
+          font-size: $linkFont;
+          font-weight: 500;
+          font-style: normal;
+          cursor: pointer;
         }
+      }
     }
+  }
 
-    .analytics-img {
-        height: auto;
-        object-fit: cover;
-        max-width: 1247.5px;
-        margin: 0 auto;
-    }
+  .analytics-img {
+    max-width: 1247.5px;
+    margin: 0 auto;
 
-    &-icon {
-        margin-left: 8px;
+    img {
+      object-fit: contain;
+      object-position: center;
+      width: 100%;
     }
+  }
 
-    .analytics-img-sm {
-        display: none;
-    }
+  &-icon {
+    margin-left: 8px;
+  }
 }
 
-@media(max-width: $mainBreakPoint) {
-    .AnalyticsSection {
-        position: relative;
-        height: 100%;
-        width: 100%;
-        padding: 0 12px 16px 16px;
+@media (max-width: $mainBreakPoint) {
+  .AnalyticsSection {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    padding: 0 12px 16px 16px;
 
-        .wrapper {
-            padding: 80px 0 0 0 ;
-            background-color: $aq-blue-1;
-            margin: 0 auto;
+    .wrapper {
+      padding: 80px 0 0 0;
+      background-color: $aq-blue-1;
+      margin: 0 auto;
+      width: 100%;
+      flex-direction: column;
+
+      h3 {
+        background-color: $aq-white-0;
+        margin-bottom: 24px;
+      }
+
+      .AnalyticsSection-info {
+        flex-direction: column;
+        justify-content: center;
+        margin: 0 auto;
+
+        h1 {
+          width: 100%;
+          margin: 0;
+          margin-bottom: 24px;
+        }
+
+        &-aside {
+          position: relative;
+          p {
             width: 100%;
-            flex-direction: column;
-    
-            h3 {
-                background-color: $aq-white-0;
-                margin-bottom: 24px;
-            }
-    
-            .AnalyticsSection-info {
-                flex-direction: column;
-                justify-content: center;
-                margin: 0 auto;
-    
-                h1 {
-                    width: 100%;
-                    margin: 0;
-                    margin-bottom: 24px;
-                }
-    
-                &-aside {
-                    position: relative;
-                    p {
-                        width: 100%;
-                    }
-    
-                    &-btn {
-                        margin-bottom: 40px;
-                    }
-                }
-            }
-        }
-    
-        .analytics-img {
-            display: none;
-        }
+          }
 
-        .analytics-img-sm {
-            display: flex;
-            width:100%;
-            object-fit: cover;
-            height: 100%;
-            overflow-x: hidden;
+          &-btn {
+            margin-bottom: 40px;
+          }
         }
-    
+      }
     }
-} 
+  }
+}
 
-@media screen and(min-width:$mainBreakPoint)and(max-width: $tabBreakPoint){
-    .AnalyticsSection{
-        display: block;
-        padding: 80px 20px;
-        .wrapper{
-            .AnalyticsSection-info{
-                flex-direction: column;
-                h1{
-                    width: 100%;
-                }
-                &-aside p{
-                    width: 100%;
-                    margin: 0;
-                    margin-bottom: 32px;
-                }
-            }
-        }  
-        .analytics-img{
-            margin-top: 40px;
-        }  
+@media screen and(min-width:$mainBreakPoint) and(max-width: $tabBreakPoint) {
+  .AnalyticsSection {
+    display: block;
+    padding: 80px 20px;
+    .wrapper {
+      .AnalyticsSection-info {
+        flex-direction: column;
+        h1 {
+          width: 100%;
+        }
+        &-aside p {
+          width: 100%;
+          margin: 0;
+          margin-bottom: 32px;
+        }
+      }
     }
+    .analytics-img {
+      margin-top: 40px;
+    }
+  }
 }
