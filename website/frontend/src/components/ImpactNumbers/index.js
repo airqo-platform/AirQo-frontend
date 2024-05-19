@@ -11,43 +11,43 @@ import ResearchIcon from 'assets/svg/ImpactNumbers/Publications.svg';
 import PartnerIcon from 'assets/svg/ImpactNumbers/Partners.svg';
 import RecordsIcon from 'assets/svg/ImpactNumbers/Records.svg';
 
+const numbers = [
+  {
+    icon: <NetworkIcon />,
+    name: 'homepage.impact.cities',
+    numbers: 'african_cities'
+  },
+  {
+    icon: <CommunityIcon />,
+    name: 'homepage.impact.champions',
+    numbers: 'champions'
+  },
+  {
+    icon: <MonitorIcon />,
+    name: 'homepage.impact.installs',
+    numbers: 'deployed_monitors'
+  },
+  {
+    icon: <RecordsIcon />,
+    name: 'homepage.impact.records',
+    numbers: 'data_records'
+  },
+  {
+    icon: <ResearchIcon />,
+    name: 'homepage.impact.research',
+    numbers: 'research_papers'
+  },
+  {
+    icon: <PartnerIcon />,
+    name: 'homepage.impact.partners',
+    numbers: 'partners'
+  }
+];
+
 const ImpactNumbers = () => {
   const dispatch = useDispatch();
   const numbersData = useSelector((state) => state.impactData.numbers);
   const { t } = useTranslation();
-
-  const numbers = [
-    {
-      icon: <NetworkIcon />,
-      name: 'homepage.impact.cities',
-      numbers: 'african_cities'
-    },
-    {
-      icon: <CommunityIcon />,
-      name: 'homepage.impact.champions',
-      numbers: 'champions'
-    },
-    {
-      icon: <MonitorIcon />,
-      name: 'homepage.impact.installs',
-      numbers: 'deployed_monitors'
-    },
-    {
-      icon: <RecordsIcon />,
-      name: 'homepage.impact.records',
-      numbers: 'data_records'
-    },
-    {
-      icon: <ResearchIcon />,
-      name: 'homepage.impact.research',
-      numbers: 'research_papers'
-    },
-    {
-      icon: <PartnerIcon />,
-      name: 'homepage.impact.partners',
-      numbers: 'partners'
-    }
-  ];
 
   /**
    * Fetch impact numbers
@@ -56,7 +56,7 @@ const ImpactNumbers = () => {
     if (isEmpty(numbersData)) {
       dispatch(getAllImpactNumbers());
     }
-  }, [dispatch]);
+  }, [dispatch, numbersData]);
 
   return (
     <div className="impact-numbers">
