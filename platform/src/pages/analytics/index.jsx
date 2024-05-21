@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Tabs from '@/components/Tabs';
 import Tab from '@/components/Tabs/Tab';
 import withAuth from '@/core/utils/protectedRoute';
@@ -26,33 +26,33 @@ const AuthenticatedHomePage = () => {
   const isMobile = useWindowSize().width < 500;
   const chartDataRange = useSelector((state) => state.chart.chartDataRange);
   const chartSites = useSelector((state) => state.chart.chartSites);
+
   const [openConfirmModal, setOpenConfirmModal] = useState(false);
   const [openPrintModal, setOpenPrintModal] = useState(false);
   const [data, setData] = useState({});
-  const [alert, setAlert] = useState({
-    type: '',
-    message: '',
-    show: false,
-  });
-  const customiseRef = useRef();
+  const [alert, setAlert] = useState({ type: '', message: '', show: false });
   const [customise, setCustomise] = useState(false);
+
+  const customiseRef = useRef();
 
   useOutsideClick(customiseRef, () => {
     if (customise) setCustomise(false);
   });
 
-  const toggleCustomise = () => {
-    setCustomise(!customise);
-  };
+  const toggleCustomise = () => setCustomise(!customise);
 
   useEffect(() => {
     const userId = JSON.parse(localStorage.getItem('loggedUser'))._id;
     if (userId) {
       dispatch(fetchUserPreferences(userId));
     }
-  }, []);
+  }, [dispatch]);
 
-  const exportFile = () => {
+  /**
+   * Handle export button click
+   * @returns {void}
+   * */
+  const handleExport = useCallback(() => {
     if (
       chartSites &&
       chartDataRange &&
@@ -60,51 +60,44 @@ const AuthenticatedHomePage = () => {
       chartDataRange.endDate &&
       chartSites.length > 0
     ) {
-      let exportData = {
+      setData({
         startDate: chartDataRange.startDate,
         endDate: chartDataRange.endDate,
         sites: chartSites,
-      };
-      setData(exportData);
+      });
       setOpenConfirmModal(true);
     } else {
-      setAlert({
-        type: 'error',
-        message: 'Please select sites and date range',
-        show: true,
-      });
+      setAlert({ type: 'error', message: 'Please select sites and date range', show: true });
     }
-  };
+  }, [chartSites, chartDataRange]);
 
-  const openPrintModalFunc = () => {
+  /**
+   * Handle print button click
+   * @returns {void}
+   * */
+  const handlePrint = useCallback(() => {
     if (
       chartDataRange &&
       chartDataRange.startDate &&
       chartDataRange.endDate &&
       chartSites.length > 0
     ) {
-      let exportData = {
+      setData({
         sites: chartSites,
-        startDate: new Date(
-          new Date(new Date(chartDataRange.endDate)).setDate(
-            new Date(chartDataRange.endDate).getDate() - 2,
-          ),
-        ),
-        endDate: new Date(chartDataRange.endDate),
-      };
-
-      setData(exportData);
+        startDate: chartDataRange.startDate,
+        endDate: chartDataRange.endDate,
+      });
       setOpenPrintModal(true);
     } else {
-      setAlert({
-        type: 'error',
-        message: 'Please select sites and date range',
-        show: true,
-      });
+      setAlert({ type: 'error', message: 'Please select sites and date range', show: true });
     }
-  };
+  }, [chartSites, chartDataRange]);
 
-  const printFile = () => {
+  /**
+   * Print the chart as a PDF
+   * @returns {void}
+   * */
+  const printFile = useCallback(() => {
     const chartContainer = document.getElementById('explore-chart-container');
 
     if (chartContainer) {
@@ -114,26 +107,27 @@ const AuthenticatedHomePage = () => {
       const height = rect.height + extraSpace;
 
       html2canvas(chartContainer, {
-        scale: 5,
+        scale: 2,
         useCORS: true,
         backgroundColor: rect.backgroundColor,
         width: width,
         height: height,
       }).then((canvas) => {
-        const link = document.createElement('a');
-        link.download = `chart.pdf`;
-
         const pdf = new jsPDF({
           orientation: 'landscape',
           unit: 'px',
           format: [width, height],
         });
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, width, height);
+        pdf.addImage(canvas.toDataURL('image/png', 0.8), 'PNG', 0, 0, width, height);
         pdf.save('chart.pdf');
       });
     }
-  };
+  }, []);
 
+  /**
+   * Render children for the right side of the topbar
+   * @returns {Array}
+   */
   const renderChildrenRight = () => {
     return [
       {
@@ -157,14 +151,14 @@ const AuthenticatedHomePage = () => {
             <Button
               className='text-sm font-medium capitalize'
               variant='outlined'
-              onClick={openPrintModalFunc}>
+              onClick={handlePrint}>
               Print
             </Button>
             <Button
               className='text-sm font-medium capitalize'
               variant='filled'
               Icon={DownloadIcon}
-              onClick={exportFile}>
+              onClick={handleExport}>
               Export
             </Button>
           </div>

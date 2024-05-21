@@ -36,8 +36,8 @@ const PrintReportModal = ({
   const [selectedColumns, setSelectedColumns] = useState({
     site_name: true,
     device_name: true,
-    pm2_5_calibrated_value: true,
-    pm10_calibrated_value: true,
+    pm2_5_raw_value: true,
+    pm10_raw_value: true,
     device_latitude: true,
     device_longitude: true,
     frequency: true,
@@ -53,8 +53,8 @@ const PrintReportModal = ({
   const tableColumns = [
     'site_name',
     'device_name',
-    'pm2_5_calibrated_value',
-    'pm10_calibrated_value',
+    'pm2_5_raw_value',
+    'pm10_raw_value',
     'device_latitude',
     'device_longitude',
     'frequency',
@@ -65,8 +65,8 @@ const PrintReportModal = ({
   const columnNamesMapping = {
     site_name: 'Site Name',
     device_name: 'Device Name',
-    pm2_5_calibrated_value: 'PM2.5 Value',
-    pm10_calibrated_value: 'PM10 Value',
+    pm2_5_raw_value: 'PM2.5 Value',
+    pm10_raw_value: 'PM10 Value',
     device_latitude: 'Latitude',
     device_longitude: 'Longitude',
     frequency: 'Frequency',
@@ -114,8 +114,8 @@ const PrintReportModal = ({
     setSelectedColumns({
       site_name: true,
       device_name: true,
-      pm2_5_calibrated_value: true,
-      pm10_calibrated_value: true,
+      pm2_5_raw_value: true,
+      pm10_raw_value: true,
       device_latitude: true,
       device_longitude: true,
       frequency: true,

@@ -2,6 +2,7 @@ import Button from '@/components/Button';
 import DownloadIcon from '@/icons/Analytics/download.svg';
 import { roundToEndOfDay, roundToStartOfDay } from '@/core/utils/dateTime';
 import moment from 'moment';
+import { useSelector } from 'react-redux';
 import CloseIcon from '@/icons/close_icon';
 
 const ExportModalWrapper = ({
@@ -15,12 +16,9 @@ const ExportModalWrapper = ({
   primaryButtonText = 'Export',
   data,
 }) => {
-  const startDate = data?.startDate
-    ? moment(data.startDate).format('MMMM D, YYYY')
-    : moment().subtract(5, 'days').format('MMMM D, YYYY');
-  const endDate = data?.endDate
-    ? moment(data.endDate).format('MMMM D, YYYY')
-    : moment().format('MMMM D, YYYY');
+  const chartData = useSelector((state) => state.chart);
+  const startDate = moment(chartData.chartDataRange.startDate).format('MMMM D, YYYY');
+  const endDate = moment(chartData.chartDataRange.endDate).format('MMMM D, YYYY');
 
   const handleCancel = () => {
     onClose();
