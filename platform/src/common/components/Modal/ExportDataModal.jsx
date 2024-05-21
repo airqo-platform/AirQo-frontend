@@ -19,11 +19,22 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
 
   const handleFormatChange = (event) => setSelectedFormat(event.target.value);
 
+  /**
+   * Handle cancel button click
+   * @returns {void}
+   * */
   const handleCancel = () => {
     setSelectedFormat(exportFormats[0]);
     onClose();
   };
 
+  /**
+   * Export data
+   * @param {object} data - Data to export
+   * @param {string} fileName - File name
+   * @param {string} type - File type
+   * @returns {void}
+   * */
   const exportData = (data, fileName, type) => {
     const blob = new Blob([data], { type });
     const url = window.URL.createObjectURL(blob);
@@ -34,6 +45,11 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
     window.URL.revokeObjectURL(url);
   };
 
+  /**
+   * Download data
+   * @param {object} body - Request body
+   * @returns {void}
+   * */
   const downloadDataFunc = useCallback(
     async (body) => {
       try {
@@ -67,6 +83,10 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
     [selectedFormat],
   );
 
+  /**
+   * Handle data export
+   * @returns {void}
+   * */
   const handleDataExport = useCallback(() => {
     setLoading(true);
 
