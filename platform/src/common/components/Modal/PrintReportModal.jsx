@@ -150,29 +150,31 @@ const PrintReportModal = ({
    * */
   const generatePdf = (data) => {
     const doc = new jsPDF('p', 'pt');
+    const selectedColumnKeys = Object.keys(selectedColumns).filter(
+      (column) => selectedColumns[column],
+    );
+
     const tableRows = data.map((row) => {
-      return Object.keys(selectedColumns).reduce((dataRow, column) => {
-        if (selectedColumns[column]) {
-          dataRow[COLUMN_NAMES_MAPPING[column]] = row[column];
-        }
+      return selectedColumnKeys.reduce((dataRow, column) => {
+        dataRow[COLUMN_NAMES_MAPPING[column]] = row[column];
         return dataRow;
       }, {});
     });
 
     const pageCenter = doc.internal.pageSize.getWidth() / 2;
 
+    doc.setFontSize(18);
     doc.text('Air quality data', pageCenter, 30, { align: 'center' });
+    doc.setFontSize(14);
     doc.text(`${startDate} - ${endDate}`, pageCenter, 55, { align: 'center' });
 
     autoTable(doc, {
-      columns: Object.keys(selectedColumns)
-        .filter((column) => selectedColumns[column])
-        .map((col) => ({
-          header: COLUMN_NAMES_MAPPING[col],
-          dataKey: COLUMN_NAMES_MAPPING[col],
-        })),
+      columns: selectedColumnKeys.map((col) => ({
+        header: COLUMN_NAMES_MAPPING[col],
+        dataKey: COLUMN_NAMES_MAPPING[col],
+      })),
       body: tableRows,
-      startY: 70,
+      startY: 60,
     });
 
     return doc.output('blob');
@@ -202,7 +204,7 @@ const PrintReportModal = ({
           file = generateCsv(resData.data);
           break;
         default:
-          console.log('default case');
+          return;
       }
 
       const formData = new FormData();
@@ -210,13 +212,19 @@ const PrintReportModal = ({
       formData.append('senderEmail', userInfo.email);
       formData.append(format, file);
 
-      await shareReportApi(formData);
-
-      setAlert({ type: 'success', message: 'Air quality data shared successful', show: true });
-      handleCancel();
-      shareStatus('Report shared');
+      const response = await shareReportApi(formData);
+      if (response.success) {
+        setAlert({ type: 'success', message: 'Air quality data shared successful', show: true });
+        handleCancel();
+        shareStatus('Report shared');
+      } else {
+        setAlert({
+          type: 'error',
+          message: 'An error occurred while sharing the report',
+          show: true,
+        });
+      }
     } catch (error) {
-      console.error(error, 'error');
       setAlert({
         type: 'error',
         message: 'An error occurred while sharing the report. Please try again.',
