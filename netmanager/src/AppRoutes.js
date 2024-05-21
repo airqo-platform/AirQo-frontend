@@ -97,7 +97,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
   }, [auth.isAuthenticated]);
 
   return (
-    <Router basename="/netmanager">
+    <Router>
       <div className="App">
         <Suspense fallback={<LargeCircularLoader loading={true} height={'calc(100vh - 114px)'} />}>
           <Switch>
