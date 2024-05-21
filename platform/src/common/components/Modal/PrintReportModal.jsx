@@ -129,23 +129,16 @@ const PrintReportModal = ({
    * */
   const generateCsv = (data) => {
     const dataArr = data.map((row) => {
-      const dataRow = {};
-      Object.keys(selectedColumns).forEach((column) => {
+      return Object.keys(selectedColumns).reduce((dataRow, column) => {
         if (selectedColumns[column]) {
           dataRow[COLUMN_NAMES_MAPPING[column]] = row[column];
         }
-      });
-      return dataRow;
+        return dataRow;
+      }, {});
     });
 
     const csv = Papa.unparse(dataArr);
     const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `airquality-data.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
 
     return blob;
   };
@@ -157,25 +150,20 @@ const PrintReportModal = ({
    * */
   const generatePdf = (data) => {
     const doc = new jsPDF('p', 'pt');
-    const tableRows = [];
-
-    data.forEach((row) => {
-      const dataRow = {};
-      Object.keys(selectedColumns).forEach((column) => {
+    const tableRows = data.map((row) => {
+      return Object.keys(selectedColumns).reduce((dataRow, column) => {
         if (selectedColumns[column]) {
           dataRow[COLUMN_NAMES_MAPPING[column]] = row[column];
         }
-      });
-      tableRows.push(dataRow);
+        return dataRow;
+      }, {});
     });
 
-    // Calculate the center of the page
     const pageCenter = doc.internal.pageSize.getWidth() / 2;
 
     doc.text('Air quality data', pageCenter, 30, { align: 'center' });
     doc.text(`${startDate} - ${endDate}`, pageCenter, 55, { align: 'center' });
 
-    // Start the table lower
     autoTable(doc, {
       columns: Object.keys(selectedColumns)
         .filter((column) => selectedColumns[column])
@@ -187,20 +175,23 @@ const PrintReportModal = ({
       startY: 70,
     });
 
-    doc.save('air_quality_data.pdf');
-
     return doc.output('blob');
   };
 
+  /**
+   * Share report
+   * @param {object} usebody - Request body
+   * @returns {void}
+   * */
   const handleShareReport = async (usebody) => {
+    if (!emails.length || (emails.length === 1 && !emails[0].trim())) {
+      setAlert({ type: 'error', message: 'Please enter at least one email', show: true });
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      if (!emails.length || (emails.length === 1 && !emails[0].trim())) {
-        setAlert({ type: 'error', message: 'Please enter at least one email', show: true });
-        return;
-      }
-
-      setLoading(true);
-
       const resData = await exportDataApi(usebody);
       let file;
       switch (format) {
@@ -219,19 +210,11 @@ const PrintReportModal = ({
       formData.append('senderEmail', userInfo.email);
       formData.append(format, file);
 
-      shareReportApi(formData)
-        .then((res) => {
-          setAlert({ type: 'success', message: 'Air quality data shared successful', show: true });
-          handleCancel();
-          shareStatus('Report shared');
-        })
-        .catch((err) => {
-          setAlert({
-            type: 'error',
-            message: 'An error occurred while sharing the report. Please try again.',
-            show: true,
-          });
-        });
+      await shareReportApi(formData);
+
+      setAlert({ type: 'success', message: 'Air quality data shared successful', show: true });
+      handleCancel();
+      shareStatus('Report shared');
     } catch (error) {
       console.error(error, 'error');
       setAlert({
