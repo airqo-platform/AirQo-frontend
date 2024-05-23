@@ -27,8 +27,8 @@ const Explore = ({ toggleCustomize }) => {
       <div className='flex justify-between items-center flex-wrap space-y-2'>
         <div className='flex space-x-3'>
           <CustomCalendar
-            initialStartDate={new Date()}
-            initialEndDate={new Date()}
+            initialStartDate={chartData.chartDataRange.startDate}
+            initialEndDate={chartData.chartDataRange.endDate}
             id='datePicker2'
             className='md:left-[150px] lg:left-52 top-12'
             position='down'

@@ -135,8 +135,8 @@ const AuthenticatedHomePage = () => {
         children: (
           <div className='flex space-x-3 mb-3'>
             <CustomCalendar
-              initialStartDate={new Date()}
-              initialEndDate={new Date()}
+              initialStartDate={chartDataRange.startDate}
+              initialEndDate={chartDataRange.endDate}
               className='max-md:-right-12 md:right-2 lg:right-7 top-12'
               dropdown
             />
