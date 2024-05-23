@@ -74,6 +74,16 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
         label = 'Last 7 days';
       } else if (computedValue === 30) {
         label = 'Last 30 days';
+      } else if (
+        isSameDay(startDate, startOfQuarter(today)) &&
+        isSameDay(endDate, endOfQuarter(today))
+      ) {
+        label = 'This quarter';
+      } else if (
+        isSameDay(startDate, startOfQuarter(subMonths(today, 3))) &&
+        isSameDay(endDate, endOfQuarter(subMonths(today, 3)))
+      ) {
+        label = 'Last quarter';
       } else if (computedValue === 90) {
         label = 'Last 90 days';
       } else if (
