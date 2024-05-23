@@ -42,35 +42,30 @@ const useAnalytics = () => {
   useEffect(() => {
     if (preferencesLoading) return;
 
-    const body = {
-      sites: chartData.chartSites,
-      startDate: chartData.chartDataRange.startDate,
-      endDate: chartData.chartDataRange.endDate,
-      chartType: chartData.chartType,
-      frequency: chartData.timeFrame,
-      pollutant: chartData.pollutionType,
-      organisation_name: chartData.organizationName,
+    const fetchData = async () => {
+      try {
+        setError(null);
+        setLoadingTime(Date.now());
+        await dispatch(
+          fetchAnalyticsData({
+            sites: chartData.chartSites,
+            startDate: chartData.chartDataRange.startDate,
+            endDate: chartData.chartDataRange.endDate,
+            chartType: chartData.chartType,
+            frequency: chartData.timeFrame,
+            pollutant: chartData.pollutionType,
+            organisation_name: chartData.organizationName,
+          }),
+        );
+        dispatch(setRefreshChart(false));
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoadingTime(Date.now() - loadingTime);
+      }
     };
 
-    const allPropertiesSet = Object.values(body).every(
-      (property) => property !== undefined && property !== null,
-    );
-
-    if (allPropertiesSet) {
-      const fetchData = async () => {
-        try {
-          setError(null);
-          setLoadingTime(Date.now());
-          await dispatch(fetchAnalyticsData(body));
-          dispatch(setRefreshChart(false));
-        } catch (err) {
-          setError(err.message);
-        } finally {
-          setLoadingTime(Date.now() - loadingTime);
-        }
-      };
-      fetchData();
-    }
+    fetchData();
   }, [chartData, refreshChart]);
 
   return { analyticsData, isLoading, error, loadingTime };
@@ -100,58 +95,59 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
     return () => clearTimeout(timeoutId);
   }, [isLoading, loadingTime]);
 
-  // Error state
-  if (error) {
-    return (
-      <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
-        <p className='text-red-500'>
-          An error has occurred. Please try again later or reach out to our support team for
-          assistance.
-        </p>
-      </div>
-    );
-  }
+  const renderErrorMessage = () => (
+    <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
+      <p className='text-red-500'>
+        An error has occurred. Please try again later or reach out to our support team for
+        assistance.
+      </p>
+    </div>
+  );
 
-  // Loading state
-  if (isLoading || !hasLoaded) {
-    return (
-      <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
-        <div className='text-blue-500'>
-          <Spinner />
-          {showLoadingMessage && (
-            <span className='text-yellow-500 mt-2'>
-              The data is currently being processed. We appreciate your patience.
-            </span>
-          )}
-        </div>
+  const renderLoadingMessage = () => (
+    <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
+      <div className='text-blue-500'>
+        <Spinner />
+        {showLoadingMessage && (
+          <span className='text-yellow-500 mt-2'>
+            The data is currently being processed. We appreciate your patience.
+          </span>
+        )}
       </div>
-    );
-  }
+    </div>
+  );
 
-  // No data for this time range
-  if (hasLoaded && (analyticsData === null || analyticsData.length === 0)) {
-    return (
-      <div className='ml-10 flex justify-center items-center w-full h-full'>
-        There is no data available for the selected time range.
-      </div>
-    );
-  }
+  const renderNoDataMessage = () => (
+    <div className='ml-10 flex justify-center items-center w-full h-full'>
+      There is no data available for the selected time range.
+    </div>
+  );
 
-  const transformedData = analyticsData.reduce((acc, curr) => {
-    if (!acc[curr.time]) {
-      acc[curr.time] = {
-        time: curr.time,
-      };
-    }
-    acc[curr.time][curr.name] = curr.value;
-    return acc;
-  }, {});
+  const transformedData =
+    analyticsData?.reduce((acc, curr) => {
+      if (!acc[curr.time]) {
+        acc[curr.time] = {
+          time: curr.time,
+        };
+      }
+      acc[curr.time][curr.name] = curr.value;
+      return acc;
+    }, {}) || {};
 
   const dataForChart = Object.values(transformedData);
 
-  let allKeys = new Set();
-  if (dataForChart.length > 0) {
-    allKeys = new Set(Object.keys(dataForChart[0]));
+  const allKeys = new Set(dataForChart.length > 0 ? Object.keys(dataForChart[0]) : []);
+
+  if (error) {
+    return renderErrorMessage();
+  }
+
+  if (isLoading || !hasLoaded) {
+    return renderLoadingMessage();
+  }
+
+  if (hasLoaded && (analyticsData === null || analyticsData.length === 0)) {
+    return renderNoDataMessage();
   }
 
   // Render the chart
