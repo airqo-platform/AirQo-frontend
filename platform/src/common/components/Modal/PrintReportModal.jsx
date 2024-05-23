@@ -193,6 +193,20 @@ const PrintReportModal = ({
 
     setLoading(true);
 
+    // if the format is pdf and the date range is more than 7 days, show an error and terminate the process
+    if (
+      format === 'pdf' &&
+      moment(chartData.chartDataRange.endDate).diff(chartData.chartDataRange.startDate, 'days') > 7
+    ) {
+      setAlert({
+        type: 'error',
+        message: 'PDF format is only available for date ranges up to 7 days',
+        show: true,
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
       const resData = await exportDataApi(usebody);
       let file;
@@ -260,6 +274,16 @@ const PrintReportModal = ({
               />
             </div>
             <div>
+              {format === 'pdf' &&
+                moment(chartData.chartDataRange.endDate).diff(
+                  chartData.chartDataRange.startDate,
+                  'days',
+                ) > 7 && (
+                  <div className='text-red-500 -mt-5 mb-2 text-sm font-medium leading-5'>
+                    PDF format is only available for date ranges up to 7 days
+                  </div>
+                )}
+
               <div className='self-stretch pr-2 justify-start items-start inline-flex'>
                 <div className='text-gray-700 text-base font-medium leading-tight'>
                   Deselect Columns for Report
