@@ -10,7 +10,7 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
   // get current route
   const currentRoute = router.pathname;
   // check if current route contains navPath
-  const isCurrentRoute = currentRoute.includes(itemPath);
+  const isCurrentRoute = currentRoute === navPath || (navPath === '/Home' && currentRoute === '/');
 
   const changePath = (e) => {
     e.preventDefault();
@@ -54,7 +54,7 @@ export const SidebarIconItem = ({ IconComponent, navPath }) => {
   // get current route
   const currentRoute = router.pathname;
   // check if current route contains navPath
-  const isCurrentRoute = currentRoute.includes(navPath);
+  const isCurrentRoute = currentRoute === navPath || (navPath === '/Home' && currentRoute === '/');
 
   return (
     <Link href={navPath}>
