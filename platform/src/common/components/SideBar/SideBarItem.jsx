@@ -76,7 +76,7 @@ const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, t
   // get current route
   const currentRoute = router.pathname;
   // check if current route contains navPath
-  const isCurrentRoute = currentRoute.includes(navPath);
+  const isCurrentRoute = currentRoute === navPath || (navPath === '/Home' && currentRoute === '/');
 
   return (
     <div
