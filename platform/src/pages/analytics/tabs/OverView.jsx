@@ -14,6 +14,7 @@ const OverView = () => {
   const pollutantType = useSelector((state) => state.chart.pollutionType);
   const sites = useSelector((state) => state.chart.chartSites);
   const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
 
   useEffect(() => {
     setIsLoadingMeasurements(true);
@@ -31,6 +32,11 @@ const OverView = () => {
       setIsLoadingMeasurements(false);
     }
   }, [chartDataRange, sites]);
+
+  function getSiteName(siteId) {
+    const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
+    return site ? site.name : '--';
+  }
 
   const dummyData = {
     siteDetails: {
@@ -57,18 +63,14 @@ const OverView = () => {
           recentLocationMeasurements && recentLocationMeasurements.length <= 2
             ? 'flex md:flex-row flex-col'
             : 'grid md:grid-cols-2'
-        }`}>
+        }`}
+      >
         {!isLoadingMeasurements &&
           displayData.map((event, index) => {
             return (
               <AQNumberCard
                 key={index}
-                location={
-                  event.siteDetails.name ||
-                  event.siteDetails.location_name ||
-                  event.siteDetails.formatted_name ||
-                  event.siteDetails.description
-                }
+                location={getSiteName(event.site_id) !== '--' ? getSiteName(event.site_id) : '--'}
                 reading={event.pm2_5.value}
                 count={displayData.length}
                 pollutant={pollutantType}
