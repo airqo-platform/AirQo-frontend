@@ -22,9 +22,6 @@ import { getNearestSite, getGridsSummaryApi } from '@/core/apis/DeviceRegistry';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import allCountries from '../Map/components/countries.json';
 
-const MAPBOX_URL = 'https://nominatim.openstreetmap.org/search';
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-
 const SearchResultsSkeleton = () => (
   <div className='flex flex-col gap-1 animate-pulse'>
     <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-6' />
@@ -321,13 +318,20 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
       }
 
       const newLocationArray = [...locationArray];
-      const index = newLocationArray.findIndex((location) => location._id === newLocationValue._id);
+      const index = newLocationArray.findIndex(
+        (location) => location.name === newLocationValue.name,
+      );
       if (index !== -1) {
-        newLocationArray.splice(index, 1);
+        setIsError({
+          isError: true,
+          message: 'Location already added',
+          type: 'error',
+        });
+        return;
       } else if (newLocationArray.length < 4) {
         newLocationArray.push(newLocationValue);
         const unselectedIndex = unSelectedLocations.findIndex(
-          (location) => location._id === newLocationValue._id,
+          (location) => location.name === newLocationValue.name,
         );
         unSelectedLocations.splice(unselectedIndex, 1);
       } else {
