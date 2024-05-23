@@ -10,7 +10,7 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
   // get current route
   const currentRoute = router.pathname;
   // check if current route contains navPath
-  const isCurrentRoute = currentRoute === navPath || (navPath === '/Home' && currentRoute === '/');
+  const isCurrentRoute = currentRoute.includes(itemPath);
 
   const changePath = (e) => {
     e.preventDefault();
