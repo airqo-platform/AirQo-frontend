@@ -197,13 +197,12 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, dow
         </div>
         <div
           ref={chartRef}
-          id={id}
           className='mt-6 -ml-[27px] relative'
           style={{
             width: width || '100%',
             height: height,
           }}>
-          <Chart chartType={chartType} width={width} height={height} />
+          <Chart id={id} chartType={chartType} width={width} height={height} />
         </div>
       </div>
 

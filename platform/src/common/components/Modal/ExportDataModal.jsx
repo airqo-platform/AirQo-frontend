@@ -8,7 +8,11 @@ import { useSelector } from 'react-redux';
 import ExportModalWrapper from './ExportModalWrapper';
 
 const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
-  const exportFormats = ['csv', 'json', 'pdf'];
+  const exportFormats = [
+    'csv',
+    'json',
+    // 'pdf'
+  ];
   const [selectedFormat, setSelectedFormat] = useState(exportFormats[0]);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({ type: '', message: '', show: false });

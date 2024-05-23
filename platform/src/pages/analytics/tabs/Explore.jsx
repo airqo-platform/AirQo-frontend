@@ -80,21 +80,19 @@ const Explore = ({ toggleCustomize }) => {
           <TabButtons Icon={SettingsIcon} btnText='Customize' onClick={toggleCustomize} />
         </div>
       </div>
-      <div>
-        <ChartContainer
-          menuBtn
-          chartType={chartData.chartType}
-          chartTitle='Air quality over time'
-          height={450}
-          id='explore-chart-container'
-          downloadStatus={(status) => {
-            setDownloadStatus(status);
-            setTimeout(() => {
-              setDownloadStatus(null);
-            }, 3000);
-          }}
-        />
-      </div>
+      <ChartContainer
+        menuBtn
+        chartType={chartData.chartType}
+        chartTitle='Air quality over time'
+        height={450}
+        id='explore-chart-container'
+        downloadStatus={(status) => {
+          setDownloadStatus(status);
+          setTimeout(() => {
+            setDownloadStatus(null);
+          }, 3000);
+        }}
+      />
       {downloadStatus && (
         <div className='w-full flex justify-center items-center'>
           <span className='bg-blue-600 flex items-center justify-center gap-3 rounded-xl text-white w-auto h-auto text-sm p-[22px]'>

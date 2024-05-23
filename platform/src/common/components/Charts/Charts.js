@@ -83,7 +83,7 @@ const useAnalytics = () => {
  * @param {String} height - Height of the chart
  * @returns {React.Component} Charts
  */
-const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
+const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => {
   const chartData = useSelector((state) => state.chart);
   const { analyticsData, isLoading, error, loadingTime } = useAnalytics();
   const [showLoadingMessage, setShowLoadingMessage] = useState(false);
@@ -275,9 +275,11 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
   };
 
   return (
-    <ResponsiveContainer width={width} height={height}>
-      {renderChart()}
-    </ResponsiveContainer>
+    <div id={id} className='pt-2'>
+      <ResponsiveContainer width={width} height={height}>
+        {renderChart()}
+      </ResponsiveContainer>
+    </div>
   );
 };
 
