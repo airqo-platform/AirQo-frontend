@@ -5,12 +5,47 @@ import ShareIcon from '@/icons/Analytics/share.svg';
 import MailIcon from '@/icons/Settings/mail.svg';
 import PlusIcon from '@/icons/Settings/plus.svg';
 import Button from '@/components/Button';
-import { isEmpty } from 'underscore';
 import { exportDataApi, shareReportApi } from '@/core/apis/Analytics';
 import { useSelector } from 'react-redux';
 import { jsPDF } from 'jspdf';
 import Papa from 'papaparse';
 import autoTable from 'jspdf-autotable';
+import moment from 'moment';
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const tableColumns = [
+  'site_name',
+  'device_name',
+  'pm2_5_raw_value',
+  'pm10_raw_value',
+  'device_latitude',
+  'device_longitude',
+  'frequency',
+  'datetime',
+];
+
+const INITIAL_COLUMNS_STATE = {
+  site_name: true,
+  device_name: true,
+  pm2_5_raw_value: true,
+  pm10_raw_value: true,
+  device_latitude: true,
+  device_longitude: true,
+  frequency: true,
+  datetime: true,
+};
+
+const COLUMN_NAMES_MAPPING = {
+  site_name: 'Site Name',
+  device_name: 'Device Name',
+  pm2_5_raw_value: 'PM2.5 Value',
+  pm10_raw_value: 'PM10 Value',
+  device_latitude: 'Latitude',
+  device_longitude: 'Longitude',
+  frequency: 'Frequency',
+  datetime: 'Date & Time',
+};
 
 const PrintReportModal = ({
   open,
@@ -24,53 +59,17 @@ const PrintReportModal = ({
   shareStatus,
 }) => {
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState({
-    type: '',
-    message: '',
-    show: false,
-  });
+  const [alert, setAlert] = useState({ type: '', message: '', show: false });
   const [emails, setEmails] = useState(['']);
   const [emailErrors, setEmailErrors] = useState([]);
   const userInfo = useSelector((state) => state.login.userInfo);
-  // State for selected columns
-  const [selectedColumns, setSelectedColumns] = useState({
-    site_name: true,
-    device_name: true,
-    pm2_5_calibrated_value: true,
-    pm10_calibrated_value: true,
-    device_latitude: true,
-    device_longitude: true,
-    frequency: true,
-    datetime: true,
-  });
+  const [selectedColumns, setSelectedColumns] = useState(INITIAL_COLUMNS_STATE);
+  const chartData = useSelector((state) => state.chart);
+  const startDate = moment(chartData.chartDataRange.startDate).format('MMMM D, YYYY');
+  const endDate = moment(chartData.chartDataRange.endDate).format('MMMM D, YYYY');
 
-  // Function to handle checkbox change
   const handleCheckboxChange = (column) => {
     setSelectedColumns((prev) => ({ ...prev, [column]: !prev[column] }));
-  };
-
-  // Array of table columns
-  const tableColumns = [
-    'site_name',
-    'device_name',
-    'pm2_5_calibrated_value',
-    'pm10_calibrated_value',
-    'device_latitude',
-    'device_longitude',
-    'frequency',
-    'datetime',
-  ];
-
-  // Mapping of column names
-  const columnNamesMapping = {
-    site_name: 'Site Name',
-    device_name: 'Device Name',
-    pm2_5_calibrated_value: 'PM2.5 Value',
-    pm10_calibrated_value: 'PM10 Value',
-    device_latitude: 'Latitude',
-    device_longitude: 'Longitude',
-    frequency: 'Frequency',
-    datetime: 'Date & Time',
   };
 
   const handleEmailChange = (index, value) => {
@@ -78,70 +77,42 @@ const PrintReportModal = ({
     updatedEmails[index] = value;
     setEmails(updatedEmails);
 
-    if (!isEmpty(value)) {
+    if (value.trim()) {
       const updatedEmailErrors = [...emailErrors];
-      updatedEmailErrors[index] = isValidEmail(value) ? '' : 'Invalid email';
+      updatedEmailErrors[index] = EMAIL_REGEX.test(value) ? '' : 'Invalid email';
       setEmailErrors(updatedEmailErrors);
     }
   };
 
-  const handleAddEmail = () => {
-    setEmails([...emails, '']);
-  };
-
-  const handleRemoveEmail = (index) => {
-    const updatedEmails = [...emails];
-    updatedEmails.splice(index, 1);
-    setEmails(updatedEmails);
-  };
-
-  const isValidEmail = (email) => {
-    // Email validation regex pattern
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    // Check if email is not empty and matches the regex pattern
-    if (email && email.match(emailRegex)) {
-      return true; // Email is valid and not empty
-    }
-
-    return false; // Email is either empty or invalid
-  };
-
+  const handleAddEmail = () => setEmails([...emails, '']);
+  const handleRemoveEmail = (index) => setEmails(emails.filter((_, i) => i !== index));
   const handleCancel = () => {
     setEmails(['']);
     setEmailErrors([]);
     onClose();
-    setSelectedColumns({
-      site_name: true,
-      device_name: true,
-      pm2_5_calibrated_value: true,
-      pm10_calibrated_value: true,
-      device_latitude: true,
-      device_longitude: true,
-      frequency: true,
-      datetime: true,
-    });
+    setSelectedColumns(INITIAL_COLUMNS_STATE);
   };
 
-  const downloadDataFunc = () => {
+  /**
+   * Download data
+   * @returns {void}
+   * */
+  const downloadDataFunc = async () => {
     try {
-      handlePrintPDF();
-
+      await handlePrintPDF();
       setLoading(false);
-      setTimeout(() => {
-        setAlert({
-          type: 'success',
-          message: 'Air quality data download successful',
-          show: true,
-        });
-      }, 7000);
+      setTimeout(
+        () =>
+          setAlert({
+            type: 'success',
+            message: 'Air quality data download successful',
+            show: true,
+          }),
+        7000,
+      );
       handleCancel();
     } catch (err) {
-      setAlert({
-        type: 'error',
-        message: 'An error occurred while exporting data',
-        show: true,
-      });
+      setAlert({ type: 'error', message: 'An error occurred while exporting data', show: true });
       setLoading(false);
     }
   };
@@ -151,117 +122,123 @@ const PrintReportModal = ({
     downloadDataFunc();
   };
 
-  // Function to generate CSV file
+  /**
+   * Generate CSV
+   * @param {array} data - Data
+   * @returns {Blob} CSV Blob
+   * */
   const generateCsv = (data) => {
     const dataArr = data.map((row) => {
-      const dataRow = {};
-      Object.keys(selectedColumns).forEach((column) => {
+      return Object.keys(selectedColumns).reduce((dataRow, column) => {
         if (selectedColumns[column]) {
-          dataRow[columnNamesMapping[column]] = row[column];
+          dataRow[COLUMN_NAMES_MAPPING[column]] = row[column];
         }
-      });
-      return dataRow;
+        return dataRow;
+      }, {});
     });
 
     const csv = Papa.unparse(dataArr);
     const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `airquality-data.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
 
-    return new Blob([csv], { type: 'text/csv' });
+    return blob;
   };
 
-  // Function to generate PDF file
+  /**
+   * Generate PDF
+   * @param {array} data - Data
+   * @returns {Blob} PDF Blob
+   * */
   const generatePdf = (data) => {
     const doc = new jsPDF('p', 'pt');
-    const tableRows = [];
+    const selectedColumnKeys = Object.keys(selectedColumns).filter(
+      (column) => selectedColumns[column],
+    );
 
-    data.forEach((row) => {
-      const dataRow = {};
-      Object.keys(selectedColumns).forEach((column) => {
-        if (selectedColumns[column]) {
-          dataRow[columnNamesMapping[column]] = row[column];
-        }
-      });
-      tableRows.push(dataRow);
+    const tableRows = data.map((row) => {
+      return selectedColumnKeys.reduce((dataRow, column) => {
+        dataRow[COLUMN_NAMES_MAPPING[column]] = row[column];
+        return dataRow;
+      }, {});
     });
 
+    const pageCenter = doc.internal.pageSize.getWidth() / 2;
+
+    doc.setFontSize(18);
+    doc.text('Air quality data', pageCenter, 30, { align: 'center' });
+    doc.setFontSize(14);
+    doc.text(`${startDate} - ${endDate}`, pageCenter, 55, { align: 'center' });
+
     autoTable(doc, {
-      columns: Object.keys(selectedColumns)
-        .filter((column) => selectedColumns[column])
-        .map((col) => ({
-          header: columnNamesMapping[col],
-          dataKey: columnNamesMapping[col],
-        })),
+      columns: selectedColumnKeys.map((col) => ({
+        header: COLUMN_NAMES_MAPPING[col],
+        dataKey: COLUMN_NAMES_MAPPING[col],
+      })),
       body: tableRows,
       startY: 60,
     });
 
-    doc.text('Air quality data', 14, 15);
-    doc.text(`From: ${data[0].date} - To: ${data[data.length - 1].date}`, 14, 30);
-
-    doc.save('air_quality_data.pdf');
-
     return doc.output('blob');
   };
 
+  /**
+   * Share report
+   * @param {object} usebody - Request body
+   * @returns {void}
+   * */
   const handleShareReport = async (usebody) => {
+    if (!emails.length || (emails.length === 1 && !emails[0].trim())) {
+      setAlert({ type: 'error', message: 'Please enter at least one email', show: true });
+      return;
+    }
+
+    setLoading(true);
+
+    // if the format is pdf and the date range is more than 7 days, show an error and terminate the process
+    if (
+      format === 'pdf' &&
+      moment(chartData.chartDataRange.endDate).diff(chartData.chartDataRange.startDate, 'days') > 7
+    ) {
+      setAlert({
+        type: 'error',
+        message: 'PDF format is only available for date ranges up to 7 days',
+        show: true,
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
-      if (emails.length === 0 || (emails.length === 1 && emails[0] === '')) {
-        setAlert({
-          type: 'error',
-          message: 'Please enter at least one email',
-          show: true,
-        });
-        return;
+      const resData = await exportDataApi(usebody);
+      let file;
+      switch (format) {
+        case 'pdf':
+          file = generatePdf(resData.data);
+          break;
+        case 'csv':
+          file = generateCsv(resData.data);
+          break;
+        default:
+          return;
       }
 
-      setLoading(true);
+      const formData = new FormData();
+      formData.append('recepientEmails', JSON.stringify([...emails]));
+      formData.append('senderEmail', userInfo.email);
+      formData.append(format, file);
 
-      await exportDataApi(usebody).then((resData) => {
-        let file;
-        switch (format) {
-          case 'pdf':
-            file = generatePdf(resData.data);
-            break;
-
-          case 'csv':
-            file = generateCsv(resData.data);
-            break;
-
-          default:
-            console.log('default case');
-        }
-
-        const formData = new FormData();
-        formData.append('recepientEmails', JSON.stringify([...emails]));
-        formData.append('senderEmail', userInfo.email);
-        formData.append(format, file);
-
-        shareReportApi(formData)
-          .then((res) => {
-            setAlert({
-              type: 'success',
-              message: 'Air quality data shared successful',
-              show: true,
-            });
-            handleCancel();
-            shareStatus('Report shared');
-          })
-          .catch((err) => {
-            setAlert({
-              type: 'error',
-              message: 'An error occurred while sharing the report. Please try again.',
-              show: true,
-            });
-          });
-      });
+      const response = await shareReportApi(formData);
+      if (response.success) {
+        setAlert({ type: 'success', message: 'Air quality data shared successful', show: true });
+        handleCancel();
+        shareStatus('Report shared');
+      } else {
+        setAlert({
+          type: 'error',
+          message: 'An error occurred while sharing the report',
+          show: true,
+        });
+      }
     } catch (error) {
-      console.error(error, 'error');
       setAlert({
         type: 'error',
         message: 'An error occurred while sharing the report. Please try again.',
@@ -297,6 +274,16 @@ const PrintReportModal = ({
               />
             </div>
             <div>
+              {format === 'pdf' &&
+                moment(chartData.chartDataRange.endDate).diff(
+                  chartData.chartDataRange.startDate,
+                  'days',
+                ) > 7 && (
+                  <div className='text-red-500 -mt-5 mb-2 text-sm font-medium leading-5'>
+                    PDF format is only available for date ranges up to 7 days
+                  </div>
+                )}
+
               <div className='self-stretch pr-2 justify-start items-start inline-flex'>
                 <div className='text-gray-700 text-base font-medium leading-tight'>
                   Deselect Columns for Report
@@ -313,7 +300,7 @@ const PrintReportModal = ({
                       className='form-checkbox h-5 w-5 text-blue-600 rounded'
                     />
                     <label htmlFor={column} className='text-gray-700 text-sm font-medium'>
-                      {columnNamesMapping[column]}
+                      {COLUMN_NAMES_MAPPING[column]}
                     </label>
                   </div>
                 ))}
