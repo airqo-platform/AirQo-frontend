@@ -34,6 +34,7 @@ const Layout = ({
       if (userInfo && preferenceData && preferenceData.length > 0) {
         const { period, selected_sites, startDate, endDate, frequency, chartType, pollutant } =
           preferenceData[0];
+        // console.log(selected_sites);
         try {
           const chartSites = selected_sites
             ? selected_sites.map((site) => site['_id'])

@@ -15,7 +15,7 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import Spinner from '@/components/Spinner';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
-import { fetchAnalyticsData } from '@/lib/store/services/charts/ChartData';
+import { fetchAnalyticsData, setAnalyticsData } from '@/lib/store/services/charts/ChartData';
 import {
   renderCustomizedLegend,
   CustomDot,
@@ -63,8 +63,11 @@ const useAnalytics = () => {
           setLoadingTime(Date.now());
           await dispatch(fetchAnalyticsData(body));
           dispatch(setRefreshChart(false));
+          // console.log('E DEY WORK');
         } catch (err) {
           setError(err.message);
+          // console.log('Error fetching analytics data', err);
+          dispatch(setAnalyticsData(null));
         } finally {
           setLoadingTime(Date.now() - loadingTime);
         }
@@ -88,6 +91,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
   const { analyticsData, isLoading, error, loadingTime } = useAnalytics();
   const [showLoadingMessage, setShowLoadingMessage] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
 
   useEffect(() => {
     let timeoutId;
@@ -136,8 +140,14 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
       </div>
     );
   }
+  // console.log('analyticsData', analyticsData)
 
-  const transformedData = analyticsData.reduce((acc, curr) => {
+  const newAnalyticsData = analyticsData.map((data) => {
+    const name = getSiteName(data.site_id);
+    return { ...data, name };
+  });
+
+  const transformedData = newAnalyticsData.reduce((acc, curr) => {
     if (!acc[curr.time]) {
       acc[curr.time] = {
         time: curr.time,
@@ -164,7 +174,8 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
           margin={{
             top: 38,
             right: 10,
-          }}>
+          }}
+        >
           {Array.from(allKeys)
             .filter((key) => key !== 'time')
             .map((key, index) => (
@@ -198,7 +209,8 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
               } else {
                 return tick;
               }
-            }}>
+            }}
+          >
             <Label
               value={chartData.pollutionType === 'pm2_5' ? 'PM2.5 (µg/m³)' : 'PM10 (µg/m³)'}
               position='insideTopRight'
@@ -231,7 +243,8 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
           margin={{
             top: 38,
             right: 10,
-          }}>
+          }}
+        >
           {Array.from(allKeys)
             .filter((key) => key !== 'time')
             .map((key, index) => (
@@ -251,7 +264,8 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
               } else {
                 return tick;
               }
-            }}>
+            }}
+          >
             <Label
               value={chartData.pollutionType === 'pm2_5' ? 'PM2.5 (µg/m³)' : 'PM10 (µg/m³)'}
               position='insideTopRight'
