@@ -51,7 +51,7 @@ const LocationItemCards = ({
 }) => (
   <div
     className='border rounded-lg bg-secondary-neutral-light-25 border-input-light-outline flex flex-row justify-between items-center p-3 w-full mb-2'
-    key={location._id}
+    key={location.name}
     ref={innerRef}
     {...draggableProps}
     {...dragHandleProps}
@@ -361,10 +361,16 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
    * and updates the unselected locations array
    */
   const removeLocation = (item) => {
-    const newLocationArray = locationArray.filter((location) => location._id !== item._id);
+    const newLocationSet = new Set(locationArray.map((location) => location.name));
+    newLocationSet.delete(item.name);
+    const newLocationArray = Array.from(newLocationSet, (name) =>
+      locationArray.find((location) => location.name === name),
+    );
     setLocationArray(newLocationArray);
     setDraggedLocations(newLocationArray);
-    setUnSelectedLocations((locations) => [...locations, item]);
+    setUnSelectedLocations((locations) =>
+      locations.filter((location) => location.name !== item.name),
+    );
     dispatch(setSelectedLocations(newLocationArray));
   };
 
@@ -472,10 +478,10 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
               <div className='mt-4'>
                 {locationArray && locationArray.length > 0 ? (
                   draggedLocations.map((location, index) => (
-                    <Draggable key={location._id} draggableId={location._id} index={index}>
+                    <Draggable key={location.name} draggableId={location.name} index={index}>
                       {(provided) => (
                         <LocationItemCards
-                          key={location._id}
+                          key={location.name}
                           handleLocationSelect={handleLocationSelect}
                           handleRemoveLocation={removeLocation}
                           location={location}
@@ -514,7 +520,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
                       .slice(0, 15)
                       .map((location) => (
                         <LocationItemCards
-                          key={location._id}
+                          key={location.name}
                           location={location}
                           handleLocationSelect={handleLocationSelect}
                           showActiveStarIcon={false}
