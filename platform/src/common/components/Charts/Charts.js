@@ -128,10 +128,12 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
   }
   // console.log('analyticsData', analyticsData)
 
-  const newAnalyticsData = analyticsData.map((data) => {
-    const name = getSiteName(data.site_id);
-    return { ...data, name };
-  });
+  const newAnalyticsData =
+    analyticsData?.length > 0 &&
+    analyticsData?.map((data) => {
+      const name = getSiteName(data.site_id);
+      return { ...data, name };
+    });
 
   const renderNoDataMessage = () => (
     <div className='ml-10 flex justify-center items-center w-full h-full'>
