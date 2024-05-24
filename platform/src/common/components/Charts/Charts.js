@@ -128,7 +128,13 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
   }
   // console.log('analyticsData', analyticsData)
 
+  function getSiteName(siteId) {
+    const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
+    return site ? site.name : '--';
+  }
+
   const newAnalyticsData =
+    analyticsData &&
     analyticsData?.length > 0 &&
     analyticsData?.map((data) => {
       const name = getSiteName(data.site_id);
