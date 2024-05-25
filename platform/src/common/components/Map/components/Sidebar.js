@@ -198,26 +198,16 @@ const SidebarHeader = ({
   handleSelectedTab,
   isAdmin,
   isFocused,
-  setShowSideBar,
   handleHeaderClick = () => {},
 }) => {
-  const handleCloseClick = useCallback(() => {
-    setShowSideBar(false);
-  }, [setShowSideBar]);
-
   return (
     <div>
       <div className='w-full flex justify-between items-center'>
         <label className='font-medium text-xl text-gray-900'>Air Quality Map</label>
-        <button
-          onClick={handleCloseClick}
-          className='focus:outline-none border rounded-xl hover:cursor-pointer p-2 block md:hidden'>
-          <CloseIcon />
-        </button>
         {isFocused && (
           <button
             onClick={handleHeaderClick}
-            className='focus:outline-none border rounded-xl hover:cursor-pointer p-2 hidden md:block'>
+            className='focus:outline-none border rounded-xl hover:cursor-pointer p-2'>
             <CloseIcon />
           </button>
         )}
@@ -394,7 +384,7 @@ const SearchResultsSkeleton = () => {
   );
 };
 
-const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
+const Sidebar = ({ siteDetails, isAdmin }) => {
   const dispatch = useDispatch();
   const [isFocused, setIsFocused] = useState(false);
   const [countryData, setCountryData] = useState([]);
@@ -566,28 +556,14 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
   }, [selectedSite]);
 
   return (
-    <div
-      className={`${
-        windowSize < 768 ? 'absolute left-0 top-0' : 'relative'
-      } w-full md:w-[340px] bg-white z-[999] overflow-x-hidden ${
-        (searchResults && searchResults.length > 0) ||
-        showLocationDetails ||
-        (selectedSites && selectedSites.length > 0)
-          ? 'overflow-y-auto map-scrollbar h-full'
-          : 'h-screen overflow-y-hidden'
-      }`}>
+    <div className='w-full min-w-[380px] lg:w-[470px] h-dvh bg-white overflow-x-hidden overflow-y-auto map-scrollbar'>
       {/* Sidebar Header */}
       <div className={`${!isFocused && !showLocationDetails ? 'space-y-4' : 'hidden'} px-4 pt-4`}>
-        <SidebarHeader
-          selectedTab={selectedTab}
-          handleSelectedTab={handleSelectedTab}
-          isAdmin
-          setShowSideBar={setShowSideBar}
-        />
+        <SidebarHeader selectedTab={selectedTab} handleSelectedTab={handleSelectedTab} isAdmin />
         {!isAdmin && <hr />}
       </div>
 
-      <div className='h-full'>
+      <div className='h-dvh'>
         {/* section 1 */}
         {selectedSite && mapLoading ? (
           // show a loading skeleton
@@ -627,7 +603,7 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
 
               <div className='border border-secondary-neutral-light-100 my-5' />
 
-              <div className='overflow-y-auto map-scrollbar'>
+              <div>
                 {selectedSites && selectedSites.length > 0 && (
                   <>
                     <div className='flex justify-between items-center px-4'>
@@ -671,7 +647,6 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
               handleSelectedTab={handleSelectedTab}
               isAdmin
               isFocused={isFocused}
-              setShowSideBar={setShowSideBar}
               handleHeaderClick={handleHeaderClick}
             />
             <SearchField onSearch={handleSearch} onClearSearch={handleClearSearch} focus={focus} />

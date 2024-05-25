@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
-import TopBar from '@/components/TopBar';
+import TopBar from '../TopBar';
 import {
   setChartSites,
   setChartDataRange,
@@ -14,6 +14,9 @@ import { fetchUserChecklists } from '@/lib/store/services/checklists/CheckData';
 import { updateCards } from '@/lib/store/services/checklists/CheckList';
 import Head from 'next/head';
 import { toggleSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
+import { useRouter } from 'next/router';
+import CollapsedSidebar from '../SideBar/CollapsedSidebar';
+import SideBarDrawer from '../SideBar/SideBarDrawer';
 
 const Layout = ({
   pageTitle = 'AirQo Analytics',
@@ -23,6 +26,7 @@ const Layout = ({
   noTopNav = true,
 }) => {
   // Constants
+  const router = useRouter();
   const MAX_WIDTH = '(max-width: 1024px)';
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
@@ -102,18 +106,23 @@ const Layout = ({
         <title>{pageTitle}</title>
         <meta property='og:title' content={pageTitle} key='title' />
       </Head>
-      <div className='w-full h-dvh overflow-hidden' data-testid='layout'>
-        <div className='flex'>
-          <AuthenticatedSideBar />
-          <div className='w-full h-dvh overflow-y-auto transition-all duration-300 ease-in-out'>
-            {noTopNav && (
-              <div className='sticky top-0 z-50'>
-                <TopBar topbarTitle={topbarTitle} noBorderBottom={noBorderBottom} />
-              </div>
-            )}
-            {children}
+      <div className='flex w-full h-dvh overflow-hidden' data-testid='layout'>
+        {router.pathname === '/map' ? (
+          <div className='hidden lg:block'>
+            <CollapsedSidebar />
           </div>
+        ) : (
+          <AuthenticatedSideBar />
+        )}
+        <div className='w-full h-full overflow-hidden transition-all duration-300 ease-in-out'>
+          {noTopNav && (
+            <div className='sticky top-0 z-50'>
+              <TopBar topbarTitle={topbarTitle} noBorderBottom={noBorderBottom} />
+            </div>
+          )}
+          <div className='overflow-y-auto h-dvh w-full'>{children}</div>
         </div>
+        <SideBarDrawer />
       </div>
     </>
   );

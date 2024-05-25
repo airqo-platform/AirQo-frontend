@@ -206,7 +206,10 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
         <button
           type='button'
           className='lg:hidden relative flex items-center justify-start z-10 w-auto focus:outline-none border border-gray-200 rounded-xl'
-          onClick={() => dispatch(setToggleDrawer(true))}>
+          onClick={(e) => {
+            e.stopPropagation();
+            dispatch(setToggleDrawer(true));
+          }}>
           <span className='p-2'>
             <MenuBarIcon />
           </span>
