@@ -47,8 +47,8 @@ const SideBarDrawer = () => {
 
   const drawerClasses =
     size.width < 1024 && toggleDrawer
-      ? 'fixed right-0 top-0 z-[99999] border-l-grey-750 border-l-[1px]'
-      : 'hidden';
+      ? 'fixed w-72 right-0 top-0 z-[99999] border-l-grey-750 border-l-[1px]'
+      : 'w-0';
 
   // Create a ref for the sidebar
   const sidebarRef = useRef();
@@ -124,7 +124,7 @@ const SideBarDrawer = () => {
       )}
       {/* sidebar */}
       <div
-        className={`${drawerClasses} transition-all w-72 duration-200 ease-in-out overflow-hidden`}
+        className={`${drawerClasses} transition-all duration-200 ease-in-out overflow-hidden`}
         ref={sidebarRef}>
         <div className='flex p-4 bg-white h-dvh lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden'>
           <div>
