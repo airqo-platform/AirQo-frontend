@@ -1,32 +1,44 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { exportDataApi } from '@/core/apis/Analytics';
 import Papa from 'papaparse';
 import { roundToEndOfDay, roundToStartOfDay } from '@/core/utils/dateTime';
 import AlertBox from '@/components/AlertBox';
 import moment from 'moment';
+import { useSelector } from 'react-redux';
 import ExportModalWrapper from './ExportModalWrapper';
 
 const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
-  const exportFormats = ['csv', 'json', 'pdf'];
-  const [selectedFormat, setSelectedFormat] = useState('csv');
+  const exportFormats = [
+    'csv',
+    'json',
+    // 'pdf'
+  ];
+  const [selectedFormat, setSelectedFormat] = useState(exportFormats[0]);
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState({
-    type: '',
-    message: '',
-    show: false,
-  });
-  const startDate = moment().subtract(5, 'days').format('MMMM D, YYYY');
-  const endDate = moment().format('MMMM D, YYYY');
+  const [alert, setAlert] = useState({ type: '', message: '', show: false });
 
-  const handleFormatChange = (event) => {
-    setSelectedFormat(event.target.value);
-  };
+  const chartData = useSelector((state) => state.chart);
+  const startDate = moment(chartData.chartDataRange.startDate).format('MMMM D, YYYY');
+  const endDate = moment(chartData.chartDataRange.endDate).format('MMMM D, YYYY');
 
+  const handleFormatChange = (event) => setSelectedFormat(event.target.value);
+
+  /**
+   * Handle cancel button click
+   * @returns {void}
+   * */
   const handleCancel = () => {
-    setSelectedFormat('');
+    setSelectedFormat(exportFormats[0]);
     onClose();
   };
 
+  /**
+   * Export data
+   * @param {object} data - Data to export
+   * @param {string} fileName - File name
+   * @param {string} type - File type
+   * @returns {void}
+   * */
   const exportData = (data, fileName, type) => {
     const blob = new Blob([data], { type });
     const url = window.URL.createObjectURL(blob);
@@ -37,63 +49,52 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
     window.URL.revokeObjectURL(url);
   };
 
-  const downloadDataFunc = async (body) => {
-    try {
-      const response = await exportDataApi(body);
-      const resData = response.data;
-      let filename = `airquality-data.${selectedFormat}`;
+  /**
+   * Download data
+   * @param {object} body - Request body
+   * @returns {void}
+   * */
+  const downloadDataFunc = useCallback(
+    async (body) => {
+      try {
+        const response = await exportDataApi(body);
+        const resData = response.data;
+        const filename = `airquality-data.${selectedFormat}`;
 
-      if (selectedFormat === 'json') {
-        const jsonString = JSON.stringify(resData);
-        exportData(jsonString, filename, 'application/json');
+        if (selectedFormat === 'json') {
+          const jsonString = JSON.stringify(resData);
+          exportData(jsonString, filename, 'application/json');
+        } else if (selectedFormat === 'csv') {
+          const csvData = Papa.unparse(resData);
+          exportData(csvData, filename, 'text/csv;charset=utf-8;');
+        } else if (selectedFormat === 'pdf') {
+          handleExportPDF();
+        }
+
+        setAlert({ type: 'success', message: 'Air quality data download successful', show: true });
+        setTimeout(() => setAlert({ type: '', message: '', show: false }), 7000);
+        handleCancel();
+      } catch (err) {
+        const message =
+          err.response && err.response.data && err.response.data.status === 'success'
+            ? 'Uh-oh! No data found for the selected parameters.'
+            : 'An error occurred while exporting data';
+        setAlert({ type: 'error', message, show: true });
+      } finally {
+        setLoading(false);
       }
+    },
+    [selectedFormat],
+  );
 
-      if (selectedFormat === 'csv') {
-        // Convert JSON data to CSV using Papa Parse
-        const csvData = Papa.unparse(resData);
-        exportData(csvData, filename, 'text/csv;charset=utf-8;');
-      }
-
-      if (selectedFormat === 'pdf') {
-        handleExportPDF();
-      }
-
-      setAlert({
-        type: 'success',
-        message: 'Air quality data download successful',
-        show: true,
-      });
-      setLoading(false);
-      setTimeout(() => {
-        setAlert({
-          type: 'success',
-          message: 'Air quality data download successful',
-          show: true,
-        });
-      }, 7000);
-      handleCancel();
-    } catch (err) {
-      if (err.response && err.response.data && err.response.data.status === 'success') {
-        setAlert({
-          type: 'success',
-          message: 'Uh-oh! No data found for the selected parameters.',
-          show: true,
-        });
-      } else {
-        setAlert({
-          type: 'error',
-          message: 'An error occurred while exporting data',
-          show: true,
-        });
-      }
-      setLoading(false);
-    }
-  };
-
-  const handleDataExport = () => {
+  /**
+   * Handle data export
+   * @returns {void}
+   * */
+  const handleDataExport = useCallback(() => {
     setLoading(true);
 
-    let body = {
+    const body = {
       sites: data?.sites,
       startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
       endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
@@ -103,7 +104,7 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
       outputFormat: 'airqo-standard',
     };
     downloadDataFunc(body);
-  };
+  }, [startDate, endDate, downloadDataFunc]);
 
   return (
     <div>
@@ -112,8 +113,7 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
         open={open}
         onClose={onClose}
         downloadDataFunc={handleDataExport}
-        loading={loading}
-      >
+        loading={loading}>
         <div className='flex-col justify-start items-start gap-[13px] flex'>
           <AlertBox
             type={alert.type}
@@ -129,8 +129,7 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
             <div
               className='justify-start items-start gap-2 inline-flex'
               key={index}
-              data-testid='selectedFormat-format'
-            >
+              data-testid='selectedFormat-format'>
               <input
                 type='radio'
                 name='selectedFormat'
