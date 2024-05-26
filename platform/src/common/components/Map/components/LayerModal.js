@@ -9,7 +9,7 @@ const Option = ({ isSelected, children, onSelect, image, disabled }) => (
     }`}
     disabled={disabled}>
     <div
-      className={`w-14 h-14 relative rounded-lg ${
+      className={`w-8 h-8 md:w-14 md:h-14 relative rounded-lg ${
         isSelected ? 'border-2 border-blue-500 ring-4 ring-light-blue-100' : ''
       } border-2`}>
       <Image
@@ -59,7 +59,7 @@ const LayerModal = ({
       <div
         onClick={(e) => e.stopPropagation()}
         className='relative z-50 bg-white rounded-lg overflow-hidden shadow-xl sm:max-w-lg sm:w-full'>
-        <div className='p-6 text-left'>
+        <div className='p-4 md:p-6 text-left'>
           <h3 className='text-lg font-semibold mb-3'>Map Details</h3>
           <div className='flex justify-between space-x-2'>
             {mapDetails.map((detail) => (
@@ -89,11 +89,13 @@ const LayerModal = ({
             </div>
           </div>
         </div>
-        <div className='flex justify-end w-full p-6 space-x-4 bg-[#F9FAFB]'>
-          <button onClick={onClose} className='px-4 py-2 border rounded-md'>
+        <div className='flex justify-end w-full p-4 md:p-6 space-x-4 bg-[#F9FAFB]'>
+          <button onClick={onClose} className='p-2  md:px-4 md:py-2 border rounded-md'>
             Cancel
           </button>
-          <button onClick={handleApply} className='px-4 py-2 bg-blue-600 rounded-md text-white'>
+          <button
+            onClick={handleApply}
+            className='p-2  md:px-4 md:py-2 bg-blue-600 rounded-md text-white'>
             Apply
           </button>
         </div>
