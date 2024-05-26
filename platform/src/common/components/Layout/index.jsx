@@ -1,14 +1,6 @@
 import React, { useEffect } from 'react';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import TopBar from '../TopBar';
-import {
-  setChartSites,
-  setChartDataRange,
-  setTimeFrame,
-  setChartType,
-  setPollutant,
-  resetChartStore,
-} from '@/lib/store/services/charts/ChartSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserChecklists } from '@/lib/store/services/checklists/CheckData';
 import { updateCards } from '@/lib/store/services/checklists/CheckList';
@@ -17,6 +9,7 @@ import { toggleSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useRouter } from 'next/router';
 import CollapsedSidebar from '../SideBar/CollapsedSidebar';
 import SideBarDrawer from '../SideBar/SideBarDrawer';
+import SetChartDetails from '@/core/utils/SetChartDetails';
 
 const Layout = ({
   pageTitle = 'AirQo Analytics',
@@ -34,36 +27,7 @@ const Layout = ({
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
 
   useEffect(() => {
-    const setChartProperties = async () => {
-      if (userInfo && preferenceData && preferenceData.length > 0) {
-        const { period, selected_sites, startDate, endDate, frequency, chartType, pollutant } =
-          preferenceData[0];
-        try {
-          const chartSites = selected_sites
-            ? selected_sites.map((site) => site['_id'])
-            : chartData.chartSites;
-
-          await dispatch(setChartSites(chartSites.slice(0, 4)));
-          await dispatch(
-            setChartDataRange({
-              startDate: startDate || chartData.chartDataRange.startDate,
-              endDate: endDate || chartData.chartDataRange.endDate,
-              label: period.label || chartData.chartDataRange.label,
-            }),
-          );
-          await dispatch(setTimeFrame(frequency || chartData.timeFrame));
-          await dispatch(setChartType(chartType || chartData.chartType));
-          await dispatch(setPollutant(pollutant || chartData.pollutionType));
-        } catch (error) {
-          dispatch(resetChartStore());
-          console.error(`Error setting chart properties: ${error}`);
-        }
-      } else {
-        dispatch(resetChartStore());
-      }
-    };
-
-    setChartProperties();
+    SetChartDetails(dispatch, chartData, userInfo, preferenceData);
   }, [userInfo, preferenceData, dispatch]);
 
   // Fetching user checklists

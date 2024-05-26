@@ -1,15 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import CloseIcon from '@/icons/Actions/close.svg';
 import LocationsContentComponent from './LocationsContentComponent';
 import { useDispatch, useSelector } from 'react-redux';
 import Spinner from '@/components/Spinner';
-import {
-  replaceUserPreferences,
-  getIndividualUserPreferences,
-} from '@/lib/store/services/account/UserDefaultsSlice';
 import Toast from '@/components/Toast';
 import { RxInfoCircled } from 'react-icons/rx';
-import { completeTask } from '@/lib/store/services/checklists/CheckList';
+import UpdateUserPreferences from '@/core/utils/UpdateUserPreferences';
 
 const tabs = ['Locations', 'Pollutants'];
 
@@ -39,47 +35,35 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
    * @returns {void}
    */
   const handleSubmit = async () => {
-    setLoading(true);
-    setCreationErrors({
-      state: false,
-      message: '',
-    });
     if (selectedLocations.length > 4) {
       setCreationErrors({
         state: true,
         message: 'Please star only 4 locations',
       });
       setLoading(false);
-      return;
-    }
-    const data = {
-      user_id: userId,
-      selected_sites: selectedLocations,
-      startDate: chartData.chartDataRange.startDate,
-      endDate: chartData.chartDataRange.endDate,
-      chartType: chartData.chartType,
-      pollutant: chartData.pollutionType,
-      frequency: chartData.timeFrame,
-      period: {
-        label: chartData.chartDataRange.label,
-      },
-    };
-    try {
-      const response = await dispatch(replaceUserPreferences(data));
-      if (response.payload && response.payload.success) {
-        dispatch(getIndividualUserPreferences(userId));
-        toggleCustomise();
-        dispatch(completeTask(2));
-      } else {
-        throw new Error('Error updating user preferences');
-      }
-    } catch (error) {
+    } else {
+      setLoading(true);
       setCreationErrors({
-        state: true,
-        message: error.message,
+        state: false,
+        message: '',
       });
-    } finally {
-      setLoading(false);
+
+      try {
+        await UpdateUserPreferences(
+          userId,
+          selectedLocations,
+          chartData,
+          dispatch,
+          toggleCustomise,
+        );
+      } catch (error) {
+        setCreationErrors({
+          state: true,
+          message: error.message,
+        });
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -91,23 +75,20 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
       <div
         className='absolute right-0 top-0 w-full md:w-96
          h-full overflow-y-scroll bg-white z-50 border-l-grey-50 px-6'
-        style={{ boxShadow: '0px 16px 32px 0px rgba(83, 106, 135, 0.20)' }}
-      >
+        style={{ boxShadow: '0px 16px 32px 0px rgba(83, 106, 135, 0.20)' }}>
         <div onClick={() => setResetSearchData(true)}>
           <div className='flex flex-row justify-between items-center mt-6'>
             <h3 className='flex items-center text-xl text-black-800 font-semibold'>
               Customise
               <span
                 className='tooltip tooltip-bottom ml-1 hover:cursor-pointer text-lg font-normal'
-                data-tip='Changes are applied when 4 locations have been selected'
-              >
+                data-tip='Changes are applied when 4 locations have been selected'>
                 <RxInfoCircled style={{ paddingTop: '2px' }} />
               </span>
             </h3>
             <div
               className='p-3 rounded-md border border-secondary-neutral-light-100 bg-white hover:cursor-pointer'
-              onClick={() => toggleCustomise()}
-            >
+              onClick={() => toggleCustomise()}>
               <CloseIcon />
             </div>
           </div>
@@ -127,8 +108,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
                   onClick={() => setSelectedTab(tab)}
                   className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
                     selectedTab === tab ? 'border rounded-md bg-white shadow-sm' : ''
-                  }`}
-                >
+                  }`}>
                   {tab}
                 </div>
               ))}
@@ -147,15 +127,13 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
         <div className='flex flex-row justify-end items-center'>
           <button
             className='btn bg-white mr-3 border border-input-light-outline text-sm text-secondary-neutral-light-800 font-medium py-3 px-4 rounded-lg hover:bg-white hover:border-input-light-outline'
-            onClick={() => toggleCustomise()}
-          >
+            onClick={() => toggleCustomise()}>
             Cancel
           </button>
           {selectedLocations.length === 4 ? (
             <button
               className='btn bg-blue-900 text-sm border-none text-white font-medium py-3 px-4 rounded-lg hover:bg-primary-600'
-              onClick={() => handleSubmit()}
-            >
+              onClick={() => handleSubmit()}>
               {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Apply'}
             </button>
           ) : (
