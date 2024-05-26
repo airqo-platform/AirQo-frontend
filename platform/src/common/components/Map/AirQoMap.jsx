@@ -14,7 +14,6 @@ import {
   setCenter,
   setZoom,
 } from '@/lib/store/services/map/MapSlice';
-import useOutsideClick from '@/core/utils/useOutsideClick';
 import LayerModal from './components/LayerModal';
 import Loader from '@/components/Spinner';
 import axios from 'axios';
@@ -28,6 +27,7 @@ import {
 } from './components/MapNodes';
 import Toast from '../Toast';
 import { AQI_FOR_CITIES } from './components/Cities';
+import { AirQualityLegend } from './components/Legend';
 
 // Images
 import Node from '@/images/map/Node.webp';
@@ -66,7 +66,7 @@ const mapDetails = [
   },
 ];
 
-const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, resizeMap }) => {
+const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   const dispatch = useDispatch();
   const mapContainerRef = useRef(null);
   const markersRef = useRef([]);
@@ -89,7 +89,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
   // Default node type is Emoji and default map style is streets
   const [NodeType, setNodeType] = useState('Emoji');
   const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/streets-v11');
-  useOutsideClick(dropdownRef, () => setIsOpen(false));
   const [selectedNode, setSelectedNode] = useState(null);
   const [mapReadingsData, setMapReadingsData] = useState([]);
   const [waqData, setWaqData] = useState([]);
@@ -499,10 +498,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
    * - Resizes the map when the window is resized and side bar is closed
    */
   useEffect(() => {
-    if (!resizeMap) {
-      mapRef.current.resize();
-    }
-  }, [!resizeMap]);
+    mapRef.current.resize();
+  }, []);
 
   /**
    * Fetch location boundaries
@@ -636,43 +633,36 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
       {/* Map */}
       <div ref={mapContainerRef} className={customStyle} />
 
+      {/* Legend */}
+      <div className='relative left-4 z-50 md:block'>
+        <div className={`absolute bottom-2 z-[900]`} style={{ zIndex: 900 }}>
+          <AirQualityLegend pollutant={pollutant} />
+        </div>
+      </div>
+
       {/* Map control buttons */}
       <div className='absolute top-4 right-0 z-50'>
         <div className='flex flex-col gap-4'>
           <div className='relative'>
             <div className='relative inline-block' ref={dropdownRef}>
               <button
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={() => setIsOpen(true)}
                 title='Map Layers'
-                className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
+                className='inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
                 <LayerIcon />
               </button>
-              <LayerModal
-                isOpen={isOpen}
-                onClose={() => setIsOpen(false)}
-                mapStyles={mapStyles}
-                mapDetails={mapDetails}
-                showSideBar={showSideBar}
-                disabled='Heatmap'
-                onMapDetailsSelect={(detail) => {
-                  setNodeType(detail);
-                }}
-                onStyleSelect={(style) => {
-                  setMapStyle(style.url);
-                }}
-              />
             </div>
           </div>
           <button
             onClick={refreshMap}
             title='Refresh Map'
-            className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
+            className='inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
             <RefreshIcon />
           </button>
           <button
             onClick={shareLocation}
             title='Share Location'
-            className='inline-flex items-center justify-center w-[50px] h-[50px] text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
+            className='inline-flex items-center justify-center w-10 h-10 md:w-12 md:h-12 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
             <ShareIcon />
           </button>
         </div>
@@ -688,6 +678,21 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, showSideBar, pollutant, r
           </div>
         </div>
       )}
+
+      {/* Layer modal */}
+      <LayerModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        mapStyles={mapStyles}
+        mapDetails={mapDetails}
+        disabled='Heatmap'
+        onMapDetailsSelect={(detail) => {
+          setNodeType(detail);
+        }}
+        onStyleSelect={(style) => {
+          setMapStyle(style.url);
+        }}
+      />
 
       {/* Loading AQI data */}
       {loadingOthers && (
