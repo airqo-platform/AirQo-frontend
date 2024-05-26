@@ -32,7 +32,6 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
   const togglingDrawer = useSelector((state) => state.sidebar.toggleDrawer);
 
   const PlaceholderImage = `https://ui-avatars.com/api/?name=${userInfo.firstName[0]}+${userInfo.lastName[0]}&background=random`;
-  // const PlaceholderImage = `https://joeschmoe.io/api/v1/${userInfo.firstName}`;
 
   const handleDropdownClick = (event) => {
     event.stopPropagation();
