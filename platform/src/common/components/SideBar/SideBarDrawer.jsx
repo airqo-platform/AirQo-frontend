@@ -20,7 +20,6 @@ import {
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import useOutsideClick from '@/core/utils/useOutsideClick';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
 import { resetStore } from '@/lib/store/services/account/LoginSlice';
 import { resetChartStore } from '@/lib/store/services/charts/ChartSlice';
 import { resetAllTasks } from '@/lib/store/services/checklists/CheckList';
@@ -32,11 +31,8 @@ const SideBarDrawer = () => {
   const size = useWindowSize();
   const toggleDrawer = useSelector((state) => state.sidebar.toggleDrawer);
   const router = useRouter();
-  const [dropdown, setDropdown] = useState(false);
   const currentRoute = router.pathname;
   const navPaths = ['/collocation/overview', '/collocation/collocate'];
-  const isCurrentRoute = navPaths.some((path) => currentRoute.includes(path));
-  const dropdownRef = useRef(null);
   const userInfo = useSelector((state) => state.login.userInfo);
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
   const [isLoading, setIsLoading] = useState(false);
@@ -45,10 +41,7 @@ const SideBarDrawer = () => {
   const [collocationOpen, setCollocationOpen] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
 
-  const drawerClasses =
-    size.width < 1024 && toggleDrawer
-      ? 'fixed w-72 right-0 top-0 z-[99999] border-l-grey-750 border-l-[1px]'
-      : 'w-0';
+  const drawerClasses = size.width < 1024 && toggleDrawer ? 'w-72' : 'w-0';
 
   // Create a ref for the sidebar
   const sidebarRef = useRef();
@@ -72,19 +65,10 @@ const SideBarDrawer = () => {
     localStorage.setItem('analyticsOpen', JSON.stringify(analyticsOpen));
   }, [collocationOpen, analyticsOpen]);
 
-  // Close dropdown when clicked outside
-  useOutsideClick(dropdownRef, () => {
-    setDropdown(false);
-  });
-
   // close sidebar when clicked outside
   useOutsideClick(sidebarRef, () => {
     dispatch(setToggleDrawer(false));
   });
-
-  const toggleDropdown = () => {
-    setDropdown(!dropdown);
-  };
 
   // Handle logout
   const handleLogout = async (event) => {
@@ -124,7 +108,7 @@ const SideBarDrawer = () => {
       )}
       {/* sidebar */}
       <div
-        className={`${drawerClasses} transition-all duration-200 ease-in-out overflow-hidden`}
+        className={`${drawerClasses} fixed right-0 top-0 z-[99999] border-l-grey-750 border-l-[1px] transition-all duration-200 ease-in-out overflow-hidden`}
         ref={sidebarRef}>
         <div className='flex p-4 bg-white h-dvh lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden'>
           <div>
