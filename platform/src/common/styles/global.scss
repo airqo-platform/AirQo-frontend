@@ -206,3 +206,17 @@ select:focus {
     z-index: 10000;
   }
 }
+
+@media (max-width: 1023px) {
+  .mapboxgl-ctrl-attrib {
+    display: none;
+  }
+
+  .mapboxgl-ctrl-bottom-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+  }
+}
