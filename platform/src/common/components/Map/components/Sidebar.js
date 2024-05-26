@@ -554,7 +554,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
   }, [selectedSite]);
 
   return (
-    <div className='w-full min-w-[380px] lg:w-[470px] h-dvh bg-white sidebar-scroll-bar'>
+    <div className='w-full min-w-[380px] lg:w-[470px] h-dvh bg-white sidebar-scroll-bar mb-4'>
       {/* Sidebar Header */}
       <div className={`${!isFocused && !showLocationDetails ? 'space-y-4' : 'hidden'} px-4 pt-4`}>
         <SidebarHeader selectedTab={selectedTab} handleSelectedTab={handleSelectedTab} isAdmin />
