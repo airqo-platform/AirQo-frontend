@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useWindowSize } from '@/lib/windowSize';
-import SideBarItem from './SideBarItem';
+import SideBarItem, { SideBarDropdownItem } from './SideBarItem';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import CloseIcon from '@/icons/close_icon';
 import WorldIcon from '@/icons/SideBar/world_Icon';
@@ -173,37 +173,15 @@ const SideBarDrawer = () => {
 
               {checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES') && (
                 <>
-                  <div className='relative'>
-                    <div onClick={toggleDropdown}>
-                      <div
-                        className={`relative flex items-center p-4 rounded-xl cursor-pointer ${
-                          isCurrentRoute ? 'bg-light-blue' : ''
-                        } hover:bg-gray-200`}>
-                        {isCurrentRoute && (
-                          <span className='bg-blue-600 w-1 h-1/2 mr-2 absolute rounded-xl -left-2'></span>
-                        )}
-                        <CollocateIcon fill={isCurrentRoute ? '#145FFF' : '#6F87A1'} />
-                      </div>
-                    </div>
-                    {dropdown && (
-                      <div className='relative bottom-20'>
-                        <div
-                          ref={dropdownRef}
-                          className='fixed left-24 w-40 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-[1000]'>
-                          <Link href={'/collocation/overview'}>
-                            <div className='w-full p-4 hover:bg-[#f3f6f8] cursor-pointer'>
-                              Overview
-                            </div>
-                          </Link>
-                          <Link href={'/collocation/collocate'}>
-                            <div className='w-full p-4 hover:bg-[#f3f6f8] cursor-pointer'>
-                              Collocate
-                            </div>
-                          </Link>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  <SideBarItem
+                    label='Collocation'
+                    Icon={CollocateIcon}
+                    dropdown
+                    toggleMethod={() => setCollocationOpen(!collocationOpen)}
+                    toggleState={collocationOpen}>
+                    <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
+                    <SideBarDropdownItem itemLabel='Collocate' itemPath='/collocation/collocate' />
+                  </SideBarItem>
                 </>
               )}
 
