@@ -37,6 +37,24 @@ select:focus {
   }
 }
 
+.sidebar-scroll-bar {
+  overflow-y: auto;
+  overflow-x: hidden;
+  cursor: pointer;
+
+  // Hide the scrollbar by default
+  &::-webkit-scrollbar {
+    height: 4px;
+    display: none;
+  }
+
+  // Show the scrollbar when the element is focused
+  &:hover::-webkit-scrollbar {
+    height: 4px;
+    display: block;
+  }
+}
+
 .map-scrollbar::-webkit-scrollbar {
   height: 2px;
 }

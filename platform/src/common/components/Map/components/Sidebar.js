@@ -22,7 +22,6 @@ import axios from 'axios';
 import WindIcon from '@/icons/Common/wind.svg';
 import Toast from '../../Toast';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
-import { useWindowSize } from '@/lib/windowSize';
 import { dailyPredictionsApi } from '@/core/apis/predict';
 import Spinner from '@/components/Spinner';
 
@@ -407,7 +406,6 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
     custom: [],
     nearMe: [],
   });
-  const windowSize = useWindowSize();
   const [weeklyPredictions, setWeeklyPredictions] = useState([]);
   const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
@@ -556,7 +554,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
   }, [selectedSite]);
 
   return (
-    <div className='w-full min-w-[380px] lg:w-[470px] h-dvh bg-white overflow-x-hidden overflow-y-auto map-scrollbar'>
+    <div className='w-full min-w-[380px] lg:w-[470px] h-dvh bg-white sidebar-scroll-bar'>
       {/* Sidebar Header */}
       <div className={`${!isFocused && !showLocationDetails ? 'space-y-4' : 'hidden'} px-4 pt-4`}>
         <SidebarHeader selectedTab={selectedTab} handleSelectedTab={handleSelectedTab} isAdmin />

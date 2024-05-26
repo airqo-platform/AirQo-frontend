@@ -59,12 +59,12 @@ const index = () => {
 
   return (
     <Layout noTopNav={width < 1024}>
-      <div className='relative flex flex-col-reverse lg:flex-row w-full h-full overflow-hidden'>
+      <div className='relative flex flex-col-reverse lg:flex-row w-full h-dvh overflow-hidden'>
         <Sidebar siteDetails={siteDetails} isAdmin={isAdmin} />
 
         <AirQoMap
           mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
-          customStyle='flex-grow h-full lg:h-dvh w-full relative bg-[#e6e4e0]'
+          customStyle='flex-grow h-full w-full relative bg-[#e6e4e0]'
           pollutant={pollutant}
         />
       </div>

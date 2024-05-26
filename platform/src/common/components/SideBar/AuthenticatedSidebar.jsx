@@ -147,12 +147,6 @@ const AuthenticatedSideBar = () => {
                 <button type='button' onClick={() => dispatch(toggleSidebar())}>
                   <CollapseIcon className='invisible md:invisible lg:visible pt-1 h-full flex flex-col flex-3' />
                 </button>
-                <button
-                  type='button'
-                  className='lg:hidden relative w-auto focus:outline-none border border-gray-200 rounded-xl p-2'
-                  onClick={() => dispatch(setToggleDrawer(false))}>
-                  <CloseIcon />
-                </button>
               </div>
             </div>
             <div className='mt-4'>

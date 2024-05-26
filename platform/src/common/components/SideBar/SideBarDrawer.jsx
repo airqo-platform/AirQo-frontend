@@ -29,17 +29,16 @@ import { updateUserChecklists, resetChecklist } from '@/lib/store/services/check
 const SideBarDrawer = () => {
   const dispatch = useDispatch();
   const size = useWindowSize();
-  const toggleDrawer = useSelector((state) => state.sidebar.toggleDrawer);
+  const togglingDrawer = useSelector((state) => state.sidebar.toggleDrawer);
   const router = useRouter();
   const userInfo = useSelector((state) => state.login.userInfo);
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
   const [isLoading, setIsLoading] = useState(false);
+  const drawerClasses = size.width < 1024 && togglingDrawer ? 'w-72' : 'w-0';
 
   // Toggle Dropdown open and close
   const [collocationOpen, setCollocationOpen] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
-
-  const drawerClasses = size.width < 1024 && toggleDrawer ? 'w-72' : 'w-0';
 
   // Create a ref for the sidebar
   const sidebarRef = useRef();
@@ -67,6 +66,14 @@ const SideBarDrawer = () => {
   useOutsideClick(sidebarRef, () => {
     dispatch(setToggleDrawer(false));
   });
+
+  // if its mobile view, close the sidebar when a link is clicked
+  useEffect(() => {
+    if (size.width < 1024) {
+      dispatch(setSidebar(false));
+      dispatch(setToggleDrawer(false));
+    }
+  }, [size.width]);
 
   // Handle logout
   const handleLogout = async (event) => {
@@ -101,7 +108,7 @@ const SideBarDrawer = () => {
   return (
     <>
       {/* overlay */}
-      {toggleDrawer && (
+      {togglingDrawer && (
         <div className='absolute inset-0 w-full h-dvh opacity-50 bg-black-700 z-[1000] transition-all duration-200 ease-in-out'></div>
       )}
       {/* sidebar */}
