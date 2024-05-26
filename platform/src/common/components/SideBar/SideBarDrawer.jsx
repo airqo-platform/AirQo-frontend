@@ -31,8 +31,6 @@ const SideBarDrawer = () => {
   const size = useWindowSize();
   const toggleDrawer = useSelector((state) => state.sidebar.toggleDrawer);
   const router = useRouter();
-  const currentRoute = router.pathname;
-  const navPaths = ['/collocation/overview', '/collocation/collocate'];
   const userInfo = useSelector((state) => state.login.userInfo);
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
   const [isLoading, setIsLoading] = useState(false);
