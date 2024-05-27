@@ -213,12 +213,6 @@ const SidebarHeader = ({
     <div>
       <div className='w-full flex justify-between items-center'>
         <label className='font-medium text-xl text-gray-900'>Air Quality Map</label>
-        <button
-          onClick={handleCloseClick}
-          className='focus:outline-none border rounded-xl hover:cursor-pointer p-2 block md:hidden'
-        >
-          <CloseIcon />
-        </button>
         {isFocused && (
           <button
             onClick={handleHeaderClick}
