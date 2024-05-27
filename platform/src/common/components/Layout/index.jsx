@@ -68,15 +68,15 @@ const Layout = ({
    * Update user checklists in the database when there is a change in the checklists data at any point
    * in the application
    */
-  // useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     if (userInfo?._id && cardCheckList) {
-  //       dispatch(updateUserChecklists({ user_id: userInfo._id, items: cardCheckList }));
-  //     }
-  //   }, 5000);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (userInfo?._id && cardCheckList) {
+        dispatch(updateUserChecklists({ user_id: userInfo._id, items: cardCheckList }));
+      }
+    }, 5000);
 
-  //   return () => clearTimeout(timer);
-  // }, [cardCheckList]);
+    return () => clearTimeout(timer);
+  }, [cardCheckList]);
 
   // handling media query change
   useEffect(() => {

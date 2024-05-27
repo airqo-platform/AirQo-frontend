@@ -44,16 +44,14 @@ const TabSelector = ({ selectedTab, setSelectedTab }) => {
           onClick={() => setSelectedTab('locations')}
           className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
             selectedTab === 'locations' ? 'border rounded-md bg-white shadow-sm' : ''
-          }`}
-        >
+          }`}>
           Locations
         </div>
         <div
           onClick={() => setSelectedTab('sites')}
           className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
             selectedTab === 'sites' ? 'border rounded-md bg-white shadow-sm' : ''
-          }`}
-        >
+          }`}>
           Sites
         </div>
       </div>
@@ -109,8 +107,7 @@ const CountryList = ({ siteDetails, data, selectedCountry, setSelectedCountry })
             className={`flex items-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 py-[6px] px-[10px]  min-w-max space-x-2 m-0 ${
               selectedCountry?.country === country.country ? 'border-2 border-blue-400' : ''
             }`}
-            onClick={() => handleClick(country)}
-          >
+            onClick={() => handleClick(country)}>
             <img
               src={`https://flagsapi.com/${country.code.toUpperCase()}/flat/64.png`}
               alt={country.country}
@@ -132,11 +129,8 @@ const CountryList = ({ siteDetails, data, selectedCountry, setSelectedCountry })
  * @description Section cards component
  */
 const SectionCards = ({ searchResults, handleLocationSelect }) => {
-  if (!Array.isArray(searchResults)) {
-    return null;
-  }
-
-  if (typeof handleLocationSelect !== 'function') {
+  // Early return if searchResults is not an array or handleLocationSelect is not a function
+  if (!Array.isArray(searchResults) || typeof handleLocationSelect !== 'function') {
     return null;
   }
 
@@ -157,25 +151,24 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
   return (
     visibleResults.length > 0 && (
       <div className='map-scrollbar flex flex-col gap-4 my-5 px-4'>
-        {visibleResults.map((grid) => (
+        {visibleResults.map((grid, index) => (
           <div
-            key={grid.description || grid.name}
+            key={grid._id || index} // Use grid._id or index as the key
             className='flex flex-row justify-between items-center text-sm w-full hover:cursor-pointer hover:bg-blue-100 px-4 py-[14px] rounded-xl border border-secondary-neutral-light-100 shadow-sm'
-            onClick={() => handleLocationSelect(grid)}
-          >
+            onClick={() => handleLocationSelect(grid)}>
             <div className='flex flex-col item-start w-full'>
               <span className='text-base font-medium text-black'>
                 {capitalizeAllText(
-                  grid && grid.description && grid?.name
-                    ? grid.search_name
-                    : grid.description.split(',')[0],
+                  grid?.description
+                    ? grid.description.split(',')[0]
+                    : (grid.name || '').split(',')[0],
                 )}
               </span>
               <span className='font-medium text-secondary-neutral-light-300 text-sm leading-tight'>
                 {capitalizeAllText(
-                  grid && grid.description && grid?.name
-                    ? grid.location_name
-                    : grid.description.split(',').slice(1).join(','),
+                  grid?.description
+                    ? (grid.description || '').split(',').slice(1).join(',')
+                    : grid.region,
                 )}
               </span>
             </div>
@@ -190,8 +183,7 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
               variant='primaryText'
               className='text-sm font-medium'
               paddingStyles='py-4'
-              onClick={handleShowMore}
-            >
+              onClick={handleShowMore}>
               Show More
             </Button>
           </div>
@@ -216,8 +208,7 @@ const SidebarHeader = ({
         {isFocused && (
           <button
             onClick={handleHeaderClick}
-            className='focus:outline-none border rounded-xl hover:cursor-pointer p-2 hidden md:block'
-          >
+            className='focus:outline-none border rounded-xl hover:cursor-pointer p-2 hidden md:block'>
             <CloseIcon />
           </button>
         )}
@@ -286,8 +277,7 @@ const WeekPrediction = ({ currentDay, weeklyPredictions, weekDays, loading }) =>
                   currentDay
                     ? 'bg-blue-600'
                     : 'bg-secondary-neutral-dark-100'
-                }`}
-              >
+                }`}>
                 <div className='flex flex-col items-center justify-start gap-[3px]'>
                   <div
                     className={`text-center text-sm font-semibold leading-tight ${
@@ -295,8 +285,7 @@ const WeekPrediction = ({ currentDay, weeklyPredictions, weekDays, loading }) =>
                       currentDay
                         ? 'text-primary-300'
                         : 'text-secondary-neutral-dark-400'
-                    }`}
-                  >
+                    }`}>
                     {new Date(prediction.time)
                       .toLocaleDateString('en-US', { weekday: 'long' })
                       .charAt(0)}
@@ -313,8 +302,7 @@ const WeekPrediction = ({ currentDay, weeklyPredictions, weekDays, loading }) =>
                         }) === currentDay
                           ? 'text-white'
                           : 'text-secondary-neutral-dark-200'
-                      }`}
-                    >
+                      }`}>
                       {prediction?.pm2_5?.toFixed(0)}
                     </div>
                   )}
@@ -334,8 +322,7 @@ const WeekPrediction = ({ currentDay, weeklyPredictions, weekDays, loading }) =>
           : weekDays.map((day) => (
               <div
                 className='rounded-[40px] px-0.5 pt-1.5 pb-0.5 flex flex-col justify-center items-center gap-2 shadow bg-secondary-neutral-dark-100'
-                key={day}
-              >
+                key={day}>
                 <div className='flex flex-col items-center justify-start gap-[3px]'>
                   <div className='text-center text-sm font-semibold leading-tight text-secondary-neutral-dark-400'>
                     {day.charAt(0)}
@@ -365,8 +352,7 @@ const LocationDetailItem = ({ title, children, isCollapsed = true }) => {
     <div className='p-3 bg-white rounded-lg shadow border border-secondary-neutral-dark-100 flex-col justify-center items-center'>
       <div
         className={`flex justify-between items-center ${collapsed && 'mb-2'} cursor-pointer`}
-        onClick={() => setCollapsed(!collapsed)}
-      >
+        onClick={() => setCollapsed(!collapsed)}>
         <div className='flex justify-start items-center gap-3'>
           <div className='w-10 h-10 rounded-full bg-secondary-neutral-dark-50 p-2 flex items-center justify-center text-xl font-bold'>
             🚨
@@ -661,8 +647,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
                     dispatch(addSuggestedSites(selSites));
                     setSelectedCountry(null);
                   }}
-                  className='py-[6px] px-[10px] rounded-full mb-3 bg-blue-500 text-white text-sm font-medium'
-                >
+                  className='py-[6px] px-[10px] rounded-full mb-3 bg-blue-500 text-white text-sm font-medium'>
                   All
                 </button>
                 <div className='country-scroll-bar'>
@@ -713,8 +698,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
         <div
           className={`flex flex-col h-full pt-4 w-auto ${
             isFocused && !showLocationDetails ? '' : 'hidden'
-          }`}
-        >
+          }`}>
           {/* Sidebar Header */}
           <div className={`flex flex-col gap-5 px-4`}>
             <SidebarHeader
@@ -781,8 +765,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
                     dispatch(addSearchTerm(''));
                     setSearchResults([]);
                     setShowNoResultsMsg(false);
-                  }}
-                >
+                  }}>
                   <ArrowLeftIcon />
                 </Button>
                 <h3 className='text-xl font-medium leading-7'>
@@ -821,8 +804,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
                     </p>
                   </div>
                   <div
-                    className={`text-2xl font-extrabold leading-normal text-secondary-neutral-light-800`}
-                  >
+                    className={`text-2xl font-extrabold leading-normal text-secondary-neutral-light-800`}>
                     {selectedSite?.pm2_5?.toFixed(2) || '-'}
                   </div>
                 </div>
