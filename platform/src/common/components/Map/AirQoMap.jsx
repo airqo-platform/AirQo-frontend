@@ -297,6 +297,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     }
   };
 
+  // Fetch and process data
   const fetchAndProcessData = useCallback(async () => {
     // Only fetch new data if the state variables are empty
     if (mapReadingsData.length === 0) {
@@ -648,8 +649,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
               <button
                 onClick={() => setIsOpen(true)}
                 title='Map Layers'
-                className='inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-              >
+                className='inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
                 <LayerIcon />
               </button>
             </div>
@@ -657,15 +657,13 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
           <button
             onClick={refreshMap}
             title='Refresh Map'
-            className='inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-          >
+            className='inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
             <RefreshIcon />
           </button>
           <button
             onClick={shareLocation}
             title='Share Location'
-            className='inline-flex items-center justify-center w-10 h-10 md:w-12 md:h-12 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-          >
+            className='inline-flex items-center justify-center w-10 h-10 md:w-12 md:h-12 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
             <ShareIcon />
           </button>
         </div>
