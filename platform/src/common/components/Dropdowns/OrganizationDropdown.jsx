@@ -96,9 +96,9 @@ const OrganizationDropdown = () => {
                 </div>
               </div>
               <span
-                className={`${userInfo?.groups.length > 1 ? 'block' : 'hidden'} ${
-                  !isCollapsed ? 'flex' : 'hidden'
-                }`}>
+                className={`${
+                  userInfo && userInfo.groups && userInfo.groups.length > 1 ? 'block' : 'hidden'
+                } ${!isCollapsed ? 'flex' : 'hidden'}`}>
                 <ChevronDownIcon />
               </span>
             </div>
@@ -106,39 +106,41 @@ const OrganizationDropdown = () => {
         }
         sidebar={true}
         id='options'>
-        {userInfo?.groups.map((format) => (
-          <a
-            key={format._id}
-            href='#'
-            onClick={() => handleDropdownSelect(format)}
-            className={`w-full h-11 px-3.5 py-2.5 justify-between items-center inline-flex ${
-              activeGroup &&
-              activeGroup?.grp_title === format?.grp_title &&
-              'bg-secondary-neutral-light-50'
-            }`}>
-            <div className='grow shrink basis-0 h-6 justify-start items-center gap-2 flex'>
-              <div className='w-8 h-8 py-1.5 bg-gray-50 rounded-full justify-center items-center flex'>
-                <div className='w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight'>
-                  {format?.grp_title ? format.grp_title[0] : ''}
+        {userInfo &&
+          userInfo.groups &&
+          userInfo.groups.map((format) => (
+            <a
+              key={format._id}
+              href='#'
+              onClick={() => handleDropdownSelect(format)}
+              className={`w-full h-11 px-3.5 py-2.5 justify-between items-center inline-flex ${
+                activeGroup &&
+                activeGroup?.grp_title === format?.grp_title &&
+                'bg-secondary-neutral-light-50'
+              }`}>
+              <div className='grow shrink basis-0 h-6 justify-start items-center gap-2 flex'>
+                <div className='w-8 h-8 py-1.5 bg-gray-50 rounded-full justify-center items-center flex'>
+                  <div className='w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight'>
+                    {format?.grp_title ? format.grp_title[0] : ''}
+                  </div>
+                </div>
+                <div
+                  className='max-w-[120px] w-full text-gray-700 text-sm font-normal leading-tight uppercase'
+                  title={format.grp_title}>
+                  {format && format.grp_title && format.grp_title.length > 10
+                    ? formatString(format.grp_title.slice(0, 10)) + '...'
+                    : formatString(format.grp_title)}
                 </div>
               </div>
-              <div
-                className='max-w-[120px] w-full text-gray-700 text-sm font-normal leading-tight uppercase'
-                title={format.grp_title}>
-                {format && format.grp_title && format.grp_title.length > 10
-                  ? formatString(format.grp_title.slice(0, 10)) + '...'
-                  : formatString(format.grp_title)}
-              </div>
-            </div>
-            {loading && selectedGroup._id === format._id ? (
-              <span>
-                <Spinner width={20} height={20} />
-              </span>
-            ) : activeGroup && activeGroup?.grp_title === format?.grp_title ? (
-              <CheckIcon fill='#145FFF' />
-            ) : null}
-          </a>
-        ))}
+              {loading && selectedGroup._id === format._id ? (
+                <span>
+                  <Spinner width={20} height={20} />
+                </span>
+              ) : activeGroup && activeGroup?.grp_title === format?.grp_title ? (
+                <CheckIcon fill='#145FFF' />
+              ) : null}
+            </a>
+          ))}
       </CustomDropdown>
     );
   }, [activeGroup, userInfo?.groups, isCollapsed, loading, selectedGroup]);

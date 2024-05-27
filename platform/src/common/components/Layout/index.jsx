@@ -70,7 +70,7 @@ const Layout = ({
     if (userInfo?._id && cardCheckList) {
       dispatch(updateUserChecklists({ user_id: userInfo._id, items: cardCheckList }));
     }
-  }, [cardCheckList, userInfo, dispatch]);
+  }, [cardCheckList]);
 
   // handling media query change
   useEffect(() => {
