@@ -786,12 +786,14 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
                   <ArrowLeftIcon />
                 </Button>
                 <h3 className='text-xl font-medium leading-7'>
-                  {capitalizeAllText(
-                    selectedSite?.description ||
-                      (selectedSite?.name && selectedSite.name) ||
-                      selectedSite?.search_name ||
-                      selectedSite?.location,
-                  )}
+                  {
+                    capitalizeAllText(
+                      selectedSite?.description ||
+                        (selectedSite?.name && selectedSite.name) ||
+                        selectedSite?.search_name ||
+                        selectedSite?.location,
+                    )?.split(',')[0]
+                  }
                 </h3>
               </div>
 
@@ -845,7 +847,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
                     <p className='text-xl font-bold leading-7 text-secondary-neutral-dark-950'>
                       <span className='text-blue-500'>
                         {capitalizeAllText(
-                          selectedSite?.description ||
+                          selectedSite?.description?.split(',')[0] ||
                             selectedSite?.name?.split(',')[0] ||
                             selectedSite?.search_name ||
                             selectedSite?.location,
