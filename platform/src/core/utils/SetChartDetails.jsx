@@ -30,7 +30,6 @@ const SetChartDetails = async (dispatch, chartData, userInfo, preferenceData) =>
       await dispatch(setChartType(chartType || chartData.chartType));
       await dispatch(setPollutant(pollutant || chartData.pollutionType));
     } catch (error) {
-      dispatch(resetChartStore());
       console.error(`Error setting chart properties: ${error}`);
     }
   } else {
