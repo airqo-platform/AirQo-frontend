@@ -121,7 +121,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
   // No data for this time range
   const renderNoDataMessage = () => (
     <div className='ml-10 pr-10 flex justify-center items-center w-full h-full text-center text-sm text-gray-600'>
-      No data found. Please try other time periods or choose other locations
+      No data found. Please try other time periods or customize using other locations
     </div>
   );
 
