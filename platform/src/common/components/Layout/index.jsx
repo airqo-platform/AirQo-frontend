@@ -95,21 +95,19 @@ const Layout = ({
         <meta property='og:title' content={pageTitle} key='title' />
       </Head>
       <>
-        <div className='flex w-full h-dvh overflow-hidden' data-testid='layout'>
+        <div className='flex overflow-hidden' data-testid='layout'>
           {router.pathname === '/map' ? (
             <div className='hidden lg:block'>
               <CollapsedSidebar />
             </div>
           ) : (
-            <AuthenticatedSideBar />
+            <div>
+              <AuthenticatedSideBar />
+            </div>
           )}
-          <div className='w-full h-full overflow-hidden transition-all duration-300 ease-in-out'>
-            {noTopNav && (
-              <div className='sticky top-0 z-50'>
-                <TopBar topbarTitle={topbarTitle} noBorderBottom={noBorderBottom} />
-              </div>
-            )}
-            <div className='overflow-y-auto h-dvh w-full'>{children}</div>
+          <div className='w-full h-dvh overflow-y-auto transition-all duration-300 ease-in-out'>
+            {noTopNav && <TopBar topbarTitle={topbarTitle} noBorderBottom={noBorderBottom} />}
+            <div className='overflow-hidden w-full'>{children}</div>
           </div>
         </div>
         <SideBarDrawer />
