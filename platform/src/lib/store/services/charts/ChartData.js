@@ -15,7 +15,11 @@ const initialState = {
 const analyticsSlice = createSlice({
   name: 'analytics',
   initialState,
-  reducers: {},
+  reducers: {
+    setAnalyticsData: (state, action) => {
+      state.data = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchAnalyticsData.pending, (state) => {
@@ -33,3 +37,4 @@ const analyticsSlice = createSlice({
 });
 
 export default analyticsSlice.reducer;
+export const { setAnalyticsData } = analyticsSlice.actions;
