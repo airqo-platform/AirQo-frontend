@@ -1,6 +1,6 @@
 export const stripTrailingSlash = (url) => url.trim().replace(/\/$/, '');
 
-export const capitalizeText = (text) => {
+export const capitalizeAllText = (text) => {
   if (!text) {
     return '';
   }
@@ -11,4 +11,11 @@ export const capitalizeText = (text) => {
     return firstLetter + restOfWord;
   });
   return capitalizedWords.join(' ');
+};
+
+export const capitalizeFirstLetter = (text) => {
+  if (!text) {
+    return '';
+  }
+  return text.charAt(0)?.toUpperCase() + text.slice(1)?.toLowerCase();
 };
