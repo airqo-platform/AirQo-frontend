@@ -60,13 +60,14 @@ const useAnalytics = () => {
         dispatch(setRefreshChart(false));
       } catch (err) {
         setError(err.message);
+        dispatch(setAnalyticsData(null));
       } finally {
         setLoadingTime(Date.now() - loadingTime);
       }
     };
 
     fetchData();
-  }, [chartData, refreshChart]);
+  }, [chartData, refreshChart, dispatch]);
 
   return { analyticsData, isLoading, error, loadingTime };
 };
@@ -84,6 +85,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
   const [showLoadingMessage, setShowLoadingMessage] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const siteData = useSelector((state) => state.grids.sitesSummary);
 
   useEffect(() => {
     let timeoutId;
@@ -125,20 +127,24 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
     </div>
   );
 
-  if (hasLoaded && (analyticsData === null || analyticsData.length === 0)) {
-    return renderNoDataMessage();
+  function getSiteName(siteId) {
+    if (preferenceData?.length === 0) {
+      return null;
+    }
+    const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
+    return site ? site.name?.split(',')[0] : '';
   }
 
-  function getSiteName(siteId) {
-    const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
-    return site ? site.name?.split(',')[0] : '--';
-  }
+  const getExistingSiteName = (siteId) => {
+    const site = siteData?.sites?.find((site) => site._id === siteId);
+    return site ? site.search_name : '';
+  };
 
   const newAnalyticsData =
     analyticsData &&
     analyticsData?.length > 0 &&
     analyticsData?.map((data) => {
-      const name = getSiteName(data.site_id);
+      const name = getSiteName(data.site_id) || getExistingSiteName(data.site_id) || '--';
       return { ...data, name };
     });
 
@@ -165,7 +171,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
     return renderLoadingMessage();
   }
 
-  if (hasLoaded && (analyticsData === null || analyticsData.length === 0)) {
+  if (hasLoaded && (!analyticsData || analyticsData?.length === 0)) {
     return renderNoDataMessage();
   }
 

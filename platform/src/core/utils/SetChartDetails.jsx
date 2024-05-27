@@ -30,9 +30,20 @@ const SetChartDetails = async (dispatch, chartData, userInfo, preferenceData) =>
       await dispatch(setChartType(chartType || chartData.chartType));
       await dispatch(setPollutant(pollutant || chartData.pollutionType));
     } catch (error) {
-      dispatch(resetChartStore());
       console.error(`Error setting chart properties: ${error}`);
     }
+  } else if (userInfo && preferenceData && preferenceData.length === 0) {
+    await dispatch(setChartSites(chartData.chartSites.slice(0, 4)));
+    await dispatch(
+      setChartDataRange({
+        startDate: chartData.chartDataRange.startDate,
+        endDate: chartData.chartDataRange.endDate,
+        label: chartData.chartDataRange.label,
+      }),
+    );
+    await dispatch(setTimeFrame(chartData.timeFrame));
+    await dispatch(setChartType(chartData.chartType));
+    await dispatch(setPollutant(chartData.pollutionType));
   } else {
     dispatch(resetChartStore());
   }

@@ -4,7 +4,6 @@ import AQNumberCard from '@/components/AQNumberCard';
 import BorderlessContentBox from '@/components/Layout/borderless_content_box';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRecentMeasurementsData } from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
-import { DEFAULT_CHART_SITES } from '@/lib/constants';
 
 const OverView = () => {
   // events hook
@@ -15,6 +14,7 @@ const OverView = () => {
   const sites = useSelector((state) => state.chart.chartSites);
   const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const siteData = useSelector((state) => state.grids.sitesSummary);
 
   useEffect(() => {
     setIsLoadingMeasurements(true);
@@ -34,9 +34,17 @@ const OverView = () => {
   }, [chartDataRange, sites]);
 
   function getSiteName(siteId) {
+    if (preferenceData?.length === 0) {
+      return null;
+    }
     const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
-    return site ? site.name : '--';
+    return site ? site.search_name?.split(',')[0] : '';
   }
+
+  const getExistingSiteName = (siteId) => {
+    const site = siteData?.sites?.find((site) => site._id === siteId);
+    return site ? site.search_name : '';
+  };
 
   const dummyData = {
     siteDetails: {
@@ -71,12 +79,14 @@ const OverView = () => {
               <AQNumberCard
                 key={index}
                 location={
-                  getSiteName(event.site_id) !== '--'
-                    ? getSiteName(event.site_id)?.split(',')[0]
-                    : '--'
+                  getSiteName(event.site_id) ||
+                  getExistingSiteName(event.site_id) ||
+                  event?.siteDetails?.search_name
                 }
                 locationFullName={
-                  getSiteName(event.site_id) !== '--' ? getSiteName(event.site_id) : '--'
+                  getSiteName(event.site_id) ||
+                  getExistingSiteName(event.site_id) ||
+                  event?.siteDetails?.search_name
                 }
                 reading={event.pm2_5.value}
                 count={displayData.length}
