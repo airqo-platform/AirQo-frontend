@@ -166,14 +166,14 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
             <div className='flex flex-col item-start w-full'>
               <span className='text-base font-medium text-black'>
                 {capitalizeAllText(
-                  grid && grid.description
+                  grid && grid.description && !grid.name
                     ? grid.description.split(',')[0]
                     : grid.search_name && grid.search_name,
                 )}
               </span>
               <span className='font-medium text-secondary-neutral-light-300 text-sm leading-tight'>
                 {capitalizeAllText(
-                  grid && grid.description
+                  grid && grid.description && !grid.name
                     ? grid.description.split(',').slice(1).join(',')
                     : grid.location_name || grid.location_name,
                 )}
