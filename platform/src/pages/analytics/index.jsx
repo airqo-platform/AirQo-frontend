@@ -42,7 +42,7 @@ const AuthenticatedHomePage = () => {
   const toggleCustomise = () => setCustomise(!customise);
 
   useEffect(() => {
-    const userId = JSON.parse(localStorage.getItem('loggedUser'))._id;
+    const userId = JSON.parse(localStorage.getItem('loggedUser'))?._id;
     if (userId) {
       dispatch(fetchUserPreferences(userId));
     }
@@ -151,14 +151,16 @@ const AuthenticatedHomePage = () => {
             <Button
               className='text-sm font-medium capitalize'
               variant='outlined'
-              onClick={handlePrint}>
+              onClick={handlePrint}
+            >
               Print
             </Button>
             <Button
               className='text-sm font-medium capitalize'
               variant='filled'
               Icon={DownloadIcon}
-              onClick={handleExport}>
+              onClick={handleExport}
+            >
               Export
             </Button>
           </div>

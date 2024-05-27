@@ -24,7 +24,7 @@ import Toast from '../../Toast';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import { dailyPredictionsApi } from '@/core/apis/predict';
 import Spinner from '@/components/Spinner';
-import { capitalizeText } from '@/core/utils/strings';
+import { capitalizeAllText } from '@/core/utils/strings';
 
 const MAPBOX_URL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -165,14 +165,14 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
           >
             <div className='flex flex-col item-start w-full'>
               <span className='text-base font-medium text-black'>
-                {capitalizeText(
+                {capitalizeAllText(
                   grid && grid.description
                     ? grid.description.split(',')[0]
                     : grid.name && grid.name.split(',')[0],
                 )}
               </span>
               <span className='font-medium text-secondary-neutral-light-300 text-sm leading-tight'>
-                {capitalizeText(
+                {capitalizeAllText(
                   grid && grid.description
                     ? grid.description.split(',').slice(1).join(',')
                     : (grid.name && grid.name.split(',').slice(1).join(',')) || grid.search_name,
@@ -786,12 +786,14 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
                   <ArrowLeftIcon />
                 </Button>
                 <h3 className='text-xl font-medium leading-7'>
-                  {capitalizeText(
-                    selectedSite?.description ||
-                      (selectedSite?.name && selectedSite.name) ||
-                      selectedSite?.search_name ||
-                      selectedSite?.location,
-                  )}
+                  {
+                    capitalizeAllText(
+                      selectedSite?.description ||
+                        (selectedSite?.name && selectedSite.name) ||
+                        selectedSite?.search_name ||
+                        selectedSite?.location,
+                    )?.split(',')[0]
+                  }
                 </h3>
               </div>
 
@@ -844,8 +846,8 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
                   selectedSite?.airQuality ? (
                     <p className='text-xl font-bold leading-7 text-secondary-neutral-dark-950'>
                       <span className='text-blue-500'>
-                        {capitalizeText(
-                          selectedSite?.description ||
+                        {capitalizeAllText(
+                          selectedSite?.description?.split(',')[0] ||
                             selectedSite?.name?.split(',')[0] ||
                             selectedSite?.search_name ||
                             selectedSite?.location,
