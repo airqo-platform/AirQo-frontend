@@ -36,19 +36,19 @@ const Home = () => {
       label: 'Choose location you most interested in',
       time: '2 min',
       link: '/analytics',
-      func: () => handleCardClick(1),
+      func: () => handleCardClick(2),
     },
     {
       label: 'Complete your AirQo Analytics profile',
       time: '4 min',
       link: '/settings',
-      func: () => handleCardClick(2),
+      func: () => handleCardClick(3),
     },
     {
       label: 'Practical ways to reduce air pollution',
       time: '1 min',
       link: 'https://blog.airqo.net/',
-      func: () => handleCardClick(3),
+      func: () => handleCardClick(4),
     },
   ];
 
@@ -63,6 +63,9 @@ const Home = () => {
     setStep(completedCards.length);
   }, [cardCheckList, steps]);
 
+  /**
+   * Handle the model for Intro video
+   * */
   const handleModel = () => {
     setOpen(!open);
     const card = cardCheckList.find((card) => card.id === 1);
@@ -80,9 +83,12 @@ const Home = () => {
     }
   };
 
+  /**
+   * Handle the card click to update the status
+   * */
   const handleCardClick = (id) => {
-    if (id === 3) {
-      dispatch(completeTask(3));
+    if (id === 4) {
+      dispatch(completeTask(id));
     } else {
       const card = cardCheckList.find((card) => card.id === id);
       if (card) {

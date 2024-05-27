@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AccountPageLayout from '@/components/Account/Layout';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
@@ -21,8 +21,12 @@ const UserLogin = () => {
   const [passwordType, setPasswordType] = useState('password');
   const dispatch = useDispatch();
   const router = useRouter();
+  const userData = useSelector((state) => state.login.userData);
   const postData = useSelector((state) => state.login);
 
+  /**
+   * @description Handles the login of a user
+   */
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -63,6 +67,18 @@ const UserLogin = () => {
     }
   };
 
+  /**
+   * @description Redirects to dashboard if user is already logged in
+   * @returns {void}
+   * */
+  useEffect(() => {
+    // check for token and userData
+    const token = localStorage.getItem('token');
+    if (token && userData) {
+      router.push('/Home');
+    }
+  }, [userData]);
+
   const togglePasswordVisibility = () => {
     setPasswordType(passwordType === 'password' ? 'text' : 'password');
   };
@@ -72,8 +88,7 @@ const UserLogin = () => {
       pageTitle='AirQo Analytics | Login'
       rightText={
         "What you've built here is so much better for air pollution monitoring than anything else on the market!"
-      }
-    >
+      }>
       <div className='w-full'>
         <h2 className='text-3xl text-black-700 font-medium'>Lets get started</h2>
         <p className='text-xl text-black-700 font-normal mt-3'>
@@ -124,8 +139,7 @@ const UserLogin = () => {
               data-testid='login-btn'
               style={{ textTransform: 'none' }}
               className='w-full btn bg-blue-900 rounded-[12px] text-white text-sm outline-none border-none hover:bg-blue-950'
-              type='submit'
-            >
+              type='submit'>
               {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Login'}
             </button>
           </div>

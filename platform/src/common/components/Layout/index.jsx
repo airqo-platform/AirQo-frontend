@@ -2,7 +2,10 @@ import React, { useEffect } from 'react';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import TopBar from '../TopBar';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUserChecklists } from '@/lib/store/services/checklists/CheckData';
+import {
+  fetchUserChecklists,
+  updateUserChecklists,
+} from '@/lib/store/services/checklists/CheckData';
 import { updateCards } from '@/lib/store/services/checklists/CheckList';
 import Head from 'next/head';
 import { toggleSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
@@ -25,12 +28,23 @@ const Layout = ({
   const chartData = useSelector((state) => state.chart);
   const userInfo = useSelector((state) => state.login.userInfo);
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const cardCheckList = useSelector((state) => state.cardChecklist.cards);
 
+  /**
+   * Set chart details
+   */
   useEffect(() => {
     SetChartDetails(dispatch, chartData, userInfo, preferenceData);
   }, [userInfo, preferenceData, dispatch]);
 
-  // Fetching user checklists
+  /**
+   * Fetch user checklists from the database
+   * if the user is logged in and the data has not been fetched before
+   * then update the checklists in the store
+   * and set the dataFetched flag in the local storage to true
+   * so that the data is not fetched again
+   * on subsequent page reloads
+   * */
   const fetchData = () => {
     if (userInfo?._id && !localStorage.getItem('dataFetched')) {
       dispatch(fetchUserChecklists(userInfo._id)).then((action) => {
@@ -46,7 +60,17 @@ const Layout = ({
     }
   };
 
-  useEffect(fetchData, [dispatch, userInfo]);
+  useEffect(fetchData, [dispatch, userInfo, cardCheckList]);
+
+  /**
+   * Update user checklists in the database when there is a change in the checklists data at any point
+   * in the application
+   */
+  useEffect(() => {
+    if (userInfo?._id && cardCheckList) {
+      dispatch(updateUserChecklists({ user_id: userInfo._id, items: cardCheckList }));
+    }
+  }, [cardCheckList, userInfo, dispatch]);
 
   // handling media query change
   useEffect(() => {
