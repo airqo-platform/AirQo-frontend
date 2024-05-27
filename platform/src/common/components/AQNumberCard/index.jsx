@@ -7,6 +7,7 @@ import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import WindIcon from '@/icons/Common/wind.svg';
 import CustomTooltip from '../Tooltip';
 import { useWindowSize } from '@/lib/windowSize';
+import { capitalizeText } from '@/core/utils/strings';
 
 const AQNumberCard = ({ reading, location, pollutant, count, locationFullName }) => {
   let airQualityText = '';
@@ -53,13 +54,13 @@ const AQNumberCard = ({ reading, location, pollutant, count, locationFullName })
               {location !== '--' ? (
                 <div
                   className='text-gray-700 text-base font-medium leading-normal whitespace-nowrap overflow-ellipsis'
-                  title={locationFullName}
+                  title={capitalizeText(locationFullName)}
                 >
-                  {location.length > 17 ? location.slice(0, 17) + '...' : location}
+                  {capitalizeText(location.length > 17 ? location.slice(0, 17) + '...' : location)}
                 </div>
               ) : (
                 <div className='text-gray-700 text-base font-medium leading-normal whitespace-nowrap overflow-ellipsis'>
-                  {location.length > 17 ? location.slice(0, 17) + '...' : location}
+                  {capitalizeText(location.length > 17 ? location.slice(0, 17) + '...' : location)}
                 </div>
               )}
               <div className='text-slate-400 text-sm font-medium leading-tight'>Daily Avg.</div>

@@ -4,5 +4,11 @@ export const capitalizeText = (text) => {
   if (!text) {
     return '';
   }
-  return text.charAt(0)?.toUpperCase() + text.slice(1)?.toLowerCase();
+  const words = text.split(' ');
+  const capitalizedWords = words.map((word) => {
+    const firstLetter = word.charAt(0)?.toUpperCase();
+    const restOfWord = word.slice(1)?.toLowerCase();
+    return firstLetter + restOfWord;
+  });
+  return capitalizedWords.join(' ');
 };
