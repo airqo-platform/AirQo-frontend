@@ -24,7 +24,6 @@ const index = () => {
 
   useEffect(() => {
     const preferencesSelectedSitesData = preferences?.map((pref) => pref.selected_sites).flat();
-    console.log(preferencesSelectedSitesData);
 
     if (preferencesSelectedSitesData?.length > 0) {
       dispatch(addSuggestedSites(preferencesSelectedSitesData));
