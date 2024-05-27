@@ -70,7 +70,14 @@ const OverView = () => {
             return (
               <AQNumberCard
                 key={index}
-                location={getSiteName(event.site_id) !== '--' ? getSiteName(event.site_id) : '--'}
+                location={
+                  getSiteName(event.site_id) !== '--'
+                    ? getSiteName(event.site_id)?.split(',')[0]
+                    : '--'
+                }
+                locationFullName={
+                  getSiteName(event.site_id) !== '--' ? getSiteName(event.site_id) : '--'
+                }
                 reading={event.pm2_5.value}
                 count={displayData.length}
                 pollutant={pollutantType}

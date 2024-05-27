@@ -131,7 +131,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
 
   function getSiteName(siteId) {
     const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
-    return site ? site.name : '--';
+    return site ? site.name?.split(',')[0] : '--';
   }
 
   const newAnalyticsData =
