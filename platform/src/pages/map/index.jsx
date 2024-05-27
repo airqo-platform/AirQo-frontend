@@ -27,8 +27,17 @@ const index = () => {
 
     if (preferencesSelectedSitesData?.length > 0) {
       dispatch(addSuggestedSites(preferencesSelectedSitesData));
-    } else if (siteDetails) {
-      const selectedSites = siteDetails.filter((site) => chartSites.includes(site.site_id));
+    } else {
+      const getRandomSites = (siteDetails, count) => {
+        const shuffledSites = siteDetails.sort(() => 0.5 - Math.random());
+        const selectedSites = shuffledSites.slice(0, count);
+        const uniqueSites = selectedSites.filter(
+          (site, index, self) => self.findIndex((s) => s._id === site._id) === index,
+        );
+        return uniqueSites;
+      };
+
+      const selectedSites = getRandomSites(siteDetails, 4);
       dispatch(addSuggestedSites(selectedSites));
     }
   }, [preferences, chartSites]);
