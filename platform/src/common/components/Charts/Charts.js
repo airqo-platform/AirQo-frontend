@@ -67,7 +67,7 @@ const useAnalytics = () => {
     };
 
     fetchData();
-  }, [chartData, refreshChart, dispatch]);
+  }, [chartData, refreshChart]);
 
   return { analyticsData, isLoading, error, loadingTime };
 };
