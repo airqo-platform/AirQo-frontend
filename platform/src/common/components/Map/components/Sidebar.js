@@ -22,7 +22,6 @@ import axios from 'axios';
 import WindIcon from '@/icons/Common/wind.svg';
 import Toast from '../../Toast';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
-import { useWindowSize } from '@/lib/windowSize';
 import { dailyPredictionsApi } from '@/core/apis/predict';
 import Spinner from '@/components/Spinner';
 import { capitalizeText } from '@/core/utils/strings';
@@ -208,13 +207,8 @@ const SidebarHeader = ({
   handleSelectedTab,
   isAdmin,
   isFocused,
-  setShowSideBar,
   handleHeaderClick = () => {},
 }) => {
-  const handleCloseClick = useCallback(() => {
-    setShowSideBar(false);
-  }, [setShowSideBar]);
-
   return (
     <div>
       <div className='w-full flex justify-between items-center'>
@@ -411,7 +405,7 @@ const SearchResultsSkeleton = () => {
   );
 };
 
-const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
+const Sidebar = ({ siteDetails, isAdmin }) => {
   const dispatch = useDispatch();
   const [isFocused, setIsFocused] = useState(false);
   const [countryData, setCountryData] = useState([]);
@@ -435,7 +429,6 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
     custom: [],
     nearMe: [],
   });
-  const windowSize = useWindowSize();
   const [weeklyPredictions, setWeeklyPredictions] = useState([]);
   const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
@@ -642,29 +635,14 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
   }, [selectedSite]);
 
   return (
-    <div
-      className={`${
-        windowSize < 768 ? 'absolute left-0 top-0' : 'relative'
-      } w-full md:w-[340px] bg-white z-[999] overflow-x-hidden ${
-        (searchResults && searchResults.length > 0) ||
-        showLocationDetails ||
-        (selectedSites && selectedSites.length > 0)
-          ? 'overflow-y-auto map-scrollbar h-full'
-          : 'h-screen overflow-y-hidden'
-      }`}
-    >
+    <div className='w-full min-w-[380px] lg:w-[470px] h-dvh bg-white sidebar-scroll-bar mb-4'>
       {/* Sidebar Header */}
       <div className={`${!isFocused && !showLocationDetails ? 'space-y-4' : 'hidden'} px-4 pt-4`}>
-        <SidebarHeader
-          selectedTab={selectedTab}
-          handleSelectedTab={handleSelectedTab}
-          isAdmin
-          setShowSideBar={setShowSideBar}
-        />
+        <SidebarHeader selectedTab={selectedTab} handleSelectedTab={handleSelectedTab} isAdmin />
         {!isAdmin && <hr />}
       </div>
 
-      <div className='h-full'>
+      <div className='h-dvh'>
         {/* section 1 */}
         {selectedSite && mapLoading ? (
           // show a loading skeleton
@@ -705,7 +683,7 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
 
               <div className='border border-secondary-neutral-light-100 my-5' />
 
-              <div className='overflow-y-auto map-scrollbar'>
+              <div>
                 {selectedSites && selectedSites.length > 0 && (
                   <>
                     <div className='flex justify-between items-center px-4'>
@@ -750,7 +728,6 @@ const Sidebar = ({ siteDetails, isAdmin, showSideBar, setShowSideBar }) => {
               handleSelectedTab={handleSelectedTab}
               isAdmin
               isFocused={isFocused}
-              setShowSideBar={setShowSideBar}
               handleHeaderClick={handleHeaderClick}
             />
             <SearchField

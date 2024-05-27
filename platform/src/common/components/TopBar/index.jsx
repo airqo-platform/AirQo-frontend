@@ -1,34 +1,30 @@
 import { useState, useEffect } from 'react';
 import SearchMdIcon from '@/icons/Common/search_md.svg';
-import Avatar from '@/icons/Topbar/avatar.svg';
 import TopBarItem from './TopBarItem';
 import { useRouter } from 'next/router';
-import { resetStore } from '@/lib/store/services/account/LoginSlice';
-import { resetChartStore } from '@/lib/store/services/charts/ChartSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import MenuBarIcon from '@/icons/menu_bar';
-import CloseIcon from '@/icons/close_icon';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import ExpandIcon from '@/icons/SideBar/expand.svg';
-import { resetAllTasks } from '@/lib/store/services/checklists/CheckList';
-import { updateUserChecklists, resetChecklist } from '@/lib/store/services/checklists/CheckData';
 import Spinner from '@/components/Spinner';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import UserIcon from '@/icons/Topbar/userIcon';
-import { clearIndividualPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
-import { toggleSidebar, setToggleDrawer } from '@/lib/store/services/sideBar/SideBarSlice';
+import {
+  toggleSidebar,
+  setToggleDrawer,
+  setSidebar,
+} from '@/lib/store/services/sideBar/SideBarSlice';
+import LogoutUser from '@/core/utils/LogoutUser';
 
 const TopBar = ({ topbarTitle, noBorderBottom }) => {
   // check if current route contains navPath
   const router = useRouter();
   const dispatch = useDispatch();
-  const currentRoute = router.pathname;
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
-  const isCurrentRoute = currentRoute.includes('/Home');
   const userInfo = useSelector((state) => state.login.userInfo);
   const [dropdownVisible, setDropdownVisible] = useState(false);
-  const cardCheckList = useSelector((state) => state.cardChecklist.cards);
   const [isLoading, setIsLoading] = useState(false);
+  const togglingDrawer = useSelector((state) => state.sidebar.toggleDrawer);
 
   const PlaceholderImage = `https://ui-avatars.com/api/?name=${userInfo.firstName[0]}+${userInfo.lastName[0]}&background=random`;
 
@@ -41,32 +37,10 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
     setDropdownVisible(!dropdownVisible);
   };
 
-  const handleLogout = async (event) => {
+  const handleLogout = (event) => {
     event.preventDefault();
-
     setIsLoading(true);
-
-    const action = await dispatch(
-      updateUserChecklists({
-        user_id: userInfo._id,
-        items: cardCheckList,
-      }),
-    );
-
-    // Check the status of the updateUserChecklists request
-    if (updateUserChecklists.rejected.match(action)) {
-      setIsLoading(false);
-      return;
-    }
-
-    localStorage.clear();
-    dispatch(resetStore());
-    dispatch(resetChartStore());
-    dispatch(clearIndividualPreferences());
-    dispatch(resetAllTasks());
-    dispatch(resetChecklist());
-    router.push('/account/login');
-
+    LogoutUser(dispatch, router);
     setIsLoading(false);
   };
 
@@ -87,6 +61,12 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
   const handleClick = (path) => (event) => {
     event.preventDefault();
     router.push(path);
+  };
+
+  const handleDrawer = (e) => {
+    e.preventDefault();
+    dispatch(setToggleDrawer(!togglingDrawer));
+    dispatch(setSidebar(false));
   };
 
   return (
@@ -206,7 +186,7 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
         <button
           type='button'
           className='lg:hidden relative flex items-center justify-start z-10 w-auto focus:outline-none border border-gray-200 rounded-xl'
-          onClick={() => dispatch(setToggleDrawer(true))}>
+          onClick={handleDrawer}>
           <span className='p-2'>
             <MenuBarIcon />
           </span>

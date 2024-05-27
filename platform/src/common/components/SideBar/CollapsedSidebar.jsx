@@ -12,10 +12,12 @@ import { checkAccess } from '@/core/utils/protectedRoute';
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
+import { useWindowSize } from '@/lib/windowSize';
 import useOutsideClick from '@/core/utils/useOutsideClick';
 
 const CollapsedSidebar = () => {
   const router = useRouter();
+  const { width } = useWindowSize();
   const dispatch = useDispatch();
   const [dropdown, setDropdown] = useState(false);
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
@@ -33,10 +35,12 @@ const CollapsedSidebar = () => {
   };
 
   useEffect(() => {
-    if (router.pathname === '/map') {
+    if (router.pathname === '/map' && width < 1024) {
+      dispatch(setSidebar(false));
+    } else {
       dispatch(setSidebar(true));
     }
-  }, [router.pathname, isCollapsed]);
+  }, [router.pathname, isCollapsed, width]);
 
   return (
     <div className='w-[88px]'>

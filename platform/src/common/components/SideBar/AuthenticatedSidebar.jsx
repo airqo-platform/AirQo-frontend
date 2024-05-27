@@ -32,7 +32,6 @@ const AuthenticatedSideBar = () => {
   const dispatch = useDispatch();
   const size = useWindowSize();
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
-  const toggleDrawer = useSelector((state) => state.sidebar.toggleDrawer);
   const router = useRouter();
   const [dropdown, setDropdown] = useState(false);
   const currentRoute = router.pathname;
@@ -46,9 +45,6 @@ const AuthenticatedSideBar = () => {
   // Toggle Dropdown open and close
   const [collocationOpen, setCollocationOpen] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
-
-  // Create a ref for the sidebar
-  const sidebarRef = useRef();
 
   useEffect(() => {
     const collocationOpenState = localStorage.getItem('collocationOpen');
@@ -74,21 +70,9 @@ const AuthenticatedSideBar = () => {
     setDropdown(false);
   });
 
-  // close sidebar when clicked outside
-  useOutsideClick(sidebarRef, () => {
-    dispatch(setToggleDrawer(false));
-  });
-
   const toggleDropdown = () => {
     setDropdown(!dropdown);
   };
-
-  // close sidebar when a link is map route
-  // useEffect(() => {
-  //   if (router.pathname !== '/map') {
-  //     dispatch(setSidebar(false));
-  //   }
-  // }, [router.pathname]);
 
   // if its mobile view, close the sidebar when a link is clicked
   useEffect(() => {
@@ -130,20 +114,11 @@ const AuthenticatedSideBar = () => {
 
   return (
     <>
-      {/* overlay */}
-      {toggleDrawer && (
-        <div className='absolute inset-0 w-full h-dvh opacity-50 bg-black-700 z-[1000] transition-all duration-200 ease-in-out'></div>
-      )}
       {/* sidebar */}
       <div
-        className={`${isCollapsed ? 'w-[88px]' : 'w-72'} ${
-          size.width < 1024
-            ? toggleDrawer
-              ? 'fixed right-0 top-0 z-[2000] border-l-grey-750 border-l-[1px]'
-              : 'hidden'
-            : 'block'
-        } transition-all duration-200 ease-in-out`}
-        ref={sidebarRef}>
+        className={`${
+          isCollapsed ? 'w-[88px]' : 'w-72'
+        } hidden lg:block transition-all duration-200 ease-in-out`}>
         <div className='flex p-4 bg-white h-dvh lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden'>
           <div>
             <div className='pb-4 flex justify-between items-center'>
@@ -171,12 +146,6 @@ const AuthenticatedSideBar = () => {
               <div className={`${isCollapsed ? 'hidden' : ''} flex justify-between items-center`}>
                 <button type='button' onClick={() => dispatch(toggleSidebar())}>
                   <CollapseIcon className='invisible md:invisible lg:visible pt-1 h-full flex flex-col flex-3' />
-                </button>
-                <button
-                  type='button'
-                  className='lg:hidden relative w-auto focus:outline-none border border-gray-200 rounded-xl p-2'
-                  onClick={() => dispatch(setToggleDrawer(false))}>
-                  <CloseIcon />
                 </button>
               </div>
             </div>
