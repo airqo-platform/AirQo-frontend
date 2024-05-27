@@ -168,14 +168,14 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
                 {capitalizeAllText(
                   grid && grid.description
                     ? grid.description.split(',')[0]
-                    : grid.name && grid.name.split(',')[0],
+                    : grid.search_name && grid.search_name,
                 )}
               </span>
               <span className='font-medium text-secondary-neutral-light-300 text-sm leading-tight'>
                 {capitalizeAllText(
                   grid && grid.description
                     ? grid.description.split(',').slice(1).join(',')
-                    : (grid.name && grid.name.split(',').slice(1).join(',')) || grid.search_name,
+                    : grid.location_name || grid.location_name,
                 )}
               </span>
             </div>
