@@ -143,7 +143,13 @@ const Profile = () => {
       localStorage.setItem('loggedUser', JSON.stringify(updatedData));
       dispatch(setUserInfo(updatedData));
 
-      if (Object.values(userData).every(Boolean)) {
+      if (
+        userData.firstName &&
+        userData.lastName &&
+        userData.email &&
+        userData.country &&
+        userData.timezone
+      ) {
         handleProfileCompletion(3);
       }
 
