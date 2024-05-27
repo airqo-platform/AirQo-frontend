@@ -60,6 +60,7 @@ const useAnalytics = () => {
         dispatch(setRefreshChart(false));
       } catch (err) {
         setError(err.message);
+        dispatch(setAnalyticsData(null));
       } finally {
         setLoadingTime(Date.now() - loadingTime);
       }
@@ -84,6 +85,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
   const [showLoadingMessage, setShowLoadingMessage] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const siteData = useSelector((state) => state.grids.sitesSummary);
 
   useEffect(() => {
     let timeoutId;
@@ -97,8 +99,8 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
   }, [isLoading, loadingTime]);
 
   const renderErrorMessage = () => (
-    <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
-      <p className='text-red-500'>
+    <div className='ml-10 pr-10 flex justify-center text-center items-center w-full h-full text-sm'>
+      <p className='text-red-500 text-center'>
         An error has occurred. Please try again later or reach out to our support team for
         assistance.
       </p>
@@ -125,39 +127,45 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
     </div>
   );
 
-  if (hasLoaded && (analyticsData === null || analyticsData.length === 0)) {
-    return renderNoDataMessage();
+  function getSiteName(siteId) {
+    if (preferenceData?.length === 0) {
+      return null;
+    }
+    const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
+    return site ? site.name?.split(',')[0] : '';
   }
 
-  function getSiteName(siteId) {
-    const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
-    return site ? site.name?.split(',')[0] : '--';
-  }
+  const getExistingSiteName = (siteId) => {
+    const site = siteData?.sites?.find((site) => site._id === siteId);
+    return site ? site.search_name : '';
+  };
 
   const newAnalyticsData =
     analyticsData &&
     analyticsData?.length > 0 &&
     analyticsData?.map((data) => {
-      const name = getSiteName(data.site_id);
+      const name = getSiteName(data.site_id) || getExistingSiteName(data.site_id) || '--';
       return { ...data, name };
     });
 
   const transformedData =
-    newAnalyticsData?.reduce((acc, curr) => {
-      if (!acc[curr.time]) {
-        acc[curr.time] = {
-          time: curr.time,
-        };
-      }
-      acc[curr.time][curr.name] = curr.value;
-      return acc;
-    }, {}) || {};
+    (newAnalyticsData &&
+      newAnalyticsData?.reduce((acc, curr) => {
+        if (!acc[curr.time]) {
+          acc[curr.time] = {
+            time: curr.time,
+          };
+        }
+        acc[curr.time][curr.name] = curr.value;
+        return acc;
+      }, {})) ||
+    {};
 
   const dataForChart = Object.values(transformedData);
 
   const allKeys = new Set(dataForChart.length > 0 ? Object.keys(dataForChart[0]) : []);
 
-  if (error) {
+  if (error || analyticsData?.error?.message) {
     return renderErrorMessage();
   }
 
@@ -165,7 +173,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
     return renderLoadingMessage();
   }
 
-  if (hasLoaded && (analyticsData === null || analyticsData.length === 0)) {
+  if (hasLoaded && analyticsData?.length === 0) {
     return renderNoDataMessage();
   }
 
