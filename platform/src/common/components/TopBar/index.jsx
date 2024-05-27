@@ -71,7 +71,7 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
 
   return (
     <nav
-      className={`bg-white sticky top-0 z-[9999] w-full px-6 lg:py-0 h-[76px] lg:px-16 ${
+      className={`bg-white sticky top-0 z-50 w-full px-6 lg:py-0 h-[76px] lg:px-16 ${
         !noBorderBottom && 'border-b-[1px] border-b-grey-750'
       }`}>
       <div className='flex justify-between items-center bg-white py-4'>
