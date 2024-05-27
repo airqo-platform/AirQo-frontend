@@ -15,8 +15,11 @@ const OverView = () => {
   const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
   const siteData = useSelector((state) => state.grids.sitesSummary);
+  const preferencesLoading = useSelector((state) => state.userDefaults.status === 'loading');
 
   useEffect(() => {
+    if (preferencesLoading) return;
+
     setIsLoadingMeasurements(true);
     try {
       if (chartDataRange && chartDataRange.startDate && chartDataRange.endDate && sites) {

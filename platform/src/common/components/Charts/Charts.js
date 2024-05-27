@@ -99,8 +99,8 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
   }, [isLoading, loadingTime]);
 
   const renderErrorMessage = () => (
-    <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
-      <p className='text-red-500'>
+    <div className='ml-10 pr-10 flex justify-center text-center items-center w-full h-full text-sm'>
+      <p className='text-red-500 text-center'>
         An error has occurred. Please try again later or reach out to our support team for
         assistance.
       </p>
@@ -149,21 +149,23 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
     });
 
   const transformedData =
-    newAnalyticsData?.reduce((acc, curr) => {
-      if (!acc[curr.time]) {
-        acc[curr.time] = {
-          time: curr.time,
-        };
-      }
-      acc[curr.time][curr.name] = curr.value;
-      return acc;
-    }, {}) || {};
+    (newAnalyticsData &&
+      newAnalyticsData?.reduce((acc, curr) => {
+        if (!acc[curr.time]) {
+          acc[curr.time] = {
+            time: curr.time,
+          };
+        }
+        acc[curr.time][curr.name] = curr.value;
+        return acc;
+      }, {})) ||
+    {};
 
   const dataForChart = Object.values(transformedData);
 
   const allKeys = new Set(dataForChart.length > 0 ? Object.keys(dataForChart[0]) : []);
 
-  if (error) {
+  if (error || analyticsData?.error?.message) {
     return renderErrorMessage();
   }
 
@@ -171,7 +173,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
     return renderLoadingMessage();
   }
 
-  if (hasLoaded && (!analyticsData || analyticsData?.length === 0)) {
+  if (hasLoaded && analyticsData?.length === 0) {
     return renderNoDataMessage();
   }
 
