@@ -68,15 +68,15 @@ const Layout = ({
    * Update user checklists in the database when there is a change in the checklists data at any point
    * in the application
    */
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (userInfo?._id && cardCheckList) {
-        dispatch(updateUserChecklists({ user_id: userInfo._id, items: cardCheckList }));
-      }
-    }, 5000);
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     if (userInfo?._id && cardCheckList) {
+  //       dispatch(updateUserChecklists({ user_id: userInfo._id, items: cardCheckList }));
+  //     }
+  //   }, 5000);
 
-    return () => clearTimeout(timer);
-  }, [cardCheckList]);
+  //   return () => clearTimeout(timer);
+  // }, [cardCheckList]);
 
   // handling media query change
   useEffect(() => {
@@ -97,37 +97,37 @@ const Layout = ({
   /**
    * Log out user after 1 hour of inactivity
    */
-  // useEffect(() => {
-  //   const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
+  useEffect(() => {
+    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
 
-  //   const resetTimer = () => setLastActivity(Date.now());
+    const resetTimer = () => setLastActivity(Date.now());
 
-  //   activityEvents.forEach((event) => {
-  //     window.addEventListener(event, resetTimer);
-  //   });
+    activityEvents.forEach((event) => {
+      window.addEventListener(event, resetTimer);
+    });
 
-  //   return () => {
-  //     activityEvents.forEach((event) => {
-  //       window.removeEventListener(event, resetTimer);
-  //     });
-  //   };
-  // }, []);
+    return () => {
+      activityEvents.forEach((event) => {
+        window.removeEventListener(event, resetTimer);
+      });
+    };
+  }, []);
 
-  // useEffect(() => {
-  //   const checkActivity = () => {
-  //     const currentTime = Date.now();
-  //     const timeElapsed = currentTime - lastActivity;
+  useEffect(() => {
+    const checkActivity = () => {
+      const currentTime = Date.now();
+      const timeElapsed = currentTime - lastActivity;
 
-  //     // 3600000 milliseconds = 1 hour
-  //     if (timeElapsed > 3600000 && userInfo?._id) {
-  //       LogoutUser(dispatch, router);
-  //     }
-  //   };
+      // 3600000 milliseconds = 1 hour
+      if (timeElapsed > 3600000 && userInfo?._id) {
+        LogoutUser(dispatch, router);
+      }
+    };
 
-  //   const intervalId = setInterval(checkActivity, 10000);
+    const intervalId = setInterval(checkActivity, 10000);
 
-  //   return () => clearInterval(intervalId);
-  // }, [lastActivity, userInfo, dispatch, router]);
+    return () => clearInterval(intervalId);
+  }, [lastActivity, userInfo, dispatch, router]);
 
   return (
     <>

@@ -164,7 +164,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
           map.addControl(geolocateControl, 'bottom-right');
         });
       } catch (error) {
-        console.error('Error initializing the Map: ', error);
+        // console.error('Error initializing the Map: ', error);
+        return;
       }
     };
 
@@ -332,7 +333,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         index.load(mapReadingsData);
         updateClusters();
       } catch (error) {
-        console.error('Error loading map readings data into Supercluster: ', error);
+        // console.error('Error loading map readings data into Supercluster: ', error);
+        return;
       }
     }
 
@@ -343,7 +345,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         index.load(data);
         updateClusters();
       } catch (error) {
-        console.error('Error loading AQI data into Supercluster: ', error);
+        // console.error('Error loading AQI data into Supercluster: ', error);
+        return;
       }
     }
   }, [selectedNode, NodeType, mapStyle, pollutant, refresh, waqData, mapReadingsData]);
@@ -481,7 +484,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         }
       });
     } catch (error) {
-      console.error('Error updating clusters: ', error);
+      // console.error('Error updating clusters: ', error);
+      return;
     }
   }, [clusterUpdate]);
 
@@ -569,7 +573,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
           });
         }
       } catch (error) {
-        console.error('Error fetching location boundaries:', error);
+        // console.error('Error fetching location boundaries:', error);
+        return;
       } finally {
         setLoading(false);
       }
