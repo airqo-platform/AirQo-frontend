@@ -5,7 +5,6 @@ import {
   getSitesSummary,
   setGridsSummary,
 } from '@/lib/store/services/deviceRegistry/GridsSlice';
-import SearchIcon from '@/icons/Common/search_md.svg';
 import LocationIcon from '@/icons/SideBar/Sites.svg';
 import TrashIcon from '@/icons/Actions/bin_icon.svg';
 import StarIcon from '@/icons/Actions/star_icon.svg';
@@ -17,13 +16,9 @@ import Spinner from '@/components/Spinner';
 import AlertBox from '@/components/AlertBox';
 import useOutsideClick from '@/core/utils/useOutsideClick';
 import SearchField from '@/components/search/SearchField';
-import axios from 'axios';
 import { getNearestSite, getGridsSummaryApi } from '@/core/apis/DeviceRegistry';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
-import allCountries from '../Map/components/countries.json';
-
-const MAPBOX_URL = 'https://nominatim.openstreetmap.org/search';
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+import { capitalizeAllText } from '@/core/utils/strings';
 
 const SearchResultsSkeleton = () => (
   <div className='flex flex-col gap-1 animate-pulse'>
@@ -51,42 +46,58 @@ const LocationItemCards = ({
   innerRef,
   showTrashIcon = false,
   showActiveStarIcon = true,
-}) => (
-  <div
-    className='border rounded-lg bg-secondary-neutral-light-25 border-input-light-outline flex flex-row justify-between items-center p-3 w-full mb-2'
-    key={location._id}
-    ref={innerRef}
-    {...draggableProps}
-    {...dragHandleProps}
-  >
-    <div className='flex flex-row items-center overflow-x-clip'>
-      <div>{showActiveStarIcon ? <DragIcon /> : <DragIconLight />}</div>
-      <span className='text-sm text-secondary-neutral-light-800 font-medium'>{location.name}</span>
+}) => {
+  let locationName = location?.search_name || location?.name;
+  let locationDescripton =
+    location.location_name || location?.search_name || location?.name || location?.long_name;
+
+  return (
+    <div
+      className='border rounded-lg bg-secondary-neutral-light-25 border-input-light-outline flex flex-row justify-between items-center p-3 w-full mb-2'
+      key={locationName}
+      ref={innerRef}
+      {...draggableProps}
+      {...dragHandleProps}
+    >
+      <div
+        className='flex flex-row items-center overflow-x-clip'
+        title={capitalizeAllText(locationName)}
+      >
+        <div>{showActiveStarIcon ? <DragIcon /> : <DragIconLight />}</div>
+        <span className='text-sm text-secondary-neutral-light-800 font-medium'>
+          {locationName?.split(',')[0].length > 20
+            ? capitalizeAllText(locationName?.split(',')[0].substring(0, 15)) + '...'
+            : capitalizeAllText(locationName?.split(',')[0])}
+          {locationDescripton?.split(',').length > 1 && (
+            <span className='text-grey-400'>{locationDescripton?.split(',').pop()}</span>
+          )}
+        </span>
+      </div>
+      <div className='flex flex-row'>
+        {showTrashIcon && (
+          <div className='mr-1 hover:cursor-pointer' onClick={() => handleRemoveLocation(location)}>
+            <TrashIcon />
+          </div>
+        )}
+        {showActiveStarIcon ? (
+          <div
+            className='bg-primary-600 rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
+            onClick={() => handleLocationSelect(location)}
+          >
+            <StarIcon />
+          </div>
+        ) : (
+          <div
+            className='border border-input-light-outline rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
+            onClick={() => handleLocationSelect(location)}
+          >
+            <StarIconLight />
+          </div>
+        )}
+      </div>
     </div>
-    <div className='flex flex-row'>
-      {showTrashIcon && (
-        <div className='mr-1 hover:cursor-pointer' onClick={() => handleRemoveLocation(location)}>
-          <TrashIcon />
-        </div>
-      )}
-      {showActiveStarIcon ? (
-        <div
-          className='bg-primary-600 rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
-          onClick={() => handleLocationSelect(location)}
-        >
-          <StarIcon />
-        </div>
-      ) : (
-        <div
-          className='border border-input-light-outline rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
-          onClick={() => handleLocationSelect(location)}
-        >
-          <StarIconLight />
-        </div>
-      )}
-    </div>
-  </div>
-);
+  );
+};
 
 /**
  * @param {Object} props
@@ -305,6 +316,8 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
             ...response.sites[Math.floor(Math.random() * response.sites.length)],
             name: item?.description,
             long_name: item?.description,
+            search_name: item?.description,
+            location_name: item?.description,
           };
         } else {
           setIsError({
@@ -317,17 +330,24 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
           return;
         }
       } else {
-        newLocationValue = item;
+        newLocationValue = { ...item, name: item?.search_name };
       }
 
       const newLocationArray = [...locationArray];
-      const index = newLocationArray.findIndex((location) => location._id === newLocationValue._id);
+      const index = newLocationArray.findIndex(
+        (location) => location.name === newLocationValue.name,
+      );
       if (index !== -1) {
-        newLocationArray.splice(index, 1);
+        setIsError({
+          isError: true,
+          message: 'Location already added',
+          type: 'error',
+        });
+        return;
       } else if (newLocationArray.length < 4) {
         newLocationArray.push(newLocationValue);
         const unselectedIndex = unSelectedLocations.findIndex(
-          (location) => location._id === newLocationValue._id,
+          (location) => location.name === newLocationValue.name,
         );
         unSelectedLocations.splice(unselectedIndex, 1);
       } else {
@@ -357,10 +377,16 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
    * and updates the unselected locations array
    */
   const removeLocation = (item) => {
-    const newLocationArray = locationArray.filter((location) => location._id !== item._id);
+    const newLocationSet = new Set(locationArray.map((location) => location.name));
+    newLocationSet.delete(item.name);
+    const newLocationArray = Array.from(newLocationSet, (name) =>
+      locationArray.find((location) => location.name === name),
+    );
     setLocationArray(newLocationArray);
     setDraggedLocations(newLocationArray);
-    setUnSelectedLocations((locations) => [...locations, item]);
+    setUnSelectedLocations((locations) =>
+      locations.filter((location) => location.name !== item.name),
+    );
     dispatch(setSelectedLocations(newLocationArray));
   };
 
@@ -468,10 +494,10 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
               <div className='mt-4'>
                 {locationArray && locationArray.length > 0 ? (
                   draggedLocations.map((location, index) => (
-                    <Draggable key={location._id} draggableId={location._id} index={index}>
+                    <Draggable key={location.name} draggableId={location.name} index={index}>
                       {(provided) => (
                         <LocationItemCards
-                          key={location._id}
+                          key={location.name}
                           handleLocationSelect={handleLocationSelect}
                           handleRemoveLocation={removeLocation}
                           location={location}
@@ -510,7 +536,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
                       .slice(0, 15)
                       .map((location) => (
                         <LocationItemCards
-                          key={location._id}
+                          key={location.search_name}
                           location={location}
                           handleLocationSelect={handleLocationSelect}
                           showActiveStarIcon={false}

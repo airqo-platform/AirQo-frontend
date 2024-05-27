@@ -356,7 +356,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     const leaves = indexRef.current.getLeaves(cluster.properties.cluster_id, Infinity);
 
     // Create an object to count the occurrences of each AQI
-    const aqiCounts = leaves.reduce((acc, leaf) => {
+    const aqiCounts = leaves?.reduce((acc, leaf) => {
       const aqi = leaf.properties.airQuality;
       acc[aqi] = (acc[aqi] || 0) + 1;
       return acc;
@@ -371,7 +371,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     mostCommonAQIs = mostCommonAQIs.map((aqi) => aqi[0]);
 
     // Find the leaves with the most common AQIs
-    const leavesWithMostCommonAQIs = leaves.filter((leaf) =>
+    const leavesWithMostCommonAQIs = leaves?.filter((leaf) =>
       mostCommonAQIs.includes(leaf.properties.airQuality),
     );
 
@@ -648,7 +648,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
               <button
                 onClick={() => setIsOpen(true)}
                 title='Map Layers'
-                className='inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
+                className='inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
+              >
                 <LayerIcon />
               </button>
             </div>
@@ -656,13 +657,15 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
           <button
             onClick={refreshMap}
             title='Refresh Map'
-            className='inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
+            className='inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
+          >
             <RefreshIcon />
           </button>
           <button
             onClick={shareLocation}
             title='Share Location'
-            className='inline-flex items-center justify-center w-10 h-10 md:w-12 md:h-12 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
+            className='inline-flex items-center justify-center w-10 h-10 md:w-12 md:h-12 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
+          >
             <ShareIcon />
           </button>
         </div>

@@ -266,7 +266,7 @@ const Profile = () => {
       await cloudinaryImageUpload(formData)
         .then(async (responseData) => {
           setUserData({ ...userData, profilePicture: responseData.secure_url });
-          const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
+          const userID = JSON.parse(localStorage.getItem('loggedUser'))?._id;
           return await updateUserCreationDetails(
             { profilePicture: responseData.secure_url },
             userID,
@@ -311,7 +311,7 @@ const Profile = () => {
     setUpdatedProfilePicture('');
     setUserData({ ...userData, profilePicture: '' });
 
-    const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
+    const userID = JSON.parse(localStorage.getItem('loggedUser'))?._id;
     updateUserCreationDetails({ profilePicture: '' }, userID)
       .then((response) => {
         localStorage.setItem(
@@ -368,7 +368,8 @@ const Profile = () => {
                   <div
                     className='w-16 h-16 bg-secondary-neutral-light-25 rounded-full flex justify-center items-center cursor-pointer'
                     onClick={handleAvatarClick}
-                    title='Tap to change profile image'>
+                    title='Tap to change profile image'
+                  >
                     {userData.profilePicture ? (
                       <img
                         src={userData.profilePicture}
@@ -384,7 +385,8 @@ const Profile = () => {
                   <div className='flex items-center'>
                     <Button
                       className='text-sm font-medium text-secondary-neutral-light-500'
-                      onClick={confirmDeleteProfileImage}>
+                      onClick={confirmDeleteProfileImage}
+                    >
                       Delete
                     </Button>
                     <Button
@@ -394,7 +396,8 @@ const Profile = () => {
                           : 'text-blue-600 bg-blue-50 rounded'
                       }`}
                       onClick={handleProfileImageUpdate}
-                      disabled={!updatedProfilePicture}>
+                      disabled={!updatedProfilePicture}
+                    >
                       {updatedProfilePicture && !profileUploading
                         ? 'Save photo'
                         : profileUploading
@@ -453,7 +456,8 @@ const Profile = () => {
                         value={userData.country}
                         onChange={handleChange}
                         className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm w-full rounded p-3 dark:placeholder-white-400 dark:text-white'
-                        required>
+                        required
+                      >
                         <option value='' disabled></option>
                         {countryOptions.map((country) => (
                           <option value={country.value} key={country.value}>
@@ -477,7 +481,8 @@ const Profile = () => {
                       value={userData.timezone}
                       onChange={handleChange}
                       className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full pl-10 pr-3 py-3 dark:placeholder-white-400 dark:text-white'
-                      required>
+                      required
+                    >
                       <option value='' disabled></option>
                       {timeZonesArr.map((timeZone) => (
                         <option value={timeZone.value} key={timeZone.value}>
@@ -506,13 +511,15 @@ const Profile = () => {
                 <Button
                   onClick={handleCancel}
                   className='text-sm font-medium leading-5 text-secondary-neutral-light-600 py-3 px-4 rounded border border-secondary-neutral-light-100 bg-white'
-                  disabled={isLoading}>
+                  disabled={isLoading}
+                >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSubmit}
                   className='text-sm font-medium leading-5 text-white py-3 px-4 rounded bg-blue-600'
-                  disabled={isLoading}>
+                  disabled={isLoading}
+                >
                   {isLoading ? 'Loading...' : 'Save'}
                 </Button>
               </div>
