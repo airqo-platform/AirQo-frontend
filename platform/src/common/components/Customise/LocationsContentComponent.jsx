@@ -22,9 +22,6 @@ import { getNearestSite, getGridsSummaryApi } from '@/core/apis/DeviceRegistry';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import allCountries from '../Map/components/countries.json';
 
-const MAPBOX_URL = 'https://nominatim.openstreetmap.org/search';
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-
 const SearchResultsSkeleton = () => (
   <div className='flex flex-col gap-1 animate-pulse'>
     <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-6' />
@@ -54,7 +51,7 @@ const LocationItemCards = ({
 }) => (
   <div
     className='border rounded-lg bg-secondary-neutral-light-25 border-input-light-outline flex flex-row justify-between items-center p-3 w-full mb-2'
-    key={location._id}
+    key={location.name}
     ref={innerRef}
     {...draggableProps}
     {...dragHandleProps}
@@ -321,13 +318,20 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
       }
 
       const newLocationArray = [...locationArray];
-      const index = newLocationArray.findIndex((location) => location._id === newLocationValue._id);
+      const index = newLocationArray.findIndex(
+        (location) => location.name === newLocationValue.name,
+      );
       if (index !== -1) {
-        newLocationArray.splice(index, 1);
+        setIsError({
+          isError: true,
+          message: 'Location already added',
+          type: 'error',
+        });
+        return;
       } else if (newLocationArray.length < 4) {
         newLocationArray.push(newLocationValue);
         const unselectedIndex = unSelectedLocations.findIndex(
-          (location) => location._id === newLocationValue._id,
+          (location) => location.name === newLocationValue.name,
         );
         unSelectedLocations.splice(unselectedIndex, 1);
       } else {
@@ -357,10 +361,16 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
    * and updates the unselected locations array
    */
   const removeLocation = (item) => {
-    const newLocationArray = locationArray.filter((location) => location._id !== item._id);
+    const newLocationSet = new Set(locationArray.map((location) => location.name));
+    newLocationSet.delete(item.name);
+    const newLocationArray = Array.from(newLocationSet, (name) =>
+      locationArray.find((location) => location.name === name),
+    );
     setLocationArray(newLocationArray);
     setDraggedLocations(newLocationArray);
-    setUnSelectedLocations((locations) => [...locations, item]);
+    setUnSelectedLocations((locations) =>
+      locations.filter((location) => location.name !== item.name),
+    );
     dispatch(setSelectedLocations(newLocationArray));
   };
 
@@ -468,10 +478,10 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
               <div className='mt-4'>
                 {locationArray && locationArray.length > 0 ? (
                   draggedLocations.map((location, index) => (
-                    <Draggable key={location._id} draggableId={location._id} index={index}>
+                    <Draggable key={location.name} draggableId={location.name} index={index}>
                       {(provided) => (
                         <LocationItemCards
-                          key={location._id}
+                          key={location.name}
                           handleLocationSelect={handleLocationSelect}
                           handleRemoveLocation={removeLocation}
                           location={location}
@@ -510,7 +520,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
                       .slice(0, 15)
                       .map((location) => (
                         <LocationItemCards
-                          key={location._id}
+                          key={location.location_name}
                           location={location}
                           handleLocationSelect={handleLocationSelect}
                           showActiveStarIcon={false}

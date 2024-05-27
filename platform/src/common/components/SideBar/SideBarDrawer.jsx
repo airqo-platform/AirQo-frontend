@@ -82,7 +82,7 @@ const SideBarDrawer = () => {
     <>
       {/* overlay */}
       {togglingDrawer && (
-        <div className='absolute inset-0 w-full h-dvh opacity-50 bg-black-700 z-[1000] transition-all duration-200 ease-in-out'></div>
+        <div className='absolute inset-0 w-full h-dvh opacity-50 bg-black-700 z-[99999] transition-all duration-200 ease-in-out'></div>
       )}
       {/* sidebar */}
       <div
