@@ -164,7 +164,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
           map.addControl(geolocateControl, 'bottom-right');
         });
       } catch (error) {
-        console.error('Error initializing the Map: ', error);
+        // console.error('Error initializing the Map: ', error);
+        return;
       }
     };
 
@@ -297,6 +298,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     }
   };
 
+  // Fetch and process data
   const fetchAndProcessData = useCallback(async () => {
     // Only fetch new data if the state variables are empty
     if (mapReadingsData.length === 0) {
@@ -331,7 +333,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         index.load(mapReadingsData);
         updateClusters();
       } catch (error) {
-        console.error('Error loading map readings data into Supercluster: ', error);
+        // console.error('Error loading map readings data into Supercluster: ', error);
+        return;
       }
     }
 
@@ -342,7 +345,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         index.load(data);
         updateClusters();
       } catch (error) {
-        console.error('Error loading AQI data into Supercluster: ', error);
+        // console.error('Error loading AQI data into Supercluster: ', error);
+        return;
       }
     }
   }, [selectedNode, NodeType, mapStyle, pollutant, refresh, waqData, mapReadingsData]);
@@ -480,7 +484,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         }
       });
     } catch (error) {
-      console.error('Error updating clusters: ', error);
+      // console.error('Error updating clusters: ', error);
+      return;
     }
   }, [clusterUpdate]);
 
@@ -568,7 +573,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
           });
         }
       } catch (error) {
-        console.error('Error fetching location boundaries:', error);
+        // console.error('Error fetching location boundaries:', error);
+        return;
       } finally {
         setLoading(false);
       }
@@ -648,8 +654,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
               <button
                 onClick={() => setIsOpen(true)}
                 title='Map Layers'
-                className='inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-              >
+                className='inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
                 <LayerIcon />
               </button>
             </div>
@@ -657,15 +662,13 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
           <button
             onClick={refreshMap}
             title='Refresh Map'
-            className='inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-          >
+            className='inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
             <RefreshIcon />
           </button>
           <button
             onClick={shareLocation}
             title='Share Location'
-            className='inline-flex items-center justify-center w-10 h-10 md:w-12 md:h-12 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-          >
+            className='inline-flex items-center justify-center w-10 h-10 md:w-12 md:h-12 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'>
             <ShareIcon />
           </button>
         </div>

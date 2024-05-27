@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import TopBar from '../TopBar';
 import { useDispatch, useSelector } from 'react-redux';
@@ -13,6 +13,7 @@ import { useRouter } from 'next/router';
 import CollapsedSidebar from '../SideBar/CollapsedSidebar';
 import SideBarDrawer from '../SideBar/SideBarDrawer';
 import SetChartDetails from '@/core/utils/SetChartDetails';
+import LogoutUser from '@/core/utils/LogoutUser';
 
 const Layout = ({
   pageTitle = 'AirQo Analytics',
@@ -29,6 +30,7 @@ const Layout = ({
   const userInfo = useSelector((state) => state.login.userInfo);
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
+  const [lastActivity, setLastActivity] = useState(Date.now());
 
   /**
    * Set chart details
@@ -60,16 +62,20 @@ const Layout = ({
     }
   };
 
-  useEffect(fetchData, [dispatch, userInfo, cardCheckList]);
+  useEffect(fetchData, [dispatch, userInfo]);
 
   /**
    * Update user checklists in the database when there is a change in the checklists data at any point
    * in the application
    */
   useEffect(() => {
-    if (userInfo?._id && cardCheckList) {
-      dispatch(updateUserChecklists({ user_id: userInfo._id, items: cardCheckList }));
-    }
+    const timer = setTimeout(() => {
+      if (userInfo?._id && cardCheckList) {
+        dispatch(updateUserChecklists({ user_id: userInfo._id, items: cardCheckList }));
+      }
+    }, 5000);
+
+    return () => clearTimeout(timer);
   }, [cardCheckList]);
 
   // handling media query change
@@ -87,6 +93,41 @@ const Layout = ({
       mediaQuery.removeEventListener('change', handleMediaQueryChange);
     };
   }, []);
+
+  /**
+   * Log out user after 1 hour of inactivity
+   */
+  useEffect(() => {
+    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
+
+    const resetTimer = () => setLastActivity(Date.now());
+
+    activityEvents.forEach((event) => {
+      window.addEventListener(event, resetTimer);
+    });
+
+    return () => {
+      activityEvents.forEach((event) => {
+        window.removeEventListener(event, resetTimer);
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    const checkActivity = () => {
+      const currentTime = Date.now();
+      const timeElapsed = currentTime - lastActivity;
+
+      // 3600000 milliseconds = 1 hour
+      if (timeElapsed > 3600000 && userInfo?._id) {
+        LogoutUser(dispatch, router);
+      }
+    };
+
+    const intervalId = setInterval(checkActivity, 10000);
+
+    return () => clearInterval(intervalId);
+  }, [lastActivity, userInfo, dispatch, router]);
 
   return (
     <>

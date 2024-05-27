@@ -132,11 +132,8 @@ const CountryList = ({ siteDetails, data, selectedCountry, setSelectedCountry })
  * @description Section cards component
  */
 const SectionCards = ({ searchResults, handleLocationSelect }) => {
-  if (!Array.isArray(searchResults)) {
-    return null;
-  }
-
-  if (typeof handleLocationSelect !== 'function') {
+  // Early return if searchResults is not an array or handleLocationSelect is not a function
+  if (!Array.isArray(searchResults) || typeof handleLocationSelect !== 'function') {
     return null;
   }
 
@@ -157,9 +154,9 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
   return (
     visibleResults.length > 0 && (
       <div className='map-scrollbar flex flex-col gap-4 my-5 px-4'>
-        {visibleResults.map((grid) => (
+        {visibleResults.map((grid, index) => (
           <div
-            key={grid.description || grid.name}
+            key={grid._id || index} // Use grid._id or index as the key
             className='flex flex-row justify-between items-center text-sm w-full hover:cursor-pointer hover:bg-blue-100 px-4 py-[14px] rounded-xl border border-secondary-neutral-light-100 shadow-sm'
             onClick={() => handleLocationSelect(grid)}
           >
