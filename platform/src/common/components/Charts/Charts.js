@@ -119,14 +119,15 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
   );
 
   // No data for this time range
+  const renderNoDataMessage = () => (
+    <div className='ml-10 pr-10 flex justify-center items-center w-full h-full text-center text-sm text-gray-600'>
+      No data found. Please try other time periods or choose other locations
+    </div>
+  );
+
   if (hasLoaded && (analyticsData === null || analyticsData.length === 0)) {
-    return (
-      <div className='ml-10 flex justify-center items-center w-full h-full'>
-        There is no data available for the selected time range.
-      </div>
-    );
+    return renderNoDataMessage();
   }
-  // console.log('analyticsData', analyticsData)
 
   function getSiteName(siteId) {
     const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
@@ -140,12 +141,6 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
       const name = getSiteName(data.site_id);
       return { ...data, name };
     });
-
-  const renderNoDataMessage = () => (
-    <div className='ml-10 flex justify-center items-center w-full h-full'>
-      There is no data available for the selected time range.
-    </div>
-  );
 
   const transformedData =
     newAnalyticsData?.reduce((acc, curr) => {
