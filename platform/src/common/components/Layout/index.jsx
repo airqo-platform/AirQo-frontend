@@ -1,22 +1,18 @@
 import React, { useEffect } from 'react';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import TopBar from '../TopBar';
-import {
-  setChartSites,
-  setChartDataRange,
-  setTimeFrame,
-  setChartType,
-  setPollutant,
-  resetChartStore,
-} from '@/lib/store/services/charts/ChartSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUserChecklists } from '@/lib/store/services/checklists/CheckData';
+import {
+  fetchUserChecklists,
+  updateUserChecklists,
+} from '@/lib/store/services/checklists/CheckData';
 import { updateCards } from '@/lib/store/services/checklists/CheckList';
 import Head from 'next/head';
 import { toggleSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useRouter } from 'next/router';
 import CollapsedSidebar from '../SideBar/CollapsedSidebar';
 import SideBarDrawer from '../SideBar/SideBarDrawer';
+import SetChartDetails from '@/core/utils/SetChartDetails';
 
 const Layout = ({
   pageTitle = 'AirQo Analytics',
@@ -32,41 +28,23 @@ const Layout = ({
   const chartData = useSelector((state) => state.chart);
   const userInfo = useSelector((state) => state.login.userInfo);
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const cardCheckList = useSelector((state) => state.cardChecklist.cards);
 
+  /**
+   * Set chart details
+   */
   useEffect(() => {
-    const setChartProperties = async () => {
-      if (userInfo && preferenceData && preferenceData.length > 0) {
-        const { period, selected_sites, startDate, endDate, frequency, chartType, pollutant } =
-          preferenceData[0];
-        try {
-          const chartSites = selected_sites
-            ? selected_sites.map((site) => site['_id'])
-            : chartData.chartSites;
-
-          await dispatch(setChartSites(chartSites.slice(0, 4)));
-          await dispatch(
-            setChartDataRange({
-              startDate: startDate || chartData.chartDataRange.startDate,
-              endDate: endDate || chartData.chartDataRange.endDate,
-              label: period.label || chartData.chartDataRange.label,
-            }),
-          );
-          await dispatch(setTimeFrame(frequency || chartData.timeFrame));
-          await dispatch(setChartType(chartType || chartData.chartType));
-          await dispatch(setPollutant(pollutant || chartData.pollutionType));
-        } catch (error) {
-          dispatch(resetChartStore());
-          console.error(`Error setting chart properties: ${error}`);
-        }
-      } else {
-        dispatch(resetChartStore());
-      }
-    };
-
-    setChartProperties();
+    SetChartDetails(dispatch, chartData, userInfo, preferenceData);
   }, [userInfo, preferenceData, dispatch]);
 
-  // Fetching user checklists
+  /**
+   * Fetch user checklists from the database
+   * if the user is logged in and the data has not been fetched before
+   * then update the checklists in the store
+   * and set the dataFetched flag in the local storage to true
+   * so that the data is not fetched again
+   * on subsequent page reloads
+   * */
   const fetchData = () => {
     if (userInfo?._id && !localStorage.getItem('dataFetched')) {
       dispatch(fetchUserChecklists(userInfo._id)).then((action) => {
@@ -82,7 +60,17 @@ const Layout = ({
     }
   };
 
-  useEffect(fetchData, [dispatch, userInfo]);
+  useEffect(fetchData, [dispatch, userInfo, cardCheckList]);
+
+  /**
+   * Update user checklists in the database when there is a change in the checklists data at any point
+   * in the application
+   */
+  useEffect(() => {
+    if (userInfo?._id && cardCheckList) {
+      dispatch(updateUserChecklists({ user_id: userInfo._id, items: cardCheckList }));
+    }
+  }, [cardCheckList, userInfo, dispatch]);
 
   // handling media query change
   useEffect(() => {

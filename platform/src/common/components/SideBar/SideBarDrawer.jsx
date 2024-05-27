@@ -20,11 +20,7 @@ import {
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import useOutsideClick from '@/core/utils/useOutsideClick';
 import { useRouter } from 'next/router';
-import { resetStore } from '@/lib/store/services/account/LoginSlice';
-import { resetChartStore } from '@/lib/store/services/charts/ChartSlice';
-import { resetAllTasks } from '@/lib/store/services/checklists/CheckList';
-import { clearIndividualPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
-import { updateUserChecklists, resetChecklist } from '@/lib/store/services/checklists/CheckData';
+import LogoutUser from '@/core/utils/LogoutUser';
 
 const SideBarDrawer = () => {
   const dispatch = useDispatch();
@@ -32,7 +28,6 @@ const SideBarDrawer = () => {
   const togglingDrawer = useSelector((state) => state.sidebar.toggleDrawer);
   const router = useRouter();
   const userInfo = useSelector((state) => state.login.userInfo);
-  const cardCheckList = useSelector((state) => state.cardChecklist.cards);
   const [isLoading, setIsLoading] = useState(false);
   const drawerClasses = size.width < 1024 && togglingDrawer ? 'w-72' : 'w-0';
 
@@ -76,32 +71,10 @@ const SideBarDrawer = () => {
   }, [size.width]);
 
   // Handle logout
-  const handleLogout = async (event) => {
+  const handleLogout = (event) => {
     event.preventDefault();
-
     setIsLoading(true);
-
-    const action = await dispatch(
-      updateUserChecklists({
-        user_id: userInfo._id,
-        items: cardCheckList,
-      }),
-    );
-
-    // Check the status of the updateUserChecklists request
-    if (updateUserChecklists.rejected.match(action)) {
-      setIsLoading(false);
-      return;
-    }
-
-    localStorage.clear();
-    dispatch(resetStore());
-    dispatch(resetChartStore());
-    dispatch(clearIndividualPreferences());
-    dispatch(resetAllTasks());
-    dispatch(resetChecklist());
-    router.push('/account/login');
-
+    LogoutUser(dispatch, router);
     setIsLoading(false);
   };
 
