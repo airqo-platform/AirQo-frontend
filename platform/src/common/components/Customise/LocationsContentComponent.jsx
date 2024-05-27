@@ -520,7 +520,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
                       .slice(0, 15)
                       .map((location) => (
                         <LocationItemCards
-                          key={location.search_name}
+                          key={location.location_name}
                           location={location}
                           handleLocationSelect={handleLocationSelect}
                           showActiveStarIcon={false}
