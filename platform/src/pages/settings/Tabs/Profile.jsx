@@ -4,7 +4,7 @@ import Button from '@/components/Button';
 import Modal from '@/components/Modal/Modal';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateUserCreationDetails } from '@/core/apis/Account';
+import { updateUserCreationDetails, getUserDetails } from '@/core/apis/Account';
 import ClockIcon from '@/icons/Settings/clock.svg';
 import AlertBox from '@/components/AlertBox';
 import countries from 'i18n-iso-countries';
@@ -68,6 +68,7 @@ const Profile = () => {
   const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
   const userInfo = useSelector((state) => state.login.userInfo);
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
+  const userToken = localStorage.getItem('token');
 
   // checklist profile task
   const handleProfileCompletion = (id) => {
@@ -117,51 +118,48 @@ const Profile = () => {
     setUserData({ ...userData, [e.target.id]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
-    if (!userID) {
+
+    const loggedUser = JSON.parse(localStorage.getItem('loggedUser'));
+    if (!loggedUser) {
       setLoading(false);
       return;
     }
+
+    const { _id: userID } = loggedUser;
     try {
-      updateUserCreationDetails(userData, userID)
-        .then((response) => {
-          localStorage.setItem('loggedUser', JSON.stringify({ _id: userID, ...response.user }));
-          dispatch(setUserInfo({ _id: userID, ...response.user }));
-          if (
-            userData.firstName &&
-            userData.lastName &&
-            userData.email &&
-            userData.country &&
-            userData.timezone
-          ) {
-            handleProfileCompletion(3);
-          }
-          setLoading(false);
-          setIsError({
-            isError: true,
-            message: 'User details successfully updated',
-            type: 'success',
-          });
-        })
-        .catch((error) => {
-          console.error(`Error updating user details: ${error}`);
-          setIsError({
-            isError: true,
-            message: error.message,
-            type: 'error',
-          });
-          setLoading(false);
-        });
+      await updateUserCreationDetails(userData, userID);
+
+      const res = await getUserDetails(userID, userToken);
+      const updatedUser = res.users[0];
+
+      if (!updatedUser) {
+        throw new Error('User details not updated');
+      }
+
+      const updatedData = { _id: userID, ...updatedUser };
+      localStorage.setItem('loggedUser', JSON.stringify(updatedData));
+      dispatch(setUserInfo(updatedData));
+
+      if (Object.values(userData).every(Boolean)) {
+        handleProfileCompletion(3);
+      }
+
+      setIsError({
+        isError: true,
+        message: 'User details successfully updated',
+        type: 'success',
+      });
     } catch (error) {
-      console.error(`Error updating user cloudinary photo: ${error}`);
+      console.error(`Error updating user details: ${error}`);
       setIsError({
         isError: true,
         message: error.message,
         type: 'error',
       });
+    } finally {
       setLoading(false);
     }
   };

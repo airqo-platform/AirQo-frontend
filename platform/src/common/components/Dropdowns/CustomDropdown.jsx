@@ -41,7 +41,7 @@ const CustomDropdown = ({
       {React.cloneElement(trigger, { onClick: handleDropdown })}
       {sidebar
         ? isOpen && (
-            <div className={`relative ${isCollapsed ? 'bottom-20' : ''}`}>
+            <div className={`relative ${isCollapsed ? 'bottom-14' : ''}`}>
               <div
                 className={`${dropdownClass} w-full max-w-56 overflow-x-hidden overflow-y-auto mt-2 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-[1000] ${className}`}>
                 <div className='py-1'>{children}</div>
