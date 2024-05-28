@@ -141,12 +141,14 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
   };
 
   const newAnalyticsData =
-    analyticsData &&
-    analyticsData?.length > 0 &&
-    analyticsData?.map((data) => {
-      const name = getSiteName(data.site_id) || getExistingSiteName(data.site_id) || '--';
-      return { ...data, name };
-    });
+    analyticsData?.length > 0
+      ? analyticsData.map((data) => {
+          const name = getSiteName(data.site_id) || getExistingSiteName(data.site_id) || '--';
+          return { ...data, name };
+        })
+      : null;
+
+  console.log(analyticsData);
 
   const transformedData =
     (newAnalyticsData &&
