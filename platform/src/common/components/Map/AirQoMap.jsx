@@ -14,6 +14,7 @@ import {
   setZoom,
   setSelectedNode,
   reSetMap,
+  setSelectedWeeklyPrediction,
 } from '@/lib/store/services/map/MapSlice';
 import LayerModal from './components/LayerModal';
 import Loader from '@/components/Spinner';
@@ -451,6 +452,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
             }
 
             dispatch(setSelectedNode(feature.properties._id));
+            dispatch(setSelectedWeeklyPrediction(null));
             dispatch(setMapLoading(true));
             dispatch(setOpenLocationDetails(true));
             dispatch(setSelectedLocation(feature.properties));

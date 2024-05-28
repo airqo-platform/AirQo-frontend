@@ -15,12 +15,16 @@ const initialState = {
   mapLoading: false,
   suggestedSites: [],
   selectedNode: null,
+  selectedWeeklyPrediction: null,
 };
 
 export const mapSlice = createSlice({
   name: 'map',
   initialState,
   reducers: {
+    setSelectedWeeklyPrediction: (state, action) => {
+      state.selectedWeeklyPrediction = action.payload;
+    },
     setSelectedNode: (state, action) => {
       state.selectedNode = action.payload;
     },
@@ -73,4 +77,5 @@ export const {
   addSuggestedSites,
   setSelectedNode,
   reSetMap,
+  setSelectedWeeklyPrediction,
 } = mapSlice.actions;
