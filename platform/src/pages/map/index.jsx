@@ -16,6 +16,7 @@ const index = () => {
   const [pollutant, setPollutant] = useState('pm2_5');
   const preferences = useSelector((state) => state.defaults.individual_preferences) || [];
   const chartSites = useSelector((state) => state.chart.chartSites);
+  const selectedNode = useSelector((state) => state.map.selectedNode);
 
   /**
    * Site details
@@ -68,14 +69,27 @@ const index = () => {
 
   return (
     <Layout noTopNav={width < 1024}>
-      <div className='relative flex flex-col-reverse lg:flex-row w-full h-dvh overflow-hidden'>
-        <Sidebar siteDetails={siteDetails} isAdmin={isAdmin} />
-
-        <AirQoMap
-          mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
-          customStyle='flex-grow h-full w-full relative bg-[#e6e4e0]'
-          pollutant={pollutant}
-        />
+      <div className='relative flex flex-col-reverse lg:flex-row w-full h-dvh overflow-hidden transition-all duration-500 ease-in-out'>
+        <div
+          className={`${
+            width < 1024
+              ? selectedNode
+                ? 'h-[70%]'
+                : 'h-1/2 w-full sidebar-scroll-bar'
+              : 'h-full min-w-[380px] lg:w-[470px]'
+          } transition-all duration-500 ease-in-out`}>
+          <Sidebar siteDetails={siteDetails} isAdmin={isAdmin} />
+        </div>
+        <div
+          className={`${
+            width < 1024 ? (selectedNode ? 'h-[30%]' : 'h-1/2 w-full') : 'h-full w-full'
+          } transition-all duration-500 ease-in-out`}>
+          <AirQoMap
+            mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
+            customStyle='flex-grow h-full w-full relative bg-[#e6e4e0]'
+            pollutant={pollutant}
+          />
+        </div>
       </div>
     </Layout>
   );

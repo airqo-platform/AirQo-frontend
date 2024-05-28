@@ -29,7 +29,7 @@ export class CustomZoomControl {
   createButton(title, component, onClick) {
     const button = document.createElement('button');
     button.className =
-      'mapboxgl-ctrl-icon rounded-full p-1 md:p-2 md:m-2 flex items-center justify-center';
+      'mapboxgl-ctrl-icon rounded-full m-1 md:m-2 flex items-center justify-center';
     button.type = 'button';
     button.title = title;
     button.addEventListener('click', onClick);
@@ -91,7 +91,7 @@ export class CustomGeolocateControl {
   _createContainer() {
     const container = document.createElement('div');
     container.className =
-      'mapboxgl-ctrl mapboxgl-ctrl-group flex flex-col items-center justify-center rounded-full shadow-md overflow-hidden bg-white p-1 md:p-2 md:m-2';
+      'mapboxgl-ctrl mapboxgl-ctrl-group flex flex-col items-center justify-center rounded-full shadow-md overflow-hidden bg-white p-1 m-1 md:p-2 md:m-2';
     return container;
   }
 

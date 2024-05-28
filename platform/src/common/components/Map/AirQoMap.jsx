@@ -7,12 +7,14 @@ import ShareIcon from '@/icons/map/shareIcon';
 import { CustomGeolocateControl, CustomZoomControl } from './components/MapControls';
 import { getMapReadings } from '@/core/apis/DeviceRegistry';
 import {
-  clearData,
   setOpenLocationDetails,
   setSelectedLocation,
   setMapLoading,
   setCenter,
   setZoom,
+  setSelectedNode,
+  reSetMap,
+  setSelectedWeeklyPrediction,
 } from '@/lib/store/services/map/MapSlice';
 import LayerModal from './components/LayerModal';
 import Loader from '@/components/Spinner';
@@ -39,6 +41,7 @@ import DarkMode from '@/images/map/dark.webp';
 import LightMode from '@/images/map/light.webp';
 import SatelliteMode from '@/images/map/satellite.webp';
 import StreetsMode from '@/images/map/street.webp';
+import { useWindowSize } from '@/lib/windowSize';
 
 const mapStyles = [
   { url: 'mapbox://styles/mapbox/streets-v11', name: 'Streets', image: StreetsMode },
@@ -69,6 +72,7 @@ const mapDetails = [
 const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   const dispatch = useDispatch();
   const mapContainerRef = useRef(null);
+  const { width } = useWindowSize();
   const markersRef = useRef([]);
   const mapRef = useRef();
   const indexRef = useRef();
@@ -80,6 +84,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   const urls = new URL(window.location.href);
   const urlParams = new URLSearchParams(urls.search);
   const mapData = useSelector((state) => state.map);
+  const selectedNode = useSelector((state) => state.map.selectedNode);
   const [toastMessage, setToastMessage] = useState({
     message: '',
     type: '',
@@ -89,7 +94,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   // Default node type is Emoji and default map style is streets
   const [NodeType, setNodeType] = useState('Emoji');
   const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/streets-v11');
-  const [selectedNode, setSelectedNode] = useState(null);
   const [mapReadingsData, setMapReadingsData] = useState([]);
   const [waqData, setWaqData] = useState([]);
 
@@ -127,7 +131,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
    */
   useEffect(() => {
     if (!lat && !lng && !zm) {
-      dispatch(clearData());
+      dispatch(reSetMap());
     }
   }, []);
 
@@ -157,11 +161,14 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         map.on('load', async () => {
           map.resize();
 
-          const zoomControl = new CustomZoomControl();
-          map.addControl(zoomControl, 'bottom-right');
+          // Check if the conditions for hiding controls are met
+          if (!(width < 1024 && selectedNode)) {
+            const zoomControl = new CustomZoomControl(dispatch);
+            map.addControl(zoomControl, 'bottom-right');
 
-          const geolocateControl = new CustomGeolocateControl(setToastMessage);
-          map.addControl(geolocateControl, 'bottom-right');
+            const geolocateControl = new CustomGeolocateControl(setToastMessage);
+            map.addControl(geolocateControl, 'bottom-right');
+          }
         });
       } catch (error) {
         // console.error('Error initializing the Map: ', error);
@@ -172,9 +179,11 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     initializeMap();
 
     return () => {
-      mapRef.current.remove();
+      if (mapRef.current) {
+        mapRef.current.remove();
+      }
     };
-  }, [mapStyle, NodeType, mapboxApiAccessToken]);
+  }, [mapStyle, NodeType, mapboxApiAccessToken, width < 1024 && selectedNode, width]);
 
   /**
    * Set the map center and zoom
@@ -349,7 +358,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         return;
       }
     }
-  }, [selectedNode, NodeType, mapStyle, pollutant, refresh, waqData, mapReadingsData]);
+  }, [selectedNode, NodeType, mapStyle, pollutant, refresh, waqData, mapReadingsData, width]);
 
   /**
    * Get the two most common AQIs in a cluster.
@@ -442,7 +451,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
               return;
             }
 
-            setSelectedNode(feature.properties._id);
+            dispatch(setSelectedNode(feature.properties._id));
+            dispatch(setSelectedWeeklyPrediction(null));
             dispatch(setMapLoading(true));
             dispatch(setOpenLocationDetails(true));
             dispatch(setSelectedLocation(feature.properties));
@@ -504,7 +514,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
    */
   useEffect(() => {
     mapRef.current.resize();
-  }, []);
+  }, [window.innerWidth, window.innerHeight, selectedNode]);
 
   /**
    * Fetch location boundaries
@@ -590,7 +600,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     const map = mapRef.current;
     map.setStyle(map.getStyle());
     setRefresh(!refresh);
-    selectedNode && setSelectedNode(null);
+    selectedNode && dispatch(setSelectedNode(null));
+    dispatch(reSetMap());
     setToastMessage({
       message: 'Map refreshed successfully',
       type: 'success',
@@ -640,14 +651,15 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
       <div ref={mapContainerRef} className={customStyle} />
 
       {/* Legend */}
-      <div className='relative left-4 z-50 md:block'>
+      <div
+        className={`${width < 1024 && selectedNode ? 'hidden' : 'relative left-4 z-50 md:block'}`}>
         <div className={`absolute bottom-2 z-[900]`} style={{ zIndex: 900 }}>
           <AirQualityLegend pollutant={pollutant} />
         </div>
       </div>
 
       {/* Map control buttons */}
-      <div className='absolute top-4 right-0 z-40'>
+      <div className={`${width < 1024 && selectedNode ? 'hidden' : 'absolute top-4 right-0 z-40'}`}>
         <div className='flex flex-col gap-4'>
           <div className='relative'>
             <div className='relative inline-block' ref={dropdownRef}>
@@ -702,7 +714,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
 
       {/* Loading AQI data */}
       {loadingOthers && (
-        <div className='absolute bg-white rounded-md p-2 top-4 right-16 flex items-center justify-center z-[10000]'>
+        <div className='absolute bg-white rounded-md p-2 top-4 right-16 flex items-center justify-center z-50'>
           <Loader width={20} height={20} />
           <span className='ml-2 text-sm'>Loading AQI data...</span>
         </div>
