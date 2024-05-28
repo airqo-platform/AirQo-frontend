@@ -69,6 +69,9 @@ export const chartSlice = createSlice({
     resetChartStore: (state) => {
       Object.assign(state, initialState);
     },
+    setChartDataAtOnce: (state, action) => {
+      Object.assign(state, action.payload);
+    },
   },
 });
 
@@ -84,6 +87,7 @@ export const {
   setDefaultID,
   setChartData,
   setRefreshChart,
+  setChartDataAtOnce,
 } = chartSlice.actions;
 
 export default chartSlice.reducer;

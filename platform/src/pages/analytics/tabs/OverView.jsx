@@ -9,9 +9,8 @@ const OverView = () => {
   // events hook
   const dispatch = useDispatch();
   const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
-  const chartDataRange = useSelector((state) => state.chart.chartDataRange);
   const pollutantType = useSelector((state) => state.chart.pollutionType);
-  const sites = useSelector((state) => state.chart.chartSites);
+  const chartData = useSelector((state) => state.chart);
   const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
   const siteData = useSelector((state) => state.grids.sitesSummary);
@@ -21,11 +20,12 @@ const OverView = () => {
     if (preferencesLoading) return;
 
     setIsLoadingMeasurements(true);
+
     try {
-      if (chartDataRange && chartDataRange.startDate && chartDataRange.endDate && sites) {
+      if (chartData.chartSites?.length > 0) {
         dispatch(
           fetchRecentMeasurementsData({
-            site_id: sites.join(','),
+            site_id: chartData.chartSites.join(','),
           }),
         );
       }
@@ -34,20 +34,7 @@ const OverView = () => {
     } finally {
       setIsLoadingMeasurements(false);
     }
-  }, [chartDataRange, sites]);
-
-  function getSiteName(siteId) {
-    if (preferenceData?.length === 0) {
-      return null;
-    }
-    const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
-    return site ? site.search_name?.split(',')[0] : '';
-  }
-
-  const getExistingSiteName = (siteId) => {
-    const site = siteData?.sites?.find((site) => site._id === siteId);
-    return site ? site.search_name : '';
-  };
+  }, [chartData, preferenceData]);
 
   const dummyData = {
     siteDetails: {
@@ -81,16 +68,8 @@ const OverView = () => {
             return (
               <AQNumberCard
                 key={index}
-                location={
-                  getSiteName(event.site_id) ||
-                  getExistingSiteName(event.site_id) ||
-                  event?.siteDetails?.search_name
-                }
-                locationFullName={
-                  getSiteName(event.site_id) ||
-                  getExistingSiteName(event.site_id) ||
-                  event?.siteDetails?.search_name
-                }
+                location={event?.siteDetails?.search_name}
+                locationFullName={event?.siteDetails?.search_name}
                 reading={event.pm2_5.value}
                 count={displayData.length}
                 pollutant={pollutantType}

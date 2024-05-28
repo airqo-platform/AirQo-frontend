@@ -148,8 +148,6 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
         })
       : null;
 
-  console.log(analyticsData);
-
   const transformedData =
     (newAnalyticsData &&
       newAnalyticsData?.reduce((acc, curr) => {
