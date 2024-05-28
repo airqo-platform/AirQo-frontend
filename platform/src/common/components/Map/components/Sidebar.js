@@ -7,7 +7,9 @@ import {
   setOpenLocationDetails,
   setSelectedLocation,
   addSuggestedSites,
-  clearData,
+  reSetMap,
+  setSelectedNode,
+  setSelectedWeeklyPrediction,
 } from '@/lib/store/services/map/MapSlice';
 import allCountries from './countries.json';
 import SearchField from '@/components/search/SearchField';
@@ -25,6 +27,9 @@ import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import { dailyPredictionsApi } from '@/core/apis/predict';
 import Spinner from '@/components/Spinner';
 import { capitalizeAllText } from '@/core/utils/strings';
+import { isToday, isTomorrow, isThisWeek, format, isSameDay } from 'date-fns';
+import Calendar from '@/components/Calendar/Calendar';
+import useOutsideClick from '@/core/utils/useOutsideClick';
 
 const MAPBOX_URL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -44,16 +49,14 @@ const TabSelector = ({ selectedTab, setSelectedTab }) => {
           onClick={() => setSelectedTab('locations')}
           className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
             selectedTab === 'locations' ? 'border rounded-md bg-white shadow-sm' : ''
-          }`}
-        >
+          }`}>
           Locations
         </div>
         <div
           onClick={() => setSelectedTab('sites')}
           className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
             selectedTab === 'sites' ? 'border rounded-md bg-white shadow-sm' : ''
-          }`}
-        >
+          }`}>
           Sites
         </div>
       </div>
@@ -109,8 +112,7 @@ const CountryList = ({ siteDetails, data, selectedCountry, setSelectedCountry })
             className={`flex items-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 py-[6px] px-[10px]  min-w-max space-x-2 m-0 ${
               selectedCountry?.country === country.country ? 'border-2 border-blue-400' : ''
             }`}
-            onClick={() => handleClick(country)}
-          >
+            onClick={() => handleClick(country)}>
             <img
               src={`https://flagsapi.com/${country.code.toUpperCase()}/flat/64.png`}
               alt={country.country}
@@ -153,13 +155,12 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
 
   return (
     visibleResults.length > 0 && (
-      <div className='map-scrollbar flex flex-col gap-4 my-5 px-4'>
+      <div className='sidebar-scroll-bar mb-[200px] flex flex-col gap-4 my-5 px-4'>
         {visibleResults.map((grid, index) => (
           <div
             key={grid._id || index} // Use grid._id or index as the key
             className='flex flex-row justify-between items-center text-sm w-full hover:cursor-pointer hover:bg-blue-100 px-4 py-[14px] rounded-xl border border-secondary-neutral-light-100 shadow-sm'
-            onClick={() => handleLocationSelect(grid)}
-          >
+            onClick={() => handleLocationSelect(grid)}>
             <div className='flex flex-col item-start w-full'>
               <span className='text-base font-medium text-black'>
                 {capitalizeAllText(
@@ -171,8 +172,13 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
               <span className='font-medium text-secondary-neutral-light-300 text-sm leading-tight'>
                 {capitalizeAllText(
                   grid && grid?.place_id
-                    ? grid?.description?.split(',').slice(1).join(',')
-                    : grid.search_name?.split(',').slice(1).join(','),
+                    ? grid?.description?.includes(',') &&
+                      grid?.description?.split(',').slice(1).join('').trim()
+                      ? grid?.description?.split(',').slice(1).join(',')
+                      : grid?.description
+                    : grid.region?.includes(',') && grid.region?.split(',').slice(1).join('').trim()
+                    ? grid.region?.split(',').slice(1).join(',')
+                    : grid.region,
                 )}
               </span>
             </div>
@@ -187,8 +193,7 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
               variant='primaryText'
               className='text-sm font-medium'
               paddingStyles='py-4'
-              onClick={handleShowMore}
-            >
+              onClick={handleShowMore}>
               Show More
             </Button>
           </div>
@@ -213,8 +218,7 @@ const SidebarHeader = ({
         {isFocused && (
           <button
             onClick={handleHeaderClick}
-            className='focus:outline-none border rounded-xl hover:cursor-pointer p-2 hidden md:block'
-          >
+            className='focus:outline-none border rounded-xl hover:cursor-pointer p-2 hidden md:block'>
             <CloseIcon />
           </button>
         )}
@@ -228,8 +232,16 @@ const SidebarHeader = ({
 };
 
 // Week prediction
-const WeekPrediction = ({ currentDay, weeklyPredictions, weekDays, loading }) => {
-  const [value, setValue] = useState(new Date());
+const WeekPrediction = ({
+  selectedSite,
+  selectedWeeklyPrediction,
+  currentDay,
+  weeklyPredictions,
+  weekDays,
+  loading,
+}) => {
+  const dispatch = useDispatch();
+  const [value, setValue] = useState(new Date(selectedSite?.time));
   const [openDatePicker, setOpenDatePicker] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -237,32 +249,33 @@ const WeekPrediction = ({ currentDay, weeklyPredictions, weekDays, loading }) =>
     setValue(new Date(value.start));
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDatePicker(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  useOutsideClick(dropdownRef, () => {
+    setOpenDatePicker(false);
+  });
+
+  // Function to determine if the prediction is the selected one or if it's the current day
+  const isActive = (prediction) => {
+    const predictionDay = new Date(prediction.time).toLocaleDateString('en-US', {
+      weekday: 'long',
+    });
+    return selectedWeeklyPrediction
+      ? prediction.time === selectedWeeklyPrediction.time
+      : predictionDay === currentDay;
+  };
 
   return (
-    <div className='relative' ref={dropdownRef}>
-      {/* <div className='mb-5 relative'>
+    <div className='relative'>
+      <div className='mb-5 relative'>
         <Button
-          className='flex flex-row-reverse shadow rounded-lg text-sm text-secondary-neutral-light-600 font-medium leading-tight bg-white h-8 my-1'
+          className='flex flex-row-reverse shadow rounded-md text-sm text-secondary-neutral-light-600 font-medium leading-tight bg-white h-8 my-1'
           variant='outlined'
-          Icon={ChevronDownIcon}
-          onClick={() => setOpenDatePicker(!openDatePicker)}
+          // onClick={() => setOpenDatePicker(!openDatePicker)}
         >
-          {format(value, 'MMM dd, yyyy')}
+          {format(value || new Date(), 'MMM dd, yyyy')}
         </Button>
 
         {openDatePicker && (
-          <div className='absolute z-[900]'>
+          <div className='absolute z-[900]' ref={dropdownRef}>
             <Calendar
               handleValueChange={handleDateValueChange}
               closeDatePicker={() => setOpenDatePicker(false)}
@@ -272,75 +285,75 @@ const WeekPrediction = ({ currentDay, weeklyPredictions, weekDays, loading }) =>
             />
           </div>
         )}
-      </div> */}
+      </div>
       <div className='flex justify-between items-center gap-2'>
         {weeklyPredictions && weeklyPredictions.length > 0
           ? weeklyPredictions.map((prediction, index) => (
               <div
                 key={index}
+                onClick={() => dispatch(setSelectedWeeklyPrediction(prediction))}
                 className={`rounded-[40px] px-0.5 pt-1.5 pb-0.5 flex flex-col justify-center items-center gap-2 shadow ${
-                  new Date(prediction.time).toLocaleDateString('en-US', { weekday: 'long' }) ===
-                  currentDay
-                    ? 'bg-blue-600'
-                    : 'bg-secondary-neutral-dark-100'
-                }`}
-              >
+                  isActive(prediction) ? 'bg-blue-600' : 'bg-secondary-neutral-dark-100'
+                }`}>
                 <div className='flex flex-col items-center justify-start gap-[3px]'>
                   <div
                     className={`text-center text-sm font-semibold leading-tight ${
-                      new Date(prediction.time).toLocaleDateString('en-US', { weekday: 'long' }) ===
-                      currentDay
-                        ? 'text-primary-300'
-                        : 'text-secondary-neutral-dark-400'
-                    }`}
-                  >
+                      isActive(prediction) ? 'text-primary-300' : 'text-secondary-neutral-dark-400'
+                    }`}>
                     {new Date(prediction.time)
                       .toLocaleDateString('en-US', { weekday: 'long' })
                       .charAt(0)}
                   </div>
                   {loading ? (
-                    <div className='mx-auto'>
-                      <Spinner width={6} height={6} />
-                    </div>
+                    <Spinner width={6} height={6} />
                   ) : (
                     <div
                       className={`text-center text-sm font-medium leading-tight ${
-                        new Date(prediction.time).toLocaleDateString('en-US', {
-                          weekday: 'long',
-                        }) === currentDay
-                          ? 'text-white'
-                          : 'text-secondary-neutral-dark-200'
-                      }`}
-                    >
-                      {prediction?.pm2_5?.toFixed(0)}
+                        isActive(prediction) ? 'text-white' : 'text-secondary-neutral-dark-200'
+                      }`}>
+                      {new Date(prediction.time).toLocaleDateString('en-US', {
+                        day: 'numeric',
+                      })}
                     </div>
                   )}
                 </div>
-                <Image
-                  src={
-                    prediction.pm2_5 && getAQIcon('pm2_5', prediction.pm2_5)
-                      ? images[getAQIcon('pm2_5', prediction.pm2_5)]
-                      : images['Invalid']
-                  }
-                  alt='Air Quality Icon'
-                  width={32}
-                  height={32}
-                />
+                {isSameDay(new Date(selectedSite.time), new Date(prediction.time)) ? (
+                  <Image
+                    src={
+                      selectedSite.pm2_5 && getAQIcon('pm2_5', selectedSite.pm2_5)
+                        ? images[getAQIcon('pm2_5', selectedSite.pm2_5)]
+                        : images['Invalid']
+                    }
+                    alt='Air Quality Icon'
+                    width={32}
+                    height={32}
+                  />
+                ) : (
+                  <Image
+                    src={
+                      prediction.pm2_5 && getAQIcon('pm2_5', prediction.pm2_5)
+                        ? images[getAQIcon('pm2_5', prediction.pm2_5)]
+                        : images['Invalid']
+                    }
+                    alt='Air Quality Icon'
+                    width={32}
+                    height={32}
+                  />
+                )}
               </div>
             ))
           : weekDays.map((day) => (
               <div
-                className='rounded-[40px] px-0.5 pt-1.5 pb-0.5 flex flex-col justify-center items-center gap-2 shadow bg-secondary-neutral-dark-100'
-                key={day}
-              >
+                className={`rounded-[40px] px-0.5 pt-1.5 pb-0.5 flex flex-col justify-center items-center gap-2 shadow ${
+                  day === currentDay ? 'bg-blue-600' : 'bg-secondary-neutral-dark-100'
+                }`}
+                key={day}>
                 <div className='flex flex-col items-center justify-start gap-[3px]'>
                   <div className='text-center text-sm font-semibold leading-tight text-secondary-neutral-dark-400'>
                     {day.charAt(0)}
                   </div>
                   {loading ? (
-                    <div className='mx-auto'>
-                      <Spinner width={6} height={6} />
-                    </div>
+                    <Spinner width={6} height={6} />
                   ) : (
                     <div className='text-center text-sm font-medium leading-tight text-secondary-neutral-dark-200'>
                       --
@@ -362,8 +375,7 @@ const LocationDetailItem = ({ title, children, isCollapsed = true }) => {
     <div className='p-3 bg-white rounded-lg shadow border border-secondary-neutral-dark-100 flex-col justify-center items-center'>
       <div
         className={`flex justify-between items-center ${collapsed && 'mb-2'} cursor-pointer`}
-        onClick={() => setCollapsed(!collapsed)}
-      >
+        onClick={() => setCollapsed(!collapsed)}>
         <div className='flex justify-start items-center gap-3'>
           <div className='w-10 h-10 rounded-full bg-secondary-neutral-dark-50 p-2 flex items-center justify-center text-xl font-bold'>
             🚨
@@ -421,11 +433,10 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
     nearMe: [],
   });
   const [weeklyPredictions, setWeeklyPredictions] = useState([]);
+  const selectedWeeklyPrediction = useSelector((state) => state.map.selectedWeeklyPrediction);
   const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
-
   const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
-
   const focus = isFocused || reduxSearchTerm.length > 0;
   const selectedSites = useSelector((state) => state.map.suggestedSites);
 
@@ -583,10 +594,6 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
     }
   };
 
-  const handleClearSearch = () => {
-    handleHeaderClick();
-  };
-
   useEffect(() => {
     if (reduxSearchTerm !== '') {
       setLoading(true);
@@ -594,15 +601,6 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
       setLoading(false);
     }
   }, [reduxSearchTerm]);
-
-  const handleHeaderClick = () => {
-    setIsFocused(false);
-    dispatch(setOpenLocationDetails(false));
-    dispatch(setSelectedLocation(null));
-    dispatch(addSearchTerm(''));
-    setSearchResults([]);
-    setShowNoResultsMsg(false);
-  };
 
   useEffect(() => {
     const fetchWeeklyPredictions = async () => {
@@ -625,16 +623,96 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
     fetchWeeklyPredictions();
   }, [selectedSite]);
 
+  /**
+   * Handle exit
+   * */
+  const handleExit = () => {
+    setIsFocused(false);
+    dispatch(setOpenLocationDetails(false));
+    dispatch(setSelectedLocation(null));
+    dispatch(addSearchTerm(''));
+    setSearchResults([]);
+    setShowNoResultsMsg(false);
+    dispatch(setSelectedNode(null));
+    dispatch(setSelectedWeeklyPrediction(null));
+    dispatch(reSetMap());
+  };
+
+  /**
+   * Handle all selection
+   */
+  const handleAllSelection = () => {
+    setSelectedCountry(null);
+    dispatch(reSetMap());
+    const selSites = siteDetails
+      ? [...siteDetails].sort((a, b) => a.name.localeCompare(b.name))
+      : [];
+    dispatch(addSuggestedSites(selSites));
+  };
+
+  /**
+   * Handle clear search
+   */
+  const handleClearSearch = () => {
+    handleExit();
+  };
+
+  // Helper function to insert space before capital letters
+  const addSpacesToCategory = (category) => {
+    return category.split('').reduce((result, char, index) => {
+      if (index > 0 && char === char.toUpperCase()) {
+        return result + ' ' + char;
+      }
+      return result + char;
+    }, '');
+  };
+
+  // Helper function to format the date message
+  const formatDateMessage = (date) => {
+    if (isToday(date)) {
+      return 'today';
+    } else if (isTomorrow(date)) {
+      return 'tomorrow';
+    } else if (isThisWeek(date)) {
+      return 'this week';
+    } else {
+      return format(date, 'MMMM do');
+    }
+  };
+
   return (
-    <div className='w-full min-w-[380px] lg:w-[470px] h-dvh bg-white sidebar-scroll-bar mb-4'>
+    <div className='w-full h-dvh bg-white overflow-hidden mb-4'>
       {/* Sidebar Header */}
-      <div className={`${!isFocused && !showLocationDetails ? 'space-y-4' : 'hidden'} px-4 pt-4`}>
-        <SidebarHeader selectedTab={selectedTab} handleSelectedTab={handleSelectedTab} isAdmin />
+      <div className={`${!isFocused && !showLocationDetails ? 'space-y-4' : 'hidden'} pt-4`}>
+        <div className='px-4'>
+          <SidebarHeader selectedTab={selectedTab} handleSelectedTab={handleSelectedTab} isAdmin />
+        </div>
         {!isAdmin && <hr />}
+        <div className={`${isFocused || showLocationDetails ? 'hidden' : ''}`}>
+          <div onClick={() => setIsFocused(true)} className='mt-5 px-4'>
+            <SearchField showSearchResultsNumber={false} focus={false} />
+          </div>
+          <div className='flex items-center mt-5 overflow-hidden px-4 transition-all duration-300 ease-in-out'>
+            <button
+              onClick={handleAllSelection}
+              className='py-[6px] px-[10px] rounded-full mb-3 bg-blue-500 text-white text-sm font-medium'>
+              All
+            </button>
+            <div className='country-scroll-bar'>
+              <CountryList
+                data={countryData}
+                selectedCountry={selectedCountry}
+                setSelectedCountry={setSelectedCountry}
+                siteDetails={siteDetails}
+              />
+            </div>
+          </div>
+          <div className='border border-secondary-neutral-light-100 my-5' />
+        </div>
       </div>
 
-      <div className='h-dvh'>
-        {/* section 1 */}
+      {/* section 1 */}
+      <div className='h-dvh sidebar-scroll-bar'>
         {selectedSite && mapLoading ? (
           // show a loading skeleton
           <div className='flex flex-col gap-4 animate-pulse px-4 mt-5'>
@@ -644,65 +722,32 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
           </div>
         ) : (
           <div className={`${isFocused || showLocationDetails ? 'hidden' : ''}`}>
-            <div onClick={() => setIsFocused(true)} className='mt-5 px-4'>
-              <SearchField showSearchResultsNumber={false} focus={false} />
-            </div>
-            <div>
-              <div className='flex items-center mt-5 overflow-hidden px-4 transition-all duration-300 ease-in-out'>
-                <button
-                  onClick={() => {
-                    dispatch(clearData());
-                    const selSites = siteDetails
-                      ? [...siteDetails].sort((a, b) => a.name.localeCompare(b.name))
-                      : [];
-                    dispatch(addSuggestedSites(selSites));
-                    setSelectedCountry(null);
-                  }}
-                  className='py-[6px] px-[10px] rounded-full mb-3 bg-blue-500 text-white text-sm font-medium'
-                >
-                  All
-                </button>
-                <div className='country-scroll-bar'>
-                  <CountryList
-                    data={countryData}
-                    selectedCountry={selectedCountry}
-                    setSelectedCountry={setSelectedCountry}
-                    siteDetails={siteDetails}
-                  />
-                </div>
-              </div>
-
-              <div className='border border-secondary-neutral-light-100 my-5' />
-
-              <div>
-                {selectedSites && selectedSites.length > 0 && (
-                  <>
-                    <div className='flex justify-between items-center px-4'>
-                      <div className='flex gap-1'>
-                        <div className='font-medium text-secondary-neutral-dark-400 text-sm'>
-                          Sort by:
-                        </div>
-                        <select className='rounded-md m-0 p-0 text-sm text-center font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none'>
-                          <option value='custom'>Suggested</option>
-                          {/* <option value='near_me'>Near me</option> */}
-                        </select>
-                      </div>
-                      {/* <Button
+            {selectedSites && selectedSites.length > 0 && (
+              <>
+                <div className='flex justify-between items-center px-4'>
+                  <div className='flex gap-1'>
+                    <div className='font-medium text-secondary-neutral-dark-400 text-sm'>
+                      Sort by:
+                    </div>
+                    <select className='rounded-md m-0 p-0 text-sm text-center font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none'>
+                      <option value='custom'>Suggested</option>
+                      {/* <option value='near_me'>Near me</option> */}
+                    </select>
+                  </div>
+                  {/* <Button
                         className='text-sm font-medium'
                         paddingStyles='p-0'
                         variant='primaryText'
                         onClick={() => {}}>
                         Filters
                       </Button> */}
-                    </div>
-                    <SectionCards
-                      searchResults={selectedSites}
-                      handleLocationSelect={handleLocationSelect}
-                    />
-                  </>
-                )}
-              </div>
-            </div>
+                </div>
+                <SectionCards
+                  searchResults={selectedSites}
+                  handleLocationSelect={handleLocationSelect}
+                />
+              </>
+            )}
           </div>
         )}
 
@@ -710,8 +755,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
         <div
           className={`flex flex-col h-full pt-4 w-auto ${
             isFocused && !showLocationDetails ? '' : 'hidden'
-          }`}
-        >
+          }`}>
           {/* Sidebar Header */}
           <div className={`flex flex-col gap-5 px-4`}>
             <SidebarHeader
@@ -719,7 +763,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
               handleSelectedTab={handleSelectedTab}
               isAdmin
               isFocused={isFocused}
-              handleHeaderClick={handleHeaderClick}
+              handleHeaderClick={handleExit}
             />
             <SearchField
               onSearch={() => handleSearch()}
@@ -743,7 +787,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
 
           {isLoading && searchResults.length === 0 && <SearchResultsSkeleton />}
 
-          {searchResults?.length === 0 && !isLoading && showNoResultsMsg ? (
+          {searchResults?.length === 0 && !isLoading ? (
             <div className='flex flex-col justify-center items-center h-full w-full px-6'>
               <div className='p-5 rounded-full bg-secondary-neutral-light-50 border border-secondary-neutral-light-25 mb-2.5'>
                 <LocationIcon fill='#9EA3AA' />
@@ -769,17 +813,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
           <div>
             <div className='bg-secondary-neutral-dark-50 pt-6 pb-5'>
               <div className='flex items-center gap-2 text-black-800 mb-4 mx-4'>
-                <Button
-                  paddingStyles='p-0'
-                  onClick={() => {
-                    setIsFocused(false);
-                    dispatch(setOpenLocationDetails(false));
-                    dispatch(setSelectedLocation(null));
-                    dispatch(addSearchTerm(''));
-                    setSearchResults([]);
-                    setShowNoResultsMsg(false);
-                  }}
-                >
+                <Button paddingStyles='p-0' onClick={handleExit}>
                   <ArrowLeftIcon />
                 </Button>
                 <h3 className='text-xl font-medium leading-7'>
@@ -796,6 +830,8 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
 
               <div className='mx-4'>
                 <WeekPrediction
+                  selectedSite={selectedSite}
+                  selectedWeeklyPrediction={selectedWeeklyPrediction}
                   currentDay={currentDay}
                   weeklyPredictions={weeklyPredictions}
                   weekDays={weekDays}
@@ -806,7 +842,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
 
             <div className='border border-secondary-neutral-light-100 my-5' />
 
-            <div className='mx-4 mb-5 flex flex-col gap-4'>
+            <div className='mx-4 mb-5 sidebar-scroll-bar h-dvh flex flex-col gap-4'>
               <div className='px-3 pt-3 pb-4 bg-secondary-neutral-dark-50 rounded-lg shadow border border-secondary-neutral-dark-100 flex justify-between items-center'>
                 <div className='flex flex-col gap-1'>
                   <div className='flex items-center gap-1'>
@@ -818,17 +854,27 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
                     </p>
                   </div>
                   <div
-                    className={`text-2xl font-extrabold leading-normal text-secondary-neutral-light-800`}
-                  >
-                    {selectedSite?.pm2_5?.toFixed(2) || '-'}
+                    className={`text-2xl font-extrabold leading-normal text-secondary-neutral-light-800`}>
+                    {selectedWeeklyPrediction
+                      ? isSameDay(
+                          new Date(selectedSite.time),
+                          new Date(selectedWeeklyPrediction.time),
+                        )
+                        ? selectedSite.pm2_5?.toFixed(2)
+                        : selectedWeeklyPrediction.pm2_5?.toFixed(2)
+                      : selectedSite?.pm2_5?.toFixed(2) || '-'}
                   </div>
                 </div>
                 <Image
                   src={
-                    selectedSite?.pm2_5?.toFixed(2) &&
-                    getAQIcon('pm2_5', selectedSite?.pm2_5?.toFixed(2))
-                      ? images[getAQIcon('pm2_5', selectedSite?.pm2_5?.toFixed(2))]
-                      : images['Invalid']
+                    selectedWeeklyPrediction
+                      ? isSameDay(
+                          new Date(selectedSite.time),
+                          new Date(selectedWeeklyPrediction.time),
+                        )
+                        ? images[getAQIcon('pm2_5', selectedSite.pm2_5)]
+                        : images[getAQIcon('pm2_5', selectedWeeklyPrediction.pm2_5)]
+                      : images[getAQIcon('pm2_5', selectedSite.pm2_5)] || images['Invalid']
                   }
                   alt='Air Quality Icon'
                   width={80}
@@ -840,19 +886,62 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
                 title='Air Quality Alerts'
                 isCollapsed
                 children={
+                  (selectedWeeklyPrediction && selectedWeeklyPrediction.airQuality) ||
                   selectedSite?.airQuality ? (
                     <p className='text-xl font-bold leading-7 text-secondary-neutral-dark-950'>
                       <span className='text-blue-500'>
                         {capitalizeAllText(
-                          selectedSite?.description?.split(',')[0] ||
-                            selectedSite?.name?.split(',')[0] ||
-                            selectedSite?.search_name ||
-                            selectedSite?.location,
+                          selectedWeeklyPrediction && selectedWeeklyPrediction.description
+                            ? selectedWeeklyPrediction.description.split(',')[0]
+                            : selectedSite?.description?.split(',')[0] ||
+                                selectedSite?.name?.split(',')[0] ||
+                                selectedSite?.search_name ||
+                                selectedSite?.location,
                         )}
                         's
                       </span>{' '}
-                      Air Quality is expected to be {selectedSite?.airQuality} today.{' '}
-                      {getAQIMessage('pm2_5', selectedSite?.pm2_5?.toFixed(2))}
+                      Air Quality is expected to be{' '}
+                      {selectedWeeklyPrediction
+                        ? isSameDay(
+                            new Date(selectedSite.time),
+                            new Date(selectedWeeklyPrediction.time),
+                          )
+                          ? addSpacesToCategory(
+                              getAQICategory('pm2_5', selectedSite.pm2_5).category,
+                            )
+                          : addSpacesToCategory(
+                              getAQICategory('pm2_5', selectedWeeklyPrediction.pm2_5).category,
+                            )
+                        : addSpacesToCategory(
+                            getAQICategory('pm2_5', selectedSite.pm2_5).category,
+                          )}{' '}
+                      {formatDateMessage(
+                        selectedWeeklyPrediction
+                          ? isSameDay(
+                              new Date(selectedSite.time),
+                              new Date(selectedWeeklyPrediction.time),
+                            )
+                            ? new Date(selectedSite.time)
+                            : new Date(selectedWeeklyPrediction.time)
+                          : new Date(selectedSite.time),
+                      )}
+                      .{' '}
+                      {getAQIMessage(
+                        'pm2_5',
+                        formatDateMessage(
+                          selectedWeeklyPrediction
+                            ? isSameDay(
+                                new Date(selectedSite.time),
+                                new Date(selectedWeeklyPrediction.time),
+                              )
+                              ? new Date(selectedSite.time)
+                              : new Date(selectedWeeklyPrediction.time)
+                            : new Date(selectedSite.time),
+                        ),
+                        selectedWeeklyPrediction
+                          ? selectedWeeklyPrediction.pm2_5.toFixed(2)
+                          : selectedSite?.pm2_5?.toFixed(2),
+                      )}
                     </p>
                   ) : (
                     <p className='text-xl font-bold leading-7 text-secondary-neutral-dark-950'>

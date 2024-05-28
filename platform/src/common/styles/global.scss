@@ -48,6 +48,7 @@ select:focus {
   overflow-y: auto;
   overflow-x: hidden;
   cursor: pointer;
+  transition: all 0.3s ease;
 
   // Hide the scrollbar by default
   &::-webkit-scrollbar {
@@ -214,15 +215,21 @@ select:focus {
   }
 }
 
+.mapboxgl-ctrl-group:not(:empty) {
+  box-shadow: none;
+}
+
+.mapboxgl-ctrl-group,
+.mapboxgl-ctrl {
+  box-shadow: none;
+}
+
 @media (max-width: 1023px) {
   .mapboxgl-ctrl-attrib {
     display: none;
   }
 
   .mapboxgl-ctrl-bottom-right {
-    display: flex;
-    align-items: center;
-    justify-content: center;
     padding: 0;
     margin: 0;
   }
