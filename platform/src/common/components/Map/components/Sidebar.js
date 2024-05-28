@@ -27,9 +27,10 @@ import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import { dailyPredictionsApi } from '@/core/apis/predict';
 import Spinner from '@/components/Spinner';
 import { capitalizeAllText } from '@/core/utils/strings';
-import { isToday, isTomorrow, isThisWeek, format, isSameDay } from 'date-fns';
+import { isValid, parseISO, isToday, isTomorrow, isThisWeek, format, isSameDay } from 'date-fns';
 import Calendar from '@/components/Calendar/Calendar';
 import useOutsideClick from '@/core/utils/useOutsideClick';
+import { useWindowSize } from '@/lib/windowSize';
 
 const MAPBOX_URL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -241,19 +242,21 @@ const WeekPrediction = ({
   loading,
 }) => {
   const dispatch = useDispatch();
-  const [value, setValue] = useState(new Date(selectedSite?.time));
+  // Ensure the initial value is a valid date object
+  const [value, setValue] = useState(selectedSite?.time ? new Date(selectedSite.time) : new Date());
   const [openDatePicker, setOpenDatePicker] = useState(false);
   const dropdownRef = useRef(null);
 
-  const handleDateValueChange = (value) => {
-    setValue(new Date(value.start));
+  const handleDateValueChange = (newValue) => {
+    // Ensure the new value is a valid date object
+    const date = newValue.start ? new Date(newValue.start) : new Date();
+    setValue(date);
   };
 
   useOutsideClick(dropdownRef, () => {
     setOpenDatePicker(false);
   });
 
-  // Function to determine if the prediction is the selected one or if it's the current day
   const isActive = (prediction) => {
     const predictionDay = new Date(prediction.time).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -261,6 +264,11 @@ const WeekPrediction = ({
     return selectedWeeklyPrediction
       ? prediction.time === selectedWeeklyPrediction.time
       : predictionDay === currentDay;
+  };
+
+  // Helper function to safely format the date
+  const safeFormatDate = (date) => {
+    return isValid(date) ? format(date, 'MMM dd, yyyy') : 'Invalid date';
   };
 
   return (
@@ -271,7 +279,7 @@ const WeekPrediction = ({
           variant='outlined'
           // onClick={() => setOpenDatePicker(!openDatePicker)}
         >
-          {format(value || new Date(), 'MMM dd, yyyy')}
+          {safeFormatDate(value)}
         </Button>
 
         {openDatePicker && (
@@ -410,6 +418,7 @@ const SearchResultsSkeleton = () => {
 
 const Sidebar = ({ siteDetails, isAdmin }) => {
   const dispatch = useDispatch();
+  const { width } = useWindowSize();
   const [isFocused, setIsFocused] = useState(false);
   const [countryData, setCountryData] = useState([]);
   const [countryFlatList, setCountryFlatList] = useState([]);
@@ -842,7 +851,10 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
 
             <div className='border border-secondary-neutral-light-100 my-5' />
 
-            <div className='mx-4 mb-5 sidebar-scroll-bar h-dvh flex flex-col gap-4'>
+            <div
+              className={`mx-4 mb-5 ${
+                width < 1024 ? 'sidebar-scroll-bar h-dvh' : ''
+              } flex flex-col gap-4`}>
               <div className='px-3 pt-3 pb-4 bg-secondary-neutral-dark-50 rounded-lg shadow border border-secondary-neutral-dark-100 flex justify-between items-center'>
                 <div className='flex flex-col gap-1'>
                   <div className='flex items-center gap-1'>
