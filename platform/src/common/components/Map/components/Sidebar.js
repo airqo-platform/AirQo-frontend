@@ -787,7 +787,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
 
           {isLoading && searchResults.length === 0 && <SearchResultsSkeleton />}
 
-          {searchResults?.length === 0 && !isLoading && showNoResultsMsg ? (
+          {searchResults?.length === 0 && !isLoading ? (
             <div className='flex flex-col justify-center items-center h-full w-full px-6'>
               <div className='p-5 rounded-full bg-secondary-neutral-light-50 border border-secondary-neutral-light-25 mb-2.5'>
                 <LocationIcon fill='#9EA3AA' />
