@@ -16,11 +16,13 @@ const OverView = () => {
   const siteData = useSelector((state) => state.grids.sitesSummary);
   const preferencesLoading = useSelector((state) => state.userDefaults.status === 'loading');
 
+  // console.log("Sites", chartData.chartSites)
+  // console.log("recentLocationMeasurements",recentLocationMeasurements)
+
   useEffect(() => {
     if (preferencesLoading) return;
 
     setIsLoadingMeasurements(true);
-
     try {
       if (chartData.chartSites?.length > 0) {
         dispatch(
@@ -35,6 +37,19 @@ const OverView = () => {
       setIsLoadingMeasurements(false);
     }
   }, [chartData, preferenceData]);
+
+  function getSiteName(siteId) {
+    if (preferenceData?.length === 0) {
+      return null;
+    }
+    const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
+    return site ? site.search_name?.split(',')[0] : '';
+  }
+
+  const getExistingSiteName = (siteId) => {
+    const site = siteData?.sites?.find((site) => site._id === siteId);
+    return site ? site.search_name : '';
+  };
 
   const dummyData = {
     siteDetails: {
@@ -68,8 +83,16 @@ const OverView = () => {
             return (
               <AQNumberCard
                 key={index}
-                location={event?.siteDetails?.search_name}
-                locationFullName={event?.siteDetails?.search_name}
+                location={
+                  getSiteName(event.site_id) ||
+                  getExistingSiteName(event.site_id) ||
+                  event?.siteDetails?.search_name
+                }
+                locationFullName={
+                  getSiteName(event.site_id) ||
+                  getExistingSiteName(event.site_id) ||
+                  event?.siteDetails?.search_name
+                }
                 reading={event.pm2_5.value}
                 count={displayData.length}
                 pollutant={pollutantType}
