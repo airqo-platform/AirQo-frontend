@@ -14,12 +14,16 @@ const initialState = {
   selectedLocation: null,
   mapLoading: false,
   suggestedSites: [],
+  selectedNode: null,
 };
 
 export const mapSlice = createSlice({
   name: 'map',
   initialState,
   reducers: {
+    setSelectedNode: (state, action) => {
+      state.selectedNode = action.payload;
+    },
     setCenter: (state, action) => {
       const { latitude, longitude } = action.payload || {};
       if (latitude && longitude) {
@@ -37,6 +41,11 @@ export const mapSlice = createSlice({
     },
     clearData: (state) => {
       return initialState;
+    },
+    reSetMap: (state) => {
+      state.center = initialState.center;
+      state.zoom = initialState.zoom;
+      state.location = initialState.location;
     },
     setOpenLocationDetails: (state, action) => {
       state.showLocationDetails = action.payload;
@@ -62,4 +71,6 @@ export const {
   setSelectedLocation,
   setMapLoading,
   addSuggestedSites,
+  setSelectedNode,
+  reSetMap,
 } = mapSlice.actions;
