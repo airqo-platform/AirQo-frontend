@@ -842,7 +842,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
 
             <div className='border border-secondary-neutral-light-100 my-5' />
 
-            <div className='mx-4 mb-5 flex flex-col gap-4'>
+            <div className='mx-4 mb-5 sidebar-scroll-bar h-dvh flex flex-col gap-4'>
               <div className='px-3 pt-3 pb-4 bg-secondary-neutral-dark-50 rounded-lg shadow border border-secondary-neutral-dark-100 flex justify-between items-center'>
                 <div className='flex flex-col gap-1'>
                   <div className='flex items-center gap-1'>
