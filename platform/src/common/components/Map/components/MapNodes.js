@@ -90,18 +90,6 @@ const colors = {
   undefined: '#C6D1DB',
 };
 
-const messages = {
-  GoodAir: 'Enjoy the day with confidence in the clean air around you.',
-  ModerateAir: 'Today is a great day for an outdoor activity.',
-  UnhealthyForSensitiveGroups: 'Reduce the intensity of your outdoor activities.',
-  Unhealthy:
-    'Avoid activities that make you breathe more rapidly. Today is the perfect day to spend indoors reading.',
-  VeryUnhealthy:
-    'Reduce the intensity of your outdoor activities. Try to stay indoors until the air quality improves.',
-  Hazardous:
-    'If you have to spend a lot of time outside, disposable masks like the N95 are helpful.',
-};
-
 /**
  * Get AQI category based on pollutant and value
  * @param {String} pollutant
@@ -138,14 +126,40 @@ export const getAQIcon = (pollutant, value) => {
   }
 };
 
-export const getAQIMessage = (pollutant, value) => {
+export const getAQIMessage = (pollutant, timePeriod, value) => {
   if (!markerDetails.hasOwnProperty(pollutant)) {
     throw new Error(`Invalid pollutant: ${pollutant}`);
   }
 
   const aqiCategory = getAQICategory(pollutant, value);
 
-  return messages[aqiCategory?.icon] || '';
+  if (aqiCategory?.icon === 'GoodAir') {
+    return 'Enjoy the day with confidence in the clean air around you.';
+  } else if (aqiCategory?.icon === 'ModerateAir') {
+    return `${
+      timePeriod === 'this week'
+        ? 'This week is a great time to be outdoors.'
+        : `${
+            timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1)
+          } is a great day for an outdoor activity.`
+    }`;
+  } else if (aqiCategory?.icon === 'UnhealthyForSensitiveGroups') {
+    return 'Reduce the intensity of your outdoor activities.';
+  } else if (aqiCategory?.icon === 'Unhealthy') {
+    return `${
+      timePeriod === 'this week'
+        ? 'Avoid activities that make you breathe more rapidly. This week is the perfect time to spend indoors reading.'
+        : `Avoid activities that make you breathe more rapidly. ${
+            timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1)
+          } is the perfect time to spend indoors reading.`
+    }`;
+  } else if (aqiCategory?.icon === 'VeryUnhealthy') {
+    return 'Reduce the intensity of your outdoor activities. Try to stay indoors until the air quality improves.';
+  } else if (aqiCategory?.icon === 'Hazardous') {
+    return 'If you have to spend a lot of time outside, disposable masks like the N95 are helpful.';
+  } else {
+    return '';
+  }
 };
 
 /**

@@ -148,7 +148,10 @@ const Layout = ({
               <AuthenticatedSideBar />
             </div>
           )}
-          <div className='w-full h-dvh overflow-y-auto transition-all duration-300 ease-in-out'>
+          <div
+            className={`w-full h-dvh ${
+              router.pathname === '/map' ? 'overflow-hidden' : 'overflow-y-auto'
+            } transition-all duration-300 ease-in-out`}>
             {noTopNav && <TopBar topbarTitle={topbarTitle} noBorderBottom={noBorderBottom} />}
             <div className='overflow-hidden w-full'>{children}</div>
           </div>
