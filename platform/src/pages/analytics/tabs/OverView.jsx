@@ -14,6 +14,8 @@ const useFetchMeasurements = () => {
   const preferencesLoading = useSelector((state) => state.userDefaults.status === 'loading');
   const refreshChart = useSelector((state) => state.chart.refreshChart);
 
+  console.log(chartData.chartSites);
+
   useEffect(() => {
     if (preferencesLoading) return;
 

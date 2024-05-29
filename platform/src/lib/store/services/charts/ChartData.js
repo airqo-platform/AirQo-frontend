@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
 
 export const fetchAnalyticsData = createAsyncThunk('analytics/fetchData', async (body) => {
+  console.log(body);
   const response = await getAnalyticsData(body);
   return response.data;
 });
@@ -26,10 +27,12 @@ const analyticsSlice = createSlice({
         state.status = 'loading';
       })
       .addCase(fetchAnalyticsData.fulfilled, (state, action) => {
+        console.log('SUCCESS:', action.payload);
         state.status = 'succeeded';
         state.data = action.payload;
       })
       .addCase(fetchAnalyticsData.rejected, (state, action) => {
+        console.log('ERROR:', action);
         state.status = 'failed';
         state.error = action.error.message;
       });
