@@ -15,6 +15,9 @@ import {
   setSelectedNode,
   reSetMap,
   setSelectedWeeklyPrediction,
+  setMapReadingsData,
+  setWaqData,
+  clearData,
 } from '@/lib/store/services/map/MapSlice';
 import LayerModal from './components/LayerModal';
 import Loader from '@/components/Spinner';
@@ -85,6 +88,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   const urlParams = new URLSearchParams(urls.search);
   const mapData = useSelector((state) => state.map);
   const selectedNode = useSelector((state) => state.map.selectedNode);
+  const mapReadingsData = useSelector((state) => state.map.mapReadingsData);
+  const waqData = useSelector((state) => state.map.waqData);
   const [toastMessage, setToastMessage] = useState({
     message: '',
     type: '',
@@ -94,12 +99,22 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   // Default node type is Emoji and default map style is streets
   const [NodeType, setNodeType] = useState('Emoji');
   const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/streets-v11');
-  const [mapReadingsData, setMapReadingsData] = useState([]);
-  const [waqData, setWaqData] = useState([]);
 
   const lat = urlParams.get('lat');
   const lng = urlParams.get('lng');
   const zm = urlParams.get('zm');
+
+  /**
+   * Once user user leaves the map page when unmounting the component clear the data
+   * @sideEffect
+   * - Clear data on unmount
+   * @returns {void}
+   * */
+  useEffect(() => {
+    return () => {
+      dispatch(clearData());
+    };
+  }, []);
 
   /**
    * Stop loaders after 10 seconds
@@ -310,14 +325,14 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   // Fetch and process data
   const fetchAndProcessData = useCallback(async () => {
     // Only fetch new data if the state variables are empty
-    if (mapReadingsData.length === 0) {
+    if (!mapReadingsData || mapReadingsData?.length === 0) {
       const newMapReadingsData = await fetchAndProcessMapReadings();
-      setMapReadingsData(newMapReadingsData);
+      dispatch(setMapReadingsData(newMapReadingsData));
     }
 
-    if (waqData.length === 0) {
+    if (!waqData || waqData?.length === 0) {
       const newWaqData = await fetchAndProcessWaqData(AQI_FOR_CITIES);
-      setWaqData(newWaqData);
+      dispatch(setWaqData(newWaqData));
     }
   }, [mapReadingsData, waqData]);
 
@@ -327,7 +342,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     // Initialize Super cluster
     const index = new Supercluster({
       radius: 40,
-      maxZoom: 16,
     });
 
     // Assign the index instance to indexRef.current
@@ -337,7 +351,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     map.on('moveend', updateClusters);
 
     // Use state variables instead of fetching new data
-    if (mapReadingsData.length > 0) {
+    if (mapReadingsData?.length > 0) {
       try {
         index.load(mapReadingsData);
         updateClusters();
@@ -347,7 +361,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
       }
     }
 
-    if (waqData.length > 0) {
+    if (waqData?.length > 0) {
       try {
         // Combine mapReadingsData and waqData
         const data = [...mapReadingsData, ...waqData];
@@ -358,7 +372,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         return;
       }
     }
-  }, [selectedNode, NodeType, mapStyle, pollutant, refresh, waqData, mapReadingsData, width]);
+  }, [selectedNode, NodeType, pollutant, refresh, waqData, mapReadingsData, width]);
 
   /**
    * Get the two most common AQIs in a cluster.

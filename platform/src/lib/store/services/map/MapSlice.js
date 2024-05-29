@@ -6,16 +6,18 @@ const initialState = {
     city: '',
   },
   center: {
-    latitude: 4.413,
-    longitude: 19.8342,
+    latitude: 9.7037,
+    longitude: 19.9573,
   },
-  zoom: 3.12,
+  zoom: 3.27,
   showLocationDetails: false,
   selectedLocation: null,
   mapLoading: false,
   suggestedSites: [],
   selectedNode: null,
   selectedWeeklyPrediction: null,
+  mapReadingsData: [],
+  waqData: [],
 };
 
 export const mapSlice = createSlice({
@@ -63,6 +65,12 @@ export const mapSlice = createSlice({
     addSuggestedSites: (state, action) => {
       state.suggestedSites = action.payload;
     },
+    setMapReadingsData: (state, action) => {
+      state.mapReadingsData = action.payload;
+    },
+    setWaqData: (state, action) => {
+      state.waqData = action.payload;
+    },
   },
 });
 
@@ -78,4 +86,6 @@ export const {
   setSelectedNode,
   reSetMap,
   setSelectedWeeklyPrediction,
+  setMapReadingsData,
+  setWaqData,
 } = mapSlice.actions;
