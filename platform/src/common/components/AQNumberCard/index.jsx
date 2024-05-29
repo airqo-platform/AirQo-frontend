@@ -4,47 +4,51 @@ import Moderate from '@/icons/Charts/Moderate';
 import Unhealthy from '@/icons/Charts/Unhealthy';
 import UnhealthySG from '@/icons/Charts/UnhealthySG';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
+import UnknownAQ from '@/icons/Charts/Invalid';
 import WindIcon from '@/icons/Common/wind.svg';
 import CustomTooltip from '../Tooltip';
 import { useWindowSize } from '@/lib/windowSize';
 import { capitalizeAllText } from '@/core/utils/strings';
 
-const AQNumberCard = ({ reading, location, pollutant, count, locationFullName }) => {
+const AQNumberCard = ({
+  reading,
+  location,
+  pollutant,
+  count,
+  locationFullName,
+  isLoading = false,
+}) => {
   let airQualityText = '';
   let AirQualityIcon = null;
-  let airQualityColor = '';
   const window = useWindowSize().width;
 
   if (reading >= 0 && reading <= 12) {
     airQualityText = 'Air Quality is Good';
     AirQualityIcon = GoodAir;
-    airQualityColor = 'text-green-500';
   } else if (reading > 12 && reading <= 35.4) {
     airQualityText = 'Air Quality is Moderate';
     AirQualityIcon = Moderate;
-    airQualityColor = 'text-yellow-500';
   } else if (reading > 35.4 && reading <= 55.4) {
     airQualityText = 'Air Quality is Unhealthy for Sensitive Groups';
     AirQualityIcon = UnhealthySG;
-    airQualityColor = 'text-orange-500';
   } else if (reading > 55.4 && reading <= 150.4) {
     airQualityText = 'Air Quality is Unhealthy';
     AirQualityIcon = Unhealthy;
-    airQualityColor = 'text-red-500';
   } else if (reading > 150.4 && reading <= 250.4) {
     airQualityText = 'Air Quality is Very Unhealthy';
     AirQualityIcon = VeryUnhealthy;
-    airQualityColor = 'text-purple-500';
   } else if (reading > 250.4 && reading <= 500) {
     airQualityText = 'Air Quality is Hazardous';
     AirQualityIcon = Hazardous;
-    airQualityColor = 'text-gray-500';
+  } else {
+    airQualityText = 'Air Quality is Unknown';
+    AirQualityIcon = UnknownAQ;
   }
 
   return (
     <div
-      className={`${
-        count <= 2 ? 'w-full md:min-w-[200px] md:max-w-[50%] float-left' : 'w-full'
+      className={`${count <= 2 ? 'w-full md:min-w-[200px] md:max-w-[50%] float-left' : 'w-full'} ${
+        isLoading && 'animate-pulse'
       } relative h-[164.48px] bg-white flex-col justify-start items-center inline-flex`}
     >
       <div className='border border-gray-200 rounded-lg overflow-hidden w-full'>

@@ -122,7 +122,7 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
         period: { label },
       };
       const updatePreferencesresponse = await dispatch(updateUserPreferences(data));
-      if (updatePreferencesresponse.payload.success) {
+      if (updatePreferencesresponse?.payload?.success) {
         await dispatch(getIndividualUserPreferences(userId));
       }
       setValue(newValue);
