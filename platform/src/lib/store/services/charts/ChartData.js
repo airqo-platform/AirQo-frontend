@@ -27,12 +27,10 @@ const analyticsSlice = createSlice({
         state.status = 'loading';
       })
       .addCase(fetchAnalyticsData.fulfilled, (state, action) => {
-        console.log('SUCCESS:', action.payload);
         state.status = 'succeeded';
         state.data = action.payload;
       })
       .addCase(fetchAnalyticsData.rejected, (state, action) => {
-        console.log('ERROR:', action);
         state.status = 'failed';
         state.error = action.error.message;
       });
