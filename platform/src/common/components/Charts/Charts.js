@@ -144,7 +144,8 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
   const newAnalyticsData =
     analyticsData?.length > 0
       ? analyticsData.map((data) => {
-          const name = getSiteName(data.site_id) || getExistingSiteName(data.site_id) || '--';
+          const name =
+            getSiteName(data.site_id) || getExistingSiteName(data.site_id) || data.generated_name;
           return { ...data, name };
         })
       : null;
