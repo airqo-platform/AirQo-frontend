@@ -31,13 +31,15 @@ const Layout = ({
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
   const [lastActivity, setLastActivity] = useState(Date.now());
+  const preferencesLoading = useSelector((state) => state.userDefaults.status === 'loading');
 
   /**
    * Set chart details
    */
   useEffect(() => {
-    SetChartDetails(dispatch, chartData, userInfo, preferenceData);
-  }, [userInfo, preferenceData, dispatch]);
+    if (preferencesLoading) return;
+    SetChartDetails(dispatch, preferenceData);
+  }, [preferenceData, dispatch]);
 
   /**
    * Fetch user checklists from the database

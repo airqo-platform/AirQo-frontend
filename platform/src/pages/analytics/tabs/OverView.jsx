@@ -5,36 +5,48 @@ import BorderlessContentBox from '@/components/Layout/borderless_content_box';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRecentMeasurementsData } from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
 
-const OverView = () => {
-  // events hook
+const useFetchMeasurements = () => {
   const dispatch = useDispatch();
-  const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
-  const chartDataRange = useSelector((state) => state.chart.chartDataRange);
-  const pollutantType = useSelector((state) => state.chart.pollutionType);
-  const sites = useSelector((state) => state.chart.chartSites);
-  const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
+  const chartData = useSelector((state) => state.chart);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
-  const siteData = useSelector((state) => state.grids.sitesSummary);
   const preferencesLoading = useSelector((state) => state.userDefaults.status === 'loading');
+  const refreshChart = useSelector((state) => state.chart.refreshChart);
 
   useEffect(() => {
     if (preferencesLoading) return;
 
-    setIsLoadingMeasurements(true);
-    try {
-      if (chartDataRange && chartDataRange.startDate && chartDataRange.endDate && sites) {
-        dispatch(
-          fetchRecentMeasurementsData({
-            site_id: sites.join(','),
-          }),
-        );
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        if (chartData.chartSites?.length > 0) {
+          await dispatch(
+            fetchRecentMeasurementsData({
+              site_id: chartData.chartSites.join(','),
+            }),
+          );
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoadingMeasurements(false);
-    }
-  }, [chartDataRange, sites]);
+    };
+
+    fetchData();
+  }, [chartData, preferenceData, refreshChart]);
+
+  return { isLoading, error };
+};
+
+const OverView = () => {
+  // events hook
+  const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
+  const pollutantType = useSelector((state) => state.chart.pollutionType);
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const siteData = useSelector((state) => state.grids.sitesSummary);
+  const { isLoading: isLoadingMeasurements, error } = useFetchMeasurements();
 
   function getSiteName(siteId) {
     if (preferenceData?.length === 0) {
@@ -76,27 +88,40 @@ const OverView = () => {
             : 'grid md:grid-cols-2'
         }`}
       >
-        {!isLoadingMeasurements &&
-          displayData.map((event, index) => {
-            return (
-              <AQNumberCard
-                key={index}
-                location={
-                  getSiteName(event.site_id) ||
-                  getExistingSiteName(event.site_id) ||
-                  event?.siteDetails?.search_name
-                }
-                locationFullName={
-                  getSiteName(event.site_id) ||
-                  getExistingSiteName(event.site_id) ||
-                  event?.siteDetails?.search_name
-                }
-                reading={event.pm2_5.value}
-                count={displayData.length}
-                pollutant={pollutantType}
-              />
-            );
-          })}
+        {!isLoadingMeasurements
+          ? displayData.map((event, index) => {
+              return (
+                <AQNumberCard
+                  key={index}
+                  location={
+                    getSiteName(event.site_id) ||
+                    getExistingSiteName(event.site_id) ||
+                    event?.siteDetails?.search_name
+                  }
+                  locationFullName={
+                    getSiteName(event.site_id) ||
+                    getExistingSiteName(event.site_id) ||
+                    event?.siteDetails?.search_name
+                  }
+                  reading={event.pm2_5.value}
+                  count={displayData.length}
+                  pollutant={pollutantType}
+                />
+              );
+            })
+          : displayData.map((event, index) => {
+              return (
+                <AQNumberCard
+                  key={index}
+                  location={'--'}
+                  locationFullName={'--'}
+                  reading={'--'}
+                  count={displayData.length}
+                  pollutant={pollutantType}
+                  isLoading={isLoadingMeasurements}
+                />
+              );
+            })}
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <ChartContainer chartType='line' chartTitle='Air quality over time' height={300} />

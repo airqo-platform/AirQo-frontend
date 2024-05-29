@@ -38,6 +38,7 @@ const useAnalytics = () => {
   const analyticsData = useSelector((state) => state.analytics.data);
   const [error, setError] = useState(null);
   const [loadingTime, setLoadingTime] = useState(0);
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
 
   useEffect(() => {
     if (preferencesLoading) return;
@@ -67,7 +68,7 @@ const useAnalytics = () => {
     };
 
     fetchData();
-  }, [chartData, refreshChart]);
+  }, [chartData, refreshChart, preferenceData]);
 
   return { analyticsData, isLoading, error, loadingTime };
 };
@@ -141,12 +142,12 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
   };
 
   const newAnalyticsData =
-    analyticsData &&
-    analyticsData?.length > 0 &&
-    analyticsData?.map((data) => {
-      const name = getSiteName(data.site_id) || getExistingSiteName(data.site_id) || '--';
-      return { ...data, name };
-    });
+    analyticsData?.length > 0
+      ? analyticsData.map((data) => {
+          const name = getSiteName(data.site_id) || getExistingSiteName(data.site_id) || '--';
+          return { ...data, name };
+        })
+      : null;
 
   const transformedData =
     (newAnalyticsData &&
