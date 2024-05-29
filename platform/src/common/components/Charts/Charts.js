@@ -29,7 +29,7 @@ import {
  * @description Custom hook to fetch analytics data
  * @returns {Object} analyticsData, isLoading, error, loadingTime
  */
-const useAnalytics = () => {
+export const useAnalytics = () => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
   const refreshChart = useSelector((state) => state.chart.refreshChart);
