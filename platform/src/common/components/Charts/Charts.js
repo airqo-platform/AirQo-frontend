@@ -38,6 +38,7 @@ const useAnalytics = () => {
   const analyticsData = useSelector((state) => state.analytics.data);
   const [error, setError] = useState(null);
   const [loadingTime, setLoadingTime] = useState(0);
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
 
   useEffect(() => {
     if (preferencesLoading) return;
@@ -67,7 +68,7 @@ const useAnalytics = () => {
     };
 
     fetchData();
-  }, [chartData, refreshChart]);
+  }, [chartData, refreshChart, preferenceData]);
 
   return { analyticsData, isLoading, error, loadingTime };
 };
