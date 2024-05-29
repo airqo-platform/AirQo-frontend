@@ -19,6 +19,10 @@ import {
   format,
   getYear,
 } from 'date-fns';
+import {
+  updateUserPreferences,
+  getIndividualUserPreferences,
+} from '@/lib/store/services/account/UserDefaultsSlice';
 
 /**
  * @param {Object} props
@@ -41,6 +45,7 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
     startDate: initialStartDate,
     endDate: initialEndDate,
   });
+  const userInfo = useSelector((state) => state.login.userInfo);
 
   /**
    * @returns {void}
@@ -55,7 +60,7 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
       return;
     }
 
-    const handleDateChange = (newValue) => {
+    const handleDateChange = async (newValue) => {
       const startDate = new Date(newValue.start);
       const endDate = new Date(newValue.end);
 
@@ -108,7 +113,18 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
         }
       }
 
-      dispatch(setChartDataRange({ startDate, endDate, label }));
+      await dispatch(setChartDataRange({ startDate, endDate, label }));
+      const userId = userInfo?._id;
+      const data = {
+        user_id: userId,
+        startDate,
+        endDate,
+        period: { label },
+      };
+      const updatePreferencesresponse = await dispatch(updateUserPreferences(data));
+      if (updatePreferencesresponse?.payload?.success) {
+        await dispatch(getIndividualUserPreferences(userId));
+      }
       setValue(newValue);
     };
 
@@ -155,7 +171,8 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
       <button
         onClick={handleClick}
         type='button'
-        className='relative border border-grey-750 rounded-xl flex items-center justify-between gap-2 px-4 py-3'>
+        className='relative border border-grey-750 rounded-xl flex items-center justify-between gap-2 px-4 py-3'
+      >
         {Icon ? <Icon /> : <CalendarIcon />}
         <span className='hidden sm:inline-block text-sm font-medium'>
           {chartData.chartDataRange.label}
@@ -167,7 +184,8 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
           openDatePicker
             ? 'opacity-100 translate-y-0 visible'
             : 'opacity-0 -translate-y-2 invisible'
-        } transition-all duration-400 ease-in-out transform`}>
+        } transition-all duration-400 ease-in-out transform`}
+      >
         <DatePickerHiddenInput />
       </div>
     </div>

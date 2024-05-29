@@ -3,11 +3,12 @@ import React from 'react';
 const Invalid = ({ width, height }) => {
   return (
     <svg
-      width={width || 43}
-      height={height || 43}
+      width={width || '97'}
+      height={height || '96'}
       viewBox='0 0 43 43'
       fill='none'
-      xmlns='http://www.w3.org/2000/svg'>
+      xmlns='http://www.w3.org/2000/svg'
+    >
       <circle cx={21.4858} cy={21.6309} r={21.2934} fill='#E1E7EC' />
       <circle
         cx={16.9448}
