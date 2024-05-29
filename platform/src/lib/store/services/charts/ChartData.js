@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
 
 export const fetchAnalyticsData = createAsyncThunk('analytics/fetchData', async (body) => {
-  console.log(body);
   const response = await getAnalyticsData(body);
   return response.data;
 });
