@@ -12,8 +12,7 @@ const useFetchMeasurements = () => {
   const [error, setError] = useState(null);
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
   const preferencesLoading = useSelector((state) => state.userDefaults.status === 'loading');
-
-  console.log('Sites', chartData.chartSites);
+  const refreshChart = useSelector((state) => state.chart.refreshChart);
 
   useEffect(() => {
     if (preferencesLoading) return;
@@ -36,7 +35,7 @@ const useFetchMeasurements = () => {
     };
 
     fetchData();
-  }, [chartData, preferenceData]);
+  }, [chartData, preferenceData, refreshChart]);
 
   return { isLoading, error };
 };
@@ -48,7 +47,6 @@ const OverView = () => {
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
   const siteData = useSelector((state) => state.grids.sitesSummary);
   const { isLoading: isLoadingMeasurements, error } = useFetchMeasurements();
-  console.log('recentLocationMeasurements', recentLocationMeasurements);
 
   function getSiteName(siteId) {
     if (preferenceData?.length === 0) {

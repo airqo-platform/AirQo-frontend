@@ -22,10 +22,12 @@ import { mapSlice } from './services/map/MapSlice';
 import { locationSearchSlice } from './services/search/LocationSearchSlice';
 import { apiClientSlice } from './services/apiClient/index';
 import sidebarReducer from './services/sideBar/SideBarSlice';
+import autoMergeLevel1 from 'redux-persist/lib/stateReconciler/autoMergeLevel1';
 
 const persistConfig = {
   key: 'root',
   storage,
+  stateReconciler: autoMergeLevel1,
 };
 
 const rootReducer = combineReducers({
