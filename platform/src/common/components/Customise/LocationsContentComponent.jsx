@@ -150,7 +150,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
       }
     };
     fetchGridsData();
-  }, []);
+  }, [gridsSummaryData]);
 
   useEffect(() => {
     if (gridsSummaryData && gridsSummaryData.length > 0) {
