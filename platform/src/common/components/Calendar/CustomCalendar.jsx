@@ -70,9 +70,9 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
         label = 'Yesterday';
       } else if (isSameDay(startDate, endDate)) {
         label = 'Today';
-      } else if (computedValue === 7) {
+      } else if (isSameDay(endDate, today) && computedValue === 7) {
         label = 'Last 7 days';
-      } else if (computedValue === 30) {
+      } else if (isSameDay(endDate, today) && computedValue === 30) {
         label = 'Last 30 days';
       } else if (
         isSameDay(startDate, startOfQuarter(today)) &&
@@ -84,7 +84,7 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
         isSameDay(endDate, endOfQuarter(subMonths(today, 3)))
       ) {
         label = 'Last quarter';
-      } else if (computedValue === 90) {
+      } else if (isSameDay(endDate, today) && computedValue === 90) {
         label = 'Last 90 days';
       } else if (
         isSameDay(startDate, startOfMonth(today)) &&
