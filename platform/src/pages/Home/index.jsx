@@ -13,6 +13,7 @@ import { startTask, completeTask, updateTitle } from '@/lib/store/services/check
 import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
 import CustomModal from '@/components/Modal/videoModals/CustomModal';
 import StepProgress from '@/components/steppers/CircularStepper';
+import { useAnalytics } from '../../common/components/Charts/Charts';
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -23,6 +24,15 @@ const Home = () => {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
   const totalSteps = 3;
+
+  // loads chart data on page load
+  const { analyticsData } = useAnalytics();
+
+  useEffect(() => {
+    if ((analyticsData && analyticsData.length === 0) || analyticsData === null) {
+      dispatch(setRefreshChart(true));
+    }
+  }, []);
 
   const steps = [
     {
@@ -133,7 +143,8 @@ const Home = () => {
             <div
               className={`w-full grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-${
                 steps.length > 2 ? 3 : steps.length
-              } lg:grid-cols-${steps.length - 1}`}>
+              } lg:grid-cols-${steps.length - 1}`}
+            >
               {steps.map((step, index) => {
                 if (step.disabled) {
                   return null;
@@ -151,7 +162,8 @@ const Home = () => {
                   <div
                     key={index}
                     className='w-full h-[250px] flex flex-col justify-between items-start border-[0.5px] rounded-xl border-grey-150 py-5 px-3 space-y-5 focus:outline-blue-600 focus:ring-2 focus:shadow-lg focus:border-blue-600'
-                    tabIndex={0}>
+                    tabIndex={0}
+                  >
                     <div className='w-full'>
                       {card && card.completed === true ? (
                         <div className='w-14 h-14 flex justify-center items-center rounded-full bg-blue-900'>
@@ -160,7 +172,8 @@ const Home = () => {
                       ) : (
                         <div
                           className='text-base w-14 h-14 flex justify-center items-center font-medium rounded-full'
-                          style={{ background: '#F5F5FF' }}>
+                          style={{ background: '#F5F5FF' }}
+                        >
                           <span className='text-blue-600'>{index === 0 ? index + 1 : index}</span>
                         </div>
                       )}
@@ -176,7 +189,8 @@ const Home = () => {
                             <a
                               onClick={step.func}
                               className={statusColor}
-                              target={index === 3 ? '_blank' : ''}>
+                              target={index === 3 ? '_blank' : ''}
+                            >
                               {card && card.status === 'inProgress' ? 'Resume' : statusText}
                             </a>
                           </Link>
@@ -202,12 +216,14 @@ const Home = () => {
                   <Button
                     path='/analytics'
                     className='bg-blue-900 text-white rounded-lg w-32 h-12'
-                    dataTestId='get-started-button'>
+                    dataTestId='get-started-button'
+                  >
                     Start here
                   </Button>
                   <a
                     onClick={handleModel}
-                    className='text-blue-600 text-sm font-normal mt-2 cursor-pointer hidden'>
+                    className='text-blue-600 text-sm font-normal mt-2 cursor-pointer hidden'
+                  >
                     Show me how
                   </a>
                 </div>
@@ -216,10 +232,12 @@ const Home = () => {
                 className='rounded-md p-9 relative'
                 style={{
                   background: '#145DFF08',
-                }}>
+                }}
+              >
                 <div
                   onClick={handleModel}
-                  className='absolute z-50 inset-0 items-center justify-center cursor-pointer hidden'>
+                  className='absolute z-50 inset-0 items-center justify-center cursor-pointer hidden'
+                >
                   <PlayIcon />
                 </div>
                 <Image src={AnalyticsImage} alt='Analytics Image' width={600} height={350} />
