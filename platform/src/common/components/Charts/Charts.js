@@ -27,7 +27,7 @@ import {
 
 /**
  * @description Custom hook to fetch analytics data
- * @returns {Object} analyticsData, isLoading, error, loadingTime
+ * @returns {Object} isLoading, error, loadingTime
  */
 const useAnalytics = () => {
   const dispatch = useDispatch();
@@ -35,21 +35,23 @@ const useAnalytics = () => {
   const refreshChart = useSelector((state) => state.chart.refreshChart);
   const preferencesLoading = useSelector((state) => state.userDefaults.status === 'loading');
   const isLoading = useSelector((state) => state.analytics.status === 'loading');
-  const analyticsData = useSelector((state) => state.analytics.data);
   const [error, setError] = useState(null);
   const [loadingTime, setLoadingTime] = useState(0);
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
 
   useEffect(() => {
-    if (preferencesLoading) return;
+    if (preferencesLoading || !preferenceData.length) return;
+    const { selected_sites } = preferenceData[0];
+    const chartSites = selected_sites?.map((site) => site['_id']);
 
     const fetchData = async () => {
       try {
         setError(null);
-        setLoadingTime(Date.now());
+        const startTime = Date.now();
+        setLoadingTime(startTime);
         await dispatch(
           fetchAnalyticsData({
-            sites: chartData.chartSites,
+            sites: chartSites,
             startDate: chartData.chartDataRange.startDate,
             endDate: chartData.chartDataRange.endDate,
             chartType: chartData.chartType,
@@ -58,11 +60,11 @@ const useAnalytics = () => {
             organisation_name: chartData.organizationName,
           }),
         );
-        dispatch(setRefreshChart(false));
       } catch (err) {
         setError(err.message);
         dispatch(setAnalyticsData(null));
       } finally {
+        dispatch(setRefreshChart(false));
         setLoadingTime(Date.now() - loadingTime);
       }
     };
@@ -70,7 +72,67 @@ const useAnalytics = () => {
     fetchData();
   }, [chartData, refreshChart, preferenceData]);
 
-  return { analyticsData, isLoading, error, loadingTime };
+  return { isLoading, error, loadingTime };
+};
+
+/**
+ * @description Custom hook to transform analytics data for chart
+ * @returns {Object} dataForChart, allKeys
+ */
+const useAnalyticsData = () => {
+  const analyticsData = useSelector((state) => state.analytics.data);
+  const [dataForChart, setDataForChart] = useState([]);
+  const [allKeys, setAllKeys] = useState(new Set());
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const siteData = useSelector((state) => state.grids.sitesSummary);
+
+  // Helper functions
+  const getSiteName = (siteId, preferenceData) => {
+    if (!preferenceData?.length) return '';
+    const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
+    return site ? site.name?.split(',')[0] : '';
+  };
+
+  const getExistingSiteName = (siteId, siteData) => {
+    const site = siteData?.sites?.find((site) => site._id === siteId);
+    return site ? site.search_name : '';
+  };
+
+  // Effect to transform analytics data whenever it changes
+  useEffect(() => {
+    const transformData = (analyticsData) => {
+      const newAnalyticsData = analyticsData.map((data) => {
+        const name =
+          getSiteName(data.site_id, preferenceData) ||
+          getExistingSiteName(data.site_id, siteData) ||
+          data.generated_name;
+        return { ...data, name };
+      });
+
+      const transformedData = newAnalyticsData.reduce((acc, curr) => {
+        if (!acc[curr.time]) {
+          acc[curr.time] = { time: curr.time };
+        }
+        acc[curr.time][curr.name] = curr.value;
+        return acc;
+      }, {});
+
+      setDataForChart(Object.values(transformedData));
+      setAllKeys(
+        new Set(
+          Object.values(transformedData).length > 0
+            ? Object.keys(Object.values(transformedData)[0])
+            : [],
+        ),
+      );
+    };
+
+    if (analyticsData?.length) {
+      transformData(analyticsData);
+    }
+  }, [analyticsData]);
+
+  return { dataForChart, allKeys };
 };
 
 /**
@@ -82,11 +144,11 @@ const useAnalytics = () => {
  */
 const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => {
   const chartData = useSelector((state) => state.chart);
-  const { analyticsData, isLoading, error, loadingTime } = useAnalytics();
+  const { isLoading, error, loadingTime } = useAnalytics();
+  const { dataForChart, allKeys } = useAnalyticsData();
+  const analyticsData = useSelector((state) => state.analytics.data);
   const [showLoadingMessage, setShowLoadingMessage] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
-  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
-  const siteData = useSelector((state) => state.grids.sitesSummary);
 
   useEffect(() => {
     let timeoutId;
@@ -128,45 +190,6 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
     </div>
   );
 
-  function getSiteName(siteId) {
-    if (preferenceData?.length === 0) {
-      return null;
-    }
-    const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
-    return site ? site.name?.split(',')[0] : '';
-  }
-
-  const getExistingSiteName = (siteId) => {
-    const site = siteData?.sites?.find((site) => site._id === siteId);
-    return site ? site.search_name : '';
-  };
-
-  const newAnalyticsData =
-    analyticsData?.length > 0
-      ? analyticsData.map((data) => {
-          const name =
-            getSiteName(data.site_id) || getExistingSiteName(data.site_id) || data.generated_name;
-          return { ...data, name };
-        })
-      : null;
-
-  const transformedData =
-    (newAnalyticsData &&
-      newAnalyticsData?.reduce((acc, curr) => {
-        if (!acc[curr.time]) {
-          acc[curr.time] = {
-            time: curr.time,
-          };
-        }
-        acc[curr.time][curr.name] = curr.value;
-        return acc;
-      }, {})) ||
-    {};
-
-  const dataForChart = Object.values(transformedData);
-
-  const allKeys = new Set(dataForChart.length > 0 ? Object.keys(dataForChart[0]) : []);
-
   if (error || analyticsData?.error?.message) {
     return renderErrorMessage();
   }
@@ -175,7 +198,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
     return renderLoadingMessage();
   }
 
-  if (hasLoaded && analyticsData?.length === 0) {
+  if ((hasLoaded && !analyticsData) || analyticsData?.length === 0) {
     return renderNoDataMessage();
   }
 
@@ -189,8 +212,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
           margin={{
             top: 38,
             right: 10,
-          }}
-        >
+          }}>
           {Array.from(allKeys)
             .filter((key) => key !== 'time')
             .map((key, index) => (
@@ -224,8 +246,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
               } else {
                 return tick;
               }
-            }}
-          >
+            }}>
             <Label
               value={chartData.pollutionType === 'pm2_5' ? 'PM2.5 (µg/m³)' : 'PM10 (µg/m³)'}
               position='insideTopRight'
@@ -258,8 +279,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
           margin={{
             top: 38,
             right: 10,
-          }}
-        >
+          }}>
           {Array.from(allKeys)
             .filter((key) => key !== 'time')
             .map((key, index) => (
@@ -279,8 +299,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
               } else {
                 return tick;
               }
-            }}
-          >
+            }}>
             <Label
               value={chartData.pollutionType === 'pm2_5' ? 'PM2.5 (µg/m³)' : 'PM10 (µg/m³)'}
               position='insideTopRight'
