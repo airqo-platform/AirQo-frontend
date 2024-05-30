@@ -26,20 +26,17 @@ const Layout = ({
   const router = useRouter();
   const MAX_WIDTH = '(max-width: 1024px)';
   const dispatch = useDispatch();
-  const chartData = useSelector((state) => state.chart);
   const userInfo = useSelector((state) => state.login.userInfo);
   const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
   const [lastActivity, setLastActivity] = useState(Date.now());
-  const preferencesLoading = useSelector((state) => state.userDefaults.status === 'loading');
 
   /**
    * Set chart details
    */
   useEffect(() => {
-    if (preferencesLoading) return;
     SetChartDetails(dispatch, preferenceData);
-  }, [preferenceData, dispatch]);
+  }, []);
 
   /**
    * Fetch user checklists from the database
