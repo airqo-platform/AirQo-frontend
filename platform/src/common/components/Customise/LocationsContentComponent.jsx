@@ -138,7 +138,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
 
   useEffect(() => {
     const fetchGridsData = async () => {
-      if (!gridsSummaryData) {
+      if (gridsSummaryData && gridsSummaryData.length === 0) {
         try {
           const response = await getGridsSummaryApi();
           if (response && response.success) {
