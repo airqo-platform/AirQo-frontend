@@ -12,6 +12,7 @@ import { toggleSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useRouter } from 'next/router';
 import CollapsedSidebar from '../SideBar/CollapsedSidebar';
 import SideBarDrawer from '../SideBar/SideBarDrawer';
+import SetChartDetails from '@/core/utils/SetChartDetails';
 import LogoutUser from '@/core/utils/LogoutUser';
 
 const Layout = ({
@@ -26,8 +27,16 @@ const Layout = ({
   const MAX_WIDTH = '(max-width: 1024px)';
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.login.userInfo);
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
   const [lastActivity, setLastActivity] = useState(Date.now());
+
+  /**
+   * Set chart details
+   */
+  useEffect(() => {
+    SetChartDetails(dispatch, preferenceData);
+  }, []);
 
   /**
    * Fetch user checklists from the database
