@@ -4,11 +4,34 @@ export const AQI_FOR_CITIES = [
   'Mumbai',
   'Bangkok',
   'Jakarta',
+  'Seoul',
+  'Tokyo',
+
+  // China
   'Hong Kong',
   'Shanghai',
   'Beijing',
-  'Seoul',
-  'Tokyo',
+  'Guangzhou',
+  'Shenzhen',
+  'Chengdu',
+  'Chongqing',
+  'Tianjin',
+  'Wuhan',
+  'Nanjing',
+  'Hangzhou',
+  'Suzhou',
+  'Qingdao',
+  'Dalian',
+  'Xiamen',
+  'Changsha',
+  'Zhengzhou',
+  'Shenyang',
+  'Changchun',
+  'Harbin',
+  'Hefei',
+  'Fuzhou',
+  'Nanning',
+  'Kunming',
 
   // Canada
   'Vancouver',
@@ -23,10 +46,30 @@ export const AQI_FOR_CITIES = [
   'Rome',
   'Madrid',
   'Dublin',
+  'Amsterdam',
+  'Prague',
+  'Vienna',
+  'Budapest',
+  'Stockholm',
+  'Oslo',
+  'Copenhagen',
+  'Athens',
+  'Lisbon',
+  'Warsaw',
+  'Brussels',
+  'Helsinki',
 
   // Australia
   'Sydney',
   'Melbourne',
+  'Brisbane',
+  'Perth',
+  'Adelaide',
+  'Canberra',
+  'Hobart',
+  'Darwin',
+  'Gold Coast',
+  'Newcastle',
 
   // North America
   'Mountain View',
@@ -39,6 +82,16 @@ export const AQI_FOR_CITIES = [
   'Pittsburgh',
   'Atlanta',
   'Detroit',
+  'New York City',
+  'Chicago',
+  'Miami',
+  'Dallas',
+  'Washington D.C.',
+  'Boston',
+  'Philadelphia',
+  'Houston',
+  'Phoenix',
+  'San Diego',
 
   // South America
   'Sao Paulo',
@@ -49,7 +102,6 @@ export const AQI_FOR_CITIES = [
 
   // Africa
   'cape town',
-  'Johannesburg',
 
   // UAE
   'Dubai',
