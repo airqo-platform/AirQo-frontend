@@ -454,12 +454,12 @@ ThemeData customTheme() {
         height: 18.0 / 14.0,
       ),
     ).apply(
-      fontFamily: GoogleFonts.inter().fontFamily,
+      fontFamily: "Inter",
       bodyColor: CustomColors.appColorBlack,
       displayColor: CustomColors.appColorBlack,
     ),
     primaryTextTheme: ThemeData.light().textTheme.apply(
-          fontFamily: GoogleFonts.inter().fontFamily,
+          fontFamily: "Inter",
           bodyColor: CustomColors.appColorBlack,
           displayColor: CustomColors.appColorBlack,
         ),
