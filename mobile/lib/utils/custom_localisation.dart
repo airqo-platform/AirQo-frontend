@@ -791,6 +791,14 @@ class LgMaterialLocalizations extends GlobalMaterialLocalizations {
 
   @override
   String get shareButtonLabel => 'Share...';
+  
+  @override
+  // TODO: implement clearButtonTooltip
+  String get clearButtonTooltip => throw UnimplementedError();
+  
+  @override
+  // TODO: implement selectedDateLabel
+  String get selectedDateLabel => throw UnimplementedError();
 }
 
 class LgCupertinoLocalizationsDelegate
