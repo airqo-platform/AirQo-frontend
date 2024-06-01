@@ -71,7 +71,7 @@ dependencies:
   showcaseview: ^2.0.3
   url_launcher: ^6.1.12
   hydrated_bloc: ^9.1.2
-  home_widget: ^0.3.0
+  home_widget: ^0.6.0
   geocoding: ^2.1.0
   rating_dialog: ^2.0.4
   confetti: ^0.7.0
@@ -104,6 +104,24 @@ flutter:
     - .env.dev
     - .env.prod
     - shorebird.yaml
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+          weight: 400        
+        
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600 
+
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700 
+
+        - asset: assets/fonts/Inter-Black.ttf
+          weight: 800 
 
 flutter_native_splash:
   # Background color of splash screen
