@@ -241,17 +241,23 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
                   setIsLoadingResults(false);
                 })
                 .catch((error) => {
-                  console.error('Failed to retrieve location details:', error);
                   setIsLoadingResults(false);
+                  throw new Error(error.message);
                 });
             } else {
-              console.error('Autocomplete search failed with status:', status);
               setIsLoadingResults(false);
+              throw new Error(
+                `Autocomplete search failed with status ${status}. Please try again.`,
+              );
             }
           },
         );
       } catch (error) {
-        console.error('Failed to search:', error);
+        setIsError({
+          isError: true,
+          message: error.message,
+          type: 'error',
+        });
       } finally {
         setIsLoadingResults(false);
       }

@@ -3,7 +3,7 @@ export const getPlaceDetails = async (placeId) => {
 
   const locationPromise = new Promise((resolve, reject) => {
     placesService.getDetails({ placeId }, (place, placeStatus) => {
-      if (placeStatus === google.maps.places.PlacesServiceStatus.OK) {
+      if (placeStatus === 'OK') {
         const {
           name,
           geometry: { location },
