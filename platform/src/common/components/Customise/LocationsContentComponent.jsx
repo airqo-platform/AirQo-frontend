@@ -19,6 +19,7 @@ import SearchField from '@/components/search/SearchField';
 import { getNearestSite, getGridsSummaryApi } from '@/core/apis/DeviceRegistry';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import { capitalizeAllText } from '@/core/utils/strings';
+import { getPlaceDetails } from '@/core/utils/getLocationGeomtry';
 
 const SearchResultsSkeleton = () => (
   <div className='flex flex-col gap-1 animate-pulse'>
@@ -216,7 +217,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
             types: ['establishment', 'geocode'],
           },
           (predictions, status) => {
-            if (status === google.maps.places.PlacesServiceStatus.OK) {
+            if (status === 'OK') {
               // Filter predictions to include only those within the specified countries
               const filteredPredictions = predictions.filter((prediction) => {
                 return airqoCountries.some((country) =>
@@ -224,33 +225,16 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
                 );
               });
 
-              // Retrieve the details of each prediction to get latitude and longitude
               const locationPromises = filteredPredictions.map((prediction) => {
-                return new Promise((resolve, reject) => {
-                  const placesService = new google.maps.places.PlacesService(
-                    document.createElement('div'),
-                  );
-                  placesService.getDetails(
-                    { placeId: prediction.place_id },
-                    (place, placeStatus) => {
-                      if (placeStatus === google.maps.places.PlacesServiceStatus.OK) {
-                        resolve({
-                          description: prediction.description,
-                          latitude: place.geometry.location.lat(),
-                          longitude: place.geometry.location.lng(),
-                          place_id: prediction.place_id,
-                        });
-                      } else {
-                        reject(
-                          new Error(`Failed to retrieve details for ${prediction.description}`),
-                        );
-                      }
-                    },
-                  );
+                return new Promise((resolve) => {
+                  // Resolve the promise with the location details
+                  resolve({
+                    description: prediction.description,
+                    place_id: prediction.place_id,
+                  });
                 });
               });
 
-              // Resolve all location promises to get the latitude and longitude for each prediction
               Promise.all(locationPromises)
                 .then((locations) => {
                   setFilteredLocations(locations);
@@ -304,30 +288,53 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
     dispatch(addSearchTerm(''));
     try {
       let newLocationValue;
+      let newItemValue;
       if (item?.place_id) {
-        const response = await getNearestSite({
-          latitude: item?.latitude,
-          longitude: item?.longitude,
-          radius: 4,
-        });
-
-        if (response.sites && response.sites.length > 0) {
-          newLocationValue = {
-            ...response.sites[Math.floor(Math.random() * response.sites.length)],
-            name: item?.description,
-            long_name: item?.description,
-            search_name: item?.description,
-            location_name: item?.description,
-          };
-        } else {
+        try {
+          const placeDetails = await getPlaceDetails(item.place_id);
+          if (placeDetails) {
+            newItemValue = { ...item, ...placeDetails };
+          }
+        } catch (error) {
           setIsError({
             isError: true,
-            message: `Can't find air quality for ${
-              item?.description?.split(',')[0]
-            }. Please try another location.`,
+            message: error.message,
             type: 'error',
           });
           return;
+        }
+
+        if (newItemValue?.latitude && newItemValue?.longitude) {
+          try {
+            const response = await getNearestSite({
+              latitude: newItemValue?.latitude,
+              longitude: newItemValue?.longitude,
+              radius: 4,
+            });
+
+            if (response.sites && response.sites.length > 0) {
+              newLocationValue = {
+                ...response.sites[Math.floor(Math.random() * response.sites.length)],
+                name: newItemValue?.description,
+                long_name: newItemValue?.description,
+                search_name: newItemValue?.description,
+                location_name: newItemValue?.description,
+              };
+            } else {
+              throw new Error(
+                `Can't find air quality for ${
+                  newItemValue?.description?.split(',')[0]
+                }. Please try another location.`,
+              );
+            }
+          } catch (error) {
+            setIsError({
+              isError: true,
+              message: error.message,
+              type: 'error',
+            });
+            return;
+          }
         }
       } else {
         newLocationValue = { ...item, name: item?.search_name };
