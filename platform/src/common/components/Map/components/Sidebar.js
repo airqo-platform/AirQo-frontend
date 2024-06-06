@@ -533,12 +533,21 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
 
         let latitude, longitude;
 
-        if (data?.place_id && !data?.geometry) {
-          latitude = newDataValue?.latitude || 0;
-          longitude = newDataValue?.longitude || 0;
+        if (data?.place_id) {
+          try {
+            const placeDetails = await getPlaceDetails(data.place_id);
+            if (placeDetails.latitude && placeDetails.longitude) {
+              newDataValue = { ...newDataValue, ...placeDetails };
+              latitude = newDataValue?.latitude;
+              longitude = newDataValue?.longitude;
+            }
+          } catch (error) {
+            console.error(error.message);
+            return;
+          }
         } else {
-          latitude = data?.geometry?.coordinates[1] || data?.latitude || 0;
-          longitude = data?.geometry?.coordinates[0] || data?.longitude || 0;
+          latitude = data?.geometry?.coordinates[1];
+          longitude = data?.geometry?.coordinates[0];
         }
 
         dispatch(setCenter({ latitude, longitude }));
