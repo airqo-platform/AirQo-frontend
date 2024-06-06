@@ -20,6 +20,7 @@ import { getNearestSite, getGridsSummaryApi } from '@/core/apis/DeviceRegistry';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import { capitalizeAllText } from '@/core/utils/strings';
 import { getPlaceDetails } from '@/core/utils/getLocationGeomtry';
+import { getAutocompleteSuggestions } from '@/core/utils/AutocompleteSuggestions';
 
 const SearchResultsSkeleton = () => (
   <div className='flex flex-col gap-1 animate-pulse'>
@@ -208,50 +209,34 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
     if (reduxSearchTerm && reduxSearchTerm.length > 3) {
       try {
         // Create a new AutocompleteService instance
-        const autocompleteService = new google.maps.places.AutocompleteService();
+        const autocompleteSuggestions = await getAutocompleteSuggestions(reduxSearchTerm);
+        if (autocompleteSuggestions && autocompleteSuggestions.length > 0) {
+          const filteredPredictions = autocompleteSuggestions.filter((prediction) => {
+            return airqoCountries.some((country) =>
+              prediction.description.toLowerCase().includes(country.toLowerCase()),
+            );
+          });
 
-        // Call getPlacePredictions to retrieve autocomplete suggestions
-        autocompleteService.getPlacePredictions(
-          {
-            input: reduxSearchTerm,
-            types: ['establishment', 'geocode'],
-          },
-          (predictions, status) => {
-            if (status === 'OK') {
-              // Filter predictions to include only those within the specified countries
-              const filteredPredictions = predictions.filter((prediction) => {
-                return airqoCountries.some((country) =>
-                  prediction.description.toLowerCase().includes(country.toLowerCase()),
-                );
+          const locationPromises = filteredPredictions.map((prediction) => {
+            return new Promise((resolve) => {
+              // Resolve the promise with the location details
+              resolve({
+                description: prediction.description,
+                place_id: prediction.place_id,
               });
+            });
+          });
 
-              const locationPromises = filteredPredictions.map((prediction) => {
-                return new Promise((resolve) => {
-                  // Resolve the promise with the location details
-                  resolve({
-                    description: prediction.description,
-                    place_id: prediction.place_id,
-                  });
-                });
-              });
-
-              Promise.all(locationPromises)
-                .then((locations) => {
-                  setFilteredLocations(locations);
-                  setIsLoadingResults(false);
-                })
-                .catch((error) => {
-                  setIsLoadingResults(false);
-                  throw new Error(error.message);
-                });
-            } else {
+          Promise.all(locationPromises)
+            .then((locations) => {
+              setFilteredLocations(locations);
               setIsLoadingResults(false);
-              throw new Error(
-                `Autocomplete search failed with status ${status}. Please try again.`,
-              );
-            }
-          },
-        );
+            })
+            .catch((error) => {
+              setIsLoadingResults(false);
+              throw new Error(error.message);
+            });
+        }
       } catch (error) {
         setIsError({
           isError: true,

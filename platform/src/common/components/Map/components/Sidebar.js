@@ -32,6 +32,7 @@ import Calendar from '@/components/Calendar/Calendar';
 import useOutsideClick from '@/core/utils/useOutsideClick';
 import { useWindowSize } from '@/lib/windowSize';
 import { getPlaceDetails } from '@/core/utils/getLocationGeomtry';
+import { getAutocompleteSuggestions } from '@/core/utils/AutocompleteSuggestions';
 
 const MAPBOX_URL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -527,27 +528,23 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
     async (data) => {
       dispatch(setOpenLocationDetails(true));
       setIsFocused(false);
-
       try {
         let newDataValue = data;
 
-        if (data?.place_id) {
-          const placeDetails = await getPlaceDetails(data.place_id);
-          if (placeDetails) {
-            newDataValue = { ...data, ...placeDetails };
-          }
+        let latitude, longitude;
+
+        if (data?.place_id && !data?.geometry) {
+          latitude = newDataValue?.latitude || 0;
+          longitude = newDataValue?.longitude || 0;
+        } else {
+          latitude = data?.geometry?.coordinates[1] || data?.latitude || 0;
+          longitude = data?.geometry?.coordinates[0] || data?.longitude || 0;
         }
 
-        dispatch(
-          setCenter({
-            latitude: data?.geometry?.coordinates[1] || data?.latitude || 0,
-            longitude: data?.geometry?.coordinates[0] || data?.longitude || 0,
-          }),
-        );
+        dispatch(setCenter({ latitude, longitude }));
         dispatch(setZoom(11));
         dispatch(setSelectedLocation(newDataValue));
       } catch (error) {
-        console.error('Failed to handle location select:', error);
         setIsError({
           isError: true,
           message: error.message,
@@ -558,73 +555,49 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
     [dispatch],
   );
 
+  const filterPredictions = (predictions) => {
+    return predictions.filter((prediction) => {
+      return countryFlatList.some((country) =>
+        prediction.description.toLowerCase().includes(country.toLowerCase()),
+      );
+    });
+  };
+
+  const getLocationsDetails = (predictions) => {
+    const locationPromises = predictions.map((prediction) => {
+      return new Promise((resolve) => {
+        resolve({
+          description: prediction.description,
+          place_id: prediction.place_id,
+        });
+      });
+    });
+
+    return Promise.all(locationPromises);
+  };
+
+  const handleSearchError = (error) => {
+    if (error.message === 'ZERO_RESULTS') {
+      setShowNoResultsMsg(true);
+      setSearchResults([]);
+    } else {
+      console.error(error.message);
+    }
+  };
+
   const handleSearch = async () => {
     setLoading(true);
     setIsFocused(true);
     if (reduxSearchTerm && reduxSearchTerm.length > 1) {
       try {
-        // Create a new AutocompleteService instance
-        const autocompleteService = new google.maps.places.AutocompleteService();
-
-        // Call getPlacePredictions to retrieve autocomplete suggestions
-        autocompleteService.getPlacePredictions(
-          {
-            input: reduxSearchTerm,
-            types: ['establishment', 'geocode'],
-          },
-          (predictions, status) => {
-            if (status === 'OK') {
-              // Filter predictions to include only those within the specified countries
-              const filteredPredictions = predictions.filter((prediction) => {
-                return countryFlatList.some((country) =>
-                  prediction.description.toLowerCase().includes(country.toLowerCase()),
-                );
-              });
-
-              const locationPromises = filteredPredictions.map((prediction) => {
-                return new Promise((resolve) => {
-                  // Resolve the promise with the location details
-                  resolve({
-                    description: prediction.description,
-                    place_id: prediction.place_id,
-                  });
-                });
-              });
-
-              Promise.all(locationPromises)
-                .then((locations) => {
-                  setSearchResults(locations);
-                  setLoading(false);
-                })
-                .catch((error) => {
-                  setLoading(false);
-                  setIsError({
-                    isError: true,
-                    message: error.message,
-                    type: 'error',
-                  });
-                });
-            } else {
-              if (status === 'ZERO_RESULTS') {
-                setShowNoResultsMsg(true);
-                setLoading(false);
-                setSearchResults([]);
-              }
-              setLoading(false);
-              setIsError({
-                isError: true,
-                message: `Autocomplete search failed with status ${status}. Please try again.`,
-                type: 'error',
-              });
-            }
-          },
-        );
+        const predictions = await getAutocompleteSuggestions(reduxSearchTerm);
+        if (predictions && predictions.length > 0) {
+          const filteredLocations = filterPredictions(predictions);
+          const locations = await getLocationsDetails(filteredLocations);
+          setSearchResults(locations);
+        }
       } catch (error) {
-        setIsError({
-          isError: true,
-          message: error.message,
-          type: 'error',
-        });
+        handleSearchError(error);
       } finally {
         setLoading(false);
       }
@@ -651,11 +624,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
           const response = await dailyPredictionsApi(selectedSite._id);
           setWeeklyPredictions(response?.forecasts);
         } catch (error) {
-          setIsError({
-            isError: true,
-            message: error.message,
-            type: 'error',
-          });
+          console.error(error.message);
         } finally {
           setLoading(false);
         }
