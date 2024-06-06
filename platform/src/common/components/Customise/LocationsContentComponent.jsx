@@ -120,6 +120,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
   const sitesLocationsData = (sitesData && sitesData.sites) || [];
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingResults, setIsLoadingResults] = useState(false);
+  const [isGettingNearestSite, setIsGettingNearestSite] = useState(false);
   const gridsSummaryData = useSelector((state) => state.grids.gridsSummary);
   const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
 
@@ -276,6 +277,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
    * array
    */
   const handleLocationSelect = async (item) => {
+    setIsGettingNearestSite(true);
     dispatch(addSearchTerm(''));
     try {
       let newLocationValue;
@@ -287,6 +289,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
             newItemValue = { ...item, ...placeDetails };
           }
         } catch (error) {
+          setIsGettingNearestSite(false);
           setIsError({
             isError: true,
             message: error.message,
@@ -336,6 +339,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
         (location) => location.name === newLocationValue.name,
       );
       if (index !== -1) {
+        setIsGettingNearestSite(false);
         setIsError({
           isError: true,
           message: 'Location already added',
@@ -349,6 +353,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
         );
         unSelectedLocations.splice(unselectedIndex, 1);
       } else {
+        setIsGettingNearestSite(false);
         setIsError({
           isError: true,
           message:
@@ -362,6 +367,8 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
       setInputSelect(true);
     } catch (error) {
       console.error('Failed to get nearest site:', error);
+    } finally {
+      setIsGettingNearestSite(false);
     }
   };
 
@@ -504,6 +511,11 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
           {(provided) => (
             <div {...provided.droppableProps} ref={provided.innerRef}>
               <div className='mt-4'>
+                {isGettingNearestSite && (
+                  <div className='flex flex-row justify-center items-center mb-4'>
+                    <Spinner data-testid='spinner' width={25} height={25} />
+                  </div>
+                )}
                 {locationArray && locationArray.length > 0 ? (
                   draggedLocations.map((location, index) => (
                     <Draggable key={location.name} draggableId={location.name} index={index}>
