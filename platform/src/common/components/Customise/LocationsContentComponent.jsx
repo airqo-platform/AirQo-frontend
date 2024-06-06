@@ -419,7 +419,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
   };
 
   useEffect(() => {
-    if (reduxSearchTerm !== '' && reduxSearchTerm.length < 4) {
+    if (reduxSearchTerm !== '') {
       setIsLoadingResults(true);
     }
   }, [reduxSearchTerm]);
@@ -499,6 +499,20 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
           </div>
         )}
       </div>
+      <div className='my-1'>
+        <AlertBox
+          message={isError.message}
+          type={isError.type}
+          show={isError.isError}
+          hide={() =>
+            setIsError({
+              isError: false,
+              message: '',
+              type: '',
+            })
+          }
+        />
+      </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId='starredLocations'>
@@ -529,20 +543,6 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
               </div>
               <div className='mt-6 mb-24'>
                 <h3 className='text-sm text-black-800 font-semibold'>Suggestions</h3>
-                <div className='my-1'>
-                  <AlertBox
-                    message={isError.message}
-                    type={isError.type}
-                    show={isError.isError}
-                    hide={() =>
-                      setIsError({
-                        isError: false,
-                        message: '',
-                        type: '',
-                      })
-                    }
-                  />
-                </div>
                 <div className='mt-3'>
                   {unSelectedLocations && unSelectedLocations.length > 0 ? (
                     unSelectedLocations
