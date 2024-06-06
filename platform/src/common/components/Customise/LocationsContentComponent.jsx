@@ -19,6 +19,8 @@ import SearchField from '@/components/search/SearchField';
 import { getNearestSite, getGridsSummaryApi } from '@/core/apis/DeviceRegistry';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import { capitalizeAllText } from '@/core/utils/strings';
+import { getPlaceDetails } from '@/core/utils/getLocationGeomtry';
+import { getAutocompleteSuggestions } from '@/core/utils/AutocompleteSuggestions';
 
 const SearchResultsSkeleton = () => (
   <div className='flex flex-col gap-1 animate-pulse'>
@@ -118,6 +120,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
   const sitesLocationsData = (sitesData && sitesData.sites) || [];
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingResults, setIsLoadingResults] = useState(false);
+  const [isGettingNearestSite, setIsGettingNearestSite] = useState(false);
   const gridsSummaryData = useSelector((state) => state.grids.gridsSummary);
   const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
 
@@ -207,67 +210,40 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
     if (reduxSearchTerm && reduxSearchTerm.length > 3) {
       try {
         // Create a new AutocompleteService instance
-        const autocompleteService = new google.maps.places.AutocompleteService();
+        const autocompleteSuggestions = await getAutocompleteSuggestions(reduxSearchTerm);
+        if (autocompleteSuggestions && autocompleteSuggestions.length > 0) {
+          const filteredPredictions = autocompleteSuggestions.filter((prediction) => {
+            return airqoCountries.some((country) =>
+              prediction.description.toLowerCase().includes(country.toLowerCase()),
+            );
+          });
 
-        // Call getPlacePredictions to retrieve autocomplete suggestions
-        autocompleteService.getPlacePredictions(
-          {
-            input: reduxSearchTerm,
-            types: ['establishment', 'geocode'],
-          },
-          (predictions, status) => {
-            if (status === google.maps.places.PlacesServiceStatus.OK) {
-              // Filter predictions to include only those within the specified countries
-              const filteredPredictions = predictions.filter((prediction) => {
-                return airqoCountries.some((country) =>
-                  prediction.description.toLowerCase().includes(country.toLowerCase()),
-                );
+          const locationPromises = filteredPredictions.map((prediction) => {
+            return new Promise((resolve) => {
+              // Resolve the promise with the location details
+              resolve({
+                description: prediction.description,
+                place_id: prediction.place_id,
               });
+            });
+          });
 
-              // Retrieve the details of each prediction to get latitude and longitude
-              const locationPromises = filteredPredictions.map((prediction) => {
-                return new Promise((resolve, reject) => {
-                  const placesService = new google.maps.places.PlacesService(
-                    document.createElement('div'),
-                  );
-                  placesService.getDetails(
-                    { placeId: prediction.place_id },
-                    (place, placeStatus) => {
-                      if (placeStatus === google.maps.places.PlacesServiceStatus.OK) {
-                        resolve({
-                          description: prediction.description,
-                          latitude: place.geometry.location.lat(),
-                          longitude: place.geometry.location.lng(),
-                          place_id: prediction.place_id,
-                        });
-                      } else {
-                        reject(
-                          new Error(`Failed to retrieve details for ${prediction.description}`),
-                        );
-                      }
-                    },
-                  );
-                });
-              });
-
-              // Resolve all location promises to get the latitude and longitude for each prediction
-              Promise.all(locationPromises)
-                .then((locations) => {
-                  setFilteredLocations(locations);
-                  setIsLoadingResults(false);
-                })
-                .catch((error) => {
-                  console.error('Failed to retrieve location details:', error);
-                  setIsLoadingResults(false);
-                });
-            } else {
-              console.error('Autocomplete search failed with status:', status);
+          Promise.all(locationPromises)
+            .then((locations) => {
+              setFilteredLocations(locations);
               setIsLoadingResults(false);
-            }
-          },
-        );
+            })
+            .catch((error) => {
+              setIsLoadingResults(false);
+              throw new Error(error.message);
+            });
+        }
       } catch (error) {
-        console.error('Failed to search:', error);
+        setIsError({
+          isError: true,
+          message: error.message,
+          type: 'error',
+        });
       } finally {
         setIsLoadingResults(false);
       }
@@ -301,33 +277,58 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
    * array
    */
   const handleLocationSelect = async (item) => {
+    setIsGettingNearestSite(true);
     dispatch(addSearchTerm(''));
     try {
       let newLocationValue;
+      let newItemValue;
       if (item?.place_id) {
-        const response = await getNearestSite({
-          latitude: item?.latitude,
-          longitude: item?.longitude,
-          radius: 4,
-        });
-
-        if (response.sites && response.sites.length > 0) {
-          newLocationValue = {
-            ...response.sites[Math.floor(Math.random() * response.sites.length)],
-            name: item?.description,
-            long_name: item?.description,
-            search_name: item?.description,
-            location_name: item?.description,
-          };
-        } else {
+        try {
+          const placeDetails = await getPlaceDetails(item.place_id);
+          if (placeDetails) {
+            newItemValue = { ...item, ...placeDetails };
+          }
+        } catch (error) {
+          setIsGettingNearestSite(false);
           setIsError({
             isError: true,
-            message: `Can't find air quality for ${
-              item?.description?.split(',')[0]
-            }. Please try another location.`,
+            message: error.message,
             type: 'error',
           });
           return;
+        }
+
+        if (newItemValue?.latitude && newItemValue?.longitude) {
+          try {
+            const response = await getNearestSite({
+              latitude: newItemValue?.latitude,
+              longitude: newItemValue?.longitude,
+              radius: 4,
+            });
+
+            if (response.sites && response.sites.length > 0) {
+              newLocationValue = {
+                ...response.sites[Math.floor(Math.random() * response.sites.length)],
+                name: newItemValue?.description,
+                long_name: newItemValue?.description,
+                search_name: newItemValue?.description,
+                location_name: newItemValue?.description,
+              };
+            } else {
+              throw new Error(
+                `Can't find air quality for ${
+                  newItemValue?.description?.split(',')[0]
+                }. Please try another location.`,
+              );
+            }
+          } catch (error) {
+            setIsError({
+              isError: true,
+              message: error.message,
+              type: 'error',
+            });
+            return;
+          }
         }
       } else {
         newLocationValue = { ...item, name: item?.search_name };
@@ -338,6 +339,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
         (location) => location.name === newLocationValue.name,
       );
       if (index !== -1) {
+        setIsGettingNearestSite(false);
         setIsError({
           isError: true,
           message: 'Location already added',
@@ -351,6 +353,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
         );
         unSelectedLocations.splice(unselectedIndex, 1);
       } else {
+        setIsGettingNearestSite(false);
         setIsError({
           isError: true,
           message:
@@ -364,6 +367,8 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
       setInputSelect(true);
     } catch (error) {
       console.error('Failed to get nearest site:', error);
+    } finally {
+      setIsGettingNearestSite(false);
     }
   };
 
@@ -406,7 +411,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
   };
 
   useEffect(() => {
-    if (reduxSearchTerm !== '' && reduxSearchTerm.length < 4) {
+    if (reduxSearchTerm !== '') {
       setIsLoadingResults(true);
     }
   }, [reduxSearchTerm]);
@@ -486,12 +491,31 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
           </div>
         )}
       </div>
+      <div className='my-1'>
+        <AlertBox
+          message={isError.message}
+          type={isError.type}
+          show={isError.isError}
+          hide={() =>
+            setIsError({
+              isError: false,
+              message: '',
+              type: '',
+            })
+          }
+        />
+      </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId='starredLocations'>
           {(provided) => (
             <div {...provided.droppableProps} ref={provided.innerRef}>
               <div className='mt-4'>
+                {isGettingNearestSite && (
+                  <div className='flex flex-row justify-center items-center mb-4'>
+                    <Spinner data-testid='spinner' width={25} height={25} />
+                  </div>
+                )}
                 {locationArray && locationArray.length > 0 ? (
                   draggedLocations.map((location, index) => (
                     <Draggable key={location.name} draggableId={location.name} index={index}>
@@ -516,20 +540,6 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
               </div>
               <div className='mt-6 mb-24'>
                 <h3 className='text-sm text-black-800 font-semibold'>Suggestions</h3>
-                <div className='my-1'>
-                  <AlertBox
-                    message={isError.message}
-                    type={isError.type}
-                    show={isError.isError}
-                    hide={() =>
-                      setIsError({
-                        isError: false,
-                        message: '',
-                        type: '',
-                      })
-                    }
-                  />
-                </div>
                 <div className='mt-3'>
                   {unSelectedLocations && unSelectedLocations.length > 0 ? (
                     unSelectedLocations
