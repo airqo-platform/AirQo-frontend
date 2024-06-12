@@ -31,6 +31,8 @@ import { isValid, parseISO, isToday, isTomorrow, isThisWeek, format, isSameDay }
 import Calendar from '@/components/Calendar/Calendar';
 import useOutsideClick from '@/core/utils/useOutsideClick';
 import { useWindowSize } from '@/lib/windowSize';
+import { getPlaceDetails } from '@/core/utils/getLocationGeomtry';
+import { getAutocompleteSuggestions } from '@/core/utils/AutocompleteSuggestions';
 
 const MAPBOX_URL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -50,14 +52,16 @@ const TabSelector = ({ selectedTab, setSelectedTab }) => {
           onClick={() => setSelectedTab('locations')}
           className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
             selectedTab === 'locations' ? 'border rounded-md bg-white shadow-sm' : ''
-          }`}>
+          }`}
+        >
           Locations
         </div>
         <div
           onClick={() => setSelectedTab('sites')}
           className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
             selectedTab === 'sites' ? 'border rounded-md bg-white shadow-sm' : ''
-          }`}>
+          }`}
+        >
           Sites
         </div>
       </div>
@@ -113,7 +117,8 @@ const CountryList = ({ siteDetails, data, selectedCountry, setSelectedCountry })
             className={`flex items-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 py-[6px] px-[10px]  min-w-max space-x-2 m-0 ${
               selectedCountry?.country === country.country ? 'border-2 border-blue-400' : ''
             }`}
-            onClick={() => handleClick(country)}>
+            onClick={() => handleClick(country)}
+          >
             <img
               src={`https://flagsapi.com/${country.code.toUpperCase()}/flat/64.png`}
               alt={country.country}
@@ -161,7 +166,8 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
           <div
             key={grid._id || index} // Use grid._id or index as the key
             className='flex flex-row justify-between items-center text-sm w-full hover:cursor-pointer hover:bg-blue-100 px-4 py-[14px] rounded-xl border border-secondary-neutral-light-100 shadow-sm'
-            onClick={() => handleLocationSelect(grid)}>
+            onClick={() => handleLocationSelect(grid)}
+          >
             <div className='flex flex-col item-start w-full'>
               <span className='text-base font-medium text-black'>
                 {capitalizeAllText(
@@ -194,7 +200,8 @@ const SectionCards = ({ searchResults, handleLocationSelect }) => {
               variant='primaryText'
               className='text-sm font-medium'
               paddingStyles='py-4'
-              onClick={handleShowMore}>
+              onClick={handleShowMore}
+            >
               Show More
             </Button>
           </div>
@@ -219,7 +226,8 @@ const SidebarHeader = ({
         {isFocused && (
           <button
             onClick={handleHeaderClick}
-            className='focus:outline-none border rounded-xl hover:cursor-pointer p-2 hidden md:block'>
+            className='focus:outline-none border rounded-xl hover:cursor-pointer p-2 hidden md:block'
+          >
             <CloseIcon />
           </button>
         )}
@@ -302,12 +310,14 @@ const WeekPrediction = ({
                 onClick={() => dispatch(setSelectedWeeklyPrediction(prediction))}
                 className={`rounded-[40px] px-0.5 pt-1.5 pb-0.5 flex flex-col justify-center items-center gap-2 shadow ${
                   isActive(prediction) ? 'bg-blue-600' : 'bg-secondary-neutral-dark-100'
-                }`}>
+                }`}
+              >
                 <div className='flex flex-col items-center justify-start gap-[3px]'>
                   <div
                     className={`text-center text-sm font-semibold leading-tight ${
                       isActive(prediction) ? 'text-primary-300' : 'text-secondary-neutral-dark-400'
-                    }`}>
+                    }`}
+                  >
                     {new Date(prediction.time)
                       .toLocaleDateString('en-US', { weekday: 'long' })
                       .charAt(0)}
@@ -318,7 +328,8 @@ const WeekPrediction = ({
                     <div
                       className={`text-center text-sm font-medium leading-tight ${
                         isActive(prediction) ? 'text-white' : 'text-secondary-neutral-dark-200'
-                      }`}>
+                      }`}
+                    >
                       {new Date(prediction.time).toLocaleDateString('en-US', {
                         day: 'numeric',
                       })}
@@ -355,7 +366,8 @@ const WeekPrediction = ({
                 className={`rounded-[40px] px-0.5 pt-1.5 pb-0.5 flex flex-col justify-center items-center gap-2 shadow ${
                   day === currentDay ? 'bg-blue-600' : 'bg-secondary-neutral-dark-100'
                 }`}
-                key={day}>
+                key={day}
+              >
                 <div className='flex flex-col items-center justify-start gap-[3px]'>
                   <div className='text-center text-sm font-semibold leading-tight text-secondary-neutral-dark-400'>
                     {day.charAt(0)}
@@ -383,7 +395,8 @@ const LocationDetailItem = ({ title, children, isCollapsed = true }) => {
     <div className='p-3 bg-white rounded-lg shadow border border-secondary-neutral-dark-100 flex-col justify-center items-center'>
       <div
         className={`flex justify-between items-center ${collapsed && 'mb-2'} cursor-pointer`}
-        onClick={() => setCollapsed(!collapsed)}>
+        onClick={() => setCollapsed(!collapsed)}
+      >
         <div className='flex justify-start items-center gap-3'>
           <div className='w-10 h-10 rounded-full bg-secondary-neutral-dark-50 p-2 flex items-center justify-center text-xl font-bold'>
             🚨
@@ -431,12 +444,8 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
   const mapLoading = useSelector((state) => state.map.mapLoading);
   const [showLocationDetails, setShowLocationDetails] = useState(false);
   const [isLoading, setLoading] = useState(false);
+  const gridsSummaryData = useSelector((state) => state.grids.gridsSummary);
   const [showNoResultsMsg, setShowNoResultsMsg] = useState(false);
-  const [toastMessage, setToastMessage] = useState({
-    message: '',
-    type: '',
-    bgColor: '',
-  });
   const [locationSearchPreferences, setLocationSearchPreferences] = useState({
     custom: [],
     nearMe: [],
@@ -448,6 +457,11 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
   const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
   const focus = isFocused || reduxSearchTerm.length > 0;
   const selectedSites = useSelector((state) => state.map.suggestedSites);
+  const [isError, setIsError] = useState({
+    isError: false,
+    message: '',
+    type: '',
+  });
 
   useEffect(() => {
     dispatch(setOpenLocationDetails(false));
@@ -473,11 +487,21 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
       });
 
       setCountryData(newCountryData);
-      setCountryFlatList([...newUniqueCountries]);
     } else {
       console.error('Oops! Unable to load sites and show countries');
     }
   }, [siteDetails]);
+
+  useEffect(() => {
+    if (gridsSummaryData && gridsSummaryData.length > 0) {
+      // Check if selected grid admin_level is country
+      const countryNames = gridsSummaryData
+        .filter((grid) => grid.admin_level.toLowerCase() === 'country')
+        .map((country) => country.name.toLowerCase());
+
+      setCountryFlatList(countryNames);
+    }
+  }, [gridsSummaryData]);
 
   useEffect(() => {
     if (selectedSites) {
@@ -501,98 +525,88 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
   };
 
   const handleLocationSelect = useCallback(
-    (data) => {
+    async (data) => {
       dispatch(setOpenLocationDetails(true));
       setIsFocused(false);
-
       try {
-        dispatch(
-          setCenter({
-            latitude: data?.geometry?.coordinates[1] || data?.latitude || 0,
-            longitude: data?.geometry?.coordinates[0] || data?.longitude || 0,
-          }),
-        );
+        let newDataValue = data;
+
+        let latitude, longitude;
+
+        if (data?.place_id) {
+          try {
+            const placeDetails = await getPlaceDetails(data.place_id);
+            if (placeDetails.latitude && placeDetails.longitude) {
+              newDataValue = { ...newDataValue, ...placeDetails };
+              latitude = newDataValue?.latitude;
+              longitude = newDataValue?.longitude;
+            }
+          } catch (error) {
+            console.error(error.message);
+            return;
+          }
+        } else {
+          latitude = data?.geometry?.coordinates[1];
+          longitude = data?.geometry?.coordinates[0];
+        }
+
+        dispatch(setCenter({ latitude, longitude }));
         dispatch(setZoom(11));
-        dispatch(setSelectedLocation(data));
+        dispatch(setSelectedLocation(newDataValue));
       } catch (error) {
-        console.error('Failed to set location:', error);
+        setIsError({
+          isError: true,
+          message: error.message,
+          type: 'error',
+        });
       }
     },
     [dispatch],
   );
 
+  const filterPredictions = (predictions) => {
+    return predictions.filter((prediction) => {
+      return countryFlatList.some((country) =>
+        prediction.description.toLowerCase().includes(country.toLowerCase()),
+      );
+    });
+  };
+
+  const getLocationsDetails = (predictions) => {
+    const locationPromises = predictions.map((prediction) => {
+      return new Promise((resolve) => {
+        resolve({
+          description: prediction.description,
+          place_id: prediction.place_id,
+        });
+      });
+    });
+
+    return Promise.all(locationPromises);
+  };
+
+  const handleSearchError = (error) => {
+    if (error.message === 'ZERO_RESULTS') {
+      setShowNoResultsMsg(true);
+      setSearchResults([]);
+    } else {
+      console.error(error.message);
+    }
+  };
+
   const handleSearch = async () => {
     setLoading(true);
     setIsFocused(true);
-    if (reduxSearchTerm && reduxSearchTerm.length >= 1) {
+    if (reduxSearchTerm && reduxSearchTerm.length > 1) {
       try {
-        // Create a new AutocompleteService instance
-        const autocompleteService = new google.maps.places.AutocompleteService();
-
-        // Call getPlacePredictions to retrieve autocomplete suggestions
-        autocompleteService.getPlacePredictions(
-          {
-            input: reduxSearchTerm,
-            types: ['establishment', 'geocode'],
-          },
-          (predictions, status) => {
-            if (status === google.maps.places.PlacesServiceStatus.OK) {
-              // Filter predictions to include only those within the specified countries
-              const filteredPredictions = predictions.filter((prediction) => {
-                return countryFlatList.some((country) =>
-                  prediction.description.toLowerCase().includes(country.toLowerCase()),
-                );
-              });
-
-              // Retrieve the details of each prediction to get latitude and longitude
-              const locationPromises = filteredPredictions.map((prediction) => {
-                return new Promise((resolve, reject) => {
-                  const placesService = new google.maps.places.PlacesService(
-                    document.createElement('div'),
-                  );
-                  placesService.getDetails(
-                    { placeId: prediction.place_id },
-                    (place, placeStatus) => {
-                      if (placeStatus === google.maps.places.PlacesServiceStatus.OK) {
-                        resolve({
-                          description: prediction.description,
-                          latitude: place.geometry.location.lat(),
-                          longitude: place.geometry.location.lng(),
-                          place_id: prediction.place_id,
-                        });
-                      } else {
-                        reject(
-                          new Error(`Failed to retrieve details for ${prediction.description}`),
-                        );
-                      }
-                    },
-                  );
-                });
-              });
-
-              // Resolve all location promises to get the latitude and longitude for each prediction
-              Promise.all(locationPromises)
-                .then((locations) => {
-                  setSearchResults(locations);
-                  setLoading(false);
-                })
-                .catch((error) => {
-                  console.error('Failed to retrieve location details:', error);
-                  setLoading(false);
-                });
-            } else {
-              console.error('Autocomplete search failed with status:', status);
-              if (status === 'ZERO_RESULTS') {
-                setShowNoResultsMsg(true);
-                setLoading(false);
-                setSearchResults([]);
-              }
-              setLoading(false);
-            }
-          },
-        );
+        const predictions = await getAutocompleteSuggestions(reduxSearchTerm);
+        if (predictions && predictions.length > 0) {
+          const filteredLocations = filterPredictions(predictions);
+          const locations = await getLocationsDetails(filteredLocations);
+          setSearchResults(locations);
+        }
       } catch (error) {
-        console.error('Failed to search:', error);
+        handleSearchError(error);
       } finally {
         setLoading(false);
       }
@@ -619,7 +633,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
           const response = await dailyPredictionsApi(selectedSite._id);
           setWeeklyPredictions(response?.forecasts);
         } catch (error) {
-          console.error(error);
+          console.error(error.message);
         } finally {
           setLoading(false);
         }
@@ -704,7 +718,8 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
           <div className='flex items-center mt-5 overflow-hidden px-4 transition-all duration-300 ease-in-out'>
             <button
               onClick={handleAllSelection}
-              className='py-[6px] px-[10px] rounded-full mb-3 bg-blue-500 text-white text-sm font-medium'>
+              className='py-[6px] px-[10px] rounded-full mb-3 bg-blue-500 text-white text-sm font-medium'
+            >
               All
             </button>
             <div className='country-scroll-bar'>
@@ -764,7 +779,8 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
         <div
           className={`flex flex-col h-full pt-4 w-auto ${
             isFocused && !showLocationDetails ? '' : 'hidden'
-          }`}>
+          }`}
+        >
           {/* Sidebar Header */}
           <div className={`flex flex-col gap-5 px-4`}>
             <SidebarHeader
@@ -791,6 +807,17 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
               className={`border border-secondary-neutral-light-100 ${
                 reduxSearchTerm.length > 0 && 'mt-3'
               }`}
+            />
+          )}
+          {isError.message !== '' && (
+            <Toast
+              message={isError.message}
+              clearData={() => setIsError({ message: '', type: '', isError: false })}
+              type={isError.type}
+              timeout={3000}
+              dataTestId='sidebar-toast'
+              size='lg'
+              position='bottom'
             />
           )}
 
@@ -854,7 +881,8 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
             <div
               className={`mx-4 mb-5 ${
                 width < 1024 ? 'sidebar-scroll-bar h-dvh' : ''
-              } flex flex-col gap-4`}>
+              } flex flex-col gap-4`}
+            >
               <div className='px-3 pt-3 pb-4 bg-secondary-neutral-dark-50 rounded-lg shadow border border-secondary-neutral-dark-100 flex justify-between items-center'>
                 <div className='flex flex-col gap-1'>
                   <div className='flex items-center gap-1'>
@@ -866,7 +894,8 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
                     </p>
                   </div>
                   <div
-                    className={`text-2xl font-extrabold leading-normal text-secondary-neutral-light-800`}>
+                    className={`text-2xl font-extrabold leading-normal text-secondary-neutral-light-800`}
+                  >
                     {selectedWeeklyPrediction
                       ? isSameDay(
                           new Date(selectedSite.time),
@@ -966,18 +995,6 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
           </div>
         )}
       </div>
-
-      {toastMessage.message !== '' && (
-        <Toast
-          message={toastMessage.message}
-          clearData={() => setToastMessage({ message: '', type: '' })}
-          type={toastMessage.type}
-          timeout={3000}
-          dataTestId='sidebar-toast'
-          size='lg'
-          position='bottom'
-        />
-      )}
     </div>
   );
 };
