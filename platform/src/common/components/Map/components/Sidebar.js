@@ -630,16 +630,21 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
       setLoading(true);
       if (selectedSite?._id) {
         try {
-          const response = await dailyPredictionsApi(selectedSite._id);
-          setWeeklyPredictions(response?.forecasts);
+          // Predictions for waq locations
+          if (selectedSite?.forecast && selectedSite?.forecast.length > 0) {
+            setWeeklyPredictions(selectedLocationDetails?.forecast);
+          } else {
+            const response = await dailyPredictionsApi(selectedSite._id);
+            setWeeklyPredictions(response?.forecasts);
+          }
         } catch (error) {
           console.error(error.message);
         } finally {
           setLoading(false);
         }
       } else {
-        setLoading(false);
         setWeeklyPredictions([]);
+        setLoading(false);
       }
     };
 
