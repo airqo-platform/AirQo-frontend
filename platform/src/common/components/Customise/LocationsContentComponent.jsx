@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   setSelectedLocations,
@@ -137,6 +137,11 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
   const [isFocused, setIsFocused] = useState(false);
   const [airqoCountries, setAirqoCountries] = useState([]);
 
+  const autoCompleteSessionToken = useMemo(
+    () => new google.maps.places.AutocompleteSessionToken(),
+    [google.maps.places.AutocompleteSessionToken],
+  );
+
   const focus = isFocused || reduxSearchTerm.length > 0;
 
   useEffect(() => {
@@ -210,7 +215,10 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
     if (reduxSearchTerm && reduxSearchTerm.length > 3) {
       try {
         // Create a new AutocompleteService instance
-        const autocompleteSuggestions = await getAutocompleteSuggestions(reduxSearchTerm);
+        const autocompleteSuggestions = await getAutocompleteSuggestions(
+          reduxSearchTerm,
+          autoCompleteSessionToken,
+        );
         if (autocompleteSuggestions && autocompleteSuggestions.length > 0) {
           const filteredPredictions = autocompleteSuggestions.filter((prediction) => {
             return airqoCountries.some((country) =>
