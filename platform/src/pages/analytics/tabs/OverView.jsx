@@ -15,15 +15,17 @@ const useFetchMeasurements = () => {
   const refreshChart = useSelector((state) => state.chart.refreshChart);
 
   useEffect(() => {
-    if (preferencesLoading) return;
+    if (preferencesLoading || !preferenceData.length) return;
+    const { selected_sites } = preferenceData[0];
+    const chartSites = selected_sites?.map((site) => site['_id']);
 
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        if (chartData.chartSites?.length > 0) {
+        if (chartSites?.length > 0) {
           await dispatch(
             fetchRecentMeasurementsData({
-              site_id: chartData.chartSites.join(','),
+              site_id: chartSites.join(','),
             }),
           );
         }
