@@ -40,7 +40,7 @@ const Index = ({ engagements, forumEvents }) => {
                 <div className="engagements_list">
                   {engagements.objectives.map((objective) => (
                     <div key={objective.id}>
-                      <h3>{objective.title}</h3>
+                      {/* <h3>{objective.title}</h3> */}
                       <p>{objective.details}</p>
                     </div>
                   ))}
