@@ -1,10 +1,11 @@
-export const getAutocompleteSuggestions = (input) => {
+export const getAutocompleteSuggestions = (input, sessionToken) => {
   return new Promise((resolve, reject) => {
     const autocompleteService = new google.maps.places.AutocompleteService();
     autocompleteService.getPlacePredictions(
       {
         input: input,
         types: ['establishment', 'geocode'],
+        sessionToken: sessionToken,
       },
       (predictions, status) => {
         if (status === 'OK') {

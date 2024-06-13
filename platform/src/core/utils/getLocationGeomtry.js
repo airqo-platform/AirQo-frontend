@@ -1,16 +1,16 @@
 export const getPlaceDetails = async (placeId) => {
-  const placesService = new google.maps.places.PlacesService(document.createElement('div'));
+  const geocoder = new google.maps.Geocoder();
 
   const locationPromise = new Promise((resolve, reject) => {
-    placesService.getDetails({ placeId }, (place, placeStatus) => {
-      if (placeStatus === 'OK') {
+    geocoder.geocode({ placeId }, (results, status) => {
+      if (status === 'OK') {
         const {
-          name,
+          formatted_address: description,
           geometry: { location },
           place_id,
-        } = place;
+        } = results[0];
         resolve({
-          description: name,
+          description,
           latitude: location.lat(),
           longitude: location.lng(),
           place_id,
