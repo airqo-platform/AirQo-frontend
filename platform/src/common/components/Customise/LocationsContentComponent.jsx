@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   setSelectedLocations,
@@ -136,14 +136,11 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
   });
   const [isFocused, setIsFocused] = useState(false);
   const [airqoCountries, setAirqoCountries] = useState([]);
-  const [autoCompleteSessionToken, setAutoCompleteSessionToken] = useState(null);
 
-  useEffect(() => {
-    if (!autoCompleteSessionToken) {
-      const sessionToken = new google.maps.places.AutocompleteSessionToken();
-      setAutoCompleteSessionToken(sessionToken);
-    }
-  }, [autoCompleteSessionToken]);
+  const autoCompleteSessionToken = useMemo(
+    () => new google.maps.places.AutocompleteSessionToken(),
+    [google.maps.places.AutocompleteSessionToken],
+  );
 
   const focus = isFocused || reduxSearchTerm.length > 0;
 
@@ -206,13 +203,6 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
       }
     }
   }, [locationArray, sitesLocationsData]);
-
-  useEffect(() => {
-    if (!autoCompleteSessionToken) return;
-
-    const sessionToken = new google.maps.places.AutocompleteSessionToken();
-    setAutoCompleteSessionToken(sessionToken);
-  }, [filteredLocations]);
 
   /**
    * @param {Object} e

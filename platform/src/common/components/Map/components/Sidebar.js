@@ -462,14 +462,10 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
     message: '',
     type: '',
   });
-  const [autoCompleteSessionToken, setAutoCompleteSessionToken] = useState(null);
-
-  useEffect(() => {
-    if (!autoCompleteSessionToken) {
-      const sessionToken = new google.maps.places.AutocompleteSessionToken();
-      setAutoCompleteSessionToken(sessionToken);
-    }
-  }, [autoCompleteSessionToken]);
+  const autoCompleteSessionToken = useMemo(
+    () => new google.maps.places.AutocompleteSessionToken(),
+    [google.maps.places.AutocompleteSessionToken],
+  );
 
   useEffect(() => {
     dispatch(setOpenLocationDetails(false));
@@ -527,13 +523,6 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
   useEffect(() => {
     setSelectedSite(selectedLocationDetails);
   }, [selectedLocationDetails]);
-
-  useEffect(() => {
-    if (!autoCompleteSessionToken) return;
-
-    const sessionToken = new google.maps.places.AutocompleteSessionToken();
-    setAutoCompleteSessionToken(sessionToken);
-  }, [searchResults]);
 
   const handleSelectedTab = (tab) => {
     setSelectedTab(tab);
