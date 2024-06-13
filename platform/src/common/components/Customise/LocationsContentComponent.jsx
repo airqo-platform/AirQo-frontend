@@ -136,9 +136,14 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
   });
   const [isFocused, setIsFocused] = useState(false);
   const [airqoCountries, setAirqoCountries] = useState([]);
-  const [autoCompleteSessionToken, setAutoCompleteSessionToken] = useState(
-    new google.maps.places.AutocompleteSessionToken(),
-  );
+  const [autoCompleteSessionToken, setAutoCompleteSessionToken] = useState(null);
+
+  useEffect(() => {
+    if (!autoCompleteSessionToken) {
+      const sessionToken = new google.maps.places.AutocompleteSessionToken();
+      setAutoCompleteSessionToken(sessionToken);
+    }
+  }, [autoCompleteSessionToken]);
 
   const focus = isFocused || reduxSearchTerm.length > 0;
 
@@ -203,6 +208,8 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
   }, [locationArray, sitesLocationsData]);
 
   useEffect(() => {
+    if (!autoCompleteSessionToken) return;
+
     const sessionToken = new google.maps.places.AutocompleteSessionToken();
     setAutoCompleteSessionToken(sessionToken);
   }, [filteredLocations]);

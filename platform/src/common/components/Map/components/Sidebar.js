@@ -462,9 +462,14 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
     message: '',
     type: '',
   });
-  const [autoCompleteSessionToken, setAutoCompleteSessionToken] = useState(
-    new google.maps.places.AutocompleteSessionToken(),
-  );
+  const [autoCompleteSessionToken, setAutoCompleteSessionToken] = useState(null);
+
+  useEffect(() => {
+    if (!autoCompleteSessionToken) {
+      const sessionToken = new google.maps.places.AutocompleteSessionToken();
+      setAutoCompleteSessionToken(sessionToken);
+    }
+  }, [autoCompleteSessionToken]);
 
   useEffect(() => {
     dispatch(setOpenLocationDetails(false));
@@ -524,6 +529,8 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
   }, [selectedLocationDetails]);
 
   useEffect(() => {
+    if (!autoCompleteSessionToken) return;
+
     const sessionToken = new google.maps.places.AutocompleteSessionToken();
     setAutoCompleteSessionToken(sessionToken);
   }, [searchResults]);
