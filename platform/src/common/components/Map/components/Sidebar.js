@@ -462,6 +462,9 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
     message: '',
     type: '',
   });
+  const [autoCompleteSessionToken, setAutoCompleteSessionToken] = useState(
+    new google.maps.places.AutocompleteSessionToken(),
+  );
 
   useEffect(() => {
     dispatch(setOpenLocationDetails(false));
@@ -519,6 +522,11 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
   useEffect(() => {
     setSelectedSite(selectedLocationDetails);
   }, [selectedLocationDetails]);
+
+  useEffect(() => {
+    const sessionToken = new google.maps.places.AutocompleteSessionToken();
+    setAutoCompleteSessionToken(sessionToken);
+  }, [searchResults]);
 
   const handleSelectedTab = (tab) => {
     setSelectedTab(tab);
@@ -599,7 +607,10 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
     setIsFocused(true);
     if (reduxSearchTerm && reduxSearchTerm.length > 1) {
       try {
-        const predictions = await getAutocompleteSuggestions(reduxSearchTerm);
+        const predictions = await getAutocompleteSuggestions(
+          reduxSearchTerm,
+          autoCompleteSessionToken,
+        );
         if (predictions && predictions.length > 0) {
           const filteredLocations = filterPredictions(predictions);
           const locations = await getLocationsDetails(filteredLocations);

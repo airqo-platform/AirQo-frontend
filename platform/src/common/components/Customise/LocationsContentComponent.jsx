@@ -136,6 +136,9 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
   });
   const [isFocused, setIsFocused] = useState(false);
   const [airqoCountries, setAirqoCountries] = useState([]);
+  const [autoCompleteSessionToken, setAutoCompleteSessionToken] = useState(
+    new google.maps.places.AutocompleteSessionToken(),
+  );
 
   const focus = isFocused || reduxSearchTerm.length > 0;
 
@@ -199,6 +202,11 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
     }
   }, [locationArray, sitesLocationsData]);
 
+  useEffect(() => {
+    const sessionToken = new google.maps.places.AutocompleteSessionToken();
+    setAutoCompleteSessionToken(sessionToken);
+  }, [filteredLocations]);
+
   /**
    * @param {Object} e
    * @returns {void}
@@ -210,7 +218,10 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
     if (reduxSearchTerm && reduxSearchTerm.length > 3) {
       try {
         // Create a new AutocompleteService instance
-        const autocompleteSuggestions = await getAutocompleteSuggestions(reduxSearchTerm);
+        const autocompleteSuggestions = await getAutocompleteSuggestions(
+          reduxSearchTerm,
+          autoCompleteSessionToken,
+        );
         if (autocompleteSuggestions && autocompleteSuggestions.length > 0) {
           const filteredPredictions = autocompleteSuggestions.filter((prediction) => {
             return airqoCountries.some((country) =>
