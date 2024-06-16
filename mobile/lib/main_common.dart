@@ -8,6 +8,7 @@ import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:app/screens/web_view_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/custom_localisations2.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:equatable/equatable.dart';
@@ -143,6 +144,9 @@ class _AirQoAppState extends State<AirQoApp> {
           LgMaterialLocalizations.delegate,
           LgCupertinoLocalizations.delegate,
           LgWidgetsLocalizations.delegate,
+          PcmMaterialLocalizations.delegate,
+          PcmCupertinoLocalizations.delegate,
+          PcmWidgetsLocalizations.delegate,
         ],
         supportedLocales: const [
           Locale('en'), //English
@@ -150,6 +154,7 @@ class _AirQoAppState extends State<AirQoApp> {
           Locale('pt'), //Portuguese
           Locale('sw'), //Swahili
           Locale('lg'), //Luganda
+          Locale('pcm') //pidgin
         ],
         navigatorKey: navigatorKey,
         navigatorObservers: [

@@ -8,7 +8,7 @@ import 'package:intl/date_symbols.dart' as intl;
 import 'package:intl/intl.dart' as intl;
 import 'package:flutter/cupertino.dart';
 
-const lugandaLocaleDatePatterns = {
+const pidginLocaleDatePatterns = {
   'd': 'd.',
   'E': 'ccc',
   'EEEE': 'cccc',
@@ -56,7 +56,7 @@ const lugandaLocaleDatePatterns = {
   'ZZZZ': 'ZZZZ',
 };
 
-const lugandaDateSymbols = {
+const pidginDateSymbols = {
   'NAME': 'lg',
   'ERAS': <dynamic>[
     'BC',
@@ -248,9 +248,9 @@ const lugandaDateSymbols = {
 };
 
 // #docregion Delegate
-class _LgMaterialLocalizationsDelegate
+class _PcmMaterialLocalizationsDelegate
     extends LocalizationsDelegate<MaterialLocalizations> {
-  const _LgMaterialLocalizationsDelegate();
+  const _PcmMaterialLocalizationsDelegate();
 
   @override
   bool isSupported(Locale locale) => locale.languageCode == 'lg';
@@ -263,12 +263,12 @@ class _LgMaterialLocalizationsDelegate
     // date symbols and patterns setup that Flutter uses.
     date_symbol_data_custom.initializeDateFormattingCustom(
       locale: localeName,
-      patterns: lugandaLocaleDatePatterns,
-      symbols: intl.DateSymbols.deserializeFromMap(lugandaDateSymbols),
+      patterns: pidginLocaleDatePatterns,
+      symbols: intl.DateSymbols.deserializeFromMap(pidginDateSymbols),
     );
 
     return SynchronousFuture<MaterialLocalizations>(
-      LgMaterialLocalizations(
+      PcmMaterialLocalizations(
         localeName: localeName,
         // The `intl` library's NumberFormat class is generated from CLDR data
         // (see https://github.com/dart-lang/i18n/blob/main/pkgs/intl/lib/number_symbols_data.dart).
@@ -294,7 +294,7 @@ class _LgMaterialLocalizationsDelegate
   }
 
   @override
-  bool shouldReload(_LgMaterialLocalizationsDelegate old) => false;
+  bool shouldReload(_PcmMaterialLocalizationsDelegate old) => false;
 }
 // #enddocregion Delegate
 
@@ -302,8 +302,8 @@ class _LgMaterialLocalizationsDelegate
 /// the value for openAppDrawerTooltip was modified to use a custom message as
 /// an example. Everything else uses the American English (en_US) messages
 /// and formatting.
-class LgMaterialLocalizations extends GlobalMaterialLocalizations {
-  const LgMaterialLocalizations({
+class PcmMaterialLocalizations extends GlobalMaterialLocalizations {
+  const PcmMaterialLocalizations({
     super.localeName = 'lg',
     required super.fullYearFormat,
     required super.compactDateFormat,
@@ -316,7 +316,7 @@ class LgMaterialLocalizations extends GlobalMaterialLocalizations {
     required super.twoDigitZeroPaddedFormat,
   });
 
-  bool shouldReload(_LgMaterialLocalizationsDelegate old) => false;
+  bool shouldReload(_PcmMaterialLocalizationsDelegate old) => false;
 
 // #docregion Getters
   @override
@@ -526,7 +526,7 @@ class LgMaterialLocalizations extends GlobalMaterialLocalizations {
   int get firstDayOfWeekIndex => 0;
 
   static const LocalizationsDelegate<MaterialLocalizations> delegate =
-      _LgMaterialLocalizationsDelegate();
+      _PcmMaterialLocalizationsDelegate();
 
   @override
   String get calendarModeButtonLabel => r'Switch to calendar';
@@ -801,12 +801,12 @@ class LgMaterialLocalizations extends GlobalMaterialLocalizations {
   String get selectedDateLabel => throw UnimplementedError();
 }
 
-class LgCupertinoLocalizationsDelegate
+class PcmCupertinoLocalizationsDelegate
     extends LocalizationsDelegate<CupertinoLocalizations> {
-  const LgCupertinoLocalizationsDelegate();
+  const PcmCupertinoLocalizationsDelegate();
 
   @override
-  bool shouldReload(LgCupertinoLocalizationsDelegate old) => false;
+  bool shouldReload(PcmCupertinoLocalizationsDelegate old) => false;
 
   @override
   bool isSupported(Locale locale) => locale.languageCode == 'lg';
@@ -817,20 +817,20 @@ class LgCupertinoLocalizationsDelegate
   }
 }
 
-class LgCupertinoLocalizations extends DefaultCupertinoLocalizations {
+class PcmCupertinoLocalizations extends DefaultCupertinoLocalizations {
   // Implement the necessary methods here using default Cupertino localizations
   // ...
 
   static const LocalizationsDelegate<CupertinoLocalizations> delegate =
-      LgCupertinoLocalizationsDelegate();
+      PcmCupertinoLocalizationsDelegate();
 }
 
-class LgWidgetsLocalizationsDelegate
+class PcmWidgetsLocalizationsDelegate
     extends LocalizationsDelegate<WidgetsLocalizations> {
-  const LgWidgetsLocalizationsDelegate();
+  const PcmWidgetsLocalizationsDelegate();
 
   @override
-  bool shouldReload(LgWidgetsLocalizationsDelegate old) => false;
+  bool shouldReload(PcmWidgetsLocalizationsDelegate old) => false;
 
   @override
   bool isSupported(Locale locale) => locale.languageCode == 'lg';
@@ -841,10 +841,10 @@ class LgWidgetsLocalizationsDelegate
   }
 }
 
-class LgWidgetsLocalizations extends DefaultWidgetsLocalizations {
+class PcmWidgetsLocalizations extends DefaultWidgetsLocalizations {
   // Implement the necessary methods here using default Cupertino localizations
   // ...
 
   static const LocalizationsDelegate<WidgetsLocalizations> delegate =
-      LgWidgetsLocalizationsDelegate();
+      PcmWidgetsLocalizationsDelegate();
 }
