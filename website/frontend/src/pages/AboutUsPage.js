@@ -8,18 +8,18 @@ import { loadTeamData } from 'reduxStore/Team/operations';
 import Profile from 'components/Profile';
 import Page from './Page';
 
-import TeamImg from 'assets/img/team.png';
+import TeamImg from 'assets/img/team.webp';
 import Vector1 from 'assets/img/about_us_vector_3.png';
 import Vector2 from 'assets/img/about-us-vector-2.png';
 import SEO from 'utilities/seo';
 
 import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
 import { usePartnersData } from '../../reduxStore/Partners/selectors';
-import { loadPartnersData } from '../../reduxStore/Partners/operations';
 import { useNavigate } from 'react-router-dom';
 import { useBoardData } from '../../reduxStore/Board/selectors';
 import { loadBoardData } from '../../reduxStore/Board/operations';
-import { useTranslation, Trans } from 'react-i18next';
+import { loadPartnersData } from 'reduxStore/Partners/operations';
+import { useTranslation } from 'react-i18next';
 
 const AboutUsPage = () => {
   useInitScrollTop();
@@ -33,33 +33,56 @@ const AboutUsPage = () => {
   const partnersData = allPartnersData.filter((partner) => partner.website_category === 'airqo');
   const language = useSelector((state) => state.eventsNavTab.languageTab);
 
+  useEffect(() => {
+    try {
+      if (isEmpty(teamData)) {
+        dispatch(loadTeamData());
+      }
+      if (isEmpty(boardData)) {
+        dispatch(loadBoardData());
+      }
+      if (isEmpty(allPartnersData)) {
+        dispatch(loadPartnersData());
+      }
+    } catch (error) {
+      console.error('An error occurred while loading data: ', error);
+    }
+  }, [dispatch, teamData, allPartnersData, boardData, language]);
+
   const [togglePartnersDisplay, setTogglePartnersDisplay] = useState(false);
 
   const toggleFullPartnersListDisplay = () => {
-    setTogglePartnersDisplay(!togglePartnersDisplay);
-    document.getElementById('logo-table').scrollIntoView();
+    try {
+      setTogglePartnersDisplay(!togglePartnersDisplay);
+      document.getElementById('logo-table').scrollIntoView();
+    } catch (error) {
+      console.error('An error occurred while toggling partners display: ', error);
+    }
   };
 
-  const partnerDataGroup = partnersData
-    .map((e, i) => {
-      return i % 4 === 0 ? partnersData.slice(i, i + 4) : null;
-    })
-    .filter((e) => {
-      return e;
-    });
+  let partnerDataGroup = [];
+  try {
+    partnerDataGroup = partnersData
+      .map((e, i) => {
+        return i % 4 === 0 ? partnersData.slice(i, i + 4) : null;
+      })
+      .filter((e) => {
+        return e;
+      });
+  } catch (error) {
+    console.error('An error occurred while grouping partner data: ', error);
+  }
 
   const lastGroupArray = partnerDataGroup.length;
 
   const onLogoClick = (uniqueTitle) => (event) => {
     event.preventDefault();
-    navigate(`/partners/${uniqueTitle}/`);
+    try {
+      navigate(`/partners/${uniqueTitle}/`);
+    } catch (error) {
+      console.error('An error occurred while navigating: ', error);
+    }
   };
-
-  useEffect(() => {
-    dispatch(loadTeamData());
-    dispatch(loadPartnersData());
-    dispatch(loadBoardData());
-  }, [language]);
 
   return (
     <Page>
@@ -236,7 +259,7 @@ const AboutUsPage = () => {
           <div className="partner-logos" id="logo-table">
             <table>
               <tbody>
-                {partnersData.length > 0 ? (
+                {partnersData.length > 0 &&
                   partnerDataGroup.slice(0, 3).map((partnerGroup, key) => (
                     <tr key={key}>
                       {partnerGroup.map((partner) => (
@@ -245,10 +268,7 @@ const AboutUsPage = () => {
                         </td>
                       ))}
                     </tr>
-                  ))
-                ) : (
-                  <span />
-                )}
+                  ))}
                 {togglePartnersDisplay &&
                   partnerDataGroup.length > 0 &&
                   partnerDataGroup.slice(3, lastGroupArray).map((partnerGroup, key) => (

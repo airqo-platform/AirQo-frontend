@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInitScrollTop } from 'utilities/customHooks';
+import { loadCareersListingData, loadCareersDepartmentsData } from 'reduxStore/Careers/operations';
+import { useDispatch } from 'react-redux';
 import Page from './Page';
 import {
   useCareerListingData,
@@ -12,6 +14,7 @@ import SectionLoader from '../components/LoadSpinner/SectionLoader';
 import SEO from 'utilities/seo';
 import { useTranslation, Trans } from 'react-i18next';
 import { useSelector } from 'react-redux';
+import CareerImage from 'src/icons/careers/careers.webp';
 
 const JobListing = ({ title, uniqueTitle, type, key }) => {
   const navigate = useNavigate();
@@ -53,11 +56,23 @@ const DepartmentListing = ({ department, listing }) => {
 const CareerPage = () => {
   useInitScrollTop();
   const { t } = useTranslation();
-  const careerListing = useCareerListingData();
-  const departments = useCareerDepartmentsData();
-  const loading = useCareerLoadingData();
-  const groupedListing = groupBy(Object.values(careerListing), (v) => v['department']['name']);
-  const language = useSelector((state) => state.eventsNavTab.languageTab);
+  const dispatch = useDispatch();
+
+  let careerListing = [];
+  let departments = [];
+  let loading = false;
+  let groupedListing = {};
+  let language = '';
+
+  try {
+    careerListing = useCareerListingData();
+    departments = useCareerDepartmentsData();
+    loading = useCareerLoadingData();
+    groupedListing = groupBy(Object.values(careerListing), (v) => v['department']['name']);
+    language = useSelector((state) => state.eventsNavTab.languageTab);
+  } catch (error) {
+    console.error('An error occurred while fetching data: ', error);
+  }
 
   const [groupedKeys, setGroupedKeys] = useState(Object.keys(groupedListing));
   const [selectedTag, setSelectedTag] = useState('all');
@@ -82,8 +97,14 @@ const CareerPage = () => {
   };
 
   useEffect(() => {
-    setGroupedKeys(Object.keys(groupedListing));
-  }, [careerListing, language]);
+    try {
+      setGroupedKeys(Object.keys(groupedListing));
+      dispatch(loadCareersListingData());
+      dispatch(loadCareersDepartmentsData());
+    } catch (error) {
+      console.error('An error occurred while dispatching data: ', error);
+    }
+  }, [careerListing, language, dispatch]);
 
   return (
     <Page>
@@ -93,7 +114,11 @@ const CareerPage = () => {
           siteTitle="AirQo"
           description="Be part of a team pioneering air quality monitoring in Africa. Together, we work passionately towards our vision for Clean Air for all African Cities."
         />
-        <div className="careers-banner">
+        <div
+          className="careers-banner"
+          style={{
+            backgroundImage: `url(${CareerImage})`
+          }}>
           <div className="text-container">
             <div className="sub-text">{t('about.careers.header.breadCrumb')}</div>
             <div className="main-text">{t('about.careers.header.title')}</div>

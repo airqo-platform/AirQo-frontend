@@ -110,6 +110,8 @@ class CategoryChoices(Enum):
     SPEAKER = "Speaker"
     COMMITTEE_MEMBER = "Committee Member"
     KEY_NOTE_SPEAKER = "Key Note Speaker"
+    SPEAKER_AND_COMMITTEE_MEMBER = "Speaker and Committee Member"
+    COMMITTEE_MEMBER_AND_KEY_NOTE_SPEAKER = "Committee Member and Key Note Speaker"
 
     @classmethod
     def choices(cls):

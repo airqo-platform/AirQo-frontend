@@ -3,7 +3,6 @@ import AccountPageLayout from '@/components/Account/Layout';
 import { useDispatch, useSelector } from 'react-redux';
 import { createUser } from '@/lib/store/services/account/CreationSlice';
 import Toast from '@/components/Toast';
-import SideImage from '@/images/Account/OrganisationSideQuote.png';
 
 const IndividualAccountVerification = () => {
   const userData = useSelector((state) => state.creation.userData);
@@ -26,7 +25,7 @@ const IndividualAccountVerification = () => {
   };
 
   return (
-    <AccountPageLayout rightImage={SideImage} pageTitle={'Verify Email | AirQo'}>
+    <AccountPageLayout pageTitle={'Verify Email | AirQo'}>
       {verificationErrors && (
         <Toast
           type={'error'}

@@ -1,6 +1,6 @@
 import React from 'react';
-import Team from 'assets/img/cleanAir/team.png';
-import { Trans, useTranslation } from 'react-i18next';
+import Team from 'assets/img/cleanAir/team.webp';
+import { useTranslation } from 'react-i18next';
 
 const RegisterSection = ({ link }) => {
   const { t } = useTranslation();

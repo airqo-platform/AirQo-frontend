@@ -13,7 +13,7 @@ const Button = ({
   Icon,
   paddingStyles = 'px-4 py-3',
 }) => {
-  let buttonClass = `flex justify-center items-center ${paddingStyles} rounded sm:gap-1 ${className}`;
+  let buttonClass = `flex justify-center items-center ${paddingStyles} rounded-xl sm:gap-1 ${className}`;
   let textColor = '';
   let backgroundColor = '';
   let border = '';
@@ -47,8 +47,7 @@ const Button = ({
       <a
         href={path}
         className={`${buttonClass} ${textColor} ${backgroundColor} ${border}`}
-        data-testid={dataTestId}
-      >
+        data-testid={dataTestId}>
         {Icon && <Icon className={`${textColor || 'text-black-900'} w-4 h-4`} />}
         {children}
       </a>
@@ -62,8 +61,7 @@ const Button = ({
         data-testid={dataTestId}
         type={type}
         {...rest}
-        disabled={disabled}
-      >
+        disabled={disabled}>
         {Icon && <Icon className={`${textColor || 'text-black-900 w-4 h-4'}`} />}
         {children}
       </button>

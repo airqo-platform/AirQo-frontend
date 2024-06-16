@@ -4,7 +4,6 @@ import 'package:animations/animations.dart';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
-import 'package:app/screens/email_link/email_link_page.dart';
 import 'package:app/screens/profile/profile_view.dart';
 import 'package:app/screens/settings/update_screen.dart';
 import 'package:app/services/services.dart';
@@ -223,42 +222,31 @@ class _HomePageState extends State<HomePage> {
     );
     await _initializeDynamicLinks();
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (context.read<DashboardBloc>().state.checkForUpdates) {
-        final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) async {
+        if (context.read<DashboardBloc>().state.checkForUpdates) {
+          final PackageInfo packageInfo = await PackageInfo.fromPlatform();
 
-        await AirqoApiClient()
-            .getAppVersion(
-          currentVersion: packageInfo.version,
-          bundleId: Platform.isIOS ? packageInfo.packageName : null,
-          packageName: Platform.isAndroid ? packageInfo.packageName : null,
-        )
-            .then((version) async {
-          if (version != null && mounted && !version.isUpdated) {
-            await canLaunchUrl(version.url).then((bool result) async {
-              await openUpdateScreen(context, version);
-            });
-          }
-        });
-      }
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final user = CustomAuth.getUser();
-      if ((user != null && user.phoneNumber != null)) {
-        if (user.email != null) {
-          return;
-        } else if (user.isAnonymous) {
-          return;
+          await AirqoApiClient()
+              .getAppVersion(
+            currentVersion: packageInfo.version,
+            bundleId: Platform.isIOS ? packageInfo.packageName : null,
+            packageName: Platform.isAndroid ? packageInfo.packageName : null,
+          )
+              .then(
+            (version) async {
+              if (version != null && mounted && !version.isUpdated) {
+                await canLaunchUrl(version.url).then(
+                  (bool result) async {
+                    await openUpdateScreen(context, version);
+                  },
+                );
+              }
+            },
+          );
         }
-        if (mounted) {
-          await bottomSheetEmailLink(context);
-        }
-      }
-    });
-  }
-
-  Future<void> showEmailLinkBottomSheet(BuildContext context) async {
-    await bottomSheetEmailLink(context);
+      },
+    );
   }
 
   Future<void> _initializeDynamicLinks() async {
@@ -337,14 +325,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _startShowcase() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ShowCaseWidget.of(_showcaseContext).startShowCase(
-        [
-          _homeShowcaseKey,
-          _mapShowcaseKey,
-          _profileShowcaseKey,
-        ],
-      );
-    });
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) {
+        ShowCaseWidget.of(_showcaseContext).startShowCase(
+          [
+            _homeShowcaseKey,
+            _mapShowcaseKey,
+            _profileShowcaseKey,
+          ],
+        );
+      },
+    );
   }
 }

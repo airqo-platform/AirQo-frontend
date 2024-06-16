@@ -27,10 +27,10 @@ const Explore = ({ toggleCustomize }) => {
       <div className='flex justify-between items-center flex-wrap space-y-2'>
         <div className='flex space-x-3'>
           <CustomCalendar
-            initialStartDate={new Date()}
-            initialEndDate={new Date()}
+            initialStartDate={chartData.chartDataRange.startDate}
+            initialEndDate={chartData.chartDataRange.endDate}
             id='datePicker2'
-            className='left-0'
+            className='md:left-[150px] lg:left-52 top-12'
             position='down'
             dropdown
           />
@@ -80,21 +80,19 @@ const Explore = ({ toggleCustomize }) => {
           <TabButtons Icon={SettingsIcon} btnText='Customize' onClick={toggleCustomize} />
         </div>
       </div>
-      <div>
-        <ChartContainer
-          menuBtn
-          chartType={chartData.chartType}
-          chartTitle='Air quality over time'
-          height={450}
-          id='explore-chart-container'
-          downloadStatus={(status) => {
-            setDownloadStatus(status);
-            setTimeout(() => {
-              setDownloadStatus(null);
-            }, 3000);
-          }}
-        />
-      </div>
+      <ChartContainer
+        menuBtn
+        chartType={chartData.chartType}
+        chartTitle='Air quality over time'
+        height={450}
+        id='explore-chart-container'
+        downloadStatus={(status) => {
+          setDownloadStatus(status);
+          setTimeout(() => {
+            setDownloadStatus(null);
+          }, 3000);
+        }}
+      />
       {downloadStatus && (
         <div className='w-full flex justify-center items-center'>
           <span className='bg-blue-600 flex items-center justify-center gap-3 rounded-xl text-white w-auto h-auto text-sm p-[22px]'>

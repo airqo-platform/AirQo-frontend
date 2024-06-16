@@ -6,13 +6,15 @@ import { setActiveResource } from 'reduxStore/CleanAirNetwork/CleanAir';
 import { ReportComponent } from 'components/CleanAir';
 import { useTranslation } from 'react-i18next';
 import { RegisterSection, IntroSection, RotatingLoopIcon } from 'components/CleanAir';
-import ResourceImage from 'assets/img/cleanAir/resource.png';
+import ResourceImage from 'assets/img/cleanAir/resource.webp';
 import DoneIcon from '@mui/icons-material/Done';
 import Slide from '@mui/material/Slide';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import CleanAirPageContainer from './Page';
+import { fetchCleanAirData } from 'reduxStore/CleanAirNetwork/CleanAir';
+import { isEmpty } from 'underscore';
 
 const ITEMS_PER_PAGE = 3;
 
@@ -27,6 +29,16 @@ const CleanAirPublications = () => {
   const activeResource = useSelector((state) => state.cleanAirData.activeResource);
   const language = useSelector((state) => state.eventsNavTab.languageTab);
   const [currentPage, setCurrentPage] = useState(1);
+
+  /**
+   * @description fetch clean air resources
+   * @type {Array} cleanAirResources
+   */
+  useEffect(() => {
+    if (isEmpty(cleanAirResources)) {
+      dispatch(fetchCleanAirData(language));
+    }
+  }, [dispatch, language]);
 
   /**
    * @description set the active resource in the redux store

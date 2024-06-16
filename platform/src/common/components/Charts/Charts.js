@@ -15,7 +15,7 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import Spinner from '@/components/Spinner';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
-import { fetchAnalyticsData } from '@/lib/store/services/charts/ChartData';
+import { fetchAnalyticsData, setAnalyticsData } from '@/lib/store/services/charts/ChartData';
 import {
   renderCustomizedLegend,
   CustomDot,
@@ -27,53 +27,112 @@ import {
 
 /**
  * @description Custom hook to fetch analytics data
- * @returns {Object} analyticsData, isLoading, error, loadingTime
+ * @returns {Object} isLoading, error, loadingTime
  */
-const useAnalytics = () => {
+export const useAnalytics = () => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
   const refreshChart = useSelector((state) => state.chart.refreshChart);
   const preferencesLoading = useSelector((state) => state.userDefaults.status === 'loading');
   const isLoading = useSelector((state) => state.analytics.status === 'loading');
-  const analyticsData = useSelector((state) => state.analytics.data);
   const [error, setError] = useState(null);
   const [loadingTime, setLoadingTime] = useState(0);
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
 
   useEffect(() => {
-    if (preferencesLoading) return;
+    if (preferencesLoading || !preferenceData.length) return;
+    const { selected_sites } = preferenceData[0];
+    const chartSites = selected_sites?.map((site) => site['_id']);
 
-    const body = {
-      sites: chartData.chartSites,
-      startDate: chartData.chartDataRange.startDate,
-      endDate: chartData.chartDataRange.endDate,
-      chartType: chartData.chartType,
-      frequency: chartData.timeFrame,
-      pollutant: chartData.pollutionType,
-      organisation_name: chartData.organizationName,
+    const fetchData = async () => {
+      try {
+        setError(null);
+        const startTime = Date.now();
+        setLoadingTime(startTime);
+        await dispatch(
+          fetchAnalyticsData({
+            sites: chartSites,
+            startDate: chartData.chartDataRange.startDate,
+            endDate: chartData.chartDataRange.endDate,
+            chartType: chartData.chartType,
+            frequency: chartData.timeFrame,
+            pollutant: chartData.pollutionType,
+            organisation_name: chartData.organizationName,
+          }),
+        );
+      } catch (err) {
+        setError(err.message);
+        dispatch(setAnalyticsData(null));
+      } finally {
+        dispatch(setRefreshChart(false));
+        setLoadingTime(Date.now() - loadingTime);
+      }
     };
 
-    const allPropertiesSet = Object.values(body).every(
-      (property) => property !== undefined && property !== null,
-    );
+    fetchData();
+  }, [chartData, refreshChart, preferenceData]);
 
-    if (allPropertiesSet) {
-      const fetchData = async () => {
-        try {
-          setError(null);
-          setLoadingTime(Date.now());
-          await dispatch(fetchAnalyticsData(body));
-          dispatch(setRefreshChart(false));
-        } catch (err) {
-          setError(err.message);
-        } finally {
-          setLoadingTime(Date.now() - loadingTime);
+  return { isLoading, error, loadingTime };
+};
+
+/**
+ * @description Custom hook to transform analytics data for chart
+ * @returns {Object} dataForChart, allKeys
+ */
+const useAnalyticsData = () => {
+  const analyticsData = useSelector((state) => state.analytics.data);
+  const [dataForChart, setDataForChart] = useState([]);
+  const [allKeys, setAllKeys] = useState(new Set());
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const siteData = useSelector((state) => state.grids.sitesSummary);
+
+  // Helper functions
+  const getSiteName = (siteId, preferenceData) => {
+    if (!preferenceData?.length) return '';
+    const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
+    return site ? site.name?.split(',')[0] : '';
+  };
+
+  const getExistingSiteName = (siteId, siteData) => {
+    const site = siteData?.sites?.find((site) => site._id === siteId);
+    return site ? site.search_name : '';
+  };
+
+  // Effect to transform analytics data whenever it changes
+  useEffect(() => {
+    const transformData = (analyticsData) => {
+      const newAnalyticsData = analyticsData.map((data) => {
+        const name =
+          getSiteName(data.site_id, preferenceData) ||
+          getExistingSiteName(data.site_id, siteData) ||
+          data.generated_name;
+        return { ...data, name };
+      });
+
+      const transformedData = newAnalyticsData.reduce((acc, curr) => {
+        if (!acc[curr.time]) {
+          acc[curr.time] = { time: curr.time };
         }
-      };
-      fetchData();
-    }
-  }, [chartData, refreshChart]);
+        acc[curr.time][curr.name] = curr.value;
+        return acc;
+      }, {});
 
-  return { analyticsData, isLoading, error, loadingTime };
+      setDataForChart(Object.values(transformedData));
+      setAllKeys(
+        new Set(
+          Object.values(transformedData).length > 0
+            ? Object.keys(Object.values(transformedData)[0])
+            : [],
+        ),
+      );
+    };
+
+    if (analyticsData?.length) {
+      transformData(analyticsData);
+    }
+  }, [analyticsData]);
+
+  return { dataForChart, allKeys };
 };
 
 /**
@@ -83,9 +142,11 @@ const useAnalytics = () => {
  * @param {String} height - Height of the chart
  * @returns {React.Component} Charts
  */
-const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
+const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => {
   const chartData = useSelector((state) => state.chart);
-  const { analyticsData, isLoading, error, loadingTime } = useAnalytics();
+  const { isLoading, error, loadingTime } = useAnalytics();
+  const { dataForChart, allKeys } = useAnalyticsData();
+  const analyticsData = useSelector((state) => state.analytics.data);
   const [showLoadingMessage, setShowLoadingMessage] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
 
@@ -100,58 +161,45 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
     return () => clearTimeout(timeoutId);
   }, [isLoading, loadingTime]);
 
-  // Error state
-  if (error) {
-    return (
-      <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
-        <p className='text-red-500'>
-          An error has occurred. Please try again later or reach out to our support team for
-          assistance.
-        </p>
-      </div>
-    );
-  }
+  const renderErrorMessage = () => (
+    <div className='ml-10 pr-10 flex justify-center text-center items-center w-full h-full text-sm'>
+      <p className='text-red-500 text-center'>
+        An error has occurred. Please try again later or reach out to our support team for
+        assistance.
+      </p>
+    </div>
+  );
 
-  // Loading state
-  if (isLoading || !hasLoaded) {
-    return (
-      <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
-        <div className='text-blue-500'>
-          <Spinner />
-          {showLoadingMessage && (
-            <span className='text-yellow-500 mt-2'>
-              The data is currently being processed. We appreciate your patience.
-            </span>
-          )}
-        </div>
+  const renderLoadingMessage = () => (
+    <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
+      <div className='text-blue-500'>
+        <Spinner />
+        {showLoadingMessage && (
+          <span className='text-yellow-500 mt-2'>
+            The data is currently being processed. We appreciate your patience.
+          </span>
+        )}
       </div>
-    );
-  }
+    </div>
+  );
 
   // No data for this time range
-  if (hasLoaded && (analyticsData === null || analyticsData.length === 0)) {
-    return (
-      <div className='ml-10 flex justify-center items-center w-full h-full'>
-        There is no data available for the selected time range.
-      </div>
-    );
+  const renderNoDataMessage = () => (
+    <div className='ml-10 pr-10 flex justify-center items-center w-full h-full text-center text-sm text-gray-600'>
+      No data found. Please try other time periods or customize using other locations
+    </div>
+  );
+
+  if (error || analyticsData?.error?.message) {
+    return renderErrorMessage();
   }
 
-  const transformedData = analyticsData.reduce((acc, curr) => {
-    if (!acc[curr.time]) {
-      acc[curr.time] = {
-        time: curr.time,
-      };
-    }
-    acc[curr.time][curr.name] = curr.value;
-    return acc;
-  }, {});
+  if (isLoading || !hasLoaded) {
+    return renderLoadingMessage();
+  }
 
-  const dataForChart = Object.values(transformedData);
-
-  let allKeys = new Set();
-  if (dataForChart.length > 0) {
-    allKeys = new Set(Object.keys(dataForChart[0]));
+  if ((hasLoaded && !analyticsData) || analyticsData?.length === 0) {
+    return renderNoDataMessage();
   }
 
   // Render the chart
@@ -275,9 +323,11 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%' }) => {
   };
 
   return (
-    <ResponsiveContainer width={width} height={height}>
-      {renderChart()}
-    </ResponsiveContainer>
+    <div id={id} className='pt-2'>
+      <ResponsiveContainer width={width} height={height}>
+        {renderChart()}
+      </ResponsiveContainer>
+    </div>
   );
 };
 

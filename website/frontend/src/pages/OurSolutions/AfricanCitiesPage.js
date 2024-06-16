@@ -9,7 +9,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import { getAllCities } from '../../../reduxStore/AfricanCities/CitiesSlice';
 import SectionLoader from '../../components/LoadSpinner/SectionLoader';
-import { useTranslation, Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { t } from 'i18next';
 
 const CityHeroSection = () => {

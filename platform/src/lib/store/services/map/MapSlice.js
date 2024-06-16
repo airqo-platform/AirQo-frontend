@@ -6,20 +6,30 @@ const initialState = {
     city: '',
   },
   center: {
-    latitude: 4.15,
-    longitude: 23.12,
+    latitude: 9.7037,
+    longitude: 19.9573,
   },
-  zoom: 2.88,
+  zoom: 3.27,
   showLocationDetails: false,
   selectedLocation: null,
   mapLoading: false,
   suggestedSites: [],
+  selectedNode: null,
+  selectedWeeklyPrediction: null,
+  mapReadingsData: [],
+  waqData: [],
 };
 
 export const mapSlice = createSlice({
   name: 'map',
   initialState,
   reducers: {
+    setSelectedWeeklyPrediction: (state, action) => {
+      state.selectedWeeklyPrediction = action.payload;
+    },
+    setSelectedNode: (state, action) => {
+      state.selectedNode = action.payload;
+    },
     setCenter: (state, action) => {
       const { latitude, longitude } = action.payload || {};
       if (latitude && longitude) {
@@ -38,6 +48,11 @@ export const mapSlice = createSlice({
     clearData: (state) => {
       return initialState;
     },
+    reSetMap: (state) => {
+      state.center = initialState.center;
+      state.zoom = initialState.zoom;
+      state.location = initialState.location;
+    },
     setOpenLocationDetails: (state, action) => {
       state.showLocationDetails = action.payload;
     },
@@ -49,6 +64,12 @@ export const mapSlice = createSlice({
     },
     addSuggestedSites: (state, action) => {
       state.suggestedSites = action.payload;
+    },
+    setMapReadingsData: (state, action) => {
+      state.mapReadingsData = action.payload;
+    },
+    setWaqData: (state, action) => {
+      state.waqData = action.payload;
     },
   },
 });
@@ -62,4 +83,9 @@ export const {
   setSelectedLocation,
   setMapLoading,
   addSuggestedSites,
+  setSelectedNode,
+  reSetMap,
+  setSelectedWeeklyPrediction,
+  setMapReadingsData,
+  setWaqData,
 } = mapSlice.actions;

@@ -1,15 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import CloseIcon from '@/icons/Actions/close.svg';
 import LocationsContentComponent from './LocationsContentComponent';
 import { useDispatch, useSelector } from 'react-redux';
 import Spinner from '@/components/Spinner';
-import {
-  replaceUserPreferences,
-  getIndividualUserPreferences,
-} from '@/lib/store/services/account/UserDefaultsSlice';
 import Toast from '@/components/Toast';
 import { RxInfoCircled } from 'react-icons/rx';
-import { completeTask } from '@/lib/store/services/checklists/CheckList';
+import UpdateUserPreferences from '@/core/utils/UpdateUserPreferences';
 
 const tabs = ['Locations', 'Pollutants'];
 
@@ -21,6 +17,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
     state: false,
     message: '',
   });
+  const [resetSearchData, setResetSearchData] = useState(false);
 
   /**
    * @description Fetches the selected locations, user preferences and chart data from the redux store
@@ -38,47 +35,35 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
    * @returns {void}
    */
   const handleSubmit = async () => {
-    setLoading(true);
-    setCreationErrors({
-      state: false,
-      message: '',
-    });
     if (selectedLocations.length > 4) {
       setCreationErrors({
         state: true,
         message: 'Please star only 4 locations',
       });
       setLoading(false);
-      return;
-    }
-    const data = {
-      user_id: userId,
-      selected_sites: selectedLocations,
-      startDate: chartData.chartDataRange.startDate,
-      endDate: chartData.chartDataRange.endDate,
-      chartType: chartData.chartType,
-      pollutant: chartData.pollutionType,
-      frequency: chartData.timeFrame,
-      period: {
-        label: chartData.chartDataRange.label,
-      },
-    };
-    try {
-      const response = await dispatch(replaceUserPreferences(data));
-      if (response.payload && response.payload.success) {
-        dispatch(getIndividualUserPreferences(userId));
-        toggleCustomise();
-        dispatch(completeTask(2));
-      } else {
-        throw new Error('Error updating user preferences');
-      }
-    } catch (error) {
+    } else {
+      setLoading(true);
       setCreationErrors({
-        state: true,
-        message: error.message,
+        state: false,
+        message: '',
       });
-    } finally {
-      setLoading(false);
+
+      try {
+        await UpdateUserPreferences(
+          userId,
+          selectedLocations,
+          chartData,
+          dispatch,
+          toggleCustomise,
+        );
+      } catch (error) {
+        setCreationErrors({
+          state: true,
+          message: error.message,
+        });
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -91,25 +76,27 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
         className='absolute right-0 top-0 w-full md:w-96
          h-full overflow-y-scroll bg-white z-50 border-l-grey-50 px-6'
         style={{ boxShadow: '0px 16px 32px 0px rgba(83, 106, 135, 0.20)' }}>
-        <div className='flex flex-row justify-between items-center mt-6'>
-          <h3 className='flex items-center text-xl text-black-800 font-semibold'>
-            Customise
-            <span
-              className='tooltip tooltip-bottom ml-1 hover:cursor-pointer text-lg font-normal'
-              data-tip='Changes are applied when 4 locations have been selected'>
-              <RxInfoCircled style={{ paddingTop: '2px' }} />
-            </span>
-          </h3>
-          <div
-            className='p-3 rounded-md border border-secondary-neutral-light-100 bg-white hover:cursor-pointer'
-            onClick={() => toggleCustomise()}>
-            <CloseIcon />
+        <div onClick={() => setResetSearchData(true)}>
+          <div className='flex flex-row justify-between items-center mt-6'>
+            <h3 className='flex items-center text-xl text-black-800 font-semibold'>
+              Customise
+              <span
+                className='tooltip tooltip-bottom ml-1 hover:cursor-pointer text-lg font-normal'
+                data-tip='Changes are applied when 4 locations have been selected'>
+                <RxInfoCircled style={{ paddingTop: '2px' }} />
+              </span>
+            </h3>
+            <div
+              className='p-3 rounded-md border border-secondary-neutral-light-100 bg-white hover:cursor-pointer'
+              onClick={() => toggleCustomise()}>
+              <CloseIcon />
+            </div>
           </div>
-        </div>
-        <div className='mt-6'>
-          <p className='text-grey-350 text-sm font-normal'>
-            Select any 4 locations you would like to feature on your overview page.
-          </p>
+          <div className='mt-6'>
+            <p className='text-grey-350 text-sm font-normal'>
+              Select any 4 locations you would like to feature on your overview page.
+            </p>
+          </div>
         </div>
         {false && (
           <div className='mt-6'>
@@ -129,7 +116,10 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
           </div>
         )}
         {selectedTab === tabs[0] && (
-          <LocationsContentComponent selectedLocations={customisedLocations} />
+          <LocationsContentComponent
+            selectedLocations={customisedLocations}
+            resetSearchData={resetSearchData}
+          />
         )}
         {/* TODO: Pollutant component and post selection to user defaults */}
       </div>

@@ -14,7 +14,6 @@ import VisibilityOffIcon from '@/icons/Account/visibility_off.svg';
 import VisibilityOnIcon from '@/icons/Account/visibility_on.svg';
 import Toast from '@/components/Toast';
 import { useRouter } from 'next/router';
-import SideImage from '@/images/Account/OrganisationSideQuote.png';
 import Spinner from '@/components/Spinner';
 
 const OrganisationIndividualAccountCreation = () => {

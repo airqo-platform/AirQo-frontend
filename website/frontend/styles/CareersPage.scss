@@ -6,12 +6,11 @@
     justify-content: center;
     width: 100%;
     min-height: 416px;
-    background-image: url("src/icons/careers/careers.jpeg");
     background-repeat: no-repeat;
     background-size: cover;
     background-position-y: 45%;
 
-    color: #FFFFFF;
+    color: #ffffff;
     font-style: normal;
     text-align: center;
 
@@ -44,7 +43,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #F2F1F6;
+    background: #f2f1f6;
     min-height: 50px;
     padding: 80px 0 160px 0;
     .container {
@@ -60,7 +59,7 @@
       line-height: 56px;
 
       color: #121723;
-      margin-bottom:  32px;
+      margin-bottom: 32px;
     }
 
     .tag {
@@ -81,8 +80,8 @@
     }
 
     .tag-selected {
-      background: #0CE87E;
-      color: #06743F;
+      background: #0ce87e;
+      color: #06743f;
     }
 
     .department {
@@ -136,8 +135,8 @@
 
         opacity: 0.32;
 
-        border-top: 2px solid #353E52;
-        border-right: 2px solid #353E52;
+        border-top: 2px solid #353e52;
+        border-right: 2px solid #353e52;
         transform: rotate(45deg);
       }
     }
@@ -164,7 +163,8 @@
 
     .self-intro {
       margin-top: 160px;
-      span, .mail-link {
+      span,
+      .mail-link {
         display: block;
         width: 100%;
         max-width: 418px;

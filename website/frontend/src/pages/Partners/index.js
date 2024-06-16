@@ -1,23 +1,29 @@
 import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import PageMini from '../PageMini';
-import { isEmpty } from 'underscore';
-
 import { useInitScrollTop } from 'utilities/customHooks';
-import { useDispatch } from 'react-redux';
 import { usePartnersData } from '../../../reduxStore/Partners/selectors';
-import { loadPartnersData } from '../../../reduxStore/Partners/operations';
+import { useSelector, useDispatch } from 'react-redux';
+import { loadPartnersData } from 'reduxStore/Partners/operations';
+import { isEmpty } from 'underscore';
 
 const PartnerDetailPage = () => {
   useInitScrollTop();
+  const dispatch = useDispatch();
   const { uniqueTitle } = useParams();
-
   const partnerDetails = usePartnersData();
   const partner = partnerDetails.filter((p) => p.unique_title === uniqueTitle) || {};
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
+
+  useEffect(() => {
+    if (isEmpty(partner)) {
+      dispatch(loadPartnersData(language));
+    }
+  }, [dispatch, language, partner]);
 
   return (
     <PageMini>
-      {!isEmpty(partner) &&
+      {partner.length > 0 &&
         partner.map((p) => (
           <div className="DetailPage" key={p.id}>
             <div className="content">

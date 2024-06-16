@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Page from 'src/pages/CleanAir/Page';
 import { AccessTimeOutlined, CalendarMonth, PlaceOutlined } from '@mui/icons-material';
-import BackgroundImage from 'assets/img/cleanAir/section2.png';
+import BackgroundImage from 'assets/img/cleanAir/section2.webp';
 import { getAllCleanAirForumEventsApi } from '../../../apis';
 import { format } from 'date-fns';
 import SectionLoader from 'components/LoadSpinner/SectionLoader';
@@ -99,13 +99,24 @@ const CleanAirForumEvent = () => {
           setEngagements(event.engagements);
           setCommitteeText(event.Committee_text_section_html);
           setSpeakersText(event.Speakers_text_section_html);
-          setCommittee(filterByCategory(event.persons, 'Committee Member'));
-          setSpeakers(filterByCategory(event.persons, 'Speaker'));
-          setKeyNoteSpeakers(filterByCategory(event.persons, 'Key Note Speaker'));
-          setFundingPartners(filterByCategory(event.partners, 'Funding Partner'));
-          setHostPartners(filterByCategory(event.partners, 'Host Partner'));
-          setCoConveningPartner(filterByCategory(event.partners, 'Co-Convening Partner'));
-          setSponsorPartners(filterByCategory(event.partners, 'Sponsor Partner'));
+          setCommittee(
+            filterByCategory(event.persons, [
+              'Committee Member',
+              'Speaker and Committee Member',
+              'Committee Member and Key Note Speaker'
+            ])
+          );
+          setSpeakers(filterByCategory(event.persons, ['Speaker', 'Speaker and Committee Member']));
+          setKeyNoteSpeakers(
+            filterByCategory(event.persons, [
+              'Key Note Speaker',
+              'Committee Member and Key Note Speaker'
+            ])
+          );
+          setFundingPartners(filterByCategory(event.partners, ['Funding Partner']));
+          setHostPartners(filterByCategory(event.partners, ['Host Partner']));
+          setCoConveningPartner(filterByCategory(event.partners, ['Co-Convening Partner']));
+          setSponsorPartners(filterByCategory(event.partners, ['Sponsor Partner']));
           setVaccinationDetails(event.travel_logistics_vaccination_details_html);
           setVisaDetails(event.travel_logistics_visa_details_html);
           setGlossaryDetails(event.glossary_details_html);
@@ -124,7 +135,12 @@ const CleanAirForumEvent = () => {
   }, []);
 
   // Helper function to filter by category
-  const filterByCategory = (array, category) => array.filter((item) => item.category === category);
+  const filterByCategory = (array, categories) => {
+    // Ensure categories is always an array
+    const categoriesArray = Array.isArray(categories) ? categories : [categories];
+
+    return array.filter((item) => categoriesArray.includes(item.category));
+  };
 
   // Use useCallback to prevent unnecessary re-renders
   const checkScrollTop = useCallback(() => {

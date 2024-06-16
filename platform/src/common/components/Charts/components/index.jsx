@@ -5,6 +5,7 @@ import Moderate from '@/icons/Charts/Moderate';
 import Unhealthy from '@/icons/Charts/Unhealthy';
 import UnhealthySG from '@/icons/Charts/UnhealthySG';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
+import { useSelector } from 'react-redux';
 import { format } from 'date-fns';
 
 export const colors = ['#11225A', '#0A46EB', '#297EFF', '#B8D9FF'];
@@ -63,6 +64,19 @@ export const getAirQualityLevelText = (value) => {
  * @description Custom tooltip component for line graph
  */
 export const CustomTooltipLineGraph = ({ active, payload }) => {
+  const chartData = useSelector((state) => state.chart);
+  const { timeFrame } = chartData;
+
+  const formatDate = (value) => {
+    const date = new Date(value);
+    switch (timeFrame) {
+      case 'hourly':
+        return format(date, 'MMMM dd, yyyy, hh:mm a');
+      default:
+        return format(date, 'MMMM dd, yyyy');
+    }
+  };
+
   if (active && payload && payload.length) {
     const hoveredPoint = payload[0];
     const otherPoints = payload.slice(1);
@@ -75,13 +89,7 @@ export const CustomTooltipLineGraph = ({ active, payload }) => {
       <div className='bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none'>
         <div className='flex flex-col space-y-1'>
           <div className='flex flex-col items-start justify-between w-full h-auto p-2'>
-            <span className='text-sm text-gray-300'>
-              {new Date(hoveredPoint.payload.time).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </span>
+            <span className='text-sm text-gray-300'>{formatDate(hoveredPoint.payload.time)}</span>
             <div className='flex justify-between w-full mb-1 mt-2'>
               <div className='flex items-center text-xs font-medium leading-[14px] text-gray-600'>
                 <div className='w-[10px] h-[10px] bg-blue-700 rounded-xl mr-2'></div>
@@ -120,7 +128,7 @@ export const CustomTooltipLineGraph = ({ active, payload }) => {
       </div>
     );
   }
-  return '';
+  return null;
 };
 
 /**
@@ -129,16 +137,23 @@ export const CustomTooltipLineGraph = ({ active, payload }) => {
  * @description Custom tooltip component for bar graph
  */
 export const CustomTooltipBarGraph = ({ active, payload }) => {
-  if (active && payload && payload.length) {
-    const date = new Date(payload[0].payload.time).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+  const chartData = useSelector((state) => state.chart);
+  const { timeFrame } = chartData;
 
+  const formatDate = (value) => {
+    const date = new Date(value);
+    switch (timeFrame) {
+      case 'hourly':
+        return format(date, 'MMMM dd, yyyy, hh:mm a');
+      default:
+        return format(date, 'MMMM dd, yyyy');
+    }
+  };
+
+  if (active && payload && payload.length) {
     return (
       <div className='bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none'>
-        <span className='text-sm text-gray-300 px-2'>{date}</span>
+        <span className='text-sm text-gray-300 px-2'>{formatDate(payload[0].payload.time)}</span>
         {payload.map((hoveredPoint, index) => {
           const { airQualityText, AirQualityIcon, airQualityColor } = getAirQualityLevelText(
             hoveredPoint.value,
@@ -186,13 +201,32 @@ export const CustomTooltipBarGraph = ({ active, payload }) => {
  * @description Custom axis tick component for line chart
  */
 export const CustomizedAxisTick = ({ x, y, payload }) => {
+  const chartData = useSelector((state) => state.chart);
+  const { timeFrame } = chartData;
+
+  const formatDate = (value) => {
+    const date = new Date(value);
+    switch (timeFrame) {
+      case 'hourly':
+        return format(date, 'HH:mm');
+      case 'daily':
+        return format(date, 'MMM dd');
+      case 'weekly':
+        return format(date, 'MMM dd');
+      case 'monthly':
+        return format(date, 'MMM yyyy');
+      default:
+        return date.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+        });
+    }
+  };
+
   return (
     <g transform={`translate(${x},${y})`}>
       <text x={0} y={0} dy={16} textAnchor='middle' fill='#666' fontSize={12}>
-        {new Date(payload.value).toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-        })}
+        {formatDate(payload.value)}
       </text>
     </g>
   );

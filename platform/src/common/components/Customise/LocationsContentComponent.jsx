@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   setSelectedLocations,
   getSitesSummary,
+  setGridsSummary,
 } from '@/lib/store/services/deviceRegistry/GridsSlice';
-import SearchIcon from '@/icons/Common/search_md.svg';
 import LocationIcon from '@/icons/SideBar/Sites.svg';
 import TrashIcon from '@/icons/Actions/bin_icon.svg';
 import StarIcon from '@/icons/Actions/star_icon.svg';
@@ -15,6 +15,22 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import Spinner from '@/components/Spinner';
 import AlertBox from '@/components/AlertBox';
 import useOutsideClick from '@/core/utils/useOutsideClick';
+import SearchField from '@/components/search/SearchField';
+import { getNearestSite, getGridsSummaryApi } from '@/core/apis/DeviceRegistry';
+import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
+import { capitalizeAllText } from '@/core/utils/strings';
+import { getPlaceDetails } from '@/core/utils/getLocationGeomtry';
+import { getAutocompleteSuggestions } from '@/core/utils/AutocompleteSuggestions';
+
+const SearchResultsSkeleton = () => (
+  <div className='flex flex-col gap-1 animate-pulse'>
+    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-6' />
+    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-6' />
+    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-6' />
+    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-6' />
+    <div className='bg-secondary-neutral-dark-50 rounded-xl w-full h-6' />
+  </div>
+);
 
 /**
  * @param {Object} props
@@ -32,39 +48,58 @@ const LocationItemCards = ({
   innerRef,
   showTrashIcon = false,
   showActiveStarIcon = true,
-}) => (
-  <div
-    className='border rounded-lg bg-secondary-neutral-light-25 border-input-light-outline flex flex-row justify-between items-center p-3 w-full mb-2'
-    key={location._id}
-    ref={innerRef}
-    {...draggableProps}
-    {...dragHandleProps}>
-    <div className='flex flex-row items-center overflow-x-clip'>
-      <div>{showActiveStarIcon ? <DragIcon /> : <DragIconLight />}</div>
-      <span className='text-sm text-secondary-neutral-light-800 font-medium'>{location.name}</span>
+}) => {
+  let locationName = location?.search_name || location?.name;
+  let locationDescripton =
+    location.location_name || location?.search_name || location?.name || location?.long_name;
+
+  return (
+    <div
+      className='border rounded-lg bg-secondary-neutral-light-25 border-input-light-outline flex flex-row justify-between items-center p-3 w-full mb-2'
+      key={locationName}
+      ref={innerRef}
+      {...draggableProps}
+      {...dragHandleProps}
+    >
+      <div
+        className='flex flex-row items-center overflow-x-clip'
+        title={capitalizeAllText(locationName)}
+      >
+        <div>{showActiveStarIcon ? <DragIcon /> : <DragIconLight />}</div>
+        <span className='text-sm text-secondary-neutral-light-800 font-medium'>
+          {locationName?.split(',')[0].length > 20
+            ? capitalizeAllText(locationName?.split(',')[0].substring(0, 15)) + '...'
+            : capitalizeAllText(locationName?.split(',')[0])}
+          {locationDescripton?.split(',').length > 1 && (
+            <span className='text-grey-400'>{locationDescripton?.split(',').pop()}</span>
+          )}
+        </span>
+      </div>
+      <div className='flex flex-row'>
+        {showTrashIcon && (
+          <div className='mr-1 hover:cursor-pointer' onClick={() => handleRemoveLocation(location)}>
+            <TrashIcon />
+          </div>
+        )}
+        {showActiveStarIcon ? (
+          <div
+            className='bg-primary-600 rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
+            onClick={() => handleLocationSelect(location)}
+          >
+            <StarIcon />
+          </div>
+        ) : (
+          <div
+            className='border border-input-light-outline rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
+            onClick={() => handleLocationSelect(location)}
+          >
+            <StarIconLight />
+          </div>
+        )}
+      </div>
     </div>
-    <div className='flex flex-row'>
-      {showTrashIcon && (
-        <div className='mr-1 hover:cursor-pointer' onClick={() => handleRemoveLocation(location)}>
-          <TrashIcon />
-        </div>
-      )}
-      {showActiveStarIcon ? (
-        <div
-          className='bg-primary-600 rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
-          onClick={() => handleLocationSelect(location)}>
-          <StarIcon />
-        </div>
-      ) : (
-        <div
-          className='border border-input-light-outline rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
-          onClick={() => handleLocationSelect(location)}>
-          <StarIconLight />
-        </div>
-      )}
-    </div>
-  </div>
-);
+  );
+};
 
 /**
  * @param {Object} props
@@ -78,14 +113,17 @@ const NoSuggestions = ({ message }) => (
   </div>
 );
 
-const LocationsContentComponent = ({ selectedLocations }) => {
+const LocationsContentComponent = ({ selectedLocations, resetSearchData = false }) => {
   const dispatch = useDispatch();
   const searchRef = useRef(null);
-  const gridsData = useSelector((state) => state.grids.sitesSummary);
-  const gridLocationsData = (gridsData && gridsData.sites) || [];
+  const sitesData = useSelector((state) => state.grids.sitesSummary);
+  const sitesLocationsData = (sitesData && sitesData.sites) || [];
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingResults, setIsLoadingResults] = useState(false);
+  const [isGettingNearestSite, setIsGettingNearestSite] = useState(false);
+  const gridsSummaryData = useSelector((state) => state.grids.gridsSummary);
+  const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
 
-  const [location, setLocation] = useState('');
   const [inputSelect, setInputSelect] = useState(false);
   const [locationArray, setLocationArray] = useState(selectedLocations);
   const [filteredLocations, setFilteredLocations] = useState([]);
@@ -96,18 +134,48 @@ const LocationsContentComponent = ({ selectedLocations }) => {
     message: '',
     type: '',
   });
+  const [isFocused, setIsFocused] = useState(false);
+  const [airqoCountries, setAirqoCountries] = useState([]);
+
+  const autoCompleteSessionToken = useMemo(
+    () => new google.maps.places.AutocompleteSessionToken(),
+    [google.maps.places.AutocompleteSessionToken],
+  );
+
+  const focus = isFocused || reduxSearchTerm.length > 0;
 
   useEffect(() => {
-    if (gridLocationsData && gridLocationsData.length > 0) {
-      setFilteredLocations(gridLocationsData);
+    const fetchGridsData = async () => {
+      if (gridsSummaryData && gridsSummaryData.length === 0) {
+        try {
+          const response = await getGridsSummaryApi();
+          if (response && response.success) {
+            dispatch(setGridsSummary(response.grids));
+          }
+        } catch (error) {
+          console.error('Failed to get grids summary:', error);
+        }
+      }
+    };
+    fetchGridsData();
+  }, []);
+
+  useEffect(() => {
+    if (gridsSummaryData && gridsSummaryData.length > 0) {
+      // Check if selected grid admin_level is country
+      const countryNames = gridsSummaryData
+        .filter((grid) => grid.admin_level.toLowerCase() === 'country')
+        .map((country) => country.name.toLowerCase());
+
+      setAirqoCountries(countryNames);
     }
-  }, [gridLocationsData]);
+  }, [gridsSummaryData]);
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        if (gridLocationsData && gridLocationsData.length < 1) {
+        if (sitesLocationsData && sitesLocationsData.length < 1) {
           await dispatch(getSitesSummary());
         }
       } catch (error) {
@@ -120,12 +188,12 @@ const LocationsContentComponent = ({ selectedLocations }) => {
   }, []);
 
   useEffect(() => {
-    if (gridLocationsData && gridLocationsData.length > 0) {
+    if (sitesLocationsData && sitesLocationsData.length > 0) {
       try {
         dispatch(setSelectedLocations(locationArray));
         while (unSelectedLocations.length < 8) {
-          const randomIndex = Math.floor(Math.random() * gridLocationsData.length);
-          const randomObject = gridLocationsData[randomIndex];
+          const randomIndex = Math.floor(Math.random() * sitesLocationsData.length);
+          const randomObject = sitesLocationsData[randomIndex];
           if (!unSelectedLocations.find((location) => location._id === randomObject._id)) {
             unSelectedLocations.push(randomObject);
           }
@@ -134,31 +202,68 @@ const LocationsContentComponent = ({ selectedLocations }) => {
         return;
       }
     }
-  }, [locationArray, gridLocationsData]);
-
-  /**
-   * @param {Object} e
-   * @returns {void}
-   * @description Filters the locations based on the search query
-   * and updates the filtered locations array
-   */
-  const filterBySearch = (e) => {
-    const query = e.target.value.toLowerCase();
-    const locationList = gridLocationsData.filter((location) =>
-      location.name.toLowerCase().includes(query),
-    );
-    setFilteredLocations(locationList);
-  };
+  }, [locationArray, sitesLocationsData]);
 
   /**
    * @param {Object} e
    * @returns {void}
    * @description Handles the location entry and filters the locations based on the search query
    */
-  const handleLocationEntry = (e) => {
+  const handleLocationEntry = async () => {
     setInputSelect(false);
-    filterBySearch(e);
-    setLocation(e.target.value);
+    setIsLoadingResults(true);
+    if (reduxSearchTerm && reduxSearchTerm.length > 3) {
+      try {
+        // Create a new AutocompleteService instance
+        const autocompleteSuggestions = await getAutocompleteSuggestions(
+          reduxSearchTerm,
+          autoCompleteSessionToken,
+        );
+        if (autocompleteSuggestions && autocompleteSuggestions.length > 0) {
+          const filteredPredictions = autocompleteSuggestions.filter((prediction) => {
+            return airqoCountries.some((country) =>
+              prediction.description.toLowerCase().includes(country.toLowerCase()),
+            );
+          });
+
+          const locationPromises = filteredPredictions.map((prediction) => {
+            return new Promise((resolve) => {
+              // Resolve the promise with the location details
+              resolve({
+                description: prediction.description,
+                place_id: prediction.place_id,
+              });
+            });
+          });
+
+          Promise.all(locationPromises)
+            .then((locations) => {
+              setFilteredLocations(locations);
+              setIsLoadingResults(false);
+            })
+            .catch((error) => {
+              setIsLoadingResults(false);
+              throw new Error(error.message);
+            });
+        }
+      } catch (error) {
+        setIsError({
+          isError: true,
+          message: error.message,
+          type: 'error',
+        });
+      } finally {
+        setIsLoadingResults(false);
+      }
+    } else {
+      setFilteredLocations([]);
+    }
+  };
+
+  const resetSearch = () => {
+    dispatch(addSearchTerm(''));
+    setIsFocused(false);
+    setFilteredLocations(unSelectedLocations);
   };
 
   /**
@@ -168,9 +273,9 @@ const LocationsContentComponent = ({ selectedLocations }) => {
    * and resets the search input
    */
   useOutsideClick(searchRef, () => {
+    dispatch(addSearchTerm(''));
     setFilteredLocations(unSelectedLocations);
     setInputSelect(!inputSelect);
-    setLocation('');
   });
 
   /**
@@ -179,32 +284,100 @@ const LocationsContentComponent = ({ selectedLocations }) => {
    * @description Handles the selection of a location and adds it to the selected locations
    * array
    */
-  const handleLocationSelect = (item) => {
-    const newLocationArray = [...locationArray];
-    const index = newLocationArray.findIndex((location) => location._id === item._id);
+  const handleLocationSelect = async (item) => {
+    setIsGettingNearestSite(true);
+    dispatch(addSearchTerm(''));
+    try {
+      let newLocationValue;
+      let newItemValue;
+      if (item?.place_id) {
+        try {
+          const placeDetails = await getPlaceDetails(item.place_id);
+          if (placeDetails) {
+            newItemValue = { ...item, ...placeDetails };
+          }
+        } catch (error) {
+          setIsGettingNearestSite(false);
+          setIsError({
+            isError: true,
+            message: error.message,
+            type: 'error',
+          });
+          return;
+        }
 
-    if (index !== -1) {
-      newLocationArray.splice(index, 1);
-    } else if (newLocationArray.length < 4) {
-      newLocationArray.push(item);
-      const unselectedIndex = unSelectedLocations.findIndex(
-        (location) => location._id === item._id,
+        if (newItemValue?.latitude && newItemValue?.longitude) {
+          try {
+            const response = await getNearestSite({
+              latitude: newItemValue?.latitude,
+              longitude: newItemValue?.longitude,
+              radius: 4,
+            });
+
+            if (response.sites && response.sites.length > 0) {
+              newLocationValue = {
+                ...response.sites[Math.floor(Math.random() * response.sites.length)],
+                name: newItemValue?.description,
+                long_name: newItemValue?.description,
+                search_name: newItemValue?.description,
+                location_name: newItemValue?.description,
+              };
+            } else {
+              throw new Error(
+                `Can't find air quality for ${
+                  newItemValue?.description?.split(',')[0]
+                }. Please try another location.`,
+              );
+            }
+          } catch (error) {
+            setIsError({
+              isError: true,
+              message: error.message,
+              type: 'error',
+            });
+            return;
+          }
+        }
+      } else {
+        newLocationValue = { ...item, name: item?.search_name };
+      }
+
+      const newLocationArray = [...locationArray];
+      const index = newLocationArray.findIndex(
+        (location) => location.name === newLocationValue.name,
       );
-      unSelectedLocations.splice(unselectedIndex, 1);
-    } else {
-      setIsError({
-        isError: true,
-        message:
-          'You have reached the limit of 4 locations. Please remove a location before adding another.',
-        type: 'error',
-      });
-      return;
+      if (index !== -1) {
+        setIsGettingNearestSite(false);
+        setIsError({
+          isError: true,
+          message: 'Location already added',
+          type: 'error',
+        });
+        return;
+      } else if (newLocationArray.length < 4) {
+        newLocationArray.push(newLocationValue);
+        const unselectedIndex = unSelectedLocations.findIndex(
+          (location) => location.name === newLocationValue.name,
+        );
+        unSelectedLocations.splice(unselectedIndex, 1);
+      } else {
+        setIsGettingNearestSite(false);
+        setIsError({
+          isError: true,
+          message:
+            'You have reached the limit of 4 locations. Please remove a location before adding another.',
+          type: 'error',
+        });
+        return;
+      }
+      setLocationArray(newLocationArray);
+      setDraggedLocations(newLocationArray);
+      setInputSelect(true);
+    } catch (error) {
+      console.error('Failed to get nearest site:', error);
+    } finally {
+      setIsGettingNearestSite(false);
     }
-
-    setLocationArray(newLocationArray);
-    setDraggedLocations(newLocationArray);
-    setInputSelect(true);
-    setLocation('');
   };
 
   /**
@@ -217,10 +390,16 @@ const LocationsContentComponent = ({ selectedLocations }) => {
    * and updates the unselected locations array
    */
   const removeLocation = (item) => {
-    const newLocationArray = locationArray.filter((location) => location._id !== item._id);
+    const newLocationSet = new Set(locationArray.map((location) => location.name));
+    newLocationSet.delete(item.name);
+    const newLocationArray = Array.from(newLocationSet, (name) =>
+      locationArray.find((location) => location.name === name),
+    );
     setLocationArray(newLocationArray);
     setDraggedLocations(newLocationArray);
-    setUnSelectedLocations((locations) => [...locations, item]);
+    setUnSelectedLocations((locations) =>
+      locations.filter((location) => location.name !== item.name),
+    );
     dispatch(setSelectedLocations(newLocationArray));
   };
 
@@ -239,6 +418,22 @@ const LocationsContentComponent = ({ selectedLocations }) => {
     setDraggedLocations(items);
   };
 
+  useEffect(() => {
+    if (reduxSearchTerm !== '') {
+      setIsLoadingResults(true);
+    }
+  }, [reduxSearchTerm]);
+
+  useEffect(() => {
+    if (resetSearchData) {
+      resetSearch();
+    }
+  }, [resetSearchData]);
+
+  useEffect(() => {
+    resetSearch();
+  }, []);
+
   if (isLoading) {
     return (
       <div className='flex flex-row mt-[100px] justify-center items-center'>
@@ -250,35 +445,47 @@ const LocationsContentComponent = ({ selectedLocations }) => {
   return (
     <div>
       <div className='mt-6'>
-        <div className='w-full flex flex-row items-center justify-start'>
-          <div className='flex items-center justify-center pl-3 bg-white border h-12 rounded-lg rounded-r-none border-r-0 border-input-light-outline focus:border-input-light-outline'>
-            <SearchIcon />
-          </div>
-          <input
-            onChange={(e) => {
-              handleLocationEntry(e);
-            }}
-            value={location}
-            placeholder='Search Villages, Cities or Country'
-            className='input text-sm text-secondary-neutral-light-800 w-full h-12 ml-0 rounded-lg bg-white border-l-0 rounded-l-none border-input-light-outline focus:border-input-light-outline'
-          />
-        </div>
-        {location !== '' && (
+        <SearchField
+          onSearch={handleLocationEntry}
+          onClearSearch={resetSearch}
+          focus={focus}
+          showSearchResultsNumber={false}
+        />
+        {reduxSearchTerm !== '' && (
           <div
             ref={searchRef}
             className={`bg-white max-h-48 overflow-y-scroll px-3 pt-2 pr-1 my-1 border border-input-light-outline rounded-md ${
               inputSelect ? 'hidden' : 'relative'
-            }`}>
-            {filteredLocations && filteredLocations.length > 0 ? (
+            }`}
+          >
+            {isLoadingResults ? (
+              <SearchResultsSkeleton />
+            ) : filteredLocations && filteredLocations.length > 0 ? (
               filteredLocations.map((location) => (
                 <div
-                  className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer'
+                  className='flex items-center mb-0.5 hover:cursor-pointer gap-2'
                   onClick={() => {
                     handleLocationSelect(location);
                   }}
-                  key={location._id}>
+                  key={location.place_id}
+                >
                   <LocationIcon />
-                  <div className='text-sm ml-1 text-black capitalize'>{location.name}</div>
+                  <div className='text-sm text-black capitalize text-nowrap w-56 md:w-96 lg:w-72 overflow-hidden text-ellipsis'>
+                    {location?.description?.split(',')[0].length > 35
+                      ? location?.description?.split(',')[0].substring(0, 35) + '...'
+                      : location?.description?.split(',')[0]}
+                    {location?.description?.split(',').length > 1 && (
+                      <span className='text-grey-400'>
+                        {location?.description?.split(',').slice(1).join(',').length > 35
+                          ? `${location?.description
+                              ?.split(',')
+                              .slice(1)
+                              .join(',')
+                              .substring(0, 35)}...`
+                          : location?.description?.split(',').slice(1).join(',')}
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))
             ) : (
@@ -292,18 +499,37 @@ const LocationsContentComponent = ({ selectedLocations }) => {
           </div>
         )}
       </div>
+      <div className='my-1'>
+        <AlertBox
+          message={isError.message}
+          type={isError.type}
+          show={isError.isError}
+          hide={() =>
+            setIsError({
+              isError: false,
+              message: '',
+              type: '',
+            })
+          }
+        />
+      </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId='starredLocations'>
           {(provided) => (
             <div {...provided.droppableProps} ref={provided.innerRef}>
               <div className='mt-4'>
+                {isGettingNearestSite && (
+                  <div className='flex flex-row justify-center items-center mb-4'>
+                    <Spinner data-testid='spinner' width={25} height={25} />
+                  </div>
+                )}
                 {locationArray && locationArray.length > 0 ? (
                   draggedLocations.map((location, index) => (
-                    <Draggable key={location._id} draggableId={location._id} index={index}>
+                    <Draggable key={location.name} draggableId={location.name} index={index}>
                       {(provided) => (
                         <LocationItemCards
-                          key={location._id}
+                          key={location.name}
                           handleLocationSelect={handleLocationSelect}
                           handleRemoveLocation={removeLocation}
                           location={location}
@@ -322,27 +548,13 @@ const LocationsContentComponent = ({ selectedLocations }) => {
               </div>
               <div className='mt-6 mb-24'>
                 <h3 className='text-sm text-black-800 font-semibold'>Suggestions</h3>
-                <div className='my-1'>
-                  <AlertBox
-                    message={isError.message}
-                    type={isError.type}
-                    show={isError.isError}
-                    hide={() =>
-                      setIsError({
-                        isError: false,
-                        message: '',
-                        type: '',
-                      })
-                    }
-                  />
-                </div>
                 <div className='mt-3'>
                   {unSelectedLocations && unSelectedLocations.length > 0 ? (
                     unSelectedLocations
                       .slice(0, 15)
                       .map((location) => (
                         <LocationItemCards
-                          key={location._id}
+                          key={location.search_name}
                           location={location}
                           handleLocationSelect={handleLocationSelect}
                           showActiveStarIcon={false}

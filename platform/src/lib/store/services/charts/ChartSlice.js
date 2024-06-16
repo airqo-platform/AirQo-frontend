@@ -4,8 +4,8 @@ const defaultChartSites = process.env.NEXT_PUBLIC_DEFAULT_CHART_SITES?.split(','
 
 const getStartDate = () => {
   const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 7);
-  return startDate.toISOString(); // convert to ISO string
+  startDate.setUTCDate(startDate.getUTCDate() - 7);
+  return startDate.toISOString(); // convert to UTC ISO string
 };
 
 const defaultChartTab = 0;
@@ -15,7 +15,7 @@ const defaultPollutionType = 'pm2_5';
 const defaultOrganizationName = 'airqo';
 const defaultChartDataRange = {
   startDate: getStartDate(),
-  endDate: new Date().toISOString(), // convert to ISO string
+  endDate: new Date().toISOString(), // convert to UTC ISO string
   label: 'Last 7 days',
 };
 
@@ -69,6 +69,9 @@ export const chartSlice = createSlice({
     resetChartStore: (state) => {
       Object.assign(state, initialState);
     },
+    setChartDataAtOnce: (state, action) => {
+      Object.assign(state, action.payload);
+    },
   },
 });
 
@@ -84,6 +87,7 @@ export const {
   setDefaultID,
   setChartData,
   setRefreshChart,
+  setChartDataAtOnce,
 } = chartSlice.actions;
 
 export default chartSlice.reducer;

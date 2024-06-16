@@ -238,7 +238,6 @@ class _DashboardViewState extends State<DashboardView>
               color: CustomColors.appColorBlue,
               onRefresh: () {
                 _refresh();
-
                 return Future(() => null);
               },
               child: SingleChildScrollView(

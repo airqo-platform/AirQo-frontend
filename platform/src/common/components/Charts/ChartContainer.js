@@ -22,12 +22,8 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, dow
   const chartData = useSelector((state) => state.chart);
 
   const modifiedData = {
-    startDate: new Date(
-      new Date(new Date(chartData.chartDataRange.endDate)).setDate(
-        new Date(chartData.chartDataRange.endDate).getDate() - 2,
-      ),
-    ),
-    endDate: new Date(chartData.chartDataRange.endDate),
+    startDate: chartData.chartDataRange.startDate,
+    endDate: chartData.chartDataRange.endDate,
     sites: chartData.chartSites,
   };
 
@@ -44,6 +40,10 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, dow
     };
   }, [downloadComplete]);
 
+  /**
+   * Export chart as an image or pdf
+   * @param {string} format - The format to export the chart to
+   */
   const exportChart = useCallback(async (format) => {
     try {
       setDownloadComplete(null);
@@ -56,7 +56,7 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, dow
       const height = rect.height + extraSpace;
 
       const canvas = await html2canvas(chartRef.current, {
-        scale: 5,
+        scale: 2,
         useCORS: true,
         backgroundColor: rect.backgroundColor,
         width: width,
@@ -79,7 +79,7 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, dow
               setDownloadComplete(format);
             },
             `image/${format}`,
-            1,
+            0.8,
           );
           break;
         case 'pdf':
@@ -88,7 +88,7 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, dow
             unit: 'px',
             format: [width, height],
           });
-          pdf.addImage(canvas.toDataURL('image/png', 1), 'PNG', 0, 0, width, height);
+          pdf.addImage(canvas.toDataURL('image/png', 0.8), 'PNG', 0, 0, width, height);
           pdf.save('airquality-data.pdf');
           setLoadingFormat(null);
           setDownloadComplete(format);
@@ -130,7 +130,7 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, dow
           </button>
         }
         id='options'
-        className='top-[21px] right-0'>
+        className='top-5 right-0'>
         {isLoading ? (
           <div className='p-2'>
             <Spinner width={20} height={20} />
@@ -197,13 +197,12 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, dow
         </div>
         <div
           ref={chartRef}
-          id={id}
           className='mt-6 -ml-[27px] relative'
           style={{
             width: width || '100%',
             height: height,
           }}>
-          <Chart chartType={chartType} width={width} height={height} />
+          <Chart id={id} chartType={chartType} width={width} height={height} />
         </div>
       </div>
 

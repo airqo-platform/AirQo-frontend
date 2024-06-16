@@ -74,6 +74,9 @@ CSRF_TRUSTED_ORIGINS = env.list(
         "https://staging-dot-airqo-frontend.appspot.com",
         "https://staging.airqo.net",
         "https://airqo.net",
+        "https://airqo.africa",
+        "https://airqo.org",
+        "https://airqo.mak.ac.ug",
     ],
 )
 

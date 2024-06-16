@@ -1,24 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import MapLayout from '@/components/Layout/MapLayout';
-import MenuIcon from '@/icons/map/menuIcon';
 import AirQoMap from '@/components/Map/AirQoMap';
-import { useRouter } from 'next/router';
-import { AirQualityLegend } from '@/components/Map/components/Legend';
 import Sidebar from '@/components/Map/components/Sidebar';
 import { getSitesSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import withAuth from '@/core/utils/protectedRoute';
 import { addSuggestedSites } from '@/lib/store/services/map/MapSlice';
+import Layout from '@/components/Layout';
+import { useWindowSize } from '@/lib/windowSize';
 
 const index = () => {
   const dispatch = useDispatch();
-  const router = useRouter();
-  const [showSideBar, setShowSideBar] = useState(true);
+  const { width } = useWindowSize();
   const siteData = useSelector((state) => state.grids.sitesSummary);
   const isAdmin = true;
   const [pollutant, setPollutant] = useState('pm2_5');
   const preferences = useSelector((state) => state.defaults.individual_preferences) || [];
   const chartSites = useSelector((state) => state.chart.chartSites);
+  const selectedNode = useSelector((state) => state.map.selectedNode);
 
   /**
    * Site details
@@ -30,8 +28,17 @@ const index = () => {
 
     if (preferencesSelectedSitesData?.length > 0) {
       dispatch(addSuggestedSites(preferencesSelectedSitesData));
-    } else if (siteDetails) {
-      const selectedSites = siteDetails.filter((site) => chartSites.includes(site.site_id));
+    } else {
+      const getRandomSites = (siteDetails, count) => {
+        const shuffledSites = siteDetails.sort(() => 0.5 - Math.random());
+        const selectedSites = shuffledSites.slice(0, count);
+        const uniqueSites = selectedSites.filter(
+          (site, index, self) => self.findIndex((s) => s._id === site._id) === index,
+        );
+        return uniqueSites;
+      };
+
+      const selectedSites = getRandomSites(siteDetails, 4);
       dispatch(addSuggestedSites(selectedSites));
     }
   }, [preferences, chartSites]);
@@ -60,64 +67,32 @@ const index = () => {
     }
   }, []);
 
-  /**
-   * Show/hide sidebar on window resize
-   */
-  useEffect(() => {
-    const handleResize = () => {
-      if (
-        (window.innerWidth < 768 || (window.innerWidth >= 600 && window.innerWidth <= 800)) &&
-        router.pathname === '/map'
-      ) {
-        setShowSideBar(false);
-      } else {
-        setShowSideBar(true);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    handleResize();
-
-    return () => window.removeEventListener('resize', handleResize);
-  }, [router.pathname]);
-
   return (
-    <MapLayout noTopNav={false}>
-      <div className='relative flex w-full h-full'>
-        <div>
-          {showSideBar && (
-            <Sidebar
-              siteDetails={siteDetails}
-              isAdmin={isAdmin}
-              showSideBar={showSideBar}
-              setShowSideBar={setShowSideBar}
-            />
-          )}
+    <Layout noTopNav={width < 1024}>
+      <div className='relative flex flex-col-reverse lg:flex-row w-full h-dvh overflow-hidden transition-all duration-500 ease-in-out'>
+        <div
+          className={`${
+            width < 1024
+              ? selectedNode
+                ? 'h-[70%]'
+                : 'h-1/2 w-full sidebar-scroll-bar'
+              : 'h-full min-w-[380px] lg:w-[470px]'
+          } transition-all duration-500 ease-in-out`}>
+          <Sidebar siteDetails={siteDetails} isAdmin={isAdmin} />
         </div>
-        <div className={`${showSideBar ? 'hidden' : ''} relative left-4 z-50 md:block`}>
-          <div className={`absolute bottom-2 z-[900]`} style={{ zIndex: 900 }}>
-            <AirQualityLegend pollutant={pollutant} />
-          </div>
-          <div className={`absolute top-4 lg:hidden`}>
-            <div className='flex flex-col space-y-4'>
-              <button
-                className='inline-flex items-center justify-center w-[50px] h-[50px] mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md'
-                onClick={() => setShowSideBar(!showSideBar)}>
-                <MenuIcon />
-              </button>
-            </div>
-          </div>
+        <div
+          className={`${
+            width < 1024 ? (selectedNode ? 'h-[30%]' : 'h-1/2 w-full') : 'h-full w-full'
+          } transition-all duration-500 ease-in-out`}>
+          <AirQoMap
+            mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
+            customStyle='flex-grow h-full w-full relative bg-[#e6e4e0]'
+            pollutant={pollutant}
+          />
         </div>
-
-        <AirQoMap
-          showSideBar={showSideBar}
-          mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
-          customStyle='flex-grow h-screen w-full relative bg-[#e6e4e0]'
-          pollutant={pollutant}
-          resizeMap={showSideBar}
-        />
       </div>
-    </MapLayout>
+    </Layout>
   );
 };
+
 export default withAuth(index);

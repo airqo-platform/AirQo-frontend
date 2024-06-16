@@ -7,8 +7,6 @@ import AirqualityPlatform from 'assets/svg/explore/air-quality-platform.svg';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { NETMANAGER_URL } from 'config/urls';
 import SEO from 'utilities/seo';
-import UserManual from 'assets/docs/AirQoAnalyticsPlatformUserGuide.pdf';
-import DownloadIcon from 'assets/svg/explore/download.svg';
 import AirQo from 'icons/nav/AirQo';
 import AppleBtn from 'assets/svg/apple_app_store.svg';
 import GoogleplayBtn from 'assets/svg/android_play_store.svg';

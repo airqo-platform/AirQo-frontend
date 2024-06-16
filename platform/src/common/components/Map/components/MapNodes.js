@@ -6,6 +6,7 @@ import UnhealthyForSensitiveGroups from '@/icons/Charts/UnhealthySG';
 import Unhealthy from '@/icons/Charts/Unhealthy';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import Hazardous from '@/icons/Charts/Hazardous';
+import Invalid from '@/icons/Charts/Invalid';
 
 // icon images
 export const images = {
@@ -17,8 +18,8 @@ export const images = {
   Unhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<Unhealthy />))}`,
   VeryUnhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<VeryUnhealthy />))}`,
   Hazardous: `data:image/svg+xml,${encodeURIComponent(renderToString(<Hazardous />))}`,
-  Invalid: '/images/map/Invalid.png',
-  undefined: '/images/map/Invalid.png',
+  Invalid: `data:image/svg+xml,${encodeURIComponent(renderToString(<Invalid />))}`,
+  undefined: `data:image/svg+xml,${encodeURIComponent(renderToString(<Invalid />))}`,
 };
 
 const markerDetails = {
@@ -49,6 +50,33 @@ const markerDetails = {
     { limit: 53.1, category: 'ModerateAir' },
     { limit: 0.0, category: 'GoodAir' },
   ],
+  o3: [
+    { limit: 604.1, category: 'Invalid' || 'undefined' },
+    { limit: 504.1, category: 'Hazardous' },
+    { limit: 404.1, category: 'VeryUnhealthy' },
+    { limit: 204.1, category: 'Unhealthy' },
+    { limit: 154.1, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 54.1, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
+  ],
+  co: [
+    { limit: 50.5, category: 'Invalid' || 'undefined' },
+    { limit: 40.5, category: 'Hazardous' },
+    { limit: 30.5, category: 'VeryUnhealthy' },
+    { limit: 10.5, category: 'Unhealthy' },
+    { limit: 4.5, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 2.5, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
+  ],
+  so2: [
+    { limit: 1004.1, category: 'Invalid' || 'undefined' },
+    { limit: 804.1, category: 'Hazardous' },
+    { limit: 604.1, category: 'VeryUnhealthy' },
+    { limit: 304.1, category: 'Unhealthy' },
+    { limit: 185.1, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 75.1, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
+  ],
 };
 
 const colors = {
@@ -60,18 +88,6 @@ const colors = {
   ModerateAir: '#FFD633',
   GoodAir: '#34C759',
   undefined: '#C6D1DB',
-};
-
-const messages = {
-  GoodAir: 'Enjoy the day with confidence in the clean air around you.',
-  ModerateAir: 'Today is a great day for an outdoor activity.',
-  UnhealthyForSensitiveGroups: 'Reduce the intensity of your outdoor activities.',
-  Unhealthy:
-    'Avoid activities that make you breathe more rapidly. Today is the perfect day to spend indoors reading.',
-  VeryUnhealthy:
-    'Reduce the intensity of your outdoor activities. Try to stay indoors until the air quality improves.',
-  Hazardous:
-    'If you have to spend a lot of time outside, disposable masks like the N95 are helpful.',
 };
 
 /**
@@ -88,7 +104,11 @@ export const getAQICategory = (pollutant, value) => {
   const categories = markerDetails[pollutant];
   for (let i = 0; i < categories.length; i++) {
     if (value >= categories[i].limit) {
-      return { icon: categories[i].category, color: colors[categories[i].category] };
+      return {
+        icon: categories[i].category,
+        color: colors[categories[i].category],
+        category: categories[i].category,
+      };
     }
   }
 };
@@ -106,14 +126,40 @@ export const getAQIcon = (pollutant, value) => {
   }
 };
 
-export const getAQIMessage = (pollutant, value) => {
+export const getAQIMessage = (pollutant, timePeriod, value) => {
   if (!markerDetails.hasOwnProperty(pollutant)) {
     throw new Error(`Invalid pollutant: ${pollutant}`);
   }
 
   const aqiCategory = getAQICategory(pollutant, value);
 
-  return messages[aqiCategory?.icon] || '';
+  if (aqiCategory?.icon === 'GoodAir') {
+    return 'Enjoy the day with confidence in the clean air around you.';
+  } else if (aqiCategory?.icon === 'ModerateAir') {
+    return `${
+      timePeriod === 'this week'
+        ? 'This week is a great time to be outdoors.'
+        : `${
+            timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1)
+          } is a great day for an outdoor activity.`
+    }`;
+  } else if (aqiCategory?.icon === 'UnhealthyForSensitiveGroups') {
+    return 'Reduce the intensity of your outdoor activities.';
+  } else if (aqiCategory?.icon === 'Unhealthy') {
+    return `${
+      timePeriod === 'this week'
+        ? 'Avoid activities that make you breathe more rapidly. This week is the perfect time to spend indoors reading.'
+        : `Avoid activities that make you breathe more rapidly. ${
+            timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1)
+          } is the perfect time to spend indoors reading.`
+    }`;
+  } else if (aqiCategory?.icon === 'VeryUnhealthy') {
+    return 'Reduce the intensity of your outdoor activities. Try to stay indoors until the air quality improves.';
+  } else if (aqiCategory?.icon === 'Hazardous') {
+    return 'If you have to spend a lot of time outside, disposable masks like the N95 are helpful.';
+  } else {
+    return '';
+  }
 };
 
 /**
@@ -255,7 +301,7 @@ export const createPopupHTML = ({ feature, images }) => {
         <p class="font-semibold text-sm leading-4" style="color: ${
           feature.properties.aqi.color
         };width:30ch;">
-          Air Quality is ${feature.properties.airQuality}
+          Air Quality is ${feature.properties.airQuality.replace(/([A-Z])/g, ' $1').trim()}
         </p>
         <img src="${images[feature.properties.aqi.icon]}" alt="AQI Icon" class="w-8 h-8">
       </div>

@@ -4,7 +4,7 @@ import Button from '@/components/Button';
 import Modal from '@/components/Modal/Modal';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateUserCreationDetails } from '@/core/apis/Account';
+import { updateUserCreationDetails, getUserDetails } from '@/core/apis/Account';
 import ClockIcon from '@/icons/Settings/clock.svg';
 import AlertBox from '@/components/AlertBox';
 import countries from 'i18n-iso-countries';
@@ -68,6 +68,7 @@ const Profile = () => {
   const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
   const userInfo = useSelector((state) => state.login.userInfo);
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
+  const userToken = localStorage.getItem('token');
 
   // checklist profile task
   const handleProfileCompletion = (id) => {
@@ -117,51 +118,54 @@ const Profile = () => {
     setUserData({ ...userData, [e.target.id]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
-    if (!userID) {
+
+    const loggedUser = JSON.parse(localStorage.getItem('loggedUser'));
+    if (!loggedUser) {
       setLoading(false);
       return;
     }
+
+    const { _id: userID } = loggedUser;
     try {
-      updateUserCreationDetails(userData, userID)
-        .then((response) => {
-          localStorage.setItem('loggedUser', JSON.stringify({ _id: userID, ...response.user }));
-          dispatch(setUserInfo({ _id: userID, ...response.user }));
-          if (
-            userData.firstName &&
-            userData.lastName &&
-            userData.email &&
-            userData.country &&
-            userData.timezone
-          ) {
-            handleProfileCompletion(3);
-          }
-          setLoading(false);
-          setIsError({
-            isError: true,
-            message: 'User details successfully updated',
-            type: 'success',
-          });
-        })
-        .catch((error) => {
-          console.error(`Error updating user details: ${error}`);
-          setIsError({
-            isError: true,
-            message: error.message,
-            type: 'error',
-          });
-          setLoading(false);
-        });
+      await updateUserCreationDetails(userData, userID);
+
+      const res = await getUserDetails(userID, userToken);
+      const updatedUser = res.users[0];
+
+      if (!updatedUser) {
+        throw new Error('User details not updated');
+      }
+
+      const updatedData = { _id: userID, ...updatedUser };
+      localStorage.setItem('loggedUser', JSON.stringify(updatedData));
+      dispatch(setUserInfo(updatedData));
+
+      if (
+        userData.firstName &&
+        userData.lastName &&
+        userData.email &&
+        userData.country &&
+        userData.timezone
+      ) {
+        handleProfileCompletion(3);
+      }
+
+      setIsError({
+        isError: true,
+        message: 'User details successfully updated',
+        type: 'success',
+      });
     } catch (error) {
-      console.error(`Error updating user cloudinary photo: ${error}`);
+      console.error(`Error updating user details: ${error}`);
       setIsError({
         isError: true,
         message: error.message,
         type: 'error',
       });
+    } finally {
       setLoading(false);
     }
   };
@@ -262,7 +266,7 @@ const Profile = () => {
       await cloudinaryImageUpload(formData)
         .then(async (responseData) => {
           setUserData({ ...userData, profilePicture: responseData.secure_url });
-          const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
+          const userID = JSON.parse(localStorage.getItem('loggedUser'))?._id;
           return await updateUserCreationDetails(
             { profilePicture: responseData.secure_url },
             userID,
@@ -307,7 +311,7 @@ const Profile = () => {
     setUpdatedProfilePicture('');
     setUserData({ ...userData, profilePicture: '' });
 
-    const userID = JSON.parse(localStorage.getItem('loggedUser'))._id;
+    const userID = JSON.parse(localStorage.getItem('loggedUser'))?._id;
     updateUserCreationDetails({ profilePicture: '' }, userID)
       .then((response) => {
         localStorage.setItem(
@@ -364,7 +368,8 @@ const Profile = () => {
                   <div
                     className='w-16 h-16 bg-secondary-neutral-light-25 rounded-full flex justify-center items-center cursor-pointer'
                     onClick={handleAvatarClick}
-                    title='Tap to change profile image'>
+                    title='Tap to change profile image'
+                  >
                     {userData.profilePicture ? (
                       <img
                         src={userData.profilePicture}
@@ -380,7 +385,8 @@ const Profile = () => {
                   <div className='flex items-center'>
                     <Button
                       className='text-sm font-medium text-secondary-neutral-light-500'
-                      onClick={confirmDeleteProfileImage}>
+                      onClick={confirmDeleteProfileImage}
+                    >
                       Delete
                     </Button>
                     <Button
@@ -390,7 +396,8 @@ const Profile = () => {
                           : 'text-blue-600 bg-blue-50 rounded'
                       }`}
                       onClick={handleProfileImageUpdate}
-                      disabled={!updatedProfilePicture}>
+                      disabled={!updatedProfilePicture}
+                    >
                       {updatedProfilePicture && !profileUploading
                         ? 'Save photo'
                         : profileUploading
@@ -449,7 +456,8 @@ const Profile = () => {
                         value={userData.country}
                         onChange={handleChange}
                         className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm w-full rounded p-3 dark:placeholder-white-400 dark:text-white'
-                        required>
+                        required
+                      >
                         <option value='' disabled></option>
                         {countryOptions.map((country) => (
                           <option value={country.value} key={country.value}>
@@ -473,7 +481,8 @@ const Profile = () => {
                       value={userData.timezone}
                       onChange={handleChange}
                       className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full pl-10 pr-3 py-3 dark:placeholder-white-400 dark:text-white'
-                      required>
+                      required
+                    >
                       <option value='' disabled></option>
                       {timeZonesArr.map((timeZone) => (
                         <option value={timeZone.value} key={timeZone.value}>
@@ -502,13 +511,15 @@ const Profile = () => {
                 <Button
                   onClick={handleCancel}
                   className='text-sm font-medium leading-5 text-secondary-neutral-light-600 py-3 px-4 rounded border border-secondary-neutral-light-100 bg-white'
-                  disabled={isLoading}>
+                  disabled={isLoading}
+                >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSubmit}
                   className='text-sm font-medium leading-5 text-white py-3 px-4 rounded bg-blue-600'
-                  disabled={isLoading}>
+                  disabled={isLoading}
+                >
                   {isLoading ? 'Loading...' : 'Save'}
                 </Button>
               </div>

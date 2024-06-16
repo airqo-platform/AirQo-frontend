@@ -1,11 +1,11 @@
 import React from 'react';
 import Header from '../../components/OurProducts/Header';
 import Page from '../Page';
-import HeaderImage from '../../assets/img/OurProducts/Calibration/calibration-header.png';
+import HeaderImage from '../../assets/img/OurProducts/Calibration/calibration-header.webp';
 import { useInitScrollTop } from 'utilities/customHooks';
-import Section1Image from '../../assets/img/OurProducts/Calibration/section-1.jpg';
-import Section2Image from '../../assets/img/OurProducts/Calibration/section-2.jpg';
-import Section3Image from '../../assets/img/OurProducts/Calibration/section-3.png';
+import Section1Image from '../../assets/img/OurProducts/Calibration/section-1.webp';
+import Section2Image from '../../assets/img/OurProducts/Calibration/section-2.webp';
+import Section3Image from '../../assets/img/OurProducts/Calibration/section-3.webp';
 import NavTab from '../../components/nav/NavTab';
 import { OpenInNew } from '@mui/icons-material';
 import { useTranslation, Trans } from 'react-i18next';
@@ -114,8 +114,18 @@ const CalibrationPage = () => {
                 filled
               />
             </div>
-            <div className="image">
-              <img src={Section3Image} alt="" />
+            <div>
+              <img
+                src={Section3Image}
+                style={{
+                  objectPosition: '0px',
+                  padding: window.innerWidth < 768 ? '0 20px' : '0 100px',
+                  objectFit: 'contain',
+                  width: '100%',
+                  borderRadius: '10px',
+                  marginTop: '30px'
+                }}
+              />
             </div>
           </div>
         </div>

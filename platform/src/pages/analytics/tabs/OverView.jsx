@@ -4,33 +4,64 @@ import AQNumberCard from '@/components/AQNumberCard';
 import BorderlessContentBox from '@/components/Layout/borderless_content_box';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRecentMeasurementsData } from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
-import { DEFAULT_CHART_SITES } from '@/lib/constants';
+
+const useFetchMeasurements = () => {
+  const dispatch = useDispatch();
+  const chartData = useSelector((state) => state.chart);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const preferencesLoading = useSelector((state) => state.userDefaults.status === 'loading');
+  const refreshChart = useSelector((state) => state.chart.refreshChart);
+
+  useEffect(() => {
+    if (preferencesLoading || !preferenceData.length) return;
+    const { selected_sites } = preferenceData[0];
+    const chartSites = selected_sites?.map((site) => site['_id']);
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        if (chartSites?.length > 0) {
+          await dispatch(
+            fetchRecentMeasurementsData({
+              site_id: chartSites.join(','),
+            }),
+          );
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [chartData, preferenceData, refreshChart]);
+
+  return { isLoading, error };
+};
 
 const OverView = () => {
   // events hook
-  const dispatch = useDispatch();
   const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
-  const chartDataRange = useSelector((state) => state.chart.chartDataRange);
   const pollutantType = useSelector((state) => state.chart.pollutionType);
-  const sites = useSelector((state) => state.chart.chartSites);
-  const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const siteData = useSelector((state) => state.grids.sitesSummary);
+  const { isLoading: isLoadingMeasurements, error } = useFetchMeasurements();
 
-  useEffect(() => {
-    setIsLoadingMeasurements(true);
-    try {
-      if (chartDataRange && chartDataRange.startDate && chartDataRange.endDate && sites) {
-        dispatch(
-          fetchRecentMeasurementsData({
-            site_id: sites.join(','),
-          }),
-        );
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoadingMeasurements(false);
+  function getSiteName(siteId) {
+    if (preferenceData?.length === 0) {
+      return null;
     }
-  }, [chartDataRange, sites]);
+    const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
+    return site ? site.search_name?.split(',')[0] : '';
+  }
+
+  const getExistingSiteName = (siteId) => {
+    const site = siteData?.sites?.find((site) => site._id === siteId);
+    return site ? site.search_name : '';
+  };
 
   const dummyData = {
     siteDetails: {
@@ -57,22 +88,42 @@ const OverView = () => {
           recentLocationMeasurements && recentLocationMeasurements.length <= 2
             ? 'flex md:flex-row flex-col'
             : 'grid md:grid-cols-2'
-        }`}>
-        {!isLoadingMeasurements &&
-          displayData.map((event, index) => (
-            <AQNumberCard
-              key={index}
-              location={
-                event.siteDetails.search_name ||
-                event.siteDetails.location_name ||
-                event.siteDetails.formatted_name ||
-                event.siteDetails.description
-              }
-              reading={event.pm2_5.value}
-              count={displayData.length}
-              pollutant={pollutantType}
-            />
-          ))}
+        }`}
+      >
+        {!isLoadingMeasurements
+          ? displayData.map((event, index) => {
+              return (
+                <AQNumberCard
+                  key={index}
+                  location={
+                    getSiteName(event.site_id) ||
+                    getExistingSiteName(event.site_id) ||
+                    event?.siteDetails?.search_name
+                  }
+                  locationFullName={
+                    getSiteName(event.site_id) ||
+                    getExistingSiteName(event.site_id) ||
+                    event?.siteDetails?.search_name
+                  }
+                  reading={event.pm2_5.value}
+                  count={displayData.length}
+                  pollutant={pollutantType}
+                />
+              );
+            })
+          : displayData.map((event, index) => {
+              return (
+                <AQNumberCard
+                  key={index}
+                  location={'--'}
+                  locationFullName={'--'}
+                  reading={'--'}
+                  count={displayData.length}
+                  pollutant={pollutantType}
+                  isLoading={isLoadingMeasurements}
+                />
+              );
+            })}
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <ChartContainer chartType='line' chartTitle='Air quality over time' height={300} />
