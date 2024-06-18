@@ -170,7 +170,7 @@ const CleanAirForumEvent = () => {
           }}>
           <SectionLoader />
         </div>
-      ) : !forumEvents.length > 0 ? (
+      ) : forumEvents.length > 0 ? (
         <div className="CleanAirForumEvent">
           {isSticky && (
             <header
