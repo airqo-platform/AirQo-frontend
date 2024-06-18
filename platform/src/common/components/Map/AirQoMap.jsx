@@ -18,6 +18,7 @@ import {
   setMapReadingsData,
   setWaqData,
   clearData,
+  setWaqForecastData,
 } from '@/lib/store/services/map/MapSlice';
 import LayerModal from './components/LayerModal';
 import Loader from '@/components/Spinner';
@@ -230,7 +231,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
    * @returns {Promise<Array>} - Array of data
    * @returns {Promise<Array>} - Array of data
    */
-  const createFeature = (id, name, coordinates, aqi, no2, pm10, pm2_5, time) => ({
+  const createFeature = (id, name, coordinates, aqi, no2, pm10, pm2_5, time, forecast) => ({
     type: 'Feature',
     geometry: {
       type: 'Point',
@@ -246,8 +247,39 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
       createdAt: time,
       time,
       aqi: aqi || 'undefined',
+      forecast,
     },
   });
+
+  /**
+   * Get the forecast for a pollutant
+   * @param {Object} cityData - City data
+   * */
+  const getForecastForPollutant = (cityData) => {
+    if (!cityData || !cityData.forecast?.daily) {
+      return null; // or handle the lack of data appropriately
+    }
+
+    const dailyForecast = cityData.forecast.daily;
+    let forecastDataArray;
+
+    switch (pollutant) {
+      case 'pm2_5':
+        forecastDataArray = dailyForecast.pm25;
+        break;
+      case 'pm10':
+        forecastDataArray = dailyForecast.pm10;
+        break;
+      default:
+        return null;
+    }
+
+    // Map over the forecast data array and return the transformed format
+    return forecastDataArray.map((forecastData) => ({
+      [pollutant]: forecastData.avg,
+      time: forecastData.day,
+    }));
+  };
 
   const fetchAndProcessWaqData = async (cities) => {
     setLoadingOthers(true);
@@ -264,13 +296,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
       );
 
       return responses
-        .filter(
-          (response) =>
-            response.status === 'fulfilled' &&
-            response.value.data &&
-            response.value.data.data &&
-            response.value.data.data.city,
-        )
+        .filter((response) => response.status === 'fulfilled' && response.value?.data?.data?.city)
         .map((response) => {
           const cityData = response.value.data.data;
           const waqiPollutant = pollutant === 'pm2_5' ? 'pm25' : pollutant;
@@ -283,9 +309,11 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
             cityData.iaqi.no2?.v,
             cityData.iaqi.pm10?.v,
             cityData.iaqi.pm25?.v,
-            cityData.time.s,
+            cityData.time.iso,
+            getForecastForPollutant(cityData),
           );
-        });
+        })
+        .filter(Boolean);
     } catch (error) {
       console.error('Error fetching AQI data: ', error);
       return [];
@@ -308,6 +336,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
           item.pm10.value,
           item.pm2_5.value,
           item.time,
+          null,
         );
       });
   };
@@ -440,7 +469,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
             offset: NodeType === 'Node' ? 35 : NodeType === 'Number' ? 42 : 58,
             closeButton: false,
             maxWidth: 'none',
-            className: 'my-custom-popup',
+            className: 'my-custom-popup hidden md:block',
           }).setHTML(createPopupHTML({ feature, images }));
 
           const marker = new mapboxgl.Marker(el)

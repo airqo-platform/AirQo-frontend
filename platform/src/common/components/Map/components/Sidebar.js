@@ -462,6 +462,10 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
     message: '',
     type: '',
   });
+  const autoCompleteSessionToken = useMemo(
+    () => new google.maps.places.AutocompleteSessionToken(),
+    [google.maps.places.AutocompleteSessionToken],
+  );
 
   useEffect(() => {
     dispatch(setOpenLocationDetails(false));
@@ -599,7 +603,10 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
     setIsFocused(true);
     if (reduxSearchTerm && reduxSearchTerm.length > 1) {
       try {
-        const predictions = await getAutocompleteSuggestions(reduxSearchTerm);
+        const predictions = await getAutocompleteSuggestions(
+          reduxSearchTerm,
+          autoCompleteSessionToken,
+        );
         if (predictions && predictions.length > 0) {
           const filteredLocations = filterPredictions(predictions);
           const locations = await getLocationsDetails(filteredLocations);
@@ -630,16 +637,21 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
       setLoading(true);
       if (selectedSite?._id) {
         try {
-          const response = await dailyPredictionsApi(selectedSite._id);
-          setWeeklyPredictions(response?.forecasts);
+          // Predictions for waq locations
+          if (selectedSite?.forecast && selectedSite?.forecast.length > 0) {
+            setWeeklyPredictions(selectedLocationDetails?.forecast);
+          } else {
+            const response = await dailyPredictionsApi(selectedSite._id);
+            setWeeklyPredictions(response?.forecasts);
+          }
         } catch (error) {
           console.error(error.message);
         } finally {
           setLoading(false);
         }
       } else {
-        setLoading(false);
         setWeeklyPredictions([]);
+        setLoading(false);
       }
     };
 
