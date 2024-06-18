@@ -38,7 +38,7 @@ const PublicationsSection = () => {
         <div>
           <div className="link">
             <a
-              href="https://www.nema.go.ug/projects/national-state-environment-report-2018-2019"
+              href="https://www.nema.go.ug/sites/default/files/NSOER%202018-2019.pdf"
               target="_blank"
               download
               rel="noopener noreferrer">
