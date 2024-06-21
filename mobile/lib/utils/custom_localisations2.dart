@@ -57,7 +57,7 @@ const pidginLocaleDatePatterns = {
 };
 
 const pidginDateSymbols = {
-  'NAME': 'lg',
+  'NAME': 'pcm',
   'ERAS': <dynamic>[
     'BC',
     'AD',
@@ -253,13 +253,13 @@ class _PcmMaterialLocalizationsDelegate
   const _PcmMaterialLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) => locale.languageCode == 'lg';
+  bool isSupported(Locale locale) => locale.languageCode == 'pcm';
 
   @override
   Future<MaterialLocalizations> load(Locale locale) async {
     final String localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
-    // The locale (in this case `lg`) needs to be initialized into the custom
+    // The locale (in this case `pcm`) needs to be initialized into the custom
     // date symbols and patterns setup that Flutter uses.
     date_symbol_data_custom.initializeDateFormattingCustom(
       locale: localeName,
@@ -298,13 +298,13 @@ class _PcmMaterialLocalizationsDelegate
 }
 // #enddocregion Delegate
 
-/// A custom set of localizations for the 'lg' locale. In this example, only
+/// A custom set of localizations for the 'pcm' locale. In this example, only
 /// the value for openAppDrawerTooltip was modified to use a custom message as
 /// an example. Everything else uses the American English (en_US) messages
 /// and formatting.
 class PcmMaterialLocalizations extends GlobalMaterialLocalizations {
   const PcmMaterialLocalizations({
-    super.localeName = 'lg',
+    super.localeName = 'pcm',
     required super.fullYearFormat,
     required super.compactDateFormat,
     required super.shortDateFormat,
@@ -791,11 +791,11 @@ class PcmMaterialLocalizations extends GlobalMaterialLocalizations {
 
   @override
   String get shareButtonLabel => 'Share...';
-  
+
   @override
   // TODO: implement clearButtonTooltip
   String get clearButtonTooltip => throw UnimplementedError();
-  
+
   @override
   // TODO: implement selectedDateLabel
   String get selectedDateLabel => throw UnimplementedError();
@@ -809,7 +809,7 @@ class PcmCupertinoLocalizationsDelegate
   bool shouldReload(PcmCupertinoLocalizationsDelegate old) => false;
 
   @override
-  bool isSupported(Locale locale) => locale.languageCode == 'lg';
+  bool isSupported(Locale locale) => locale.languageCode == 'pcm';
 
   @override
   Future<CupertinoLocalizations> load(Locale locale) async {
@@ -833,7 +833,7 @@ class PcmWidgetsLocalizationsDelegate
   bool shouldReload(PcmWidgetsLocalizationsDelegate old) => false;
 
   @override
-  bool isSupported(Locale locale) => locale.languageCode == 'lg';
+  bool isSupported(Locale locale) => locale.languageCode == 'pcm';
 
   @override
   Future<WidgetsLocalizations> load(Locale locale) async {

@@ -9,6 +9,7 @@ const String french = 'fr';
 const String portuguese = 'pt';
 const String swahili = 'sw';
 const String luganda = 'lg';
+const String pidgin = 'pcm';
 
 Future<Locale> setLocale(String languageCode) async {
   SharedPreferences prefs = await SharedPreferencesHelper.instance;
@@ -34,6 +35,8 @@ Locale _locale(String languageCode) {
       return const Locale(swahili, "");
     case luganda:
       return const Locale(luganda, "");
+    case pidgin:
+      return const Locale(pidgin, "");
 
     default:
       return const Locale(english, '');
@@ -60,9 +63,7 @@ class Language {
           4, Image.asset('assets/images/swahili_flag.png'), "Swahili", "sw"),
       Language(
           5, Image.asset('assets/images/uganda_flag.png'), "Luganda", "lg"),
-       Language(
-          6, Image.asset('assets/images/uganda_flag.png'), "Luganda", "pcm"),
-
+      Language(6, Image.asset('assets/images/uganda_flag.png'), "pidgin", "pcm"),
     ];
   }
 }
