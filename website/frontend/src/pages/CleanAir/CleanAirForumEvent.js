@@ -69,6 +69,27 @@ const CleanAirForumEvent = () => {
     window.location.hash.replace('#', '') || 'about'
   );
 
+  // Helper function to filter by category
+  const filterByCategory = (array, categories = []) => {
+    return array.filter((item) => categories.includes(item.category));
+  };
+
+  // Use useCallback to prevent unnecessary re-renders
+  const checkScrollTop = useCallback(() => {
+    const navPosition = refMapping['navigation'].current
+      ? refMapping['navigation'].current.getBoundingClientRect().top + 600
+      : 0;
+
+    setSticky(window.pageYOffset >= navPosition);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('scroll', checkScrollTop);
+    return () => {
+      window.removeEventListener('scroll', checkScrollTop);
+    };
+  }, [checkScrollTop]);
+
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
@@ -133,30 +154,6 @@ const CleanAirForumEvent = () => {
 
     fetchEvents();
   }, []);
-
-  // Helper function to filter by category
-  const filterByCategory = (array, categories) => {
-    // Ensure categories is always an array
-    const categoriesArray = Array.isArray(categories) ? categories : [categories];
-
-    return array.filter((item) => categoriesArray.includes(item.category));
-  };
-
-  // Use useCallback to prevent unnecessary re-renders
-  const checkScrollTop = useCallback(() => {
-    const navPosition = refMapping['navigation'].current
-      ? refMapping['navigation'].current.getBoundingClientRect().top + 600
-      : 0;
-
-    setSticky(window.pageYOffset >= navPosition);
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener('scroll', checkScrollTop);
-    return () => {
-      window.removeEventListener('scroll', checkScrollTop);
-    };
-  }, [checkScrollTop]);
 
   return (
     <Page showNewsLetter={true} showBottomCTAS={false} showSubNav={false}>
@@ -316,10 +313,19 @@ const CleanAirForumEvent = () => {
           style={{
             display: 'flex',
             justifyContent: 'center',
-            alignItems: 'center',
-            height: '50vh'
+            textAlign: 'center'
           }}>
-          {t('cleanAirSite.Forum.sections.about.No_data')}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              textAlign: 'center',
+              alignItems: 'center',
+              maxWidth: 800,
+              height: '50vh'
+            }}>
+            {t('cleanAirSite.Forum.sections.about.No_data')}
+          </div>
         </div>
       )}
     </Page>

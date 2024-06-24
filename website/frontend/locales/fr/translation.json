@@ -328,7 +328,7 @@
         "schedule": "Programme",
         "about": {
           "registrationInfo": "<0>Il s'agira d'une réunion en grande partie en personne avec des sessions hybrides limitées. Vous pouvez <1>enregistrer votre intérêt ici</1>et rester à l'écoute pour plus de détails !</0><1><1> La participation se fait uniquement sur invitation, mais les possibilités de soumission de résumés seront limitées</1 </1><2>Les détails de l'appel à résumés seront partagés séparément.</2>",
-          "No_data": "Veuillez revenir plus tard."
+          "No_data": "Nous rencontrons des difficultés pour afficher la page. Veuillez essayer d'actualiser, ou si le problème persiste, veuillez vérifier votre connexion Internet. Nous apprécions votre patience!"
         },
         "speakers": {
           "title1": "Conférenciers",

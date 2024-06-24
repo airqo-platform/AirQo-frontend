@@ -1,28 +1,17 @@
-FROM node:18.19.1 AS builder
-
-# Set the working directory inside the container
+# Build stage
+FROM node:18-alpine AS builder
 WORKDIR /app
-
-COPY package.json yarn.lock ./
-
-RUN yarn install --frozen-lockfile
-
-# Copy the rest of your application code
+COPY package*.json ./
+RUN npm ci
 COPY . .
+RUN npm run build
 
-# Build application
-RUN yarn build
-
-# Create the production image
-FROM nginx:1.21.3
-
-# Coping the compiled files from the builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Coping the Nginx configuration file
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-EXPOSE 8000
-
-# Start Nginx server
-CMD ["nginx", "-g", "daemon off;"]
+# Runtime stage
+FROM node:18-alpine
+WORKDIR /app
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/package*.json ./
+EXPOSE 3000
+CMD ["npm", "start"]

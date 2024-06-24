@@ -1,33 +1,38 @@
-# Auto Report Generator
+This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-Welcome to the Auto Report Generator project! This application is built using React, TypeScript, and Vite. It provides a streamlined setup to kickstart your development process, including Hot Module Replacement (HMR) for a seamless development experience and a set of basic ESLint rules to ensure code quality.
+this is an application that used to generate air quality reports for different locations accoss Africa and to help people make better descisions and also protect there health and improving it by knowing the locations with bad airquality.
 
-## Prerequisites
+## Getting Started
 
-- Node.js version 18.19.1 or higher
-- Yarn version 4.1.1
+First, run the development server:
 
-## Plugins
+```bash
+npm run dev
+```
 
-The template currently uses two official plugins:
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-- @vitejs/plugin-react: This plugin uses Babel for Fast Refresh.
-- @vitejs/plugin-react-swc: This plugin uses SWC for Fast Refresh.
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## ESLint Configuration.
+This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-The template comes with a basic ESLint configuration. If you are developing a production application, we recommend expanding the configuration to enable type-aware lint rules. Here's how you can do it:
+## Learn More
 
-## Getting Started.
+To learn more about Next.js, take a look at the following resources:
 
-To get started with this template, clone the repository and install the dependencies:
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-git clone <repository-url>
-cd <repository-name>
-yarn install
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
 
-Then, you can start the development server:
+## Deploy on Vercel
 
-yarn dev
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Open http://localhost:5173 to view your application in the browser. The page will automatically reload if you make changes to the code.
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+## The Application is Powered by the AirQo API
+https://docs.airqo.net/airqo-rest-api-documentation
+
+## Image
+![image](https://github.com/OchiengPaul442/reports/assets/97807374/c0e90578-3dd0-4116-b633-368da8e9b246)

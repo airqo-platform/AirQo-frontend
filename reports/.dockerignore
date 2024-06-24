@@ -1,18 +1,23 @@
-# Logs
-logs
-*.log
-
-# Runtime data
-pids
-*.pid
-*.seed
-
-# Node modules and dependencies
+# Next.js build output
+.next
+# Node modules
 node_modules
-/.pnp
-.pnp.js
-
-# Ignore IDE/Editor folders
+# Development config files
+*.env.local
+*.env.development
+# OS files
+.DS_Store
+# Version control
+.git
+.gitignore
+# Logs
+*.log
+# Editor directories and files
 .idea
 .vscode
 *.swp
+*.swo
+# Other files and folders to ignore
+*.test.js
+*.spec.js
+coverage/
