@@ -40,7 +40,7 @@ const handler = NextAuth({
     signIn: "/login",
     error: "/error",
   },
-  secret: process.env.NEXT_AUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || process.env.NEXT_PUBLIC_AUTH_SECRET,
   callbacks: {
     jwt: async ({ token, user }: any) => {
       if (user) {
