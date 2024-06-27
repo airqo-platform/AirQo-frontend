@@ -46,7 +46,7 @@ class LanguageListState extends State<LanguageList> {
         ),
         body: AppSafeArea(
           child: Container(
-            height: MediaQuery.of(context).size.height * 0.6,
+            height: MediaQuery.of(context).size.height * 0.7,
             decoration: BoxDecoration(
               color: CustomColors.appBodyColor,
               borderRadius: BorderRadius.circular(8),
