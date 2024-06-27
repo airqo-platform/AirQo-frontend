@@ -71,49 +71,47 @@ class _ForYouPageState extends State<ForYouPage>
                         );
                       }
                     },
-                    builder: Builder(
-                      builder: (context) {
-                        _showcaseContext = context;
+                    builder: (context) {
+                      _showcaseContext = context;
 
-                        return TabBar(
-                          controller: _tabController,
-                          indicatorColor: Colors.transparent,
-                          labelColor: Colors.transparent,
-                          unselectedLabelColor: Colors.transparent,
-                          labelPadding: const EdgeInsets.all(3.0),
-                          physics: const NeverScrollableScrollPhysics(),
-                          onTap: (value) {
-                            setState(
-                              () => _analytics = value == 0 ? true : false,
-                            );
-                          },
-                          tabs: <Widget>[
-                            CustomShowcaseWidget(
-                              showcaseKey: _analyticsTabShowcaseKey,
-                              description: AppLocalizations.of(context)!
-                                  .thisIsTheAnalyticsTab,
-                              child: TabButton(
-                                text: AppLocalizations.of(context)!.analytics,
-                                index: 0,
-                                tabController: _tabController,
-                              ),
+                      return TabBar(
+                        controller: _tabController,
+                        indicatorColor: Colors.transparent,
+                        labelColor: Colors.transparent,
+                        unselectedLabelColor: Colors.transparent,
+                        labelPadding: const EdgeInsets.all(3.0),
+                        physics: const NeverScrollableScrollPhysics(),
+                        onTap: (value) {
+                          setState(
+                            () => _analytics = value == 0 ? true : false,
+                          );
+                        },
+                        tabs: <Widget>[
+                          CustomShowcaseWidget(
+                            showcaseKey: _analyticsTabShowcaseKey,
+                            description: AppLocalizations.of(context)!
+                                .thisIsTheAnalyticsTab,
+                            child: TabButton(
+                              text: AppLocalizations.of(context)!.analytics,
+                              index: 0,
+                              tabController: _tabController,
                             ),
-                            CustomShowcaseWidget(
-                              showcaseKey: _kyaTabShowcaseKey,
-                              descriptionHeight: screenSize.height * 0.16,
-                              descriptionWidth: screenSize.width * 0.3,
-                              description: AppLocalizations.of(context)!
-                                  .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
-                              child: TabButton(
-                                text: AppLocalizations.of(context)!.knowYourair,
-                                index: 1,
-                                tabController: _tabController,
-                              ),
+                          ),
+                          CustomShowcaseWidget(
+                            showcaseKey: _kyaTabShowcaseKey,
+                            descriptionHeight: screenSize.height * 0.16,
+                            descriptionWidth: screenSize.width * 0.3,
+                            description: AppLocalizations.of(context)!
+                                .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
+                            child: TabButton(
+                              text: AppLocalizations.of(context)!.knowYourair,
+                              index: 1,
+                              tabController: _tabController,
                             ),
-                          ],
-                        );
-                      },
-                    ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ),
