@@ -63,7 +63,8 @@ class Language {
           4, Image.asset('assets/images/swahili_flag.png'), "Swahili", "sw"),
       Language(
           5, Image.asset('assets/images/uganda_flag.png'), "Luganda", "lg"),
-      Language(6, Image.asset('assets/images/uganda_flag.png'), "pidgin", "pcm"),
+      Language(
+          6, Image.asset('assets/images/uganda_flag.png'), "Pidgin", "pcm"),
     ];
   }
 }

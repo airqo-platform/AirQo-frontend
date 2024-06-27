@@ -108,7 +108,7 @@ class _HomePageState extends State<HomePage> {
             builder: (BuildContext context) {
               // Corrected here
               _showcaseContext =
-                  context; // Make sure this assignment is done correctly
+                  context;
 
               return BottomNavigationBar(
                 selectedIconTheme: Theme.of(context)
