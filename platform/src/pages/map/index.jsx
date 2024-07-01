@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import AirQoMap from '@/components/Map/AirQoMap';
 import Sidebar from '@/components/Map/components/sidebar';
-import { getSitesSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
+import {
+  getSitesSummary,
+  getGridsDataSummary,
+} from '@/lib/store/services/deviceRegistry/GridsSlice';
 import withAuth from '@/core/utils/protectedRoute';
 import { addSuggestedSites } from '@/lib/store/services/map/MapSlice';
 import Layout from '@/components/Layout';
@@ -11,7 +14,8 @@ import { useWindowSize } from '@/lib/windowSize';
 const index = () => {
   const dispatch = useDispatch();
   const { width } = useWindowSize();
-  const siteDetails = useSelector((state) => state.grids?.sitesSummary.sites) || [];
+  const gridsDataSummary = useSelector((state) => state.grids.gridsDataSummary?.grids) || [];
+  const [siteDetails, setSiteDetails] = useState([]);
   const isAdmin = true;
   const [pollutant, setPollutant] = useState('pm2_5');
   const preferences = useSelector((state) => state.defaults.individual_preferences) || [];
@@ -23,8 +27,15 @@ const index = () => {
    * @returns {void}
    */
   useEffect(() => {
-    if (!siteDetails.length) dispatch(getSitesSummary());
+    dispatch(getGridsDataSummary());
   }, []);
+
+  useEffect(() => {
+    if (gridsDataSummary && gridsDataSummary.length > 0) {
+      const siteDetails = gridsDataSummary.flatMap((grid) => grid.sites);
+      setSiteDetails(siteDetails);
+    }
+  }, [gridsDataSummary]);
 
   useEffect(() => {
     const preferencesSelectedSitesData = preferences?.map((pref) => pref.selected_sites).flat();

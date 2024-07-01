@@ -107,6 +107,7 @@ const index = ({ siteDetails, isAdmin }) => {
   const [isLoading, setLoading] = useState(false);
   const [weeklyPredictions, setWeeklyPredictions] = useState([]);
   const gridsSummaryData = useSelector((state) => state.grids.gridsSummary);
+  const gridsDataSummary = useSelector((state) => state.grids.gridsDataSummary?.grids);
   const [showNoResultsMsg, setShowNoResultsMsg] = useState(false);
   const [locationSearchPreferences, setLocationSearchPreferences] = useState({
     custom: [],
@@ -156,15 +157,15 @@ const index = ({ siteDetails, isAdmin }) => {
   }, [siteDetails]);
 
   useEffect(() => {
-    if (gridsSummaryData && gridsSummaryData.length > 0) {
-      // Check if selected grid admin_level is country
-      const countryNames = gridsSummaryData
+    if (gridsDataSummary && gridsDataSummary.length > 0) {
+      // Loop through all the grids
+      const countryNames = gridsDataSummary
         .filter((grid) => grid.admin_level.toLowerCase() === 'country')
-        .map((country) => country.name.toLowerCase());
+        .flatMap((countryGrid) => countryGrid.sites.map((site) => site.name.toLowerCase()));
 
       setCountryFlatList(countryNames);
     }
-  }, [gridsSummaryData]);
+  }, [gridsDataSummary]);
 
   // Fetch weekly predictions
   useEffect(() => {
@@ -236,8 +237,8 @@ const index = ({ siteDetails, isAdmin }) => {
             return;
           }
         } else {
-          latitude = data?.geometry?.coordinates[1];
-          longitude = data?.geometry?.coordinates[0];
+          latitude = data?.geometry?.coordinates[1] || data?.approximate_latitude;
+          longitude = data?.geometry?.coordinates[0] || data?.approximate_longitude;
         }
 
         dispatch(setCenter({ latitude, longitude }));

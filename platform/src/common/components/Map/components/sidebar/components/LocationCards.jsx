@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { capitalizeAllText } from '@/core/utils/strings';
 import LocationIcon from '@/icons/LocationIcon';
+import Button from '@/components/Button';
 
 /**
  * LocationCards component
@@ -15,7 +16,12 @@ const LocationCards = ({ searchResults, handleLocationSelect }) => {
   const [showAllResults, setShowAllResults] = useState(false);
 
   const visibleResults = useMemo(() => {
-    return showAllResults ? searchResults : searchResults.slice(0, 6);
+    // Remove duplicate grids
+    const uniqueGrids = Array.from(new Set(searchResults.map((grid) => grid._id))).map((_id) => {
+      return searchResults.find((grid) => grid._id === _id);
+    });
+
+    return showAllResults ? uniqueGrids : uniqueGrids.slice(0, 6);
   }, [showAllResults, searchResults]);
 
   const handleShowMore = () => {
@@ -31,7 +37,7 @@ const LocationCards = ({ searchResults, handleLocationSelect }) => {
       <div className='sidebar-scroll-bar mb-[200px] flex flex-col gap-4 my-5 px-4'>
         {visibleResults.map((grid, index) => (
           <div
-            key={grid._id || index} // Use grid._id or index as the key
+            key={grid._id || index}
             className='flex flex-row justify-between items-center text-sm w-full hover:cursor-pointer hover:bg-blue-100 px-4 py-[14px] rounded-xl border border-secondary-neutral-light-100 shadow-sm'
             onClick={() => handleLocationSelect(grid)}>
             <div className='flex flex-col item-start w-full'>
