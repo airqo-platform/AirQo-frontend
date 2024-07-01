@@ -50,6 +50,7 @@ CheckComponent.propTypes = {
   titleFont: PropTypes.string,
   checked: PropTypes.bool,
   onChangeFunc: PropTypes.func,
+  disabled: PropTypes.bool,
 };
 
 export default CheckComponent;

@@ -53,7 +53,16 @@ const UserDesignation = () => {
                     return;
                   }
                   handleRoleClick(role.title);
-                }}>
+                }}
+                onKeyUp={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    if (role.disabled) {
+                      return;
+                    }
+                    handleRoleClick(role.title);
+                  }
+                }}
+                tabIndex={0}>
                 <CheckComponent
                   text={role.title}
                   width={'w-full lg:w-10/12'}
