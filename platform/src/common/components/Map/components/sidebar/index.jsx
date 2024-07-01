@@ -294,7 +294,6 @@ const index = ({ siteDetails, isAdmin }) => {
           reduxSearchTerm,
           autoCompleteSessionToken,
         );
-        console.info('predictions', predictions);
         if (predictions && predictions.length > 0) {
           const locations = await getLocationsDetails(predictions);
           setSearchResults([...locations]);
