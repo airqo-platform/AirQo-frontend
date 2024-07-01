@@ -11,17 +11,22 @@ import { useWindowSize } from '@/lib/windowSize';
 const index = () => {
   const dispatch = useDispatch();
   const { width } = useWindowSize();
-  const siteData = useSelector((state) => state.grids.sitesSummary);
+  const siteDetails = useSelector((state) => state.grids?.sitesSummary.sites) || [];
   const isAdmin = true;
   const [pollutant, setPollutant] = useState('pm2_5');
   const preferences = useSelector((state) => state.defaults.individual_preferences) || [];
   const chartSites = useSelector((state) => state.chart.chartSites);
   const selectedNode = useSelector((state) => state.map.selectedNode);
 
+  console.log('siteDetails', siteDetails);
+
   /**
-   * Site details
+   * Fetch site details
+   * @returns {void}
    */
-  const siteDetails = siteData?.sites || [];
+  useEffect(() => {
+    dispatch(getSitesSummary());
+  }, []);
 
   useEffect(() => {
     const preferencesSelectedSitesData = preferences?.map((pref) => pref.selected_sites).flat();
@@ -55,17 +60,7 @@ const index = () => {
         );
       });
     }
-  }, [siteData]);
-
-  /**
-   * Fetch site details
-   * @returns {void}
-   */
-  useEffect(() => {
-    if (!siteDetails) {
-      dispatch(getSitesSummary());
-    }
-  }, []);
+  }, [siteDetails]);
 
   return (
     <Layout noTopNav={width < 1024}>

@@ -155,8 +155,6 @@ const index = ({ siteDetails, isAdmin }) => {
     }
   }, [siteDetails]);
 
-  console.log('countryFlatList', countryFlatList);
-  console.log('gridsSummaryData', gridsSummaryData);
   useEffect(() => {
     if (gridsSummaryData && gridsSummaryData.length > 0) {
       // Check if selected grid admin_level is country
