@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import AirQoMap from '@/components/Map/AirQoMap';
-import Sidebar from '@/components/Map/components/Sidebar';
+import Sidebar from '@/components/Map/components/sidebar';
 import { getSitesSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import withAuth from '@/core/utils/protectedRoute';
 import { addSuggestedSites } from '@/lib/store/services/map/MapSlice';

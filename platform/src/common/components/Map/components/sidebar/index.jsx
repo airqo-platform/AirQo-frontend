@@ -11,205 +11,35 @@ import {
   setSelectedNode,
   setSelectedWeeklyPrediction,
 } from '@/lib/store/services/map/MapSlice';
-import allCountries from './countries.json';
+import allCountries from '../../data/countries.json';
 import SearchField from '@/components/search/SearchField';
 import LocationIcon from '@/icons/LocationIcon';
 import CloseIcon from '@/icons/close_icon';
 import ArrowLeftIcon from '@/icons/arrow_left.svg';
 import Button from '@/components/Button';
 import Image from 'next/image';
-import { getAQICategory, getAQIMessage, getAQIcon, getIcon, images } from './MapNodes';
-import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
-import axios from 'axios';
+import { getAQICategory, getAQIMessage, getAQIcon, images } from '../MapNodes';
 import WindIcon from '@/icons/Common/wind.svg';
-import Toast from '../../Toast';
+import Toast from '../../../Toast';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import { dailyPredictionsApi } from '@/core/apis/predict';
-import Spinner from '@/components/Spinner';
 import { capitalizeAllText } from '@/core/utils/strings';
-import { isValid, parseISO, isToday, isTomorrow, isThisWeek, format, isSameDay } from 'date-fns';
-import Calendar from '@/components/Calendar/Calendar';
-import useOutsideClick from '@/core/utils/useOutsideClick';
+import { isToday, isTomorrow, isThisWeek, format, isSameDay } from 'date-fns';
+
+// utils
 import { useWindowSize } from '@/lib/windowSize';
 import { getPlaceDetails } from '@/core/utils/getLocationGeomtry';
 import { getAutocompleteSuggestions } from '@/core/utils/AutocompleteSuggestions';
 
+// components
+import LocationCards from './components/LocationCards';
+import TabSelector from './components/TabSelector';
+import CountryList from './components/CountryList';
+import LocationAlertCard from './components/LocationAlertCard';
+import WeekPrediction from './components/Predictions';
+
 const MAPBOX_URL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-
-/**
- * TabSelector
- * @description Tab selector component
- */
-const TabSelector = ({ selectedTab, setSelectedTab }) => {
-  if (typeof setSelectedTab !== 'function') {
-    return null;
-  }
-  return (
-    <div className='mt-6'>
-      <div className='flex flex-row justify-center items-center bg-secondary-neutral-light-25 rounded-md border border-secondary-neutral-light-50 p-1'>
-        <div
-          onClick={() => setSelectedTab('locations')}
-          className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
-            selectedTab === 'locations' ? 'border rounded-md bg-white shadow-sm' : ''
-          }`}
-        >
-          Locations
-        </div>
-        <div
-          onClick={() => setSelectedTab('sites')}
-          className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
-            selectedTab === 'sites' ? 'border rounded-md bg-white shadow-sm' : ''
-          }`}
-        >
-          Sites
-        </div>
-      </div>
-    </div>
-  );
-};
-
-/**
- * CountryList
- * @description Country list component
- */
-const CountryList = ({ siteDetails, data, selectedCountry, setSelectedCountry }) => {
-  const dispatch = useDispatch();
-
-  // Check if data is not null or undefined
-  if (!data || !Array.isArray(data) || data.length === 0) {
-    return (
-      <div className='flex gap-2 ml-2 animate-pulse mb-5'>
-        <div className='bg-secondary-neutral-dark-50 px-4 py-[14px] w-28 h-9 rounded-full dark:bg-gray-700' />
-        <div className='bg-secondary-neutral-dark-50 px-4 py-[14px] w-28 h-9 rounded-full dark:bg-gray-700' />
-        <div className='bg-secondary-neutral-dark-50 px-4 py-[14px] w-28 h-9 rounded-full dark:bg-gray-700' />
-        <div className='bg-secondary-neutral-dark-50 px-4 py-[14px] w-28 h-9 rounded-full dark:bg-gray-700' />
-      </div>
-    );
-  }
-
-  // Sort data
-  const sortedData = [...data].sort((a, b) => a.country.localeCompare(b.country));
-
-  // Handle click event
-  const handleClick = (country) => {
-    setSelectedCountry(country);
-    dispatch(setLocation({ country: country.country }));
-    // sort the siteDetails by country and set them as selected Sites
-    const selectedSites = siteDetails.filter((site) => site.country === country.country) || [];
-    if (selectedSites.length > 0) {
-      selectedSites.sort((a, b) => a.name.localeCompare(b.name));
-    }
-    dispatch(addSuggestedSites(selectedSites));
-  };
-
-  return (
-    <div className='flex space-x-2 ml-2 mb-2'>
-      {sortedData.map((country, index) => {
-        // Check if country and flag properties exist
-        if (!country || !country.flag) {
-          return <div key={index}>Country data is incomplete</div>;
-        }
-
-        return (
-          <div
-            key={index}
-            className={`flex items-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 py-[6px] px-[10px]  min-w-max space-x-2 m-0 ${
-              selectedCountry?.country === country.country ? 'border-2 border-blue-400' : ''
-            }`}
-            onClick={() => handleClick(country)}
-          >
-            <img
-              src={`https://flagsapi.com/${country.code.toUpperCase()}/flat/64.png`}
-              alt={country.country}
-              width={20}
-              height={20}
-            />
-            <span className='text-sm text-secondary-neutral-light-600 font-medium'>
-              {country.country}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-
-/**
- * SectionCards
- * @description Section cards component
- */
-const SectionCards = ({ searchResults, handleLocationSelect }) => {
-  // Early return if searchResults is not an array or handleLocationSelect is not a function
-  if (!Array.isArray(searchResults) || typeof handleLocationSelect !== 'function') {
-    return null;
-  }
-
-  const [showAllResults, setShowAllResults] = useState(false);
-
-  const visibleResults = useMemo(() => {
-    return showAllResults ? searchResults : searchResults.slice(0, 6);
-  }, [showAllResults, searchResults]);
-
-  const handleShowMore = () => {
-    setShowAllResults(true);
-  };
-
-  useEffect(() => {
-    setShowAllResults(false);
-  }, [searchResults]);
-
-  return (
-    visibleResults.length > 0 && (
-      <div className='sidebar-scroll-bar mb-[200px] flex flex-col gap-4 my-5 px-4'>
-        {visibleResults.map((grid, index) => (
-          <div
-            key={grid._id || index} // Use grid._id or index as the key
-            className='flex flex-row justify-between items-center text-sm w-full hover:cursor-pointer hover:bg-blue-100 px-4 py-[14px] rounded-xl border border-secondary-neutral-light-100 shadow-sm'
-            onClick={() => handleLocationSelect(grid)}
-          >
-            <div className='flex flex-col item-start w-full'>
-              <span className='text-base font-medium text-black'>
-                {capitalizeAllText(
-                  grid && grid?.place_id
-                    ? grid?.description?.split(',')[0]
-                    : grid.search_name?.split(',')[0],
-                )}
-              </span>
-              <span className='font-medium text-secondary-neutral-light-300 text-sm leading-tight'>
-                {capitalizeAllText(
-                  grid && grid?.place_id
-                    ? grid?.description?.includes(',') &&
-                      grid?.description?.split(',').slice(1).join('').trim()
-                      ? grid?.description?.split(',').slice(1).join(',')
-                      : grid?.description
-                    : grid.region?.includes(',') && grid.region?.split(',').slice(1).join('').trim()
-                    ? grid.region?.split(',').slice(1).join(',')
-                    : grid.region,
-                )}
-              </span>
-            </div>
-            <div className='p-2 rounded-full bg-secondary-neutral-light-50'>
-              <LocationIcon fill='#9EA3AA' />
-            </div>
-          </div>
-        ))}
-        {searchResults.length > 4 && !showAllResults && (
-          <div className='flex justify-center my-4'>
-            <Button
-              variant='primaryText'
-              className='text-sm font-medium'
-              paddingStyles='py-4'
-              onClick={handleShowMore}
-            >
-              Show More
-            </Button>
-          </div>
-        )}
-      </div>
-    )
-  );
-};
 
 // Sidebar header
 const SidebarHeader = ({
@@ -226,8 +56,7 @@ const SidebarHeader = ({
         {isFocused && (
           <button
             onClick={handleHeaderClick}
-            className='focus:outline-none border rounded-xl hover:cursor-pointer p-2 hidden md:block'
-          >
+            className='focus:outline-none border rounded-xl hover:cursor-pointer p-2 hidden md:block'>
             <CloseIcon />
           </button>
         )}
@@ -235,182 +64,13 @@ const SidebarHeader = ({
       <p className='text-gray-500 text-sm font-medium w-auto mt-2'>
         Navigate air quality analytics with precision and actionable tips.
       </p>
-      {!isAdmin && <TabSelector selectedTab={selectedTab} setSelectedTab={handleSelectedTab} />}
-    </div>
-  );
-};
-
-// Week prediction
-const WeekPrediction = ({
-  selectedSite,
-  selectedWeeklyPrediction,
-  currentDay,
-  weeklyPredictions,
-  weekDays,
-  loading,
-}) => {
-  const dispatch = useDispatch();
-  // Ensure the initial value is a valid date object
-  const [value, setValue] = useState(selectedSite?.time ? new Date(selectedSite.time) : new Date());
-  const [openDatePicker, setOpenDatePicker] = useState(false);
-  const dropdownRef = useRef(null);
-
-  const handleDateValueChange = (newValue) => {
-    // Ensure the new value is a valid date object
-    const date = newValue.start ? new Date(newValue.start) : new Date();
-    setValue(date);
-  };
-
-  useOutsideClick(dropdownRef, () => {
-    setOpenDatePicker(false);
-  });
-
-  const isActive = (prediction) => {
-    const predictionDay = new Date(prediction.time).toLocaleDateString('en-US', {
-      weekday: 'long',
-    });
-    return selectedWeeklyPrediction
-      ? prediction.time === selectedWeeklyPrediction.time
-      : predictionDay === currentDay;
-  };
-
-  // Helper function to safely format the date
-  const safeFormatDate = (date) => {
-    return isValid(date) ? format(date, 'MMM dd, yyyy') : 'Invalid date';
-  };
-
-  return (
-    <div className='relative'>
-      <div className='mb-5 relative'>
-        <Button
-          className='flex flex-row-reverse shadow rounded-md text-sm text-secondary-neutral-light-600 font-medium leading-tight bg-white h-8 my-1'
-          variant='outlined'
-          // onClick={() => setOpenDatePicker(!openDatePicker)}
-        >
-          {safeFormatDate(value)}
-        </Button>
-
-        {openDatePicker && (
-          <div className='absolute z-[900]' ref={dropdownRef}>
-            <Calendar
-              handleValueChange={handleDateValueChange}
-              closeDatePicker={() => setOpenDatePicker(false)}
-              initialMonth1={new Date()}
-              initialMonth2={new Date()}
-              showTwoCalendars={false}
-            />
-          </div>
-        )}
-      </div>
-      <div className='flex justify-between items-center gap-2'>
-        {weeklyPredictions && weeklyPredictions.length > 0
-          ? weeklyPredictions.map((prediction, index) => (
-              <div
-                key={index}
-                onClick={() => dispatch(setSelectedWeeklyPrediction(prediction))}
-                className={`rounded-[40px] px-0.5 pt-1.5 pb-0.5 flex flex-col justify-center items-center gap-2 shadow ${
-                  isActive(prediction) ? 'bg-blue-600' : 'bg-secondary-neutral-dark-100'
-                }`}
-              >
-                <div className='flex flex-col items-center justify-start gap-[3px]'>
-                  <div
-                    className={`text-center text-sm font-semibold leading-tight ${
-                      isActive(prediction) ? 'text-primary-300' : 'text-secondary-neutral-dark-400'
-                    }`}
-                  >
-                    {new Date(prediction.time)
-                      .toLocaleDateString('en-US', { weekday: 'long' })
-                      .charAt(0)}
-                  </div>
-                  {loading ? (
-                    <Spinner width={6} height={6} />
-                  ) : (
-                    <div
-                      className={`text-center text-sm font-medium leading-tight ${
-                        isActive(prediction) ? 'text-white' : 'text-secondary-neutral-dark-200'
-                      }`}
-                    >
-                      {new Date(prediction.time).toLocaleDateString('en-US', {
-                        day: 'numeric',
-                      })}
-                    </div>
-                  )}
-                </div>
-                {isSameDay(new Date(selectedSite.time), new Date(prediction.time)) ? (
-                  <Image
-                    src={
-                      selectedSite.pm2_5 && getAQIcon('pm2_5', selectedSite.pm2_5)
-                        ? images[getAQIcon('pm2_5', selectedSite.pm2_5)]
-                        : images['Invalid']
-                    }
-                    alt='Air Quality Icon'
-                    width={32}
-                    height={32}
-                  />
-                ) : (
-                  <Image
-                    src={
-                      prediction.pm2_5 && getAQIcon('pm2_5', prediction.pm2_5)
-                        ? images[getAQIcon('pm2_5', prediction.pm2_5)]
-                        : images['Invalid']
-                    }
-                    alt='Air Quality Icon'
-                    width={32}
-                    height={32}
-                  />
-                )}
-              </div>
-            ))
-          : weekDays.map((day) => (
-              <div
-                className={`rounded-[40px] px-0.5 pt-1.5 pb-0.5 flex flex-col justify-center items-center gap-2 shadow ${
-                  day === currentDay ? 'bg-blue-600' : 'bg-secondary-neutral-dark-100'
-                }`}
-                key={day}
-              >
-                <div className='flex flex-col items-center justify-start gap-[3px]'>
-                  <div className='text-center text-sm font-semibold leading-tight text-secondary-neutral-dark-400'>
-                    {day.charAt(0)}
-                  </div>
-                  {loading ? (
-                    <Spinner width={6} height={6} />
-                  ) : (
-                    <div className='text-center text-sm font-medium leading-tight text-secondary-neutral-dark-200'>
-                      --
-                    </div>
-                  )}
-                </div>
-                <Image src={images['Invalid']} alt='Air Quality Icon' width={32} height={32} />
-              </div>
-            ))}
-      </div>
-    </div>
-  );
-};
-
-const LocationDetailItem = ({ title, children, isCollapsed = true }) => {
-  const [collapsed, setCollapsed] = useState(isCollapsed);
-
-  return (
-    <div className='p-3 bg-white rounded-lg shadow border border-secondary-neutral-dark-100 flex-col justify-center items-center'>
-      <div
-        className={`flex justify-between items-center ${collapsed && 'mb-2'} cursor-pointer`}
-        onClick={() => setCollapsed(!collapsed)}
-      >
-        <div className='flex justify-start items-center gap-3'>
-          <div className='w-10 h-10 rounded-full bg-secondary-neutral-dark-50 p-2 flex items-center justify-center text-xl font-bold'>
-            🚨
-          </div>
-          <h3 className='text-lg font-medium leading-relaxed text-secondary-neutral-dark-950'>
-            {title}
-          </h3>
-        </div>
-        <div className='w-7 h-7 rounded-full flex items-center justify-center bg-white'>
-          <ChevronDownIcon className='text-secondary-neutral-dark-950 w-4 h-4' />
-        </div>
-      </div>
-
-      {collapsed && children}
+      {!isAdmin && (
+        <TabSelector
+          defaultTab='locations'
+          tabs={['locations', 'sites']}
+          setSelectedTab={setSelectedTab}
+        />
+      )}
     </div>
   );
 };
@@ -429,7 +89,7 @@ const SearchResultsSkeleton = () => {
   );
 };
 
-const Sidebar = ({ siteDetails, isAdmin }) => {
+const index = ({ siteDetails, isAdmin }) => {
   const dispatch = useDispatch();
   const { width } = useWindowSize();
   const [isFocused, setIsFocused] = useState(false);
@@ -444,16 +104,14 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
   const mapLoading = useSelector((state) => state.map.mapLoading);
   const [showLocationDetails, setShowLocationDetails] = useState(false);
   const [isLoading, setLoading] = useState(false);
+  const [weeklyPredictions, setWeeklyPredictions] = useState([]);
   const gridsSummaryData = useSelector((state) => state.grids.gridsSummary);
   const [showNoResultsMsg, setShowNoResultsMsg] = useState(false);
   const [locationSearchPreferences, setLocationSearchPreferences] = useState({
     custom: [],
     nearMe: [],
   });
-  const [weeklyPredictions, setWeeklyPredictions] = useState([]);
   const selectedWeeklyPrediction = useSelector((state) => state.map.selectedWeeklyPrediction);
-  const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
   const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
   const focus = isFocused || reduxSearchTerm.length > 0;
   const selectedSites = useSelector((state) => state.map.suggestedSites);
@@ -506,6 +164,32 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
       setCountryFlatList(countryNames);
     }
   }, [gridsSummaryData]);
+
+  useEffect(() => {
+    const fetchWeeklyPredictions = async () => {
+      setLoading(true);
+      if (selectedSite?._id) {
+        try {
+          // Predictions for waq locations
+          if (selectedSite?.forecast && selectedSite?.forecast.length > 0) {
+            setWeeklyPredictions(selectedLocationDetails?.forecast);
+          } else {
+            const response = await dailyPredictionsApi(selectedSite._id);
+            setWeeklyPredictions(response?.forecasts);
+          }
+        } catch (error) {
+          console.error(error.message);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setWeeklyPredictions([]);
+        setLoading(false);
+      }
+    };
+
+    fetchWeeklyPredictions();
+  }, [selectedSite]);
 
   useEffect(() => {
     if (selectedSites) {
@@ -632,32 +316,6 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
     }
   }, [reduxSearchTerm]);
 
-  useEffect(() => {
-    const fetchWeeklyPredictions = async () => {
-      setLoading(true);
-      if (selectedSite?._id) {
-        try {
-          // Predictions for waq locations
-          if (selectedSite?.forecast && selectedSite?.forecast.length > 0) {
-            setWeeklyPredictions(selectedLocationDetails?.forecast);
-          } else {
-            const response = await dailyPredictionsApi(selectedSite._id);
-            setWeeklyPredictions(response?.forecasts);
-          }
-        } catch (error) {
-          console.error(error.message);
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        setWeeklyPredictions([]);
-        setLoading(false);
-      }
-    };
-
-    fetchWeeklyPredictions();
-  }, [selectedSite]);
-
   /**
    * Handle exit
    * */
@@ -730,8 +388,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
           <div className='flex items-center mt-5 overflow-hidden px-4 transition-all duration-300 ease-in-out'>
             <button
               onClick={handleAllSelection}
-              className='py-[6px] px-[10px] rounded-full mb-3 bg-blue-500 text-white text-sm font-medium'
-            >
+              className='py-[6px] px-[10px] rounded-full mb-3 bg-blue-500 text-white text-sm font-medium'>
               All
             </button>
             <div className='country-scroll-bar'>
@@ -778,7 +435,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
                         Filters
                       </Button> */}
                 </div>
-                <SectionCards
+                <LocationCards
                   searchResults={selectedSites}
                   handleLocationSelect={handleLocationSelect}
                 />
@@ -791,8 +448,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
         <div
           className={`flex flex-col h-full pt-4 w-auto ${
             isFocused && !showLocationDetails ? '' : 'hidden'
-          }`}
-        >
+          }`}>
           {/* Sidebar Header */}
           <div className={`flex flex-col gap-5 px-4`}>
             <SidebarHeader
@@ -850,7 +506,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
               </div>
             </div>
           ) : (
-            <SectionCards
+            <LocationCards
               searchResults={searchResults}
               handleLocationSelect={handleLocationSelect}
             />
@@ -879,10 +535,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
               <div className='mx-4'>
                 <WeekPrediction
                   selectedSite={selectedSite}
-                  selectedWeeklyPrediction={selectedWeeklyPrediction}
-                  currentDay={currentDay}
                   weeklyPredictions={weeklyPredictions}
-                  weekDays={weekDays}
                   loading={isLoading}
                 />
               </div>
@@ -893,8 +546,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
             <div
               className={`mx-4 mb-5 ${
                 width < 1024 ? 'sidebar-scroll-bar h-dvh' : ''
-              } flex flex-col gap-4`}
-            >
+              } flex flex-col gap-4`}>
               <div className='px-3 pt-3 pb-4 bg-secondary-neutral-dark-50 rounded-lg shadow border border-secondary-neutral-dark-100 flex justify-between items-center'>
                 <div className='flex flex-col gap-1'>
                   <div className='flex items-center gap-1'>
@@ -906,8 +558,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
                     </p>
                   </div>
                   <div
-                    className={`text-2xl font-extrabold leading-normal text-secondary-neutral-light-800`}
-                  >
+                    className={`text-2xl font-extrabold leading-normal text-secondary-neutral-light-800`}>
                     {selectedWeeklyPrediction
                       ? isSameDay(
                           new Date(selectedSite.time),
@@ -935,7 +586,7 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
                 />
               </div>
 
-              <LocationDetailItem
+              <LocationAlertCard
                 title='Air Quality Alerts'
                 isCollapsed
                 children={
@@ -1011,4 +662,4 @@ const Sidebar = ({ siteDetails, isAdmin }) => {
   );
 };
 
-export default Sidebar;
+export default index;

@@ -32,7 +32,7 @@ import {
   images,
 } from './components/MapNodes';
 import Toast from '../Toast';
-import { AQI_FOR_CITIES } from './components/Cities';
+import { AQI_FOR_CITIES } from './data/Cities';
 import { AirQualityLegend } from './components/Legend';
 
 // Images
