@@ -61,8 +61,7 @@ const UserDesignation = () => {
                     }
                     handleRoleClick(role.title);
                   }
-                }}
-                tabIndex={0}>
+                }}>
                 <CheckComponent
                   text={role.title}
                   width={'w-full lg:w-10/12'}
