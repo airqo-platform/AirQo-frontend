@@ -25,6 +25,7 @@ import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import { dailyPredictionsApi } from '@/core/apis/predict';
 import { capitalizeAllText } from '@/core/utils/strings';
 import { isToday, isTomorrow, isThisWeek, format, isSameDay } from 'date-fns';
+import { gridsSummaryData } from '@/lib/store/services/deviceRegistry/GridsSlice';
 
 // utils
 import { useWindowSize } from '@/lib/windowSize';
@@ -154,6 +155,8 @@ const index = ({ siteDetails, isAdmin }) => {
     }
   }, [siteDetails]);
 
+  console.log('countryFlatList', countryFlatList);
+  console.log('gridsSummaryData', gridsSummaryData);
   useEffect(() => {
     if (gridsSummaryData && gridsSummaryData.length > 0) {
       // Check if selected grid admin_level is country
@@ -165,6 +168,7 @@ const index = ({ siteDetails, isAdmin }) => {
     }
   }, [gridsSummaryData]);
 
+  // Fetch weekly predictions
   useEffect(() => {
     const fetchWeeklyPredictions = async () => {
       setLoading(true);
@@ -291,6 +295,7 @@ const index = ({ siteDetails, isAdmin }) => {
           reduxSearchTerm,
           autoCompleteSessionToken,
         );
+
         if (predictions && predictions.length > 0) {
           const filteredLocations = filterPredictions(predictions);
           const locations = await getLocationsDetails(filteredLocations);
