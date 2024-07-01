@@ -18,14 +18,12 @@ const index = () => {
   const chartSites = useSelector((state) => state.chart.chartSites);
   const selectedNode = useSelector((state) => state.map.selectedNode);
 
-  console.log('siteDetails', siteDetails);
-
   /**
    * Fetch site details
    * @returns {void}
    */
   useEffect(() => {
-    dispatch(getSitesSummary());
+    if (!siteDetails.length) dispatch(getSitesSummary());
   }, []);
 
   useEffect(() => {

@@ -363,7 +363,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
       const newWaqData = await fetchAndProcessWaqData(AQI_FOR_CITIES);
       dispatch(setWaqData(newWaqData));
     }
-  }, [mapReadingsData, waqData]);
+  }, []);
 
   const clusterUpdate = useCallback(async () => {
     const map = mapRef.current;
