@@ -255,13 +255,13 @@ const index = ({ siteDetails, isAdmin }) => {
     [dispatch],
   );
 
-  const filterPredictions = (predictions) => {
-    return predictions.filter((prediction) => {
-      return countryFlatList.some((country) =>
-        prediction.description.toLowerCase().includes(country.toLowerCase()),
-      );
-    });
-  };
+  // const filterPredictions = (predictions) => {
+  //   return predictions.filter((prediction) => {
+  //     return countryFlatList.some((country) =>
+  //       prediction.description.toLowerCase().includes(country.toLowerCase()),
+  //     );
+  //   });
+  // };
 
   const getLocationsDetails = (predictions) => {
     const locationPromises = predictions.map((prediction) => {
@@ -294,11 +294,10 @@ const index = ({ siteDetails, isAdmin }) => {
           reduxSearchTerm,
           autoCompleteSessionToken,
         );
-
+        console.info('predictions', predictions);
         if (predictions && predictions.length > 0) {
-          const filteredLocations = filterPredictions(predictions);
-          const locations = await getLocationsDetails(filteredLocations);
-          setSearchResults(locations);
+          const locations = await getLocationsDetails(predictions);
+          setSearchResults([...locations]);
         }
       } catch (error) {
         handleSearchError(error);

@@ -12,16 +12,26 @@ const LocationCards = ({ searchResults, handleLocationSelect }) => {
   if (!Array.isArray(searchResults) || typeof handleLocationSelect !== 'function') {
     return null;
   }
-
   const [showAllResults, setShowAllResults] = useState(false);
 
   const visibleResults = useMemo(() => {
-    // Remove duplicate grids
-    const uniqueGrids = Array.from(new Set(searchResults.map((grid) => grid._id))).map((_id) => {
-      return searchResults.find((grid) => grid._id === _id);
+    const uniqueIds = new Set();
+
+    // Filter out search results with duplicate ids
+    const uniqueSearchResults = searchResults.filter((result) => {
+      const id = result._id || result.place_id;
+      if (uniqueIds.has(id)) {
+        // If the id is already in the Set, filter out this result
+        return false;
+      } else {
+        // If the id is not in the Set, add it and keep this result
+        uniqueIds.add(id);
+        return true;
+      }
     });
 
-    return showAllResults ? uniqueGrids : uniqueGrids.slice(0, 6);
+    // Slice the results if showAllResults is false
+    return showAllResults ? uniqueSearchResults : uniqueSearchResults.slice(0, 6);
   }, [showAllResults, searchResults]);
 
   const handleShowMore = () => {
@@ -37,7 +47,7 @@ const LocationCards = ({ searchResults, handleLocationSelect }) => {
       <div className='sidebar-scroll-bar mb-[200px] flex flex-col gap-4 my-5 px-4'>
         {visibleResults.map((grid, index) => (
           <div
-            key={grid._id || index}
+            key={grid?._id || grid?.place_id}
             className='flex flex-row justify-between items-center text-sm w-full hover:cursor-pointer hover:bg-blue-100 px-4 py-[14px] rounded-xl border border-secondary-neutral-light-100 shadow-sm'
             onClick={() => handleLocationSelect(grid)}>
             <div className='flex flex-col item-start w-full'>
