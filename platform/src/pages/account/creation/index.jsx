@@ -9,11 +9,13 @@ const userRoles = [
     title: 'Individual',
     subText:
       'Empower yourself with real-time Air Pollution Location Data for research and personal use. Stay informed, stay healthy. Join the clean air revolution today.',
+    disabled: false,
   },
   {
     title: 'Organisation',
     subText:
       'Beyond data, gain access to network management tools. Drive meaningful change, one location at a time. Shape a cleaner future for all.',
+    disabled: true,
   },
 ];
 
@@ -46,12 +48,18 @@ const UserDesignation = () => {
               <div
                 key={index}
                 className='w-full cursor-pointer mb-8 lg:w-10/12 lg:mb-0 flex flex-col'
-                onClick={() => handleRoleClick(role.title)}>
+                onClick={() => {
+                  if (role.disabled) {
+                    return;
+                  }
+                  handleRoleClick(role.title);
+                }}>
                 <CheckComponent
                   text={role.title}
                   width={'w-full lg:w-10/12'}
                   subText={role.subText}
                   checked={clickedRole === role.title}
+                  disabled={role.disabled}
                 />
               </div>
             ))}
