@@ -3,7 +3,7 @@ from django.utils import translation
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from .models import Event, Inquiry, Program, Session, PartnerLogo, Resource
+from .models import Event
 from .serializers import EventSerializer
 
 
