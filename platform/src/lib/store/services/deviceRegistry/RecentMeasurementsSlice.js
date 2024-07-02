@@ -26,6 +26,9 @@ export const recentMeasurementsSlice = createSlice({
     setRecentMeasurementsData: (state, action) => {
       state.measurements = action.payload;
     },
+    clearMeasurementsData: (state) => {
+      state.measurements = [];
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -43,5 +46,5 @@ export const recentMeasurementsSlice = createSlice({
   },
 });
 
-export const { setRecentMeasurementsData } = recentMeasurementsSlice.actions;
+export const { setRecentMeasurementsData, clearMeasurementsData } = recentMeasurementsSlice.actions;
 export default recentMeasurementsSlice.reducer;

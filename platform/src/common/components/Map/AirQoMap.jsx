@@ -32,7 +32,7 @@ import {
   images,
 } from './components/MapNodes';
 import Toast from '../Toast';
-import { AQI_FOR_CITIES } from './components/Cities';
+import { AQI_FOR_CITIES } from './data/Cities';
 import { AirQualityLegend } from './components/Legend';
 
 // Images
@@ -363,7 +363,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
       const newWaqData = await fetchAndProcessWaqData(AQI_FOR_CITIES);
       dispatch(setWaqData(newWaqData));
     }
-  }, [mapReadingsData, waqData]);
+  }, [refresh]);
 
   const clusterUpdate = useCallback(async () => {
     const map = mapRef.current;

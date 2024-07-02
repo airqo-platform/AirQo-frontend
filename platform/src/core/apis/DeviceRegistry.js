@@ -6,6 +6,7 @@ import {
   DEVICES,
   GRID_LOCATIONS_URL,
   NEAREST_SITE_URL,
+  GRIDS_SUMMARY_URL,
 } from '../urls/deviceRegistry';
 
 // Get grid locations
@@ -32,6 +33,15 @@ export const getGridLocationDetails = async (gridID) => {
 export const getSiteSummaryDetails = async () => {
   try {
     const response = await createAxiosInstance().get(`${SITES_URL}/summary`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getGirdsSummaryDetails = async () => {
+  try {
+    const response = await createAxiosInstance().get(`${GRIDS_SUMMARY_URL}`);
     return response.data;
   } catch (error) {
     throw error;
