@@ -85,6 +85,8 @@ export const getAllPressApi = async (lang) => fetchData(PRESS_URL, lang);
 // Events endpoint
 export const getAllEventsApi = async (lang) => fetchData(EVENTS_URL, lang);
 
+export const getEventApi = async (id, lang) => fetchData(`${EVENTS_URL}/${id}`, lang);
+
 // Cities endpoint
 export const getAllCitiesApi = async (lang) => fetchData(CITIES_URL, lang);
 
