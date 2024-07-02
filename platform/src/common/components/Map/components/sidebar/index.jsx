@@ -22,7 +22,10 @@ import Toast from '../../../Toast';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import { dailyPredictionsApi } from '@/core/apis/predict';
 import { capitalizeAllText } from '@/core/utils/strings';
-import { fetchRecentMeasurementsData } from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
+import {
+  fetchRecentMeasurementsData,
+  clearMeasurementsData,
+} from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
 
 // utils
 import { useWindowSize } from '@/lib/windowSize';
@@ -101,7 +104,6 @@ const index = ({ siteDetails, isAdmin }) => {
   const [isLoading, setLoading] = useState(false);
   const [weeklyPredictions, setWeeklyPredictions] = useState([]);
   const [showNoResultsMsg, setShowNoResultsMsg] = useState(false);
-  const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
   const measurementsLoading = useSelector((state) => state.recentMeasurements.status);
   const [locationSearchPreferences, setLocationSearchPreferences] = useState({
     custom: [],
@@ -120,7 +122,7 @@ const index = ({ siteDetails, isAdmin }) => {
     () => new google.maps.places.AutocompleteSessionToken(),
     [google.maps.places.AutocompleteSessionToken],
   );
-  console.log('recentLocationMeasurements', recentLocationMeasurements);
+
   // Sidebar loading effect
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -182,11 +184,12 @@ const index = ({ siteDetails, isAdmin }) => {
     }
   };
 
-  // get measurements
+  // Fetch measurements
   useEffect(() => {
     if (selectedSite) {
       const { _id } = selectedSite;
       if (_id) {
+        dispatch(clearMeasurementsData());
         dispatch(setMapLoading(true));
         try {
           dispatch(fetchRecentMeasurementsData({ site_id: _id }));
@@ -261,14 +264,9 @@ const index = ({ siteDetails, isAdmin }) => {
     [dispatch],
   );
 
-  // const filterPredictions = (predictions) => {
-  //   return predictions.filter((prediction) => {
-  //     return countryFlatList.some((country) =>
-  //       prediction.description.toLowerCase().includes(country.toLowerCase()),
-  //     );
-  //   });
-  // };
-
+  /**
+   * Search code
+   * */
   const getLocationsDetails = (predictions) => {
     const locationPromises = predictions.map((prediction) => {
       return new Promise((resolve) => {
@@ -317,6 +315,10 @@ const index = ({ siteDetails, isAdmin }) => {
     }
   };
 
+  const handleClearSearch = () => {
+    handleExit();
+  };
+
   useEffect(() => {
     if (reduxSearchTerm !== '') {
       setLoading(true);
@@ -350,13 +352,6 @@ const index = ({ siteDetails, isAdmin }) => {
       ? [...siteDetails].sort((a, b) => a.name.localeCompare(b.name))
       : [];
     dispatch(addSuggestedSites(selSites));
-  };
-
-  /**
-   * Handle clear search
-   */
-  const handleClearSearch = () => {
-    handleExit();
   };
 
   return (
