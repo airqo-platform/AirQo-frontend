@@ -387,7 +387,7 @@ const index = ({ siteDetails, isAdmin }) => {
       </div>
 
       {/* section 1 */}
-      <div className='h-dvh sidebar-scroll-bar'>
+      <div className='sidebar-scroll-bar'>
         {selectedSite && mapLoading ? (
           // show a loading skeleton
           <div className='flex flex-col gap-4 animate-pulse px-4 mt-5'>

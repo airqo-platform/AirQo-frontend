@@ -47,7 +47,7 @@ const LocationCards = ({ searchResults, handleLocationSelect }) => {
 
   return (
     visibleResults.length > 0 && (
-      <div className='sidebar-scroll-bar pb-[300px] h-dvh flex flex-col gap-4 my-5 px-4'>
+      <div className='sidebar-scroll-bar pb-[350px] h-dvh flex flex-col gap-4 my-5 px-4'>
         {visibleResults.map((grid, index) => (
           <div
             key={grid?._id || grid?.place_id}
