@@ -10,6 +10,7 @@ import {
   reSetMap,
   setSelectedNode,
   setSelectedWeeklyPrediction,
+  setMapLoading,
 } from '@/lib/store/services/map/MapSlice';
 import allCountries from '../../data/countries.json';
 import SearchField from '@/components/search/SearchField';
@@ -17,14 +18,10 @@ import LocationIcon from '@/icons/LocationIcon';
 import CloseIcon from '@/icons/close_icon';
 import ArrowLeftIcon from '@/icons/arrow_left.svg';
 import Button from '@/components/Button';
-import Image from 'next/image';
-import { getAQICategory, getAQIMessage, getAQIcon, images } from '../MapNodes';
-import WindIcon from '@/icons/Common/wind.svg';
 import Toast from '../../../Toast';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import { dailyPredictionsApi } from '@/core/apis/predict';
 import { capitalizeAllText } from '@/core/utils/strings';
-import { isToday, isTomorrow, isThisWeek, format, isSameDay } from 'date-fns';
 import { fetchRecentMeasurementsData } from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
 
 // utils
@@ -38,9 +35,7 @@ import TabSelector from './components/TabSelector';
 import CountryList from './components/CountryList';
 import LocationAlertCard from './components/LocationAlertCard';
 import WeekPrediction from './components/Predictions';
-
-const MAPBOX_URL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+import PollutantCard from './components/PollutantCard';
 
 // Sidebar header
 const SidebarHeader = ({
@@ -95,7 +90,6 @@ const index = ({ siteDetails, isAdmin }) => {
   const { width } = useWindowSize();
   const [isFocused, setIsFocused] = useState(false);
   const [countryData, setCountryData] = useState([]);
-  const [countryFlatList, setCountryFlatList] = useState([]);
   const [selectedTab, setSelectedTab] = useState('locations');
   const [selectedSite, setSelectedSite] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState(null);
@@ -106,10 +100,9 @@ const index = ({ siteDetails, isAdmin }) => {
   const [showLocationDetails, setShowLocationDetails] = useState(false);
   const [isLoading, setLoading] = useState(false);
   const [weeklyPredictions, setWeeklyPredictions] = useState([]);
-  const gridsSummaryData = useSelector((state) => state.grids.gridsSummary);
-  const gridsDataSummary = useSelector((state) => state.grids.gridsDataSummary?.grids);
   const [showNoResultsMsg, setShowNoResultsMsg] = useState(false);
   const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
+  const measurementsLoading = useSelector((state) => state.recentMeasurements.status);
   const [locationSearchPreferences, setLocationSearchPreferences] = useState({
     custom: [],
     nearMe: [],
@@ -127,6 +120,15 @@ const index = ({ siteDetails, isAdmin }) => {
     () => new google.maps.places.AutocompleteSessionToken(),
     [google.maps.places.AutocompleteSessionToken],
   );
+
+  // Sidebar loading effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      dispatch(setMapLoading(false));
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [dispatch, selectedSite]);
 
   useEffect(() => {
     dispatch(setOpenLocationDetails(false));
@@ -157,42 +159,43 @@ const index = ({ siteDetails, isAdmin }) => {
     }
   }, [siteDetails]);
 
-  useEffect(() => {
-    if (gridsDataSummary && gridsDataSummary.length > 0) {
-      // Loop through all the grids
-      const countryNames = gridsDataSummary
-        .filter((grid) => grid.admin_level.toLowerCase() === 'country')
-        .flatMap((countryGrid) => countryGrid.sites.map((site) => site.name.toLowerCase()));
-
-      setCountryFlatList(countryNames);
-    }
-  }, [gridsDataSummary]);
-
   // Fetch weekly predictions
-  useEffect(() => {
-    const fetchWeeklyPredictions = async () => {
-      setLoading(true);
-      if (selectedSite?._id) {
-        try {
-          // Predictions for waq locations
-          if (selectedSite?.forecast && selectedSite?.forecast.length > 0) {
-            setWeeklyPredictions(selectedLocationDetails?.forecast);
-          } else {
-            const response = await dailyPredictionsApi(selectedSite._id);
-            setWeeklyPredictions(response?.forecasts);
-          }
-        } catch (error) {
-          console.error(error.message);
-        } finally {
-          setLoading(false);
+  const fetchWeeklyPredictions = async () => {
+    setLoading(true);
+    if (selectedSite?._id) {
+      try {
+        // Predictions for waq locations
+        if (selectedSite?.forecast && selectedSite?.forecast.length > 0) {
+          setWeeklyPredictions(selectedLocationDetails?.forecast);
+        } else {
+          const response = await dailyPredictionsApi(selectedSite._id);
+          setWeeklyPredictions(response?.forecasts);
         }
-      } else {
-        setWeeklyPredictions([]);
+      } catch (error) {
+        console.error(error.message);
+      } finally {
         setLoading(false);
       }
-    };
+    } else {
+      setWeeklyPredictions([]);
+      setLoading(false);
+    }
+  };
 
-    fetchWeeklyPredictions();
+  // get measurements
+  useEffect(() => {
+    if (selectedSite) {
+      const { _id } = selectedSite;
+      if (_id) {
+        dispatch(setMapLoading(true));
+        try {
+          dispatch(fetchRecentMeasurementsData({ site_id: _id }));
+          fetchWeeklyPredictions();
+        } catch (error) {
+          console.error(error.message);
+        }
+      }
+    }
   }, [selectedSite]);
 
   useEffect(() => {
@@ -212,10 +215,12 @@ const index = ({ siteDetails, isAdmin }) => {
     setSelectedSite(selectedLocationDetails);
   }, [selectedLocationDetails]);
 
+  // Handle selected tab
   const handleSelectedTab = (tab) => {
     setSelectedTab(tab);
   };
 
+  // Handle location select
   const handleLocationSelect = useCallback(
     async (data) => {
       dispatch(setOpenLocationDetails(true));
@@ -354,29 +359,6 @@ const index = ({ siteDetails, isAdmin }) => {
     handleExit();
   };
 
-  // Helper function to insert space before capital letters
-  const addSpacesToCategory = (category) => {
-    return category.split('').reduce((result, char, index) => {
-      if (index > 0 && char === char.toUpperCase()) {
-        return result + ' ' + char;
-      }
-      return result + char;
-    }, '');
-  };
-
-  // Helper function to format the date message
-  const formatDateMessage = (date) => {
-    if (isToday(date)) {
-      return 'today';
-    } else if (isTomorrow(date)) {
-      return 'tomorrow';
-    } else if (isThisWeek(date)) {
-      return 'this week';
-    } else {
-      return format(date, 'MMMM do');
-    }
-  };
-
   return (
     <div className='w-full h-dvh bg-white overflow-hidden mb-4'>
       {/* Sidebar Header */}
@@ -493,7 +475,9 @@ const index = ({ siteDetails, isAdmin }) => {
             />
           )}
 
-          {isLoading && searchResults.length === 0 && <SearchResultsSkeleton />}
+          {isLoading && searchResults.length === 0 && measurementsLoading && (
+            <SearchResultsSkeleton />
+          )}
 
           {searchResults?.length === 0 && !isLoading ? (
             <div className='flex flex-col justify-center items-center h-full w-full px-6'>
@@ -550,112 +534,17 @@ const index = ({ siteDetails, isAdmin }) => {
               className={`mx-4 mb-5 ${
                 width < 1024 ? 'sidebar-scroll-bar h-dvh' : ''
               } flex flex-col gap-4`}>
-              <div className='px-3 pt-3 pb-4 bg-secondary-neutral-dark-50 rounded-lg shadow border border-secondary-neutral-dark-100 flex justify-between items-center'>
-                <div className='flex flex-col gap-1'>
-                  <div className='flex items-center gap-1'>
-                    <div className='w-4 h-4 rounded-lg bg-secondary-neutral-dark-100 flex items-center justify-center'>
-                      <WindIcon />
-                    </div>
-                    <p className='text-sm font-medium leading-tight text-secondary-neutral-dark-300'>
-                      PM2.5
-                    </p>
-                  </div>
-                  <div
-                    className={`text-2xl font-extrabold leading-normal text-secondary-neutral-light-800`}>
-                    {selectedWeeklyPrediction
-                      ? isSameDay(
-                          new Date(selectedSite.time),
-                          new Date(selectedWeeklyPrediction.time),
-                        )
-                        ? selectedSite.pm2_5?.toFixed(2)
-                        : selectedWeeklyPrediction.pm2_5?.toFixed(2)
-                      : selectedSite?.pm2_5?.toFixed(2) || '-'}
-                  </div>
-                </div>
-                <Image
-                  src={
-                    selectedWeeklyPrediction
-                      ? isSameDay(
-                          new Date(selectedSite.time),
-                          new Date(selectedWeeklyPrediction.time),
-                        )
-                        ? images[getAQIcon('pm2_5', selectedSite.pm2_5)]
-                        : images[getAQIcon('pm2_5', selectedWeeklyPrediction.pm2_5)]
-                      : images[getAQIcon('pm2_5', selectedSite.pm2_5)] || images['Invalid']
-                  }
-                  alt='Air Quality Icon'
-                  width={80}
-                  height={80}
-                />
-              </div>
+              {/* Pollutant Card */}
+              <PollutantCard
+                selectedSite={selectedSite}
+                selectedWeeklyPrediction={selectedWeeklyPrediction}
+              />
 
+              {/* Alert Card */}
               <LocationAlertCard
                 title='Air Quality Alerts'
-                isCollapsed
-                children={
-                  (selectedWeeklyPrediction && selectedWeeklyPrediction.airQuality) ||
-                  selectedSite?.airQuality ? (
-                    <p className='text-xl font-bold leading-7 text-secondary-neutral-dark-950'>
-                      <span className='text-blue-500'>
-                        {capitalizeAllText(
-                          selectedWeeklyPrediction && selectedWeeklyPrediction.description
-                            ? selectedWeeklyPrediction.description.split(',')[0]
-                            : selectedSite?.description?.split(',')[0] ||
-                                selectedSite?.name?.split(',')[0] ||
-                                selectedSite?.search_name ||
-                                selectedSite?.location,
-                        )}
-                        's
-                      </span>{' '}
-                      Air Quality is expected to be{' '}
-                      {selectedWeeklyPrediction
-                        ? isSameDay(
-                            new Date(selectedSite.time),
-                            new Date(selectedWeeklyPrediction.time),
-                          )
-                          ? addSpacesToCategory(
-                              getAQICategory('pm2_5', selectedSite.pm2_5).category,
-                            )
-                          : addSpacesToCategory(
-                              getAQICategory('pm2_5', selectedWeeklyPrediction.pm2_5).category,
-                            )
-                        : addSpacesToCategory(
-                            getAQICategory('pm2_5', selectedSite.pm2_5).category,
-                          )}{' '}
-                      {formatDateMessage(
-                        selectedWeeklyPrediction
-                          ? isSameDay(
-                              new Date(selectedSite.time),
-                              new Date(selectedWeeklyPrediction.time),
-                            )
-                            ? new Date(selectedSite.time)
-                            : new Date(selectedWeeklyPrediction.time)
-                          : new Date(selectedSite.time),
-                      )}
-                      .{' '}
-                      {getAQIMessage(
-                        'pm2_5',
-                        formatDateMessage(
-                          selectedWeeklyPrediction
-                            ? isSameDay(
-                                new Date(selectedSite.time),
-                                new Date(selectedWeeklyPrediction.time),
-                              )
-                              ? new Date(selectedSite.time)
-                              : new Date(selectedWeeklyPrediction.time)
-                            : new Date(selectedSite.time),
-                        ),
-                        selectedWeeklyPrediction
-                          ? selectedWeeklyPrediction.pm2_5.toFixed(2)
-                          : selectedSite?.pm2_5?.toFixed(2),
-                      )}
-                    </p>
-                  ) : (
-                    <p className='text-xl font-bold leading-7 text-secondary-neutral-dark-950'>
-                      No air quality for this place.
-                    </p>
-                  )
-                }
+                selectedSite={selectedSite}
+                selectedWeeklyPrediction={selectedWeeklyPrediction}
               />
             </div>
           </div>

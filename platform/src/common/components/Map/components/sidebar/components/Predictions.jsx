@@ -1,19 +1,18 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
+import Image from 'next/image';
+import { isValid, format, isSameDay } from 'date-fns';
+import { getAQIcon, images } from '../../MapNodes';
+import { useDispatch, useSelector } from 'react-redux';
+import { setSelectedWeeklyPrediction } from '@/lib/store/services/map/MapSlice';
+import Button from '@/components/Button';
 import Calendar from '@/components/Calendar/Calendar';
 import Spinner from '@/components/Spinner';
 import useOutsideClick from '@/core/utils/useOutsideClick';
-import { isValid, format, isSameDay } from 'date-fns';
-import { useDispatch, useSelector } from 'react-redux';
-import { setSelectedWeeklyPrediction } from '@/lib/store/services/map/MapSlice';
-import { getAQIcon, images } from '../../MapNodes';
-import Image from 'next/image';
-import Button from '@/components/Button';
 
-// Week prediction
 const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
   const dispatch = useDispatch();
+  const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
   const selectedWeeklyPrediction = useSelector((state) => state.map.selectedWeeklyPrediction);
-  // Ensure the initial value is a valid date object
   const [value, setValue] = useState(selectedSite?.time ? new Date(selectedSite.time) : new Date());
   const [openDatePicker, setOpenDatePicker] = useState(false);
   const dropdownRef = useRef(null);
@@ -21,7 +20,6 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
   const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   const handleDateValueChange = (newValue) => {
-    // Ensure the new value is a valid date object
     const date = newValue.start ? new Date(newValue.start) : new Date();
     setValue(date);
   };
@@ -39,9 +37,24 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
       : predictionDay === currentDay;
   };
 
-  // Helper function to safely format the date
   const safeFormatDate = (date) => {
     return isValid(date) ? format(date, 'MMM dd, yyyy') : 'Invalid date';
+  };
+
+  const getImageSrc = (prediction) => {
+    if (
+      isSameDay(
+        new Date(selectedSite.time || recentLocationMeasurements?.[0]?.time),
+        new Date(prediction.time),
+      )
+    ) {
+      return (
+        images[
+          getAQIcon('pm2_5', selectedSite.pm2_5 || recentLocationMeasurements?.[0]?.pm2_5?.value)
+        ] || images['Invalid']
+      );
+    }
+    return images[getAQIcon('pm2_5', prediction.pm2_5)] || images['Invalid'];
   };
 
   return (
@@ -50,8 +63,7 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
         <Button
           className='flex flex-row-reverse shadow rounded-md text-sm text-secondary-neutral-light-600 font-medium leading-tight bg-white h-8 my-1'
           variant='outlined'
-          // onClick={() => setOpenDatePicker(!openDatePicker)}
-        >
+          onClick={() => setOpenDatePicker(!openDatePicker)}>
           {safeFormatDate(value)}
         </Button>
 
@@ -98,29 +110,12 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
                     </div>
                   )}
                 </div>
-                {isSameDay(new Date(selectedSite.time), new Date(prediction.time)) ? (
-                  <Image
-                    src={
-                      selectedSite.pm2_5 && getAQIcon('pm2_5', selectedSite.pm2_5)
-                        ? images[getAQIcon('pm2_5', selectedSite.pm2_5)]
-                        : images['Invalid']
-                    }
-                    alt='Air Quality Icon'
-                    width={32}
-                    height={32}
-                  />
-                ) : (
-                  <Image
-                    src={
-                      prediction.pm2_5 && getAQIcon('pm2_5', prediction.pm2_5)
-                        ? images[getAQIcon('pm2_5', prediction.pm2_5)]
-                        : images['Invalid']
-                    }
-                    alt='Air Quality Icon'
-                    width={32}
-                    height={32}
-                  />
-                )}
+                <Image
+                  src={getImageSrc(prediction)}
+                  alt='Air Quality Icon'
+                  width={32}
+                  height={32}
+                />
               </div>
             ))
           : weekDays.map((day) => (
