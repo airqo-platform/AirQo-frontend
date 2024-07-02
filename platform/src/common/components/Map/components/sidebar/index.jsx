@@ -120,7 +120,7 @@ const index = ({ siteDetails, isAdmin }) => {
     () => new google.maps.places.AutocompleteSessionToken(),
     [google.maps.places.AutocompleteSessionToken],
   );
-
+  console.log('recentLocationMeasurements', recentLocationMeasurements);
   // Sidebar loading effect
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -509,13 +509,13 @@ const index = ({ siteDetails, isAdmin }) => {
                   <ArrowLeftIcon />
                 </Button>
                 <h3 className='text-xl font-medium leading-7'>
-                  {capitalizeAllText(
-                    selectedSite?._id
-                      ? selectedSite.search_name || selectedSite.name
-                      : selectedSite?.place_id && selectedSite?.description.length > 30
-                      ? selectedSite?.description.slice(0, 30) + '...'
-                      : selectedSite?.description,
-                  )}
+                  {
+                    capitalizeAllText(
+                      selectedSite?.description ||
+                        selectedSite?.search_name ||
+                        selectedSite?.location,
+                    )?.split(',')[0]
+                  }
                 </h3>
               </div>
 
