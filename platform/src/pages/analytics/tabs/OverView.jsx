@@ -50,8 +50,6 @@ const OverView = () => {
   const siteData = useSelector((state) => state.grids.sitesSummary);
   const { isLoading: isLoadingMeasurements, error } = useFetchMeasurements();
 
-  console.info('recentLocationMeasurements', recentLocationMeasurements);
-
   function getSiteName(siteId) {
     if (preferenceData?.length === 0) {
       return null;

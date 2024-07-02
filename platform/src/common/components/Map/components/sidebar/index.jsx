@@ -189,7 +189,6 @@ const index = ({ siteDetails, isAdmin }) => {
     if (selectedSite) {
       const { _id } = selectedSite;
       if (_id) {
-        dispatch(clearMeasurementsData());
         dispatch(setMapLoading(true));
         try {
           dispatch(fetchRecentMeasurementsData({ site_id: _id }));
@@ -228,6 +227,8 @@ const index = ({ siteDetails, isAdmin }) => {
     async (data) => {
       dispatch(setOpenLocationDetails(true));
       setIsFocused(false);
+      dispatch(clearMeasurementsData());
+      setWeeklyPredictions([]);
       try {
         let newDataValue = data;
 
