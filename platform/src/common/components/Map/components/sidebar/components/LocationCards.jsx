@@ -7,7 +7,7 @@ import Button from '@/components/Button';
  * LocationCards component
  * @description A component that displays location cards
  */
-const LocationCards = ({ searchResults, handleLocationSelect }) => {
+const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
   if (!Array.isArray(searchResults) || typeof handleLocationSelect !== 'function') {
     return null;
   }
@@ -41,7 +41,7 @@ const LocationCards = ({ searchResults, handleLocationSelect }) => {
     setShowAllResults(false);
   }, [searchResults]);
 
-  if (visibleResults.length === 0) {
+  if (visibleResults.length === 0 && !isLoading) {
     return <p className='text-black text-center pt-8'>No sites available.</p>;
   }
 

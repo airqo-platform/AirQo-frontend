@@ -419,6 +419,7 @@ const index = ({ siteDetails, isAdmin }) => {
                 </div>
                 <LocationCards
                   searchResults={selectedSites}
+                  isLoading={isLoading}
                   handleLocationSelect={handleLocationSelect}
                 />
               </>
@@ -476,7 +477,7 @@ const index = ({ siteDetails, isAdmin }) => {
           )}
 
           {searchResults?.length === 0 && !isLoading ? (
-            <div className='flex flex-col justify-center items-center h-full w-full px-6'>
+            <div className='flex flex-col justify-center items-center h-full w-full pt-8 px-6'>
               <div className='p-5 rounded-full bg-secondary-neutral-light-50 border border-secondary-neutral-light-25 mb-2.5'>
                 <LocationIcon fill='#9EA3AA' />
               </div>
@@ -492,6 +493,7 @@ const index = ({ siteDetails, isAdmin }) => {
           ) : (
             <LocationCards
               searchResults={searchResults}
+              isLoading={isLoading}
               handleLocationSelect={handleLocationSelect}
             />
           )}
