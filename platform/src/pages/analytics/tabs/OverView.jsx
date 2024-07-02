@@ -50,6 +50,8 @@ const OverView = () => {
   const siteData = useSelector((state) => state.grids.sitesSummary);
   const { isLoading: isLoadingMeasurements, error } = useFetchMeasurements();
 
+  console.info('recentLocationMeasurements', recentLocationMeasurements);
+
   function getSiteName(siteId) {
     if (preferenceData?.length === 0) {
       return null;
@@ -88,8 +90,7 @@ const OverView = () => {
           recentLocationMeasurements && recentLocationMeasurements.length <= 2
             ? 'flex md:flex-row flex-col'
             : 'grid md:grid-cols-2'
-        }`}
-      >
+        }`}>
         {!isLoadingMeasurements
           ? displayData.map((event, index) => {
               return (

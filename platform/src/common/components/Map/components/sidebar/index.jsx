@@ -25,7 +25,7 @@ import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import { dailyPredictionsApi } from '@/core/apis/predict';
 import { capitalizeAllText } from '@/core/utils/strings';
 import { isToday, isTomorrow, isThisWeek, format, isSameDay } from 'date-fns';
-import { gridsSummaryData } from '@/lib/store/services/deviceRegistry/GridsSlice';
+import { fetchRecentMeasurementsData } from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
 
 // utils
 import { useWindowSize } from '@/lib/windowSize';
@@ -109,6 +109,7 @@ const index = ({ siteDetails, isAdmin }) => {
   const gridsSummaryData = useSelector((state) => state.grids.gridsSummary);
   const gridsDataSummary = useSelector((state) => state.grids.gridsDataSummary?.grids);
   const [showNoResultsMsg, setShowNoResultsMsg] = useState(false);
+  const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
   const [locationSearchPreferences, setLocationSearchPreferences] = useState({
     custom: [],
     nearMe: [],
@@ -294,6 +295,7 @@ const index = ({ siteDetails, isAdmin }) => {
           reduxSearchTerm,
           autoCompleteSessionToken,
         );
+
         if (predictions && predictions.length > 0) {
           const locations = await getLocationsDetails(predictions);
           setSearchResults([...locations]);
@@ -523,14 +525,13 @@ const index = ({ siteDetails, isAdmin }) => {
                   <ArrowLeftIcon />
                 </Button>
                 <h3 className='text-xl font-medium leading-7'>
-                  {
-                    capitalizeAllText(
-                      selectedSite?.description ||
-                        (selectedSite?.name && selectedSite.name) ||
-                        selectedSite?.search_name ||
-                        selectedSite?.location,
-                    )?.split(',')[0]
-                  }
+                  {capitalizeAllText(
+                    selectedSite?._id
+                      ? selectedSite.search_name || selectedSite.name
+                      : selectedSite?.place_id && selectedSite?.description.length > 30
+                      ? selectedSite?.description.slice(0, 30) + '...'
+                      : selectedSite?.description,
+                  )}
                 </h3>
               </div>
 
