@@ -356,7 +356,7 @@ const index = ({ siteDetails, isAdmin }) => {
   };
 
   return (
-    <div className='w-full h-dvh bg-white overflow-hidden mb-4'>
+    <div className='w-full h-dvh bg-white overflow-hidden'>
       {/* Sidebar Header */}
       <div className={`${!isFocused && !showLocationDetails ? 'space-y-4' : 'hidden'} pt-4`}>
         <div className='px-4'>

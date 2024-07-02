@@ -8,7 +8,6 @@ import Button from '@/components/Button';
  * @description A component that displays location cards
  */
 const LocationCards = ({ searchResults, handleLocationSelect }) => {
-  // Early return if searchResults is not an array or handleLocationSelect is not a function
   if (!Array.isArray(searchResults) || typeof handleLocationSelect !== 'function') {
     return null;
   }
@@ -42,9 +41,13 @@ const LocationCards = ({ searchResults, handleLocationSelect }) => {
     setShowAllResults(false);
   }, [searchResults]);
 
+  if (visibleResults.length === 0) {
+    return <p className='text-black text-center pt-8'>No sites available.</p>;
+  }
+
   return (
     visibleResults.length > 0 && (
-      <div className='sidebar-scroll-bar mb-[200px] flex flex-col gap-4 my-5 px-4'>
+      <div className='sidebar-scroll-bar pb-[300px] h-dvh flex flex-col gap-4 my-5 px-4'>
         {visibleResults.map((grid, index) => (
           <div
             key={grid?._id || grid?.place_id}
@@ -76,7 +79,7 @@ const LocationCards = ({ searchResults, handleLocationSelect }) => {
             </div>
           </div>
         ))}
-        {searchResults.length > 4 && !showAllResults && (
+        {searchResults.length > 5 && !showAllResults && (
           <div className='flex justify-center my-4'>
             <Button
               variant='primaryText'
