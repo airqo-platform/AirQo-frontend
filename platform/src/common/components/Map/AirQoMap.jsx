@@ -363,7 +363,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
       const newWaqData = await fetchAndProcessWaqData(AQI_FOR_CITIES);
       dispatch(setWaqData(newWaqData));
     }
-  }, [refresh]);
+  }, [refresh, NodeType, mapStyle, pollutant]);
 
   const clusterUpdate = useCallback(async () => {
     const map = mapRef.current;
@@ -401,7 +401,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         return;
       }
     }
-  }, [selectedNode, NodeType, pollutant, refresh, waqData, mapReadingsData, width]);
+  }, [selectedNode, NodeType, mapStyle, pollutant, refresh, waqData, mapReadingsData, width]);
 
   /**
    * Get the two most common AQIs in a cluster.
