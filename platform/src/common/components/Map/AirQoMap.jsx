@@ -370,7 +370,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
 
     // Initialize Super cluster
     const index = new Supercluster({
-      radius: 40,
+      radius: NodeType === 'Emoji' ? 40 : NodeType === 'Node' ? 60 : 80,
     });
 
     // Assign the index instance to indexRef.current
