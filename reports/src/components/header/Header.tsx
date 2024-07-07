@@ -45,6 +45,8 @@ export default function Header() {
     signOut({ callbackUrl: "/login" }).then(() => {
       setLoading(false);
     });
+    // clear all local storage data
+    localStorage.clear();
   };
 
   const isActive = (route: string) => {
