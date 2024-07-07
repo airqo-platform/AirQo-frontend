@@ -26,16 +26,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className} suppressHydrationWarning={true}>
-        <StoreProvider>
-          <SessionAndThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </SessionAndThemeProvider>
-        </StoreProvider>
+        <SessionAndThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <StoreProvider>{children}</StoreProvider>
+        </SessionAndThemeProvider>
         <Toaster />
       </body>
     </html>

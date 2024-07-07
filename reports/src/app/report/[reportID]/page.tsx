@@ -1,7 +1,8 @@
 "use client";
 import React, { useCallback, useMemo, useEffect } from "react";
 import MainLayout from "@/layout/MainLayout";
-import { useAppSelector } from "@/lib/hooks";
+import { useAppSelector } from "@/lib/utils";
+
 import {
   Breadcrumb,
   BreadcrumbItem,
