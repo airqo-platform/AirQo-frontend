@@ -2,10 +2,17 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { getGridData } from "@/services/api";
 
 // First, create the async thunk
-export const fetchGrids = createAsyncThunk("grids/fetchGrids", async () => {
-  const response = await getGridData();
-  return response.grids;
-});
+export const fetchGrids = createAsyncThunk(
+  "grids/fetchGrids",
+  async (_, { getState }) => {
+    const { grids } = (getState() as { grids: GridState }).grids;
+    if (grids.length === 0) {
+      const response = await getGridData();
+      return response.grids;
+    }
+    return grids;
+  }
+);
 
 interface GridState {
   grids: any[];
@@ -31,8 +38,8 @@ const gridsSlice = createSlice({
       })
       .addCase(fetchGrids.fulfilled, (state, action: PayloadAction<any[]>) => {
         state.status = "succeeded";
-        // Add any fetched grids to the array
-        state.grids = state.grids.concat(action.payload);
+        // Replace the existing grids with the fetched ones
+        state.grids = action.payload;
       })
       .addCase(fetchGrids.rejected, (state, action) => {
         state.status = "failed";
