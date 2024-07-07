@@ -4,10 +4,9 @@ import "./globals.scss";
 // Import required modules
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { ThemeProvider } from "@/services/themeProvider/ThemeProvider";
 import StoreProvider from "./StoreProvider";
-import SessionProviderWrapper from "@/services/sessionProvider";
 import { Toaster } from "@/components/ui/sonner";
+import SessionAndThemeProvider from "@/app/SessionAndThemeProvider";
 
 // Set up the Inter font
 const inter = Inter({ subsets: ["latin"] });
@@ -28,16 +27,14 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className} suppressHydrationWarning={true}>
         <StoreProvider>
-          <ThemeProvider
+          <SessionAndThemeProvider
             attribute="class"
             defaultTheme="light"
             enableSystem
             disableTransitionOnChange
           >
-            <SessionProviderWrapper>
-              <>{children}</>
-            </SessionProviderWrapper>
-          </ThemeProvider>
+            {children}
+          </SessionAndThemeProvider>
         </StoreProvider>
         <Toaster />
       </body>

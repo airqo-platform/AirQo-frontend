@@ -1,5 +1,5 @@
 "use client";
-import MainLayout from "@/components/layout/MainLayout";
+import MainLayout from "@/layout/MainLayout";
 import { useTheme } from "next-themes";
 import React, { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
