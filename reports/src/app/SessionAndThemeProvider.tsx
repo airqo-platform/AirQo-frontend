@@ -23,7 +23,7 @@ const SessionAndThemeProvider = ({
     setMounted(true);
   }, []);
 
-  if (!mounted) return [children];
+  if (!mounted) return null;
 
   return (
     <SessionProvider>
