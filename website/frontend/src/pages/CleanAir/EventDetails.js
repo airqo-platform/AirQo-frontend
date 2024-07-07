@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AccessTimeOutlined, CalendarMonth, PlaceOutlined } from '@mui/icons-material';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { useParams } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { isEmpty } from 'underscore';
 import { format } from 'date-fns';
 import Loadspinner from '../../components/LoadSpinner';
@@ -11,9 +11,12 @@ import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from 'src/components/LanguageSwitcher';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { getEventApi } from '../../../apis';
+import { getAllEvents } from 'reduxStore/Events/EventSlice';
 
 const EventDetails = () => {
   useInitScrollTop();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { uniqueTitle } = useParams();
@@ -22,6 +25,13 @@ const EventDetails = () => {
   const eventData = allEventsData.filter((event) => event.website_category === 'cleanair');
   const eventDetails = eventData.filter((event) => event.unique_title === uniqueTitle) || {};
   const loading = useSelector((state) => state.eventsData.loading);
+  const language = useSelector((state) => state.eventsNavTab.languageTab);
+
+  useEffect(() => {
+    if (isEmpty(allEventsData)) {
+      dispatch(getAllEvents(language));
+    }
+  }, [dispatch, language]);
 
   return (
     <>

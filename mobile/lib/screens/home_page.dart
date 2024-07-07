@@ -105,103 +105,104 @@ class _HomePageState extends State<HomePage> {
                 );
               }
             },
-            builder: Builder(
-              builder: (context) {
-                _showcaseContext = context;
+            builder: (BuildContext context) {
+              // Corrected here
+              _showcaseContext =
+                  context;
 
-                return BottomNavigationBar(
-                  selectedIconTheme: Theme.of(context)
-                      .iconTheme
-                      .copyWith(color: CustomColors.appColorBlue, opacity: 0.3),
-                  unselectedIconTheme: Theme.of(context).iconTheme.copyWith(
-                      color: CustomColors.appColorBlack, opacity: 0.3),
-                  items: <BottomNavigationBarItem>[
-                    BottomNavigationBarItem(
-                      icon: CustomShowcaseWidget(
-                        customize: ShowcaseOptions.up,
-                        showcaseKey: _homeShowcaseKey,
-                        description:
-                            AppLocalizations.of(context)!.exploreAirQualityHere,
-                        child: BottomNavIcon(
-                          selectedIndex: _selectedIndex,
-                          icon: Icons.home_rounded,
-                          label: AppLocalizations.of(context)!.home,
-                          index: 0,
-                        ),
+              return BottomNavigationBar(
+                selectedIconTheme: Theme.of(context)
+                    .iconTheme
+                    .copyWith(color: CustomColors.appColorBlue, opacity: 0.3),
+                unselectedIconTheme: Theme.of(context)
+                    .iconTheme
+                    .copyWith(color: CustomColors.appColorBlack, opacity: 0.3),
+                items: <BottomNavigationBarItem>[
+                  BottomNavigationBarItem(
+                    icon: CustomShowcaseWidget(
+                      customize: ShowcaseOptions.up,
+                      showcaseKey: _homeShowcaseKey,
+                      description:
+                          AppLocalizations.of(context)!.exploreAirQualityHere,
+                      child: BottomNavIcon(
+                        selectedIndex: _selectedIndex,
+                        icon: Icons.home_rounded,
+                        label: AppLocalizations.of(context)!.home,
+                        index: 0,
                       ),
-                      label: '',
                     ),
-                    BottomNavigationBarItem(
-                      icon: CustomShowcaseWidget(
-                        customize: ShowcaseOptions.up,
-                        showcaseKey: _mapShowcaseKey,
-                        descriptionWidth: screenSize.width * 0.3,
-                        descriptionHeight: screenSize.height * 0.09,
-                        description: AppLocalizations.of(context)!
-                            .seeReadingsFromOurMonitorsHere,
-                        child: BottomNavIcon(
-                          icon: Icons.location_on_rounded,
-                          selectedIndex: _selectedIndex,
-                          label: AppLocalizations.of(context)!.airQoMap,
-                          index: 1,
-                        ),
+                    label: '',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: CustomShowcaseWidget(
+                      customize: ShowcaseOptions.up,
+                      showcaseKey: _mapShowcaseKey,
+                      descriptionWidth: screenSize.width * 0.3,
+                      descriptionHeight: screenSize.height * 0.09,
+                      description: AppLocalizations.of(context)!
+                          .seeReadingsFromOurMonitorsHere,
+                      child: BottomNavIcon(
+                        icon: Icons.location_on_rounded,
+                        selectedIndex: _selectedIndex,
+                        label: AppLocalizations.of(context)!.airQoMap,
+                        index: 1,
                       ),
-                      label: '',
                     ),
-                    BottomNavigationBarItem(
-                      icon: Stack(
-                        children: [
-                          CustomShowcaseWidget(
-                            customize: ShowcaseOptions.up,
-                            showcaseKey: _profileShowcaseKey,
-                            descriptionHeight: screenSize.height * 0.13,
-                            descriptionWidth: screenSize.width * 0.23,
-                            description: AppLocalizations.of(context)!
-                                .changeYourPreferencesAndSettingsHere,
-                            child: BottomNavIcon(
-                              icon: Icons.person_rounded,
-                              selectedIndex: _selectedIndex,
-                              label: AppLocalizations.of(context)!.profile,
-                              index: 2,
-                            ),
+                    label: '',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Stack(
+                      children: [
+                        CustomShowcaseWidget(
+                          customize: ShowcaseOptions.up,
+                          showcaseKey: _profileShowcaseKey,
+                          descriptionHeight: screenSize.height * 0.13,
+                          descriptionWidth: screenSize.width * 0.23,
+                          description: AppLocalizations.of(context)!
+                              .changeYourPreferencesAndSettingsHere,
+                          child: BottomNavIcon(
+                            icon: Icons.person_rounded,
+                            selectedIndex: _selectedIndex,
+                            label: AppLocalizations.of(context)!.profile,
+                            index: 2,
                           ),
-                          BlocBuilder<NotificationBloc, List<AppNotification>>(
-                            builder: (context, state) {
-                              return Positioned(
-                                right: 0.0,
-                                child: Container(
-                                  height: 4,
-                                  width: 4,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: state.filterUnRead().isEmpty
-                                        ? Colors.transparent
-                                        : CustomColors.aqiRed,
-                                  ),
+                        ),
+                        BlocBuilder<NotificationBloc, List<AppNotification>>(
+                          builder: (context, state) {
+                            return Positioned(
+                              right: 0.0,
+                              child: Container(
+                                height: 4,
+                                width: 4,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: state.filterUnRead().isEmpty
+                                      ? Colors.transparent
+                                      : CustomColors.aqiRed,
                                 ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                      label: '',
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
-                  ],
-                  currentIndex: _selectedIndex,
-                  selectedItemColor: CustomColors.appColorBlue,
-                  unselectedItemColor:
-                      CustomColors.appColorBlack.withOpacity(0.3),
-                  elevation: 0.0,
-                  backgroundColor: CustomColors.appBodyColor,
-                  onTap: _onItemTapped,
-                  showSelectedLabels: true,
-                  showUnselectedLabels: true,
-                  type: BottomNavigationBarType.fixed,
-                  selectedFontSize: 10,
-                  unselectedFontSize: 10,
-                );
-              },
-            ),
+                    label: '',
+                  ),
+                ],
+                currentIndex: _selectedIndex,
+                selectedItemColor: CustomColors.appColorBlue,
+                unselectedItemColor:
+                    CustomColors.appColorBlack.withOpacity(0.3),
+                elevation: 0.0,
+                backgroundColor: CustomColors.appBodyColor,
+                onTap: _onItemTapped,
+                showSelectedLabels: true,
+                showUnselectedLabels: true,
+                type: BottomNavigationBarType.fixed,
+                selectedFontSize: 10,
+                unselectedFontSize: 10,
+              );
+            },
           ),
         ),
       ),
@@ -274,7 +275,7 @@ class _HomePageState extends State<HomePage> {
       ShowCaseWidget(
         onFinish: _startShowcase,
         enableAutoScroll: true,
-        builder: Builder(builder: (context) => const DashboardView()),
+        builder: (context) => const DashboardView(),
       ),
       const MapView(),
       const ProfileView(),

@@ -54,190 +54,188 @@ class _SettingsPageState extends State<SettingsPage>
           verticalPadding: 8.0,
           horizontalPadding: 16.0,
           child: ShowCaseWidget(
-            builder: Builder(
-              builder: (context) {
-                return BlocBuilder<SettingsBloc, SettingsState>(
-                  builder: (context, state) {
-                    _showcaseContext = context;
-                    final Widget divider = Divider(
-                      height: 1,
-                      thickness: 0,
-                      color: CustomColors.appBodyColor,
-                    );
-                    const ShapeBorder topBorder = RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(8),
-                        topRight: Radius.circular(8),
-                      ),
-                    );
-                    const ShapeBorder bottomBorder = RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(8),
-                        bottomRight: Radius.circular(8),
-                      ),
-                    );
+            builder: (context) {
+              return BlocBuilder<SettingsBloc, SettingsState>(
+                builder: (context, state) {
+                  _showcaseContext = context;
+                  final Widget divider = Divider(
+                    height: 1,
+                    thickness: 0,
+                    color: CustomColors.appBodyColor,
+                  );
+                  const ShapeBorder topBorder = RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      topRight: Radius.circular(8),
+                    ),
+                  );
+                  const ShapeBorder bottomBorder = RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(8),
+                      bottomRight: Radius.circular(8),
+                    ),
+                  );
 
-                    return Column(
-                      children: <Widget>[
-                        Card(
-                          margin: EdgeInsets.zero,
-                          elevation: 0,
+                  return Column(
+                    children: <Widget>[
+                      Card(
+                        margin: EdgeInsets.zero,
+                        elevation: 0,
+                        shape: topBorder,
+                        child: ListTile(
+                          tileColor: Colors.white,
                           shape: topBorder,
-                          child: ListTile(
-                            tileColor: Colors.white,
-                            shape: topBorder,
-                            title: Text(
-                              AppLocalizations.of(context)!.location,
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                            trailing: CupertinoSwitch(
-                              activeColor: CustomColors.appColorBlue,
-                              onChanged: (bool value) async {
-                                if (value) {
-                                  await LocationService.requestLocation();
-                                } else {
-                                  await LocationService.denyLocation();
-                                }
-                              },
-                              value: state.location,
-                            ),
+                          title: Text(
+                            AppLocalizations.of(context)!.location,
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                          trailing: CupertinoSwitch(
+                            activeColor: CustomColors.appColorBlue,
+                            onChanged: (bool value) async {
+                              if (value) {
+                                await LocationService.requestLocation();
+                              } else {
+                                await LocationService.denyLocation();
+                              }
+                            },
+                            value: state.location,
                           ),
                         ),
-                        divider,
-                        Card(
-                          margin: EdgeInsets.zero,
-                          elevation: 0,
-                          child: ListTile(
-                            tileColor: Colors.white,
-                            title: Text(
-                              AppLocalizations.of(context)!.nortification,
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                            trailing: CupertinoSwitch(
-                              activeColor: CustomColors.appColorBlue,
-                              onChanged: (bool value) async {
-                                await NotificationService.requestNotification(
-                                  context,
-                                  "settings",
-                                );
-                              },
-                              value: state.notifications,
-                            ),
+                      ),
+                      divider,
+                      Card(
+                        margin: EdgeInsets.zero,
+                        elevation: 0,
+                        child: ListTile(
+                          tileColor: Colors.white,
+                          title: Text(
+                            AppLocalizations.of(context)!.nortification,
+                            style: Theme.of(context).textTheme.bodyLarge,
                           ),
-                        ),
-                        divider,
-                        Card(
-                          margin: EdgeInsets.zero,
-                          elevation: 0,
-                          child: ListTile(
-                            tileColor: Colors.white,
-                            onTap: () async {
-                              await Navigator.push(
+                          trailing: CupertinoSwitch(
+                            activeColor: CustomColors.appColorBlue,
+                            onChanged: (bool value) async {
+                              await NotificationService.requestNotification(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const LanguageList();
-                                  },
-                                ),
+                                "settings",
                               );
                             },
-                            title: Text(
-                              AppLocalizations.of(context)!.languages,
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
+                            value: state.notifications,
                           ),
                         ),
-                        divider,
-                        CustomShowcaseWidget(
-                          showcaseKey: _appTourShowcaseKey,
-                          descriptionHeight: screenSize.height * 0.1,
-                          description: AppLocalizations.of(context)!
-                              .youCanAlwaysRestartTheAppTourFromHereAnytime,
-                          child: Card(
-                            margin: EdgeInsets.zero,
-                            elevation: 0,
-                            child: ListTile(
-                              tileColor: Colors.white,
-                              onTap: () async {
-                                await AppService()
-                                    .setShowcase(Config.restartTourShowcase);
-                                await AppService()
-                                    .clearShowcase()
-                                    .then((value) async {
-                                  await Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return const HomePage();
-                                      },
-                                    ),
-                                    (r) => false,
-                                  );
-                                });
-                              },
-                              title: AutoSizeText(
-                                AppLocalizations.of(context)!.takeTour,
-                                style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      divider,
+                      Card(
+                        margin: EdgeInsets.zero,
+                        elevation: 0,
+                        child: ListTile(
+                          tileColor: Colors.white,
+                          onTap: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return const LanguageList();
+                                },
                               ),
-                            ),
+                            );
+                          },
+                          title: Text(
+                            AppLocalizations.of(context)!.languages,
+                            style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ),
-                        divider,
-                        Card(
+                      ),
+                      divider,
+                      CustomShowcaseWidget(
+                        showcaseKey: _appTourShowcaseKey,
+                        descriptionHeight: screenSize.height * 0.1,
+                        description: AppLocalizations.of(context)!
+                            .youCanAlwaysRestartTheAppTourFromHereAnytime,
+                        child: Card(
                           margin: EdgeInsets.zero,
                           elevation: 0,
                           child: ListTile(
                             tileColor: Colors.white,
                             onTap: () async {
-                              await hasNetworkConnection().then((value) async {
-                                if (value) {
-                                  await RateService.rateApp();
-                                } else {
-                                  showSnackBar(
-                                    context,
-                                    Config.connectionErrorMessage,
-                                  );
-                                }
+                              await AppService()
+                                  .setShowcase(Config.restartTourShowcase);
+                              await AppService()
+                                  .clearShowcase()
+                                  .then((value) async {
+                                await Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return const HomePage();
+                                    },
+                                  ),
+                                  (r) => false,
+                                );
                               });
                             },
                             title: AutoSizeText(
-                              AppLocalizations.of(context)!.rateAirQoApp,
+                              AppLocalizations.of(context)!.takeTour,
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                           ),
                         ),
-                        divider,
-                        Card(
-                          margin: EdgeInsets.zero,
-                          elevation: 0,
+                      ),
+                      divider,
+                      Card(
+                        margin: EdgeInsets.zero,
+                        elevation: 0,
+                        child: ListTile(
+                          tileColor: Colors.white,
+                          onTap: () async {
+                            await hasNetworkConnection().then((value) async {
+                              if (value) {
+                                await RateService.rateApp();
+                              } else {
+                                showSnackBar(
+                                  context,
+                                  Config.connectionErrorMessage,
+                                );
+                              }
+                            });
+                          },
+                          title: AutoSizeText(
+                            AppLocalizations.of(context)!.rateAirQoApp,
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ),
+                      ),
+                      divider,
+                      Card(
+                        margin: EdgeInsets.zero,
+                        elevation: 0,
+                        shape: bottomBorder,
+                        child: ListTile(
+                          tileColor: Colors.white,
                           shape: bottomBorder,
-                          child: ListTile(
-                            tileColor: Colors.white,
-                            shape: bottomBorder,
-                            onTap: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const AboutAirQo();
-                                  },
-                                ),
-                              );
-                            },
-                            title: AutoSizeText(
-                              AppLocalizations.of(context)!.about,
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
+                          onTap: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return const AboutAirQo();
+                                },
+                              ),
+                            );
+                          },
+                          title: AutoSizeText(
+                            AppLocalizations.of(context)!.about,
+                            style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ),
-                        const Spacer(),
-                        const DeleteAccountButton(),
-                      ],
-                    );
-                  },
-                );
-              },
-            ),
+                      ),
+                      const Spacer(),
+                      const DeleteAccountButton(),
+                    ],
+                  );
+                },
+              );
+            },
           ),
         ),
       ),

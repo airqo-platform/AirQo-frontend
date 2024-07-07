@@ -32,7 +32,7 @@ import {
   images,
 } from './components/MapNodes';
 import Toast from '../Toast';
-import { AQI_FOR_CITIES } from './components/Cities';
+import { AQI_FOR_CITIES } from './data/Cities';
 import { AirQualityLegend } from './components/Legend';
 
 // Images
@@ -363,14 +363,14 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
       const newWaqData = await fetchAndProcessWaqData(AQI_FOR_CITIES);
       dispatch(setWaqData(newWaqData));
     }
-  }, [mapReadingsData, waqData]);
+  }, [refresh, NodeType, mapStyle, pollutant]);
 
   const clusterUpdate = useCallback(async () => {
     const map = mapRef.current;
 
     // Initialize Super cluster
     const index = new Supercluster({
-      radius: 40,
+      radius: NodeType === 'Emoji' ? 40 : NodeType === 'Node' ? 60 : 80,
     });
 
     // Assign the index instance to indexRef.current
@@ -401,7 +401,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         return;
       }
     }
-  }, [selectedNode, NodeType, pollutant, refresh, waqData, mapReadingsData, width]);
+  }, [selectedNode, NodeType, mapStyle, pollutant, refresh, waqData, mapReadingsData, width]);
 
   /**
    * Get the two most common AQIs in a cluster.
