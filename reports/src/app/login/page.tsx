@@ -1,8 +1,12 @@
-import React from "react";
-import FormComponent from "@/components/forms/authForm";
+"use client";
+import React, { useState } from "react";
+import FormComponent from "@/components/authForm";
 import { Input } from "@/components/ui/input";
+import { FaRegEye } from "react-icons/fa";
+import { FaRegEyeSlash } from "react-icons/fa";
 
-export default function LoginPage() {
+const LoginPage = () => {
+  const [showPassword, setShowPassword] = useState(false);
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-600">
       <FormComponent btnText="Login">
@@ -14,15 +18,30 @@ export default function LoginPage() {
             className="w-full px-4 py-3 rounded-lg shadow-sm focus:outline-none focus:shadow-outline text-gray-600 dark:text-white font-medium"
           />
         </div>
-        <div>
+        <div className="relative flex items-center">
           <Input
-            type="password"
+            type={showPassword ? "text" : "password"}
             name="password"
             placeholder="Password"
             className="w-full px-4 py-3 rounded-lg shadow-sm focus:outline-none focus:shadow-outline text-gray-600 dark:text-white font-medium"
           />
+          <span className="absolute inset-y-0 right-0 flex items-center pr-3">
+            {showPassword ? (
+              <FaRegEyeSlash
+                className="h-6 text-gray-500 dark:text-gray-400"
+                onClick={() => setShowPassword(!showPassword)}
+              />
+            ) : (
+              <FaRegEye
+                className="h-6 text-gray-500 dark:text-gray-400"
+                onClick={() => setShowPassword(!showPassword)}
+              />
+            )}
+          </span>
         </div>
       </FormComponent>
     </div>
   );
-}
+};
+
+export default LoginPage;

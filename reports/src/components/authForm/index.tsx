@@ -1,15 +1,12 @@
-"use client";
 import React, { useState, FormEvent, ReactNode } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import AirQoLogo from "@/public/images/airqo.png";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ScaleLoader } from "react-spinners";
-import { redirect } from "next/navigation";
 
 interface FormComponentProps {
   children: ReactNode;
@@ -68,12 +65,6 @@ const Index: React.FC<FormComponentProps> = ({ children, btnText }) => {
             {loading ? <ScaleLoader color="#fff" height={15} /> : btnText}
           </Button>
         </form>
-        {/* <CardFooter className="text-center mt-4">
-          Forgot password?
-          <Link href="/report">
-            <span className="text-blue-500 ml-2">Reset here</span>
-          </Link>
-        </CardFooter> */}
       </CardContent>
     </Card>
   );
