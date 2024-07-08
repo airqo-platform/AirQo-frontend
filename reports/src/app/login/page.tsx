@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { FaRegEye } from "react-icons/fa";
 import { FaRegEyeSlash } from "react-icons/fa";
 
-const LoginPage = () => {
+const Page = () => {
   const [showPassword, setShowPassword] = useState(false);
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-600">
@@ -14,12 +14,14 @@ const LoginPage = () => {
           <Input
             type="email"
             name="email"
+            autoComplete="email"
             placeholder="Email Address"
             className="w-full px-4 py-3 rounded-lg shadow-sm focus:outline-none focus:shadow-outline text-gray-600 dark:text-white font-medium"
           />
         </div>
         <div className="relative flex items-center">
           <Input
+            autoComplete="current-password"
             type={showPassword ? "text" : "password"}
             name="password"
             placeholder="Password"
@@ -44,4 +46,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default Page;

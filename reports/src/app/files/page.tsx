@@ -1,6 +1,8 @@
 import MainLayout from "@/layout/MainLayout";
 import React from "react";
 
-export default function page() {
+const page = () => {
   return <MainLayout>hello files</MainLayout>;
-}
+};
+
+export default page;

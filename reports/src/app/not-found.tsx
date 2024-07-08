@@ -1,5 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 const NotFound = () => {
   const router = useRouter();
@@ -13,12 +14,13 @@ const NotFound = () => {
       <div className="text-center">
         <h1 className="text-6xl text-white font-bold">404</h1>
         <p className="text-xl text-white mt-4 mb-8">Page Not Found</p>
-        <button
+        <Button
+          type="button"
           onClick={handleBack}
           className="px-4 py-2 text-blue-600 font-semibold bg-white rounded"
         >
           Go back
-        </button>
+        </Button>
       </div>
     </div>
   );

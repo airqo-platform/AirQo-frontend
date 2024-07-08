@@ -11,6 +11,11 @@ const Page = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      // Check if grids data has already been fetched
+      if (grids.length > 0) {
+        return;
+      }
+
       setLoading(true);
       try {
         const { grids, success } = await getGridData();
@@ -26,7 +31,7 @@ const Page = () => {
     };
 
     fetchData();
-  }, []);
+  }, [grids]); // Add grids as a dependency
 
   return (
     <MainLayout>
