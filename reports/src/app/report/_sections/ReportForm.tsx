@@ -51,7 +51,7 @@ const ReportForm = ({ grids }: any) => {
   const router = useRouter();
   const { theme } = useTheme();
   const loaderColor = theme === "dark" ? "#fff" : "#013ee6";
-  const [islLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [showShortCut, setShowShortCut] = useState(false);
   const [selectedButton, setSelectedButton] = useState("last-7-days");
 
@@ -168,17 +168,17 @@ const ReportForm = ({ grids }: any) => {
 
       router.push(`/report/${randomId}`);
     } catch (error: any) {
-      toast.error(
+      const errorMessage =
         error?.response?.data.message ||
-          "Server timeout, please try again later",
-        {
-          style: {
-            background: "red",
-            color: "white",
-            border: "none",
-          },
-        }
-      );
+        error.message ||
+        "Server timeout, please try again later";
+      toast.error(errorMessage, {
+        style: {
+          background: "red",
+          color: "white",
+          border: "none",
+        },
+      });
     } finally {
       setIsLoading(false);
     }
@@ -194,7 +194,7 @@ const ReportForm = ({ grids }: any) => {
 
   return (
     <>
-      {islLoading ? (
+      {isLoading ? (
         <div className="w-full h-[400px] flex flex-col justify-center text-center items-center">
           <RingLoader color={loaderColor} />
           <p className="text-gray-500 pt-4 dark:text-gray-400">
