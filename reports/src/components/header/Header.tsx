@@ -29,15 +29,29 @@ import Link from "next/link";
 import { TbSettingsCog } from "react-icons/tb";
 import { RiAiGenerate } from "react-icons/ri";
 import { SiFiles } from "react-icons/si";
+import { PulseLoader } from "react-spinners";
+import { BsGrid3X3GapFill } from "react-icons/bs";
 import AirQoLogo from "@/public/images/airqo.png";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
+
+const Products = [
+  {
+    name: "Calibrate",
+    href: "https://airqalibrate.airqo.net/",
+    icon: "https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png",
+  },
+  {
+    name: "Analytics",
+    href: "https://analytics.airqo.net/",
+    icon: "https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png",
+  },
+];
 
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const [loading, setLoading] = useState(false);
-  const year = new Date().getFullYear();
   const { data: session, status } = useSession();
 
   const handleLogout = () => {
@@ -130,6 +144,35 @@ export default function Header() {
             className="text-gray-600 text-2xl rounded-full bg-gray-200 p-2 disabled:opacity-50 cursor-not-allowed dark:bg-gray-700 dark:text-gray-300"
             size={34}
           /> */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="cursor-pointer rounded-full p-2 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300">
+                <BsGrid3X3GapFill size={20} />
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="flex flex-row max-w-[180px] flex-wrap justify-center items-center gap-4 mr-5 p-3 bg-gray-800">
+              {Products.map((item, index) => (
+                <DropdownMenuCheckboxItem
+                  key={index}
+                  className="flex flex-col bg-[#1d4ed8] hover:bg-[#1d4ed8] p-1 text-white items-center rounded-md cursor-pointer"
+                  onClick={() => {
+                    window.open(item.href, "_blank");
+                  }}
+                >
+                  <Image
+                    src={item.icon}
+                    alt="Product Logo"
+                    width={35}
+                    height={35}
+                    loading="lazy"
+                    placeholder="blur"
+                    blurDataURL="data:image/svg+xml;base64,..."
+                  />
+                  <span className="text-[10px]">{item.name}</span>
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <div className="relative">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -140,7 +183,7 @@ export default function Header() {
                   />
                 </div>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="relative right-6 w-52 bg-white dark:bg-gray-800 dark:text-gray-300">
+              <DropdownMenuContent className="relative right-6 w-52 bg-gray-800 text-white dark:text-gray-300">
                 <DropdownMenuLabel>
                   {session?.user?.email && session?.user?.email.length > 30
                     ? session?.user?.email?.slice(0, 30) + "..."
