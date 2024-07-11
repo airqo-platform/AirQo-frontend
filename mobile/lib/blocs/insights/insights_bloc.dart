@@ -42,7 +42,9 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
         forecastAirQuality: todayForecast.airQuality,
         forecastPm2_5: todayForecast.pm2_5,
       );
-    } catch (_) {}
+    } catch (exception, stackTrace) {
+      logException(exception, stackTrace);
+    }
 
     latestInsights.add(todayInsight);
     List<Forecast> forecastInsights = List.of(forecast);

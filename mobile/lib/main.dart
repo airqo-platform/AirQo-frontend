@@ -1,10 +1,10 @@
 import 'package:app/constants/constants.dart';
 import 'package:app/main_common.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/widget_service.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/custom_localisation.dart';
 import 'package:app/utils/custom_localisationspcm.dart';
+import 'package:app/utils/exception.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -15,7 +15,6 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:app/services/notification_service.dart';
 
 import 'firebase_options.dart';
 import 'package:app/services/services.dart';
@@ -64,6 +63,8 @@ void main() async {
 
     runApp(configuredApp);
   } catch (exception, stackTrace) {
+   await logException(exception, stackTrace);
+
     runApp(
       MaterialApp(
         title: 'AirQo',
