@@ -10,6 +10,7 @@ import {
   Image,
 } from "@react-pdf/renderer";
 import { BarChart, LineChart } from "../graphs";
+import { format } from "date-fns";
 
 interface Template1Props {
   data: any;
@@ -98,9 +99,10 @@ export default function Template1({ data }: Template1Props) {
   );
 
   const chartData1 = {
-    labels: data.site_monthly_mean_pm.map(
-      (site_name: any) => site_name.site_name
-    ),
+    labels: data.site_monthly_mean_pm.map((site_name: any) => {
+      const monthName = format(new Date(2024, site_name.month - 1), "MMM");
+      return `${site_name.site_name} (${monthName})`;
+    }),
     datasets: [
       {
         label: "PM2.5 Raw Values",
@@ -140,6 +142,43 @@ export default function Template1({ data }: Template1Props) {
     ],
   };
 
+  const top5Locations = [...data.site_monthly_mean_pm]
+    .sort((a: any, b: any) => b.pm2_5_raw_value - a.pm2_5_raw_value)
+    .slice(0, 5);
+
+  const bottom3Locations = [...data.site_monthly_mean_pm]
+    .sort((a: any, b: any) => a.pm2_5_raw_value - b.pm2_5_raw_value)
+    .slice(0, 3);
+
+  const highestPM25Hour = data.diurnal.reduce(
+    (max: any, item: any) =>
+      item.pm2_5_raw_value > max.pm2_5_raw_value ? item : max,
+    data.diurnal[0]
+  );
+  const lowestPM25Hour = data.diurnal.reduce(
+    (min: any, item: any) =>
+      item.pm2_5_raw_value < min.pm2_5_raw_value ? item : min,
+    data.diurnal[0]
+  );
+
+  const getMonthName = (monthNumber: number) => {
+    const monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+    return monthNames[monthNumber - 1];
+  };
+
   return (
     <Document
       title="Air Quality Report"
@@ -160,19 +199,19 @@ export default function Template1({ data }: Template1Props) {
         >
           <Text style={styles.title}>
             Air Quality Report from {startDate} to {endDate}
-            {"\n"} for {data.sites["grid name"].join(", ")}
+            {"\n"} for {data.sites["grid name"][0]}
           </Text>
         </View>
         <Text style={styles.subTitle}>Executive Summary</Text>
         <Text style={styles.text}>
           This report summarizes the temporal air quality profiles observed by
-          the AirQo monitors installed at {data.sites["grid name"].join(", ")}{" "}
-          between {startDate} and {endDate}. The AirQo monitor measures
-          particulate matter(PM2.5) concentration, one of the primary air
-          pollutants. PM2.5 are fine inhalable particles with diameters
-          generally 2.5 micrometers and smaller. The data from the site
-          indicates that the air quality at this location during the monitored
-          period mainly alternated between moderate and unhealthy.
+          the AirQo monitors installed at {data.sites["grid name"][0]} between{" "}
+          {startDate} and {endDate}. The AirQo monitor measures particulate
+          matter(PM2.5) concentration, one of the primary air pollutants. PM2.5
+          are fine inhalable particles with diameters generally 2.5 micrometers
+          and smaller. The data from the site indicates that the air quality at
+          this location during the monitored period mainly alternated between
+          moderate and unhealthy.
         </Text>
         <Text style={styles.subTitle}>Introduction</Text>
         <Text style={styles.text}>
@@ -259,7 +298,7 @@ export default function Template1({ data }: Template1Props) {
         <View>
           <BarChart
             chartData={chartData1}
-            graphTitle={`Site Monthly Mean PM2.5 for ${data.sites["grid name"]}`}
+            graphTitle={`Site Monthly Mean PM2.5 for ${data.sites["grid name"][0]}`}
             xAxisTitle="Locations"
             yAxisTitle="PM2.5 Raw Values"
           />
@@ -272,72 +311,79 @@ export default function Template1({ data }: Template1Props) {
             }}
           >
             Figure 1: Figure showing the monthly mean PM2.5 for different sites
-            in {data.sites["grid name"].join(", ")}
+            in {data.sites["grid name"][0]}
           </Text>
         </View>
         <Text style={styles.text}>
-          The top five locations with the highest PM2.5 calibrated values in the
-          dataset for the specified period include Nansana west ward in Wakiso,
-          recording a PM2.5 value of 76.02 µg/m³. Following closely is Rushoroza
-          Hill in Kabale with a value of 71.98 µg/m³, followed by Kasubi in
-          Rubaga at 70.44 µg/m³. Kawempe comes in fourth with a PM2.5 value of
-          67.95 µg/m³, while Mpanga in Fort Portal rounds out the top five with
-          a recorded value of 66.06 µg/m³. Despite the variation in readings,
-          there was a noticeable reduction in the highest value compared to
-          January.
+          The top five locations with the highest PM2.5 raw values in the
+          dataset for the specified period include {top5Locations[0].site_name},
+          recording a PM2.5 value of {top5Locations[0].pm2_5_raw_value} µg/m³.
+          Following closely is {top5Locations[1].site_name} with a value of{" "}
+          {top5Locations[1].pm2_5_raw_value} µg/m³, followed by{" "}
+          {top5Locations[2].site_name} at {top5Locations[2].pm2_5_raw_value}{" "}
+          µg/m³. {top5Locations[3].site_name} comes in fourth with a PM2.5 value
+          of {top5Locations[3].pm2_5_raw_value} µg/m³, while{" "}
+          {top5Locations[4].site_name} rounds out the top five with a recorded
+          value of {top5Locations[4].pm2_5_raw_value} µg/m³. Despite the
+          variation in readings, there was a noticeable reduction in the highest
+          value compared to January.
         </Text>
         <Text style={styles.text}>
-          Conversely, the locations with the lowest mean PM2.5 that have less
-          than 20 µg/m³ values in February as shown in figure 2:
+          In contrast to the locations with the highest PM2.5 values, there are
+          several locations that stand out for their notably low PM2.5 values.
+          As shown in Figure 1, the location with the lowest recorded PM2.5
+          value is {bottom3Locations[0].site_name}, with a value of{" "}
+          {bottom3Locations[0].pm2_5_raw_value} µg/m³ in{" "}
+          {getMonthName(bottom3Locations[0].month)}. This is closely followed by{" "}
+          {bottom3Locations[1].site_name}, which recorded a PM2.5 value of{" "}
+          {bottom3Locations[1].pm2_5_raw_value} µg/m³ in{" "}
+          {getMonthName(bottom3Locations[1].month)}. The third location on this
+          list is {bottom3Locations[2].site_name}, with a PM2.5 value of{" "}
+          {bottom3Locations[2].pm2_5_raw_value} µg/m³ in{" "}
+          {getMonthName(bottom3Locations[2].month)}.
         </Text>
         <View>
           <BarChart
             chartData={chartData2}
-            graphTitle={`Daily Mean PM2.5 for ${data.sites["grid name"]}`}
+            graphTitle={`Daily Mean PM2.5 for ${data.sites["grid name"][0]}`}
             xAxisTitle="Date"
             yAxisTitle="PM2.5 Raw Values"
           />
           <Text style={styles.figureCaption}>
             Figure 2: Figure showing the daily mean PM2.5 for{" "}
-            {data.sites["grid name"]}
+            {data.sites["grid name"][0]}
           </Text>
         </View>
-        <Text style={styles.text}>
-          Among the recorded PM2.5 calibrated values, a few sites exhibited
-          particularly low levels, all measuring below 20 µg/m³. Notably, the
-          site at Bahai in Kawempe, Kampala reported the lowest value at 10.75
-          µg/m³, indicating a relatively clean air environment. Following
-          closely, the site at Jinja Main Street in Jinja city registered a
-          PM2.5 value of 19.87 µg/m³, slightly higher than the Bahai site but
-          still well below the 20 threshold. Similarly, the site at Njeru also
-          displayed a notably low PM2.5 level, recording at 18.80 µg/m³. This
-          was an improvement from January levels where there was no location
-          with values less than 20 µg/m³.
-        </Text>
         <View>
           <Text style={styles.subTitle}>Diurnal</Text>
           <LineChart
             chartData={chartData3}
-            graphTitle={`Diurnal PM2.5 for ${data.sites["grid name"]}`}
+            graphTitle={`Diurnal PM2.5 for ${data.sites["grid name"][0]}`}
             xAxisTitle="Hour"
             yAxisTitle="PM2.5 Raw Values"
           />
           <Text style={styles.figureCaption}>
-            Figure 3: Diurnal PM2.5 for {data.sites["grid name"]}. (The time was
-            in GMT)
+            Figure 3: Diurnal PM2.5 for {data.sites["grid name"][0]}. (The time
+            was in GMT)
           </Text>
         </View>
         <Text style={styles.text}>
-          The hourly variation of PM2.5 concentrations, revealing insights into
-          air quality patterns. The highest PM2.5 value occurs at 21:00 (9:00
-          PM), while the lowest is at 16:00 (4:00 PM). Peak concentrations are
+          The hourly variation of PM2.5 concentrations reveals insights into air
+          quality patterns for {data.sites["grid name"][0]}. The highest PM2.5
+          value occurs at {highestPM25Hour.hour}:00, with a value of{" "}
+          {highestPM25Hour.pm2_5_raw_value} µg/m³, while the lowest is at{" "}
+          {lowestPM25Hour.hour}:00, with a value of{" "}
+          {lowestPM25Hour.pm2_5_raw_value} µg/m³. Peak concentrations are
           observed at night and in the morning, indicating potential
           contributing sources or activities. Daytime hours generally show lower
           PM2.5 levels, suggesting improved air quality during the day.
           {"\n"}
           {"\n"}
-          The PM2.5 value in uganda is higher than the WHO recommended standard
+          It{"'"}s important to note that the PM2.5 values in this dataset are
+          higher than the WHO recommended standard, indicating a need for
+          interventions to improve air quality.
         </Text>
+
         <Text
           style={styles.pageNumber}
           render={({ pageNumber, totalPages }) =>
@@ -346,20 +392,31 @@ export default function Template1({ data }: Template1Props) {
           fixed
         />
         <View>
-          <Text style={styles.subTitle}>Conclusion</Text>
+          <Text style={styles.subTitle}>Conclusion</Text>{" "}
           <Text style={styles.text}>
-            The data from the site indicates that the air quality at this
-            location during the monitored period mainly alternated between
-            moderate and unhealthy. During the end of 2023, the air quality was
-            largely moderate, and in January 2024, the air quality was largely
-            unhealthy. This calls for several interventions to be adopted in the
-            long run to ensure air quality remains at the recommended levels
-            that don{"'"}t pose a severe threat to the health of the residents
-            and visitors. Season variations might also have played a part in the
-            observed patterns (washout effect in the rainy season, i.e.,
-            September-November).
-            {"\n"}
-            {"\n"}
+            {" "}
+            The analysis of the data reveals that air quality varies
+            significantly over time, with periods of both moderate and unhealthy
+            conditions. It’s observed that these fluctuations may be influenced
+            by various factors, including seasonal changes. For instance, the
+            washout effect during the rainy season could potentially contribute
+            to these variations. Specifically, for the period from {
+              startDate
+            }{" "}
+            to {endDate}, the PM2.5 raw values ranged from{" "}
+            {data.monthly_pm[0].pm2_5_raw_value} µg/m³ to{" "}
+            {data.monthly_pm[1].pm2_5_raw_value} µg/m³ respectively.{"\n"}This
+            pattern underscores the importance of continuous monitoring and the
+            implementation of effective interventions to maintain air quality
+            within safe limits. Ensuring good air quality is crucial for the
+            well-being of both residents and visitors. Therefore, it’s
+            imperative to adopt long-term strategies and measures that can
+            effectively mitigate the impact of factors leading to poor air
+            quality.{"\n"}
+            {"\n"}In conclusion, continuous monitoring, timely intervention, and
+            effective policies are key to maintaining good air quality and
+            safeguarding public health. {"\n"}
+            {"\n"}{" "}
           </Text>
           <View>
             <Text style={styles.text}>

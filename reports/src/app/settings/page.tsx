@@ -1,10 +1,10 @@
 "use client";
-import MainLayout from "@/components/layout/MainLayout";
+import MainLayout from "@/layout/MainLayout";
 import { useTheme } from "next-themes";
 import React, { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 
-export default function Settings() {
+const Page = () => {
   const { theme, setTheme } = useTheme();
   const [isDarkMode, setIsDarkMode] = useState(theme === "dark");
 
@@ -67,4 +67,6 @@ export default function Settings() {
       </div>
     </MainLayout>
   );
-}
+};
+
+export default Page;

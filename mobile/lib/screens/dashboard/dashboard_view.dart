@@ -598,6 +598,7 @@ class _DashboardViewState extends State<DashboardView>
       },
       onError: (error) {
         debugPrint('error listening to location updates : $error');
+        logException(error, null);
       },
     );
   }

@@ -2,6 +2,7 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { persistReducer } from "redux-persist";
 import reportSlice from "./reduxSlices/reportSlice";
+import gridsSlice from "./reduxSlices/gridSlice";
 import createWebStorage from "redux-persist/lib/storage/createWebStorage";
 
 const createNoopStorage = () => {
@@ -25,6 +26,7 @@ const storage =
 
 const rootReducer = combineReducers({
   report: reportSlice,
+  grids: gridsSlice,
 });
 
 const persistConfig = {
@@ -39,6 +41,7 @@ export const makeStore = () => {
     reducer: persistedReducer,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
+        immutableCheck: false,
         serializableCheck: false,
       }),
   });

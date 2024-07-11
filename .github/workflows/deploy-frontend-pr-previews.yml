@@ -111,7 +111,6 @@ jobs:
 
       - name: Create .env file
         run: gcloud secrets versions access latest --secret="sta-env-netmanager" > netmanager/.env
-          
 
       - name: npm Install and Build
         uses: actions/setup-node@v2
@@ -416,7 +415,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: 'New inventory changes available for preview [here](${{ needs.inventory.outputs.url }})'
-            })         
+            })
 
   ### deploy docs preview ###
   docs:
@@ -580,7 +579,6 @@ jobs:
               gcloud app versions delete "$version" --service=$service --quiet
             done
 
-
   website-pr-comment:
     name: website-preview-link-comment
     if: needs.check.outputs.run_website == 'true'
@@ -643,11 +641,11 @@ jobs:
             --timeout=60 \
             --concurrency=10 \
             --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/reports-pr-previews:${{ github.sha }} \
-            --port=8000 \
+            --port=3000 \
             --cpu=1000m \
             --memory=256Mi \
             --update-secrets=/etc/env/.env=sta-env-reports:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; gunicorn --bind=0.0.0.0:8000 Reports.wsgi" \
+            --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; gunicorn --bind=0.0.0.0:3000 Reports.wsgi" \
             --allow-unauthenticated
 
       - name: Get preview service url
@@ -673,4 +671,4 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: 'New reports changes available for preview [here](${{ needs.reports.outputs.url }})'
-            })         
+            })

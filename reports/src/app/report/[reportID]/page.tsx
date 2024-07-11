@@ -1,7 +1,8 @@
 "use client";
-import React, { useCallback, useMemo, useEffect } from "react";
-import MainLayout from "@/components/layout/MainLayout";
-import { useAppSelector } from "@/lib/hooks";
+import React, { useMemo } from "react";
+import MainLayout from "@/layout/MainLayout";
+import { useAppSelector } from "@/lib/utils";
+
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -35,28 +36,11 @@ export default function ReportPage({ params }: { params: IReport }) {
   const { theme } = useTheme();
   const loaderColor = theme === "dark" ? "#fff" : "#013ee6";
 
-  const handleClick = useCallback(async () => {
-    try {
-      const parser = new Parser();
-      const csv = parser.parse(reportData?.reportData);
-      const csvData = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const csvURL = window.URL.createObjectURL(csvData);
-      let tempLink = document.createElement("a");
-      tempLink.href = csvURL;
-      tempLink.setAttribute(
-        "download",
-        `${reportData.reportTitle.replace(/ /g, "")}.csv`
-      );
-      tempLink.click();
-    } catch (err) {
-      console.error(err);
-    }
-  }, [reportData]);
-
   const formattedStartDate = useMemo(
     () => formatDate(reportData.startDate),
     [reportData.startDate]
   );
+
   const formattedEndDate = useMemo(
     () => formatDate(reportData.endDate),
     [reportData.endDate]
@@ -65,14 +49,6 @@ export default function ReportPage({ params }: { params: IReport }) {
   return (
     <MainLayout>
       <div className="space-y-5">
-        {/* <div className="flex justify-end">
-          <Button
-            className="bg-blue-600 text-white hover:bg-blue-700"
-            onClick={handleClick}
-          >
-            Export Raw Data
-          </Button>
-        </div> */}
         <Breadcrumb className="w-full py-4 px-2 border border-gray-400 rounded-md">
           <BreadcrumbList>
             <BreadcrumbItem>

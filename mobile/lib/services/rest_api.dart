@@ -869,7 +869,9 @@ class SearchApiClient {
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
-    } catch (_, __) {}
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
+    }
 
     return null;
   }
@@ -908,7 +910,9 @@ class SearchApiClient {
           } catch (__, _) {}
         }
       }
-    } catch (_, __) {}
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
+    }
 
     return searchResults;
   }
@@ -940,7 +944,9 @@ class SearchApiClient {
         responseBody['result'] as Map<String, dynamic>,
         searchResult,
       );
-    } catch (_, __) {}
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
+    }
 
     return null;
   }

@@ -73,9 +73,11 @@ class LocationService {
       return CurrentLocation.fromPosition(position);
     } on TimeoutException catch (exception, stackTrace) {
       debugPrint(exception.message);
+      await logException(exception, stackTrace);
       debugPrintStack(stackTrace: stackTrace);
     } on PlatformException catch (exception, stackTrace) {
       debugPrint(exception.message);
+      await logException(exception, stackTrace);
       debugPrintStack(stackTrace: stackTrace);
     } catch (exception, stackTrace) {
       await logException(
