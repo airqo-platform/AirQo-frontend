@@ -2,6 +2,7 @@
 import React, { useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import ErrorBoundaryImage from "@/public/images/ErrorBoundary.png";
 
 interface ErrorProps {
@@ -37,12 +38,13 @@ const Error: React.FC<ErrorProps> = ({ error, reset }) => {
           </p>
         </div>
         <div>
-          <button
+          <Button
+            type="button"
             onClick={() => router.push("/report")}
             className="px-6 py-3 text-lg font-medium text-white bg-blue-700 rounded hover:bg-blue-800"
           >
             Go Home
-          </button>
+          </Button>
         </div>
       </div>
     </div>
