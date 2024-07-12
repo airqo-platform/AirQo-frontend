@@ -32,7 +32,7 @@ import {
   updateCandidateApi,
   sendUserFeedbackApi
 } from 'views/apis/authService';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import CandidateDrawer from '../CandidateDrawer';
 import { isEmpty } from 'underscore';

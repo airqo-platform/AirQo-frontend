@@ -17,7 +17,7 @@ import {
   LOAD_DEVICE_SENSOR_CORRELATION_SUCCESS,
   LOAD_DEVICE_SENSOR_CORRELATION_FAILURE
 } from './actions';
-import { transformArray } from '../utils';
+import { transformArray } from '../Logs/utils';
 import { getAllDevicesApi, getActivitiesApi, deleteDeviceApi } from 'views/apis/deviceRegistry';
 import {
   getDeviceUptimeApi,

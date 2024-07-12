@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { mapRenderDefaults } from 'redux/Maps/actions';
+import { mapRenderDefaults } from 'reducer/Maps/actions';
 import PropTypes from 'prop-types';
 import Select from 'react-select';
 

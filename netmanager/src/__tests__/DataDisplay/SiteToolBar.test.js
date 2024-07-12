@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 import SiteToolbar from '../../views/components/Sites/SiteToolbar';
-import RootReducer from '../../redux/SiteRegistry/reducers';
+import RootReducer from '../../reducer/redux/SiteRegistry/reducers';
 import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 
 const theme = createMuiTheme(); // creates default theme

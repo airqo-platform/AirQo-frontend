@@ -3,7 +3,7 @@ import { getByTestId, render, screen } from '@testing-library/react';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import { createStore } from 'redux';
 import { BrowserRouter as Router } from 'react-router-dom';
-import RootReducer from '../../redux/SiteRegistry/reducers';
+import RootReducer from '../../reducer/redux/SiteRegistry/reducers';
 import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import GridsRegistry from '../../views/pages/GridsRegistry';
 import AddGridToolbar from '../../views/pages/GridsRegistry/AddGridForm';

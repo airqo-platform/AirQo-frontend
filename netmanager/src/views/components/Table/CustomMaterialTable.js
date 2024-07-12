@@ -5,6 +5,7 @@ import MaterialTable from 'material-table';
 import PropTypes from 'prop-types';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import { useUserPreferencePaginationData } from 'redux/UserPreference/selectors';
+import { connect } from 'react-redux';
 import {
   generatePaginateOptions,
   getPaginationOption,

@@ -5,8 +5,8 @@ import {
   GENERATE_ACCESS_TOKEN,
   CREATE_TEAM_URI,
   GET_SIM_URI
-} from '../../config/urls/analytics';
-import { GET_ACCESS_TOKEN } from '../../config/urls/authService';
+} from '../../reducer/Logs/config/urls/analytics';
+import { GET_ACCESS_TOKEN } from '../../reducer/Logs/config/urls/authService';
 import createAxiosInstance from './axiosConfig';
 
 export const createAccessToken = async (data) => {

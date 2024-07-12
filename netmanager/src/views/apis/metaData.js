@@ -1,4 +1,4 @@
-import { ADMIN_LEVELS_URL } from '../../config/urls/metaData';
+import { ADMIN_LEVELS_URL } from '../../reducer/Logs/config/urls/metaData';
 import createAxiosInstance from './axiosConfig';
 
 export const adminLevelsApi = async (params) => {

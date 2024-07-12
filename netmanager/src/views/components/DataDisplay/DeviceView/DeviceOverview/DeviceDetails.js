@@ -13,7 +13,7 @@ import { ChartContainer } from 'views/charts';
 import { decryptKeyApi } from 'views/apis/deviceRegistry';
 import { isEmpty } from 'underscore';
 import format from 'date-fns/format';
-import { stripTrailingSlash } from '../../../../../config/utils';
+import { stripTrailingSlash } from '../../../../../reducer/Logs/config/utils';
 import HowToApiModal from '../../../HowToApiModal';
 
 const BASE_ANALYTICS_URL = stripTrailingSlash(process.env.REACT_APP_API_BASE_URL);

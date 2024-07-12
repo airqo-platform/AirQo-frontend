@@ -10,7 +10,7 @@ import { Main as MainLayout, Minimal as MinimalLayout } from 'views/layouts/';
 import { NotFound as NotFoundView } from './views/pages/NotFound';
 import { LargeCircularLoader } from 'views/components/Loader/CircularLoader';
 import PermissionDenied from './views/pages/PermissionDenied';
-import { logoutUser } from './redux/Join/actions';
+import { logoutUser } from './reducer/redux/Join/actions';
 import { connect } from 'react-redux';
 import ConfirmDialog from './views/containers/ConfirmDialog';
 

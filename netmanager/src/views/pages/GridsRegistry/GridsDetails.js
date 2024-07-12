@@ -23,15 +23,15 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import 'react-leaflet-fullscreen/dist/styles.css';
 import 'assets/css/location-registry.css';
 import { isEmpty } from 'underscore';
-import { loadGridDetails } from 'redux/Analytics/operations';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { loadGridDetails } from 'reducer/Analytics/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import GridSitesTable from './SitesTable';
 import { updateGridApi } from '../../apis/deviceRegistry';
 import { withPermission } from '../../containers/PageAccess';
 import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
 import { AirQloudView } from '../../components/AirQlouds';
 import HowToApiModal from '../../components/HowToApiModal';
-import { stripTrailingSlash } from '../../../config/utils';
+import { stripTrailingSlash } from '../../../reducer/Logs/config/utils';
 import Copyable from '../../components/Copy/Copyable';
 
 const BASE_ANALYTICS_URL = stripTrailingSlash(process.env.REACT_APP_API_BASE_URL);

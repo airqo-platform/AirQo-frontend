@@ -9,8 +9,8 @@ import { makeStyles } from '@material-ui/styles';
 import { List, ListItem, Button, MenuItem, colors } from '@material-ui/core';
 import NestedMenuItem from 'material-ui-nested-menu-item';
 import Switch from 'views/components/Switch';
-import { useUserPreferenceData } from 'redux/UserPreference/selectors';
-import { updateUserPreferenceData } from 'redux/UserPreference/operators';
+import { useUserPreferenceData } from 'reducer/UserPreference/selectors';
+import { updateUserPreferenceData } from 'reducer/UserPreference/operators';
 import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({

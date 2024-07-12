@@ -17,16 +17,16 @@ import {
   useNetworkUptimeData,
   useManagementFilteredDevicesData,
   useActiveFiltersData
-} from 'redux/DeviceManagement/selectors';
+} from 'reducer/DeviceManagement/selectors';
 import {
   loadDevicesStatusData,
   loadNetworkUptimeData,
   updateFilteredDevicesData,
   updateActiveFilters
-} from 'redux/DeviceManagement/operations';
-import { updateDeviceBackUrl } from 'redux/Urls/operations';
-import { loadDevicesData } from 'redux/DeviceRegistry/operations';
-import { useDevicesData } from 'redux/DeviceRegistry/selectors';
+} from 'reducer/DeviceManagement/operations';
+import { updateDeviceBackUrl } from 'reducer/Urls/operations';
+import { loadDevicesData } from 'reducer/DeviceRegistry/operations';
+import { useDevicesData } from 'reducer/DeviceRegistry/selectors';
 import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
 
 import { useInitScrollTop } from 'utils/customHooks';

@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getAllDevicesApi } from '../../views/apis/deviceRegistry';
+import { getAllDevicesApi } from '../../../views/apis/deviceRegistry';
 
 export const getOrgDevices = createAsyncThunk('/getOrgDevices', async (networkName) => {
   const response = await getAllDevicesApi(networkName);

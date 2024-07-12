@@ -15,11 +15,11 @@ import {
 } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import { createSiteApi, createSiteMetaDataApi } from 'views/apis/deviceRegistry';
-import { loadSitesData, loadSitesSummary } from 'redux/SiteRegistry/operations';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { loadSitesData, loadSitesSummary } from 'reducer/SiteRegistry/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { isEmpty } from 'underscore';
-import { setLoading as loadStatus, setRefresh } from 'redux/HorizontalLoader/index';
+import { setLoading as loadStatus, setRefresh } from 'reducer/HorizontalLoader/index';
 import IconButton from '@material-ui/core/IconButton';
 import LocationOnIcon from '@material-ui/icons/LocationOn';
 

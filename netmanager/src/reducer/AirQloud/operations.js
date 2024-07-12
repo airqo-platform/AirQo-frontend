@@ -18,9 +18,9 @@ import {
   refreshAirQloudApi,
   getDashboardAirQloudsApi
 } from 'views/apis/deviceRegistry';
-import { transformArray } from '../utils';
+import { transformArray } from '../redux/utils';
 import { createSiteOptions } from 'utils/sites';
-import { updateMainAlert } from '../MainAlert/operations';
+import { updateMainAlert } from '../redux/MainAlert/operations';
 import { getAirqloudsSummaryApi } from '../../views/apis/deviceRegistry';
 
 const createAirqloudSiteOptions = (airqloud) => {

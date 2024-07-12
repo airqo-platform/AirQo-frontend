@@ -5,7 +5,7 @@ import { Button } from '@material-ui/core';
 import { cloudinaryImageUpload } from 'views/apis/cloudinary';
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 import ClearIcon from '@material-ui/icons/Clear';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { updateDeviceDetails } from 'views/apis/deviceRegistry';
 import BrokenImage from 'assets/img/BrokenImage';
 import ConfirmDialog from 'views/containers/ConfirmDialog';

@@ -26,14 +26,14 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import MenuIcon from '@material-ui/icons/Menu';
 import AccountBoxIcon from '@material-ui/icons/AccountBox';
 import SettingsIcon from '@material-ui/icons/Settings';
-import { logoutUser } from 'redux/Join/actions';
-import { useOrgData } from 'redux/Join/selectors';
+import { logoutUser } from 'reducer/Join/actions';
+import { useOrgData } from 'reducer/Join/selectors';
 import TransitionAlerts from './TransitionAlerts';
 import { CALIBRATE_APP_URL } from 'config/urls/externalUrls';
 import { formatDateString } from 'utils/dateTime.js';
 import AirqoLogo from 'assets/img/icons/airqo_colored_logo.png';
 import { isEmpty } from 'underscore';
-import { addActiveNetwork } from 'redux/AccessControl/operations';
+import { addActiveNetwork } from 'reducer/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {

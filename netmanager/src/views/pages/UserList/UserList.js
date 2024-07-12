@@ -9,7 +9,7 @@ import UsersTable from './components/UsersTable';
 import UsersToolbar from './components/UsersToolbar';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
-import { loadRolesSummary, fetchNetworkUsers } from 'redux/AccessControl/operations';
+import { loadRolesSummary, fetchNetworkUsers } from 'reducer/AccessControl/operations';
 import { withPermission } from '../../containers/PageAccess';
 
 const useStyles = makeStyles((theme) => ({

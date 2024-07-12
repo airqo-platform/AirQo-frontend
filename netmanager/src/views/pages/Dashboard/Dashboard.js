@@ -12,16 +12,16 @@ import {
   ExceedancesChart
 } from './components';
 import 'chartjs-plugin-annotation';
-import { useUserDefaultGraphsData } from 'redux/Dashboard/selectors';
-import { loadUserDefaultGraphData } from 'redux/Dashboard/operations';
-import { loadMapEventsData } from 'redux/MapData/operations';
+import { useUserDefaultGraphsData } from 'reducer/Dashboard/selectors';
+import { loadUserDefaultGraphData } from 'reducer/Dashboard/operations';
+import { loadMapEventsData } from 'reducer/MapData/operations';
 import { useEventsMapData } from 'redux/MapData/selectors';
 import { PM_25_CATEGORY } from 'utils/categories';
 import { isEmpty } from 'underscore';
 import { useInitScrollTop } from 'utils/customHooks';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import AirQloudDropDown from '../../containers/AirQloudDropDown';
-import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
+import { useCurrentAirQloudData } from 'reducer/AirQloud/selectors';
 import { flattenSiteOptions, siteOptionsToObject } from 'utils/sites';
 import D3CustomisableChart from '../../components/d3/CustomisableChart';
 import DashboardSearchBar from '../../components/AirqualitySearch/dashboard_searchbar';

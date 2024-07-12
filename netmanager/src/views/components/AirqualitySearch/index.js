@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Snackbar from '@material-ui/core/Snackbar';
 import MUIPlacesAutocomplete, { geocodeBySuggestion } from 'mui-places-autocomplete';
 import { useDispatch } from 'react-redux';
-import { setLatAndLng } from 'redux/GooglePlaces/operations';
+import { setLatAndLng } from 'reducer/GooglePlaces/operations';
 
 const AQSearch = () => {
   const dispatch = useDispatch();

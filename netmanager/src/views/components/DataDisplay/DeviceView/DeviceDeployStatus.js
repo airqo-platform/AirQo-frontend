@@ -20,17 +20,17 @@ import {
   getDeviceRecentFeedByChannelIdApi,
   recallDeviceApi
 } from '../../../apis/deviceRegistry';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { getDateString, getElapsedDurationMapper, getFirstNDurations } from 'utils/dateTime';
 import ConfirmDialog from 'views/containers/ConfirmDialog';
 import OutlinedSelect from '../../CustomSelects/OutlinedSelect';
-import { loadDevicesData } from 'redux/DeviceRegistry/operations';
+import { loadDevicesData } from 'reducer/DeviceRegistry/operations';
 import { capitalize } from 'utils/string';
 import { filterSite } from 'utils/sites';
-import { loadSitesData } from 'redux/SiteRegistry/operations';
+import { loadSitesData } from 'reducer/SiteRegistry/operations';
 import { formatDateString, isDateInPast } from 'utils/dateTime';
 import { purple } from '@material-ui/core/colors';
-import { setLoading } from 'redux/HorizontalLoader/index';
+import { setLoading } from 'reducer/HorizontalLoader/index';
 import 'assets/css/dropdown.css';
 
 const customStyles = {

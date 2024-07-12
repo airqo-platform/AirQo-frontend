@@ -8,9 +8,9 @@ import {
   fetchNetworkUsers,
   loadUserRoles,
   fetchAvailableNetworkUsers
-} from 'redux/AccessControl/operations';
-import { loadDevicesData } from 'redux/DeviceRegistry/operations';
-import { loadSitesData } from 'redux/SiteRegistry/operations';
+} from 'reducer/AccessControl/operations';
+import { loadDevicesData } from 'reducer/DeviceRegistry/operations';
+import { loadSitesData } from 'reducer/SiteRegistry/operations';
 import { ArrowDropDown } from '@material-ui/icons';
 import 'assets/css/dropdown.css';
 import Slide from '@material-ui/core/Slide';

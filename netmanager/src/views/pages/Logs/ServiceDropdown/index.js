@@ -5,7 +5,7 @@ import { Button, Menu, MenuItem, Tooltip } from '@material-ui/core';
 import { ArrowDropDown } from '@material-ui/icons';
 import 'assets/css/dropdown.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { setActiveService } from 'redux/Logs/operations';
+import { setActiveService } from 'reducer/Logs/operations';
 
 const StyledMenu = withStyles({
   paper: {

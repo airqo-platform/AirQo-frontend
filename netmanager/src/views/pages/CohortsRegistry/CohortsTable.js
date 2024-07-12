@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import CustomMaterialTable from '../../components/Table/CustomMaterialTable';
 import { useHistory } from 'react-router-dom';
-import { updateDeviceDetails } from 'redux/DeviceOverview/OverviewSlice';
+import { updateDeviceDetails } from 'reducer/DeviceOverview/OverviewSlice';
 import { useDispatch } from 'react-redux';
 import { isEmpty } from 'validate.js';
 

@@ -22,20 +22,20 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import 'react-leaflet-fullscreen/dist/styles.css';
 import 'assets/css/location-registry.css';
 import { isEmpty } from 'underscore';
-import { loadCohortDetails } from 'redux/Analytics/operations';
-import { updateDeviceDetails } from 'redux/DeviceOverview/OverviewSlice';
+import { loadCohortDetails } from 'reducer/Analytics/operations';
+import { updateDeviceDetails } from 'reducer/DeviceOverview/OverviewSlice';
 import {
   assignDevicesToCohort,
   unassignDeviceFromCohortApi,
   updateCohortApi
 } from '../../apis/deviceRegistry';
-import { useDevicesData } from 'redux/DeviceRegistry/selectors';
-import { loadDevicesData } from 'redux/DeviceRegistry/operations';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { useDevicesData } from 'reducer/DeviceRegistry/selectors';
+import { loadDevicesData } from 'reducer/DeviceRegistry/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import OutlinedSelect from '../../components/CustomSelects/OutlinedSelect';
 import { createAlertBarExtraContent } from '../../../utils/objectManipulators';
 import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
-import { stripTrailingSlash } from '../../../config/utils';
+import { stripTrailingSlash } from '../../../reducer/Logs/config/utils';
 import Copyable from '../../components/Copy/Copyable';
 import HowToApiModal from '../../components/HowToApiModal';
 

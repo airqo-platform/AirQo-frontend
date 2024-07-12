@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { ChartContainer } from 'views/charts';
-import { useAirqloudUptimeData } from 'redux/DeviceManagement/selectors';
+import { useAirqloudUptimeData } from 'reducer/DeviceManagement/selectors';
 import { SortAscendingIcon, SortDescendingIcon } from 'assets/img';
 import { useHistory } from 'react-router-dom';
 import { isEmpty } from 'underscore';
-import { useDevicesData } from 'redux/DeviceRegistry/selectors';
+import { useDevicesData } from 'reducer/DeviceRegistry/selectors';
 
 const AirqloudUptimeLeaderboard = () => {
   const history = useHistory();

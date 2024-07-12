@@ -17,7 +17,7 @@ import moment from 'moment';
 import AQSearch from '../../components/AirqualitySearch';
 import { AirQuality } from '../../components/AirqualitySearch/aq_data';
 import { Alert } from '@material-ui/lab';
-import { clearLatAndLng } from 'redux/GooglePlaces/operations';
+import { clearLatAndLng } from 'reducer/GooglePlaces/operations';
 import { adminLevelsApi } from '../../apis/metaData';
 import { geocoordinatesPredictApi } from '../../apis/predict';
 import 'assets/css/aq_search.css';

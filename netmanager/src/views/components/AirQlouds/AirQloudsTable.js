@@ -10,8 +10,8 @@ import CustomMaterialTable from '../Table/CustomMaterialTable';
 import 'assets/css/location-registry.css';
 import { isEmpty } from 'underscore';
 import { useDispatch } from 'react-redux';
-import { fetchAirqloudsSummaryData } from 'redux/AirQloud/operations';
-import { useAirqloudsSummaryData } from 'redux/AirQloud/selectors';
+import { fetchAirqloudsSummaryData } from 'reduer/AirQloud/operations';
+import { useAirqloudsSummaryData } from 'reducer/AirQloud/selectors';
 
 const BLANK_SPACE_HOLDER = '-';
 const renderCell = (field) => (rowData) => <span>{rowData[field] || BLANK_SPACE_HOLDER}</span>;

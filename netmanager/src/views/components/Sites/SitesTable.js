@@ -15,7 +15,7 @@ import { getSitesSummaryApi } from 'views/apis/deviceRegistry';
 
 // css
 import 'assets/css/location-registry.css';
-import { clearSiteDetails } from '../../../redux/SiteRegistry/operations';
+import { clearSiteDetails } from '../../../reducer/redux/SiteRegistry/operations';
 import { setLoading as loadStatus, setRefresh } from 'redux/HorizontalLoader/index';
 
 const BLANK_SPACE_HOLDER = '-';

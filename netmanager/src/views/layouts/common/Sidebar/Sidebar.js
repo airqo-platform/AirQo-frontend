@@ -25,17 +25,17 @@ import { Profile, SidebarNav, SidebarWidgets } from './components';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
-import { getUserDetails } from 'redux/Join/actions';
+import { getUserDetails } from 'reducer/Join/actions';
 import { PeopleOutline } from '@material-ui/icons';
 import {
   addCurrentUserRole,
   addUserNetworks,
   addActiveNetwork,
   addUserGroupSummary
-} from 'redux/AccessControl/operations';
+} from 'reducer/AccessControl/operations';
 import NetworkDropdown from './components/NetworkDropdown';
 import { getRoleDetailsApi } from '../../../apis/accessControl';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import TapAndPlayIcon from '@material-ui/icons/TapAndPlay';
 import GroupWorkIcon from '@material-ui/icons/GroupWork';

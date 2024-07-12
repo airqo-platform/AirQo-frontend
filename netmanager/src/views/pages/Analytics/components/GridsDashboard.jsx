@@ -9,14 +9,14 @@ import {
   AddChart,
   PollutantCategory
 } from '../../Dashboard/components';
-import { useUserDefaultGraphsData } from 'redux/Dashboard/selectors';
-import { loadUserDefaultGraphData } from 'redux/Dashboard/operations';
+import { useUserDefaultGraphsData } from 'reducer/Dashboard/selectors';
+import { loadUserDefaultGraphData } from 'reducer/Dashboard/operations';
 import D3CustomisableChart from '../../../components/d3/CustomisableChart';
 import { useDispatch } from 'react-redux';
 import { isEmpty } from 'validate.js';
 import { PM_25_CATEGORY } from '../../../../utils/categories';
-import { loadMapEventsData } from 'redux/MapData/operations';
-import { useEventsMapData } from 'redux/MapData/selectors';
+import { loadMapEventsData } from 'reducer/MapData/operations';
+import { useEventsMapData } from 'reducer/MapData/selectors';
 import { formatString } from './AirqloudDropdown';
 
 const useStyles = makeStyles((theme) => ({

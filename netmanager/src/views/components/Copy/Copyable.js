@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import CopyIcon, { CopySuccessIcon } from 'assets/img/CopyIcon';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { Button } from '@material-ui/core';
 import clsx from 'clsx';
 

@@ -31,7 +31,7 @@ import {
   GET_AIRQLOUDS_SUMMARY,
   GET_DEVICE_IMAGES,
   SOFT_EDIT_DEVICE_IMAGE
-} from '../../config/urls/deviceRegistry';
+} from '../../reducer/Logs/config/urls/deviceRegistry';
 import { BASE_AUTH_TOKEN } from '../../utils/envVariables';
 import { isEmpty } from 'validate.js';
 import createAxiosInstance from './axiosConfig';

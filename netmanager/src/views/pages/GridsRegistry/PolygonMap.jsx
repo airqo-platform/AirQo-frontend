@@ -7,7 +7,7 @@ import { useRef } from 'react';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import { useDispatch } from 'react-redux';
-import { loadPolygon } from 'redux/Analytics/operations';
+import { loadPolygon } from 'reducer/Analytics/operations';
 
 delete L.Icon.Default.prototype._getIconUrl;
 

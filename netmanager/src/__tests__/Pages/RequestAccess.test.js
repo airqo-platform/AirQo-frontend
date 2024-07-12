@@ -3,7 +3,7 @@ import { render, fireEvent, waitFor, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { createStore } from 'redux';
-import RootReducer from '../../redux';
+import RootReducer from '../../reducer/redux';
 import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import Register from '../../views/pages/SignUp/Register';
 

@@ -28,7 +28,7 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import 'assets/css/device-registry.css';
 import { softCreateDeviceApi } from '../../apis/deviceRegistry';
 import { withPermission } from '../../containers/PageAccess';
-import { updateDeviceDetails } from '../../../redux/DeviceOverview/OverviewSlice';
+import { updateDeviceDetails } from '../../../reducer/redux/DeviceOverview/OverviewSlice';
 
 // dropdown component
 import Select from 'react-select';

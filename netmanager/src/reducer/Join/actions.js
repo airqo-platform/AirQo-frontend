@@ -1,6 +1,6 @@
 /* eslint-disable */
-import createAxiosInstance from '../../views/apis/axiosConfig';
-import setAuthToken from '../../utils/setAuthToken';
+import createAxiosInstance from '../../../views/apis/axiosConfig';
+import setAuthToken from '../../../utils/setAuthToken';
 import jwt_decode from 'jwt-decode';
 import {
   CLEAR_ERRORS,
@@ -54,8 +54,8 @@ import {
   LOGOUT_USER_SUCCESS,
   LOGOUT_USER_FAILURE
 } from './types';
-import { resetMapState } from '../Maps/actions';
-import { resetDashboardState } from '../Dashboard/operations';
+import { resetMapState } from '../Logs/Maps/actions';
+import { resetDashboardState } from '../../Dashboard/operations';
 import { resetDeviceRegistryState } from '../DeviceRegistry/operations';
 import { resetAlertState, updateMainAlert } from '../MainAlert/operations';
 import {
@@ -69,8 +69,8 @@ import {
   REGISTER_CANDIDATE_URI,
   DEFAULTS_URI
 } from 'config/urls/authService';
-import { setDefaultAirQloud } from '../AirQloud/operations';
-import { fetchNetworkUsers } from '../AccessControl/operations';
+import { setDefaultAirQloud } from '../../AirQloud/operations';
+import { fetchNetworkUsers } from '../../AccessControl/operations';
 
 /***************************errors ********************************* */
 

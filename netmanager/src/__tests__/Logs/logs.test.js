@@ -3,7 +3,7 @@ import { mount, shallow } from 'enzyme';
 import LogsTable from '../../views/pages/Logs/logs_table';
 import { Provider } from 'react-redux';
 import store from '../../store';
-import { LOAD_ACTIVE_SERVICE_SUCCESS } from '../../redux/Logs/actions';
+import { LOAD_ACTIVE_SERVICE_SUCCESS } from '../../reducer/redux/Logs/actions';
 import CustomMaterialTable from '../../views/components/Table/CustomMaterialTable';
 
 describe('LogsTable Component', () => {
