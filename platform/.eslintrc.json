@@ -1,10 +1,10 @@
 {
   "root": true,
-  "plugins": ["prettier"],
+  "plugins": ["prettier", "sort-class-members"],
   "extends": [
     "plugin:react/recommended",
     "plugin:import/recommended",
-    "prettier" // Uses eslint-config-prettier to disable ESLint rules from @typescript-eslint/eslint-plugin that would conflict with prettier
+    "prettier"
   ],
   "settings": {
     "react": {
@@ -57,15 +57,12 @@
     "no-useless-escape": "off",
     "react/display-name": "warn",
     "react/jsx-no-target-blank": "warn",
-    // https://github.com/standard/eslint-config-standard-with-typescript/issues/248
     "react/no-deprecated": "warn",
     "react/no-unescaped-entities": "off",
     "react/no-unknown-property": "warn",
-    // as of v17 no longer required
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
     "react/jsx-props-no-spreading": "off",
-    // Filenames - https://github.com/sindresorhus/eslint-plugin-unicorn/blob/main/docs/rules/filename-case.md
     "no-restricted-imports": [
       "error",
       {

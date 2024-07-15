@@ -5226,6 +5226,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eslint-plugin-sort-class-members@npm:^1.20.0":
+  version: 1.20.0
+  resolution: "eslint-plugin-sort-class-members@npm:1.20.0"
+  peerDependencies:
+    eslint: ">=0.8.0"
+  checksum: 10c0/336dc3a0d529bac6829b7cb85487d909c4c47bb0b2a3e3490d19fabb5f8db24080b2caaba6df2642492c462286555f3f5599f84500d6fd9d078826a5efaf348c
+  languageName: node
+  linkType: hard
+
 "eslint-scope@npm:5.1.1":
   version: 5.1.1
   resolution: "eslint-scope@npm:5.1.1"
@@ -8415,6 +8424,7 @@ __metadata:
     eslint-plugin-prettier: "npm:^5.1.3"
     eslint-plugin-react: "npm:^7.31.1"
     eslint-plugin-react-hooks: "npm:^4.6.0"
+    eslint-plugin-sort-class-members: "npm:^1.20.0"
     file-saver: "npm:^2.0.5"
     flowbite: "npm:^1.6.3"
     flowbite-react: "npm:^0.3.8"
