@@ -3,7 +3,7 @@ import {
   getUserPreferencesApi,
   updateUserPreferencesApi,
   postUserPreferencesApi,
-  patchUserPreferencesApi,
+  patchUserPreferencesApi,postUserDefaultsApi
 } from '@/core/apis/Account';
 
 const initialState = {
@@ -74,6 +74,22 @@ export const replaceUserPreferences = createAsyncThunk(
     }
   },
 );
+
+export const postUserDefaults = createAsyncThunk(
+  '/post/userDefaults',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await postUserDefaultsApi(data);
+      return response;
+    } catch (error) {
+      if (!error.response) {
+        throw error;
+      }
+      return rejectWithValue(error.response.data);
+    }
+  },
+);
+
 
 export const defaultsSlice = createSlice({
   name: 'defaults',

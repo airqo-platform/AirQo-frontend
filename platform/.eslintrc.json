@@ -1,10 +1,11 @@
 {
   "root": true,
-  "plugins": ["prettier", "sort-class-members"],
+  "plugins": ["prettier", "sort-class-members","next"],
   "extends": [
     "plugin:react/recommended",
     "plugin:import/recommended",
-    "prettier"
+    "prettier",
+    "next"
   ],
   "settings": {
     "react": {

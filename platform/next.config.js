@@ -1,9 +1,7 @@
 const withVideos = require('next-videos');
 
 module.exports = withVideos({
-  // Adding support for Docker
-  output: 'standalone',
-  webpack(config) {
+  webpack(config, options) {
     config.module.rules.push({
       test: /\.svg$/,
       use: ['@svgr/webpack'],
