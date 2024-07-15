@@ -16,6 +16,9 @@ RUN corepack enable
 # Set yarn version
 RUN yarn set version 4.3.1
 
+# Install only production dependencies
+RUN yarn install
+
 # Rebuild the source code only when needed
 FROM node:20-alpine AS builder
 WORKDIR /app
