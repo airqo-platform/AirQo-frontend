@@ -9,8 +9,8 @@ WORKDIR /app
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn ./.yarn
 
-# Install the dependencies in a separate layer will prevent unnecessary npm installs at each build
-RUN yarn install --immutable --immutable-cache --check-cache
+# Install the dependencies 
+RUN yarn install --immutable
 
 
 # Rebuild the source code only when needed
