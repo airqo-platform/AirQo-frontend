@@ -17,7 +17,7 @@ RUN corepack enable
 RUN yarn set version 4.3.1
 
 # Install only production dependencies
-RUN yarn install --production --frozen-lockfile
+RUN yarn install
 
 # Rebuild the source code only when needed
 FROM node:20-alpine AS builder
