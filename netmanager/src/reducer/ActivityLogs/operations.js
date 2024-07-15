@@ -8,7 +8,7 @@ import {
   GET_ACTIVITY_DETAILS_FAILURE
 } from './actions';
 import { getActivitiesApi, getActivitiesSummaryApi } from 'views/apis/deviceRegistry';
-import { transformArray } from '../redux/utils';
+import { transformArray } from '../utils';
 import { createSiteOptions } from 'utils/sites';
 import { createActivitiesOptions } from 'utils/sites';
 

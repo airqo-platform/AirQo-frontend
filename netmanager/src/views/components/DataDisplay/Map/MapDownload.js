@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Parser } from "json2csv";
 
-import { useManagementFilteredDevicesData } from "redux/DeviceManagement/selectors";
+import { useManagementFilteredDevicesData } from "reducer/DeviceManagement/selectors";
 
 // css styles
 import "assets/css/map-download.css";

@@ -4,17 +4,17 @@ import './App.css';
 
 import jwt_decode from 'jwt-decode';
 import setAuthToken from './utils/setAuthToken';
-import { setCurrentUser, logoutUser } from './reducer/redux/Join/actions';
+import { setCurrentUser, logoutUser } from './reducer/Join/actions';
 
 import { Provider } from 'react-redux';
 import store from './store';
 import { ThemeProvider } from '@material-ui/styles';
 import theme from './assets/theme';
-import { setOrganization } from './reducer/redux/Join/actions';
+import { setOrganization } from './reducer/Join/actions';
 import { setDefaultAirQloud } from './reducer/AirQloud/operations';
 import { loadSites } from './reducer/Dashboard/operations';
 import AppRoutes from './AppRoutes';
-import { loadPM25HeatMapData } from './reducer/redux/MapData/operations';
+import { loadPM25HeatMapData } from './reducer/MapData/operations';
 
 
 // Check for token to keep user logged in

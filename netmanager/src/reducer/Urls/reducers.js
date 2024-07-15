@@ -1,5 +1,5 @@
 import { UPDATE_DEVICE_OVERVIEW_BACK_URL_SUCCESS } from "./actions";
-import { LOGOUT_USER_SUCCESS } from "redux/Join/types";
+import { LOGOUT_USER_SUCCESS } from "reducer/Join/types";
 
 const initialState = {
   deviceOverBackUrl: "/registry",

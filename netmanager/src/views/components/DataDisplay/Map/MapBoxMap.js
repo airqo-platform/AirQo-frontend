@@ -4,7 +4,7 @@ import { useHistory } from "react-router-dom";
 import { MapKey } from "./MapKey";
 import MapFilter from "./MapFilter";
 import MapDownload from "./MapDownload";
-import { useManagementFilteredDevicesData } from "redux/DeviceManagement/selectors";
+import { useManagementFilteredDevicesData } from "reducer/DeviceManagement/selectors";
 import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 
 import "assets/css/manager-map.css";

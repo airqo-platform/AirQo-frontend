@@ -16,7 +16,7 @@ import {
 import { DEFAULTS_URI } from 'config/urls/authService';
 import { getUserChartDefaultsApi } from 'views/apis/authService';
 import { getSitesApi } from 'views/apis/analytics';
-import { transformArray } from '../redux/utils';
+import { transformArray } from 'reducer/utils';
 
 export const loadSites = (networkID) => async (dispatch) => {
   return await getSitesApi(networkID)

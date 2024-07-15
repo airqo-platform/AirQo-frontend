@@ -15,7 +15,7 @@ import { isEmpty } from 'underscore';
 import Alert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/styles';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
-import { setLoading as loadStatus } from 'reducerHorizontalLoader/index';
+import { setLoading as loadStatus } from 'reducer/HorizontalLoader/index';
 import { getAllDeviceHosts, createDeviceHost } from '../../apis/deviceRegistry';
 import { useSitesData } from 'reducer/SiteRegistry/selectors';
 import { loadSitesData } from 'reducer/SiteRegistry/operations';

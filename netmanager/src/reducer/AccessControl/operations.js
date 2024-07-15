@@ -19,7 +19,7 @@ import {
   LOAD_GROUPS_SUMMARY_SUCCESS
 } from './actions';
 import { isEmpty } from 'underscore';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 
 export const loadUserRoles = (networkID) => async (dispatch) => {
   return await getRolesApi(networkID)

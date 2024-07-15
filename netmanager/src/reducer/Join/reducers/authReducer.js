@@ -8,7 +8,7 @@ import {
     UPDATE_AUTHENTICATED_USER_REQUEST,
     UPDATE_AUTHENTICATED_USER_FAILED
 } from '../types';
-import { LOGOUT_USER_SUCCESS } from "redux/Join/types";
+import { LOGOUT_USER_SUCCESS } from "reducer/Join/types";
 
 const isEmpty = require('is-empty');
 

@@ -1,5 +1,5 @@
 import { UPDATE_ORGANIZATION_SUCCESS, RESET_ORGANIZATION_SUCCESS } from '../types';
-import { LOGOUT_USER_SUCCESS } from 'redux/Join/types';
+import { LOGOUT_USER_SUCCESS } from 'reducer/Join/types';
 
 const initialOrgState = { name: 'airqo' };
 

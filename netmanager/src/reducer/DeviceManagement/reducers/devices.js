@@ -3,7 +3,7 @@ import {
   LOAD_FILTERED_DEVICES_SUCCESS,
   LOAD_ACTIVE_FILTERS_SUCCESS,
 } from "../actions";
-import { LOGOUT_USER_SUCCESS } from "redux/Join/types";
+import { LOGOUT_USER_SUCCESS } from "reducer/Join/types";
 
 const initialState = [];
 

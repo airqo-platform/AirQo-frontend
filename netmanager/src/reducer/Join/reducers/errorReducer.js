@@ -1,5 +1,5 @@
 import { CLEAR_ERRORS, GET_ERRORS, RESET_ERRORS_SUCCESS } from "../types";
-import { LOGOUT_USER_SUCCESS } from "redux/Join/types";
+import { LOGOUT_USER_SUCCESS } from "reducer/Join/types";
 
 const initialState = {
   errors: null,

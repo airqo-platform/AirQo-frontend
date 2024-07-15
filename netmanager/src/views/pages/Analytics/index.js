@@ -12,18 +12,18 @@ import {
   loadGridDetails,
   loadCohortDetails,
   setActiveCohort
-} from 'redux/Analytics/operations';
+} from 'reducer/Analytics/operations';
 import { isEmpty } from 'underscore';
 import CohortsDashboardView from './components/CohortsDashboard';
 import MoreDropdown from './components/MoreDropdown';
 import { deleteCohortApi, deleteGridApi, refreshGridApi } from '../../apis/deviceRegistry';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { downloadDataApi } from '../../apis/analytics';
 import { roundToEndOfDay, roundToStartOfDay } from '../../../utils/dateTime';
 import Papa from 'papaparse';
 import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
-import { addActiveNetwork } from 'redux/AccessControl/operations';
+import { addActiveNetwork } from 'reducer/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {

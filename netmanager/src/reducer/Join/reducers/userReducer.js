@@ -38,7 +38,7 @@ import {
     UPDATE_PASSWORD_FAILED,
     RESET_USER_STATE_SUCCESS,
   } from '../types';
-  import { LOGOUT_USER_SUCCESS } from "redux/Join/types";
+  import { LOGOUT_USER_SUCCESS } from "reducer/Join/types";
   
   const initialState = {
     users: [],

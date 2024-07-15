@@ -1,4 +1,4 @@
-import { LOGOUT_USER_SUCCESS } from 'redux/Join/types';
+import { LOGOUT_USER_SUCCESS } from 'reducer/Join/types';
 import { LOAD_PM25_HEATMAP_DATA_SUCCESS, LOAD_MAP_EVENTS_SUCCESS } from './actions';
 import { transformDataToGeoJson } from 'views/pages/Map/utils';
 

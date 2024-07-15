@@ -11,16 +11,16 @@ import DeleteIcon from '@material-ui/icons/DeleteOutlineOutlined';
 import EditIcon from '@material-ui/icons/EditOutlined';
 import Tooltip from '@material-ui/core/Tooltip';
 import { deleteDeviceApi } from 'views/apis/deviceRegistry';
-import { loadDevicesData } from 'redux/DeviceRegistry/operations';
-import { useDevicesData } from 'redux/DeviceRegistry/selectors';
-import { updateMainAlert } from 'redux/MainAlert/operations';
-import { updateDeviceBackUrl } from 'redux/Urls/operations';
+import { loadDevicesData } from 'reducer/DeviceRegistry/operations';
+import { useDevicesData } from 'reducer/DeviceRegistry/selectors';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
+import { updateDeviceBackUrl } from 'reducer/Urls/operations';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
 import ConfirmDialog from 'views/containers/ConfirmDialog';
 import { REGISTER_DEVICE_URI } from 'config/urls/deviceRegistry';
 import { humanReadableDate } from 'utils/dateTime';
-import { useSitesData } from 'redux/SiteRegistry/selectors';
-import { loadSitesData } from 'redux/SiteRegistry/operations';
+import { useSitesData } from 'reducer/SiteRegistry/selectors';
+import { loadSitesData } from 'reducer/SiteRegistry/operations';
 import { createAlertBarExtraContentFromObject, dropEmpty } from 'utils/objectManipulators';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 
@@ -28,12 +28,12 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import 'assets/css/device-registry.css';
 import { softCreateDeviceApi } from '../../apis/deviceRegistry';
 import { withPermission } from '../../containers/PageAccess';
-import { updateDeviceDetails } from '../../../reducer/redux/DeviceOverview/OverviewSlice';
+import { updateDeviceDetails } from 'reducer/DeviceOverview/OverviewSlice';
 
 // dropdown component
 import Select from 'react-select';
 
-import { setLoading as loadStatus, setRefresh } from 'redux/HorizontalLoader/index';
+import { setLoading as loadStatus, setRefresh } from 'reducer/HorizontalLoader/index';
 import UsersListBreadCrumb from '../../pages/UserList/components/Breadcrumb';
 
 const useStyles = makeStyles((theme) => ({

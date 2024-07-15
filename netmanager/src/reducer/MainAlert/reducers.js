@@ -4,7 +4,7 @@ import {
   RESET_ALERT_SUCCESS,
 } from "./actions";
 
-import { LOGOUT_USER_SUCCESS } from "redux/Join/types";
+import { LOGOUT_USER_SUCCESS } from "reducer/Join/types";
 
 const initialState = {
   show: false,

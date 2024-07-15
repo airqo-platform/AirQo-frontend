@@ -1,4 +1,4 @@
-import { LOGOUT_USER_SUCCESS } from 'redux/Join/types';
+import { LOGOUT_USER_SUCCESS } from 'reducer/Join/types';
 import {
   LOAD_AIRQLOUDS_SUMMARY_SUCCESS,
   LOAD_ALL_AIRQLOUDS_SUCCESS,

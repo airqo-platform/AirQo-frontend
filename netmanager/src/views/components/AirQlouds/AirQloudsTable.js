@@ -10,7 +10,7 @@ import CustomMaterialTable from '../Table/CustomMaterialTable';
 import 'assets/css/location-registry.css';
 import { isEmpty } from 'underscore';
 import { useDispatch } from 'react-redux';
-import { fetchAirqloudsSummaryData } from 'reduer/AirQloud/operations';
+import { fetchAirqloudsSummaryData } from 'reducer/AirQloud/operations';
 import { useAirqloudsSummaryData } from 'reducer/AirQloud/selectors';
 
 const BLANK_SPACE_HOLDER = '-';
