@@ -27,6 +27,7 @@ WORKDIR /app
 COPY --from=deps /app ./
 
 # Copy over source files
+COPY .env .env.production
 COPY . .
 
 # Build the application
