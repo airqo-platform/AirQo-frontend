@@ -12,11 +12,10 @@ RUN corepack enable
 RUN yarn set version 4.3.1
 RUN yarn install 
 
-
 # Rebuild the source code only when needed
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app ./
 COPY . .
 
 # Next.js collects completely anonymous telemetry data about general usage.
