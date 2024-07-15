@@ -111,8 +111,8 @@ cypress/screenshots
 # Yarn add output
 .pnp.cjs
 .pnp.loader.mjs
-# .yarn/
-# .yarnrc.yml
+.yarn/
+.yarnrc.yml
 
 # vscode files
 .vscode/*
