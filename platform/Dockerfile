@@ -10,7 +10,7 @@ COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn ./.yarn
 
 # Install the dependencies 
-RUN yarn install --immutable
+RUN yarn install
 
 
 # Rebuild the source code only when needed
