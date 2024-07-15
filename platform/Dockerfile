@@ -12,7 +12,7 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app .
 COPY . .
-COPY .env.production .env
+COPY .env .env.production 
 RUN yarn build
 
 # Deployment image, copy all the files and run next
