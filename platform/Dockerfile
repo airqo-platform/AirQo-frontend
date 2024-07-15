@@ -5,15 +5,18 @@ FROM node:18-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install dependencies
-COPY package.json yarn.lock* ./
-RUN yarn install --frozen-lockfile --production; 
+# Copy the relevant files for installing dependencies
+COPY package.json yarn.lock .yarnrc.yml ./
+COPY .yarn ./.yarn
+
+# Install the dependencies in a separate layer will prevent unnecessary npm installs at each build
+RUN yarn install --immutable --immutable-cache --check-cache
 
 
 # Rebuild the source code only when needed
 FROM node:18-alpine AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app .
 COPY . .
 
 # Next.js collects completely anonymous telemetry data about general usage.
@@ -51,3 +54,4 @@ EXPOSE 3000
 ENV PORT 3000
 
 CMD ["node", "server.js"]
+
