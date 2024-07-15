@@ -13,10 +13,7 @@ COPY package.json yarn.lock* ./
 RUN npm install -g corepack
 RUN corepack enable
 
-# Install Yarn
-RUN npm install -g yarn
-
-# Set Yarn version
+# Set yarn version
 RUN yarn set version 4.3.1
 
 # Install only production dependencies
@@ -34,6 +31,7 @@ COPY .env .env.production
 COPY . .
 
 # Build the application
+RUN yarn install
 RUN yarn build
 
 # Deployment image, copy all the files and run next
