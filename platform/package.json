@@ -39,12 +39,14 @@
     "next": "^12.2.4",
     "next-redux-wrapper": "^8.1.0",
     "next-videos": "^1.4.1",
+    "pako": "^2.1.0",
     "papaparse": "^5.4.1",
     "postcss": "^8.4.16",
     "react": "^18.2.0",
     "react-beautiful-dnd": "^13.1.1",
     "react-calendar": "^4.0.0",
     "react-dom": "^18.2.0",
+    "react-icons": "^5.2.1",
     "react-map-gl": "^7.1.7",
     "react-mapbox-gl": "^5.1.1",
     "react-redux": "^8.0.5",
@@ -78,7 +80,7 @@
     "webpack": "^5.74.0"
   },
   "engines": {
-    "node": ">=14.x <=16.x"
+    "node": ">=18.x <=20.x"
   },
-  "packageManager": "yarn@3.2.3"
+  "packageManager": "yarn@4.3.1"
 }
