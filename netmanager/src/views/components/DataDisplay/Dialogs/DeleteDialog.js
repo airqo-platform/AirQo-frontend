@@ -15,7 +15,7 @@ import {
   SvgIcon,
   Icon
 } from '@material-ui/core';
-import constants from '../../../../reducer/Logs/config/constants.js';
+import constants from '../../../../config/constants.js';
 import TextField from '@material-ui/core/TextField';
 import DateFnsUtils from '@date-io/date-fns';
 import {

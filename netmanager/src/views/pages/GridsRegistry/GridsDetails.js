@@ -31,7 +31,7 @@ import { withPermission } from '../../containers/PageAccess';
 import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
 import { AirQloudView } from '../../components/AirQlouds';
 import HowToApiModal from '../../components/HowToApiModal';
-import { stripTrailingSlash } from '../../../reducer/Logs/config/utils';
+import { stripTrailingSlash } from '../../../config/utils';
 import Copyable from '../../components/Copy/Copyable';
 
 const BASE_ANALYTICS_URL = stripTrailingSlash(process.env.REACT_APP_API_BASE_URL);

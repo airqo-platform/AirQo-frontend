@@ -35,7 +35,7 @@ import { updateMainAlert } from 'reducer/MainAlert/operations';
 import OutlinedSelect from '../../components/CustomSelects/OutlinedSelect';
 import { createAlertBarExtraContent } from '../../../utils/objectManipulators';
 import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
-import { stripTrailingSlash } from '../../../reducer/Logs/config/utils';
+import { stripTrailingSlash } from '../../../config/utils';
 import Copyable from '../../components/Copy/Copyable';
 import HowToApiModal from '../../components/HowToApiModal';
 
