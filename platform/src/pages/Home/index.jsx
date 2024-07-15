@@ -186,12 +186,13 @@ const Home = () => {
                       ) : (
                         <>
                           <Link href={step.link}>
-                            <a
+                            <button
+                            type='button'
                               onClick={step.func}
                               className={statusColor}
                               target={index === 3 ? '_blank' : ''}>
                               {card && card.status === 'inProgress' ? 'Resume' : statusText}
-                            </a>
+                            </button>
                           </Link>
                           <span className='text-sm font-normal text-black-900'>{step.time}</span>
                         </>
