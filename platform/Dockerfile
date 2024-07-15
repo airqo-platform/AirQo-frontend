@@ -10,7 +10,7 @@ COPY package.json yarn.lock* ./
 RUN npm install -g corepack
 RUN corepack enable
 RUN yarn set version 4.3.1
-RUN yarn install --frozen-lockfile --production
+RUN yarn workspaces focus --production --immutable --immutable-cache
 
 # Rebuild the source code only when needed
 FROM node:20-alpine AS builder
