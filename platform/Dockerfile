@@ -10,7 +10,7 @@ COPY package.json yarn.lock* ./
 
 RUN npm install -g corepack
 RUN corepack enable
-RUN yarn set version berry 
+RUN yarn set version 3.2.3 
 
 # RUN yarn set version berry
 RUN yarn cache clean
