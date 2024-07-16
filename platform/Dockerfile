@@ -7,6 +7,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY package.json yarn.lock* ./
+RUN yarn set version 3.2.3
 RUN yarn install --frozen-lockfile --production; 
 
 
