@@ -5,7 +5,7 @@ RUN apk add --no-cache libc6-compat
 
 # Install dependencies
 COPY package*.json ./
-RUN npm install --frozen-lockfile --production;
+RUN npm ci
 
 # Build stage
 FROM node:20-alpine AS builder
