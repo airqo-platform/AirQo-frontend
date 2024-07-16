@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
-    "start": "next start",
+    "start": "node .next/standalone/server.js",
     "lint": "npx pretty-quick",
     "lint-staged": "npx pretty-quick --stagedlint staged",
     "lint:fix": "eslint . --fix",
