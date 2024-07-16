@@ -1,5 +1,6 @@
 const { merge } = require("webpack-merge");
 const path = require("path");
+const webpack = require("webpack");
 
 const dotenv = require("dotenv");
 dotenv.config({ path: `.env.development` });
@@ -26,5 +27,10 @@ module.exports = merge(common, {
         compress: true,
         port: port,
         hot: true,
-    }
+    },
+    plugins: [
+        new webpack.DefinePlugin({
+          'process.env': JSON.stringify(process.env),
+        }),
+    ],
 });

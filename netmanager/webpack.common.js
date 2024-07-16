@@ -2,8 +2,6 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack'); // Add this line to import webpack
 const SettingsGeneratorPlugin = require('./settings_generator.js');
-const dotenv = require('dotenv');
-dotenv.config();
 
 module.exports = {
   devtool: 'source-map',
@@ -71,11 +69,6 @@ module.exports = {
     new webpack.IgnorePlugin({
       resourceRegExp: /^redux$/,
       contextRegExp: /@reduxjs\/toolkit/,
-    }),
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: JSON.stringify(process.env.NODE_ENV),
-      },
     }),
   ],
 };

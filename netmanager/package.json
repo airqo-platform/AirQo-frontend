@@ -99,7 +99,7 @@
     "react-tooltip": "^4.2.9",
     "react-vis": "^1.12.1",
     "recharts": "^2.7.1",
-    "redux": "^5.0.1",
+    "redux": "^4.0.5",
     "redux-devtools-extension": "^2.13.8",
     "redux-thunk": "^2.3.0",
     "source-map-explorer": "^2.5.2",
@@ -110,7 +110,8 @@
     "validate.js": "^0.13.1",
     "webpack-merge": "^5.10.0",
     "worker-loader": "^3.0.8",
-    "yarn": "^1.22.4"
+    "yarn": "^1.22.4",
+    "dotenv": "^16.0.3"
   },
   "scripts": {
     "analyze": "source-map-explorer 'build/static/js/*.js'",
