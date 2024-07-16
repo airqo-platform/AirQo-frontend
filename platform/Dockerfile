@@ -7,13 +7,20 @@ WORKDIR /app
 
 # Install dependencies
 COPY package.json yarn.lock* ./
+
+# RUN yarn set version berry
+RUN npm install -g corepack
+RUN corepack enable
 RUN yarn set version 3.2.3
+
+# RUN yarn set version berry
 RUN yarn install --frozen-lockfile --production; 
 
 
 # Rebuild the source code only when needed
 FROM node:20-alpine AS builder
 WORKDIR /app
+COPY --from=deps /app ./
 COPY . .
 
 # Next.js collects completely anonymous telemetry data about general usage.
