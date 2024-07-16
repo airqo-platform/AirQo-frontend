@@ -31,7 +31,6 @@ COPY .env .env.production
 COPY . .
 
 # Build the application
-RUN yarn install
 RUN yarn build
 
 # Deployment image, copy all the files and run next
