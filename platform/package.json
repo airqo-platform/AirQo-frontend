@@ -41,6 +41,7 @@
     "next-videos": "^1.4.1",
     "pako": "^2.1.0",
     "papaparse": "^5.4.1",
+    "pnp-webpack-plugin": "^1.7.0",
     "postcss": "^8.4.16",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
