@@ -14,7 +14,7 @@ RUN corepack enable
 RUN yarn set version 3.2.3
 
 # RUN yarn set version berry
-RUN yarn install --frozen-lockfile --production; 
+RUN yarn install
 
 
 # Rebuild the source code only when needed
