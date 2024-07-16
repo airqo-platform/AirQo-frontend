@@ -9,6 +9,7 @@ WORKDIR /app
 COPY package.json yarn.lock* ./
 
 # RUN yarn set version berry
+RUN yarn cache clean
 RUN yarn install  
 
 
@@ -23,7 +24,6 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
 COPY .env .env.production
-RUN yarn cache clean
 RUN yarn build
 
 
