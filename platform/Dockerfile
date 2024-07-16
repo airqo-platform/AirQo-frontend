@@ -8,6 +8,10 @@ WORKDIR /app
 # Install dependencies
 COPY package.json yarn.lock* ./
 
+RUN npm install -g corepack
+RUN corepack enable
+RUN yarn set version berry 
+
 # RUN yarn set version berry
 RUN yarn cache clean
 RUN yarn install  
