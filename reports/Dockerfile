@@ -26,7 +26,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 # Add user nextjs to run the app (admin privileges)
 RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+    adduser --system --uid 1001 nextjs && \
+    chown -R nextjs:nodejs /app  # Change ownership of /app to nextjs
 
 USER nextjs
 
