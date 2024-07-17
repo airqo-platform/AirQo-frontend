@@ -1,6 +1,3 @@
-/* eslint-disable jsx-a11y/alt-text */
-"use client";
-import React, { useMemo } from "react";
 import {
   Page,
   Text,
@@ -10,11 +7,6 @@ import {
   Image,
 } from "@react-pdf/renderer";
 import { BarChart, LineChart } from "../graphs";
-import { format } from "date-fns";
-
-interface Template1Props {
-  data: any;
-}
 
 const Header: React.FC = () => {
   return (
@@ -30,137 +22,19 @@ const Header: React.FC = () => {
   );
 };
 
-export default function Template1({ data }: Template1Props) {
-  const startDate = useMemo(
-    () =>
-      new Date(data?.period.startTime).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-    [data?.period.startTime]
-  );
-
-  const endDate = useMemo(
-    () =>
-      new Date(data?.period.endTime).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-    [data?.period.endTime]
-  );
-
-  const tableData1 = useMemo(
-    () => [
-      {
-        healthConcern: "Good",
-        pm25: "0 - 12",
-        precautions:
-          "None: Air quality is satisfactory; and air pollution poses little or no risk.",
-        bgColor: "#00e400",
-      },
-      {
-        healthConcern: "Moderate",
-        pm25: "12.1 - 35.4",
-        precautions:
-          "Unusually sensitive people should consider reducing prolonged or heavy exertion.",
-        bgColor: "#ff0",
-      },
-      {
-        healthConcern: "Unhealthy for Sensitive Groups",
-        pm25: "35.5 - 55.4",
-        precautions:
-          "Sensitive groups should reduce prolonged or heavy exertion.",
-        bgColor: "#f90",
-      },
-      {
-        healthConcern: "Unhealthy",
-        pm25: "55.5 - 150.4",
-        precautions:
-          "Everyone should reduce prolonged or heavy exertion, take more breaks during outdoor activities.",
-        bgColor: "#f00",
-      },
-      {
-        healthConcern: "Very Unhealthy",
-        pm25: "150.5 - 250.4",
-        precautions:
-          "Everyone should avoid prolonged or heavy exertion, move activities indoors or reschedule.",
-        bgColor: "#90f",
-      },
-      {
-        healthConcern: "Hazardous",
-        pm25: "250.5 - 500.4",
-        precautions: "Everyone should avoid all physical activities outdoors.",
-        bgColor: "#600",
-      },
-    ],
-    []
-  );
-
-  const chartData1 = {
-    labels: data.site_monthly_mean_pm.map((site_name: any) => {
-      const monthName = format(new Date(2024, site_name.month - 1), "MMM");
-      return `${site_name.site_name} (${monthName})`;
-    }),
-    datasets: [
-      {
-        label: "PM2.5 Raw Values",
-        data: data.site_monthly_mean_pm.map(
-          (item: { pm2_5_raw_value: number }) => item.pm2_5_raw_value
-        ),
-      },
-    ],
-  };
-
-  const chartData2 = {
-    labels: data.daily_mean_pm.map((item: { date: string }) =>
-      new Date(item.date).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      })
-    ),
-    datasets: [
-      {
-        label: "Daily Mean PM2.5",
-        data: data.daily_mean_pm.map(
-          (item: { pm2_5_raw_value: number }) => item.pm2_5_raw_value
-        ),
-      },
-    ],
-  };
-
-  const chartData3 = {
-    labels: data.diurnal.map((item: { hour: number }) => item.hour),
-    datasets: [
-      {
-        label: "Diurnal PM2.5",
-        data: data.diurnal.map(
-          (item: { pm2_5_raw_value: number }) => item.pm2_5_raw_value
-        ),
-      },
-    ],
-  };
-
-  const top5Locations = [...data.site_monthly_mean_pm]
-    .sort((a: any, b: any) => b.pm2_5_raw_value - a.pm2_5_raw_value)
-    .slice(0, 5);
-
-  const bottom3Locations = [...data.site_monthly_mean_pm]
-    .sort((a: any, b: any) => a.pm2_5_raw_value - b.pm2_5_raw_value)
-    .slice(0, 3);
-
-  const highestPM25Hour = data.diurnal.reduce(
-    (max: any, item: any) =>
-      item.pm2_5_raw_value > max.pm2_5_raw_value ? item : max,
-    data.diurnal[0]
-  );
-  const lowestPM25Hour = data.diurnal.reduce(
-    (min: any, item: any) =>
-      item.pm2_5_raw_value < min.pm2_5_raw_value ? item : min,
-    data.diurnal[0]
-  );
-
+const Document1 = ({
+  chartData1,
+  chartData2,
+  chartData3,
+  data,
+  startDate,
+  endDate,
+  tableData1,
+  top5Locations,
+  bottom3Locations,
+  highestPM25Hour,
+  lowestPM25Hour,
+}: any) => {
   const getMonthName = (monthNumber: number) => {
     const monthNames = [
       "January",
@@ -266,7 +140,7 @@ export default function Template1({ data }: Template1Props) {
             </View>
             {/* Table Rows */}
             {/* Repeat below View for each row */}
-            {tableData1.map((row, index) => (
+            {tableData1.map((row: any, index: number) => (
               <View
                 key={index}
                 style={{
@@ -315,31 +189,32 @@ export default function Template1({ data }: Template1Props) {
           </Text>
         </View>
         <Text style={styles.text}>
-          The locations with the highest PM2.5 raw values in the dataset for the
-          specified period include{" "}
-          {top5Locations.slice(0, 5).map((location, index) => (
-            <React.Fragment key={location.site_name}>
-              {location.site_name}, recording a PM2.5 value of{" "}
-              {location.pm2_5_raw_value} µg/m³ in {getMonthName(location.month)}
-              {index < top5Locations.length - 1 ? ", followed by " : "."}
-            </React.Fragment>
-          ))}
+          The top five locations with the highest PM2.5 raw values in the
+          dataset for the specified period include {top5Locations[0].site_name},
+          recording a PM2.5 value of {top5Locations[0].pm2_5_raw_value} µg/m³.
+          Following closely is {top5Locations[1].site_name} with a value of{" "}
+          {top5Locations[1].pm2_5_raw_value} µg/m³, followed by{" "}
+          {top5Locations[2].site_name} at {top5Locations[2].pm2_5_raw_value}{" "}
+          µg/m³. {top5Locations[3].site_name} comes in fourth with a PM2.5 value
+          of {top5Locations[3].pm2_5_raw_value} µg/m³, while{" "}
+          {top5Locations[4].site_name} rounds out the top five with a recorded
+          value of {top5Locations[4].pm2_5_raw_value} µg/m³. Despite the
+          variation in readings, there was a noticeable reduction in the highest
+          value compared to January.
         </Text>
-
         <Text style={styles.text}>
           In contrast to the locations with the highest PM2.5 values, there are
           several locations that stand out for their notably low PM2.5 values.
-          As shown in Figure 1, the locations with the lowest recorded PM2.5
-          values include{" "}
-          {bottom3Locations.slice(0, 3).map((location, index) => (
-            <React.Fragment key={location.site_name}>
-              {location.site_name}, with a value of {location.pm2_5_raw_value}{" "}
-              µg/m³ in {getMonthName(location.month)}
-              {index < bottom3Locations.length - 1
-                ? ", closely followed by "
-                : "."}
-            </React.Fragment>
-          ))}
+          As shown in Figure 1, the location with the lowest recorded PM2.5
+          value is {bottom3Locations[0].site_name}, with a value of{" "}
+          {bottom3Locations[0].pm2_5_raw_value} µg/m³ in{" "}
+          {getMonthName(bottom3Locations[0].month)}. This is closely followed by{" "}
+          {bottom3Locations[1].site_name}, which recorded a PM2.5 value of{" "}
+          {bottom3Locations[1].pm2_5_raw_value} µg/m³ in{" "}
+          {getMonthName(bottom3Locations[1].month)}. The third location on this
+          list is {bottom3Locations[2].site_name}, with a PM2.5 value of{" "}
+          {bottom3Locations[2].pm2_5_raw_value} µg/m³ in{" "}
+          {getMonthName(bottom3Locations[2].month)}.
         </Text>
         <View>
           <BarChart
@@ -403,8 +278,8 @@ export default function Template1({ data }: Template1Props) {
               startDate
             }{" "}
             to {endDate}, the PM2.5 raw values ranged from{" "}
-            {data.monthly_pm[0].pm2_5_raw_value} µg/m³ to{" "}
-            {data.monthly_pm[1].pm2_5_raw_value} µg/m³ respectively.{"\n"}This
+            {data.monthly_pm[0]?.pm2_5_raw_value} µg/m³ to{" "}
+            {data.monthly_pm[1]?.pm2_5_raw_value} µg/m³ respectively.{"\n"}This
             pattern underscores the importance of continuous monitoring and the
             implementation of effective interventions to maintain air quality
             within safe limits. Ensuring good air quality is crucial for the
@@ -469,7 +344,7 @@ export default function Template1({ data }: Template1Props) {
       </Page>
     </Document>
   );
-}
+};
 
 const styles = StyleSheet.create({
   header: {
@@ -577,3 +452,5 @@ const styles = StyleSheet.create({
     lineHeight: 1.5,
   },
 });
+
+export default Document1;
