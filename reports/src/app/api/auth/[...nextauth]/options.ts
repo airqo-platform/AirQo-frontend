@@ -37,6 +37,7 @@ export const options = {
   ],
   pages: {
     signIn: "/login",
+    signOut: "/logout",
     error: "/error",
   },
   secret: process.env.NEXTAUTH_SECRET || process.env.NEXT_PUBLIC_AUTH_SECRET,
