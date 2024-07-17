@@ -35,7 +35,7 @@ const Index: React.FC<FormComponentProps> = ({ children, btnText }) => {
           style: { background: "green", color: "white", border: "none" },
           position: "top-center",
         });
-        router.push(`${process.env.NEXT_PUBLIC_BASE_URL}/report`);
+        router.push(`${process.env.NEXT_PUBLIC_BASE_URL}/reports/report`);
         return;
       } else {
         toast.error(<div className="capitalize">{result?.error}</div>, {

@@ -9,7 +9,12 @@ interface Token {
 }
 
 export const config = {
-  matcher: ["/", "/settings", "/report/:path*", "/report"],
+  matcher: [
+    "/",
+    "/reports/settings",
+    "/reports/report/:path*",
+    "/reports/report",
+  ],
 };
 
 export async function middleware(req: NextRequest) {
@@ -18,12 +23,6 @@ export async function middleware(req: NextRequest) {
     req,
     secret: process.env.NEXT_AUTH_SECRET,
   })) as Token;
-
-  // Remove "JWT " from the start of the access token
-  const accessToken = token?.accessToken.replace("JWT ", "");
-
-  // Decode the access token
-  const decodedToken = jwt.decode(accessToken);
 
   const { pathname } = req.nextUrl;
 
@@ -35,7 +34,7 @@ export async function middleware(req: NextRequest) {
   // Redirect them to login page if they are not authenticated
   if (!token && pathname !== "/login") {
     // Use an absolute URL for the redirect
-    return NextResponse.redirect(`${req.nextUrl.origin}/login`);
+    return NextResponse.redirect(`${req.nextUrl.origin}/reports/login`);
   }
 
   // If none of the conditions are met, continue to the next middleware or route handler
