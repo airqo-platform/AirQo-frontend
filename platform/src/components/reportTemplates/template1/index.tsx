@@ -315,32 +315,31 @@ export default function Template1({ data }: Template1Props) {
           </Text>
         </View>
         <Text style={styles.text}>
-          The top five locations with the highest PM2.5 raw values in the
-          dataset for the specified period include {top5Locations[0].site_name},
-          recording a PM2.5 value of {top5Locations[0].pm2_5_raw_value} µg/m³.
-          Following closely is {top5Locations[1].site_name} with a value of{" "}
-          {top5Locations[1].pm2_5_raw_value} µg/m³, followed by{" "}
-          {top5Locations[2].site_name} at {top5Locations[2].pm2_5_raw_value}{" "}
-          µg/m³. {top5Locations[3].site_name} comes in fourth with a PM2.5 value
-          of {top5Locations[3].pm2_5_raw_value} µg/m³, while{" "}
-          {top5Locations[4].site_name} rounds out the top five with a recorded
-          value of {top5Locations[4].pm2_5_raw_value} µg/m³. Despite the
-          variation in readings, there was a noticeable reduction in the highest
-          value compared to January.
+          The locations with the highest PM2.5 raw values in the dataset for the
+          specified period include{" "}
+          {top5Locations.slice(0, 5).map((location, index) => (
+            <React.Fragment key={location.site_name}>
+              {location.site_name}, recording a PM2.5 value of{" "}
+              {location.pm2_5_raw_value} µg/m³ in {getMonthName(location.month)}
+              {index < top5Locations.length - 1 ? ", followed by " : "."}
+            </React.Fragment>
+          ))}
         </Text>
+
         <Text style={styles.text}>
           In contrast to the locations with the highest PM2.5 values, there are
           several locations that stand out for their notably low PM2.5 values.
-          As shown in Figure 1, the location with the lowest recorded PM2.5
-          value is {bottom3Locations[0].site_name}, with a value of{" "}
-          {bottom3Locations[0].pm2_5_raw_value} µg/m³ in{" "}
-          {getMonthName(bottom3Locations[0].month)}. This is closely followed by{" "}
-          {bottom3Locations[1].site_name}, which recorded a PM2.5 value of{" "}
-          {bottom3Locations[1].pm2_5_raw_value} µg/m³ in{" "}
-          {getMonthName(bottom3Locations[1].month)}. The third location on this
-          list is {bottom3Locations[2].site_name}, with a PM2.5 value of{" "}
-          {bottom3Locations[2].pm2_5_raw_value} µg/m³ in{" "}
-          {getMonthName(bottom3Locations[2].month)}.
+          As shown in Figure 1, the locations with the lowest recorded PM2.5
+          values include{" "}
+          {bottom3Locations.slice(0, 3).map((location, index) => (
+            <React.Fragment key={location.site_name}>
+              {location.site_name}, with a value of {location.pm2_5_raw_value}{" "}
+              µg/m³ in {getMonthName(location.month)}
+              {index < bottom3Locations.length - 1
+                ? ", closely followed by "
+                : "."}
+            </React.Fragment>
+          ))}
         </Text>
         <View>
           <BarChart
@@ -404,8 +403,8 @@ export default function Template1({ data }: Template1Props) {
               startDate
             }{" "}
             to {endDate}, the PM2.5 raw values ranged from{" "}
-            {data.monthly_pm[0]?.pm2_5_raw_value} µg/m³ to{" "}
-            {data.monthly_pm[1]?.pm2_5_raw_value} µg/m³ respectively.{"\n"}This
+            {data.monthly_pm[0].pm2_5_raw_value} µg/m³ to{" "}
+            {data.monthly_pm[1].pm2_5_raw_value} µg/m³ respectively.{"\n"}This
             pattern underscores the importance of continuous monitoring and the
             implementation of effective interventions to maintain air quality
             within safe limits. Ensuring good air quality is crucial for the

@@ -31,22 +31,19 @@ const Index: React.FC<FormComponentProps> = ({ children, btnText }) => {
       });
 
       if (result?.status === 200) {
-        toast.success("Logged in successfully", {
+        toast.success("User authenticated successfully", {
           style: { background: "green", color: "white", border: "none" },
-          position: "top-center",
         });
         router.push(`${process.env.NEXT_PUBLIC_BASE_URL}/report`);
         return;
       } else {
         toast.error(<div className="capitalize">{result?.error}</div>, {
           style: { background: "red", color: "white", border: "none" },
-          position: "top-center",
         });
       }
     } catch (error) {
       toast.error("Failed to log in, please try again", {
         style: { background: "red", color: "white", border: "none" },
-        position: "top-center",
       });
     } finally {
       setLoading(false);
