@@ -31,14 +31,11 @@ RUN addgroup --system --gid 1001 nodejs && \
 # You only need to copy next.config.js if you are NOT using the default configuration
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package*.json ./
-
-# Automatically leverage output traces to reduce image size
-COPY --from=builder --chown=nextjs:nodejs /app/.next/server ./.next/server
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder /app/.next ./.next
 
 USER nextjs
 
 EXPOSE 3000
 ENV PORT=3000
 
-CMD ["node", "server.js"]
+CMD ["npm", "run", "start"]
