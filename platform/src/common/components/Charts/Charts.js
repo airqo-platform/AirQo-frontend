@@ -154,9 +154,9 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
   const [hasLoaded, setHasLoaded] = useState(false);
   const WHO_STANDARD_VALUE =
     chartData.pollutionType === 'pm2_5'
-      ? 5 // PM2.5: 5 µg/m³ annual mean
+      ? 5
       : chartData.pollutionType === 'pm10'
-      ? 15 // PM10: 15 µg/m³ annual mean
+      ? 15
       : chartData.pollutionType === 'no2'
       ? 10
       : chartData.pollutionType === 'ozone'
