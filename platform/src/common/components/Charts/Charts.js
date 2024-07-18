@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
   Label,
   Legend,
+  ReferenceLine,
 } from 'recharts';
 import { useSelector, useDispatch } from 'react-redux';
 import Spinner from '@/components/Spinner';
@@ -19,9 +20,11 @@ import { fetchAnalyticsData, setAnalyticsData } from '@/lib/store/services/chart
 import {
   renderCustomizedLegend,
   CustomDot,
+  CustomBar,
   CustomizedAxisTick,
   CustomTooltipLineGraph,
   CustomTooltipBarGraph,
+  renderCustomizedLabel,
   colors,
 } from './components';
 
@@ -149,6 +152,16 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
   const analyticsData = useSelector((state) => state.analytics.data);
   const [showLoadingMessage, setShowLoadingMessage] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const WHO_STANDARD_VALUE =
+    chartData.pollutionType === 'pm2_5'
+      ? 5 // PM2.5: 5 µg/m³ annual mean
+      : chartData.pollutionType === 'pm10'
+      ? 15 // PM10: 15 µg/m³ annual mean
+      : chartData.pollutionType === 'no2'
+      ? 10
+      : chartData.pollutionType === 'ozone'
+      ? 60
+      : 0;
 
   useEffect(() => {
     let timeoutId;
@@ -226,12 +239,14 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
                 activeDot={{ r: 6 }}
               />
             ))}
+          <ReferenceLine y={WHO_STANDARD_VALUE} label={renderCustomizedLabel} stroke='red' />
           <CartesianGrid stroke='#ccc' strokeDasharray='5 5' vertical={false} />
           <XAxis
             dataKey='time'
             tick={<CustomizedAxisTick />}
             tickLine={true}
             axisLine={false}
+            scale='point'
             padding={{ left: 30, right: 30 }}
           />
           <YAxis
@@ -248,12 +263,12 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
               }
             }}>
             <Label
-              value={chartData.pollutionType === 'pm2_5' ? 'PM2.5 (µg/m³)' : 'PM10 (µg/m³)'}
+              value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
               position='insideTopRight'
               offset={0}
               fontSize={12}
               dy={-35}
-              dx={60}
+              dx={12}
             />
           </YAxis>
           <Legend
@@ -283,8 +298,15 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
           {Array.from(allKeys)
             .filter((key) => key !== 'time')
             .map((key, index) => (
-              <Bar key={key} dataKey={key} fill={colors[index % colors.length]} barSize={15} />
+              <Bar
+                key={key}
+                dataKey={key}
+                fill={colors[index % colors.length]}
+                barSize={12}
+                shape={<CustomBar />}
+              />
             ))}
+          <ReferenceLine y={WHO_STANDARD_VALUE} label={renderCustomizedLabel} stroke='red' />
           <CartesianGrid stroke='#ccc' strokeDasharray='5 5' vertical={false} />
           <XAxis dataKey='time' tickLine={true} tick={<CustomizedAxisTick />} axisLine={false} />
           <YAxis
@@ -301,12 +323,12 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
               }
             }}>
             <Label
-              value={chartData.pollutionType === 'pm2_5' ? 'PM2.5 (µg/m³)' : 'PM10 (µg/m³)'}
+              value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
               position='insideTopRight'
               offset={0}
               fontSize={12}
               dy={-35}
-              dx={60}
+              dx={12}
             />
           </YAxis>
           <Legend

@@ -286,3 +286,45 @@ export const renderCustomizedLegend = (props) => {
     </div>
   );
 };
+
+/**
+ * Customized label component for ReferenceLine
+ * @param {Object} props
+ */
+export const renderCustomizedLabel = (props) => {
+  const { viewBox } = props;
+  const x = viewBox.width + viewBox.x - 10;
+  const y = viewBox.y + 3;
+
+  return (
+    <g>
+      <foreignObject x={x - 20} y={y - 14} width={40} height={20}>
+        <div
+          xmlns='http://www.w3.org/1999/xhtml'
+          style={{ backgroundColor: 'red' }}
+          className='rounded-md py-1 text-center text-white text-[14px] font-semibold leading-[11px]'>
+          WHO
+        </div>
+      </foreignObject>
+    </g>
+  );
+};
+
+/**
+ * Customized bar component for bar chart
+ * @param {Object} props
+ */
+export const CustomBar = (props) => {
+  const { fill, x, y, width, height } = props;
+
+  return (
+    <g>
+      <foreignObject x={x} y={y} width={width} height={height}>
+        <div
+          xmlns='http://www.w3.org/1999/xhtml'
+          style={{ backgroundColor: fill, width: '100%', height: '100%', borderRadius: '5px' }}
+        />
+      </foreignObject>
+    </g>
+  );
+};
