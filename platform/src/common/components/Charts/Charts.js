@@ -163,6 +163,19 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
       ? 60
       : 0;
 
+  const [activeIndex, setActiveIndex] = useState(null);
+  const [activeKey, setActiveKey] = useState(null);
+
+  const handleMouseEnter = (o, index, key) => {
+    setActiveIndex(index);
+    setActiveKey(key);
+  };
+
+  const handleMouseLeave = () => {
+    setActiveIndex(null);
+    setActiveKey(null);
+  };
+
   useEffect(() => {
     let timeoutId;
     if (isLoading && loadingTime > 5000) {
@@ -233,10 +246,16 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
                 key={key}
                 dataKey={key}
                 type='monotone'
-                stroke={colors[index % colors.length]}
-                strokeWidth={2}
+                stroke={
+                  index === activeIndex || activeIndex === null
+                    ? colors[index % colors.length]
+                    : '#ccc'
+                }
+                strokeWidth={3}
                 dot={<CustomDot />}
                 activeDot={{ r: 6 }}
+                onMouseEnter={(o) => handleMouseEnter(o, index)}
+                onMouseLeave={handleMouseLeave}
               />
             ))}
           <ReferenceLine y={WHO_STANDARD_VALUE} label={renderCustomizedLabel} stroke='red' />
@@ -276,7 +295,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
             wrapperStyle={{ bottom: 0, right: 0, position: 'absolute' }}
           />
           <Tooltip
-            content={<CustomTooltipLineGraph />}
+            content={<CustomTooltipLineGraph activeIndex={activeIndex} />}
             cursor={{
               stroke: '#aaa',
               strokeOpacity: 0.3,
@@ -297,15 +316,22 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
           }}>
           {Array.from(allKeys)
             .filter((key) => key !== 'time')
-            .map((key, index) => (
-              <Bar
-                key={key}
-                dataKey={key}
-                fill={colors[index % colors.length]}
-                barSize={12}
-                shape={<CustomBar />}
-              />
-            ))}
+            .map(
+              (key, index) => (
+                console.log('key', key),
+                (
+                  <Bar
+                    key={key}
+                    dataKey={key}
+                    fill={colors[index % colors.length]}
+                    barSize={12}
+                    shape={<CustomBar />}
+                    onMouseEnter={(o) => handleMouseEnter(o, index)}
+                    onMouseLeave={handleMouseLeave}
+                  />
+                )
+              ),
+            )}
           <ReferenceLine y={WHO_STANDARD_VALUE} label={renderCustomizedLabel} stroke='red' />
           <CartesianGrid stroke='#ccc' strokeDasharray='5 5' vertical={false} />
           <XAxis dataKey='time' tickLine={true} tick={<CustomizedAxisTick />} axisLine={false} />
@@ -336,7 +362,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
             wrapperStyle={{ bottom: 0, right: 0, position: 'absolute' }}
           />
           <Tooltip
-            content={<CustomTooltipLineGraph />}
+            content={<CustomTooltipBarGraph activeIndex={activeIndex} />}
             cursor={{ fill: '#eee', fillOpacity: 0.3 }}
           />
         </BarChart>
