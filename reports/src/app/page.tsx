@@ -1,4 +1,4 @@
-import Report from "./report/page";
+import Report from "./reports/report/page";
 export default function Home() {
   return <Report />;
 }

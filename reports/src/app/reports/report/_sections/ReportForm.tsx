@@ -166,7 +166,7 @@ const ReportForm = ({ grids }: any) => {
       const idWithoutHyphens = uuid.replace(/-/g, "");
       const randomId = idWithoutHyphens.substring(0, 16);
 
-      router.push(`/report/${randomId}`);
+      router.push(`/reports/report/${randomId}`);
     } catch (error: any) {
       const errorMessage =
         error?.response?.data.message ||

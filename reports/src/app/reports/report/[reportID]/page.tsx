@@ -52,7 +52,7 @@ export default function ReportPage({ params }: { params: IReport }) {
         <Breadcrumb className="w-full py-4 px-2 border border-gray-400 rounded-md">
           <BreadcrumbList>
             <BreadcrumbItem>
-              <Link href="/report" className="text-blue-600">
+              <Link href="/reports/report" className="text-blue-600">
                 Home
               </Link>
             </BreadcrumbItem>
