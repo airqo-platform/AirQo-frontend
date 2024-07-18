@@ -154,13 +154,11 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
   const [hasLoaded, setHasLoaded] = useState(false);
   const WHO_STANDARD_VALUE =
     chartData.pollutionType === 'pm2_5'
-      ? 5
-      : chartData.pollutionType === 'pm10'
       ? 15
+      : chartData.pollutionType === 'pm10'
+      ? 45
       : chartData.pollutionType === 'no2'
-      ? 10
-      : chartData.pollutionType === 'ozone'
-      ? 60
+      ? 25
       : 0;
 
   const [activeIndex, setActiveIndex] = useState(null);
