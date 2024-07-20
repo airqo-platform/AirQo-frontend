@@ -7,13 +7,15 @@ import Button from '@/components/Button';
 import Image from 'next/image';
 import AnalyticsImage from '@/images/Home/analyticsImage.webp';
 import PlayIcon from '@/images/Home/playIcon.svg';
-import AnalyticsVideo from '../../../public/videos/analytics.mp4';
 import { useSelector, useDispatch } from 'react-redux';
 import { startTask, completeTask, updateTitle } from '@/lib/store/services/checklists/CheckList';
 import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
 import CustomModal from '@/components/Modal/videoModals/CustomModal';
 import StepProgress from '@/components/steppers/CircularStepper';
 import { useAnalytics } from '../../common/components/Charts/Charts';
+
+const AnalyticsVideo =
+  'https://res.cloudinary.com/dbibjvyhm/video/upload/v1721025645/Analytics/videos/analytics_wiypca.mp4';
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -186,12 +188,13 @@ const Home = () => {
                       ) : (
                         <>
                           <Link href={step.link}>
-                            <a
+                            <button
+                            type='button'
                               onClick={step.func}
                               className={statusColor}
                               target={index === 3 ? '_blank' : ''}>
                               {card && card.status === 'inProgress' ? 'Resume' : statusText}
-                            </a>
+                            </button>
                           </Link>
                           <span className='text-sm font-normal text-black-900'>{step.time}</span>
                         </>

@@ -1,6 +1,10 @@
 const withVideos = require('next-videos');
 
 module.exports = withVideos({
+  images: {
+    remotePatterns: [],
+  },
+
   // Adding support for Docker
   output: 'standalone',
   webpack(config) {

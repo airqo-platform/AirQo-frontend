@@ -10,7 +10,6 @@ import { clearIndividualPreferences } from '@/lib/store/services/account/UserDef
 export default function withAuth(Component) {
   return function WithAuthComponent(props) {
     const storedUserGroup = localStorage.getItem('activeGroup');
-    const storedToken = localStorage.getItem('token');
 
     const dispatch = useDispatch();
     const router = useRouter();
@@ -23,7 +22,7 @@ export default function withAuth(Component) {
     }, [userCredentials]);
 
     useEffect(() => {
-      if (!storedUserGroup || !storedToken) {
+      if (!storedUserGroup ) {
         localStorage.clear();
         dispatch(resetStore());
         dispatch(resetChartStore());

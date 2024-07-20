@@ -56,7 +56,7 @@ export default function Header() {
 
   const handleLogout = () => {
     setLoading(true);
-    signOut({ callbackUrl: "/login" }).then(() => {
+    signOut({ callbackUrl: "/reports/login" }).then(() => {
       setLoading(false);
     });
     // clear all local storage data
@@ -69,12 +69,12 @@ export default function Header() {
 
   const links = [
     {
-      href: "/report",
+      href: "/reports/report",
       icon: RiAiGenerate,
       label: "Report",
     },
     // { href: "/files", icon: SiFiles, label: "Saved Files" },
-    { href: "/settings", icon: TbSettingsCog, label: "Settings" },
+    { href: "/reports/settings", icon: TbSettingsCog, label: "Settings" },
   ];
 
   const List = [
@@ -87,7 +87,7 @@ export default function Header() {
     },
     {
       name: "Settings",
-      onClick: () => router.push("/settings"),
+      onClick: () => router.push("/reports/settings"),
       icon: <IoSettingsOutline className="mr-2 h-4 w-4" />,
     },
     {

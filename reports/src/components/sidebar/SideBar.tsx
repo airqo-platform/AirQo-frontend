@@ -11,12 +11,12 @@ import { SiFiles } from "react-icons/si";
 
 const links = [
   {
-    href: ["/", "/report"],
+    href: ["/", "/reports/report"],
     icon: RiAiGenerate,
     label: "Report",
   },
   // { href: "/files", icon: SiFiles, label: "Saved Files" },
-  { href: "/settings", icon: TbSettingsCog, label: "Settings" },
+  { href: "/reports/settings", icon: TbSettingsCog, label: "Settings" },
 ];
 
 export default function SideBar() {

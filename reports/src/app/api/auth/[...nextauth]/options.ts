@@ -36,8 +36,9 @@ export const options = {
     }),
   ],
   pages: {
-    signIn: "/login",
-    error: "/error",
+    signIn: "/reports/login",
+    signOut: "/reports/login",
+    error: "/reports/error",
   },
   secret: process.env.NEXTAUTH_SECRET || process.env.NEXT_PUBLIC_AUTH_SECRET,
   callbacks: {

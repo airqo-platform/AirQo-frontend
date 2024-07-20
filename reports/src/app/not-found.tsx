@@ -6,7 +6,7 @@ const NotFound = () => {
   const router = useRouter();
 
   const handleBack = () => {
-    router.push("/report");
+    router.push("/reports/report");
   };
 
   return (
@@ -17,7 +17,7 @@ const NotFound = () => {
         <Button
           type="button"
           onClick={handleBack}
-          className="px-4 py-2 text-blue-600 font-semibold bg-white rounded"
+          className="px-4 py-2 text-blue-600 hover:bg-white font-semibold bg-white rounded"
         >
           Go back
         </Button>

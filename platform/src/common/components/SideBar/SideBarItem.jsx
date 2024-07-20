@@ -58,7 +58,7 @@ export const SidebarIconItem = ({ IconComponent, navPath }) => {
 
   return (
     <Link href={navPath}>
-      <a
+      <span
         className={`relative flex items-center p-4 rounded-xl cursor-pointer ${
           isCurrentRoute ? 'bg-light-blue' : ''
         } hover:bg-gray-200 transition-all duration-300 ease-in-out`}>
@@ -66,7 +66,7 @@ export const SidebarIconItem = ({ IconComponent, navPath }) => {
           <span className='bg-blue-600 w-1 h-1/2 mr-2 absolute rounded-xl -left-2'></span>
         )}
         <IconComponent fill={isCurrentRoute ? '#145FFF' : '#6F87A1'} />
-      </a>
+      </span>
     </Link>
   );
 };
