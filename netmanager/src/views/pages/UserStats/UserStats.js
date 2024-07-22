@@ -245,6 +245,14 @@ const UserStats = () => {
           }
           columns={[
             {
+              field: 'firstName',
+              title: 'First Name'
+            },
+            {
+              field: 'lastName',
+              title: 'Last Name'
+            },
+            {
               field: 'email',
               title: 'User Email'
             }
