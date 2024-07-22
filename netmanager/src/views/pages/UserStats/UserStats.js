@@ -89,7 +89,7 @@ const UserStats = () => {
   const handleExport = async (data) => {
     setButtonLabel('Initializing...');
     const doc = new jsPDF();
-    const tableColumn = ['User Email'];
+    const tableColumn = ['First Name', 'Last Name', 'User Email'];
     const tableTitle =
       selectedUserType === 'users'
         ? 'ALL USERS'
@@ -98,7 +98,7 @@ const UserStats = () => {
         : 'API USERS';
 
     // Prepare table rows from data
-    const tableRows = data.map((record) => [record.email]);
+    const tableRows = data.map((record) => [record.firstName, record.lastName, record.email]);
 
     doc.setFontSize(18);
     doc.text(tableTitle, 14, 15);
@@ -143,7 +143,8 @@ const UserStats = () => {
                   display="flex"
                   flexDirection="column"
                   justifyContent="space-between"
-                  height="100%">
+                  height="100%"
+                >
                   <Typography variant="h5" component="h2" align="left">
                     All Users
                   </Typography>
@@ -161,7 +162,8 @@ const UserStats = () => {
                   display="flex"
                   flexDirection="column"
                   justifyContent="space-between"
-                  height="100%">
+                  height="100%"
+                >
                   <Typography variant="h5" component="h2" align="left">
                     Active Users
                   </Typography>
@@ -179,7 +181,8 @@ const UserStats = () => {
                   display="flex"
                   flexDirection="column"
                   justifyContent="space-between"
-                  height="100%">
+                  height="100%"
+                >
                   <Typography variant="h5" component="h2" align="left">
                     API Users
                   </Typography>
@@ -197,7 +200,8 @@ const UserStats = () => {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() => handleExport(selectedUserStats)}>
+                onClick={() => handleExport(selectedUserStats)}
+              >
                 {buttonLabel}
               </Button>
             </Tooltip>
@@ -206,20 +210,24 @@ const UserStats = () => {
               className={classes.buttonGroup}
               variant="outlined"
               color="primary"
-              aria-label="outlined primary button group">
+              aria-label="outlined primary button group"
+            >
               <Button
                 onClick={() => handleUserTypeChange('users')}
-                className={selectedUserType === 'users' ? 'selected' : ''}>
+                className={selectedUserType === 'users' ? 'selected' : ''}
+              >
                 All Users
               </Button>
               <Button
                 onClick={() => handleUserTypeChange('active_users')}
-                className={selectedUserType === 'active_users' ? 'selected' : ''}>
+                className={selectedUserType === 'active_users' ? 'selected' : ''}
+              >
                 Active Users
               </Button>
               <Button
                 onClick={() => handleUserTypeChange('api_users')}
-                className={selectedUserType === 'api_users' ? 'selected' : ''}>
+                className={selectedUserType === 'api_users' ? 'selected' : ''}
+              >
                 API Users
               </Button>
             </ButtonGroup>
@@ -236,6 +244,14 @@ const UserStats = () => {
               : 'API USERS'
           }
           columns={[
+            {
+              field: 'firstName',
+              title: 'First Name'
+            },
+            {
+              field: 'lastName',
+              title: 'Last Name'
+            },
             {
               field: 'email',
               title: 'User Email'

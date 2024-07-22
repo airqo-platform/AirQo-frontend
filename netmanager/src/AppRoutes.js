@@ -32,7 +32,6 @@ const Login = lazy(() => import('./views/pages/SignUp/Login'));
 const Register = lazy(() => import('./views/pages/SignUp/Register'));
 const UserList = lazy(() => import('./views/pages/UserList'));
 const AvailableUserList = lazy(() => import('./views/pages/UserList/AvailableUserList'));
-const CandidateList = lazy(() => import('./views/pages/CandidateList'));
 const Roles = lazy(() => import('./views/pages/Roles'));
 const Settings = lazy(() => import('./views/pages/Settings'));
 const SiteActivities = lazy(() => import('./views/components/Activities/ActivitiesRegistry'));
@@ -57,9 +56,6 @@ const TeamsView = lazy(() => import('./views/pages/Teams/TeamsView'));
 const SimRegistry = lazy(() => import('./views/components/SIM/SimRegistry'));
 const UserStats = lazy(() => import('./views/pages/UserStats/UserStats'));
 const ClientActivation = lazy(() => import('./views/pages/clients'));
-const FaultDetection = lazy(() =>
-  import('./views/components/DataDisplay/DeviceManagement/ManagementFaults')
-);
 
 const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
@@ -105,7 +101,6 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <Route exact path="/login/:tenant?" component={Login} />
             <Route exact path="/forgot/:tenant?" component={ForgotPassword} />
             <Route exact path="/reset" component={ResetPassword} />
-            <Route exact path="/request-access/:tenant?" component={Register} />
             <PrivateRoute exact path="/analytics" component={Analytics} layout={MainLayout} />
             <PrivateRoute
               exact
@@ -125,13 +120,6 @@ const AppRoutes = ({ auth, logoutUser }) => {
               component={UserStats}
               layout={MainLayout}
             />
-            <PrivateRoute component={CandidateList} exact layout={MainLayout} path="/candidates" />
-            <PrivateRoute
-              component={ClientActivation}
-              exact
-              layout={MainLayout}
-              path="/clients-activation"
-            />
             <PrivateRoute component={Roles} exact layout={MainLayout} path="/roles" />
             <PrivateRoute component={Settings} exact layout={MainLayout} path="/settings" />
             <PrivateRoute component={Organisation} exact layout={MainLayout} path="/networks" />
@@ -147,12 +135,6 @@ const AppRoutes = ({ auth, logoutUser }) => {
             </Route>
             <PrivateRoute component={Account} exact layout={MainLayout} path="/account" />
             <PrivateRoute exact path="/manager/map" component={ManagerMap} layout={MainLayout} />
-            <PrivateRoute
-              exact
-              path="/manager/fault_detection"
-              component={FaultDetection}
-              layout={MainLayout}
-            />
             <PrivateRoute
               exact
               path="/manager/stats"
@@ -219,7 +201,8 @@ const AppRoutes = ({ auth, logoutUser }) => {
             right: 0,
             marginRight: '10px',
             marginBottom: '20px'
-          }}>
+          }}
+        >
           <div id="jira-help-desk" />
         </div>
 

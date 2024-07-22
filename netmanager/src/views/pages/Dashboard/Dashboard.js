@@ -24,7 +24,6 @@ import AirQloudDropDown from '../../containers/AirQloudDropDown';
 import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
 import { flattenSiteOptions, siteOptionsToObject } from 'utils/sites';
 import D3CustomisableChart from '../../components/d3/CustomisableChart';
-import DashboardSearchBar from '../../components/AirqualitySearch/dashboard_searchbar';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -129,9 +128,6 @@ const Dashboard = () => {
         <Grid container spacing={5}>
           <Grid item lg={6} xs={12} sm={12} md={6} xl={6}>
             <AirQloudDropDown />
-          </Grid>
-          <Grid item lg={6} xs={12} sm={12} md={6} xl={6}>
-            <DashboardSearchBar />
           </Grid>
         </Grid>
         <Grid container spacing={4}>
