@@ -124,9 +124,6 @@ const allMainPages = [
     nestItems: [
       { title: 'Network Map', href: '/manager/map' },
       { title: 'Network Statistics', href: '/manager/stats' },
-      { title: 'Network Activity Logs', href: '/manager/activities' },
-      { title: 'Fault Detection', href: '/manager/fault_detection' },
-
       { title: 'Network Activity Logs', href: '/manager/activities' }
     ],
     isNew: true

@@ -56,9 +56,6 @@ const TeamsView = lazy(() => import('./views/pages/Teams/TeamsView'));
 const SimRegistry = lazy(() => import('./views/components/SIM/SimRegistry'));
 const UserStats = lazy(() => import('./views/pages/UserStats/UserStats'));
 const ClientActivation = lazy(() => import('./views/pages/clients'));
-const FaultDetection = lazy(() =>
-  import('./views/components/DataDisplay/DeviceManagement/ManagementFaults')
-);
 
 const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
@@ -138,12 +135,6 @@ const AppRoutes = ({ auth, logoutUser }) => {
             </Route>
             <PrivateRoute component={Account} exact layout={MainLayout} path="/account" />
             <PrivateRoute exact path="/manager/map" component={ManagerMap} layout={MainLayout} />
-            <PrivateRoute
-              exact
-              path="/manager/fault_detection"
-              component={FaultDetection}
-              layout={MainLayout}
-            />
             <PrivateRoute
               exact
               path="/manager/stats"
