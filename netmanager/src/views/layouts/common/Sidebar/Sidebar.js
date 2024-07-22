@@ -13,7 +13,6 @@ import ManageIcon from '@material-ui/icons/Build';
 import AddIcon from '@material-ui/icons/Add';
 import EditLocationIcon from '@material-ui/icons/EditLocation';
 import AspectRatioIcon from '@material-ui/icons/AspectRatio';
-import SupervisedUserCircleIcon from '@material-ui/icons/SupervisedUserCircle';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import AirQloudIcon from '@material-ui/icons/FilterDrama';
@@ -125,9 +124,6 @@ const allMainPages = [
     nestItems: [
       { title: 'Network Map', href: '/manager/map' },
       { title: 'Network Statistics', href: '/manager/stats' },
-      { title: 'Network Activity Logs', href: '/manager/activities' },
-      { title: 'Fault Detection', href: '/manager/fault_detection' },
-
       { title: 'Network Activity Logs', href: '/manager/activities' }
     ],
     isNew: true
@@ -213,12 +209,6 @@ const allUserManagementPages = [
     href: '/roles',
     icon: <AssignmentIndIcon />,
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_ROLES'
-  },
-  {
-    title: 'Candidates',
-    href: '/candidates',
-    icon: <SupervisedUserCircleIcon />,
-    permission: 'APPROVE_AND_DECLINE_NETWORK_CANDIDATES'
   },
   {
     title: 'Clients',
@@ -373,7 +363,8 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}>
+      variant={variant}
+    >
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />

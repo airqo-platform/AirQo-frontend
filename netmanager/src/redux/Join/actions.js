@@ -38,9 +38,6 @@ import {
   REGISTRATION_SUCCESS,
   SHOW_REGISTER_DIALOG,
   HIDE_REGISTER_DIALOG,
-  GET_CANDIDATES_SUCCESS,
-  GET_CANDIDATES_FAILED,
-  GET_CANDIDATES_REQUEST,
   UPDATE_PROFILE_REQUEST,
   UPDATE_PROFILE_SUCCESS,
   UPDATE_PROFILE_FAILED,
@@ -60,13 +57,11 @@ import { resetDeviceRegistryState } from '../DeviceRegistry/operations';
 import { resetAlertState, updateMainAlert } from '../MainAlert/operations';
 import {
   GET_USERS_URI,
-  GET_CANDIDATES_URI,
   REGISTER_USER_URI,
   LOGIN_USER_URI,
   FORGOT_PWD_URI,
   VERIFY_TOKEN_URI,
   UPDATE_PWD_IN_URI,
-  REGISTER_CANDIDATE_URI,
   DEFAULTS_URI
 } from 'config/urls/authService';
 import { setDefaultAirQloud } from '../AirQloud/operations';
@@ -93,41 +88,6 @@ export const updateOrganization = (orgData) => (dispatch) => {
     type: UPDATE_ORGANIZATION_SUCCESS,
     payload: orgData
   });
-};
-
-/*********************** fetching Candidatess ********************************/
-
-export const fetchCandidates = (networkID) => {
-  return (dispatch) => {
-    dispatch(fetchCandidatesRequest());
-    return createAxiosInstance()
-      .get(GET_CANDIDATES_URI, { params: { network_id: networkID } })
-      .then((response) => response.data)
-      .then((data) => dispatch(fetchCandidatesSuccess(data.candidates, data.message)))
-      .catch((err) => dispatch(fetchCandidatesFailed(err.response.data)));
-  };
-};
-
-export const fetchCandidatesRequest = () => {
-  return {
-    type: GET_CANDIDATES_REQUEST
-  };
-};
-
-export const fetchCandidatesSuccess = (candidates, message) => {
-  return {
-    type: GET_CANDIDATES_SUCCESS,
-    candidates: candidates,
-    message: message,
-    receiveAt: Date.now
-  };
-};
-
-export const fetchCandidatesFailed = (error) => {
-  return {
-    type: GET_CANDIDATES_FAILED,
-    error
-  };
 };
 
 /********************* Add a new user ***********************************/

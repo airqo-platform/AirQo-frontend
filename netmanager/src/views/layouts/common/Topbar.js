@@ -284,7 +284,8 @@ const Topbar = (props) => {
             marginLeft: '10px',
             fontSize: 20,
             fontWeight: 'bold'
-          }}>
+          }}
+        >
           {activeNetwork && activeNetwork.net_name}
         </div>
 
@@ -300,7 +301,8 @@ const Topbar = (props) => {
             <IconButton
               className={classes.signOutButton}
               color="inherit"
-              onClick={handleAppsMenuOpen}>
+              onClick={handleAppsMenuOpen}
+            >
               <Tooltip title={'AirQo Apps'}>
                 <AppsOutlined />
               </Tooltip>
@@ -320,7 +322,8 @@ const Topbar = (props) => {
               }}
               getContentAnchorEl={null}
               open={openAppsMenu}
-              onClose={handleAppsMenuClose}>
+              onClose={handleAppsMenuClose}
+            >
               <div style={{ width: '300px', height: '300px' }}>
                 <div style={{ height: '100%', padding: '10px' }}>
                   <a
@@ -336,7 +339,8 @@ const Topbar = (props) => {
                     }}
                     href={CALIBRATE_APP_URL}
                     target="_blank"
-                    rel="noopener noreferrer">
+                    rel="noopener noreferrer"
+                  >
                     <img
                       alt="airqo.net"
                       style={{ width: '50px', height: 'auto' }}
@@ -352,7 +356,8 @@ const Topbar = (props) => {
               <IconButton
                 className={classes.signOutButton}
                 color="inherit"
-                onClick={handleOpenMenu}>
+                onClick={handleOpenMenu}
+              >
                 <MoreVertIcon />
               </IconButton>
               <Menu
@@ -368,7 +373,8 @@ const Topbar = (props) => {
                   horizontal: 'right'
                 }}
                 open={open}
-                onClose={handleCloseMenu}>
+                onClose={handleCloseMenu}
+              >
                 <MenuItem onClick={handleDocsClick}>
                   <ListItemIcon>
                     <HelpIcon />
@@ -407,7 +413,8 @@ const Topbar = (props) => {
               <IconButton
                 color="inherit"
                 href="https://docs.airqo.net/airqo-handbook/-MHlrqORW-vI38ybYLVC/"
-                target="_blank">
+                target="_blank"
+              >
                 <Badge badgeContent={notifications.length} color="primary" variant="dot">
                   <Tooltip title={'Documentation'}>
                     <HelpIcon />
@@ -425,7 +432,8 @@ const Topbar = (props) => {
               <IconButton
                 className={classes.signOutButton}
                 color="inherit"
-                onClick={handleOpenMenu}>
+                onClick={handleOpenMenu}
+              >
                 <Tooltip title={'Manage account'}>
                   <InputIcon />
                 </Tooltip>
@@ -443,7 +451,8 @@ const Topbar = (props) => {
                   horizontal: 'right'
                 }}
                 open={open}
-                onClose={handleCloseMenu}>
+                onClose={handleCloseMenu}
+              >
                 <MenuItem onClick={handleSettingsClick}>
                   <ListItemIcon>
                     <SettingsIcon />
@@ -471,9 +480,12 @@ const Topbar = (props) => {
             <Link to="/login" className={classes.link}>
               Login
             </Link>
-            <Link to="/request-access" className={classes.registerBtn}>
+            <a
+              href={`${process.env.REACT_APP_BASE_ANALYTICS_URL}account/creation`}
+              className={classes.registerBtn}
+            >
               Register
-            </Link>
+            </a>
           </div>
         )}
       </Toolbar>
