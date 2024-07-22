@@ -32,7 +32,6 @@ const Login = lazy(() => import('./views/pages/SignUp/Login'));
 const Register = lazy(() => import('./views/pages/SignUp/Register'));
 const UserList = lazy(() => import('./views/pages/UserList'));
 const AvailableUserList = lazy(() => import('./views/pages/UserList/AvailableUserList'));
-const CandidateList = lazy(() => import('./views/pages/CandidateList'));
 const Roles = lazy(() => import('./views/pages/Roles'));
 const Settings = lazy(() => import('./views/pages/Settings'));
 const SiteActivities = lazy(() => import('./views/components/Activities/ActivitiesRegistry'));
@@ -105,7 +104,6 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <Route exact path="/login/:tenant?" component={Login} />
             <Route exact path="/forgot/:tenant?" component={ForgotPassword} />
             <Route exact path="/reset" component={ResetPassword} />
-            <Route exact path="/request-access/:tenant?" component={Register} />
             <PrivateRoute exact path="/analytics" component={Analytics} layout={MainLayout} />
             <PrivateRoute
               exact
@@ -124,13 +122,6 @@ const AppRoutes = ({ auth, logoutUser }) => {
               path="/admin/users/users-statistics"
               component={UserStats}
               layout={MainLayout}
-            />
-            <PrivateRoute component={CandidateList} exact layout={MainLayout} path="/candidates" />
-            <PrivateRoute
-              component={ClientActivation}
-              exact
-              layout={MainLayout}
-              path="/clients-activation"
             />
             <PrivateRoute component={Roles} exact layout={MainLayout} path="/roles" />
             <PrivateRoute component={Settings} exact layout={MainLayout} path="/settings" />
@@ -219,7 +210,8 @@ const AppRoutes = ({ auth, logoutUser }) => {
             right: 0,
             marginRight: '10px',
             marginBottom: '20px'
-          }}>
+          }}
+        >
           <div id="jira-help-desk" />
         </div>
 
