@@ -120,6 +120,12 @@ const AppRoutes = ({ auth, logoutUser }) => {
               component={UserStats}
               layout={MainLayout}
             />
+            <PrivateRoute
+              component={ClientActivation}
+              exact
+              layout={MainLayout}
+              path="/clients-activation"
+            />
             <PrivateRoute component={Roles} exact layout={MainLayout} path="/roles" />
             <PrivateRoute component={Settings} exact layout={MainLayout} path="/settings" />
             <PrivateRoute component={Organisation} exact layout={MainLayout} path="/networks" />
