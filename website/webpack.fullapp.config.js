@@ -1,5 +1,4 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-
 const config = require('./webpack.config.js');
 
 // Update entrypoint
@@ -9,6 +8,8 @@ config.entry = './frontend/index.js';
 config.output.publicPath = '/';
 
 // Add HTMLWebpack plugin
-config.plugins = config.plugins.concat([new HtmlWebpackPlugin({ template: './frontend/standaloneIndex.html' })]);
+config.plugins.push(
+  new HtmlWebpackPlugin({ template: './frontend/standaloneIndex.html', inject: 'body' })
+);
 
 module.exports = config;
