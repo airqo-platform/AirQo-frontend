@@ -1,5 +1,5 @@
 # Building frontend
-FROM node:20-slim as frontend
+FROM node:18-slim as frontend
 
 WORKDIR /app
 
@@ -30,7 +30,7 @@ COPY ./webpack.config.js ./.babelrc /app/
 COPY ./frontend /app/frontend
 RUN npm run build
 
-FROM python:3.12
+FROM python:3.10
 
 WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE 1
