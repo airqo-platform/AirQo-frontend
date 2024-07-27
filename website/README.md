@@ -251,7 +251,7 @@ Node requirements
 
 To run the website `frontend` on its own, run the command:
 
-    npm run standalone
+    npm run standalone.
 
 The `frontend` will run on http://localhost:8081
 
