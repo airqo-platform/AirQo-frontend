@@ -14,7 +14,6 @@ const mapStateToProps = (state, ownProps) => {
 // map actions to props
 const mapDispatchToProps = (dispatch) => {
   return {
-    fetchCandidates: (networkID) => dispatch(userActions.fetchCandidates(networkID)),
     fetchDefaults: (userId) => dispatch(userActions.fetchDefaults(userId)),
 
     mappedshowEditDialog: (userToEdit) => dispatch(userActions.showEditDialog(userToEdit)),

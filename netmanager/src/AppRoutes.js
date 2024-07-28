@@ -32,7 +32,6 @@ const Login = lazy(() => import('./views/pages/SignUp/Login'));
 const Register = lazy(() => import('./views/pages/SignUp/Register'));
 const UserList = lazy(() => import('./views/pages/UserList'));
 const AvailableUserList = lazy(() => import('./views/pages/UserList/AvailableUserList'));
-const CandidateList = lazy(() => import('./views/pages/CandidateList'));
 const Roles = lazy(() => import('./views/pages/Roles'));
 const Settings = lazy(() => import('./views/pages/Settings'));
 const SiteActivities = lazy(() => import('./views/components/Activities/ActivitiesRegistry'));
