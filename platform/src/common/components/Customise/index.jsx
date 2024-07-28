@@ -70,84 +70,82 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
   return (
     <div
       className='absolute right-0 top-0 w-full md:w-96
-    h-dvh overflow-y-scroll bg-white z-50 border-l-grey-50'
+    h-full bg-white z-50 border-l-grey-50 overflow-hidden'
       style={{ boxShadow: '0px 16px 32px 0px rgba(83, 106, 135, 0.20)' }}>
       {creationErrors.state && (
         <Toast type={'error'} timeout={6000} message={creationErrors.message} />
       )}
-      <div className='relative'>
-        <div className='overflow-y-auto w-auto h-auto px-6'>
-          <div onClick={() => setResetSearchData(true)}>
-            <div className='flex flex-row justify-between items-center mt-6'>
-              <h3 className='flex items-center text-xl text-black-800 font-semibold'>
-                Customise
-                <span
-                  className='tooltip tooltip-bottom ml-1 hover:cursor-pointer text-lg font-normal'
-                  data-tip='Changes are applied when 4 locations have been selected'>
-                  <RxInfoCircled style={{ paddingTop: '2px' }} />
-                </span>
-              </h3>
-              <div
-                className='p-3 rounded-md border border-secondary-neutral-light-100 bg-white hover:cursor-pointer'
-                onClick={() => toggleCustomise()}>
-                <CloseIcon />
-              </div>
-            </div>
-            <div className='mt-6'>
-              <p className='text-grey-350 text-sm font-normal'>
-                Select any 4 locations you would like to feature on your overview page.
-              </p>
-            </div>
-          </div>
-          {false && (
-            <div className='mt-6'>
-              {/* Tab section */}
-              <div className='flex flex-row justify-center items-center bg-secondary-neutral-light-25 rounded-md border border-secondary-neutral-light-50 p-1'>
-                {tabs.map((tab) => (
-                  <div
-                    key={tab}
-                    onClick={() => setSelectedTab(tab)}
-                    className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
-                      selectedTab === tab ? 'border rounded-md bg-white shadow-sm' : ''
-                    }`}>
-                    {tab}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {selectedTab === tabs[0] && (
-            <LocationsContentComponent
-              selectedLocations={customisedLocations}
-              resetSearchData={resetSearchData}
-            />
-          )}
-          {/* TODO: Pollutant component and post selection to user defaults */}
-        </div>
-        <div className='sticky bottom-0 w-full bg-white z-50 border-t border-input-light-outline py-4 px-6'>
-          <div className='flex flex-row justify-end items-center'>
-            <button
-              className='btn bg-white mr-3 border border-input-light-outline text-sm text-secondary-neutral-light-800 font-medium py-3 px-4 rounded-lg hover:bg-white hover:border-input-light-outline'
+      <div className='overflow-y-auto w-auto h-full px-6'>
+        <div onClick={() => setResetSearchData(true)}>
+          <div className='flex flex-row justify-between items-center mt-4'>
+            <h3 className='flex items-center text-xl text-black-800 font-semibold'>
+              Customise
+              <span
+                className='tooltip tooltip-bottom ml-1 hover:cursor-pointer text-lg font-normal'
+                data-tip='Changes are applied when 4 locations have been selected'>
+                <RxInfoCircled style={{ paddingTop: '2px' }} />
+              </span>
+            </h3>
+            <div
+              className='p-3 rounded-md border border-secondary-neutral-light-100 bg-white hover:cursor-pointer'
               onClick={() => toggleCustomise()}>
-              Cancel
-            </button>
-            <button
-              className={`text-sm font-medium py-3 px-4 rounded-lg ${
-                selectedLocations.length === 4
-                  ? 'bg-blue-900 text-white hover:bg-primary-600'
-                  : 'btn-disabled bg-white border border-input-light-outline text-secondary-neutral-light-800'
-              } mr-3`}
-              onClick={selectedLocations.length === 4 ? handleSubmit : undefined}
-              disabled={selectedLocations.length !== 4}>
-              {loading ? (
-                <div className='ml-2'>
-                  <Spinner width={25} height={25} />
-                </div>
-              ) : (
-                'Apply'
-              )}
-            </button>
+              <CloseIcon />
+            </div>
           </div>
+          <div className='mt-6'>
+            <p className='text-grey-350 text-sm font-normal'>
+              Select any 4 locations you would like to feature on your overview page.
+            </p>
+          </div>
+        </div>
+        {false && (
+          <div className='mt-6'>
+            {/* Tab section */}
+            <div className='flex flex-row justify-center items-center bg-secondary-neutral-light-25 rounded-md border border-secondary-neutral-light-50 p-1'>
+              {tabs.map((tab) => (
+                <div
+                  key={tab}
+                  onClick={() => setSelectedTab(tab)}
+                  className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
+                    selectedTab === tab ? 'border rounded-md bg-white shadow-sm' : ''
+                  }`}>
+                  {tab}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {selectedTab === tabs[0] && (
+          <LocationsContentComponent
+            selectedLocations={customisedLocations}
+            resetSearchData={resetSearchData}
+          />
+        )}
+        {/* TODO: Pollutant component and post selection to user defaults */}
+      </div>
+      <div className='sticky bottom-0 w-full bg-white z-50 border-t border-input-light-outline py-4 px-6'>
+        <div className='flex flex-row justify-end items-center'>
+          <button
+            className='btn bg-white mr-3 border border-input-light-outline text-sm text-secondary-neutral-light-800 font-medium py-3 px-4 rounded-lg hover:bg-white hover:border-input-light-outline'
+            onClick={() => toggleCustomise()}>
+            Cancel
+          </button>
+          <button
+            className={`text-sm font-medium py-3 px-4 rounded-lg ${
+              selectedLocations.length === 4
+                ? 'bg-blue-900 text-white hover:bg-primary-600'
+                : 'btn-disabled bg-white border border-input-light-outline text-secondary-neutral-light-800'
+            } mr-3`}
+            onClick={selectedLocations.length === 4 ? handleSubmit : undefined}
+            disabled={selectedLocations.length !== 4}>
+            {loading ? (
+              <div className='ml-2'>
+                <Spinner width={25} height={25} />
+              </div>
+            ) : (
+              'Apply'
+            )}
+          </button>
         </div>
       </div>
     </div>
