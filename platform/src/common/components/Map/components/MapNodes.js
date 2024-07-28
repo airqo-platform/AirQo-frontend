@@ -25,11 +25,11 @@ export const images = {
 const markerDetails = {
   pm2_5: [
     { limit: 500.5, category: 'Invalid' || 'undefined' },
-    { limit: 250.5, category: 'Hazardous' },
-    { limit: 150.5, category: 'VeryUnhealthy' },
+    { limit: 225.5, category: 'Hazardous' },
+    { limit: 125.5, category: 'VeryUnhealthy' },
     { limit: 55.5, category: 'Unhealthy' },
     { limit: 35.5, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 12.1, category: 'ModerateAir' },
+    { limit: 9.1, category: 'ModerateAir' },
     { limit: 0.0, category: 'GoodAir' },
   ],
   pm10: [
