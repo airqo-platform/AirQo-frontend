@@ -43,12 +43,12 @@ export const AirQualityLegend = ({ pollutant }) => {
   const pollutantLevels = {
     pm2_5: [
       {
-        range: '0.0μg/m3 - 12.0μg/m3',
+        range: '0.0μg/m3 - 9.0μg/m3',
         label: 'Air Quality is Good',
         icon: <GoodAir width={size} height={size} />,
       },
       {
-        range: '12.1μg/m3 - 35.4μg/m3',
+        range: '9.1μg/m3 - 35.4μg/m3',
         label: 'Air Quality is Moderate',
         icon: <ModerateAir width={size} height={size} />,
       },
@@ -58,17 +58,17 @@ export const AirQualityLegend = ({ pollutant }) => {
         icon: <UnhealthyForSensitiveGroups width={size} height={size} />,
       },
       {
-        range: '55.5μg/m3 - 150.4μg/m3',
+        range: '55.5μg/m3 - 125.4μg/m3',
         label: 'Air Quality is Unhealthy',
         icon: <Unhealthy width={size} height={size} />,
       },
       {
-        range: '150.5μg/m3 - 250.4μg/m3',
+        range: '125.5μg/m3 - 225.4μg/m3',
         label: 'Air Quality is Very Unhealthy',
         icon: <VeryUnhealthy width={size} height={size} />,
       },
       {
-        range: '250.5μg/m3 - 500.4μg/m3',
+        range: '225.5μg/m3 +',
         label: 'Air Quality is Hazardous',
         icon: <Hazardous width={size} height={size} />,
       },
