@@ -320,18 +320,18 @@ export const renderCustomizedLegend = (props) => {
  * Customized label component for ReferenceLine
  * @param {Object} props
  */
-export const renderCustomizedLabel = (props) => {
+export const CustomReferenceLabel = (props) => {
   const { viewBox } = props;
   const x = viewBox.width + viewBox.x - 10;
   const y = viewBox.y + 3;
 
   return (
     <g>
-      <foreignObject x={x - 20} y={y - 14} width={40} height={20}>
+      <foreignObject x={x - 30} y={y - 14} width={40} height={25}>
         <div
           xmlns='http://www.w3.org/1999/xhtml'
           style={{ backgroundColor: 'red' }}
-          className='rounded-md py-1 text-center text-white text-[14px] font-semibold leading-[11px]'>
+          className='rounded-md py-[4px] px-[6px] flex justify-center text-center text-white text-[12px] font-semibold leading-[11px]'>
           WHO
         </div>
       </foreignObject>
