@@ -6,17 +6,17 @@ import { isEmpty } from 'underscore';
 import Tooltip from '@material-ui/core/Tooltip';
 import DeleteIcon from '@material-ui/icons/DeleteOutlineOutlined';
 import { Parser } from 'json2csv';
-import { loadSitesData } from 'redux/SiteRegistry/operations';
+import { loadSitesData } from 'reducer/SiteRegistry/operations';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
 import ConfirmDialog from '../../containers/ConfirmDialog';
 import { deleteSiteApi } from 'views/apis/deviceRegistry';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { getSitesSummaryApi } from 'views/apis/deviceRegistry';
 
 // css
 import 'assets/css/location-registry.css';
-import { clearSiteDetails } from '../../../redux/SiteRegistry/operations';
-import { setLoading as loadStatus, setRefresh } from 'redux/HorizontalLoader/index';
+import { clearSiteDetails } from 'reducer/SiteRegistry/operations';
+import { setLoading as loadStatus, setRefresh } from 'reducer/HorizontalLoader/index';
 
 const BLANK_SPACE_HOLDER = '-';
 const renderCell = (field) => (rowData) => <span>{rowData[field] || BLANK_SPACE_HOLDER}</span>;

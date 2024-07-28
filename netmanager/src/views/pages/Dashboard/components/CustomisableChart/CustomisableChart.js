@@ -41,8 +41,8 @@ import { omit } from 'underscore';
 import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
 import { usePollutantsOptions } from 'utils/customHooks';
 import { deleteUserChartDefaultsApi, updateUserChartDefaultsApi } from 'views/apis/authService';
-import { updateMainAlert } from 'redux/MainAlert/operations';
-import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
+import { useCurrentAirQloudData } from 'reducer/AirQloud/selectors';
 import { BASE_AUTH_TOKEN } from 'utils/envVariables';
 
 const useStyles = makeStyles((theme) => ({

@@ -1,6 +1,6 @@
 // map state from store to props
-import { fetchNetworkUsers } from '../../redux/AccessControl/operations';
-import * as userActions from '../../redux/Join/actions';
+import { fetchNetworkUsers } from '../../reducer/AccessControl/operations';
+import * as userActions from '../../reducer/Join/actions';
 import { connect } from 'react-redux';
 
 const mapStateToProps = (state, ownProps) => {
@@ -14,6 +14,7 @@ const mapStateToProps = (state, ownProps) => {
 // map actions to props
 const mapDispatchToProps = (dispatch) => {
   return {
+    fetchCandidates: (networkID) => dispatch(userActions.fetchCandidates(networkID)),
     fetchDefaults: (userId) => dispatch(userActions.fetchDefaults(userId)),
 
     mappedshowEditDialog: (userToEdit) => dispatch(userActions.showEditDialog(userToEdit)),

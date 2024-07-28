@@ -16,9 +16,9 @@ import {
   useMediaQuery,
 } from "@material-ui/core";
 import { cloudinaryImageUpload } from "views/apis/cloudinary";
-import { updateMainAlert } from "redux/MainAlert/operations";
+import { updateMainAlert } from "reducer/MainAlert/operations";
 import { updateAuthenticatedUserApi } from "views/apis/authService";
-import { updateAuthenticatedUserSuccess } from "redux/Join/actions";
+import { updateAuthenticatedUserSuccess } from "reducer/Join/actions";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
 import { formatDateString, getGMTOffset } from "utils/dateTime.js";
 

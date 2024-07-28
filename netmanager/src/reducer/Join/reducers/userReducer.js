@@ -36,13 +36,12 @@ import {
   UPDATE_PASSWORD_REQUEST,
   UPDATE_PASSWORD_SUCCESS,
   UPDATE_PASSWORD_FAILED,
-  RESET_USER_STATE_SUCCESS,
+  RESET_USER_STATE_SUCCESS
 } from '../types';
-import { LOGOUT_USER_SUCCESS } from "redux/Join/types";
+import { LOGOUT_USER_SUCCESS } from 'redux/Join/types';
 
 const initialState = {
   users: [],
-  candidates: [],
   isFetching: false,
   error: null,
   successMsg: null,
@@ -58,7 +57,7 @@ const initialState = {
   isUpdating: false
 };
 
-export default function(state = initialState, action) {
+export default function (state = initialState, action) {
   switch (action.type) {
     /************************* fetch users ****************************************** */
     case RESET_USER_STATE_SUCCESS:
@@ -68,7 +67,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: true,
         error: null,
@@ -82,7 +80,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: action.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: null,
@@ -96,53 +93,7 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: [],
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
-        isFetching: false,
-        error: action.error,
-        successMsg: null,
-        showDeleteDialog: false,
-        userToDelete: null,
-        showEditDialog: false,
-        userToEdit: null
-      };
-
-    /************************* fetch candidates ****************************************** */
-
-    case GET_CANDIDATES_REQUEST:
-      return {
-        ...state,
-        users: state.users,
-        candidates: state.candidates,
-        userDefaults: state.userDefaults,
-        isFetching: true,
-        error: null,
-        successMsg: null,
-        showDeleteDialog: false,
-        userToDelete: null,
-        showEditDialog: false,
-        userToEdit: null
-      };
-    case GET_CANDIDATES_SUCCESS:
-      return {
-        ...state,
-        users: state.users,
-        candidates: action.candidates,
-        userDefaults: state.userDefaults,
-        isFetching: false,
-        error: null,
-        successMsg: action.message,
-        showDeleteDialog: false,
-        userToDelete: null,
-        showEditDialog: false,
-        userToEdit: null
-      };
-    case GET_CANDIDATES_FAILED:
-      return {
-        ...state,
-        users: state.users,
-        userDefaults: state.userDefaults,
-        candidates: [],
         isFetching: false,
         error: action.error,
         successMsg: null,
@@ -157,7 +108,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: true,
         error: null,
@@ -171,7 +121,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: action.defaults,
         isFetching: false,
         error: null,
@@ -185,7 +134,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: [],
         isFetching: false,
         error: action.error,
@@ -201,7 +149,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: null,
@@ -218,7 +165,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: null,
@@ -235,7 +181,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: true,
         error: null,
@@ -251,7 +196,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: action.error,
@@ -267,7 +211,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: [...state.users, action.user],
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: null,
@@ -285,7 +228,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: null,
@@ -301,7 +243,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: null,
@@ -316,7 +257,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: null,
@@ -329,7 +269,7 @@ export default function(state = initialState, action) {
       };
 
     case EDIT_USER_SUCCESS:
-      const updatedUsers = state.users.map(user => {
+      const updatedUsers = state.users.map((user) => {
         if (user._id !== action.userToEdit._id) {
           //this is not the item of interest
           return user;
@@ -340,7 +280,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: updatedUsers,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: null,
@@ -356,7 +295,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: action.error,
@@ -372,7 +310,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: action.error,
@@ -388,7 +325,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: action.error,
@@ -404,7 +340,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: null,
@@ -417,13 +352,10 @@ export default function(state = initialState, action) {
       };
 
     case DELETE_USER_SUCCESS:
-      const filteredUsers = state.users.filter(
-        user => user._id !== state.userToDelete._id
-      );
+      const filteredUsers = state.users.filter((user) => user._id !== state.userToDelete._id);
       return {
         ...state,
         users: filteredUsers,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: null,
@@ -439,7 +371,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: action.error,
@@ -461,7 +392,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: action.error,
@@ -476,7 +406,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: action.error,
@@ -491,7 +420,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: null,
@@ -506,7 +434,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: null,
@@ -521,7 +448,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: action.error,
@@ -538,21 +464,18 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults
       };
     case UPDATE_PASSWORD_SUCCESS:
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults
       };
     case UPDATE_PASSWORD_FAILED:
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults
       };
 
@@ -562,7 +485,6 @@ export default function(state = initialState, action) {
         ...state,
         isUpdating: true,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         successMsg: null
       };
@@ -570,7 +492,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: null,
@@ -584,7 +505,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         users: state.users,
-        candidates: state.candidates,
         userDefaults: state.userDefaults,
         isFetching: false,
         error: action.error,
@@ -596,10 +516,9 @@ export default function(state = initialState, action) {
         newUser: null
       };
     case LOGOUT_USER_SUCCESS:
-      return initialState
+      return initialState;
 
     default:
       return state;
   }
 }
-

@@ -10,7 +10,7 @@ import {
 import React, { useEffect, useState } from 'react';
 import { createNetworkApi } from '../../../apis/accessControl';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { useDispatch } from 'react-redux';
 // dropdown component
 import Select from 'react-select';

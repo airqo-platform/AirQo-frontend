@@ -3,7 +3,7 @@ import Select from 'react-select';
 import { useDispatch, useSelector } from 'react-redux';
 import 'assets/css/dropdown.css';
 import { isEmpty } from 'underscore';
-import { setActiveGrid, setActiveCohort } from 'redux/Analytics/operations';
+import { setActiveGrid, setActiveCohort } from 'reducer/Analytics/operations';
 
 const customStyles = {
   control: (defaultStyles) => ({

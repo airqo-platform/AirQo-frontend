@@ -3,7 +3,7 @@ import { Button, Grid, LinearProgress } from '@material-ui/core';
 import { Link, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { clearErrors, registerCandidate } from 'redux/Join/actions';
+import { clearErrors, registerCandidate } from 'reducer/Join/actions';
 import TextField from '@material-ui/core/TextField';
 import categories from 'utils/categories';
 import { Alert } from '@material-ui/lab';

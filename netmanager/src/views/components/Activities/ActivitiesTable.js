@@ -6,8 +6,8 @@ import { isEmpty } from 'underscore';
 // import Tooltip from '@material-ui/core/Tooltip';
 // import DeleteIcon from '@material-ui/icons/DeleteOutlineOutlined';
 import { Parser } from 'json2csv';
-import { loadActivitiesData } from 'redux/ActivityLogs/operations';
-import { useActivitiesSummaryData } from 'redux/ActivityLogs/selectors';
+import { loadActivitiesData } from 'reducer/ActivityLogs/operations';
+import { useActivitiesSummaryData } from 'reducer/ActivityLogs/selectors';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
 import { formatDateString } from 'utils/dateTime';
 

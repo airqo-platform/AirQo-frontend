@@ -10,11 +10,11 @@ import {
   Box
 } from '@material-ui/core';
 import { assignDevicesToCohort, createCohortApi } from 'views/apis/deviceRegistry';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import Select from 'react-select';
 import { useDispatch } from 'react-redux';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
-import { fetchCohortsSummary } from 'redux/Analytics/operations';
+import { fetchCohortsSummary } from 'reducer/Analytics/operations';
 
 const AddCohortToolbar = ({ open, handleClose, deviceOptions }) => {
   const dispatch = useDispatch();

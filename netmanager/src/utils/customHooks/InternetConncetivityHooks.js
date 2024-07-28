@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { updateMainAlert } from "redux/MainAlert/operations";
+import { updateMainAlert } from "reducer/MainAlert/operations";
 
 export function useInternetConnectivityCheck() {
   const dispatch = useDispatch();

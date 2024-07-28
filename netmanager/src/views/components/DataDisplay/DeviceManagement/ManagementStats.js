@@ -3,12 +3,12 @@ import { useHistory, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import moment from 'moment';
 import { isEmpty } from 'underscore';
-import { useDevicesStatusData, useNetworkUptimeData } from 'redux/DeviceManagement/selectors';
-import { loadDevicesStatusData, loadNetworkUptimeData } from 'redux/DeviceManagement/operations';
+import { useDevicesStatusData, useNetworkUptimeData } from 'reducer/DeviceManagement/selectors';
+import { loadDevicesStatusData, loadNetworkUptimeData } from 'reducer/DeviceManagement/operations';
 import { createBarChartData, ApexTimeSeriesData } from 'utils/charts';
-import { updateDeviceBackUrl } from 'redux/Urls/operations';
-import { loadDevicesData } from 'redux/DeviceRegistry/operations';
-import { useDevicesData } from 'redux/DeviceRegistry/selectors';
+import { updateDeviceBackUrl } from 'reducer/Urls/operations';
+import { loadDevicesData } from 'reducer/DeviceRegistry/operations';
+import { useDevicesData } from 'reducer/DeviceRegistry/selectors';
 import {
   ApexChart,
   ChartContainer,
@@ -28,7 +28,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import 'chartjs-plugin-annotation';
 import 'assets/scss/device-management.sass';
 import 'assets/css/device-view.css'; // there are some shared styles here too :)
-import { loadUptimeLeaderboardData } from 'redux/DeviceManagement/operations';
+import { loadUptimeLeaderboardData } from 'reducer/DeviceManagement/operations';
 import { withPermission } from '../../../containers/PageAccess';
 import AirqloudUptimeChart from './AirqloudUptimeChart';
 import AirqloudUptimeLeaderboard from './AirqloudUptimeLeaderboard';

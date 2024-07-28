@@ -1,13 +1,17 @@
 import {
+  CONFIRM_CANDIDATE_URI,
   UPDATE_PWD_IN_URI,
   GET_USERS_URI,
   FORGOT_PWD_URI,
+  DELETE_CANDIDATE_URI,
   REGISTER_USER_URI,
   CHART_DEFAULTS_URI,
+  CANDIDATES_URI,
   USER_FEEDBACK_URI,
   GET_LOGS
 } from 'config/urls/authService';
 import createAxiosInstance from './axiosConfig';
+import data from '../pages/CandidateList/data';
 
 export const updateUserPasswordApi = async (userId, tenant, userData) => {
   return await createAxiosInstance()
@@ -30,9 +34,27 @@ export const forgotPasswordResetApi = async (userData) => {
     .then((response) => response.data);
 };
 
+export const confirmCandidateApi = async (candidateData) => {
+  return await createAxiosInstance()
+    .post(CONFIRM_CANDIDATE_URI, candidateData)
+    .then((response) => response.data);
+};
+
+export const updateCandidateApi = async (id, newData) => {
+  return await createAxiosInstance()
+    .put(CANDIDATES_URI, newData, { params: { id } })
+    .then((response) => response.data);
+};
+
 export const deleteUserApi = async (id) => {
   return await createAxiosInstance()
     .delete(GET_USERS_URI, { params: { id } })
+    .then((response) => response.data);
+};
+
+export const deleteCandidateApi = async (id) => {
+  return await createAxiosInstance()
+    .delete(DELETE_CANDIDATE_URI, { params: { id } })
     .then((response) => response.data);
 };
 

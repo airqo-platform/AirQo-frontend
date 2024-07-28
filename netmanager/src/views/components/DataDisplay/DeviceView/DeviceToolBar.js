@@ -18,7 +18,7 @@ import {
 import Collapse from '@material-ui/core/Collapse';
 import Link from '@material-ui/core/Link';
 import Hidden from '@material-ui/core/Hidden';
-import { useDeviceOverviewBackUrlsData } from 'redux/Urls/selectors';
+import { useDeviceOverviewBackUrlsData } from 'reducer/Urls/selectors';
 import { last } from 'underscore';
 
 const a11yProps = (index) => {

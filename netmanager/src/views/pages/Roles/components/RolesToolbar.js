@@ -11,10 +11,10 @@ import {
   Dialog,
   DialogActions
 } from '@material-ui/core';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { addRoleApi, assignPermissionsToRoleApi } from '../../../apis/accessControl';
 import OutlinedSelect from '../../../components/CustomSelects/OutlinedSelect';
-import { loadRolesSummary } from 'redux/AccessControl/operations';
+import { loadRolesSummary } from 'reducer/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {

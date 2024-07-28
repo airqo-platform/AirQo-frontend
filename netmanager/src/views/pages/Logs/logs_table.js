@@ -4,7 +4,7 @@ import CustomMaterialTable from 'views/components/Table/CustomMaterialTable';
 import { Typography } from '@material-ui/core';
 import { getFirstNDurations, getElapsedDurationMapper } from 'utils/dateTime';
 import { useDispatch } from 'react-redux';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 
 const LogsTable = ({ service }) => {

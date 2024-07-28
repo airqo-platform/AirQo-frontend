@@ -3,7 +3,7 @@ import React, { Component } from "react";
 import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { forgotPassword } from "../../../redux/Join/actions";
+import { forgotPassword } from "../../../reducer/Join/actions";
 import { Link, withRouter } from "react-router-dom";
 import classnames from "classnames";
 import { forgotPasswordResetApi } from "../../apis/authService";
@@ -11,7 +11,7 @@ import Alert from "@material-ui/lab/Alert";
 import { CardContent } from "@material-ui/core";
 import Grid from "@material-ui/core/Grid";
 import AlertMinimal from "../../layouts/AlertsMininal";
-import { updateMainAlert } from "redux/MainAlert/operations";
+import { updateMainAlert } from "reducer/MainAlert/operations";
 import TextField from "@material-ui/core/TextField";
 
 const title = {
