@@ -23,3 +23,6 @@ ENV NODE_ENV=production
 RUN npm run web-build
 
 EXPOSE 80
+
+# Use serve to serve the static files
+CMD ["serve", "-s", "build", "-l", "80"]

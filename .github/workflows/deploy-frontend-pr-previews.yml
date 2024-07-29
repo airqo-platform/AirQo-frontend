@@ -140,7 +140,6 @@ jobs:
             --region=${{ secrets.REGION }} \
             --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }} \
             --platform=managed \
-            --port=80 \
             --allow-unauthenticated
 
       - name: Get preview service URL
