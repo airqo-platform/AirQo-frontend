@@ -1,12 +1,23 @@
-FROM nginx:1.13.12-alpine as base
+# Use an official Node runtime as a parent image
+FROM node:14
 
-# nginx configuration
-COPY ./nginx.conf /etc/nginx/nginx.conf
+# Set the working directory
+WORKDIR /app
 
-# move build folder to nginx
-COPY ./build /usr/share/nginx/html
+# Copy the package.json and package-lock.json files
+COPY package*.json ./
 
-# expose the product on port 80
-EXPOSE 80
+# Install dependencies
+RUN npm install
 
-CMD ["nginx", "-g", "daemon off;"]
+# Copy the rest of the application code
+COPY . .
+
+# Install serve globally to serve the built app
+RUN npm install -g serve
+
+# Set the environment variable to serve production build
+ENV NODE_ENV=production
+
+# Build the application using Webpack
+RUN npm run web-build

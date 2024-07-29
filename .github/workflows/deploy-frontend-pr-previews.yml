@@ -91,12 +91,8 @@ jobs:
 
   ### deploy netmanager preview ###
   netmanager:
-    name: build-push-deploy-netmanager-preview
-    needs: [check, branch-name]
-    if: needs.check.outputs.run_netmanager == 'true'
+    name: Build and Deploy Netmanager
     runs-on: ubuntu-latest
-    outputs:
-      url: ${{ steps.preview-url.outputs.url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -106,59 +102,55 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
-      - name: Setup Cloud SDK(gcloud)
+      - name: Setup Cloud SDK (gcloud)
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
         run: gcloud secrets versions access latest --secret="sta-env-netmanager" > netmanager/.env
 
-      - name: npm Install and Build
-        uses: actions/setup-node@v2
-        with:
-          node-version: "14"
-      - run: |
-          cd netmanager/
-          npm install
-          CI=false npm run web-build
+      # - name: Install Node.js and npm
+      #   uses: actions/setup-node@v2
+      #   with:
+      #     node-version: "12"
+
+      # - name: Install dependencies and build
+      #   run: |
+      #     cd netmanager/
+      #     npm install
+      #     npm run web-build
 
       - name: Login to GCR
         uses: docker/login-action@v2
         with:
-          registry: ${{ env.REGISTRY_URL }}
+          registry: ${{ secrets.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCP_SA_CREDENTIALS }}
 
-      - name: Build and Push Image
+      - name: Build and Push Docker Image
         run: |
           cd netmanager/
-          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ./
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:latest
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:latest
+          docker build -t ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }} .
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }}
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:latest
 
       - name: Deploy to Cloud Run
         run: |-
-          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
+          gcloud run deploy netmanager-preview \
             --region=${{ secrets.REGION }} \
-            --max-instances=10 \
-            --timeout=60 \
-            --concurrency=10 \
-            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} \
+            --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }} \
+            --platform=managed \
             --port=80 \
-            --cpu=1000m \
-            --memory=256Mi \
-            --update-secrets=/etc/env/.env=sta-env-netmanager:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g 'daemon off;'" \
             --allow-unauthenticated
 
-      - name: Get preview service url
+      - name: Get preview service URL
         id: preview-url
         run: |
-          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
-            --format='value(status.url)' \
+          service_url=$(gcloud run services describe netmanager-preview \
             --platform managed \
-            --region ${{ secrets.REGION }})
-          echo "url=${service_url}" >>$GITHUB_OUTPUT
+            --region ${{ secrets.REGION }} \
+            --format 'value(status.url)')
+          echo "url=${service_url}" >> $GITHUB_OUTPUT
 
   netmanager-pr-comment:
     name: netmanager-preview-link-comment
