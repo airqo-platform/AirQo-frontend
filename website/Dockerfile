@@ -1,4 +1,4 @@
-# Building frontend
+# Stage 1: Build frontend
 FROM node:20-slim as frontend
 
 WORKDIR /app
@@ -31,6 +31,7 @@ COPY ./webpack.config.js ./.babelrc /app/
 COPY ./frontend /app/frontend
 RUN npm run build
 
+# Stage 2: Build backend
 FROM python:3.12-slim
 
 WORKDIR /app
