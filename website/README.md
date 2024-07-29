@@ -1,4 +1,4 @@
-# AirQo Website.
+# AirQo Websites
 
 ##
 
