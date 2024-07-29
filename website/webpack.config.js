@@ -9,38 +9,6 @@ dotenv.config();
 
 const ROOT = path.resolve(__dirname, 'frontend');
 
-function stripLoaderConfig() {
-  return {
-    loader: 'strip-loader',
-    options: {
-      strip: [
-        'assert',
-        'typeCheck',
-        'log.log',
-        'log.debug',
-        'log.deprecate',
-        'log.info',
-        'log.warn'
-      ]
-    }
-  };
-}
-
-function compact(items) {
-  return items.filter((item) => item);
-}
-
-function postCSSLoader() {
-  return {
-    loader: 'postcss-loader',
-    options: {
-      postcssOptions: {
-        plugins: [['postcss-preset-env', {}]]
-      }
-    }
-  };
-}
-
 function strToBool(str) {
   const truthy = ['true', '0', 'yes', 'y'];
   return truthy.includes((str || '').toLowerCase());
@@ -71,10 +39,6 @@ const config = () => {
 
     return prev;
   }, {});
-
-  function prodOnly(x) {
-    return NODE_ENV === 'production' ? x : undefined;
-  }
 
   return {
     context: path.resolve(__dirname),
@@ -108,26 +72,20 @@ const config = () => {
         {
           test: /\.(js|jsx|ts|tsx)$/,
           exclude: /node_modules/,
-          use: compact([
+          use: [
             {
               loader: 'babel-loader'
-            },
-            prodOnly(stripLoaderConfig())
-          ])
+            }
+          ]
         },
 
         {
           test: /\.css$/,
-          use: compact([{ loader: 'style-loader' }, { loader: 'css-loader' }, postCSSLoader()])
+          use: [{ loader: 'style-loader' }, { loader: 'css-loader' }]
         },
         {
           test: /\.s[ac]ss$/i,
-          use: compact([
-            { loader: 'style-loader' },
-            { loader: 'css-loader' },
-            postCSSLoader(),
-            { loader: 'sass-loader' }
-          ])
+          use: [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'sass-loader' }]
         },
         {
           test: /\.webp$/,
@@ -160,11 +118,11 @@ const config = () => {
     },
 
     optimization: {
-      minimize: NODE_ENV === 'production',
+      minimize: true,
       minimizer: [new TerserPlugin()]
     },
 
-    plugins: compact([
+    plugins: [
       new webpack.DefinePlugin(envKeys),
       new CompressionPlugin({
         test: /\.(js|css|html|svg)$/,
@@ -176,9 +134,8 @@ const config = () => {
       new DeadCodePlugin({
         patterns: ['frontend/**/*.*'],
         exclude: ['**/*.test.js', '**/*.spec.js']
-      }),
-      prodOnly(new webpack.optimize.ModuleConcatenationPlugin())
-    ])
+      })
+    ]
   };
 };
 
