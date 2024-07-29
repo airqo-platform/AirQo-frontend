@@ -22,4 +22,4 @@ ENV NODE_ENV=production
 # Build the application using Webpack
 RUN npm run web-build
 
-EXPOSE 5000
+EXPOSE 80
