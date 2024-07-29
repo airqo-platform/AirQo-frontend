@@ -532,6 +532,9 @@ jobs:
           echo "service: website-pr-previews" >> app.yaml
           echo "includes:" >> app.yaml
           echo "  - .env.yaml" >> app.yaml
+          echo "runtime_config:" >> app.yaml
+          echo "  operating_system: \"ubuntu22\"" >> app.yaml
+          echo "  runtime_version: \"3.12\"" >> app.yaml
           echo "========== Creating .env.yaml file =========="  
           echo "env_variables:" > .env.yaml
           echo "  SECRET: ${{ secrets.WEBSITE_SECRET }}" >> .env.yaml
