@@ -2,6 +2,8 @@ const path = require('path');
 const webpack = require('webpack');
 const dotenv = require('dotenv');
 const TerserPlugin = require('terser-webpack-plugin');
+const CompressionPlugin = require('compression-webpack-plugin');
+const DeadCodePlugin = require('webpack-deadcode-plugin');
 
 dotenv.config();
 
@@ -120,7 +122,20 @@ const config = () => {
       minimizer: [new TerserPlugin()]
     },
 
-    plugins: [new webpack.DefinePlugin(envKeys)]
+    plugins: [
+      new webpack.DefinePlugin(envKeys),
+      new CompressionPlugin({
+        test: /\.(js|css|html|svg)$/,
+        filename: '[path][base].gz',
+        algorithm: 'gzip',
+        threshold: 10240,
+        minRatio: 0.8
+      }),
+      new DeadCodePlugin({
+        patterns: ['frontend/**/*.*'],
+        exclude: ['**/*.test.js', '**/*.spec.js']
+      })
+    ]
   };
 };
 
