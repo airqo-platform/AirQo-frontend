@@ -19,7 +19,7 @@ RUN npm install -g serve
 # Set the environment variable to serve production build
 ENV NODE_ENV=production
 
-# Build the application using Webpack
+# Build the application using Webpack 
 RUN npm run web-build
 
 EXPOSE 80
