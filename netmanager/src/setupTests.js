@@ -7,7 +7,7 @@ import '@testing-library/jest-dom';
 import '@testing-library/jest-dom/extend-expect';
 import Enzyme from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
-import rootReducer from './reducer/redux';
+import rootReducer from './reducer';
 
 window.URL.createObjectURL = function () {};
 Enzyme.configure({ adapter: new Adapter() });
