@@ -1,7 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const dotenv = require('dotenv');
-// const TerserPlugin = require('terser-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 dotenv.config();
 
@@ -116,8 +116,8 @@ const config = () => {
     },
 
     optimization: {
-      minimize: true
-      // minimizer: [new TerserPlugin()]
+      minimize: true,
+      minimizer: [new TerserPlugin()]
     },
 
     plugins: [new webpack.DefinePlugin(envKeys)]
