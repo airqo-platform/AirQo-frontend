@@ -52,7 +52,7 @@ export default function Header() {
 
   const handleLogout = () => {
     setLoading(true);
-    signOut().then(() => {
+    signOut({ callbackUrl: '/reports/login' }).then(() => {
       setLoading(false);
     });
     // clear all local storage data
