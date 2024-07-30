@@ -2,11 +2,11 @@
 import React, { useState } from 'react';
 import FormComponent from '@/components/authForm';
 import { Input } from '@/components/ui/input';
-import { FaRegEye } from 'react-icons/fa';
-import { FaRegEyeSlash } from 'react-icons/fa';
+import { FaRegEye, FaRegEyeSlash } from 'react-icons/fa';
 
 const Page = () => {
   const [showPassword, setShowPassword] = useState(false);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-600">
       <FormComponent btnText="Login">
@@ -30,12 +30,12 @@ const Page = () => {
           <span className="absolute inset-y-0 right-0 flex items-center pr-3">
             {showPassword ? (
               <FaRegEyeSlash
-                className="h-6 text-gray-500 dark:text-gray-400"
+                className="h-6 text-gray-500 dark:text-gray-400 cursor-pointer"
                 onClick={() => setShowPassword(!showPassword)}
               />
             ) : (
               <FaRegEye
-                className="h-6 text-gray-500 dark:text-gray-400"
+                className="h-6 text-gray-500 dark:text-gray-400 cursor-pointer"
                 onClick={() => setShowPassword(!showPassword)}
               />
             )}

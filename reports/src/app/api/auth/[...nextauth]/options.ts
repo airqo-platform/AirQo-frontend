@@ -39,7 +39,7 @@ export const options = {
     signOut: '/reports/login',
     error: '/reports/error',
   },
-  secret: process.env.NEXTAUTH_SECRET || process.env.NEXT_PUBLIC_AUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
     jwt: async ({ token, user }: any) => {
       if (user) {
