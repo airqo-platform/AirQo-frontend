@@ -2,13 +2,13 @@ import React from 'react';
 import { render, fireEvent, waitFor, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
-import { createStore } from 'redux';
-import RootReducer from '../../redux';
+import { configureStore } from '@reduxjs/toolkit';
+import RootReducer from '../../reducer';
 import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import Register from '../../views/pages/SignUp/Register';
 
 const theme = createMuiTheme();
-const store = createStore(RootReducer);
+const store = configureStore(RootReducer);
 
 // Mock auth context
 const mockAuthContext = {

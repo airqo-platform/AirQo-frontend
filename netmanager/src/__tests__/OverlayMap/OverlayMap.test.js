@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { useDispatch } from 'react-redux';
-import { loadPM25HeatMapData, loadMapEventsData } from 'redux/MapData/operations';
+import { loadPM25HeatMapData, loadMapEventsData } from 'reducer/MapData/operations';
 import MapContainer from './MapContainer';
 
 jest.mock('react-redux', () => ({

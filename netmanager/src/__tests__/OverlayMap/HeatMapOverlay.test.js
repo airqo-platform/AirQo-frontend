@@ -7,11 +7,11 @@ import thunk from 'redux-thunk';
 import HeatMapOverlay from '../../views/pages/Heatmap/HeatMapOverlay';
 
 // Mock the specific actions
-jest.mock('../../redux/MapData/operations', () => ({
+jest.mock('../../reducer/MapData/operations', () => ({
   loadPM25HeatMapData: jest.fn().mockReturnValue(() => Promise.resolve())
 }));
 
-jest.mock('../../redux/MapData/operations', () => ({
+jest.mock('../../reducer/MapData/operations', () => ({
   loadMapEventsData: jest.fn().mockReturnValue(() => Promise.resolve())
 }));
 
