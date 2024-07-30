@@ -91,7 +91,9 @@ jobs:
 
   ### deploy netmanager preview ###
   netmanager:
-    name: Build and Deploy Netmanager
+    name: build-push-deploy-netmanager-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.run_netmanager == 'true'
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
@@ -127,11 +129,8 @@ jobs:
 
       - name: Deploy to Cloud Run
         run: |-
-          gcloud run deploy netmanager-preview \
+          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
             --region=${{ secrets.REGION }} \
-            --max-instances=10 \
-            --concurrency=10 \
-            --timeout=60 \
             --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }} \
             --cpu=1000m \
             --memory=256Mi \
