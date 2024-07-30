@@ -9,7 +9,7 @@ interface ErrorProps {
   error: Error & { digest?: string };
 }
 
-const Error: React.FC<ErrorProps> = ({ error }) => {
+const ErrorComponent: React.FC<ErrorProps> = ({ error }) => {
   const router = useRouter();
   useEffect(() => {
     console.error(error);
@@ -50,4 +50,4 @@ const Error: React.FC<ErrorProps> = ({ error }) => {
   );
 };
 
-export default Error;
+export default ErrorComponent;
