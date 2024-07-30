@@ -63,12 +63,8 @@ module.exports = {
       favicon: path.resolve(__dirname, 'public', 'favicon.ico'),
     }),
     new SettingsGeneratorPlugin({
-      API_BASE_URL: process.env.API_BASE_URL || 'https://default-api-url.com',
+      API_BASE_URL: process.env.API_BASE_URL || 'https://staging-platform.airqo.net/api/v1',
     }),
 
-    new webpack.IgnorePlugin({
-      resourceRegExp: /^redux$/,
-      contextRegExp: /@reduxjs\/toolkit/,
-    }),
   ],
 };
