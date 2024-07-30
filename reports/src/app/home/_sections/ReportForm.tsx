@@ -1,8 +1,8 @@
-import React, { useState, FormEvent } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { FaDownload } from "react-icons/fa";
+import React, { useState, FormEvent } from 'react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { FaDownload } from 'react-icons/fa';
 import {
   Select,
   SelectContent,
@@ -10,75 +10,74 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { toast } from "sonner";
-import { DatePickerWithRange } from "@/components/datePicker";
-import { getReportData } from "@/services/api";
-import { useRouter } from "next/navigation";
-import { useDispatch } from "react-redux";
+} from '@/components/ui/select';
+import { toast } from 'sonner';
+import { DatePickerWithRange } from '@/components/datePicker';
+import { getReportData } from '@/services/api';
+import { useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
 import {
   setStartDate,
   setEndDate,
   setReportTitle,
   setReportTemplate,
   setReportData,
-} from "@/lib/reduxSlices/reportSlice";
-import { v4 as uuidv4 } from "uuid";
-import { MdOutlineAppShortcut } from "react-icons/md";
+} from '@/lib/reduxSlices/reportSlice';
+import { v4 as uuidv4 } from 'uuid';
+import { MdOutlineAppShortcut } from 'react-icons/md';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { IoInformationCircleSharp } from "react-icons/io5";
-import { RingLoader } from "react-spinners";
-import { useTheme } from "next-themes";
+} from '@/components/ui/tooltip';
+import { IoInformationCircleSharp } from 'react-icons/io5';
+import { RingLoader } from 'react-spinners';
+import { useTheme } from 'next-themes';
 import {
   formatISO,
   addDays,
   differenceInDays,
   subDays,
-  subMonths,
   startOfQuarter,
   subQuarters,
-} from "date-fns";
+} from 'date-fns';
 
-const reportTypes = [{ value: "airqo", label: "AirQo Template" }];
+const reportTypes = [{ value: 'airqo', label: 'AirQo Template' }];
 
 const ReportForm = ({ grids }: any) => {
   const dispatch = useDispatch();
   const router = useRouter();
   const { theme } = useTheme();
-  const loaderColor = theme === "dark" ? "#fff" : "#013ee6";
+  const loaderColor = theme === 'dark' ? '#fff' : '#013ee6';
   const [isLoading, setIsLoading] = useState(false);
   const [showShortCut, setShowShortCut] = useState(false);
-  const [selectedButton, setSelectedButton] = useState("last-7-days");
+  const [selectedButton, setSelectedButton] = useState('last-7-days');
 
   // Get today's date and the date 7 days ago
   const today = new Date();
   const lastWeek = addDays(today, -7);
 
   const [formState, setFormState] = useState({
-    title: "",
-    reportTemplate: "",
-    location: "",
+    title: '',
+    reportTemplate: '',
+    location: '',
     dateRange: { from: lastWeek, to: today },
   });
 
   const handleClearForm = () => {
     setFormState({
-      title: "",
-      reportTemplate: "",
-      location: "",
+      title: '',
+      reportTemplate: '',
+      location: '',
       dateRange: { from: lastWeek, to: today },
     });
 
-    toast.success("Form cleared successfully", {
+    toast.success('Form cleared successfully', {
       style: {
-        background: "green",
-        color: "white",
-        border: "none",
+        background: 'green',
+        color: 'white',
+        border: 'none',
       },
     });
   };
@@ -103,11 +102,11 @@ const ReportForm = ({ grids }: any) => {
       !dateRange.from ||
       !dateRange.to
     ) {
-      toast.error("All fields are required", {
+      toast.error('All fields are required', {
         style: {
-          background: "red",
-          color: "white",
-          border: "none",
+          background: 'red',
+          color: 'white',
+          border: 'none',
         },
       });
       return;
@@ -116,11 +115,11 @@ const ReportForm = ({ grids }: any) => {
     const diffDays = differenceInDays(dateRange.to, dateRange.from);
 
     if (diffDays > 120) {
-      toast.info("Date range should not exceed 120 days", {
+      toast.info('Date range should not exceed 120 days', {
         style: {
-          background: "blue",
-          color: "white",
-          border: "none",
+          background: 'blue',
+          color: 'white',
+          border: 'none',
         },
       });
       return;
@@ -131,8 +130,8 @@ const ReportForm = ({ grids }: any) => {
     const data = {
       grid_id: location,
       start_time:
-        formatISO(dateRange.from, { representation: "date" }) + "T00:00",
-      end_time: formatISO(dateRange.to, { representation: "date" }) + "T00:00",
+        formatISO(dateRange.from, { representation: 'date' }) + 'T00:00',
+      end_time: formatISO(dateRange.to, { representation: 'date' }) + 'T00:00',
     };
 
     try {
@@ -144,18 +143,18 @@ const ReportForm = ({ grids }: any) => {
       dispatch(setReportTemplate(reportTemplate));
       dispatch(setReportData(response.airquality));
 
-      toast.success("Finalizing report data", {
+      toast.success('Finalizing report data', {
         style: {
-          background: "green",
-          color: "white",
-          border: "none",
+          background: 'green',
+          color: 'white',
+          border: 'none',
         },
       });
 
       setFormState({
-        title: "",
-        reportTemplate: "",
-        location: "",
+        title: '',
+        reportTemplate: '',
+        location: '',
         dateRange: {
           from: new Date(),
           to: new Date(),
@@ -163,20 +162,20 @@ const ReportForm = ({ grids }: any) => {
       });
 
       const uuid = uuidv4();
-      const idWithoutHyphens = uuid.replace(/-/g, "");
+      const idWithoutHyphens = uuid.replace(/-/g, '');
       const randomId = idWithoutHyphens.substring(0, 16);
 
-      router.push(`/reports/report/${randomId}`);
+      router.push(`/home/${randomId}`);
     } catch (error: any) {
       const errorMessage =
         error?.response?.data.message ||
         error.message ||
-        "Server timeout, please try again later";
+        'Server timeout, please try again later';
       toast.error(errorMessage, {
         style: {
-          background: "red",
-          color: "white",
-          border: "none",
+          background: 'red',
+          color: 'white',
+          border: 'none',
         },
       });
     } finally {
@@ -186,9 +185,9 @@ const ReportForm = ({ grids }: any) => {
 
   const getButtonClass = (buttonId: string) => {
     return `${
-      selectedButton === buttonId ? "bg-green-700" : "bg-blue-700"
+      selectedButton === buttonId ? 'bg-green-700' : 'bg-blue-700'
     } hover:${
-      selectedButton === buttonId ? "bg-green-800" : "bg-blue-800"
+      selectedButton === buttonId ? 'bg-green-800' : 'bg-blue-800'
     } text-white p-2`;
   };
 
@@ -214,7 +213,7 @@ const ReportForm = ({ grids }: any) => {
                 className="dark:text-gray-500"
                 placeholder="Enter report title"
                 value={formState.title}
-                onChange={(e) => handleChange("title", "")(e.target.value)}
+                onChange={(e) => handleChange('title', '')(e.target.value)}
               />
             </div>
 
@@ -223,7 +222,7 @@ const ReportForm = ({ grids }: any) => {
               <Select
                 name="reportTemplate"
                 onValueChange={(value) =>
-                  handleChange("reportTemplate", "")(value)
+                  handleChange('reportTemplate', '')(value)
                 }
                 value={formState.reportTemplate}
               >
@@ -249,7 +248,7 @@ const ReportForm = ({ grids }: any) => {
               <Label htmlFor="Locations">Select location</Label>
               <Select
                 name="location"
-                onValueChange={(value) => handleChange("location", "")(value)}
+                onValueChange={(value) => handleChange('location', '')(value)}
                 value={formState.location}
               >
                 <SelectTrigger id="Locations" className="dark:text-gray-500">
@@ -260,7 +259,7 @@ const ReportForm = ({ grids }: any) => {
                     {grids
                       .filter(
                         (grid: any) =>
-                          !["country", "region"].includes(grid.admin_level)
+                          !['country', 'region'].includes(grid.admin_level)
                       )
                       .map((type: { _id: string; long_name: string }) => (
                         <SelectItem key={type._id} value={type._id}>
@@ -295,7 +294,7 @@ const ReportForm = ({ grids }: any) => {
                     className="dark:text-gray-500"
                     value={formState.dateRange}
                     onChange={(value: any) =>
-                      handleChange("dateRange", "")(value)
+                      handleChange('dateRange', '')(value)
                     }
                   />
                   <TooltipProvider>
@@ -338,13 +337,13 @@ const ReportForm = ({ grids }: any) => {
 
                     <Button
                       type="button"
-                      className={getButtonClass("last-7-days")}
+                      className={getButtonClass('last-7-days')}
                       onClick={() => {
                         const today = new Date();
                         const lastWeek = subDays(today, 7);
                         handleChange(
-                          "dateRange",
-                          "last-7-days"
+                          'dateRange',
+                          'last-7-days'
                         )({
                           from: lastWeek,
                           to: today,
@@ -355,13 +354,13 @@ const ReportForm = ({ grids }: any) => {
                     </Button>
                     <Button
                       type="button"
-                      className={getButtonClass("last-30-days")}
+                      className={getButtonClass('last-30-days')}
                       onClick={() => {
                         const today = new Date();
                         const lastMonth = subDays(today, 30);
                         handleChange(
-                          "dateRange",
-                          "last-30-days"
+                          'dateRange',
+                          'last-30-days'
                         )({
                           from: lastMonth,
                           to: today,
@@ -372,7 +371,7 @@ const ReportForm = ({ grids }: any) => {
                     </Button>
                     <Button
                       type="button"
-                      className={getButtonClass("last-quarter")}
+                      className={getButtonClass('last-quarter')}
                       onClick={() => {
                         const today = new Date();
                         const startOfCurrentQuarter = startOfQuarter(today);
@@ -381,8 +380,8 @@ const ReportForm = ({ grids }: any) => {
                           1
                         );
                         handleChange(
-                          "dateRange",
-                          "last-quarter"
+                          'dateRange',
+                          'last-quarter'
                         )({
                           from: lastQuarter,
                           to: startOfCurrentQuarter,

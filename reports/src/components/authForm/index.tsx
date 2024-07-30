@@ -1,12 +1,13 @@
-import React, { useState, FormEvent, ReactNode } from "react";
-import Image from "next/image";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import AirQoLogo from "@/public/images/airqo.png";
-import { Card, CardContent } from "@/components/ui/card";
-import { ScaleLoader } from "react-spinners";
+'use client';
+import React, { useState, FormEvent, ReactNode } from 'react';
+import Image from 'next/image';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import AirQoLogo from '@/public/images/airqo.png';
+import { Card, CardContent } from '@/components/ui/card';
+import { ScaleLoader } from 'react-spinners';
 
 interface FormComponentProps {
   children: ReactNode;
@@ -25,28 +26,25 @@ const Index: React.FC<FormComponentProps> = ({ children, btnText }) => {
     const data = Object.fromEntries(formData.entries());
 
     try {
-      const result = await signIn("credentials", {
+      const result = await signIn('credentials', {
         redirect: false,
         ...data,
       });
 
       if (result?.status === 200) {
-        toast.success("Logged in successfully", {
-          style: { background: "green", color: "white", border: "none" },
-          position: "top-center",
+        toast.success('User authenticated successfully', {
+          style: { background: 'green', color: 'white', border: 'none' },
         });
-        router.push(`${process.env.NEXT_PUBLIC_BASE_URL}/reports/report`);
+        router.push('/home');
         return;
       } else {
         toast.error(<div className="capitalize">{result?.error}</div>, {
-          position: "top-center",
-          style: { background: "red", color: "white", border: "none" },
+          style: { background: 'red', color: 'white', border: 'none' },
         });
       }
     } catch (error) {
-      toast.error("Failed to log in, please try again", {
-        position: "top-center",
-        style: { background: "red", color: "white", border: "none" },
+      toast.error('Failed to log in, please try again', {
+        style: { background: 'red', color: 'white', border: 'none' },
       });
     } finally {
       setLoading(false);

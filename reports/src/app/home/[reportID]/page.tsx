@@ -1,7 +1,7 @@
-"use client";
-import React, { useMemo } from "react";
-import MainLayout from "@/layout/MainLayout";
-import { useAppSelector } from "@/lib/utils";
+'use client';
+import React, { useMemo } from 'react';
+import MainLayout from '@/layout/MainLayout';
+import { useAppSelector } from '@/lib/utils';
 
 import {
   Breadcrumb,
@@ -9,32 +9,31 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Button } from "@/components/ui/button";
-import { BlobProvider } from "@react-pdf/renderer";
-import Template1 from "@/components/reportTemplates/template1";
-import { Parser } from "json2csv";
-import { ClipLoader } from "react-spinners";
-import { useTheme } from "next-themes";
-import Link from "next/link";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+} from '@/components/ui/breadcrumb';
+import { Button } from '@/components/ui/button';
+import { BlobProvider } from '@react-pdf/renderer';
+import Template1 from '@/components/reportTemplates/template1';
+import { ClipLoader } from 'react-spinners';
+import { useTheme } from 'next-themes';
+import Link from 'next/link';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 interface IReport {
   reportID: string;
 }
 
 const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
   });
 };
 
 export default function ReportPage({ params }: { params: IReport }) {
   const reportData = useAppSelector((state) => state.report);
   const { theme } = useTheme();
-  const loaderColor = theme === "dark" ? "#fff" : "#013ee6";
+  const loaderColor = theme === 'dark' ? '#fff' : '#013ee6';
 
   const formattedStartDate = useMemo(
     () => formatDate(reportData.startDate),
@@ -52,7 +51,7 @@ export default function ReportPage({ params }: { params: IReport }) {
         <Breadcrumb className="w-full py-4 px-2 border border-gray-400 rounded-md">
           <BreadcrumbList>
             <BreadcrumbItem>
-              <Link href="/reports/report" className="text-blue-600">
+              <Link href="/home" className="text-blue-600">
                 Home
               </Link>
             </BreadcrumbItem>
@@ -92,7 +91,7 @@ export default function ReportPage({ params }: { params: IReport }) {
         </div>
         <div>
           <BlobProvider document={<Template1 data={reportData?.reportData} />}>
-            {({ blob, url, loading, error }) => {
+            {({ url, loading, error }) => {
               if (error) {
                 console.error(error);
                 return (
@@ -112,8 +111,8 @@ export default function ReportPage({ params }: { params: IReport }) {
               ) : (
                 <div className="space-x-3">
                   <a
-                    href={url ? url : "#"}
-                    download={`${reportData.reportTitle.replace(/ /g, "")}.pdf`}
+                    href={url ? url : '#'}
+                    download={`${reportData.reportTitle.replace(/ /g, '')}.pdf`}
                   >
                     <Button className="bg-blue-600 text-white hover:bg-blue-700">
                       Download Report

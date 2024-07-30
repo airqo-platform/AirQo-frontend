@@ -1,21 +1,20 @@
-import axios from "axios";
-import CredentialsProvider from "next-auth/providers/credentials";
+import axios from 'axios';
+import CredentialsProvider from 'next-auth/providers/credentials';
 
 export const options = {
   providers: [
     CredentialsProvider({
-      id: "credentials",
-      name: "Credentials",
+      id: 'credentials',
+      name: 'Credentials',
       credentials: {},
       async authorize(
-        credentials: { email?: string; password?: string } | undefined,
-        req: any
+        credentials: { email?: string; password?: string } | undefined
       ) {
         if (!credentials) {
-          throw new Error("No credentials provided");
+          throw new Error('No credentials provided');
         }
 
-        const { email: userName = "", password = "" } = credentials;
+        const { email: userName = '', password = '' } = credentials;
 
         try {
           const url = `${process.env.NEXT_PUBLIC_API_URL}/users/loginUser`;
@@ -28,7 +27,7 @@ export const options = {
             return response;
           }
 
-          throw new Error("User not found");
+          throw new Error('User not found');
         } catch (error: any) {
           throw new Error(error.response.data.message || error.message);
         }
@@ -36,9 +35,9 @@ export const options = {
     }),
   ],
   pages: {
-    signIn: "/reports/login",
-    signOut: "/reports/login",
-    error: "/reports/error",
+    signIn: '/reports/login',
+    signOut: '/reports/login',
+    error: '/reports/error',
   },
   secret: process.env.NEXTAUTH_SECRET || process.env.NEXT_PUBLIC_AUTH_SECRET,
   callbacks: {

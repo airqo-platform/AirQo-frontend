@@ -1,9 +1,9 @@
-"use client";
-import { configureStore, combineReducers } from "@reduxjs/toolkit";
-import { persistReducer } from "redux-persist";
-import reportSlice from "./reduxSlices/reportSlice";
-import gridsSlice from "./reduxSlices/gridSlice";
-import createWebStorage from "redux-persist/lib/storage/createWebStorage";
+'use client';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
+import { persistReducer } from 'redux-persist';
+import reportSlice from './reduxSlices/reportSlice';
+import gridsSlice from './reduxSlices/gridSlice';
+import createWebStorage from 'redux-persist/lib/storage/createWebStorage';
 
 const createNoopStorage = () => {
   return {
@@ -20,8 +20,8 @@ const createNoopStorage = () => {
 };
 
 const storage =
-  typeof window !== "undefined"
-    ? createWebStorage("local")
+  typeof window !== 'undefined'
+    ? createWebStorage('local')
     : createNoopStorage();
 
 const rootReducer = combineReducers({
@@ -30,7 +30,7 @@ const rootReducer = combineReducers({
 });
 
 const persistConfig = {
-  key: "root",
+  key: 'root',
   storage,
 };
 
@@ -50,5 +50,5 @@ export const makeStore = () => {
 };
 
 export type AppStore = ReturnType<typeof makeStore>;
-export type RootState = ReturnType<AppStore["getState"]>;
-export type AppDispatch = AppStore["dispatch"];
+export type RootState = ReturnType<AppStore['getState']>;
+export type AppDispatch = AppStore['dispatch'];
