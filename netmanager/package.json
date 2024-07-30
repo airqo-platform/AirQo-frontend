@@ -100,7 +100,7 @@
     "react-tooltip": "^4.2.9",
     "react-vis": "^1.12.1",
     "recharts": "^2.7.1",
-    "redux": "^4.2.1",
+    "redux": "^4.2.0",
     "redux-devtools-extension": "^2.13.8",
     "redux-thunk": "^2.3.0",
     "source-map-explorer": "^2.5.2",
