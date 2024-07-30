@@ -1,6 +1,6 @@
 // app/api/generateChart/route.tsx
-import { NextRequest, NextResponse } from "next/server";
-import ChartJsImage from "chartjs-to-image";
+import { NextRequest, NextResponse } from 'next/server';
+import ChartJsImage from 'chartjs-to-image';
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,19 +9,19 @@ export async function POST(req: NextRequest) {
     // Validate the request body
     if (
       !chartConfig ||
-      typeof width !== "number" ||
-      typeof height !== "number"
+      typeof width !== 'number' ||
+      typeof height !== 'number'
     ) {
-      console.error("Invalid request parameters", {
+      console.error('Invalid request parameters', {
         chartConfig,
         width,
         height,
       });
       return new NextResponse(
-        JSON.stringify({ error: "Invalid request parameters" }),
+        JSON.stringify({ error: 'Invalid request parameters' }),
         {
           status: 400,
-          headers: { "Content-Type": "application/json" },
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -34,17 +34,17 @@ export async function POST(req: NextRequest) {
     const url = await myChart.toDataUrl();
     return new NextResponse(JSON.stringify({ url }), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error("Error generating chart image:", error);
+    console.error('Error generating chart image:', error);
     return new NextResponse(
       JSON.stringify({
-        error: "An error occurred while generating the chart image.",
+        error: 'An error occurred while generating the chart image.',
       }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }
