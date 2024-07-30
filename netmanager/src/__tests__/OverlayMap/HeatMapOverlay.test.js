@@ -2,8 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
-import configureStore from 'redux-mock-store';
-import thunk from 'redux-thunk';
+import {configureStore} from '@reduxjs/toolkit';
 import HeatMapOverlay from '../../views/pages/Heatmap/HeatMapOverlay';
 
 // Mock the specific actions
@@ -15,7 +14,7 @@ jest.mock('../../reducer/MapData/operations', () => ({
   loadMapEventsData: jest.fn().mockReturnValue(() => Promise.resolve())
 }));
 
-const mockStore = configureStore([thunk]);
+const mockStore = configureStore();
 
 describe('HeatMapOverlay', () => {
   let store;
