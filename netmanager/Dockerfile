@@ -22,7 +22,6 @@ ENV NODE_ENV=production
 # Build the application using Webpack 
 RUN npm run web-build
 
-EXPOSE 80
+EXPOSE 8080
 
-# Use serve to serve the static files
-CMD ["serve", "-s", "build", "-l", "80"]
+CMD ["serve", "-s", "build", "-l", "8080"]
