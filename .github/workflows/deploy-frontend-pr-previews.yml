@@ -138,7 +138,7 @@ jobs:
             --cpu=1000m \
             --memory=256Mi \
             --update-secrets=/etc/env/.env=sta-env-netmanager:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; serve -s build -l $PORT" \
+            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; serve -s build -l 80" \
             --allow-unauthenticated
 
       - name: Get preview service URL
