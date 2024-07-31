@@ -134,9 +134,7 @@ jobs:
             --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }} \
             --cpu=1000m \
             --memory=256Mi \
-            --port=8080 \
             --allow-unauthenticated \
-            --update-env-vars=PORT=8080,OTHER_ENV_VARS_FROM_SECRETS
 
       - name: Get preview service URL
         id: preview-url

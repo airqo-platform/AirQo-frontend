@@ -23,7 +23,7 @@ ENV NODE_ENV=production
 RUN npm run web-build
 
 # Expose port 8080
-EXPOSE 8080
+EXPOSE 80
 
 # Start the application
-CMD ["serve", "-s", "build", "-l", "8080"]
+CMD ["serve", "-s", "build", "-l", "80"]
