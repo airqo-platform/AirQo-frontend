@@ -1,16 +1,15 @@
-"use client";
-import React, { useEffect } from "react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import ErrorBoundaryImage from "@/public/images/ErrorBoundary.png";
+'use client';
+import React, { useEffect } from 'react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import ErrorBoundaryImage from '@/public/images/ErrorBoundary.png';
 
 interface ErrorProps {
   error: Error & { digest?: string };
-  reset: () => void;
 }
 
-const Error: React.FC<ErrorProps> = ({ error, reset }) => {
+const ErrorComponent: React.FC<ErrorProps> = ({ error }) => {
   const router = useRouter();
   useEffect(() => {
     console.error(error);
@@ -40,7 +39,7 @@ const Error: React.FC<ErrorProps> = ({ error, reset }) => {
         <div>
           <Button
             type="button"
-            onClick={() => router.push("/report")}
+            onClick={() => router.push('/home')}
             className="px-6 py-3 text-lg font-medium text-white bg-blue-700 rounded hover:bg-blue-800"
           >
             Go Home
@@ -51,4 +50,4 @@ const Error: React.FC<ErrorProps> = ({ error, reset }) => {
   );
 };
 
-export default Error;
+export default ErrorComponent;

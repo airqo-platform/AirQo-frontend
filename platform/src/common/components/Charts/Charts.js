@@ -24,7 +24,7 @@ import {
   CustomizedAxisTick,
   CustomTooltipLineGraph,
   CustomTooltipBarGraph,
-  renderCustomizedLabel,
+  CustomReferenceLabel,
   colors,
 } from './components';
 
@@ -256,8 +256,15 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
                 onMouseLeave={handleMouseLeave}
               />
             ))}
-          <ReferenceLine y={WHO_STANDARD_VALUE} label={renderCustomizedLabel} stroke='red' />
           <CartesianGrid stroke='#ccc' strokeDasharray='5 5' vertical={false} />
+          <ReferenceLine
+            y={WHO_STANDARD_VALUE}
+            label={CustomReferenceLabel}
+            ifOverflow='extendDomain'
+            stroke='red'
+            strokeOpacity={1}
+            strokeDasharray={0}
+          />
           <XAxis
             dataKey='time'
             tick={<CustomizedAxisTick />}
@@ -330,8 +337,15 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
                 )
               ),
             )}
-          <ReferenceLine y={WHO_STANDARD_VALUE} label={renderCustomizedLabel} stroke='red' />
           <CartesianGrid stroke='#ccc' strokeDasharray='5 5' vertical={false} />
+          <ReferenceLine
+            y={WHO_STANDARD_VALUE}
+            label={CustomReferenceLabel}
+            ifOverflow='extendDomain'
+            stroke='red'
+            strokeOpacity={1}
+            strokeDasharray={0}
+          />
           <XAxis dataKey='time' tickLine={true} tick={<CustomizedAxisTick />} axisLine={false} />
           <YAxis
             axisLine={false}

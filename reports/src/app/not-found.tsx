@@ -1,12 +1,12 @@
-"use client";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+'use client';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 
 const NotFound = () => {
   const router = useRouter();
 
   const handleBack = () => {
-    router.push("/reports/report");
+    router.push('/home');
   };
 
   return (

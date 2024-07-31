@@ -32,7 +32,9 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
 
 ## The Application is Powered by the AirQo API
+
 https://docs.airqo.net/airqo-rest-api-documentation
 
 ## Image
+
 ![image](https://github.com/OchiengPaul442/reports/assets/97807374/c0e90578-3dd0-4116-b633-368da8e9b246)

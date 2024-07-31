@@ -1,8 +1,8 @@
 /* eslint-disable jsx-a11y/alt-text */
-"use client";
-import { FC, useEffect, useState, useMemo } from "react";
-import { Image } from "@react-pdf/renderer";
-import axios from "axios";
+'use client';
+import { FC, useEffect, useState, useMemo } from 'react';
+import { Image } from '@react-pdf/renderer';
+import axios from 'axios';
 
 interface BarChartProps {
   chartData: any;
@@ -16,45 +16,45 @@ interface BarChartProps {
 
 const getMonthColor = (label: string) => {
   const monthColors: { [key: string]: string } = {
-    Jan: "rgba(128, 0, 0, 0.7)", // Dark Red
-    Feb: "rgba(0, 0, 128, 0.7)", // Dark Blue
-    Mar: "rgba(128, 128, 0, 0.7)", // Olive
-    Apr: "rgba(0, 128, 0, 0.7)", // Dark Green
-    May: "rgba(128, 0, 128, 0.7)", // Purple
-    Jun: "rgba(139, 69, 19, 0.7)", // Saddle Brown
-    Jul: "rgba(0, 128, 128, 0.7)", // Teal
-    Aug: "rgba(184, 134, 11, 0.7)", // Dark Goldenrod
-    Sep: "rgba(0, 139, 139, 0.7)", // Dark Cyan
-    Oct: "rgba(85, 107, 47, 0.7)", // Dark Olive Green
-    Nov: "rgba(153, 50, 204, 0.7)", // Dark Orchid
-    Dec: "rgba(139, 0, 0, 0.7)", // Dark Red
+    Jan: 'rgba(128, 0, 0, 0.7)', // Dark Red
+    Feb: 'rgba(0, 0, 128, 0.7)', // Dark Blue
+    Mar: 'rgba(128, 128, 0, 0.7)', // Olive
+    Apr: 'rgba(0, 128, 0, 0.7)', // Dark Green
+    May: 'rgba(128, 0, 128, 0.7)', // Purple
+    Jun: 'rgba(139, 69, 19, 0.7)', // Saddle Brown
+    Jul: 'rgba(0, 128, 128, 0.7)', // Teal
+    Aug: 'rgba(184, 134, 11, 0.7)', // Dark Goldenrod
+    Sep: 'rgba(0, 139, 139, 0.7)', // Dark Cyan
+    Oct: 'rgba(85, 107, 47, 0.7)', // Dark Olive Green
+    Nov: 'rgba(153, 50, 204, 0.7)', // Dark Orchid
+    Dec: 'rgba(139, 0, 0, 0.7)', // Dark Red
   };
 
-  const monthAbbreviation = label.split(" ")[0];
-  return monthColors[monthAbbreviation] || "rgba(0, 0, 255, 0.4)";
+  const monthAbbreviation = label.split(' ')[0];
+  return monthColors[monthAbbreviation] || 'rgba(0, 0, 255, 0.4)';
 };
 
 export const BarChart: FC<BarChartProps> = ({
   chartData,
   width = 800,
   height = 400,
-  graphTitle = "",
-  xAxisTitle = "",
-  yAxisTitle = "",
+  graphTitle = '',
+  xAxisTitle = '',
+  yAxisTitle = '',
 }) => {
-  const [chartImageUrl, setChartImageUrl] = useState("");
+  const [chartImageUrl, setChartImageUrl] = useState('');
 
   const chartConfig = useMemo(
     () => ({
-      type: "bar",
+      type: 'bar',
       data: {
         ...chartData,
         datasets: chartData.datasets.map((dataset: any) => ({
           ...dataset,
           backgroundColor:
-            xAxisTitle === "Date"
+            xAxisTitle === 'Date'
               ? chartData.labels.map((label: any) => getMonthColor(label))
-              : "rgba(0, 0, 255, 0.4)",
+              : 'rgba(0, 0, 255, 0.4)',
         })),
       },
       options: {
@@ -62,7 +62,7 @@ export const BarChart: FC<BarChartProps> = ({
           display: true,
           text: graphTitle,
           fontSize: 20,
-          fontColor: "#000000",
+          fontColor: '#000000',
         },
         scales: {
           xAxes: [
@@ -70,13 +70,13 @@ export const BarChart: FC<BarChartProps> = ({
               scaleLabel: {
                 display: true,
                 labelString: xAxisTitle,
-                fontColor: "black",
+                fontColor: 'black',
               },
               ticks: {
                 autoSkip: false,
                 maxRotation: 45,
                 minRotation: 45,
-                fontColor: "black",
+                fontColor: 'black',
               },
             },
           ],
@@ -85,7 +85,7 @@ export const BarChart: FC<BarChartProps> = ({
               scaleLabel: {
                 display: true,
                 labelString: yAxisTitle,
-                fontColor: "black",
+                fontColor: 'black',
               },
             },
           ],
@@ -102,7 +102,7 @@ export const BarChart: FC<BarChartProps> = ({
 
   useEffect(() => {
     const generateChart = async () => {
-      const response = await axios.post("/api/generateChart", {
+      const response = await axios.post('/reports/api/generateChart', {
         chartConfig,
         width,
         height,
@@ -121,20 +121,20 @@ export const LineChart: FC<BarChartProps> = ({
   chartData,
   width = 800,
   height = 300,
-  graphTitle = "",
-  xAxisTitle = "",
-  yAxisTitle = "",
+  graphTitle = '',
+  xAxisTitle = '',
+  yAxisTitle = '',
 }) => {
-  const [chartImageUrl, setChartImageUrl] = useState("");
+  const [chartImageUrl, setChartImageUrl] = useState('');
 
   const chartConfig = useMemo(
     () => ({
-      type: "line",
+      type: 'line',
       data: {
         ...chartData,
         datasets: chartData.datasets.map((dataset: any) => ({
           ...dataset,
-          backgroundColor: "rgba(0, 0, 255, 0.4)",
+          backgroundColor: 'rgba(0, 0, 255, 0.4)',
         })),
       },
       options: {
@@ -142,7 +142,7 @@ export const LineChart: FC<BarChartProps> = ({
           display: true,
           text: graphTitle,
           fontSize: 20,
-          fontColor: "#000000",
+          fontColor: '#000000',
         },
         scales: {
           xAxes: [
@@ -150,13 +150,13 @@ export const LineChart: FC<BarChartProps> = ({
               scaleLabel: {
                 display: true,
                 labelString: xAxisTitle,
-                fontColor: "black",
+                fontColor: 'black',
               },
               ticks: {
                 autoSkip: false,
                 maxRotation: 45,
                 minRotation: 45,
-                fontColor: "black",
+                fontColor: 'black',
               },
             },
           ],
@@ -165,7 +165,7 @@ export const LineChart: FC<BarChartProps> = ({
               scaleLabel: {
                 display: true,
                 labelString: yAxisTitle,
-                fontColor: "black",
+                fontColor: 'black',
               },
             },
           ],
@@ -182,7 +182,7 @@ export const LineChart: FC<BarChartProps> = ({
 
   useEffect(() => {
     const generateChart = async () => {
-      const response = await axios.post("/api/generateChart", {
+      const response = await axios.post('/reports/api/generateChart', {
         chartConfig,
         width,
         height,

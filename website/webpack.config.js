@@ -1,45 +1,13 @@
 const path = require('path');
 const webpack = require('webpack');
-// const autoprefixer = require('autoprefixer');
-// const webpack = require('webpack');
-// const TerserPlugin = require('terser-webpack-plugin');
 const dotenv = require('dotenv');
+const TerserPlugin = require('terser-webpack-plugin');
+const CompressionPlugin = require('compression-webpack-plugin');
+const DeadCodePlugin = require('webpack-deadcode-plugin');
 
 dotenv.config();
 
 const ROOT = path.resolve(__dirname, 'frontend');
-
-function stripLoaderConfig() {
-  return {
-    loader: 'strip-loader',
-    options: {
-      strip: [
-        'assert',
-        'typeCheck',
-        'log.log',
-        'log.debug',
-        'log.deprecate',
-        'log.info',
-        'log.warn'
-      ]
-    }
-  };
-}
-
-function compact(items) {
-  return items.filter((item) => item);
-}
-
-function postCSSLoader() {
-  return {
-    loader: 'postcss-loader',
-    options: {
-      postcssOptions: {
-        plugins: [['postcss-preset-env', {}]]
-      }
-    }
-  };
-}
 
 function strToBool(str) {
   const truthy = ['true', '0', 'yes', 'y'];
@@ -72,10 +40,6 @@ const config = () => {
     return prev;
   }, {});
 
-  function prodOnly(x) {
-    return NODE_ENV === 'production' ? x : undefined;
-  }
-
   return {
     context: path.resolve(__dirname),
 
@@ -87,7 +51,6 @@ const config = () => {
       publicPath: PUBLIC_PATH
     },
 
-    // webpack 5 comes with devServer which loads in development mode
     devServer: {
       port: 8081,
       headers: { 'Access-Control-Allow-Origin': '*' },
@@ -109,53 +72,37 @@ const config = () => {
         {
           test: /\.(js|jsx|ts|tsx)$/,
           exclude: /node_modules/,
-          use: compact([
+          use: [
             {
               loader: 'babel-loader'
-            },
-            prodOnly(stripLoaderConfig())
-          ])
+            }
+          ]
         },
 
-        // Inlined CSS definitions for JS components
         {
           test: /\.css$/,
-          use: compact([{ loader: 'style-loader' }, { loader: 'css-loader' }, postCSSLoader()])
+          use: [{ loader: 'style-loader' }, { loader: 'css-loader' }]
         },
         {
           test: /\.s[ac]ss$/i,
-          use: compact([
-            { loader: 'style-loader' },
-            { loader: 'css-loader' },
-            postCSSLoader(),
-            { loader: 'sass-loader' }
-          ])
+          use: [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'sass-loader' }]
         },
-        // Webp
         {
           test: /\.webp$/,
           type: 'asset/resource'
         },
-
-        // SVGs
         {
           test: /\.svg$/,
           use: ['@svgr/webpack']
         },
-
-        // Images
         {
           test: /\.(png|jpe?g|ico)$/i,
           type: 'asset/resource'
         },
-
-        // pdfs, gifs
         {
           test: /\.(pdf|gif)$/,
           use: 'file-loader?name=[path][name].[ext]'
         },
-
-        // video
         {
           test: /\.(mov|mp4)$/,
           use: [
@@ -170,7 +117,25 @@ const config = () => {
       ]
     },
 
-    plugins: [new webpack.DefinePlugin(envKeys)]
+    optimization: {
+      minimize: true,
+      minimizer: [new TerserPlugin()]
+    },
+
+    plugins: [
+      new webpack.DefinePlugin(envKeys),
+      new CompressionPlugin({
+        test: /\.(js|css|html|svg)$/,
+        filename: '[path][base].gz',
+        algorithm: 'gzip',
+        threshold: 10240,
+        minRatio: 0.8
+      }),
+      new DeadCodePlugin({
+        patterns: ['frontend/**/*.*'],
+        exclude: ['**/*.test.js', '**/*.spec.js']
+      })
+    ]
   };
 };
 
