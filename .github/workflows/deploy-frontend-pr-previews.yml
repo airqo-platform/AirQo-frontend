@@ -135,7 +135,7 @@ jobs:
             --max-instances=10 \
             --timeout=60 \
             --concurrency=10 \
-            --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} \
             --cpu=1000m \
             --memory=256Mi \
             --allow-unauthenticated 
