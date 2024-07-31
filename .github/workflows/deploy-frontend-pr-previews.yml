@@ -132,11 +132,15 @@ jobs:
         run: |-
           gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
             --region=${{ secrets.REGION }} \
+            --max-instances=10 \
+            --timeout=60 \
+            --concurrency=10 \
             --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} \
+            --port=80 \
             --cpu=1000m \
             --memory=256Mi \
             --update-secrets=/etc/env/.env=sta-env-netmanager:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment;
+            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g 'daemon off;'" \
             --allow-unauthenticated
 
       - name: Get preview service URL
