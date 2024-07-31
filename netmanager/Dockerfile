@@ -22,6 +22,8 @@ ENV NODE_ENV=production
 # Build the application using Webpack 
 RUN npm run web-build
 
+# Expose port 8080
 EXPOSE 8080
 
+# Start the application
 CMD ["serve", "-s", "build", "-l", "8080"]
