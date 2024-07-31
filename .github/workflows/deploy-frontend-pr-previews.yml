@@ -89,6 +89,7 @@ jobs:
 
           done < files.txt
 
+          
   ### deploy netmanager preview ###
   netmanager:
     name: build-push-deploy-netmanager-preview
