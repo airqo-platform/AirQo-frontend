@@ -106,7 +106,7 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
-      - name: Setup Cloud SDK(gcloud)
+      - name: Setup Cloud SDK (gcloud)
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
@@ -119,29 +119,32 @@ jobs:
           username: _json_key
           password: ${{ secrets.GCP_SA_CREDENTIALS }}
 
-      - name: Build and Push Image
+      - name: Build and Push Docker Image
         run: |
           cd netmanager/
-          docker build -t ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} .
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }}
-          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews:latest
+          docker build -t ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }} .
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }}
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:latest
 
       - name: Deploy to Cloud Run
         run: |-
           gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
             --region=${{ secrets.REGION }} \
-            --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} \
+            --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }} \
+            --cpu=1000m \
+            --memory=256Mi \
             --port=8080 \
-            --allow-unauthenticated
+            --allow-unauthenticated \
+            --update-env-vars=PORT=8080,OTHER_ENV_VARS_FROM_SECRETS
 
       - name: Get preview service URL
         id: preview-url
         run: |
-          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
-            --format='value(status.url)' \
+          service_url=$(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
             --platform managed \
             --region ${{ secrets.REGION }} \
+            --format 'value(status.url)')
           echo "url=${service_url}" >> $GITHUB_OUTPUT
 
   netmanager-pr-comment:
@@ -516,9 +519,6 @@ jobs:
           echo "service: website-pr-previews" >> app.yaml
           echo "includes:" >> app.yaml
           echo "  - .env.yaml" >> app.yaml
-          echo "runtime_config:" >> app.yaml
-          echo "  operating_system: \"ubuntu22\"" >> app.yaml
-          echo "  runtime_version: \"3.12\"" >> app.yaml
           echo "========== Creating .env.yaml file =========="  
           echo "env_variables:" > .env.yaml
           echo "  SECRET: ${{ secrets.WEBSITE_SECRET }}" >> .env.yaml
