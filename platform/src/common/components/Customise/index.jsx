@@ -73,11 +73,10 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
         <Toast type={'error'} timeout={6000} message={creationErrors.message} />
       )}
       <div
-        className='absolute right-0 top-0 w-full md:w-96
-         h-full overflow-y-scroll bg-white z-50 border-l-grey-50 px-6'
+        className='fixed top-0 right-0 w-full md:w-96 h-full overflow-y-scroll bg-white z-50 border-l-grey-50 px-6'
         style={{ boxShadow: '0px 16px 32px 0px rgba(83, 106, 135, 0.20)' }}>
         <div onClick={() => setResetSearchData(true)}>
-          <div className='flex flex-row justify-between items-center mt-6'>
+          <div className='flex justify-between items-center mt-6'>
             <h3 className='flex items-center text-xl text-black-800 font-semibold'>
               Customise
               <span
@@ -100,8 +99,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
         </div>
         {false && (
           <div className='mt-6'>
-            {/* Tab section */}
-            <div className='flex flex-row justify-center items-center bg-secondary-neutral-light-25 rounded-md border border-secondary-neutral-light-50 p-1'>
+            <div className='flex justify-center items-center bg-secondary-neutral-light-25 rounded-md border border-secondary-neutral-light-50 p-1'>
               {tabs.map((tab) => (
                 <div
                   key={tab}
@@ -121,10 +119,9 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
             resetSearchData={resetSearchData}
           />
         )}
-        {/* TODO: Pollutant component and post selection to user defaults */}
       </div>
-      <div className='absolute w-full md:w-96 bg-white z-50 bottom-0 right-0 border-t border-input-light-outline py-4 px-6'>
-        <div className='flex flex-row justify-end items-center'>
+      <div className='fixed bottom-0 right-0 w-full md:w-96 bg-white z-50 border-t border-input-light-outline py-4 px-6'>
+        <div className='flex justify-end items-center'>
           <button
             className='btn bg-white mr-3 border border-input-light-outline text-sm text-secondary-neutral-light-800 font-medium py-3 px-4 rounded-lg hover:bg-white hover:border-input-light-outline'
             onClick={() => toggleCustomise()}>
@@ -134,7 +131,13 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
             <button
               className='btn bg-blue-900 text-sm border-none text-white font-medium py-3 px-4 rounded-lg hover:bg-primary-600'
               onClick={() => handleSubmit()}>
-              {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Apply'}
+              {loading ? (
+                <div className='ml-2'>
+                  <Spinner width={25} height={25} />
+                </div>
+              ) : (
+                'Apply'
+              )}
             </button>
           ) : (
             <button className='btn btn-disabled bg-white mr-3 border border-input-light-outline text-sm text-secondary-neutral-light-800 font-medium py-3 px-4 rounded-lg'>

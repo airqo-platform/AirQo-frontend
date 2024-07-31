@@ -145,7 +145,7 @@
   }
 }
 
-@media screen and(min-width:$mainBreakPoint) and(max-width: $tabBreakPoint) {
+@media screen and (min-width: $mainBreakPoint) and (max-width: $tabBreakPoint) {
   .Monitor {
     flex-direction: column;
     justify-content: flex-start;

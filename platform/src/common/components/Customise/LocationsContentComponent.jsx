@@ -59,12 +59,10 @@ const LocationItemCards = ({
       key={locationName}
       ref={innerRef}
       {...draggableProps}
-      {...dragHandleProps}
-    >
+      {...dragHandleProps}>
       <div
         className='flex flex-row items-center overflow-x-clip'
-        title={capitalizeAllText(locationName)}
-      >
+        title={capitalizeAllText(locationName)}>
         <div>{showActiveStarIcon ? <DragIcon /> : <DragIconLight />}</div>
         <span className='text-sm text-secondary-neutral-light-800 font-medium'>
           {locationName?.split(',')[0].length > 20
@@ -84,15 +82,13 @@ const LocationItemCards = ({
         {showActiveStarIcon ? (
           <div
             className='bg-primary-600 rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
-            onClick={() => handleLocationSelect(location)}
-          >
+            onClick={() => handleLocationSelect(location)}>
             <StarIcon />
           </div>
         ) : (
           <div
             className='border border-input-light-outline rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
-            onClick={() => handleLocationSelect(location)}
-          >
+            onClick={() => handleLocationSelect(location)}>
             <StarIconLight />
           </div>
         )}
@@ -456,8 +452,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
             ref={searchRef}
             className={`bg-white max-h-48 overflow-y-scroll px-3 pt-2 pr-1 my-1 border border-input-light-outline rounded-md ${
               inputSelect ? 'hidden' : 'relative'
-            }`}
-          >
+            }`}>
             {isLoadingResults ? (
               <SearchResultsSkeleton />
             ) : filteredLocations && filteredLocations.length > 0 ? (
@@ -467,8 +462,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
                   onClick={() => {
                     handleLocationSelect(location);
                   }}
-                  key={location.place_id}
-                >
+                  key={location.place_id}>
                   <LocationIcon />
                   <div className='text-sm text-black capitalize text-nowrap w-56 md:w-96 lg:w-72 overflow-hidden text-ellipsis'>
                     {location?.description?.split(',')[0].length > 35
