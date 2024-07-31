@@ -3,24 +3,26 @@ const webpack = require('webpack');
 const dotenv = require('dotenv');
 const TerserPlugin = require('terser-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
-const DeadCodePlugin = require('webpack-deadcode-plugin');
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 dotenv.config();
 
 const ROOT = path.resolve(__dirname, 'frontend');
-
-function strToBool(str) {
-  const truthy = ['true', '0', 'yes', 'y'];
-  return truthy.includes((str || '').toLowerCase());
-}
+const DIST_DIR = path.resolve(__dirname, 'frontend/static/frontend');
 
 function removeTrailingSlash(str) {
   if (str === undefined) return '';
   return str.replace(/\/+$/, '');
 }
 
-const config = () => {
-  const NODE_ENV = process.env.NODE_ENV || 'local';
+function strToBool(str) {
+  const truthy = ['true', '0', 'yes', 'y'];
+  return truthy.includes((str || '').toLowerCase());
+}
+
+module.exports = (env, argv) => {
+  const isProduction = argv.mode === 'production';
 
   const STATIC_URL = removeTrailingSlash(process.env.REACT_WEB_STATIC_HOST);
 
@@ -28,26 +30,12 @@ const config = () => {
     ? `${STATIC_URL}/static/frontend/`
     : `${STATIC_URL}/frontend/`;
 
-  const STATIC_DIR = 'frontend/static/frontend';
-
-  const DIST_DIR = path.resolve(__dirname, STATIC_DIR);
-
-  const envKeys = Object.keys(process.env).reduce((prev, next) => {
-    if (next.startsWith('REACT_')) {
-      prev[`process.env.${next}`] = JSON.stringify(process.env[next]);
-    }
-
-    return prev;
-  }, {});
-
   return {
-    context: path.resolve(__dirname),
-
     entry: './frontend/index.js',
 
     output: {
       path: DIST_DIR,
-      filename: '[name].bundle.js',
+      filename: isProduction ? '[name].[contenthash].js' : '[name].bundle.js',
       publicPath: PUBLIC_PATH
     },
 
@@ -72,71 +60,50 @@ const config = () => {
         {
           test: /\.(js|jsx|ts|tsx)$/,
           exclude: /node_modules/,
-          use: [
-            {
-              loader: 'babel-loader'
-            }
-          ]
+          use: ['babel-loader']
         },
 
         {
           test: /\.css$/,
-          use: [{ loader: 'style-loader' }, { loader: 'css-loader' }]
+          use: [isProduction ? MiniCssExtractPlugin.loader : 'style-loader', 'css-loader']
         },
         {
           test: /\.s[ac]ss$/i,
-          use: [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'sass-loader' }]
+          use: [
+            isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
+            'css-loader',
+            'sass-loader'
+          ]
         },
         {
-          test: /\.webp$/,
-          type: 'asset/resource'
+          test: /\.(webp|png|jpe?g|ico|pdf|gif|mov|mp4)$/i,
+          type: 'asset/resource',
+          generator: {
+            filename: '[path][name][ext]'
+          }
         },
         {
           test: /\.svg$/,
           use: ['@svgr/webpack']
-        },
-        {
-          test: /\.(png|jpe?g|ico)$/i,
-          type: 'asset/resource'
-        },
-        {
-          test: /\.(pdf|gif)$/,
-          use: 'file-loader?name=[path][name].[ext]'
-        },
-        {
-          test: /\.(mov|mp4)$/,
-          use: [
-            {
-              loader: 'file-loader',
-              options: {
-                name: '[path][name].[ext]'
-              }
-            }
-          ]
         }
       ]
     },
-
     optimization: {
-      minimize: true,
+      minimize: isProduction,
       minimizer: [new TerserPlugin()]
     },
-
     plugins: [
-      new webpack.DefinePlugin(envKeys),
-      new CompressionPlugin({
-        test: /\.(js|css|html|svg)$/,
-        filename: '[path][base].gz',
-        algorithm: 'gzip',
-        threshold: 10240,
-        minRatio: 0.8
-      }),
-      new DeadCodePlugin({
-        patterns: ['frontend/**/*.*'],
-        exclude: ['**/*.test.js', '**/*.spec.js']
-      })
-    ]
+      new webpack.DefinePlugin(
+        Object.keys(process.env).reduce((acc, key) => {
+          if (key.startsWith('REACT_')) {
+            acc[`process.env.${key}`] = JSON.stringify(process.env[key]);
+          }
+          return acc;
+        }, {})
+      ),
+      isProduction && new CompressionPlugin(),
+      isProduction && new MiniCssExtractPlugin({ filename: '[name].[contenthash].css' }),
+      isProduction && new BundleAnalyzerPlugin({ analyzerMode: 'static', openAnalyzer: false })
+    ].filter(Boolean)
   };
 };
-
-module.exports = config();
