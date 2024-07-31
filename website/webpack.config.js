@@ -3,58 +3,57 @@ const webpack = require('webpack');
 const dotenv = require('dotenv');
 const TerserPlugin = require('terser-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
-const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+const DeadCodePlugin = require('webpack-deadcode-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 dotenv.config();
 
 const ROOT = path.resolve(__dirname, 'frontend');
-const DIST_DIR = path.resolve(__dirname, 'frontend/static/frontend');
 
-function removeTrailingSlash(str) {
-  if (str === undefined) return '';
-  return str.replace(/\/+$/, '');
-}
-
-function strToBool(str) {
-  const truthy = ['true', '0', 'yes', 'y'];
-  return truthy.includes((str || '').toLowerCase());
-}
+const strToBool = (str) => ['true', '0', 'yes', 'y'].includes((str || '').toLowerCase());
+const removeTrailingSlash = (str) => (str ? str.replace(/\/+$/, '') : '');
 
 module.exports = (env, argv) => {
-  const isProduction = argv.mode === 'production';
-
+  const isProd = argv.mode === 'production';
   const STATIC_URL = removeTrailingSlash(process.env.REACT_WEB_STATIC_HOST);
-
   const PUBLIC_PATH = strToBool(process.env.DEBUG)
     ? `${STATIC_URL}/static/frontend/`
     : `${STATIC_URL}/frontend/`;
+  const DIST_DIR = path.resolve(__dirname, 'frontend/static/frontend');
+
+  const envKeys = Object.keys(process.env).reduce((prev, next) => {
+    if (next.startsWith('REACT_')) {
+      prev[`process.env.${next}`] = JSON.stringify(process.env[next]);
+    }
+    return prev;
+  }, {});
 
   return {
+    context: path.resolve(__dirname),
     entry: './frontend/index.js',
-
     output: {
       path: DIST_DIR,
-      filename: isProduction ? '[name].[contenthash].js' : '[name].bundle.js',
-      publicPath: PUBLIC_PATH
+      filename: isProd ? '[name].[contenthash].js' : '[name].bundle.js',
+      publicPath: PUBLIC_PATH,
+      clean: true
     },
-
     devServer: {
       port: 8081,
       headers: { 'Access-Control-Allow-Origin': '*' },
       compress: true,
       hot: true,
       historyApiFallback: true,
-      static: {
-        directory: './static'
-      }
+      static: { directory: './static' }
     },
-
     resolve: {
       modules: [ROOT, 'frontend/src', 'node_modules'],
-      extensions: ['.js', '.jsx', '.ts', '.tsx', '...']
+      extensions: ['.js', '.jsx', '.ts', '.tsx', '...'],
+      alias: {
+        '@': path.resolve(__dirname, 'frontend/src')
+      }
     },
-
     module: {
       rules: [
         {
@@ -62,18 +61,13 @@ module.exports = (env, argv) => {
           exclude: /node_modules/,
           use: ['babel-loader']
         },
-
         {
           test: /\.css$/,
-          use: [isProduction ? MiniCssExtractPlugin.loader : 'style-loader', 'css-loader']
+          use: [isProd ? MiniCssExtractPlugin.loader : 'style-loader', 'css-loader']
         },
         {
           test: /\.s[ac]ss$/i,
-          use: [
-            isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
-            'css-loader',
-            'sass-loader'
-          ]
+          use: [isProd ? MiniCssExtractPlugin.loader : 'style-loader', 'css-loader', 'sass-loader']
         },
         {
           test: /\.(webp|png|jpe?g|ico|pdf|gif|mov|mp4)$/i,
@@ -89,21 +83,43 @@ module.exports = (env, argv) => {
       ]
     },
     optimization: {
-      minimize: isProduction,
-      minimizer: [new TerserPlugin()]
+      minimize: isProd,
+      minimizer: [
+        new TerserPlugin({
+          terserOptions: {
+            format: {
+              comments: false
+            }
+          },
+          extractComments: false
+        }),
+        new CssMinimizerPlugin()
+      ]
     },
     plugins: [
-      new webpack.DefinePlugin(
-        Object.keys(process.env).reduce((acc, key) => {
-          if (key.startsWith('REACT_')) {
-            acc[`process.env.${key}`] = JSON.stringify(process.env[key]);
-          }
-          return acc;
-        }, {})
-      ),
-      isProduction && new CompressionPlugin(),
-      isProduction && new MiniCssExtractPlugin({ filename: '[name].[contenthash].css' }),
-      isProduction && new BundleAnalyzerPlugin({ analyzerMode: 'static', openAnalyzer: false })
-    ].filter(Boolean)
+      new webpack.DefinePlugin(envKeys),
+      new MiniCssExtractPlugin({
+        filename: isProd ? '[name].[contenthash].css' : '[name].css'
+      }),
+      new CompressionPlugin({
+        test: /\.(js|css|html|svg)$/,
+        filename: '[path][base].gz',
+        algorithm: 'gzip',
+        threshold: 10240,
+        minRatio: 0.8
+      }),
+      new DeadCodePlugin({
+        patterns: ['frontend/**/*.*'],
+        exclude: ['**/*.test.js', '**/*.spec.js']
+      }),
+      isProd &&
+        new BundleAnalyzerPlugin({
+          analyzerMode: 'static',
+          openAnalyzer: false
+        })
+    ].filter(Boolean),
+    cache: {
+      type: 'filesystem'
+    }
   };
 };
