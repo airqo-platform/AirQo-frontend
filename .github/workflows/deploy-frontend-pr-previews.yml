@@ -134,7 +134,7 @@ jobs:
             --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }} \
             --cpu=1000m \
             --memory=256Mi \
-            --allow-unauthenticated \
+            --allow-unauthenticated 
 
       - name: Get preview service URL
         id: preview-url
