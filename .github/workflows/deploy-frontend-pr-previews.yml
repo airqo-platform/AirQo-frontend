@@ -123,21 +123,23 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           cd netmanager/
-          docker build -t ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:${{ github.sha }} .
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:${{ github.sha }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:latest
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:latest
+          docker build -t ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} .
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:latest
 
       - name: Deploy to Cloud Run
         run: |-
           gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
             --region=${{ secrets.REGION }} \
-            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:${{ github.sha }} \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} \
+            --update-secrets=/etc/env/.env=sta-env-netmanager:latest \
+            --port=80 \
             --cpu=1000m \
             --memory=256Mi \
             --allow-unauthenticated 
 
-      - name: Get preview service URL
+      - name: Get preview service url
         id: preview-url
         run: |
           service_url=$(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
