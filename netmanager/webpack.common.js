@@ -1,6 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const webpack = require('webpack'); // Add this line to import webpack
+const webpack = require('webpack');
 const SettingsGeneratorPlugin = require('./settings_generator.js');
 
 module.exports = {

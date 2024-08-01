@@ -11,5 +11,5 @@ const URL_PATTERN = new RegExp(
 export const validateUrl = (url) => URL_PATTERN.test(url);
 
 export const stripTrailingSlash = (url) => {
-  return url;
+  return url.replace(/\/$/, "");
 };

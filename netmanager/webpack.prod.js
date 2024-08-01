@@ -7,7 +7,6 @@ dotenv.config({ path: `.env.production`, override: true });
 
 const common = require("./webpack.common.js");
 
-
 module.exports = merge(common, {
     mode: "production",
     plugins: [
