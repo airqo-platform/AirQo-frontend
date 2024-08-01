@@ -1,17 +1,17 @@
-"use client";
-import * as React from "react";
-import { addDays, format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
-import { DateRange, SelectRangeEventHandler } from "react-day-picker";
+'use client';
+import * as React from 'react';
+import { format } from 'date-fns';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { DateRange, SelectRangeEventHandler } from 'react-day-picker';
 
-import { cn } from "@/lib/utils";
-import { Button } from "../ui/button";
-import { Calendar } from "../ui/calendar";
+import { cn } from '@/lib/utils';
+import { Button } from '../ui/button';
+import { Calendar } from '../ui/calendar';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from '@/components/ui/popover';
 
 export function DatePickerWithRange({
   className,
@@ -24,26 +24,26 @@ export function DatePickerWithRange({
   const today = new Date();
 
   return (
-    <div className={cn("grid gap-2", className)}>
+    <div className={cn('grid gap-2', className)}>
       <Popover>
         <PopoverTrigger asChild>
           <Button
             id="date"
-            variant={"outline"}
+            variant={'outline'}
             className={cn(
-              "w-[300px] justify-start text-left font-normal",
-              !value && "text-muted-foreground"
+              'w-[300px] justify-start text-left font-normal',
+              !value && 'text-muted-foreground'
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {value?.from ? (
               value.to ? (
                 <>
-                  {format(value.from, "LLL dd, y")} -{" "}
-                  {format(value.to, "LLL dd, y")}
+                  {format(value.from, 'LLL dd, y')} -{' '}
+                  {format(value.to, 'LLL dd, y')}
                 </>
               ) : (
-                format(value.from, "LLL dd, y")
+                format(value.from, 'LLL dd, y')
               )
             ) : (
               <span>Pick a date range</span>
@@ -65,13 +65,13 @@ export function DatePickerWithRange({
               disabled: { after: today },
             }}
             classNames={{
-              day_selected: "text-white hover:bg-blue-400 hover:text-white",
+              day_selected: 'text-white hover:bg-blue-400 hover:text-white',
               day_range_middle:
-                "bg-blue-200 dark:bg-gray-700 rounded-none text-gray-400 hover:bg-blue-300",
+                'bg-blue-200 dark:bg-gray-700 rounded-none text-gray-400 hover:bg-blue-300',
               day_range_end:
-                "bg-blue-600 rounded-l-none text-white hover:bg-blue-800 hover:text-white",
+                'bg-blue-600 rounded-l-none text-white hover:bg-blue-800 hover:text-white',
               day_range_start:
-                "bg-blue-600 rounded-r-none text-white hover:bg-blue-800 hover:text-white",
+                'bg-blue-600 rounded-r-none text-white hover:bg-blue-800 hover:text-white',
             }}
           />
         </PopoverContent>

@@ -168,12 +168,11 @@
     color: #135dff;
 
     text-transform: capitalize;
+    cursor: pointer;
 
     @media (min-width: 576px) {
       margin-right: 20px;
     }
-
-    cursor: pointer;
   }
 
   .modal-cancel:hover {
@@ -283,12 +282,12 @@
           line-height: 26px;
           color: $aq-black-2;
         }
-        .airqloud-name{
+        .airqloud-name {
           text-decoration: underline;
           font-size: 19px;
           font-weight: 600;
           animation: blink 2s linear infinite;
-          &:hover{
+          &:hover {
             cursor: pointer;
             font-size: 20.5px;
             animation-play-state: paused;
@@ -298,16 +297,16 @@
     }
   }
   @keyframes blink {
-        30% {
-          opacity: 0.4;
-        }
-        50% {
-          opacity: .7;
-        }
-        100% {
-          opacity: 1;
-        }
-      }
+    30% {
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 0.7;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
 
   .content {
     display: flex;

@@ -1,172 +1,172 @@
-@import "lib/colors";
-@import "lib/variables";
+@import 'lib/colors';
+@import 'lib/variables';
 
-
-@mixin flex-column{
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
 }
 
-@mixin flex-row{
-    display: flex;
-    flex-direction: row;
-    flex-wrap:wrap ;
+@mixin flex-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
 
-$h2-font:$headingFont;
-$p-font:$subTextFont;
+$h2-font: $headingFont;
+$p-font: $subTextFont;
 
-.get-app{
-    display:grid;
-    grid-template-columns: $gridColumn;
-    align-items: center;
-    height: 1020px;
-    .back-drop{
-        grid-column: 2 / 3;
-        display:grid;
-        grid-template-columns: 2fr 3fr;
-        grid-gap:30px;
-        padding: 0 30px;
-        height:400px;
-        background-color: $aq-blue-1;
-        border-radius: 8px;
+.get-app {
+  display: grid;
+  grid-template-columns: $gridColumn;
+  align-items: center;
+  height: 1020px;
+  .back-drop {
+    grid-column: 2 / 3;
+    display: grid;
+    grid-template-columns: 2fr 3fr;
+    grid-gap: 30px;
+    padding: 0 30px;
+    height: 400px;
+    background-color: $aq-blue-1;
+    border-radius: 8px;
 
-        .get-content{
-            margin-left: 3%;
-            float:left;
-            .get-text{
-                padding: 60px 0 0 30px;
-                width:480px;
-                h2{
-                    color:$aq-blue-0;
-                    font-weight: 600;
-                    font-size: $h2-font;
-                    line-height: 48px;
-                }
-                span{
-                    color: $aq-blue-2;
-                    font-weight: 400;
-                    font-size: $p-font;
-                    line-height: 28px;
-                    width: 269px;
-                }
-            }
-            .get-btns{
-                @include flex-row();
-                margin-top: 10%;
-                padding:0 0 0 30px;
-
-                .get-btn {
-                    color: $aq-white-0;
-                    background-color: $aq-black-0;
-                    width: 178.14px;
-                    height: 60.44px;
-                    border-radius: 8px;
-                    outline: 0;
-                    border: 0;
-                }
-
-                .get-ios {
-                    padding: 10.82px 17.67px 11.03px 13.86px;
-                }
-
-                .get-android{
-                    margin-left:33px;
-                    padding: 9.84px 12.61px 7.48px 13.6px;
-                }
-            }
-            .get-btn:hover, .get-btn:focus{
-                outline:none;
-                cursor: pointer;
-            }
+    .get-content {
+      margin-left: 3%;
+      float: left;
+      .get-text {
+        padding: 60px 0 0 30px;
+        width: 480px;
+        h2 {
+          color: $aq-blue-0;
+          font-weight: 600;
+          font-size: $h2-font;
+          line-height: 48px;
         }
-        .get-graphics{
-            .get-graphics-lg{
-                float:right;
-                height:auto;
-                margin:-190px 10% 0 0;
-                width:auto;
-                background-color: transparent;
-            }
-            .get-graphics-sm{
-                display: none;
-            }
+        span {
+          color: $aq-blue-2;
+          font-weight: 400;
+          font-size: $p-font;
+          line-height: 28px;
+          width: 269px;
         }
+      }
+      .get-btns {
+        @include flex-row();
+        margin-top: 10%;
+        padding: 0 0 0 30px;
+
+        .get-btn {
+          color: $aq-white-0;
+          background-color: $aq-black-0;
+          width: 178.14px;
+          height: 60.44px;
+          border-radius: 8px;
+          outline: 0;
+          border: 0;
+        }
+
+        .get-ios {
+          padding: 10.82px 17.67px 11.03px 13.86px;
+        }
+
+        .get-android {
+          margin-left: 33px;
+          padding: 9.84px 12.61px 7.48px 13.6px;
+        }
+      }
+      .get-btn:hover,
+      .get-btn:focus {
+        outline: none;
+        cursor: pointer;
+      }
     }
+    .get-graphics {
+      .get-graphics-lg {
+        float: right;
+        height: auto;
+        margin: -190px 10% 0 0;
+        width: auto;
+        background-color: transparent;
+      }
+      .get-graphics-sm {
+        display: none;
+      }
+    }
+  }
 }
 
-@media (max-width: $mainBreakPoint){
-    .get-app{
-        padding: 80px 0 40px 0;
-        margin: 250px 0 80px 0;
-        background-color: $aq-blue-1;
-        .back-drop{
-            @include flex-column();
+@media (max-width: $mainBreakPoint) {
+  .get-app {
+    padding: 80px 0 40px 0;
+    margin: 250px 0 80px 0;
+    background-color: $aq-blue-1;
+    .back-drop {
+      @include flex-column();
+      justify-content: center;
+      flex-direction: column-reverse;
+      height: 100%;
+      padding: 0;
+      .get-graphics {
+        align-self: center;
+        .get-graphics-lg {
+          display: none;
+        }
+        .get-graphics-sm {
+          display: block;
+          margin: -240px 0 0 0;
+        }
+      }
+      .get-content {
+        display: grid;
+        grid-template-columns: 1fr;
+        margin: -30px 10px 0 8px;
+        .get-text {
+          padding: 0px 12px 17px 16px;
+          width: 100%;
+        }
+        .get-btns {
+          display: grid;
+          grid-template-columns: 1fr;
+          padding: 0;
+          margin: 10px 15px;
+          .get-btn {
+            display: flex;
+            align-content: center;
             justify-content: center;
-            flex-direction: column-reverse;
-            height: 100%;
-            padding:0;
-            .get-graphics{
-                align-self: center;
-                .get-graphics-lg{
-                    display: none;
-                }
-                .get-graphics-sm{
-                    display:block;
-                    margin: -240px 0 0 0;
-                }
-            }
-            .get-content{
-                display: grid;
-                grid-template-columns: 1fr;
-                margin: -30px 10px 0 8px;
-                .get-text{
-                    padding: 0px 12px 17px 16px;
-                    width: 100%;
-                }
-                .get-btns{
-                    display: grid;
-                    grid-template-columns: 1fr;
-                    padding:0;
-                    margin:10px 15px;
-                    .get-btn{
-                        display: flex;
-                        align-content: center;
-                        justify-content: center;
-                        min-height: 65px;
-                        width: 100%;
-                    }
-                    .get-android{
-                        margin-top: 21px;
-                        margin-left: 0;
-                    }
-                }
-            }
+            min-height: 65px;
+            width: 100%;
+          }
+          .get-android {
+            margin-top: 21px;
+            margin-left: 0;
+          }
         }
+      }
     }
+  }
 }
 
-@media screen and(min-width:$mainBreakPoint)and(max-width: $tabBreakPoint){
-    .get-app{
-        padding: 0;
-        .back-drop{
-            padding: 0;
-            .get-content{
-                margin: 0 auto;
-                float: none;
-                width: 52vw;
-                .get-text{
-                    padding: 30px 0 0 20px;
-                    width: auto;
-                }
-                .get-btns{
-                    padding-left: 20px;
-                    .get-android{
-                        margin-left: 15px;
-                    }
-                }
-            }
+@media screen and (min-width: $mainBreakPoint) and (max-width: $tabBreakPoint) {
+  .get-app {
+    padding: 0;
+    .back-drop {
+      padding: 0;
+      .get-content {
+        margin: 0 auto;
+        float: none;
+        width: 52vw;
+        .get-text {
+          padding: 30px 0 0 20px;
+          width: auto;
         }
+        .get-btns {
+          padding-left: 20px;
+          .get-android {
+            margin-left: 15px;
+          }
+        }
+      }
     }
+  }
 }

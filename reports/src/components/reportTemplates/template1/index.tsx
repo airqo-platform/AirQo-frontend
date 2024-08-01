@@ -1,5 +1,6 @@
 /* eslint-disable jsx-a11y/alt-text */
-import React, { useMemo } from "react";
+'use client';
+import React, { useMemo } from 'react';
 import {
   Page,
   Text,
@@ -7,9 +8,9 @@ import {
   Document,
   StyleSheet,
   Image,
-} from "@react-pdf/renderer";
-import { BarChart, LineChart } from "../graphs";
-import { format } from "date-fns";
+} from '@react-pdf/renderer';
+import { BarChart, LineChart } from '../graphs';
+import { format } from 'date-fns';
 
 interface Template1Props {
   data: any;
@@ -21,7 +22,7 @@ const Header: React.FC = () => {
       <Image
         src={`${process.env.NEXT_PUBLIC_BASE_URL}/images/templateLogo.png`}
         style={{
-          width: "auto",
+          width: 'auto',
           height: 60,
         }}
       />
@@ -32,20 +33,20 @@ const Header: React.FC = () => {
 export default function Template1({ data }: Template1Props) {
   const startDate = useMemo(
     () =>
-      new Date(data?.period.startTime).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
+      new Date(data?.period.startTime).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
       }),
     [data?.period.startTime]
   );
 
   const endDate = useMemo(
     () =>
-      new Date(data?.period.endTime).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
+      new Date(data?.period.endTime).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
       }),
     [data?.period.endTime]
   );
@@ -53,45 +54,45 @@ export default function Template1({ data }: Template1Props) {
   const tableData1 = useMemo(
     () => [
       {
-        healthConcern: "Good",
-        pm25: "0 - 12",
+        healthConcern: 'Good',
+        pm25: '0 - 12',
         precautions:
-          "None: Air quality is satisfactory; and air pollution poses little or no risk.",
-        bgColor: "#00e400",
+          'None: Air quality is satisfactory; and air pollution poses little or no risk.',
+        bgColor: '#00e400',
       },
       {
-        healthConcern: "Moderate",
-        pm25: "12.1 - 35.4",
+        healthConcern: 'Moderate',
+        pm25: '12.1 - 35.4',
         precautions:
-          "Unusually sensitive people should consider reducing prolonged or heavy exertion.",
-        bgColor: "#ff0",
+          'Unusually sensitive people should consider reducing prolonged or heavy exertion.',
+        bgColor: '#ff0',
       },
       {
-        healthConcern: "Unhealthy for Sensitive Groups",
-        pm25: "35.5 - 55.4",
+        healthConcern: 'Unhealthy for Sensitive Groups',
+        pm25: '35.5 - 55.4',
         precautions:
-          "Sensitive groups should reduce prolonged or heavy exertion.",
-        bgColor: "#f90",
+          'Sensitive groups should reduce prolonged or heavy exertion.',
+        bgColor: '#f90',
       },
       {
-        healthConcern: "Unhealthy",
-        pm25: "55.5 - 150.4",
+        healthConcern: 'Unhealthy',
+        pm25: '55.5 - 150.4',
         precautions:
-          "Everyone should reduce prolonged or heavy exertion, take more breaks during outdoor activities.",
-        bgColor: "#f00",
+          'Everyone should reduce prolonged or heavy exertion, take more breaks during outdoor activities.',
+        bgColor: '#f00',
       },
       {
-        healthConcern: "Very Unhealthy",
-        pm25: "150.5 - 250.4",
+        healthConcern: 'Very Unhealthy',
+        pm25: '150.5 - 250.4',
         precautions:
-          "Everyone should avoid prolonged or heavy exertion, move activities indoors or reschedule.",
-        bgColor: "#90f",
+          'Everyone should avoid prolonged or heavy exertion, move activities indoors or reschedule.',
+        bgColor: '#90f',
       },
       {
-        healthConcern: "Hazardous",
-        pm25: "250.5 - 500.4",
-        precautions: "Everyone should avoid all physical activities outdoors.",
-        bgColor: "#600",
+        healthConcern: 'Hazardous',
+        pm25: '250.5 - 500.4',
+        precautions: 'Everyone should avoid all physical activities outdoors.',
+        bgColor: '#600',
       },
     ],
     []
@@ -99,12 +100,12 @@ export default function Template1({ data }: Template1Props) {
 
   const chartData1 = {
     labels: data.site_monthly_mean_pm.map((site_name: any) => {
-      const monthName = format(new Date(2024, site_name.month - 1), "MMM");
+      const monthName = format(new Date(2024, site_name.month - 1), 'MMM');
       return `${site_name.site_name} (${monthName})`;
     }),
     datasets: [
       {
-        label: "PM2.5 Raw Values",
+        label: 'PM2.5 Raw Values',
         data: data.site_monthly_mean_pm.map(
           (item: { pm2_5_raw_value: number }) => item.pm2_5_raw_value
         ),
@@ -114,14 +115,14 @@ export default function Template1({ data }: Template1Props) {
 
   const chartData2 = {
     labels: data.daily_mean_pm.map((item: { date: string }) =>
-      new Date(item.date).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
+      new Date(item.date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
       })
     ),
     datasets: [
       {
-        label: "Daily Mean PM2.5",
+        label: 'Daily Mean PM2.5',
         data: data.daily_mean_pm.map(
           (item: { pm2_5_raw_value: number }) => item.pm2_5_raw_value
         ),
@@ -133,7 +134,7 @@ export default function Template1({ data }: Template1Props) {
     labels: data.diurnal.map((item: { hour: number }) => item.hour),
     datasets: [
       {
-        label: "Diurnal PM2.5",
+        label: 'Diurnal PM2.5',
         data: data.diurnal.map(
           (item: { pm2_5_raw_value: number }) => item.pm2_5_raw_value
         ),
@@ -162,18 +163,18 @@ export default function Template1({ data }: Template1Props) {
 
   const getMonthName = (monthNumber: number) => {
     const monthNames = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return monthNames[monthNumber - 1];
   };
@@ -192,19 +193,19 @@ export default function Template1({ data }: Template1Props) {
         <View
           style={{
             flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
+            justifyContent: 'center',
+            alignItems: 'center',
           }}
         >
           <Text style={styles.title}>
             Air Quality Report from {startDate} to {endDate}
-            {"\n"} for {data.sites["grid name"][0]}
+            {'\n'} for {data.sites['grid name'][0]}
           </Text>
         </View>
         <Text style={styles.subTitle}>Executive Summary</Text>
         <Text style={styles.text}>
           This report summarizes the temporal air quality profiles observed by
-          the AirQo monitors installed at {data.sites["grid name"][0]} between{" "}
+          the AirQo monitors installed at {data.sites['grid name'][0]} between{' '}
           {startDate} and {endDate}. The AirQo monitor measures particulate
           matter(PM2.5) concentration, one of the primary air pollutants. PM2.5
           are fine inhalable particles with diameters generally 2.5 micrometers
@@ -220,7 +221,7 @@ export default function Template1({ data }: Template1Props) {
           cardiovascular diseases, lung cancer, and premature death. Other
           associated effects due to short-term exposure are asthma attacks and
           chronic bronchitis.
-          {"\n"} {"\n"}
+          {'\n'} {'\n'}
           Among the various pollutants monitored, one key metric of interest is
           PM2.5. PM2.5 refers to particulate matter with a diameter of 2.5
           micrometers or smaller. These microscopic particles, often generated
@@ -297,7 +298,7 @@ export default function Template1({ data }: Template1Props) {
         <View>
           <BarChart
             chartData={chartData1}
-            graphTitle={`Site Monthly Mean PM2.5 for ${data.sites["grid name"][0]}`}
+            graphTitle={`Site Monthly Mean PM2.5 for ${data.sites['grid name'][0]}`}
             xAxisTitle="Locations"
             yAxisTitle="PM2.5 Raw Values"
           />
@@ -310,17 +311,17 @@ export default function Template1({ data }: Template1Props) {
             }}
           >
             Figure 1: Figure showing the monthly mean PM2.5 for different sites
-            in {data.sites["grid name"][0]}
+            in {data.sites['grid name'][0]}
           </Text>
         </View>
         <Text style={styles.text}>
           The locations with the highest PM2.5 raw values in the dataset for the
-          specified period include{" "}
+          specified period include{' '}
           {top5Locations.slice(0, 5).map((location, index) => (
             <React.Fragment key={location.site_name}>
-              {location.site_name}, recording a PM2.5 value of{" "}
+              {location.site_name}, recording a PM2.5 value of{' '}
               {location.pm2_5_raw_value} µg/m³ in {getMonthName(location.month)}
-              {index < top5Locations.length - 1 ? ", followed by " : "."}
+              {index < top5Locations.length - 1 ? ', followed by ' : '.'}
             </React.Fragment>
           ))}
         </Text>
@@ -329,54 +330,54 @@ export default function Template1({ data }: Template1Props) {
           In contrast to the locations with the highest PM2.5 values, there are
           several locations that stand out for their notably low PM2.5 values.
           As shown in Figure 1, the locations with the lowest recorded PM2.5
-          values include{" "}
+          values include{' '}
           {bottom3Locations.slice(0, 3).map((location, index) => (
             <React.Fragment key={location.site_name}>
-              {location.site_name}, with a value of {location.pm2_5_raw_value}{" "}
+              {location.site_name}, with a value of {location.pm2_5_raw_value}{' '}
               µg/m³ in {getMonthName(location.month)}
               {index < bottom3Locations.length - 1
-                ? ", closely followed by "
-                : "."}
+                ? ', closely followed by '
+                : '.'}
             </React.Fragment>
           ))}
         </Text>
         <View>
           <BarChart
             chartData={chartData2}
-            graphTitle={`Daily Mean PM2.5 for ${data.sites["grid name"][0]}`}
+            graphTitle={`Daily Mean PM2.5 for ${data.sites['grid name'][0]}`}
             xAxisTitle="Date"
             yAxisTitle="PM2.5 Raw Values"
           />
           <Text style={styles.figureCaption}>
-            Figure 2: Figure showing the daily mean PM2.5 for{" "}
-            {data.sites["grid name"][0]}
+            Figure 2: Figure showing the daily mean PM2.5 for{' '}
+            {data.sites['grid name'][0]}
           </Text>
         </View>
         <View>
           <Text style={styles.subTitle}>Diurnal</Text>
           <LineChart
             chartData={chartData3}
-            graphTitle={`Diurnal PM2.5 for ${data.sites["grid name"][0]}`}
+            graphTitle={`Diurnal PM2.5 for ${data.sites['grid name'][0]}`}
             xAxisTitle="Hour"
             yAxisTitle="PM2.5 Raw Values"
           />
           <Text style={styles.figureCaption}>
-            Figure 3: Diurnal PM2.5 for {data.sites["grid name"][0]}. (The time
+            Figure 3: Diurnal PM2.5 for {data.sites['grid name'][0]}. (The time
             was in GMT)
           </Text>
         </View>
         <Text style={styles.text}>
           The hourly variation of PM2.5 concentrations reveals insights into air
-          quality patterns for {data.sites["grid name"][0]}. The highest PM2.5
-          value occurs at {highestPM25Hour.hour}:00, with a value of{" "}
-          {highestPM25Hour.pm2_5_raw_value} µg/m³, while the lowest is at{" "}
-          {lowestPM25Hour.hour}:00, with a value of{" "}
-          {lowestPM25Hour.pm2_5_raw_value} µg/m³. Peak concentrations are
+          quality patterns for {data.sites['grid name'][0]}. The highest PM2.5
+          value occurs at {highestPM25Hour?.hour}:00, with a value of{' '}
+          {highestPM25Hour?.pm2_5_raw_value} µg/m³, while the lowest is at{' '}
+          {lowestPM25Hour?.hour}:00, with a value of{' '}
+          {lowestPM25Hour?.pm2_5_raw_value} µg/m³. Peak concentrations are
           observed at night and in the morning, indicating potential
           contributing sources or activities. Daytime hours generally show lower
           PM2.5 levels, suggesting improved air quality during the day.
-          {"\n"}
-          {"\n"}
+          {'\n'}
+          {'\n'}
           It{"'"}s important to note that the PM2.5 values in this dataset are
           higher than the WHO recommended standard, indicating a need for
           interventions to improve air quality.
@@ -390,9 +391,9 @@ export default function Template1({ data }: Template1Props) {
           fixed
         />
         <View>
-          <Text style={styles.subTitle}>Conclusion</Text>{" "}
+          <Text style={styles.subTitle}>Conclusion</Text>{' '}
           <Text style={styles.text}>
-            {" "}
+            {' '}
             The analysis of the data reveals that air quality varies
             significantly over time, with periods of both moderate and unhealthy
             conditions. It’s observed that these fluctuations may be influenced
@@ -400,21 +401,21 @@ export default function Template1({ data }: Template1Props) {
             washout effect during the rainy season could potentially contribute
             to these variations. Specifically, for the period from {
               startDate
-            }{" "}
-            to {endDate}, the PM2.5 raw values ranged from{" "}
-            {data.monthly_pm[0]?.pm2_5_raw_value} µg/m³ to{" "}
-            {data.monthly_pm[1]?.pm2_5_raw_value} µg/m³ respectively.{"\n"}This
+            }{' '}
+            to {endDate}, the PM2.5 raw values ranged from{' '}
+            {data?.monthly_pm[0]?.pm2_5_raw_value} µg/m³ to{' '}
+            {data?.monthly_pm[1]?.pm2_5_raw_value} µg/m³ respectively.{'\n'}This
             pattern underscores the importance of continuous monitoring and the
             implementation of effective interventions to maintain air quality
             within safe limits. Ensuring good air quality is crucial for the
             well-being of both residents and visitors. Therefore, it’s
             imperative to adopt long-term strategies and measures that can
             effectively mitigate the impact of factors leading to poor air
-            quality.{"\n"}
-            {"\n"}In conclusion, continuous monitoring, timely intervention, and
+            quality.{'\n'}
+            {'\n'}In conclusion, continuous monitoring, timely intervention, and
             effective policies are key to maintaining good air quality and
-            safeguarding public health. {"\n"}
-            {"\n"}{" "}
+            safeguarding public health. {'\n'}
+            {'\n'}{' '}
           </Text>
           <View>
             <Text style={styles.text}>
@@ -472,12 +473,12 @@ export default function Template1({ data }: Template1Props) {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
     paddingBottom: 3,
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    borderBottomColor: '#ccc',
     marginBottom: 20,
   },
   page: {
@@ -487,21 +488,21 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 12,
-    textAlign: "justify",
-    fontFamily: "Times-Roman",
-    fontWeight: "normal",
+    textAlign: 'justify',
+    fontFamily: 'Times-Roman',
+    fontWeight: 'normal',
     lineHeight: 1.5,
     margin: 12,
   },
   title: {
     fontSize: 20,
     marginBottom: 10,
-    textAlign: "center",
-    fontWeight: "bold",
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
   subTitle: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     margin: 12,
   },
   listItem: {
@@ -513,66 +514,66 @@ const styles = StyleSheet.create({
     height: 50,
   },
   figureCaption: {
-    textAlign: "center",
+    textAlign: 'center',
     fontSize: 10,
   },
   pageNumber: {
-    position: "absolute",
+    position: 'absolute',
     fontSize: 12,
     bottom: 30,
     left: 0,
     right: 0,
-    textAlign: "center",
-    color: "grey",
+    textAlign: 'center',
+    color: 'grey',
   },
   table: {
-    display: "flex",
-    flexDirection: "column",
-    width: "auto",
-    borderStyle: "solid",
-    borderColor: "#bfbfbf",
+    display: 'flex',
+    flexDirection: 'column',
+    width: 'auto',
+    borderStyle: 'solid',
+    borderColor: '#bfbfbf',
     padding: 0,
     marginBottom: 10,
   },
   tableRow: {
-    margin: "auto",
-    flexDirection: "row",
+    margin: 'auto',
+    flexDirection: 'row',
   },
   tableCol: {
-    width: "33%",
-    borderStyle: "solid",
-    borderColor: "#bfbfbf",
+    width: '33%',
+    borderStyle: 'solid',
+    borderColor: '#bfbfbf',
     borderWidth: 1,
-    alignItems: "center",
+    alignItems: 'center',
   },
   tableCell: {
-    margin: "auto",
+    margin: 'auto',
     marginTop: 5,
     padding: 5,
     fontSize: 10,
   },
   listItem2: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
     fontSize: 12,
-    textAlign: "left",
-    fontFamily: "Times-Roman",
-    fontWeight: "normal",
+    textAlign: 'left',
+    fontFamily: 'Times-Roman',
+    fontWeight: 'normal',
     marginBottom: 2,
   },
   bulletPoint: {
     width: 10,
     marginLeft: 25,
     marginRight: 5,
-    textAlign: "center",
+    textAlign: 'center',
   },
   itemContent: {
     flex: 1,
     fontSize: 12,
-    textAlign: "left",
-    fontFamily: "Times-Roman",
-    fontWeight: "normal",
+    textAlign: 'left',
+    fontFamily: 'Times-Roman',
+    fontWeight: 'normal',
     lineHeight: 1.5,
   },
 });

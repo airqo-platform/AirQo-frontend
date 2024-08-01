@@ -1,8 +1,7 @@
-"use client";
-import React, { useState } from "react";
-import { AiOutlineBell } from "react-icons/ai";
-import { BsPerson } from "react-icons/bs";
-import { IoIosMenu } from "react-icons/io";
+'use client';
+import React, { useState } from 'react';
+import { BsPerson } from 'react-icons/bs';
+import { IoIosMenu } from 'react-icons/io';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -10,41 +9,38 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerHeader,
   DrawerTrigger,
-} from "@/components/ui/drawer";
-import { IoLogOutOutline } from "react-icons/io5";
-import { IoSettingsOutline } from "react-icons/io5";
-import { useSession } from "next-auth/react";
-import { HiOutlineSupport } from "react-icons/hi";
-import { signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
-import { TbSettingsCog } from "react-icons/tb";
-import { RiAiGenerate } from "react-icons/ri";
-import { SiFiles } from "react-icons/si";
-import { PulseLoader } from "react-spinners";
-import { BsGrid3X3GapFill } from "react-icons/bs";
-import AirQoLogo from "@/public/images/airqo.png";
-import { Separator } from "@/components/ui/separator";
-import Image from "next/image";
+} from '@/components/ui/drawer';
+import { IoLogOutOutline } from 'react-icons/io5';
+import { IoSettingsOutline } from 'react-icons/io5';
+import { useSession } from 'next-auth/react';
+import { HiOutlineSupport } from 'react-icons/hi';
+import { signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { TbSettingsCog } from 'react-icons/tb';
+import { RiAiGenerate } from 'react-icons/ri';
+import { BsGrid3X3GapFill } from 'react-icons/bs';
+import AirQoLogo from '@/public/images/airqo.png';
+import { Separator } from '@/components/ui/separator';
+import Image from 'next/image';
 
 const Products = [
   {
-    name: "Calibrate",
-    href: "https://airqalibrate.airqo.net/",
-    icon: "https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png",
+    name: 'Calibrate',
+    href: 'https://airqalibrate.airqo.net/',
+    icon: 'https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png',
   },
   {
-    name: "Analytics",
-    href: "https://analytics.airqo.net/",
-    icon: "https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png",
+    name: 'Analytics',
+    href: 'https://analytics.airqo.net/',
+    icon: 'https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png',
   },
 ];
 
@@ -52,11 +48,11 @@ export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const [loading, setLoading] = useState(false);
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   const handleLogout = () => {
     setLoading(true);
-    signOut({ callbackUrl: "/reports/login" }).then(() => {
+    signOut({ callbackUrl: '/reports/login' }).then(() => {
       setLoading(false);
     });
     // clear all local storage data
@@ -69,29 +65,29 @@ export default function Header() {
 
   const links = [
     {
-      href: "/reports/report",
+      href: '/home',
       icon: RiAiGenerate,
-      label: "Report",
+      label: 'Home',
     },
     // { href: "/files", icon: SiFiles, label: "Saved Files" },
-    { href: "/reports/settings", icon: TbSettingsCog, label: "Settings" },
+    { href: '/settings', icon: TbSettingsCog, label: 'Settings' },
   ];
 
   const List = [
     {
-      name: "Support",
+      name: 'Support',
       onClick: () => {
-        window.location.href = "mailto:support@airqo.net";
+        window.location.href = 'mailto:support@airqo.net';
       },
       icon: <HiOutlineSupport className="mr-2 h-4 w-4" />,
     },
     {
-      name: "Settings",
-      onClick: () => router.push("/reports/settings"),
+      name: 'Settings',
+      onClick: () => router.push('/settings'),
       icon: <IoSettingsOutline className="mr-2 h-4 w-4" />,
     },
     {
-      name: loading ? "Logging out..." : "Logout",
+      name: loading ? 'Logging out...' : 'Logout',
       onClick: () => handleLogout(),
       icon: <IoLogOutOutline className="mr-2 h-4 w-4" />,
     },
@@ -127,7 +123,7 @@ export default function Header() {
                   <Link href={href} className="w-full" key={href}>
                     <span
                       className={`flex flex-row rounded-lg items-center justify-start space-x-3 p-2 w-full  ${
-                        isActive(href) ? "bg-gray-800 text-white" : ""
+                        isActive(href) ? 'bg-gray-800 text-white' : ''
                       }`}
                     >
                       <Icon />
@@ -140,23 +136,19 @@ export default function Header() {
           </Drawer>
         </div>
         <div className="flex items-center space-x-4">
-          {/* <AiOutlineBell
-            className="text-gray-600 text-2xl rounded-full bg-gray-200 p-2 disabled:opacity-50 cursor-not-allowed dark:bg-gray-700 dark:text-gray-300"
-            size={34}
-          /> */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="cursor-pointer rounded-full p-2 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300">
                 <BsGrid3X3GapFill size={20} />
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="flex flex-row max-w-[180px] flex-wrap justify-center items-center gap-4 mr-5 p-3 bg-gray-800">
+            <DropdownMenuContent className="flex flex-row max-w-[180px] flex-wrap justify-center items-center gap-4 mr-5 p-3 bg-white dark:bg-gray-800 dark:text-gray-300">
               {Products.map((item, index) => (
                 <DropdownMenuCheckboxItem
                   key={index}
-                  className="flex flex-col bg-[#1d4ed8] hover:bg-[#1d4ed8] p-1 text-white items-center rounded-md cursor-pointer"
+                  className="flex flex-col bg-[#1d4ed8] hover:bg-blue-900 p-1 items-center rounded-md cursor-pointer"
                   onClick={() => {
-                    window.open(item.href, "_blank");
+                    window.open(item.href, '_blank');
                   }}
                 >
                   <Image
@@ -168,7 +160,7 @@ export default function Header() {
                     placeholder="blur"
                     blurDataURL="data:image/svg+xml;base64,..."
                   />
-                  <span className="text-[10px]">{item.name}</span>
+                  <span className="text-[10px] text-white">{item.name}</span>
                 </DropdownMenuCheckboxItem>
               ))}
             </DropdownMenuContent>
@@ -183,10 +175,10 @@ export default function Header() {
                   />
                 </div>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="relative right-6 w-52 bg-gray-800 text-white dark:text-gray-300">
+              <DropdownMenuContent className="relative right-6 w-52 bg-white dark:bg-gray-800 dark:text-gray-300">
                 <DropdownMenuLabel>
                   {session?.user?.email && session?.user?.email.length > 30
-                    ? session?.user?.email?.slice(0, 30) + "..."
+                    ? session?.user?.email?.slice(0, 30) + '...'
                     : session?.user?.email}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-gray-400" />
