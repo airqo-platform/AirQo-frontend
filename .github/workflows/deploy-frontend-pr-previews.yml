@@ -131,7 +131,7 @@ jobs:
       - name: Deploy to Cloud Run
         run: |-
           gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
-            --region=${{ env.REGION }} \
+            --region=${{ secrets.REGION }} \
             --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:${{ github.sha }} \
             --cpu=1000m \
             --memory=256Mi \
