@@ -133,7 +133,7 @@ jobs:
           gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
             --region=${{ secrets.REGION }} \
             --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} \
-            --update-secrets=/etc/env/.env=sta-env-netmanager:latest \
+            --platform managed \
             --allow-unauthenticated 
 
       - name: Get preview service url
