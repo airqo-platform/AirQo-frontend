@@ -92,8 +92,12 @@ jobs:
           
   ### deploy netmanager preview ###
   netmanager:
-    name: Build and Deploy Netmanager
+    name: build-push-deploy-netmanager-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.run_netmanager == 'true'
     runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.preview-url.outputs.url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -122,12 +126,25 @@ jobs:
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }}
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:latest
+
       - name: Deploy to Cloud Run
         run: |-
           gcloud run deploy netmanager-preview \
             --region=${{ secrets.REGION }} \
             --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }} \
             --platform=managed \
+            --allow-unauthenticated
+
+      - name: Get preview service url
+        id: preview-url
+        run: |
+          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
+            --format='value(status.url)' \
+            --platform managed \
+            --region ${{ secrets.REGION }})
+          echo "url=${service_url}" >>$GITHUB_OUTPUT
+    
+    
    
   netmanager-pr-comment:
     name: netmanager-preview-link-comment
