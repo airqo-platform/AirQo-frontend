@@ -116,23 +116,23 @@ jobs:
       - name: Login to GCR
         uses: docker/login-action@v2
         with:
-          registry: ${{ secrets.REGISTRY_URL }}
+          registry: ${{ env.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCP_SA_CREDENTIALS }}
 
       - name: Build and Push Docker Image
         run: |
           cd netmanager/
-          docker build -t ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }} .
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }}
-          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:latest
+          docker build -t ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:${{ github.sha }} .
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:${{ github.sha }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:latest
 
       - name: Deploy to Cloud Run
         run: |-
           gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
-            --region=${{ secrets.REGION }} \
-            --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:${{ github.sha }} \
+            --region=${{ env.REGION }} \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:${{ github.sha }} \
             --cpu=1000m \
             --memory=256Mi \
             --allow-unauthenticated 
