@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
-import Loadspinner from './src/components/LoadSpinner';
+import LoadSpinner from './src/components/LoadSpinner';
 import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
 import store from './store';
 import PartnerDetailPage from './src/pages/Partners';
@@ -11,63 +11,64 @@ import Error404 from 'src/pages/ErrorPages/Error404';
 import { ExploreApp } from './src/pages/ExploreData';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 
-const HomePage = React.lazy(() => import('src/pages/HomePage'));
-const Press = React.lazy(() => import('src/pages/Press/Press'));
-const LegalPage = React.lazy(() => import('src/pages/Legal'));
-const ResearchPage = React.lazy(() => import('src/pages/OurSolutions/ResearchPage'));
-const CommunityPage = React.lazy(() => import('src/pages/OurSolutions/CommunityPage'));
-const AfricanCitiesPage = React.lazy(() => import('src/pages/OurSolutions/AfricanCitiesPage'));
-const AboutUsPage = React.lazy(() => import('src/pages/AboutUsPage'));
-const ContactUsPage = React.lazy(() => import('src/pages/ContactUs/ContactUs'));
-const ContactForm = React.lazy(() => import('src/pages/ContactUs/ContactForm'));
-const Feedback = React.lazy(() => import('src/pages/ContactUs/Feedback'));
-const ExploreData = React.lazy(() => import('src/pages/ExploreData'));
-const CareerPage = React.lazy(() => import('src/pages/CareerPage'));
-const CareerDetailPage = React.lazy(() => import('src/pages/CareerDetailPage'));
-const PublicationsPage = React.lazy(() => import('src/pages/Publications/Publications'));
-const EventsPage = React.lazy(() => import('src/pages/Events'));
-const EventsDetailsPage = React.lazy(() => import('src/pages/Events/Details'));
-const MonitorPage = React.lazy(() => import('src/pages/OurProducts/MonitorPage'));
-const AnalyticsPage = React.lazy(() => import('src/pages/OurProducts/AnalyticsPage'));
-const MobileAppPage = React.lazy(() => import('src/pages/OurProducts/MobileAppPage'));
-const APIPage = React.lazy(() => import('src/pages/OurProducts/ApiPage'));
-const CalibrationPage = React.lazy(() => import('src/pages/OurProducts/CalibrationPage'));
-const QRCodeRedirectPage = React.lazy(() => import('src/pages/ExploreData/Redirect'));
-const CleanAirPage = React.lazy(() => import('src/pages/CleanAir/CleanAirAbout'));
-const CleanAirMemberPage = React.lazy(() => import('src/pages/CleanAir/CleanAirPartners'));
-const CleanAirEventsPage = React.lazy(() => import('src/pages/CleanAir/CleanAirEvents'));
-const CleanAirResourcesPage = React.lazy(() => import('src/pages/CleanAir/CleanAirPublications'));
-const CleanAirEventsDetailsPage = React.lazy(() => import('src/pages/CleanAir/EventDetails'));
-const CleanAirForumEvent = React.lazy(() => import('src/pages/CleanAir/CleanAirForumEvent'));
+import HomePage from 'src/pages/HomePage';
+import Press from 'src/pages/Press/Press';
+import LegalPage from 'src/pages/Legal';
+import ResearchPage from 'src/pages/OurSolutions/ResearchPage';
+import CommunityPage from 'src/pages/OurSolutions/CommunityPage';
+import AfricanCitiesPage from 'src/pages/OurSolutions/AfricanCitiesPage';
+import AboutUsPage from 'src/pages/AboutUsPage';
+import ContactUsPage from 'src/pages/ContactUs/ContactUs';
+import ContactForm from 'src/pages/ContactUs/ContactForm';
+import Feedback from 'src/pages/ContactUs/Feedback';
+import ExploreData from 'src/pages/ExploreData';
+import CareerPage from 'src/pages/CareerPage';
+import CareerDetailPage from 'src/pages/CareerDetailPage';
+import PublicationsPage from 'src/pages/Publications/Publications';
+import EventsPage from 'src/pages/Events';
+import EventsDetailsPage from 'src/pages/Events/Details';
+import MonitorPage from 'src/pages/OurProducts/MonitorPage';
+import AnalyticsPage from 'src/pages/OurProducts/AnalyticsPage';
+import MobileAppPage from 'src/pages/OurProducts/MobileAppPage';
+import APIPage from 'src/pages/OurProducts/ApiPage';
+import CalibrationPage from 'src/pages/OurProducts/CalibrationPage';
+import QRCodeRedirectPage from 'src/pages/ExploreData/Redirect';
+import CleanAirPage from 'src/pages/CleanAir/CleanAirAbout';
+import CleanAirMemberPage from 'src/pages/CleanAir/CleanAirPartners';
+import CleanAirEventsPage from 'src/pages/CleanAir/CleanAirEvents';
+import CleanAirResourcesPage from 'src/pages/CleanAir/CleanAirPublications';
+import CleanAirEventsDetailsPage from 'src/pages/CleanAir/EventDetails';
+import CleanAirForumEvent from 'src/pages/CleanAir/CleanAirForumEvent';
 
 store.dispatch(loadAirQloudSummaryData());
 
 const App = () => {
   const [showScroll, setShowScroll] = useState(false);
 
-  const checkScrollTop = () => {
+  const checkScrollTop = useCallback(() => {
     const shouldShowScroll = window.scrollY >= 400;
     if (showScroll !== shouldShowScroll) {
       setShowScroll(shouldShowScroll);
     }
-  };
+  }, [showScroll]);
 
   useEffect(() => {
     window.addEventListener('scroll', checkScrollTop);
     return () => window.removeEventListener('scroll', checkScrollTop);
-  }, [showScroll]);
+  }, [checkScrollTop]);
 
-  const ScrollTop = () => {
+  const ScrollTop = useCallback(() => {
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
     });
-  };
+  }, []);
+
   return (
     <>
       <Provider store={store}>
-        <Suspense fallback={<Loadspinner />}>
-          <I18nextProvider i18n={i18n}>
+        <I18nextProvider i18n={i18n}>
+          <Suspense fallback={<LoadSpinner />}>
             <Router>
               <Routes>
                 <Route path="/" element={<HomePage />} />
@@ -107,8 +108,8 @@ const App = () => {
                 <Route path="*" element={<Error404 />} />
               </Routes>
             </Router>
-          </I18nextProvider>
-        </Suspense>
+          </Suspense>
+        </I18nextProvider>
       </Provider>
       {/* scroll top button */}
       {showScroll && (
