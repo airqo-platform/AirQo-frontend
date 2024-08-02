@@ -118,7 +118,14 @@ module.exports = (env, argv) => {
       }),
       new DeadCodePlugin({
         patterns: ['frontend/**/*.*'],
-        exclude: ['**/*.test.js', '**/*.spec.js'],
+        exclude: [
+          '**/static/**',
+          '**/dist/**',
+          '**/bin/**',
+          '**/node_modules/**',
+          '**/*.test.js',
+          '**/*.spec.js',
+        ],
       }),
       isProd &&
         new BundleAnalyzerPlugin({
