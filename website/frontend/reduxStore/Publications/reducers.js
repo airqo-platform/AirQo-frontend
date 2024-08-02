@@ -1,9 +1,12 @@
-import { LOAD_PUBLICATIONS_SUCCESS, LOAD_PUBLICATIONS_REQUEST } from './actions';
+import {
+  LOAD_PUBLICATIONS_SUCCESS,
+  LOAD_PUBLICATIONS_REQUEST,
+} from './actions';
 
 const initialState = {
   loading: false,
   publications: [],
-  error: null
+  error: null,
 };
 
 export default function (state = initialState, action) {

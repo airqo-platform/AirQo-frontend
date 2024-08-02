@@ -7,7 +7,7 @@ import {
   IntroSection,
   RotatingLoopIcon,
   usePagination,
-  Pagination
+  Pagination,
 } from 'components/CleanAir';
 import eventImage from 'assets/img/cleanAir/events.webp';
 import { useTranslation } from 'react-i18next';
@@ -82,7 +82,12 @@ const CleanAirEvents = () => {
         }
       }
 
-      if (filter && filter !== 'all' && filter !== 'others' && event.event_category !== filter) {
+      if (
+        filter &&
+        filter !== 'all' &&
+        filter !== 'others' &&
+        event.event_category !== filter
+      ) {
         return false;
       }
 
@@ -90,8 +95,14 @@ const CleanAirEvents = () => {
     });
   }, [allEventsData, selectedMonth, filter, language]);
 
-  const upcomingEvents = useMemo(() => getUpcomingEvents(eventsApiData), [eventsApiData]);
-  const pastEvents = useMemo(() => getPastEvents(eventsApiData), [eventsApiData]);
+  const upcomingEvents = useMemo(
+    () => getUpcomingEvents(eventsApiData),
+    [eventsApiData]
+  );
+  const pastEvents = useMemo(
+    () => getPastEvents(eventsApiData),
+    [eventsApiData]
+  );
 
   /**
    * @description function to get upcoming events and past events
@@ -101,14 +112,16 @@ const CleanAirEvents = () => {
    */
   function getUpcomingEvents(events) {
     return events.filter((event) => {
-      if (event.end_date !== null) return days(new Date(event.end_date), new Date()) >= 1;
+      if (event.end_date !== null)
+        return days(new Date(event.end_date), new Date()) >= 1;
       return days(new Date(event.start_date), new Date()) >= -0;
     });
   }
 
   function getPastEvents(events) {
     return events.filter((event) => {
-      if (event.end_date !== null) return days(new Date(event.end_date), new Date()) <= 0;
+      if (event.end_date !== null)
+        return days(new Date(event.end_date), new Date()) <= 0;
       return days(new Date(event.start_date), new Date()) <= -1;
     });
   }
@@ -144,14 +157,14 @@ const CleanAirEvents = () => {
     currentItems: currentPastEvents,
     currentPage: currentPastPage,
     setCurrentPage: setCurrentPastPage,
-    totalPages: totalPastPages
+    totalPages: totalPastPages,
   } = usePagination(pastEvents, itemsPerPage);
 
   const {
     currentItems: currentUpcomingEvents,
     currentPage: currentUpcomingPage,
     setCurrentPage: setCurrentUpcomingPage,
-    totalPages: totalUpcomingPages
+    totalPages: totalUpcomingPages,
   } = usePagination(upcomingEvents, itemsPerPage);
 
   /**
@@ -173,25 +186,61 @@ const CleanAirEvents = () => {
     { month: t('cleanAirSite.events.dropdowns.date.options.9'), value: 10 },
     { month: t('cleanAirSite.events.dropdowns.date.options.10'), value: 11 },
     { month: t('cleanAirSite.events.dropdowns.date.options.11'), value: 12 },
-    { month: t('cleanAirSite.events.dropdowns.date.options.12'), value: 13 }
+    { month: t('cleanAirSite.events.dropdowns.date.options.12'), value: 13 },
   ];
 
   const filterOption1 = [
-    { label: t('cleanAirSite.events.dropdowns.filter.options1.1'), value: 'all' },
-    { label: t('cleanAirSite.events.dropdowns.filter.options1.2'), value: 'webinar' },
-    { label: t('cleanAirSite.events.dropdowns.filter.options1.3'), value: 'workshop' },
-    { label: t('cleanAirSite.events.dropdowns.filter.options1.4'), value: 'marathon' },
-    { label: t('cleanAirSite.events.dropdowns.filter.options1.5'), value: 'conference' },
-    { label: t('cleanAirSite.events.dropdowns.filter.options1.6'), value: 'summit' },
-    { label: t('cleanAirSite.events.dropdowns.filter.options1.7'), value: 'commemoration' },
-    { label: t('cleanAirSite.events.dropdowns.filter.options1.8'), value: 'others' }
+    {
+      label: t('cleanAirSite.events.dropdowns.filter.options1.1'),
+      value: 'all',
+    },
+    {
+      label: t('cleanAirSite.events.dropdowns.filter.options1.2'),
+      value: 'webinar',
+    },
+    {
+      label: t('cleanAirSite.events.dropdowns.filter.options1.3'),
+      value: 'workshop',
+    },
+    {
+      label: t('cleanAirSite.events.dropdowns.filter.options1.4'),
+      value: 'marathon',
+    },
+    {
+      label: t('cleanAirSite.events.dropdowns.filter.options1.5'),
+      value: 'conference',
+    },
+    {
+      label: t('cleanAirSite.events.dropdowns.filter.options1.6'),
+      value: 'summit',
+    },
+    {
+      label: t('cleanAirSite.events.dropdowns.filter.options1.7'),
+      value: 'commemoration',
+    },
+    {
+      label: t('cleanAirSite.events.dropdowns.filter.options1.8'),
+      value: 'others',
+    },
   ];
 
   const filterOption2 = [
-    { label: t('cleanAirSite.events.dropdowns.filter.options2.1'), value: 'all' },
-    { label: t('cleanAirSite.events.dropdowns.filter.options2.2'), value: 'in-person' },
-    { label: t('cleanAirSite.events.dropdowns.filter.options2.3'), value: 'hybrid' },
-    { label: t('cleanAirSite.events.dropdowns.filter.options2.4'), value: 'others' }
+    {
+      label: t('cleanAirSite.events.dropdowns.filter.options2.1'),
+      value: 'all',
+    },
+    {
+      label: t('cleanAirSite.events.dropdowns.filter.options2.2'),
+      value: 'in-person',
+    },
+    {
+      label: t('cleanAirSite.events.dropdowns.filter.options2.3'),
+      value: 'hybrid',
+    },
+    {
+      label: t('cleanAirSite.events.dropdowns.filter.options2.4'),
+      value: 'others',
+    },
   ];
 
   return (
@@ -219,8 +268,9 @@ const CleanAirEvents = () => {
               justifyContent: 'center',
               alignItems: 'center',
               position: 'relative',
-              padding: '50px 0'
-            }}>
+              padding: '50px 0',
+            }}
+          >
             <RotatingLoopIcon />
           </div>
         ) : null}
@@ -230,11 +280,14 @@ const CleanAirEvents = () => {
             width: '100%',
             height: 'auto',
             backgroundColor: '#EDF3FF',
-            display: loading ? 'none' : 'block'
-          }}>
+            display: loading ? 'none' : 'block',
+          }}
+        >
           <div className="events">
             <div className="events-header">
-              <h1 className="events-title">{t('cleanAirSite.events.sectionTitles.upcoming')}</h1>
+              <h1 className="events-title">
+                {t('cleanAirSite.events.sectionTitles.upcoming')}
+              </h1>
               <div className="events-header-buttons">
                 <div style={{ position: 'relative' }}>
                   <button onClick={() => setOpenDate(!openDate)}>
@@ -248,18 +301,27 @@ const CleanAirEvents = () => {
                       className="drop-down-list"
                       ref={dateRef}
                       style={{
-                        left: window.innerWidth < 768 ? '0' : ''
-                      }}>
+                        left: window.innerWidth < 768 ? '0' : '',
+                      }}
+                    >
                       {dates.map((date) => (
                         <li
                           key={date.value}
                           style={{
-                            backgroundColor: date.value === selectedDate ? '#EBF5FF' : ''
+                            backgroundColor:
+                              date.value === selectedDate ? '#EBF5FF' : '',
                           }}
-                          onClick={() => handleDateSelect(date.value)}>
+                          onClick={() => handleDateSelect(date.value)}
+                        >
                           {date.month}
                           {date.value === selectedDate && (
-                            <DoneIcon sx={{ stroke: '#145FFF', width: '16px', height: '16px' }} />
+                            <DoneIcon
+                              sx={{
+                                stroke: '#145FFF',
+                                width: '16px',
+                                height: '16px',
+                              }}
+                            />
                           )}
                         </li>
                       ))}
@@ -278,8 +340,9 @@ const CleanAirEvents = () => {
                       className="drop-down-list"
                       ref={filterRef}
                       style={{
-                        left: window.innerWidth < 768 ? '0' : ''
-                      }}>
+                        left: window.innerWidth < 768 ? '0' : '',
+                      }}
+                    >
                       <div className="label">
                         {t('cleanAirSite.events.dropdowns.filter.label1')}
                       </div>
@@ -288,14 +351,22 @@ const CleanAirEvents = () => {
                           <li
                             key={option.value}
                             style={{
-                              backgroundColor: option.value === filter ? '#EBF5FF' : ''
+                              backgroundColor:
+                                option.value === filter ? '#EBF5FF' : '',
                             }}
                             onClick={() => {
                               handleFilterSelect(option.value);
-                            }}>
+                            }}
+                          >
                             {option.label}
                             {option.value === filter && (
-                              <DoneIcon sx={{ stroke: '#145FFF', width: '16px', height: '16px' }} />
+                              <DoneIcon
+                                sx={{
+                                  stroke: '#145FFF',
+                                  width: '16px',
+                                  height: '16px',
+                                }}
+                              />
                             )}
                           </li>
                         ))}
@@ -308,15 +379,23 @@ const CleanAirEvents = () => {
                           <li
                             key={option.value}
                             style={{
-                              backgroundColor: option.value === filter ? '#EBF5FF' : ''
+                              backgroundColor:
+                                option.value === filter ? '#EBF5FF' : '',
                             }}
                             onClick={() => {
                               setFilter(option.value);
                               setOpenFilter(false);
-                            }}>
+                            }}
+                          >
                             {option.label}
                             {option.value === filter && (
-                              <DoneIcon sx={{ stroke: '#145FFF', width: '16px', height: '16px' }} />
+                              <DoneIcon
+                                sx={{
+                                  stroke: '#145FFF',
+                                  width: '16px',
+                                  height: '16px',
+                                }}
+                              />
                             )}
                           </li>
                         ))}
@@ -339,7 +418,9 @@ const CleanAirEvents = () => {
                       />
                       <div className="even-card-details">
                         <h2 className="event-title">
-                          {event.title.length > 50 ? event.title.slice(0, 50) + '...' : event.title}
+                          {event.title.length > 50
+                            ? event.title.slice(0, 50) + '...'
+                            : event.title}
                         </h2>
                         <p className="event-subtitle">
                           {event.title_subtext.length > 100
@@ -349,7 +430,10 @@ const CleanAirEvents = () => {
                         <p className="event-date">
                           {format(new Date(event.start_date), 'dd MMMM, yyyy')}
                         </p>
-                        <button className="event-button" onClick={routeToDetails(event)}>
+                        <button
+                          className="event-button"
+                          onClick={routeToDetails(event)}
+                        >
                           {t('cleanAirSite.events.card.btnText')}
                         </button>
                       </div>
@@ -372,7 +456,9 @@ const CleanAirEvents = () => {
             <hr />
 
             <div className="events-header">
-              <h1 className="events-title">{t('cleanAirSite.events.sectionTitles.past')}</h1>
+              <h1 className="events-title">
+                {t('cleanAirSite.events.sectionTitles.past')}
+              </h1>
               <div>
                 <button
                   onClick={() => {
@@ -382,8 +468,9 @@ const CleanAirEvents = () => {
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    outline: 'none'
-                  }}>
+                    outline: 'none',
+                  }}
+                >
                   <KeyboardArrowDownIcon />
                 </button>
               </div>
@@ -400,7 +487,10 @@ const CleanAirEvents = () => {
                           className="event-image"
                           loading="lazy"
                         />
-                        <div className="even-card-details" onClick={routeToDetails(event)}>
+                        <div
+                          className="even-card-details"
+                          onClick={routeToDetails(event)}
+                        >
                           <h2 className="event-title">
                             {event.title.length > 50
                               ? event.title.slice(0, 50) + '...'

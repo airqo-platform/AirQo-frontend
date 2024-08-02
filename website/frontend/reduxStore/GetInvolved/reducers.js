@@ -1,5 +1,9 @@
 // eslint-disable-next-line import/named
-import { GET_INVOLVED_REGISTRATION_SUCCESS, SHOW_GET_INVOLVED_MODAL_SUCCESS, UPDATE_GET_INVOLVED_DATA_SUCCESS } from './actions';
+import {
+  GET_INVOLVED_REGISTRATION_SUCCESS,
+  SHOW_GET_INVOLVED_MODAL_SUCCESS,
+  UPDATE_GET_INVOLVED_DATA_SUCCESS,
+} from './actions';
 
 const initialState = {
   openModal: false,

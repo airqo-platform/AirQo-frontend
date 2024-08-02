@@ -387,7 +387,7 @@
   .product-page.api {
     .header-wrapper .right {
       height: 450px;
-      img{
+      img {
         border-radius: 8px;
         object-fit: cover;
       }
@@ -676,31 +676,28 @@
       img {
         border-radius: 8px;
         width: 80%;
-        
       }
     }
   }
 
-.mx-wdth-800px{
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  >p{
-  max-width: 600px;
+  .mx-wdth-800px {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    > p {
+      max-width: 600px;
+    }
   }
-  
-}
-.card-sm{
-  max-width: 600px;
-  max-height: fit-content;
-}
+  .card-sm {
+    max-width: 600px;
+    max-height: fit-content;
+  }
 
   .section.landscape-section {
     margin-top: -30px;
     .image {
       margin-top: 50px;
-      
     }
   }
 
@@ -710,7 +707,6 @@
         top: 25px;
         width: 45%;
         margin-left: -50px;
-       
       }
       .lapping-left.image {
         width: 75%;

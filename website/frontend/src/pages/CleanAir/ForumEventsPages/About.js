@@ -22,7 +22,8 @@ const Index = ({ engagements, forumEvents }) => {
             <div className="intro">
               <div
                 dangerouslySetInnerHTML={{
-                  __html: forumEvents.length > 0 && forumEvents[0].introduction_html
+                  __html:
+                    forumEvents.length > 0 && forumEvents[0].introduction_html,
                 }}
               />
             </div>
@@ -67,7 +68,7 @@ const Index = ({ engagements, forumEvents }) => {
                       dangerouslySetInnerHTML={{
                         __html:
                           forumEvents.length > 0 &&
-                          forumEvents[0].sponsorship_opportunities_about_html
+                          forumEvents[0].sponsorship_opportunities_about_html,
                       }}
                     />
                   </div>
@@ -76,7 +77,9 @@ const Index = ({ engagements, forumEvents }) => {
               title={
                 <h2
                   className="section_title"
-                  dangerouslySetInnerHTML={{ __html: t('cleanAirSite.Forum.sections.sponsorship') }}
+                  dangerouslySetInnerHTML={{
+                    __html: t('cleanAirSite.Forum.sections.sponsorship'),
+                  }}
                 />
               }
               bgColor="#FFFFFF"
@@ -97,7 +100,9 @@ const Index = ({ engagements, forumEvents }) => {
                   <div>
                     <div
                       dangerouslySetInnerHTML={{
-                        __html: forumEvents.length > 0 && forumEvents[0].sponsorship_packages_html
+                        __html:
+                          forumEvents.length > 0 &&
+                          forumEvents[0].sponsorship_packages_html,
                       }}
                     />
                   </div>
@@ -107,7 +112,9 @@ const Index = ({ engagements, forumEvents }) => {
                 <h2
                   className="section_title"
                   dangerouslySetInnerHTML={{
-                    __html: t('cleanAirSite.Forum.sections.sponsorship_package')
+                    __html: t(
+                      'cleanAirSite.Forum.sections.sponsorship_package'
+                    ),
                   }}
                 />
               }

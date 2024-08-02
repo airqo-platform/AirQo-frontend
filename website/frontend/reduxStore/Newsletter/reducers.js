@@ -1,5 +1,8 @@
 // eslint-disable-next-line import/named
-import { NEWSLETTER_SUBSCRIPTION_SUCCESS, NEWSLETTER_SUBSCRIPTION_FAILURE } from './actions';
+import {
+  NEWSLETTER_SUBSCRIPTION_SUCCESS,
+  NEWSLETTER_SUBSCRIPTION_FAILURE,
+} from './actions';
 
 const initialState = {};
 

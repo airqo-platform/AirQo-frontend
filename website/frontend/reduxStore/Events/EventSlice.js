@@ -20,7 +20,7 @@ export const eventSlice = createSlice({
   initialState: {
     loading: false,
     events: [],
-    errorMessage: ''
+    errorMessage: '',
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -36,7 +36,7 @@ export const eventSlice = createSlice({
         state.loading = false;
         state.errorMessage = action.error.message;
       });
-  }
+  },
 });
 
 export default eventSlice.reducer;

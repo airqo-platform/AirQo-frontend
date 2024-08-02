@@ -1,4 +1,6 @@
-import { useSelector } from "react-redux";
+import { useSelector } from 'react-redux';
 
-export const useHighlightsData = () => useSelector((state) => state.highlightsData.highlights);
-export const useTagsData = () => useSelector((state) => state.highlightsData.tags);
+export const useHighlightsData = () =>
+  useSelector((state) => state.highlightsData.highlights);
+export const useTagsData = () =>
+  useSelector((state) => state.highlightsData.tags);

@@ -11,13 +11,15 @@ const LanguageSwitcher = () => {
   const dispatch = useDispatch();
   const { t, i18n } = useTranslation();
   const languageTab = useSelector((state) => state.eventsNavTab.languageTab);
-  const [language, setLanguage] = useState(languageTab || localStorage.getItem('language'));
+  const [language, setLanguage] = useState(
+    languageTab || localStorage.getItem('language')
+  );
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
   const lngs = {
     en: { nativeName: 'English' },
-    fr: { nativeName: 'French' }
+    fr: { nativeName: 'French' },
   };
 
   // Ensure language is a key in lngs
@@ -60,7 +62,12 @@ const LanguageSwitcher = () => {
       <div className="wrapper">
         <div className="language-dropdown">
           <LanguageOutlinedIcon
-            sx={{ stroke: '#536a87', strokeWidth: '0.5', width: '16px', height: '16px' }}
+            sx={{
+              stroke: '#536a87',
+              strokeWidth: '0.5',
+              width: '16px',
+              height: '16px',
+            }}
           />
           <div className="dropdown" onClick={() => setOpen(!open)}>
             <p>{lngs[language]?.nativeName}</p>
@@ -70,13 +77,25 @@ const LanguageSwitcher = () => {
                   <li
                     key={lng}
                     onClick={() => changeLanguage(lng)}
-                    className={language === lng ? 'selected' : ''}>
+                    className={language === lng ? 'selected' : ''}
+                  >
                     <LanguageOutlinedIcon
-                      sx={{ stroke: '#536a87', strokeWidth: '0.5', width: '16px', height: '16px' }}
+                      sx={{
+                        stroke: '#536a87',
+                        strokeWidth: '0.5',
+                        width: '16px',
+                        height: '16px',
+                      }}
                     />
                     {lngs[lng].nativeName}
                     {language === lng && (
-                      <DoneIcon sx={{ stroke: '#145FFF', width: '14px', height: '14px' }} />
+                      <DoneIcon
+                        sx={{
+                          stroke: '#145FFF',
+                          width: '14px',
+                          height: '14px',
+                        }}
+                      />
                     )}
                   </li>
                 ))}
@@ -98,7 +117,7 @@ const LanguageSwitcher = () => {
                     height: '14px',
                     position: 'relative',
                     top: '2px',
-                    left: '2px'
+                    left: '2px',
                   }}
                 />
               </span>

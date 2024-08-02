@@ -13,7 +13,7 @@ const rotate = keyframes`
 
 const RotatingLoopIcon = styled(LoopIcon)({
   animation: `${rotate} 2s linear infinite`,
-  fontSize: '40px'
+  fontSize: '40px',
 });
 
 const Spinner = () => {

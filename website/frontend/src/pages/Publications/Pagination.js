@@ -25,12 +25,16 @@ const Pagination = ({ itemsPerPage, totalItems, paginate }) => {
           className="page-link"
           onClick={() => {
             currentNumber >= 2 && handleClick(currentNumber - 1);
-          }}>
+          }}
+        >
           {'<'}
         </a>
       </li>
       {pageNumbers.map((number) => (
-        <li key={number} className={`page-item ${number === currentNumber ? 'active' : ''}`}>
+        <li
+          key={number}
+          className={`page-item ${number === currentNumber ? 'active' : ''}`}
+        >
           <a onClick={() => handleClick(number)} className="page-link">
             {number}
           </a>
@@ -40,8 +44,10 @@ const Pagination = ({ itemsPerPage, totalItems, paginate }) => {
         <a
           className="page-link"
           onClick={() => {
-            currentNumber < pageNumbers.length && handleClick(currentNumber + 1);
-          }}>
+            currentNumber < pageNumbers.length &&
+              handleClick(currentNumber + 1);
+          }}
+        >
           {'>'}
         </a>
       </li>

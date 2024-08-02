@@ -13,7 +13,10 @@ const AnalyticsSection = () => {
           <h1>{t('homepage.analytics.title')}</h1>
           <div className="AnalyticsSection-info-aside">
             <p>{t('homepage.analytics.subText')}</p>
-            <Link to="/products/analytics" className="AnalyticsSection-info-aside-btn">
+            <Link
+              to="/products/analytics"
+              className="AnalyticsSection-info-aside-btn"
+            >
               {t('homepage.analytics.cta')} {'-->'}
             </Link>
           </div>

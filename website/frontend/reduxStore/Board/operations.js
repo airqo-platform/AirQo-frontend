@@ -4,7 +4,7 @@ import {
   LOAD_BOARD_SUCCESS,
   LOAD_BOARD_FAILURE,
   UPDATE_BOARD_LOADER_SUCCESS,
-  UPDATE_BOARD_LOADER_FAILURE
+  UPDATE_BOARD_LOADER_FAILURE,
 } from './actions';
 
 export const loadBoardData = () => async (dispatch, getState) => {
@@ -15,13 +15,13 @@ export const loadBoardData = () => async (dispatch, getState) => {
       if (isEmpty(resData || [])) return;
       dispatch({
         type: LOAD_BOARD_SUCCESS,
-        payload: resData
+        payload: resData,
       });
     })
     .catch((err) => {
       dispatch({
         type: LOAD_BOARD_FAILURE,
-        payload: err && err.message
+        payload: err && err.message,
       });
     });
 

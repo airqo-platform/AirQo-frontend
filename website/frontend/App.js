@@ -60,7 +60,7 @@ const App = () => {
   const ScrollTop = useCallback(() => {
     window.scrollTo({
       top: 0,
-      behavior: 'smooth'
+      behavior: 'smooth',
     });
   }, []);
 
@@ -73,10 +73,19 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/solutions/research" element={<ResearchPage />} />
-                <Route path="/solutions/communities" element={<CommunityPage />} />
-                <Route path="/solutions/african-cities" element={<AfricanCitiesPage />} />
+                <Route
+                  path="/solutions/communities"
+                  element={<CommunityPage />}
+                />
+                <Route
+                  path="/solutions/african-cities"
+                  element={<AfricanCitiesPage />}
+                />
                 <Route path="/careers" element={<CareerPage />} />
-                <Route path="/careers/:uniqueTitle" element={<CareerDetailPage />} />
+                <Route
+                  path="/careers/:uniqueTitle"
+                  element={<CareerDetailPage />}
+                />
                 <Route path="/about-us" element={<AboutUsPage />} />
                 <Route path="/press" element={<Press />} />
                 <Route path="/legal" element={<LegalPage />} />
@@ -84,23 +93,50 @@ const App = () => {
                 <Route path="/contact/form" element={<ContactForm />} />
                 <Route path="/contact/sent" element={<Feedback />} />
                 <Route path="/explore-data" element={<ExploreData />} />
-                <Route path="/explore-data/download-apps" element={<ExploreApp />} />
-                <Route path="/partners/:uniqueTitle" element={<PartnerDetailPage />} />
+                <Route
+                  path="/explore-data/download-apps"
+                  element={<ExploreApp />}
+                />
+                <Route
+                  path="/partners/:uniqueTitle"
+                  element={<PartnerDetailPage />}
+                />
                 <Route path="/resources" element={<PublicationsPage />} />
                 <Route path="/events" element={<EventsPage />} />
-                <Route path="/events/:uniqueTitle" element={<EventsDetailsPage />} />
+                <Route
+                  path="/events/:uniqueTitle"
+                  element={<EventsDetailsPage />}
+                />
                 <Route path="/products/monitor" element={<MonitorPage />} />
                 <Route path="/products/analytics" element={<AnalyticsPage />} />
-                <Route path="/products/mobile-app" element={<MobileAppPage />} />
+                <Route
+                  path="/products/mobile-app"
+                  element={<MobileAppPage />}
+                />
                 <Route path="/products/api" element={<APIPage />} />
                 <Route path="/download-apps" element={<QRCodeRedirectPage />} />
-                <Route path="/products/calibrate" element={<CalibrationPage />} />
+                <Route
+                  path="/products/calibrate"
+                  element={<CalibrationPage />}
+                />
                 <Route path="/clean-air" element={<CleanAirPage />} />
                 <Route path="/clean-air/about" element={<CleanAirPage />} />
-                <Route path="/clean-air/membership" element={<CleanAirMemberPage />} />
-                <Route path="/clean-air/events" element={<CleanAirEventsPage />} />
-                <Route path="/clean-air/resources" element={<CleanAirResourcesPage />} />
-                <Route path="/clean-air/forum" element={<CleanAirForumEvent />} />
+                <Route
+                  path="/clean-air/membership"
+                  element={<CleanAirMemberPage />}
+                />
+                <Route
+                  path="/clean-air/events"
+                  element={<CleanAirEventsPage />}
+                />
+                <Route
+                  path="/clean-air/resources"
+                  element={<CleanAirResourcesPage />}
+                />
+                <Route
+                  path="/clean-air/forum"
+                  element={<CleanAirForumEvent />}
+                />
                 <Route
                   path="/clean-air/event-details/:uniqueTitle"
                   element={<CleanAirEventsDetailsPage />}
@@ -119,7 +155,7 @@ const App = () => {
             sx={{
               width: '40px',
               height: '40px',
-              color: '#FFF'
+              color: '#FFF',
             }}
           />
         </div>

@@ -17,7 +17,7 @@ import Footer from 'components/Footer';
 import store from '../../../store';
 
 const testComponentRendering = (Component) => {
-  return(
+  return (
     <Provider store={store}>
       <BrowserRouter>
         <Component />
@@ -73,6 +73,3 @@ const video = require('../../assets/video/opening.mov');
 test('Mocked .mov file', () => {
   expect(video.default).toBe('opening.mov');
 });
-
-
-

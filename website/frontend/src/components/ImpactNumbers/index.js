@@ -15,33 +15,33 @@ const numbers = [
   {
     icon: <NetworkIcon />,
     name: 'homepage.impact.cities',
-    numbers: 'african_cities'
+    numbers: 'african_cities',
   },
   {
     icon: <CommunityIcon />,
     name: 'homepage.impact.champions',
-    numbers: 'champions'
+    numbers: 'champions',
   },
   {
     icon: <MonitorIcon />,
     name: 'homepage.impact.installs',
-    numbers: 'deployed_monitors'
+    numbers: 'deployed_monitors',
   },
   {
     icon: <RecordsIcon />,
     name: 'homepage.impact.records',
-    numbers: 'data_records'
+    numbers: 'data_records',
   },
   {
     icon: <ResearchIcon />,
     name: 'homepage.impact.research',
-    numbers: 'research_papers'
+    numbers: 'research_papers',
   },
   {
     icon: <PartnerIcon />,
     name: 'homepage.impact.partners',
-    numbers: 'partners'
-  }
+    numbers: 'partners',
+  },
 ];
 
 const ImpactNumbers = () => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Page from '../Page';
 import { useInitScrollTop } from 'utilities/customHooks';
@@ -16,16 +16,26 @@ const CityHeroSection = () => {
   const { t } = useTranslation();
   return (
     <div className="city-title">
-      <div className="page-nav">{t('solutions.africanCities.header.breadCrumb')}</div>
-      <div className="city-main-text">{t('solutions.africanCities.header.title')}</div>
-      <div className="city-sub-text">{t('solutions.africanCities.header.subText')}</div>
+      <div className="page-nav">
+        {t('solutions.africanCities.header.breadCrumb')}
+      </div>
+      <div className="city-main-text">
+        {t('solutions.africanCities.header.title')}
+      </div>
+      <div className="city-sub-text">
+        {t('solutions.africanCities.header.subText')}
+      </div>
     </div>
   );
 };
 
 const CityBanner = () => {
   const { t } = useTranslation();
-  return <div className="city-banner">{t('solutions.africanCities.banner.mainText')}</div>;
+  return (
+    <div className="city-banner">
+      {t('solutions.africanCities.banner.mainText')}
+    </div>
+  );
 };
 
 const AfricanCitiesApproach = () => (
@@ -117,11 +127,14 @@ const CityTab = ({ cities }) => {
           <>
             <span className="nav-tab" key={city.id}>
               <button
-                className={selectedTab === city.city_name ? 'selected' : 'unselected'}
+                className={
+                  selectedTab === city.city_name ? 'selected' : 'unselected'
+                }
                 onClick={() => {
                   onClickTabItem(city.city_name);
                   setActiveTab(city.city_name);
-                }}>
+                }}
+              >
                 {city.city_name}
               </button>
             </span>
@@ -143,7 +156,8 @@ const CityTab = ({ cities }) => {
 const CountryTab = ({ className, flag, name, onClick, keyValue }) => (
   <div onClick={onClick} key={keyValue}>
     <span className={className}>
-      <img src={flag} alt="" height={22} width={28} /> <span className="text">{name}</span>
+      <img src={flag} alt="" height={22} width={28} />{' '}
+      <span className="text">{name}</span>
     </span>
   </div>
 );
@@ -199,18 +213,27 @@ const CountryTabs = ({ countries, activeCountry, loading }) => {
 const PublicationsSection = () => {
   return (
     <div className="publications-section">
-      <div className="title">{t('solutions.africanCities.publications.title')}</div>
+      <div className="title">
+        {t('solutions.africanCities.publications.title')}
+      </div>
       <div>
-        <div className="main-text">{t('solutions.africanCities.publications.mainText')}</div>
-        <div className="author">{t('solutions.africanCities.publications.author')}</div>
-        <div className="team">{t('solutions.africanCities.publications.team')}</div>
+        <div className="main-text">
+          {t('solutions.africanCities.publications.mainText')}
+        </div>
+        <div className="author">
+          {t('solutions.africanCities.publications.author')}
+        </div>
+        <div className="team">
+          {t('solutions.africanCities.publications.team')}
+        </div>
         <div>
           <div className="link">
             <a
               href="https://www.sciencedirect.com/science/article/pii/S2352340922007065?via%3Dihub"
               target="_blank"
               download
-              rel="noopener noreferrer">
+              rel="noopener noreferrer"
+            >
               <span>
                 {t('solutions.africanCities.publications.cta')} <ArrowRight />
               </span>
@@ -226,7 +249,9 @@ const AfricanCitiesPage = () => {
   useInitScrollTop();
   const dispatch = useDispatch();
   const citiesData = useSelector((state) => state.citiesData.cities);
-  const africanCountries = citiesData.filter((country) => country.id).sort((a, b) => a.id - b.id);
+  const africanCountries = citiesData
+    .filter((country) => country.id)
+    .sort((a, b) => a.id - b.id);
   const activeCountry = africanCountries.map((entry) => entry.country_name);
   const loadingStatus = useSelector((state) => state.citiesData.loading);
 

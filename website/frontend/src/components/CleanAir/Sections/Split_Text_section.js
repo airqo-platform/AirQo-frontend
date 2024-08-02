@@ -19,10 +19,8 @@ const Split_Text_section = ({ bgColor, content, title, lists, loading }) => {
     }
   };
 
-  const { currentItems, currentPage, setCurrentPage, totalPages } = usePagination(
-    lists,
-    ITEMS_PER_PAGE
-  );
+  const { currentItems, currentPage, setCurrentPage, totalPages } =
+    usePagination(lists, ITEMS_PER_PAGE);
 
   return (
     <div className="textSplit-section" style={{ backgroundColor: bgColor }}>
@@ -46,8 +44,9 @@ const Split_Text_section = ({ bgColor, content, title, lists, loading }) => {
             justifyContent: 'center',
             alignItems: 'center',
             position: 'relative',
-            padding: '50px 0'
-          }}>
+            padding: '50px 0',
+          }}
+        >
           <Spinner />
         </div>
       ) : (
@@ -57,7 +56,11 @@ const Split_Text_section = ({ bgColor, content, title, lists, loading }) => {
               <div className="partner-logos">
                 <div className="grid-container">
                   {currentItems.map((item) => (
-                    <div className="cell" key={item.id} onClick={onLogoClick(item)}>
+                    <div
+                      className="cell"
+                      key={item.id}
+                      onClick={onLogoClick(item)}
+                    >
                       <img
                         className="logo"
                         src={item.partner_logo}

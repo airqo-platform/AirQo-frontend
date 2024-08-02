@@ -12,9 +12,16 @@ const CardComponent = ({ title, authors, link, linkTitle, downloadLink }) => {
       <div className="sub-title">{authors} </div>
       <div className="cta-links">
         {link !== null ? (
-          <a className="link" href={link} target="_blank" rel="noreferrer noopener">
+          <a
+            className="link"
+            href={link}
+            target="_blank"
+            rel="noreferrer noopener"
+          >
             <small>
-              {linkTitle || t('about.publications.reportCard.resourceLinks.linkText')} {'->'}
+              {linkTitle ||
+                t('about.publications.reportCard.resourceLinks.linkText')}{' '}
+              {'->'}
             </small>
           </a>
         ) : (
@@ -23,7 +30,9 @@ const CardComponent = ({ title, authors, link, linkTitle, downloadLink }) => {
         {downloadLink !== null ? (
           <a className="link" href={downloadLink} target="_blank">
             <small>
-              {t('about.publications.reportCard.resourceLinks.downloadLinkText')}
+              {t(
+                'about.publications.reportCard.resourceLinks.downloadLinkText'
+              )}
               <FileDownloadOutlined />{' '}
             </small>
           </a>

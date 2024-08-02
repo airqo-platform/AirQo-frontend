@@ -2,4 +2,5 @@
 import { useSelector } from 'react-redux';
 
 export const useBoardData = () => useSelector((state) => state.boardData.board);
-export const useBoardLoadingData = () => useSelector((state) => state.boardData.loading);
+export const useBoardLoadingData = () =>
+  useSelector((state) => state.boardData.loading);

@@ -8,7 +8,9 @@ const ITEMS_PER_PAGE = 6;
 const Speakers = ({ speakers, sectionText, keyNoteSpeakers }) => {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
-  const displayedSpeakers = isExpanded ? speakers : speakers?.slice(0, ITEMS_PER_PAGE);
+  const displayedSpeakers = isExpanded
+    ? speakers
+    : speakers?.slice(0, ITEMS_PER_PAGE);
   const displayedKeyNoteSpeakers = isExpanded
     ? keyNoteSpeakers
     : keyNoteSpeakers?.slice(0, ITEMS_PER_PAGE);
@@ -39,7 +41,9 @@ const Speakers = ({ speakers, sectionText, keyNoteSpeakers }) => {
                 <div key={profile.id}>
                   <Profile
                     name={
-                      profile.name.length > 28 ? `${profile.name.slice(0, 28)}....` : profile.name
+                      profile.name.length > 28
+                        ? `${profile.name.slice(0, 28)}....`
+                        : profile.name
                     }
                     title={
                       profile.title.length > 30
@@ -80,7 +84,9 @@ const Speakers = ({ speakers, sectionText, keyNoteSpeakers }) => {
                 <div key={profile.id}>
                   <Profile
                     name={
-                      profile.name.length > 28 ? `${profile.name.slice(0, 28)}....` : profile.name
+                      profile.name.length > 28
+                        ? `${profile.name.slice(0, 28)}....`
+                        : profile.name
                     }
                     title={
                       profile.title.length > 30
@@ -119,8 +125,9 @@ const Speakers = ({ speakers, sectionText, keyNoteSpeakers }) => {
               justifyContent: 'center',
               textAlign: 'center',
               alignItems: 'center',
-              height: '50vh'
-            }}>
+              height: '50vh',
+            }}
+          >
             {t('cleanAirSite.Forum.sections.speakers.No_data')}
           </div>
         )}

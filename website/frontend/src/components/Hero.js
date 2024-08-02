@@ -26,14 +26,14 @@ const Button = ({ className, label, onClick }) => (
 const StyledModal = styled(Modal)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'center'
+  justifyContent: 'center',
 }));
 
 const CenteredBox = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  height: '100%'
+  height: '100%',
 }));
 
 const VideoPlayer = ({ videoURL, thumbnailURL }) => {
@@ -59,7 +59,10 @@ const VideoPlayer = ({ videoURL, thumbnailURL }) => {
 const Hero = () => {
   const size = useWindowSize();
   const dispatch = useDispatch();
-  const showModal = useCallback(() => dispatch(showGetInvolvedModal(true)), [dispatch]);
+  const showModal = useCallback(
+    () => dispatch(showGetInvolvedModal(true)),
+    [dispatch]
+  );
 
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -87,7 +90,10 @@ const Hero = () => {
             </Trans>
           </p>
           <p className="hero-sub">
-            <span className="fact">“{t('homepage.heroSection.subText.fact')}”</span> <br />
+            <span className="fact">
+              “{t('homepage.heroSection.subText.fact')}”
+            </span>{' '}
+            <br />
             {t('homepage.heroSection.subText.desc')}
           </p>
           <div className="hero-buttons">
@@ -106,8 +112,9 @@ const Hero = () => {
         <CenteredBox
           style={{
             border: 'none',
-            outline: 'none'
-          }}>
+            outline: 'none',
+          }}
+        >
           <div className="modal-container">
             <IconButton
               onClick={closeModal}
@@ -115,8 +122,9 @@ const Hero = () => {
                 position: 'absolute',
                 top: '0',
                 right: '0',
-                color: 'white'
-              }}>
+                color: 'white',
+              }}
+            >
               <CloseIcon />
             </IconButton>
             <ReactPlayer
@@ -128,13 +136,13 @@ const Hero = () => {
               config={{
                 file: {
                   attributes: {
-                    controlsList: 'nodownload'
-                  }
-                }
+                    controlsList: 'nodownload',
+                  },
+                },
               }}
               style={{
                 border: 'none',
-                outline: 'none'
+                outline: 'none',
               }}
             />
           </div>

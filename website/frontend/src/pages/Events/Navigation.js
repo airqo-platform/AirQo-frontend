@@ -20,7 +20,8 @@ const EventsNavigation = ({ navTabs }) => {
         <span key={tab}>
           <button
             className={activeTab === tab ? 'selected' : 'unselected'}
-            onClick={() => onClickTabItem(tab)}>
+            onClick={() => onClickTabItem(tab)}
+          >
             {tab}
           </button>
         </span>

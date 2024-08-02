@@ -1,6 +1,10 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { AccessTimeOutlined, CalendarMonth, PlaceOutlined } from '@mui/icons-material';
+import {
+  AccessTimeOutlined,
+  CalendarMonth,
+  PlaceOutlined,
+} from '@mui/icons-material';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -18,8 +22,11 @@ const EventDetails = () => {
   const { uniqueTitle } = useParams();
 
   const allEventsData = useSelector((state) => state.eventsData.events);
-  const eventData = allEventsData.filter((event) => event.website_category === 'airqo');
-  const eventDetails = eventData.filter((event) => event.unique_title === uniqueTitle) || {};
+  const eventData = allEventsData.filter(
+    (event) => event.website_category === 'airqo'
+  );
+  const eventDetails =
+    eventData.filter((event) => event.unique_title === uniqueTitle) || {};
   const loading = useSelector((state) => state.eventsData.loading);
 
   const language = useSelector((state) => state.eventsNavTab.languageTab);
@@ -46,8 +53,9 @@ const EventDetails = () => {
                     background: `linear-gradient(0deg, rgba(15, 36, 83, 0.7), rgba(15, 36, 83, 0.7)),url(${event.background_image})`,
                     backgroundPosition: 'center',
                     backgroundSize: 'cover',
-                    backgroundRepeat: 'no-repeat'
-                  }}>
+                    backgroundRepeat: 'no-repeat',
+                  }}
+                >
                   <div className="content">
                     <div className="breadcrumb">
                       <span>
@@ -68,7 +76,9 @@ const EventDetails = () => {
                 <div className="detail-body">
                   <div className="event-details">
                     <div className="time">
-                      <h3>{t('about.events.eventsDetails.eventBody.time.title')}</h3>
+                      <h3>
+                        {t('about.events.eventsDetails.eventBody.time.title')}
+                      </h3>
                       <span className="item">
                         <CalendarMonth />
                         <span>
@@ -78,7 +88,12 @@ const EventDetails = () => {
                               {format(new Date(event.end_date), 'do MMMM yyyy')}
                             </span>
                           ) : (
-                            <span>{format(new Date(event.start_date), 'do MMMM yyyy')}</span>
+                            <span>
+                              {format(
+                                new Date(event.start_date),
+                                'do MMMM yyyy'
+                              )}
+                            </span>
                           )}
                         </span>
                       </span>
@@ -87,10 +102,15 @@ const EventDetails = () => {
                         <span>
                           {event.end_time !== null ? (
                             <span>
-                              {event.start_time.slice(0, -3)} - {event.end_time.slice(0, -3)}
+                              {event.start_time.slice(0, -3)} -{' '}
+                              {event.end_time.slice(0, -3)}
                             </span>
                           ) : (
-                            <span>{t('about.events.eventsDetails.eventBody.time.time')}</span>
+                            <span>
+                              {t(
+                                'about.events.eventsDetails.eventBody.time.time'
+                              )}
+                            </span>
                           )}
                         </span>
                       </div>
@@ -99,7 +119,13 @@ const EventDetails = () => {
                         <div className="item">
                           <PlaceOutlined />
                           <span>
-                            <a href={event.location_link !== null ? event.location_link : null}>
+                            <a
+                              href={
+                                event.location_link !== null
+                                  ? event.location_link
+                                  : null
+                              }
+                            >
                               <span>{event.location_name}</span>
                             </a>
                           </span>
@@ -111,9 +137,15 @@ const EventDetails = () => {
 
                     {event.registration_link && (
                       <div className="register">
-                        <a href={event.registration_link} target="_blank" rel="noopener noreferrer">
+                        <a
+                          href={event.registration_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           <button>
-                            {t('about.events.eventsDetails.eventBody.register.btnText')}
+                            {t(
+                              'about.events.eventsDetails.eventBody.register.btnText'
+                            )}
                           </button>
                         </a>
                       </div>
@@ -127,7 +159,10 @@ const EventDetails = () => {
                             <tr>
                               {event.partner.map((partner) => (
                                 <td key={partner.id}>
-                                  <img src={partner.partner_logo} alt={partner.name} />
+                                  <img
+                                    src={partner.partner_logo}
+                                    alt={partner.name}
+                                  />
                                 </td>
                               ))}
                             </tr>
@@ -137,15 +172,27 @@ const EventDetails = () => {
                     ) : (
                       <span />
                     )}
-                    <div dangerouslySetInnerHTML={{ __html: event.html }} className="html"></div>
+                    <div
+                      dangerouslySetInnerHTML={{ __html: event.html }}
+                      className="html"
+                    ></div>
                     {event.program.length > 0 ? (
                       <div className="program">
-                        <h3>{t('about.events.eventsDetails.eventBody.program.title')}</h3>
+                        <h3>
+                          {t(
+                            'about.events.eventsDetails.eventBody.program.title'
+                          )}
+                        </h3>
                         {event.program.map((program) => (
                           <div key={program.id}>
                             <details>
                               <summary>
-                                <span>{format(new Date(program.date), 'do MMMM yyyy')}</span>
+                                <span>
+                                  {format(
+                                    new Date(program.date),
+                                    'do MMMM yyyy'
+                                  )}
+                                </span>
                                 <div>{program.program_details}</div>
                               </summary>
                               {program.session.map((session) => (
@@ -160,8 +207,11 @@ const EventDetails = () => {
                                   <div className="itinerary">
                                     <h4>{session.session_title}</h4>
                                     <div
-                                      dangerouslySetInnerHTML={{ __html: session.html }}
-                                      className="html"></div>
+                                      dangerouslySetInnerHTML={{
+                                        __html: session.html,
+                                      }}
+                                      className="html"
+                                    ></div>
                                   </div>
                                 </div>
                               ))}
@@ -175,12 +225,14 @@ const EventDetails = () => {
                     {event.inquiry.length > 0 ? (
                       <div className="inquiry">
                         <h4>
-                          {t('about.events.eventsDetails.eventBody.inquiry_resources.title1')}
+                          {t(
+                            'about.events.eventsDetails.eventBody.inquiry_resources.title1'
+                          )}
                         </h4>
                         {event.inquiry.map((inq) => (
                           <div key={inq.id}>
-                            <span>{inq.inquiry}</span>: <span>{inq.role}</span> -{' '}
-                            <span>{inq.email}</span>
+                            <span>{inq.inquiry}</span>: <span>{inq.role}</span>{' '}
+                            - <span>{inq.email}</span>
                           </div>
                         ))}
                       </div>
@@ -190,7 +242,9 @@ const EventDetails = () => {
                     {event.resource.length > 0 ? (
                       <div className="inquiry">
                         <h4>
-                          {t('about.events.eventsDetails.eventBody.inquiry_resources.title2')}
+                          {t(
+                            'about.events.eventsDetails.eventBody.inquiry_resources.title2'
+                          )}
                         </h4>
                         {event.resource.map((res) => (
                           <div key={res.id}>
@@ -199,7 +253,8 @@ const EventDetails = () => {
                                 href={res.link || res.resource}
                                 target="_blank"
                                 rel="noreferrer noopener"
-                                download>
+                                download
+                              >
                                 {res.title}
                               </a>
                             ) : (

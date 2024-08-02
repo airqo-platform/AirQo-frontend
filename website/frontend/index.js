@@ -9,7 +9,7 @@ import './i18n';
 
 const app = document.getElementById('app');
 
-const root = createRoot(app)
+const root = createRoot(app);
 
 // Bootstrap the main app
 root.render(<App />);

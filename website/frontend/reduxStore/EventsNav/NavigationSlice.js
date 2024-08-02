@@ -5,7 +5,7 @@ export const navigationSlice = createSlice({
   name: 'navBarTab',
   initialState: {
     tab: i18n.t('about.events.navTabs.upcoming'),
-    languageTab: 'en'
+    languageTab: 'en',
   },
   reducers: {
     setNavTab: (state, action) => {
@@ -13,8 +13,8 @@ export const navigationSlice = createSlice({
     },
     setLanguageTab: (state, action) => {
       state.languageTab = action.payload;
-    }
-  }
+    },
+  },
 });
 
 export const { setNavTab, setLanguageTab } = navigationSlice.actions;

@@ -14,8 +14,8 @@ module.exports = (env, argv) => {
     config.devServer = {
       ...config.devServer,
       static: {
-        publicPath: '/static/'
-      }
+        publicPath: '/static/',
+      },
     };
   }
 

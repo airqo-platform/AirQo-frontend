@@ -24,7 +24,9 @@ const ContactForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    await dispatch(postContactUsInquiry({ fullName, email, message, category }));
+    await dispatch(
+      postContactUsInquiry({ fullName, email, message, category })
+    );
     setLoading(false);
     console.log(inquiryData.success);
     !isEmpty(inquiryData) && inquiryData.success && history('/contact/sent');
@@ -47,7 +49,12 @@ const ContactForm = () => {
           <div>
             <label>{t('about.contactUs.form.email')}</label>
             <br />
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
           <div>
             <label>{t('about.contactUs.form.message')}</label>

@@ -1,6 +1,11 @@
 import React from 'react';
 
-const Pagination = ({ number, totalPosts, leftTransition, rightTransition }) => {
+const Pagination = ({
+  number,
+  totalPosts,
+  leftTransition,
+  rightTransition,
+}) => {
   const postNumbers = [];
 
   for (let i = 1; i <= totalPosts; i++) {

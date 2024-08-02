@@ -22,7 +22,7 @@ const ReportComponent = ({
   linkTitle,
   showSecondAuthor,
   resourceFile,
-  resourceCategory
+  resourceCategory,
 }) => {
   const { t } = useTranslation();
   return (
@@ -37,8 +37,12 @@ const ReportComponent = ({
         {showSecondAuthor && (
           <>
             <hr />
-            <div className="author">{t('about.publications.reportCard.authors.author2.text')}</div>
-            <div className="team">{t('about.publications.reportCard.authors.author2.subText')}</div>
+            <div className="author">
+              {t('about.publications.reportCard.authors.author2.text')}
+            </div>
+            <div className="team">
+              {t('about.publications.reportCard.authors.author2.subText')}
+            </div>
           </>
         )}
         <div className="resource-links">
@@ -46,7 +50,11 @@ const ReportComponent = ({
             <div className="link">
               <a href={link} target="_blank" rel="noopener noreferrer">
                 <span>
-                  {linkTitle || t('about.publications.reportCard.resourceLinks.linkText')} {'-->'}
+                  {linkTitle ||
+                    t(
+                      'about.publications.reportCard.resourceLinks.linkText'
+                    )}{' '}
+                  {'-->'}
                 </span>
               </a>
             </div>
@@ -57,7 +65,9 @@ const ReportComponent = ({
             <div className="link">
               <a href={resourceFile} target="_blank" rel="noopener noreferrer">
                 <span>
-                  {t('about.publications.reportCard.resourceLinks.downloadLinkText')}{' '}
+                  {t(
+                    'about.publications.reportCard.resourceLinks.downloadLinkText'
+                  )}{' '}
                   <FileDownloadOutlined />{' '}
                 </span>
               </a>

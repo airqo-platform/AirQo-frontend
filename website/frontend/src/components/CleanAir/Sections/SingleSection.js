@@ -9,11 +9,12 @@ const SingleSection = ({
   content,
   link,
   btnStyle,
-  removeTopMargin = false
+  removeTopMargin = false,
 }) => (
   <div
     className={`single-section ${removeTopMargin ? 'no-top' : ''}`}
-    style={{ backgroundColor: bgColor, padding }}>
+    style={{ backgroundColor: bgColor, padding }}
+  >
     <div className="content">
       <div className="content-p">{content}</div>
       {btnText && link && (
@@ -32,7 +33,7 @@ SingleSection.propTypes = {
   content: PropTypes.any.isRequired,
   link: PropTypes.string,
   btnStyle: PropTypes.object,
-  removeTopMargin: PropTypes.bool
+  removeTopMargin: PropTypes.bool,
 };
 
 export default SingleSection;

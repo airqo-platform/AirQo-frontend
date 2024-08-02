@@ -14,12 +14,16 @@ const Press = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const allPressData = useSelector((state) => state.pressData.pressData);
-  const pressData = allPressData.filter((event) => event.website_category === 'airqo');
+  const pressData = allPressData.filter(
+    (event) => event.website_category === 'airqo'
+  );
   const loading = useSelector((state) => state.pressData.loading);
   const [numArticlesToShow, setNumArticlesToShow] = useState(5);
   const language = useSelector((state) => state.eventsNavTab.languageTab);
 
-  const sortedArticles = [...pressData].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const sortedArticles = [...pressData].sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  );
 
   useEffect(() => {
     if (isEmpty(pressData)) {
@@ -50,8 +54,9 @@ const Press = () => {
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              height: '50vh'
-            }}>
+              height: '50vh',
+            }}
+          >
             <SectionLoader />
           </div>
         ) : (
@@ -60,7 +65,9 @@ const Press = () => {
               <div className="content">
                 <div className="title-wrapper">
                   <h2>{t('about.press.header.title')}</h2>
-                  <span className="sub-title">{t('about.press.header.subText')}</span>
+                  <span className="sub-title">
+                    {t('about.press.header.subText')}
+                  </span>
                 </div>
               </div>
             </div>
@@ -68,35 +75,43 @@ const Press = () => {
             <div className="page-body">
               <div className="content">
                 <div className="list-cards">
-                  {sortedArticles.slice(0, numArticlesToShow).map((article, index) => {
-                    if (index % 5 === 4) {
-                      return (
-                        <div className="press-cards-lg modulo" key={article.id}>
-                          <div className="card-lg" style={{ paddingBottom: '0px' }}>
-                            <Article
-                              key={article.id}
-                              title={article.article_title}
-                              subtitle={article.article_intro}
-                              url={article.article_link}
-                              date={article.date_published}
-                              icon={article.publisher_logo}
-                            />
+                  {sortedArticles
+                    .slice(0, numArticlesToShow)
+                    .map((article, index) => {
+                      if (index % 5 === 4) {
+                        return (
+                          <div
+                            className="press-cards-lg modulo"
+                            key={article.id}
+                          >
+                            <div
+                              className="card-lg"
+                              style={{ paddingBottom: '0px' }}
+                            >
+                              <Article
+                                key={article.id}
+                                title={article.article_title}
+                                subtitle={article.article_intro}
+                                url={article.article_link}
+                                date={article.date_published}
+                                icon={article.publisher_logo}
+                              />
+                            </div>
                           </div>
+                        );
+                      }
+                      return (
+                        <div className="card" key={article.id}>
+                          <Article
+                            title={article.article_title}
+                            subtitle={article.article_intro}
+                            url={article.article_link}
+                            date={article.date_published}
+                            icon={article.publisher_logo}
+                          />
                         </div>
                       );
-                    }
-                    return (
-                      <div className="card" key={article.id}>
-                        <Article
-                          title={article.article_title}
-                          subtitle={article.article_intro}
-                          url={article.article_link}
-                          date={article.date_published}
-                          icon={article.publisher_logo}
-                        />
-                      </div>
-                    );
-                  })}
+                    })}
                 </div>
               </div>
               {numArticlesToShow > 5 && (

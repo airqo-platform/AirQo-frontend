@@ -12,7 +12,8 @@ const PartnerDetailPage = () => {
   const dispatch = useDispatch();
   const { uniqueTitle } = useParams();
   const partnerDetails = usePartnersData();
-  const partner = partnerDetails.filter((p) => p.unique_title === uniqueTitle) || {};
+  const partner =
+    partnerDetails.filter((p) => p.unique_title === uniqueTitle) || {};
   const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   useEffect(() => {
@@ -27,16 +28,28 @@ const PartnerDetailPage = () => {
         partner.map((p) => (
           <div className="DetailPage" key={p.id}>
             <div className="content">
-              <div style={{ display: 'flex', flexFlow: 'row reverse', alignItems: 'flex-start' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  flexFlow: 'row reverse',
+                  alignItems: 'flex-start',
+                }}
+              >
                 <div>
                   <img
-                    style={{ maxWidth: '150px', minWidth: '150px', marginRight: '25px' }}
+                    style={{
+                      maxWidth: '150px',
+                      minWidth: '150px',
+                      marginRight: '25px',
+                    }}
                     src={p.partner_logo}
                     alt={p.partner_name}
                   />
                 </div>
                 <header className="title">
-                  <span style={{ textTransform: 'capitalize' }}>{p.partner_name}</span>
+                  <span style={{ textTransform: 'capitalize' }}>
+                    {p.partner_name}
+                  </span>
                   <span>{p.type}</span>
                 </header>
               </div>
@@ -51,7 +64,8 @@ const PartnerDetailPage = () => {
                     className="link"
                     href={p.partner_link}
                     target="_blank"
-                    rel="noopener noreferrer">
+                    rel="noopener noreferrer"
+                  >
                     Read More {'-->'}
                   </a>
                 </span>

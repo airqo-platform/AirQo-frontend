@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { isEmpty } from 'underscore';
 import SEO from 'utilities/seo';
-import { SplitTextSection, RegisterSection, IntroSection } from 'components/CleanAir';
+import {
+  SplitTextSection,
+  RegisterSection,
+  IntroSection,
+} from 'components/CleanAir';
 import { usePartnersData } from '../../../reduxStore/Partners/selectors';
 import Membership from 'assets/img/cleanAir/membership.webp';
 import { useTranslation } from 'react-i18next';
@@ -31,11 +35,19 @@ const CleanAirPartners = () => {
       const cleanAirPartners = partnersData.filter(
         (partner) => partner.website_category === 'cleanair'
       );
-      setImplementingPartners(cleanAirPartners.filter((partner) => partner.type === 'ca-network'));
-      setPolicyPartners(cleanAirPartners.filter((partner) => partner.type === 'ca-forum'));
-      setSupportPartners(cleanAirPartners.filter((partner) => partner.type === 'ca-support'));
+      setImplementingPartners(
+        cleanAirPartners.filter((partner) => partner.type === 'ca-network')
+      );
+      setPolicyPartners(
+        cleanAirPartners.filter((partner) => partner.type === 'ca-forum')
+      );
+      setSupportPartners(
+        cleanAirPartners.filter((partner) => partner.type === 'ca-support')
+      );
       setPrivateSectorPartners(
-        cleanAirPartners.filter((partner) => partner.type === 'ca-private-sector')
+        cleanAirPartners.filter(
+          (partner) => partner.type === 'ca-private-sector'
+        )
       );
     }
   }, [partnersData]);

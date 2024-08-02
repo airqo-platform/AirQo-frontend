@@ -7,7 +7,9 @@ const API_KEY = process.env.REACT_APP_OPENCAGE_API_KEY;
 const DEFAULT_COUNTRY = 'Uganda';
 
 const LocationTracker = ({ countries }) => {
-  const [country, setCountry] = useState(localStorage.getItem('country') || DEFAULT_COUNTRY);
+  const [country, setCountry] = useState(
+    localStorage.getItem('country') || DEFAULT_COUNTRY
+  );
   const dispatch = useDispatch();
 
   const updateUserCountry = async (latitude, longitude) => {
@@ -25,8 +27,11 @@ const LocationTracker = ({ countries }) => {
         throw new Error('Rate limit exceeded');
       }
 
-      const countryName = response.data.results[0].components.country || DEFAULT_COUNTRY;
-      const selectedCountry = countries.some((country) => countryName === country.name)
+      const countryName =
+        response.data.results[0].components.country || DEFAULT_COUNTRY;
+      const selectedCountry = countries.some(
+        (country) => countryName === country.name
+      )
         ? countryName
         : DEFAULT_COUNTRY;
 
@@ -41,9 +46,16 @@ const LocationTracker = ({ countries }) => {
 
   useEffect(() => {
     if (!localStorage.getItem('country')) {
-      if (navigator.geolocation && !sessionStorage.getItem('permissionDenied')) {
+      if (
+        navigator.geolocation &&
+        !sessionStorage.getItem('permissionDenied')
+      ) {
         navigator.geolocation.getCurrentPosition(
-          (position) => updateUserCountry(position.coords.latitude, position.coords.longitude),
+          (position) =>
+            updateUserCountry(
+              position.coords.latitude,
+              position.coords.longitude
+            ),
           (error) => {
             console.error('Error fetching user country:', error);
             sessionStorage.setItem('permissionDenied', true);

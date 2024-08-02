@@ -15,16 +15,17 @@ const MapSection = () => {
       <div className="backdrop">
         <div className="map-content">
           <span id="first-pill">
-            <p>{t("homepage.mapSection.pill")}</p>
+            <p>{t('homepage.mapSection.pill')}</p>
           </span>
-          <h3 className="content-h">{t("homepage.mapSection.title")}</h3>
+          <h3 className="content-h">{t('homepage.mapSection.title')}</h3>
           <span className="content-p">
-            <p>{t("homepage.mapSection.subText")}
-            </p>
+            <p>{t('homepage.mapSection.subText')}</p>
           </span>
-          <Link to={`${NETMANAGER_URL}/map`} target='_blank'>
+          <Link to={`${NETMANAGER_URL}/map`} target="_blank">
             <span id="second-pill">
-              <p>{t("homepage.mapSection.cta")} {'-->'}</p>
+              <p>
+                {t('homepage.mapSection.cta')} {'-->'}
+              </p>
             </span>
           </Link>
         </div>

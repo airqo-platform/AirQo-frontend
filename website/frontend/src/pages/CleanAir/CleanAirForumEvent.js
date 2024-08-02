@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Page from 'src/pages/CleanAir/Page';
-import { AccessTimeOutlined, CalendarMonth, PlaceOutlined } from '@mui/icons-material';
+import {
+  AccessTimeOutlined,
+  CalendarMonth,
+  PlaceOutlined,
+} from '@mui/icons-material';
 import BackgroundImage from 'assets/img/cleanAir/section2.webp';
 import { getAllCleanAirForumEventsApi } from '../../../apis';
 import { format } from 'date-fns';
@@ -52,7 +56,7 @@ const CleanAirForumEvent = () => {
     { name: t('cleanAirSite.Forum.subNav.speakers'), url: 'speakers' },
     { name: t('cleanAirSite.Forum.subNav.partners'), url: 'partners' },
     { name: t('cleanAirSite.Forum.subNav.Travel'), url: 'travel' },
-    { name: t('cleanAirSite.Forum.subNav.Glossary'), url: 'glossary' }
+    { name: t('cleanAirSite.Forum.subNav.Glossary'), url: 'glossary' },
   ];
 
   const refMapping = {
@@ -62,7 +66,7 @@ const CleanAirForumEvent = () => {
     schedule: useRef(null),
     travel: useRef(null),
     navigation: useRef(null),
-    body: useRef(null)
+    body: useRef(null),
   };
 
   const [activeSection, setActiveSection] = useState(
@@ -124,21 +128,34 @@ const CleanAirForumEvent = () => {
             filterByCategory(event.persons, [
               'Committee Member',
               'Speaker and Committee Member',
-              'Committee Member and Key Note Speaker'
+              'Committee Member and Key Note Speaker',
             ])
           );
-          setSpeakers(filterByCategory(event.persons, ['Speaker', 'Speaker and Committee Member']));
+          setSpeakers(
+            filterByCategory(event.persons, [
+              'Speaker',
+              'Speaker and Committee Member',
+            ])
+          );
           setKeyNoteSpeakers(
             filterByCategory(event.persons, [
               'Key Note Speaker',
-              'Committee Member and Key Note Speaker'
+              'Committee Member and Key Note Speaker',
             ])
           );
-          setFundingPartners(filterByCategory(event.partners, ['Funding Partner']));
+          setFundingPartners(
+            filterByCategory(event.partners, ['Funding Partner'])
+          );
           setHostPartners(filterByCategory(event.partners, ['Host Partner']));
-          setCoConveningPartner(filterByCategory(event.partners, ['Co-Convening Partner']));
-          setSponsorPartners(filterByCategory(event.partners, ['Sponsor Partner']));
-          setVaccinationDetails(event.travel_logistics_vaccination_details_html);
+          setCoConveningPartner(
+            filterByCategory(event.partners, ['Co-Convening Partner'])
+          );
+          setSponsorPartners(
+            filterByCategory(event.partners, ['Sponsor Partner'])
+          );
+          setVaccinationDetails(
+            event.travel_logistics_vaccination_details_html
+          );
           setVisaDetails(event.travel_logistics_visa_details_html);
           setGlossaryDetails(event.glossary_details_html);
           setRegistration(event.registration_details_html);
@@ -163,8 +180,9 @@ const CleanAirForumEvent = () => {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            height: '50vh'
-          }}>
+            height: '50vh',
+          }}
+        >
           <SectionLoader />
         </div>
       ) : forumEvents.length > 0 ? (
@@ -172,19 +190,25 @@ const CleanAirForumEvent = () => {
           {isSticky && (
             <header
               className="headerScroll"
-              style={isSticky ? { position: 'fixed', top: 78, zIndex: 1000, width: '100%' } : {}}>
+              style={
+                isSticky
+                  ? { position: 'fixed', top: 78, zIndex: 1000, width: '100%' }
+                  : {}
+              }
+            >
               <nav className="navigation">
                 <ul className="container">
                   {links.map((link) => (
                     <li key={link.name}>
                       <span
                         style={{
-                          color: activeSection === link.url ? '#0f4acc' : ''
+                          color: activeSection === link.url ? '#0f4acc' : '',
                         }}
                         onClick={(e) => {
                           e.preventDefault();
                           window.location.hash = link.url;
-                        }}>
+                        }}
+                      >
                         {link.name}
                       </span>
                     </li>
@@ -202,7 +226,9 @@ const CleanAirForumEvent = () => {
               </span>
               <div className="hero-content">
                 <div>
-                  <p className="hero-title">{forumEvents.length > 0 && forumEvents[0].title}</p>
+                  <p className="hero-title">
+                    {forumEvents.length > 0 && forumEvents[0].title}
+                  </p>
                   <p className="hero-sub">
                     {forumEvents.length > 0 && forumEvents[0].title_subtext}
                   </p>
@@ -210,7 +236,7 @@ const CleanAirForumEvent = () => {
                     label={t('cleanAirSite.Forum.header.register')}
                     link={forumEvents[0].registration_link}
                     style={{
-                      width: '200px'
+                      width: '200px',
                     }}
                   />
                 </div>
@@ -223,16 +249,19 @@ const CleanAirForumEvent = () => {
                   <li
                     key={link.name}
                     className={
-                      (window.location.hash ? window.location.hash.replace('#', '') : 'about') ===
-                      link.url
+                      (window.location.hash
+                        ? window.location.hash.replace('#', '')
+                        : 'about') === link.url
                         ? 'activeClass'
                         : ''
-                    }>
+                    }
+                  >
                     <span
                       onClick={(e) => {
                         e.preventDefault();
                         window.location.hash = link.url;
-                      }}>
+                      }}
+                    >
                       {link.name}
                     </span>
                   </li>
@@ -249,8 +278,15 @@ const CleanAirForumEvent = () => {
                   <CalendarMonth className="icon" />
                   {forumEvents.length > 0 && (
                     <>
-                      {format(new Date(forumEvents[0].start_date), 'do MMMM, yyyy')} -{' '}
-                      {format(new Date(forumEvents[0].end_date), 'do MMMM, yyyy')}
+                      {format(
+                        new Date(forumEvents[0].start_date),
+                        'do MMMM, yyyy'
+                      )}{' '}
+                      -{' '}
+                      {format(
+                        new Date(forumEvents[0].end_date),
+                        'do MMMM, yyyy'
+                      )}
                     </>
                   )}
                 </span>
@@ -273,13 +309,24 @@ const CleanAirForumEvent = () => {
             </div>
 
             {activeSection === 'about' && (
-              <About forumEvents={forumEvents} engagements={engagements} committee={committee} />
+              <About
+                forumEvents={forumEvents}
+                engagements={engagements}
+                committee={committee}
+              />
             )}
             {activeSection === 'committee' && (
-              <CommitteePage committee={committee} sectionText={committeeText} />
+              <CommitteePage
+                committee={committee}
+                sectionText={committeeText}
+              />
             )}
             {activeSection === 'schedule' && (
-              <Schedule schedule={schedule} registration={registration} forumEvents={forumEvents} />
+              <Schedule
+                schedule={schedule}
+                registration={registration}
+                forumEvents={forumEvents}
+              />
             )}
             {activeSection === 'speakers' && (
               <Speakers
@@ -305,7 +352,9 @@ const CleanAirForumEvent = () => {
                 accommodation={accommodation}
               />
             )}
-            {activeSection === 'glossary' && <Glossary glossaryDetails={glossaryDetails} />}
+            {activeSection === 'glossary' && (
+              <Glossary glossaryDetails={glossaryDetails} />
+            )}
           </div>
         </div>
       ) : (
@@ -313,8 +362,9 @@ const CleanAirForumEvent = () => {
           style={{
             display: 'flex',
             justifyContent: 'center',
-            textAlign: 'center'
-          }}>
+            textAlign: 'center',
+          }}
+        >
           <div
             style={{
               display: 'flex',
@@ -322,8 +372,9 @@ const CleanAirForumEvent = () => {
               textAlign: 'center',
               alignItems: 'center',
               maxWidth: 800,
-              height: '50vh'
-            }}>
+              height: '50vh',
+            }}
+          >
             {t('cleanAirSite.Forum.sections.about.No_data')}
           </div>
         </div>

@@ -17,12 +17,17 @@ const SplitSection = ({
   children,
   customBtn,
   wrapperPadding,
-  titleSection
+  titleSection,
 }) => {
   return (
     <div
-      className={titleSection ? 'splitSection-section title-section' : 'splitSection-section'}
-      style={{ backgroundColor: bgColor, padding: wrapperPadding }}>
+      className={
+        titleSection
+          ? 'splitSection-section title-section'
+          : 'splitSection-section'
+      }
+      style={{ backgroundColor: bgColor, padding: wrapperPadding }}
+    >
       <div className={` ${reverse ? 'backdrop-rev' : 'backdrop'}`}>
         <div className="splitSection-content">
           {pillTitle && (
@@ -30,8 +35,9 @@ const SplitSection = ({
               style={{
                 display: 'flex',
                 flexDirection: 'row',
-                alignItems: 'center'
-              }}>
+                alignItems: 'center',
+              }}
+            >
               <span id="first-pill" style={{ backgroundColor: pillBgColor }}>
                 <p style={{ color: pillTextColor }}>{pillTitle}</p>
               </span>
@@ -40,7 +46,10 @@ const SplitSection = ({
 
           {title && <h3 className="content-h">{title}</h3>}
           {content ? (
-            <span className="content-p" dangerouslySetInnerHTML={{ __html: content }}></span>
+            <span
+              className="content-p"
+              dangerouslySetInnerHTML={{ __html: content }}
+            ></span>
           ) : (
             ''
           )}
@@ -57,7 +66,13 @@ const SplitSection = ({
             ))}
         </div>
         <div className="splitSection-image">
-          <img className="splitSection-img" src={imgURL} style={imageStyle} alt="" loading="lazy" />
+          <img
+            className="splitSection-img"
+            src={imgURL}
+            style={imageStyle}
+            alt=""
+            loading="lazy"
+          />
         </div>
       </div>
     </div>
@@ -70,7 +85,7 @@ SplitSection.defaultProps = {
   bgColor: '#FFFFFF',
   pillBgColor: '#ECF2FF',
   pillTextColor: '#135DFF',
-  btnText: 'Read here -->'
+  btnText: 'Read here -->',
 };
 
 export default SplitSection;

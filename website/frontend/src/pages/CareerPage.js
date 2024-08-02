@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInitScrollTop } from 'utilities/customHooks';
-import { loadCareersListingData, loadCareersDepartmentsData } from 'reduxStore/Careers/operations';
+import {
+  loadCareersListingData,
+  loadCareersDepartmentsData,
+} from 'reduxStore/Careers/operations';
 import { useDispatch } from 'react-redux';
 import Page from './Page';
 import {
   useCareerListingData,
   useCareerDepartmentsData,
-  useCareerLoadingData
+  useCareerLoadingData,
 } from 'reduxStore/Careers/selectors';
 import { groupBy } from 'underscore';
 import SectionLoader from '../components/LoadSpinner/SectionLoader';
@@ -68,7 +71,10 @@ const CareerPage = () => {
     careerListing = useCareerListingData();
     departments = useCareerDepartmentsData();
     loading = useCareerLoadingData();
-    groupedListing = groupBy(Object.values(careerListing), (v) => v['department']['name']);
+    groupedListing = groupBy(
+      Object.values(careerListing),
+      (v) => v['department']['name']
+    );
     language = useSelector((state) => state.eventsNavTab.languageTab);
   } catch (error) {
     console.error('An error occurred while fetching data: ', error);
@@ -117,12 +123,17 @@ const CareerPage = () => {
         <div
           className="careers-banner"
           style={{
-            backgroundImage: `url(${CareerImage})`
-          }}>
+            backgroundImage: `url(${CareerImage})`,
+          }}
+        >
           <div className="text-container">
-            <div className="sub-text">{t('about.careers.header.breadCrumb')}</div>
+            <div className="sub-text">
+              {t('about.careers.header.breadCrumb')}
+            </div>
             <div className="main-text">{t('about.careers.header.title')}</div>
-            <div className="text-brief">{t('about.careers.header.subText')}</div>
+            <div className="text-brief">
+              {t('about.careers.header.subText')}
+            </div>
           </div>
         </div>
 
@@ -132,8 +143,9 @@ const CareerPage = () => {
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              height: '50vh'
-            }}>
+              height: '50vh',
+            }}
+          >
             <SectionLoader />
           </div>
         ) : (
@@ -141,7 +153,10 @@ const CareerPage = () => {
             <div className="container">
               <div className="label">{t('about.careers.categories.label')}</div>
               <div className="tags">
-                <span className={selectedTagClassName('all')} onClick={onTagClick('all')}>
+                <span
+                  className={selectedTagClassName('all')}
+                  onClick={onTagClick('all')}
+                >
                   {t('about.careers.categories.btnText')}
                 </span>
                 {departments.length > 0 ? (
@@ -149,7 +164,8 @@ const CareerPage = () => {
                     <span
                       className={selectedTagClassName(department.name)}
                       key={department.id}
-                      onClick={onTagClick(department.name)}>
+                      onClick={onTagClick(department.name)}
+                    >
                       {department.name}
                     </span>
                   ))
@@ -166,7 +182,9 @@ const CareerPage = () => {
                   }
 
                   const listing = departmentListing.filter(
-                    (job) => new Date(job.closing_date).getTime() >= new Date().getTime()
+                    (job) =>
+                      new Date(job.closing_date).getTime() >=
+                      new Date().getTime()
                   );
 
                   return (
@@ -178,7 +196,9 @@ const CareerPage = () => {
                   );
                 })
               ) : (
-                <div className="no-listing">{t('about.careers.categories.noListing')}</div>
+                <div className="no-listing">
+                  {t('about.careers.categories.noListing')}
+                </div>
               )}
 
               <div className="self-intro">

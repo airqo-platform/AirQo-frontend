@@ -3,7 +3,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import Pagination from './pagination';
 import Post from './post';
 import { useHighlightsData } from '../../../reduxStore/Highlights/selectors';
-import { loadHighlightsData, loadTagsData } from '../../../reduxStore/Highlights/operations';
+import {
+  loadHighlightsData,
+  loadTagsData,
+} from '../../../reduxStore/Highlights/operations';
 
 const HighlightsSection = () => {
   const dispatch = useDispatch();
@@ -21,7 +24,9 @@ const HighlightsSection = () => {
   const totalPosts = highlights.length;
 
   const paginateRight = (postNumber) => {
-    postNumber < totalPosts ? setStartNumber(postNumber + 1) : setStartNumber(postNumber);
+    postNumber < totalPosts
+      ? setStartNumber(postNumber + 1)
+      : setStartNumber(postNumber);
   };
   const paginateLeft = (postNumber) => {
     postNumber > 1 && postNumber <= totalPosts

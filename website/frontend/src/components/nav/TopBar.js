@@ -18,14 +18,18 @@ const TopBar = () => {
   const toggleMenu = () => {
     setOpenItem(null);
     document.getElementById('menu').classList.toggle('toggle_menu_btn');
-    document.getElementById('close-menu').classList.toggle('toggle_close_menu_btn');
+    document
+      .getElementById('close-menu')
+      .classList.toggle('toggle_close_menu_btn');
     document.getElementById('nav-center').classList.toggle('toggle_nav_center');
     // document.getElementById('nav-right').classList.toggle('toggle_nav_right');
   };
 
   const toggleCloseMenu = () => {
     setOpenItem(null);
-    document.getElementById('close-menu').classList.remove('toggle_close_menu_btn');
+    document
+      .getElementById('close-menu')
+      .classList.remove('toggle_close_menu_btn');
     document.getElementById('menu').classList.remove('toggle_menu_btn');
     document.getElementById('nav-center').classList.remove('toggle_nav_center');
     // document.getElementById('nav-right').classList.remove('toggle_nav_right');
@@ -64,24 +68,39 @@ const TopBar = () => {
         <div className="nav-center" id="nav-center">
           <div className="nav-wrapper">
             <div className="nav-dropdown-item">
-              <NavTab text={t('navbar.products.title')} onClick={() => handleClick('Products')} />
-              <div className="dropdown" id={openItem === 'Products' ? 'solutions-dropdown' : ''}>
+              <NavTab
+                text={t('navbar.products.title')}
+                onClick={() => handleClick('Products')}
+              />
+              <div
+                className="dropdown"
+                id={openItem === 'Products' ? 'solutions-dropdown' : ''}
+              >
                 <h3 className="title">{t('navbar.products.title')}</h3>
                 <div className="dropdown-list">
                   <div className="dropdown-list-item">
-                    <Link to="/products/monitor" style={{ textDecoration: 'none' }}>
+                    <Link
+                      to="/products/monitor"
+                      style={{ textDecoration: 'none' }}
+                    >
                       <h3>{t('navbar.products.subnav.monitor.name')}</h3>
                       <h4>{t('navbar.products.subnav.monitor.desc')}</h4>
                     </Link>
                   </div>
                   <div className="dropdown-list-item">
-                    <Link to="/products/analytics" style={{ textDecoration: 'none' }}>
+                    <Link
+                      to="/products/analytics"
+                      style={{ textDecoration: 'none' }}
+                    >
                       <h3>{t('navbar.products.subnav.dashboard.name')}</h3>
                       <h4>{t('navbar.products.subnav.dashboard.desc')}</h4>
                     </Link>
                   </div>
                   <div className="dropdown-list-item">
-                    <Link to="/products/mobile-app" style={{ textDecoration: 'none' }}>
+                    <Link
+                      to="/products/mobile-app"
+                      style={{ textDecoration: 'none' }}
+                    >
                       <h3>{t('navbar.products.subnav.mobileapp.name')}</h3>
                       <h4>{t('navbar.products.subnav.mobileapp.desc')}</h4>
                     </Link>
@@ -93,7 +112,10 @@ const TopBar = () => {
                     </Link>
                   </div>
                   <div className="dropdown-list-item">
-                    <Link to="/products/calibrate" style={{ textDecoration: 'none' }}>
+                    <Link
+                      to="/products/calibrate"
+                      style={{ textDecoration: 'none' }}
+                    >
                       <h3>{t('navbar.products.subnav.calibrate.name')}</h3>
                       <h4>{t('navbar.products.subnav.calibrate.desc')}</h4>
                     </Link>
@@ -103,24 +125,39 @@ const TopBar = () => {
             </div>
           </div>
           <div className="nav-dropdown-item">
-            <NavTab text={t('navbar.solutions.title')} onClick={() => handleClick('Solutions')} />
-            <div className="dropdown" id={openItem === 'Solutions' ? 'solutions-dropdown' : ''}>
+            <NavTab
+              text={t('navbar.solutions.title')}
+              onClick={() => handleClick('Solutions')}
+            />
+            <div
+              className="dropdown"
+              id={openItem === 'Solutions' ? 'solutions-dropdown' : ''}
+            >
               <h3 className="title">{t('navbar.solutions.title')}</h3>
               <div className="dropdown-list">
                 <div className="dropdown-list-item">
-                  <Link to="/solutions/african-cities" style={{ textDecoration: 'none' }}>
+                  <Link
+                    to="/solutions/african-cities"
+                    style={{ textDecoration: 'none' }}
+                  >
                     <h3>{t('navbar.solutions.subnav.cities.name')}</h3>
                     <h4>{t('navbar.solutions.subnav.cities.desc')}</h4>
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
-                  <Link to="/solutions/communities" style={{ textDecoration: 'none' }}>
+                  <Link
+                    to="/solutions/communities"
+                    style={{ textDecoration: 'none' }}
+                  >
                     <h3>{t('navbar.solutions.subnav.communities.name')}</h3>
                     <h4>{t('navbar.solutions.subnav.communities.desc')}</h4>
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
-                  <Link to="/solutions/research" style={{ textDecoration: 'none' }}>
+                  <Link
+                    to="/solutions/research"
+                    style={{ textDecoration: 'none' }}
+                  >
                     <h3>{t('navbar.solutions.subnav.research.name')}</h3>
                     <h4>{t('navbar.solutions.subnav.research.desc')}</h4>
                   </Link>
@@ -129,8 +166,14 @@ const TopBar = () => {
             </div>
           </div>
           <div className="nav-dropdown-item single-links">
-            <NavTab text={t('navbar.about.title')} onClick={() => handleClick('About')} />
-            <div className="dropdown" id={openItem === 'About' ? 'solutions-dropdown' : ''}>
+            <NavTab
+              text={t('navbar.about.title')}
+              onClick={() => handleClick('About')}
+            />
+            <div
+              className="dropdown"
+              id={openItem === 'About' ? 'solutions-dropdown' : ''}
+            >
               <h3 className="title">{t('navbar.about.title')} AirQo</h3>
               <div className="dropdown-list">
                 <div className="dropdown-list-item">
@@ -173,18 +216,32 @@ const TopBar = () => {
             </div>
           </div>
           {/* <NavTab text="About" path="/about-us" hideArrow /> */}
-          <NavTab text={t('navbar.getInvolved')} hideArrow colored onClick={showModal} />
+          <NavTab
+            text={t('navbar.getInvolved')}
+            hideArrow
+            colored
+            onClick={showModal}
+          />
           {/* <Link to="/clean-air" className="clean-air-tab">
             <div>
               <PublicIcon />
               <h3>{t('navbar.about.subnav.cleanAir')}</h3>
             </div>
           </Link> */}
-          <NavTab text={t('navbar.exploreData')} path="/explore-data" hideArrow filled />
+          <NavTab
+            text={t('navbar.exploreData')}
+            path="/explore-data"
+            hideArrow
+            filled
+          />
         </div>
       </div>
       <MenuIcon className="menu-btn" id="menu" onClick={toggleMenu} />
-      <CloseIcon className="close-menu-btn" id="close-menu" onClick={toggleCloseMenu} />
+      <CloseIcon
+        className="close-menu-btn"
+        id="close-menu"
+        onClick={toggleCloseMenu}
+      />
     </div>
   );
 };

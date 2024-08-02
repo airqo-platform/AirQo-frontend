@@ -23,25 +23,25 @@ const Communities = () => {
       title: 'homepage.airQuality.community.first.title',
       list: [
         'homepage.airQuality.community.first.list.1',
-        'homepage.airQuality.community.first.list.2'
-      ]
+        'homepage.airQuality.community.first.list.2',
+      ],
     },
     {
       card: 'card2',
       title: 'homepage.airQuality.community.second.title',
       list: [
         'homepage.airQuality.community.second.list.1',
-        'homepage.airQuality.community.second.list.2'
-      ]
+        'homepage.airQuality.community.second.list.2',
+      ],
     },
     {
       card: 'card3',
       title: 'homepage.airQuality.community.third.title',
       list: [
         'homepage.airQuality.community.third.list.1',
-        'homepage.airQuality.community.third.list.2'
-      ]
-    }
+        'homepage.airQuality.community.third.list.2',
+      ],
+    },
   ];
 
   return (
@@ -52,7 +52,8 @@ const Communities = () => {
             key={card}
             title={t(title)}
             selected={selectedCard === card}
-            onClick={() => setSelectedCard(card)}>
+            onClick={() => setSelectedCard(card)}
+          >
             {list.map((item, index) => (
               <li key={index}>
                 <small>{t(item)}</small>

@@ -46,7 +46,11 @@ const AirQuality = () => {
           </div>
         </div>
         <div className="content">
-          {selectedTab === 'AfricanCities' ? <AfricanCities /> : <Communities />}
+          {selectedTab === 'AfricanCities' ? (
+            <AfricanCities />
+          ) : (
+            <Communities />
+          )}
         </div>
       </div>
     </div>

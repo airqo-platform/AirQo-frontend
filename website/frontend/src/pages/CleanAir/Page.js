@@ -9,7 +9,7 @@ const CleanAirPageContainer = ({
   children,
   showNewsLetter = false,
   showBottomCTAS = true,
-  showSubNav = true
+  showSubNav = true,
 }) => {
   return (
     <div className="Page">

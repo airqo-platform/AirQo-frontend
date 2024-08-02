@@ -30,7 +30,7 @@ const Profile = ({
   biography,
   about,
   readBioBtn = false,
-  htmlBio
+  htmlBio,
 }) => {
   const ref = useRef();
   const [isVisible, setIsVisible] = useState(false);
@@ -43,7 +43,7 @@ const Profile = ({
         setIsVisible(true);
         observerElement.unobserve(ref.current);
       }
-    }
+    },
   });
 
   return (
@@ -58,15 +58,17 @@ const Profile = ({
                 right: '0px',
                 padding: '10px',
                 fontSize: '15px',
-                cursor: 'pointer'
+                cursor: 'pointer',
               }}
-              onClick={() => setShow(false)}>
+              onClick={() => setShow(false)}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="11"
                 height="11"
                 viewBox="0 0 11 11"
-                fill="none">
+                fill="none"
+              >
                 <path
                   d="M1.57043 10.1661L0.7771 9.37274L5.00821 5.14163L0.7771 0.910521L1.57043 0.117188L5.80154 4.3483L10.0327 0.117188L10.826 0.910521L6.59488 5.14163L10.826 9.37274L10.0327 10.1661L5.80154 5.93496L1.57043 10.1661Z"
                   fill="#353E52"
@@ -75,29 +77,34 @@ const Profile = ({
             </div>
 
             <div className="biography">
-              <span>{isVisible && <img src={ImgPath} alt={`${name}'s Profile`} />}</span>
+              <span>
+                {isVisible && <img src={ImgPath} alt={`${name}'s Profile`} />}
+              </span>
               <div className="bio-text">
                 <div>
                   <span
                     style={{
                       textDecoration: 'uppercase',
-                      marginBottom: '10px'
-                    }}>
+                      marginBottom: '10px',
+                    }}
+                  >
                     {category}
                   </span>
                   <h3
                     style={{
                       textDecoration: 'capitalize',
-                      marginBottom: '10px'
-                    }}>
+                      marginBottom: '10px',
+                    }}
+                  >
                     {name}
                   </h3>
                   <p
                     style={{
                       textDecoration: 'capitalize',
                       margin: '0',
-                      padding: '0'
-                    }}>
+                      padding: '0',
+                    }}
+                  >
                     {cardTitle}
                   </p>
                 </div>
@@ -123,7 +130,11 @@ const Profile = ({
           </div>
         </Modal>
       )}
-      <div className="img-preview-container" ref={ref} onClick={() => setShow(true)}>
+      <div
+        className="img-preview-container"
+        ref={ref}
+        onClick={() => setShow(true)}
+      >
         {isVisible && <Image src={ImgPath} alt="Profile Img" />}
       </div>
       <div className="info">
@@ -133,14 +144,22 @@ const Profile = ({
           {readBioBtn && (
             <div className="read-bio-btn">
               <span onClick={() => setShow(true)}>Read Bio</span>
-              <span className="social-container" target="_blank" rel="noopener noreferrer">
+              <span
+                className="social-container"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {linkedin_forum && (
                   <a href={linkedin_forum} target="_blank">
                     <LinkedIn />
                   </a>
                 )}
                 {twitter_forum && (
-                  <a href={twitter_forum} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={twitter_forum}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <TwitterIcon className="profile_twitter_handle" />
                   </a>
                 )}
@@ -149,7 +168,11 @@ const Profile = ({
           )}
         </div>
         {linkedin_forum || twitter_forum ? null : (
-          <div className="social-container" target="_blank" rel="noopener noreferrer">
+          <div
+            className="social-container"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             {linkedin && (
               <a href={linkedin} target="_blank">
                 <LinkedIn />

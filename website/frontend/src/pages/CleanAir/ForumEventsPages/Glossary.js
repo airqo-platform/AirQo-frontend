@@ -20,8 +20,14 @@ const Glossary = ({ glossaryDetails }) => {
           <section className="about travel">
             <SplitTextSection
               lists={[]}
-              content={<div dangerouslySetInnerHTML={{ __html: glossaryDetails }} />}
-              title={<h2 className="section_title">{t('cleanAirSite.Forum.sections.glossary')}</h2>}
+              content={
+                <div dangerouslySetInnerHTML={{ __html: glossaryDetails }} />
+              }
+              title={
+                <h2 className="section_title">
+                  {t('cleanAirSite.Forum.sections.glossary')}
+                </h2>
+              }
               bgColor="#FFFFFF"
             />
           </section>
@@ -33,8 +39,9 @@ const Glossary = ({ glossaryDetails }) => {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            height: '50vh'
-          }}>
+            height: '50vh',
+          }}
+        >
           {t('cleanAirSite.Forum.sections.about.No_data')}
         </div>
       )}

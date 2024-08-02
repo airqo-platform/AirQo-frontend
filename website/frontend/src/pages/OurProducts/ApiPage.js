@@ -20,7 +20,8 @@ const ApiPage = () => {
           style={{ backgroundColor: '#FFFDEA' }}
           pageTitle={t('products.api.header.pageTitle')}
           title={t('products.api.header.title')}
-          subText={t('products.api.header.subText')}>
+          subText={t('products.api.header.subText')}
+        >
           <img src={HeaderImage} alt="" style={{ borderRadius: '8px' }} />
         </Header>
         <div className="content">
@@ -34,18 +35,22 @@ const ApiPage = () => {
               <p className="right">{t('products.api.first.subText')}</p>
             </div>
             <div className="overlap-section">
-              <div className="lapping-left card larger-top" style={{ backgroundColor: '#F2F1F6' }}>
+              <div
+                className="lapping-left card larger-top"
+                style={{ backgroundColor: '#F2F1F6' }}
+              >
                 <h5>{t('products.api.second.title')}</h5>
                 <p>
                   <Trans i18nKey="products.api.second.subText">
-                    The API uses AI and data analysis techniques to provide accurate air quality
-                    measurements. It offers PM<sub>2.5</sub> and PM<sub>10</sub> measurements, the
-                    most common pollutants in African cities.
+                    The API uses AI and data analysis techniques to provide
+                    accurate air quality measurements. It offers PM
+                    <sub>2.5</sub> and PM<sub>10</sub> measurements, the most
+                    common pollutants in African cities.
                     <br />
                     <br />
-                    Our comprehensive air quality datasets include data from our low-cost air
-                    quality monitors as well as reference-grade monitors strategically deployed in
-                    major African Cities.
+                    Our comprehensive air quality datasets include data from our
+                    low-cost air quality monitors as well as reference-grade
+                    monitors strategically deployed in major African Cities.
                   </Trans>
                 </p>
               </div>
@@ -56,18 +61,24 @@ const ApiPage = () => {
           </div>
           <div className="grid-wrapper section">
             <div className="overlap-section">
-              <div className="lapping-right card" style={{ backgroundColor: '#FFFCE1' }}>
+              <div
+                className="lapping-right card"
+                style={{ backgroundColor: '#FFFCE1' }}
+              >
                 <h5>{t('products.api.third.title')}</h5>
                 <p>
                   <Trans i18nKey="products.api.third.subText">
-                    The AirQo API is not only about air quality data — it's about empowering users
-                    to take action to protect themselves against air pollution.
+                    The AirQo API is not only about air quality data — it's
+                    about empowering users to take action to protect themselves
+                    against air pollution.
                     <br /> <br />
-                    Integrate air quality information in your Open Source Projects, Browser
-                    Extensions, Plugins, Mobile Apps, Desktop and Web Apps.
+                    Integrate air quality information in your Open Source
+                    Projects, Browser Extensions, Plugins, Mobile Apps, Desktop
+                    and Web Apps.
                     <br />
                     <br />
-                    Help users take charge of their health and join the movement for cleaner air!
+                    Help users take charge of their health and join the movement
+                    for cleaner air!
                   </Trans>
                 </p>
               </div>
@@ -79,7 +90,8 @@ const ApiPage = () => {
           <div
             className="grid-full column section landscape-section"
             id="section-3"
-            style={{ backgroundColor: '#F2F1F6' }}>
+            style={{ backgroundColor: '#F2F1F6' }}
+          >
             <div className="column smaller-width">
               <h2 className="left title">
                 <Trans i18nKey="products.api.fourth.title">

@@ -30,7 +30,9 @@ const AboutUsPage = () => {
   const boardData = useBoardData();
   const navigate = useNavigate();
   const showModal = () => dispatch(showGetInvolvedModal(true));
-  const partnersData = allPartnersData.filter((partner) => partner.website_category === 'airqo');
+  const partnersData = allPartnersData.filter(
+    (partner) => partner.website_category === 'airqo'
+  );
   const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   useEffect(() => {
@@ -56,7 +58,10 @@ const AboutUsPage = () => {
       setTogglePartnersDisplay(!togglePartnersDisplay);
       document.getElementById('logo-table').scrollIntoView();
     } catch (error) {
-      console.error('An error occurred while toggling partners display: ', error);
+      console.error(
+        'An error occurred while toggling partners display: ',
+        error
+      );
     }
   };
 
@@ -97,27 +102,62 @@ const AboutUsPage = () => {
             <h2>{t('about.aboutUs.header.pageTitle')}</h2>
             <ul className="AboutUsPage__nav">
               <li className="active-link">
-                <Link activeClass="active" spy smooth offset={-70} duration={500} to="vision">
+                <Link
+                  activeClass="active"
+                  spy
+                  smooth
+                  offset={-70}
+                  duration={500}
+                  to="vision"
+                >
                   {t('about.aboutUs.header.subnav.vision')}
                 </Link>
               </li>
               <li>
-                <Link activeClass="active" spy smooth offset={-70} duration={500} to="story">
+                <Link
+                  activeClass="active"
+                  spy
+                  smooth
+                  offset={-70}
+                  duration={500}
+                  to="story"
+                >
                   {t('about.aboutUs.header.subnav.story')}
                 </Link>
               </li>
               <li>
-                <Link activeClass="active" spy smooth offset={-70} duration={500} to="mission">
+                <Link
+                  activeClass="active"
+                  spy
+                  smooth
+                  offset={-70}
+                  duration={500}
+                  to="mission"
+                >
                   {t('about.aboutUs.header.subnav.mission')}
                 </Link>
               </li>
               <li>
-                <Link activeClass="active" spy smooth offset={-70} duration={500} to="values">
+                <Link
+                  activeClass="active"
+                  spy
+                  smooth
+                  offset={-70}
+                  duration={500}
+                  to="values"
+                >
                   {t('about.aboutUs.header.subnav.values')}
                 </Link>
               </li>
               <li>
-                <Link activeClass="active" spy smooth offset={-70} duration={500} to="team">
+                <Link
+                  activeClass="active"
+                  spy
+                  smooth
+                  offset={-70}
+                  duration={500}
+                  to="team"
+                >
                   {t('about.aboutUs.header.subnav.team')}
                 </Link>
               </li>
@@ -126,9 +166,16 @@ const AboutUsPage = () => {
         </div>
 
         <div className="wrapper">
-          <h2 className="AboutUsPage__vision">{t('about.aboutUs.vision.text')}</h2>
+          <h2 className="AboutUsPage__vision">
+            {t('about.aboutUs.vision.text')}
+          </h2>
 
-          <img src={TeamImg} className="team_img" alt="Team Photo" loading="lazy" />
+          <img
+            src={TeamImg}
+            className="team_img"
+            alt="Team Photo"
+            loading="lazy"
+          />
 
           <div className="AboutUsPage__banner" id="vision">
             <div className="section-title">
@@ -189,9 +236,14 @@ const AboutUsPage = () => {
 
           <div className="AboutUsPage__team" id="team">
             <div className="header">
-              <h3 className="section-title"> {t('about.aboutUs.team.title')}</h3>
+              <h3 className="section-title">
+                {' '}
+                {t('about.aboutUs.team.title')}
+              </h3>
               <div>
-                <p className="section-info">{t('about.aboutUs.team.subText')}</p>
+                <p className="section-info">
+                  {t('about.aboutUs.team.subText')}
+                </p>
                 <span className="cta-link">
                   <a className="link" href="/careers">
                     {t('about.aboutUs.team.cta')} {'-->'}
@@ -221,9 +273,14 @@ const AboutUsPage = () => {
 
           <div className="AboutUsPage__team" id="board">
             <div className="header">
-              <h3 className="section-title"> {t('about.aboutUs.board.title')}</h3>
+              <h3 className="section-title">
+                {' '}
+                {t('about.aboutUs.board.title')}
+              </h3>
               <div>
-                <p className="section-info">{t('about.aboutUs.board.subText')}</p>
+                <p className="section-info">
+                  {t('about.aboutUs.board.subText')}
+                </p>
               </div>
             </div>
             <div className="AboutUsPage__pictorial">
@@ -246,9 +303,13 @@ const AboutUsPage = () => {
           <hr />
 
           <div className="AboutUsPage__partners">
-            <h3 className="section-title">{t('about.aboutUs.partners.title')}</h3>
+            <h3 className="section-title">
+              {t('about.aboutUs.partners.title')}
+            </h3>
             <div>
-              <p className="section-info">{t('about.aboutUs.partners.subText')}</p>
+              <p className="section-info">
+                {t('about.aboutUs.partners.subText')}
+              </p>
               <span className="cta-link">
                 <span className="link" onClick={showModal}>
                   {t('about.aboutUs.partners.cta')}
@@ -263,26 +324,43 @@ const AboutUsPage = () => {
                   partnerDataGroup.slice(0, 3).map((partnerGroup, key) => (
                     <tr key={key}>
                       {partnerGroup.map((partner) => (
-                        <td key={partner.id} onClick={onLogoClick(partner.unique_title)}>
-                          <img src={partner.partner_logo} alt={partner.partner_name} />
+                        <td
+                          key={partner.id}
+                          onClick={onLogoClick(partner.unique_title)}
+                        >
+                          <img
+                            src={partner.partner_logo}
+                            alt={partner.partner_name}
+                          />
                         </td>
                       ))}
                     </tr>
                   ))}
                 {togglePartnersDisplay &&
                   partnerDataGroup.length > 0 &&
-                  partnerDataGroup.slice(3, lastGroupArray).map((partnerGroup, key) => (
-                    <tr key={key}>
-                      {partnerGroup.map((partner) => (
-                        <td key={partner.id} onClick={onLogoClick(partner.unique_title)}>
-                          <img src={partner.partner_logo} alt={partner.partner_name} />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
+                  partnerDataGroup
+                    .slice(3, lastGroupArray)
+                    .map((partnerGroup, key) => (
+                      <tr key={key}>
+                        {partnerGroup.map((partner) => (
+                          <td
+                            key={partner.id}
+                            onClick={onLogoClick(partner.unique_title)}
+                          >
+                            <img
+                              src={partner.partner_logo}
+                              alt={partner.partner_name}
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
               </tbody>
             </table>
-            <button className="partners-toggle-button" onClick={toggleFullPartnersListDisplay}>
+            <button
+              className="partners-toggle-button"
+              onClick={toggleFullPartnersListDisplay}
+            >
               {togglePartnersDisplay
                 ? t('about.aboutUs.partners.toggleButtons.showLess')
                 : t('about.aboutUs.partners.toggleButtons.showMore')}

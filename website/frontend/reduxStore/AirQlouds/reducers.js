@@ -1,5 +1,8 @@
 // eslint-disable-next-line import/named
-import { LOAD_AIRQLOUDS_SUMMARY_SUCCESS, SET_CURRENT_AIRQLOUD_SUCCESS } from './actions';
+import {
+  LOAD_AIRQLOUDS_SUMMARY_SUCCESS,
+  SET_CURRENT_AIRQLOUD_SUCCESS,
+} from './actions';
 
 const initialState = {
   summary: {},

@@ -23,7 +23,8 @@ const AnalyticsPage = () => {
         <Header
           pageTitle={t('products.Analytics.header.pageTitle')}
           title={t('products.Analytics.header.title')}
-          subText={t('products.Analytics.header.subText')}>
+          subText={t('products.Analytics.header.subText')}
+        >
           <img src={HeaderImage} alt="" />
         </Header>
         <div className="content">
@@ -31,33 +32,41 @@ const AnalyticsPage = () => {
             <div className="row">
               <h2 className="left title">
                 <Trans i18nKey="products.Analytics.first.title">
-                  <span className="blue">Real-time</span> air quality analytics for African Cities
+                  <span className="blue">Real-time</span> air quality analytics
+                  for African Cities
                 </Trans>
               </h2>
               <p className="right">{t('products.Analytics.first.subText')}</p>
             </div>
             <div className="overlap-section">
-              <div className="lapping-left card" style={{ backgroundColor: '#ebfff5' }}>
+              <div
+                className="lapping-left card"
+                style={{ backgroundColor: '#ebfff5' }}
+              >
                 <h5>{t('products.Analytics.second.title')}</h5>
                 <p>
                   <Trans i18nKey="products.Analytics.second.subText">
-                    The air quality analytics dashboard is an intuitive software dashboard that
-                    allows you to have timely access to historic, real-time, and forecast actionable
-                    air quality information across our monitored urban spaces in Africa.
+                    The air quality analytics dashboard is an intuitive software
+                    dashboard that allows you to have timely access to historic,
+                    real-time, and forecast actionable air quality information
+                    across our monitored urban spaces in Africa.
                     <br />
                     <br />
-                    We want to see citizens and decision-makers in Africa Cities have timely access
-                    to air quality trends, patterns and insights to inform data-driven decisions to
-                    tackle air pollution.
+                    We want to see citizens and decision-makers in Africa Cities
+                    have timely access to air quality trends, patterns and
+                    insights to inform data-driven decisions to tackle air
+                    pollution.
                   </Trans>
                   <br />
                   <a
                     href={`${UserManual}?#view=FitH`}
                     target="_blank"
                     download="AirQo_Analytics_Platform_User_Manual.pdf"
-                    rel="noreferrer noopener">
+                    rel="noreferrer noopener"
+                  >
                     <button className="download-button">
-                      {t('products.Analytics.second.cta')} <FileDownloadOutlined />
+                      {t('products.Analytics.second.cta')}{' '}
+                      <FileDownloadOutlined />
                     </button>
                   </a>
                 </p>
@@ -65,7 +74,11 @@ const AnalyticsPage = () => {
               <div className="lapping-left image" id="section-1">
                 <img src={Section1Image} alt="" />
                 <div className="image-overlap">
-                  <img src={Section1OverlapImage} alt="" style={{ objectPosition: '0px' }} />
+                  <img
+                    src={Section1OverlapImage}
+                    alt=""
+                    style={{ objectPosition: '0px' }}
+                  />
                 </div>
               </div>
             </div>
@@ -74,15 +87,18 @@ const AnalyticsPage = () => {
             <div className="overlap-section">
               <div
                 className="lapping-right card larger-top smaller-width"
-                style={{ backgroundColor: '#ebfff5' }}>
+                style={{ backgroundColor: '#ebfff5' }}
+              >
                 <h5>{t('products.Analytics.third.title')}</h5>
                 <p>
                   <Trans i18nKey="products.Analytics.third.subText">
-                    With our air quality analytics dashboard, you can view, historical, real-time or
-                    forecast calibrated data in locations that matter to you. <br />
+                    With our air quality analytics dashboard, you can view,
+                    historical, real-time or forecast calibrated data in
+                    locations that matter to you. <br />
                     <br />
-                    You can generate, compare and download air quality data in various African
-                    Cities and develop evidence-informed actions for air pollution.
+                    You can generate, compare and download air quality data in
+                    various African Cities and develop evidence-informed actions
+                    for air pollution.
                     <br />
                   </Trans>
                 </p>
@@ -96,7 +112,7 @@ const AnalyticsPage = () => {
                     objectFit: 'contain',
                     width: '100%',
                     height: '100%',
-                    borderRadius: '10px'
+                    borderRadius: '10px',
                   }}
                 />
               </div>
@@ -105,8 +121,9 @@ const AnalyticsPage = () => {
           <div
             className="grid-full column section landscape-section"
             style={{
-              overflow: 'hidden'
-            }}>
+              overflow: 'hidden',
+            }}
+          >
             <div className="column smaller-width">
               <h2 className="left title">
                 <Trans i18nKey="products.Analytics.fourth.title">
@@ -130,7 +147,7 @@ const AnalyticsPage = () => {
                   padding: window.innerWidth < 768 ? '0 20px' : '0 100px',
                   objectFit: 'contain',
                   width: '100%',
-                  borderRadius: '10px'
+                  borderRadius: '10px',
                 }}
               />
             </div>

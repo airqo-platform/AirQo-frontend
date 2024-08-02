@@ -32,5 +32,5 @@ export default combineReducers({
   eventsData: EventsReducer,
   citiesData: CitiesReducer,
   impactData: ImpactReducer,
-  cleanAirData: CleanAirReducer
+  cleanAirData: CleanAirReducer,
 });

@@ -36,15 +36,21 @@ const Pagination = ({ currentPage, setCurrentPage, totalPages }) =>
     <div className="events">
       <div className="event-cards">
         <div className="pagination">
-          <button onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>
-            <KeyboardDoubleArrowLeftIcon sx={{ fill: currentPage === 1 ? '#D1D1D1' : '#000' }} />
+          <button
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <KeyboardDoubleArrowLeftIcon
+              sx={{ fill: currentPage === 1 ? '#D1D1D1' : '#000' }}
+            />
           </button>
           <p>
             {currentPage} of {totalPages}
           </p>
           <button
             onClick={() => setCurrentPage(currentPage + 1)}
-            disabled={currentPage === totalPages}>
+            disabled={currentPage === totalPages}
+          >
             <KeyboardDoubleArrowRightIcon
               sx={{ fill: currentPage === totalPages ? '#D1D1D1' : '#000' }}
             />

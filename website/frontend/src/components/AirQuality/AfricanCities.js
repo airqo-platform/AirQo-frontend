@@ -21,18 +21,27 @@ const AfricanCities = () => {
     {
       card: 'card1',
       title: 'homepage.airQuality.cities.first.title',
-      list: ['homepage.airQuality.cities.first.list.1', 'homepage.airQuality.cities.first.list.2']
+      list: [
+        'homepage.airQuality.cities.first.list.1',
+        'homepage.airQuality.cities.first.list.2',
+      ],
     },
     {
       card: 'card2',
       title: 'homepage.airQuality.cities.second.title',
-      list: ['homepage.airQuality.cities.second.list.1', 'homepage.airQuality.cities.second.list.2']
+      list: [
+        'homepage.airQuality.cities.second.list.1',
+        'homepage.airQuality.cities.second.list.2',
+      ],
     },
     {
       card: 'card3',
       title: 'homepage.airQuality.cities.third.title',
-      list: ['homepage.airQuality.cities.third.list.1', 'homepage.airQuality.cities.third.list.2']
-    }
+      list: [
+        'homepage.airQuality.cities.third.list.1',
+        'homepage.airQuality.cities.third.list.2',
+      ],
+    },
   ];
 
   return (
@@ -43,7 +52,8 @@ const AfricanCities = () => {
             key={card}
             title={t(title)}
             selected={selectedCard === card}
-            onClick={() => setSelectedCard(card)}>
+            onClick={() => setSelectedCard(card)}
+          >
             {list.map((item, index) => (
               <li key={index}>
                 <small>{t(item)}</small>

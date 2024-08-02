@@ -4,12 +4,22 @@ import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-const EventCard = ({ image, title, subText, startDate, endDate, link, key, web_category }) => {
+const EventCard = ({
+  image,
+  title,
+  subText,
+  startDate,
+  endDate,
+  link,
+  key,
+  web_category,
+}) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const routeToDetails = (link) => (event) => {
     event.preventDefault();
-    if (web_category === 'cleanair') navigate(`/clean-air/event-details/${link}/`);
+    if (web_category === 'cleanair')
+      navigate(`/clean-air/event-details/${link}/`);
     else navigate(`/events/${link}/`);
   };
 

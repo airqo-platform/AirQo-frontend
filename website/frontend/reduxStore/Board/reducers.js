@@ -3,7 +3,7 @@ import { LOAD_BOARD_SUCCESS, UPDATE_BOARD_LOADER_SUCCESS } from './actions';
 
 const initialState = {
   loading: false,
-  board: []
+  board: [],
 };
 
 export default function (state = initialState, action) {

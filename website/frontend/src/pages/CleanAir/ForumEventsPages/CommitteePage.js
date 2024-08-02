@@ -11,7 +11,9 @@ const CommitteePage = ({ committee, sectionText }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Display logic for committee and speakers
-  const displayedCommittee = isExpanded ? committee : committee?.slice(0, ITEMS_PER_PAGE);
+  const displayedCommittee = isExpanded
+    ? committee
+    : committee?.slice(0, ITEMS_PER_PAGE);
   return (
     <>
       {/* SEO */}
@@ -39,7 +41,9 @@ const CommitteePage = ({ committee, sectionText }) => {
                 <div key={profile.id}>
                   <Profile
                     name={
-                      profile.name.length > 28 ? `${profile.name.slice(0, 28)}....` : profile.name
+                      profile.name.length > 28
+                        ? `${profile.name.slice(0, 28)}....`
+                        : profile.name
                     }
                     title={
                       profile.title.length > 30
@@ -73,8 +77,9 @@ const CommitteePage = ({ committee, sectionText }) => {
             justifyContent: 'center',
             textAlign: 'center',
             alignItems: 'center',
-            height: '50vh'
-          }}>
+            height: '50vh',
+          }}
+        >
           {t('cleanAirSite.Forum.sections.speakers.No_data')}
         </div>
       )}

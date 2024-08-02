@@ -14,7 +14,7 @@ const EventsHeader = ({
   endTime,
   detailsLink,
   registerLink,
-  eventImage
+  eventImage,
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -54,12 +54,21 @@ const EventsHeader = ({
                   </span>
                 </div>
                 <div className="links">
-                  <button className="link" onClick={() => navigate(`/events/${detailsLink}/`)}>
+                  <button
+                    className="link"
+                    onClick={() => navigate(`/events/${detailsLink}/`)}
+                  >
                     {t('about.events.header.buttons.btn1.text')}
                   </button>
                   {registerLink && (
-                    <a href={registerLink} target="_blank" rel="noopener noreferrer">
-                      <button className="link">{t('about.events.header.buttons.btn2.text')}</button>
+                    <a
+                      href={registerLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <button className="link">
+                        {t('about.events.header.buttons.btn2.text')}
+                      </button>
                     </a>
                   )}
                 </div>

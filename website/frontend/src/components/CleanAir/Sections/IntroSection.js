@@ -16,7 +16,7 @@ const IntroSection = ({ subtext1, subtext2, image, imagePosition }) => (
           alt="Membership"
           className="membership-img"
           style={{
-            top: imagePosition
+            top: imagePosition,
           }}
           loading="lazy"
         />

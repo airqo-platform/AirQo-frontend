@@ -2,7 +2,7 @@ import React from 'react';
 import AirQo from 'icons/nav/AirQo';
 import { Link } from 'react-router-dom';
 
-const ErrorPage = ({children, errorCode}) => {
+const ErrorPage = ({ children, errorCode }) => {
   return (
     <div className="ErrorPage">
       <div className="TopBar">
@@ -15,14 +15,14 @@ const ErrorPage = ({children, errorCode}) => {
         </div>
       </div>
       <div>{children}</div>
-      <div className='button'>
+      <div className="button">
         <Link to="/">Return back home</Link>
       </div>
-      <div className='error-code'>
+      <div className="error-code">
         <span>{errorCode}</span>
       </div>
     </div>
   );
-}
+};
 
-export default ErrorPage
+export default ErrorPage;

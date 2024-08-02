@@ -1,7 +1,12 @@
 import React from 'react';
 import SEO from 'utilities/seo';
 import { useInitScrollTop } from 'utilities/customHooks';
-import { SplitSection, SingleSection, MainHighlight, ButtonCTA } from 'components/CleanAir';
+import {
+  SplitSection,
+  SingleSection,
+  MainHighlight,
+  ButtonCTA,
+} from 'components/CleanAir';
 import Section1 from 'assets/img/cleanAir/section1.webp';
 import Section2 from 'assets/img/cleanAir/section2.webp';
 import Section3 from 'assets/img/cleanAir/section3.webp';
@@ -24,18 +29,18 @@ const CleanAirAbout = () => {
     {
       title: t('cleanAirSite.about.section5.subSections.first.title'),
       content: t('cleanAirSite.about.section5.subSections.first.subText'),
-      imgURL: Placeholder1
+      imgURL: Placeholder1,
     },
     {
       title: t('cleanAirSite.about.section5.subSections.second.title'),
       content: t('cleanAirSite.about.section5.subSections.second.subText'),
-      imgURL: Placeholder2
+      imgURL: Placeholder2,
     },
     {
       title: t('cleanAirSite.about.section5.subSections.third.title'),
       content: t('cleanAirSite.about.section5.subSections.third.subText'),
-      imgURL: Placeholder3
-    }
+      imgURL: Placeholder3,
+    },
   ];
 
   return (
@@ -61,16 +66,19 @@ const CleanAirAbout = () => {
               </p>
               <p className="hero-sub">
                 <Trans i18nKey="cleanAirSite.about.section1.subText">
-                  <span className="fact">An African-led, multi-regional network</span> <br />
-                  bringing together a community of practice for air quality solutions and air
-                  quality management across Africa.
+                  <span className="fact">
+                    An African-led, multi-regional network
+                  </span>{' '}
+                  <br />
+                  bringing together a community of practice for air quality
+                  solutions and air quality management across Africa.
                 </Trans>
               </p>
               <ButtonCTA
                 label={t('cleanAirSite.about.section1.cta')}
                 link="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
                 style={{
-                  width: '200px'
+                  width: '200px',
                 }}
               />
             </div>
@@ -83,24 +91,30 @@ const CleanAirAbout = () => {
             <div
               className="acronym-section"
               style={{
-                backgroundImage: `url(${Section2})`
-              }}>
+                backgroundImage: `url(${Section2})`,
+              }}
+            >
               <div className="content">
                 <div className="acronym-content-container">
                   <p>
                     <Trans i18nKey="cleanAirSite.about.section2.acronym">
-                      <span className="highlight">CLEAN-Air</span>, is an acronym coined from
+                      <span className="highlight">CLEAN-Air</span>, is an
+                      acronym coined from
                     </Trans>
                   </p>
-                  <h2 className="content-h">{t('cleanAirSite.about.section2.title')}</h2>
+                  <h2 className="content-h">
+                    {t('cleanAirSite.about.section2.title')}
+                  </h2>
                   <p>{t('cleanAirSite.about.section2.subText')}</p>
                   <p className="join-now">
                     <Trans i18nKey="cleanAirSite.about.section2.cta">
-                      Are you an organization or individual interested in air quality in Africa?
+                      Are you an organization or individual interested in air
+                      quality in Africa?
                       <a
                         href="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
                         target="_blank"
-                        rel="noopener noreferrer">
+                        rel="noopener noreferrer"
+                      >
                         Join the network
                       </a>
                     </Trans>
@@ -121,7 +135,7 @@ const CleanAirAbout = () => {
             link="#"
             imageStyle={{
               objectFit: 'cover',
-              maxHeight: '400px'
+              maxHeight: '400px',
             }}
             imgURL={Section3}
             pillBgColor="#ECF2FF"
@@ -139,7 +153,7 @@ const CleanAirAbout = () => {
             imgURL={Section4}
             imageStyle={{
               height: '420px',
-              objectFit: 'contain'
+              objectFit: 'contain',
             }}
             pillBgColor="#ECF2FF"
             pillTextColor="#135DFF"
@@ -158,17 +172,25 @@ const CleanAirAbout = () => {
                     width: '100%',
                     display: 'flex',
                     flexDirection: 'column',
-                    alignItems: 'flex-start'
-                  }}>
+                    alignItems: 'flex-start',
+                  }}
+                >
                   <span id="first-pill" style={{ backgroundColor: '#FFF' }}>
-                    <p style={{ color: '#135DFF' }}>{t('cleanAirSite.about.section5.pillTitle')}</p>
+                    <p style={{ color: '#135DFF' }}>
+                      {t('cleanAirSite.about.section5.pillTitle')}
+                    </p>
                   </span>
-                  <h2 className="content-h">{t('cleanAirSite.about.section5.title')}</h2>
+                  <h2 className="content-h">
+                    {t('cleanAirSite.about.section5.title')}
+                  </h2>
                 </div>
 
                 <div className="goals">
                   {goals.map((goal, index) => (
-                    <div className={`goal ${index === 0 ? 'first' : ''}`} key={index}>
+                    <div
+                      className={`goal ${index === 0 ? 'first' : ''}`}
+                      key={index}
+                    >
                       <div className="goal-image-container">
                         <img src={goal.imgURL} className="goal-image" />
                       </div>

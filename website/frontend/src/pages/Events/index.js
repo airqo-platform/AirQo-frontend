@@ -29,7 +29,10 @@ const EventsPage = () => {
   const dispatch = useDispatch();
   const loading = useSelector((state) => state.eventsData.loading);
   const [numEventsToShow, setNumEventsToShow] = useState(9);
-  const navTabs = [`${t('about.events.navTabs.upcoming')}`, `${t('about.events.navTabs.past')}`];
+  const navTabs = [
+    `${t('about.events.navTabs.upcoming')}`,
+    `${t('about.events.navTabs.past')}`,
+  ];
   const selectedNavTab = useSelector((state) => state.eventsNavTab.tab);
   const allEventsData = useSelector((state) => state.eventsData.events);
   const language = useSelector((state) => state.eventsNavTab.languageTab);
@@ -48,14 +51,20 @@ const EventsPage = () => {
    * @returns {Array} upcomingEvents
    * @returns {Array} pastEvents
    */
-  const eventsApiData = allEventsData.filter((event) => event.website_category === 'airqo');
-  const featuredEvents = eventsApiData.filter((event) => event.event_tag === 'featured');
+  const eventsApiData = allEventsData.filter(
+    (event) => event.website_category === 'airqo'
+  );
+  const featuredEvents = eventsApiData.filter(
+    (event) => event.event_tag === 'featured'
+  );
   const upcomingEvents = eventsApiData.filter((event) => {
-    if (event.end_date !== null) return days(new Date(event.end_date), new Date()) >= 1;
+    if (event.end_date !== null)
+      return days(new Date(event.end_date), new Date()) >= 1;
     return days(new Date(event.start_date), new Date()) >= -0;
   });
   const pastEvents = eventsApiData.filter((event) => {
-    if (event.end_date !== null) return days(new Date(event.end_date), new Date()) <= 0;
+    if (event.end_date !== null)
+      return days(new Date(event.end_date), new Date()) <= 0;
     return days(new Date(event.start_date), new Date()) <= -1;
   });
 
@@ -83,8 +92,9 @@ const EventsPage = () => {
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              height: '50vh'
-            }}>
+              height: '50vh',
+            }}
+          >
             <SectionLoader />
           </div>
         ) : (
@@ -155,7 +165,9 @@ const EventsPage = () => {
                 (pastEvents.length > numEventsToShow &&
                   selectedNavTab === t('about.events.navTabs.past')) ? (
                   <div className="see-more">
-                    <button onClick={() => setNumEventsToShow(numEventsToShow + 6)}>
+                    <button
+                      onClick={() => setNumEventsToShow(numEventsToShow + 6)}
+                    >
                       {t('about.events.cta.showMore')}
                     </button>
                   </div>

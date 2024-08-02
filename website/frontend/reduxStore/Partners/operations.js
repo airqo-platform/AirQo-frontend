@@ -9,13 +9,13 @@ export const loadPartnersData = () => async (dispatch, getState) => {
       if (isEmpty(resData || [])) return;
       dispatch({
         type: LOAD_PARTNERS_SUCCESS,
-        payload: resData
+        payload: resData,
       });
     })
     .catch((err) => {
       dispatch({
         type: LOAD_PARTNERS_FAILURE,
-        payload: err && err.message
+        payload: err && err.message,
       });
     });
 };

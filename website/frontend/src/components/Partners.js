@@ -4,7 +4,7 @@ import UNEPLogo from 'icons/homepage/partners/UN.svg';
 import Enabel from 'icons/homepage/partners/enabel.svg';
 import UseMissionUganda from 'icons/homepage/partners/usmissionuganda.svg';
 import WorldBankGroup from 'icons/homepage/partners/worldbankgroup.svg';
-import { useTranslation, } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 const Partners = () => {
   const { t } = useTranslation();
@@ -13,7 +13,7 @@ const Partners = () => {
       <div className="backdrop">
         <div className="content">
           <div>
-            <span className="title"> {t("homepage.airQuality.support")}</span>
+            <span className="title"> {t('homepage.airQuality.support')}</span>
           </div>
           <div className="logos">
             <div>

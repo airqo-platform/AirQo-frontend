@@ -4,7 +4,7 @@ import { useInitScrollTop } from 'utilities/customHooks';
 import SEO from 'utilities/seo';
 import {
   usePublicationsData,
-  usePublicationsLoadingData
+  usePublicationsLoadingData,
 } from '../../../reduxStore/Publications/selectors';
 import Page from '../Page';
 import CardComponent from './CardComponent';
@@ -32,7 +32,9 @@ const PublicationsPage = () => {
   }, [dispatch, publicationsData, language]);
 
   const filterData = (categories) => {
-    return publicationsData.filter((publication) => categories.includes(publication.category));
+    return publicationsData.filter((publication) =>
+      categories.includes(publication.category)
+    );
   };
 
   const ResearchData = filterData(['research']);
@@ -71,8 +73,9 @@ const PublicationsPage = () => {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            height: '50vh'
-          }}>
+            height: '50vh',
+          }}
+        >
           <SectionLoader />
         </div>
       ) : (
@@ -81,36 +84,47 @@ const PublicationsPage = () => {
             <div className="content">
               <div className="title-wrapper">
                 <h2>{t('about.publications.header.title')}</h2>
-                <span className="sub-title">{t('about.publications.header.subText')}</span>
+                <span className="sub-title">
+                  {t('about.publications.header.subText')}
+                </span>
               </div>
               <div className="nav">
                 <span id="tab1">
                   <button
-                    className={selectedTab === 'Research' ? 'selected' : 'unselected'}
+                    className={
+                      selectedTab === 'Research' ? 'selected' : 'unselected'
+                    }
                     onClick={() => {
                       paginate(1);
                       onClickTabItem('Research');
-                    }}>
+                    }}
+                  >
                     {t('about.publications.subNav.research')}
                   </button>
                 </span>
                 <span id="tab2">
                   <button
-                    className={selectedTab === 'Reports' ? 'selected' : 'unselected'}
+                    className={
+                      selectedTab === 'Reports' ? 'selected' : 'unselected'
+                    }
                     onClick={() => {
                       paginate(1);
                       onClickTabItem('Reports');
-                    }}>
+                    }}
+                  >
                     {t('about.publications.subNav.reports')}
                   </button>
                 </span>
                 <span id="tab3">
                   <button
-                    className={selectedTab === 'Guides' ? 'selected' : 'unselected'}
+                    className={
+                      selectedTab === 'Guides' ? 'selected' : 'unselected'
+                    }
                     onClick={() => {
                       paginate(1);
                       onClickTabItem('Guides');
-                    }}>
+                    }}
+                  >
                     {t('about.publications.subNav.guides')}
                   </button>
                 </span>

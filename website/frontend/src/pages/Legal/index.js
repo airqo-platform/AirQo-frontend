@@ -17,15 +17,25 @@ const LegalPage = () => {
               <div className="header-nav">
                 <span id="tab1">
                   <button
-                    className={selectedTab === 'TermsOfService' ? 'selected' : 'unselected'}
-                    onClick={() => onClickTabItem('TermsOfService')}>
+                    className={
+                      selectedTab === 'TermsOfService'
+                        ? 'selected'
+                        : 'unselected'
+                    }
+                    onClick={() => onClickTabItem('TermsOfService')}
+                  >
                     Terms of Service
                   </button>
                 </span>
                 <span id="tab2">
                   <button
-                    className={selectedTab === 'PrivacyPolicy' ? 'selected' : 'unselected'}
-                    onClick={() => onClickTabItem('PrivacyPolicy')}>
+                    className={
+                      selectedTab === 'PrivacyPolicy'
+                        ? 'selected'
+                        : 'unselected'
+                    }
+                    onClick={() => onClickTabItem('PrivacyPolicy')}
+                  >
                     Privacy Policy
                   </button>
                 </span>
@@ -33,7 +43,11 @@ const LegalPage = () => {
             </div>
           </div>
         </div>
-        {selectedTab === 'TermsOfService' ? <TermsOfService /> : <PrivacyPolicy />}
+        {selectedTab === 'TermsOfService' ? (
+          <TermsOfService />
+        ) : (
+          <PrivacyPolicy />
+        )}
       </div>
     </Page>
   );

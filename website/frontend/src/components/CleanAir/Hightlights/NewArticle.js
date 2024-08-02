@@ -26,7 +26,7 @@ const NewArticle = ({ icon, date, title, subtitle, url }) => {
               alt="icon"
               loading="lazy"
               style={{
-                background: `url(${icon}),lightgray 50% contain no-repeat`
+                background: `url(${icon}),lightgray 50% contain no-repeat`,
               }}
             />
           </div>
@@ -36,7 +36,7 @@ const NewArticle = ({ icon, date, title, subtitle, url }) => {
             ? new Date(date).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
-                day: 'numeric'
+                day: 'numeric',
               })
             : '...'}
         </span>

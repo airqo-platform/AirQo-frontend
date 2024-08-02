@@ -1,3 +1,4 @@
 import { useSelector } from 'react-redux';
 
-export const usePartnersData = () => useSelector((state) => state.partnersData.partners);
+export const usePartnersData = () =>
+  useSelector((state) => state.partnersData.partners);

@@ -11,7 +11,10 @@ import PartnersIcon from 'assets/svg/Partners.svg';
 import PolicyIcon from 'assets/svg/Policy.svg';
 import ResearchIcon from 'assets/svg/Research.svg';
 import { useGetInvolvedData } from 'reduxStore/GetInvolved/selectors';
-import { showGetInvolvedModal, updateGetInvolvedData } from 'reduxStore/GetInvolved/operations';
+import {
+  showGetInvolvedModal,
+  updateGetInvolvedData,
+} from 'reduxStore/GetInvolved/operations';
 import { sendInquiryApi } from 'apis';
 import { Link } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
@@ -21,7 +24,7 @@ const categoryMapper = {
   policymaker: 'policy',
   'community champion': 'champions',
   researcher: 'researchers',
-  developer: 'developers'
+  developer: 'developers',
 };
 
 const BoxWrapper = React.forwardRef(({ children }, ref) => (
@@ -36,7 +39,12 @@ const GetInvolvedTab = ({ icon, category, infoText }) => {
   const getInvolvedData = useGetInvolvedData();
 
   const onClick = () => {
-    dispatch(updateGetInvolvedData({ category: categoryMapper[category.toLowerCase()], slide: 1 }));
+    dispatch(
+      updateGetInvolvedData({
+        category: categoryMapper[category.toLowerCase()],
+        slide: 1,
+      })
+    );
   };
   return (
     <div
@@ -45,7 +53,8 @@ const GetInvolvedTab = ({ icon, category, infoText }) => {
         categoryMapper[category.toLowerCase()] === getInvolvedData.category
           ? 'tab-active'
           : 'tab-inactive'
-      }`}>
+      }`}
+    >
       <div className="img-placeholder">{icon}</div>
       <div className="text-holder">
         I’m a <strong>{category}</strong>. <br />
@@ -99,7 +108,10 @@ const GetInvolvedEmail = ({ t }) => {
   };
 
   const checkAllFilled = () =>
-    emailState.firstName && emailState.lastName && emailState.email && emailState.acceptedTerms;
+    emailState.firstName &&
+    emailState.lastName &&
+    emailState.email &&
+    emailState.acceptedTerms;
 
   const onSubmit = async () => {
     if (!checkAllFilled() || loading) return;
@@ -109,7 +121,7 @@ const GetInvolvedEmail = ({ t }) => {
       fullName: `${emailState.firstName} ${emailState.lastName}`,
       email: emailState.email,
       category: emailState.category,
-      message: 'Get involved - Request from the website'
+      message: 'Get involved - Request from the website',
     })
       .then((data) => {
         dispatch(updateGetInvolvedData({ ...setEmailState, complete: true }));
@@ -172,8 +184,11 @@ const GetInvolvedEmail = ({ t }) => {
         <div className="section-button-row">
           <button
             className={`register-btn ${checkAllFilled() ? 'btn-active' : 'btn-disabled'}`}
-            onClick={onSubmit}>
-            {loading ? t('getInvolvedModal.form.cta.sending') : t('getInvolvedModal.form.cta.send')}
+            onClick={onSubmit}
+          >
+            {loading
+              ? t('getInvolvedModal.form.cta.sending')
+              : t('getInvolvedModal.form.cta.send')}
           </button>
         </div>
       </div>
@@ -187,7 +202,8 @@ const GetInvolvedRegistryContent = () => {
   const getInvolvedData = useGetInvolvedData();
 
   const hideModal = () => dispatch(showGetInvolvedModal(false));
-  const goBack = () => dispatch(updateGetInvolvedData({ slide: getInvolvedData.slide - 1 }));
+  const goBack = () =>
+    dispatch(updateGetInvolvedData({ slide: getInvolvedData.slide - 1 }));
   return (
     <>
       <div className="banner">
@@ -205,15 +221,25 @@ const GetInvolvedRegistryContent = () => {
               engage with us?
             </Trans>
           </h1>
-          <p className="banner-content">{t('getInvolvedModal.banner.subText')}</p>
+          <p className="banner-content">
+            {t('getInvolvedModal.banner.subText')}
+          </p>
         </div>
       </div>
       <div className="content">
         <span>
-          {getInvolvedData.slide ? <ArrowBackIcon onClick={goBack} /> : <span />}
+          {getInvolvedData.slide ? (
+            <ArrowBackIcon onClick={goBack} />
+          ) : (
+            <span />
+          )}
           <CloseIcon onClick={hideModal} />
         </span>
-        {getInvolvedData.slide <= 0 ? <GetInvolvedLanding t={t} /> : <GetInvolvedEmail t={t} />}
+        {getInvolvedData.slide <= 0 ? (
+          <GetInvolvedLanding t={t} />
+        ) : (
+          <GetInvolvedEmail t={t} />
+        )}
       </div>
     </>
   );
@@ -230,7 +256,9 @@ const GetInvolvedComplete = ({ t }) => {
       <div className="content-wrapper">
         <CheckMailIcon />
         <p className="main-text">{t('getInvolvedModal.complete.title')}</p>
-        <p className="secondary-text">{t('getInvolvedModal.complete.subText')}</p>
+        <p className="secondary-text">
+          {t('getInvolvedModal.complete.subText')}
+        </p>
         <button className="btn" onClick={backToHomePage}>
           {t('getInvolvedModal.complete.cta')}
         </button>

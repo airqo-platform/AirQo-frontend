@@ -29,7 +29,7 @@ const Profile = ({
   biography,
   about,
   readBioBtn = false,
-  htmlBio
+  htmlBio,
 }) => {
   const ref = useRef();
   const [isVisible, setIsVisible] = useState(false);
@@ -42,7 +42,7 @@ const Profile = ({
         setIsVisible(true);
         observerElement.unobserve(ref.current);
       }
-    }
+    },
   });
 
   return (
@@ -61,25 +61,40 @@ const Profile = ({
 
                 <div className="social-container">
                   {linkedin && (
-                    <a href={linkedin} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       <LinkedIn />
                     </a>
                   )}
                   {twitter && (
                     <a href={twitter} target="_blank" rel="noopener noreferrer">
-                      <TwitterIcon className="profile_twitter_handle" style={{ padding: '6px' }} />
+                      <TwitterIcon
+                        className="profile_twitter_handle"
+                        style={{ padding: '6px' }}
+                      />
                     </a>
                   )}
                 </div>
                 {/* clean air forum */}
-                <div className="social-container" target="_blank" rel="noopener noreferrer">
+                <div
+                  className="social-container"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   {linkedin_forum && (
                     <a href={linkedin_forum} target="_blank">
                       <LinkedIn />
                     </a>
                   )}
                   {twitter_forum && (
-                    <a href={twitter_forum} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={twitter_forum}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       <TwitterIcon style={{ padding: '6px' }} />
                     </a>
                   )}
@@ -90,14 +105,17 @@ const Profile = ({
                   fontSize: '22px',
                   fontWeight: '400',
                   cursor: 'pointer',
-                  fontFamily: 'sans-serif'
+                  fontFamily: 'sans-serif',
                 }}
-                onClick={() => setShow(false)}>
+                onClick={() => setShow(false)}
+              >
                 {'X'}
               </div>
             </div>
             <div className="biography">
-              <span>{isVisible && <img src={ImgPath} alt={`${name}'s Profile`} />}</span>
+              <span>
+                {isVisible && <img src={ImgPath} alt={`${name}'s Profile`} />}
+              </span>
               <span className="bio-text">
                 {htmlBio ? (
                   <div dangerouslySetInnerHTML={{ __html: htmlBio }} />
@@ -115,7 +133,11 @@ const Profile = ({
           </div>
         </Modal>
       )}
-      <div className="img-preview-container" ref={ref} onClick={() => setShow(true)}>
+      <div
+        className="img-preview-container"
+        ref={ref}
+        onClick={() => setShow(true)}
+      >
         {isVisible && <Image src={ImgPath} alt="Profile Img" />}
       </div>
       <div className="info">
@@ -125,14 +147,22 @@ const Profile = ({
           {readBioBtn && (
             <div className="read-bio-btn">
               <span onClick={() => setShow(true)}>Read Bio</span>
-              <span className="social-container" target="_blank" rel="noopener noreferrer">
+              <span
+                className="social-container"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {linkedin_forum && (
                   <a href={linkedin_forum} target="_blank">
                     <LinkedIn />
                   </a>
                 )}
                 {twitter_forum && (
-                  <a href={twitter_forum} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={twitter_forum}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <TwitterIcon className="profile_twitter_handle" />
                   </a>
                 )}
@@ -141,7 +171,11 @@ const Profile = ({
           )}
         </div>
         {linkedin_forum || twitter_forum ? null : (
-          <div className="social-container" target="_blank" rel="noopener noreferrer">
+          <div
+            className="social-container"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             {linkedin && (
               <a href={linkedin} target="_blank">
                 <LinkedIn />

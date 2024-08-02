@@ -28,7 +28,9 @@ const Highlight = () => {
   const latestEvents =
     eventsData.length > 0
       ? eventsData.filter(
-          (event) => event.website_category === 'cleanair' && event.event_tag === 'featured'
+          (event) =>
+            event.website_category === 'cleanair' &&
+            event.event_tag === 'featured'
         )
       : [];
 
@@ -43,8 +45,9 @@ const Highlight = () => {
           justifyContent: 'center',
           alignItems: 'center',
           position: 'relative',
-          padding: '50px 0'
-        }}>
+          padding: '50px 0',
+        }}
+      >
         <Spinner />
       </div>
     );
@@ -75,11 +78,20 @@ const Highlight = () => {
                       <CalendarMonth />
                       {featuredEvent.end_date !== null ? (
                         <span>
-                          {format(new Date(featuredEvent.start_date), 'do MMM')} -{' '}
-                          {format(new Date(featuredEvent.end_date), 'do MMMM yyyy')}
+                          {format(new Date(featuredEvent.start_date), 'do MMM')}{' '}
+                          -{' '}
+                          {format(
+                            new Date(featuredEvent.end_date),
+                            'do MMMM yyyy'
+                          )}
                         </span>
                       ) : (
-                        <span>{format(new Date(featuredEvent.start_date), 'do MMMM yyyy')}</span>
+                        <span>
+                          {format(
+                            new Date(featuredEvent.start_date),
+                            'do MMMM yyyy'
+                          )}
+                        </span>
                       )}
                     </span>
                     <span className="item">
@@ -90,7 +102,9 @@ const Highlight = () => {
                           {featuredEvent.end_time.slice(0, -3)}
                         </span>
                       ) : (
-                        <span>{t('cleanAirSite.about.highlightSection.tag2')}</span>
+                        <span>
+                          {t('cleanAirSite.about.highlightSection.tag2')}
+                        </span>
                       )}
                     </span>
                   </div>
@@ -101,8 +115,11 @@ const Highlight = () => {
                         type="button"
                         style={{ cursor: 'pointer' }}
                         onClick={() =>
-                          navigate(`/clean-air/event-details/${featuredEvent.unique_title}/`)
-                        }>
+                          navigate(
+                            `/clean-air/event-details/${featuredEvent.unique_title}/`
+                          )
+                        }
+                      >
                         {t('cleanAirSite.about.highlightSection.cta')} {' -->'}
                       </button>
                     </div>

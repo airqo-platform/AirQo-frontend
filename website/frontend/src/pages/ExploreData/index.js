@@ -72,22 +72,31 @@ export const ExploreApp = () => (
           <a
             target="_blank"
             href="https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091"
-            rel="noreferrer">
+            rel="noreferrer"
+          >
             <div
               style={{
                 marginBottom: '40px',
                 background: '#000',
                 borderRadius: '8px',
-                padding: '5px'
-              }}>
+                padding: '5px',
+              }}
+            >
               <AppleBtn />
             </div>
           </a>
           <a
             target="_blank"
             href="https://play.google.com/store/apps/details?id=com.airqo.app"
-            rel="noreferrer">
-            <div style={{ background: '#000', borderRadius: '8px', padding: '3px' }}>
+            rel="noreferrer"
+          >
+            <div
+              style={{
+                background: '#000',
+                borderRadius: '8px',
+                padding: '3px',
+              }}
+            >
               <GoogleplayBtn />
             </div>
           </a>
@@ -109,7 +118,9 @@ const ExploreData = () => {
               <h3>{t('exploreData.leftSection.breadCrumb.home')}</h3>
             </Link>
             <ArrowForwardIosIcon className="icon" />
-            <h3 className="blur-text">{t('exploreData.leftSection.breadCrumb.explore')}</h3>
+            <h3 className="blur-text">
+              {t('exploreData.leftSection.breadCrumb.explore')}
+            </h3>
           </div>
           <div className="content">
             <h2>{t('exploreData.leftSection.title')}</h2>
@@ -143,7 +154,11 @@ const ExploreData = () => {
                 </div>
               </div>
               <h6>{t('exploreData.rightSection.analytics.title')}</h6>
-              <Link to={`${NETMANAGER_URL}`} target="_blank" rel="noopener noreferrer">
+              <Link
+                to={`${NETMANAGER_URL}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <button className="nav-button">
                   {t('exploreData.rightSection.analytics.btnText')}
                 </button>

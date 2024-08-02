@@ -14,7 +14,7 @@ module.exports = (env, argv) => {
   config.plugins.push(
     new HtmlWebpackPlugin({
       template: './frontend/standaloneIndex.html',
-      inject: 'body'
+      inject: 'body',
     })
   );
 

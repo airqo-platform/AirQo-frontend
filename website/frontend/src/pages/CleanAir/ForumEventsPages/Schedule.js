@@ -10,7 +10,13 @@ import SEO from 'utilities/seo';
  */
 const upArrow = () => {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
       <path
         d="M18 15L12 9L6 15"
         stroke="#536A87"
@@ -23,7 +29,13 @@ const upArrow = () => {
 };
 const downArrow = () => {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
       <path
         d="M6 9L12 15L18 9"
         stroke="#536A87"
@@ -87,7 +99,11 @@ const Schedule = ({ schedule, registration, forumEvents }) => {
       {/* Schedule intro */}
       {forumEvents[0].schedule_details_html && (
         <div className="sub_text_intro_details">
-          <div dangerouslySetInnerHTML={{ __html: forumEvents[0].schedule_details_html }} />
+          <div
+            dangerouslySetInnerHTML={{
+              __html: forumEvents[0].schedule_details_html,
+            }}
+          />
         </div>
       )}
 
@@ -100,13 +116,16 @@ const Schedule = ({ schedule, registration, forumEvents }) => {
                 <div
                   className="event"
                   key={scheduleItem.id}
-                  onClick={() => toggleAccordion(scheduleItem.id)}>
+                  onClick={() => toggleAccordion(scheduleItem.id)}
+                >
                   <div className="event-head">
                     <div>
                       <p className="date">{scheduleItem.title}</p>
                       <p
                         className="title"
-                        dangerouslySetInnerHTML={{ __html: scheduleItem.sub_text_html }}
+                        dangerouslySetInnerHTML={{
+                          __html: scheduleItem.sub_text_html,
+                        }}
                       />
                     </div>
                     <div>
@@ -130,7 +149,9 @@ const Schedule = ({ schedule, registration, forumEvents }) => {
                             {session.session_details_html && (
                               <p
                                 className="description"
-                                dangerouslySetInnerHTML={{ __html: session.session_details_html }}
+                                dangerouslySetInnerHTML={{
+                                  __html: session.session_details_html,
+                                }}
                               />
                             )}
                           </div>
@@ -159,7 +180,10 @@ const Schedule = ({ schedule, registration, forumEvents }) => {
                 </div>
               }
               title={
-                <h2 className="section_title"> {t('cleanAirSite.Forum.sections.registration')}</h2>
+                <h2 className="section_title">
+                  {' '}
+                  {t('cleanAirSite.Forum.sections.registration')}
+                </h2>
               }
               bgColor="#FFFFFF"
             />
@@ -181,7 +205,8 @@ const Schedule = ({ schedule, registration, forumEvents }) => {
                       dangerouslySetInnerHTML={{
                         __html:
                           forumEvents.length > 0 &&
-                          forumEvents[0].sponsorship_opportunities_schedule_html
+                          forumEvents[0]
+                            .sponsorship_opportunities_schedule_html,
                       }}
                     />
                   </div>
@@ -190,7 +215,9 @@ const Schedule = ({ schedule, registration, forumEvents }) => {
               title={
                 <h2
                   className="section_title"
-                  dangerouslySetInnerHTML={{ __html: t('cleanAirSite.Forum.sections.sponsorship') }}
+                  dangerouslySetInnerHTML={{
+                    __html: t('cleanAirSite.Forum.sections.sponsorship'),
+                  }}
                 />
               }
               bgColor="#FFFFFF"
@@ -207,8 +234,9 @@ const Schedule = ({ schedule, registration, forumEvents }) => {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            height: '50vh'
-          }}>
+            height: '50vh',
+          }}
+        >
           {t('cleanAirSite.Forum.sections.No_data')}
         </div>
       )}

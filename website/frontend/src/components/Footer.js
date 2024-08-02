@@ -21,7 +21,10 @@ import Senegal from 'icons/africanCities/countries/senegal.svg';
 import Mozambique from 'icons/africanCities/countries/mozambique.svg';
 import Cameroon from 'icons/africanCities/countries/cameroon.svg';
 
-import { useAirqloudSummaryData, useCurrentAirqloudData } from 'reduxStore/AirQlouds/selectors';
+import {
+  useAirqloudSummaryData,
+  useCurrentAirqloudData,
+} from 'reduxStore/AirQlouds/selectors';
 import { setCurrentAirQloudData } from 'reduxStore/AirQlouds/operations';
 import { useTranslation, Trans } from 'react-i18next';
 import LocationTracker from './LoctionTracker/LocationTracker';
@@ -35,7 +38,7 @@ const style = {
   // minHeight: 200,
   width: '90%',
   bgcolor: 'background.paper',
-  outline: 'none'
+  outline: 'none',
   // boxShadow: 24,
   // p: 4,
 };
@@ -48,7 +51,7 @@ const flagMapper = {
   burundi: <Burundi />,
   senegal: <Senegal />,
   mozambique: <Mozambique />,
-  cameroon: <Cameroon />
+  cameroon: <Cameroon />,
 };
 
 const CountryTab = ({ className, flag, name, onClick }) => (
@@ -67,7 +70,9 @@ const Footer = () => {
   const [selectedAirqloud, setSelectedAirqloud] = useState(currentAirqloud);
   const { t } = useTranslation();
 
-  const currentAirqloudData = airqloudSummaries[currentAirqloud] || { numberOfSites: 0 };
+  const currentAirqloudData = airqloudSummaries[currentAirqloud] || {
+    numberOfSites: 0,
+  };
 
   const explodeSummaryCount = (numberOfSites) => {
     const paddedCount = numberOfSites.toString().padStart(4, '0');
@@ -76,7 +81,8 @@ const Footer = () => {
 
   const toggleOpen = () => setOpen(!open);
 
-  const active = (country) => (country === selectedCountry ? 'tab-selected' : '');
+  const active = (country) =>
+    country === selectedCountry ? 'tab-selected' : '';
 
   const onTabClick = (country) => () => {
     setSelectedCountry(country);
@@ -106,7 +112,7 @@ const Footer = () => {
     { name: 'Burundi', flag: <Burundi /> },
     { name: 'Senegal', flag: <Senegal /> },
     { name: 'Mozambique', flag: <Mozambique /> },
-    { name: 'Cameroon', flag: <Cameroon /> }
+    { name: 'Cameroon', flag: <Cameroon /> },
   ];
 
   return (
@@ -121,22 +127,32 @@ const Footer = () => {
               </Trans>
             </div>
             <div className="social-links">
-              <a target="_blank" href="https://www.facebook.com/AirQo" rel="noreferrer">
+              <a
+                target="_blank"
+                href="https://www.facebook.com/AirQo"
+                rel="noreferrer"
+              >
                 <Facebook />
               </a>
               <a
                 target="_blank"
                 href="https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ"
-                rel="noreferrer">
+                rel="noreferrer"
+              >
                 <Youtube />
               </a>
               <a
                 target="_blank"
                 href="https://www.linkedin.com/company/airqo/mycompany/"
-                rel="noreferrer">
+                rel="noreferrer"
+              >
                 <LinkedIn />
               </a>
-              <a target="_blank" href="https://twitter.com/AirQoProject" rel="noreferrer">
+              <a
+                target="_blank"
+                href="https://twitter.com/AirQoProject"
+                rel="noreferrer"
+              >
                 <Twitter />
               </a>
             </div>
@@ -146,16 +162,24 @@ const Footer = () => {
               <span>{t('navbar.products.title')}</span>
               <div>
                 <span>
-                  <Link to="/products/monitor">{t('navbar.products.subnav.monitor.name')}</Link>
+                  <Link to="/products/monitor">
+                    {t('navbar.products.subnav.monitor.name')}
+                  </Link>
                 </span>
                 <span>
-                  <Link to="/products/analytics">{t('navbar.products.subnav.dashboard.name')}</Link>
+                  <Link to="/products/analytics">
+                    {t('navbar.products.subnav.dashboard.name')}
+                  </Link>
                 </span>
                 <span>
-                  <Link to="/products/api">{t('navbar.products.subnav.api.name')}</Link>
+                  <Link to="/products/api">
+                    {t('navbar.products.subnav.api.name')}
+                  </Link>
                 </span>
                 <span>
-                  <Link to="/products/mobile-app">{t('navbar.products.subnav.mobileapp.name')}</Link>
+                  <Link to="/products/mobile-app">
+                    {t('navbar.products.subnav.mobileapp.name')}
+                  </Link>
                 </span>
                 <span>
                   <Link to="/products/calibrate">AirQalibrate</Link>
@@ -166,13 +190,19 @@ const Footer = () => {
               <span>{t('navbar.solutions.title')}</span>
               <div>
                 <span>
-                  <Link to="/solutions/african-cities">{t('navbar.solutions.subnav.cities.name')}</Link>
+                  <Link to="/solutions/african-cities">
+                    {t('navbar.solutions.subnav.cities.name')}
+                  </Link>
                 </span>
                 <span>
-                  <Link to="/solutions/communities">{t('navbar.solutions.subnav.communities.name')}</Link>
+                  <Link to="/solutions/communities">
+                    {t('navbar.solutions.subnav.communities.name')}
+                  </Link>
                 </span>
                 <span>
-                  <Link to="/solutions/research">{t('navbar.solutions.subnav.research.name')}</Link>
+                  <Link to="/solutions/research">
+                    {t('navbar.solutions.subnav.research.name')}
+                  </Link>
                 </span>
               </div>
             </span>
@@ -180,10 +210,12 @@ const Footer = () => {
               <span>{t('navbar.about.title')}</span>
               <div>
                 <span>
-                  <Link to="/about-us">{t('navbar.about.title')}  AirQo</Link>
+                  <Link to="/about-us">{t('navbar.about.title')} AirQo</Link>
                 </span>
                 <span>
-                  <Link to="/resources">{t('navbar.about.subnav.resources')}</Link>
+                  <Link to="/resources">
+                    {t('navbar.about.subnav.resources')}
+                  </Link>
                 </span>
                 <span>
                   <Link to="/events">{t('navbar.about.subnav.events')}</Link>
@@ -198,7 +230,11 @@ const Footer = () => {
                   <Link to="/contact">{t('navbar.about.subnav.contact')}</Link>
                 </span>
                 <span>
-                  <a target="_blank" href="https://medium.com/@airqo" rel="noreferrer noopener">
+                  <a
+                    target="_blank"
+                    href="https://medium.com/@airqo"
+                    rel="noreferrer noopener"
+                  >
                     {t('footer.blog')}
                   </a>
                 </span>
@@ -213,17 +249,24 @@ const Footer = () => {
             </div>
             <div className="airqloud-count">
               <span className="count-value">
-                {explodeSummaryCount(currentAirqloudData.numberOfSites).map((value, key) => (
-                  <span key={key}>{value}</span>
-                ))}
+                {explodeSummaryCount(currentAirqloudData.numberOfSites).map(
+                  (value, key) => (
+                    <span key={key}>{value}</span>
+                  )
+                )}
               </span>{' '}
-              <span className="count-text">{t('footer.monitors')} <span className='airqloud-name'>{currentAirqloud}</span></span>
+              <span className="count-text">
+                {t('footer.monitors')}{' '}
+                <span className="airqloud-name">{currentAirqloud}</span>
+              </span>
             </div>
           </div>
         </div>
         <div className="copyright-section">
           <div className="copyright-container">
-            <div className="text-copyright">© {new Date().getFullYear()} AirQo</div>
+            <div className="text-copyright">
+              © {new Date().getFullYear()} AirQo
+            </div>
             <div className="terms-section">
               <span className="text-terms mr-24">
                 <Link to="/legal">{t('footer.tos')}</Link>

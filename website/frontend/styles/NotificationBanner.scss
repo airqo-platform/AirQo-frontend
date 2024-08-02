@@ -1,5 +1,5 @@
-@import "lib/colors";
-@import "lib/variables";
+@import 'lib/colors';
+@import 'lib/variables';
 
 .NotificationBanner {
   display: flex;
@@ -29,5 +29,4 @@
     /* identical to box height */
     color: $aq-white-0;
   }
-
 }

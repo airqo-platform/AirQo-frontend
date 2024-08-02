@@ -15,7 +15,16 @@ const useExternalLink = (path, onClick) => {
   return handleClick;
 };
 
-const NavTab = ({ text, hideArrow, colored, filled, style, path, onClick, externalLink }) => {
+const NavTab = ({
+  text,
+  hideArrow,
+  colored,
+  filled,
+  style,
+  path,
+  onClick,
+  externalLink,
+}) => {
   const handleExternalLink = useExternalLink(path, onClick);
 
   if (hideArrow) {
@@ -25,17 +34,22 @@ const NavTab = ({ text, hideArrow, colored, filled, style, path, onClick, extern
           href={path}
           className={classNames('NavTab', { filled })}
           style={{ textDecoration: 'none', color: '#fff', ...(style || {}) }}
-          onClick={handleExternalLink}>
+          onClick={handleExternalLink}
+        >
           {text}
         </a>
       );
     } else {
       return (
-        <Link to={path || '/'} style={{ textDecoration: 'none', color: '#000' }}>
+        <Link
+          to={path || '/'}
+          style={{ textDecoration: 'none', color: '#000' }}
+        >
           <div
             className={classNames('NavTab', { colored, filled })}
             style={{ ...(style || {}) }}
-            onClick={onClick}>
+            onClick={onClick}
+          >
             <span>{text}</span>
           </div>
         </Link>
@@ -46,7 +60,8 @@ const NavTab = ({ text, hideArrow, colored, filled, style, path, onClick, extern
       <div
         className={classNames('NavTab', { colored, filled })}
         style={{ ...(style || {}) }}
-        onClick={onClick}>
+        onClick={onClick}
+      >
         <span className="dropdown-text">{text}</span>
         <div className="arrow-down">
           <ArrowDown />
@@ -65,7 +80,7 @@ NavTab.propTypes = {
   style: PropTypes.object,
   path: PropTypes.string,
   onClick: PropTypes.func,
-  externalLink: PropTypes.bool
+  externalLink: PropTypes.bool,
 };
 
 // optimizing rendering with memo

@@ -1,5 +1,8 @@
 import React from 'react';
-import { Pagination, usePagination } from 'components/CleanAir/pagination/Pagination';
+import {
+  Pagination,
+  usePagination,
+} from 'components/CleanAir/pagination/Pagination';
 import { useTranslation, Trans } from 'react-i18next';
 import { SplitTextSection } from 'components/CleanAir';
 import SEO from 'utilities/seo';
@@ -11,14 +14,12 @@ const Partners = ({
   HostPartner,
   CoConveningPartner,
   sponsorPartners,
-  forumEvents
+  forumEvents,
 }) => {
   const { t } = useTranslation();
   // Pagination setup for HostPartner
-  const { currentItems, currentPage, setCurrentPage, totalPages } = usePagination(
-    HostPartner || [],
-    ITEMS_PER_PAGE
-  );
+  const { currentItems, currentPage, setCurrentPage, totalPages } =
+    usePagination(HostPartner || [], ITEMS_PER_PAGE);
 
   return (
     <>
@@ -32,13 +33,16 @@ const Partners = ({
       <div>
         <div className="separator" />
         <div className="CoConvening_partners">
-          <h2 className="section_title">{t('cleanAirSite.Forum.sections.partners.label')}</h2>
+          <h2 className="section_title">
+            {t('cleanAirSite.Forum.sections.partners.label')}
+          </h2>
           <div>
             {forumEvents[0].partners_text_section_html && (
               <div
                 dangerouslySetInnerHTML={{
-                  __html: forumEvents[0].partners_text_section_html
-                }}></div>
+                  __html: forumEvents[0].partners_text_section_html,
+                }}
+              ></div>
             )}
           </div>
         </div>
@@ -50,8 +54,10 @@ const Partners = ({
             <div>
               <div
                 dangerouslySetInnerHTML={{
-                  __html: forumEvents[0].sponsorship_opportunities_partners_html
-                }}></div>
+                  __html:
+                    forumEvents[0].sponsorship_opportunities_partners_html,
+                }}
+              ></div>
             </div>
           </div>
         )}
@@ -69,7 +75,12 @@ const Partners = ({
                   <div className="partner-logos">
                     <div className="grid-container">
                       {CoConveningPartner.map((item) => (
-                        <a className="cell" key={item.id} href={item.website_link} target="_blank">
+                        <a
+                          className="cell"
+                          key={item.id}
+                          href={item.website_link}
+                          target="_blank"
+                        >
                           <img
                             className="logo"
                             src={item.partner_logo}
@@ -110,7 +121,8 @@ const Partners = ({
                             className="cell"
                             key={item.id}
                             href={item.website_link}
-                            target="_blank">
+                            target="_blank"
+                          >
                             <img
                               className="logo"
                               src={item.partner_logo}
@@ -153,7 +165,12 @@ const Partners = ({
                   <div className="partner-logos">
                     <div className="grid-container">
                       {sponsorPartners.map((item) => (
-                        <a className="cell" key={item.id} href={item.website_link} target="_blank">
+                        <a
+                          className="cell"
+                          key={item.id}
+                          href={item.website_link}
+                          target="_blank"
+                        >
                           <img
                             className="logo"
                             src={item.partner_logo}
@@ -189,7 +206,12 @@ const Partners = ({
                   <div className="partner-logos">
                     <div className="grid-container">
                       {FundingPartners.map((item) => (
-                        <a className="cell" key={item.id} href={item.website_link} target="_blank">
+                        <a
+                          className="cell"
+                          key={item.id}
+                          href={item.website_link}
+                          target="_blank"
+                        >
                           <img
                             className="logo"
                             src={item.partner_logo}
@@ -203,7 +225,9 @@ const Partners = ({
                 </div>
               }
               title={
-                <h2 className="section_title">{t('cleanAirSite.Forum.sections.partners.fund')}</h2>
+                <h2 className="section_title">
+                  {t('cleanAirSite.Forum.sections.partners.fund')}
+                </h2>
               }
               bgColor="#FFFFFF"
             />
@@ -220,8 +244,9 @@ const Partners = ({
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              height: '50vh'
-            }}>
+              height: '50vh',
+            }}
+          >
             {t('cleanAirSite.Forum.sections.No_data')}
           </div>
         )}

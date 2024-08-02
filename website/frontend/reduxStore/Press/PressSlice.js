@@ -4,14 +4,17 @@ import { getAllPressApi } from '../../apis';
 const initialState = {
   loading: false,
   pressData: [],
-  error: null
+  error: null,
 };
 
-export const loadPressData = createAsyncThunk('get/press', async (_, thunkAPI) => {
-  const lang = thunkAPI.getState().eventsNavTab.languageTab;
-  const response = await getAllPressApi(lang);
-  return response;
-});
+export const loadPressData = createAsyncThunk(
+  'get/press',
+  async (_, thunkAPI) => {
+    const lang = thunkAPI.getState().eventsNavTab.languageTab;
+    const response = await getAllPressApi(lang);
+    return response;
+  }
+);
 
 const pressSlice = createSlice({
   name: 'press',
@@ -19,7 +22,7 @@ const pressSlice = createSlice({
   reducers: {
     getPressData: (state, action) => {
       state.pressData = action.payload;
-    }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -34,7 +37,7 @@ const pressSlice = createSlice({
         state.error = action.error.message;
         state.loading = false;
       });
-  }
+  },
 });
 
 export const { getPressData } = pressSlice.actions;

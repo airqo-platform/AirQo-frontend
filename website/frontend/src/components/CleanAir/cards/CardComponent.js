@@ -21,8 +21,15 @@ const CardComponent = ({ title, authors, link, linkTitle, downloadLink }) => {
       <div className="sub-title">{authors} </div>
       <div className="cta-links">
         {link !== null ? (
-          <a className="link" href={link} target="_blank" rel="noreferrer noopener">
-            <small>{linkTitle || t('cleanAirSite.publications.card.readmore')}</small>
+          <a
+            className="link"
+            href={link}
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            <small>
+              {linkTitle || t('cleanAirSite.publications.card.readmore')}
+            </small>
           </a>
         ) : (
           <span />

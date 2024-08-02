@@ -17,8 +17,11 @@ const MainSection = () => {
         <div className="body">{t('homepage.ctaSection.leaders.subText')}</div>
         <div className="link">
           <a
-            href={'https://www.google.org/leaders-to-watch/#engineer-bainomugisha'}
-            target="_blank">
+            href={
+              'https://www.google.org/leaders-to-watch/#engineer-bainomugisha'
+            }
+            target="_blank"
+          >
             {t('homepage.ctaSection.leaders.cta')} {'-->'}
           </a>
         </div>
@@ -36,7 +39,9 @@ const SubSection = () => {
   return (
     <div className="highlight-sub">
       <div className="content-wrapper blue-bg">
-        <div className="title white-color">{t('homepage.ctaSection.explore.title')}</div>
+        <div className="title white-color">
+          {t('homepage.ctaSection.explore.title')}
+        </div>
         <div className="link white-color">
           <Link to="/explore-data">
             <span>
@@ -46,7 +51,9 @@ const SubSection = () => {
         </div>
       </div>
       <div className="content-wrapper light-blue-bg" onClick={showModal}>
-        <div className="title blue-color">{t('homepage.ctaSection.involved.title')}</div>
+        <div className="title blue-color">
+          {t('homepage.ctaSection.involved.title')}
+        </div>
         <div className="link blue-color" onClick={showModal}>
           {t('homepage.ctaSection.involved.cta')}
           {'-->'}

@@ -14,9 +14,12 @@ const BottomCTAs = () => {
         <Link
           to="https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform"
           target="_blank"
-          rel="noopener noreferrer">
+          rel="noopener noreferrer"
+        >
           <div className="content-wrapper blue-bg">
-            <div className="title white-color">{t('cleanAirSite.bottomCTA.left.title')}</div>
+            <div className="title white-color">
+              {t('cleanAirSite.bottomCTA.left.title')}
+            </div>
             <div className="link white-color">
               <span>
                 {t('cleanAirSite.bottomCTA.left.ctaText')} {'-->'}
@@ -27,9 +30,12 @@ const BottomCTAs = () => {
         <Link
           to="https://docs.google.com/forms/d/14jKDs2uCtMy2a_hzyCiJnu9i0GbxITX_DJxVB4GGP5c/edit"
           target="_blank"
-          rel="noopener noreferrer">
+          rel="noopener noreferrer"
+        >
           <div className="content-wrapper light-blue-bg">
-            <div className="title blue-color">{t('cleanAirSite.bottomCTA.right.title')}</div>
+            <div className="title blue-color">
+              {t('cleanAirSite.bottomCTA.right.title')}
+            </div>
             <div className="link blue-color">
               {' '}
               {t('cleanAirSite.bottomCTA.right.ctaText')} {'-->'}

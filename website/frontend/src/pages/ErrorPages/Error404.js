@@ -12,7 +12,7 @@ const Error404 = () => {
           <span>We can't seem to find the page you're looking for.</span>
         </div>
         <div className="statement">
-          But, take a deep breath of clean air on us. Ready? <br/>
+          But, take a deep breath of clean air on us. Ready? <br />
           <span>Breathe In, Breathe Out</span>
         </div>
       </div>

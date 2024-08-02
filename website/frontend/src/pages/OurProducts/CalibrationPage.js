@@ -20,7 +20,8 @@ const CalibrationPage = () => {
           style={{ backgroundColor: '#e6e8fa' }}
           pageTitle={t('products.calibrate.header.pageTitle')}
           title={t('products.calibrate.header.title')}
-          subText={t('products.calibrate.header.subText')}>
+          subText={t('products.calibrate.header.subText')}
+        >
           <img src={HeaderImage} alt="" style={{ borderRadius: '8px' }} />
         </Header>
         <div className="content">
@@ -28,39 +29,45 @@ const CalibrationPage = () => {
             <div className="row">
               <h2 className="left title">
                 <Trans i18nKey="products.calibrate.first.title">
-                  <span className="blue"> Why calibrate</span> your low-cost sensor data?
+                  <span className="blue"> Why calibrate</span> your low-cost
+                  sensor data?
                 </Trans>
               </h2>
               <p className="right">
                 <Trans i18nKey="products.calibrate.first.subText">
-                  Low cost sensors are relied on to increase the geographical coverage of air
-                  quality monitoring networks but, they are sensitive to ambient conditions
-                  (humidity, temperature) which could affect the accuracy of air quality data.
+                  Low cost sensors are relied on to increase the geographical
+                  coverage of air quality monitoring networks but, they are
+                  sensitive to ambient conditions (humidity, temperature) which
+                  could affect the accuracy of air quality data.
                   <br />
-                  Calibration enhances the quality and reliability of air quality data from low-cost
-                  sensors.
+                  Calibration enhances the quality and reliability of air
+                  quality data from low-cost sensors.
                 </Trans>
               </p>
             </div>
             <div className="overlap-section">
               <div
                 className="lapping-left card"
-                /*card-sm larger-top*/ style={{ backgroundColor: '#FFFCE1' }}>
+                /*card-sm larger-top*/ style={{ backgroundColor: '#FFFCE1' }}
+              >
                 <h5>{t('products.calibrate.second.title')}</h5>
                 <p>
                   <Trans i18nKey="products.calibrate.second.subText">
-                    AirQalibrate is a Machine Learning based calibration tool that eliminates the
-                    need for reference grade monitors or on-site monitor calibration.
+                    AirQalibrate is a Machine Learning based calibration tool
+                    that eliminates the need for reference grade monitors or
+                    on-site monitor calibration.
                     <br />
                     <br />
-                    It enables users without access to reference grade monitors or technical
-                    expertise to calibrate data from their low-cost monitors, improve performance
-                    and build trust in the air quality network.
+                    It enables users without access to reference grade monitors
+                    or technical expertise to calibrate data from their low-cost
+                    monitors, improve performance and build trust in the air
+                    quality network.
                     <br />
                     <br />
-                    This reduces operational costs involved in monitoring thereby enabling the
-                    expansion of monitoring systems to create a dense air quality monitoring and
-                    management network.
+                    This reduces operational costs involved in monitoring
+                    thereby enabling the expansion of monitoring systems to
+                    create a dense air quality monitoring and management
+                    network.
                   </Trans>
                 </p>
               </div>
@@ -74,19 +81,23 @@ const CalibrationPage = () => {
             <div className="overlap-section">
               <div
                 className="lapping-right card"
-                style={{ backgroundColor: '#E6E6FA', marginTop: '30px' }}>
+                style={{ backgroundColor: '#E6E6FA', marginTop: '30px' }}
+              >
                 <h5>{t('products.calibrate.third.title')}</h5>
                 <p>
                   <Trans i18nKey="products.calibrate.third.subText">
-                    Upload a CSV file containing your low-cost sensor PM<sub>2.5</sub> and PM
-                    <sub>10</sub> data, follow a few simple steps and calibrate your data. The
-                    results are automatically downloaded when the calibration process is completed.
+                    Upload a CSV file containing your low-cost sensor PM
+                    <sub>2.5</sub> and PM
+                    <sub>10</sub> data, follow a few simple steps and calibrate
+                    your data. The results are automatically downloaded when the
+                    calibration process is completed.
                   </Trans>
                   <br />
                   <a
                     href="https://airqalibrate.airqo.net/"
                     target="_blank"
-                    className="download-button">
+                    className="download-button"
+                  >
                     {' '}
                     {t('products.calibrate.third.cta')} <OpenInNew />
                   </a>
@@ -123,7 +134,7 @@ const CalibrationPage = () => {
                   objectFit: 'contain',
                   width: '100%',
                   borderRadius: '10px',
-                  marginTop: '30px'
+                  marginTop: '30px',
                 }}
               />
             </div>

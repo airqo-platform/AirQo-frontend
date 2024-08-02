@@ -12,13 +12,15 @@ const SecondaryNavComponent = ({ disabledTabs }) => {
     { label: t('cleanAirSite.subNav.about'), linkName: 'about' },
     { label: t('cleanAirSite.subNav.membership'), linkName: 'membership' },
     { label: t('cleanAirSite.subNav.events'), linkName: 'events' },
-    { label: t('cleanAirSite.subNav.resources'), linkName: 'resources' }
+    { label: t('cleanAirSite.subNav.resources'), linkName: 'resources' },
   ];
 
   const dispatch = useDispatch();
   const location = useLocation();
   useEffect(() => {
-    const currentTab = tabs.findIndex((tab) => location.pathname.includes(tab.linkName));
+    const currentTab = tabs.findIndex((tab) =>
+      location.pathname.includes(tab.linkName)
+    );
     if (currentTab !== -1 && !disabledTabs.includes(currentTab)) {
       dispatch(setActiveTab(tabs[currentTab]));
     }
@@ -31,13 +33,16 @@ const SecondaryNavComponent = ({ disabledTabs }) => {
           <Link to={`/clean-air/${tab.linkName}`} key={index}>
             <li
               className={`${
-                location.pathname.includes(tab.linkName) || activeTab === index ? 'active' : ''
+                location.pathname.includes(tab.linkName) || activeTab === index
+                  ? 'active'
+                  : ''
               } ${disabledTabs.includes(index) ? 'disabled' : ''}`}
               onClick={() => {
                 if (!disabledTabs.includes(index)) {
                   dispatch(setActiveTab(tab));
                 }
-              }}>
+              }}
+            >
               <span>{tab.label}</span>
             </li>
           </Link>
@@ -48,11 +53,11 @@ const SecondaryNavComponent = ({ disabledTabs }) => {
 };
 
 SecondaryNavComponent.propTypes = {
-  disabledTabs: PropTypes.array
+  disabledTabs: PropTypes.array,
 };
 
 SecondaryNavComponent.defaultProps = {
-  disabledTabs: []
+  disabledTabs: [],
 };
 
 export default SecondaryNavComponent;

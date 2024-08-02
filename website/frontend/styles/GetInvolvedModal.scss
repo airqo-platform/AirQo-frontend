@@ -1,5 +1,5 @@
-@import "lib/variables";
-@import "lib/colors";
+@import 'lib/variables';
+@import 'lib/colors';
 
 .GetInvolvedModalWrapper {
   z-index: 999;
@@ -19,11 +19,11 @@
 }
 
 .tab-active {
-    border: 1.8px solid #135DFF;
-  }
+  border: 1.8px solid #135dff;
+}
 
 .tab-inactive {
-  border: 1px solid #D1D3D9;
+  border: 1px solid #d1d3d9;
 }
 
 .GetInvolvedTab {
@@ -40,7 +40,7 @@
 
   &:hover {
     cursor: pointer;
-    border: 1px solid #135DFF;
+    border: 1px solid #135dff;
   }
 
   .img-placeholder {
@@ -50,7 +50,7 @@
     align-items: center;
     width: 80px;
     height: 80px;
-    background: #F1F5FF;
+    background: #f1f5ff;
     border-radius: 50%;
   }
 
@@ -63,7 +63,7 @@
     font-size: 16px;
     line-height: 24px;
 
-    color: #353E52;
+    color: #353e52;
   }
 }
 
@@ -84,7 +84,7 @@
     justify-content: center;
     width: 45%;
     height: 100%;
-    background: #F3F4F7;
+    background: #f3f4f7;
 
     .section-nav {
       display: flex;
@@ -94,7 +94,7 @@
 
       h5 {
         font-weight: 400;
-        color: #353E52;
+        color: #353e52;
         font-size: 16px;
         line-height: 24px;
       }
@@ -104,7 +104,7 @@
         margin-left: 8px;
         width: 14px;
         height: 14px;
-        color: #353E52;
+        color: #353e52;
       }
     }
 
@@ -112,7 +112,7 @@
       font-weight: 500;
       font-size: 40px;
       line-height: 48px;
-      color: #353E52;
+      color: #353e52;
     }
 
     .banner-content {
@@ -120,7 +120,7 @@
       font-size: 20px;
       font-weight: 400;
       line-height: 28px;
-      color: #353E52;
+      color: #353e52;
     }
   }
 
@@ -134,21 +134,21 @@
     padding: 16px;
     overflow-y: scroll;
 
-    >span {
+    > span {
       display: flex;
       width: 100%;
       height: 20px;
       justify-content: space-between;
 
-      >svg:hover {
+      > svg:hover {
         cursor: pointer;
-        >path {
+        > path {
           fill: deepskyblue;
         }
       }
     }
 
-    >div {
+    > div {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
@@ -160,13 +160,13 @@
       max-width: 320px;
       margin: 0 auto 0 auto;
 
-      a{
+      a {
         text-decoration: underline;
       }
 
       .register-form {
         width: 100%;
-        color: #353E52;
+        color: #353e52;
 
         .form-field {
           display: flex;
@@ -174,10 +174,11 @@
           margin-bottom: 24px;
           width: 100%;
 
-          input[type="text"], input[type="email"] {
+          input[type='text'],
+          input[type='email'] {
             width: 360px;
             height: 56px;
-            background-color: #F3F4F7;
+            background-color: #f3f4f7;
             margin-top: 12px;
             border: 0;
             outline: 0;
@@ -188,7 +189,7 @@
             font-size: 14px;
             line-height: 20px;
 
-            color: #353E52;
+            color: #353e52;
 
             padding: 18px 20px;
           }
@@ -205,12 +206,12 @@
           align-items: center;
           margin-bottom: 48px;
 
-          input[type="checkbox"] {
+          input[type='checkbox'] {
             width: 24px;
             height: 24px;
             border-radius: 4px;
             margin-right: 16px;
-            border: 1px solid #D1D3D9;
+            border: 1px solid #d1d3d9;
           }
 
           label {
@@ -250,52 +251,52 @@
         }
 
         .btn-active {
-          color: #FFFFFF;
-          background: #135DFF;
+          color: #ffffff;
+          background: #135dff;
           cursor: pointer;
         }
       }
 
       .back-btn {
-          width: 91px;
-          padding: 12px 27px;
-          color: $aq-blue-4;
+        width: 91px;
+        padding: 12px 27px;
+        color: $aq-blue-4;
       }
 
       .register-btn {
-          width: 198px;
-          padding: 12px 22px;
-          color: #353e5247;
+        width: 198px;
+        padding: 12px 22px;
+        color: #353e5247;
       }
 
       .back-btn:hover {
-          background-color: $aq-blue-7;
+        background-color: $aq-blue-7;
       }
 
       .register-btn:hover {
-          color: $aq-blue-4;
-          background-color: $aq-blue-7;
+        color: $aq-blue-4;
+        background-color: $aq-blue-7;
       }
     }
   }
 
-  ::-webkit-scrollbar{
-        width:8px;
-    }
-    ::-webkit-scrollbar-button{
-        display:none;
-    }
-    ::-webkit-scrollbar-track{
-        background: $aq-white-3;
-        opacity:0.2;
-    }
-    ::-webkit-scrollbar-thumb{
-        background: $aq-blue-0;
-        border-radius: 10px;
-    }
-    ::-webkit-scrollbar-corner{
-        border-radius: 10px;
-    }
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
+  ::-webkit-scrollbar-track {
+    background: $aq-white-3;
+    opacity: 0.2;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: $aq-blue-0;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-corner {
+    border-radius: 10px;
+  }
 
   .complete {
     //display: flex;
@@ -306,7 +307,7 @@
     gap: 0;
     width: 100%;
     height: 100%;
-    background: #F3F4F7;
+    background: #f3f4f7;
 
     .content-wrapper {
       display: grid;
@@ -335,7 +336,7 @@
       font-size: 40px;
       line-height: 48px;
 
-      color: #353E52;
+      color: #353e52;
       margin: 0;
     }
 
@@ -352,7 +353,7 @@
       font-size: 20px;
       line-height: 28px;
 
-      color: #353E52;
+      color: #353e52;
     }
 
     .btn {
@@ -363,7 +364,7 @@
       width: 148px;
       height: 56px;
       padding: 16px 32px;
-      background: #135DFF;
+      background: #135dff;
       outline: none;
       border: none;
 
@@ -371,16 +372,16 @@
       font-weight: 400;
       font-size: 16px;
       line-height: 24px;
-      color: #FFFFFF;
+      color: #ffffff;
       cursor: pointer;
     }
   }
 }
 
-@media(max-width: $mainBreakPoint) {
-  ::-webkit-scrollbar{
-        display: none;
-    }
+@media (max-width: $mainBreakPoint) {
+  ::-webkit-scrollbar {
+    display: none;
+  }
   .GetInvolvedModalWrapper {
     display: flex;
     width: 100vw;
@@ -395,11 +396,9 @@
     .img-placeholder {
       display: none;
     }
-
   }
 
   .GetInvolvedModal {
-
     .banner {
       display: none;
     }
@@ -414,14 +413,15 @@
         .register-form {
           width: 100vw;
           padding: 0 16px;
-            .form-field{ 
-              input[type="text"], input[type="email"] {
+          .form-field {
+            input[type='text'],
+            input[type='email'] {
               width: auto;
             }
           }
         }
-        .section-button-row{
-          .register-btn{
+        .section-button-row {
+          .register-btn {
             width: 128px;
             min-width: 0px;
             margin-left: 16px;
@@ -429,8 +429,6 @@
           }
         }
       }
-
     }
   }
-
 }

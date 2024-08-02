@@ -21,7 +21,7 @@ const initialState = {
   activeResource: i18n.t('cleanAirSite.publications.navs.toolkits'),
   airData: [],
   loading: false,
-  error: null
+  error: null,
 };
 
 // Slice for handling clean air data and tab states
@@ -34,7 +34,7 @@ const tabsSlice = createSlice({
     },
     setActiveResource(state, action) {
       state.activeResource = action.payload;
-    }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -50,7 +50,7 @@ const tabsSlice = createSlice({
         // Store the error message instead of the entire error object
         state.error = action.payload.message;
       });
-  }
+  },
 });
 
 export const { setActiveTab, setActiveResource } = tabsSlice.actions;

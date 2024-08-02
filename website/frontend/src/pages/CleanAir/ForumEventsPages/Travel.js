@@ -3,7 +3,12 @@ import { SplitTextSection } from 'components/CleanAir';
 import { useTranslation } from 'react-i18next';
 import SEO from 'utilities/seo';
 
-const Travel = ({ vaccinationDetails, support, visaDetails, accommodation }) => {
+const Travel = ({
+  vaccinationDetails,
+  support,
+  visaDetails,
+  accommodation,
+}) => {
   const { t } = useTranslation();
   return (
     <>
@@ -21,8 +26,14 @@ const Travel = ({ vaccinationDetails, support, visaDetails, accommodation }) => 
           <section className="about travel">
             <SplitTextSection
               lists={[]}
-              content={<div dangerouslySetInnerHTML={{ __html: vaccinationDetails }} />}
-              title={<h2 className="section_title">{t('cleanAirSite.Forum.sections.travel')}</h2>}
+              content={
+                <div dangerouslySetInnerHTML={{ __html: vaccinationDetails }} />
+              }
+              title={
+                <h2 className="section_title">
+                  {t('cleanAirSite.Forum.sections.travel')}
+                </h2>
+              }
               bgColor="#FFFFFF"
             />
           </section>
@@ -36,8 +47,14 @@ const Travel = ({ vaccinationDetails, support, visaDetails, accommodation }) => 
           <section className="about travel">
             <SplitTextSection
               lists={[]}
-              content={<div dangerouslySetInnerHTML={{ __html: visaDetails }} />}
-              title={<h2 className="section_title">{t('cleanAirSite.Forum.sections.visa')}</h2>}
+              content={
+                <div dangerouslySetInnerHTML={{ __html: visaDetails }} />
+              }
+              title={
+                <h2 className="section_title">
+                  {t('cleanAirSite.Forum.sections.visa')}
+                </h2>
+              }
               bgColor="#FFFFFF"
             />
           </section>
@@ -51,9 +68,13 @@ const Travel = ({ vaccinationDetails, support, visaDetails, accommodation }) => 
           <section className="about travel">
             <SplitTextSection
               lists={[]}
-              content={<div dangerouslySetInnerHTML={{ __html: accommodation }} />}
+              content={
+                <div dangerouslySetInnerHTML={{ __html: accommodation }} />
+              }
               title={
-                <h2 className="section_title">{t('cleanAirSite.Forum.sections.accommodation')}</h2>
+                <h2 className="section_title">
+                  {t('cleanAirSite.Forum.sections.accommodation')}
+                </h2>
               }
               bgColor="#FFFFFF"
             />
@@ -83,7 +104,9 @@ const Travel = ({ vaccinationDetails, support, visaDetails, accommodation }) => 
               title={
                 <h2
                   className="section_title"
-                  dangerouslySetInnerHTML={{ __html: t('cleanAirSite.Forum.sections.support') }}
+                  dangerouslySetInnerHTML={{
+                    __html: t('cleanAirSite.Forum.sections.support'),
+                  }}
                 />
               }
               bgColor="#FFFFFF"
@@ -99,8 +122,9 @@ const Travel = ({ vaccinationDetails, support, visaDetails, accommodation }) => 
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            height: '50vh'
-          }}>
+            height: '50vh',
+          }}
+        >
           {t('cleanAirSite.Forum.sections.No_data')}
         </div>
       )}

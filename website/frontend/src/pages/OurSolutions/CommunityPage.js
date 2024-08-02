@@ -39,8 +39,12 @@ const CommunityPage = () => {
               <ArrowForwardIosIcon className="arrow-forward" />
               <h6>{t('solutions.communities.header.nextCrumb')}</h6>
             </div>
-            <h1 className="header-2">{t('solutions.communities.header.title')}</h1>
-            <h3 className="header-3">{t('solutions.communities.header.subText')}</h3>
+            <h1 className="header-2">
+              {t('solutions.communities.header.title')}
+            </h1>
+            <h3 className="header-3">
+              {t('solutions.communities.header.subText')}
+            </h3>
           </div>
 
           <div className="community_wrapper">
@@ -66,7 +70,11 @@ const CommunityPage = () => {
                     <img src={AssetImg1} alt="Image Stock 1" />
                     <img src={AssetImg2} alt="Image Stock 2" />
                   </div>
-                  <img src={AssetImg3} className="stack-2" alt="Image Stock 3" />
+                  <img
+                    src={AssetImg3}
+                    className="stack-2"
+                    alt="Image Stock 3"
+                  />
                   <div className="layer-2">
                     <Blob className="blob" style={{ height: '360px' }} />
                   </div>
@@ -87,7 +95,8 @@ const CommunityPage = () => {
                   {t('solutions.communities.strip.rightStrip.paragraph')}
                   <a
                     href="https://blog.airqo.net/helping-communities-combat-air-pollution-through-digital-technologies-6a5924a1e1e"
-                    target="_blank">
+                    target="_blank"
+                  >
                     <u>{t('solutions.communities.strip.rightStrip.cta')}</u>
                   </a>
                 </h3>
@@ -106,7 +115,11 @@ const CommunityPage = () => {
                     <img src={TrainingImg1} alt="Image Stock 1" />
                     <img src={TrainingImg2} alt="Image Stock 2" />
                   </div>
-                  <img src={AssetImg6} className="stack-2" alt="Image Stock 3" />
+                  <img
+                    src={AssetImg6}
+                    className="stack-2"
+                    alt="Image Stock 3"
+                  />
                   <div className="layer-2">
                     <Blob className="blob" style={{ height: '360px' }} />
                   </div>
