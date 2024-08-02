@@ -171,8 +171,7 @@ const createDeviceColumns = (history, setDelState) => [
               className={'underline-hover'}
               onClick={(event) => {
                 event.stopPropagation();
-              }}
-            >
+              }}>
               {data.site && data.site.description}
             </Link>
           )
@@ -202,8 +201,7 @@ const createDeviceColumns = (history, setDelState) => [
               style={{
                 color: deviceStatus === 'deployed' ? 'green' : 'red',
                 textTransform: 'capitalize'
-              }}
-            >
+              }}>
               {deviceStatus}
             </span>
           }
@@ -371,7 +369,9 @@ const CreateDevice = ({ open, setOpen }) => {
       onClose={handleRegisterClose}
       aria-labelledby="form-dialog-title"
       aria-describedby="form-dialog-description"
-    >
+      style={{
+        overflow: 'auto'
+      }}>
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Add a device
       </DialogTitle>
@@ -416,8 +416,7 @@ const CreateDevice = ({ open, setOpen }) => {
             variant="outlined"
             error={!!errors.network}
             helperText={errors.network}
-            disabled
-          ></TextField>
+            disabled></TextField>
         </form>
       </DialogContent>
 
@@ -432,8 +431,7 @@ const CreateDevice = ({ open, setOpen }) => {
             color="primary"
             type="submit"
             onClick={handleRegisterSubmit}
-            style={{ margin: '0 15px' }}
-          >
+            style={{ margin: '0 15px' }}>
             Register
           </Button>
         </Grid>
@@ -540,7 +538,9 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
       onClose={handleRegisterClose}
       aria-labelledby="form-dialog-title"
       aria-describedby="form-dialog-description"
-    >
+      style={{
+        overflow: 'auto'
+      }}>
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Soft add a device
       </DialogTitle>
@@ -583,8 +583,7 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             variant="outlined"
             error={!!errors.network}
             helperText={errors.network}
-            disabled
-          ></TextField>
+            disabled></TextField>
         </form>
       </DialogContent>
 
@@ -599,8 +598,7 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             color="primary"
             type="submit"
             onClick={handleRegisterSubmit}
-            style={{ margin: '0 15px' }}
-          >
+            style={{ margin: '0 15px' }}>
             Register
           </Button>
         </Grid>
@@ -687,16 +685,14 @@ const DevicesTable = (props) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end'
-          }}
-        >
+          }}>
           {activeNetwork.net_name === 'airqo' && (
             <Button
               variant="contained"
               color="primary"
               type="submit"
               align="right"
-              onClick={() => setRegisterOpen(true)}
-            >
+              onClick={() => setRegisterOpen(true)}>
               {' '}
               Add AirQo Device
             </Button>
@@ -706,8 +702,7 @@ const DevicesTable = (props) => {
             color="primary"
             type="submit"
             style={{ marginLeft: '20px' }}
-            onClick={() => setSoftRegisterOpen(true)}
-          >
+            onClick={() => setSoftRegisterOpen(true)}>
             Add External Device
           </Button>
         </div>
