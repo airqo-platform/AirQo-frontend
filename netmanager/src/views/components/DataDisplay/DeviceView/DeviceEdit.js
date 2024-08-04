@@ -417,6 +417,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               required>
               <option value={'lowcost'}>Lowcost</option>
               <option value={'bam'}>BAM</option>
+              <option value={'gas'}>GAS</option>
             </TextField>
           </Grid>
 

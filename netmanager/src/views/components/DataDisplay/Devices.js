@@ -245,7 +245,8 @@ const createDeviceColumns = (history, setDelState) => [
 
 const CATEGORIES = [
   { value: 'lowcost', name: 'Lowcost' },
-  { value: 'bam', name: 'BAM' }
+  { value: 'bam', name: 'BAM' },
+  { value: 'gas', name: 'GAS' }
 ];
 
 // categories options

@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { v4 as uuidv4 } from "uuid";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { v4 as uuidv4 } from 'uuid';
 
 interface ReportState {
   startDate: string;
@@ -11,16 +11,16 @@ interface ReportState {
 }
 
 const initialState: ReportState = {
-  startDate: "",
-  endDate: "",
-  generatedID: "",
-  reportTitle: "",
-  reportTemplate: "",
+  startDate: '',
+  endDate: '',
+  generatedID: '',
+  reportTitle: '',
+  reportTemplate: '',
   reportData: null,
 };
 
 const reportSlice = createSlice({
-  name: "report",
+  name: 'report',
   initialState,
   reducers: {
     setStartDate: (state, action: PayloadAction<string>) => {
@@ -40,7 +40,7 @@ const reportSlice = createSlice({
     },
     generateID: (state) => {
       const uuid = uuidv4();
-      const idWithoutHyphens = uuid.replace(/-/g, "");
+      const idWithoutHyphens = uuid.replace(/-/g, '');
       state.generatedID = idWithoutHyphens.substring(0, 16);
     },
     reset: (state) => {

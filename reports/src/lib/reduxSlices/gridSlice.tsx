@@ -1,9 +1,9 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { getGridData } from "@/services/api";
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { getGridData } from '@/services/api';
 
 // First, create the async thunk
 export const fetchGrids = createAsyncThunk(
-  "grids/fetchGrids",
+  'grids/fetchGrids',
   async (_, { getState }) => {
     const { grids } = (getState() as { grids: GridState }).grids;
     if (grids.length === 0) {
@@ -16,33 +16,33 @@ export const fetchGrids = createAsyncThunk(
 
 interface GridState {
   grids: any[];
-  status: "idle" | "loading" | "succeeded" | "failed";
+  status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null;
 }
 
 const initialState: GridState = {
   grids: [],
-  status: "idle",
+  status: 'idle',
   error: null,
 };
 
 // Then, handle actions in your reducers:
 const gridsSlice = createSlice({
-  name: "grids",
+  name: 'grids',
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchGrids.pending, (state) => {
-        state.status = "loading";
+        state.status = 'loading';
       })
       .addCase(fetchGrids.fulfilled, (state, action: PayloadAction<any[]>) => {
-        state.status = "succeeded";
+        state.status = 'succeeded';
         // Replace the existing grids with the fetched ones
         state.grids = action.payload;
       })
       .addCase(fetchGrids.rejected, (state, action) => {
-        state.status = "failed";
+        state.status = 'failed';
         state.error = action.error.message ?? null;
       });
   },

@@ -224,6 +224,9 @@ jobs:
           echo "  - .env.yaml" >> app.yaml
           echo "========== Creating .env.yaml file =========="  
           echo "env_variables:" > .env.yaml
+          echo "runtime_config:" >> app.yaml
+          echo "  operating_system: \"ubuntu22\"" >> app.yaml
+          echo "  runtime_version: \"3.12\"" >> app.yaml
           echo "  SECRET: ${{ secrets.WEBSITE_SECRET }}" >> .env.yaml
           echo "  CLOUDINARY_KEY: ${{ secrets.WEBSITE_CLOUDINARY_KEY }}" >> .env.yaml
           echo "  CLOUDINARY_NAME: ${{ secrets.WEBSITE_CLOUDINARY_NAME }}" >> .env.yaml

@@ -1,22 +1,21 @@
-"use client";
-import React from "react";
-import { usePathname } from "next/navigation";
-import AirQoLogo from "@/public/images/airqo.png";
-import { Separator } from "@/components/ui/separator";
-import Image from "next/image";
-import Link from "next/link";
-import { TbSettingsCog } from "react-icons/tb";
-import { RiAiGenerate } from "react-icons/ri";
-import { SiFiles } from "react-icons/si";
+'use client';
+import React from 'react';
+import { usePathname } from 'next/navigation';
+import AirQoLogo from '@/public/images/airqo.png';
+import { Separator } from '@/components/ui/separator';
+import Image from 'next/image';
+import Link from 'next/link';
+import { TbSettingsCog } from 'react-icons/tb';
+import { RiAiGenerate } from 'react-icons/ri';
 
 const links = [
   {
-    href: ["/", "/reports/report"],
+    href: ['/', '/home'],
     icon: RiAiGenerate,
-    label: "Report",
+    label: 'Home',
   },
   // { href: "/files", icon: SiFiles, label: "Saved Files" },
-  { href: "/reports/settings", icon: TbSettingsCog, label: "Settings" },
+  { href: '/settings', icon: TbSettingsCog, label: 'Settings' },
 ];
 
 export default function SideBar() {
@@ -26,10 +25,10 @@ export default function SideBar() {
   const isActive = (routes: string | string[]) => {
     if (Array.isArray(routes)) {
       return routes.some((route) =>
-        route === "/" ? pathname === route : pathname.startsWith(route)
+        route === '/' ? pathname === route : pathname.startsWith(route)
       );
     }
-    return routes === "/" ? pathname === routes : pathname.startsWith(routes);
+    return routes === '/' ? pathname === routes : pathname.startsWith(routes);
   };
 
   return (
@@ -56,7 +55,7 @@ export default function SideBar() {
             >
               <span
                 className={`flex flex-row rounded-lg items-center justify-start space-x-3 p-2 w-full  ${
-                  isActive(href) ? "bg-gray-800 text-white" : ""
+                  isActive(href) ? 'bg-gray-800 text-white' : ''
                 }`}
               >
                 <Icon />
