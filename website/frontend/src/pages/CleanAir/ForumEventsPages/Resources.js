@@ -22,6 +22,11 @@ const Resources = ({ Resources }) => {
     }
   };
 
+  const getFileNameFromUrl = (url) => {
+    const urlParts = url.split('?')[0].split('/');
+    return urlParts[urlParts.length - 1];
+  };
+
   if (Resources.length === 0) {
     return (
       <div
@@ -56,7 +61,7 @@ const Resources = ({ Resources }) => {
                 rel="noreferrer"
                 download>
                 {getFileIcon(file.file)}
-                <span style={{ marginLeft: '10px' }}>{file.file.split('/').pop()}</span>
+                <span style={{ marginLeft: '10px' }}>{getFileNameFromUrl(file.file)}</span>
               </a>
             </li>
           </ul>
