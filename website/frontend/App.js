@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState, useCallback } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
@@ -10,6 +10,7 @@ import PartnerDetailPage from './src/pages/Partners';
 import Error404 from 'src/pages/ErrorPages/Error404';
 import { ExploreApp } from './src/pages/ExploreData';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import NetworkStatus from './NetworkStatus';
 
 import HomePage from './src/pages/HomePage';
 import Press from './src/pages/Press/Press';
@@ -45,17 +46,17 @@ store.dispatch(loadAirQloudSummaryData());
 const App = () => {
   const [showScroll, setShowScroll] = useState(false);
 
-  const checkScrollTop = () => {
+  const checkScrollTop = useCallback(() => {
     const shouldShowScroll = window.scrollY >= 400;
     if (showScroll !== shouldShowScroll) {
       setShowScroll(shouldShowScroll);
     }
-  };
+  }, [showScroll]);
 
   useEffect(() => {
     window.addEventListener('scroll', checkScrollTop);
     return () => window.removeEventListener('scroll', checkScrollTop);
-  }, [showScroll]);
+  }, [checkScrollTop]);
 
   const ScrollTop = () => {
     window.scrollTo({
@@ -63,8 +64,9 @@ const App = () => {
       behavior: 'smooth'
     });
   };
+
   return (
-    <>
+    <NetworkStatus>
       <Provider store={store}>
         <I18nextProvider i18n={i18n}>
           <Suspense fallback={<LoadSpinner />}>
@@ -109,21 +111,20 @@ const App = () => {
             </Router>
           </Suspense>
         </I18nextProvider>
+        {showScroll && (
+          <div className="scroll-top" onClick={ScrollTop}>
+            <ArrowUpwardIcon
+              className="scroll-top-icon"
+              sx={{
+                width: '40px',
+                height: '40px',
+                color: '#FFF'
+              }}
+            />
+          </div>
+        )}
       </Provider>
-      {/* scroll top button */}
-      {showScroll && (
-        <div className="scroll-top" onClick={ScrollTop}>
-          <ArrowUpwardIcon
-            className="scroll-top-icon"
-            sx={{
-              width: '40px',
-              height: '40px',
-              color: '#FFF'
-            }}
-          />
-        </div>
-      )}
-    </>
+    </NetworkStatus>
   );
 };
 

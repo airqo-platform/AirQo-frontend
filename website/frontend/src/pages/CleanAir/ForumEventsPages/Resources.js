@@ -53,9 +53,9 @@ const Resources = ({ Resources }) => {
         {resource.resource_title}
       </h3>
       {resource.resource_files.map((file, fileIndex) => (
-        <React.Fragment key={file.id}>
+        <React.Fragment key={fileIndex}>
           <ul>
-            <li>
+            <li key={fileIndex}>
               <div dangerouslySetInnerHTML={sanitizeHTML(file.resource_summary_html)} />
               <a
                 style={{
