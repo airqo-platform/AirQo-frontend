@@ -12,6 +12,7 @@ import Speakers from './ForumEventsPages/Speakers';
 import Partners from './ForumEventsPages/Partners';
 import Travel from './ForumEventsPages/Travel';
 import Glossary from './ForumEventsPages/Glossary';
+import Resources from './ForumEventsPages/Resources';
 import CommitteePage from './ForumEventsPages/CommitteePage';
 import { ButtonCTA } from 'components/CleanAir';
 
@@ -38,6 +39,7 @@ const CleanAirForumEvent = () => {
   const [accommodation, setAccommodation] = useState(null);
   const [visaDetails, setVisaDetails] = useState(null);
   const [glossaryDetails, setGlossaryDetails] = useState(null);
+  const [resources, setResources] = useState(null);
   const [support, setSupport] = useState(null);
   const [registration, setRegistration] = useState(null);
   const [schedule, setSchedule] = useState(null);
@@ -52,7 +54,8 @@ const CleanAirForumEvent = () => {
     { name: t('cleanAirSite.Forum.subNav.speakers'), url: 'speakers' },
     { name: t('cleanAirSite.Forum.subNav.partners'), url: 'partners' },
     { name: t('cleanAirSite.Forum.subNav.Travel'), url: 'travel' },
-    { name: t('cleanAirSite.Forum.subNav.Glossary'), url: 'glossary' }
+    { name: t('cleanAirSite.Forum.subNav.Glossary'), url: 'glossary' },
+    { name: t('cleanAirSite.Forum.subNav.Resources'), url: 'resources' }
   ];
 
   const refMapping = {
@@ -114,6 +117,7 @@ const CleanAirForumEvent = () => {
       try {
         const response = await getAllCleanAirForumEventsApi();
         if (response && response.length > 0) {
+          console.log('response', response);
           const event = response[0];
           // Process and set state for each data section
           setForumEvents(response);
@@ -306,6 +310,7 @@ const CleanAirForumEvent = () => {
               />
             )}
             {activeSection === 'glossary' && <Glossary glossaryDetails={glossaryDetails} />}
+            {activeSection === 'resources' && <Resources Resources />}
           </div>
         </div>
       ) : (
