@@ -3,6 +3,9 @@ const webpack = require('webpack');
 const dotenv = require('dotenv');
 const TerserPlugin = require('terser-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 dotenv.config();
 
@@ -42,7 +45,9 @@ const config = () => {
   return {
     context: path.resolve(__dirname),
 
-    entry: './frontend/index.js',
+    entry: {
+      main: './frontend/index.js'
+    },
 
     output: {
       path: DIST_DIR,
@@ -80,11 +85,11 @@ const config = () => {
 
         {
           test: /\.css$/,
-          use: [{ loader: 'style-loader' }, { loader: 'css-loader' }]
+          use: [MiniCssExtractPlugin.loader, 'css-loader']
         },
         {
           test: /\.s[ac]ss$/i,
-          use: [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'sass-loader' }]
+          use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader']
         },
         {
           test: /\.webp$/,
@@ -122,6 +127,15 @@ const config = () => {
     },
 
     plugins: [
+      new CleanWebpackPlugin(),
+      new HtmlWebpackPlugin({
+        template: './frontend/templates/index.html',
+        filename: 'index.html',
+        inject: 'body'
+      }),
+      new MiniCssExtractPlugin({
+        filename: '[name].css'
+      }),
       new webpack.DefinePlugin(envKeys),
       new CompressionPlugin({
         test: /\.(js|css|html|svg)$/,
