@@ -1,11 +1,10 @@
 import React from 'react';
+import DOMPurify from 'dompurify';
 import { FaRegFilePdf } from 'react-icons/fa';
-import { BsFiletypePpt, BsFiletypePptx } from 'react-icons/bs';
+import { BsFiletypePpt } from 'react-icons/bs';
 import { FaRegFileWord } from 'react-icons/fa';
 
 const Resources = ({ Resources }) => {
-  console.log(Resources);
-
   const getFileIcon = (fileName) => {
     const fileExtension = fileName.split('.').pop().toLowerCase();
     switch (fileExtension) {
@@ -25,6 +24,10 @@ const Resources = ({ Resources }) => {
   const getFileNameFromUrl = (url) => {
     const urlParts = url.split('?')[0].split('/');
     return urlParts[urlParts.length - 1];
+  };
+
+  const sanitizeHTML = (html) => {
+    return { __html: DOMPurify.sanitize(html) };
   };
 
   if (Resources.length === 0) {
@@ -48,7 +51,7 @@ const Resources = ({ Resources }) => {
         <React.Fragment key={file.id}>
           <ul>
             <li>
-              <div dangerouslySetInnerHTML={{ __html: file.resource_summary_html }} />
+              <div dangerouslySetInnerHTML={sanitizeHTML(file.resource_summary_html)} />
               <a
                 style={{
                   display: 'flex',
@@ -60,7 +63,7 @@ const Resources = ({ Resources }) => {
                 target="_blank"
                 rel="noreferrer"
                 download>
-                {getFileIcon(file.file)}
+                {getFileIcon(getFileNameFromUrl(file.file))}
                 <span style={{ marginLeft: '10px' }}>{getFileNameFromUrl(file.file)}</span>
               </a>
             </li>
