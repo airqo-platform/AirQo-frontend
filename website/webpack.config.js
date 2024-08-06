@@ -3,7 +3,6 @@ const webpack = require('webpack');
 const dotenv = require('dotenv');
 const TerserPlugin = require('terser-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
-const DeadCodePlugin = require('webpack-deadcode-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -107,17 +106,6 @@ module.exports = (env, argv) => {
         algorithm: 'gzip',
         threshold: 10240,
         minRatio: 0.8
-      }),
-      new DeadCodePlugin({
-        patterns: ['frontend/**/*.*'],
-        exclude: [
-          '**/static/**',
-          '**/dist/**',
-          '**/bin/**',
-          '**/node_modules/**',
-          '**/*.test.js',
-          '**/*.spec.js'
-        ]
       }),
       isProd &&
         new BundleAnalyzerPlugin({
