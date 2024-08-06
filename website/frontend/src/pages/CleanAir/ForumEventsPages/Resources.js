@@ -46,7 +46,12 @@ const Resources = ({ Resources }) => {
 
   return Resources.map((resource, index) => (
     <div className="resources" key={resource.id}>
-      <h2>{resource.resource_title}</h2>
+      <h3
+        style={{
+          paddingTop: '20px'
+        }}>
+        {resource.resource_title}
+      </h3>
       {resource.resource_files.map((file, fileIndex) => (
         <React.Fragment key={file.id}>
           <ul>
