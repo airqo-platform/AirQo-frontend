@@ -119,20 +119,28 @@ jobs:
           registry: ${{ env.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCP_SA_CREDENTIALS }}
+          
       - name: Build and Push Docker Image
         run: |
           cd netmanager/
-          docker build -t ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:${{ github.sha }} .
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:${{ github.sha }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:latest
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:latest
+          docker build -t ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ./
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:latest
 
       - name: Deploy to Cloud Run
         run: |-
           gcloud run deploy netmanager-preview \
             --region=${{ secrets.REGION }} \
-            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:${{ github.sha }} \
-            --platform=managed \
+            --max-instances=10 \
+            --timeout=60 \
+            --concurrency=10 \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} \
+            --update-secrets=/etc/env/.env=sta-env-netmanager:latest \
+            --cpu=1000m \
+            --memory=256Mi \
+            --update-secrets=/etc/env/.env=sta-env-netmanager:latest \
+            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment;" \
             --allow-unauthenticated
 
       - name: Get preview service url
