@@ -500,14 +500,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Cache Docker layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
       - name: Login to GCR
         uses: docker/login-action@v2
         with:
@@ -521,7 +513,7 @@ jobs:
           credentials_json: "${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}"
 
       - name: Setup Cloud SDK(gcloud)
-        uses: google-github-actions/setup-gcloud@v1
+        uses: "google-github-actions/setup-gcloud@v1"
 
       - name: Create google_application_credentials.json file
         id: create-google-application-credentials-file
@@ -570,9 +562,7 @@ jobs:
           --build-arg REACT_APP_AUTHORIZATION_TOKEN=${{ secrets.WEBSITE_STAGE_REACT_APP_AUTHORIZATION_TOKEN }} \
           --build-arg REACT_APP_GEO_LOCATION_URL=${{ secrets.WEBSITE_REACT_APP_GEO_LOCATION_URL }} \
           --build-arg REACT_APP_OPENCAGE_API_KEY=${{ secrets.REACT_APP_OPENCAGE_API_KEY }} \
-          --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }} \
-          --cache-from type=local,src=/tmp/.buildx-cache \
-          --cache-to type=local,dest=/tmp/.buildx-cache
+          --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
           docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
 
       - name: Deploy to App Engine
@@ -590,6 +580,7 @@ jobs:
             for version in $versions; do
               echo "Deleting version: $version for service: $service"
               gcloud app versions delete "$version" --service=$service --quiet
+            done
 
   website-pr-comment:
     name: website-preview-link-comment
@@ -604,7 +595,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'New Website changes available for preview here'
+              body: 'New Website changes available for preview [here](https://website-pr-previews-dot-airqo-frontend.appspot.com)'
             })
 
   ### deploy reports preview ###
