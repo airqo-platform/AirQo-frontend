@@ -1,9 +1,23 @@
-const config = require('./webpack.config');
+const path = require('path');
+const webpackConfig = require('./webpack.config');
 
-// Override the public path
-config.output.publicPath = 'http://localhost:8081/static/frontend/';
+module.exports = (env, argv) => {
+  const config = webpackConfig(env, argv);
 
-// Set the static public path to match what Django expects
-config.devServer.static.publicPath = '/static/';
+  // Override the public path
+  config.output.publicPath = 'http://localhost:8081/static/frontend/';
 
-module.exports = config;
+  // Set the static public path to match what Django expects
+  if (config.devServer && config.devServer.static) {
+    config.devServer.static.publicPath = '/static/';
+  } else {
+    config.devServer = {
+      ...config.devServer,
+      static: {
+        publicPath: '/static/'
+      }
+    };
+  }
+
+  return config;
+};

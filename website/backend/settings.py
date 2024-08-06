@@ -210,21 +210,26 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 # This is where the files will be collected from when running `collectstatic`.
 # From Django's perspective, this is the input location.
+# Static files (CSS, JavaScript, Images)
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "frontend/assets/")]
-
 STATIC_URL = STATIC_HOST + "static/"
 
+# Media files (Uploaded files)
 MEDIA_HOST = env("REACT_WEB_MEDIA_HOST", default="http://localhost:8000/")
-
 MEDIA_ROOT = os.path.join(BASE_DIR, 'backend/assets')
-
 MEDIA_URL = MEDIA_HOST + 'backend/assets/'
 
 if not DEBUG:
+    # Production settings
     STATIC_URL = STATIC_HOST
     DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
     GS_BUCKET_NAME = env("GS_BUCKET_NAME")
     STATICFILES_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+else:
+    # Development settings
+    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+    STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+
 
 # Configure cloudinary
 cloudinary.config(
