@@ -1,6 +1,6 @@
 import { stripTrailingSlash } from '../utils';
 
-const BASE_ANALYTICS_URL_V2 = stripTrailingSlash(process.env.REACT_APP_BASE_URL_V2);
+const BASE_ANALYTICS_URL_V2 = "https://staging-platform.airqo.net/api/v2";
 
 export const GENERATE_CUSTOMISABLE_CHARTS_URI = `${BASE_ANALYTICS_URL_V2}/analytics/dashboard/chart/data`;
 

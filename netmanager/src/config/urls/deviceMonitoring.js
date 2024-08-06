@@ -1,6 +1,6 @@
 import { stripTrailingSlash } from '../utils';
 
-const BASE_DEVICE_MONITORING_URL_V2 = stripTrailingSlash(process.env.REACT_APP_BASE_URL_V2);
+const BASE_DEVICE_MONITORING_URL_V2 = "https://staging-platform.airqo.net/api/v2";
 
 export const GET_DEVICE_STATUS_SUMMARY = `${BASE_DEVICE_MONITORING_URL_V2}/monitor/device/status`;
 
