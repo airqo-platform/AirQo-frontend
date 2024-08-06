@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CleanAirResource, ForumEvent, Engagement, Partner, Program, Session, Support, Person, Objective, ForumResource
+from .models import CleanAirResource, ForumEvent, Engagement, Partner, Program, Session, Support, Person, Objective, ForumResource, ResourceFile
 
 
 class CleanAirResourceSerializer(serializers.ModelSerializer):
@@ -80,7 +80,7 @@ class PersonSerializer(serializers.ModelSerializer):
         exclude = ['bio', 'order']
 
 
-class ForumResourceSerializer(serializers.ModelSerializer):
+class ResourceFileSerializer(serializers.ModelSerializer):
     resource_summary_html = serializers.SerializerMethodField()
 
     def get_resource_summary_html(self, obj):
@@ -88,12 +88,20 @@ class ForumResourceSerializer(serializers.ModelSerializer):
         return '' if html.strip() == '<p><br></p>' else html
 
     class Meta:
+        model = ResourceFile
+        fields = ['file', 'resource_summary_html']
+
+
+class ForumResourceSerializer(serializers.ModelSerializer):
+    resource_files = ResourceFileSerializer(many=True, read_only=True)
+
+    class Meta:
         model = ForumResource
-        exclude = ['resource_summary']
+        fields = '__all__'
 
 
 class ForumEventSerializer(serializers.ModelSerializer):
-    resources = ForumResourceSerializer(many=True, read_only=True)
+    forum_resources = ForumResourceSerializer(many=True, read_only=True)
     engagements = EngagementSerializer(read_only=True)
     partners = PartnerSerializer(many=True, read_only=True)
     supports = SupportSerializer(many=True, read_only=True)

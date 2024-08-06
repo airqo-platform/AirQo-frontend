@@ -117,7 +117,6 @@ const CleanAirForumEvent = () => {
       try {
         const response = await getAllCleanAirForumEventsApi();
         if (response && response.length > 0) {
-          console.log('response', response);
           const event = response[0];
           // Process and set state for each data section
           setForumEvents(response);
@@ -149,6 +148,7 @@ const CleanAirForumEvent = () => {
           setAccommodation(event.travel_logistics_accommodation_details_html);
           setSupport(event.supports);
           setSchedule(event.programs);
+          setResources(event.forum_resources);
         }
       } catch (error) {
         console.error('Error fetching forum events:', error);
@@ -310,7 +310,7 @@ const CleanAirForumEvent = () => {
               />
             )}
             {activeSection === 'glossary' && <Glossary glossaryDetails={glossaryDetails} />}
-            {activeSection === 'resources' && <Resources Resources />}
+            {activeSection === 'resources' && <Resources Resources={resources} />}
           </div>
         </div>
       ) : (
