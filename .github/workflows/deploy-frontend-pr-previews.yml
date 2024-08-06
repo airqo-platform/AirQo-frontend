@@ -124,7 +124,7 @@ jobs:
           cd netmanager/
           docker build -t ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:${{ github.sha }} .
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:${{ github.sha }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/netmanager:latest
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:latest
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/netmanager:latest
 
       - name: Deploy to Cloud Run
