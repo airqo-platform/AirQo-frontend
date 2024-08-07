@@ -21,7 +21,7 @@ class CleanAirResourceViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ForumEventViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ForumEvent.objects.prefetch_related(
-        'persons', 'programs', 'partners').all()
+        'persons', 'programs', 'partners', 'forum_resources').all()
     serializer_class = ForumEventSerializer
     permission_classes = [AllowAny]
 

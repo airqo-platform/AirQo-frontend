@@ -11,6 +11,7 @@ __pycache__/
 build/
 develop-eggs/
 dist/
+bin/
 downloads/
 eggs/
 .eggs/
@@ -149,3 +150,4 @@ google_application_credentials.json
 .prod-env.yaml
 
 static/
+staticfiles/

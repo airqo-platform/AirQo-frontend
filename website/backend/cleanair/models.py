@@ -261,6 +261,35 @@ class Person(BaseModel):
         return self.name
 
 
+class ResourceFile(models.Model):
+    resource_summary = QuillField(blank=True, null=True)
+    file = models.FileField(upload_to='cleanair/resources/')
+    resource = models.ForeignKey(
+        'ForumResource', related_name='resource_files', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.file.name
+
+
+class ForumResource(BaseModel):
+    resource_title = models.CharField(max_length=120)
+    resource_authors = models.CharField(max_length=200, default="AirQo")
+    order = models.IntegerField(default=1)
+    forum_event = models.ForeignKey(
+        ForumEvent,
+        null=True,
+        blank=True,
+        related_name="forum_resources",
+        on_delete=models.SET_NULL,
+    )
+
+    class Meta:
+        ordering = ['order', '-id']
+
+    def __str__(self):
+        return self.resource_title
+
+
 # signals.py
 @receiver(pre_save, dispatch_uid="append_short_name", sender=ForumEvent)
 def append_short_name(sender, instance, *args, **kwargs):

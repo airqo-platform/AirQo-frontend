@@ -20,7 +20,6 @@ const PublicationsPage = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const [selectedTab, setSelectedTab] = useState('Research');
-  const onClickTabItem = (tab) => setSelectedTab(tab);
   const publicationsData = usePublicationsData();
   const loading = usePublicationsLoadingData();
   const language = useSelector((state) => state.eventsNavTab.languageTab);
@@ -30,6 +29,20 @@ const PublicationsPage = () => {
       dispatch(loadPublicationsData());
     }
   }, [dispatch, publicationsData, language]);
+
+  useEffect(() => {
+    const url = new URL(window.location);
+    const tab = url.searchParams.get('tab');
+    if (tab) {
+      setSelectedTab(tab);
+    }
+  }, []);
+
+  useEffect(() => {
+    const url = new URL(window.location);
+    url.searchParams.set('tab', selectedTab);
+    window.history.pushState({}, '', url);
+  }, [selectedTab]);
 
   const filterData = (categories) => {
     return publicationsData.filter((publication) => categories.includes(publication.category));
@@ -89,7 +102,7 @@ const PublicationsPage = () => {
                     className={selectedTab === 'Research' ? 'selected' : 'unselected'}
                     onClick={() => {
                       paginate(1);
-                      onClickTabItem('Research');
+                      setSelectedTab('Research');
                     }}>
                     {t('about.publications.subNav.research')}
                   </button>
@@ -99,7 +112,7 @@ const PublicationsPage = () => {
                     className={selectedTab === 'Reports' ? 'selected' : 'unselected'}
                     onClick={() => {
                       paginate(1);
-                      onClickTabItem('Reports');
+                      setSelectedTab('Reports');
                     }}>
                     {t('about.publications.subNav.reports')}
                   </button>
@@ -109,7 +122,7 @@ const PublicationsPage = () => {
                     className={selectedTab === 'Guides' ? 'selected' : 'unselected'}
                     onClick={() => {
                       paginate(1);
-                      onClickTabItem('Guides');
+                      setSelectedTab('Guides');
                     }}>
                     {t('about.publications.subNav.guides')}
                   </button>
