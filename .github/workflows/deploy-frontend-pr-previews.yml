@@ -89,7 +89,6 @@ jobs:
 
           done < files.txt
 
-          
   ### deploy netmanager preview ###
   netmanager:
     name: build-push-deploy-netmanager-preview
@@ -101,7 +100,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        
+
       - name: Google login
         uses: google-github-actions/auth@v1
         with:
@@ -119,7 +118,7 @@ jobs:
           registry: ${{ env.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCP_SA_CREDENTIALS }}
-          
+
       - name: Build and Push Docker Image 
         run: |
           cd netmanager/
@@ -136,10 +135,10 @@ jobs:
             --timeout=60 \
             --concurrency=10 \
             --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} \
-            --update-secrets=/etc/env/.env=sta-env-netmanager:latest \
             --cpu=1000m \
             --memory=256Mi \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment;" \
+            --update-secrets=/etc/env/.env=sta-env-netmanager:latest \
+            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; serve -s build -l 80" \
             --allow-unauthenticated
 
       - name: Get preview service url
@@ -150,8 +149,6 @@ jobs:
             --platform managed \
             --region ${{ secrets.REGION }})
           echo "url=${service_url}" >>$GITHUB_OUTPUT
-    
-    
    
   netmanager-pr-comment:
     name: netmanager-preview-link-comment
