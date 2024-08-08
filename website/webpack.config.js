@@ -1,120 +1,177 @@
 const path = require('path');
 const webpack = require('webpack');
+// const autoprefixer = require('autoprefixer');
+// const webpack = require('webpack');
+// const TerserPlugin = require('terser-webpack-plugin');
 const dotenv = require('dotenv');
-const TerserPlugin = require('terser-webpack-plugin');
-const CompressionPlugin = require('compression-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
-const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 dotenv.config();
 
 const ROOT = path.resolve(__dirname, 'frontend');
 
-const strToBool = (str) => ['true', '0', 'yes', 'y'].includes((str || '').toLowerCase());
-const removeTrailingSlash = (str) => (str ? str.replace(/\/+$/, '') : '');
+function stripLoaderConfig() {
+  return {
+    loader: 'strip-loader',
+    options: {
+      strip: [
+        'assert',
+        'typeCheck',
+        'log.log',
+        'log.debug',
+        'log.deprecate',
+        'log.info',
+        'log.warn'
+      ]
+    }
+  };
+}
 
-module.exports = (env, argv) => {
-  const isProd = argv.mode === 'production';
+function compact(items) {
+  return items.filter((item) => item);
+}
+
+function postCSSLoader() {
+  return {
+    loader: 'postcss-loader',
+    options: {
+      postcssOptions: {
+        plugins: [['postcss-preset-env', {}]]
+      }
+    }
+  };
+}
+
+function strToBool(str) {
+  const truthy = ['true', '0', 'yes', 'y'];
+  return truthy.includes((str || '').toLowerCase());
+}
+
+function removeTrailingSlash(str) {
+  if (str === undefined) return '';
+  return str.replace(/\/+$/, '');
+}
+
+const config = () => {
+  const NODE_ENV = process.env.NODE_ENV || 'local';
+
   const STATIC_URL = removeTrailingSlash(process.env.REACT_WEB_STATIC_HOST);
+
   const PUBLIC_PATH = strToBool(process.env.DEBUG)
     ? `${STATIC_URL}/static/frontend/`
     : `${STATIC_URL}/frontend/`;
-  const DIST_DIR = path.resolve(__dirname, 'frontend/static/frontend');
+
+  const STATIC_DIR = 'frontend/static/frontend';
+
+  const DIST_DIR = path.resolve(__dirname, STATIC_DIR);
 
   const envKeys = Object.keys(process.env).reduce((prev, next) => {
     if (next.startsWith('REACT_')) {
       prev[`process.env.${next}`] = JSON.stringify(process.env[next]);
     }
+
     return prev;
   }, {});
 
+  function prodOnly(x) {
+    return NODE_ENV === 'production' ? x : undefined;
+  }
+
   return {
     context: path.resolve(__dirname),
+
     entry: './frontend/index.js',
+
     output: {
       path: DIST_DIR,
-      filename: isProd ? '[name].[contenthash].js' : '[name].bundle.js',
-      publicPath: PUBLIC_PATH,
-      clean: true
+      filename: '[name].bundle.js',
+      publicPath: PUBLIC_PATH
     },
+
+    // webpack 5 comes with devServer which loads in development mode
     devServer: {
       port: 8081,
       headers: { 'Access-Control-Allow-Origin': '*' },
       compress: true,
       hot: true,
       historyApiFallback: true,
-      static: { directory: './static' }
-    },
-    resolve: {
-      modules: [ROOT, 'frontend/src', 'node_modules'],
-      extensions: ['.js', '.jsx', '.ts', '.tsx', '...'],
-      alias: {
-        '@': path.resolve(__dirname, 'frontend/src')
+      static: {
+        directory: './static'
       }
     },
+
+    resolve: {
+      modules: [ROOT, 'frontend/src', 'node_modules'],
+      extensions: ['.js', '.jsx', '.ts', '.tsx', '...']
+    },
+
     module: {
       rules: [
         {
           test: /\.(js|jsx|ts|tsx)$/,
           exclude: /node_modules/,
-          use: ['babel-loader']
+          use: compact([
+            {
+              loader: 'babel-loader'
+            },
+            prodOnly(stripLoaderConfig())
+          ])
         },
+
+        // Inlined CSS definitions for JS components
         {
           test: /\.css$/,
-          use: [isProd ? MiniCssExtractPlugin.loader : 'style-loader', 'css-loader']
+          use: compact([{ loader: 'style-loader' }, { loader: 'css-loader' }, postCSSLoader()])
         },
         {
           test: /\.s[ac]ss$/i,
-          use: [isProd ? MiniCssExtractPlugin.loader : 'style-loader', 'css-loader', 'sass-loader']
+          use: compact([
+            { loader: 'style-loader' },
+            { loader: 'css-loader' },
+            postCSSLoader(),
+            { loader: 'sass-loader' }
+          ])
         },
+        // Webp
         {
-          test: /\.(webp|png|jpe?g|ico|pdf|gif|mov|mp4)$/i,
-          type: 'asset/resource',
-          generator: {
-            filename: '[path][name][ext]'
-          }
+          test: /\.webp$/,
+          type: 'asset/resource'
         },
+
+        // SVGs
         {
           test: /\.svg$/,
           use: ['@svgr/webpack']
+        },
+
+        // Images
+        {
+          test: /\.(png|jpe?g|ico)$/i,
+          type: 'asset/resource'
+        },
+
+        // pdfs, gifs
+        {
+          test: /\.(pdf|gif)$/,
+          use: 'file-loader?name=[path][name].[ext]'
+        },
+
+        // video
+        {
+          test: /\.(mov|mp4)$/,
+          use: [
+            {
+              loader: 'file-loader',
+              options: {
+                name: '[path][name].[ext]'
+              }
+            }
+          ]
         }
       ]
     },
-    optimization: {
-      minimize: isProd,
-      minimizer: [
-        new TerserPlugin({
-          terserOptions: {
-            format: {
-              comments: false
-            }
-          },
-          extractComments: false
-        }),
-        new CssMinimizerPlugin()
-      ]
-    },
-    plugins: [
-      new webpack.DefinePlugin(envKeys),
-      new MiniCssExtractPlugin({
-        filename: isProd ? '[name].[contenthash].css' : '[name].css'
-      }),
-      new CompressionPlugin({
-        test: /\.(js|css|html|svg)$/,
-        filename: '[path][base].gz',
-        algorithm: 'gzip',
-        threshold: 10240,
-        minRatio: 0.8
-      }),
-      isProd &&
-        new BundleAnalyzerPlugin({
-          analyzerMode: 'static',
-          openAnalyzer: false
-        })
-    ].filter(Boolean),
-    cache: {
-      type: 'filesystem'
-    }
+
+    plugins: [new webpack.DefinePlugin(envKeys)]
   };
 };
+
+module.exports = config();

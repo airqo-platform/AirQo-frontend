@@ -20,10 +20,10 @@
   </head>
   <body>
     <div id="app"></div>
-    <script defer src="{% static 'frontend/main.bundle.js' %}"></script>
+    <script src="{% static 'frontend/main.bundle.js' %}"></script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async defer src="https://www.googletagmanager.com/gtag/js?id=G-79ZVCLEDSG"></script>
-    <script defer>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-79ZVCLEDSG"></script>
+    <script>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
         dataLayer.push(arguments);
@@ -32,7 +32,7 @@
       gtag('config', 'G-79ZVCLEDSG');
     </script>
     <!-- Hotjar Tracking Code for https://airqo.net/ -->
-    <script defer>
+    <script>
       (function (h, o, t, j, a, r) {
         h.hj =
           h.hj ||

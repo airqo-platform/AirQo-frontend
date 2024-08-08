@@ -1,22 +1,16 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const webpackConfig = require('./webpack.config.js');
 
-module.exports = (env, argv) => {
-  const config = webpackConfig(env, argv);
+const config = require('./webpack.config.js');
 
-  // Update entrypoint
-  config.entry = './frontend/index.js';
+// Update entrypoint
+config.entry = './frontend/index.js';
 
-  // Override the public path
-  config.output.publicPath = '/';
+// Override the public path
+config.output.publicPath = '/';
 
-  // Add HTMLWebpack plugin
-  config.plugins.push(
-    new HtmlWebpackPlugin({
-      template: './frontend/standaloneIndex.html',
-      inject: 'body'
-    })
-  );
+// Add HTMLWebpack plugin
+config.plugins = config.plugins.concat([
+  new HtmlWebpackPlugin({ template: './frontend/standaloneIndex.html' })
+]);
 
-  return config;
-};
+module.exports = config;
