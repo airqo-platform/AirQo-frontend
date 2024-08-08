@@ -1,8 +1,9 @@
 'use client';
-import MainLayout from '@/layout/MainLayout';
 import { useTheme } from 'next-themes';
 import React, { useState, useEffect } from 'react';
+
 import { Checkbox } from '@/components/ui/checkbox';
+import MainLayout from '@/layout/MainLayout';
 
 const Page = () => {
   const { theme, setTheme } = useTheme();
@@ -53,6 +54,13 @@ const Page = () => {
 
           <div
             onClick={handleToggleTheme}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                handleToggleTheme();
+              }
+            }}
+            role="button"
+            tabIndex={0}
             className="flex items-center space-x-2 mb-4"
           >
             <Checkbox id="darkMode" checked={isDarkMode} />

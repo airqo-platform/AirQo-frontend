@@ -25,6 +25,13 @@ const nextConfig = {
       },
     ];
   },
+  reactStrictMode: true,
+  eslint: {
+    dirs: ['app', 'components', 'lib', 'utils', 'hooks', 'services', 'layout'],
+  },
+  experimental: {
+    forceSwcTransforms: true,
+  },
 };
 
 export default nextConfig;

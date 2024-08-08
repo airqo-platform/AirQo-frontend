@@ -1,8 +1,9 @@
 'use client';
 import React, { useState } from 'react';
-import FormComponent from '@/components/authForm';
-import { Input } from '@/components/ui/input';
 import { FaRegEye, FaRegEyeSlash } from 'react-icons/fa';
+
+import FormComponent from '@/components/forms/auth';
+import { Input } from '@/components/ui/input';
 
 const Page = () => {
   const [showPassword, setShowPassword] = useState(false);

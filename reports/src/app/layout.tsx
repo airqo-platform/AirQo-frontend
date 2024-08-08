@@ -2,9 +2,13 @@
 import '../assets/styles/globals.scss';
 
 // Import required modules
-import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+
 import AppProvider from './AppProvider';
+
+import type { Metadata } from 'next';
+
+import NetworkStatus from '@/components/NetworkStatus';
 import { Toaster } from '@/components/ui/sonner';
 
 // Set up the Inter font
@@ -17,25 +21,20 @@ export const metadata: Metadata = {
 };
 
 // Define the RootLayout component
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.className} dark:bg-[#1a202c]`}
-        suppressHydrationWarning={true}
-      >
-        <AppProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </AppProvider>
+      <body className={`${inter.className} dark:bg-[#1a202c]`} suppressHydrationWarning={true}>
+        <NetworkStatus>
+          <AppProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </AppProvider>
+        </NetworkStatus>
         <Toaster />
       </body>
     </html>
