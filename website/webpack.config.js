@@ -34,7 +34,7 @@ module.exports = (env, argv) => {
     entry: './frontend/index.js',
     output: {
       path: DIST_DIR,
-      filename: '[name].bundle.js',
+      filename: isProd ? '[name].[contenthash].js' : '[name].bundle.js',
       publicPath: PUBLIC_PATH,
       clean: true
     },
@@ -112,9 +112,6 @@ module.exports = (env, argv) => {
           analyzerMode: 'static',
           openAnalyzer: false
         })
-    ].filter(Boolean),
-    cache: {
-      type: 'filesystem'
-    }
+    ].filter(Boolean)
   };
 };
