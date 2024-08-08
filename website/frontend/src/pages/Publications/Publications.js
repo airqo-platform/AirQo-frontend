@@ -19,7 +19,7 @@ const PublicationsPage = () => {
   useInitScrollTop();
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const [selectedTab, setSelectedTab] = useState('Research');
+  const [selectedTab, setSelectedTab] = useState('');
   const publicationsData = usePublicationsData();
   const loading = usePublicationsLoadingData();
   const language = useSelector((state) => state.eventsNavTab.languageTab);
@@ -39,9 +39,11 @@ const PublicationsPage = () => {
   }, []);
 
   useEffect(() => {
-    const url = new URL(window.location);
-    url.searchParams.set('tab', selectedTab);
-    window.history.pushState({}, '', url);
+    if (selectedTab) {
+      const url = new URL(window.location);
+      url.searchParams.set('tab', selectedTab);
+      window.history.replaceState({}, '', url);
+    }
   }, [selectedTab]);
 
   const filterData = (categories) => {
@@ -132,7 +134,7 @@ const PublicationsPage = () => {
           </div>
           <div className="page-body">
             <div className="content">
-              {selectedTab === 'Research' ? (
+              {selectedTab === 'Research' || !selectedTab ? (
                 currentResearch.map((publication) => (
                   <div className="press-cards-lg publication">
                     <div className="card-lg">
@@ -182,7 +184,7 @@ const PublicationsPage = () => {
           <Pagination
             itemsPerPage={itemsPerPage}
             totalItems={
-              (selectedTab === 'Research' && totalResearch) ||
+              (selectedTab === ('Research' || !selectedTab) && totalResearch) ||
               (selectedTab === 'Reports' && totalReports) ||
               (selectedTab === 'Guides' && totalGuides)
             }
