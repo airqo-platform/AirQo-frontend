@@ -98,7 +98,7 @@ module.exports = (env, argv) => {
     plugins: [
       new webpack.DefinePlugin(envKeys),
       new MiniCssExtractPlugin({
-        filename: '[name].css'
+        filename: isProd ? '[name].[contenthash].css' : '[name].css'
       }),
       new CompressionPlugin({
         test: /\.(js|css|html|svg)$/,
