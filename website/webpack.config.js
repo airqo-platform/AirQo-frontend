@@ -2,10 +2,8 @@ const path = require('path');
 const webpack = require('webpack');
 const dotenv = require('dotenv');
 const TerserPlugin = require('terser-webpack-plugin');
-const CompressionPlugin = require('compression-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
-const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 dotenv.config();
 
@@ -99,19 +97,7 @@ module.exports = (env, argv) => {
       new webpack.DefinePlugin(envKeys),
       new MiniCssExtractPlugin({
         filename: isProd ? '[name].[contenthash].css' : '[name].css'
-      }),
-      new CompressionPlugin({
-        test: /\.(js|css|html|svg)$/,
-        filename: '[path][base].gz',
-        algorithm: 'gzip',
-        threshold: 10240,
-        minRatio: 0.8
-      }),
-      isProd &&
-        new BundleAnalyzerPlugin({
-          analyzerMode: 'static',
-          openAnalyzer: false
-        })
-    ].filter(Boolean)
+      })
+    ]
   };
 };
