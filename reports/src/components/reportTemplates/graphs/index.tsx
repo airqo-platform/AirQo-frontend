@@ -1,8 +1,8 @@
 /* eslint-disable jsx-a11y/alt-text */
 'use client';
-import { FC, useEffect, useState, useMemo } from 'react';
 import { Image } from '@react-pdf/renderer';
 import axios from 'axios';
+import { FC, useEffect, useState, useMemo } from 'react';
 
 interface BarChartProps {
   chartData: any;
@@ -97,7 +97,7 @@ export const BarChart: FC<BarChartProps> = ({
         maintainAspectRatio: false,
       },
     }),
-    [chartData, graphTitle, xAxisTitle, yAxisTitle]
+    [chartData, graphTitle, xAxisTitle, yAxisTitle],
   );
 
   useEffect(() => {
@@ -177,7 +177,7 @@ export const LineChart: FC<BarChartProps> = ({
         maintainAspectRatio: false,
       },
     }),
-    [chartData, graphTitle, xAxisTitle, yAxisTitle]
+    [chartData, graphTitle, xAxisTitle, yAxisTitle],
   );
 
   useEffect(() => {
