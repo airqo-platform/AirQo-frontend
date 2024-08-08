@@ -2,7 +2,7 @@
 import React from 'react';
 import { PuffLoader } from 'react-spinners';
 
-const Loading = () => {
+const loading = () => {
   return (
     <div className="flex justify-center items-center h-full">
       <PuffLoader color="#1d4ed8" size={75} />
@@ -10,4 +10,4 @@ const Loading = () => {
   );
 };
 
-export default Loading;
+export default loading;

@@ -8,9 +8,6 @@ const axiosInstance = axios.create({
   params: {
     token: API_TOKEN,
   },
-  maxContentLength: Infinity,
-  maxBodyLength: Infinity,
-  decompress: false,
 });
 
 export const getReportData = async (data: any) => {

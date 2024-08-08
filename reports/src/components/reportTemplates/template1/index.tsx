@@ -6,6 +6,8 @@ import React, { useMemo } from 'react';
 
 import { BarChart, LineChart } from '../graphs';
 
+import TemplateLogo from '@/public/images/templateLogo.png';
+
 interface Template1Props {
   data: any;
 }
@@ -14,7 +16,7 @@ const Header: React.FC = () => {
   return (
     <View style={styles.header} fixed>
       <Image
-        src={`${process.env.NEXT_PUBLIC_BASE_URL}/reports/images/templateLogo.png`}
+        src={TemplateLogo.src}
         style={{
           width: 'auto',
           height: 60,

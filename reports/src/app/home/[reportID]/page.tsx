@@ -1,4 +1,5 @@
 'use client';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { BlobProvider } from '@react-pdf/renderer';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
@@ -14,7 +15,13 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import MainLayout from '@/layout/MainLayout';
 import { useAppSelector } from '@/lib/utils';
 
@@ -111,6 +118,14 @@ export default function ReportPage({ params }: { params: IReport }) {
                       Preview Report
                     </DialogTrigger>
                     <DialogContent className="text-red-500 bg-[#d4d4d7] p-4 font-bold max-w-[800px]">
+                      <DialogTitle>
+                        <VisuallyHidden>Report Preview</VisuallyHidden>
+                      </DialogTitle>
+                      <DialogDescription>
+                        <VisuallyHidden>
+                          This dialog contains a preview of the report.
+                        </VisuallyHidden>
+                      </DialogDescription>
                       <iframe
                         src={url as string}
                         className="w-full h-[800px] mt-6"
