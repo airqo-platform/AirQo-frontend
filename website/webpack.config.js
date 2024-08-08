@@ -34,7 +34,7 @@ module.exports = (env, argv) => {
     entry: './frontend/index.js',
     output: {
       path: DIST_DIR,
-      filename: isProd ? '[name].[contenthash].js' : '[name].bundle.js',
+      filename: '[name].bundle.js',
       publicPath: PUBLIC_PATH,
       clean: true
     },
@@ -98,7 +98,7 @@ module.exports = (env, argv) => {
     plugins: [
       new webpack.DefinePlugin(envKeys),
       new MiniCssExtractPlugin({
-        filename: isProd ? '[name].[contenthash].css' : '[name].css'
+        filename: '[name].css'
       }),
       new CompressionPlugin({
         test: /\.(js|css|html|svg)$/,
