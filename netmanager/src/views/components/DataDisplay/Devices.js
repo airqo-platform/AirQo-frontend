@@ -37,6 +37,21 @@ import { setLoading as loadStatus, setRefresh } from 'redux/HorizontalLoader/ind
 import UsersListBreadCrumb from '../../pages/UserList/components/Breadcrumb';
 
 const useStyles = makeStyles((theme) => ({
+  dialogContent: {
+    height: 'auto',
+    maxHeight: 'auto',
+    overflow: 'visible',
+    '&::-webkit-scrollbar': {
+      width: '12px'
+    },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: '#888',
+      borderRadius: '10px'
+    },
+    '&::-webkit-scrollbar-thumb:hover': {
+      backgroundColor: '#555'
+    }
+  },
   root: {
     padding: theme.spacing(3)
   },
@@ -368,15 +383,12 @@ const CreateDevice = ({ open, setOpen }) => {
       open={open}
       onClose={handleRegisterClose}
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description"
-      style={{
-        overflow: 'auto'
-      }}>
+      aria-describedby="form-dialog-description">
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Add a device
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent className={classes.dialogContent}>
         <form className={classes.modelWidth}>
           <TextField
             autoFocus
@@ -416,7 +428,8 @@ const CreateDevice = ({ open, setOpen }) => {
             variant="outlined"
             error={!!errors.network}
             helperText={errors.network}
-            disabled></TextField>
+            disabled
+          />
         </form>
       </DialogContent>
 
@@ -537,15 +550,12 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
       open={open}
       onClose={handleRegisterClose}
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description"
-      style={{
-        overflow: 'auto'
-      }}>
+      aria-describedby="form-dialog-description">
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Soft add a device
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent className={classes.dialogContent}>
         <form className={classes.modelWidth}>
           <TextField
             autoFocus
