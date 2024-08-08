@@ -7,9 +7,7 @@ export const options = {
       id: 'credentials',
       name: 'Credentials',
       credentials: {},
-      async authorize(
-        credentials: { email?: string; password?: string } | undefined
-      ) {
+      async authorize(credentials: { email?: string; password?: string } | undefined) {
         if (!credentials) {
           throw new Error('No credentials provided');
         }

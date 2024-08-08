@@ -1,8 +1,12 @@
 'use client';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { BlobProvider } from '@react-pdf/renderer';
+import Link from 'next/link';
+import { useTheme } from 'next-themes';
 import React, { useMemo } from 'react';
-import MainLayout from '@/layout/MainLayout';
-import { useAppSelector } from '@/lib/utils';
+import { ClipLoader } from 'react-spinners';
 
+import Template1 from '@/components/reportTemplates/template1';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -11,12 +15,15 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
-import { BlobProvider } from '@react-pdf/renderer';
-import Template1 from '@/components/reportTemplates/template1';
-import { ClipLoader } from 'react-spinners';
-import { useTheme } from 'next-themes';
-import Link from 'next/link';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import MainLayout from '@/layout/MainLayout';
+import { useAppSelector } from '@/lib/utils';
 
 interface IReport {
   reportID: string;
@@ -37,13 +44,10 @@ export default function ReportPage({ params }: { params: IReport }) {
 
   const formattedStartDate = useMemo(
     () => formatDate(reportData.startDate),
-    [reportData.startDate]
+    [reportData.startDate],
   );
 
-  const formattedEndDate = useMemo(
-    () => formatDate(reportData.endDate),
-    [reportData.endDate]
-  );
+  const formattedEndDate = useMemo(() => formatDate(reportData.endDate), [reportData.endDate]);
 
   return (
     <MainLayout>
@@ -63,21 +67,15 @@ export default function ReportPage({ params }: { params: IReport }) {
         </Breadcrumb>
         <div className="text-gray-800 p-3 border dark:text-white border-gray-400 rounded-md">
           <div className="flex">
-            <span className="font-medium mr-2 w-[200px] text-xl">
-              Report ID:
-            </span>
+            <span className="font-medium mr-2 w-[200px] text-xl">Report ID:</span>
             <span className="text-green-600">{params.reportID}</span>
           </div>
           <div className="flex">
-            <span className="font-medium mr-2 w-[200px] text-xl">
-              Report title:
-            </span>
+            <span className="font-medium mr-2 w-[200px] text-xl">Report title:</span>
             <span>{reportData.reportTitle}</span>
           </div>
           <div className="flex">
-            <span className="font-medium mr-2 w-[200px] text-xl">
-              Report template:
-            </span>
+            <span className="font-medium mr-2 w-[200px] text-xl">Report template:</span>
             <span>{reportData.reportTemplate}</span>
           </div>
           <div className="flex">
@@ -95,18 +93,14 @@ export default function ReportPage({ params }: { params: IReport }) {
               if (error) {
                 console.error(error);
                 return (
-                  <p className="text-red-700">
-                    An error occurred while generating the report
-                  </p>
+                  <p className="text-red-700">An error occurred while generating the report</p>
                 );
               }
 
               return loading ? (
                 <div className="flex items-center space-x-4">
                   <ClipLoader color={loaderColor} size={14} />
-                  <p className="text-blue-600 dark:text-blue-400">
-                    Processing your report...
-                  </p>
+                  <p className="text-blue-600 dark:text-blue-400">Processing your report...</p>
                 </div>
               ) : (
                 <div className="space-x-3">
@@ -124,6 +118,14 @@ export default function ReportPage({ params }: { params: IReport }) {
                       Preview Report
                     </DialogTrigger>
                     <DialogContent className="text-red-500 bg-[#d4d4d7] p-4 font-bold max-w-[800px]">
+                      <DialogTitle>
+                        <VisuallyHidden>Report Preview</VisuallyHidden>
+                      </DialogTitle>
+                      <DialogDescription>
+                        <VisuallyHidden>
+                          This dialog contains a preview of the report.
+                        </VisuallyHidden>
+                      </DialogDescription>
                       <iframe
                         src={url as string}
                         className="w-full h-[800px] mt-6"

@@ -25,7 +25,7 @@ export default function SideBar() {
   const isActive = (routes: string | string[]) => {
     if (Array.isArray(routes)) {
       return routes.some((route) =>
-        route === '/' ? pathname === route : pathname.startsWith(route)
+        route === '/' ? pathname === route : pathname.startsWith(route),
       );
     }
     return routes === '/' ? pathname === routes : pathname.startsWith(routes);
@@ -48,11 +48,7 @@ export default function SideBar() {
         <Separator className="bg-white" />
         <div className="flex flex-col items-center space-y-3 justify-center p-4">
           {links.map(({ href, icon: Icon, label }) => (
-            <Link
-              href={Array.isArray(href) ? href[0] : href}
-              className="w-full"
-              key={label}
-            >
+            <Link href={Array.isArray(href) ? href[0] : href} className="w-full" key={label}>
               <span
                 className={`flex flex-row rounded-lg items-center justify-start space-x-3 p-2 w-full  ${
                   isActive(href) ? 'bg-gray-800 text-white' : ''

@@ -1,9 +1,12 @@
 'use client';
-import MainLayout from '@/layout/MainLayout';
 import React, { useState, useEffect } from 'react';
-import { getGridData } from '@/services/api';
+
+import ReportForm from '../../components/forms/report/ReportForm';
+
 import SkeletonLoader from './_sections/SkeletonLoader';
-import ReportForm from './_sections/ReportForm';
+
+import MainLayout from '@/layout/MainLayout';
+import { getGridData } from '@/services/api';
 
 const Page = () => {
   const [grids, setGrids] = useState([]);

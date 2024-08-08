@@ -1,39 +1,3 @@
-import React, { useState, FormEvent } from 'react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { FaDownload } from 'react-icons/fa';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { toast } from 'sonner';
-import { DatePickerWithRange } from '@/components/datePicker';
-import { getReportData } from '@/services/api';
-import { useRouter } from 'next/navigation';
-import { useDispatch } from 'react-redux';
-import {
-  setStartDate,
-  setEndDate,
-  setReportTitle,
-  setReportTemplate,
-  setReportData,
-} from '@/lib/reduxSlices/reportSlice';
-import { v4 as uuidv4 } from 'uuid';
-import { MdOutlineAppShortcut } from 'react-icons/md';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { IoInformationCircleSharp } from 'react-icons/io5';
-import { RingLoader } from 'react-spinners';
-import { useTheme } from 'next-themes';
 import {
   formatISO,
   addDays,
@@ -42,8 +6,40 @@ import {
   startOfQuarter,
   subQuarters,
 } from 'date-fns';
+import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
+import React, { useState, FormEvent } from 'react';
+import { FaDownload } from 'react-icons/fa';
+import { IoInformationCircleSharp } from 'react-icons/io5';
+import { MdOutlineAppShortcut } from 'react-icons/md';
+import { useDispatch } from 'react-redux';
+import { RingLoader } from 'react-spinners';
+import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
-const reportTypes = [{ value: 'airqo', label: 'AirQo Template' }];
+import { DatePickerWithRange } from '@/components/datePicker';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  setStartDate,
+  setEndDate,
+  setReportTitle,
+  setReportTemplate,
+  setReportData,
+} from '@/lib/reduxSlices/reportSlice';
+import { getReportData } from '@/services/api';
+
+const reportTypes = [{ value: 'airqo', label: 'AirQo Air Quality Template' }];
 
 const ReportForm = ({ grids }: any) => {
   const dispatch = useDispatch();
@@ -95,13 +91,7 @@ const ReportForm = ({ grids }: any) => {
 
     const { title, reportTemplate, location, dateRange } = formState;
 
-    if (
-      !title ||
-      !reportTemplate ||
-      !location ||
-      !dateRange.from ||
-      !dateRange.to
-    ) {
+    if (!title || !reportTemplate || !location || !dateRange.from || !dateRange.to) {
       toast.error('All fields are required', {
         style: {
           background: 'red',
@@ -129,8 +119,7 @@ const ReportForm = ({ grids }: any) => {
 
     const data = {
       grid_id: location,
-      start_time:
-        formatISO(dateRange.from, { representation: 'date' }) + 'T00:00',
+      start_time: formatISO(dateRange.from, { representation: 'date' }) + 'T00:00',
       end_time: formatISO(dateRange.to, { representation: 'date' }) + 'T00:00',
     };
 
@@ -168,9 +157,7 @@ const ReportForm = ({ grids }: any) => {
       router.push(`/home/${randomId}`);
     } catch (error: any) {
       const errorMessage =
-        error?.response?.data.message ||
-        error.message ||
-        'Server timeout, please try again later';
+        error?.response?.data.message || error.message || 'Server timeout, please try again later';
       toast.error(errorMessage, {
         style: {
           background: 'red',
@@ -184,9 +171,7 @@ const ReportForm = ({ grids }: any) => {
   };
 
   const getButtonClass = (buttonId: string) => {
-    return `${
-      selectedButton === buttonId ? 'bg-green-700' : 'bg-blue-700'
-    } hover:${
+    return `${selectedButton === buttonId ? 'bg-green-700' : 'bg-blue-700'} hover:${
       selectedButton === buttonId ? 'bg-green-800' : 'bg-blue-800'
     } text-white p-2`;
   };
@@ -196,9 +181,7 @@ const ReportForm = ({ grids }: any) => {
       {isLoading ? (
         <div className="w-full h-[400px] flex flex-col justify-center text-center items-center">
           <RingLoader color={loaderColor} />
-          <p className="text-gray-500 pt-4 dark:text-gray-400">
-            Please wait, generating report...
-          </p>
+          <p className="text-gray-500 pt-4 dark:text-gray-400">Please wait, generating report...</p>
         </div>
       ) : (
         <div className="space-y-5">
@@ -221,15 +204,10 @@ const ReportForm = ({ grids }: any) => {
               <Label htmlFor="ReportTemplate">Select report template</Label>
               <Select
                 name="reportTemplate"
-                onValueChange={(value) =>
-                  handleChange('reportTemplate', '')(value)
-                }
+                onValueChange={(value) => handleChange('reportTemplate', '')(value)}
                 value={formState.reportTemplate}
               >
-                <SelectTrigger
-                  id="ReportTemplate"
-                  className="dark:text-gray-500"
-                >
+                <SelectTrigger id="ReportTemplate" className="dark:text-gray-500">
                   <SelectValue placeholder="Select report template" />
                 </SelectTrigger>
                 <SelectContent className="bg-white dark:bg-gray-800 dark:text-gray-400">
@@ -255,14 +233,15 @@ const ReportForm = ({ grids }: any) => {
                   <SelectValue placeholder="Select location" />
                 </SelectTrigger>
                 <SelectContent className="bg-white dark:bg-gray-800 dark:text-gray-400">
-                  <SelectGroup>
+                  <SelectGroup className="h-[240px]">
                     {grids
-                      .filter(
-                        (grid: any) =>
-                          !['country', 'region'].includes(grid.admin_level)
-                      )
+                      .filter((grid: any) => !['country'].includes(grid.admin_level))
                       .map((type: { _id: string; long_name: string }) => (
-                        <SelectItem key={type._id} value={type._id}>
+                        <SelectItem
+                          key={type._id}
+                          value={type._id}
+                          className="cursor-pointer dark:text-white"
+                        >
                           {type.long_name}
                         </SelectItem>
                       ))}
@@ -281,8 +260,8 @@ const ReportForm = ({ grids }: any) => {
                     </TooltipTrigger>
                     <TooltipContent className="bg-white dark:bg-gray-800 dark:text-gray-400 p-2 rounded-md">
                       <p>
-                        Select the date range you would like to generate the
-                        report for not exceeding 2 months.
+                        Select the date range you would like to generate the report for not
+                        exceeding 2 months.
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -293,9 +272,7 @@ const ReportForm = ({ grids }: any) => {
                   <DatePickerWithRange
                     className="dark:text-gray-500"
                     value={formState.dateRange}
-                    onChange={(value: any) =>
-                      handleChange('dateRange', '')(value)
-                    }
+                    onChange={(value: any) => handleChange('dateRange', '')(value)}
                   />
                   <TooltipProvider>
                     <Tooltip>
@@ -307,9 +284,7 @@ const ReportForm = ({ grids }: any) => {
                         <MdOutlineAppShortcut size={25} />
                       </TooltipTrigger>
                       <TooltipContent className="bg-white dark:bg-gray-800 dark:text-gray-400 p-2 rounded-md">
-                        <p>
-                          Click here to show shortcuts for date range selection.
-                        </p>
+                        <p>Click here to show shortcuts for date range selection.</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -343,7 +318,7 @@ const ReportForm = ({ grids }: any) => {
                         const lastWeek = subDays(today, 7);
                         handleChange(
                           'dateRange',
-                          'last-7-days'
+                          'last-7-days',
                         )({
                           from: lastWeek,
                           to: today,
@@ -360,7 +335,7 @@ const ReportForm = ({ grids }: any) => {
                         const lastMonth = subDays(today, 30);
                         handleChange(
                           'dateRange',
-                          'last-30-days'
+                          'last-30-days',
                         )({
                           from: lastMonth,
                           to: today,
@@ -375,13 +350,10 @@ const ReportForm = ({ grids }: any) => {
                       onClick={() => {
                         const today = new Date();
                         const startOfCurrentQuarter = startOfQuarter(today);
-                        const lastQuarter = subQuarters(
-                          startOfCurrentQuarter,
-                          1
-                        );
+                        const lastQuarter = subQuarters(startOfCurrentQuarter, 1);
                         handleChange(
                           'dateRange',
-                          'last-quarter'
+                          'last-quarter',
                         )({
                           from: lastQuarter,
                           to: startOfCurrentQuarter,
@@ -396,10 +368,7 @@ const ReportForm = ({ grids }: any) => {
             </div>
 
             <div className="flex space-x-4 items-center">
-              <Button
-                type="submit"
-                className="p-2 bg-blue-700 hover:bg-blue-800 text-white"
-              >
+              <Button type="submit" className="p-2 bg-blue-700 hover:bg-blue-800 text-white">
                 <FaDownload className="mr-2 h-4 w-4" />
                 Generate Report
               </Button>
