@@ -1,13 +1,13 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { createStore } from 'redux';
+import { configureStore } from '@reduxjs/toolkit';
 import SiteToolbar from '../../views/components/Sites/SiteToolbar';
-import RootReducer from '../../redux/SiteRegistry/reducers';
+import RootReducer from '../../reducer/SiteRegistry/reducers';
 import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 
 const theme = createMuiTheme(); // creates default theme
-const store = createStore(RootReducer); // creates store with root reducer
+const store = configureStore(RootReducer); // creates store with root reducer
 
 // Mock localStorage
 Storage.prototype.getItem = jest.fn(() => JSON.stringify({ net_name: 'test' }));

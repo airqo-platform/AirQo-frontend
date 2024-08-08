@@ -10,7 +10,7 @@ import { Main as MainLayout, Minimal as MinimalLayout } from 'views/layouts/';
 import { NotFound as NotFoundView } from './views/pages/NotFound';
 import { LargeCircularLoader } from 'views/components/Loader/CircularLoader';
 import PermissionDenied from './views/pages/PermissionDenied';
-import { logoutUser } from './redux/Join/actions';
+import { logoutUser } from 'reducer/Join/actions';
 import { connect } from 'react-redux';
 import ConfirmDialog from './views/containers/ConfirmDialog';
 
@@ -56,6 +56,9 @@ const TeamsView = lazy(() => import('./views/pages/Teams/TeamsView'));
 const SimRegistry = lazy(() => import('./views/components/SIM/SimRegistry'));
 const UserStats = lazy(() => import('./views/pages/UserStats/UserStats'));
 const ClientActivation = lazy(() => import('./views/pages/clients'));
+const FaultDetection = lazy(() =>
+  import('./views/components/DataDisplay/DeviceManagement/ManagementFaults')
+);
 
 const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
@@ -101,6 +104,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <Route exact path="/login/:tenant?" component={Login} />
             <Route exact path="/forgot/:tenant?" component={ForgotPassword} />
             <Route exact path="/reset" component={ResetPassword} />
+            <Route exact path="/request-access/:tenant?" component={Register} />
             <PrivateRoute exact path="/analytics" component={Analytics} layout={MainLayout} />
             <PrivateRoute
               exact
@@ -141,6 +145,12 @@ const AppRoutes = ({ auth, logoutUser }) => {
             </Route>
             <PrivateRoute component={Account} exact layout={MainLayout} path="/account" />
             <PrivateRoute exact path="/manager/map" component={ManagerMap} layout={MainLayout} />
+            <PrivateRoute
+              exact
+              path="/manager/fault_detection"
+              component={FaultDetection}
+              layout={MainLayout}
+            />
             <PrivateRoute
               exact
               path="/manager/stats"
@@ -207,8 +217,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
             right: 0,
             marginRight: '10px',
             marginBottom: '20px'
-          }}
-        >
+          }}>
           <div id="jira-help-desk" />
         </div>
 

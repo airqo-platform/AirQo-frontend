@@ -17,9 +17,9 @@ import {
 import Alert from '@material-ui/lab/Alert';
 import { CircularLoader } from "views/components/Loader/CircularLoader";
 import { updateUserPasswordApi } from "views/apis/authService";
-import { useOrgData } from "redux/Join/selectors";
+import { useOrgData } from "reducer/Join/selectors";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
-import { updateMainAlert } from "redux/MainAlert/operations";
+import { updateMainAlert } from "reducer/MainAlert/operations";
 
 const validPasswordRegex = RegExp(/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/);
 

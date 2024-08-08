@@ -1,9 +1,9 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import configureMockStore from 'redux-mock-store';
+import {configureStore} from '@reduxjs/toolkit';
 import GenerateToken from '../views/pages/Settings/components/GenerateToken/GenerateToken';
 
-const mockStore = configureMockStore();
+const mockStore = configureStore();
 
 describe('GenerateToken', () => {
   it('renders correctly', () => {

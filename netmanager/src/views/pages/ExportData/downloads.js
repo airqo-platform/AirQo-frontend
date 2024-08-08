@@ -5,7 +5,7 @@ import CustomMaterialTable from '../../components/Table/CustomMaterialTable';
 import { getElapsedDurationMapper, getFirstNDurations } from '../../../utils/dateTime';
 import { Card, Typography, makeStyles } from '@material-ui/core';
 import moment from 'moment';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { useDispatch } from 'react-redux';
 import ExportDataBreadCrumb from './components/BreadCrumb';
 

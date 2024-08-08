@@ -1,14 +1,14 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { createStore } from 'redux';
+import { configureStore } from '@reduxjs/toolkit';
 import { BrowserRouter as Router } from 'react-router-dom';
 import SiteView from '../../views/components/Sites/SiteView';
-import RootReducer from '../../redux/SiteRegistry/reducers';
+import RootReducer from '../../reducer/SiteRegistry/reducers';
 import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 
 const theme = createMuiTheme();
-const store = createStore(RootReducer);
+const store = configureStore (RootReducer);
 
 Storage.prototype.getItem = jest.fn(() => JSON.stringify({ net_name: 'test' }));
 

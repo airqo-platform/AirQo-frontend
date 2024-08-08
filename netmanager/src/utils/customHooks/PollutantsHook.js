@@ -1,4 +1,4 @@
-import { useOrgData } from "redux/Join/selectors";
+import { useOrgData } from "reducer/Join/selectors";
 
 export const usePollutantsOptions = () => {
   const orgData = useOrgData();

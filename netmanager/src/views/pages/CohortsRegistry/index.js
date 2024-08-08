@@ -4,12 +4,12 @@ import { Box, Button, Typography, makeStyles } from '@material-ui/core';
 import AddCohortToolbar from './AddCohortForm';
 import { getCohortsApi } from '../../apis/deviceRegistry';
 import CohortsTable from './CohortsTable';
-import { loadDevicesData } from 'redux/DeviceRegistry/operations';
+import { loadDevicesData } from 'reducer/DeviceRegistry/operations';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import BreadCrumb from './breadcrumb';
-import { useDevicesData } from 'redux/DeviceRegistry/selectors';
-import { fetchCohortsSummary } from 'redux/Analytics/operations';
+import { useDevicesData } from 'reducer/DeviceRegistry/selectors';
+import { fetchCohortsSummary } from 'reducer/Analytics/operations';
 import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
 
 const useStyles = makeStyles((theme) => ({

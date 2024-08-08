@@ -1,6 +1,6 @@
 // map state from store to props
-import { fetchNetworkUsers } from '../../redux/AccessControl/operations';
-import * as userActions from '../../redux/Join/actions';
+import { fetchNetworkUsers } from '../../reducer/AccessControl/operations';
+import * as userActions from '../../reducer/Join/actions';
 import { connect } from 'react-redux';
 
 const mapStateToProps = (state, ownProps) => {

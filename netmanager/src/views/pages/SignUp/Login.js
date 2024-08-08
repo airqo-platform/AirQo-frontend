@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { withStyles } from '@material-ui/styles';
 import { Button, CardContent } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
-import { clearErrors, loginUser } from 'redux/Join/actions';
+import { clearErrors, loginUser } from 'reducer/Join/actions';
 import Grid from '@material-ui/core/Grid';
 import { isEmpty, omit } from 'underscore';
 import { isFormFullyFilled } from './utils';

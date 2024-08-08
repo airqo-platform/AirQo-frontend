@@ -4,11 +4,11 @@ import { makeStyles } from '@material-ui/styles';
 import RolesTable from './components/RolesTable';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { isEmpty } from 'underscore';
 import RolesToolbar from './components/RolesToolbar';
 import { getNetworkPermissionsApi } from '../../apis/accessControl';
-import { loadRolesSummary } from 'redux/AccessControl/operations';
+import { loadRolesSummary } from 'reducer/AccessControl/operations';
 import { withPermission } from '../../containers/PageAccess';
 import UsersListBreadCrumb from '../UserList/components/Breadcrumb';
 

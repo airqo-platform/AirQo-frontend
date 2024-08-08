@@ -16,11 +16,11 @@ import {
   InputLabel,
   Box
 } from '@material-ui/core';
-import { useOrgData } from 'redux/Join/selectors';
+import { useOrgData } from 'reducer/Join/selectors';
 import { updateAuthenticatedUserApi } from 'views/apis/authService';
 import Alert from '@material-ui/lab/Alert';
 import { CircularLoader } from 'views/components/Loader/CircularLoader';
-import { updateAuthenticatedUserSuccess, getUserDetails } from 'redux/Join/actions';
+import { updateAuthenticatedUserSuccess, getUserDetails } from 'reducer/Join/actions';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 
 const useStyles = makeStyles((theme) => ({

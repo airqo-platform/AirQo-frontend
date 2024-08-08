@@ -12,7 +12,7 @@ import {
   activationRequestApi
 } from 'views/apis/analytics';
 import { useDispatch } from 'react-redux';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import DataTable from './Table';
 import {
   Card,
@@ -28,7 +28,7 @@ import {
   CircularProgress
 } from '@material-ui/core';
 import CheckIcon from '@material-ui/icons/Check';
-import { getUserDetails } from '../../../../../redux/Join/actions';
+import { getUserDetails } from '../../../../../reducer/Join/actions';
 import { isEmpty, isEqual } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({

@@ -15,7 +15,7 @@ import DevicePhotos from './DevicePhotos';
 import DeviceOverview from './DeviceOverview/DeviceOverview';
 import { useInitScrollTop } from 'utils/customHooks';
 import { withPermission } from '../../../containers/PageAccess';
-import { getOrgDevices, updateDeviceDetails } from '../../../../redux/DeviceOverview/OverviewSlice';
+import { getOrgDevices, updateDeviceDetails } from '../../../../reducer/DeviceOverview/OverviewSlice';
 
 const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 

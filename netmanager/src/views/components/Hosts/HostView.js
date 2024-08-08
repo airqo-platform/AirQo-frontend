@@ -16,7 +16,7 @@ import Alert from '@material-ui/lab/Alert';
 import Select from 'react-select';
 import { isEmpty } from 'underscore';
 import ErrorBoundary from '../../ErrorBoundary/ErrorBoundary';
-import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
+import { setLoading as loadStatus } from 'reducer/HorizontalLoader/index';
 import { useHistory, useParams } from 'react-router-dom';
 import { ArrowBackIosRounded } from '@material-ui/icons';
 import {
@@ -26,9 +26,9 @@ import {
   sendMoneyToHost
 } from 'views/apis/deviceRegistry';
 
-import { useSitesSummaryData, useSitesData } from 'redux/SiteRegistry/selectors';
-import { loadSitesSummary, loadSitesData } from 'redux/SiteRegistry/operations';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { useSitesSummaryData, useSitesData } from 'reducer/SiteRegistry/selectors';
+import { loadSitesSummary, loadSitesData } from 'reducer/SiteRegistry/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import DataTable from './Table';
 
 const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));

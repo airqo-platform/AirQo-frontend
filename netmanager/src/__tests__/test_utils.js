@@ -2,12 +2,12 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { Provider } from 'react-redux';
 // As a basic setup, import your same slice reducers
-import { createStore } from 'redux';
-import RootReducer from '../redux';
+import { configureStore } from '@reduxjs/toolkit';
+import RootReducer from '../reducer';
 
 export function renderWithProviders(
   ui,
-  { preloadedState = {}, store = createStore(RootReducer), ...renderOptions } = {}
+  { preloadedState = {}, store = configureStore(RootReducer), ...renderOptions } = {}
 ) {
   function Wrapper({ children }) {
     return <Provider store={store}>{children}</Provider>;

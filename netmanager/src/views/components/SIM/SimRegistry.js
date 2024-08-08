@@ -14,7 +14,7 @@ import { isEmpty } from 'underscore';
 import Alert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/styles';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import Select from 'react-select';
 import RemoveIcon from '@material-ui/icons/Remove';
 import IconButton from '@material-ui/core/IconButton';
@@ -25,7 +25,7 @@ import { getSimsApi, createSimApi, checkSimStatusApi } from '../../apis/accessCo
 import DeleteIcon from '@material-ui/icons/Delete';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import { withPermission } from '../../containers/PageAccess';
-import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
+import { setLoading as loadStatus } from 'reducer/HorizontalLoader/index';
 import UsersListBreadCrumb from '../../pages/UserList/components/Breadcrumb';
 
 const useStyles = makeStyles((theme) => ({

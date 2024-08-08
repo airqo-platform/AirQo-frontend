@@ -7,8 +7,8 @@ import { TableContainer, Table, TableBody, TableCell, TableRow } from '@material
 
 import 'chartjs-plugin-annotation';
 import { isEmpty } from 'underscore';
-import { loadDeviceMaintenanceLogs } from 'redux/DeviceRegistry/operations';
-import { useDeviceLogsData } from 'redux/DeviceRegistry/selectors';
+import { loadDeviceMaintenanceLogs } from 'reducer/DeviceRegistry/operations';
+import { useDeviceLogsData } from 'reducer/DeviceRegistry/selectors';
 import { ChartContainer } from 'views/charts';
 import DeviceDetails from './DeviceDetails';
 import DeviceLocation from './DeviceLocation';

@@ -106,20 +106,11 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
-      - name: Setup Cloud SDK(gcloud)
+      - name: Setup Cloud SDK (gcloud)
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
         run: gcloud secrets versions access latest --secret="sta-env-netmanager" > netmanager/.env
-
-      - name: npm Install and Build
-        uses: actions/setup-node@v2
-        with:
-          node-version: "12"
-      - run: |
-          cd netmanager/
-          npm install
-          CI=false npm run build
 
       - name: Login to GCR
         uses: docker/login-action@v2
@@ -128,7 +119,7 @@ jobs:
           username: _json_key
           password: ${{ secrets.GCP_SA_CREDENTIALS }}
 
-      - name: Build and Push Image
+      - name: Build and Push Docker Image
         run: |
           cd netmanager/
           docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ./
@@ -144,11 +135,10 @@ jobs:
             --timeout=60 \
             --concurrency=10 \
             --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} \
-            --port=80 \
             --cpu=1000m \
             --memory=256Mi \
             --update-secrets=/etc/env/.env=sta-env-netmanager:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g 'daemon off;'" \
+            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; serve -s build -l 80" \
             --allow-unauthenticated
 
       - name: Get preview service url

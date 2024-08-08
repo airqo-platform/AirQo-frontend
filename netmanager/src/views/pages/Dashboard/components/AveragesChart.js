@@ -29,7 +29,7 @@ import { DAILY_MEAN_AVERAGES_URI, DEVICE_MEAN_AVERAGES_URI } from 'config/urls/a
 import { roundToEndOfDay, roundToStartOfDay } from 'utils/dateTime';
 import { isEmpty, unzip, zip } from 'underscore';
 import moment from 'moment';
-import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
+import { useCurrentAirQloudData } from 'reducer/AirQloud/selectors';
 import { flattenSiteOptions } from 'utils/sites';
 import { usePollutantsOptions } from 'utils/customHooks';
 import OutlinedSelect from '../../../components/CustomSelects/OutlinedSelect';
