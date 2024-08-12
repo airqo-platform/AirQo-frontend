@@ -79,7 +79,7 @@ const Resources = ({ Resources }) => {
           style={{
             padding: '5px',
             marginRight: '10px',
-            backgroundColor: '#007bff',
+            backgroundColor: '#0f4acc',
             color: '#fff',
             border: 'none',
             borderRadius: '5px',
@@ -115,7 +115,7 @@ const Resources = ({ Resources }) => {
               <h4
                 style={{
                   cursor: 'pointer',
-                  color: '#007bff',
+                  color: '#0f4acc',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center'
@@ -141,7 +141,7 @@ const Resources = ({ Resources }) => {
                           <p
                             style={{
                               padding: '0',
-                              margin: '5px 0',
+                              margin: '10px 0',
                               fontSize: '14px',
                               lineHeight: '1.5'
                             }}>
