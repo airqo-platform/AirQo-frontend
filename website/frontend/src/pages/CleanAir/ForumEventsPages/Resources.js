@@ -52,10 +52,6 @@ const Resources = ({ Resources }) => {
     return urlParts[urlParts.length - 1];
   };
 
-  const sanitizeHTML = (html) => {
-    return { __html: DOMPurify.sanitize(html) };
-  };
-
   if (Resources.length === 0) {
     return (
       <div
@@ -137,14 +133,20 @@ const Resources = ({ Resources }) => {
                   {session.resource_files.map((file, fileIndex) => (
                     <React.Fragment key={fileIndex}>
                       <ul>
-                        <li key={fileIndex}>
-                          <div dangerouslySetInnerHTML={sanitizeHTML(file.resource_summary_html)} />
-                          <span
+                        <li
+                          key={fileIndex}
+                          style={{
+                            lineHeight: '1.5'
+                          }}>
+                          <p
                             style={{
-                              fontSize: '14px'
+                              padding: '0',
+                              margin: '5px 0',
+                              fontSize: '14px',
+                              lineHeight: '1.5'
                             }}>
                             {file.resource_summary}
-                          </span>
+                          </p>
                           <a
                             style={{
                               fontSize: '14px',
