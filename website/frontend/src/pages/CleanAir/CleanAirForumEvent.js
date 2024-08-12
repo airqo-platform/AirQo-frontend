@@ -47,8 +47,6 @@ const CleanAirForumEvent = () => {
   const [committeeText, setCommitteeText] = useState('');
   const [speakersText, setSpeakersText] = useState('');
 
-  console.log('forumEvents', resources);
-
   const links = [
     { name: t('cleanAirSite.Forum.subNav.about'), url: 'about' },
     { name: t('cleanAirSite.Forum.subNav.committee'), url: 'committee' },
