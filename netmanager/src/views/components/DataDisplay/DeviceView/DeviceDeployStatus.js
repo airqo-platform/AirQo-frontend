@@ -139,7 +139,13 @@ const sensorFeedNameMapper = {
   },
   internalHumidity: { label: 'Internal Humidity', range: { min: 0, max: 100 } },
   ExternalHumidity: { label: 'External Humidity', range: { min: 0, max: 100 } },
-  ExternalPressure: { label: 'External Pressure', range: { min: 0, max: 100 } }
+  ExternalPressure: { label: 'External Pressure', range: { min: 0, max: 100 } },
+  TVOC: { label: 'Total Volatile Organic Compounds', range: { min: 0, max: 5500 } },
+  HCHO: { label: 'formaldehyde', range: { min: 0, max: 0.5 } },
+  C02: { label: 'Carbon dioxide', range: { min: 0, max: 50000 } },
+  IntakeTemperature: { label: 'Intake Temperature', range: { min: 0, max: 100 } },
+  IntakeHumidity: { label: 'Intake Humidity', range: { min: 0, max: 100 } },
+  BatteryVoltage: { label: 'Battery Voltage', range: { min: 0, max: 100 } },
 };
 
 const isValidSensorValue = (sensorValue, sensorValidator) => {
