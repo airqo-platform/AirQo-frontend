@@ -8,7 +8,7 @@ const TabButtons = ({ type, Icon, btnText, btnStyle, dropdown, onClick, id }) =>
       type={type}
       onClick={onClick}
       className={`${
-        btnStyle ? btnStyle : 'border-grey-750 px-4 py-2 rounded-xl'
+        btnStyle ? btnStyle : 'border-grey-750 px-4 py-2 rounded-xl bg-white shadow-sm'
       } border flex items-center justify-between gap-2 cursor-pointer`}>
       {Icon ? (
         Icon

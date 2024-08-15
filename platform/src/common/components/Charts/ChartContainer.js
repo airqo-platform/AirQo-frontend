@@ -123,7 +123,7 @@ const ChartContainer = ({ chartType, chartTitle, height, width, id }) => {
         trigger={
           <TabButtons
             btnText='More'
-            btnStyle={'py-1 px-3 rounded-xl'}
+            btnStyle={'py-1 px-3 rounded-xl '}
             dropdown
             onClick={handleMoreClick}
             id='options-btn'
@@ -178,7 +178,7 @@ const ChartContainer = ({ chartType, chartTitle, height, width, id }) => {
 
   return (
     <div
-      className='border-[0.5px] rounded-lg border-grey-150 shadow-[0px_0px_0px_0px_rgba(83,106,135,0.00)]'
+      className='border-[0.5px] bg-white rounded-xl border-grey-150 shadow-sm'
       id='analytics-chart'>
       <div className='flex flex-col items-start gap-1 w-auto h-auto p-4'>
         <div className='flex items-center justify-between w-full h-8'>

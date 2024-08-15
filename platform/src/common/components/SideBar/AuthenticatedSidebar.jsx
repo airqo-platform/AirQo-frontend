@@ -23,6 +23,8 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { updateUserChecklists } from '@/lib/store/services/checklists/CheckData';
 import LogoutUser from '@/core/utils/LogoutUser';
+import LeftArrowIcon from '@/icons/sideBar/leftArrowIcon';
+import RightArrowIcon from '@/icons/sideBar/rightArrowIcon';
 
 const AuthenticatedSideBar = () => {
   const dispatch = useDispatch();
@@ -101,15 +103,13 @@ const AuthenticatedSideBar = () => {
 
     setIsLoading(false);
   };
-
   return (
-    <>
-      {/* sidebar */}
+    <div>
       <div
         className={`${
-          isCollapsed ? 'w-[88px]' : 'w-72'
-        } hidden lg:block transition-all duration-200 ease-in-out`}>
-        <div className='flex p-4 bg-white h-dvh lg:relative flex-col justify-between overflow-y-auto border-[1px] border-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden'>
+          isCollapsed ? 'w-[88px]' : 'w-[290px]'
+        } hidden h-dvh relative lg:block transition-all duration-200 ease-in-out p-2`}>
+        <div className='flex p-2 bg-white h-full lg:relative flex-col justify-between overflow-y-auto border border-grey-750 scrollbar-thin rounded-xl scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden'>
           <div>
             <div className='pb-4 flex justify-between items-center'>
               {size.width < 1024 ? (
@@ -133,11 +133,6 @@ const AuthenticatedSideBar = () => {
               ) : (
                 <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
               )}
-              <div className={`${isCollapsed ? 'hidden' : ''} flex justify-between items-center`}>
-                <button type='button' onClick={() => dispatch(toggleSidebar())}>
-                  <CollapseIcon className='invisible md:invisible lg:visible pt-1 h-full flex flex-col flex-3' />
-                </button>
-              </div>
             </div>
             <div className='mt-4'>
               <OrganizationDropdown />
@@ -230,8 +225,16 @@ const AuthenticatedSideBar = () => {
             )}
           </div>
         </div>
+        {/* collapse sidebar */}
+        <div
+          className={`absolute flex rounded-full top-11 -right-[3px] z-[10000] bg-white  p-1 shadow-md justify-between items-center`}>
+          <button type='button' className='bg-none' onClick={() => dispatch(toggleSidebar())}>
+            <LeftArrowIcon className={isCollapsed ? 'hidden' : 'block'} />
+            <RightArrowIcon className={isCollapsed ? 'block' : 'hidden'} />
+          </button>
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 

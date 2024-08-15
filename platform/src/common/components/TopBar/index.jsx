@@ -22,7 +22,6 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
   // check if current route contains navPath
   const router = useRouter();
   const dispatch = useDispatch();
-  const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const userInfo = useSelector((state) => state.login.userInfo);
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,10 +63,10 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
 
   return (
     <nav
-      className={`bg-white sticky top-0 z-50 w-full px-6 my-8 lg:py-0 h-[76px] lg:px-16 ${
+      className={`sticky top-0 z-50 w-full px-6 my-8 lg:py-0 h-[76px] lg:px-16 ${
         !noBorderBottom && 'border-b-[1px] border-b-grey-750'
       }`}>
-      <div className='flex justify-between items-center bg-white'>
+      <div className='flex justify-between items-center'>
         {/* Logo */}
         <div className='block lg:hidden relative  z-10 w-full'>
           <AirqoLogo className=' w-[46.56px] h-8' />
@@ -75,14 +74,6 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
 
         {/* sidebar toggle */}
         <div className='font-medium hidden lg:flex items-center text-2xl text-neutral-light-800'>
-          {isCollapsed && (
-            <button
-              type='button'
-              onClick={() => dispatch(toggleSidebar())}
-              className='focus:outline-none relative -left-14'>
-              <ExpandIcon className='inline-block mr-2' />
-            </button>
-          )}
           <div className='flex items-center gap-[10px]'>
             <span className='p-2 rounded-full bg-[#E2E3E5]'>
               <ChartIcon width={20} height={20} />

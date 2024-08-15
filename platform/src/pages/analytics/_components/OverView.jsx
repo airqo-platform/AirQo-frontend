@@ -101,6 +101,7 @@ const OverView = () => {
   return (
     <BorderlessContentBox>
       <div className='space-y-8'>
+        {/* top tabs */}
         <div className='w-full flex flex-wrap gap-2 justify-between'>
           <div className='space-x-2 flex'>
             <CustomDropdown
@@ -164,6 +165,8 @@ const OverView = () => {
             />
           </div>
         </div>
+
+        {/* Cards */}
         <div
           className={`gap-4 ${
             recentLocationMeasurements && recentLocationMeasurements.length <= 2
@@ -205,6 +208,8 @@ const OverView = () => {
                 );
               })}
         </div>
+
+        {/* charts */}
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           <ChartContainer chartType='line' chartTitle='Air quality over time' height={300} />
           <ChartContainer chartType='bar' chartTitle='Air quality over time' height={300} />
