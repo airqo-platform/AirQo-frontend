@@ -141,7 +141,7 @@ const Layout = ({
               <CollapsedSidebar />
             </div>
           ) : (
-            <div>
+            <div className='text-[#1C1D20]'>
               <AuthenticatedSideBar />
             </div>
           )}
@@ -150,7 +150,7 @@ const Layout = ({
               router.pathname === '/map' ? 'overflow-hidden' : 'overflow-y-auto'
             } transition-all duration-300 ease-in-out`}>
             {noTopNav && <TopBar topbarTitle={topbarTitle} noBorderBottom={noBorderBottom} />}
-            <div className='overflow-hidden w-full'>{children}</div>
+            <div className='overflow-hidden w-full text-[#1C1D20]'>{children}</div>
           </div>
         </div>
         <SideBarDrawer />

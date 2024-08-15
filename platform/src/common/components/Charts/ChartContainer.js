@@ -123,7 +123,7 @@ const ChartContainer = ({ chartType, chartTitle, height, width, id }) => {
         trigger={
           <TabButtons
             btnText='More'
-            btnStyle={'py-1 px-3 rounded-xl '}
+            btnStyle={'py-1 px-2 rounded-xl '}
             dropdown
             onClick={handleMoreClick}
             id='options-btn'
@@ -182,9 +182,7 @@ const ChartContainer = ({ chartType, chartTitle, height, width, id }) => {
       id='analytics-chart'>
       <div className='flex flex-col items-start gap-1 w-auto h-auto p-4'>
         <div className='flex items-center justify-between w-full h-8'>
-          <div className='text-lg not-italic font-medium leading-[26px] text-gray-600'>
-            {chartTitle}
-          </div>
+          <div className='text-lg not-italic font-medium leading-[26px]'>{chartTitle}</div>
           {renderDropdown()}
         </div>
         <div
@@ -192,7 +190,7 @@ const ChartContainer = ({ chartType, chartTitle, height, width, id }) => {
           className='mt-6 -ml-[27px] relative'
           style={{
             width: width || '100%',
-            height: height,
+            height: height || '300px',
           }}>
           <Chart id={id} chartType={chartType} width={width} height={height} />
         </div>

@@ -12,9 +12,9 @@ const rightArrowIcon = ({ width, height, color, className }) => {
       <path
         d='M9 18L15 12L9 6'
         stroke={color || '#1C1D20'}
-        stroke-width='1.5'
-        stroke-linecap='round'
-        stroke-linejoin='round'
+        strokeWidth='1.5'
+        strokeLinecap='round'
+        strokeLinejoin='round'
       />
     </svg>
   );

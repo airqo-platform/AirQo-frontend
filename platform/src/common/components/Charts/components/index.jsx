@@ -229,7 +229,7 @@ export const CustomTooltipBarGraph = ({ active, payload, activeIndex }) => {
  * @returns {JSX.Element}
  * @description Custom axis tick component for line chart
  */
-export const CustomizedAxisTick = ({ x, y, payload }) => {
+export const CustomizedAxisTick = ({ x, y, payload, fill }) => {
   const chartData = useSelector((state) => state.chart);
   const { timeFrame } = chartData;
 
@@ -254,7 +254,7 @@ export const CustomizedAxisTick = ({ x, y, payload }) => {
 
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={16} textAnchor='middle' fill='#666' fontSize={12}>
+      <text x={0} y={0} dy={16} textAnchor='middle' fill={fill || '#485972'} fontSize={12}>
         {formatDate(payload.value)}
       </text>
     </g>
@@ -304,7 +304,7 @@ export const renderCustomizedLegend = (props) => {
         <div
           key={index}
           style={{ color: '#485972' }}
-          className='tooltip tooltip-top flex items-center text-sm outline-none'
+          className='tooltip tooltip-top flex items-center text-sm outline-none text-[#485972]'
           data-tip={entry.value}>
           <span
             className='w-[10px] h-[10px] rounded-xl mr-1 ml-1 outline-none'

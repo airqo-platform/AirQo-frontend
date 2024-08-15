@@ -107,7 +107,7 @@ const AuthenticatedSideBar = () => {
     <div>
       <div
         className={`${
-          isCollapsed ? 'w-[88px]' : 'w-[290px]'
+          isCollapsed ? 'w-[88px]' : 'w-[288px]'
         } hidden h-dvh relative lg:block transition-all duration-200 ease-in-out p-2`}>
         <div className='flex p-2 bg-white h-full lg:relative flex-col justify-between overflow-y-auto border border-grey-750 scrollbar-thin rounded-xl scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden'>
           <div>
@@ -151,7 +151,7 @@ const AuthenticatedSideBar = () => {
               {isCollapsed ? (
                 <hr className='my-3 h-[0.5px] bg-grey-150 transition-all duration-300 ease-in-out' />
               ) : (
-                <div className='text-xs text-[#6F87A1] px-[10px] my-3 mx-4 font-semibold transition-all duration-300 ease-in-out'>
+                <div className='text-xs text-[#7A7F87] px-[10px] my-3 mx-4 font-semibold transition-all duration-300 ease-in-out'>
                   Network
                 </div>
               )}
@@ -167,7 +167,7 @@ const AuthenticatedSideBar = () => {
                           {isCurrentRoute && (
                             <span className='bg-blue-600 w-1 h-1/2 mr-2 absolute rounded-xl -left-2'></span>
                           )}
-                          <CollocateIcon fill={isCurrentRoute ? '#145FFF' : '#6F87A1'} />
+                          <CollocateIcon fill={isCurrentRoute ? '#145FFF' : '#1C1D20'} />
                         </div>
                       </div>
                       {dropdown && (
@@ -227,7 +227,7 @@ const AuthenticatedSideBar = () => {
         </div>
         {/* collapse sidebar */}
         <div
-          className={`absolute flex rounded-full top-11 -right-[3px] z-[10000] bg-white  p-1 shadow-md justify-between items-center`}>
+          className={`absolute flex rounded-full top-11 -right-[3px] z-50 bg-white  p-1 shadow-md justify-between items-center`}>
           <button type='button' className='bg-none' onClick={() => dispatch(toggleSidebar())}>
             <LeftArrowIcon className={isCollapsed ? 'hidden' : 'block'} />
             <RightArrowIcon className={isCollapsed ? 'block' : 'hidden'} />

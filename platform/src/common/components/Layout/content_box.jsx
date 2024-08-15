@@ -5,8 +5,7 @@ const ContentBox = ({ children, noMargin }) => {
     <div
       className={`relative overflow-hidden ${
         !noMargin && 'mx-6 mb-6'
-      } border-[0.5px] rounded-lg border-secondary-neutral-light-100`}
-    >
+      } border-[0.5px] rounded-lg bg-white border-secondary-neutral-light-100`}>
       {children}
     </div>
   );

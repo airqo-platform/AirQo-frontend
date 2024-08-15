@@ -63,10 +63,10 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
 
   return (
     <nav
-      className={`sticky top-0 z-50 w-full px-6 my-8 lg:py-0 h-[76px] lg:px-16 ${
+      className={`z-50 w-full px-6 my-8 py-2 lg:px-10 ${
         !noBorderBottom && 'border-b-[1px] border-b-grey-750'
       }`}>
-      <div className='flex justify-between items-center'>
+      <div id='topBar-nav' className='flex justify-between items-center'>
         {/* Logo */}
         <div className='block lg:hidden relative  z-10 w-full'>
           <AirqoLogo className=' w-[46.56px] h-8' />

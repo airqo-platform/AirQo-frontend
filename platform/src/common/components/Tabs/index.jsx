@@ -37,7 +37,7 @@ function Tabs({ children, childrenRight, positionFixed }) {
       <div
         className={`${
           positionFixed && 'fixed'
-        } w-full h-14 bg-white px-4 lg:px-16 border-b border-grey-200 flex items-end z-20 ${
+        } w-full h-14 px-4 md:px-6 lg:px-10 border-b border-grey-200 flex items-end z-20 ${
           childrenRight && 'justify-between'
         }`}>
         <ul className='flex overflow-x-auto map-scrollbar gap-6 text-sm font-medium text-center'>

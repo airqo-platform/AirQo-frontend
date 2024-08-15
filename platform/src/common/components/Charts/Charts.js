@@ -267,7 +267,8 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
           />
           <XAxis
             dataKey='time'
-            tick={<CustomizedAxisTick />}
+            interval={window.innerWidth < 1153 ? 2 : 1}
+            tick={<CustomizedAxisTick fill={'#1C1D20'} />}
             tickLine={true}
             axisLine={false}
             scale='point'
@@ -277,6 +278,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
             axisLine={false}
             fontSize={12}
             tickLine={false}
+            tick={{ fill: '#1C1D20' }}
             tickFormatter={(tick) => {
               if (tick >= 1000 && tick < 1000000) {
                 return tick / 1000 + 'K';
@@ -289,6 +291,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
             <Label
               value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
               position='insideTopRight'
+              fill='#1C1D20'
               offset={0}
               fontSize={12}
               dy={-35}
@@ -321,22 +324,17 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
           }}>
           {Array.from(allKeys)
             .filter((key) => key !== 'time')
-            .map(
-              (key, index) => (
-                console.log('key', key),
-                (
-                  <Bar
-                    key={key}
-                    dataKey={key}
-                    fill={colors[index % colors.length]}
-                    barSize={12}
-                    shape={<CustomBar />}
-                    onMouseEnter={(o) => handleMouseEnter(o, index)}
-                    onMouseLeave={handleMouseLeave}
-                  />
-                )
-              ),
-            )}
+            .map((key, index) => (
+              <Bar
+                key={key}
+                dataKey={key}
+                fill={colors[index % colors.length]}
+                barSize={12}
+                shape={<CustomBar />}
+                onMouseEnter={(o) => handleMouseEnter(o, index)}
+                onMouseLeave={handleMouseLeave}
+              />
+            ))}
           <CartesianGrid stroke='#ccc' strokeDasharray='5 5' vertical={false} />
           <ReferenceLine
             y={WHO_STANDARD_VALUE}
@@ -346,11 +344,18 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
             strokeOpacity={1}
             strokeDasharray={0}
           />
-          <XAxis dataKey='time' tickLine={true} tick={<CustomizedAxisTick />} axisLine={false} />
+          <XAxis
+            dataKey='time'
+            tickLine={true}
+            tick={<CustomizedAxisTick />}
+            interval={window.innerWidth < 1153 ? 2 : 1}
+            axisLine={false}
+          />
           <YAxis
             axisLine={false}
             fontSize={12}
             tickLine={false}
+            tick={{ fill: '#1C1D20' }}
             tickFormatter={(tick) => {
               if (tick >= 1000 && tick < 1000000) {
                 return tick / 1000 + 'K';
@@ -363,6 +368,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
             <Label
               value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
               position='insideTopRight'
+              fill='#1C1D20'
               offset={0}
               fontSize={12}
               dy={-35}

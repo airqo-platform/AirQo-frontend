@@ -4,6 +4,7 @@ import { updateUserPasswordApi } from '@/core/apis/Settings';
 import { useSelector } from 'react-redux';
 import AlertBox from '@/components/AlertBox';
 import Spinner from '@/components/Spinner';
+import ContentBox from '@/components/Layout/content_box';
 
 const Password = () => {
   const userInfo = useSelector((state) => state.login.userInfo);
@@ -103,7 +104,7 @@ const Password = () => {
 
   return (
     <>
-      <div data-testid='tab-content' className='px-3 lg:px-16 py-3'>
+      <div data-testid='tab-content' className='px-4 md:px-6 lg:px-10 py-3'>
         <AlertBox
           message={isError.message}
           type={isError.type}
@@ -116,78 +117,82 @@ const Password = () => {
             })
           }
         />
-        <div className='flex justify-start flex-col md:grid md:grid-cols-3 gap-4 items-start'>
-          <div className='md:col-span-1'>
+        <div
+          className='grid 
+          grid-cols-1 md:grid-cols-3 gap-2 items-start
+          '>
+          <div>
             <h1 className='text-2xl font-medium'>Password</h1>
             <p className='text-sm text-gray-500'>
               Enter your current password to change your password.
             </p>
           </div>
-          <div className='md:col-span-2 w-full'>
-            <div className='border-[0.5px] rounded-lg border-grey-150'>
-              <div className='flex flex-col w-full'>
-                <form className='flex flex-col gap-4 p-6' data-testid='form-box'>
-                  {['currentPassword', 'newPassword', 'confirmNewPassword'].map((field) => (
-                    <div key={field}>
-                      <label
-                        htmlFor={field}
-                        className='block mb-2 text-sm font-medium text-gray-500 dark:text-white'
-                      >
-                        {field
-                          .replace(/([a-z])([A-Z])/g, '$1 $2')
-                          .replace(/^\w/, (c) => c.toUpperCase())}
-                      </label>
-                      <div className='relative'>
-                        <div className='absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none'>
-                          <Lock />
+          <div className='md:col-span-2'>
+            <ContentBox>
+              <div className='w-full '>
+                <div className='border-[0.5px] rounded-lg border-grey-150'>
+                  <div className='flex flex-col w-full'>
+                    <form className='flex flex-col gap-4 p-6' data-testid='form-box'>
+                      {['currentPassword', 'newPassword', 'confirmNewPassword'].map((field) => (
+                        <div key={field}>
+                          <label
+                            htmlFor={field}
+                            className='block mb-2 text-sm font-medium text-gray-500 dark:text-white'>
+                            {field
+                              .replace(/([a-z])([A-Z])/g, '$1 $2')
+                              .replace(/^\w/, (c) => c.toUpperCase())}
+                          </label>
+                          <div className='relative'>
+                            <div className='absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none'>
+                              <Lock />
+                            </div>
+                            <input
+                              type='password'
+                              id={field}
+                              value={passwords[field]}
+                              onChange={handleChange}
+                              className='bg-white border border-gray-200 focus:border-gray-200 focus:bg-gray-100 text-gray-900 text-sm rounded-lg block w-full pl-10 p-3 dark:placeholder-white-400 dark:text-white'
+                              placeholder='•••••••••'
+                              required
+                            />
+                          </div>
                         </div>
-                        <input
-                          type='password'
-                          id={field}
-                          value={passwords[field]}
-                          onChange={handleChange}
-                          className='bg-white border border-gray-200 focus:border-gray-200 focus:bg-gray-100 text-gray-900 text-sm rounded-lg block w-full pl-10 p-3 dark:placeholder-white-400 dark:text-white'
-                          placeholder='•••••••••'
-                          required
-                        />
-                      </div>
+                      ))}
+                    </form>
+                    <div className='border-b border-gray-200 dark:border-gray-700' />
+                    <div className='flex justify-end p-4 gap-2'>
+                      <button
+                        type='button'
+                        onClick={handleReset}
+                        className='bg-white text-gray-500 border border-gray-200 text-sm font-medium py-3 px-4 rounded focus:outline-none focus:shadow-outline'>
+                        Cancel
+                      </button>
+                      <button
+                        type='button'
+                        data-testid='save-button'
+                        onClick={handleSubmit}
+                        disabled={isDisabled}
+                        className={`text-white text-sm font-medium py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
+                          isDisabled
+                            ? 'bg-blue-300 opacity-50 cursor-not-allowed'
+                            : 'bg-blue-600 hover:bg-blue-700'
+                        }`}>
+                        {isDisabled ? (
+                          <div className='flex'>
+                            <span className='mb-1 mr-1'>
+                              <Spinner width={16} height={16} />
+                            </span>
+                            Saving...
+                          </div>
+                        ) : (
+                          'Save'
+                        )}
+                      </button>
                     </div>
-                  ))}
-                </form>
-                <div className='border-b border-gray-200 dark:border-gray-700' />
-                <div className='flex justify-end p-4 gap-2'>
-                  <button
-                    type='button'
-                    onClick={handleReset}
-                    className='bg-white text-gray-500 border border-gray-200 text-sm font-medium py-3 px-4 rounded focus:outline-none focus:shadow-outline'
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type='button'
-                    data-testid='save-button'
-                    onClick={handleSubmit}
-                    disabled={isDisabled}
-                    className={`text-white text-sm font-medium py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
-                      isDisabled
-                        ? 'bg-blue-300 opacity-50 cursor-not-allowed'
-                        : 'bg-blue-600 hover:bg-blue-700'
-                    }`}
-                  >
-                    {isDisabled ? (
-                      <div className='flex'>
-                        <span className='mb-1 mr-1'>
-                          <Spinner width={16} height={16} />
-                        </span>
-                        Saving...
-                      </div>
-                    ) : (
-                      'Save'
-                    )}
-                  </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            </ContentBox>
           </div>
         </div>
       </div>

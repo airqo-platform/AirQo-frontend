@@ -40,7 +40,7 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
             : 'hover:bg-grey-900 hover:opacity-50 hover:cursor-not-allowed'
         }`}>
         {(!isMediumDevice || itemLabel) && (
-          <h3 className={`text-sm text-grey leading-[21px] ${isCurrentRoute && 'text-blue-600'}`}>
+          <h3 className={`text-sm leading-[21px] ${isCurrentRoute && 'text-blue-600'}`}>
             {itemLabel}
           </h3>
         )}
@@ -65,7 +65,7 @@ export const SidebarIconItem = ({ IconComponent, navPath }) => {
         {isCurrentRoute && (
           <span className='bg-blue-600 w-1 h-1/2 mr-2 absolute rounded-xl -left-2'></span>
         )}
-        <IconComponent fill={isCurrentRoute ? '#145FFF' : '#6F87A1'} />
+        <IconComponent fill={isCurrentRoute ? '#145FFF' : '#1C1D20'} />
       </span>
     </Link>
   );
@@ -102,15 +102,11 @@ const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, t
                 className={`w-8 h-8 rounded-full flex items-center justify-center mr-4 ${
                   isCurrentRoute && 'text-blue-600'
                 }`}>
-                {Icon && <Icon fill={isCurrentRoute ? '#145FFF' : '#6F87A1'} />}
+                {Icon && <Icon fill={isCurrentRoute ? '#145FFF' : '#1C1D20'} />}
               </div>
 
               <h3
-                className={`text-base font-medium ${
-                  isCurrentRoute
-                    ? 'text-blue-600 mr-3'
-                    : 'font-normal text-secondary-neutral-light-800'
-                }`}>
+                className={`font-medium ${isCurrentRoute ? 'text-blue-600 mr-3' : 'font-normal'}`}>
                 {label}
               </h3>
             </div>

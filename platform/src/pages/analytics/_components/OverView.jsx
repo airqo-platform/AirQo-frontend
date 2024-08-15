@@ -17,7 +17,7 @@ const timeOptions = ['hourly', 'daily', 'weekly', 'monthly'];
 const pollutant = [
   { id: 'pm2_5', name: 'PM2.5' },
   { id: 'pm10', name: 'PM10' },
-  { id: 'no2', name: 'NO2' },
+  // { id: 'no2', name: 'NO2' },
 ];
 
 const useFetchMeasurements = () => {
@@ -211,8 +211,8 @@ const OverView = () => {
 
         {/* charts */}
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-          <ChartContainer chartType='line' chartTitle='Air quality over time' height={300} />
-          <ChartContainer chartType='bar' chartTitle='Air quality over time' height={300} />
+          <ChartContainer chartType='line' chartTitle='Air quality over time' height={400} />
+          <ChartContainer chartType='bar' chartTitle='Air quality over time' height={400} />
         </div>
       </div>
     </BorderlessContentBox>

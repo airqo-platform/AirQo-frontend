@@ -126,7 +126,7 @@ const Home = () => {
         <HomeSkeleton />
       ) : (
         <>
-          <div className='px-3 lg:px-16 py-3 space-y-5 transition-all duration-300 ease-in-out'>
+          <div className='px-4 md:px-6 lg:px-10 py-3 space-y-5 transition-all duration-300 ease-in-out'>
             <div className='w-full mb-4 md:mb-10'>
               <h1 className='text-[32px] leading-10 font-medium'>
                 Welcome, <span className='capitalize'>{userData?.firstName}</span> 👋
@@ -165,7 +165,7 @@ const Home = () => {
                 return (
                   <div
                     key={index}
-                    className='w-full h-[250px] flex flex-col justify-between items-start border-[0.5px] rounded-xl border-grey-150 py-5 px-3 space-y-5 focus:outline-blue-600 focus:ring-2 focus:shadow-lg focus:border-blue-600'
+                    className='bg-white shadow-sm w-full h-[250px] flex flex-col justify-between items-start border-[0.5px] rounded-xl border-grey-150 py-5 px-3 space-y-5 focus:outline-blue-600 focus:ring-2 focus:shadow-lg focus:border-blue-600'
                     tabIndex={0}>
                     <div className='w-full'>
                       {card && card.completed === true ? (
@@ -205,7 +205,7 @@ const Home = () => {
               })}
             </div>
 
-            <div className='w-full grid grid-cols-1 md:grid-cols-2 gap-3 items-center border-[0.5px] rounded-xl border-grey-150 p-3'>
+            <div className='bg-white shadow-sm w-full grid grid-cols-1 md:grid-cols-2 gap-3 items-center border-[0.5px] rounded-xl border-grey-150 p-3'>
               <div className='flex flex-col justify-start p-8'>
                 <h1 className='text-black-900 text-2xl font-medium'>
                   Track air pollution in places you care about

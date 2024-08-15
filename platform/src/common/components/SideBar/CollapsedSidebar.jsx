@@ -66,7 +66,7 @@ const CollapsedSidebar = () => {
                     {isCurrentRoute && (
                       <span className='bg-blue-600 w-1 h-1/2 mr-2 absolute rounded-xl -left-2'></span>
                     )}
-                    <CollocateIcon fill={isCurrentRoute ? '#145FFF' : '#6F87A1'} />
+                    <CollocateIcon fill={isCurrentRoute ? '#145FFF' : '#1C1D20'} />
                   </div>
                 </div>
                 {dropdown && (
