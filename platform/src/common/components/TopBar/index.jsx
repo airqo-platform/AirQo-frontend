@@ -92,7 +92,7 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
                 Icon={
                   userInfo.profilePicture ? (
                     <img
-                      className='w-10 h-10 rounded-full object-cover'
+                      className='w-7 h-w-7 rounded-full object-cover'
                       src={userInfo.profilePicture || PlaceholderImage}
                       alt=''
                     />
