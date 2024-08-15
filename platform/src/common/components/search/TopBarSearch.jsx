@@ -4,6 +4,10 @@ import { useDispatch } from 'react-redux';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import CloseIcon from '@/icons/close_icon';
 import { useSelector } from 'react-redux';
+import PropTypes from 'prop-types';
+
+
+
 const TopBarSearch = ({
   onSearch = () => {},
   onClearSearch = () => {},
@@ -64,6 +68,13 @@ const TopBarSearch = ({
       </div>
     </>
   );
+};
+
+TopBarSearch.propTypes = {
+  onSearch: PropTypes.func,
+  onClearSearch: PropTypes.func,
+  focus: PropTypes.bool,
+  showSearchResultsNumber: PropTypes.bool,
 };
 
 export default TopBarSearch;
