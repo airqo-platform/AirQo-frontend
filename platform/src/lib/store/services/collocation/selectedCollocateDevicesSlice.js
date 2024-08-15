@@ -51,17 +51,23 @@ const selectedCollocateDevicesSlice = createSlice({
     },
     addScheduledBatchDataCompletenessThreshold: (state, action) => {
       if (!isEmpty(action.payload)) {
-        state.scheduledBatchDataCompletenessThreshold = parseFloat(action.payload);
+        state.scheduledBatchDataCompletenessThreshold = parseFloat(
+          action.payload
+        );
       }
     },
     addScheduledBatchInterCorrelationThreshold: (state, action) => {
       if (!isEmpty(action.payload)) {
-        state.scheduledBatchInterCorrelationThreshold = parseFloat(action.payload);
+        state.scheduledBatchInterCorrelationThreshold = parseFloat(
+          action.payload
+        );
       }
     },
     addScheduledBatchIntraCorrelationThreshold: (state, action) => {
       if (!isEmpty(action.payload)) {
-        state.scheduledBatchIntraCorrelationThreshold = parseFloat(action.payload);
+        state.scheduledBatchIntraCorrelationThreshold = parseFloat(
+          action.payload
+        );
       }
     },
     addScheduledBatchDifferencesThreshold: (state, action) => {

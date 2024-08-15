@@ -84,7 +84,8 @@ const OrganizationProfile = () => {
   useEffect(() => {
     setLoading(true);
     const storedActiveGroup = localStorage.getItem('activeGroup');
-    const storedActiveGroupID = storedActiveGroup && JSON.parse(storedActiveGroup)._id;
+    const storedActiveGroupID =
+      storedActiveGroup && JSON.parse(storedActiveGroup)._id;
 
     // get group information
     try {
@@ -118,7 +119,8 @@ const OrganizationProfile = () => {
     e.preventDefault();
     setLoading(true);
     const storedActiveGroup = localStorage.getItem('activeGroup');
-    const storedActiveGroupID = storedActiveGroup && JSON.parse(storedActiveGroup)._id;
+    const storedActiveGroupID =
+      storedActiveGroup && JSON.parse(storedActiveGroup)._id;
     if (!storedActiveGroupID) {
       setLoading(false);
       return;
@@ -246,7 +248,10 @@ const OrganizationProfile = () => {
     if (updatedProfilePicture) {
       const formData = new FormData();
       formData.append('file', updatedProfilePicture);
-      formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_PRESET);
+      formData.append(
+        'upload_preset',
+        process.env.NEXT_PUBLIC_CLOUDINARY_PRESET
+      );
       formData.append('folder', 'organization_profiles');
 
       setProfileUploading(true);
@@ -254,7 +259,8 @@ const OrganizationProfile = () => {
         .then(async (responseData) => {
           setOrgData({ ...orgData, grp_image: responseData.secure_url });
           const storedActiveGroup = localStorage.getItem('activeGroup');
-          const storedActiveGroupID = storedActiveGroup && JSON.parse(storedActiveGroup)._id;
+          const storedActiveGroupID =
+            storedActiveGroup && JSON.parse(storedActiveGroup)._id;
 
           return await updateGroupDetailsApi(storedActiveGroupID, {
             grp_image: responseData.secure_url,
@@ -304,7 +310,8 @@ const OrganizationProfile = () => {
     setOrgData({ ...orgData, grp_image: '' });
 
     const storedActiveGroup = localStorage.getItem('activeGroup');
-    const storedActiveGroupID = storedActiveGroup && JSON.parse(storedActiveGroup)._id;
+    const storedActiveGroupID =
+      storedActiveGroup && JSON.parse(storedActiveGroup)._id;
 
     updateGroupDetailsApi(storedActiveGroupID, { grp_image: '' })
       .then((response) => {
@@ -350,41 +357,43 @@ const OrganizationProfile = () => {
             })
           }
         />
-        <div className='block lg:flex justify-start lg:gap-8 w-full'>
-          <div className='mb-6'>
-            <h3 className='text-sm font-medium leading-5 text-grey-710'>
+        <div className="block lg:flex justify-start lg:gap-8 w-full">
+          <div className="mb-6">
+            <h3 className="text-sm font-medium leading-5 text-grey-710">
               Organisation information
             </h3>
-            <p className='text-sm text-grey-500 leading-5'>
+            <p className="text-sm text-grey-500 leading-5">
               Update your organisation and details here.
             </p>
           </div>
 
-          <div className='w-full mb-12'>
+          <div className="w-full mb-12">
             <ContentBox noMargin>
               <>
-                <div className='w-full p-3 md:p-6'>
-                  <div className='flex items-center justify-between md:gap-6 w-full mb-6'>
+                <div className="w-full p-3 md:p-6">
+                  <div className="flex items-center justify-between md:gap-6 w-full mb-6">
                     <div
-                      className='w-16 h-16 bg-secondary-neutral-light-25 rounded-full flex justify-center items-center cursor-pointer'
+                      className="w-16 h-16 bg-secondary-neutral-light-25 rounded-full flex justify-center items-center cursor-pointer"
                       onClick={handleAvatarClick}
-                      title='Tap to change profile image'
+                      title="Tap to change profile image"
                     >
                       {orgData.grp_image ? (
                         <img
                           src={orgData.grp_image}
-                          alt={`${orgData.grp_title[0] + ' ' + orgData.grp_title[1]} profile image`}
-                          className='w-full h-full rounded-full object-cover'
+                          alt={`${
+                            orgData.grp_title[0] + ' ' + orgData.grp_title[1]
+                          } profile image`}
+                          className="w-full h-full rounded-full object-cover"
                         />
                       ) : (
-                        <h3 className='text-center text-2xl leading-8 font-medium text-blue-600 uppercase'>
+                        <h3 className="text-center text-2xl leading-8 font-medium text-blue-600 uppercase">
                           {orgData.grp_title[0] + ' ' + orgData.grp_title[1]}
                         </h3>
                       )}
                     </div>
-                    <div className='flex items-center'>
+                    <div className="flex items-center">
                       <Button
-                        className='text-sm font-medium text-secondary-neutral-light-500'
+                        className="text-sm font-medium text-secondary-neutral-light-500"
                         onClick={confirmDeleteProfileImage}
                       >
                         Delete
@@ -406,42 +415,42 @@ const OrganizationProfile = () => {
                       </Button>
                     </div>
                   </div>
-                  <form className='grid grid-cols-2 gap-6'>
-                    <div className='gap-[6px] col-span-full'>
+                  <form className="grid grid-cols-2 gap-6">
+                    <div className="gap-[6px] col-span-full">
                       <TextInputField
-                        id='grp_title'
+                        id="grp_title"
                         value={orgData.grp_title}
                         onChange={handleChange}
-                        label='Organisation name'
-                        type='text'
+                        label="Organisation name"
+                        type="text"
                       />
                     </div>
 
-                    <div className='relative flex flex-col gap-[6px] col-span-full'>
+                    <div className="relative flex flex-col gap-[6px] col-span-full">
                       <TextInputField
-                        id='grp_website'
+                        id="grp_website"
                         value={orgData.grp_website}
                         onChange={handleChange}
-                        label='Website'
-                        type='text'
+                        label="Website"
+                        type="text"
                         Icon={GlobeIcon}
                       />
                     </div>
 
-                    <div className='relative flex flex-col gap-[6px] col-span-full'>
-                      <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
+                    <div className="relative flex flex-col gap-[6px] col-span-full">
+                      <label className="text-gray-720 text-sm leading-4 tracking-[-0.42px]">
                         Industry
                       </label>
-                      <div className='relative'>
+                      <div className="relative">
                         <select
-                          type='text'
-                          id='grp_industry'
+                          type="text"
+                          id="grp_industry"
                           value={orgData.grp_industry}
                           onChange={handleChange}
-                          className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm w-full rounded p-3 dark:placeholder-white-400 dark:text-white'
+                          className="bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm w-full rounded p-3 dark:placeholder-white-400 dark:text-white"
                           required
                         >
-                          <option value='' disabled></option>
+                          <option value="" disabled></option>
                           {industryList.map((industry, index) => (
                             <option value={industry} key={index}>
                               {industry}
@@ -450,34 +459,34 @@ const OrganizationProfile = () => {
                         </select>
                       </div>
                     </div>
-                    <div className='relative flex flex-col gap-[6px] col-span-full'>
-                      <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
+                    <div className="relative flex flex-col gap-[6px] col-span-full">
+                      <label className="text-gray-720 text-sm leading-4 tracking-[-0.42px]">
                         About
                       </label>
                       <textarea
-                        type='text'
-                        id='grp_description'
+                        type="text"
+                        id="grp_description"
                         value={orgData.grp_description}
                         onChange={handleChange}
-                        className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full p-3 dark:placeholder-white-400 dark:text-white'
+                        className="bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full p-3 dark:placeholder-white-400 dark:text-white"
                         required
                       />
                     </div>
 
-                    <div className='relative flex flex-col gap-[6px] md:col-span-1 col-span-full'>
-                      <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
+                    <div className="relative flex flex-col gap-[6px] md:col-span-1 col-span-full">
+                      <label className="text-gray-720 text-sm leading-4 tracking-[-0.42px]">
                         Country
                       </label>
-                      <div className='relative'>
+                      <div className="relative">
                         <select
-                          type='text'
-                          id='grp_country'
+                          type="text"
+                          id="grp_country"
                           value={orgData.grp_country || ''}
                           onChange={handleChange}
-                          className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm w-full rounded p-3 dark:placeholder-white-400 dark:text-white'
+                          className="bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm w-full rounded p-3 dark:placeholder-white-400 dark:text-white"
                           required
                         >
-                          <option value='' disabled></option>
+                          <option value="" disabled></option>
                           {countryOptions.map((country) => (
                             <option value={country.label} key={country.value}>
                               {country.label}
@@ -487,22 +496,22 @@ const OrganizationProfile = () => {
                       </div>
                     </div>
 
-                    <div className='relative flex flex-col gap-[6px] md:col-span-1 col-span-full'>
-                      <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
+                    <div className="relative flex flex-col gap-[6px] md:col-span-1 col-span-full">
+                      <label className="text-gray-720 text-sm leading-4 tracking-[-0.42px]">
                         Timezone
                       </label>
-                      <div className='absolute left-0 top-3 w-10 h-full flex items-center justify-center'>
+                      <div className="absolute left-0 top-3 w-10 h-full flex items-center justify-center">
                         <ClockIcon />
                       </div>
                       <select
-                        type='text'
-                        id='grp_timezone'
+                        type="text"
+                        id="grp_timezone"
                         value={orgData.grp_timezone || ''}
                         onChange={handleChange}
-                        className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full pl-10 pr-3 py-3 dark:placeholder-white-400 dark:text-white'
+                        className="bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full pl-10 pr-3 py-3 dark:placeholder-white-400 dark:text-white"
                         required
                       >
-                        <option value='' disabled></option>
+                        <option value="" disabled></option>
                         {timeZonesArr.map((timeZone) => (
                           <option value={timeZone.value} key={timeZone.value}>
                             {timeZone.label}
@@ -512,17 +521,17 @@ const OrganizationProfile = () => {
                     </div>
                   </form>
                 </div>
-                <div className='col-span-full flex justify-end gap-3 border-t border-t-secondary-neutral-light-100 w-full px-3 py-4'>
+                <div className="col-span-full flex justify-end gap-3 border-t border-t-secondary-neutral-light-100 w-full px-3 py-4">
                   <Button
                     onClick={handleCancel}
-                    className='text-sm font-medium leading-5 text-secondary-neutral-light-600 py-3 px-4 rounded border border-secondary-neutral-light-100 bg-white'
+                    className="text-sm font-medium leading-5 text-secondary-neutral-light-600 py-3 px-4 rounded border border-secondary-neutral-light-100 bg-white"
                     disabled={isLoading}
                   >
                     Cancel
                   </Button>
                   <Button
                     onClick={handleSubmit}
-                    className='text-sm font-medium leading-5 text-white py-3 px-4 rounded bg-blue-600'
+                    className="text-sm font-medium leading-5 text-white py-3 px-4 rounded bg-blue-600"
                     disabled={isLoading}
                   >
                     {isLoading ? 'Loading...' : 'Save'}
@@ -537,7 +546,7 @@ const OrganizationProfile = () => {
           handleConfirm={deleteProfileImage}
           closeModal={() => setShowDeleteProfileModal(false)}
           description={`Are you sure you want to delete the organization profile image?`}
-          confirmButton='Delete'
+          confirmButton="Delete"
         />
       </BorderlessContentBox>
     )

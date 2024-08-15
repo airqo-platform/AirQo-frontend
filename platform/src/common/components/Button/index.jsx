@@ -47,8 +47,11 @@ const Button = ({
       <a
         href={path}
         className={`${buttonClass} ${textColor} ${backgroundColor} ${border}`}
-        data-testid={dataTestId}>
-        {Icon && <Icon className={`${textColor || 'text-black-900'} w-4 h-4`} />}
+        data-testid={dataTestId}
+      >
+        {Icon && (
+          <Icon className={`${textColor || 'text-black-900'} w-4 h-4`} />
+        )}
         {children}
       </a>
     );
@@ -61,8 +64,11 @@ const Button = ({
         data-testid={dataTestId}
         type={type}
         {...rest}
-        disabled={disabled}>
-        {Icon && <Icon className={`${textColor || 'text-black-900 w-4 h-4'}`} />}
+        disabled={disabled}
+      >
+        {Icon && (
+          <Icon className={`${textColor || 'text-black-900 w-4 h-4'}`} />
+        )}
         {children}
       </button>
     );

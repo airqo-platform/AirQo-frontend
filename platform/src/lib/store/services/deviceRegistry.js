@@ -5,9 +5,11 @@ import createAxiosInstance from '@/core/apis/axiosConfig';
 export const getCollocationDevices = createAsyncThunk(
   'deviceRegistry/getCollocationDevices',
   async () => {
-    const response = await createAxiosInstance(false).get(`${DEVICES}/events/running`);
+    const response = await createAxiosInstance(false).get(
+      `${DEVICES}/events/running`
+    );
     return response.data;
-  },
+  }
 );
 
 const deviceRegistrySlice = createSlice({

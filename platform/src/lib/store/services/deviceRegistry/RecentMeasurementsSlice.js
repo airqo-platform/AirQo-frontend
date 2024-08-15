@@ -16,7 +16,7 @@ export const fetchRecentMeasurementsData = createAsyncThunk(
     } catch (error) {
       throw error;
     }
-  },
+  }
 );
 
 export const recentMeasurementsSlice = createSlice({
@@ -46,5 +46,6 @@ export const recentMeasurementsSlice = createSlice({
   },
 });
 
-export const { setRecentMeasurementsData, clearMeasurementsData } = recentMeasurementsSlice.actions;
+export const { setRecentMeasurementsData, clearMeasurementsData } =
+  recentMeasurementsSlice.actions;
 export default recentMeasurementsSlice.reducer;

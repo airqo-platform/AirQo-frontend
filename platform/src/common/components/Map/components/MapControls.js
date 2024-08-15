@@ -13,10 +13,18 @@ import mapboxgl from 'mapbox-gl';
 export class CustomZoomControl {
   constructor() {
     this.container = this.createContainer();
-    this.zoomInButton = this.createButton('Zoom In', <PlusIcon />, () => this.map?.zoomIn());
-    this.zoomOutButton = this.createButton('Zoom Out', <MinusIcon />, () => this.map?.zoomOut());
+    this.zoomInButton = this.createButton('Zoom In', <PlusIcon />, () =>
+      this.map?.zoomIn()
+    );
+    this.zoomOutButton = this.createButton('Zoom Out', <MinusIcon />, () =>
+      this.map?.zoomOut()
+    );
 
-    this.container.append(this.zoomInButton, this.createSeparator(), this.zoomOutButton);
+    this.container.append(
+      this.zoomInButton,
+      this.createSeparator(),
+      this.zoomOutButton
+    );
   }
 
   createContainer() {
@@ -83,7 +91,9 @@ export class CustomGeolocateControl {
   constructor(setToastMessage) {
     this.setToastMessage = setToastMessage;
     this.container = this._createContainer();
-    this.geolocateButton = this._createButton('Locate Me', <GeoIcon />, () => this._locate());
+    this.geolocateButton = this._createButton('Locate Me', <GeoIcon />, () =>
+      this._locate()
+    );
     this.container.appendChild(this.geolocateButton);
   }
 
@@ -138,7 +148,7 @@ export class CustomGeolocateControl {
         enableHighAccuracy: true,
         timeout: 5000,
         maximumAge: 0,
-      },
+      }
     );
   }
 
@@ -171,7 +181,10 @@ export class CustomGeolocateControl {
               type: 'Feature',
               geometry: {
                 type: 'Point',
-                coordinates: [position.coords.longitude, position.coords.latitude],
+                coordinates: [
+                  position.coords.longitude,
+                  position.coords.latitude,
+                ],
               },
             },
           ],

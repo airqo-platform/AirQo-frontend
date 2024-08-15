@@ -19,13 +19,15 @@ const Team = ({ users, loading }) => {
   }, [users]);
 
   return (
-    <div data-testid='team-tab'>
+    <div data-testid="team-tab">
       <ContentBox>
-        <div className='flex justify-between items-center px-6 py-5 flex-wrap sm:flex-nowrap gap-2'>
-          <h3 className='text-secondary-neutral-light-800 font-medium text-lg'>Team members</h3>
+        <div className="flex justify-between items-center px-6 py-5 flex-wrap sm:flex-nowrap gap-2">
+          <h3 className="text-secondary-neutral-light-800 font-medium text-lg">
+            Team members
+          </h3>
           <Button
             onClick={() => setOpen(!open)}
-            className='flex justify-center items-center gap-2 rounded py-3 px-4 bg-blue-600 text-white text-sm font-medium'
+            className="flex justify-center items-center gap-2 rounded py-3 px-4 bg-blue-600 text-white text-sm font-medium"
           >
             <AddIcon /> Invite member
           </Button>

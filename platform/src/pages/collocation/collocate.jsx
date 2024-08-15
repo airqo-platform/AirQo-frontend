@@ -25,14 +25,15 @@ const Collocate = () => {
   } = useSelector((state) => state.collocation.collocationBatchSummary);
 
   const filterDevicesByStatus = (status) =>
-    deviceStatusSummary && deviceStatusSummary.filter((device) => device.status === status);
+    deviceStatusSummary &&
+    deviceStatusSummary.filter((device) => device.status === status);
 
   useEffect(() => {
     dispatch(getDeviceStatusSummary());
   }, []);
 
   return (
-    <Layout topbarTitle={'Collocation'} pageTitle={'Collocate | Collocation'}>
+    <Layout topbarTitle={'Collocation'} pageTitle={'Collocate | Collocation'} noBorderBottom>
       <HeaderNav category={'Collocation'} component={'Collocate'}>
         {isError && (
           <Toast
@@ -43,25 +44,25 @@ const Collocate = () => {
         )}
         {isLoading ||
           (deviceStatusSummary && (
-            <div className='flex'>
+            <div className="flex">
               <Button
                 className={
                   'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium text-sm'
                 }
               >
-                <div className='mr-[10px]'>
+                <div className="mr-[10px]">
                   <UploadIcon />
                 </div>
                 Import data
               </Button>
-              <div className='mr-[14px]'></div>
+              <div className="mr-[14px]"></div>
               <Button
                 className={
                   'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
                 }
-                path='/collocation/add_monitor'
+                path="/collocation/add_monitor"
               >
-                <div className='mr-[10px]'>
+                <div className="mr-[10px]">
                   <BoxedAddIcon />
                 </div>
                 Add monitors
@@ -69,26 +70,37 @@ const Collocate = () => {
             </div>
           ))}
       </HeaderNav>
-      <ContentBox>
+      <div className='px-4 md:px-6 lg:px-10 pb-3'>
+
+      <ContentBox noMargin>
         {deviceStatusSummary ? (
-          <div className='w-full'>
+          <div className="w-full">
             <Tabs>
-              <Tab label='All'>
-                <Table collocationDevices={deviceStatusSummary} isLoading={isLoading} />
+              <Tab label="All">
+                <Table
+                  collocationDevices={deviceStatusSummary}
+                  isLoading={isLoading}
+                />
               </Tab>
-              <Tab label='Passed'>
-                <Table collocationDevices={filterDevicesByStatus('PASSED')} isLoading={isLoading} />
+              <Tab label="Passed">
+                <Table
+                  collocationDevices={filterDevicesByStatus('PASSED')}
+                  isLoading={isLoading}
+                />
               </Tab>
-              <Tab label='Failed'>
-                <Table collocationDevices={filterDevicesByStatus('FAILED')} isLoading={isLoading} />
+              <Tab label="Failed">
+                <Table
+                  collocationDevices={filterDevicesByStatus('FAILED')}
+                  isLoading={isLoading}
+                />
               </Tab>
-              <Tab label='Running'>
+              <Tab label="Running">
                 <Table
                   collocationDevices={filterDevicesByStatus('RUNNING')}
                   isLoading={isLoading}
                 />
               </Tab>
-              <Tab label='Scheduled'>
+              <Tab label="Scheduled">
                 <Table
                   collocationDevices={filterDevicesByStatus('SCHEDULED')}
                   isLoading={isLoading}
@@ -100,8 +112,12 @@ const Collocate = () => {
           <EmptyState />
         )}
       </ContentBox>
+      </div>
     </Layout>
   );
 };
 
-export default withPermission(withAuth(Collocate), 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');
+export default withPermission(
+  withAuth(Collocate),
+  'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
+);

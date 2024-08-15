@@ -10,7 +10,7 @@ describe('TopBar Component', () => {
     mount(
       <Provider store={store}>
         <TopBar />
-      </Provider>,
+      </Provider>
     );
     cy.get('[data-cy=topbar]').should('be.visible');
   });
@@ -20,7 +20,7 @@ describe('TopBar Component', () => {
     mount(
       <Provider store={store}>
         <TopBar />
-      </Provider>,
+      </Provider>
     );
     cy.get('[data-cy=profile-btn]').click();
     cy.get('[data-cy=topbar-dropdown-menu]').should('be.visible');

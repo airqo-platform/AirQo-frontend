@@ -81,29 +81,33 @@ export const CustomTooltipLineGraph = ({ active, payload, activeIndex }) => {
     const hoveredPoint = payload[0];
     const otherPoints = payload.slice(1);
 
-    const { airQualityText, AirQualityIcon, airQualityColor } = getAirQualityLevelText(
-      hoveredPoint.value,
-    );
+    const { airQualityText, AirQualityIcon, airQualityColor } =
+      getAirQualityLevelText(hoveredPoint.value);
 
     return (
-      <div className='bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none'>
-        <div className='flex flex-col space-y-1'>
-          <div className='flex flex-col items-start justify-between w-full h-auto p-2'>
-            <span className='text-sm text-gray-300'>{formatDate(hoveredPoint.payload.time)}</span>
-            <div className='flex justify-between w-full mb-1 mt-2'>
-              <div className='flex items-center text-xs font-medium leading-[14px] text-gray-600'>
+      <div className="bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none">
+        <div className="flex flex-col space-y-1">
+          <div className="flex flex-col items-start justify-between w-full h-auto p-2">
+            <span className="text-sm text-gray-300">
+              {formatDate(hoveredPoint.payload.time)}
+            </span>
+            <div className="flex justify-between w-full mb-1 mt-2">
+              <div className="flex items-center text-xs font-medium leading-[14px] text-gray-600">
                 <div
                   className={`w-[10px] h-[10px] rounded-xl mr-2 ${
                     activeIndex === 0 ? 'bg-blue-700' : 'bg-gray-400'
-                  }`}></div>
+                  }`}
+                ></div>
                 {truncate(hoveredPoint.name)}
               </div>
-              <div className='text-xs font-medium leading-[14px] text-gray-600'>
+              <div className="text-xs font-medium leading-[14px] text-gray-600">
                 {reduceDecimalPlaces(hoveredPoint.value) + ' μg/m3'}
               </div>
             </div>
-            <div className='flex justify-between items-center w-full'>
-              <div className={`${airQualityColor} text-xs font-medium leading-[14px] `}>
+            <div className="flex justify-between items-center w-full">
+              <div
+                className={`${airQualityColor} text-xs font-medium leading-[14px] `}
+              >
                 {airQualityText}
               </div>
               <AirQualityIcon width={30} height={30} />
@@ -111,22 +115,26 @@ export const CustomTooltipLineGraph = ({ active, payload, activeIndex }) => {
           </div>
           {otherPoints.length > 0 && (
             <>
-              <div className='w-full h-[2px] bg-transparent my-1 border-t border-dotted border-gray-300' />
-              <div className='p-2 space-y-1'>
+              <div className="w-full h-[2px] bg-transparent my-1 border-t border-dotted border-gray-300" />
+              <div className="p-2 space-y-1">
                 {otherPoints.map((point, index) => (
                   <div
                     key={index}
                     className={`flex justify-between w-full mb-1 ${
                       activeIndex === index + 1 ? 'text-black' : 'text-gray-400'
-                    }`}>
-                    <div className='flex items-center text-xs font-medium leading-[14px] text-black'>
+                    }`}
+                  >
+                    <div className="flex items-center text-xs font-medium leading-[14px] text-black">
                       <div
                         className={`w-[10px] h-[10px] rounded-xl mr-2 ${
-                          activeIndex === index + 1 ? 'bg-blue-700' : 'bg-gray-400'
-                        }`}></div>
+                          activeIndex === index + 1
+                            ? 'bg-blue-700'
+                            : 'bg-gray-400'
+                        }`}
+                      ></div>
                       {truncate(point.name)}
                     </div>
-                    <div className='text-xs font-medium leading-[14px]'>
+                    <div className="text-xs font-medium leading-[14px]">
                       {reduceDecimalPlaces(point.value) + ' μg/m3'}
                     </div>
                   </div>
@@ -164,29 +172,33 @@ export const CustomTooltipBarGraph = ({ active, payload, activeIndex }) => {
     const hoveredPoint = payload[0];
     const otherPoints = payload.slice(1);
 
-    const { airQualityText, AirQualityIcon, airQualityColor } = getAirQualityLevelText(
-      hoveredPoint.value,
-    );
+    const { airQualityText, AirQualityIcon, airQualityColor } =
+      getAirQualityLevelText(hoveredPoint.value);
 
     return (
-      <div className='bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none'>
-        <div className='flex flex-col space-y-1'>
-          <div className='flex flex-col items-start justify-between w-full h-auto p-2'>
-            <span className='text-sm text-gray-300'>{formatDate(hoveredPoint.payload.time)}</span>
-            <div className='flex justify-between w-full mb-1 mt-2'>
-              <div className='flex items-center text-xs font-medium leading-[14px] text-gray-600'>
+      <div className="bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none">
+        <div className="flex flex-col space-y-1">
+          <div className="flex flex-col items-start justify-between w-full h-auto p-2">
+            <span className="text-sm text-gray-300">
+              {formatDate(hoveredPoint.payload.time)}
+            </span>
+            <div className="flex justify-between w-full mb-1 mt-2">
+              <div className="flex items-center text-xs font-medium leading-[14px] text-gray-600">
                 <div
                   className={`w-[10px] h-[10px] rounded-xl mr-2 ${
                     activeIndex === 0 ? 'bg-blue-700' : 'bg-gray-400'
-                  }`}></div>
+                  }`}
+                ></div>
                 {truncate(hoveredPoint.name)}
               </div>
-              <div className='text-xs font-medium leading-[14px] text-gray-600'>
+              <div className="text-xs font-medium leading-[14px] text-gray-600">
                 {reduceDecimalPlaces(hoveredPoint.value) + ' μg/m3'}
               </div>
             </div>
-            <div className='flex justify-between items-center w-full'>
-              <div className={`${airQualityColor} text-xs font-medium leading-[14px] `}>
+            <div className="flex justify-between items-center w-full">
+              <div
+                className={`${airQualityColor} text-xs font-medium leading-[14px] `}
+              >
                 {airQualityText}
               </div>
               <AirQualityIcon width={30} height={30} />
@@ -194,22 +206,26 @@ export const CustomTooltipBarGraph = ({ active, payload, activeIndex }) => {
           </div>
           {otherPoints.length > 0 && (
             <>
-              <div className='w-full h-[2px] bg-transparent my-1 border-t border-dotted border-gray-300' />
-              <div className='p-2 space-y-1'>
+              <div className="w-full h-[2px] bg-transparent my-1 border-t border-dotted border-gray-300" />
+              <div className="p-2 space-y-1">
                 {otherPoints.map((point, index) => (
                   <div
                     key={index}
                     className={`flex justify-between w-full mb-1 ${
                       activeIndex === index + 1 ? 'text-black' : 'text-gray-400'
-                    }`}>
-                    <div className='flex items-center text-xs font-medium leading-[14px] text-black'>
+                    }`}
+                  >
+                    <div className="flex items-center text-xs font-medium leading-[14px] text-black">
                       <div
                         className={`w-[10px] h-[10px] rounded-xl mr-2 ${
-                          activeIndex === index + 1 ? 'bg-blue-700' : 'bg-gray-400'
-                        }`}></div>
+                          activeIndex === index + 1
+                            ? 'bg-blue-700'
+                            : 'bg-gray-400'
+                        }`}
+                      ></div>
                       {truncate(point.name)}
                     </div>
-                    <div className='text-xs font-medium leading-[14px]'>
+                    <div className="text-xs font-medium leading-[14px]">
                       {reduceDecimalPlaces(point.value) + ' μg/m3'}
                     </div>
                   </div>
@@ -254,7 +270,14 @@ export const CustomizedAxisTick = ({ x, y, payload, fill }) => {
 
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={16} textAnchor='middle' fill={fill || '#485972'} fontSize={12}>
+      <text
+        x={0}
+        y={0}
+        dy={16}
+        textAnchor="middle"
+        fill={fill || '#485972'}
+        fontSize={12}
+      >
         {formatDate(payload.value)}
       </text>
     </g>
@@ -299,16 +322,18 @@ export const renderCustomizedLegend = (props) => {
   });
 
   return (
-    <div className='p-2 flex flex-wrap md:space-x-3 justify-start md:justify-end items-center w-full'>
+    <div className="p-2 flex flex-wrap md:space-x-3 justify-start md:justify-end items-center w-full">
       {sortedPayload.map((entry, index) => (
         <div
           key={index}
           style={{ color: '#485972' }}
-          className='tooltip tooltip-top flex items-center text-sm outline-none text-[#485972]'
-          data-tip={entry.value}>
+          className="tooltip tooltip-top flex items-center text-sm outline-none text-[#485972]"
+          data-tip={entry.value}
+        >
           <span
-            className='w-[10px] h-[10px] rounded-xl mr-1 ml-1 outline-none'
-            style={{ backgroundColor: entry.color }}></span>
+            className="w-[10px] h-[10px] rounded-xl mr-1 ml-1 outline-none"
+            style={{ backgroundColor: entry.color }}
+          ></span>
           {truncate(entry.value)}
         </div>
       ))}
@@ -329,9 +354,10 @@ export const CustomReferenceLabel = (props) => {
     <g>
       <foreignObject x={x - 30} y={y - 14} width={40} height={25}>
         <div
-          xmlns='http://www.w3.org/1999/xhtml'
+          xmlns="http://www.w3.org/1999/xhtml"
           style={{ backgroundColor: 'red' }}
-          className='rounded-[3px] py-[4px] px-[6px] flex justify-center text-center text-white text-[12px] font-semibold leading-[11px]'>
+          className="rounded-[3px] py-[4px] px-[6px] flex justify-center text-center text-white text-[12px] font-semibold leading-[11px]"
+        >
           WHO
         </div>
       </foreignObject>
@@ -350,8 +376,13 @@ export const CustomBar = (props) => {
     <g>
       <foreignObject x={x} y={y} width={width} height={height}>
         <div
-          xmlns='http://www.w3.org/1999/xhtml'
-          style={{ backgroundColor: fill, width: '100%', height: '100%', borderRadius: '5px' }}
+          xmlns="http://www.w3.org/1999/xhtml"
+          style={{
+            backgroundColor: fill,
+            width: '100%',
+            height: '100%',
+            borderRadius: '5px',
+          }}
         />
       </foreignObject>
     </g>

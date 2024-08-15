@@ -22,7 +22,9 @@ export const getAllGridLocationsApi = async () => {
 // Get grid location details
 export const getGridLocationDetails = async (gridID) => {
   try {
-    const response = await createAxiosInstance().get(`${GRID_LOCATIONS_URL}/${gridID}`);
+    const response = await createAxiosInstance().get(
+      `${GRID_LOCATIONS_URL}/${gridID}`
+    );
     return response.data;
   } catch (error) {
     throw error;

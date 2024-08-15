@@ -13,7 +13,10 @@ import ContentBox from '@/components/Layout/content_box';
 import CustomLegend from '@/components/Collocation/Report/MonitorReport/IntraCorrelation/custom_legend';
 import withAuth from '@/core/utils/protectedRoute';
 import { useDispatch, useSelector } from 'react-redux';
-import { getCollocationStatistics, getCollocationResults } from '@/lib/store/services/collocation';
+import {
+  getCollocationStatistics,
+  getCollocationResults,
+} from '@/lib/store/services/collocation';
 import { withPermission } from '@/core/utils/protectedRoute';
 
 const Reports = () => {
@@ -41,9 +44,13 @@ const Reports = () => {
     rejected: collocationStatisticsError,
   } = useSelector((state) => state.collocation.collocationStatisticsData);
 
-  let collocationStatisticsList = collocationStatistics ? collocationStatistics.data : [];
+  let collocationStatisticsList = collocationStatistics
+    ? collocationStatistics.data
+    : [];
 
-  const collocationResultsList = collocationResultsData ? collocationResultsData.data : null;
+  const collocationResultsList = collocationResultsData
+    ? collocationResultsData.data
+    : null;
 
   let graphColors = [
     '#0e3b5d',
@@ -97,20 +104,20 @@ const Reports = () => {
       const batchList = Object.entries(collocationStatisticsList).map(
         ([deviceName, deviceData]) => ({
           device_name: deviceName,
-        }),
+        })
       );
       setBatchList(batchList);
-      const transformedStatistics = Object.entries(collocationStatisticsList).map(
-        ([deviceName, deviceData]) => ({
-          deviceName,
-          pm2_5_mean: deviceData.pm2_5_mean || 0,
-          s1_pm2_5_mean: deviceData.s1_pm2_5_mean || 0,
-          s2_pm2_5_mean: deviceData.s2_pm2_5_mean || 0,
-          battery_voltage_mean: deviceData.battery_voltage_mean,
-          internal_humidity_mean: deviceData.internal_humidity_mean || 0,
-          internal_temperature_max: deviceData.internal_temperature_max || 0,
-        }),
-      );
+      const transformedStatistics = Object.entries(
+        collocationStatisticsList
+      ).map(([deviceName, deviceData]) => ({
+        deviceName,
+        pm2_5_mean: deviceData.pm2_5_mean || 0,
+        s1_pm2_5_mean: deviceData.s1_pm2_5_mean || 0,
+        s2_pm2_5_mean: deviceData.s2_pm2_5_mean || 0,
+        battery_voltage_mean: deviceData.battery_voltage_mean,
+        internal_humidity_mean: deviceData.internal_humidity_mean || 0,
+        internal_temperature_max: deviceData.internal_temperature_max || 0,
+      }));
       setDeviceStatistics(transformedStatistics);
     }
   }, [collocationStatisticsList]);
@@ -144,13 +151,13 @@ const Reports = () => {
             sortableColumns={['Sensor 01']}
             data={deviceStatistics}
             isLoading={collocationStatisticsLoading}
-            type='device statistics'
+            type="device statistics"
           />
         )}
       </ContentBox>
-      <div className='grid grid-cols-1'>
+      <div className="grid grid-cols-1">
         <Box
-          title='Intra Sensor Correlation'
+          title="Intra Sensor Correlation"
           dropdownItems={[
             {
               type: 'path',
@@ -166,7 +173,10 @@ const Reports = () => {
             },
           ]}
         >
-          <div className='flex flex-col justify-start w-full' data-testid='intra-correlation-chart'>
+          <div
+            className="flex flex-col justify-start w-full"
+            data-testid="intra-correlation-chart"
+          >
             <PollutantDropdown
               pollutantValue={pmConcentration}
               handlePollutantChange={togglePmConcentrationChange}
@@ -176,7 +186,7 @@ const Reports = () => {
               ]}
             />
             {isCollocationResultsLoading ? (
-              <div className='mb-6'>
+              <div className="mb-6">
                 <Spinner />
               </div>
             ) : (
@@ -191,13 +201,19 @@ const Reports = () => {
                       graphColors={graphColors}
                     />
                     {batchList && graphColors && (
-                      <CustomLegend isDeviceLegend devices={batchList} graphColors={graphColors} />
+                      <CustomLegend
+                        isDeviceLegend
+                        devices={batchList}
+                        graphColors={graphColors}
+                      />
                     )}
                   </>
                 )}
 
                 {isEmpty(collocationResultsList) && (
-                  <div className='text-center pb-6 text-grey-300 text-sm'>No data found</div>
+                  <div className="text-center pb-6 text-grey-300 text-sm">
+                    No data found
+                  </div>
                 )}
               </>
             )}
@@ -208,4 +224,7 @@ const Reports = () => {
   );
 };
 
-export default withPermission(withAuth(Reports), 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');
+export default withPermission(
+  withAuth(Reports),
+  'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
+);

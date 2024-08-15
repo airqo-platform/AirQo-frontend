@@ -10,7 +10,7 @@ export const fetchUserChecklists = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.response.data);
     }
-  },
+  }
 );
 
 export const updateUserChecklists = createAsyncThunk(
@@ -22,7 +22,7 @@ export const updateUserChecklists = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.response.data);
     }
-  },
+  }
 );
 
 const checklistsSlice = createSlice({
@@ -58,7 +58,7 @@ const checklistsSlice = createSlice({
         state.status = 'succeeded';
         if (action.payload) {
           state.checklist = state.checklist.map((entity) =>
-            entity.id === action.payload.id ? action.payload : entity,
+            entity.id === action.payload.id ? action.payload : entity
           );
         } else {
           return;

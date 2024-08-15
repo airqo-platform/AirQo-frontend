@@ -3,7 +3,11 @@ import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
 import Chart from './Charts';
 import DotMenuIcon from '@/icons/Actions/three-dots-menu.svg';
 import { useDispatch, useSelector } from 'react-redux';
-import { setChartTab, setChartType, setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
+import {
+  setChartTab,
+  setChartType,
+  setRefreshChart,
+} from '@/lib/store/services/charts/ChartSlice';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import Spinner from '@/components/Spinner';
@@ -15,7 +19,9 @@ const ChartContainer = ({ chartType, chartTitle, height, width, id }) => {
   const dispatch = useDispatch();
   const chartRef = useRef(null);
   const dropdownRef = useRef(null);
-  const isLoading = useSelector((state) => state.analytics.status === 'loading');
+  const isLoading = useSelector(
+    (state) => state.analytics.status === 'loading'
+  );
   const [openShare, setOpenShare] = useState(false);
   const [shareFormat, setShareFormat] = useState(null);
   const [loadingFormat, setLoadingFormat] = useState(null);
@@ -80,7 +86,7 @@ const ChartContainer = ({ chartType, chartTitle, height, width, id }) => {
               setDownloadComplete(format);
             },
             `image/${format}`,
-            0.8,
+            0.8
           );
           break;
         case 'pdf':
@@ -89,7 +95,14 @@ const ChartContainer = ({ chartType, chartTitle, height, width, id }) => {
             unit: 'px',
             format: [width, height],
           });
-          pdf.addImage(canvas.toDataURL('image/png', 0.8), 'PNG', 0, 0, width, height);
+          pdf.addImage(
+            canvas.toDataURL('image/png', 0.8),
+            'PNG',
+            0,
+            0,
+            width,
+            height
+          );
           pdf.save('airquality-data.pdf');
           setLoadingFormat(null);
           setDownloadComplete(format);
@@ -122,42 +135,47 @@ const ChartContainer = ({ chartType, chartTitle, height, width, id }) => {
       <CustomDropdown
         trigger={
           <TabButtons
-            btnText='More'
+            btnText="More"
             btnStyle={'py-1 px-2 rounded-xl '}
             dropdown
             onClick={handleMoreClick}
-            id='options-btn'
+            id="options-btn"
           />
         }
-        id='options'
-        className='top-7 right-0'>
+        id="options"
+        className="top-7 right-0"
+      >
         {isLoading ? (
-          <div className='p-2'>
+          <div className="p-2">
             <Spinner width={20} height={20} />
           </div>
         ) : (
           <>
             <a
               onClick={() => refreshChart()}
-              className='flex justify-between items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer'>
+              className="flex justify-between items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+            >
               <span>Refresh</span>
             </a>
-            <hr className='border-gray-200' />
+            <hr className="border-gray-200" />
             {['jpg', 'pdf'].map((format) => (
               <a
                 key={format}
                 onClick={() => exportChart(format)}
-                className='flex justify-between items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer'>
+                className="flex justify-between items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+              >
                 <span>Export as {format.toUpperCase()}</span>
-                <span className='-mr-2'>
-                  {loadingFormat === format && <Spinner width={15} height={15} />}
+                <span className="-mr-2">
+                  {loadingFormat === format && (
+                    <Spinner width={15} height={15} />
+                  )}
                   {downloadComplete === format && (
-                    <CheckIcon fill='#1E40AF' width={20} height={20} />
+                    <CheckIcon fill="#1E40AF" width={20} height={20} />
                   )}
                 </span>
               </a>
             ))}
-            <hr className='border-gray-200' />
+            <hr className="border-gray-200" />
             {['csv', 'pdf'].map((format) => (
               <a
                 key={format}
@@ -166,7 +184,8 @@ const ChartContainer = ({ chartType, chartTitle, height, width, id }) => {
                   shareReport(format);
                   setDownloadComplete(null);
                 }}
-                className='flex justify-between items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer'>
+                className="flex justify-between items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+              >
                 <span>Share report as {format.toUpperCase()}</span>
               </a>
             ))}
@@ -178,27 +197,31 @@ const ChartContainer = ({ chartType, chartTitle, height, width, id }) => {
 
   return (
     <div
-      className='border-[0.5px] bg-white rounded-xl border-grey-150 shadow-sm'
-      id='analytics-chart'>
-      <div className='flex flex-col items-start gap-1 w-auto h-auto p-4'>
-        <div className='flex items-center justify-between w-full h-8'>
-          <div className='text-lg not-italic font-medium leading-[26px]'>{chartTitle}</div>
+      className="border-[0.5px] bg-white rounded-xl border-grey-150 shadow-sm"
+      id="analytics-chart"
+    >
+      <div className="flex flex-col items-start gap-1 w-auto h-auto p-4">
+        <div className="flex items-center justify-between w-full h-8">
+          <div className="text-lg not-italic font-medium leading-[26px]">
+            {chartTitle}
+          </div>
           {renderDropdown()}
         </div>
         <div
           ref={chartRef}
-          className='mt-6 -ml-[27px] relative'
+          className="mt-6 -ml-[27px] relative"
           style={{
             width: width || '100%',
             height: height || '300px',
-          }}>
+          }}
+        >
           <Chart id={id} chartType={chartType} width={width} height={height} />
         </div>
       </div>
 
       <PrintReportModal
-        title='Share report'
-        btnText='Send'
+        title="Share report"
+        btnText="Send"
         shareModel={true}
         open={openShare}
         onClose={() => setOpenShare(false)}

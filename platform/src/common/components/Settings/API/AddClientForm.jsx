@@ -80,7 +80,9 @@ const AddClientForm = ({ open, closeModal }) => {
       }
       closeModal();
     } catch (error) {
-      setErrorState(error?.response?.data?.message || 'Failed to create client');
+      setErrorState(
+        error?.response?.data?.message || 'Failed to create client'
+      );
     } finally {
       setLoading(false);
     }
@@ -93,44 +95,53 @@ const AddClientForm = ({ open, closeModal }) => {
       handleClick={handleSubmit}
       primaryButtonText={'Register'}
       loading={loading}
-      ModalIcon={PersonIcon}>
-      {isError?.isError && <Toast type={isError?.type} message={isError?.message} />}
-      <h3 className='text-lg font-medium text-secondary-neutral-light-800 leading-[26px] mb-2'>
+      ModalIcon={PersonIcon}
+    >
+      {isError?.isError && (
+        <Toast type={isError?.type} message={isError?.message} />
+      )}
+      <h3 className="text-lg font-medium text-secondary-neutral-light-800 leading-[26px] mb-2">
         Create new client
       </h3>
 
-      <div className='flex flex-col gap-3 justify-start'>
-        <div className='relative'>
+      <div className="flex flex-col gap-3 justify-start">
+        <div className="relative">
           <input
-            type='text'
-            placeholder='Enter client name'
-            className='input input-bordered w-full pl-3 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded'
+            type="text"
+            placeholder="Enter client name"
+            className="input input-bordered w-full pl-3 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded"
             value={clientName}
-            onChange={(e) => handleInputValueChange('clientName', e.target.value)}
+            onChange={(e) =>
+              handleInputValueChange('clientName', e.target.value)
+            }
           />
 
           {clientName?.length > 0 && (
             <button
-              className='absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto'
-              onClick={() => handleRemoveInputValue(clientName)}>
+              className="absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto"
+              onClick={() => handleRemoveInputValue(clientName)}
+            >
               ✕
             </button>
           )}
         </div>
 
-        <div className='relative'>
+        <div className="relative">
           <input
-            type='text'
-            placeholder='Enter ip address (optional)'
-            className='input input-bordered w-full pl-3 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded'
+            type="text"
+            placeholder="Enter ip address (optional)"
+            className="input input-bordered w-full pl-3 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded"
             value={ipAddress}
-            onChange={(e) => handleInputValueChange('ipAddress', e.target.value)}
+            onChange={(e) =>
+              handleInputValueChange('ipAddress', e.target.value)
+            }
           />
 
           {ipAddress?.length > 0 && (
             <button
-              className='absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto'
-              onClick={() => handleRemoveInputValue(ipAddress)}>
+              className="absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto"
+              onClick={() => handleRemoveInputValue(ipAddress)}
+            >
               ✕
             </button>
           )}

@@ -29,7 +29,10 @@ const Calendar = ({
   const [selectedDays2, setSelectedDays2] = useState([]);
   const [month1, setMonth1] = useState(initialMonth1);
   const [month2, setMonth2] = useState(initialMonth2);
-  const [selectedRange, setSelectedRange] = useState({ start: null, end: null });
+  const [selectedRange, setSelectedRange] = useState({
+    start: null,
+    end: null,
+  });
 
   /**
    * @param {Date} day
@@ -89,16 +92,21 @@ const Calendar = ({
         <div
           key={day}
           className={`flex justify-center items-center ${
-            isInBetween || isStartOrEndDay ? 'bg-gray-100 text-gray-800 dark:bg-gray-800' : ''
+            isInBetween || isStartOrEndDay
+              ? 'bg-gray-100 text-gray-800 dark:bg-gray-800'
+              : ''
           } ${
-            (selectedRange.start && isSameDay(day, selectedRange.start)) || isStartOfWeek
+            (selectedRange.start && isSameDay(day, selectedRange.start)) ||
+            isStartOfWeek
               ? 'rounded-l-full'
               : ''
           } ${
-            (selectedRange.end && isSameDay(day, selectedRange.end)) || isEndOfWeek
+            (selectedRange.end && isSameDay(day, selectedRange.end)) ||
+            isEndOfWeek
               ? 'rounded-r-full'
               : ''
-          }`}>
+          }`}
+        >
           <button
             onClick={(event) => handleDayClick(event, day, setSelectedDays)}
             className={`
@@ -117,7 +125,8 @@ const Calendar = ({
               }
               hover:border-blue-600 hover:text-blue-600 hover:rounded-full hover:border dark:hover:border-gray-500 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600 
               disabled:text-gray-300 disabled:pointer-events-none md:w-14 lg:w-16
-            `}>
+            `}
+          >
             {format(day, 'd')}
           </button>
         </div>
@@ -134,18 +143,25 @@ const Calendar = ({
    * @returns {JSX.Element}
    * @description Renders the calendar section
    */
-  const CalendarSection = ({ month, selectedDays, setSelectedDays, onNextMonth, onPrevMonth }) => (
-    <div className='flex flex-col px-6 pt-5 pb-6'>
+  const CalendarSection = ({
+    month,
+    selectedDays,
+    setSelectedDays,
+    onNextMonth,
+    onPrevMonth,
+  }) => (
+    <div className="flex flex-col px-6 pt-5 pb-6">
       <CalendarHeader
         month={format(month, 'MMMM yyyy')}
         onNext={onNextMonth}
         onPrev={onPrevMonth}
       />
-      <div className='grid grid-cols-7 text-xs text-center text-gray-900 space-y-[1px]'>
+      <div className="grid grid-cols-7 text-xs text-center text-gray-900 space-y-[1px]">
         {daysOfWeek.map((day) => (
           <span
             key={day}
-            className='flex text-gray-600 items-center justify-center w-10 h-10 font-semibold rounded-lg'>
+            className="flex text-gray-600 items-center justify-center w-10 h-10 font-semibold rounded-lg"
+          >
             {day}
           </span>
         ))}
@@ -161,18 +177,22 @@ const Calendar = ({
           ? 'flex flex-col items-center justify-center w-full bg-none md:flex-row mb-10'
           : ''
       }
-          `}>
+          `}
+    >
       <div
         className={`z-[1000] border border-gray-100 bg-white shadow-lg rounded-xl ${
           showTwoCalendars
             ? 'max-w-full min-w-[260px] md:min-w-[660px] lg:min-w-[800px]'
             : 'max-w-[328px] w-full min-w-40'
-        }`}>
+        }`}
+      >
         {/* Main Body */}
-        <div className='flex flex-col'>
-          <div className='divide-x flex flex-col md:flex-row lg:flex-row'>
+        <div className="flex flex-col">
+          <div className="divide-x flex flex-col md:flex-row lg:flex-row">
             {/* shortcut section */}
-            {showTwoCalendars && <ShortCuts setSelectedRange={setSelectedRange} />}
+            {showTwoCalendars && (
+              <ShortCuts setSelectedRange={setSelectedRange} />
+            )}
 
             {/* Calendar One */}
             <CalendarSection

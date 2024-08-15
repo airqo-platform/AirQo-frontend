@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   setCenter,
@@ -50,22 +56,25 @@ const SidebarHeader = ({
 }) => {
   return (
     <div>
-      <div className='w-full flex justify-between items-center'>
-        <label className='font-medium text-xl text-gray-900'>Air Quality Map</label>
+      <div className="w-full flex justify-between items-center">
+        <label className="font-medium text-xl text-gray-900">
+          Air Quality Map
+        </label>
         {isFocused && (
           <button
             onClick={handleHeaderClick}
-            className='focus:outline-none border rounded-xl hover:cursor-pointer p-2 hidden md:block'>
+            className="focus:outline-none border rounded-xl hover:cursor-pointer p-2 hidden md:block"
+          >
             <CloseIcon />
           </button>
         )}
       </div>
-      <p className='text-gray-500 text-sm font-medium w-auto mt-2'>
+      <p className="text-gray-500 text-sm font-medium w-auto mt-2">
         Navigate air quality analytics with precision and actionable tips.
       </p>
       {!isAdmin && (
         <TabSelector
-          defaultTab='locations'
+          defaultTab="locations"
           tabs={['locations', 'sites']}
           setSelectedTab={setSelectedTab}
         />
@@ -78,11 +87,14 @@ const SidebarHeader = ({
 const SearchResultsSkeleton = () => {
   const numElements = 6;
   return (
-    <div className='flex flex-col gap-4 animate-pulse px-4 mt-5'>
+    <div className="flex flex-col gap-4 animate-pulse px-4 mt-5">
       {Array(numElements)
         .fill()
         .map((_, i) => (
-          <div key={i} className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
+          <div
+            key={i}
+            className="bg-secondary-neutral-dark-50 rounded-xl w-full h-16"
+          />
         ))}
     </div>
   );
@@ -97,20 +109,30 @@ const index = ({ siteDetails, isAdmin }) => {
   const [selectedSite, setSelectedSite] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
-  const openLocationDetailsSection = useSelector((state) => state.map.showLocationDetails);
-  const selectedLocationDetails = useSelector((state) => state.map.selectedLocation);
+  const openLocationDetailsSection = useSelector(
+    (state) => state.map.showLocationDetails
+  );
+  const selectedLocationDetails = useSelector(
+    (state) => state.map.selectedLocation
+  );
   const mapLoading = useSelector((state) => state.map.mapLoading);
   const [showLocationDetails, setShowLocationDetails] = useState(false);
   const [isLoading, setLoading] = useState(false);
   const [weeklyPredictions, setWeeklyPredictions] = useState([]);
   const [showNoResultsMsg, setShowNoResultsMsg] = useState(false);
-  const measurementsLoading = useSelector((state) => state.recentMeasurements.status);
+  const measurementsLoading = useSelector(
+    (state) => state.recentMeasurements.status
+  );
   const [locationSearchPreferences, setLocationSearchPreferences] = useState({
     custom: [],
     nearMe: [],
   });
-  const selectedWeeklyPrediction = useSelector((state) => state.map.selectedWeeklyPrediction);
-  const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
+  const selectedWeeklyPrediction = useSelector(
+    (state) => state.map.selectedWeeklyPrediction
+  );
+  const reduxSearchTerm = useSelector(
+    (state) => state.locationSearch.searchTerm
+  );
   const focus = isFocused || reduxSearchTerm.length > 0;
   const selectedSites = useSelector((state) => state.map.suggestedSites);
   const [isError, setIsError] = useState({
@@ -120,7 +142,7 @@ const index = ({ siteDetails, isAdmin }) => {
   });
   const autoCompleteSessionToken = useMemo(
     () => new google.maps.places.AutocompleteSessionToken(),
-    [google.maps.places.AutocompleteSessionToken],
+    [google.maps.places.AutocompleteSessionToken]
   );
 
   // Sidebar loading effect
@@ -145,7 +167,9 @@ const index = ({ siteDetails, isAdmin }) => {
       const newCountryData = [];
 
       siteDetails.forEach((site) => {
-        let countryDetails = allCountries?.find((data) => data.country === site.country);
+        let countryDetails = allCountries?.find(
+          (data) => data.country === site.country
+        );
 
         if (countryDetails) {
           if (!newUniqueCountries.includes(site.country)) {
@@ -247,8 +271,10 @@ const index = ({ siteDetails, isAdmin }) => {
             return;
           }
         } else {
-          latitude = data?.geometry?.coordinates[1] || data?.approximate_latitude;
-          longitude = data?.geometry?.coordinates[0] || data?.approximate_longitude;
+          latitude =
+            data?.geometry?.coordinates[1] || data?.approximate_latitude;
+          longitude =
+            data?.geometry?.coordinates[0] || data?.approximate_longitude;
         }
 
         dispatch(setCenter({ latitude, longitude }));
@@ -262,7 +288,7 @@ const index = ({ siteDetails, isAdmin }) => {
         });
       }
     },
-    [dispatch],
+    [dispatch]
   );
 
   /**
@@ -297,7 +323,7 @@ const index = ({ siteDetails, isAdmin }) => {
       try {
         const predictions = await getAutocompleteSuggestions(
           reduxSearchTerm,
-          autoCompleteSessionToken,
+          autoCompleteSessionToken
         );
 
         if (predictions && predictions.length > 0) {
@@ -356,24 +382,33 @@ const index = ({ siteDetails, isAdmin }) => {
   };
 
   return (
-    <div className='w-full h-dvh bg-white overflow-hidden'>
+    <div className="w-full h-dvh bg-white overflow-hidden">
       {/* Sidebar Header */}
-      <div className={`${!isFocused && !showLocationDetails ? 'space-y-4' : 'hidden'} pt-4`}>
-        <div className='px-4'>
-          <SidebarHeader selectedTab={selectedTab} handleSelectedTab={handleSelectedTab} isAdmin />
+      <div
+        className={`${
+          !isFocused && !showLocationDetails ? 'space-y-4' : 'hidden'
+        } pt-4`}
+      >
+        <div className="px-4">
+          <SidebarHeader
+            selectedTab={selectedTab}
+            handleSelectedTab={handleSelectedTab}
+            isAdmin
+          />
         </div>
         {!isAdmin && <hr />}
         <div className={`${isFocused || showLocationDetails ? 'hidden' : ''}`}>
-          <div onClick={() => setIsFocused(true)} className='mt-5 px-4'>
+          <div onClick={() => setIsFocused(true)} className="mt-5 px-4">
             <SearchField showSearchResultsNumber={false} focus={false} />
           </div>
-          <div className='flex items-center mt-5 overflow-hidden px-4 transition-all duration-300 ease-in-out'>
+          <div className="flex items-center mt-5 overflow-hidden px-4 transition-all duration-300 ease-in-out">
             <button
               onClick={handleAllSelection}
-              className='py-[6px] px-[10px] rounded-full mb-3 bg-blue-500 text-white text-sm font-medium'>
+              className="py-[6px] px-[10px] rounded-full mb-3 bg-blue-500 text-white text-sm font-medium"
+            >
               All
             </button>
-            <div className='country-scroll-bar'>
+            <div className="country-scroll-bar">
               <CountryList
                 data={countryData}
                 selectedCountry={selectedCountry}
@@ -382,30 +417,35 @@ const index = ({ siteDetails, isAdmin }) => {
               />
             </div>
           </div>
-          <div className='border border-secondary-neutral-light-100 my-5' />
+          <div className="border border-secondary-neutral-light-100 my-5" />
         </div>
       </div>
 
       {/* section 1 */}
-      <div className='sidebar-scroll-bar'>
+      <div className="sidebar-scroll-bar">
         {selectedSite && mapLoading ? (
           // show a loading skeleton
-          <div className='flex flex-col gap-4 animate-pulse px-4 mt-5'>
+          <div className="flex flex-col gap-4 animate-pulse px-4 mt-5">
             {Array.from({ length: 6 }, (_, index) => (
-              <div key={index} className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
+              <div
+                key={index}
+                className="bg-secondary-neutral-dark-50 rounded-xl w-full h-16"
+              />
             ))}
           </div>
         ) : (
-          <div className={`${isFocused || showLocationDetails ? 'hidden' : ''}`}>
+          <div
+            className={`${isFocused || showLocationDetails ? 'hidden' : ''}`}
+          >
             {selectedSites && selectedSites.length > 0 && (
               <>
-                <div className='flex justify-between items-center px-4'>
-                  <div className='flex gap-1'>
-                    <div className='font-medium text-secondary-neutral-dark-400 text-sm'>
+                <div className="flex justify-between items-center px-4">
+                  <div className="flex gap-1">
+                    <div className="font-medium text-secondary-neutral-dark-400 text-sm">
                       Sort by:
                     </div>
-                    <select className='rounded-md m-0 p-0 text-sm text-center font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none'>
-                      <option value='custom'>Suggested</option>
+                    <select className="rounded-md m-0 p-0 text-sm text-center font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none">
+                      <option value="custom">Suggested</option>
                       {/* <option value='near_me'>Near me</option> */}
                     </select>
                   </div>
@@ -431,7 +471,8 @@ const index = ({ siteDetails, isAdmin }) => {
         <div
           className={`flex flex-col h-full pt-4 w-auto ${
             isFocused && !showLocationDetails ? '' : 'hidden'
-          }`}>
+          }`}
+        >
           {/* Sidebar Header */}
           <div className={`flex flex-col gap-5 px-4`}>
             <SidebarHeader
@@ -450,7 +491,7 @@ const index = ({ siteDetails, isAdmin }) => {
           </div>
 
           {reduxSearchTerm === '' && (
-            <div className='border border-secondary-neutral-light-100 mt-8' />
+            <div className="border border-secondary-neutral-light-100 mt-8" />
           )}
 
           {reduxSearchTerm && (
@@ -463,12 +504,14 @@ const index = ({ siteDetails, isAdmin }) => {
           {isError.message !== '' && (
             <Toast
               message={isError.message}
-              clearData={() => setIsError({ message: '', type: '', isError: false })}
+              clearData={() =>
+                setIsError({ message: '', type: '', isError: false })
+              }
               type={isError.type}
               timeout={3000}
-              dataTestId='sidebar-toast'
-              size='lg'
-              position='bottom'
+              dataTestId="sidebar-toast"
+              size="lg"
+              position="bottom"
             />
           )}
 
@@ -477,15 +520,15 @@ const index = ({ siteDetails, isAdmin }) => {
           )}
 
           {searchResults?.length === 0 && !isLoading ? (
-            <div className='flex flex-col justify-center items-center h-full w-full pt-8 px-6'>
-              <div className='p-5 rounded-full bg-secondary-neutral-light-50 border border-secondary-neutral-light-25 mb-2.5'>
-                <LocationIcon fill='#9EA3AA' />
+            <div className="flex flex-col justify-center items-center h-full w-full pt-8 px-6">
+              <div className="p-5 rounded-full bg-secondary-neutral-light-50 border border-secondary-neutral-light-25 mb-2.5">
+                <LocationIcon fill="#9EA3AA" />
               </div>
-              <div className='my-4'>
-                <div className='text-secondary-neutral-dark-700 text-base font-medium text-center mb-1'>
+              <div className="my-4">
+                <div className="text-secondary-neutral-dark-700 text-base font-medium text-center mb-1">
                   No results found
                 </div>
-                <div className='text-center text-sm font-medium leading-tight text-secondary-neutral-dark-400 w-[244px]'>
+                <div className="text-center text-sm font-medium leading-tight text-secondary-neutral-dark-400 w-[244px]">
                   Please try again with a different location name
                 </div>
               </div>
@@ -501,23 +544,23 @@ const index = ({ siteDetails, isAdmin }) => {
 
         {selectedSite && !mapLoading && (
           <div>
-            <div className='bg-secondary-neutral-dark-50 pt-6 pb-5'>
-              <div className='flex items-center gap-2 text-black-800 mb-4 mx-4'>
-                <Button paddingStyles='p-0' onClick={handleExit}>
+            <div className="bg-secondary-neutral-dark-50 pt-6 pb-5">
+              <div className="flex items-center gap-2 text-black-800 mb-4 mx-4">
+                <Button paddingStyles="p-0" onClick={handleExit}>
                   <ArrowLeftIcon />
                 </Button>
-                <h3 className='text-xl font-medium leading-7'>
+                <h3 className="text-xl font-medium leading-7">
                   {
                     capitalizeAllText(
                       selectedSite?.description ||
                         selectedSite?.search_name ||
-                        selectedSite?.location,
+                        selectedSite?.location
                     )?.split(',')[0]
                   }
                 </h3>
               </div>
 
-              <div className='mx-4'>
+              <div className="mx-4">
                 <WeekPrediction
                   selectedSite={selectedSite}
                   weeklyPredictions={weeklyPredictions}
@@ -526,12 +569,13 @@ const index = ({ siteDetails, isAdmin }) => {
               </div>
             </div>
 
-            <div className='border border-secondary-neutral-light-100 my-5' />
+            <div className="border border-secondary-neutral-light-100 my-5" />
 
             <div
               className={`mx-4 mb-5 ${
                 width < 1024 ? 'sidebar-scroll-bar h-dvh' : ''
-              } flex flex-col gap-4`}>
+              } flex flex-col gap-4`}
+            >
               {/* Pollutant Card */}
               <PollutantCard
                 selectedSite={selectedSite}
@@ -540,7 +584,7 @@ const index = ({ siteDetails, isAdmin }) => {
 
               {/* Alert Card */}
               <LocationAlertCard
-                title='Air Quality Alerts'
+                title="Air Quality Alerts"
                 selectedSite={selectedSite}
                 selectedWeeklyPrediction={selectedWeeklyPrediction}
               />

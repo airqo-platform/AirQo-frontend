@@ -15,7 +15,7 @@ export const collocateDevices = createAsyncThunk(
   async (collocateDevices) => {
     const response = await collocateDevicesApi(collocateDevices);
     return response;
-  },
+  }
 );
 
 export const getDeviceStatusSummary = createAsyncThunk(
@@ -23,7 +23,7 @@ export const getDeviceStatusSummary = createAsyncThunk(
   async () => {
     const response = await getDeviceStatusSummaryApi();
     return response.data;
-  },
+  }
 );
 
 export const getCollocationResults = createAsyncThunk(
@@ -31,7 +31,7 @@ export const getCollocationResults = createAsyncThunk(
   async ({ devices, batchId }) => {
     const response = await getCollocationResultsApi({ devices, batchId });
     return response.data;
-  },
+  }
 );
 
 export const getDataCompletenessResults = createAsyncThunk(
@@ -39,7 +39,7 @@ export const getDataCompletenessResults = createAsyncThunk(
   async ({ devices, batchId }) => {
     const response = await getDataCompletenessResultsApi({ devices, batchId });
     return response;
-  },
+  }
 );
 
 export const getIntraSensorCorrelation = createAsyncThunk(
@@ -47,7 +47,7 @@ export const getIntraSensorCorrelation = createAsyncThunk(
   async (addIntraSensorInput) => {
     const response = await getIntraSensorCorrelationApi(addIntraSensorInput);
     return response;
-  },
+  }
 );
 
 export const getInterSensorCorrelation = createAsyncThunk(
@@ -55,15 +55,17 @@ export const getInterSensorCorrelation = createAsyncThunk(
   async (addInterSensorInput) => {
     const response = await getInterSensorCorrelationApi(addInterSensorInput);
     return response;
-  },
+  }
 );
 
 export const getCollocationStatistics = createAsyncThunk(
   'collocation/collocationStatisticsData',
   async (addCollocationStatisticsInput) => {
-    const response = await getCollocationStatisticsApi(addCollocationStatisticsInput);
+    const response = await getCollocationStatisticsApi(
+      addCollocationStatisticsInput
+    );
     return response;
-  },
+  }
 );
 
 export const getCollocationBatchResults = createAsyncThunk(
@@ -71,7 +73,7 @@ export const getCollocationBatchResults = createAsyncThunk(
   async (batchId) => {
     const response = await getCollocationBatchResultsApi(batchId);
     return response;
-  },
+  }
 );
 
 const collocationSlice = createSlice({

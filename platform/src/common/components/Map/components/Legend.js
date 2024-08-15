@@ -143,30 +143,35 @@ export const AirQualityLegend = ({ pollutant }) => {
   const levels = pollutantLevels[pollutant];
 
   return (
-    <div className='flex flex-col items-center rounded-full shadow-md p-1 md:p-2 bg-white'>
+    <div className="flex flex-col items-center rounded-full shadow-md p-1 md:p-2 bg-white">
       <button
         onClick={() => setShow(!show)}
-        className='rounded-full p-2 mb-1 last:mb-0'
-        aria-label='Air Quality Control'>
+        className="rounded-full p-2 mb-1 last:mb-0"
+        aria-label="Air Quality Control"
+      >
         {show ? <DownArrow /> : <UpArrow />}
       </button>
       {show &&
         levels.map((level, index) => (
           <Tippy
             content={
-              <div className='p-1'>
-                <p className='text-xs text-center text-[#9EA3AA]'>{level.label}</p>
-                <p className='text-xs text-center'>{level.range}</p>
+              <div className="p-1">
+                <p className="text-xs text-center text-[#9EA3AA]">
+                  {level.label}
+                </p>
+                <p className="text-xs text-center">{level.range}</p>
               </div>
             }
             key={index}
             offset={[0, 20]}
-            placement='right'
-            theme='light'
-            animation={'scale'}>
+            placement="right"
+            theme="light"
+            animation={'scale'}
+          >
             <button
               className={`bg-${level.color}-500 rounded-full mb-2 last:mb-0`}
-              aria-label={level.label}>
+              aria-label={level.label}
+            >
               {level.icon}
             </button>
           </Tippy>

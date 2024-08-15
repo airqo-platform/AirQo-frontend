@@ -33,7 +33,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const [focusedRowIndex, setFocusedRowIndex] = useState(null);
   const [statusSummary, setStatusSummary] = useState([]);
   const [openStatusSummaryModal, setOpenStatusSummaryModal] = useState(false);
-  const [selectedReportDeviceName, setSelectedReportDeviceName] = useState(null);
+  const [selectedReportDeviceName, setSelectedReportDeviceName] =
+    useState(null);
   const [selectedReportBatchId, setSelectedReportBatchId] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -58,10 +59,12 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     error,
   } = useSelector((state) => state.collocation.collocationBatchResults);
 
-  const collocationBatchResultsData = collocationBatchResults ? collocationBatchResults.data : [];
+  const collocationBatchResultsData = collocationBatchResults
+    ? collocationBatchResults.data
+    : [];
 
   const selectedCollocateDevices = useSelector(
-    (state) => state.selectedCollocateDevices.selectedCollocateDevices,
+    (state) => state.selectedCollocateDevices.selectedCollocateDevices
   );
 
   useEffect(() => {
@@ -118,7 +121,9 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
       .then((response) => {
         setVisibleDeleteDevice(false);
         dispatch(getDeviceStatusSummary());
-        setSuccessMessage(`Succesfully deleted device ${device} from batch ${batchName}`);
+        setSuccessMessage(
+          `Succesfully deleted device ${device} from batch ${batchName}`
+        );
       })
       .catch((error) => {
         setVisibleDeleteDevice(false);
@@ -179,35 +184,60 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         />
       )}
 
-      {errorMessage && <Toast type={'error'} timeout={5000} message={errorMessage} />}
+      {errorMessage && (
+        <Toast type={'error'} timeout={5000} message={errorMessage} />
+      )}
 
-      {successMessage && <Toast type={'success'} timeout={5000} message={successMessage} />}
+      {successMessage && (
+        <Toast type={'success'} timeout={5000} message={successMessage} />
+      )}
 
       <table
-        className='border-collapse text-xs text-left w-full mb-6'
-        data-testid='collocation-device-status-summary'
+        className="border-collapse text-xs text-left w-full mb-6"
+        data-testid="collocation-device-status-summary"
       >
         <thead>
-          <tr className='border-b border-b-slate-300 text-black'>
-            <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
+          <tr className="border-b border-b-slate-300 text-black">
+            <th
+              scope="col"
+              className="font-normal w-[175px] px-4 py-3 opacity-40"
+            >
               Monitor name
             </th>
-            <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
+            <th
+              scope="col"
+              className="font-normal w-[175px] px-4 py-3 opacity-40"
+            >
               Batch name
             </th>
-            <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
+            <th
+              scope="col"
+              className="font-normal w-[175px] px-4 py-3 opacity-40"
+            >
               Date added
             </th>
-            <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
+            <th
+              scope="col"
+              className="font-normal w-[175px] px-4 py-3 opacity-40"
+            >
               Added by
             </th>
-            <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
+            <th
+              scope="col"
+              className="font-normal w-[175px] px-4 py-3 opacity-40"
+            >
               Start date
             </th>
-            <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
+            <th
+              scope="col"
+              className="font-normal w-[175px] px-4 py-3 opacity-40"
+            >
               End date
             </th>
-            <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
+            <th
+              scope="col"
+              className="font-normal w-[175px] px-4 py-3 opacity-40"
+            >
               Status
             </th>
           </tr>
@@ -230,25 +260,25 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     onFocus={() => setFocusedRowIndex(index)}
                     onBlur={() => setFocusedRowIndex(null)}
                   >
-                    <td scope='row' className='w-[175px] px-4 py-3 uppercase'>
+                    <td scope="row" className="w-[175px] px-4 py-3 uppercase">
                       {device.device_name}
                     </td>
-                    <td scope='row' className='w-[175px] px-4 py-3 uppercase'>
+                    <td scope="row" className="w-[175px] px-4 py-3 uppercase">
                       {device.batch_name}
                     </td>
-                    <td scope='row' className='w-[175px] px-4 py-3'>
+                    <td scope="row" className="w-[175px] px-4 py-3">
                       {moment(device.date_added).format('MMM DD, YYYY')}
                     </td>
-                    <td scope='row' className='w-[175px] px-4 py-3'>
+                    <td scope="row" className="w-[175px] px-4 py-3">
                       {device.added_by || ' '}
                     </td>
-                    <td scope='row' className='w-[175px] px-4 py-3'>
+                    <td scope="row" className="w-[175px] px-4 py-3">
                       {moment(device.start_date).format('MMM DD, YYYY')}
                     </td>
-                    <td scope='row' className='w-[175px] px-4 py-3'>
+                    <td scope="row" className="w-[175px] px-4 py-3">
                       {moment(device.end_date).format('MMM DD, YYYY')}
                     </td>
-                    <td scope='row' className='w-[175px] px-4 py-3'>
+                    <td scope="row" className="w-[175px] px-4 py-3">
                       <div
                         onClick={() => {
                           setStatusSummary(device.status_summary);
@@ -260,21 +290,22 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                           STATUS_COLOR_CODES[device.status.toLowerCase()]
                         } rounded-lg justify-start items-center gap-1 inline-flex cursor-pointer`}
                       >
-                        <div className='text-center text-neutral-800 capitalize'>
+                        <div className="text-center text-neutral-800 capitalize">
                           {device.status.toLowerCase()}
                         </div>
-                        <div className='justify-start items-start gap-1 flex'>
-                          <div className='w-3.5 h-3.5 relative'>
+                        <div className="justify-start items-start gap-1 flex">
+                          <div className="w-3.5 h-3.5 relative">
                             <InfoIcon />
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td scope='row' className='w-[75px] px-4 py-3'>
+                    <td scope="row" className="w-[75px] px-4 py-3">
                       <Dropdown
                         menu={menu}
                         length={
-                          index === (collocationDevices && collocationDevices.length - 1)
+                          index ===
+                          (collocationDevices && collocationDevices.length - 1)
                             ? 'last'
                             : ''
                         }
@@ -286,7 +317,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
               })
             ) : (
               <tr>
-                <td colSpan='6' className='text-center pt-6 text-grey-300'>
+                <td colSpan="6" className="text-center pt-6 text-grey-300">
                   No data found
                 </td>
               </tr>
@@ -297,20 +328,20 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
 
       {/* delete device/batch modal */}
       {visible && (
-        <div data-testid='delete_modal'>
+        <div data-testid="delete_modal">
           <Modal
             display={visible}
             handleConfirm={() => deleteBatch()}
             closeModal={() => setVisible(false)}
             description={`Are you sure you want to delete this collocation batch ${collocationInput.batchName}?`}
-            confirmButton='Delete'
+            confirmButton="Delete"
           />
         </div>
       )}
 
       {/* detailed report modal */}
       {openStatusSummaryModal && (
-        <div data-testid='status_summary_report_popup'>
+        <div data-testid="status_summary_report_popup">
           <ReportDetailCard
             data={statusSummary}
             deviceName={selectedReportDeviceName}
@@ -323,13 +354,13 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
 
       {/* delete device modal */}
       {visibleDeleteDevice && (
-        <div data-testid='delete_modal'>
+        <div data-testid="delete_modal">
           <Modal
             display={visibleDeleteDevice}
             handleConfirm={() => deleteDevice()}
             closeModal={() => setVisibleDeleteDevice(false)}
             description={`Are you sure you want to delete ${collocationInput.device} from the collocation batch?`}
-            confirmButton='Delete'
+            confirmButton="Delete"
           />
         </div>
       )}

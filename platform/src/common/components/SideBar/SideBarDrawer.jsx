@@ -82,80 +82,101 @@ const SideBarDrawer = () => {
     <>
       {/* overlay */}
       {togglingDrawer && (
-        <div className='absolute inset-0 w-full h-dvh opacity-50 bg-black-700 z-[99999] transition-all duration-200 ease-in-out'></div>
+        <div className="absolute inset-0 w-full h-dvh opacity-50 bg-black-700 z-[99999] transition-all duration-200 ease-in-out"></div>
       )}
       {/* sidebar */}
       <div
         className={`${drawerClasses} fixed right-0 top-0 z-[99999] border-l-grey-750 border-l-[1px] transition-all duration-200 ease-in-out overflow-hidden`}
-        ref={sidebarRef}>
-        <div className='flex p-4 bg-white h-dvh lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden'>
+        ref={sidebarRef}
+      >
+        <div className="flex p-4 bg-white h-dvh lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden">
           <div>
-            <div className='pb-4 flex justify-between items-center'>
+            <div className="pb-4 flex justify-between items-center">
               {size.width < 1024 ? (
                 <div
-                  className='cursor-pointer'
+                  className="cursor-pointer"
                   onClick={() => {
                     router.push('/settings');
-                  }}>
+                  }}
+                >
                   {userInfo.profilePicture ? (
                     <img
-                      className='w-12 h-12 rounded-full object-cover'
+                      className="w-12 h-12 rounded-full object-cover"
                       src={userInfo.profilePicture || PlaceholderImage}
-                      alt=''
+                      alt=""
                     />
                   ) : (
-                    <div className='w-12 h-12 rounded-[28px] flex justify-center items-center bg-[#F3F6F8]'>
-                      <PersonIcon fill='#485972' />
+                    <div className="w-12 h-12 rounded-[28px] flex justify-center items-center bg-[#F3F6F8]">
+                      <PersonIcon fill="#485972" />
                     </div>
                   )}
                 </div>
               ) : (
-                <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
+                <AirqoLogo className="w-[46.56px] h-8 flex flex-col flex-1" />
               )}
-              <div className='flex justify-between items-center'>
+              <div className="flex justify-between items-center">
                 <button
-                  type='button'
-                  className='lg:hidden relative w-auto focus:outline-none border border-gray-200 rounded-xl p-2'
-                  onClick={() => dispatch(setToggleDrawer(false))}>
+                  type="button"
+                  className="lg:hidden relative w-auto focus:outline-none border border-gray-200 rounded-xl p-2"
+                  onClick={() => dispatch(setToggleDrawer(false))}
+                >
                   <CloseIcon />
                 </button>
               </div>
             </div>
-            <div className='mt-4'>
+            <div className="mt-4">
               <OrganizationDropdown />
             </div>
-            <div className='mt-11 space-y-3'>
-              <SideBarItem label='Home' Icon={HomeIcon} navPath='/Home' />
+            <div className="mt-11 space-y-3">
+              <SideBarItem label="Home" Icon={HomeIcon} navPath="/Home" />
 
-              <SideBarItem label='Analytics' Icon={BarChartIcon} navPath='/analytics' />
+              <SideBarItem
+                label="Analytics"
+                Icon={BarChartIcon}
+                navPath="/analytics"
+              />
 
-              <div className='text-xs text-[#6F87A1] px-[10px] my-3 mx-4 font-semibold transition-all duration-300 ease-in-out'>
+              <div className="text-xs text-[#6F87A1] px-[10px] my-3 mx-4 font-semibold transition-all duration-300 ease-in-out">
                 Network
               </div>
 
               {checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES') && (
                 <>
                   <SideBarItem
-                    label='Collocation'
+                    label="Collocation"
                     Icon={CollocateIcon}
                     dropdown
                     toggleMethod={() => setCollocationOpen(!collocationOpen)}
-                    toggleState={collocationOpen}>
-                    <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
-                    <SideBarDropdownItem itemLabel='Collocate' itemPath='/collocation/collocate' />
+                    toggleState={collocationOpen}
+                  >
+                    <SideBarDropdownItem
+                      itemLabel="Overview"
+                      itemPath="/collocation/overview"
+                    />
+                    <SideBarDropdownItem
+                      itemLabel="Collocate"
+                      itemPath="/collocation/collocate"
+                    />
                   </SideBarItem>
                 </>
               )}
 
-              <SideBarItem label='AirQo map' Icon={WorldIcon} navPath='/map' />
+              <SideBarItem label="AirQo map" Icon={WorldIcon} navPath="/map" />
             </div>
           </div>
           <div>
-            <SideBarItem label='Settings' Icon={SettingsIcon} navPath='/settings' />
+            <SideBarItem
+              label="Settings"
+              Icon={SettingsIcon}
+              navPath="/settings"
+            />
 
             {size.width < 1024 && (
               <div onClick={handleLogout}>
-                <SideBarItem label={isLoading ? 'Logging out...' : 'Logout'} Icon={LogoutIcon} />
+                <SideBarItem
+                  label={isLoading ? 'Logging out...' : 'Logout'}
+                  Icon={LogoutIcon}
+                />
               </div>
             )}
           </div>

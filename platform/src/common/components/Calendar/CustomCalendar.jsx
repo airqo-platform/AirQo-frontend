@@ -32,7 +32,13 @@ import TabButtons from '../Button/TabButtons';
  * @returns {JSX.Element}
  * @description CustomCalendar component
  */
-const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, className }) => {
+const CustomCalendar = ({
+  initialStartDate,
+  initialEndDate,
+  Icon,
+  dropdown,
+  className,
+}) => {
   const containerRef = useRef(null);
   const dispatch = useDispatch();
   const [openDatePicker, setOpenDatePicker] = useState(false);
@@ -91,7 +97,10 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
         isSameDay(endDate, endOfMonth(today))
       ) {
         label = 'This month';
-      } else if (isSameDay(startDate, startOfYear(today)) && isSameDay(endDate, endOfYear(today))) {
+      } else if (
+        isSameDay(startDate, startOfYear(today)) &&
+        isSameDay(endDate, endOfYear(today))
+      ) {
         label = 'This year';
       } else if (
         isSameDay(startDate, startOfYear(subDays(today, 365))) &&
@@ -102,9 +111,15 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
         const startYear = getYear(startDate);
         const endYear = getYear(endDate);
         if (startYear !== endYear) {
-          label = `${format(startDate, 'MMM dd, yyyy')} - ${format(endDate, 'MMM dd, yyyy')}`;
+          label = `${format(startDate, 'MMM dd, yyyy')} - ${format(
+            endDate,
+            'MMM dd, yyyy'
+          )}`;
         } else {
-          label = `${format(startDate, 'MMM dd')} - ${format(endDate, 'MMM dd, yyyy')}`;
+          label = `${format(startDate, 'MMM dd')} - ${format(
+            endDate,
+            'MMM dd, yyyy'
+          )}`;
         }
       }
 
@@ -123,7 +138,9 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
    */
   const DatePickerHiddenInput = () => (
     <Calendar
-      initialMonth1={new Date(new Date().getFullYear(), new Date().getMonth() - 1)}
+      initialMonth1={
+        new Date(new Date().getFullYear(), new Date().getMonth() - 1)
+      }
       initialMonth2={new Date()}
       handleValueChange={handleValueChange}
       closeDatePicker={() => setOpenDatePicker(false)}
@@ -151,13 +168,16 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
   });
 
   return (
-    <div className='relative cursor-pointer date-picker-container' ref={containerRef}>
+    <div
+      className="relative cursor-pointer date-picker-container"
+      ref={containerRef}
+    >
       <TabButtons
         Icon={<CalendarIcon />}
         btnText={chartData.chartDataRange.label}
         dropdown
         onClick={handleClick}
-        id='datePicker'
+        id="datePicker"
         type={'button'}
       />
       <div
@@ -165,7 +185,8 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
           openDatePicker
             ? 'opacity-100 translate-y-0 visible'
             : 'opacity-0 -translate-y-2 invisible'
-        } transition-all duration-400 ease-in-out transform`}>
+        } transition-all duration-400 ease-in-out transform`}
+      >
         <DatePickerHiddenInput />
       </div>
     </div>

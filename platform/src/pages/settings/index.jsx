@@ -14,7 +14,8 @@ import { setChartTab } from '@/lib/store/services/charts/ChartSlice';
 import API from './Tabs/API';
 
 export const checkAccess = (requiredPermission, rolePermissions) => {
-  const permissions = rolePermissions && rolePermissions.map((item) => item.permission);
+  const permissions =
+    rolePermissions && rolePermissions.map((item) => item.permission);
 
   return permissions.includes(requiredPermission);
 };
@@ -25,7 +26,9 @@ const Settings = () => {
   const [loading, setLoading] = useState(false);
   const [userPermissions, setUserPermissions] = useState([]);
   const [userGroup, setUserGroup] = useState({});
-  const preferences = useSelector((state) => state.defaults.individual_preferences);
+  const preferences = useSelector(
+    (state) => state.defaults.individual_preferences
+  );
   const userInfo = useSelector((state) => state.login.userInfo);
 
   useEffect(() => {
@@ -34,7 +37,8 @@ const Settings = () => {
     if (!storedActiveGroup) return setLoading(false);
 
     setUserGroup(JSON.parse(storedActiveGroup));
-    const activeGroupId = storedActiveGroup && JSON.parse(storedActiveGroup)._id;
+    const activeGroupId =
+      storedActiveGroup && JSON.parse(storedActiveGroup)._id;
     const storedUserPermissions =
       storedActiveGroup && JSON.parse(storedActiveGroup).role.role_permissions;
 
@@ -61,26 +65,33 @@ const Settings = () => {
   }, [userInfo, preferences]);
 
   return (
-    <Layout topbarTitle={'Settings'} noBorderBottom pageTitle='Settings'>
+    <Layout topbarTitle={'Settings'} noBorderBottom pageTitle="Settings">
       <Tabs>
-        <Tab label='My profile'>
+        <Tab label="My profile">
           <Profile />
         </Tab>
-        <Tab label='Password'>
+        <Tab label="Password">
           <Password />
         </Tab>
-        <Tab label='API'>
+        <Tab label="API">
           <API userPermissions={userPermissions} />
         </Tab>
-        {userPermissions && checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_USERS', userPermissions) && (
-          <Tab label='Organisation'>
-            <OrganizationProfile />
-          </Tab>
-        )}
+        {userPermissions &&
+          checkAccess(
+            'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
+            userPermissions
+          ) && (
+            <Tab label="Organisation">
+              <OrganizationProfile />
+            </Tab>
+          )}
         {userGroup &&
           userPermissions &&
-          checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_USERS', userPermissions) && (
-            <Tab label='Team'>
+          checkAccess(
+            'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
+            userPermissions
+          ) && (
+            <Tab label="Team">
               <Team users={teamMembers} loading={loading} />
             </Tab>
           )}

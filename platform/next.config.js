@@ -4,7 +4,10 @@ module.exports = withVideos({
   images: {
     remotePatterns: [],
   },
-
+  eslint: {
+    dirs: ['pages', 'components', 'lib', 'utils', 'src'],
+    ignoreDuringBuilds: true,
+  },
   // Adding support for Docker
   output: 'standalone',
   webpack(config) {

@@ -11,9 +11,10 @@ const TabItem = ({ child, index, activeTab, onClick }) => {
   return (
     <li
       key={index}
-      role='presentation'
+      role="presentation"
       className={`${className} whitespace-nowrap py-2 border-b-2 rounded-tl-full rounded-tr-full font-medium text-sm focus:outline-none mr-2 cursor-pointer`}
-      onClick={onClick}>
+      onClick={onClick}
+    >
       {child.props.label}
     </li>
   );
@@ -33,14 +34,18 @@ function Tabs({ children, childrenRight, positionFixed }) {
   };
 
   return (
-    <div data-testid='tabs' className='relative w-full transition-all duration-300 ease-in-out'>
+    <div
+      data-testid="tabs"
+      className="relative w-full transition-all duration-300 ease-in-out"
+    >
       <div
         className={`${
           positionFixed && 'fixed'
         } w-full h-14 px-4 md:px-6 lg:px-10 border-b border-grey-200 flex items-end z-20 ${
           childrenRight && 'justify-between'
-        }`}>
-        <ul className='flex overflow-x-auto map-scrollbar gap-6 text-sm font-medium text-center'>
+        }`}
+      >
+        <ul className="flex overflow-x-auto map-scrollbar gap-6 text-sm font-medium text-center">
           {childrenArray.map((child, index) => (
             <TabItem
               key={index}
@@ -57,7 +62,7 @@ function Tabs({ children, childrenRight, positionFixed }) {
             childrenRight[chartData.chartTab].children}
         </div>
       </div>
-      <div className='h-8' />
+      <div className="h-8" />
       <div>{children[chartData.chartTab]}</div>
     </div>
   );

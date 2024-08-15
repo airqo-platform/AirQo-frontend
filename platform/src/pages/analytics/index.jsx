@@ -66,7 +66,11 @@ const AuthenticatedHomePage = () => {
       });
       setOpenConfirmModal(true);
     } else {
-      setAlert({ type: 'error', message: 'Please select sites and date range', show: true });
+      setAlert({
+        type: 'error',
+        message: 'Please select sites and date range',
+        show: true,
+      });
     }
   }, [chartSites, chartDataRange]);
 
@@ -88,7 +92,11 @@ const AuthenticatedHomePage = () => {
       });
       setOpenPrintModal(true);
     } else {
-      setAlert({ type: 'error', message: 'Please select sites and date range', show: true });
+      setAlert({
+        type: 'error',
+        message: 'Please select sites and date range',
+        show: true,
+      });
     }
   }, [chartSites, chartDataRange]);
 
@@ -117,7 +125,14 @@ const AuthenticatedHomePage = () => {
           unit: 'px',
           format: [width, height],
         });
-        pdf.addImage(canvas.toDataURL('image/png', 0.8), 'PNG', 0, 0, width, height);
+        pdf.addImage(
+          canvas.toDataURL('image/png', 0.8),
+          'PNG',
+          0,
+          0,
+          width,
+          height
+        );
         pdf.save('chart.pdf');
       });
     }

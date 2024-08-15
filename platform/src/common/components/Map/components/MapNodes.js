@@ -10,16 +10,30 @@ import Invalid from '@/icons/Charts/Invalid';
 
 // icon images
 export const images = {
-  GoodAir: `data:image/svg+xml,${encodeURIComponent(renderToString(<GoodAir />))}`,
-  ModerateAir: `data:image/svg+xml,${encodeURIComponent(renderToString(<ModerateAir />))}`,
-  UnhealthyForSensitiveGroups: `data:image/svg+xml,${encodeURIComponent(
-    renderToString(<UnhealthyForSensitiveGroups />),
+  GoodAir: `data:image/svg+xml,${encodeURIComponent(
+    renderToString(<GoodAir />)
   )}`,
-  Unhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<Unhealthy />))}`,
-  VeryUnhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<VeryUnhealthy />))}`,
-  Hazardous: `data:image/svg+xml,${encodeURIComponent(renderToString(<Hazardous />))}`,
-  Invalid: `data:image/svg+xml,${encodeURIComponent(renderToString(<Invalid />))}`,
-  undefined: `data:image/svg+xml,${encodeURIComponent(renderToString(<Invalid />))}`,
+  ModerateAir: `data:image/svg+xml,${encodeURIComponent(
+    renderToString(<ModerateAir />)
+  )}`,
+  UnhealthyForSensitiveGroups: `data:image/svg+xml,${encodeURIComponent(
+    renderToString(<UnhealthyForSensitiveGroups />)
+  )}`,
+  Unhealthy: `data:image/svg+xml,${encodeURIComponent(
+    renderToString(<Unhealthy />)
+  )}`,
+  VeryUnhealthy: `data:image/svg+xml,${encodeURIComponent(
+    renderToString(<VeryUnhealthy />)
+  )}`,
+  Hazardous: `data:image/svg+xml,${encodeURIComponent(
+    renderToString(<Hazardous />)
+  )}`,
+  Invalid: `data:image/svg+xml,${encodeURIComponent(
+    renderToString(<Invalid />)
+  )}`,
+  undefined: `data:image/svg+xml,${encodeURIComponent(
+    renderToString(<Invalid />)
+  )}`,
 };
 
 const markerDetails = {
@@ -172,16 +186,21 @@ export const UnclusteredNode = ({ feature, NodeType, selectedNode }) => {
   // Check if feature.properties.aqi is defined
   if (feature.properties && feature.properties.aqi) {
     const Icon = images[feature.properties.aqi.icon];
-    const isActive = selectedNode && selectedNode === feature.properties._id ? 'active' : '';
+    const isActive =
+      selectedNode && selectedNode === feature.properties._id ? 'active' : '';
 
     if (NodeType === 'Number') {
       return `
-      <div id="${feature.properties._id}" class="unClustered-Number shadow-md ${isActive}"
+      <div id="${
+        feature.properties._id
+      }" class="unClustered-Number shadow-md ${isActive}"
           style="background-color: ${feature.properties.aqi.color}; color: ${
         feature.properties.aqi.color
       }; width: 40px; height: 40px;"
         >
-        <p class="text-[#000] text-xs font-bold">${feature.properties.pm2_5.toFixed(2)}</p>
+        <p class="text-[#000] text-xs font-bold">${feature.properties.pm2_5.toFixed(
+          2
+        )}</p>
         <span class="arrow"></span>
       </div>
       `;
@@ -204,7 +223,10 @@ export const UnclusteredNode = ({ feature, NodeType, selectedNode }) => {
     `;
   } else {
     // Handle the case where feature.properties.aqi is not defined
-    console.error('feature.properties.aqi is not defined for feature: ', feature);
+    console.error(
+      'feature.properties.aqi is not defined for feature: ',
+      feature
+    );
     return '';
   }
 };
@@ -225,8 +247,16 @@ export const createClusterNode = ({ feature, NodeType }) => {
   const FirstIcon = images[firstAQI.aqi.icon];
   const SecondIcon = images[secondAQI.aqi.icon];
 
-  const firstAQIValue = (firstAQI.pm2_5 || firstAQI.no2 || firstAQI.pm10).toFixed(2);
-  const secondAQIValue = (secondAQI.pm2_5 || secondAQI.no2 || secondAQI.pm10).toFixed(2);
+  const firstAQIValue = (
+    firstAQI.pm2_5 ||
+    firstAQI.no2 ||
+    firstAQI.pm10
+  ).toFixed(2);
+  const secondAQIValue = (
+    secondAQI.pm2_5 ||
+    secondAQI.no2 ||
+    secondAQI.pm10
+  ).toFixed(2);
 
   // Get the correct count for the nodes in the cluster
   const count = feature.properties.point_count;
@@ -294,16 +324,20 @@ export const createPopupHTML = ({ feature, images }) => {
           </div>
         </div>
         <div class="text-[#3C4555] font-semibold text-sm leading-4">${feature.properties.pm2_5.toFixed(
-          2,
+          2
         )} µg/m³</div>
       </div>
       <div class="flex justify-between gap-5 items-center w-full">
         <p class="font-semibold text-sm leading-4" style="color: ${
           feature.properties.aqi.color
         };width:30ch;">
-          Air Quality is ${feature.properties.airQuality.replace(/([A-Z])/g, ' $1').trim()}
+          Air Quality is ${feature.properties.airQuality
+            .replace(/([A-Z])/g, ' $1')
+            .trim()}
         </p>
-        <img src="${images[feature.properties.aqi.icon]}" alt="AQI Icon" class="w-8 h-8">
+        <img src="${
+          images[feature.properties.aqi.icon]
+        }" alt="AQI Icon" class="w-8 h-8">
       </div>
     </div>
   `;

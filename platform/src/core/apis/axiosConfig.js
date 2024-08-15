@@ -34,7 +34,7 @@ const createAxiosInstance = (isJWT = true) => {
     },
     (error) => {
       return Promise.reject(error);
-    },
+    }
   );
 
   return axiosInstance;

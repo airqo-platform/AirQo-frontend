@@ -33,7 +33,10 @@ const Table = ({ collocationDevices }) => {
       collocationDevices &&
       collocationDevices.length > 0 &&
       collocationDevices.filter((row) =>
-        Object.values(row).join('').toLowerCase().includes(searchTerm.toLowerCase()),
+        Object.values(row)
+          .join('')
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
       );
     setFilteredData(filterList);
   }, [searchTerm, sortOption, collocationDevices]);
@@ -45,7 +48,9 @@ const Table = ({ collocationDevices }) => {
   }
 
   const paginatedData =
-    filteredData && filteredData.length > 0 && filteredData.slice(startIndex, endIndex);
+    filteredData &&
+    filteredData.length > 0 &&
+    filteredData.slice(startIndex, endIndex);
 
   const handleSearch = (searchTerm, filterOptions) => {
     setSearchTerm(searchTerm);
@@ -82,7 +87,9 @@ const Table = ({ collocationDevices }) => {
       const dateA = parseISO(a.time);
       const dateB = parseISO(b.time);
 
-      return order === 'asc' ? compareAsc(dateA, dateB) : compareDesc(dateA, dateB);
+      return order === 'asc'
+        ? compareAsc(dateA, dateB)
+        : compareDesc(dateA, dateB);
     });
 
     return sortedData;
@@ -93,56 +100,62 @@ const Table = ({ collocationDevices }) => {
       const nameA = a.device || '';
       const nameB = b.device || '';
 
-      return order === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+      return order === 'asc'
+        ? nameA.localeCompare(nameB)
+        : nameB.localeCompare(nameA);
     });
 
     return sortedData;
   };
 
   return (
-    <div className='col-span-2 gap-0 pt-6 border-r border-grey-150'>
-      <div className='px-6 pb-6'>
-        <h3 className='text-xl text-black-600 pb-[2px]'>Select monitor to collocate</h3>
-        <h6 className='text-sm text-grey-300'>You can more than one monitor to collocate </h6>
+    <div className="col-span-2 gap-0 pt-6 border-r border-grey-150">
+      <div className="px-6 pb-6">
+        <h3 className="text-xl text-black-600 pb-[2px]">
+          Select monitor to collocate
+        </h3>
+        <h6 className="text-sm text-grey-300">
+          You can more than one monitor to collocate{' '}
+        </h6>
       </div>
-      <div className='flex flex-wrap items-center justify-between w-full px-6 pb-6 md:flex-nowrap'>
+      <div className="flex flex-wrap items-center justify-between w-full px-6 pb-6 md:flex-nowrap">
         <SearchBar onSearch={handleSearch} />
-        <div className='flex items-center justify-end w-full'>
+        <div className="flex items-center justify-end w-full">
           <Button
             className={
               'h-9 w-full max-w-[114px] bg-grey-250 rounded-md text-black-900 font-medium text-sm mr-2'
             }
           >
-            <div className='mr-1'>
+            <div className="mr-1">
               <FilterIcon />
             </div>
             Filters
-            <div className='ml-[10px]'>
+            <div className="ml-[10px]">
               <ArrowDropDownIcon />
             </div>
           </Button>
 
-          <div className='dropdown'>
+          <div className="dropdown">
             <Button
               tabIndex={0}
               className={
                 'h-9 w-auto bg-grey-250 rounded-md text-black-900 font-medium text-sm mb-1'
               }
             >
-              <div className='mr-1'>
+              <div className="mr-1">
                 <SortByAlphaIcon />
               </div>
               Sort by
-              <div className='ml-1'>
+              <div className="ml-1">
                 <ArrowDropDownIcon />
               </div>
             </Button>
             <ul
               tabIndex={0}
-              className='p-2 shadow dropdown-content menu bg-base-100 rounded-box w-44'
+              className="p-2 shadow dropdown-content menu bg-base-100 rounded-box w-44"
             >
               <li
-                role='button'
+                role="button"
                 onClick={() => handleSort('newest')}
                 className={`text-sm text-grey leading-[21px] ${
                   sortOption === 'newest' ? 'font-semibold' : ''
@@ -151,7 +164,7 @@ const Table = ({ collocationDevices }) => {
                 <a>Newest date first</a>
               </li>
               <li
-                role='button'
+                role="button"
                 onClick={() => handleSort('oldest')}
                 className={`text-sm text-grey leading-[21px] ${
                   sortOption === 'oldest' ? 'font-semibold' : ''
@@ -160,7 +173,7 @@ const Table = ({ collocationDevices }) => {
                 <a>Oldest date first</a>
               </li>
               <li
-                role='button'
+                role="button"
                 onClick={() => handleSort('ascending')}
                 className={`text-sm text-grey leading-[21px] ${
                   sortOption === 'ascending' ? 'font-semibold' : ''
@@ -169,7 +182,7 @@ const Table = ({ collocationDevices }) => {
                 <a>Name A {'-->'} Z</a>
               </li>
               <li
-                role='button'
+                role="button"
                 onClick={() => handleSort('descending')}
                 className={`text-sm text-grey leading-[21px] ${
                   sortOption === 'descending' ? 'font-semibold' : ''
@@ -181,7 +194,7 @@ const Table = ({ collocationDevices }) => {
           </div>
         </div>
       </div>
-      <div className='overflow-x-scroll md:overflow-x-hidden'>
+      <div className="overflow-x-scroll md:overflow-x-hidden">
         <DataTable
           paginatedData={paginatedData.length > 0 && paginatedData}
           collocationDevices={collocationDevices}

@@ -39,7 +39,7 @@ export const createUser = createAsyncThunk(
       }
       return rejectWithValue(error.response.data);
     }
-  },
+  }
 );
 
 export const postOrganisationCreationDetails = createAsyncThunk(
@@ -54,7 +54,7 @@ export const postOrganisationCreationDetails = createAsyncThunk(
       }
       return rejectWithValue(error.response);
     }
-  },
+  }
 );
 
 export const updateOrganisationDetails = createAsyncThunk(
@@ -62,7 +62,7 @@ export const updateOrganisationDetails = createAsyncThunk(
   async (postData, id) => {
     const response = await updateOrganisationApi(postData, id);
     return response;
-  },
+  }
 );
 
 export const createAccountSlice = createSlice({

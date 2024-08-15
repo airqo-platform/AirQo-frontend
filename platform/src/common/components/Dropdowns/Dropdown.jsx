@@ -28,27 +28,30 @@ const Dropdown = ({ onItemClick, menu, length }) => {
   }, []);
 
   return (
-    <div className='Menu_dropdown' ref={dropdownRef}>
+    <div className="Menu_dropdown" ref={dropdownRef}>
       {/* this is the button */}
       <button
-        id='dropdownMenuIconHorizontalButton'
+        id="dropdownMenuIconHorizontalButton"
         onClick={toggleDropdown}
-        className='w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center hover:border-grey-300'
-        type='button'>
+        className="w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center hover:border-grey-300"
+        type="button"
+      >
         <MoreHorizIcon />
       </button>
       {/* Dropdown menu list */}
       <div
-        id='dropdownDotsHorizontal'
+        id="dropdownDotsHorizontal"
         className={`z-10 ${
           isOpen ? 'block' : 'hidden'
-        } bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600 mt-1`}>
-        <ul className='py-2 text-sm text-gray-700 dark:text-gray-200'>
+        } bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600 mt-1`}
+      >
+        <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
           {menu.map((item) => (
-            <li key={item.id} className='px-2'>
+            <li key={item.id} className="px-2">
               <span
                 onClick={() => onItemClick(item.id)}
-                className='flex justify-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer rounded-md'>
+                className="flex justify-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer rounded-md"
+              >
                 {item.name}
               </span>
             </li>

@@ -18,8 +18,12 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
   const [alert, setAlert] = useState({ type: '', message: '', show: false });
 
   const chartData = useSelector((state) => state.chart);
-  const startDate = moment(chartData.chartDataRange.startDate).format('MMMM D, YYYY');
-  const endDate = moment(chartData.chartDataRange.endDate).format('MMMM D, YYYY');
+  const startDate = moment(chartData.chartDataRange.startDate).format(
+    'MMMM D, YYYY'
+  );
+  const endDate = moment(chartData.chartDataRange.endDate).format(
+    'MMMM D, YYYY'
+  );
 
   const handleFormatChange = (event) => setSelectedFormat(event.target.value);
 
@@ -71,12 +75,21 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
           handleExportPDF();
         }
 
-        setAlert({ type: 'success', message: 'Air quality data download successful', show: true });
-        setTimeout(() => setAlert({ type: '', message: '', show: false }), 7000);
+        setAlert({
+          type: 'success',
+          message: 'Air quality data download successful',
+          show: true,
+        });
+        setTimeout(
+          () => setAlert({ type: '', message: '', show: false }),
+          7000
+        );
         handleCancel();
       } catch (err) {
         const message =
-          err.response && err.response.data && err.response.data.status === 'success'
+          err.response &&
+          err.response.data &&
+          err.response.data.status === 'success'
             ? 'Uh-oh! No data found for the selected parameters.'
             : 'An error occurred while exporting data';
         setAlert({ type: 'error', message, show: true });
@@ -84,7 +97,7 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
         setLoading(false);
       }
     },
-    [selectedFormat],
+    [selectedFormat]
   );
 
   /**
@@ -109,41 +122,46 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
   return (
     <div>
       <ExportModalWrapper
-        title='Export your report'
+        title="Export your report"
         open={open}
         onClose={onClose}
         downloadDataFunc={handleDataExport}
-        loading={loading}>
-        <div className='flex-col justify-start items-start gap-[13px] flex'>
+        loading={loading}
+      >
+        <div className="flex-col justify-start items-start gap-[13px] flex">
           <AlertBox
             type={alert.type}
             message={alert.message}
             show={alert.show}
             hide={() => setAlert({ ...alert, show: false })}
           />
-          <div className='self-stretch pr-2 justify-start items-start gap-2.5 inline-flex'>
-            <div className='text-gray-700 text-base font-medium leading-tight'>Export as</div>
+          <div className="self-stretch pr-2 justify-start items-start gap-2.5 inline-flex">
+            <div className="text-gray-700 text-base font-medium leading-tight">
+              Export as
+            </div>
           </div>
 
           {exportFormats.map((format, index) => (
             <div
-              className='justify-start items-start gap-2 inline-flex'
+              className="justify-start items-start gap-2 inline-flex"
               key={index}
-              data-testid='selectedFormat-format'>
+              data-testid="selectedFormat-format"
+            >
               <input
-                type='radio'
-                name='selectedFormat'
+                type="radio"
+                name="selectedFormat"
                 value={format}
                 checked={selectedFormat === format}
                 onChange={handleFormatChange}
               />
-              <div className='inline-flex flex-col'>
-                <span className='self-stretch text-gray-600 text-sm font-medium leading-tight uppercase'>
+              <div className="inline-flex flex-col">
+                <span className="self-stretch text-gray-600 text-sm font-medium leading-tight uppercase">
                   {format}
                 </span>
                 {format === 'csv' && (
-                  <span className='text-gray-500 text-sm font-normal leading-tight'>
-                    Report will be exported as a CSV(comma separated values) table.
+                  <span className="text-gray-500 text-sm font-normal leading-tight">
+                    Report will be exported as a CSV(comma separated values)
+                    table.
                   </span>
                 )}
               </div>

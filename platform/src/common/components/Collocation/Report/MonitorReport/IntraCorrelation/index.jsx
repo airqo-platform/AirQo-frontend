@@ -30,10 +30,10 @@ const IntraCorrelationChart = ({
   const [input, setInput] = useState(null);
 
   const activeSelectedDeviceCollocationReportData = useSelector(
-    (state) => state.collocationData.activeSelectedDeviceCollocationReportData,
+    (state) => state.collocationData.activeSelectedDeviceCollocationReportData
   );
   const activeSelectedDeviceReport = useSelector(
-    (state) => state.collocationData.activeSelectedDeviceReport,
+    (state) => state.collocationData.activeSelectedDeviceReport
   );
 
   const {
@@ -43,7 +43,9 @@ const IntraCorrelationChart = ({
     rejected: isFetchCollocationResultsError,
   } = useSelector((state) => state.collocation.collocationResults);
 
-  const newCollocationResults = collocationResultsData ? collocationResultsData.data : null;
+  const newCollocationResults = collocationResultsData
+    ? collocationResultsData.data
+    : null;
 
   useEffect(() => {
     if (!isEmpty(input) && input.device) {
@@ -81,47 +83,53 @@ const IntraCorrelationChart = ({
         query: updatedQuery,
       });
 
-      dispatch(addActiveSelectedDeviceCollocationReportData(newCollocationResults));
+      dispatch(
+        addActiveSelectedDeviceCollocationReportData(newCollocationResults)
+      );
     }
   }, [input, isFetchCollocationResultsSuccess, newCollocationResults]);
 
   return (
     <Box
       isBigTitle
-      title='Intra Sensor Correlation'
-      subtitle='Detailed comparison of data between two sensors that are located within the same device. By comparing data from sensors to create a more accurate and reliable reading.'
+      title="Intra Sensor Correlation"
+      subtitle="Detailed comparison of data between two sensors that are located within the same device. By comparing data from sensors to create a more accurate and reliable reading."
     >
       {isLoading || isFetchCollocationResultsLoading ? (
-        <div className='h-20' data-testid='correlation-data-loader'>
+        <div className="h-20" data-testid="correlation-data-loader">
           <Spinner />
         </div>
       ) : (
-        <div className='flex flex-col justify-start w-full'>
-          <div className='relative'>
+        <div className="flex flex-col justify-start w-full">
+          <div className="relative">
             <Button
-              className='relative w-auto h-10 bg-purple-600 rounded-lg text-base font-semibold text-purple-700 ml-6'
+              className="relative w-auto h-10 bg-purple-600 rounded-lg text-base font-semibold text-purple-700 ml-6"
               onClick={() => setIsOpen(!isOpen)}
             >
-              <span className='uppercase'>
-                {activeSelectedDeviceReport && activeSelectedDeviceReport.device}
+              <span className="uppercase">
+                {activeSelectedDeviceReport &&
+                  activeSelectedDeviceReport.device}
               </span>
-              <span className='ml-2 text-purple-700'>
-                <ArrowDropDownIcon fillColor='#584CAB' />
+              <span className="ml-2 text-purple-700">
+                <ArrowDropDownIcon fillColor="#584CAB" />
               </span>
             </Button>
             {isOpen && deviceList.length > 1 && (
-              <ul className='absolute z-30 bg-white mt-1 ml-6 py-1 w-36 rounded border border-gray-200 max-h-60 overflow-y-auto text-sm'>
+              <ul className="absolute z-30 bg-white mt-1 ml-6 py-1 w-36 rounded border border-gray-200 max-h-60 overflow-y-auto text-sm">
                 {deviceList.map(
                   (device, index) =>
-                    activeSelectedDeviceReport.device !== device.device_name && (
+                    activeSelectedDeviceReport.device !==
+                      device.device_name && (
                       <li
                         key={index}
-                        className='px-4 py-2 hover:bg-gray-200 cursor-pointer text-xs uppercase'
-                        onClick={() => handleSelect(device.device_name, device.batch_id)}
+                        className="px-4 py-2 hover:bg-gray-200 cursor-pointer text-xs uppercase"
+                        onClick={() =>
+                          handleSelect(device.device_name, device.batch_id)
+                        }
                       >
                         {device.device_name}
                       </li>
-                    ),
+                    )
                 )}
               </ul>
             )}
@@ -142,7 +150,9 @@ const IntraCorrelationChart = ({
               graphColors={graphColors}
             />
           ) : (
-            <div className='text-center text-grey-300 text-sm'>No data found</div>
+            <div className="text-center text-grey-300 text-sm">
+              No data found
+            </div>
           )}
           {graphColors && activeSelectedDeviceReport && (
             <CustomLegend

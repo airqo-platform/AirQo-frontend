@@ -51,7 +51,9 @@ const ResetThreshold = ({ batchId, type, closeModal }) => {
         }, 3000);
       })
       .catch((err) => {
-        setErrorMessage(err && err.response && err.response.data && err.response.data.message);
+        setErrorMessage(
+          err && err.response && err.response.data && err.response.data.message
+        );
         setShowErrorToast(true);
         setTimeout(() => {
           setShowErrorToast(false);
@@ -61,28 +63,30 @@ const ResetThreshold = ({ batchId, type, closeModal }) => {
   };
 
   return (
-    <div className='w-full mt-4'>
-      {showErrorToast && <Toast type={'error'} timeout={5000} message={errorMessage} size='sm' />}
+    <div className="w-full mt-4">
+      {showErrorToast && (
+        <Toast type={'error'} timeout={5000} message={errorMessage} size="sm" />
+      )}
 
       {showRecomputeToast && (
         <Toast
           type={'success'}
           timeout={5000}
           message={'Recomputing data. Please check back in a few minutes.'}
-          size='sm'
+          size="sm"
         />
       )}
-      <div className='flex gap-2 flex-wrap'>
+      <div className="flex gap-2 flex-wrap">
         <input
-          type='text'
-          placeholder='Type here'
-          className='input input-bordered input-sm w-full max-w-xs rounded-none outline-none border-none'
+          type="text"
+          placeholder="Type here"
+          className="input input-bordered input-sm w-full max-w-xs rounded-none outline-none border-none"
           onChange={(e) => setThresholdValue(e.target.value)}
         />
         <Button
-          type='submit'
+          type="submit"
           onClick={submitForm}
-          className='text-white w-[178px] h-8 text-sm bg-blue-900'
+          className="text-white w-[178px] h-8 text-sm bg-blue-900"
         >
           Reset threshold
         </Button>

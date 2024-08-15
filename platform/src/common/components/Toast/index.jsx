@@ -3,7 +3,16 @@ import WarningCircleIcon from '@/icons/Common/warning_circle';
 import InfoCircleIcon from '@/icons/Common/info_circle.svg';
 import Button from '@/components/Button';
 
-const Toast = ({ message, type, timeout, dataTestId, size, clearData, bgColor, position }) => {
+const Toast = ({
+  message,
+  type,
+  timeout,
+  dataTestId,
+  size,
+  clearData,
+  bgColor,
+  position,
+}) => {
   const [visible, setVisible] = useState(true);
 
   const colors = {
@@ -21,9 +30,9 @@ const Toast = ({ message, type, timeout, dataTestId, size, clearData, bgColor, p
   const getIcon = () => {
     switch (type) {
       case 'error':
-        return <WarningCircleIcon fillcolor='#FFF' />;
+        return <WarningCircleIcon fillcolor="#FFF" />;
       case 'info':
-        return <InfoCircleIcon fill='#FFF' className='text-white w-10 h-10' />;
+        return <InfoCircleIcon fill="#FFF" className="text-white w-10 h-10" />;
       default:
         return null;
     }
@@ -51,13 +60,13 @@ const Toast = ({ message, type, timeout, dataTestId, size, clearData, bgColor, p
       data-testid={dataTestId}
     >
       {type === 'info' ? (
-        <div className='fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50'>
+        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50">
           <div
             className={`${containerStyles} flex-col justify-center min-w-96 max-w-96 text-black-900 gap-5`}
           >
             {getIcon()}
-            <p className='ml-2 text-black-900'>{message}</p>
-            <Button onClick={handleClose} variant='filled'>
+            <p className="ml-2 text-black-900">{message}</p>
+            <Button onClick={handleClose} variant="filled">
               Close
             </Button>
           </div>
@@ -65,7 +74,7 @@ const Toast = ({ message, type, timeout, dataTestId, size, clearData, bgColor, p
       ) : (
         <div className={containerStyles}>
           {getIcon()}
-          <p className='ml-2 capitalize'>{message}</p>
+          <p className="ml-2 capitalize">{message}</p>
         </div>
       )}
     </div>

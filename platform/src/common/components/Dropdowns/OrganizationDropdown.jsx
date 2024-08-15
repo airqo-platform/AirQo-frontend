@@ -22,7 +22,9 @@ const OrganizationDropdown = () => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState({});
-  const preferences = useSelector((state) => state.defaults.individual_preferences);
+  const preferences = useSelector(
+    (state) => state.defaults.individual_preferences
+  );
   const userInfo = useSelector((state) => state.login.userInfo);
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
 
@@ -52,7 +54,10 @@ const OrganizationDropdown = () => {
   useEffect(() => {
     const storedActiveGroup = JSON.parse(localStorage.getItem('activeGroup'));
 
-    if (storedActiveGroup && (!preferences || preferences[0]?.group_id === '')) {
+    if (
+      storedActiveGroup &&
+      (!preferences || preferences[0]?.group_id === '')
+    ) {
       handleUpdatePreferences(storedActiveGroup);
     }
   }, [userInfo, preferences]);
@@ -74,21 +79,23 @@ const OrganizationDropdown = () => {
     return (
       <CustomDropdown
         trigger={
-          <button className='w-full'>
-            <div className='w-full h-12 pl-2 pr-3 py-2 bg-white rounded-xl border border-gray-200 justify-between items-center inline-flex'>
-              <div className='justify-start items-center gap-3 flex'>
-                <div className='w-8 h-8 py-1.5 bg-gray-50 rounded-full justify-center items-center flex gap-3'>
-                  <div className='w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight'>
+          <button className="w-full">
+            <div className="w-full h-12 pl-2 pr-3 py-2 bg-white rounded-xl border border-gray-200 justify-between items-center inline-flex">
+              <div className="justify-start items-center gap-3 flex">
+                <div className="w-8 h-8 py-1.5 bg-gray-50 rounded-full justify-center items-center flex gap-3">
+                  <div className="w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight">
                     {activeGroup?.grp_title ? activeGroup.grp_title[0] : ''}
                   </div>
                 </div>
                 <div
                   className={`pt-0.5 justify-start items-start gap-1 ${
                     !isCollapsed ? 'flex' : 'hidden'
-                  }`}>
+                  }`}
+                >
                   <div
-                    className='text-slate-500 text-sm font-medium uppercase leading-tight text-left'
-                    title={activeGroup?.grp_title}>
+                    className="text-slate-500 text-sm font-medium uppercase leading-tight text-left"
+                    title={activeGroup?.grp_title}
+                  >
                     {activeGroup?.grp_title?.length > 10
                       ? `${activeGroup.grp_title.slice(0, 10)}...`
                       : activeGroup?.grp_title}
@@ -97,36 +104,42 @@ const OrganizationDropdown = () => {
               </div>
               <span
                 className={`${
-                  userInfo && userInfo.groups && userInfo.groups.length > 1 ? 'block' : 'hidden'
-                } ${!isCollapsed ? 'flex' : 'hidden'}`}>
+                  userInfo && userInfo.groups && userInfo.groups.length > 1
+                    ? 'block'
+                    : 'hidden'
+                } ${!isCollapsed ? 'flex' : 'hidden'}`}
+              >
                 <ChevronDownIcon />
               </span>
             </div>
           </button>
         }
         sidebar={true}
-        id='options'>
+        id="options"
+      >
         {userInfo &&
           userInfo.groups &&
           userInfo.groups.map((format) => (
             <a
               key={format._id}
-              href='#'
+              href="#"
               onClick={() => handleDropdownSelect(format)}
               className={`w-full h-11 px-3.5 py-2.5 justify-between items-center inline-flex ${
                 activeGroup &&
                 activeGroup?.grp_title === format?.grp_title &&
                 'bg-secondary-neutral-light-50'
-              }`}>
-              <div className='grow shrink basis-0 h-6 justify-start items-center gap-2 flex'>
-                <div className='w-8 h-8 py-1.5 bg-gray-50 rounded-full justify-center items-center flex'>
-                  <div className='w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight'>
+              }`}
+            >
+              <div className="grow shrink basis-0 h-6 justify-start items-center gap-2 flex">
+                <div className="w-8 h-8 py-1.5 bg-gray-50 rounded-full justify-center items-center flex">
+                  <div className="w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight">
                     {format?.grp_title ? format.grp_title[0] : ''}
                   </div>
                 </div>
                 <div
-                  className='max-w-[120px] w-full text-gray-700 text-sm font-normal leading-tight uppercase'
-                  title={format.grp_title}>
+                  className="max-w-[120px] w-full text-gray-700 text-sm font-normal leading-tight uppercase"
+                  title={format.grp_title}
+                >
                   {format && format.grp_title && format.grp_title.length > 10
                     ? formatString(format.grp_title.slice(0, 10)) + '...'
                     : formatString(format.grp_title)}
@@ -136,8 +149,9 @@ const OrganizationDropdown = () => {
                 <span>
                   <Spinner width={20} height={20} />
                 </span>
-              ) : activeGroup && activeGroup?.grp_title === format?.grp_title ? (
-                <CheckIcon fill='#145FFF' />
+              ) : activeGroup &&
+                activeGroup?.grp_title === format?.grp_title ? (
+                <CheckIcon fill="#145FFF" />
               ) : null}
             </a>
           ))}

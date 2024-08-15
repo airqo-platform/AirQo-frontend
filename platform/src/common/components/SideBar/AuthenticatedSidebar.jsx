@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import CollapseIcon from '@/icons/SideBar/Collapse.svg';
 import { useWindowSize } from '@/lib/windowSize';
-import SideBarItem, { SideBarDropdownItem, SidebarIconItem } from './SideBarItem';
+import SideBarItem, {
+  SideBarDropdownItem,
+  SidebarIconItem,
+} from './SideBarItem';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import HomeIcon from '@/icons/SideBar/HomeIcon';
@@ -90,7 +93,7 @@ const AuthenticatedSideBar = () => {
       updateUserChecklists({
         user_id: userInfo._id,
         items: cardCheckList,
-      }),
+      })
     );
 
     // Check the status of the updateUserChecklists request
@@ -108,80 +111,93 @@ const AuthenticatedSideBar = () => {
       <div
         className={`${
           isCollapsed ? 'w-[88px]' : 'w-[288px]'
-        } hidden h-dvh relative lg:block transition-all duration-200 ease-in-out p-2`}>
-        <div className='flex p-2 bg-white h-full lg:relative flex-col justify-between overflow-y-auto border border-grey-750 scrollbar-thin rounded-xl scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden'>
+        } hidden h-dvh relative lg:block transition-all duration-200 ease-in-out p-2`}
+      >
+        <div className="flex p-2 bg-white h-full lg:relative flex-col justify-between overflow-y-auto border border-grey-750 scrollbar-thin rounded-xl scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden">
           <div>
-            <div className='pb-4 flex justify-between items-center'>
+            <div className="pb-4 flex justify-between items-center">
               {size.width < 1024 ? (
                 <div
-                  className='cursor-pointer'
+                  className="cursor-pointer"
                   onClick={() => {
                     router.push('/settings');
-                  }}>
+                  }}
+                >
                   {userInfo.profilePicture ? (
                     <img
-                      className='w-12 h-12 rounded-full object-cover'
+                      className="w-12 h-12 rounded-full object-cover"
                       src={userInfo.profilePicture || PlaceholderImage}
-                      alt=''
+                      alt=""
                     />
                   ) : (
-                    <div className='w-12 h-12 rounded-[28px] flex justify-center items-center bg-[#F3F6F8]'>
-                      <PersonIcon fill='#485972' />
+                    <div className="w-12 h-12 rounded-[28px] flex justify-center items-center bg-[#F3F6F8]">
+                      <PersonIcon fill="#485972" />
                     </div>
                   )}
                 </div>
               ) : (
-                <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
+                <AirqoLogo className="w-[46.56px] h-8 flex flex-col flex-1" />
               )}
             </div>
-            <div className='mt-4'>
+            <div className="mt-4">
               <OrganizationDropdown />
             </div>
-            <div className='mt-11 space-y-3'>
+            <div className="mt-11 space-y-3">
               {isCollapsed ? (
-                <SidebarIconItem IconComponent={HomeIcon} navPath='/Home' />
+                <SidebarIconItem IconComponent={HomeIcon} navPath="/Home" />
               ) : (
-                <SideBarItem label='Home' Icon={HomeIcon} navPath='/Home' />
+                <SideBarItem label="Home" Icon={HomeIcon} navPath="/Home" />
               )}
               {isCollapsed ? (
-                <SidebarIconItem IconComponent={BarChartIcon} navPath='/analytics' />
+                <SidebarIconItem
+                  IconComponent={BarChartIcon}
+                  navPath="/analytics"
+                />
               ) : (
-                <SideBarItem label='Analytics' Icon={BarChartIcon} navPath='/analytics' />
+                <SideBarItem
+                  label="Analytics"
+                  Icon={BarChartIcon}
+                  navPath="/analytics"
+                />
               )}
               {isCollapsed ? (
-                <hr className='my-3 h-[0.5px] bg-grey-150 transition-all duration-300 ease-in-out' />
+                <hr className="my-3 h-[0.5px] bg-grey-150 transition-all duration-300 ease-in-out" />
               ) : (
-                <div className='text-xs text-[#7A7F87] px-[10px] my-3 mx-4 font-semibold transition-all duration-300 ease-in-out'>
+                <div className="text-xs text-[#7A7F87] px-[10px] my-3 mx-4 font-semibold transition-all duration-300 ease-in-out">
                   Network
                 </div>
               )}
               {checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES') && (
                 <>
                   {isCollapsed ? (
-                    <div className='relative'>
+                    <div className="relative">
                       <div onClick={toggleDropdown}>
                         <div
                           className={`relative flex items-center p-4 rounded-xl cursor-pointer ${
                             isCurrentRoute ? 'bg-light-blue' : ''
-                          } hover:bg-gray-200`}>
+                          } hover:bg-gray-200`}
+                        >
                           {isCurrentRoute && (
-                            <span className='bg-blue-600 w-1 h-1/2 mr-2 absolute rounded-xl -left-2'></span>
+                            <span className="bg-blue-600 w-1 h-1/2 mr-2 absolute rounded-xl -left-2"></span>
                           )}
-                          <CollocateIcon fill={isCurrentRoute ? '#145FFF' : '#1C1D20'} />
+                          <CollocateIcon
+                            fill={isCurrentRoute ? '#145FFF' : '#1C1D20'}
+                          />
                         </div>
                       </div>
                       {dropdown && (
-                        <div className='relative bottom-20'>
+                        <div className="relative bottom-20">
                           <div
                             ref={dropdownRef}
-                            className='fixed left-24 w-40 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-[1000]'>
+                            className="fixed left-24 w-40 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-[1000]"
+                          >
                             <Link href={'/collocation/overview'}>
-                              <div className='w-full p-4 hover:bg-[#f3f6f8] cursor-pointer'>
+                              <div className="w-full p-4 hover:bg-[#f3f6f8] cursor-pointer">
                                 Overview
                               </div>
                             </Link>
                             <Link href={'/collocation/collocate'}>
-                              <div className='w-full p-4 hover:bg-[#f3f6f8] cursor-pointer'>
+                              <div className="w-full p-4 hover:bg-[#f3f6f8] cursor-pointer">
                                 Collocate
                               </div>
                             </Link>
@@ -191,44 +207,67 @@ const AuthenticatedSideBar = () => {
                     </div>
                   ) : (
                     <SideBarItem
-                      label='Collocation'
+                      label="Collocation"
                       Icon={CollocateIcon}
                       dropdown
                       toggleMethod={() => setCollocationOpen(!collocationOpen)}
-                      toggleState={collocationOpen}>
-                      <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
+                      toggleState={collocationOpen}
+                    >
                       <SideBarDropdownItem
-                        itemLabel='Collocate'
-                        itemPath='/collocation/collocate'
+                        itemLabel="Overview"
+                        itemPath="/collocation/overview"
+                      />
+                      <SideBarDropdownItem
+                        itemLabel="Collocate"
+                        itemPath="/collocation/collocate"
                       />
                     </SideBarItem>
                   )}
                 </>
               )}
               {isCollapsed ? (
-                <SidebarIconItem IconComponent={WorldIcon} navPath='/map' />
+                <SidebarIconItem IconComponent={WorldIcon} navPath="/map" />
               ) : (
-                <SideBarItem label='AirQo map' Icon={WorldIcon} navPath='/map' />
+                <SideBarItem
+                  label="AirQo map"
+                  Icon={WorldIcon}
+                  navPath="/map"
+                />
               )}
             </div>
           </div>
           <div>
             {isCollapsed ? (
-              <SidebarIconItem IconComponent={SettingsIcon} navPath='/settings' />
+              <SidebarIconItem
+                IconComponent={SettingsIcon}
+                navPath="/settings"
+              />
             ) : (
-              <SideBarItem label='Settings' Icon={SettingsIcon} navPath='/settings' />
+              <SideBarItem
+                label="Settings"
+                Icon={SettingsIcon}
+                navPath="/settings"
+              />
             )}
             {size.width < 1024 && (
               <div onClick={handleLogout}>
-                <SideBarItem label={isLoading ? 'Logging out...' : 'Logout'} Icon={LogoutIcon} />
+                <SideBarItem
+                  label={isLoading ? 'Logging out...' : 'Logout'}
+                  Icon={LogoutIcon}
+                />
               </div>
             )}
           </div>
         </div>
         {/* collapse sidebar */}
         <div
-          className={`absolute flex rounded-full top-11 -right-[3px] z-50 bg-white  p-1 shadow-md justify-between items-center`}>
-          <button type='button' className='bg-none' onClick={() => dispatch(toggleSidebar())}>
+          className={`absolute flex rounded-full top-11 -right-[3px] z-50 bg-white  p-1 shadow-md justify-between items-center`}
+        >
+          <button
+            type="button"
+            className="bg-none"
+            onClick={() => dispatch(toggleSidebar())}
+          >
             <LeftArrowIcon className={isCollapsed ? 'hidden' : 'block'} />
             <RightArrowIcon className={isCollapsed ? 'block' : 'hidden'} />
           </button>

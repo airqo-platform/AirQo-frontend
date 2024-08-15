@@ -16,7 +16,10 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import Spinner from '@/components/Spinner';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
-import { fetchAnalyticsData, setAnalyticsData } from '@/lib/store/services/charts/ChartData';
+import {
+  fetchAnalyticsData,
+  setAnalyticsData,
+} from '@/lib/store/services/charts/ChartData';
 import {
   renderCustomizedLegend,
   CustomDot,
@@ -36,11 +39,16 @@ export const useAnalytics = () => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
   const refreshChart = useSelector((state) => state.chart.refreshChart);
-  const preferencesLoading = useSelector((state) => state.userDefaults.status === 'loading');
-  const isLoading = useSelector((state) => state.analytics.status === 'loading');
+  const preferencesLoading = useSelector(
+    (state) => state.userDefaults.status === 'loading'
+  );
+  const isLoading = useSelector(
+    (state) => state.analytics.status === 'loading'
+  );
   const [error, setError] = useState(null);
   const [loadingTime, setLoadingTime] = useState(0);
-  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const preferenceData =
+    useSelector((state) => state.defaults.individual_preferences) || [];
 
   useEffect(() => {
     if (preferencesLoading || !preferenceData.length) return;
@@ -61,7 +69,7 @@ export const useAnalytics = () => {
             frequency: chartData.timeFrame,
             pollutant: chartData.pollutionType,
             organisation_name: chartData.organizationName,
-          }),
+          })
         );
       } catch (err) {
         setError(err.message);
@@ -86,13 +94,16 @@ const useAnalyticsData = () => {
   const analyticsData = useSelector((state) => state.analytics.data);
   const [dataForChart, setDataForChart] = useState([]);
   const [allKeys, setAllKeys] = useState(new Set());
-  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const preferenceData =
+    useSelector((state) => state.defaults.individual_preferences) || [];
   const siteData = useSelector((state) => state.grids.sitesSummary);
 
   // Helper functions
   const getSiteName = (siteId, preferenceData) => {
     if (!preferenceData?.length) return '';
-    const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
+    const site = preferenceData[0]?.selected_sites?.find(
+      (site) => site._id === siteId
+    );
     return site ? site.name?.split(',')[0] : '';
   };
 
@@ -125,8 +136,8 @@ const useAnalyticsData = () => {
         new Set(
           Object.values(transformedData).length > 0
             ? Object.keys(Object.values(transformedData)[0])
-            : [],
-        ),
+            : []
+        )
       );
     };
 
@@ -145,7 +156,12 @@ const useAnalyticsData = () => {
  * @param {String} height - Height of the chart
  * @returns {React.Component} Charts
  */
-const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => {
+const Charts = ({
+  chartType = 'line',
+  width = '100%',
+  height = '100%',
+  id,
+}) => {
   const chartData = useSelector((state) => state.chart);
   const { isLoading, error, loadingTime } = useAnalytics();
   const { dataForChart, allKeys } = useAnalyticsData();
@@ -186,20 +202,20 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
   }, [isLoading, loadingTime]);
 
   const renderErrorMessage = () => (
-    <div className='ml-10 pr-10 flex justify-center text-center items-center w-full h-full text-sm'>
-      <p className='text-red-500 text-center'>
-        An error has occurred. Please try again later or reach out to our support team for
-        assistance.
+    <div className="ml-10 pr-10 flex justify-center text-center items-center w-full h-full text-sm">
+      <p className="text-red-500 text-center">
+        An error has occurred. Please try again later or reach out to our
+        support team for assistance.
       </p>
     </div>
   );
 
   const renderLoadingMessage = () => (
-    <div className='ml-10 flex justify-center text-center items-center w-full h-full'>
-      <div className='text-blue-500'>
+    <div className="ml-10 flex justify-center text-center items-center w-full h-full">
+      <div className="text-blue-500">
         <Spinner />
         {showLoadingMessage && (
-          <span className='text-yellow-500 mt-2'>
+          <span className="text-yellow-500 mt-2">
             The data is currently being processed. We appreciate your patience.
           </span>
         )}
@@ -209,8 +225,9 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
 
   // No data for this time range
   const renderNoDataMessage = () => (
-    <div className='ml-10 pr-10 flex justify-center items-center w-full h-full text-center text-sm text-gray-600'>
-      No data found. Please try other time periods or customize using other locations
+    <div className="ml-10 pr-10 flex justify-center items-center w-full h-full text-center text-sm text-gray-600">
+      No data found. Please try other time periods or customize using other
+      locations
     </div>
   );
 
@@ -236,14 +253,15 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
           margin={{
             top: 38,
             right: 10,
-          }}>
+          }}
+        >
           {Array.from(allKeys)
             .filter((key) => key !== 'time')
             .map((key, index) => (
               <Line
                 key={key}
                 dataKey={key}
-                type='monotone'
+                type="monotone"
                 stroke={
                   index === activeIndex || activeIndex === null
                     ? colors[index % colors.length]
@@ -256,22 +274,22 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
                 onMouseLeave={handleMouseLeave}
               />
             ))}
-          <CartesianGrid stroke='#ccc' strokeDasharray='5 5' vertical={false} />
+          <CartesianGrid stroke="#ccc" strokeDasharray="5 5" vertical={false} />
           <ReferenceLine
             y={WHO_STANDARD_VALUE}
             label={CustomReferenceLabel}
-            ifOverflow='extendDomain'
-            stroke='red'
+            ifOverflow="extendDomain"
+            stroke="red"
             strokeOpacity={1}
             strokeDasharray={0}
           />
           <XAxis
-            dataKey='time'
+            dataKey="time"
             interval={window.innerWidth < 1153 ? 2 : 1}
             tick={<CustomizedAxisTick fill={'#1C1D20'} />}
             tickLine={true}
             axisLine={false}
-            scale='point'
+            scale="point"
             padding={{ left: 30, right: 30 }}
           />
           <YAxis
@@ -287,11 +305,12 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
               } else {
                 return tick;
               }
-            }}>
+            }}
+          >
             <Label
               value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
-              position='insideTopRight'
-              fill='#1C1D20'
+              position="insideTopRight"
+              fill="#1C1D20"
               offset={0}
               fontSize={12}
               dy={-35}
@@ -321,7 +340,8 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
           margin={{
             top: 38,
             right: 10,
-          }}>
+          }}
+        >
           {Array.from(allKeys)
             .filter((key) => key !== 'time')
             .map((key, index) => (
@@ -335,17 +355,17 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
                 onMouseLeave={handleMouseLeave}
               />
             ))}
-          <CartesianGrid stroke='#ccc' strokeDasharray='5 5' vertical={false} />
+          <CartesianGrid stroke="#ccc" strokeDasharray="5 5" vertical={false} />
           <ReferenceLine
             y={WHO_STANDARD_VALUE}
             label={CustomReferenceLabel}
-            ifOverflow='extendDomain'
-            stroke='red'
+            ifOverflow="extendDomain"
+            stroke="red"
             strokeOpacity={1}
             strokeDasharray={0}
           />
           <XAxis
-            dataKey='time'
+            dataKey="time"
             tickLine={true}
             tick={<CustomizedAxisTick />}
             interval={window.innerWidth < 1153 ? 2 : 1}
@@ -364,11 +384,12 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
               } else {
                 return tick;
               }
-            }}>
+            }}
+          >
             <Label
               value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
-              position='insideTopRight'
-              fill='#1C1D20'
+              position="insideTopRight"
+              fill="#1C1D20"
               offset={0}
               fontSize={12}
               dy={-35}
@@ -389,7 +410,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
   };
 
   return (
-    <div id={id} className='pt-2'>
+    <div id={id} className="pt-2">
       <ResponsiveContainer width={width} height={height}>
         {renderChart()}
       </ResponsiveContainer>

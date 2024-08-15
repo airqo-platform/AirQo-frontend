@@ -10,7 +10,7 @@ import moment from 'moment';
 const DataTable = ({ paginatedData, collocationDevices }) => {
   const dispatch = useDispatch();
   const selectedCollocateDevices = useSelector(
-    (state) => state.selectedCollocateDevices.selectedCollocateDevices,
+    (state) => state.selectedCollocateDevices.selectedCollocateDevices
   );
 
   useEffect(() => {
@@ -42,14 +42,14 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
 
   return (
     <table
-      className='border-collapse text-xs text-left w-full mb-6'
-      data-testid='collocation-device-selection-table'
+      className="border-collapse text-xs text-left w-full mb-6"
+      data-testid="collocation-device-selection-table"
     >
       <thead>
-        <tr className='border-b border-b-slate-300 text-black'>
-          <th scope='col' className='font-normal w-[61px] pb-3 px-6'>
+        <tr className="border-b border-b-slate-300 text-black">
+          <th scope="col" className="font-normal w-[61px] pb-3 px-6">
             <input
-              type='checkbox'
+              type="checkbox"
               checked={
                 collocationDevices &&
                 collocationDevices.length > 0 &&
@@ -58,16 +58,28 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
               onChange={handleSelectAllDevices}
             />
           </th>
-          <th scope='col' className='font-normal w-[145px] px-4 pb-3 opacity-40'>
+          <th
+            scope="col"
+            className="font-normal w-[145px] px-4 pb-3 opacity-40"
+          >
             Monitor name
           </th>
-          <th scope='col' className='font-normal w-[145px] px-4 pb-3 opacity-40'>
+          <th
+            scope="col"
+            className="font-normal w-[145px] px-4 pb-3 opacity-40"
+          >
             Last pushed data
           </th>
-          <th scope='col' className='font-normal w-[145px] px-4 pb-3 opacity-40'>
+          <th
+            scope="col"
+            className="font-normal w-[145px] px-4 pb-3 opacity-40"
+          >
             Added by
           </th>
-          <th scope='col' className='font-normal w-[209px] px-4 pb-3 opacity-40'>
+          <th
+            scope="col"
+            className="font-normal w-[209px] px-4 pb-3 opacity-40"
+          >
             Comments
           </th>
         </tr>
@@ -76,33 +88,33 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
         {paginatedData.length > 0 ? (
           paginatedData.map((device, index) => {
             return (
-              <tr className='border-b border-b-slate-300' key={index}>
-                <td scope='row' className='w-[61px] py-3 px-6'>
+              <tr className="border-b border-b-slate-300" key={index}>
+                <td scope="row" className="w-[61px] py-3 px-6">
                   <input
-                    type='checkbox'
+                    type="checkbox"
                     checked={selectedCollocateDevices.includes(device.device)}
                     value={device}
                     onChange={(e) => handleSelectDevice(e, device)}
                   />
                 </td>
-                <td scope='row' className='w-[145px] px-4 py-3 uppercase'>
+                <td scope="row" className="w-[145px] px-4 py-3 uppercase">
                   {device.device}
                 </td>
-                <td scope='row' className='w-[145px] px-4 py-3'>
+                <td scope="row" className="w-[145px] px-4 py-3">
                   {moment(device.time).format('MMM DD, YYYY')}
                 </td>
-                <td scope='row' className='w-[145px] px-4 py-3'>
+                <td scope="row" className="w-[145px] px-4 py-3">
                   {' '}
                 </td>
-                <td scope='row' className='w-[145px] px-4 py-3'></td>
+                <td scope="row" className="w-[145px] px-4 py-3"></td>
               </tr>
             );
           })
         ) : (
-          <tr className='border-b border-b-slate-300'>
+          <tr className="border-b border-b-slate-300">
             <td
               colSpan={5}
-              className='w-full py-3 px-6 text-center text-secondary-neutral-light-500'
+              className="w-full py-3 px-6 text-center text-secondary-neutral-light-500"
             >
               No devices found
             </td>

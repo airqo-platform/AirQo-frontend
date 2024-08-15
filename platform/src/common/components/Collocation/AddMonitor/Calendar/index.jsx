@@ -15,22 +15,29 @@ import { useSelector } from 'react-redux';
 
 const ScheduleCalendar = () => {
   const dispatch = useDispatch();
-  const storedStartDate = useSelector((state) => state.selectedCollocateDevices.startDate);
-  const storedEndDate = useSelector((state) => state.selectedCollocateDevices.endDate);
+  const storedStartDate = useSelector(
+    (state) => state.selectedCollocateDevices.startDate
+  );
+  const storedEndDate = useSelector(
+    (state) => state.selectedCollocateDevices.endDate
+  );
   const scheduledBatchName = useSelector(
-    (state) => state.selectedCollocateDevices.scheduledBatchName,
+    (state) => state.selectedCollocateDevices.scheduledBatchName
   );
   const scheduledBatchDataCompletenessThresholdRedux = useSelector(
-    (state) => state.selectedCollocateDevices.scheduledBatchDataCompletenessThreshold,
+    (state) =>
+      state.selectedCollocateDevices.scheduledBatchDataCompletenessThreshold
   );
   const scheduledBatchInterCorrelationThresholdRedux = useSelector(
-    (state) => state.selectedCollocateDevices.scheduledBatchInterCorrelationThreshold,
+    (state) =>
+      state.selectedCollocateDevices.scheduledBatchInterCorrelationThreshold
   );
   const scheduledBatchIntraCorrelationThresholdRedux = useSelector(
-    (state) => state.selectedCollocateDevices.scheduledBatchIntraCorrelationThreshold,
+    (state) =>
+      state.selectedCollocateDevices.scheduledBatchIntraCorrelationThreshold
   );
   const scheduledBatchDifferencesThresholdRedux = useSelector(
-    (state) => state.selectedCollocateDevices.scheduledBatchDifferencesThreshold,
+    (state) => state.selectedCollocateDevices.scheduledBatchDifferencesThreshold
   );
 
   const [value, setValue] = useState({
@@ -42,20 +49,30 @@ const ScheduleCalendar = () => {
   const [duration, setDuration] = useState(null);
   const [customRange, setCustomRange] = useState(false);
 
-  const [scheduledBatchDataCompletenessThreshold, setScheduledBatchDataCompletenessThreshold] =
-    useState(scheduledBatchDataCompletenessThresholdRedux);
-  const [scheduledBatchInterCorrelationThreshold, setScheduledBatchInterCorrelationThreshold] =
-    useState(scheduledBatchInterCorrelationThresholdRedux);
-  const [scheduledBatchIntraCorrelationThreshold, setScheduledBatchIntraCorrelationThreshold] =
-    useState(scheduledBatchIntraCorrelationThresholdRedux);
-  const [scheduledBatchDifferencesThreshold, setScheduledBatchDifferencesThreshold] = useState(
-    scheduledBatchDifferencesThresholdRedux,
-  );
+  const [
+    scheduledBatchDataCompletenessThreshold,
+    setScheduledBatchDataCompletenessThreshold,
+  ] = useState(scheduledBatchDataCompletenessThresholdRedux);
+  const [
+    scheduledBatchInterCorrelationThreshold,
+    setScheduledBatchInterCorrelationThreshold,
+  ] = useState(scheduledBatchInterCorrelationThresholdRedux);
+  const [
+    scheduledBatchIntraCorrelationThreshold,
+    setScheduledBatchIntraCorrelationThreshold,
+  ] = useState(scheduledBatchIntraCorrelationThresholdRedux);
+  const [
+    scheduledBatchDifferencesThreshold,
+    setScheduledBatchDifferencesThreshold,
+  ] = useState(scheduledBatchDifferencesThresholdRedux);
 
   useEffect(() => {
     // Difference between the start and end date
     if (value && value.startDate && value.endDate) {
-      const diffDates = moment(value.endDate).diff(moment(value.startDate), 'days');
+      const diffDates = moment(value.endDate).diff(
+        moment(value.startDate),
+        'days'
+      );
       if (diffDates > 0) {
         setDuration(diffDates + 1);
       }
@@ -116,39 +133,41 @@ const ScheduleCalendar = () => {
   };
 
   return (
-    <div className='pt-6'>
-      <div className='px-6 pb-7'>
-        <h3 className='text-xl'>Choose collocation period</h3>
-        <h5 className='text-grey-300 text-sm mb-4'>Select your collocation period</h5>
+    <div className="pt-6">
+      <div className="px-6 pb-7">
+        <h3 className="text-xl">Choose collocation period</h3>
+        <h5 className="text-grey-300 text-sm mb-4">
+          Select your collocation period
+        </h5>
         {collationDurations.map((option, index) => (
           <div
-            className='border border-grey-100 py-1 px-4 rounded-md my-2 flex flex-row justify-between items-center text-sm'
+            className="border border-grey-100 py-1 px-4 rounded-md my-2 flex flex-row justify-between items-center text-sm"
             key={index}
-            data-testid='duration-option'
+            data-testid="duration-option"
           >
             {option} {'days'}
             <input
-              type='radio'
-              name='duration'
+              type="radio"
+              name="duration"
               value={option}
               checked={duration === option && !customRange}
               onChange={handleDurationChange}
             />
           </div>
         ))}
-        <div className='border border-grey-100 py-2 px-4 rounded-md my-2 flex flex-row justify-between items-center text-sm'>
+        <div className="border border-grey-100 py-2 px-4 rounded-md my-2 flex flex-row justify-between items-center text-sm">
           Custom
           <input
-            type='radio'
-            name='duration'
-            value='custom'
+            type="radio"
+            name="duration"
+            value="custom"
             checked={customRange}
             onChange={handleCustomRangeChange}
           />
         </div>
         {customRange && (
-          <div className='border-none border-r-0 border-l-0 border-b-0 border-t-skeleton'>
-            <div className='mb-8 flex flex-row justify-between items-center px-6'>
+          <div className="border-none border-r-0 border-l-0 border-b-0 border-t-skeleton">
+            <div className="mb-8 flex flex-row justify-between items-center px-6">
               {/* TODO: Duration upon range selection */}
               <Datepicker
                 value={value}
@@ -156,110 +175,124 @@ const ScheduleCalendar = () => {
                 placeholder={'YYYY-MM-DD to YYYY-MM-DD'}
                 separator={'to'}
                 readOnly={true}
-                inputClassName='font-sans text-xs text-grey-300 font-normal'
+                inputClassName="font-sans text-xs text-grey-300 font-normal"
                 classNames={{ calendar: 'bg-white' }}
               />
             </div>
           </div>
         )}
         <div>
-          <h3 className='text-xl'>Batch configuration</h3>
-          <h5 className='text-grey-300 text-sm mb-4'>
+          <h3 className="text-xl">Batch configuration</h3>
+          <h5 className="text-grey-300 text-sm mb-4">
             Customise the batch configurations. Can be modified later
           </h5>
-          <div className='form-control w-full'>
-            <label className='label'>
-              <span className='label-text'>Batch name*</span>
+          <div className="form-control w-full">
+            <label className="label">
+              <span className="label-text">Batch name*</span>
             </label>
             <input
-              type='text'
+              type="text"
               value={scheduledBatchName}
-              className='input input-bordered input-sm w-full rounded-md mb-3 bg-gray-50 border-none'
+              className="input input-bordered input-sm w-full rounded-md mb-3 bg-gray-50 border-none"
               onChange={(e) => {
                 dispatch(addScheduledBatchName(e.target.value));
               }}
               required
-              aria-required='true'
+              aria-required="true"
             />
             {
-              <p className='text-red-500 text-xs'>
+              <p className="text-red-500 text-xs">
                 {scheduledBatchName.length < 1 && 'Batch name is required'}
               </p>
             }
           </div>
-          <div className='form-control w-full'>
-            <label className='label'>
-              <span className='label-text'>Data completeness threshold</span>
+          <div className="form-control w-full">
+            <label className="label">
+              <span className="label-text">Data completeness threshold</span>
             </label>
             <input
-              type='text'
+              type="text"
               value={scheduledBatchDataCompletenessThreshold}
-              className='input input-bordered input-sm w-full rounded-md mb-3 bg-gray-50 border-none'
+              className="input input-bordered input-sm w-full rounded-md mb-3 bg-gray-50 border-none"
               onChange={(e) => {
                 setScheduledBatchDataCompletenessThreshold(e.target.value);
-                dispatch(addScheduledBatchDataCompletenessThreshold(e.target.value));
+                dispatch(
+                  addScheduledBatchDataCompletenessThreshold(e.target.value)
+                );
               }}
             />
             {
-              <p className='text-red-500 text-xs'>
-                {validateDataCompletenessThreshold(scheduledBatchDataCompletenessThreshold)}
+              <p className="text-red-500 text-xs">
+                {validateDataCompletenessThreshold(
+                  scheduledBatchDataCompletenessThreshold
+                )}
               </p>
             }
           </div>
-          <div className='form-control w-full'>
-            <label className='label'>
-              <span className='label-text'>Intercorrelation threshold</span>
+          <div className="form-control w-full">
+            <label className="label">
+              <span className="label-text">Intercorrelation threshold</span>
             </label>
             <input
-              type='text'
+              type="text"
               value={scheduledBatchInterCorrelationThreshold}
-              className='input input-bordered input-sm w-full rounded-md mb-3 bg-gray-50 border-none'
+              className="input input-bordered input-sm w-full rounded-md mb-3 bg-gray-50 border-none"
               onChange={(e) => {
                 setScheduledBatchInterCorrelationThreshold(e.target.value);
-                dispatch(addScheduledBatchInterCorrelationThreshold(e.target.value));
+                dispatch(
+                  addScheduledBatchInterCorrelationThreshold(e.target.value)
+                );
               }}
             />
             {
-              <p className='text-red-500 text-xs'>
-                {validateInterCorrelationThreshold(scheduledBatchInterCorrelationThreshold)}
+              <p className="text-red-500 text-xs">
+                {validateInterCorrelationThreshold(
+                  scheduledBatchInterCorrelationThreshold
+                )}
               </p>
             }
           </div>
-          <div className='form-control w-full'>
-            <label className='label'>
-              <span className='label-text'>Intracorrelation threshold</span>
+          <div className="form-control w-full">
+            <label className="label">
+              <span className="label-text">Intracorrelation threshold</span>
             </label>
             <input
-              type='text'
+              type="text"
               value={scheduledBatchIntraCorrelationThreshold}
-              className='input input-bordered input-sm w-full rounded-md mb-3 bg-gray-50 border-none'
+              className="input input-bordered input-sm w-full rounded-md mb-3 bg-gray-50 border-none"
               onChange={(e) => {
                 setScheduledBatchIntraCorrelationThreshold(e.target.value);
-                dispatch(addScheduledBatchIntraCorrelationThreshold(e.target.value));
+                dispatch(
+                  addScheduledBatchIntraCorrelationThreshold(e.target.value)
+                );
               }}
             />
             {
-              <p className='text-red-500 text-xs'>
-                {validateIntraCorrelationThreshold(scheduledBatchIntraCorrelationThreshold)}
+              <p className="text-red-500 text-xs">
+                {validateIntraCorrelationThreshold(
+                  scheduledBatchIntraCorrelationThreshold
+                )}
               </p>
             }
           </div>
-          <div className='form-control w-full'>
-            <label className='label'>
-              <span className='label-text'>Differences threshold</span>
+          <div className="form-control w-full">
+            <label className="label">
+              <span className="label-text">Differences threshold</span>
             </label>
             <input
-              type='text'
+              type="text"
               value={scheduledBatchDifferencesThreshold}
-              className='input input-bordered input-sm w-full rounded-md mb-3 bg-gray-50 border-none'
+              className="input input-bordered input-sm w-full rounded-md mb-3 bg-gray-50 border-none"
               onChange={(e) => {
                 setScheduledBatchDifferencesThreshold(e.target.value);
                 dispatch(addScheduledBatchDifferencesThreshold(e.target.value));
               }}
             />
             {
-              <p className='text-red-500 text-xs'>
-                {validateDifferencesThreshold(scheduledBatchDifferencesThreshold)}
+              <p className="text-red-500 text-xs">
+                {validateDifferencesThreshold(
+                  scheduledBatchDifferencesThreshold
+                )}
               </p>
             }
           </div>

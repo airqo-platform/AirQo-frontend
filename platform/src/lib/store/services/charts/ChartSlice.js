@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-const defaultChartSites = process.env.NEXT_PUBLIC_DEFAULT_CHART_SITES?.split(',') || [];
+const defaultChartSites =
+  process.env.NEXT_PUBLIC_DEFAULT_CHART_SITES?.split(',') || [];
 
 const getStartDate = () => {
   const startDate = new Date();

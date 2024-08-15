@@ -65,24 +65,25 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
     <nav
       className={`z-50 w-full px-6 my-8 py-2 lg:px-10 ${
         !noBorderBottom && 'border-b-[1px] border-b-grey-750'
-      }`}>
-      <div id='topBar-nav' className='flex justify-between items-center'>
+      }`}
+    >
+      <div id="topBar-nav" className="flex justify-between items-center">
         {/* Logo */}
-        <div className='block lg:hidden relative  z-10 w-full'>
-          <AirqoLogo className=' w-[46.56px] h-8' />
+        <div className="block lg:hidden relative  z-10 w-full">
+          <AirqoLogo className=" w-[46.56px] h-8" />
         </div>
 
         {/* sidebar toggle */}
-        <div className='font-medium hidden lg:flex items-center text-2xl text-neutral-light-800'>
-          <div className='flex items-center gap-[10px]'>
-            <span className='p-2 rounded-full bg-[#E2E3E5]'>
+        <div className="font-medium hidden lg:flex items-center text-2xl text-neutral-light-800">
+          <div className="flex items-center gap-[10px]">
+            <span className="p-2 rounded-full bg-[#E2E3E5]">
               <ChartIcon width={20} height={20} />
             </span>
             <div>{topbarTitle}</div>
           </div>
         </div>
 
-        <div className='hidden lg:flex gap-2 items-center'>
+        <div className="hidden lg:flex gap-2 items-center">
           {/* Search */}
           <TopBarSearch />
 
@@ -92,9 +93,9 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
                 Icon={
                   userInfo.profilePicture ? (
                     <img
-                      className='w-7 h-w-7 rounded-full object-cover'
+                      className="w-7 h-w-7 rounded-full object-cover"
                       src={userInfo.profilePicture || PlaceholderImage}
-                      alt=''
+                      alt=""
                     />
                   ) : (
                     <UserIcon />
@@ -105,28 +106,31 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
                 }  rounded-full`}
               />
             }
-            id='user'
-            className='right-0 top-8'>
-            <div className='flex items-center space-x-3 p-1'>
-              <div className='relative'>
+            id="user"
+            className="right-0 top-8"
+          >
+            <div className="flex items-center space-x-3 p-1">
+              <div className="relative">
                 <img
-                  className='w-10 h-10 rounded-full object-cover'
+                  className="w-10 h-10 rounded-full object-cover"
                   src={userInfo.profilePicture || PlaceholderImage}
-                  alt=''
+                  alt=""
                 />
-                <span className='bottom-0 left-7 absolute  w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full'></span>
+                <span className="bottom-0 left-7 absolute  w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"></span>
               </div>
               <div
-                className='font-medium dark:text-white'
-                style={{ overflowWrap: 'break-word', wordWrap: 'break-word' }}>
+                className="font-medium dark:text-white"
+                style={{ overflowWrap: 'break-word', wordWrap: 'break-word' }}
+              >
                 <div
-                  className='capitalize'
+                  className="capitalize"
                   style={{
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     maxWidth: '14ch',
-                  }}>
+                  }}
+                >
                   {userInfo?.firstName + ' ' + userInfo?.lastName}
                 </div>
 
@@ -137,38 +141,42 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
                     textOverflow: 'ellipsis',
                     maxWidth: '21ch',
                   }}
-                  className='text-xs text-gray-500 dark:text-gray-400 w-full'>
+                  className="text-xs text-gray-500 dark:text-gray-400 w-full"
+                >
                   {userInfo?.email}
                 </div>
               </div>
             </div>
-            <hr className='dropdown-divider border-b border-gray-200 dark:border-gray-700' />
-            <ul className='dropdown-list p-2'>
+            <hr className="dropdown-divider border-b border-gray-200 dark:border-gray-700" />
+            <ul className="dropdown-list p-2">
               <li
                 onClick={handleClick('/settings')}
-                className='flex items-center text-gray-500 hover:text-gray-600 cursor-pointer p-2'>
-                <span className='mr-3'>
-                  <UserIcon fill='#6F87A1' width={16} height={16} />
+                className="flex items-center text-gray-500 hover:text-gray-600 cursor-pointer p-2"
+              >
+                <span className="mr-3">
+                  <UserIcon fill="#6F87A1" width={16} height={16} />
                 </span>
                 My profile
               </li>
               <li
                 onClick={handleClick('/settings')}
-                className='flex items-center text-gray-500 hover:text-gray-600 cursor-pointer p-2'>
-                <span className='mr-3'>
-                  <SettingsIcon fill='#6F87A1' width={17} height={17} />
+                className="flex items-center text-gray-500 hover:text-gray-600 cursor-pointer p-2"
+              >
+                <span className="mr-3">
+                  <SettingsIcon fill="#6F87A1" width={17} height={17} />
                 </span>
                 Settings
               </li>
             </ul>
-            <hr className='dropdown-divider border-b border-gray-200 dark:border-gray-700' />
-            <ul className='dropdown-list p-2'>
+            <hr className="dropdown-divider border-b border-gray-200 dark:border-gray-700" />
+            <ul className="dropdown-list p-2">
               <li
                 onClick={handleLogout}
-                className='text-gray-500 hover:text-gray-600 cursor-pointer p-2'>
+                className="text-gray-500 hover:text-gray-600 cursor-pointer p-2"
+              >
                 Log out
                 {isLoading && (
-                  <span className='float-right'>
+                  <span className="float-right">
                     <Spinner width={20} height={20} />
                   </span>
                 )}
@@ -179,10 +187,11 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
 
         {/* Hamburger menu */}
         <button
-          type='button'
-          className='lg:hidden relative flex items-center justify-start z-10 w-auto focus:outline-none border border-gray-200 rounded-xl'
-          onClick={handleDrawer}>
-          <span className='p-2'>
+          type="button"
+          className="lg:hidden relative flex items-center justify-start z-10 w-auto focus:outline-none border border-gray-200 rounded-xl"
+          onClick={handleDrawer}
+        >
+          <span className="p-2">
             <MenuBarIcon />
           </span>
         </button>

@@ -65,8 +65,12 @@ const PrintReportModal = ({
   const userInfo = useSelector((state) => state.login.userInfo);
   const [selectedColumns, setSelectedColumns] = useState(INITIAL_COLUMNS_STATE);
   const chartData = useSelector((state) => state.chart);
-  const startDate = moment(chartData.chartDataRange.startDate).format('MMMM D, YYYY');
-  const endDate = moment(chartData.chartDataRange.endDate).format('MMMM D, YYYY');
+  const startDate = moment(chartData.chartDataRange.startDate).format(
+    'MMMM D, YYYY'
+  );
+  const endDate = moment(chartData.chartDataRange.endDate).format(
+    'MMMM D, YYYY'
+  );
 
   const handleCheckboxChange = (column) => {
     setSelectedColumns((prev) => ({ ...prev, [column]: !prev[column] }));
@@ -79,13 +83,16 @@ const PrintReportModal = ({
 
     if (value.trim()) {
       const updatedEmailErrors = [...emailErrors];
-      updatedEmailErrors[index] = EMAIL_REGEX.test(value) ? '' : 'Invalid email';
+      updatedEmailErrors[index] = EMAIL_REGEX.test(value)
+        ? ''
+        : 'Invalid email';
       setEmailErrors(updatedEmailErrors);
     }
   };
 
   const handleAddEmail = () => setEmails([...emails, '']);
-  const handleRemoveEmail = (index) => setEmails(emails.filter((_, i) => i !== index));
+  const handleRemoveEmail = (index) =>
+    setEmails(emails.filter((_, i) => i !== index));
   const handleCancel = () => {
     setEmails(['']);
     setEmailErrors([]);
@@ -108,11 +115,15 @@ const PrintReportModal = ({
             message: 'Air quality data download successful',
             show: true,
           }),
-        7000,
+        7000
       );
       handleCancel();
     } catch (err) {
-      setAlert({ type: 'error', message: 'An error occurred while exporting data', show: true });
+      setAlert({
+        type: 'error',
+        message: 'An error occurred while exporting data',
+        show: true,
+      });
       setLoading(false);
     }
   };
@@ -151,7 +162,7 @@ const PrintReportModal = ({
   const generatePdf = (data) => {
     const doc = new jsPDF('p', 'pt');
     const selectedColumnKeys = Object.keys(selectedColumns).filter(
-      (column) => selectedColumns[column],
+      (column) => selectedColumns[column]
     );
 
     const tableRows = data.map((row) => {
@@ -187,7 +198,11 @@ const PrintReportModal = ({
    * */
   const handleShareReport = async (usebody) => {
     if (!emails.length || (emails.length === 1 && !emails[0].trim())) {
-      setAlert({ type: 'error', message: 'Please enter at least one email', show: true });
+      setAlert({
+        type: 'error',
+        message: 'Please enter at least one email',
+        show: true,
+      });
       return;
     }
 
@@ -196,7 +211,10 @@ const PrintReportModal = ({
     // if the format is pdf and the date range is more than 7 days, show an error and terminate the process
     if (
       format === 'pdf' &&
-      moment(chartData.chartDataRange.endDate).diff(chartData.chartDataRange.startDate, 'days') > 7
+      moment(chartData.chartDataRange.endDate).diff(
+        chartData.chartDataRange.startDate,
+        'days'
+      ) > 7
     ) {
       setAlert({
         type: 'error',
@@ -228,7 +246,11 @@ const PrintReportModal = ({
 
       const response = await shareReportApi(formData);
       if (response.success) {
-        setAlert({ type: 'success', message: 'Air quality data shared successful', show: true });
+        setAlert({
+          type: 'success',
+          message: 'Air quality data shared successful',
+          show: true,
+        });
         handleCancel();
         shareStatus('Report shared');
       } else {
@@ -241,7 +263,8 @@ const PrintReportModal = ({
     } catch (error) {
       setAlert({
         type: 'error',
-        message: 'An error occurred while sharing the report. Please try again.',
+        message:
+          'An error occurred while sharing the report. Please try again.',
         show: true,
       });
     } finally {
@@ -262,10 +285,11 @@ const PrintReportModal = ({
         loading={loading}
         ModalIcon={ShareIcon}
         primaryButtonText={btnText || 'Print'}
-        data={data}>
+        data={data}
+      >
         {shareModel && (
           <>
-            <div className='w-full'>
+            <div className="w-full">
               <AlertBox
                 type={alert.type}
                 message={alert.message}
@@ -277,63 +301,74 @@ const PrintReportModal = ({
               {format === 'pdf' &&
                 moment(chartData.chartDataRange.endDate).diff(
                   chartData.chartDataRange.startDate,
-                  'days',
+                  'days'
                 ) > 7 && (
-                  <div className='text-red-500 -mt-5 mb-2 text-sm font-medium leading-5'>
+                  <div className="text-red-500 -mt-5 mb-2 text-sm font-medium leading-5">
                     PDF format is only available for date ranges up to 7 days
                   </div>
                 )}
 
-              <div className='self-stretch pr-2 justify-start items-start inline-flex'>
-                <div className='text-gray-700 text-base font-medium leading-tight'>
+              <div className="self-stretch pr-2 justify-start items-start inline-flex">
+                <div className="text-gray-700 text-base font-medium leading-tight">
                   Deselect Columns for Report
                 </div>
               </div>
-              <div className='flex flex-wrap'>
+              <div className="flex flex-wrap">
                 {tableColumns.map((column, index) => (
-                  <div key={index} className='w-1/2 flex items-center space-x-2 p-1'>
+                  <div
+                    key={index}
+                    className="w-1/2 flex items-center space-x-2 p-1"
+                  >
                     <input
-                      type='checkbox'
+                      type="checkbox"
                       id={column}
                       checked={selectedColumns[column]}
                       onChange={() => handleCheckboxChange(column)}
-                      className='form-checkbox h-5 w-5 text-blue-600 rounded'
+                      className="form-checkbox h-5 w-5 text-blue-600 rounded"
                     />
-                    <label htmlFor={column} className='text-gray-700 text-sm font-medium'>
+                    <label
+                      htmlFor={column}
+                      className="text-gray-700 text-sm font-medium"
+                    >
                       {COLUMN_NAMES_MAPPING[column]}
                     </label>
                   </div>
                 ))}
               </div>
             </div>
-            <div className='self-stretch pr-2 justify-start items-start gap-2.5 inline-flex'>
-              <div className='text-gray-700 text-base font-medium leading-tight'>Send to email</div>
+            <div className="self-stretch pr-2 justify-start items-start gap-2.5 inline-flex">
+              <div className="text-gray-700 text-base font-medium leading-tight">
+                Send to email
+              </div>
             </div>
 
             {emails.map((email, index) => (
-              <div key={index} className='w-full'>
-                <div className='relative w-full' key={index}>
+              <div key={index} className="w-full">
+                <div className="relative w-full" key={index}>
                   <input
-                    type='text'
-                    placeholder='Enter email'
-                    className='input input-bordered w-full pl-9 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border rounded-md'
+                    type="text"
+                    placeholder="Enter email"
+                    className="input input-bordered w-full pl-9 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border rounded-md"
                     value={email}
                     onChange={(e) => handleEmailChange(index, e.target.value)}
                   />
-                  <div className='absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none'>
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <MailIcon />
                   </div>
                   {index > 0 && (
                     <button
-                      className='absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto'
-                      onClick={() => handleRemoveEmail(index)}>
+                      className="absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto"
+                      onClick={() => handleRemoveEmail(index)}
+                    >
                       ✕
                     </button>
                   )}
                 </div>
                 {emailErrors[index] && email && (
-                  <div className='relative flex justify-end pr-3'>
-                    <span className='text-xs text-red-500'>{emailErrors[index]}</span>
+                  <div className="relative flex justify-end pr-3">
+                    <span className="text-xs text-red-500">
+                      {emailErrors[index]}
+                    </span>
                   </div>
                 )}
               </div>
@@ -341,8 +376,9 @@ const PrintReportModal = ({
 
             <div>
               <Button
-                className='text-sm font-medium text-primary-600 leading-5 gap-2 h-5 mt-3 mb-8 w-auto pl-0'
-                onClick={handleAddEmail}>
+                className="text-sm font-medium text-primary-600 leading-5 gap-2 h-5 mt-3 mb-8 w-auto pl-0"
+                onClick={handleAddEmail}
+              >
                 <PlusIcon /> <span>Add email</span>
               </Button>
             </div>

@@ -43,42 +43,51 @@ const CollapsedSidebar = () => {
   }, [router.pathname, isCollapsed, width]);
 
   return (
-    <div className='w-[88px]'>
-      <div className='flex bg-white h-dvh lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 z-[1000]'>
+    <div className="w-[88px]">
+      <div className="flex bg-white h-dvh lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 z-[1000]">
         <div>
-          <div className='p-4 justify-between items-center flex'>
-            <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
+          <div className="p-4 justify-between items-center flex">
+            <AirqoLogo className="w-[46.56px] h-8 flex flex-col flex-1" />
           </div>
-          <div className='mt-4 mx-4'>
+          <div className="mt-4 mx-4">
             <OrganizationDropdown />
           </div>
-          <div className='mt-11 mx-4'>
-            <SidebarIconItem IconComponent={HomeIcon} navPath='/Home' />
-            <SidebarIconItem IconComponent={BarChartIcon} navPath='/analytics' />
-            <hr className='my-3 h-[0.5px] bg-grey-150' />
+          <div className="mt-11 mx-4">
+            <SidebarIconItem IconComponent={HomeIcon} navPath="/Home" />
+            <SidebarIconItem
+              IconComponent={BarChartIcon}
+              navPath="/analytics"
+            />
+            <hr className="my-3 h-[0.5px] bg-grey-150" />
             {checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES') && (
-              <div className='relative'>
+              <div className="relative">
                 <div onClick={toggleDropdown}>
                   <div
                     className={`relative flex items-center p-4 rounded-xl cursor-pointer ${
                       isCurrentRoute ? 'bg-light-blue' : ''
-                    } hover:bg-gray-200`}>
+                    } hover:bg-gray-200`}
+                  >
                     {isCurrentRoute && (
-                      <span className='bg-blue-600 w-1 h-1/2 mr-2 absolute rounded-xl -left-2'></span>
+                      <span className="bg-blue-600 w-1 h-1/2 mr-2 absolute rounded-xl -left-2"></span>
                     )}
-                    <CollocateIcon fill={isCurrentRoute ? '#145FFF' : '#1C1D20'} />
+                    <CollocateIcon
+                      fill={isCurrentRoute ? '#145FFF' : '#1C1D20'}
+                    />
                   </div>
                 </div>
                 {dropdown && (
-                  <div className='relative bottom-20'>
+                  <div className="relative bottom-20">
                     <div
                       ref={dropdownRef}
-                      className='fixed left-24 w-40 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-[1000]'>
+                      className="fixed left-24 w-40 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-[1000]"
+                    >
                       <Link href={'/collocation/overview'}>
-                        <div className='w-full p-4 hover:bg-[#f3f6f8] cursor-pointer'>Overview</div>
+                        <div className="w-full p-4 hover:bg-[#f3f6f8] cursor-pointer">
+                          Overview
+                        </div>
                       </Link>
                       <Link href={'/collocation/collocate'}>
-                        <div className='w-full p-4 hover:bg-[#f3f6f8] cursor-pointer'>
+                        <div className="w-full p-4 hover:bg-[#f3f6f8] cursor-pointer">
                           Collocate
                         </div>
                       </Link>
@@ -87,11 +96,11 @@ const CollapsedSidebar = () => {
                 )}
               </div>
             )}
-            <SidebarIconItem IconComponent={WorldIcon} navPath='/map' />
+            <SidebarIconItem IconComponent={WorldIcon} navPath="/map" />
           </div>
         </div>
-        <div className='mx-4 mb-3 flex items-center justify-center'>
-          <SidebarIconItem IconComponent={SettingsIcon} navPath='/settings' />
+        <div className="mx-4 mb-3 flex items-center justify-center">
+          <SidebarIconItem IconComponent={SettingsIcon} navPath="/settings" />
         </div>
       </div>
     </div>

@@ -22,7 +22,7 @@ export default function withAuth(Component) {
     }, [userCredentials]);
 
     useEffect(() => {
-      if (!storedUserGroup ) {
+      if (!storedUserGroup) {
         localStorage.clear();
         dispatch(resetStore());
         dispatch(resetChartStore());
@@ -48,7 +48,7 @@ export const withPermission = (Component, requiredPermission) => {
     const hasPermission =
       currentRole &&
       currentRole?.role_permissions?.some(
-        (permission) => permission.permission === requiredPermission,
+        (permission) => permission.permission === requiredPermission
       );
 
     if (!hasPermission) {

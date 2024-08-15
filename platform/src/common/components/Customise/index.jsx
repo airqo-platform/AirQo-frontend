@@ -23,10 +23,14 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
    * @description Fetches the selected locations, user preferences and chart data from the redux store
    * @returns {Array} selectedLocations, preferenceData, customisedLocations, userId, chartData
    */
-  const selectedLocations = useSelector((state) => state.grids.selectedLocations) || [];
-  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const selectedLocations =
+    useSelector((state) => state.grids.selectedLocations) || [];
+  const preferenceData =
+    useSelector((state) => state.defaults.individual_preferences) || [];
   const customisedLocations =
-    preferenceData.length > 0 ? preferenceData[0].selected_sites.slice(0, 4) : [];
+    preferenceData.length > 0
+      ? preferenceData[0].selected_sites.slice(0, 4)
+      : [];
   const userId = useSelector((state) => state.login.userInfo._id);
   const chartData = useSelector((state) => state.chart);
 
@@ -54,7 +58,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
           selectedLocations,
           chartData,
           dispatch,
-          toggleCustomise,
+          toggleCustomise
         );
       } catch (error) {
         setCreationErrors({
@@ -73,40 +77,47 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
         <Toast type={'error'} timeout={6000} message={creationErrors.message} />
       )}
       <div
-        className='fixed top-0 right-0 w-full md:w-96 h-full overflow-y-scroll bg-white z-50 border-l-grey-50 px-6'
-        style={{ boxShadow: '0px 16px 32px 0px rgba(83, 106, 135, 0.20)' }}>
+        className="fixed top-0 right-0 w-full md:w-96 h-full overflow-y-scroll bg-white z-50 border-l-grey-50 px-6"
+        style={{ boxShadow: '0px 16px 32px 0px rgba(83, 106, 135, 0.20)' }}
+      >
         <div onClick={() => setResetSearchData(true)}>
-          <div className='flex justify-between items-center mt-6'>
-            <h3 className='flex items-center text-xl text-black-800 font-semibold'>
+          <div className="flex justify-between items-center mt-6">
+            <h3 className="flex items-center text-xl text-black-800 font-semibold">
               Customise
               <span
-                className='tooltip tooltip-bottom ml-1 hover:cursor-pointer text-lg font-normal'
-                data-tip='Changes are applied when 4 locations have been selected'>
+                className="tooltip tooltip-bottom ml-1 hover:cursor-pointer text-lg font-normal"
+                data-tip="Changes are applied when 4 locations have been selected"
+              >
                 <RxInfoCircled style={{ paddingTop: '2px' }} />
               </span>
             </h3>
             <div
-              className='p-3 rounded-md border border-secondary-neutral-light-100 bg-white hover:cursor-pointer'
-              onClick={() => toggleCustomise()}>
+              className="p-3 rounded-md border border-secondary-neutral-light-100 bg-white hover:cursor-pointer"
+              onClick={() => toggleCustomise()}
+            >
               <CloseIcon />
             </div>
           </div>
-          <div className='mt-6'>
-            <p className='text-grey-350 text-sm font-normal'>
-              Select any 4 locations you would like to feature on your overview page.
+          <div className="mt-6">
+            <p className="text-grey-350 text-sm font-normal">
+              Select any 4 locations you would like to feature on your overview
+              page.
             </p>
           </div>
         </div>
         {false && (
-          <div className='mt-6'>
-            <div className='flex justify-center items-center bg-secondary-neutral-light-25 rounded-md border border-secondary-neutral-light-50 p-1'>
+          <div className="mt-6">
+            <div className="flex justify-center items-center bg-secondary-neutral-light-25 rounded-md border border-secondary-neutral-light-50 p-1">
               {tabs.map((tab) => (
                 <div
                   key={tab}
                   onClick={() => setSelectedTab(tab)}
                   className={`px-3 py-2 flex justify-center items-center w-full hover:cursor-pointer text-sm font-medium text-secondary-neutral-light-600${
-                    selectedTab === tab ? 'border rounded-md bg-white shadow-sm' : ''
-                  }`}>
+                    selectedTab === tab
+                      ? 'border rounded-md bg-white shadow-sm'
+                      : ''
+                  }`}
+                >
                   {tab}
                 </div>
               ))}
@@ -120,19 +131,21 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
           />
         )}
       </div>
-      <div className='fixed bottom-0 right-0 w-full md:w-96 bg-white z-50 border-t border-input-light-outline py-4 px-6'>
-        <div className='flex justify-end items-center'>
+      <div className="fixed bottom-0 right-0 w-full md:w-96 bg-white z-50 border-t border-input-light-outline py-4 px-6">
+        <div className="flex justify-end items-center">
           <button
-            className='btn bg-white mr-3 border border-input-light-outline text-sm text-secondary-neutral-light-800 font-medium py-3 px-4 rounded-lg hover:bg-white hover:border-input-light-outline'
-            onClick={() => toggleCustomise()}>
+            className="btn bg-white mr-3 border border-input-light-outline text-sm text-secondary-neutral-light-800 font-medium py-3 px-4 rounded-lg hover:bg-white hover:border-input-light-outline"
+            onClick={() => toggleCustomise()}
+          >
             Cancel
           </button>
           {selectedLocations.length === 4 ? (
             <button
-              className='btn bg-blue-900 text-sm border-none text-white font-medium py-3 px-4 rounded-lg hover:bg-primary-600'
-              onClick={() => handleSubmit()}>
+              className="btn bg-blue-900 text-sm border-none text-white font-medium py-3 px-4 rounded-lg hover:bg-primary-600"
+              onClick={() => handleSubmit()}
+            >
               {loading ? (
-                <div className='ml-2'>
+                <div className="ml-2">
                   <Spinner width={25} height={25} />
                 </div>
               ) : (
@@ -140,7 +153,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
               )}
             </button>
           ) : (
-            <button className='btn btn-disabled bg-white mr-3 border border-input-light-outline text-sm text-secondary-neutral-light-800 font-medium py-3 px-4 rounded-lg'>
+            <button className="btn btn-disabled bg-white mr-3 border border-input-light-outline text-sm text-secondary-neutral-light-800 font-medium py-3 px-4 rounded-lg">
               Apply
             </button>
           )}

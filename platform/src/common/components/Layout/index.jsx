@@ -27,7 +27,8 @@ const Layout = ({
   const MAX_WIDTH = '(max-width: 1024px)';
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.login.userInfo);
-  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const preferenceData =
+    useSelector((state) => state.defaults.individual_preferences) || [];
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
   const [lastActivity, setLastActivity] = useState(Date.now());
 
@@ -70,7 +71,9 @@ const Layout = ({
   useEffect(() => {
     const timer = setTimeout(() => {
       if (userInfo?._id && cardCheckList) {
-        dispatch(updateUserChecklists({ user_id: userInfo._id, items: cardCheckList }));
+        dispatch(
+          updateUserChecklists({ user_id: userInfo._id, items: cardCheckList })
+        );
       }
     }, 5000);
 
@@ -97,7 +100,13 @@ const Layout = ({
    * Log out user after 1 hour of inactivity
    */
   useEffect(() => {
-    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
+    const activityEvents = [
+      'mousedown',
+      'mousemove',
+      'keydown',
+      'scroll',
+      'touchstart',
+    ];
 
     const resetTimer = () => setLastActivity(Date.now());
 
@@ -132,25 +141,33 @@ const Layout = ({
     <>
       <Head>
         <title>{pageTitle}</title>
-        <meta property='og:title' content={pageTitle} key='title' />
+        <meta property="og:title" content={pageTitle} key="title" />
       </Head>
       <>
-        <div className='flex overflow-hidden' data-testid='layout'>
+        <div className="flex overflow-hidden bg-[#f6f6f7]" data-testid="layout">
           {router.pathname === '/map' ? (
-            <div className='hidden lg:block'>
+            <div className="hidden lg:block">
               <CollapsedSidebar />
             </div>
           ) : (
-            <div className='text-[#1C1D20]'>
+            <div className="text-[#1C1D20]">
               <AuthenticatedSideBar />
             </div>
           )}
           <div
             className={`w-full h-dvh ${
               router.pathname === '/map' ? 'overflow-hidden' : 'overflow-y-auto'
-            } transition-all duration-300 ease-in-out`}>
-            {noTopNav && <TopBar topbarTitle={topbarTitle} noBorderBottom={noBorderBottom} />}
-            <div className='overflow-hidden w-full text-[#1C1D20]'>{children}</div>
+            } transition-all duration-300 ease-in-out`}
+          >
+            {noTopNav && (
+              <TopBar
+                topbarTitle={topbarTitle}
+                noBorderBottom={noBorderBottom}
+              />
+            )}
+            <div className="overflow-hidden w-full text-[#1C1D20]">
+              {children}
+            </div>
           </div>
         </div>
         <SideBarDrawer />
