@@ -1,0 +1,217 @@
+import React, { useEffect, useState } from 'react';
+import ChartContainer from '@/components/Charts/ChartContainer';
+import AQNumberCard from '@/components/AQNumberCard';
+import BorderlessContentBox from '@/components/Layout/borderless_content_box';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchRecentMeasurementsData } from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
+import CustomCalendar from '@/components/Calendar/CustomCalendar';
+import CheckIcon from '@/icons/tickIcon';
+import TabButtons from '@/components/Button/TabButtons';
+import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
+import { setTimeFrame, setPollutant } from '@/lib/store/services/charts/ChartSlice';
+import SettingsIcon from '@/icons/settings.svg';
+import PlusIcon from '@/icons/map/plusIcon';
+import DownloadIcon from '@/icons/Analytics/downloadIcon';
+
+const timeOptions = ['hourly', 'daily', 'weekly', 'monthly'];
+const pollutant = [
+  { id: 'pm2_5', name: 'PM2.5' },
+  { id: 'pm10', name: 'PM10' },
+  { id: 'no2', name: 'NO2' },
+];
+
+const useFetchMeasurements = () => {
+  const dispatch = useDispatch();
+  const chartData = useSelector((state) => state.chart);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const preferencesLoading = useSelector((state) => state.userDefaults.status === 'loading');
+  const refreshChart = useSelector((state) => state.chart.refreshChart);
+
+  useEffect(() => {
+    if (preferencesLoading || !preferenceData.length) return;
+    const { selected_sites } = preferenceData[0];
+    const chartSites = selected_sites?.map((site) => site['_id']);
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        if (chartSites?.length > 0) {
+          await dispatch(
+            fetchRecentMeasurementsData({
+              site_id: chartSites.join(','),
+            }),
+          );
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [chartData, preferenceData, refreshChart]);
+
+  return { isLoading, error };
+};
+
+const OverView = () => {
+  // events hook
+  const dispatch = useDispatch();
+  const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
+  const pollutantType = useSelector((state) => state.chart.pollutionType);
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const siteData = useSelector((state) => state.grids.sitesSummary);
+  const { isLoading: isLoadingMeasurements, error } = useFetchMeasurements();
+  const chartData = useSelector((state) => state.chart);
+
+  function getSiteName(siteId) {
+    if (preferenceData?.length === 0) {
+      return null;
+    }
+    const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
+    return site ? site.search_name?.split(',')[0] : '';
+  }
+
+  const getExistingSiteName = (siteId) => {
+    const site = siteData?.sites?.find((site) => site._id === siteId);
+    return site ? site.search_name : '';
+  };
+
+  const dummyData = {
+    siteDetails: {
+      search_name: '--',
+      location_name: '--',
+      formatted_name: '--',
+      description: '--',
+    },
+    pm2_5: {
+      value: '--',
+    },
+  };
+
+  let displayData = recentLocationMeasurements ? recentLocationMeasurements.slice(0, 4) : [];
+
+  while (displayData.length < 4) {
+    displayData.push(dummyData);
+  }
+
+  return (
+    <BorderlessContentBox>
+      <div className='space-y-8'>
+        <div className='w-full flex flex-wrap gap-2 justify-between'>
+          <div className='space-x-2 flex'>
+            <CustomDropdown
+              trigger={<TabButtons btnText={chartData.timeFrame} dropdown />}
+              id='days'
+              className='left-0 top-9'>
+              {timeOptions.map((option) => (
+                <span
+                  key={option}
+                  onClick={() => {
+                    dispatch(setTimeFrame(option));
+                  }}
+                  className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
+                    chartData.timeFrame === option ? 'bg-gray-100' : ''
+                  }`}>
+                  <span className='flex items-center space-x-2'>
+                    <span>{option.charAt(0).toUpperCase() + option.slice(1)}</span>
+                  </span>
+                  {chartData.timeFrame === option && <CheckIcon fill={'#145FFF'} />}
+                </span>
+              ))}
+            </CustomDropdown>
+            <CustomCalendar
+              initialStartDate={chartData.chartDataRange.startDate}
+              initialEndDate={chartData.chartDataRange.endDate}
+              className='left-32 top-12'
+              dropdown
+            />
+            <CustomDropdown
+              trigger={<TabButtons btnText='Pollutant' Icon={<SettingsIcon />} />}
+              id='pollutant'
+              className='left-0 top-9'>
+              {pollutant.map((option) => (
+                <span
+                  key={option.id}
+                  onClick={() => {
+                    dispatch(setPollutant(option.id));
+                  }}
+                  className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
+                    chartData.timeFrame === option ? 'bg-gray-100' : ''
+                  }`}>
+                  <span className='flex items-center space-x-2'>
+                    <span>{option.name}</span>
+                  </span>
+                  {chartData.pollutionType === option.id && <CheckIcon fill={'#145FFF'} />}
+                </span>
+              ))}
+            </CustomDropdown>
+          </div>
+          <div className='space-x-2 flex'>
+            <TabButtons
+              btnText='Add location'
+              Icon={<PlusIcon width={16} height={16} />}
+              onClick={null}
+            />
+            <TabButtons
+              btnText='Download Data'
+              Icon={<DownloadIcon width={16} height={17} color='white' />}
+              onClick={null}
+              btnStyle='bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl'
+            />
+          </div>
+        </div>
+        <div
+          className={`gap-4 ${
+            recentLocationMeasurements && recentLocationMeasurements.length <= 2
+              ? 'flex md:flex-row flex-col'
+              : 'grid md:grid-cols-2'
+          }`}>
+          {!isLoadingMeasurements
+            ? displayData.map((event, index) => {
+                return (
+                  <AQNumberCard
+                    key={index}
+                    location={
+                      getSiteName(event.site_id) ||
+                      getExistingSiteName(event.site_id) ||
+                      event?.siteDetails?.search_name
+                    }
+                    locationFullName={
+                      getSiteName(event.site_id) ||
+                      getExistingSiteName(event.site_id) ||
+                      event?.siteDetails?.search_name
+                    }
+                    reading={event.pm2_5.value}
+                    count={displayData.length}
+                    pollutant={pollutantType}
+                  />
+                );
+              })
+            : displayData.map((event, index) => {
+                return (
+                  <AQNumberCard
+                    key={index}
+                    location={'--'}
+                    locationFullName={'--'}
+                    reading={'--'}
+                    count={displayData.length}
+                    pollutant={pollutantType}
+                    isLoading={isLoadingMeasurements}
+                  />
+                );
+              })}
+        </div>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+          <ChartContainer chartType='line' chartTitle='Air quality over time' height={300} />
+          <ChartContainer chartType='bar' chartTitle='Air quality over time' height={300} />
+        </div>
+      </div>
+    </BorderlessContentBox>
+  );
+};
+
+export default OverView;

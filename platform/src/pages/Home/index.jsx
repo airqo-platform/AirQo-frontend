@@ -121,7 +121,7 @@ const Home = () => {
   };
 
   return (
-    <Layout noBorderBottom pageTitle='Home'>
+    <Layout noBorderBottom pageTitle='Home' topbarTitle={'Home'}>
       {checkListStatus === 'loading' && checkListData.length === 0 ? (
         <HomeSkeleton />
       ) : (
@@ -189,7 +189,7 @@ const Home = () => {
                         <>
                           <Link href={step.link}>
                             <button
-                            type='button'
+                              type='button'
                               onClick={step.func}
                               className={statusColor}
                               target={index === 3 ? '_blank' : ''}>

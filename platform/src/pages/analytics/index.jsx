@@ -3,8 +3,7 @@ import Tabs from '@/components/Tabs';
 import Tab from '@/components/Tabs/Tab';
 import withAuth from '@/core/utils/protectedRoute';
 import Layout from '@/components/Layout';
-import OverView from './tabs/OverView';
-import Explore from './tabs/Explore';
+import OverView from './_components/OverView';
 import CustomCalendar from '@/components/Calendar/CustomCalendar';
 import Button from '@/components/Button';
 import SettingsIcon from '@/icons/settings.svg';
@@ -124,51 +123,6 @@ const AuthenticatedHomePage = () => {
     }
   }, []);
 
-  /**
-   * Render children for the right side of the topbar
-   * @returns {Array}
-   */
-  const renderChildrenRight = () => {
-    return [
-      {
-        label: 'Overview',
-        children: (
-          <div className='flex space-x-3 mb-3'>
-            <CustomCalendar
-              initialStartDate={chartDataRange.startDate}
-              initialEndDate={chartDataRange.endDate}
-              className='max-md:-right-12 md:right-2 lg:right-7 top-12'
-              dropdown
-            />
-            <TabButtons Icon={SettingsIcon} btnText='Customize' onClick={() => toggleCustomise()} />
-          </div>
-        ),
-      },
-      {
-        label: 'Explore',
-        children: (
-          <div className='flex space-x-3 mb-3'>
-            <Button
-              className='text-sm font-medium capitalize'
-              variant='outlined'
-              onClick={handlePrint}
-            >
-              Print
-            </Button>
-            <Button
-              className='text-sm font-medium capitalize'
-              variant='filled'
-              Icon={DownloadIcon}
-              onClick={handleExport}
-            >
-              Export
-            </Button>
-          </div>
-        ),
-      },
-    ];
-  };
-
   return (
     <Layout topbarTitle={'Analytics'} noBorderBottom pageTitle={'Analytics'}>
       <AlertBox
@@ -177,51 +131,7 @@ const AuthenticatedHomePage = () => {
         show={alert.show}
         hide={() => setAlert({ ...alert, show: false })}
       />
-      <div className='pt-2 transition-all duration-300 ease-in-out'>
-        <Tabs childrenRight={!isMobile && renderChildrenRight()}>
-          <Tab label='Overview'>
-            {isMobile && (
-              <div className='flex justify-end px-3 lg:px-16'>
-                {renderChildrenRight()[0].children}
-              </div>
-            )}
-            <OverView />
-          </Tab>
-          <Tab label='Explore'>
-            {isMobile && (
-              <div className='flex justify-end px-3 lg:px-16'>
-                {renderChildrenRight()[1].children}
-              </div>
-            )}
-            <Explore toggleCustomize={toggleCustomise} />
-          </Tab>
-        </Tabs>
-        {customise && (
-          <div ref={customiseRef}>
-            <CustomiseLocationsComponent toggleCustomise={toggleCustomise} />
-          </div>
-        )}
-      </div>
-      {openConfirmModal && (
-        <ExportDataModal
-          open={openConfirmModal}
-          onClose={() => setOpenConfirmModal(false)}
-          handleExportPDF={printFile}
-          data={data}
-        />
-      )}
-
-      {openPrintModal && (
-        <PrintReportModal
-          title='Share report'
-          open={openPrintModal}
-          handlePrintPDF={printFile}
-          onClose={() => setOpenPrintModal(false)}
-          data={data}
-          shareModel={false}
-          format={'pdf'}
-        />
-      )}
+      <OverView />
     </Layout>
   );
 };

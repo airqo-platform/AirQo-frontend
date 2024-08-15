@@ -11,7 +11,7 @@ const plusIcon = ({ width, height, fill }) => {
       <path
         d='M12 5V19M5 12H19'
         stroke={fill || '#536A87'}
-        strokeWidth='1.5'
+        strokeWidth='2'
         strokeLinecap='round'
         strokeLinejoin='round'
       />

@@ -9,8 +9,9 @@ import html2canvas from 'html2canvas';
 import Spinner from '@/components/Spinner';
 import CheckIcon from '@/icons/tickIcon';
 import PrintReportModal from '@/components/Modal/PrintReportModal';
+import TabButtons from '../Button/TabButtons';
 
-const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, downloadStatus }) => {
+const ChartContainer = ({ chartType, chartTitle, height, width, id }) => {
   const dispatch = useDispatch();
   const chartRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -96,11 +97,8 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, dow
         default:
           throw new Error('Unsupported format');
       }
-
-      downloadStatus('Download complete');
     } catch (error) {
       console.error(error);
-      downloadStatus('Download failed');
     }
   }, []);
 
@@ -123,14 +121,16 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, dow
     <div ref={dropdownRef}>
       <CustomDropdown
         trigger={
-          <button
+          <TabButtons
+            btnText='More'
+            btnStyle={'py-1 px-3 rounded-xl'}
+            dropdown
+            onClick={handleMoreClick}
             id='options-btn'
-            className='border-[0.5px] rounded-md border-gray-200 flex items-center justify-center p-[2px] hover:border-blue-500 relative'>
-            <DotMenuIcon className='w-5 h-5 text-gray-600 mr-1 mb-[0.5px]' />
-          </button>
+          />
         }
         id='options'
-        className='top-5 right-0'>
+        className='top-7 right-0'>
         {isLoading ? (
           <div className='p-2'>
             <Spinner width={20} height={20} />
@@ -185,15 +185,7 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, dow
           <div className='text-lg not-italic font-medium leading-[26px] text-gray-600'>
             {chartTitle}
           </div>
-          {menuBtn ? (
-            renderDropdown()
-          ) : (
-            <button onClick={handleMoreClick}>
-              <span className='text-sm font-medium text-blue-600 hover:text-blue-700 cursor-pointer'>
-                More
-              </span>
-            </button>
-          )}
+          {renderDropdown()}
         </div>
         <div
           ref={chartRef}
@@ -213,7 +205,6 @@ const ChartContainer = ({ chartType, chartTitle, menuBtn, height, width, id, dow
         open={openShare}
         onClose={() => setOpenShare(false)}
         format={shareFormat}
-        shareStatus={downloadStatus}
         data={modifiedData}
       />
     </div>

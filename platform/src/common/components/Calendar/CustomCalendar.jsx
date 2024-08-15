@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import CalendarIcon from '@/icons/calendar.svg';
-import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
 import { useSelector, useDispatch } from 'react-redux';
 import { setChartDataRange } from '@/lib/store/services/charts/ChartSlice';
 import Calendar from './Calendar';
@@ -19,6 +18,7 @@ import {
   format,
   getYear,
 } from 'date-fns';
+import TabButtons from '../Button/TabButtons';
 
 /**
  * @param {Object} props
@@ -152,16 +152,14 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
 
   return (
     <div className='relative cursor-pointer date-picker-container' ref={containerRef}>
-      <button
+      <TabButtons
+        Icon={<CalendarIcon />}
+        btnText={chartData.chartDataRange.label}
+        dropdown
         onClick={handleClick}
-        type='button'
-        className='relative border border-grey-750 rounded-xl flex items-center justify-between gap-2 px-4 py-3'>
-        {Icon ? <Icon /> : <CalendarIcon />}
-        <span className='hidden sm:inline-block text-sm font-medium'>
-          {chartData.chartDataRange.label}
-        </span>
-        {dropdown && <ChevronDownIcon />}
-      </button>
+        id='datePicker'
+        type={'button'}
+      />
       <div
         className={`absolute z-50 max-w-[350px] ${className} ${
           openDatePicker

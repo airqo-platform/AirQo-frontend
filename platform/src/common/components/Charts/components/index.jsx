@@ -331,7 +331,7 @@ export const CustomReferenceLabel = (props) => {
         <div
           xmlns='http://www.w3.org/1999/xhtml'
           style={{ backgroundColor: 'red' }}
-          className='rounded-md py-[4px] px-[6px] flex justify-center text-center text-white text-[12px] font-semibold leading-[11px]'>
+          className='rounded-[3px] py-[4px] px-[6px] flex justify-center text-center text-white text-[12px] font-semibold leading-[11px]'>
           WHO
         </div>
       </foreignObject>

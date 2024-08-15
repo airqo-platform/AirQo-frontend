@@ -108,9 +108,8 @@ const AuthenticatedSideBar = () => {
       <div
         className={`${
           isCollapsed ? 'w-[88px]' : 'w-72'
-        } hidden lg:block transition-all duration-200 ease-in-out`}
-      >
-        <div className='flex p-4 bg-white h-dvh lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden'>
+        } hidden lg:block transition-all duration-200 ease-in-out`}>
+        <div className='flex p-4 bg-white h-dvh lg:relative flex-col justify-between overflow-y-auto border-[1px] border-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden'>
           <div>
             <div className='pb-4 flex justify-between items-center'>
               {size.width < 1024 ? (
@@ -118,8 +117,7 @@ const AuthenticatedSideBar = () => {
                   className='cursor-pointer'
                   onClick={() => {
                     router.push('/settings');
-                  }}
-                >
+                  }}>
                   {userInfo.profilePicture ? (
                     <img
                       className='w-12 h-12 rounded-full object-cover'
@@ -170,8 +168,7 @@ const AuthenticatedSideBar = () => {
                         <div
                           className={`relative flex items-center p-4 rounded-xl cursor-pointer ${
                             isCurrentRoute ? 'bg-light-blue' : ''
-                          } hover:bg-gray-200`}
-                        >
+                          } hover:bg-gray-200`}>
                           {isCurrentRoute && (
                             <span className='bg-blue-600 w-1 h-1/2 mr-2 absolute rounded-xl -left-2'></span>
                           )}
@@ -182,8 +179,7 @@ const AuthenticatedSideBar = () => {
                         <div className='relative bottom-20'>
                           <div
                             ref={dropdownRef}
-                            className='fixed left-24 w-40 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-[1000]'
-                          >
+                            className='fixed left-24 w-40 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-[1000]'>
                             <Link href={'/collocation/overview'}>
                               <div className='w-full p-4 hover:bg-[#f3f6f8] cursor-pointer'>
                                 Overview
@@ -204,8 +200,7 @@ const AuthenticatedSideBar = () => {
                       Icon={CollocateIcon}
                       dropdown
                       toggleMethod={() => setCollocationOpen(!collocationOpen)}
-                      toggleState={collocationOpen}
-                    >
+                      toggleState={collocationOpen}>
                       <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
                       <SideBarDropdownItem
                         itemLabel='Collocate'
