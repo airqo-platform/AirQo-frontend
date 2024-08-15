@@ -26,8 +26,8 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { updateUserChecklists } from '@/lib/store/services/checklists/CheckData';
 import LogoutUser from '@/core/utils/LogoutUser';
-import LeftArrowIcon from '@/icons/sideBar/leftArrowIcon';
-import RightArrowIcon from '@/icons/sideBar/rightArrowIcon';
+import LeftArrowIcon from '@/icons/SideBar/leftArrowIcon';
+import RightArrowIcon from '@/icons/SideBar/rightArrowIcon';
 
 const AuthenticatedSideBar = () => {
   const dispatch = useDispatch();
