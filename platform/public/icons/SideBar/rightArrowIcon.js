@@ -1,6 +1,6 @@
 import React from 'react';
 
-const rightArrowIcon = ({ width, height, color, className }) => {
+const RightArrowIcon = ({ width, height, color, className }) => {
   return (
     <svg
       className={className}
@@ -21,4 +21,4 @@ const rightArrowIcon = ({ width, height, color, className }) => {
   );
 };
 
-export default rightArrowIcon;
+export default RightArrowIcon;

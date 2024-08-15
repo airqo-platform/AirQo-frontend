@@ -1,6 +1,6 @@
 import React from 'react';
 
-const leftArrowIcon = ({ width, height, color, className }) => {
+const LeftArrowIcon = ({ width, height, color, className }) => {
   return (
     <svg
       className={className}
@@ -21,4 +21,4 @@ const leftArrowIcon = ({ width, height, color, className }) => {
   );
 };
 
-export default leftArrowIcon;
+export default LeftArrowIcon;
