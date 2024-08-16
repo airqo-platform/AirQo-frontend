@@ -59,10 +59,12 @@ const LocationItemCards = ({
       key={locationName}
       ref={innerRef}
       {...draggableProps}
-      {...dragHandleProps}>
+      {...dragHandleProps}
+    >
       <div
         className='flex flex-row items-center overflow-x-clip'
-        title={capitalizeAllText(locationName)}>
+        title={capitalizeAllText(locationName)}
+      >
         <div>{showActiveStarIcon ? <DragIcon /> : <DragIconLight />}</div>
         <span className='text-sm text-secondary-neutral-light-800 font-medium'>
           {locationName?.split(',')[0].length > 20
@@ -82,13 +84,15 @@ const LocationItemCards = ({
         {showActiveStarIcon ? (
           <div
             className='bg-primary-600 rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
-            onClick={() => handleLocationSelect(location)}>
+            onClick={() => handleLocationSelect(location)}
+          >
             <StarIcon />
           </div>
         ) : (
           <div
             className='border border-input-light-outline rounded-md p-2 flex items-center justify-center hover:cursor-pointer'
-            onClick={() => handleLocationSelect(location)}>
+            onClick={() => handleLocationSelect(location)}
+          >
             <StarIconLight />
           </div>
         )}
@@ -307,21 +311,17 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
             const response = await getNearestSite({
               latitude: newItemValue?.latitude,
               longitude: newItemValue?.longitude,
-              radius: 4,
+              radius: 2,
             });
 
             if (response.sites && response.sites.length > 0) {
-              newLocationValue = {
-                ...response.sites[Math.floor(Math.random() * response.sites.length)],
-                name: newItemValue?.description,
-                long_name: newItemValue?.description,
-                search_name: newItemValue?.description,
-                location_name: newItemValue?.description,
-              };
+              const randomIndex = Math.floor(Math.random() * response.sites.length);
+              newLocationValue = { ...response.sites[randomIndex] };
             } else {
+              console.log(newItemValue);
               throw new Error(
                 `Can't find air quality for ${
-                  newItemValue?.description?.split(',')[0]
+                  reduxSearchTerm.split(',')[0]
                 }. Please try another location.`,
               );
             }
@@ -452,7 +452,8 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
             ref={searchRef}
             className={`bg-white max-h-48 overflow-y-scroll px-3 pt-2 pr-1 my-1 border border-input-light-outline rounded-md ${
               inputSelect ? 'hidden' : 'relative'
-            }`}>
+            }`}
+          >
             {isLoadingResults ? (
               <SearchResultsSkeleton />
             ) : filteredLocations && filteredLocations.length > 0 ? (
@@ -462,7 +463,8 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
                   onClick={() => {
                     handleLocationSelect(location);
                   }}
-                  key={location.place_id}>
+                  key={location.place_id}
+                >
                   <LocationIcon />
                   <div className='text-sm text-black capitalize text-nowrap w-56 md:w-96 lg:w-72 overflow-hidden text-ellipsis'>
                     {location?.description?.split(',')[0].length > 35
@@ -515,7 +517,10 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
               <div className='mt-4'>
                 {isGettingNearestSite && (
                   <div className='flex flex-row justify-center items-center mb-4'>
-                    <Spinner data-testid='spinner' width={25} height={25} />
+                    <Spinner data-testid='spinner' width={16} height={16} />
+                    <div className='text-sm text-gray-700'>
+                      Searching for nearest air quality station
+                    </div>
                   </div>
                 )}
                 {locationArray && locationArray.length > 0 ? (
