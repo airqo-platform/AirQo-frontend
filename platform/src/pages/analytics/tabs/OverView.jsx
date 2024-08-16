@@ -88,7 +88,8 @@ const OverView = () => {
           recentLocationMeasurements && recentLocationMeasurements.length <= 2
             ? 'flex md:flex-row flex-col'
             : 'grid md:grid-cols-2'
-        }`}>
+        }`}
+      >
         {!isLoadingMeasurements
           ? displayData.map((event, index) => {
               return (
