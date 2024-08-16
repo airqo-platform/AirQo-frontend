@@ -188,19 +188,17 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
   }, []);
 
   useEffect(() => {
-    if (sitesLocationsData && sitesLocationsData.length > 0) {
-      try {
-        dispatch(setSelectedLocations(locationArray));
-        while (unSelectedLocations.length < 8) {
-          const randomIndex = Math.floor(Math.random() * sitesLocationsData.length);
-          const randomObject = sitesLocationsData[randomIndex];
-          if (!unSelectedLocations.find((location) => location._id === randomObject._id)) {
-            unSelectedLocations.push(randomObject);
-          }
+    try {
+      dispatch(setSelectedLocations(locationArray));
+      while (unSelectedLocations.length < 8) {
+        const randomIndex = Math.floor(Math.random() * sitesLocationsData.length);
+        const randomObject = sitesLocationsData[randomIndex];
+        if (!unSelectedLocations.find((location) => location._id === randomObject._id)) {
+          unSelectedLocations.push(randomObject);
         }
-      } catch (error) {
-        return;
       }
+    } catch (error) {
+      return;
     }
   }, [locationArray, sitesLocationsData]);
 
@@ -316,11 +314,11 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
 
             if (response.sites && response.sites.length > 0) {
               const randomIndex = Math.floor(Math.random() * response.sites.length);
-              newLocationValue = { ...response.sites[randomIndex] };
+              newLocationValue = { ...response.sites[randomIndex], search_name: item.description };
             } else {
               throw new Error(
                 `Can't find air quality for ${
-                  reduxSearchTerm.split(',')[0]
+                  item.description.split(',')[0]
                 }. Please try another location.`,
               );
             }
@@ -351,9 +349,10 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
         return;
       } else if (newLocationArray.length < 4) {
         newLocationArray.push(newLocationValue);
-        const unselectedIndex = unSelectedLocations.findIndex(
-          (location) => location.name === newLocationValue.name,
-        );
+        const unselectedIndex =
+          Array.isArray(unSelectedLocations) &&
+          unSelectedLocations.some((location) => location != null) &&
+          unSelectedLocations.findIndex((location) => location.name === newLocationValue.name);
         unSelectedLocations.splice(unselectedIndex, 1);
       } else {
         setIsGettingNearestSite(false);
@@ -385,15 +384,29 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
    * and updates the unselected locations array
    */
   const removeLocation = (item) => {
-    const newLocationSet = new Set(locationArray.map((location) => location.name));
-    newLocationSet.delete(item.name);
-    const newLocationArray = Array.from(newLocationSet, (name) =>
-      locationArray.find((location) => location.name === name),
+    if (!item || typeof item !== 'object') {
+      console.error('Invalid item passed to removeLocation');
+      return;
+    }
+
+    const newLocationSet = new Set(
+      locationArray
+        .filter((location) => location && location.name)
+        .map((location) => location.name),
     );
+
+    if (item.name) {
+      newLocationSet.delete(item.name);
+    }
+
+    const newLocationArray = Array.from(newLocationSet, (name) =>
+      locationArray.find((location) => location && location.name === name),
+    ).filter(Boolean);
+
     setLocationArray(newLocationArray);
     setDraggedLocations(newLocationArray);
     setUnSelectedLocations((locations) =>
-      locations.filter((location) => location.name !== item.name),
+      locations.filter((location) => location && location.name !== item.name),
     );
     dispatch(setSelectedLocations(newLocationArray));
   };
@@ -547,8 +560,10 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
               <div className='mt-6 mb-24'>
                 <h3 className='text-sm text-black-800 font-semibold'>Suggestions</h3>
                 <div className='mt-3'>
-                  {unSelectedLocations && unSelectedLocations.length > 0 ? (
+                  {Array.isArray(unSelectedLocations) &&
+                  unSelectedLocations.some((location) => location != null) ? (
                     unSelectedLocations
+                      .filter((location) => location != null)
                       .slice(0, 15)
                       .map((location) => (
                         <LocationItemCards
