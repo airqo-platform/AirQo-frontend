@@ -309,7 +309,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
             const response = await getNearestSite({
               latitude: newItemValue?.latitude,
               longitude: newItemValue?.longitude,
-              radius: 2,
+              radius: 4,
             });
 
             if (response.sites && response.sites.length > 0) {
