@@ -318,7 +318,6 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
               const randomIndex = Math.floor(Math.random() * response.sites.length);
               newLocationValue = { ...response.sites[randomIndex] };
             } else {
-              console.log(newItemValue);
               throw new Error(
                 `Can't find air quality for ${
                   reduxSearchTerm.split(',')[0]
