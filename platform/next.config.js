@@ -4,9 +4,9 @@ module.exports = withVideos({
   images: {
     remotePatterns: [],
   },
+  reactStrictMode: true,
   eslint: {
-    dirs: ['pages', 'components', 'lib', 'utils', 'src'],
-    ignoreDuringBuilds: true,
+    dirs: ['pages', 'components', 'lib', 'utils', 'hooks'],
   },
   // Adding support for Docker
   output: 'standalone',

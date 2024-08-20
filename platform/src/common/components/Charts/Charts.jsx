@@ -243,18 +243,79 @@ const Charts = ({
     return renderNoDataMessage();
   }
 
+  const calculateXAxisInterval = (dataLength) => {
+    const screenWidth = window.innerWidth;
+
+    if (screenWidth < 768) return Math.ceil(dataLength / 4);
+    if (screenWidth < 1024) return Math.ceil(dataLength / 6);
+    return Math.ceil(dataLength / 8);
+  };
+
+  const formatYAxisTick = (tick) => {
+    if (tick >= 1000000) return `${tick / 1000000}M`;
+    if (tick >= 1000) return `${tick / 1000}K`;
+    return tick;
+  };
+
+  const getLineColor = (index, activeIndex, colors) =>
+    index === activeIndex || activeIndex === null
+      ? colors[index % colors.length]
+      : '#ccc';
+
   // Render the chart
   const renderChart = () => {
+    const commonProps = {
+      data: dataForChart,
+      style: { cursor: 'pointer' },
+      margin: { top: 38, right: 10 },
+    };
+
+    const commonComponents = [
+      <CartesianGrid
+        key="grid"
+        stroke="#ccc"
+        strokeDasharray="5 5"
+        vertical={false}
+      />,
+      <XAxis
+        key="xAxis"
+        dataKey="time"
+        tickLine={true}
+        tick={<CustomizedAxisTick fill="#1C1D20" />}
+        interval={calculateXAxisInterval(dataForChart.length)}
+        axisLine={false}
+        scale="point"
+        padding={{ left: 30, right: 30 }}
+      />,
+      <YAxis
+        key="yAxis"
+        axisLine={false}
+        fontSize={12}
+        tickLine={false}
+        tick={{ fill: '#1C1D20' }}
+        tickFormatter={formatYAxisTick}
+      >
+        <Label
+          value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
+          position="insideTopRight"
+          fill="#1C1D20"
+          offset={0}
+          fontSize={12}
+          dy={-35}
+          dx={12}
+        />
+      </YAxis>,
+      <Legend
+        key="legend"
+        content={renderCustomizedLegend}
+        wrapperStyle={{ bottom: 0, right: 0, position: 'absolute' }}
+      />,
+    ];
+
     if (chartType === 'line') {
       return (
-        <LineChart
-          data={dataForChart}
-          style={{ cursor: 'pointer' }}
-          margin={{
-            top: 38,
-            right: 10,
-          }}
-        >
+        <LineChart {...commonProps}>
+          {commonComponents}
           {Array.from(allKeys)
             .filter((key) => key !== 'time')
             .map((key, index) => (
@@ -262,11 +323,7 @@ const Charts = ({
                 key={key}
                 dataKey={key}
                 type="monotone"
-                stroke={
-                  index === activeIndex || activeIndex === null
-                    ? colors[index % colors.length]
-                    : '#ccc'
-                }
+                stroke={getLineColor(index, activeIndex, colors)}
                 strokeWidth={3}
                 dot={<CustomDot />}
                 activeDot={{ r: 6 }}
@@ -274,52 +331,14 @@ const Charts = ({
                 onMouseLeave={handleMouseLeave}
               />
             ))}
-          <CartesianGrid stroke="#ccc" strokeDasharray="5 5" vertical={false} />
           <ReferenceLine
+            key="referenceLine"
             y={WHO_STANDARD_VALUE}
             label={CustomReferenceLabel}
             ifOverflow="extendDomain"
             stroke="red"
             strokeOpacity={1}
             strokeDasharray={0}
-          />
-          <XAxis
-            dataKey="time"
-            interval={window.innerWidth < 1153 ? 2 : 1}
-            tick={<CustomizedAxisTick fill={'#1C1D20'} />}
-            tickLine={true}
-            axisLine={false}
-            scale="point"
-            padding={{ left: 30, right: 30 }}
-          />
-          <YAxis
-            axisLine={false}
-            fontSize={12}
-            tickLine={false}
-            tick={{ fill: '#1C1D20' }}
-            tickFormatter={(tick) => {
-              if (tick >= 1000 && tick < 1000000) {
-                return tick / 1000 + 'K';
-              } else if (tick >= 1000000) {
-                return tick / 1000000 + 'M';
-              } else {
-                return tick;
-              }
-            }}
-          >
-            <Label
-              value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
-              position="insideTopRight"
-              fill="#1C1D20"
-              offset={0}
-              fontSize={12}
-              dy={-35}
-              dx={12}
-            />
-          </YAxis>
-          <Legend
-            content={renderCustomizedLegend}
-            wrapperStyle={{ bottom: 0, right: 0, position: 'absolute' }}
           />
           <Tooltip
             content={<CustomTooltipLineGraph activeIndex={activeIndex} />}
@@ -342,6 +361,7 @@ const Charts = ({
             right: 10,
           }}
         >
+          {commonComponents}
           {Array.from(allKeys)
             .filter((key) => key !== 'time')
             .map((key, index) => (
@@ -355,50 +375,14 @@ const Charts = ({
                 onMouseLeave={handleMouseLeave}
               />
             ))}
-          <CartesianGrid stroke="#ccc" strokeDasharray="5 5" vertical={false} />
           <ReferenceLine
+            key="referenceLine"
             y={WHO_STANDARD_VALUE}
             label={CustomReferenceLabel}
             ifOverflow="extendDomain"
             stroke="red"
             strokeOpacity={1}
             strokeDasharray={0}
-          />
-          <XAxis
-            dataKey="time"
-            tickLine={true}
-            tick={<CustomizedAxisTick />}
-            interval={window.innerWidth < 1153 ? 2 : 1}
-            axisLine={false}
-          />
-          <YAxis
-            axisLine={false}
-            fontSize={12}
-            tickLine={false}
-            tick={{ fill: '#1C1D20' }}
-            tickFormatter={(tick) => {
-              if (tick >= 1000 && tick < 1000000) {
-                return tick / 1000 + 'K';
-              } else if (tick >= 1000000) {
-                return tick / 1000000 + 'M';
-              } else {
-                return tick;
-              }
-            }}
-          >
-            <Label
-              value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
-              position="insideTopRight"
-              fill="#1C1D20"
-              offset={0}
-              fontSize={12}
-              dy={-35}
-              dx={12}
-            />
-          </YAxis>
-          <Legend
-            content={renderCustomizedLegend}
-            wrapperStyle={{ bottom: 0, right: 0, position: 'absolute' }}
           />
           <Tooltip
             content={<CustomTooltipBarGraph activeIndex={activeIndex} />}
