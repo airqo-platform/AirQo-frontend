@@ -163,12 +163,12 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
       />
       <Transition
         show={openDatePicker}
-        enter="transition-opacity transition-transform duration-300"
-        enterFrom="opacity-0 -translate-y-full"
-        enterTo="opacity-100 translate-y-0"
-        leave="transition-opacity transition-transform duration-300"
-        leaveFrom="opacity-100 translate-y-0"
-        leaveTo="opacity-0 -translate-y-full"
+        enter="ease-out duration-300"
+        enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        enterTo="opacity-100 translate-y-0 sm:scale-100"
+        leave="ease-in duration-200"
+        leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+        leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
       >
         <div className={`absolute z-50 max-w-[350px] ${className}`}>
           <DatePickerHiddenInput />

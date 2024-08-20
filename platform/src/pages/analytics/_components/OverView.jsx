@@ -12,6 +12,7 @@ import { setTimeFrame, setPollutant } from '@/lib/store/services/charts/ChartSli
 import SettingsIcon from '@/icons/settings.svg';
 import PlusIcon from '@/icons/map/plusIcon';
 import DownloadIcon from '@/icons/Analytics/downloadIcon';
+import DownloadDataModal from '@/components/Modal/dataDownload';
 
 const timeOptions = ['hourly', 'daily', 'weekly', 'monthly'];
 const pollutant = [
@@ -66,6 +67,7 @@ const OverView = () => {
   const siteData = useSelector((state) => state.grids.sitesSummary);
   const { isLoading: isLoadingMeasurements, error } = useFetchMeasurements();
   const chartData = useSelector((state) => state.chart);
+  const [openModal, setOpenModal] = useState(false);
 
   function getSiteName(siteId) {
     if (preferenceData?.length === 0) {
@@ -161,12 +163,9 @@ const OverView = () => {
               Icon={<PlusIcon width={16} height={16} />}
               onClick={null}
             />
-            <TabButtons
-              btnText="Download Data"
-              Icon={<DownloadIcon width={16} height={17} color="white" />}
-              onClick={null}
-              btnStyle="bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl"
-            />
+
+            {/* download data modal */}
+            <DownloadDataModal />
           </div>
         </div>
 
