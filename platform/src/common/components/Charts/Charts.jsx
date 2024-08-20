@@ -262,11 +262,7 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
         dx={12}
       />
     </YAxis>,
-    <Legend
-      key="legend"
-      content={renderCustomizedLegend}
-      wrapperStyle={{ bottom: 0, right: 0, position: 'absolute' }}
-    />,
+    <Legend key="legend" content={renderCustomizedLegend} />,
   ];
 
   const renderChart = () => {
