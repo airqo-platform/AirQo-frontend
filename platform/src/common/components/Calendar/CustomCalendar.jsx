@@ -19,6 +19,7 @@ import {
   getYear,
 } from 'date-fns';
 import TabButtons from '../Button/TabButtons';
+import { Transition } from '@headlessui/react';
 
 /**
  * @param {Object} props
@@ -160,15 +161,19 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
         id="datePicker"
         type={'button'}
       />
-      <div
-        className={`absolute z-50 max-w-[350px] ${className} ${
-          openDatePicker
-            ? 'opacity-100 translate-y-0 visible'
-            : 'opacity-0 -translate-y-2 invisible'
-        } transition-all duration-400 ease-in-out transform`}
+      <Transition
+        show={openDatePicker}
+        enter="transition-opacity transition-transform duration-300"
+        enterFrom="opacity-0 -translate-y-full"
+        enterTo="opacity-100 translate-y-0"
+        leave="transition-opacity transition-transform duration-300"
+        leaveFrom="opacity-100 translate-y-0"
+        leaveTo="opacity-0 -translate-y-full"
       >
-        <DatePickerHiddenInput />
-      </div>
+        <div className={`absolute z-50 max-w-[350px] ${className}`}>
+          <DatePickerHiddenInput />
+        </div>
+      </Transition>
     </div>
   );
 };

@@ -42,21 +42,17 @@ const Button = ({
   }
 
   if (path) {
-    // if the button has an href property, it should be a link button
     return (
       <a
         href={path}
         className={`${buttonClass} ${textColor} ${backgroundColor} ${border}`}
         data-testid={dataTestId}
       >
-        {Icon && (
-          <Icon className={`${textColor || 'text-black-900'} w-4 h-4`} />
-        )}
+        {Icon && <Icon className={`${textColor || 'text-black-900'} w-4 h-4`} />}
         {children}
       </a>
     );
   } else {
-    // otherwise, it's a regular button with an onClick handler
     return (
       <button
         onClick={onClick}
@@ -66,9 +62,7 @@ const Button = ({
         {...rest}
         disabled={disabled}
       >
-        {Icon && (
-          <Icon className={`${textColor || 'text-black-900 w-4 h-4'}`} />
-        )}
+        {Icon && <Icon className={`${textColor || 'text-black-900 w-4 h-4'}`} />}
         {children}
       </button>
     );

@@ -8,10 +8,7 @@ import CustomCalendar from '@/components/Calendar/CustomCalendar';
 import CheckIcon from '@/icons/tickIcon';
 import TabButtons from '@/components/Button/TabButtons';
 import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
-import {
-  setTimeFrame,
-  setPollutant,
-} from '@/lib/store/services/charts/ChartSlice';
+import { setTimeFrame, setPollutant } from '@/lib/store/services/charts/ChartSlice';
 import SettingsIcon from '@/icons/settings.svg';
 import PlusIcon from '@/icons/map/plusIcon';
 import DownloadIcon from '@/icons/Analytics/downloadIcon';
@@ -28,11 +25,8 @@ const useFetchMeasurements = () => {
   const chartData = useSelector((state) => state.chart);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const preferenceData =
-    useSelector((state) => state.defaults.individual_preferences) || [];
-  const preferencesLoading = useSelector(
-    (state) => state.userDefaults.status === 'loading'
-  );
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const preferencesLoading = useSelector((state) => state.userDefaults.status === 'loading');
   const refreshChart = useSelector((state) => state.chart.refreshChart);
 
   useEffect(() => {
@@ -66,12 +60,9 @@ const useFetchMeasurements = () => {
 const OverView = () => {
   // events hook
   const dispatch = useDispatch();
-  const recentLocationMeasurements = useSelector(
-    (state) => state.recentMeasurements.measurements
-  );
+  const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
   const pollutantType = useSelector((state) => state.chart.pollutionType);
-  const preferenceData =
-    useSelector((state) => state.defaults.individual_preferences) || [];
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
   const siteData = useSelector((state) => state.grids.sitesSummary);
   const { isLoading: isLoadingMeasurements, error } = useFetchMeasurements();
   const chartData = useSelector((state) => state.chart);
@@ -80,9 +71,7 @@ const OverView = () => {
     if (preferenceData?.length === 0) {
       return null;
     }
-    const site = preferenceData[0]?.selected_sites?.find(
-      (site) => site._id === siteId
-    );
+    const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
     return site ? site.search_name?.split(',')[0] : '';
   }
 
@@ -103,9 +92,7 @@ const OverView = () => {
     },
   };
 
-  let displayData = recentLocationMeasurements
-    ? recentLocationMeasurements.slice(0, 4)
-    : [];
+  let displayData = recentLocationMeasurements ? recentLocationMeasurements.slice(0, 4) : [];
 
   while (displayData.length < 4) {
     displayData.push(dummyData);
@@ -133,26 +120,20 @@ const OverView = () => {
                   }`}
                 >
                   <span className="flex items-center space-x-2">
-                    <span>
-                      {option.charAt(0).toUpperCase() + option.slice(1)}
-                    </span>
+                    <span>{option.charAt(0).toUpperCase() + option.slice(1)}</span>
                   </span>
-                  {chartData.timeFrame === option && (
-                    <CheckIcon fill={'#145FFF'} />
-                  )}
+                  {chartData.timeFrame === option && <CheckIcon fill={'#145FFF'} />}
                 </span>
               ))}
             </CustomDropdown>
             <CustomCalendar
               initialStartDate={chartData.chartDataRange.startDate}
               initialEndDate={chartData.chartDataRange.endDate}
-              className="left-32 top-12"
+              className="-left-24 md:left-14 lg:left-32  top-12"
               dropdown
             />
             <CustomDropdown
-              trigger={
-                <TabButtons btnText="Pollutant" Icon={<SettingsIcon />} />
-              }
+              trigger={<TabButtons btnText="Pollutant" Icon={<SettingsIcon />} />}
               id="pollutant"
               className="left-0 top-9"
             >
@@ -163,15 +144,13 @@ const OverView = () => {
                     dispatch(setPollutant(option.id));
                   }}
                   className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
-                    chartData.timeFrame === option ? 'bg-gray-100' : ''
+                    chartData.pollutionType === option.id ? 'bg-gray-100' : ''
                   }`}
                 >
                   <span className="flex items-center space-x-2">
                     <span>{option.name}</span>
                   </span>
-                  {chartData.pollutionType === option.id && (
-                    <CheckIcon fill={'#145FFF'} />
-                  )}
+                  {chartData.pollutionType === option.id && <CheckIcon fill={'#145FFF'} />}
                 </span>
               ))}
             </CustomDropdown>
@@ -231,16 +210,8 @@ const OverView = () => {
 
         {/* charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ChartContainer
-            chartType="line"
-            chartTitle="Air quality over time"
-            height={400}
-          />
-          <ChartContainer
-            chartType="bar"
-            chartTitle="Air quality over time"
-            height={400}
-          />
+          <ChartContainer chartType="line" chartTitle="Air quality over time" height={400} />
+          <ChartContainer chartType="bar" chartTitle="Air quality over time" height={400} />
         </div>
       </div>
     </BorderlessContentBox>
