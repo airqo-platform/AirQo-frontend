@@ -52,11 +52,7 @@ const Footer = ({
           <input
             type="text"
             readOnly
-            value={
-              selectedRange.start
-                ? format(selectedRange.start, 'MMM d, yyyy')
-                : ''
-            }
+            value={selectedRange.start ? format(selectedRange.start, 'MMM d, yyyy') : ''}
             className="flex items-center w-full px-4 py-3 text-sm border border-gray-300 text-gray-600 rounded-md focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none md:w-32"
             placeholder="Start date"
             disabled
@@ -67,9 +63,7 @@ const Footer = ({
           <input
             type="text"
             readOnly
-            value={
-              selectedRange.end ? format(selectedRange.end, 'MMM d, yyyy') : ''
-            }
+            value={selectedRange.end ? format(selectedRange.end, 'MMM d, yyyy') : ''}
             className="flex items-center w-full px-4 py-3 text-sm border border-gray-300 text-gray-600 rounded-md focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none md:w-32"
             placeholder="End date"
             disabled
@@ -90,7 +84,7 @@ const Footer = ({
           Apply
         </button>
       </div>
-      {errorMsg && <p className="text-red-500 text-sm">Select date!</p>}
+      {errorMsg && <div className="text-red-500 text-sm w-auto">Select date range</div>}
     </div>
   );
 };

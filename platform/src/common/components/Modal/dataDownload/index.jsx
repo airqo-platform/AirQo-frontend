@@ -8,8 +8,8 @@ const Modal = ({ isOpen, onClose }) => {
 
   return (
     <Transition show={isOpen} as={React.Fragment}>
-      <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto">
-        <div className="flex items-center justify-center min-h-screen px-4 text-center sm:block sm:p-0">
+      <div className="fixed inset-0 z-50  min-h-screen flex items-center justify-center overflow-y-auto">
+        <div className="flex items-center justify-center px-4 text-center sm:block sm:p-0">
           <TransitionChild
             as={React.Fragment}
             enter="ease-out duration-300"

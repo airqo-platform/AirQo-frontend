@@ -8,6 +8,7 @@ const getStartDate = () => {
   return startDate.toISOString(); // convert to UTC ISO string
 };
 
+const defaultChartTab = 0;
 const defaultChartType = 'line';
 const defaultTimeFrame = 'daily';
 const defaultPollutionType = 'pm2_5';
@@ -31,6 +32,7 @@ const initialState = {
     id: null,
     refresh: false,
   },
+  chartTab: defaultChartTab,
 };
 
 export const chartSlice = createSlice({
@@ -40,7 +42,9 @@ export const chartSlice = createSlice({
     setChartType: (state, action) => {
       state.chartType = action.payload;
     },
-
+    setChartTab: (state, action) => {
+      state.chartTab = action.payload;
+    },
     setTimeFrame: (state, action) => {
       state.timeFrame = action.payload;
     },
@@ -76,6 +80,7 @@ export const chartSlice = createSlice({
 
 export const {
   setChartType,
+  setChartTab,
   setTimeFrame,
   setChartDataRange,
   setChartSites,
