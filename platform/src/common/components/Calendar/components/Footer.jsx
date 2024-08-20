@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { format } from 'date-fns';
+import Button from '../../Button';
 
 /**
  * @param {Object} props
@@ -53,7 +54,7 @@ const Footer = ({
             type="text"
             readOnly
             value={selectedRange.start ? format(selectedRange.start, 'MMM d, yyyy') : ''}
-            className="flex items-center w-full px-4 py-3 text-sm border border-gray-300 text-gray-600 rounded-md focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none md:w-32"
+            className="flex items-center w-full px-4 py-2 text-sm border border-gray-300 text-gray-600 rounded-xl focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none md:w-32"
             placeholder="Start date"
             disabled
           />
@@ -64,25 +65,19 @@ const Footer = ({
             type="text"
             readOnly
             value={selectedRange.end ? format(selectedRange.end, 'MMM d, yyyy') : ''}
-            className="flex items-center w-full px-4 py-3 text-sm border border-gray-300 text-gray-600 rounded-md focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none md:w-32"
+            className="flex items-center w-full px-4 py-2 text-sm border border-gray-300 text-gray-600 rounded-xl focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none md:w-32"
             placeholder="End date"
             disabled
           />
         </div>
       )}
       <div className="flex items-center space-x-2 mt-2 md:mt-0">
-        <button
-          onClick={handleCancel}
-          className="px-4 py-3 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:bg-gray-100 w-full md:w-auto"
-        >
+        <Button onClick={handleCancel} type="button" variant={'outlined'}>
           Cancel
-        </button>
-        <button
-          onClick={handleApply}
-          className="px-4 py-3 text-sm text-white bg-blue-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600 hover:bg-blue-700 w-full md:w-auto"
-        >
+        </Button>
+        <Button onClick={handleApply} type="button" variant={'filled'}>
           Apply
-        </button>
+        </Button>
       </div>
       {errorMsg && <div className="text-red-500 text-sm w-auto">Select date range</div>}
     </div>

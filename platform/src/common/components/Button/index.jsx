@@ -13,7 +13,7 @@ const Button = ({
   Icon,
   paddingStyles = 'py-2 px-4',
 }) => {
-  let buttonClass = `flex justify-center items-center ${paddingStyles} rounded-xl sm:gap-1 ${className}`;
+  let buttonClass = `flex justify-center items-center shadow-sm ${paddingStyles} rounded-xl sm:gap-1 ${className}`;
   let textColor = '';
   let backgroundColor = '';
   let border = '';
@@ -23,7 +23,7 @@ const Button = ({
     textColor = 'text-white';
   } else if (variant === 'outlined') {
     border = 'border b-secondary-neutral-light-100';
-    textColor = 'text-secondary-neutral-light-600';
+    textColor = 'text-black';
   } else if (variant === 'text') {
     textColor = 'text-secondary-neutral-light-600';
   } else if (variant === 'disabled') {

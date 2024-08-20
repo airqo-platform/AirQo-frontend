@@ -5,6 +5,55 @@ import DownloadIcon from '@/icons/Analytics/downloadIcon';
 import Close from '@/icons/close_icon';
 import LongArrowLeft from '@/icons/Analytics/longArrowLeft';
 import Button from '../../Button';
+import WorldIcon from '@/icons/SideBar/world_Icon';
+import CustomDropdown from '../../Dropdowns/CustomDropdown';
+import TopBarSearch from '../../search/TopBarSearch';
+import { id } from 'date-fns/locale';
+
+const Network = [
+  { id: 1, name: 'AirQo' },
+  { id: 2, name: 'KCCA' },
+];
+
+const CustomFields = ({ field = false, title, options, id, icon }) => {
+  return (
+    <div className="w-full h-auto flex flex-col gap-2 justify-start">
+      <label className="w-[280px] h-auto p-0 m-0 text-[#7A7F87]">{title}</label>
+      {field ? (
+        <input
+          className="bg-transparent text-[16px] font-medium leading-6 p-0 m-0 w-full h-auto border-none"
+          value={'Untitled Report'}
+          color="black"
+          type="text"
+          name="title"
+        />
+      ) : (
+        <CustomDropdown
+          trigger={<TabButtons btnText="KCCA" Icon={icon} dropdown btnStyle={'w-full'} />}
+          id
+          className="left-0 top-9"
+        >
+          {options.map((option) => (
+            <span
+              key={option.id}
+              onClick={() => {
+                null;
+              }}
+              className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center 
+                
+                `}
+            >
+              <span className="flex items-center space-x-2">
+                <span>{option.name}</span>
+              </span>
+              {/* {chartData.pollutionType === option.id && <CheckIcon fill={'#145FFF'} />} */}
+            </span>
+          ))}
+        </CustomDropdown>
+      )}
+    </div>
+  );
+};
 
 const Modal = ({ isOpen, onClose }) => {
   const modalRef = useRef(null);
@@ -55,28 +104,36 @@ const Modal = ({ isOpen, onClose }) => {
                 </div>
               </div>
               <div className="w-full h-auto flex">
-                <div className="w-[280px] h-auto bg-[#E2E3E5] px-5 py-6">new data</div>
+                <div className="w-[280px] h-auto bg-[#E2E3E5] space-y-3 px-5 py-6">
+                  <CustomFields field title="Title" />
+                  {/* <CustomFields
+                    title="Network"
+                    options={Network}
+                    id={'network'}
+                    icon={<WorldIcon />}
+                  /> */}
+                </div>
                 <div className="bg-white w-full h-auto">
-                  <div className="sm:flex sm:items-start px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    NEW DATA
+                  <div className="flex justify-between items-center px-8 pt-6 pb-4">
+                    <div className="gap-2 flex items-center">
+                      <Button type="button" onClick={null} variant="filled">
+                        All
+                      </Button>
+                      <Button type="button" onClick={null} variant="outlined">
+                        Favorites
+                      </Button>
+                    </div>
+                    <TopBarSearch />
                   </div>
                   <div className="bg-gray-50 px-4 py-3 sm:px-6 flex items-center justify-between">
                     <div className="text-sm leading-5 font-normal">
                       Select locations to continue
                     </div>
-                    <div className="sm:flex sm:flex-row-reverse">
-                      <Button
-                        type="button"
-                        className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
-                        onClick={onClose}
-                      >
+                    <div className="sm:flex sm:flex-row-reverse gap-2">
+                      <Button type="button" variant={'filled'} onClick={onClose}>
                         Download
                       </Button>
-                      <Button
-                        type="button"
-                        className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
-                        onClick={onClose}
-                      >
+                      <Button type="button" variant={'outlined'} onClick={onClose}>
                         Cancel
                       </Button>
                     </div>
