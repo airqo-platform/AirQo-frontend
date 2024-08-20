@@ -26,15 +26,6 @@ const Home = () => {
   const [step, setStep] = useState(0);
   const totalSteps = 4;
 
-  // loads chart data on page load
-  const analyticsData = useSelector((state) => state.analytics.data);
-
-  useEffect(() => {
-    if ((analyticsData && analyticsData.length === 0) || analyticsData === null) {
-      dispatch(setRefreshChart(true));
-    }
-  }, []);
-
   const steps = [
     {
       label: 'Introduction AirQo Analytics demo video',
