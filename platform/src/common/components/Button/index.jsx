@@ -11,7 +11,7 @@ const Button = ({
   color,
   bgColor,
   Icon,
-  paddingStyles = 'px-4 py-3',
+  paddingStyles = 'py-2 px-4',
 }) => {
   let buttonClass = `flex justify-center items-center ${paddingStyles} rounded-xl sm:gap-1 ${className}`;
   let textColor = '';

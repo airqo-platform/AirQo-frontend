@@ -118,7 +118,7 @@ const OverView = () => {
                     dispatch(setTimeFrame(option));
                   }}
                   className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
-                    chartData.timeFrame === option ? 'bg-gray-100' : ''
+                    chartData.timeFrame === option ? 'bg-[#EBF5FF] rounded-md' : ''
                   }`}
                 >
                   <span className="flex items-center space-x-2">
@@ -146,7 +146,7 @@ const OverView = () => {
                     dispatch(setPollutant(option.id));
                   }}
                   className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
-                    chartData.pollutionType === option.id ? 'bg-gray-100' : ''
+                    chartData.pollutionType === option.id ? 'bg-[#EBF5FF] rounded-md' : ''
                   }`}
                 >
                   <span className="flex items-center space-x-2">

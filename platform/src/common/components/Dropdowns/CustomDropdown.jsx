@@ -61,7 +61,7 @@ const CustomDropdown = ({
           <div
             className={`absolute z-50 w-40 md:w-56 mt-2 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg ${className}`}
           >
-            <div className="py-1">{children}</div>
+            <div className="p-1">{children}</div>
           </div>
         )}
       </Transition>
