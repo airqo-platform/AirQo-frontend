@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import {
   LineChart,
   Line,
@@ -16,10 +16,7 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import Spinner from '@/components/Spinner';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
-import {
-  fetchAnalyticsData,
-  setAnalyticsData,
-} from '@/lib/store/services/charts/ChartData';
+import { fetchAnalyticsData, setAnalyticsData } from '@/lib/store/services/charts/ChartData';
 import {
   renderCustomizedLegend,
   CustomDot,
@@ -31,6 +28,12 @@ import {
   colors,
 } from './components';
 
+const WHO_STANDARD_VALUES = {
+  pm2_5: 15,
+  pm10: 45,
+  no2: 25,
+};
+
 /**
  * @description Custom hook to fetch analytics data
  * @returns {Object} isLoading, error, loadingTime
@@ -39,49 +42,45 @@ export const useAnalytics = () => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
   const refreshChart = useSelector((state) => state.chart.refreshChart);
-  const preferencesLoading = useSelector(
-    (state) => state.userDefaults.status === 'loading'
-  );
-  const isLoading = useSelector(
-    (state) => state.analytics.status === 'loading'
-  );
+  const preferencesLoading = useSelector((state) => state.userDefaults.status === 'loading');
+  const isLoading = useSelector((state) => state.analytics.status === 'loading');
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
   const [error, setError] = useState(null);
   const [loadingTime, setLoadingTime] = useState(0);
-  const preferenceData =
-    useSelector((state) => state.defaults.individual_preferences) || [];
 
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
     if (preferencesLoading || !preferenceData.length) return;
+
     const { selected_sites } = preferenceData[0];
     const chartSites = selected_sites?.map((site) => site['_id']);
 
-    const fetchData = async () => {
-      try {
-        setError(null);
-        const startTime = Date.now();
-        setLoadingTime(startTime);
-        await dispatch(
-          fetchAnalyticsData({
-            sites: chartSites,
-            startDate: chartData.chartDataRange.startDate,
-            endDate: chartData.chartDataRange.endDate,
-            chartType: chartData.chartType,
-            frequency: chartData.timeFrame,
-            pollutant: chartData.pollutionType,
-            organisation_name: chartData.organizationName,
-          })
-        );
-      } catch (err) {
-        setError(err.message);
-        dispatch(setAnalyticsData(null));
-      } finally {
-        dispatch(setRefreshChart(false));
-        setLoadingTime(Date.now() - loadingTime);
-      }
-    };
-
-    fetchData();
+    try {
+      setError(null);
+      const startTime = Date.now();
+      setLoadingTime(startTime);
+      await dispatch(
+        fetchAnalyticsData({
+          sites: chartSites,
+          startDate: chartData.chartDataRange.startDate,
+          endDate: chartData.chartDataRange.endDate,
+          chartType: chartData.chartType,
+          frequency: chartData.timeFrame,
+          pollutant: chartData.pollutionType,
+          organisation_name: chartData.organizationName,
+        })
+      );
+    } catch (err) {
+      setError(err.message);
+      dispatch(setAnalyticsData(null));
+    } finally {
+      dispatch(setRefreshChart(false));
+      setLoadingTime(Date.now() - loadingTime);
+    }
   }, [chartData, refreshChart, preferenceData]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData, refreshChart]);
 
   return { isLoading, error, loadingTime };
 };
@@ -90,63 +89,51 @@ export const useAnalytics = () => {
  * @description Custom hook to transform analytics data for chart
  * @returns {Object} dataForChart, allKeys
  */
-const useAnalyticsData = () => {
+export const useAnalyticsData = () => {
   const analyticsData = useSelector((state) => state.analytics.data);
-  const [dataForChart, setDataForChart] = useState([]);
-  const [allKeys, setAllKeys] = useState(new Set());
-  const preferenceData =
-    useSelector((state) => state.defaults.individual_preferences) || [];
+  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
   const siteData = useSelector((state) => state.grids.sitesSummary);
 
-  // Helper functions
-  const getSiteName = (siteId, preferenceData) => {
-    if (!preferenceData?.length) return '';
-    const site = preferenceData[0]?.selected_sites?.find(
-      (site) => site._id === siteId
-    );
-    return site ? site.name?.split(',')[0] : '';
-  };
+  const getSiteName = useCallback(
+    (siteId) => {
+      const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
+      return site ? site.name?.split(',')[0] : '';
+    },
+    [preferenceData]
+  );
 
-  const getExistingSiteName = (siteId, siteData) => {
-    const site = siteData?.sites?.find((site) => site._id === siteId);
-    return site ? site.search_name : '';
-  };
+  const getExistingSiteName = useCallback(
+    (siteId) => {
+      const site = siteData?.sites?.find((site) => site._id === siteId);
+      return site ? site.search_name : '';
+    },
+    [siteData]
+  );
 
-  // Effect to transform analytics data whenever it changes
-  useEffect(() => {
-    const transformData = (analyticsData) => {
-      const newAnalyticsData = analyticsData.map((data) => {
-        const name =
-          getSiteName(data.site_id, preferenceData) ||
-          getExistingSiteName(data.site_id, siteData) ||
-          data.generated_name;
-        return { ...data, name };
-      });
+  const transformedData = useMemo(() => {
+    if (!analyticsData?.length) return { dataForChart: [], allKeys: new Set() };
 
-      const transformedData = newAnalyticsData.reduce((acc, curr) => {
+    const newAnalyticsData = analyticsData.map((data) => ({
+      ...data,
+      name: getSiteName(data.site_id) || getExistingSiteName(data.site_id) || data.generated_name,
+    }));
+
+    const dataForChart = Object.values(
+      newAnalyticsData.reduce((acc, curr) => {
         if (!acc[curr.time]) {
           acc[curr.time] = { time: curr.time };
         }
         acc[curr.time][curr.name] = curr.value;
         return acc;
-      }, {});
+      }, {})
+    );
 
-      setDataForChart(Object.values(transformedData));
-      setAllKeys(
-        new Set(
-          Object.values(transformedData).length > 0
-            ? Object.keys(Object.values(transformedData)[0])
-            : []
-        )
-      );
-    };
+    const allKeys = new Set(dataForChart.length > 0 ? Object.keys(dataForChart[0]) : []);
 
-    if (analyticsData?.length) {
-      transformData(analyticsData);
-    }
-  }, [analyticsData]);
+    return { dataForChart, allKeys };
+  }, [analyticsData, getSiteName, getExistingSiteName]);
 
-  return { dataForChart, allKeys };
+  return transformedData;
 };
 
 /**
@@ -156,39 +143,16 @@ const useAnalyticsData = () => {
  * @param {String} height - Height of the chart
  * @returns {React.Component} Charts
  */
-const Charts = ({
-  chartType = 'line',
-  width = '100%',
-  height = '100%',
-  id,
-}) => {
+const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => {
   const chartData = useSelector((state) => state.chart);
   const { isLoading, error, loadingTime } = useAnalytics();
   const { dataForChart, allKeys } = useAnalyticsData();
   const analyticsData = useSelector((state) => state.analytics.data);
   const [showLoadingMessage, setShowLoadingMessage] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
-  const WHO_STANDARD_VALUE =
-    chartData.pollutionType === 'pm2_5'
-      ? 15
-      : chartData.pollutionType === 'pm10'
-      ? 45
-      : chartData.pollutionType === 'no2'
-      ? 25
-      : 0;
-
   const [activeIndex, setActiveIndex] = useState(null);
-  const [activeKey, setActiveKey] = useState(null);
 
-  const handleMouseEnter = (o, index, key) => {
-    setActiveIndex(index);
-    setActiveKey(key);
-  };
-
-  const handleMouseLeave = () => {
-    setActiveIndex(null);
-    setActiveKey(null);
-  };
+  const WHO_STANDARD_VALUE = WHO_STANDARD_VALUES[chartData.pollutionType] || 0;
 
   useEffect(() => {
     let timeoutId;
@@ -201,117 +165,111 @@ const Charts = ({
     return () => clearTimeout(timeoutId);
   }, [isLoading, loadingTime]);
 
-  const renderErrorMessage = () => (
-    <div className="ml-10 pr-10 flex justify-center text-center items-center w-full h-full text-sm">
-      <p className="text-red-500 text-center">
-        An error has occurred. Please try again later or reach out to our
-        support team for assistance.
-      </p>
-    </div>
-  );
+  const handleMouseEnter = useCallback((_, index) => {
+    setActiveIndex(index);
+  }, []);
 
-  const renderLoadingMessage = () => (
-    <div className="ml-10 flex justify-center text-center items-center w-full h-full">
-      <div className="text-blue-500">
-        <Spinner />
-        {showLoadingMessage && (
-          <span className="text-yellow-500 mt-2">
-            The data is currently being processed. We appreciate your patience.
-          </span>
-        )}
-      </div>
-    </div>
-  );
+  const handleMouseLeave = useCallback(() => {
+    setActiveIndex(null);
+  }, []);
 
-  // No data for this time range
-  const renderNoDataMessage = () => (
-    <div className="ml-10 pr-10 flex justify-center items-center w-full h-full text-center text-sm text-gray-600">
-      No data found. Please try other time periods or customize using other
-      locations
-    </div>
-  );
-
-  if (error || analyticsData?.error?.message) {
-    return renderErrorMessage();
-  }
-
-  if (isLoading || !hasLoaded) {
-    return renderLoadingMessage();
-  }
-
-  if ((hasLoaded && !analyticsData) || analyticsData?.length === 0) {
-    return renderNoDataMessage();
-  }
-
-  const calculateXAxisInterval = (dataLength) => {
+  const calculateXAxisInterval = useCallback((dataLength) => {
     const screenWidth = window.innerWidth;
-
     if (screenWidth < 768) return Math.ceil(dataLength / 4);
     if (screenWidth < 1024) return Math.ceil(dataLength / 6);
     return Math.ceil(dataLength / 8);
-  };
+  }, []);
 
-  const formatYAxisTick = (tick) => {
+  const formatYAxisTick = useCallback((tick) => {
     if (tick >= 1000000) return `${tick / 1000000}M`;
     if (tick >= 1000) return `${tick / 1000}K`;
     return tick;
+  }, []);
+
+  const getLineColor = useCallback(
+    (index, activeIndex, colors) =>
+      index === activeIndex || activeIndex === null ? colors[index % colors.length] : '#ccc',
+    []
+  );
+
+  if (error || analyticsData?.error?.message) {
+    return (
+      <div className="ml-10 pr-10 flex justify-center text-center items-center w-full h-full text-sm">
+        <p className="text-red-500 text-center">
+          An error has occurred. Please try again later or reach out to our support team for
+          assistance.
+        </p>
+      </div>
+    );
+  }
+
+  if (isLoading || !hasLoaded) {
+    return (
+      <div className="ml-10 flex justify-center text-center items-center w-full h-full">
+        <div className="text-blue-500">
+          <Spinner />
+          {showLoadingMessage && (
+            <span className="text-yellow-500 mt-2">
+              The data is currently being processed. We appreciate your patience.
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if ((hasLoaded && !analyticsData) || analyticsData?.length === 0) {
+    return (
+      <div className="ml-10 pr-10 flex justify-center items-center w-full h-full text-center text-sm text-gray-600">
+        No data found. Please try other time periods or customize using other locations
+      </div>
+    );
+  }
+
+  const commonProps = {
+    data: dataForChart,
+    style: { cursor: 'pointer' },
+    margin: { top: 38, right: 10 },
   };
 
-  const getLineColor = (index, activeIndex, colors) =>
-    index === activeIndex || activeIndex === null
-      ? colors[index % colors.length]
-      : '#ccc';
-
-  // Render the chart
-  const renderChart = () => {
-    const commonProps = {
-      data: dataForChart,
-      style: { cursor: 'pointer' },
-      margin: { top: 38, right: 10 },
-    };
-
-    const commonComponents = [
-      <CartesianGrid
-        key="grid"
-        stroke="#ccc"
-        strokeDasharray="5 5"
-        vertical={false}
-      />,
-      <XAxis
-        key="xAxis"
-        dataKey="time"
-        tickLine={true}
-        tick={<CustomizedAxisTick fill="#1C1D20" />}
-        interval={calculateXAxisInterval(dataForChart.length)}
-        axisLine={false}
-        scale="point"
-        padding={{ left: 30, right: 30 }}
-      />,
-      <YAxis
-        key="yAxis"
-        axisLine={false}
+  const commonComponents = [
+    <CartesianGrid key="grid" stroke="#ccc" strokeDasharray="5 5" vertical={false} />,
+    <XAxis
+      key="xAxis"
+      dataKey="time"
+      tickLine={true}
+      tick={<CustomizedAxisTick fill="#1C1D20" />}
+      interval={calculateXAxisInterval(dataForChart.length)}
+      axisLine={false}
+      scale="point"
+      padding={{ left: 30, right: 30 }}
+    />,
+    <YAxis
+      key="yAxis"
+      axisLine={false}
+      fontSize={12}
+      tickLine={false}
+      tick={{ fill: '#1C1D20' }}
+      tickFormatter={formatYAxisTick}
+    >
+      <Label
+        value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
+        position="insideTopRight"
+        fill="#1C1D20"
+        offset={0}
         fontSize={12}
-        tickLine={false}
-        tick={{ fill: '#1C1D20' }}
-        tickFormatter={formatYAxisTick}
-      >
-        <Label
-          value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
-          position="insideTopRight"
-          fill="#1C1D20"
-          offset={0}
-          fontSize={12}
-          dy={-35}
-          dx={12}
-        />
-      </YAxis>,
-      <Legend
-        key="legend"
-        content={renderCustomizedLegend}
-        wrapperStyle={{ bottom: 0, right: 0, position: 'absolute' }}
-      />,
-    ];
+        dy={-35}
+        dx={12}
+      />
+    </YAxis>,
+    <Legend
+      key="legend"
+      content={renderCustomizedLegend}
+      wrapperStyle={{ bottom: 0, right: 0, position: 'absolute' }}
+    />,
+  ];
 
+  const renderChart = () => {
     if (chartType === 'line') {
       return (
         <LineChart {...commonProps}>
@@ -353,14 +311,7 @@ const Charts = ({
       );
     } else if (chartType === 'bar') {
       return (
-        <BarChart
-          data={dataForChart}
-          style={{ cursor: 'pointer' }}
-          margin={{
-            top: 38,
-            right: 10,
-          }}
-        >
+        <BarChart {...commonProps}>
           {commonComponents}
           {Array.from(allKeys)
             .filter((key) => key !== 'time')
@@ -402,4 +353,4 @@ const Charts = ({
   );
 };
 
-export default Charts;
+export default React.memo(Charts);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
 const CustomDropdown = ({
@@ -13,18 +13,18 @@ const CustomDropdown = ({
   const dropdownRef = useRef(null);
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
 
-  const handleClickOutside = (event) => {
+  const handleClickOutside = useCallback((event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
       setIsOpen(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [handleClickOutside]);
 
   useEffect(() => {
     setIsOpen(openDropdown);
