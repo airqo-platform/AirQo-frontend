@@ -126,7 +126,7 @@ const OverView = () => {
             <CustomCalendar
               initialStartDate={chartData.chartDataRange.startDate}
               initialEndDate={chartData.chartDataRange.endDate}
-              className="-left-24 md:left-14 lg:left-32  top-11"
+              className="-left-24 md:left-14 lg:left-[118px]  top-11"
               dropdown
             />
             <CustomDropdown
