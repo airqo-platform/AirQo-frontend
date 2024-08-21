@@ -90,13 +90,13 @@ const useAnalyticsData = () => {
   const siteData = useSelector((state) => state.grids.sitesSummary);
 
   // Helper functions
-  const getSiteName = (siteId, preferenceData) => {
-    if (!preferenceData?.length) return '';
+  const getSiteName = (siteId) => {
+    if (preferenceData?.length === 0) return null;
     const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
-    return site ? site.name?.split(',')[0] : '';
+    return site ? site.search_name?.split(',')[0] : '';
   };
 
-  const getExistingSiteName = (siteId, siteData) => {
+  const getExistingSiteName = (siteId) => {
     const site = siteData?.sites?.find((site) => site._id === siteId);
     return site ? site.search_name : '';
   };
@@ -106,9 +106,7 @@ const useAnalyticsData = () => {
     const transformData = (analyticsData) => {
       const newAnalyticsData = analyticsData.map((data) => {
         const name =
-          getSiteName(data.site_id, preferenceData) ||
-          getExistingSiteName(data.site_id, siteData) ||
-          data.generated_name;
+          getSiteName(data.site_id) || getExistingSiteName(data.site_id) || data.generated_name;
         return { ...data, name };
       });
 
@@ -236,7 +234,8 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
           margin={{
             top: 38,
             right: 10,
-          }}>
+          }}
+        >
           {Array.from(allKeys)
             .filter((key) => key !== 'time')
             .map((key, index) => (
@@ -285,7 +284,8 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
               } else {
                 return tick;
               }
-            }}>
+            }}
+          >
             <Label
               value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
               position='insideTopRight'
@@ -318,7 +318,8 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
           margin={{
             top: 38,
             right: 10,
-          }}>
+          }}
+        >
           {Array.from(allKeys)
             .filter((key) => key !== 'time')
             .map(
@@ -359,7 +360,8 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
               } else {
                 return tick;
               }
-            }}>
+            }}
+          >
             <Label
               value={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
               position='insideTopRight'
