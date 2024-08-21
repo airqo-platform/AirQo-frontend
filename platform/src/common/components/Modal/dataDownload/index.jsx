@@ -113,7 +113,7 @@ const Modal = ({ isOpen, onClose }) => {
             </div>
             {/* body */}
             <div className="flex flex-grow">
-              <div className="w-[280px] h-auto bg-[#f6f6f7] space-y-3 px-5 py-6">
+              <div className="w-[280px] relative h-auto bg-[#f6f6f7] space-y-3 px-5 py-6">
                 <CustomFields field title="Title" />
                 <CustomFields
                   title="Network"
@@ -133,6 +133,12 @@ const Modal = ({ isOpen, onClose }) => {
                   options={Network}
                   id={'pollutant'}
                   icon={<WindIcon />}
+                />
+                <CustomFields
+                  title="Duration"
+                  options={Network}
+                  id={'duration'}
+                  icon={<FileTypeIcon />}
                 />
                 <CustomFields
                   title="Frequency"
@@ -159,7 +165,7 @@ const Modal = ({ isOpen, onClose }) => {
                   </div>
                   <TopBarSearch />
                 </div>
-                <div className="bg-gray-50 px-4 py-3 sm:px-6 flex items-center justify-between">
+                <div className="bg-gray-50 absolute bottom-0 right-0 w-full px-4 py-3 sm:px-6 flex items-center justify-between">
                   <div className="text-sm leading-5 font-normal">Select locations to continue</div>
                   <div className="sm:flex sm:flex-row-reverse gap-2">
                     <Button type="button" variant={'filled'} onClick={onClose}>

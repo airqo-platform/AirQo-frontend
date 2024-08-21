@@ -24,6 +24,7 @@ const Button = ({
   } else if (variant === 'outlined') {
     border = 'border b-secondary-neutral-light-100';
     textColor = 'text-black';
+    backgroundColor = 'bg-white';
   } else if (variant === 'text') {
     textColor = 'text-secondary-neutral-light-600';
   } else if (variant === 'disabled') {
