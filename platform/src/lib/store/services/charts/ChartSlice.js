@@ -28,10 +28,7 @@ const initialState = {
   chartSites: defaultChartSites,
   userDefaultID: null,
   chartAnalyticsData: [],
-  refreshChart: {
-    id: null,
-    refresh: false,
-  },
+  refreshChart: false,
   chartTab: defaultChartTab,
 };
 

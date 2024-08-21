@@ -90,7 +90,7 @@ const ChartContainer = memo(({ chartType, chartTitle, height, width, id }) => {
   );
 
   const refreshChart = () => {
-    dispatch(setRefreshChart({ id, refresh: true }));
+    dispatch(setRefreshChart(true));
   };
 
   const shareReport = (format) => {
