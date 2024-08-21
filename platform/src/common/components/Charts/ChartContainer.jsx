@@ -1,4 +1,5 @@
-import React, { useRef, useCallback, useState, useEffect } from 'react';
+'use client';
+import React, { useRef, useCallback, useState, useEffect, memo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
 import Chart from './Charts';
@@ -7,25 +8,17 @@ import html2canvas from 'html2canvas';
 import Spinner from '@/components/Spinner';
 import CheckIcon from '@/icons/tickIcon';
 import PrintReportModal from '@/components/Modal/PrintReportModal';
-import TabButtons from '../Button/TabButtons';
-import { setChartType, setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
+import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
 
-const ChartContainer = ({ chartType, chartTitle, height, width, id }) => {
+const ChartContainer = memo(({ chartType, chartTitle, height, width, id }) => {
   const dispatch = useDispatch();
   const chartRef = useRef(null);
   const dropdownRef = useRef(null);
-  const isLoading = useSelector((state) => state.analytics.status === 'loading');
+  const { status: isLoading, chartDataRange, chartSites } = useSelector((state) => state.chart);
   const [openShare, setOpenShare] = useState(false);
   const [shareFormat, setShareFormat] = useState(null);
   const [loadingFormat, setLoadingFormat] = useState(null);
   const [downloadComplete, setDownloadComplete] = useState(null);
-  const chartData = useSelector((state) => state.chart);
-
-  const modifiedData = {
-    startDate: chartData.chartDataRange.startDate,
-    endDate: chartData.chartDataRange.endDate,
-    sites: chartData.chartSites,
-  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -38,64 +31,63 @@ const ChartContainer = ({ chartType, chartTitle, height, width, id }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const exportChart = useCallback(async (format) => {
-    if (!chartRef.current) return;
+  const exportChart = useCallback(
+    async (format) => {
+      if (!chartRef.current) return;
 
-    setDownloadComplete(null);
-    setLoadingFormat(format);
+      setDownloadComplete(null);
+      setLoadingFormat(format);
 
-    try {
-      const rect = chartRef.current.getBoundingClientRect();
-      const extraSpace = 20;
-      const canvasWidth = rect.width + extraSpace;
-      const canvasHeight = rect.height + extraSpace;
+      try {
+        const rect = chartRef.current.getBoundingClientRect();
+        const extraSpace = 20;
+        const canvasWidth = rect.width + extraSpace;
+        const canvasHeight = rect.height + extraSpace;
 
-      const canvas = await html2canvas(chartRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: rect.backgroundColor,
-        width: canvasWidth,
-        height: canvasHeight,
-        scrollX: 0,
-        scrollY: 0,
-      });
-
-      const link = document.createElement('a');
-      link.download = `airquality-data.${format}`;
-
-      if (format === 'png' || format === 'jpg') {
-        canvas.toBlob(
-          (blob) => {
-            link.href = URL.createObjectURL(blob);
-            link.click();
-            setLoadingFormat(null);
-            setDownloadComplete(format);
-          },
-          `image/${format}`,
-          0.8
-        );
-      } else if (format === 'pdf') {
-        const pdf = new jsPDF({
-          orientation: 'landscape',
-          unit: 'px',
-          format: [canvasWidth, canvasHeight],
+        const canvas = await html2canvas(chartRef.current, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: rect.backgroundColor,
+          width: canvasWidth,
+          height: canvasHeight,
+          scrollX: 0,
+          scrollY: 0,
         });
-        pdf.addImage(canvas.toDataURL('image/png', 0.8), 'PNG', 0, 0, canvasWidth, canvasHeight);
-        pdf.save('airquality-data.pdf');
-        setLoadingFormat(null);
-        setDownloadComplete(format);
-      } else {
-        throw new Error('Unsupported format');
-      }
-    } catch (error) {
-      console.error('Error exporting chart:', error);
-      setLoadingFormat(null);
-    }
-  }, []);
 
-  const handleMoreClick = () => {
-    dispatch(setChartType(chartType));
-  };
+        const link = document.createElement('a');
+        link.download = `airquality-data.${format}`;
+
+        if (format === 'png' || format === 'jpg') {
+          canvas.toBlob(
+            (blob) => {
+              link.href = URL.createObjectURL(blob);
+              link.click();
+              setLoadingFormat(null);
+              setDownloadComplete(format);
+            },
+            `image/${format}`,
+            0.8
+          );
+        } else if (format === 'pdf') {
+          const pdf = new jsPDF({
+            orientation: 'landscape',
+            unit: 'px',
+            format: [canvasWidth, canvasHeight],
+          });
+          pdf.addImage(canvas.toDataURL('image/png', 0.8), 'PNG', 0, 0, canvasWidth, canvasHeight);
+          pdf.save('airquality-data.pdf');
+          setLoadingFormat(null);
+          setDownloadComplete(format);
+        } else {
+          throw new Error('Unsupported format');
+        }
+      } catch (error) {
+        console.error('Error exporting chart:', error);
+        setLoadingFormat(null);
+      }
+    },
+    [chartRef]
+  );
 
   const refreshChart = () => {
     dispatch(setRefreshChart({ id, refresh: true }));
@@ -106,40 +98,42 @@ const ChartContainer = ({ chartType, chartTitle, height, width, id }) => {
     setOpenShare(true);
   };
 
-  const renderDropdownContent = () => (
-    <>
-      <a
-        onClick={refreshChart}
-        className="flex justify-between items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-      >
-        <span>Refresh</span>
-      </a>
-      <hr className="border-gray-200" />
-      {['jpg', 'pdf'].map((format) => (
+  const renderDropdownContent = useCallback(() => {
+    return (
+      <>
         <a
-          key={format}
-          onClick={() => exportChart(format)}
-          className="flex justify-between items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-        >
-          <span>Export as {format.toUpperCase()}</span>
-          <span className="-mr-2">
-            {loadingFormat === format && <Spinner width={15} height={15} />}
-            {downloadComplete === format && <CheckIcon fill="#1E40AF" width={20} height={20} />}
-          </span>
-        </a>
-      ))}
-      <hr className="border-gray-200" />
-      {['csv', 'pdf'].map((format) => (
-        <a
-          key={format}
-          onClick={() => shareReport(format)}
+          onClick={refreshChart}
           className="flex justify-between items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
         >
-          <span>Share report as {format.toUpperCase()}</span>
+          <span>Refresh</span>
         </a>
-      ))}
-    </>
-  );
+        <hr className="border-gray-200" />
+        {['jpg', 'pdf'].map((format) => (
+          <a
+            key={format}
+            onClick={() => exportChart(format)}
+            className="flex justify-between items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+          >
+            <span>Export as {format.toUpperCase()}</span>
+            <span className="-mr-2">
+              {loadingFormat === format && <Spinner width={15} height={15} />}
+              {downloadComplete === format && <CheckIcon fill="#1E40AF" width={20} height={20} />}
+            </span>
+          </a>
+        ))}
+        <hr className="border-gray-200" />
+        {['csv', 'pdf'].map((format) => (
+          <a
+            key={format}
+            onClick={() => shareReport(format)}
+            className="flex justify-between items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+          >
+            <span>Share report as {format.toUpperCase()}</span>
+          </a>
+        ))}
+      </>
+    );
+  }, [refreshChart, exportChart, loadingFormat, downloadComplete, shareReport]);
 
   return (
     <div
@@ -151,17 +145,12 @@ const ChartContainer = ({ chartType, chartTitle, height, width, id }) => {
           <div className="text-lg not-italic font-medium leading-[26px]">{chartTitle}</div>
           <div ref={dropdownRef}>
             <CustomDropdown
-              trigger={
-                <TabButtons
-                  btnText="More"
-                  btnStyle="py-1 px-2 rounded-xl"
-                  dropdown
-                  onClick={handleMoreClick}
-                  id={`options-btn-${id}`}
-                />
-              }
+              btnText="More"
+              dropdown
+              tabID={`options-btn-${id}`}
+              tabStyle="py-1 px-2 rounded-xl"
               id={`options-${id}`}
-              className="top-7 right-0"
+              alignment="right"
             >
               {isLoading ? (
                 <div className="p-2">
@@ -189,10 +178,14 @@ const ChartContainer = ({ chartType, chartTitle, height, width, id }) => {
         open={openShare}
         onClose={() => setOpenShare(false)}
         format={shareFormat}
-        data={modifiedData}
+        data={{
+          startDate: chartDataRange.startDate,
+          endDate: chartDataRange.endDate,
+          sites: chartSites,
+        }}
       />
     </div>
   );
-};
+});
 
 export default ChartContainer;

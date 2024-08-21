@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState } from 'react';
 import ChartContainer from '@/components/Charts/ChartContainer';
 import AQNumberCard from '@/components/AQNumberCard';
@@ -104,11 +105,7 @@ const OverView = () => {
         {/* top tabs */}
         <div className="w-full flex flex-wrap gap-2 justify-between">
           <div className="space-x-2 flex">
-            <CustomDropdown
-              trigger={<TabButtons btnText={chartData.timeFrame} dropdown />}
-              id="days"
-              className="left-0 top-9"
-            >
+            <CustomDropdown btnText={chartData.timeFrame} dropdown id="days" className="left-0">
               {timeOptions.map((option) => (
                 <span
                   key={option}
@@ -129,13 +126,14 @@ const OverView = () => {
             <CustomCalendar
               initialStartDate={chartData.chartDataRange.startDate}
               initialEndDate={chartData.chartDataRange.endDate}
-              className="-left-24 md:left-14 lg:left-32  top-12"
+              className="-left-24 md:left-14 lg:left-32  top-11"
               dropdown
             />
             <CustomDropdown
-              trigger={<TabButtons btnText="Pollutant" Icon={<SettingsIcon />} />}
+              tabIcon={<SettingsIcon />}
+              btnText="Pollutant"
               id="pollutant"
-              className="left-0 top-9"
+              className="left-0"
             >
               {pollutant.map((option) => (
                 <span

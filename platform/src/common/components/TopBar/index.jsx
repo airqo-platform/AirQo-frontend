@@ -88,26 +88,23 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
           <TopBarSearch />
 
           <CustomDropdown
-            trigger={
-              <TabButtons
-                Icon={
-                  userInfo.profilePicture ? (
-                    <img
-                      className="w-7 h-w-7 rounded-full object-cover"
-                      src={userInfo.profilePicture || PlaceholderImage}
-                      alt=""
-                    />
-                  ) : (
-                    <UserIcon />
-                  )
-                }
-                btnStyle={`border-none p-2 ${
-                  userInfo.profilePicture ? '' : 'bg-yellow-200'
-                }  rounded-full`}
-              />
+            tabIcon={
+              userInfo.profilePicture ? (
+                <img
+                  className="w-7 h-w-7 rounded-full object-cover"
+                  src={userInfo.profilePicture || PlaceholderImage}
+                  alt=""
+                />
+              ) : (
+                <UserIcon />
+              )
             }
+            alignment="right"
+            tabStyle={`border-none p-2 ${
+              userInfo.profilePicture ? '' : 'bg-yellow-200'
+            }  rounded-full`}
             id="user"
-            className="right-0 top-8"
+            className="right-0"
           >
             <div className="flex items-center space-x-3 p-1">
               <div className="relative">

@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useMemo, useState } from 'react';
 import CustomDropdown from './CustomDropdown';
 import CheckIcon from '@/icons/tickIcon';
@@ -22,9 +23,7 @@ const OrganizationDropdown = () => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState({});
-  const preferences = useSelector(
-    (state) => state.defaults.individual_preferences
-  );
+  const preferences = useSelector((state) => state.defaults.individual_preferences);
   const userInfo = useSelector((state) => state.login.userInfo);
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
 
@@ -54,10 +53,7 @@ const OrganizationDropdown = () => {
   useEffect(() => {
     const storedActiveGroup = JSON.parse(localStorage.getItem('activeGroup'));
 
-    if (
-      storedActiveGroup &&
-      (!preferences || preferences[0]?.group_id === '')
-    ) {
+    if (storedActiveGroup && (!preferences || preferences[0]?.group_id === '')) {
       handleUpdatePreferences(storedActiveGroup);
     }
   }, [userInfo, preferences]);
@@ -104,9 +100,7 @@ const OrganizationDropdown = () => {
               </div>
               <span
                 className={`${
-                  userInfo && userInfo.groups && userInfo.groups.length > 1
-                    ? 'block'
-                    : 'hidden'
+                  userInfo && userInfo.groups && userInfo.groups.length > 1 ? 'block' : 'hidden'
                 } ${!isCollapsed ? 'flex' : 'hidden'}`}
               >
                 <ChevronDownIcon />
@@ -149,8 +143,7 @@ const OrganizationDropdown = () => {
                 <span>
                   <Spinner width={20} height={20} />
                 </span>
-              ) : activeGroup &&
-                activeGroup?.grp_title === format?.grp_title ? (
+              ) : activeGroup && activeGroup?.grp_title === format?.grp_title ? (
                 <CheckIcon fill="#145FFF" />
               ) : null}
             </a>
