@@ -19,6 +19,7 @@ const CustomDropdown = ({
   sidebar = false,
   trigger = false,
   alignment = 'left',
+  customPopperStyle = {},
 }) => {
   const [isOpen, setIsOpen] = useState(openDropdown);
   const [referenceElement, setReferenceElement] = useState(null);
@@ -35,14 +36,16 @@ const CustomDropdown = ({
       {
         name: 'preventOverflow',
         options: {
-          boundary: 'viewport',
+          boundary: 'clippingParents',
+          rootBoundary: 'document',
           padding: 8,
         },
       },
       {
         name: 'flip',
         options: {
-          boundary: 'viewport',
+          boundary: 'clippingParents',
+          rootBoundary: 'document',
           padding: 8,
         },
       },
@@ -118,9 +121,12 @@ const CustomDropdown = ({
         ) : (
           <div
             ref={setPopperElement}
-            style={styles.popper}
+            style={{
+              ...styles.popper,
+              ...customPopperStyle,
+            }}
             {...attributes.popper}
-            className={`z-50 w-40 md:w-56 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg ${dropDownClass}`}
+            className={`z-50 min-w-52 w-auto bg-white border border-gray-200 divide-y divide-gray-100 rounded-xl shadow-lg ${dropDownClass}`}
           >
             <div className="p-1">{children}</div>
           </div>

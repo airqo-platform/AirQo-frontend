@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useRef } from 'react';
 import { Transition, TransitionChild } from '@headlessui/react';
 import TabButtons from '../../Button/TabButtons';
@@ -8,14 +9,13 @@ import Button from '../../Button';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import CustomDropdown from '../../Dropdowns/CustomDropdown';
 import TopBarSearch from '../../search/TopBarSearch';
-import { id } from 'date-fns/locale';
 
 const Network = [
   { id: 1, name: 'AirQo' },
   { id: 2, name: 'KCCA' },
 ];
 
-const CustomFields = ({ field = false, title, options, id, icon }) => {
+const CustomFields = ({ field = false, title, options, id, icon, btnText }) => {
   return (
     <div className="w-full h-auto flex flex-col gap-2 justify-start">
       <label className="w-[280px] h-auto p-0 m-0 text-[#7A7F87]">{title}</label>
@@ -29,9 +29,13 @@ const CustomFields = ({ field = false, title, options, id, icon }) => {
         />
       ) : (
         <CustomDropdown
-          trigger={<TabButtons btnText="KCCA" Icon={icon} dropdown btnStyle={'w-full'} />}
-          id
-          className="left-0 top-9"
+          tabID={id}
+          tabStyle="w-full bg-white px-3 py-2"
+          dropdown
+          tabIcon={icon}
+          btnText={btnText}
+          customPopperStyle={{ left: '-10px' }}
+          dropDownClass="w-full"
         >
           {options.map((option) => (
             <span
@@ -103,15 +107,39 @@ const Modal = ({ isOpen, onClose }) => {
                   </button>
                 </div>
               </div>
-              <div className="w-full h-auto flex">
-                <div className="w-[280px] h-auto bg-[#E2E3E5] space-y-3 px-5 py-6">
+              <div className="flex">
+                <div className="w-[280px] h-auto bg-[#f6f6f7] space-y-3 px-5 py-6">
                   <CustomFields field title="Title" />
-                  {/* <CustomFields
+                  <CustomFields
                     title="Network"
                     options={Network}
                     id={'network'}
                     icon={<WorldIcon />}
-                  /> */}
+                  />
+                  <CustomFields
+                    title="Data type"
+                    options={Network}
+                    id={'dataType'}
+                    icon={<WorldIcon />}
+                  />
+                  <CustomFields
+                    title="Pollutant"
+                    options={Network}
+                    id={'pollutant'}
+                    icon={<WorldIcon />}
+                  />
+                  <CustomFields
+                    title="Frequence"
+                    options={Network}
+                    id={'frequence'}
+                    icon={<WorldIcon />}
+                  />
+                  <CustomFields
+                    title="File type"
+                    options={Network}
+                    id={'fileType'}
+                    icon={<WorldIcon />}
+                  />
                 </div>
                 <div className="bg-white w-full h-auto">
                   <div className="flex justify-between items-center px-8 pt-6 pb-4">
