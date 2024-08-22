@@ -8,28 +8,103 @@ import LongArrowLeft from '@/icons/Analytics/longArrowLeft';
 import Button from '../../Button';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import CustomDropdown from '../../Dropdowns/CustomDropdown';
-import TopBarSearch from '../../search/TopBarSearch';
 import CalibrateIcon from '@/icons/Analytics/calibrateIcon';
 import FileTypeIcon from '@/icons/Analytics/fileTypeIcon';
 import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
 import WindIcon from '@/icons/Analytics/windIcon';
+import DataTable from './DataTable';
+import EditIcon from '@/icons/Analytics/EditIcon';
 
 const Network = [
   { id: 1, name: 'AirQo' },
   { id: 2, name: 'KCCA' },
 ];
 
-const CustomFields = ({ field = false, title, options, id, icon, btnText }) => {
+const tableData = [
+  {
+    id: 1,
+    location: 'Makerere University ',
+    city: 'Kampala',
+    country: 'Uganda',
+    owner: 'AirQo',
+  },
+  {
+    id: 2,
+    location: 'KCCA',
+    city: 'Kampala',
+    country: 'Uganda',
+    owner: 'KCCA',
+  },
+  {
+    id: 3,
+    location: 'Ntinda',
+    city: 'Kampala',
+    country: 'Uganda',
+    owner: 'AirQo',
+  },
+  {
+    id: 4,
+    location: 'Makindye',
+    city: 'Kampala',
+    country: 'Uganda',
+    owner: 'AirQo',
+  },
+  {
+    id: 5,
+    location: 'Nakawa',
+    city: 'Kampala',
+    country: 'Uganda',
+    owner: 'KCCA',
+  },
+  {
+    id: 6,
+    location: 'Kansanga',
+    city: 'Kampala',
+    country: 'Uganda',
+    owner: 'AirQo',
+  },
+  {
+    id: 5,
+    location: 'Nakawa',
+    city: 'Kampala',
+    country: 'Uganda',
+    owner: 'KCCA',
+  },
+  {
+    id: 6,
+    location: 'Kansanga',
+    city: 'Kampala',
+    country: 'Uganda',
+    owner: 'AirQo',
+  },
+  {
+    id: 5,
+    location: 'Nakawa',
+    city: 'Kampala',
+    country: 'Uganda',
+    owner: 'KCCA',
+  },
+  {
+    id: 6,
+    location: 'Kansanga',
+    city: 'Kampala',
+    country: 'Uganda',
+    owner: 'AirQo',
+  },
+];
+
+const CustomFields = ({ field = false, title, options, id, icon, btnText, edit = false }) => {
   return (
     <div className="w-full h-auto flex flex-col gap-2 justify-start">
       <label className="w-[280px] h-auto p-0 m-0 text-[#7A7F87]">{title}</label>
       {field ? (
         <input
-          className="bg-transparent text-[16px] font-medium leading-6 p-0 m-0 w-full h-auto border-none"
+          className={`bg-transparent text-[16px] font-medium leading-6 p-0 m-0 w-full h-auto border-none `}
           value={'Untitled Report'}
           color="black"
           type="text"
           name="title"
+          disabled={edit}
         />
       ) : (
         <CustomDropdown
@@ -65,6 +140,14 @@ const CustomFields = ({ field = false, title, options, id, icon, btnText }) => {
 
 const Modal = ({ isOpen, onClose }) => {
   const modalRef = useRef(null);
+  const [selectedSites, setSelectedSites] = useState([]);
+  const [clearSelected, setClearSelected] = useState(false);
+  const [edit, setEdit] = useState(false);
+
+  const handleClearSelection = () => {
+    setClearSelected(true);
+    setTimeout(() => setClearSelected(false), 0);
+  };
 
   return (
     <Transition show={isOpen} as={React.Fragment}>
@@ -114,7 +197,24 @@ const Modal = ({ isOpen, onClose }) => {
             {/* body */}
             <div className="flex flex-grow">
               <div className="w-[280px] relative h-auto bg-[#f6f6f7] space-y-3 px-5 py-6">
-                <CustomFields field title="Title" />
+                {edit ? (
+                  <button
+                    type="button"
+                    className="absolute top-8 right-6 text-blue-600"
+                    onClick={() => setEdit(false)}
+                  >
+                    Done
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="absolute top-8 right-6"
+                    onClick={() => setEdit(true)}
+                  >
+                    <EditIcon />
+                  </button>
+                )}
+                <CustomFields field title="Title" edit={edit} />
                 <CustomFields
                   title="Network"
                   options={Network}
@@ -154,19 +254,28 @@ const Modal = ({ isOpen, onClose }) => {
                 />
               </div>
               <div className="bg-white relative w-full h-auto">
-                <div className="flex justify-between h-auto items-center px-8 pt-6 pb-4">
-                  <div className="gap-2 flex items-center">
-                    <Button type="button" onClick={null} variant="filled">
-                      All
-                    </Button>
-                    <Button type="button" onClick={null} variant="outlined">
-                      Favorites
-                    </Button>
-                  </div>
-                  <TopBarSearch />
+                <div className="px-8 pt-6 pb-4 overflow-y-auto">
+                  <DataTable
+                    data={tableData}
+                    setSelectedSites={setSelectedSites}
+                    clearSelectedSites={clearSelected}
+                  />
                 </div>
                 <div className="bg-gray-50 absolute bottom-0 right-0 w-full px-4 py-3 sm:px-6 flex items-center justify-between">
-                  <div className="text-sm leading-5 font-normal">Select locations to continue</div>
+                  <div className="text-sm leading-5 font-normal">
+                    {selectedSites.length === 0 ? (
+                      'Select locations to continue'
+                    ) : (
+                      <div>
+                        <span className="text-blue-600">{`${selectedSites.length} 
+                          ${selectedSites.length === 1 ? 'location' : 'locations'} selected
+                        `}</span>
+                        <button type="button" className="ml-2" onClick={handleClearSelection}>
+                          Clear
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   <div className="sm:flex sm:flex-row-reverse gap-2">
                     <Button type="button" variant={'filled'} onClick={onClose}>
                       Download

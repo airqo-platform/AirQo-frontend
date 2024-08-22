@@ -13,7 +13,7 @@ const Button = ({
   Icon,
   paddingStyles = 'py-2 px-4',
 }) => {
-  let buttonClass = `flex justify-center items-center shadow-sm ${paddingStyles} rounded-xl sm:gap-1 ${className} transition transform active:scale-95`;
+  let buttonClass = `flex justify-center items-center cursor-pointer shadow-sm ${paddingStyles} rounded-xl sm:gap-1 ${className} transition transform active:scale-95`;
   let textColor = '';
   let backgroundColor = '';
   let border = '';
@@ -49,7 +49,7 @@ const Button = ({
         className={`${buttonClass} ${textColor} ${backgroundColor} ${border}`}
         data-testid={dataTestId}
       >
-        {Icon && <Icon className={`${textColor || 'text-black-900'} w-4 h-4`} />}
+        {Icon && <Icon fill={`${textColor || 'text-black-900'}`} />}
         {children}
       </a>
     );

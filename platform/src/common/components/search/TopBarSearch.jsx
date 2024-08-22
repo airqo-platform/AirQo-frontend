@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef, memo } from 'react';
 import SearchIcon from '@/icons/Common/search_md.svg';
-import { useDispatch, useSelector } from 'react-redux';
-import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import CloseIcon from '@/icons/close_icon';
 import PropTypes from 'prop-types';
 
@@ -14,10 +12,8 @@ const TopBarSearch = memo(
     placeholder = 'Search location...',
     className = '',
   }) => {
-    const dispatch = useDispatch();
     const [searchTerm, setSearchTerm] = useState('');
     const inputRef = useRef(null);
-    const { searchTerm: reduxSearchTerm } = useSelector((state) => state.locationSearch);
 
     useEffect(() => {
       if (focus) {
@@ -25,15 +21,10 @@ const TopBarSearch = memo(
       }
     }, [focus]);
 
-    useEffect(() => {
-      setSearchTerm(reduxSearchTerm);
-    }, [reduxSearchTerm]);
-
     const handleSearch = (event) => {
       try {
         const searchValue = event.target.value;
         setSearchTerm(searchValue);
-        dispatch(addSearchTerm(searchValue));
         onSearch(searchValue);
       } catch (err) {
         console.error('Error searching:', err);
@@ -43,7 +34,6 @@ const TopBarSearch = memo(
     const clearSearch = () => {
       setSearchTerm('');
       onClearSearch();
-      dispatch(addSearchTerm(''));
     };
 
     return (
