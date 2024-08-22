@@ -18,7 +18,7 @@ const TabButtons = ({
       id={id}
       type={type}
       onClick={onClick}
-      className={`${btnStyle} border rounded-xl shadow-sm flex items-center justify-between cursor-pointer ${tabButtonClass}`}
+      className={`${btnStyle} transition transform active:scale-95 border rounded-xl shadow-sm flex items-center justify-between cursor-pointer ${tabButtonClass}`}
     >
       {Icon && (
         <span className="p-[2px] md:p-0">{typeof Icon === 'function' ? <Icon /> : Icon}</span>
