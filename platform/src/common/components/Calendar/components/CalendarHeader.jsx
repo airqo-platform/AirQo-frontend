@@ -1,4 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import ShortLeftArrow from '@/icons/Analytics/shortLeftArrow';
+import ShortRightArrow from '@/icons/Analytics/shortRightArrow';
+import Button from '../../Button';
+import { format } from 'date-fns';
 
 /**
  * @param {Object} props
@@ -8,37 +12,63 @@ import React from 'react';
  * @returns {JSX.Element}
  * @description CalendarHeader component
  */
-const CalendarHeader = ({ month, onNext, onPrev }) => {
+const CalendarHeader = ({ month, onNext, onPrev, selectedRange, showTwoCalendars }) => {
   return (
-    <div className="flex items-center justify-between">
-      <button
-        className="flex items-center justify-center p-2 w-10 h-10 hover:bg-gray-50 border border-gray-300 rounded-xl"
-        onClick={onPrev}
-      >
-        <svg className="w-6 h-6 text-gray-500 stroke-current" fill="none">
-          <path
-            d="M13.25 8.75L9.75 12l3.5 3.25"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+    <>
+      {showTwoCalendars ? (
+        <div className="flex items-center justify-between">
+          <Button onClick={onPrev} Icon={ShortLeftArrow} variant={'outlined'} paddingStyles="p-2" />
+          <div className="text-sm text-gray-700 font-semibold">{month}</div>
+          <Button
+            onClick={onNext}
+            Icon={ShortRightArrow}
+            variant={'outlined'}
+            paddingStyles="p-2"
           />
-        </svg>
-      </button>
-      <div className="text-sm text-gray-700 font-semibold">{month}</div>
-      <button
-        className="flex items-center justify-center p-2 hover:bg-gray-50 border border-gray-300 rounded-xl w-10 h-10"
-        onClick={onNext}
-      >
-        <svg className="w-6 h-6 text-gray-500 stroke-current" fill="none">
-          <path
-            d="M10.75 8.75l3.5 3.25-3.5 3.25"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
-    </div>
+        </div>
+      ) : (
+        <div>
+          <form className="flex items-center mb-1">
+            <input
+              type="text"
+              readOnly
+              value={selectedRange.start ? format(selectedRange.start, 'MMM d, yyyy') : ''}
+              className="flex items-center shadow-sm w-[98px] h-8 px-3 py-2 text-xs border border-gray-300 text-gray-600 rounded-xl focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none"
+              placeholder="Start date"
+              disabled
+            />
+            <div className="p-2">
+              <span className="text-gray-600 text-[16px]">-</span>
+            </div>
+            <input
+              type="text"
+              readOnly
+              value={selectedRange.end ? format(selectedRange.end, 'MMM d, yyyy') : ''}
+              className="flex items-center shadow-sm w-[98px] h-8 px-3 py-2 text-xs border border-gray-300 text-gray-600 rounded-xl focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none"
+              placeholder="End date"
+              disabled
+            />
+          </form>
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-700 font-semibold">{month}</div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={onPrev}
+                Icon={ShortLeftArrow}
+                variant={'outlined'}
+                paddingStyles="p-2"
+              />
+              <Button
+                onClick={onNext}
+                Icon={ShortRightArrow}
+                variant={'outlined'}
+                paddingStyles="p-2"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

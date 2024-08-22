@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import CalendarIcon from '@/icons/calendar.svg';
+import CalendarIcon from '@/icons/Analytics/calendarIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import { setChartDataRange } from '@/lib/store/services/charts/ChartSlice';
 import Calendar from './Calendar';

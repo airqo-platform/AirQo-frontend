@@ -5,11 +5,10 @@ const TabButtons = ({
   type = 'button',
   Icon,
   btnText,
-  btnStyle = 'border-grey-750 bg-white px-4 py-2',
+  btnStyle = 'border-grey-750 px-4 py-2 bg-white',
   dropdown = false,
   onClick,
   id,
-  tabButtonClass,
   tabRef,
 }) => {
   return (
@@ -18,7 +17,7 @@ const TabButtons = ({
       id={id}
       type={type}
       onClick={onClick}
-      className={`${btnStyle} transition transform active:scale-95 border rounded-xl shadow-sm flex items-center justify-between cursor-pointer ${tabButtonClass}`}
+      className={` transition transform active:scale-95 border rounded-xl shadow-sm flex items-center justify-between cursor-pointer ${btnStyle}`}
     >
       {Icon && (
         <span className="p-[2px] md:p-0">{typeof Icon === 'function' ? <Icon /> : Icon}</span>

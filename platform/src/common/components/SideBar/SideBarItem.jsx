@@ -41,11 +41,7 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
         }`}
       >
         {(!isMediumDevice || itemLabel) && (
-          <h3
-            className={`text-sm leading-[21px] ${
-              isCurrentRoute && 'text-blue-600'
-            }`}
-          >
+          <h3 className={`text-sm leading-[21px] ${isCurrentRoute && 'text-blue-600'}`}>
             {itemLabel}
           </h3>
         )}
@@ -59,8 +55,7 @@ export const SidebarIconItem = ({ IconComponent, navPath }) => {
   // get current route
   const currentRoute = router.pathname;
   // check if current route contains navPath
-  const isCurrentRoute =
-    currentRoute === navPath || (navPath === '/Home' && currentRoute === '/');
+  const isCurrentRoute = currentRoute === navPath || (navPath === '/Home' && currentRoute === '/');
 
   return (
     <Link href={navPath}>
@@ -78,21 +73,12 @@ export const SidebarIconItem = ({ IconComponent, navPath }) => {
   );
 };
 
-const SideBarItem = ({
-  Icon,
-  label,
-  dropdown,
-  navPath,
-  children,
-  toggleMethod,
-  toggleState,
-}) => {
+const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, toggleState }) => {
   const router = useRouter();
   // get current route
   const currentRoute = router.pathname;
   // check if current route contains navPath
-  const isCurrentRoute =
-    currentRoute === navPath || (navPath === '/Home' && currentRoute === '/');
+  const isCurrentRoute = currentRoute === navPath || (navPath === '/Home' && currentRoute === '/');
 
   return (
     <div
@@ -104,9 +90,7 @@ const SideBarItem = ({
       onClick={dropdown && toggleMethod}
     >
       <Link href={navPath || '#'}>
-        <div
-          className={`flex items-center justify-between w-full h-12 hover:cursor-pointer mt-2`}
-        >
+        <div className={`flex items-center justify-between w-full h-12 hover:cursor-pointer mt-2`}>
           <div className={`flex items-center w-full`}>
             <div
               className={`w-1 h-5 mr-1 rounded-3xl ${
@@ -127,9 +111,7 @@ const SideBarItem = ({
               </div>
 
               <h3
-                className={`font-medium ${
-                  isCurrentRoute ? 'text-blue-600 mr-3' : 'font-normal'
-                }`}
+                className={`font-medium ${isCurrentRoute ? 'text-blue-600 mr-3' : 'font-normal'}`}
               >
                 {label}
               </h3>
@@ -137,9 +119,7 @@ const SideBarItem = ({
           </div>
           {dropdown && (
             <div className="mr-4">
-              <ArrowDropDownIcon
-                fillColor={toggleState && theme.extend.colors.blue[900]}
-              />
+              <ArrowDropDownIcon fillColor={toggleState && theme.extend.colors.blue[900]} />
             </div>
           )}
         </div>

@@ -1,25 +1,42 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import Fuse from 'fuse.js';
 import SearchIcon from '@/icons/Common/search_md.svg';
 import CloseIcon from '@/icons/close_icon';
 import PropTypes from 'prop-types';
 
 const TopBarSearch = React.memo(
   ({
+    data,
     onSearch,
     onClearSearch,
     focus = true,
     placeholder = 'Search...',
     className = '',
     debounceTime = 300,
+    fuseOptions = {
+      keys: ['name', 'description'], // Adjust these based on your data structure
+      threshold: 0.4,
+    },
   }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const inputRef = useRef(null);
     const debounceRef = useRef(null);
+    const fuseRef = useRef(null);
+
+    useEffect(() => {
+      fuseRef.current = new Fuse(data, fuseOptions);
+    }, [data, fuseOptions]);
 
     useEffect(() => {
       if (focus && inputRef.current) {
         inputRef.current.focus();
       }
+
+      return () => {
+        if (debounceRef.current) {
+          clearTimeout(debounceRef.current);
+        }
+      };
     }, [focus]);
 
     const handleSearch = useCallback(
@@ -32,7 +49,12 @@ const TopBarSearch = React.memo(
         }
 
         debounceRef.current = setTimeout(() => {
-          onSearch(value);
+          if (value.trim()) {
+            const results = fuseRef.current.search(value);
+            onSearch(results);
+          } else {
+            onSearch([]);
+          }
         }, debounceTime);
       },
       [onSearch, debounceTime]
@@ -42,14 +64,6 @@ const TopBarSearch = React.memo(
       setSearchTerm('');
       onClearSearch();
     }, [onClearSearch]);
-
-    useEffect(() => {
-      return () => {
-        if (debounceRef.current) {
-          clearTimeout(debounceRef.current);
-        }
-      };
-    }, []);
 
     return (
       <div
@@ -79,12 +93,14 @@ const TopBarSearch = React.memo(
 );
 
 TopBarSearch.propTypes = {
+  data: PropTypes.array.isRequired,
   onSearch: PropTypes.func.isRequired,
   onClearSearch: PropTypes.func.isRequired,
   focus: PropTypes.bool,
   placeholder: PropTypes.string,
   className: PropTypes.string,
   debounceTime: PropTypes.number,
+  fuseOptions: PropTypes.object,
 };
 
 export default TopBarSearch;

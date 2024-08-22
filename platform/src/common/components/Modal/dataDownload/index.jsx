@@ -14,10 +14,38 @@ import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
 import WindIcon from '@/icons/Analytics/windIcon';
 import DataTable from './DataTable';
 import EditIcon from '@/icons/Analytics/EditIcon';
+import DatePicker from '../../Calendar/DatePicker';
+import CheckIcon from '@/icons/tickIcon';
 
 const Network = [
   { id: 1, name: 'AirQo' },
   { id: 2, name: 'KCCA' },
+];
+
+const Pollutant = [
+  { id: 1, name: 'PM2.5' },
+  { id: 2, name: 'PM10' },
+  { id: 3, name: 'CO' },
+  { id: 4, name: 'SO2' },
+  { id: 5, name: 'NO2' },
+];
+
+const DataType = [
+  { id: 1, name: 'Calibrated Data' },
+  { id: 2, name: 'Raw Data' },
+];
+
+const Frequency = [
+  { id: 1, name: 'Hourly' },
+  { id: 2, name: 'Daily' },
+  { id: 3, name: 'Weekly' },
+  { id: 4, name: 'Monthly' },
+];
+
+const FileType = [
+  { id: 1, name: 'CSV' },
+  { id: 2, name: 'Json' },
+  { id: 3, name: 'PDF' },
 ];
 
 const tableData = [
@@ -93,7 +121,22 @@ const tableData = [
   },
 ];
 
-const CustomFields = ({ field = false, title, options, id, icon, btnText, edit = false }) => {
+const CustomFields = ({
+  field = false,
+  title,
+  options = [],
+  id,
+  icon,
+  btnText,
+  edit = false,
+  useCalendar = false,
+}) => {
+  const [selectedOption, setSelectedOption] = useState(options[0]);
+
+  const handleOptionSelect = (option) => {
+    setSelectedOption(option);
+  };
+
   return (
     <div className="w-full h-auto flex flex-col gap-2 justify-start">
       <label className="w-[280px] h-auto p-0 m-0 text-[#7A7F87]">{title}</label>
@@ -106,30 +149,30 @@ const CustomFields = ({ field = false, title, options, id, icon, btnText, edit =
           name="title"
           disabled={edit}
         />
+      ) : useCalendar ? (
+        <DatePicker customPopperStyle={{ left: '-7px' }} />
       ) : (
         <CustomDropdown
           tabID={id}
           tabStyle="w-full bg-white px-3 py-2"
           dropdown
           tabIcon={icon}
-          btnText={btnText}
+          btnText={btnText || selectedOption.name}
           customPopperStyle={{ left: '-7px' }}
           dropDownClass="w-full"
         >
           {options.map((option) => (
             <span
               key={option.id}
-              onClick={() => {
-                null;
-              }}
-              className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center 
-                
-                `}
+              onClick={() => handleOptionSelect(option)}
+              className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center  ${
+                selectedOption.id === option.id ? 'bg-[#EBF5FF] rounded-md' : ''
+              }`}
             >
               <span className="flex items-center space-x-2">
                 <span>{option.name}</span>
               </span>
-              {/* {chartData.pollutionType === option.id && <CheckIcon fill={'#145FFF'} />} */}
+              {selectedOption.id === option.id && <CheckIcon fill={'#145FFF'} />}
             </span>
           ))}
         </CustomDropdown>
@@ -177,7 +220,7 @@ const Modal = ({ isOpen, onClose }) => {
         >
           <div
             ref={modalRef}
-            className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle lg:min-w-[1020px] h-auto lg:max-h-[658px]"
+            className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle lg:min-w-[1020px] h-auto "
           >
             {/* header */}
             <div className="flex items-center justify-between py-4 px-5 border-b border-[#E2E3E5]">
@@ -196,7 +239,7 @@ const Modal = ({ isOpen, onClose }) => {
             </div>
             {/* body */}
             <div className="flex flex-grow">
-              <div className="w-[280px] relative h-auto bg-[#f6f6f7] space-y-3 px-5 py-6">
+              <form className="w-[280px] relative h-auto bg-[#f6f6f7] space-y-3 px-5 pt-5 pb-14">
                 {edit ? (
                   <button
                     type="button"
@@ -220,39 +263,34 @@ const Modal = ({ isOpen, onClose }) => {
                   options={Network}
                   id={'network'}
                   btnText="AirQo"
-                  icon={<WorldIcon fill="#000" />}
+                  icon={<WorldIcon width={16} height={16} fill="#000" />}
                 />
                 <CustomFields
                   title="Data type"
-                  options={Network}
+                  options={DataType}
                   id={'dataType'}
                   icon={<CalibrateIcon />}
                 />
                 <CustomFields
                   title="Pollutant"
-                  options={Network}
+                  options={Pollutant}
                   id={'pollutant'}
                   icon={<WindIcon />}
                 />
-                <CustomFields
-                  title="Duration"
-                  options={Network}
-                  id={'duration'}
-                  icon={<FileTypeIcon />}
-                />
+                <CustomFields title="Duration" id={'duration'} useCalendar={true} />
                 <CustomFields
                   title="Frequency"
-                  options={Network}
+                  options={Frequency}
                   id={'frequency'}
                   icon={<FrequencyIcon />}
                 />
                 <CustomFields
                   title="File type"
-                  options={Network}
+                  options={FileType}
                   id={'fileType'}
                   icon={<FileTypeIcon />}
                 />
-              </div>
+              </form>
               <div className="bg-white relative w-full h-auto">
                 <div className="px-8 pt-6 pb-4 overflow-y-auto">
                   <DataTable
@@ -303,7 +341,7 @@ const Index = () => {
         btnText="Download Data"
         Icon={<DownloadIcon width={16} height={17} color="white" />}
         onClick={() => setIsOpen(true)}
-        btnStyle="bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl"
+        btnStyle={'bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl'}
       />
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </>
