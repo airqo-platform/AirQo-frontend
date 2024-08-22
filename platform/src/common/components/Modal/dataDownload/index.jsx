@@ -38,7 +38,7 @@ const CustomFields = ({ field = false, title, options, id, icon, btnText }) => {
           dropdown
           tabIcon={icon}
           btnText={btnText}
-          customPopperStyle={{ left: '0px' }}
+          customPopperStyle={{ left: '-7px' }}
           dropDownClass="w-full"
         >
           {options.map((option) => (
