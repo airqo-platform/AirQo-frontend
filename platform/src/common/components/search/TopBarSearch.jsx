@@ -1,43 +1,60 @@
-import React, { useState, useEffect, useRef, memo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import SearchIcon from '@/icons/Common/search_md.svg';
 import CloseIcon from '@/icons/close_icon';
 import PropTypes from 'prop-types';
 
-const TopBarSearch = memo(
+const TopBarSearch = React.memo(
   ({
-    onSearch = () => {},
-    onClearSearch = () => {},
+    onSearch,
+    onClearSearch,
     focus = true,
-    showSearchResultsNumber = true,
-    placeholder = 'Search location...',
+    placeholder = 'Search...',
     className = '',
+    debounceTime = 300,
   }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const inputRef = useRef(null);
+    const debounceRef = useRef(null);
 
     useEffect(() => {
-      if (focus) {
+      if (focus && inputRef.current) {
         inputRef.current.focus();
       }
     }, [focus]);
 
-    const handleSearch = (event) => {
-      try {
-        const searchValue = event.target.value;
-        setSearchTerm(searchValue);
-        onSearch(searchValue);
-      } catch (err) {
-        console.error('Error searching:', err);
-      }
-    };
+    const handleSearch = useCallback(
+      (event) => {
+        const value = event.target.value;
+        setSearchTerm(value);
 
-    const clearSearch = () => {
+        if (debounceRef.current) {
+          clearTimeout(debounceRef.current);
+        }
+
+        debounceRef.current = setTimeout(() => {
+          onSearch(value);
+        }, debounceTime);
+      },
+      [onSearch, debounceTime]
+    );
+
+    const clearSearch = useCallback(() => {
       setSearchTerm('');
       onClearSearch();
-    };
+    }, [onClearSearch]);
+
+    useEffect(() => {
+      return () => {
+        if (debounceRef.current) {
+          clearTimeout(debounceRef.current);
+        }
+      };
+    }, []);
 
     return (
-      <div className={`relative flex w-[192px] items-center justify-center ${className}`}>
+      <div
+        className={`relative flex w-full max-w-[192px] items-center justify-center ${className}`}
+      >
         <div className="absolute left-0 flex items-center justify-center pl-3 bg-white border h-9 rounded-xl rounded-r-none border-r-0 border-input-light-outline focus:border-input-light-outline">
           <SearchIcon />
         </div>
@@ -62,12 +79,12 @@ const TopBarSearch = memo(
 );
 
 TopBarSearch.propTypes = {
-  onSearch: PropTypes.func,
-  onClearSearch: PropTypes.func,
+  onSearch: PropTypes.func.isRequired,
+  onClearSearch: PropTypes.func.isRequired,
   focus: PropTypes.bool,
-  showSearchResultsNumber: PropTypes.bool,
   placeholder: PropTypes.string,
   className: PropTypes.string,
+  debounceTime: PropTypes.number,
 };
 
 export default TopBarSearch;

@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import Fuse from 'fuse.js';
 import ShortLeftArrow from '@/icons/Analytics/shortLeftArrow';
 import ShortRightArrow from '@/icons/Analytics/shortRightArrow';
 import Button from '../../Button';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 import TopBarSearch from '../../search/TopBarSearch';
 
-const DataTable = ({ setSelectedSites, data, itemsPerPage = 7, clearSelectedSites }) => {
+const DataTable = ({ setSelectedSites, data, clearSelectedSites }) => {
+  const itemsPerPage = 7;
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedSites, setSelectedSitesState] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -13,13 +15,24 @@ const DataTable = ({ setSelectedSites, data, itemsPerPage = 7, clearSelectedSite
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredData, setFilteredData] = useState(data);
 
-  const handleButtonClick = (button) => {
-    setActiveButton(button);
-  };
+  const fuseOptions = useMemo(
+    () => ({
+      keys: ['location', 'city', 'country', 'owner'],
+      threshold: 0.3,
+    }),
+    []
+  );
+
+  const fuse = useMemo(() => new Fuse(data, fuseOptions), [data, fuseOptions]);
+
+  const totalPages = useMemo(
+    () => Math.ceil(filteredData.length / itemsPerPage),
+    [filteredData.length]
+  );
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [data]);
+  }, [filteredData]);
 
   useEffect(() => {
     if (typeof setSelectedSites === 'function') {
@@ -34,20 +47,15 @@ const DataTable = ({ setSelectedSites, data, itemsPerPage = 7, clearSelectedSite
     }
   }, [clearSelectedSites]);
 
-  useEffect(() => {
-    const filtered = data.filter((item) =>
-      item.location.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredData(filtered);
-  }, [searchTerm, data]);
+  const handleButtonClick = useCallback((button) => {
+    setActiveButton(button);
+  }, []);
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-
-  const handleClick = (page) => {
+  const handlePageChange = useCallback((page) => {
     setCurrentPage(page);
-  };
+  }, []);
 
-  const handleCheckboxChange = (item) => {
+  const handleCheckboxChange = useCallback((item) => {
     setSelectedSitesState((prevSelectedSites) => {
       if (prevSelectedSites.includes(item)) {
         return prevSelectedSites.filter((site) => site !== item);
@@ -55,39 +63,59 @@ const DataTable = ({ setSelectedSites, data, itemsPerPage = 7, clearSelectedSite
         return [...prevSelectedSites, item];
       }
     });
-  };
+  }, []);
 
-  const handleSelectAllChange = () => {
-    if (selectAll) {
-      setSelectedSitesState([]);
-    } else {
-      setSelectedSitesState(filteredData);
-    }
-    setSelectAll(!selectAll);
-  };
+  const handleSelectAllChange = useCallback(() => {
+    setSelectAll((prevSelectAll) => {
+      if (prevSelectAll) {
+        setSelectedSitesState([]);
+      } else {
+        setSelectedSitesState(filteredData);
+      }
+      return !prevSelectAll;
+    });
+  }, [filteredData]);
 
-  const handleSearch = (term) => {
-    setSearchTerm(term);
-  };
+  const handleSearch = useCallback(
+    (term) => {
+      setSearchTerm(term);
+      if (term) {
+        const results = fuse.search(term).map((result) => result.item);
+        setFilteredData(results);
+      } else {
+        setFilteredData(data);
+      }
+      setCurrentPage(1);
+    },
+    [fuse, data]
+  );
 
-  const renderTableRows = () => {
+  const handleClearSearch = useCallback(() => {
+    setSearchTerm('');
+    setFilteredData(data);
+    setCurrentPage(1);
+  }, [data]);
+
+  const renderTableRows = useCallback(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return filteredData.slice(startIndex, endIndex).map((item, index) => (
+    const pageData = filteredData.slice(startIndex, endIndex);
+
+    return pageData.map((item, index) => (
       <tr
-        key={index}
+        key={item.id || index}
         className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
       >
         <td className="w-4 p-4">
           <div className="flex items-center">
             <input
-              id={`checkbox-table-search-${index}`}
+              id={`checkbox-table-search-${item.id || index}`}
               type="checkbox"
               className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               checked={selectedSites.includes(item)}
               onChange={() => handleCheckboxChange(item)}
             />
-            <label htmlFor={`checkbox-table-search-${index}`} className="sr-only">
+            <label htmlFor={`checkbox-table-search-${item.id || index}`} className="sr-only">
               checkbox
             </label>
           </div>
@@ -106,7 +134,7 @@ const DataTable = ({ setSelectedSites, data, itemsPerPage = 7, clearSelectedSite
         <td className="px-3 py-2">{item.owner}</td>
       </tr>
     ));
-  };
+  }, [filteredData, currentPage, selectedSites, handleCheckboxChange]);
 
   return (
     <div className="space-y-2">
@@ -127,7 +155,11 @@ const DataTable = ({ setSelectedSites, data, itemsPerPage = 7, clearSelectedSite
             Favorites
           </Button>
         </div>
-        <TopBarSearch onSearch={handleSearch} onClearSearch={() => setSearchTerm('')} />
+        <TopBarSearch
+          onSearch={handleSearch}
+          onClearSearch={handleClearSearch}
+          placeholder="Search location..."
+        />
       </div>
       <div className="relative overflow-x-auto border rounded-xl">
         {filteredData.length === 0 ? (
@@ -171,16 +203,15 @@ const DataTable = ({ setSelectedSites, data, itemsPerPage = 7, clearSelectedSite
       {filteredData.length > itemsPerPage && (
         <div className="flex justify-center gap-2 items-center">
           <Button
-            onClick={() => handleClick(currentPage - 1)}
+            onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
             Icon={ShortLeftArrow}
             variant={'outlined'}
             paddingStyles="p-2"
             color={currentPage === 1 ? '#9EA3AA' : '#4B4E56'}
           />
-
           <Button
-            onClick={() => handleClick(currentPage + 1)}
+            onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
             Icon={ShortRightArrow}
             variant={'outlined'}
