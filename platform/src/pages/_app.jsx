@@ -4,6 +4,7 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { persistStore } from 'redux-persist';
 import { wrapper } from '@/lib/store';
 import { useEffect } from 'react';
+import { Toaster } from 'sonner';
 
 export default function App({ Component, ...rest }) {
   const { store, props } = wrapper.useWrappedStore(rest);
@@ -32,6 +33,7 @@ export default function App({ Component, ...rest }) {
       <PersistGate loading={null} persistor={persistor}>
         <Component {...props.pageProps} />
       </PersistGate>
+      <Toaster expand={true} richColors />
     </Provider>
   );
 }

@@ -4,13 +4,15 @@ import TabButtons from '../Button/TabButtons';
 import { Transition } from '@headlessui/react';
 import { usePopper } from 'react-popper';
 import Calendar from './Calendar';
+import { format } from 'date-fns';
 
-const DatePicker = ({ customPopperStyle, alignment }) => {
+const DatePicker = ({ customPopperStyle, alignment, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [referenceElement, setReferenceElement] = useState(null);
   const [popperElement, setPopperElement] = useState(null);
+  const [selectedDate, setSelectedDate] = useState({ start: null, end: null });
   const popperRef = useRef(null);
-  const { styles, attributes } = usePopper(referenceElement, popperElement, {
+  const { styles, attributes, update } = usePopper(referenceElement, popperElement, {
     placement: alignment === 'right' ? 'bottom-end' : 'bottom-start',
     modifiers: [
       {
@@ -22,16 +24,38 @@ const DatePicker = ({ customPopperStyle, alignment }) => {
       {
         name: 'preventOverflow',
         options: {
-          boundary: 'clippingParents',
-          rootBoundary: 'document',
+          boundary: 'viewport',
           padding: 8,
         },
       },
       {
         name: 'flip',
         options: {
-          boundary: 'clippingParents',
-          rootBoundary: 'document',
+          fallbackPlacements: ['top-start', 'top-end', 'bottom-start', 'bottom-end'],
+        },
+      },
+      {
+        name: 'computeStyles',
+        options: {
+          adaptive: false,
+        },
+      },
+
+      {
+        name: 'eventListeners',
+        options: {
+          scroll: true,
+          resize: true,
+        },
+      },
+
+      {
+        name: 'hide',
+      },
+
+      {
+        name: 'arrow',
+        options: {
           padding: 8,
         },
       },
@@ -43,7 +67,8 @@ const DatePicker = ({ customPopperStyle, alignment }) => {
   };
 
   const handleValueChange = (newValue) => {
-    console.log(newValue);
+    setSelectedDate(newValue);
+    onChange(newValue);
   };
 
   const handleClickOutside = (event) => {
@@ -68,12 +93,19 @@ const DatePicker = ({ customPopperStyle, alignment }) => {
     };
   }, [isOpen, referenceElement]);
 
+  const formattedStartDate = selectedDate.start ? format(selectedDate.start, 'MMM d, yy') : '';
+  const formattedEndDate = selectedDate.end ? format(selectedDate.end, 'MMM d, yy') : '';
+  const btnText =
+    selectedDate.start && selectedDate.end
+      ? `${formattedStartDate} - ${formattedEndDate}`
+      : 'Select Date Range';
+
   return (
     <div>
       <TabButtons
         Icon={<CalendarIcon />}
-        btnText={'set date'}
-        tabButtonClass="w-full "
+        btnText={btnText}
+        tabButtonClass="w-full"
         dropdown
         onClick={handleClick}
         id="datePicker"
@@ -99,6 +131,7 @@ const DatePicker = ({ customPopperStyle, alignment }) => {
           style={{
             ...styles.popper,
             ...customPopperStyle,
+            zIndex: 1000,
           }}
           {...attributes.popper}
         >
