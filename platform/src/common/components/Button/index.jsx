@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 const Button = ({
   onClick,
   className,
@@ -70,6 +72,22 @@ const Button = ({
       </button>
     );
   }
+};
+
+Button.propTypes = {
+  onClick: PropTypes.func,
+  className: PropTypes.string,
+  path: PropTypes.string,
+  children: PropTypes.node,
+  dataTestId: PropTypes.string,
+  rest: PropTypes.object,
+  disabled: PropTypes.bool,
+  type: PropTypes.string,
+  variant: PropTypes.string,
+  color: PropTypes.string,
+  bgColor: PropTypes.string,
+  Icon: PropTypes.elementType,
+  paddingStyles: PropTypes.string,
 };
 
 export default Button;

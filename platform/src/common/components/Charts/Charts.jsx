@@ -30,6 +30,7 @@ import {
   CustomReferenceLabel,
   colors,
 } from './components';
+import PropTypes from 'prop-types';
 
 const WHO_STANDARD_VALUES = {
   pm2_5: 15,
@@ -377,6 +378,13 @@ const Charts = ({
       </ResponsiveContainer>
     </div>
   );
+};
+
+Charts.propTypes = {
+  chartType: PropTypes.string,
+  width: PropTypes.string,
+  height: PropTypes.string,
+  id: PropTypes.string,
 };
 
 export default React.memo(Charts);

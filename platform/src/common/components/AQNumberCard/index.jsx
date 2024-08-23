@@ -9,6 +9,7 @@ import WindIcon from '@/icons/Common/wind.svg';
 import CustomTooltip from '../Tooltip';
 import { useWindowSize } from '@/lib/windowSize';
 import { capitalizeAllText } from '@/core/utils/strings';
+import PropTypes from 'prop-types';
 
 const AQNumberCard = ({
   reading,
@@ -112,6 +113,15 @@ const AQNumberCard = ({
       </div>
     </div>
   );
+};
+
+AQNumberCard.propTypes = {
+  reading: PropTypes.number,
+  location: PropTypes.string,
+  pollutant: PropTypes.string,
+  count: PropTypes.number,
+  locationFullName: PropTypes.string,
+  isLoading: PropTypes.bool,
 };
 
 export default AQNumberCard;

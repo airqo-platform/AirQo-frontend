@@ -20,6 +20,7 @@ import {
 } from 'date-fns';
 import TabButtons from '../Button/TabButtons';
 import { Transition } from '@headlessui/react';
+import PropTypes from 'prop-types';
 
 /**
  * @param {Object} props
@@ -33,13 +34,7 @@ import { Transition } from '@headlessui/react';
  * @returns {JSX.Element}
  * @description CustomCalendar component
  */
-const CustomCalendar = ({
-  initialStartDate,
-  initialEndDate,
-  Icon,
-  dropdown,
-  className,
-}) => {
+const CustomCalendar = ({ initialStartDate, initialEndDate, className }) => {
   const containerRef = useRef(null);
   const dispatch = useDispatch();
   const [openDatePicker, setOpenDatePicker] = useState(false);
@@ -190,6 +185,12 @@ const CustomCalendar = ({
       </Transition>
     </div>
   );
+};
+
+CustomCalendar.propTypes = {
+  initialStartDate: PropTypes.instanceOf(Date),
+  initialEndDate: PropTypes.instanceOf(Date),
+  className: PropTypes.string,
 };
 
 export default CustomCalendar;

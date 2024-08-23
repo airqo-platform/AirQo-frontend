@@ -5,6 +5,7 @@ import { Transition } from '@headlessui/react';
 import { usePopper } from 'react-popper';
 import Calendar from './Calendar';
 import { format } from 'date-fns';
+import PropTypes from 'prop-types';
 
 const DatePicker = ({ customPopperStyle, alignment, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,64 +13,60 @@ const DatePicker = ({ customPopperStyle, alignment, onChange }) => {
   const [popperElement, setPopperElement] = useState(null);
   const [selectedDate, setSelectedDate] = useState({ start: null, end: null });
   const popperRef = useRef(null);
-  const { styles, attributes, update } = usePopper(
-    referenceElement,
-    popperElement,
-    {
-      placement: alignment === 'right' ? 'bottom-end' : 'bottom-start',
-      modifiers: [
-        {
-          name: 'offset',
-          options: {
-            offset: [0, 8],
-          },
+  const { styles, attributes } = usePopper(referenceElement, popperElement, {
+    placement: alignment === 'right' ? 'bottom-end' : 'bottom-start',
+    modifiers: [
+      {
+        name: 'offset',
+        options: {
+          offset: [0, 8],
         },
-        {
-          name: 'preventOverflow',
-          options: {
-            boundary: 'viewport',
-            padding: 8,
-          },
+      },
+      {
+        name: 'preventOverflow',
+        options: {
+          boundary: 'viewport',
+          padding: 8,
         },
-        {
-          name: 'flip',
-          options: {
-            fallbackPlacements: [
-              'top-start',
-              'top-end',
-              'bottom-start',
-              'bottom-end',
-            ],
-          },
+      },
+      {
+        name: 'flip',
+        options: {
+          fallbackPlacements: [
+            'top-start',
+            'top-end',
+            'bottom-start',
+            'bottom-end',
+          ],
         },
-        {
-          name: 'computeStyles',
-          options: {
-            adaptive: false,
-          },
+      },
+      {
+        name: 'computeStyles',
+        options: {
+          adaptive: false,
         },
+      },
 
-        {
-          name: 'eventListeners',
-          options: {
-            scroll: true,
-            resize: true,
-          },
+      {
+        name: 'eventListeners',
+        options: {
+          scroll: true,
+          resize: true,
         },
+      },
 
-        {
-          name: 'hide',
-        },
+      {
+        name: 'hide',
+      },
 
-        {
-          name: 'arrow',
-          options: {
-            padding: 8,
-          },
+      {
+        name: 'arrow',
+        options: {
+          padding: 8,
         },
-      ],
-    },
-  );
+      },
+    ],
+  });
 
   const handleClick = () => {
     setIsOpen(!isOpen);
@@ -163,6 +160,12 @@ const DatePicker = ({ customPopperStyle, alignment, onChange }) => {
       </Transition>
     </div>
   );
+};
+
+DatePicker.propTypes = {
+  customPopperStyle: PropTypes.object,
+  alignment: PropTypes.string,
+  onChange: PropTypes.func,
 };
 
 export default DatePicker;

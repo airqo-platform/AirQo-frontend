@@ -7,6 +7,7 @@ import UnhealthySG from '@/icons/Charts/UnhealthySG';
 import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import { useSelector } from 'react-redux';
 import { format } from 'date-fns';
+import PropTypes from 'prop-types';
 
 export const colors = ['#11225A', '#0A46EB', '#297EFF', '#B8D9FF'];
 
@@ -398,4 +399,46 @@ export const CustomBar = (props) => {
       </foreignObject>
     </g>
   );
+};
+
+CustomTooltipLineGraph.propTypes = {
+  active: PropTypes.bool,
+  payload: PropTypes.array,
+  activeIndex: PropTypes.number,
+};
+
+CustomTooltipBarGraph.propTypes = {
+  active: PropTypes.bool,
+  payload: PropTypes.array,
+  activeIndex: PropTypes.number,
+};
+
+CustomizedAxisTick.propTypes = {
+  x: PropTypes.number,
+  y: PropTypes.number,
+  payload: PropTypes.object,
+  fill: PropTypes.string,
+};
+
+CustomDot.propTypes = {
+  cx: PropTypes.number,
+  cy: PropTypes.number,
+  fill: PropTypes.string,
+  payload: PropTypes.object,
+};
+
+CustomBar.propTypes = {
+  fill: PropTypes.string,
+  x: PropTypes.number,
+  y: PropTypes.number,
+  width: PropTypes.number,
+  height: PropTypes.number,
+};
+
+CustomReferenceLabel.propTypes = {
+  viewBox: PropTypes.object,
+};
+
+renderCustomizedLegend.propTypes = {
+  payload: PropTypes.array,
 };

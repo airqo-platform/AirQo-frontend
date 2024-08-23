@@ -1,5 +1,6 @@
 import React from 'react';
 import ChevronDownIcon from '@/icons/Common/chevron_downIcon';
+import PropTypes from 'prop-types';
 
 const TabButtons = ({
   type = 'button',
@@ -34,6 +35,17 @@ const TabButtons = ({
       {dropdown && <ChevronDownIcon />}
     </button>
   );
+};
+
+TabButtons.propTypes = {
+  type: PropTypes.string,
+  Icon: PropTypes.func,
+  btnText: PropTypes.string,
+  btnStyle: PropTypes.string,
+  dropdown: PropTypes.bool,
+  onClick: PropTypes.func,
+  id: PropTypes.string,
+  tabRef: PropTypes.object,
 };
 
 export default TabButtons;

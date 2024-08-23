@@ -9,6 +9,7 @@ import Spinner from '@/components/Spinner';
 import CheckIcon from '@/icons/tickIcon';
 import PrintReportModal from '@/components/Modal/PrintReportModal';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
+import PropTypes from 'prop-types';
 
 const ChartContainer = memo(({ chartType, chartTitle, height, width, id }) => {
   const dispatch = useDispatch();
@@ -202,5 +203,15 @@ const ChartContainer = memo(({ chartType, chartTitle, height, width, id }) => {
     </div>
   );
 });
+
+ChartContainer.propTypes = {
+  chartType: PropTypes.string.isRequired,
+  chartTitle: PropTypes.string.isRequired,
+  height: PropTypes.string,
+  width: PropTypes.string,
+  id: PropTypes.string.isRequired,
+};
+
+ChartContainer.displayName = 'ChartContainer';
 
 export default ChartContainer;
