@@ -34,7 +34,12 @@ export default [
       ...react.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/jsx-filename-extension': [1, { extensions: ['.js', '.jsx'] }],
-      'prettier/prettier': 'error',
+      'prettier/prettier': [
+        'error',
+        {
+          endOfLine: 'auto',
+        },
+      ],
       ...eslintConfigPrettier.rules,
     },
   },
