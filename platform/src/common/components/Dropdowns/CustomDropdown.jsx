@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { Transition } from '@headlessui/react';
 import { usePopper } from 'react-popper';
 import TabButtons from '@/components/Button/TabButtons';
+import PropTypes from 'prop-types';
 
 const CustomDropdown = ({
   tabButtonClass,
@@ -168,6 +169,23 @@ const CustomDropdown = ({
       </Transition>
     </div>
   );
+};
+
+CustomDropdown.propTypes = {
+  tabButtonClass: PropTypes.string,
+  btnText: PropTypes.string,
+  dropdown: PropTypes.bool,
+  tabIcon: PropTypes.func,
+  tabStyle: PropTypes.string,
+  tabID: PropTypes.string,
+  children: PropTypes.node,
+  dropDownClass: PropTypes.string,
+  id: PropTypes.string,
+  openDropdown: PropTypes.bool,
+  sidebar: PropTypes.bool,
+  trigger: PropTypes.bool,
+  alignment: PropTypes.string,
+  customPopperStyle: PropTypes.object,
 };
 
 export default CustomDropdown;

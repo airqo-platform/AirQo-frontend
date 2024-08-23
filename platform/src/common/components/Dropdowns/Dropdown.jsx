@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
 
 // menu icon
 import MoreHorizIcon from '@/icons/Common/more_horiz.svg';
@@ -59,7 +60,7 @@ const Dropdown = ({ onItemClick, menu, length }) => {
         </ul>
       </div>
       {/* this is custom css for the dropdown */}
-      <style jsx>{`
+      <style>{`
         .Menu_dropdown {
           position: relative;
         }
@@ -71,6 +72,17 @@ const Dropdown = ({ onItemClick, menu, length }) => {
       `}</style>
     </div>
   );
+};
+
+Dropdown.propTypes = {
+  onItemClick: PropTypes.func.isRequired,
+  menu: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string,
+      name: PropTypes.string,
+    }),
+  ).isRequired,
+  length: PropTypes.string,
 };
 
 export default Dropdown;
