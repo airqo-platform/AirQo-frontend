@@ -14,16 +14,16 @@ export class CustomZoomControl {
   constructor() {
     this.container = this.createContainer();
     this.zoomInButton = this.createButton('Zoom In', <PlusIcon />, () =>
-      this.map?.zoomIn()
+      this.map?.zoomIn(),
     );
     this.zoomOutButton = this.createButton('Zoom Out', <MinusIcon />, () =>
-      this.map?.zoomOut()
+      this.map?.zoomOut(),
     );
 
     this.container.append(
       this.zoomInButton,
       this.createSeparator(),
-      this.zoomOutButton
+      this.zoomOutButton,
     );
   }
 
@@ -92,7 +92,7 @@ export class CustomGeolocateControl {
     this.setToastMessage = setToastMessage;
     this.container = this._createContainer();
     this.geolocateButton = this._createButton('Locate Me', <GeoIcon />, () =>
-      this._locate()
+      this._locate(),
     );
     this.container.appendChild(this.geolocateButton);
   }
@@ -148,7 +148,7 @@ export class CustomGeolocateControl {
         enableHighAccuracy: true,
         timeout: 5000,
         maximumAge: 0,
-      }
+      },
     );
   }
 

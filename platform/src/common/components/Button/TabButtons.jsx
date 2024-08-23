@@ -20,7 +20,9 @@ const TabButtons = ({
       className={` transition transform active:scale-95 border rounded-xl shadow-sm flex items-center justify-between cursor-pointer ${btnStyle}`}
     >
       {Icon && (
-        <span className="p-[2px] md:p-0">{typeof Icon === 'function' ? <Icon /> : Icon}</span>
+        <span className="p-[2px] md:p-0">
+          {typeof Icon === 'function' ? <Icon /> : Icon}
+        </span>
       )}
       {btnText && (
         <span

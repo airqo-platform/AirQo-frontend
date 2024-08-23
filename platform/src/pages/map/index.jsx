@@ -2,10 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import AirQoMap from '@/components/Map/AirQoMap';
 import Sidebar from '@/components/Map/components/sidebar';
-import {
-  getSitesSummary,
-  getGridsDataSummary,
-} from '@/lib/store/services/deviceRegistry/GridsSlice';
+import { getGridsDataSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import withAuth from '@/core/utils/protectedRoute';
 import { addSuggestedSites } from '@/lib/store/services/map/MapSlice';
 import Layout from '@/components/Layout';
@@ -52,7 +49,7 @@ const index = () => {
         const selectedSites = shuffledSites.slice(0, count);
         const uniqueSites = selectedSites.filter(
           (site, index, self) =>
-            self.findIndex((s) => s._id === site._id) === index
+            self.findIndex((s) => s._id === site._id) === index,
         );
         return uniqueSites;
       };
@@ -73,7 +70,7 @@ const index = () => {
           JSON.stringify({
             lat: position.coords.latitude,
             long: position.coords.longitude,
-          })
+          }),
         );
       });
     }

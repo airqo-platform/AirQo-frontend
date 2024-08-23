@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import CollapseIcon from '@/icons/SideBar/Collapse.svg';
 import { useWindowSize } from '@/lib/windowSize';
-import SideBarItem, { SideBarDropdownItem, SidebarIconItem } from './SideBarItem';
+import SideBarItem, {
+  SideBarDropdownItem,
+  SidebarIconItem,
+} from './SideBarItem';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import HomeIcon from '@/icons/SideBar/HomeIcon';
@@ -90,7 +92,7 @@ const AuthenticatedSideBar = () => {
       updateUserChecklists({
         user_id: userInfo._id,
         items: cardCheckList,
-      })
+      }),
     );
 
     // Check the status of the updateUserChecklists request
@@ -123,7 +125,7 @@ const AuthenticatedSideBar = () => {
                   {userInfo.profilePicture ? (
                     <img
                       className="w-12 h-12 rounded-full object-cover"
-                      src={userInfo.profilePicture || PlaceholderImage}
+                      src={userInfo.profilePicture}
                       alt=""
                     />
                   ) : (
@@ -146,9 +148,16 @@ const AuthenticatedSideBar = () => {
                 <SideBarItem label="Home" Icon={HomeIcon} navPath="/Home" />
               )}
               {isCollapsed ? (
-                <SidebarIconItem IconComponent={BarChartIcon} navPath="/analytics" />
+                <SidebarIconItem
+                  IconComponent={BarChartIcon}
+                  navPath="/analytics"
+                />
               ) : (
-                <SideBarItem label="Analytics" Icon={BarChartIcon} navPath="/analytics" />
+                <SideBarItem
+                  label="Analytics"
+                  Icon={BarChartIcon}
+                  navPath="/analytics"
+                />
               )}
               {isCollapsed ? (
                 <hr className="my-3 h-[0.5px] bg-grey-150 transition-all duration-300 ease-in-out" />
@@ -170,7 +179,9 @@ const AuthenticatedSideBar = () => {
                           {isCurrentRoute && (
                             <span className="bg-blue-600 w-1 h-1/2 mr-2 absolute rounded-xl -left-2"></span>
                           )}
-                          <CollocateIcon fill={isCurrentRoute ? '#145FFF' : '#1C1D20'} />
+                          <CollocateIcon
+                            fill={isCurrentRoute ? '#145FFF' : '#1C1D20'}
+                          />
                         </div>
                       </div>
                       {dropdown && (
@@ -201,7 +212,10 @@ const AuthenticatedSideBar = () => {
                       toggleMethod={() => setCollocationOpen(!collocationOpen)}
                       toggleState={collocationOpen}
                     >
-                      <SideBarDropdownItem itemLabel="Overview" itemPath="/collocation/overview" />
+                      <SideBarDropdownItem
+                        itemLabel="Overview"
+                        itemPath="/collocation/overview"
+                      />
                       <SideBarDropdownItem
                         itemLabel="Collocate"
                         itemPath="/collocation/collocate"
@@ -213,19 +227,33 @@ const AuthenticatedSideBar = () => {
               {isCollapsed ? (
                 <SidebarIconItem IconComponent={WorldIcon} navPath="/map" />
               ) : (
-                <SideBarItem label="AirQo map" Icon={WorldIcon} navPath="/map" />
+                <SideBarItem
+                  label="AirQo map"
+                  Icon={WorldIcon}
+                  navPath="/map"
+                />
               )}
             </div>
           </div>
           <div>
             {isCollapsed ? (
-              <SidebarIconItem IconComponent={SettingsIcon} navPath="/settings" />
+              <SidebarIconItem
+                IconComponent={SettingsIcon}
+                navPath="/settings"
+              />
             ) : (
-              <SideBarItem label="Settings" Icon={SettingsIcon} navPath="/settings" />
+              <SideBarItem
+                label="Settings"
+                Icon={SettingsIcon}
+                navPath="/settings"
+              />
             )}
             {size.width < 1024 && (
               <div onClick={handleLogout}>
-                <SideBarItem label={isLoading ? 'Logging out...' : 'Logout'} Icon={LogoutIcon} />
+                <SideBarItem
+                  label={isLoading ? 'Logging out...' : 'Logout'}
+                  Icon={LogoutIcon}
+                />
               </div>
             )}
           </div>
@@ -234,7 +262,11 @@ const AuthenticatedSideBar = () => {
         <div
           className={`absolute flex rounded-full top-11 -right-[3px] z-50 bg-white  p-1 shadow-md justify-between items-center`}
         >
-          <button type="button" className="bg-none" onClick={() => dispatch(toggleSidebar())}>
+          <button
+            type="button"
+            className="bg-none"
+            onClick={() => dispatch(toggleSidebar())}
+          >
             <LeftArrowIcon className={isCollapsed ? 'hidden' : 'block'} />
             <RightArrowIcon className={isCollapsed ? 'block' : 'hidden'} />
           </button>

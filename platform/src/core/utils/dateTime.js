@@ -4,7 +4,7 @@ const client_IANA_timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 export const formatDateString = (
   t = moment(), // set default datetime to current time
-  format = 'DD-MM-YYYY HH:mm:ss' // set default datetime format
+  format = 'DD-MM-YYYY HH:mm:ss', // set default datetime format
 ) => moment.utc(t).tz(client_IANA_timezone).format(format);
 
 export const getElapsedDurationMapper = (dateTimeStr) => {
@@ -97,7 +97,7 @@ export const getGMTOffset = () => {
   const timezoneOffset = new Date().getTimezoneOffset();
   const offsetAbsoluteValue = Math.abs(timezoneOffset);
   const hourDifference = ('00' + Math.floor(offsetAbsoluteValue / 60)).slice(
-    -2
+    -2,
   );
   return `GMT${timezoneOffset < 0 ? '+' : '-'}${hourDifference}`;
 };

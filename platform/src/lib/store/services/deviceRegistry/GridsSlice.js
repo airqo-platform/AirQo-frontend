@@ -25,7 +25,7 @@ export const getSitesSummary = createAsyncThunk(
   async () => {
     const response = await getSiteSummaryDetails();
     return response;
-  }
+  },
 );
 
 // New async thunk for getting grids data summary
@@ -34,7 +34,7 @@ export const getGridsDataSummary = createAsyncThunk(
   async () => {
     const response = await getGirdsSummaryDetails();
     return response;
-  }
+  },
 );
 
 export const gridsSlice = createSlice({

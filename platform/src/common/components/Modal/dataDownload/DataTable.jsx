@@ -5,7 +5,12 @@ import Button from '../../Button';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 import TopBarSearch from '../../search/TopBarSearch';
 
-const DataTable = ({ setSelectedSites, data, itemsPerPage = 7, clearSelectedSites }) => {
+const DataTable = ({
+  setSelectedSites,
+  data,
+  itemsPerPage = 7,
+  clearSelectedSites,
+}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedSites, setSelectedSitesState] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -30,7 +35,9 @@ const DataTable = ({ setSelectedSites, data, itemsPerPage = 7, clearSelectedSite
   }, [clearSelectedSites]);
 
   const filteredData = useMemo(() => {
-    return searchResults.length > 0 ? searchResults.map((result) => result.item) : data;
+    return searchResults.length > 0
+      ? searchResults.map((result) => result.item)
+      : data;
   }, [searchResults, data]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -80,7 +87,10 @@ const DataTable = ({ setSelectedSites, data, itemsPerPage = 7, clearSelectedSite
               checked={selectedSites.includes(item)}
               onChange={() => handleCheckboxChange(item)}
             />
-            <label htmlFor={`checkbox-table-search-${index}`} className="sr-only">
+            <label
+              htmlFor={`checkbox-table-search-${index}`}
+              className="sr-only"
+            >
               checkbox
             </label>
           </div>
@@ -92,7 +102,9 @@ const DataTable = ({ setSelectedSites, data, itemsPerPage = 7, clearSelectedSite
           <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
             <LocationIcon width={16} height={16} fill="#9EA3AA" />
           </span>
-          {item.location.length > 25 ? `${item.location.substring(0, 25)}...` : item.location}
+          {item.location.length > 25
+            ? `${item.location.substring(0, 25)}...`
+            : item.location}
         </th>
         <td className="px-3 py-2">{item.city}</td>
         <td className="px-3 py-2">{item.country}</td>
@@ -132,7 +144,9 @@ const DataTable = ({ setSelectedSites, data, itemsPerPage = 7, clearSelectedSite
       </div>
       <div className="relative overflow-x-auto border rounded-xl">
         {filteredData.length === 0 ? (
-          <div className="p-4 text-center text-gray-500 dark:text-gray-400">No data available.</div>
+          <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+            No data available.
+          </div>
         ) : (
           <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 border-b capitalize bg-[#f9fafb] dark:bg-gray-700 dark:text-gray-400">

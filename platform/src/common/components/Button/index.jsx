@@ -63,7 +63,9 @@ const Button = ({
         {...rest}
         disabled={disabled}
       >
-        {Icon && <Icon className={`${textColor || 'text-black-900 w-4 h-4'}`} />}
+        {Icon && (
+          <Icon className={`${textColor || 'text-black-900 w-4 h-4'}`} />
+        )}
         {children}
       </button>
     );

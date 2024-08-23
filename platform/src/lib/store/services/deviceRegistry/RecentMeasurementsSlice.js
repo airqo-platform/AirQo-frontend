@@ -16,7 +16,7 @@ export const fetchRecentMeasurementsData = createAsyncThunk(
     } catch (error) {
       throw error;
     }
-  }
+  },
 );
 
 export const recentMeasurementsSlice = createSlice({

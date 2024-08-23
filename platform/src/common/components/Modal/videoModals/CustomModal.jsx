@@ -21,7 +21,7 @@ const CustomModal = ({ open, setOpen, videoUrl, checklistData }) => {
         updateVideoProgress({
           id: 1,
           videoProgress: videoRef.current.currentTime,
-        })
+        }),
       );
     }
   };
@@ -31,7 +31,7 @@ const CustomModal = ({ open, setOpen, videoUrl, checklistData }) => {
       modalRef.current.focus();
       document.addEventListener('mousedown', handleClickOutside);
       const videoTime = checklistData.find(
-        (card) => card.title === 'analytics_video'
+        (card) => card.title === 'analytics_video',
       )?.videoProgress;
       if (videoTime) {
         videoRef.current.currentTime = videoTime;
@@ -43,7 +43,7 @@ const CustomModal = ({ open, setOpen, videoUrl, checklistData }) => {
           updateVideoProgress({
             id: 1,
             videoProgress: videoRef.current.currentTime,
-          })
+          }),
         );
       }
     }
@@ -61,7 +61,7 @@ const CustomModal = ({ open, setOpen, videoUrl, checklistData }) => {
       updateVideoProgress({
         id: 1,
         videoProgress: videoRef.current.currentTime,
-      })
+      }),
     );
   };
 
@@ -95,7 +95,7 @@ const CustomModal = ({ open, setOpen, videoUrl, checklistData }) => {
                 updateVideoProgress({
                   id: 1,
                   videoProgress: videoRef.current.currentTime,
-                })
+                }),
               );
             }}
             className="absolute top-0 right-0 md:-top-[25px] md:-right-[24px] m-2 text-gray-400 bg-blue-600 hover:bg-blue-900 hover:text-gray-900 rounded-full text-sm w-8 h-8 inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"

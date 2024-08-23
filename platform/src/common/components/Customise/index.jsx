@@ -58,7 +58,7 @@ const CustomiseLocationsComponent = ({ toggleCustomise }) => {
           selectedLocations,
           chartData,
           dispatch,
-          toggleCustomise
+          toggleCustomise,
         );
       } catch (error) {
         setCreationErrors({

@@ -12,7 +12,12 @@ const StepProgress = ({ step, totalSteps }) => {
         <defs>
           <mask id="round">
             <rect width="100%" height="100%" fill="#fff" />
-            <circle cx={radius} cy={radius} r={normalizedRadius - stroke / 2} fill="#000" />
+            <circle
+              cx={radius}
+              cy={radius}
+              r={normalizedRadius - stroke / 2}
+              fill="#000"
+            />
           </mask>
         </defs>
         <circle
@@ -38,7 +43,14 @@ const StepProgress = ({ step, totalSteps }) => {
           cy={radius}
           mask="url(#round)"
         />
-        <text x="50%" y="50%" textAnchor="middle" fill="#536A87" fontSize="18px" dy=".4em">
+        <text
+          x="50%"
+          y="50%"
+          textAnchor="middle"
+          fill="#536A87"
+          fontSize="18px"
+          dy=".4em"
+        >
           {step}/{totalSteps}
         </text>
       </svg>

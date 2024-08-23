@@ -12,7 +12,12 @@ import Button from '../../Button';
  * @returns {JSX.Element}
  * @description Footer component
  */
-const Footer = ({ selectedRange, setSelectedRange, handleValueChange, close }) => {
+const Footer = ({
+  selectedRange,
+  setSelectedRange,
+  handleValueChange,
+  close,
+}) => {
   const [errorMsg, setErrorMsg] = useState('');
 
   /**
@@ -46,7 +51,11 @@ const Footer = ({ selectedRange, setSelectedRange, handleValueChange, close }) =
         <input
           type="text"
           readOnly
-          value={selectedRange.start ? format(selectedRange.start, 'MMM d, yyyy') : ''}
+          value={
+            selectedRange.start
+              ? format(selectedRange.start, 'MMM d, yyyy')
+              : ''
+          }
           className="flex items-center shadow-sm w-full px-4 py-2 text-sm border border-gray-300 text-gray-600 rounded-xl focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none md:w-32"
           placeholder="Start date"
           disabled
@@ -57,7 +66,9 @@ const Footer = ({ selectedRange, setSelectedRange, handleValueChange, close }) =
         <input
           type="text"
           readOnly
-          value={selectedRange.end ? format(selectedRange.end, 'MMM d, yyyy') : ''}
+          value={
+            selectedRange.end ? format(selectedRange.end, 'MMM d, yyyy') : ''
+          }
           className="flex items-center shadow-sm w-full px-4 py-2 text-sm border border-gray-300 text-gray-600 rounded-xl focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none md:w-32"
           placeholder="End date"
           disabled
@@ -72,7 +83,9 @@ const Footer = ({ selectedRange, setSelectedRange, handleValueChange, close }) =
           Apply
         </Button>
       </div>
-      {errorMsg && <div className="text-red-500 text-sm w-auto">Select date range</div>}
+      {errorMsg && (
+        <div className="text-red-500 text-sm w-auto">Select date range</div>
+      )}
     </div>
   );
 };

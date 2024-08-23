@@ -30,7 +30,7 @@ const SetChartDetails = async (dispatch, preferenceData) => {
           timeFrame: frequency,
           chartType: chartType,
           pollutionType: pollutant,
-        })
+        }),
       );
     } catch (error) {
       console.error(`Error setting chart properties: ${error}`);

@@ -5,6 +5,7 @@ import { persistStore } from 'redux-persist';
 import { wrapper } from '@/lib/store';
 import { useEffect } from 'react';
 import { Toaster } from 'sonner';
+import PropTypes from 'prop-types';
 
 export default function App({ Component, ...rest }) {
   const { store, props } = wrapper.useWrappedStore(rest);
@@ -37,3 +38,8 @@ export default function App({ Component, ...rest }) {
     </Provider>
   );
 }
+
+App.propTypes = {
+  Component: PropTypes.elementType.isRequired,
+  pageProps: PropTypes.object.isRequired,
+};

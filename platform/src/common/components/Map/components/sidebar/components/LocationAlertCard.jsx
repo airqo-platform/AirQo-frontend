@@ -34,7 +34,7 @@ const LocationAlertCard = ({
   isCollapsed = true,
 }) => {
   const recentLocationMeasurements = useSelector(
-    (state) => state.recentMeasurements.measurements
+    (state) => state.recentMeasurements.measurements,
   );
   const [collapsed, setCollapsed] = useState(isCollapsed);
 
@@ -56,41 +56,43 @@ const LocationAlertCard = ({
       const airQualityCategory = selectedWeeklyPrediction
         ? isSameDay(
             new Date(
-              selectedSite.time || recentLocationMeasurements?.[0]?.time
+              selectedSite.time || recentLocationMeasurements?.[0]?.time,
             ),
-            new Date(selectedWeeklyPrediction.time)
+            new Date(selectedWeeklyPrediction.time),
           )
           ? addSpacesToCategory(
               getAQICategory(
                 'pm2_5',
                 selectedSite.pm2_5 ||
-                  recentLocationMeasurements?.[0]?.pm2_5?.value
-              ).category
+                  recentLocationMeasurements?.[0]?.pm2_5?.value,
+              ).category,
             )
           : addSpacesToCategory(
-              getAQICategory('pm2_5', selectedWeeklyPrediction.pm2_5).category
+              getAQICategory('pm2_5', selectedWeeklyPrediction.pm2_5).category,
             )
         : addSpacesToCategory(
             getAQICategory(
               'pm2_5',
               selectedSite.pm2_5 ||
-                recentLocationMeasurements?.[0]?.pm2_5?.value
-            ).category
+                recentLocationMeasurements?.[0]?.pm2_5?.value,
+            ).category,
           );
 
       const dateMessage = formatDateMessage(
         selectedWeeklyPrediction
           ? isSameDay(
               new Date(
-                selectedSite.time || recentLocationMeasurements?.[0]?.time
+                selectedSite.time || recentLocationMeasurements?.[0]?.time,
               ),
-              new Date(selectedWeeklyPrediction.time)
+              new Date(selectedWeeklyPrediction.time),
             )
             ? new Date(
-                selectedSite.time || recentLocationMeasurements?.[0]?.time
+                selectedSite.time || recentLocationMeasurements?.[0]?.time,
               )
             : new Date(selectedWeeklyPrediction.time)
-          : new Date(selectedSite.time || recentLocationMeasurements?.[0]?.time)
+          : new Date(
+              selectedSite.time || recentLocationMeasurements?.[0]?.time,
+            ),
       );
 
       const aqiMessage = getAQIMessage(
@@ -99,7 +101,7 @@ const LocationAlertCard = ({
         selectedWeeklyPrediction
           ? selectedWeeklyPrediction.pm2_5.toFixed(2)
           : selectedSite?.pm2_5?.toFixed(2) ||
-              recentLocationMeasurements?.[0]?.pm2_5?.value.toFixed(2)
+              recentLocationMeasurements?.[0]?.pm2_5?.value.toFixed(2),
       );
 
       return (

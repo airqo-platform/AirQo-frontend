@@ -6,7 +6,7 @@ export const fetchAnalyticsData = createAsyncThunk(
   async (body) => {
     const response = await getAnalyticsData(body);
     return response.data;
-  }
+  },
 );
 
 const initialState = {

@@ -25,7 +25,7 @@ const IndividualAccountRegistration = () => {
   const [passwordType, setPasswordType] = useState('password');
   const [passwordWordErrors, setPasswordWordErrors] = useState(false);
   let passwordRegex = new RegExp(
-    '^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&.*,]).{6,}$'
+    '^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&.*,]).{6,}$',
   );
 
   const dispatch = useDispatch();
@@ -66,7 +66,7 @@ const IndividualAccountRegistration = () => {
           lastName,
           password,
           category: 'individual',
-        })
+        }),
       );
       if (!response.payload.success) {
         setCreationErrors({

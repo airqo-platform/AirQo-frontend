@@ -51,7 +51,10 @@ const LocationItemCards = ({
 }) => {
   let locationName = location?.search_name || location?.name;
   let locationDescripton =
-    location.location_name || location?.search_name || location?.name || location?.long_name;
+    location.location_name ||
+    location?.search_name ||
+    location?.name ||
+    location?.long_name;
 
   return (
     <div
@@ -68,16 +71,22 @@ const LocationItemCards = ({
         <div>{showActiveStarIcon ? <DragIcon /> : <DragIconLight />}</div>
         <span className="text-sm text-secondary-neutral-light-800 font-medium">
           {locationName?.split(',')[0].length > 20
-            ? capitalizeAllText(locationName?.split(',')[0].substring(0, 15)) + '...'
+            ? capitalizeAllText(locationName?.split(',')[0].substring(0, 15)) +
+              '...'
             : capitalizeAllText(locationName?.split(',')[0])}
           {locationDescripton?.split(',').length > 1 && (
-            <span className="text-grey-400">{locationDescripton?.split(',').pop()}</span>
+            <span className="text-grey-400">
+              {locationDescripton?.split(',').pop()}
+            </span>
           )}
         </span>
       </div>
       <div className="flex flex-row">
         {showTrashIcon && (
-          <div className="mr-1 hover:cursor-pointer" onClick={() => handleRemoveLocation(location)}>
+          <div
+            className="mr-1 hover:cursor-pointer"
+            onClick={() => handleRemoveLocation(location)}
+          >
             <TrashIcon />
           </div>
         )}
@@ -109,11 +118,16 @@ const LocationItemCards = ({
  */
 const NoSuggestions = ({ message }) => (
   <div className="flex flex-row justify-center mt-[60px] items-center mb-0.5 text-sm w-full">
-    <div className="text-sm ml-1 text-black font-medium capitalize">{message}</div>
+    <div className="text-sm ml-1 text-black font-medium capitalize">
+      {message}
+    </div>
   </div>
 );
 
-const LocationsContentComponent = ({ selectedLocations, resetSearchData = false }) => {
+const LocationsContentComponent = ({
+  selectedLocations,
+  resetSearchData = false,
+}) => {
   const dispatch = useDispatch();
   const searchRef = useRef(null);
   const sitesData = useSelector((state) => state.grids.sitesSummary);
@@ -122,7 +136,9 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
   const [isLoadingResults, setIsLoadingResults] = useState(false);
   const [isGettingNearestSite, setIsGettingNearestSite] = useState(false);
   const gridsSummaryData = useSelector((state) => state.grids.gridsSummary);
-  const reduxSearchTerm = useSelector((state) => state.locationSearch.searchTerm);
+  const reduxSearchTerm = useSelector(
+    (state) => state.locationSearch.searchTerm,
+  );
 
   const [inputSelect, setInputSelect] = useState(false);
   const [locationArray, setLocationArray] = useState(selectedLocations);
@@ -139,7 +155,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
 
   const autoCompleteSessionToken = useMemo(
     () => new google.maps.places.AutocompleteSessionToken(),
-    [google.maps.places.AutocompleteSessionToken]
+    [google.maps.places.AutocompleteSessionToken],
   );
 
   const focus = isFocused || reduxSearchTerm.length > 0;
@@ -192,9 +208,15 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
       try {
         dispatch(setSelectedLocations(locationArray));
         while (unSelectedLocations.length < 8) {
-          const randomIndex = Math.floor(Math.random() * sitesLocationsData.length);
+          const randomIndex = Math.floor(
+            Math.random() * sitesLocationsData.length,
+          );
           const randomObject = sitesLocationsData[randomIndex];
-          if (!unSelectedLocations.find((location) => location._id === randomObject._id)) {
+          if (
+            !unSelectedLocations.find(
+              (location) => location._id === randomObject._id,
+            )
+          ) {
             unSelectedLocations.push(randomObject);
           }
         }
@@ -217,14 +239,18 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
         // Create a new AutocompleteService instance
         const autocompleteSuggestions = await getAutocompleteSuggestions(
           reduxSearchTerm,
-          autoCompleteSessionToken
+          autoCompleteSessionToken,
         );
         if (autocompleteSuggestions && autocompleteSuggestions.length > 0) {
-          const filteredPredictions = autocompleteSuggestions.filter((prediction) => {
-            return airqoCountries.some((country) =>
-              prediction.description.toLowerCase().includes(country.toLowerCase())
-            );
-          });
+          const filteredPredictions = autocompleteSuggestions.filter(
+            (prediction) => {
+              return airqoCountries.some((country) =>
+                prediction.description
+                  .toLowerCase()
+                  .includes(country.toLowerCase()),
+              );
+            },
+          );
 
           const locationPromises = filteredPredictions.map((prediction) => {
             return new Promise((resolve) => {
@@ -316,7 +342,9 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
 
             if (response.sites && response.sites.length > 0) {
               newLocationValue = {
-                ...response.sites[Math.floor(Math.random() * response.sites.length)],
+                ...response.sites[
+                  Math.floor(Math.random() * response.sites.length)
+                ],
                 name: newItemValue?.description,
                 long_name: newItemValue?.description,
                 search_name: newItemValue?.description,
@@ -326,7 +354,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
               throw new Error(
                 `Can't find air quality for ${
                   newItemValue?.description?.split(',')[0]
-                }. Please try another location.`
+                }. Please try another location.`,
               );
             }
           } catch (error) {
@@ -344,7 +372,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
 
       const newLocationArray = [...locationArray];
       const index = newLocationArray.findIndex(
-        (location) => location.name === newLocationValue.name
+        (location) => location.name === newLocationValue.name,
       );
       if (index !== -1) {
         setIsGettingNearestSite(false);
@@ -357,7 +385,7 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
       } else if (newLocationArray.length < 4) {
         newLocationArray.push(newLocationValue);
         const unselectedIndex = unSelectedLocations.findIndex(
-          (location) => location.name === newLocationValue.name
+          (location) => location.name === newLocationValue.name,
         );
         unSelectedLocations.splice(unselectedIndex, 1);
       } else {
@@ -390,15 +418,17 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
    * and updates the unselected locations array
    */
   const removeLocation = (item) => {
-    const newLocationSet = new Set(locationArray.map((location) => location.name));
+    const newLocationSet = new Set(
+      locationArray.map((location) => location.name),
+    );
     newLocationSet.delete(item.name);
     const newLocationArray = Array.from(newLocationSet, (name) =>
-      locationArray.find((location) => location.name === name)
+      locationArray.find((location) => location.name === name),
     );
     setLocationArray(newLocationArray);
     setDraggedLocations(newLocationArray);
     setUnSelectedLocations((locations) =>
-      locations.filter((location) => location.name !== item.name)
+      locations.filter((location) => location.name !== item.name),
     );
     dispatch(setSelectedLocations(newLocationArray));
   };
@@ -472,17 +502,22 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
                   <LocationIcon />
                   <div className="text-sm text-black capitalize text-nowrap w-56 md:w-96 lg:w-72 overflow-hidden text-ellipsis">
                     {location?.description?.split(',')[0].length > 35
-                      ? location?.description?.split(',')[0].substring(0, 35) + '...'
+                      ? location?.description?.split(',')[0].substring(0, 35) +
+                        '...'
                       : location?.description?.split(',')[0]}
                     {location?.description?.split(',').length > 1 && (
                       <span className="text-grey-400">
-                        {location?.description?.split(',').slice(1).join(',').length > 35
+                        {location?.description?.split(',').slice(1).join(',')
+                          .length > 35
                           ? `${location?.description
                               ?.split(',')
                               .slice(1)
                               .join(',')
                               .substring(0, 35)}...`
-                          : location?.description?.split(',').slice(1).join(',')}
+                          : location?.description
+                              ?.split(',')
+                              .slice(1)
+                              .join(',')}
                       </span>
                     )}
                   </div>
@@ -526,7 +561,11 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
                 )}
                 {locationArray && locationArray.length > 0 ? (
                   draggedLocations.map((location, index) => (
-                    <Draggable key={location.name} draggableId={location.name} index={index}>
+                    <Draggable
+                      key={location.name}
+                      draggableId={location.name}
+                      index={index}
+                    >
                       {(provided) => (
                         <LocationItemCards
                           key={location.name}
@@ -547,7 +586,9 @@ const LocationsContentComponent = ({ selectedLocations, resetSearchData = false 
                 )}
               </div>
               <div className="mt-6 mb-24">
-                <h3 className="text-sm text-black-800 font-semibold">Suggestions</h3>
+                <h3 className="text-sm text-black-800 font-semibold">
+                  Suggestions
+                </h3>
                 <div className="mt-3">
                   {unSelectedLocations && unSelectedLocations.length > 0 ? (
                     unSelectedLocations

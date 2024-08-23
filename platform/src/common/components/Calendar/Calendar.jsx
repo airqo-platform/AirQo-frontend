@@ -75,8 +75,12 @@ const Calendar = ({
    * @description Renders the days of the month
    */
   const renderDays = (month, selectedDays, setSelectedDays) => {
-    const startDay = showTwoCalendars ? startOfWeek(startOfMonth(month)) : startOfMonth(month);
-    const endDay = showTwoCalendars ? endOfWeek(endOfMonth(month)) : endOfMonth(month);
+    const startDay = showTwoCalendars
+      ? startOfWeek(startOfMonth(month))
+      : startOfMonth(month);
+    const endDay = showTwoCalendars
+      ? endOfWeek(endOfMonth(month))
+      : endOfMonth(month);
     const daysOfMonth = eachDayOfInterval({
       start: startDay,
       end: endDay,
@@ -100,13 +104,17 @@ const Calendar = ({
         <div
           key={day}
           className={`flex justify-center items-center ${
-            isInBetween || isStartOrEndDay ? 'bg-gray-100 text-gray-800 dark:bg-gray-800' : ''
+            isInBetween || isStartOrEndDay
+              ? 'bg-gray-100 text-gray-800 dark:bg-gray-800'
+              : ''
           } ${
-            (selectedRange.start && isSameDay(day, selectedRange.start)) || isStartOfWeek
+            (selectedRange.start && isSameDay(day, selectedRange.start)) ||
+            isStartOfWeek
               ? 'rounded-l-full'
               : ''
           } ${
-            (selectedRange.end && isSameDay(day, selectedRange.end)) || isEndOfWeek
+            (selectedRange.end && isSameDay(day, selectedRange.end)) ||
+            isEndOfWeek
               ? 'rounded-r-full'
               : ''
           }`}
@@ -150,8 +158,16 @@ const Calendar = ({
    * @returns {JSX.Element}
    * @description Renders the calendar section
    */
-  const CalendarSection = ({ month, selectedDays, setSelectedDays, onNextMonth, onPrevMonth }) => (
-    <div className={`${showTwoCalendars ? 'px-6 pt-5 pb-6' : 'px-2 pt-2 pb-5'} flex flex-col`}>
+  const CalendarSection = ({
+    month,
+    selectedDays,
+    setSelectedDays,
+    onNextMonth,
+    onPrevMonth,
+  }) => (
+    <div
+      className={`${showTwoCalendars ? 'px-6 pt-5 pb-6' : 'px-2 pt-2 pb-5'} flex flex-col`}
+    >
       <CalendarHeader
         month={format(month, 'MMMM yyyy')}
         onNext={onNextMonth}
@@ -194,7 +210,9 @@ const Calendar = ({
         <div className="flex flex-col">
           <div className="divide-x flex flex-col md:flex-row lg:flex-row">
             {/* shortcut section */}
-            {showTwoCalendars && <ShortCuts setSelectedRange={setSelectedRange} />}
+            {showTwoCalendars && (
+              <ShortCuts setSelectedRange={setSelectedRange} />
+            )}
 
             {/* Calendar One */}
             <CalendarSection

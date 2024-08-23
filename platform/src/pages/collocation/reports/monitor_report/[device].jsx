@@ -25,10 +25,10 @@ const MonitorReport = () => {
   const dispatch = useDispatch();
 
   const activeSelectedDeviceCollocationReportData = useSelector(
-    (state) => state.collocationData.activeSelectedDeviceCollocationReportData
+    (state) => state.collocationData.activeSelectedDeviceCollocationReportData,
   );
   const activeSelectedDeviceReport = useSelector(
-    (state) => state.collocationData.activeSelectedDeviceReport
+    (state) => state.collocationData.activeSelectedDeviceReport,
   );
 
   const router = useRouter();
@@ -79,7 +79,7 @@ const MonitorReport = () => {
   let deviceStatusSummary = data ? data : [];
 
   let batchDevices = deviceStatusSummary.filter(
-    (device) => device.batch_id === batchId
+    (device) => device.batch_id === batchId,
   );
   let graphColors = [
     '#0e3b5d',
@@ -147,7 +147,7 @@ const MonitorReport = () => {
           actual_number_of_records: deviceData.actual_number_of_records,
           start_date: deviceData.start_date,
           end_date: deviceData.end_date,
-        })
+        }),
       );
       setDataCompletenessRecords(transformedStatistics);
     }
@@ -215,5 +215,5 @@ const MonitorReport = () => {
 
 export default withPermission(
   withAuth(MonitorReport),
-  'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
+  'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
 );

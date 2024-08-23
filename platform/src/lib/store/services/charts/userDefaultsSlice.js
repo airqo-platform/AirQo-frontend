@@ -24,7 +24,7 @@ export const fetchUserDefaults = createAsyncThunk(
   async (userId) => {
     const response = await getUserDefaults();
     return response.defaults.find((item) => item.user === userId);
-  }
+  },
 );
 
 // updating user defaults
@@ -33,7 +33,7 @@ export const updateDefaults = createAsyncThunk(
   async ({ defaultId, defaults }) => {
     const response = await updateUserDefaults(defaultId, defaults);
     return response.defaults;
-  }
+  },
 );
 
 // getting user preferences
@@ -42,7 +42,7 @@ export const fetchUserPreferences = createAsyncThunk(
   async (userId) => {
     const response = await getUserPreferencesApi(userId);
     return response.preferences;
-  }
+  },
 );
 
 const userDefaultsSlice = createSlice({
@@ -57,7 +57,7 @@ const userDefaultsSlice = createSlice({
         (action) => action.type.endsWith('/pending'),
         (state) => {
           state.status = 'loading';
-        }
+        },
       )
       .addMatcher(
         (action) => action.type.endsWith('/fulfilled'),
@@ -70,14 +70,14 @@ const userDefaultsSlice = createSlice({
           ) {
             state.preferences = action.payload;
           }
-        }
+        },
       )
       .addMatcher(
         (action) => action.type.endsWith('/rejected'),
         (state, action) => {
           state.status = 'failed';
           state.error = action.error.message;
-        }
+        },
       );
   },
 });

@@ -47,7 +47,7 @@ const GraphCard = ({ data, secondGraph, batch, device, selectedBatch }) => {
   const toggleDropdown = (option) => {
     const newArray = [...selectedBatch];
     const currentDeviceIndex = newArray.findIndex(
-      (item) => item.device_name === device.device_name
+      (item) => item.device_name === device.device_name,
     );
     if (currentDeviceIndex !== -1) {
       const optionIndex = newArray.findIndex((item) => {

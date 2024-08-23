@@ -36,7 +36,7 @@ const Table = ({ collocationDevices }) => {
         Object.values(row)
           .join('')
           .toLowerCase()
-          .includes(searchTerm.toLowerCase())
+          .includes(searchTerm.toLowerCase()),
       );
     setFilteredData(filterList);
   }, [searchTerm, sortOption, collocationDevices]);

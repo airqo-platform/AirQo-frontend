@@ -19,10 +19,10 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
 
   const chartData = useSelector((state) => state.chart);
   const startDate = moment(chartData.chartDataRange.startDate).format(
-    'MMMM D, YYYY'
+    'MMMM D, YYYY',
   );
   const endDate = moment(chartData.chartDataRange.endDate).format(
-    'MMMM D, YYYY'
+    'MMMM D, YYYY',
   );
 
   const handleFormatChange = (event) => setSelectedFormat(event.target.value);
@@ -82,7 +82,7 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
         });
         setTimeout(
           () => setAlert({ type: '', message: '', show: false }),
-          7000
+          7000,
         );
         handleCancel();
       } catch (err) {
@@ -97,7 +97,7 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
         setLoading(false);
       }
     },
-    [selectedFormat]
+    [selectedFormat],
   );
 
   /**

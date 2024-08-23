@@ -64,7 +64,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     : [];
 
   const selectedCollocateDevices = useSelector(
-    (state) => state.selectedCollocateDevices.selectedCollocateDevices
+    (state) => state.selectedCollocateDevices.selectedCollocateDevices,
   );
 
   useEffect(() => {
@@ -122,7 +122,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         setVisibleDeleteDevice(false);
         dispatch(getDeviceStatusSummary());
         setSuccessMessage(
-          `Succesfully deleted device ${device} from batch ${batchName}`
+          `Succesfully deleted device ${device} from batch ${batchName}`,
         );
       })
       .catch((error) => {

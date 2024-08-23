@@ -12,7 +12,7 @@ const fetchGroupInfo = createAsyncThunk(
   async (groupId) => {
     const response = await getGroupDetailsApi(groupId);
     return response.group;
-  }
+  },
 );
 
 export const groupInfoSlice = createSlice({

@@ -131,7 +131,7 @@ const AuthenticatedHomePage = () => {
           0,
           0,
           width,
-          height
+          height,
         );
         pdf.save('chart.pdf');
       });

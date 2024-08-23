@@ -72,7 +72,7 @@ const Layout = ({
     const timer = setTimeout(() => {
       if (userInfo?._id && cardCheckList) {
         dispatch(
-          updateUserChecklists({ user_id: userInfo._id, items: cardCheckList })
+          updateUserChecklists({ user_id: userInfo._id, items: cardCheckList }),
         );
       }
     }, 5000);

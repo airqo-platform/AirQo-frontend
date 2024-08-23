@@ -92,7 +92,7 @@ export const updateUserCreationDetails = async (data, identifier) => {
   try {
     const response = await axios.put(
       `${UPDATE_USER_DETAILS_URL}/${identifier}`,
-      data
+      data,
     );
     return response.data;
   } catch (error) {
@@ -115,7 +115,7 @@ export const updateOrganisationApi = async (data) => {
   try {
     const response = await createAxiosInstance().put(
       `${GROUPS_URL}/${data.grp_id}`,
-      data
+      data,
     );
     return response.data;
   } catch (error) {
@@ -128,7 +128,7 @@ export const postUserDefaultsApi = async (data) => {
   try {
     const response = await createAxiosInstance().post(
       `${USER_DEFAULTS_URL}`,
-      data
+      data,
     );
     return response.data;
   } catch (error) {
@@ -146,7 +146,7 @@ export const updateUserDefaultsApi = async (data) => {
         params: {
           id: data.user_id,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -158,7 +158,7 @@ export const updateUserDefaultsApi = async (data) => {
 export const verifyUserEmailApi = async (identifier, token) => {
   try {
     const response = await createAxiosInstance().get(
-      `${VERIFY_USER_URL}/${identifier}/${token}`
+      `${VERIFY_USER_URL}/${identifier}/${token}`,
     );
     return response.data;
   } catch (error) {
@@ -171,7 +171,7 @@ export const postUserPreferencesApi = async (data) => {
   try {
     const response = await createAxiosInstance().post(
       `${USER_PREFERENCES_URL}`,
-      data
+      data,
     );
     return response.data;
   } catch (error) {
@@ -184,7 +184,7 @@ export const updateUserPreferencesApi = async (data) => {
   try {
     const response = await createAxiosInstance().post(
       `${USER_PREFERENCES_URL}/upsert`,
-      data
+      data,
     );
     return response.data;
   } catch (error) {
@@ -196,7 +196,7 @@ export const updateUserPreferencesApi = async (data) => {
 export const getUserPreferencesApi = async (identifier) => {
   try {
     const response = await createAxiosInstance().get(
-      `${USER_PREFERENCES_URL}/${identifier}`
+      `${USER_PREFERENCES_URL}/${identifier}`,
     );
     return response.data;
   } catch (error) {
@@ -209,7 +209,7 @@ export const patchUserPreferencesApi = async (data) => {
   try {
     const response = await createAxiosInstance().patch(
       `${USER_PREFERENCES_URL}/replace`,
-      data
+      data,
     );
     return response.data;
   } catch (error) {

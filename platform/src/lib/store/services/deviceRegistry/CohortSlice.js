@@ -6,7 +6,7 @@ export const updateCohort = createAsyncThunk(
   async ({ cohort, cohortID }) => {
     const response = await updateCohortDetails(cohort, cohortID);
     return response;
-  }
+  },
 );
 
 const cohortSlice = createSlice({

@@ -8,7 +8,11 @@ import Image from 'next/image';
 import AnalyticsImage from '@/images/Home/analyticsImage.webp';
 import PlayIcon from '@/images/Home/playIcon.svg';
 import { useSelector, useDispatch } from 'react-redux';
-import { startTask, completeTask, updateTitle } from '@/lib/store/services/checklists/CheckList';
+import {
+  startTask,
+  completeTask,
+  updateTitle,
+} from '@/lib/store/services/checklists/CheckList';
 import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
 import CustomModal from '@/components/Modal/videoModals/CustomModal';
 import StepProgress from '@/components/steppers/CircularStepper';
@@ -119,13 +123,16 @@ const Home = () => {
           <div className="px-4 md:px-6 lg:px-10 py-3 space-y-5 transition-all duration-300 ease-in-out">
             <div className="w-full mb-4 md:mb-10">
               <h1 className="text-[32px] leading-10 font-medium">
-                Welcome, <span className="capitalize">{userData?.firstName}</span> 👋
+                Welcome,{' '}
+                <span className="capitalize">{userData?.firstName}</span> 👋
               </h1>
             </div>
 
             <div className="w-full flex justify-between items-center">
               <div className="w-full flex flex-col items-start">
-                <h1 className="text-2xl font-medium text-gray-900">Onboarding checklist</h1>
+                <h1 className="text-2xl font-medium text-gray-900">
+                  Onboarding checklist
+                </h1>
                 <p className="text-sm font-normal text-gray-500">
                   We recommend starting with our onboarding checklist.
                 </p>
@@ -145,13 +152,20 @@ const Home = () => {
                   return null;
                 }
 
-                const card = cardCheckList.find((card) => card.id === index + 1);
+                const card = cardCheckList.find(
+                  (card) => card.id === index + 1,
+                );
 
-                const statusText = card && card.completed === true ? 'Done' : 'Start';
+                const statusText =
+                  card && card.completed === true ? 'Done' : 'Start';
                 const statusColor =
-                  card && card.completed === true ? 'text-black' : 'text-blue-600';
+                  card && card.completed === true
+                    ? 'text-black'
+                    : 'text-blue-600';
                 const justifyStyle =
-                  card && card.completed === true ? 'justify-end' : 'justify-between';
+                  card && card.completed === true
+                    ? 'justify-end'
+                    : 'justify-between';
 
                 return (
                   <div
@@ -169,13 +183,17 @@ const Home = () => {
                           className="text-base w-14 h-14 flex justify-center items-center font-medium rounded-full"
                           style={{ background: '#F5F5FF' }}
                         >
-                          <span className="text-blue-600">{index === 0 ? index + 1 : index}</span>
+                          <span className="text-blue-600">
+                            {index === 0 ? index + 1 : index}
+                          </span>
                         </div>
                       )}
                     </div>
                     <p className="w-full text-base font-normal">{step.label}</p>
 
-                    <div className={`w-full text-sm flex ${justifyStyle} font-normal`}>
+                    <div
+                      className={`w-full text-sm flex ${justifyStyle} font-normal`}
+                    >
                       {card && card.completed === true ? (
                         <span className={statusColor}>{statusText}</span>
                       ) : (
@@ -187,10 +205,14 @@ const Home = () => {
                               className={statusColor}
                               target={index === 3 ? '_blank' : ''}
                             >
-                              {card && card.status === 'inProgress' ? 'Resume' : statusText}
+                              {card && card.status === 'inProgress'
+                                ? 'Resume'
+                                : statusText}
                             </button>
                           </Link>
-                          <span className="text-sm font-normal text-black-900">{step.time}</span>
+                          <span className="text-sm font-normal text-black-900">
+                            {step.time}
+                          </span>
                         </>
                       )}
                     </div>
@@ -205,8 +227,8 @@ const Home = () => {
                   Track air pollution in places you care about
                 </h1>
                 <p className="text-lg font-normal text-black-900 mt-2">
-                  Empower yourself with knowledge about the air you breathe; because clean air
-                  begins with understanding
+                  Empower yourself with knowledge about the air you breathe;
+                  because clean air begins with understanding
                 </p>
                 <div className="mt-4 flex items-center space-x-8">
                   <Button
@@ -236,7 +258,12 @@ const Home = () => {
                 >
                   <PlayIcon />
                 </div>
-                <Image src={AnalyticsImage} alt="Analytics Image" width={600} height={350} />
+                <Image
+                  src={AnalyticsImage}
+                  alt="Analytics Image"
+                  width={600}
+                  height={350}
+                />
               </div>
             </div>
           </div>

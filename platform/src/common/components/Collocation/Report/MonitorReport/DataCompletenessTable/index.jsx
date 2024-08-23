@@ -19,7 +19,7 @@ const DataCompletenessTable = ({ dataCompletenessResults, isLoading }) => {
         Object.values(row)
           .join('')
           .toLowerCase()
-          .includes(searchTerm.toLowerCase())
+          .includes(searchTerm.toLowerCase()),
       );
     setFilteredData(filterList);
   }, [searchTerm, dataCompletenessResults]);
@@ -55,7 +55,7 @@ const DataCompletenessTable = ({ dataCompletenessResults, isLoading }) => {
     const sortedData = [...data].sort((a, b) =>
       order === 'asc'
         ? new Date(a.start_date) - new Date(b.start_date)
-        : new Date(b.start_date) - new Date(a.start_date)
+        : new Date(b.start_date) - new Date(a.start_date),
     );
 
     return sortedData;
@@ -65,7 +65,7 @@ const DataCompletenessTable = ({ dataCompletenessResults, isLoading }) => {
     const sortedData = [...data].sort((a, b) =>
       order === 'asc'
         ? a.deviceName.localeCompare(b.deviceName)
-        : b.deviceName.localeCompare(a.deviceName)
+        : b.deviceName.localeCompare(a.deviceName),
     );
     return sortedData;
   };

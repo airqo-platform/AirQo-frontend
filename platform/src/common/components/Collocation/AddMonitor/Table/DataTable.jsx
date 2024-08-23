@@ -10,7 +10,7 @@ import moment from 'moment';
 const DataTable = ({ paginatedData, collocationDevices }) => {
   const dispatch = useDispatch();
   const selectedCollocateDevices = useSelector(
-    (state) => state.selectedCollocateDevices.selectedCollocateDevices
+    (state) => state.selectedCollocateDevices.selectedCollocateDevices,
   );
 
   useEffect(() => {

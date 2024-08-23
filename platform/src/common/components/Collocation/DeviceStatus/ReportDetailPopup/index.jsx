@@ -20,7 +20,7 @@ import { useSelector } from 'react-redux';
 
 const DynamicPDFDownloadLink = dynamic(
   () => import('@react-pdf/renderer').then((module) => module.PDFDownloadLink),
-  { ssr: false }
+  { ssr: false },
 );
 
 const ReportDetailCard = ({ deviceName, batchId, data, open, closeModal }) => {

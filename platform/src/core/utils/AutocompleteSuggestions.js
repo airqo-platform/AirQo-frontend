@@ -13,11 +13,11 @@ export const getAutocompleteSuggestions = (input, sessionToken) => {
         } else {
           reject(
             new Error(
-              `Autocomplete search failed with status ${status}. Please try again.`
-            )
+              `Autocomplete search failed with status ${status}. Please try again.`,
+            ),
           );
         }
-      }
+      },
     );
   });
 };

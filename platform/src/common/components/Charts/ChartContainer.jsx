@@ -14,7 +14,11 @@ const ChartContainer = memo(({ chartType, chartTitle, height, width, id }) => {
   const dispatch = useDispatch();
   const chartRef = useRef(null);
   const dropdownRef = useRef(null);
-  const { status: isLoading, chartDataRange, chartSites } = useSelector((state) => state.chart);
+  const {
+    status: isLoading,
+    chartDataRange,
+    chartSites,
+  } = useSelector((state) => state.chart);
   const [openShare, setOpenShare] = useState(false);
   const [shareFormat, setShareFormat] = useState(null);
   const [loadingFormat, setLoadingFormat] = useState(null);
@@ -66,7 +70,7 @@ const ChartContainer = memo(({ chartType, chartTitle, height, width, id }) => {
               setDownloadComplete(format);
             },
             `image/${format}`,
-            0.8
+            0.8,
           );
         } else if (format === 'pdf') {
           const pdf = new jsPDF({
@@ -74,7 +78,14 @@ const ChartContainer = memo(({ chartType, chartTitle, height, width, id }) => {
             unit: 'px',
             format: [canvasWidth, canvasHeight],
           });
-          pdf.addImage(canvas.toDataURL('image/png', 0.8), 'PNG', 0, 0, canvasWidth, canvasHeight);
+          pdf.addImage(
+            canvas.toDataURL('image/png', 0.8),
+            'PNG',
+            0,
+            0,
+            canvasWidth,
+            canvasHeight,
+          );
           pdf.save('airquality-data.pdf');
           setLoadingFormat(null);
           setDownloadComplete(format);
@@ -86,7 +97,7 @@ const ChartContainer = memo(({ chartType, chartTitle, height, width, id }) => {
         setLoadingFormat(null);
       }
     },
-    [chartRef]
+    [chartRef],
   );
 
   const refreshChart = () => {
@@ -117,7 +128,9 @@ const ChartContainer = memo(({ chartType, chartTitle, height, width, id }) => {
             <span>Export as {format.toUpperCase()}</span>
             <span className="-mr-2">
               {loadingFormat === format && <Spinner width={15} height={15} />}
-              {downloadComplete === format && <CheckIcon fill="#1E40AF" width={20} height={20} />}
+              {downloadComplete === format && (
+                <CheckIcon fill="#1E40AF" width={20} height={20} />
+              )}
             </span>
           </a>
         ))}
@@ -142,7 +155,9 @@ const ChartContainer = memo(({ chartType, chartTitle, height, width, id }) => {
     >
       <div className="flex flex-col items-start gap-1 w-auto h-auto p-4">
         <div className="flex items-center justify-between w-full h-8">
-          <div className="text-lg not-italic font-medium leading-[26px]">{chartTitle}</div>
+          <div className="text-lg not-italic font-medium leading-[26px]">
+            {chartTitle}
+          </div>
           <div ref={dropdownRef}>
             <CustomDropdown
               btnText="More"

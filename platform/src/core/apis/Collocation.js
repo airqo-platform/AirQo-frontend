@@ -31,46 +31,46 @@ export const getDeviceStatusSummaryApi = async () => {
 
 export const getCollocationResultsApi = async ({ devices, batchId }) => {
   const response = await getRequest(
-    `${COLLOCATION}/data?devices=${devices || ''}&batchId=${batchId}`
+    `${COLLOCATION}/data?devices=${devices || ''}&batchId=${batchId}`,
   );
   return response;
 };
 
 export const getDataCompletenessResultsApi = async ({ devices, batchId }) => {
   const response = await getRequest(
-    `${COLLOCATION}/data-completeness?batchId=${batchId}`
+    `${COLLOCATION}/data-completeness?batchId=${batchId}`,
   );
   return response;
 };
 
 export const getIntraSensorCorrelationApi = async (addIntraSensorInput) => {
   const response = await getRequest(
-    `${COLLOCATION}/intra?devices=${addIntraSensorInput.devices}&batchId=${addIntraSensorInput.batchId}`
+    `${COLLOCATION}/intra?devices=${addIntraSensorInput.devices}&batchId=${addIntraSensorInput.batchId}`,
   );
   return response;
 };
 
 export const getInterSensorCorrelationApi = async (addInterSensorInput) => {
   const response = await getRequest(
-    `${COLLOCATION}/inter?devices=${addInterSensorInput.devices}&batchId=${addInterSensorInput.batchId}`
+    `${COLLOCATION}/inter?devices=${addInterSensorInput.devices}&batchId=${addInterSensorInput.batchId}`,
   );
   return response;
 };
 
 export const getCollocationStatisticsApi = async (
-  addCollocationStatisticsInput
+  addCollocationStatisticsInput,
 ) => {
   const response = await getRequest(
     `${COLLOCATION}/statistics?devices=${
       addCollocationStatisticsInput.devices || ''
-    }&batchId=${addCollocationStatisticsInput.batchId}`
+    }&batchId=${addCollocationStatisticsInput.batchId}`,
   );
   return response;
 };
 
 export const getCollocationBatchResultsApi = async (batchId) => {
   const response = await getRequest(
-    `${COLLOCATION}/results?batchId=${batchId}`
+    `${COLLOCATION}/results?batchId=${batchId}`,
   );
   return response;
 };

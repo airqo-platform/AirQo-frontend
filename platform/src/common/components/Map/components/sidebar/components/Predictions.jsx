@@ -12,13 +12,13 @@ import useOutsideClick from '@/core/utils/useOutsideClick';
 const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
   const dispatch = useDispatch();
   const recentLocationMeasurements = useSelector(
-    (state) => state.recentMeasurements.measurements
+    (state) => state.recentMeasurements.measurements,
   );
   const selectedWeeklyPrediction = useSelector(
-    (state) => state.map.selectedWeeklyPrediction
+    (state) => state.map.selectedWeeklyPrediction,
   );
   const [value, setValue] = useState(
-    selectedSite?.time ? new Date(selectedSite.time) : new Date()
+    selectedSite?.time ? new Date(selectedSite.time) : new Date(),
   );
   const [openDatePicker, setOpenDatePicker] = useState(false);
   const dropdownRef = useRef(null);
@@ -49,7 +49,7 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
       'en-US',
       {
         weekday: 'long',
-      }
+      },
     );
     return selectedWeeklyPrediction
       ? prediction.time === selectedWeeklyPrediction.time
@@ -64,14 +64,14 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
     if (
       isSameDay(
         new Date(selectedSite.time || recentLocationMeasurements?.[0]?.time),
-        new Date(prediction.time)
+        new Date(prediction.time),
       )
     ) {
       return (
         images[
           getAQIcon(
             'pm2_5',
-            selectedSite.pm2_5 || recentLocationMeasurements?.[0]?.pm2_5?.value
+            selectedSite.pm2_5 || recentLocationMeasurements?.[0]?.pm2_5?.value,
           )
         ] || images['Invalid']
       );

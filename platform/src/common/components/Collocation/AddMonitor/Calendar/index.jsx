@@ -16,28 +16,29 @@ import { useSelector } from 'react-redux';
 const ScheduleCalendar = () => {
   const dispatch = useDispatch();
   const storedStartDate = useSelector(
-    (state) => state.selectedCollocateDevices.startDate
+    (state) => state.selectedCollocateDevices.startDate,
   );
   const storedEndDate = useSelector(
-    (state) => state.selectedCollocateDevices.endDate
+    (state) => state.selectedCollocateDevices.endDate,
   );
   const scheduledBatchName = useSelector(
-    (state) => state.selectedCollocateDevices.scheduledBatchName
+    (state) => state.selectedCollocateDevices.scheduledBatchName,
   );
   const scheduledBatchDataCompletenessThresholdRedux = useSelector(
     (state) =>
-      state.selectedCollocateDevices.scheduledBatchDataCompletenessThreshold
+      state.selectedCollocateDevices.scheduledBatchDataCompletenessThreshold,
   );
   const scheduledBatchInterCorrelationThresholdRedux = useSelector(
     (state) =>
-      state.selectedCollocateDevices.scheduledBatchInterCorrelationThreshold
+      state.selectedCollocateDevices.scheduledBatchInterCorrelationThreshold,
   );
   const scheduledBatchIntraCorrelationThresholdRedux = useSelector(
     (state) =>
-      state.selectedCollocateDevices.scheduledBatchIntraCorrelationThreshold
+      state.selectedCollocateDevices.scheduledBatchIntraCorrelationThreshold,
   );
   const scheduledBatchDifferencesThresholdRedux = useSelector(
-    (state) => state.selectedCollocateDevices.scheduledBatchDifferencesThreshold
+    (state) =>
+      state.selectedCollocateDevices.scheduledBatchDifferencesThreshold,
   );
 
   const [value, setValue] = useState({
@@ -71,7 +72,7 @@ const ScheduleCalendar = () => {
     if (value && value.startDate && value.endDate) {
       const diffDates = moment(value.endDate).diff(
         moment(value.startDate),
-        'days'
+        'days',
       );
       if (diffDates > 0) {
         setDuration(diffDates + 1);
@@ -217,14 +218,14 @@ const ScheduleCalendar = () => {
               onChange={(e) => {
                 setScheduledBatchDataCompletenessThreshold(e.target.value);
                 dispatch(
-                  addScheduledBatchDataCompletenessThreshold(e.target.value)
+                  addScheduledBatchDataCompletenessThreshold(e.target.value),
                 );
               }}
             />
             {
               <p className="text-red-500 text-xs">
                 {validateDataCompletenessThreshold(
-                  scheduledBatchDataCompletenessThreshold
+                  scheduledBatchDataCompletenessThreshold,
                 )}
               </p>
             }
@@ -240,14 +241,14 @@ const ScheduleCalendar = () => {
               onChange={(e) => {
                 setScheduledBatchInterCorrelationThreshold(e.target.value);
                 dispatch(
-                  addScheduledBatchInterCorrelationThreshold(e.target.value)
+                  addScheduledBatchInterCorrelationThreshold(e.target.value),
                 );
               }}
             />
             {
               <p className="text-red-500 text-xs">
                 {validateInterCorrelationThreshold(
-                  scheduledBatchInterCorrelationThreshold
+                  scheduledBatchInterCorrelationThreshold,
                 )}
               </p>
             }
@@ -263,14 +264,14 @@ const ScheduleCalendar = () => {
               onChange={(e) => {
                 setScheduledBatchIntraCorrelationThreshold(e.target.value);
                 dispatch(
-                  addScheduledBatchIntraCorrelationThreshold(e.target.value)
+                  addScheduledBatchIntraCorrelationThreshold(e.target.value),
                 );
               }}
             />
             {
               <p className="text-red-500 text-xs">
                 {validateIntraCorrelationThreshold(
-                  scheduledBatchIntraCorrelationThreshold
+                  scheduledBatchIntraCorrelationThreshold,
                 )}
               </p>
             }
@@ -291,7 +292,7 @@ const ScheduleCalendar = () => {
             {
               <p className="text-red-500 text-xs">
                 {validateDifferencesThreshold(
-                  scheduledBatchDifferencesThreshold
+                  scheduledBatchDifferencesThreshold,
                 )}
               </p>
             }

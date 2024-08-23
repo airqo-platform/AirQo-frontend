@@ -67,7 +67,7 @@ const AQNumberCard = ({
                   {capitalizeAllText(
                     location.length > 17
                       ? location.slice(0, 17) + '...'
-                      : location
+                      : location,
                   )}
                 </div>
               ) : (
@@ -75,7 +75,7 @@ const AQNumberCard = ({
                   {capitalizeAllText(
                     location.length > 17
                       ? location.slice(0, 17) + '...'
-                      : location
+                      : location,
                   )}
                 </div>
               )}

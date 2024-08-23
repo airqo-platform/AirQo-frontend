@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 
 const PollutantCard = ({ selectedSite, selectedWeeklyPrediction }) => {
   const recentLocationMeasurements = useSelector(
-    (state) => state.recentMeasurements.measurements
+    (state) => state.recentMeasurements.measurements,
   );
   const [pm2_5Value, setPM25Value] = useState('-');
   const [imageSrc, setImageSrc] = useState(images['Invalid']);
@@ -15,7 +15,7 @@ const PollutantCard = ({ selectedSite, selectedWeeklyPrediction }) => {
   useEffect(() => {
     const isSameDaySelected = isSameDay(
       new Date(selectedSite?.time || recentLocationMeasurements?.[0]?.time),
-      new Date(selectedWeeklyPrediction?.time)
+      new Date(selectedWeeklyPrediction?.time),
     );
 
     const newPM25Value = selectedWeeklyPrediction
@@ -36,14 +36,14 @@ const PollutantCard = ({ selectedSite, selectedWeeklyPrediction }) => {
             getAQIcon(
               'pm2_5',
               selectedSite.pm2_5 ||
-                recentLocationMeasurements?.[0]?.pm2_5?.value
+                recentLocationMeasurements?.[0]?.pm2_5?.value,
             )
           ]
         : images[getAQIcon('pm2_5', selectedWeeklyPrediction.pm2_5)]
       : images[
           getAQIcon(
             'pm2_5',
-            selectedSite.pm2_5 || recentLocationMeasurements?.[0]?.pm2_5?.value
+            selectedSite.pm2_5 || recentLocationMeasurements?.[0]?.pm2_5?.value,
           )
         ];
 

@@ -66,10 +66,10 @@ const PrintReportModal = ({
   const [selectedColumns, setSelectedColumns] = useState(INITIAL_COLUMNS_STATE);
   const chartData = useSelector((state) => state.chart);
   const startDate = moment(chartData.chartDataRange.startDate).format(
-    'MMMM D, YYYY'
+    'MMMM D, YYYY',
   );
   const endDate = moment(chartData.chartDataRange.endDate).format(
-    'MMMM D, YYYY'
+    'MMMM D, YYYY',
   );
 
   const handleCheckboxChange = (column) => {
@@ -115,7 +115,7 @@ const PrintReportModal = ({
             message: 'Air quality data download successful',
             show: true,
           }),
-        7000
+        7000,
       );
       handleCancel();
     } catch (err) {
@@ -162,7 +162,7 @@ const PrintReportModal = ({
   const generatePdf = (data) => {
     const doc = new jsPDF('p', 'pt');
     const selectedColumnKeys = Object.keys(selectedColumns).filter(
-      (column) => selectedColumns[column]
+      (column) => selectedColumns[column],
     );
 
     const tableRows = data.map((row) => {
@@ -213,7 +213,7 @@ const PrintReportModal = ({
       format === 'pdf' &&
       moment(chartData.chartDataRange.endDate).diff(
         chartData.chartDataRange.startDate,
-        'days'
+        'days',
       ) > 7
     ) {
       setAlert({
@@ -301,7 +301,7 @@ const PrintReportModal = ({
               {format === 'pdf' &&
                 moment(chartData.chartDataRange.endDate).diff(
                   chartData.chartDataRange.startDate,
-                  'days'
+                  'days',
                 ) > 7 && (
                   <div className="text-red-500 -mt-5 mb-2 text-sm font-medium leading-5">
                     PDF format is only available for date ranges up to 7 days

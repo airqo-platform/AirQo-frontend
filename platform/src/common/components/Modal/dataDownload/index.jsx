@@ -133,19 +133,23 @@ const CustomFields = React.memo(
     handleOptionSelect,
     defaultOption,
   }) => {
-    const [selectedOption, setSelectedOption] = useState(defaultOption || options[0]);
+    const [selectedOption, setSelectedOption] = useState(
+      defaultOption || options[0],
+    );
 
     const handleSelect = useCallback(
       (option) => {
         setSelectedOption(option);
         handleOptionSelect(id, option);
       },
-      [id, handleOptionSelect]
+      [id, handleOptionSelect],
     );
 
     return (
       <div className="w-full h-auto flex flex-col gap-2 justify-start">
-        <label className="w-[280px] h-auto p-0 m-0 text-[#7A7F87]">{title}</label>
+        <label className="w-[280px] h-auto p-0 m-0 text-[#7A7F87]">
+          {title}
+        </label>
         {field ? (
           <input
             className="bg-transparent text-[16px] font-medium leading-6 p-0 m-0 w-full h-auto border-none"
@@ -176,24 +180,30 @@ const CustomFields = React.memo(
                 key={option.id}
                 onClick={() => handleSelect(option)}
                 className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center  ${
-                  selectedOption.id === option.id ? 'bg-[#EBF5FF] rounded-md' : ''
+                  selectedOption.id === option.id
+                    ? 'bg-[#EBF5FF] rounded-md'
+                    : ''
                 }`}
               >
                 <span className="flex items-center capitalize space-x-2">
                   <span>{option.name}</span>
                 </span>
-                {selectedOption.id === option.id && <CheckIcon fill={'#145FFF'} />}
+                {selectedOption.id === option.id && (
+                  <CheckIcon fill={'#145FFF'} />
+                )}
               </span>
             ))}
           </CustomDropdown>
         )}
       </div>
     );
-  }
+  },
 );
 
 const Modal = React.memo(({ isOpen, onClose }) => {
-  const preferences = useSelector((state) => state.defaults.individual_preferences);
+  const preferences = useSelector(
+    (state) => state.defaults.individual_preferences,
+  );
   const userInfo = useSelector((state) => state.login.userInfo);
   const [selectedSites, setSelectedSites] = useState([]);
   const [clearSelected, setClearSelected] = useState(false);
@@ -256,7 +266,7 @@ const Modal = React.memo(({ isOpen, onClose }) => {
         fileType: FILE_TYPE_OPTIONS[0],
       });
     },
-    [formData, selectedSites]
+    [formData, selectedSites],
   );
 
   return (
@@ -288,7 +298,10 @@ const Modal = React.memo(({ isOpen, onClose }) => {
           <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle lg:min-w-[1020px] h-auto ">
             {/* header */}
             <div className="flex items-center justify-between py-4 px-5 border-b border-[#E2E3E5]">
-              <h3 className="flex text-lg leading-6 font-medium text-gray-900" id="modal-title">
+              <h3
+                className="flex text-lg leading-6 font-medium text-gray-900"
+                id="modal-title"
+              >
                 <button type="button" onClick={null}>
                   <LongArrowLeft className="mr-2" />
                 </button>
@@ -389,17 +402,29 @@ const Modal = React.memo(({ isOpen, onClose }) => {
                         <span className="text-blue-600">{`${selectedSites.length} 
                           ${selectedSites.length === 1 ? 'location' : 'locations'} selected
                         `}</span>
-                        <button type="button" className="ml-2" onClick={handleClearSelection}>
+                        <button
+                          type="button"
+                          className="ml-2"
+                          onClick={handleClearSelection}
+                        >
                           Clear
                         </button>
                       </div>
                     )}
                   </div>
                   <div className="sm:flex sm:flex-row-reverse gap-2">
-                    <Button type="button" variant={'filled'} onClick={handleSubmit}>
+                    <Button
+                      type="button"
+                      variant={'filled'}
+                      onClick={handleSubmit}
+                    >
                       Download
                     </Button>
-                    <Button type="button" variant={'outlined'} onClick={onClose}>
+                    <Button
+                      type="button"
+                      variant={'outlined'}
+                      onClick={onClose}
+                    >
                       Cancel
                     </Button>
                   </div>
@@ -422,7 +447,9 @@ const Index = () => {
         btnText="Download Data"
         Icon={<DownloadIcon width={16} height={17} color="white" />}
         onClick={() => setIsOpen(true)}
-        btnStyle={'bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl'}
+        btnStyle={
+          'bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl'
+        }
       />
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </>

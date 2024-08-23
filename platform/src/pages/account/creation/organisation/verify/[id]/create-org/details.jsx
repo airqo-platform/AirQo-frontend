@@ -69,7 +69,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
       } else {
         try {
           const response = await dispatch(
-            postUserPreferences(createPreference)
+            postUserPreferences(createPreference),
           );
           if (response.payload.success) {
             // update selected cohort preference
@@ -78,7 +78,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
               cohort_ids: [token],
             };
             const updateUserPrefResponse = await dispatch(
-              updateUserPreferences(data)
+              updateUserPreferences(data),
             );
             if (updateUserPrefResponse.payload.success) {
               handleComponentSwitch();
@@ -107,7 +107,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
   useEffect(() => {
     if (isEmpty(token)) {
       router.push(
-        `/account/creation/organisation/verify/${id}/create-org/token-confirmation`
+        `/account/creation/organisation/verify/${id}/create-org/token-confirmation`,
       );
     }
   }, []);
@@ -264,7 +264,7 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
     message: '',
   });
   const orgDetails = useSelector(
-    (state) => state.creation.org_creation_response
+    (state) => state.creation.org_creation_response,
   );
   const organisationId = orgDetails._id;
   countries.registerLocale(englishLocale);
@@ -399,7 +399,7 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
     dispatch(setOrgUpdateDetails(orgData));
     try {
       const response = await dispatch(
-        updateOrganisationDetails(orgData, organisationId)
+        updateOrganisationDetails(orgData, organisationId),
       );
       if (!response.payload.success) {
         setCreationErrors({
@@ -548,7 +548,7 @@ const CreateOrganisationDetailsPageThree = () => {
   const handleLocationSelect = (item) => {
     locationArray.includes(item)
       ? setLocationArray(
-          locationArray.filter((location) => location._id !== item._id)
+          locationArray.filter((location) => location._id !== item._id),
         )
       : setLocationArray((locations) => [...locations, item]);
     setInputSelect(true);
@@ -557,7 +557,7 @@ const CreateOrganisationDetailsPageThree = () => {
 
   const removeLocation = (item) => {
     setLocationArray(
-      locationArray.filter((location) => location._id !== item._id)
+      locationArray.filter((location) => location._id !== item._id),
     );
   };
 

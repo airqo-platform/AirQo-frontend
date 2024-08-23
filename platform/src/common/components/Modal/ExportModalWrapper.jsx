@@ -18,10 +18,10 @@ const ExportModalWrapper = ({
 }) => {
   const chartData = useSelector((state) => state.chart);
   const startDate = moment(chartData.chartDataRange.startDate).format(
-    'MMMM D, YYYY'
+    'MMMM D, YYYY',
   );
   const endDate = moment(chartData.chartDataRange.endDate).format(
-    'MMMM D, YYYY'
+    'MMMM D, YYYY',
   );
 
   const handleCancel = () => {

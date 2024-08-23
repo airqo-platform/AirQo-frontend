@@ -12,12 +12,23 @@ import { format } from 'date-fns';
  * @returns {JSX.Element}
  * @description CalendarHeader component
  */
-const CalendarHeader = ({ month, onNext, onPrev, selectedRange, showTwoCalendars }) => {
+const CalendarHeader = ({
+  month,
+  onNext,
+  onPrev,
+  selectedRange,
+  showTwoCalendars,
+}) => {
   return (
     <>
       {showTwoCalendars ? (
         <div className="flex items-center justify-between">
-          <Button onClick={onPrev} Icon={ShortLeftArrow} variant={'outlined'} paddingStyles="p-2" />
+          <Button
+            onClick={onPrev}
+            Icon={ShortLeftArrow}
+            variant={'outlined'}
+            paddingStyles="p-2"
+          />
           <div className="text-sm text-gray-700 font-semibold">{month}</div>
           <Button
             onClick={onNext}
@@ -32,7 +43,11 @@ const CalendarHeader = ({ month, onNext, onPrev, selectedRange, showTwoCalendars
             <input
               type="text"
               readOnly
-              value={selectedRange.start ? format(selectedRange.start, 'MMM d, yyyy') : ''}
+              value={
+                selectedRange.start
+                  ? format(selectedRange.start, 'MMM d, yyyy')
+                  : ''
+              }
               className="flex items-center shadow-sm w-[98px] h-8 px-3 py-2 text-xs border border-gray-300 text-gray-600 rounded-xl focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none"
               placeholder="Start date"
               disabled
@@ -43,7 +58,11 @@ const CalendarHeader = ({ month, onNext, onPrev, selectedRange, showTwoCalendars
             <input
               type="text"
               readOnly
-              value={selectedRange.end ? format(selectedRange.end, 'MMM d, yyyy') : ''}
+              value={
+                selectedRange.end
+                  ? format(selectedRange.end, 'MMM d, yyyy')
+                  : ''
+              }
               className="flex items-center shadow-sm w-[98px] h-8 px-3 py-2 text-xs border border-gray-300 text-gray-600 rounded-xl focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none"
               placeholder="End date"
               disabled

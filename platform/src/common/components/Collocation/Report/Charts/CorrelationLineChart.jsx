@@ -54,7 +54,7 @@ const CorrelationChart = ({
           dot={false}
           strokeWidth="1.5"
           isAnimationActive={false}
-        />
+        />,
       );
 
       lines.push(
@@ -68,7 +68,7 @@ const CorrelationChart = ({
           strokeWidth="1.5"
           strokeDasharray="5 5"
           isAnimationActive={false}
-        />
+        />,
       );
     });
 

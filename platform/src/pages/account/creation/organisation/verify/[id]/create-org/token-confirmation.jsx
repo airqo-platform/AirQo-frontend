@@ -67,7 +67,7 @@ const ContactAdminModal = ({ open, onClose }) => {
         error &&
           error.response &&
           error.response.data &&
-          error.response.data.message
+          error.response.data.message,
       );
       setTimeout(() => {
         setErrorMessage('');

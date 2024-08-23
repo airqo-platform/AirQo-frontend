@@ -28,7 +28,7 @@ export const postUserPreferences = createAsyncThunk(
       }
       return rejectWithValue(error.response.data);
     }
-  }
+  },
 );
 
 export const updateUserPreferences = createAsyncThunk(
@@ -43,7 +43,7 @@ export const updateUserPreferences = createAsyncThunk(
       }
       return rejectWithValue(error.response.data);
     }
-  }
+  },
 );
 
 export const getIndividualUserPreferences = createAsyncThunk(
@@ -58,7 +58,7 @@ export const getIndividualUserPreferences = createAsyncThunk(
       }
       return rejectWithValue(error.response.data);
     }
-  }
+  },
 );
 
 export const replaceUserPreferences = createAsyncThunk(
@@ -73,7 +73,7 @@ export const replaceUserPreferences = createAsyncThunk(
       }
       return rejectWithValue(error.response.data);
     }
-  }
+  },
 );
 
 export const postUserDefaults = createAsyncThunk(
@@ -88,7 +88,7 @@ export const postUserDefaults = createAsyncThunk(
       }
       return rejectWithValue(error.response.data);
     }
-  }
+  },
 );
 
 export const defaultsSlice = createSlice({

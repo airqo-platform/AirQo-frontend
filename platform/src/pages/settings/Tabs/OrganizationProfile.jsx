@@ -250,7 +250,7 @@ const OrganizationProfile = () => {
       formData.append('file', updatedProfilePicture);
       formData.append(
         'upload_preset',
-        process.env.NEXT_PUBLIC_CLOUDINARY_PRESET
+        process.env.NEXT_PUBLIC_CLOUDINARY_PRESET,
       );
       formData.append('folder', 'organization_profiles');
 
@@ -410,8 +410,8 @@ const OrganizationProfile = () => {
                         {updatedProfilePicture && !profileUploading
                           ? 'Save photo'
                           : profileUploading
-                          ? 'Uploading...'
-                          : 'Update'}
+                            ? 'Uploading...'
+                            : 'Update'}
                       </Button>
                     </div>
                   </div>

@@ -81,7 +81,7 @@ const AddClientForm = ({ open, closeModal }) => {
       closeModal();
     } catch (error) {
       setErrorState(
-        error?.response?.data?.message || 'Failed to create client'
+        error?.response?.data?.message || 'Failed to create client',
       );
     } finally {
       setLoading(false);

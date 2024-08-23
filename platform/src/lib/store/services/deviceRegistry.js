@@ -6,10 +6,10 @@ export const getCollocationDevices = createAsyncThunk(
   'deviceRegistry/getCollocationDevices',
   async () => {
     const response = await createAxiosInstance(false).get(
-      `${DEVICES}/events/running`
+      `${DEVICES}/events/running`,
     );
     return response.data;
-  }
+  },
 );
 
 const deviceRegistrySlice = createSlice({

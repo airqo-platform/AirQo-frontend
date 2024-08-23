@@ -15,7 +15,7 @@ const SearchField = ({
   const [searchTerm, setSearchTerm] = useState('');
   const inputRef = useRef(null);
   const reduxSearchTerm = useSelector(
-    (state) => state.locationSearch.searchTerm
+    (state) => state.locationSearch.searchTerm,
   );
 
   useEffect(() => {

@@ -104,11 +104,11 @@ const Reports = () => {
       const batchList = Object.entries(collocationStatisticsList).map(
         ([deviceName, deviceData]) => ({
           device_name: deviceName,
-        })
+        }),
       );
       setBatchList(batchList);
       const transformedStatistics = Object.entries(
-        collocationStatisticsList
+        collocationStatisticsList,
       ).map(([deviceName, deviceData]) => ({
         deviceName,
         pm2_5_mean: deviceData.pm2_5_mean || 0,
@@ -226,5 +226,5 @@ const Reports = () => {
 
 export default withPermission(
   withAuth(Reports),
-  'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
+  'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
 );

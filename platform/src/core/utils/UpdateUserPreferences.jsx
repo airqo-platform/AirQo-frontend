@@ -10,7 +10,7 @@ const UpdateUserPreferences = async (
   selectedLocations,
   chartData,
   dispatch,
-  toggleCustomise = () => {}
+  toggleCustomise = () => {},
 ) => {
   const data = {
     user_id: userId,

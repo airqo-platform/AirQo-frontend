@@ -11,28 +11,28 @@ import Invalid from '@/icons/Charts/Invalid';
 // icon images
 export const images = {
   GoodAir: `data:image/svg+xml,${encodeURIComponent(
-    renderToString(<GoodAir />)
+    renderToString(<GoodAir />),
   )}`,
   ModerateAir: `data:image/svg+xml,${encodeURIComponent(
-    renderToString(<ModerateAir />)
+    renderToString(<ModerateAir />),
   )}`,
   UnhealthyForSensitiveGroups: `data:image/svg+xml,${encodeURIComponent(
-    renderToString(<UnhealthyForSensitiveGroups />)
+    renderToString(<UnhealthyForSensitiveGroups />),
   )}`,
   Unhealthy: `data:image/svg+xml,${encodeURIComponent(
-    renderToString(<Unhealthy />)
+    renderToString(<Unhealthy />),
   )}`,
   VeryUnhealthy: `data:image/svg+xml,${encodeURIComponent(
-    renderToString(<VeryUnhealthy />)
+    renderToString(<VeryUnhealthy />),
   )}`,
   Hazardous: `data:image/svg+xml,${encodeURIComponent(
-    renderToString(<Hazardous />)
+    renderToString(<Hazardous />),
   )}`,
   Invalid: `data:image/svg+xml,${encodeURIComponent(
-    renderToString(<Invalid />)
+    renderToString(<Invalid />),
   )}`,
   undefined: `data:image/svg+xml,${encodeURIComponent(
-    renderToString(<Invalid />)
+    renderToString(<Invalid />),
   )}`,
 };
 
@@ -195,11 +195,11 @@ export const UnclusteredNode = ({ feature, NodeType, selectedNode }) => {
         feature.properties._id
       }" class="unClustered-Number shadow-md ${isActive}"
           style="background-color: ${feature.properties.aqi.color}; color: ${
-        feature.properties.aqi.color
-      }; width: 40px; height: 40px;"
+            feature.properties.aqi.color
+          }; width: 40px; height: 40px;"
         >
         <p class="text-[#000] text-xs font-bold">${feature.properties.pm2_5.toFixed(
-          2
+          2,
         )}</p>
         <span class="arrow"></span>
       </div>
@@ -225,7 +225,7 @@ export const UnclusteredNode = ({ feature, NodeType, selectedNode }) => {
     // Handle the case where feature.properties.aqi is not defined
     console.error(
       'feature.properties.aqi is not defined for feature: ',
-      feature
+      feature,
     );
     return '';
   }
@@ -266,11 +266,11 @@ export const createClusterNode = ({ feature, NodeType }) => {
     return `
       <div class="flex -space-x-3 rtl:space-x-reverse items-center justify-center">
           <div class="w-8 h-8 z-20 rounded-full flex justify-center items-center border border-gray-300 text-[8px] overflow-hidden" style="background:${firstColor}">${
-      NodeType !== 'Node' ? firstAQIValue : ''
-    }</div>
+            NodeType !== 'Node' ? firstAQIValue : ''
+          }</div>
           <div class="w-8 h-8 z-10 rounded-full flex justify-center border border-gray-300 items-center text-[8px] overflow-hidden" style="background:${secondColor}">${
-      NodeType !== 'Node' ? secondAQIValue : ''
-    }</div>
+            NodeType !== 'Node' ? secondAQIValue : ''
+          }</div>
       </div>
 
       <div class="text-black text-sm font-bold ml-2">${countDisplay}</div>
@@ -324,7 +324,7 @@ export const createPopupHTML = ({ feature, images }) => {
           </div>
         </div>
         <div class="text-[#3C4555] font-semibold text-sm leading-4">${feature.properties.pm2_5.toFixed(
-          2
+          2,
         )} µg/m³</div>
       </div>
       <div class="flex justify-between gap-5 items-center w-full">

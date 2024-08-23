@@ -130,8 +130,8 @@ const CustomTable = ({
                         {typeof cell === 'number'
                           ? cell.toFixed(2)
                           : moment(cell).isValid()
-                          ? moment(cell).format('MMM DD, YYYY')
-                          : cell}
+                            ? moment(cell).format('MMM DD, YYYY')
+                            : cell}
                       </td>
                     ))}
                   </tr>

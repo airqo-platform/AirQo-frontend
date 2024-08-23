@@ -26,55 +26,64 @@ const CustomDropdown = ({
   const [popperElement, setPopperElement] = useState(null);
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
 
-  const { styles, attributes, update } = usePopper(referenceElement, popperElement, {
-    placement: alignment === 'right' ? 'bottom-end' : 'bottom-start',
-    modifiers: [
-      {
-        name: 'offset',
-        options: {
-          offset: [0, 8],
+  const { styles, attributes, update } = usePopper(
+    referenceElement,
+    popperElement,
+    {
+      placement: alignment === 'right' ? 'bottom-end' : 'bottom-start',
+      modifiers: [
+        {
+          name: 'offset',
+          options: {
+            offset: [0, 8],
+          },
         },
-      },
-      {
-        name: 'preventOverflow',
-        options: {
-          boundary: 'viewport',
-          padding: 8,
+        {
+          name: 'preventOverflow',
+          options: {
+            boundary: 'viewport',
+            padding: 8,
+          },
         },
-      },
-      {
-        name: 'flip',
-        options: {
-          fallbackPlacements: ['top-start', 'top-end', 'bottom-start', 'bottom-end'],
+        {
+          name: 'flip',
+          options: {
+            fallbackPlacements: [
+              'top-start',
+              'top-end',
+              'bottom-start',
+              'bottom-end',
+            ],
+          },
         },
-      },
-      {
-        name: 'computeStyles',
-        options: {
-          adaptive: false,
+        {
+          name: 'computeStyles',
+          options: {
+            adaptive: false,
+          },
         },
-      },
 
-      {
-        name: 'eventListeners',
-        options: {
-          scroll: true,
-          resize: true,
+        {
+          name: 'eventListeners',
+          options: {
+            scroll: true,
+            resize: true,
+          },
         },
-      },
 
-      {
-        name: 'hide',
-      },
-
-      {
-        name: 'arrow',
-        options: {
-          padding: 8,
+        {
+          name: 'hide',
         },
-      },
-    ],
-  });
+
+        {
+          name: 'arrow',
+          options: {
+            padding: 8,
+          },
+        },
+      ],
+    },
+  );
 
   const handleClickOutside = useCallback(
     (event) => {
@@ -87,7 +96,7 @@ const CustomDropdown = ({
         setIsOpen(false);
       }
     },
-    [popperElement, referenceElement]
+    [popperElement, referenceElement],
   );
 
   useEffect(() => {
@@ -148,7 +157,11 @@ const CustomDropdown = ({
           {...attributes.popper}
           className={`min-w-52 w-auto bg-white border border-gray-200 divide-y divide-gray-100 rounded-xl shadow-lg ${dropDownClass}`}
         >
-          <div className={sidebar && isCollapsed ? 'fixed left-24 bottom-14' : 'p-1'}>
+          <div
+            className={
+              sidebar && isCollapsed ? 'fixed left-24 bottom-14' : 'p-1'
+            }
+          >
             {children}
           </div>
         </div>

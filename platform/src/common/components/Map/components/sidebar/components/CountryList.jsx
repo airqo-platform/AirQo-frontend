@@ -31,7 +31,7 @@ const CountryList = ({
 
   // Sort data
   const sortedData = [...data].sort((a, b) =>
-    a.country.localeCompare(b.country)
+    a.country.localeCompare(b.country),
   );
 
   // Handle click event

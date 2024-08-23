@@ -57,7 +57,7 @@ const TopBarSearch = React.memo(
           }
         }, debounceTime);
       },
-      [onSearch, debounceTime]
+      [onSearch, debounceTime],
     );
 
     const clearSearch = useCallback(() => {
@@ -89,7 +89,7 @@ const TopBarSearch = React.memo(
         )}
       </div>
     );
-  }
+  },
 );
 
 TopBarSearch.propTypes = {

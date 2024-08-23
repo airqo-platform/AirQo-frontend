@@ -33,7 +33,13 @@ import { Transition } from '@headlessui/react';
  * @returns {JSX.Element}
  * @description CustomCalendar component
  */
-const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, className }) => {
+const CustomCalendar = ({
+  initialStartDate,
+  initialEndDate,
+  Icon,
+  dropdown,
+  className,
+}) => {
   const containerRef = useRef(null);
   const dispatch = useDispatch();
   const [openDatePicker, setOpenDatePicker] = useState(false);
@@ -92,7 +98,10 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
         isSameDay(endDate, endOfMonth(today))
       ) {
         label = 'This month';
-      } else if (isSameDay(startDate, startOfYear(today)) && isSameDay(endDate, endOfYear(today))) {
+      } else if (
+        isSameDay(startDate, startOfYear(today)) &&
+        isSameDay(endDate, endOfYear(today))
+      ) {
         label = 'This year';
       } else if (
         isSameDay(startDate, startOfYear(subDays(today, 365))) &&
@@ -124,7 +133,9 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
    */
   const DatePickerHiddenInput = () => (
     <Calendar
-      initialMonth1={new Date(new Date().getFullYear(), new Date().getMonth() - 1)}
+      initialMonth1={
+        new Date(new Date().getFullYear(), new Date().getMonth() - 1)
+      }
       initialMonth2={new Date()}
       handleValueChange={handleValueChange}
       closeDatePicker={() => setOpenDatePicker(false)}
@@ -152,7 +163,10 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
   });
 
   return (
-    <div className="relative cursor-pointer date-picker-container" ref={containerRef}>
+    <div
+      className="relative cursor-pointer date-picker-container"
+      ref={containerRef}
+    >
       <TabButtons
         Icon={<CalendarIcon />}
         btnText={chartData.chartDataRange.label}

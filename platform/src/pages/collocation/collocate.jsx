@@ -33,7 +33,11 @@ const Collocate = () => {
   }, []);
 
   return (
-    <Layout topbarTitle={'Collocation'} pageTitle={'Collocate | Collocation'} noBorderBottom>
+    <Layout
+      topbarTitle={'Collocation'}
+      pageTitle={'Collocate | Collocation'}
+      noBorderBottom
+    >
       <HeaderNav category={'Collocation'} component={'Collocate'}>
         {isError && (
           <Toast
@@ -70,48 +74,47 @@ const Collocate = () => {
             </div>
           ))}
       </HeaderNav>
-      <div className='px-4 md:px-6 lg:px-10 pb-3'>
-
-      <ContentBox noMargin>
-        {deviceStatusSummary ? (
-          <div className="w-full">
-            <Tabs>
-              <Tab label="All">
-                <Table
-                  collocationDevices={deviceStatusSummary}
-                  isLoading={isLoading}
-                />
-              </Tab>
-              <Tab label="Passed">
-                <Table
-                  collocationDevices={filterDevicesByStatus('PASSED')}
-                  isLoading={isLoading}
-                />
-              </Tab>
-              <Tab label="Failed">
-                <Table
-                  collocationDevices={filterDevicesByStatus('FAILED')}
-                  isLoading={isLoading}
-                />
-              </Tab>
-              <Tab label="Running">
-                <Table
-                  collocationDevices={filterDevicesByStatus('RUNNING')}
-                  isLoading={isLoading}
-                />
-              </Tab>
-              <Tab label="Scheduled">
-                <Table
-                  collocationDevices={filterDevicesByStatus('SCHEDULED')}
-                  isLoading={isLoading}
-                />
-              </Tab>
-            </Tabs>
-          </div>
-        ) : (
-          <EmptyState />
-        )}
-      </ContentBox>
+      <div className="px-4 md:px-6 lg:px-10 pb-3">
+        <ContentBox noMargin>
+          {deviceStatusSummary ? (
+            <div className="w-full">
+              <Tabs>
+                <Tab label="All">
+                  <Table
+                    collocationDevices={deviceStatusSummary}
+                    isLoading={isLoading}
+                  />
+                </Tab>
+                <Tab label="Passed">
+                  <Table
+                    collocationDevices={filterDevicesByStatus('PASSED')}
+                    isLoading={isLoading}
+                  />
+                </Tab>
+                <Tab label="Failed">
+                  <Table
+                    collocationDevices={filterDevicesByStatus('FAILED')}
+                    isLoading={isLoading}
+                  />
+                </Tab>
+                <Tab label="Running">
+                  <Table
+                    collocationDevices={filterDevicesByStatus('RUNNING')}
+                    isLoading={isLoading}
+                  />
+                </Tab>
+                <Tab label="Scheduled">
+                  <Table
+                    collocationDevices={filterDevicesByStatus('SCHEDULED')}
+                    isLoading={isLoading}
+                  />
+                </Tab>
+              </Tabs>
+            </div>
+          ) : (
+            <EmptyState />
+          )}
+        </ContentBox>
       </div>
     </Layout>
   );
@@ -119,5 +122,5 @@ const Collocate = () => {
 
 export default withPermission(
   withAuth(Collocate),
-  'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
+  'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
 );

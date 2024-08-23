@@ -16,7 +16,10 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import Spinner from '@/components/Spinner';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
-import { fetchAnalyticsData, setAnalyticsData } from '@/lib/store/services/charts/ChartData';
+import {
+  fetchAnalyticsData,
+  setAnalyticsData,
+} from '@/lib/store/services/charts/ChartData';
 import {
   renderCustomizedLegend,
   CustomDot,
@@ -42,9 +45,14 @@ export const useAnalytics = () => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
   const refreshChart = useSelector((state) => state.chart.refreshChart);
-  const preferencesLoading = useSelector((state) => state.userDefaults.status === 'loading');
-  const isLoading = useSelector((state) => state.analytics.status === 'loading');
-  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const preferencesLoading = useSelector(
+    (state) => state.userDefaults.status === 'loading',
+  );
+  const isLoading = useSelector(
+    (state) => state.analytics.status === 'loading',
+  );
+  const preferenceData =
+    useSelector((state) => state.defaults.individual_preferences) || [];
   const [error, setError] = useState(null);
   const [loadingTime, setLoadingTime] = useState(0);
 
@@ -67,7 +75,7 @@ export const useAnalytics = () => {
           frequency: chartData.timeFrame,
           pollutant: chartData.pollutionType,
           organisation_name: chartData.organizationName,
-        })
+        }),
       );
     } catch (err) {
       setError(err.message);
@@ -91,15 +99,18 @@ export const useAnalytics = () => {
  */
 export const useAnalyticsData = () => {
   const analyticsData = useSelector((state) => state.analytics.data);
-  const preferenceData = useSelector((state) => state.defaults.individual_preferences) || [];
+  const preferenceData =
+    useSelector((state) => state.defaults.individual_preferences) || [];
   const siteData = useSelector((state) => state.grids.sitesSummary);
 
   const getSiteName = useCallback(
     (siteId) => {
-      const site = preferenceData[0]?.selected_sites?.find((site) => site._id === siteId);
+      const site = preferenceData[0]?.selected_sites?.find(
+        (site) => site._id === siteId,
+      );
       return site ? site.name?.split(',')[0] : '';
     },
-    [preferenceData]
+    [preferenceData],
   );
 
   const getExistingSiteName = useCallback(
@@ -107,7 +118,7 @@ export const useAnalyticsData = () => {
       const site = siteData?.sites?.find((site) => site._id === siteId);
       return site ? site.search_name : '';
     },
-    [siteData]
+    [siteData],
   );
 
   const transformedData = useMemo(() => {
@@ -115,7 +126,10 @@ export const useAnalyticsData = () => {
 
     const newAnalyticsData = analyticsData.map((data) => ({
       ...data,
-      name: getSiteName(data.site_id) || getExistingSiteName(data.site_id) || data.generated_name,
+      name:
+        getSiteName(data.site_id) ||
+        getExistingSiteName(data.site_id) ||
+        data.generated_name,
     }));
 
     const dataForChart = Object.values(
@@ -125,10 +139,12 @@ export const useAnalyticsData = () => {
         }
         acc[curr.time][curr.name] = curr.value;
         return acc;
-      }, {})
+      }, {}),
     );
 
-    const allKeys = new Set(dataForChart.length > 0 ? Object.keys(dataForChart[0]) : []);
+    const allKeys = new Set(
+      dataForChart.length > 0 ? Object.keys(dataForChart[0]) : [],
+    );
 
     return { dataForChart, allKeys };
   }, [analyticsData, getSiteName, getExistingSiteName]);
@@ -143,7 +159,12 @@ export const useAnalyticsData = () => {
  * @param {String} height - Height of the chart
  * @returns {React.Component} Charts
  */
-const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => {
+const Charts = ({
+  chartType = 'line',
+  width = '100%',
+  height = '100%',
+  id,
+}) => {
   const chartData = useSelector((state) => state.chart);
   const { isLoading, error, loadingTime } = useAnalytics();
   const { dataForChart, allKeys } = useAnalyticsData();
@@ -188,16 +209,18 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
 
   const getLineColor = useCallback(
     (index, activeIndex, colors) =>
-      index === activeIndex || activeIndex === null ? colors[index % colors.length] : '#ccc',
-    []
+      index === activeIndex || activeIndex === null
+        ? colors[index % colors.length]
+        : '#ccc',
+    [],
   );
 
   if (error || analyticsData?.error?.message) {
     return (
       <div className="ml-10 pr-10 flex justify-center text-center items-center w-full h-full text-sm">
         <p className="text-red-500 text-center">
-          An error has occurred. Please try again later or reach out to our support team for
-          assistance.
+          An error has occurred. Please try again later or reach out to our
+          support team for assistance.
         </p>
       </div>
     );
@@ -210,7 +233,8 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
           <Spinner />
           {showLoadingMessage && (
             <span className="text-yellow-500 mt-2">
-              The data is currently being processed. We appreciate your patience.
+              The data is currently being processed. We appreciate your
+              patience.
             </span>
           )}
         </div>
@@ -221,7 +245,8 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
   if ((hasLoaded && !analyticsData) || analyticsData?.length === 0) {
     return (
       <div className="ml-10 pr-10 flex justify-center items-center w-full h-full text-center text-sm text-gray-600">
-        No data found. Please try other time periods or customize using other locations
+        No data found. Please try other time periods or customize using other
+        locations
       </div>
     );
   }
@@ -233,7 +258,12 @@ const Charts = ({ chartType = 'line', width = '100%', height = '100%', id }) => 
   };
 
   const commonComponents = [
-    <CartesianGrid key="grid" stroke="#ccc" strokeDasharray="5 5" vertical={false} />,
+    <CartesianGrid
+      key="grid"
+      stroke="#ccc"
+      strokeDasharray="5 5"
+      vertical={false}
+    />,
     <XAxis
       key="xAxis"
       dataKey="time"

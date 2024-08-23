@@ -34,7 +34,10 @@ function Tabs({ children, childrenRight, positionFixed }) {
   };
 
   return (
-    <div data-testid="tabs" className="relative w-full transition-all duration-300 ease-in-out">
+    <div
+      data-testid="tabs"
+      className="relative w-full transition-all duration-300 ease-in-out"
+    >
       <div
         className={`${
           positionFixed && 'fixed'

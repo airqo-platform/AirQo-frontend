@@ -11,9 +11,8 @@ const setAuthToken = (token) => {
     });
   } else {
     // Update auth header token to support data access for non-auth users
-    axios.defaults.headers.common[
-      'Authorization'
-    ] = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
+    axios.defaults.headers.common['Authorization'] =
+      `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
   }
 };
 export default setAuthToken;

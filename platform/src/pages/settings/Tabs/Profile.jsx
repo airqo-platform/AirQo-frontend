@@ -261,7 +261,7 @@ const Profile = () => {
       formData.append('file', updatedProfilePicture);
       formData.append(
         'upload_preset',
-        process.env.NEXT_PUBLIC_CLOUDINARY_PRESET
+        process.env.NEXT_PUBLIC_CLOUDINARY_PRESET,
       );
       formData.append('folder', 'profiles');
 
@@ -272,12 +272,12 @@ const Profile = () => {
           const userID = JSON.parse(localStorage.getItem('loggedUser'))?._id;
           return await updateUserCreationDetails(
             { profilePicture: responseData.secure_url },
-            userID
+            userID,
           )
             .then((responseData) => {
               localStorage.setItem(
                 'loggedUser',
-                JSON.stringify({ _id: userID, ...userData })
+                JSON.stringify({ _id: userID, ...userData }),
               );
               dispatch(setUserInfo({ _id: userID, ...userData }));
               // updated user alert
@@ -322,7 +322,7 @@ const Profile = () => {
       .then((response) => {
         localStorage.setItem(
           'loggedUser',
-          JSON.stringify({ ...userData, profilePicture: '', _id: userID })
+          JSON.stringify({ ...userData, profilePicture: '', _id: userID }),
         );
         dispatch(setUserInfo({ ...userData, profilePicture: '', _id: userID }));
         setShowDeleteProfileModal(false);
@@ -413,8 +413,8 @@ const Profile = () => {
                       {updatedProfilePicture && !profileUploading
                         ? 'Save photo'
                         : profileUploading
-                        ? 'Uploading...'
-                        : 'Update'}
+                          ? 'Uploading...'
+                          : 'Update'}
                     </Button>
                   </div>
                 </div>

@@ -52,7 +52,7 @@ const API = ({ userPermissions }) => {
       {userPermissions &&
         checkAccess(
           'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
-          userPermissions
+          userPermissions,
         ) && (
           <ContentBox noMargin>
             <div className="px-3 py-4">

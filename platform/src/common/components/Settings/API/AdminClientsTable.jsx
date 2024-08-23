@@ -158,7 +158,7 @@ const AdminClientsTable = () => {
                 clients
                   .slice(
                     (currentPage - 1) * itemsPerPage,
-                    currentPage * itemsPerPage
+                    currentPage * itemsPerPage,
                   )
                   .map((client, index) => {
                     return (

@@ -52,21 +52,21 @@ const selectedCollocateDevicesSlice = createSlice({
     addScheduledBatchDataCompletenessThreshold: (state, action) => {
       if (!isEmpty(action.payload)) {
         state.scheduledBatchDataCompletenessThreshold = parseFloat(
-          action.payload
+          action.payload,
         );
       }
     },
     addScheduledBatchInterCorrelationThreshold: (state, action) => {
       if (!isEmpty(action.payload)) {
         state.scheduledBatchInterCorrelationThreshold = parseFloat(
-          action.payload
+          action.payload,
         );
       }
     },
     addScheduledBatchIntraCorrelationThreshold: (state, action) => {
       if (!isEmpty(action.payload)) {
         state.scheduledBatchIntraCorrelationThreshold = parseFloat(
-          action.payload
+          action.payload,
         );
       }
     },

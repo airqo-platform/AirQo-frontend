@@ -110,10 +110,10 @@ const index = ({ siteDetails, isAdmin }) => {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const openLocationDetailsSection = useSelector(
-    (state) => state.map.showLocationDetails
+    (state) => state.map.showLocationDetails,
   );
   const selectedLocationDetails = useSelector(
-    (state) => state.map.selectedLocation
+    (state) => state.map.selectedLocation,
   );
   const mapLoading = useSelector((state) => state.map.mapLoading);
   const [showLocationDetails, setShowLocationDetails] = useState(false);
@@ -121,17 +121,17 @@ const index = ({ siteDetails, isAdmin }) => {
   const [weeklyPredictions, setWeeklyPredictions] = useState([]);
   const [showNoResultsMsg, setShowNoResultsMsg] = useState(false);
   const measurementsLoading = useSelector(
-    (state) => state.recentMeasurements.status
+    (state) => state.recentMeasurements.status,
   );
   const [locationSearchPreferences, setLocationSearchPreferences] = useState({
     custom: [],
     nearMe: [],
   });
   const selectedWeeklyPrediction = useSelector(
-    (state) => state.map.selectedWeeklyPrediction
+    (state) => state.map.selectedWeeklyPrediction,
   );
   const reduxSearchTerm = useSelector(
-    (state) => state.locationSearch.searchTerm
+    (state) => state.locationSearch.searchTerm,
   );
   const focus = isFocused || reduxSearchTerm.length > 0;
   const selectedSites = useSelector((state) => state.map.suggestedSites);
@@ -142,7 +142,7 @@ const index = ({ siteDetails, isAdmin }) => {
   });
   const autoCompleteSessionToken = useMemo(
     () => new google.maps.places.AutocompleteSessionToken(),
-    [google.maps.places.AutocompleteSessionToken]
+    [google.maps.places.AutocompleteSessionToken],
   );
 
   // Sidebar loading effect
@@ -168,7 +168,7 @@ const index = ({ siteDetails, isAdmin }) => {
 
       siteDetails.forEach((site) => {
         let countryDetails = allCountries?.find(
-          (data) => data.country === site.country
+          (data) => data.country === site.country,
         );
 
         if (countryDetails) {
@@ -288,7 +288,7 @@ const index = ({ siteDetails, isAdmin }) => {
         });
       }
     },
-    [dispatch]
+    [dispatch],
   );
 
   /**
@@ -323,7 +323,7 @@ const index = ({ siteDetails, isAdmin }) => {
       try {
         const predictions = await getAutocompleteSuggestions(
           reduxSearchTerm,
-          autoCompleteSessionToken
+          autoCompleteSessionToken,
         );
 
         if (predictions && predictions.length > 0) {
@@ -554,7 +554,7 @@ const index = ({ siteDetails, isAdmin }) => {
                     capitalizeAllText(
                       selectedSite?.description ||
                         selectedSite?.search_name ||
-                        selectedSite?.location
+                        selectedSite?.location,
                     )?.split(',')[0]
                   }
                 </h3>

@@ -10,7 +10,7 @@ const Password = () => {
   const userInfo = useSelector((state) => state.login.userInfo);
   const [isDisabled, setIsDisabled] = useState(false);
   let passwordRegex = new RegExp(
-    '^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&.*,]).{6,}$'
+    '^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&.*,]).{6,}$',
   );
   const [isError, setIsError] = useState({
     isError: false,

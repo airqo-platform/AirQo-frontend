@@ -111,7 +111,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   // Default node type is Emoji and default map style is streets
   const [NodeType, setNodeType] = useState('Emoji');
   const [mapStyle, setMapStyle] = useState(
-    'mapbox://styles/mapbox/streets-v11'
+    'mapbox://styles/mapbox/streets-v11',
   );
 
   const lat = urlParams.get('lat');
@@ -199,7 +199,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
             map.addControl(zoomControl, 'bottom-right');
 
             const geolocateControl = new CustomGeolocateControl(
-              setToastMessage
+              setToastMessage,
             );
             map.addControl(geolocateControl, 'bottom-right');
           }
@@ -264,7 +264,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     pm10,
     pm2_5,
     time,
-    forecast
+    forecast,
   ) => ({
     type: 'Feature',
     geometry: {
@@ -326,20 +326,20 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
             return null;
           }
           return { city, data: response.data };
-        })
+        }),
       );
 
       return responses
         .filter(
           (response) =>
-            response.status === 'fulfilled' && response.value?.data?.data?.city
+            response.status === 'fulfilled' && response.value?.data?.data?.city,
         )
         .map((response) => {
           const cityData = response.value.data.data;
           const waqiPollutant = pollutant === 'pm2_5' ? 'pm25' : pollutant;
           const aqi = getAQICategory(
             pollutant,
-            cityData.iaqi[waqiPollutant]?.v
+            cityData.iaqi[waqiPollutant]?.v,
           );
           return createFeature(
             cityData.idx,
@@ -350,7 +350,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
             cityData.iaqi.pm10?.v,
             cityData.iaqi.pm25?.v,
             cityData.time.iso,
-            getForecastForPollutant(cityData)
+            getForecastForPollutant(cityData),
           );
         })
         .filter(Boolean);
@@ -379,7 +379,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
           item.pm10.value,
           item.pm2_5.value,
           item.time,
-          null
+          null,
         );
       });
   };
@@ -463,7 +463,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     // Get all original points in the cluster
     const leaves = indexRef.current.getLeaves(
       cluster.properties.cluster_id,
-      Infinity
+      Infinity,
     );
 
     // Create an object to count the occurrences of each AQI
@@ -485,7 +485,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
 
     // Find the leaves with the most common AQIs
     const leavesWithMostCommonAQIs = leaves?.filter((leaf) =>
-      mostCommonAQIs.includes(leaf.properties.airQuality)
+      mostCommonAQIs.includes(leaf.properties.airQuality),
     );
 
     // Return the most common AQIs along with their associated properties
@@ -567,7 +567,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
               setCenter({
                 latitude: feature.geometry.coordinates[1],
                 longitude: feature.geometry.coordinates[0],
-              })
+              }),
             );
             dispatch(setZoom(15));
           });
@@ -656,7 +656,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
               polygon_geojson: 1,
               format: 'json',
             },
-          }
+          },
         );
 
         const data = response.data;
@@ -693,7 +693,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
             map.setPaintProperty(
               'location-boundaries',
               'fill-opacity',
-              opacity
+              opacity,
             );
           });
         }

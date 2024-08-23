@@ -56,16 +56,16 @@ const InterCorrelationChart = ({
   const [isOpen, setIsOpen] = useState(false);
 
   const activeSelectedDeviceCollocationReportData = useSelector(
-    (state) => state.collocationData.activeSelectedDeviceCollocationReportData
+    (state) => state.collocationData.activeSelectedDeviceCollocationReportData,
   );
   const activeSelectedDeviceReport = useSelector(
-    (state) => state.collocationData.activeSelectedDeviceReport
+    (state) => state.collocationData.activeSelectedDeviceReport,
   );
 
   useEffect(() => {
     if (!activeSelectedDeviceCollocationReportData) {
       dispatch(
-        addActiveSelectedDeviceCollocationReportData(collocationResults)
+        addActiveSelectedDeviceCollocationReportData(collocationResults),
       );
     }
   }, [activeSelectedDeviceCollocationReportData, collocationResults]);
@@ -83,7 +83,7 @@ const InterCorrelationChart = ({
     let startDate = moment(newStartDate).format('YYYY-MM-DD');
     let endDate = moment(newEndDate).format('YYYY-MM-DD');
     dispatch(
-      addActiveSelectedDeviceReport({ device: newDevice, startDate, endDate })
+      addActiveSelectedDeviceReport({ device: newDevice, startDate, endDate }),
     );
 
     const response = await getCollocationResultsData({
@@ -150,7 +150,7 @@ const InterCorrelationChart = ({
                             handleSelect(
                               device.device_name,
                               device.start_date,
-                              device.end_date
+                              device.end_date,
                             )
                           }
                         >

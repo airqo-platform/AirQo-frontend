@@ -78,7 +78,7 @@ const index = () => {
 
   const toggleConfirmPasswordVisibility = () => {
     setConfirmPasswordType(
-      confirmPasswordType === 'password' ? 'text' : 'password'
+      confirmPasswordType === 'password' ? 'text' : 'password',
     );
   };
 

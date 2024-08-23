@@ -64,7 +64,7 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
                 {capitalizeAllText(
                   grid?.place_id
                     ? grid?.description?.split(',')[0]
-                    : grid.search_name?.split(',')[0]
+                    : grid.search_name?.split(',')[0],
                 )}
               </span>
               <span className="font-medium text-secondary-neutral-light-300 text-sm leading-tight">
@@ -75,9 +75,9 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
                       ? grid?.description?.split(',').slice(1).join(',')
                       : grid?.description
                     : grid.region?.includes(',') &&
-                      grid.region?.split(',').slice(1).join('').trim()
-                    ? grid.region?.split(',').slice(1).join(',')
-                    : grid.region
+                        grid.region?.split(',').slice(1).join('').trim()
+                      ? grid.region?.split(',').slice(1).join(',')
+                      : grid.region,
                 )}
               </span>
             </div>

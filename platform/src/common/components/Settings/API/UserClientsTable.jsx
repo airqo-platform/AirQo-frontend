@@ -158,7 +158,7 @@ const UserClientsTable = () => {
         setTimeout(() => {
           setActivationRequestErrorState(
             'Activation request sent successfully',
-            'success'
+            'success',
           );
         }, 3000);
       }
@@ -234,7 +234,7 @@ const UserClientsTable = () => {
               clients
                 .slice(
                   (currentPage - 1) * itemsPerPage,
-                  currentPage * itemsPerPage
+                  currentPage * itemsPerPage,
                 )
                 .map((client, index) => {
                   return (
@@ -280,11 +280,11 @@ const UserClientsTable = () => {
                               className="w-6 h-6 bg-white rounded border border-gray-200 flex justify-center items-center gap-2 cursor-pointer"
                               onClick={() => {
                                 navigator.clipboard.writeText(
-                                  getClientToken(client._id)
+                                  getClientToken(client._id),
                                 );
                                 setErrorState(
                                   'Token copied to clipboard!',
-                                  'success'
+                                  'success',
                                 );
                               }}
                             >
@@ -326,7 +326,7 @@ const UserClientsTable = () => {
                       >
                         {getClientTokenExpiryDate(client._id) &&
                           moment(getClientTokenExpiryDate(client._id)).format(
-                            'MMM DD, YYYY'
+                            'MMM DD, YYYY',
                           )}
                       </td>
                       <td

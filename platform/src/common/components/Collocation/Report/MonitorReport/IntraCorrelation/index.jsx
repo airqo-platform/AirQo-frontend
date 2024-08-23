@@ -30,10 +30,10 @@ const IntraCorrelationChart = ({
   const [input, setInput] = useState(null);
 
   const activeSelectedDeviceCollocationReportData = useSelector(
-    (state) => state.collocationData.activeSelectedDeviceCollocationReportData
+    (state) => state.collocationData.activeSelectedDeviceCollocationReportData,
   );
   const activeSelectedDeviceReport = useSelector(
-    (state) => state.collocationData.activeSelectedDeviceReport
+    (state) => state.collocationData.activeSelectedDeviceReport,
   );
 
   const {
@@ -84,7 +84,7 @@ const IntraCorrelationChart = ({
       });
 
       dispatch(
-        addActiveSelectedDeviceCollocationReportData(newCollocationResults)
+        addActiveSelectedDeviceCollocationReportData(newCollocationResults),
       );
     }
   }, [input, isFetchCollocationResultsSuccess, newCollocationResults]);
@@ -129,7 +129,7 @@ const IntraCorrelationChart = ({
                       >
                         {device.device_name}
                       </li>
-                    )
+                    ),
                 )}
               </ul>
             )}

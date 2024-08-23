@@ -23,7 +23,7 @@ const Table = ({ collocationDevices, isLoading }) => {
         Object.values(row)
           .join('')
           .toLowerCase()
-          .includes(searchTerm.toLowerCase())
+          .includes(searchTerm.toLowerCase()),
       );
     setFilteredData(filterList);
   }, [searchTerm, collocationDevices]);
@@ -68,7 +68,7 @@ const Table = ({ collocationDevices, isLoading }) => {
     setCurrentSortOrder(
       sortOption === currentSortOption && currentSortOrder === 'asc'
         ? 'desc'
-        : 'asc'
+        : 'asc',
     );
     setFilteredData(sortedData);
   };

@@ -47,7 +47,7 @@ const UserLogin = () => {
 
       if (!response.users[0].groups[0].grp_title) {
         throw new Error(
-          'Server error. Contact support to add you to the AirQo Organisation'
+          'Server error. Contact support to add you to the AirQo Organisation',
         );
       }
 
@@ -57,14 +57,14 @@ const UserLogin = () => {
             const preferences = res.payload.preferences;
             const activeGroup = preferences[0]?.group_id
               ? response.users[0].groups.find(
-                  (group) => group._id === preferences[0].group_id
+                  (group) => group._id === preferences[0].group_id,
                 )
               : response.users[0].groups.find(
-                  (group) => group.grp_title === 'airqo'
+                  (group) => group.grp_title === 'airqo',
                 );
             localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
           }
-        }
+        },
       );
 
       dispatch(setUserInfo(response.users[0]));
