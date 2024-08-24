@@ -183,7 +183,7 @@ CustomDropdown.propTypes = {
   id: PropTypes.string,
   openDropdown: PropTypes.bool,
   sidebar: PropTypes.bool,
-  trigger: PropTypes.bool,
+  trigger: PropTypes.node,
   alignment: PropTypes.string,
   customPopperStyle: PropTypes.object,
 };

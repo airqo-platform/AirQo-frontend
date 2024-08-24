@@ -1,13 +1,9 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import mapboxgl from 'mapbox-gl';
-import LayerIcon from '@/icons/map/layerIcon';
-import RefreshIcon from '@/icons/map/refreshIcon';
-import ShareIcon from '@/icons/map/shareIcon';
-import {
-  CustomGeolocateControl,
-  CustomZoomControl,
-} from './components/MapControls';
+import axios from 'axios';
+import Supercluster from 'supercluster';
+import { useWindowSize } from '@/lib/windowSize';
 import { getMapReadings } from '@/core/apis/DeviceRegistry';
 import {
   setOpenLocationDetails,
@@ -21,12 +17,16 @@ import {
   setMapReadingsData,
   setWaqData,
   clearData,
-  setWaqForecastData,
 } from '@/lib/store/services/map/MapSlice';
+import {
+  CustomGeolocateControl,
+  CustomZoomControl,
+} from './components/MapControls';
 import LayerModal from './components/LayerModal';
 import Loader from '@/components/Spinner';
-import axios from 'axios';
-import Supercluster from 'supercluster';
+import Toast from '../Toast';
+import { AQI_FOR_CITIES } from './data/Cities';
+import { AirQualityLegend } from './components/Legend';
 import {
   createPopupHTML,
   createClusterNode,
@@ -34,55 +34,11 @@ import {
   getAQICategory,
   images,
 } from './components/MapNodes';
-import Toast from '../Toast';
-import { AQI_FOR_CITIES } from './data/Cities';
-import { AirQualityLegend } from './components/Legend';
-
-// Images
-import Node from '@/images/map/Node.webp';
-import Emoji from '@/images/map/Emoji.webp';
-import Heatmap from '@/images/map/Heatmap.webp';
-import Node_Number from '@/images/map/Node_number.webp';
-
-import DarkMode from '@/images/map/dark.webp';
-import LightMode from '@/images/map/light.webp';
-import SatelliteMode from '@/images/map/satellite.webp';
-import StreetsMode from '@/images/map/street.webp';
-import { useWindowSize } from '@/lib/windowSize';
-
-const mapStyles = [
-  {
-    url: 'mapbox://styles/mapbox/streets-v11',
-    name: 'Streets',
-    image: StreetsMode,
-  },
-  { url: 'mapbox://styles/mapbox/light-v10', name: 'Light', image: LightMode },
-  { url: 'mapbox://styles/mapbox/dark-v10', name: 'Dark', image: DarkMode },
-  {
-    url: 'mapbox://styles/mapbox/satellite-v9',
-    name: 'Satellite',
-    image: SatelliteMode,
-  },
-];
-
-const mapDetails = [
-  {
-    name: 'Emoji',
-    image: Emoji,
-  },
-  {
-    name: 'Heatmap',
-    image: Heatmap,
-  },
-  {
-    name: 'Node',
-    image: Node,
-  },
-  {
-    name: 'Number',
-    image: Node_Number,
-  },
-];
+import { mapStyles, mapDetails } from './data/constants';
+import LayerIcon from '@/icons/map/layerIcon';
+import RefreshIcon from '@/icons/map/refreshIcon';
+import ShareIcon from '@/icons/map/shareIcon';
+import PropTypes from 'prop-types';
 
 const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   const dispatch = useDispatch();
@@ -91,7 +47,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   const markersRef = useRef([]);
   const mapRef = useRef();
   const indexRef = useRef();
-  const dropdownRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -255,159 +210,182 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
    * @returns {Promise<Array>} - Array of data
    * @returns {Promise<Array>} - Array of data
    */
-  const createFeature = (
-    id,
-    name,
-    coordinates,
-    aqi,
-    no2,
-    pm10,
-    pm2_5,
-    time,
-    forecast,
-  ) => ({
-    type: 'Feature',
-    geometry: {
-      type: 'Point',
-      coordinates,
-    },
-    properties: {
-      _id: id,
-      location: name,
-      airQuality: aqi?.category,
-      no2,
-      pm10,
-      pm2_5,
-      createdAt: time,
-      time,
-      aqi: aqi || 'undefined',
-      forecast,
-    },
-  });
+  const createFeature = useCallback(
+    (id, name, coordinates, aqi, no2, pm10, pm2_5, time, forecast) => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates },
+      properties: {
+        _id: id,
+        location: name,
+        airQuality: aqi?.category,
+        no2,
+        pm10,
+        pm2_5,
+        createdAt: time,
+        time,
+        aqi: aqi || 'undefined',
+        forecast,
+      },
+    }),
+    [],
+  );
 
   /**
    * Get the forecast for a pollutant
    * @param {Object} cityData - City data
    * */
-  const getForecastForPollutant = (cityData) => {
-    if (!cityData || !cityData.forecast?.daily) {
-      return null; // or handle the lack of data appropriately
-    }
+  const getForecastForPollutant = useCallback(
+    (cityData) => {
+      if (!cityData || !cityData.forecast?.daily) return null;
 
-    const dailyForecast = cityData.forecast.daily;
-    let forecastDataArray;
+      const dailyForecast = cityData.forecast.daily;
+      const forecastDataArray =
+        pollutant === 'pm2_5' ? dailyForecast.pm25 : dailyForecast.pm10;
 
-    switch (pollutant) {
-      case 'pm2_5':
-        forecastDataArray = dailyForecast.pm25;
-        break;
-      case 'pm10':
-        forecastDataArray = dailyForecast.pm10;
-        break;
-      default:
-        return null;
-    }
+      return forecastDataArray?.map((forecastData) => ({
+        [pollutant]: forecastData.avg,
+        time: forecastData.day,
+      }));
+    },
+    [pollutant],
+  );
 
-    // Map over the forecast data array and return the transformed format
-    return forecastDataArray.map((forecastData) => ({
-      [pollutant]: forecastData.avg,
-      time: forecastData.day,
-    }));
-  };
-
-  const fetchAndProcessWaqData = async (cities) => {
-    setLoadingOthers(true);
-    try {
-      const responses = await Promise.allSettled(
-        cities.map(async (city) => {
-          const response = await axios.get(`/api/proxy?city=${city}`);
-          if (!response.data) {
-            console.error(`No data returned for city: ${city}`);
-            return null;
-          }
-          return { city, data: response.data };
-        }),
-      );
-
-      return responses
-        .filter(
-          (response) =>
-            response.status === 'fulfilled' && response.value?.data?.data?.city,
-        )
-        .map((response) => {
-          const cityData = response.value.data.data;
-          const waqiPollutant = pollutant === 'pm2_5' ? 'pm25' : pollutant;
-          const aqi = getAQICategory(
-            pollutant,
-            cityData.iaqi[waqiPollutant]?.v,
-          );
-          return createFeature(
-            cityData.idx,
-            cityData.city.name,
-            [cityData.city.geo[1], cityData.city.geo[0]],
-            aqi,
-            cityData.iaqi.no2?.v,
-            cityData.iaqi.pm10?.v,
-            cityData.iaqi.pm25?.v,
-            cityData.time.iso,
-            getForecastForPollutant(cityData),
-          );
-        })
-        .filter(Boolean);
-    } catch (error) {
-      console.error('Error fetching AQI data: ', error);
-      return [];
-    } finally {
-      setLoadingOthers(false);
-    }
-  };
-
-  const processMapReadingsData = (response) => {
-    return response.measurements
-      .filter((item) => item.siteDetails && item.no2 && item.pm10 && item.pm2_5)
-      .map((item) => {
-        const aqi = getAQICategory(pollutant, item[pollutant].value);
-        return createFeature(
-          item.siteDetails._id,
-          item.siteDetails.name,
-          [
-            item.siteDetails.approximate_longitude,
-            item.siteDetails.approximate_latitude,
-          ],
-          aqi,
-          item.no2.value,
-          item.pm10.value,
-          item.pm2_5.value,
-          item.time,
-          null,
+  const fetchAndProcessWaqData = useCallback(
+    async (cities) => {
+      setLoadingOthers(true);
+      try {
+        const responses = await Promise.allSettled(
+          cities.map((city) => axios.get(`/api/proxy?city=${city}`)),
         );
-      });
-  };
 
-  const fetchAndProcessMapReadings = async () => {
+        return responses
+          .filter(
+            (response) =>
+              response.status === 'fulfilled' &&
+              response.value?.data?.data?.city,
+          )
+          .map((response) => {
+            const cityData = response.value.data.data;
+            const waqiPollutant = pollutant === 'pm2_5' ? 'pm25' : pollutant;
+            const aqi = getAQICategory(
+              pollutant,
+              cityData.iaqi[waqiPollutant]?.v,
+            );
+            return createFeature(
+              cityData.idx,
+              cityData.city.name,
+              [cityData.city.geo[1], cityData.city.geo[0]],
+              aqi,
+              cityData.iaqi.no2?.v,
+              cityData.iaqi.pm10?.v,
+              cityData.iaqi.pm25?.v,
+              cityData.time.iso,
+              getForecastForPollutant(cityData),
+            );
+          })
+          .filter(Boolean);
+      } catch (error) {
+        console.error('Error fetching AQI data:', error);
+        return [];
+      } finally {
+        setLoadingOthers(false);
+      }
+    },
+    [pollutant, createFeature, getForecastForPollutant],
+  );
+
+  const processMapReadingsData = useCallback(
+    (response) => {
+      return response.measurements
+        .filter(
+          (item) => item.siteDetails && item.no2 && item.pm10 && item.pm2_5,
+        )
+        .map((item) => {
+          const aqi = getAQICategory(pollutant, item[pollutant].value);
+          return createFeature(
+            item.siteDetails._id,
+            item.siteDetails.name,
+            [
+              item.siteDetails.approximate_longitude,
+              item.siteDetails.approximate_latitude,
+            ],
+            aqi,
+            item.no2.value,
+            item.pm10.value,
+            item.pm2_5.value,
+            item.time,
+            null,
+          );
+        });
+    },
+    [pollutant, createFeature],
+  );
+
+  const fetchAndProcessMapReadings = useCallback(async () => {
     try {
       const response = await getMapReadings();
       return processMapReadingsData(response);
     } catch (error) {
-      console.error('Error fetching map readings data: ', error);
+      console.error('Error fetching map readings data:', error);
       return [];
     }
-  };
+  }, [processMapReadingsData]);
 
   // Fetch and process data
   const fetchAndProcessData = useCallback(async () => {
-    // Only fetch new data if the state variables are empty
-    if (!mapReadingsData || mapReadingsData?.length === 0) {
+    if (!mapReadingsData || mapReadingsData.length === 0) {
       const newMapReadingsData = await fetchAndProcessMapReadings();
       dispatch(setMapReadingsData(newMapReadingsData));
     }
 
-    if (!waqData || waqData?.length === 0) {
+    if (!waqData || waqData.length === 0) {
       const newWaqData = await fetchAndProcessWaqData(AQI_FOR_CITIES);
       dispatch(setWaqData(newWaqData));
     }
-  }, [refresh, NodeType, mapStyle, pollutant]);
+  }, [
+    dispatch,
+    fetchAndProcessMapReadings,
+    fetchAndProcessWaqData,
+    mapReadingsData,
+    waqData,
+  ]);
 
+  /**
+   * Get the two most common AQIs in a cluster.
+   * @param {Object} cluster - Cluster object
+   */
+  const getTwoMostCommonAQIs = useCallback((cluster) => {
+    const leaves = indexRef.current.getLeaves(
+      cluster.properties.cluster_id,
+      Infinity,
+    );
+    const aqiCounts = leaves?.reduce((acc, leaf) => {
+      const aqi = leaf.properties.airQuality;
+      acc[aqi] = (acc[aqi] || 0) + 1;
+      return acc;
+    }, {});
+
+    const sortedAQIs = Object.entries(aqiCounts).sort((a, b) => b[1] - a[1]);
+    const mostCommonAQIs =
+      sortedAQIs.length > 1
+        ? sortedAQIs.slice(0, 2)
+        : [sortedAQIs[0], sortedAQIs[0]];
+
+    const leavesWithMostCommonAQIs = leaves?.filter((leaf) =>
+      mostCommonAQIs.map((aqi) => aqi[0]).includes(leaf.properties.airQuality),
+    );
+
+    return leavesWithMostCommonAQIs.map((leaf) => ({
+      aqi: leaf.properties.aqi,
+      pm2_5: leaf.properties.pm2_5,
+      pm10: leaf.properties.pm10,
+      no2: leaf.properties.no2,
+    }));
+  }, []);
+
+  /**
+   * Update the clusters on the map
+   */
   const clusterUpdate = useCallback(async () => {
     const map = mapRef.current;
 
@@ -455,51 +433,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     width,
   ]);
 
-  /**
-   * Get the two most common AQIs in a cluster.
-   * @param {Object} cluster - Cluster object
-   */
-  const getTwoMostCommonAQIs = useCallback((cluster) => {
-    // Get all original points in the cluster
-    const leaves = indexRef.current.getLeaves(
-      cluster.properties.cluster_id,
-      Infinity,
-    );
-
-    // Create an object to count the occurrences of each AQI
-    const aqiCounts = leaves?.reduce((acc, leaf) => {
-      const aqi = leaf.properties.airQuality;
-      acc[aqi] = (acc[aqi] || 0) + 1;
-      return acc;
-    }, {});
-
-    // Sort the AQIs by their counts in descending order
-    const sortedAQIs = Object.entries(aqiCounts).sort((a, b) => b[1] - a[1]);
-
-    // Get the two AQIs with the highest counts
-    let mostCommonAQIs =
-      sortedAQIs.length > 1
-        ? sortedAQIs.slice(0, 2)
-        : [sortedAQIs[0], sortedAQIs[0]];
-    mostCommonAQIs = mostCommonAQIs.map((aqi) => aqi[0]);
-
-    // Find the leaves with the most common AQIs
-    const leavesWithMostCommonAQIs = leaves?.filter((leaf) =>
-      mostCommonAQIs.includes(leaf.properties.airQuality),
-    );
-
-    // Return the most common AQIs along with their associated properties
-    return leavesWithMostCommonAQIs.map((leaf) => ({
-      aqi: leaf.properties.aqi,
-      pm2_5: leaf.properties.pm2_5,
-      pm10: leaf.properties.pm10,
-      no2: leaf.properties.no2,
-    }));
-  }, []);
-
-  /**
-   * Update the clusters on the map
-   */
   const updateClusters = useCallback(() => {
     try {
       const zoom = mapRef.current.getZoom();
@@ -602,7 +535,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         }
       });
     } catch (error) {
-      // console.error('Error updating clusters: ', error);
+      console.error('Error updating clusters: ', error);
       return;
     }
   }, [clusterUpdate]);
@@ -628,12 +561,12 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
    * Fetch location boundaries
    */
   useEffect(() => {
-    const map = mapRef.current;
-
-    if (!map) return;
-
     const fetchLocationBoundaries = async () => {
       setLoading(true);
+      const map = mapRef.current;
+
+      if (!map) return;
+
       if (map.getLayer('location-boundaries')) {
         map.removeLayer('location-boundaries');
       }
@@ -686,7 +619,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
             zoom: mapData.location.city && mapData.location.country ? 10 : 5,
           });
 
-          // Add zoomend event listener
           map.on('zoomend', function () {
             const zoom = map.getZoom();
             const opacity = zoom > 10 ? 0 : 0.2;
@@ -698,8 +630,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
           });
         }
       } catch (error) {
-        // console.error('Error fetching location boundaries:', error);
-        return;
+        console.error('Error fetching location boundaries:', error);
       } finally {
         setLoading(false);
       }
@@ -711,10 +642,10 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   /**
    * Refresh the map
    */
-  const refreshMap = () => {
+  const refreshMap = useCallback(() => {
     const map = mapRef.current;
     map.setStyle(map.getStyle());
-    setRefresh(!refresh);
+    setRefresh((prev) => !prev);
     selectedNode && dispatch(setSelectedNode(null));
     dispatch(reSetMap());
     setToastMessage({
@@ -722,7 +653,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
       type: 'success',
       bgColor: 'bg-blue-600',
     });
-  };
+  }, [dispatch, selectedNode]);
 
   /**
    * Share location URL
@@ -731,14 +662,13 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
    * - Display toast notification
    * @returns {void}
    */
-  const shareLocation = () => {
+  const shareLocation = useCallback(() => {
     try {
       const map = mapRef.current;
       const center = map.getCenter();
       const zoom = map.getZoom();
       const currentUrl = window.location.href;
 
-      // Construct URL with labeled parameters
       const url = new URL(currentUrl);
       url.searchParams.set('lat', center.lat.toFixed(4));
       url.searchParams.set('lng', center.lng.toFixed(4));
@@ -746,26 +676,24 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
 
       navigator.clipboard.writeText(url.toString());
 
-      // Display toast notification
       setToastMessage({
         message: 'Location URL copied to clipboard',
         type: 'success',
         bgColor: 'bg-blue-600',
       });
     } catch (error) {
+      console.error('Error sharing location:', error);
       setToastMessage({
         message: 'Failed to copy location URL to clipboard',
         type: 'error',
       });
     }
-  };
+  }, []);
 
   return (
     <div className="relative w-full h-full">
-      {/* Map */}
       <div ref={mapContainerRef} className={customStyle} />
 
-      {/* Legend */}
       <div
         className={`${
           width < 1024 && selectedNode
@@ -773,12 +701,11 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
             : 'relative left-4 z-50 md:block'
         }`}
       >
-        <div className={`absolute bottom-2 z-[900]`} style={{ zIndex: 900 }}>
+        <div className="absolute bottom-2 z-[900]">
           <AirQualityLegend pollutant={pollutant} />
         </div>
       </div>
 
-      {/* Map control buttons */}
       <div
         className={`${
           width < 1024 && selectedNode
@@ -788,7 +715,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
       >
         <div className="flex flex-col gap-4">
           <div className="relative">
-            <div className="relative inline-block" ref={dropdownRef}>
+            <div className="relative inline-block">
               <button
                 onClick={() => setIsOpen(true)}
                 title="Map Layers"
@@ -815,7 +742,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         </div>
       </div>
 
-      {/* Loader */}
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center z-[10000]">
           <div className="bg-white w-[70px] h-[70px] flex justify-center items-center rounded-md shadow-md">
@@ -826,22 +752,16 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         </div>
       )}
 
-      {/* Layer modal */}
       <LayerModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         mapStyles={mapStyles}
         mapDetails={mapDetails}
         disabled="Heatmap"
-        onMapDetailsSelect={(detail) => {
-          setNodeType(detail);
-        }}
-        onStyleSelect={(style) => {
-          setMapStyle(style.url);
-        }}
+        onMapDetailsSelect={setNodeType}
+        onStyleSelect={(style) => setMapStyle(style.url)}
       />
 
-      {/* Loading AQI data */}
       {loadingOthers && (
         <div className="absolute bg-white rounded-md p-2 top-4 right-16 flex items-center justify-center z-50">
           <Loader width={20} height={20} />
@@ -849,7 +769,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         </div>
       )}
 
-      {/* Toast */}
       {toastMessage.message !== '' && (
         <Toast
           message={toastMessage.message}
@@ -866,4 +785,10 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   );
 };
 
-export default AirQoMap;
+AirQoMap.propTypes = {
+  customStyle: PropTypes.object,
+  mapboxApiAccessToken: PropTypes.string,
+  pollutant: PropTypes.string,
+};
+
+export default React.memo(AirQoMap);

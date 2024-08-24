@@ -8,12 +8,11 @@ import {
 } from '@/lib/store/services/checklists/CheckData';
 import { updateCards } from '@/lib/store/services/checklists/CheckList';
 import Head from 'next/head';
-import { toggleSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useRouter } from 'next/router';
-import CollapsedSidebar from '../SideBar/CollapsedSidebar';
 import SideBarDrawer from '../SideBar/SideBarDrawer';
 import SetChartDetails from '@/core/utils/SetChartDetails';
 import LogoutUser from '@/core/utils/LogoutUser';
+import PropTypes from 'prop-types';
 
 const Layout = ({
   pageTitle = 'AirQo Analytics',
@@ -24,7 +23,7 @@ const Layout = ({
 }) => {
   // Constants
   const router = useRouter();
-  const MAX_WIDTH = '(max-width: 1024px)';
+
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.login.userInfo);
   const preferenceData =
@@ -80,22 +79,6 @@ const Layout = ({
     return () => clearTimeout(timer);
   }, [cardCheckList]);
 
-  // handling media query change
-  useEffect(() => {
-    const mediaQuery = window.matchMedia(MAX_WIDTH);
-    const handleMediaQueryChange = (e) => {
-      if (e.matches) {
-        dispatch(toggleSidebar());
-      }
-    };
-
-    mediaQuery.addEventListener('change', handleMediaQueryChange);
-
-    return () => {
-      mediaQuery.removeEventListener('change', handleMediaQueryChange);
-    };
-  }, []);
-
   /**
    * Log out user after 1 hour of inactivity
    */
@@ -145,15 +128,10 @@ const Layout = ({
       </Head>
       <>
         <div className="flex overflow-hidden bg-[#f6f6f7]" data-testid="layout">
-          {router.pathname === '/map' ? (
-            <div className="hidden lg:block">
-              <CollapsedSidebar />
-            </div>
-          ) : (
-            <div className="text-[#1C1D20]">
-              <AuthenticatedSideBar />
-            </div>
-          )}
+          <div className="text-[#1C1D20]">
+            <AuthenticatedSideBar />
+          </div>
+
           <div
             className={`w-full h-dvh ${
               router.pathname === '/map' ? 'overflow-hidden' : 'overflow-y-auto'
@@ -174,6 +152,14 @@ const Layout = ({
       </>
     </>
   );
+};
+
+Layout.propTypes = {
+  pageTitle: PropTypes.string,
+  children: PropTypes.node.isRequired,
+  topbarTitle: PropTypes.string,
+  noBorderBottom: PropTypes.bool,
+  noTopNav: PropTypes.bool,
 };
 
 export default Layout;
