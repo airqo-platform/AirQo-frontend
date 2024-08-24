@@ -25,8 +25,7 @@ import {
   CustomDot,
   CustomBar,
   CustomizedAxisTick,
-  CustomTooltipLineGraph,
-  CustomTooltipBarGraph,
+  CustomGraphTooltip,
   CustomReferenceLabel,
   colors,
 } from './components';
@@ -309,7 +308,7 @@ const Charts = ({
                 dataKey={key}
                 type="monotone"
                 stroke={getLineColor(index, activeIndex, colors)}
-                strokeWidth={3}
+                strokeWidth={4}
                 dot={<CustomDot />}
                 activeDot={{ r: 6 }}
                 onMouseEnter={(o) => handleMouseEnter(o, index)}
@@ -326,7 +325,7 @@ const Charts = ({
             strokeDasharray={0}
           />
           <Tooltip
-            content={<CustomTooltipLineGraph activeIndex={activeIndex} />}
+            content={<CustomGraphTooltip activeIndex={activeIndex} />}
             cursor={{
               stroke: '#aaa',
               strokeOpacity: 0.3,
@@ -363,7 +362,7 @@ const Charts = ({
             strokeDasharray={0}
           />
           <Tooltip
-            content={<CustomTooltipBarGraph activeIndex={activeIndex} />}
+            content={<CustomGraphTooltip activeIndex={activeIndex} />}
             cursor={{ fill: '#eee', fillOpacity: 0.3 }}
           />
         </BarChart>

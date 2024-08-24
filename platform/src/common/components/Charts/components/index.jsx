@@ -68,7 +68,7 @@ export const getAirQualityLevelText = (value) => {
  * @returns {JSX.Element}
  * @description Custom tooltip component for line graph
  */
-export const CustomTooltipLineGraph = ({ active, payload, activeIndex }) => {
+export const CustomGraphTooltip = ({ active, payload, activeIndex }) => {
   const chartData = useSelector((state) => state.chart);
   const { timeFrame } = chartData;
 
@@ -84,7 +84,6 @@ export const CustomTooltipLineGraph = ({ active, payload, activeIndex }) => {
 
   if (active && payload && payload.length) {
     const hoveredPoint = payload[0];
-    const otherPoints = payload.slice(1);
 
     const { airQualityText, AirQualityIcon, airQualityColor } =
       getAirQualityLevelText(hoveredPoint.value);
@@ -92,152 +91,55 @@ export const CustomTooltipLineGraph = ({ active, payload, activeIndex }) => {
     return (
       <div className="bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none">
         <div className="flex flex-col space-y-1">
-          <div className="flex flex-col items-start justify-between w-full h-auto p-2">
-            <span className="text-sm text-gray-300">
-              {formatDate(hoveredPoint.payload.time)}
-            </span>
-            <div className="flex justify-between w-full mb-1 mt-2">
-              <div className="flex items-center text-xs font-medium leading-[14px] text-gray-600">
-                <div
-                  className={`w-[10px] h-[10px] rounded-xl mr-2 ${
-                    activeIndex === 0 ? 'bg-blue-700' : 'bg-gray-400'
-                  }`}
-                ></div>
-                {truncate(hoveredPoint.name)}
-              </div>
-              <div className="text-xs font-medium leading-[14px] text-gray-600">
-                {reduceDecimalPlaces(hoveredPoint.value) + ' μg/m3'}
-              </div>
-            </div>
-            <div className="flex justify-between items-center w-full">
-              <div
-                className={`${airQualityColor} text-xs font-medium leading-[14px] `}
-              >
-                {airQualityText}
-              </div>
-              <AirQualityIcon width={30} height={30} />
-            </div>
-          </div>
-          {otherPoints.length > 0 && (
-            <>
-              <div className="w-full h-[2px] bg-transparent my-1 border-t border-dotted border-gray-300" />
-              <div className="p-2 space-y-1">
-                {otherPoints.map((point, index) => (
-                  <div
-                    key={index}
-                    className={`flex justify-between w-full mb-1 ${
-                      activeIndex === index + 1 ? 'text-black' : 'text-gray-400'
-                    }`}
-                  >
-                    <div className="flex items-center text-xs font-medium leading-[14px] text-black">
+          <span className="text-sm text-gray-300 p-2">
+            {formatDate(hoveredPoint.payload.time)}
+          </span>
+          {payload.map((point, index) => (
+            <div key={index}>
+              {activeIndex === index ? (
+                <div className="flex flex-col items-start justify-between w-full h-auto p-2">
+                  <div className="flex justify-between w-full mb-1 mt-2">
+                    <div className="flex items-center text-xs font-medium leading-[14px] text-gray-600">
                       <div
                         className={`w-[10px] h-[10px] rounded-xl mr-2 ${
-                          activeIndex === index + 1
-                            ? 'bg-blue-700'
-                            : 'bg-gray-400'
+                          activeIndex === index ? 'bg-blue-700' : 'bg-gray-400'
                         }`}
                       ></div>
                       {truncate(point.name)}
                     </div>
-                    <div className="text-xs font-medium leading-[14px]">
+                    <div className="text-xs font-medium leading-[14px] text-gray-600">
                       {reduceDecimalPlaces(point.value) + ' μg/m3'}
                     </div>
                   </div>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    );
-  }
-  return null;
-};
-
-/**
- * @param {Object} props
- * @returns {JSX.Element}
- * @description Custom tooltip component for bar graph
- */
-export const CustomTooltipBarGraph = ({ active, payload, activeIndex }) => {
-  const chartData = useSelector((state) => state.chart);
-  const { timeFrame } = chartData;
-
-  const formatDate = (value) => {
-    const date = new Date(value);
-    switch (timeFrame) {
-      case 'hourly':
-        return format(date, 'MMMM dd, yyyy, hh:mm a');
-      default:
-        return format(date, 'MMMM dd, yyyy');
-    }
-  };
-
-  if (active && payload && payload.length) {
-    const hoveredPoint = payload[0];
-    const otherPoints = payload.slice(1);
-
-    const { airQualityText, AirQualityIcon, airQualityColor } =
-      getAirQualityLevelText(hoveredPoint.value);
-
-    return (
-      <div className="bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none">
-        <div className="flex flex-col space-y-1">
-          <div className="flex flex-col items-start justify-between w-full h-auto p-2">
-            <span className="text-sm text-gray-300">
-              {formatDate(hoveredPoint.payload.time)}
-            </span>
-            <div className="flex justify-between w-full mb-1 mt-2">
-              <div className="flex items-center text-xs font-medium leading-[14px] text-gray-600">
-                <div
-                  className={`w-[10px] h-[10px] rounded-xl mr-2 ${
-                    activeIndex === 0 ? 'bg-blue-700' : 'bg-gray-400'
-                  }`}
-                ></div>
-                {truncate(hoveredPoint.name)}
-              </div>
-              <div className="text-xs font-medium leading-[14px] text-gray-600">
-                {reduceDecimalPlaces(hoveredPoint.value) + ' μg/m3'}
-              </div>
-            </div>
-            <div className="flex justify-between items-center w-full">
-              <div
-                className={`${airQualityColor} text-xs font-medium leading-[14px] `}
-              >
-                {airQualityText}
-              </div>
-              <AirQualityIcon width={30} height={30} />
-            </div>
-          </div>
-          {otherPoints.length > 0 && (
-            <>
-              <div className="w-full h-[2px] bg-transparent my-1 border-t border-dotted border-gray-300" />
-              <div className="p-2 space-y-1">
-                {otherPoints.map((point, index) => (
-                  <div
-                    key={index}
-                    className={`flex justify-between w-full mb-1 ${
-                      activeIndex === index + 1 ? 'text-black' : 'text-gray-400'
-                    }`}
-                  >
-                    <div className="flex items-center text-xs font-medium leading-[14px] text-black">
-                      <div
-                        className={`w-[10px] h-[10px] rounded-xl mr-2 ${
-                          activeIndex === index + 1
-                            ? 'bg-blue-700'
-                            : 'bg-gray-400'
-                        }`}
-                      ></div>
-                      {truncate(point.name)}
+                  <div className="flex justify-between items-center w-full">
+                    <div
+                      className={`${airQualityColor} text-xs font-medium leading-[14px] `}
+                    >
+                      {airQualityText}
                     </div>
-                    <div className="text-xs font-medium leading-[14px]">
-                      {reduceDecimalPlaces(point.value) + ' μg/m3'}
-                    </div>
+                    <AirQualityIcon width={30} height={30} />
                   </div>
-                ))}
-              </div>
-            </>
-          )}
+                </div>
+              ) : (
+                <div className="flex justify-between w-full mb-1 mt-2 p-2">
+                  <div className="flex items-center text-xs font-medium leading-[14px] text-gray-600">
+                    <div
+                      className={`w-[10px] h-[10px] rounded-xl mr-2 ${
+                        activeIndex === index ? 'bg-blue-700' : 'bg-gray-400'
+                      }`}
+                    ></div>
+                    {truncate(point.name)}
+                  </div>
+                  <div className="text-xs font-medium leading-[14px] text-gray-600">
+                    {reduceDecimalPlaces(point.value) + ' μg/m3'}
+                  </div>
+                </div>
+              )}
+              {index < payload.length - 1 && (
+                <div className="w-full h-[2px] bg-transparent my-1 border-t border-dotted border-gray-300" />
+              )}
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -401,13 +303,7 @@ export const CustomBar = (props) => {
   );
 };
 
-CustomTooltipLineGraph.propTypes = {
-  active: PropTypes.bool,
-  payload: PropTypes.array,
-  activeIndex: PropTypes.number,
-};
-
-CustomTooltipBarGraph.propTypes = {
+CustomGraphTooltip.propTypes = {
   active: PropTypes.bool,
   payload: PropTypes.array,
   activeIndex: PropTypes.number,
