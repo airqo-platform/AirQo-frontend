@@ -139,7 +139,7 @@ const AuthenticatedSideBar = () => {
             <div className="mt-4">
               <OrganizationDropdown />
             </div>
-            <div className="mt-11 space-y-3">
+            <div className="mt-10 space-y-2">
               <SidebarItem
                 label="Home"
                 Icon={HomeIcon}
@@ -155,9 +155,9 @@ const AuthenticatedSideBar = () => {
               />
 
               {isCollapsed ? (
-                <hr className="my-3 h-[0.5px] bg-grey-150 transition-all duration-300 ease-in-out" />
+                <hr className="h-[0.5px] bg-grey-150 transition-all duration-300 ease-in-out" />
               ) : (
-                <div className="text-xs text-[#7A7F87] px-[10px] my-3 mx-4 font-semibold transition-all duration-300 ease-in-out">
+                <div className="text-xs text-[#7A7F87] px-3 py-3 font-semibold transition-all duration-300 ease-in-out">
                   Network
                 </div>
               )}
@@ -232,7 +232,7 @@ const AuthenticatedSideBar = () => {
         {/* collapse sidebar */}
         {router.pathname !== '/map' && (
           <div
-            className={`absolute flex rounded-full top-11 -right-[3px] z-50 bg-white  p-1 shadow-md justify-between items-center`}
+            className={`absolute flex rounded-full top-11 -right-[3px] z-50 bg-white  p-[2px] shadow-md justify-between items-center border`}
           >
             <button
               type="button"

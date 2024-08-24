@@ -108,7 +108,7 @@ const SidebarItem = ({
           className={`
           relative flex items-center
           ${iconOnly ? 'p-0' : 'p-3 w-full'}
-          ${isCurrentRoute ? 'bg-primary-50' : 'hover:bg-gray-200'}
+          ${isCurrentRoute ? 'bg-primary-50' : 'hover:bg-gray-100'}
           rounded-xl
         `}
         >
