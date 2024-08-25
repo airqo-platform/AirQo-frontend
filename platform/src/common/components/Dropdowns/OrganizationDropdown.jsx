@@ -124,8 +124,7 @@ const OrganizationDropdown = () => {
         {userInfo &&
           userInfo.groups &&
           userInfo.groups.map((format) => (
-            <Button
-              paddingStyles="p-0 m-0 shadow-none text-left"
+            <button
               key={format._id}
               onClick={() => handleDropdownSelect(format)}
               className={`w-full h-11 px-3.5 rounded-xl py-2.5 justify-between items-center inline-flex ${
@@ -162,7 +161,7 @@ const OrganizationDropdown = () => {
               ) : (
                 <input type="radio" className="border-[#C4C7CB]" />
               )}
-            </Button>
+            </button>
           ))}
       </CustomDropdown>
     );
