@@ -149,7 +149,7 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
             tabIcon={
               userInfo.profilePicture ? (
                 <img
-                  className="w-7 h-7 rounded-full object-cover"
+                  className="w-8 h-8 rounded-full object-cover"
                   src={userInfo.profilePicture || placeholderImage}
                   alt="User avatar"
                 />
@@ -158,7 +158,7 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
               )
             }
             alignment="right"
-            tabStyle={`border-none p-2 ${userInfo.profilePicture ? '' : 'bg-yellow-200'} shadow-none rounded-full`}
+            tabStyle={`border-none ${userInfo.profilePicture ? '' : 'bg-yellow-200 p-2'} shadow-none rounded-full`}
             id="user"
             className="right-0"
           >
