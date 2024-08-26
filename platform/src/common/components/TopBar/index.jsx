@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
-
+import Button from '../Button';
 import MenuBarIcon from '@/icons/menu_bar';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import Spinner from '@/components/Spinner';
@@ -120,11 +120,18 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
 
   return (
     <nav
-      className={`z-50 w-full px-6 my-8 py-2 lg:px-10 ${!noBorderBottom ? 'border-b-[1px] border-b-grey-750' : ''}`}
+      className={`z-50 w-full py-2 ${!noBorderBottom ? 'border-b-[1px] border-b-grey-750' : ''}`}
     >
       <div id="topBar-nav" className="flex justify-between items-center">
         <div className="block lg:hidden relative z-10 w-full">
-          <AirqoLogo className="w-[46.56px] h-8" />
+          <Button
+            paddingStyles="p-0 m-0"
+            onClick={() => {
+              router.push('/Home');
+            }}
+          >
+            <AirqoLogo className="w-[46.56px] h-8" />
+          </Button>
         </div>
 
         <div className="font-medium hidden lg:flex items-center text-2xl text-neutral-light-800">
@@ -151,7 +158,7 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
               )
             }
             alignment="right"
-            tabStyle={`border-none p-2 ${userInfo.profilePicture ? '' : 'bg-yellow-200'} rounded-full`}
+            tabStyle={`border-none p-2 ${userInfo.profilePicture ? '' : 'bg-yellow-200'} shadow-none rounded-full`}
             id="user"
             className="right-0"
           >
@@ -159,15 +166,15 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
           </CustomDropdown>
         </div>
 
-        <button
-          type="button"
+        <Button
+          paddingStyles="p-0 m-0"
           className="lg:hidden relative flex items-center justify-start z-10 w-auto focus:outline-none border border-gray-200 rounded-xl"
           onClick={handleDrawer}
         >
           <span className="p-2">
             <MenuBarIcon />
           </span>
-        </button>
+        </Button>
       </div>
     </nav>
   );

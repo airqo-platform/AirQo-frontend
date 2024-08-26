@@ -141,7 +141,7 @@ const OrganizationDropdown = () => {
                   </div>
                 </div>
                 <div
-                  className="max-w-[120px] w-full text-sm font-medium leading-tight uppercase"
+                  className="max-w-[120px] w-full text-left text-sm font-medium leading-tight uppercase"
                   title={format.grp_title}
                 >
                   {format && format.grp_title && format.grp_title.length > 10

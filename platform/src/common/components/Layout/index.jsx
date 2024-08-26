@@ -1,18 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useRouter } from 'next/router';
+import Head from 'next/head';
+import PropTypes from 'prop-types';
+
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import TopBar from '../TopBar';
-import { useDispatch, useSelector } from 'react-redux';
+import SideBarDrawer from '../SideBar/SideBarDrawer';
+
 import {
   fetchUserChecklists,
   updateUserChecklists,
 } from '@/lib/store/services/checklists/CheckData';
 import { updateCards } from '@/lib/store/services/checklists/CheckList';
-import Head from 'next/head';
-import { useRouter } from 'next/router';
-import SideBarDrawer from '../SideBar/SideBarDrawer';
 import SetChartDetails from '@/core/utils/SetChartDetails';
 import LogoutUser from '@/core/utils/LogoutUser';
-import PropTypes from 'prop-types';
+
+const INACTIVITY_TIMEOUT = 3600000; // 1 hour in milliseconds
+const CHECK_INTERVAL = 10000; // 10 seconds
 
 const Layout = ({
   pageTitle = 'AirQo Analytics',
@@ -21,68 +26,48 @@ const Layout = ({
   noBorderBottom,
   noTopNav = true,
 }) => {
-  // Constants
   const router = useRouter();
-
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.login.userInfo);
   const preferenceData =
     useSelector((state) => state.defaults.individual_preferences) || [];
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
-  const [lastActivity, setLastActivity] = useState(Date.now());
+  const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
 
-  /**
-   * Set chart details
-   */
   useEffect(() => {
     SetChartDetails(dispatch, preferenceData);
-  }, []);
+  }, [dispatch, preferenceData]);
 
-  /**
-   * Fetch user checklists from the database
-   * if the user is logged in and the data has not been fetched before
-   * then update the checklists in the store
-   * and set the dataFetched flag in the local storage to true
-   * so that the data is not fetched again
-   * on subsequent page reloads
-   * */
-  const fetchData = () => {
+  const fetchUserData = useCallback(() => {
     if (userInfo?._id && !localStorage.getItem('dataFetched')) {
       dispatch(fetchUserChecklists(userInfo._id)).then((action) => {
         if (fetchUserChecklists.fulfilled.match(action)) {
           const { payload } = action;
-          if (payload && payload.length > 0) {
-            const { items } = payload[0];
-            dispatch(updateCards(items));
+          if (payload?.length > 0) {
+            dispatch(updateCards(payload[0].items));
           }
           localStorage.setItem('dataFetched', 'true');
         }
       });
     }
-  };
+  }, [dispatch, userInfo]);
 
-  useEffect(fetchData, [dispatch, userInfo]);
+  useEffect(fetchUserData, [fetchUserData]);
 
-  /**
-   * Update user checklists in the database when there is a change in the checklists data at any point
-   * in the application
-   */
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (userInfo?._id && cardCheckList) {
+    let timer;
+    if (userInfo?._id && cardCheckList) {
+      timer = setTimeout(() => {
         dispatch(
           updateUserChecklists({ user_id: userInfo._id, items: cardCheckList }),
         );
-      }
-    }, 5000);
-
+      }, 5000);
+    }
     return () => clearTimeout(timer);
-  }, [cardCheckList]);
+  }, [dispatch, userInfo, cardCheckList]);
 
-  /**
-   * Log out user after 1 hour of inactivity
-   */
   useEffect(() => {
+    let lastActivity = Date.now();
     const activityEvents = [
       'mousedown',
       'mousemove',
@@ -90,35 +75,27 @@ const Layout = ({
       'scroll',
       'touchstart',
     ];
-
-    const resetTimer = () => setLastActivity(Date.now());
-
-    activityEvents.forEach((event) => {
-      window.addEventListener(event, resetTimer);
-    });
-
-    return () => {
-      activityEvents.forEach((event) => {
-        window.removeEventListener(event, resetTimer);
-      });
+    const resetTimer = () => {
+      lastActivity = Date.now();
     };
-  }, []);
 
-  useEffect(() => {
-    const checkActivity = () => {
-      const currentTime = Date.now();
-      const timeElapsed = currentTime - lastActivity;
+    activityEvents.forEach((event) =>
+      window.addEventListener(event, resetTimer),
+    );
 
-      // 3600000 milliseconds = 1 hour
-      if (timeElapsed > 3600000 && userInfo?._id) {
+    const intervalId = setInterval(() => {
+      if (Date.now() - lastActivity > INACTIVITY_TIMEOUT && userInfo?._id) {
         LogoutUser(dispatch, router);
       }
+    }, CHECK_INTERVAL);
+
+    return () => {
+      activityEvents.forEach((event) =>
+        window.removeEventListener(event, resetTimer),
+      );
+      clearInterval(intervalId);
     };
-
-    const intervalId = setInterval(checkActivity, 10000);
-
-    return () => clearInterval(intervalId);
-  }, [lastActivity, userInfo, dispatch, router]);
+  }, [dispatch, router, userInfo]);
 
   return (
     <>
@@ -126,16 +103,15 @@ const Layout = ({
         <title>{pageTitle}</title>
         <meta property="og:title" content={pageTitle} key="title" />
       </Head>
-      <>
-        <div className="flex overflow-hidden bg-[#f6f6f7]" data-testid="layout">
-          <div className="text-[#1C1D20]">
-            <AuthenticatedSideBar />
-          </div>
-
+      <div className="flex bg-[#f6f6f7] h-auto" data-testid="layout">
+        <aside className="fixed left-0 top-0 text-[#1C1D20] z-50 transition-all duration-300 ease-in-out">
+          <AuthenticatedSideBar />
+        </aside>
+        <main
+          className={`${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'} flex-1 transition-all duration-300 ease-in-out`}
+        >
           <div
-            className={`w-full h-dvh ${
-              router.pathname === '/map' ? 'overflow-hidden' : 'overflow-y-auto'
-            } transition-all duration-300 ease-in-out`}
+            className={`${router.pathname === '/map' ? '' : 'max-w-[1600px] mx-auto py-6 space-y-8 px-4 sm:px-6 lg:px-8'} `}
           >
             {noTopNav && (
               <TopBar
@@ -143,13 +119,15 @@ const Layout = ({
                 noBorderBottom={noBorderBottom}
               />
             )}
-            <div className="overflow-hidden w-full text-[#1C1D20]">
+            <div
+              className={`text-[#1C1D20] transition-all duration-300 ease-in-out overflow-hidden h-auto`}
+            >
               {children}
             </div>
           </div>
-        </div>
-        <SideBarDrawer />
-      </>
+        </main>
+      </div>
+      <SideBarDrawer />
     </>
   );
 };

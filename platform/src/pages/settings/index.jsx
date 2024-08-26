@@ -1,6 +1,5 @@
 import Layout from '@/components/Layout';
 import Tabs from '@/components/Tabs';
-import Tab from '@/components/Tabs/Tab';
 import Password from './Tabs/Password';
 import withAuth from '@/core/utils/protectedRoute';
 import Team from './Tabs/Team';
@@ -67,23 +66,23 @@ const Settings = () => {
   return (
     <Layout topbarTitle={'Settings'} noBorderBottom pageTitle="Settings">
       <Tabs>
-        <Tab label="My profile">
+        <div label="My profile">
           <Profile />
-        </Tab>
-        <Tab label="Password">
+        </div>
+        <div label="Password">
           <Password />
-        </Tab>
-        <Tab label="API">
+        </div>
+        <div label="API">
           <API userPermissions={userPermissions} />
-        </Tab>
+        </div>
         {userPermissions &&
           checkAccess(
             'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
             userPermissions,
           ) && (
-            <Tab label="Organisation">
+            <div label="Organisation">
               <OrganizationProfile />
-            </Tab>
+            </div>
           )}
         {userGroup &&
           userPermissions &&
@@ -91,9 +90,9 @@ const Settings = () => {
             'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
             userPermissions,
           ) && (
-            <Tab label="Team">
+            <div label="Team">
               <Team users={teamMembers} loading={loading} />
-            </Tab>
+            </div>
           )}
       </Tabs>
     </Layout>

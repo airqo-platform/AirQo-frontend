@@ -9,7 +9,6 @@ import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import CollocateIcon from '@/icons/SideBar/CollocateIcon';
 import OrganizationDropdown from '../Dropdowns/OrganizationDropdown';
 import { checkAccess } from '@/core/utils/protectedRoute';
-import PersonIcon from '@/icons/Settings/PersonIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   toggleSidebar,
@@ -21,6 +20,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import LeftArrowIcon from '@/icons/SideBar/leftArrowIcon';
 import RightArrowIcon from '@/icons/SideBar/rightArrowIcon';
+import Button from '../Button';
 
 const AuthenticatedSideBar = () => {
   const dispatch = useDispatch();
@@ -30,7 +30,6 @@ const AuthenticatedSideBar = () => {
   const router = useRouter();
   const [dropdown, setDropdown] = useState(false);
   const dropdownRef = useRef(null);
-  const userInfo = useSelector((state) => state.login.userInfo);
 
   // Toggle Dropdown open and close
   const [collocationOpen, setCollocationOpen] = useState(false);
@@ -108,33 +107,19 @@ const AuthenticatedSideBar = () => {
       <div
         className={`${
           isCollapsed ? 'w-[88px]' : 'w-[256px]'
-        } hidden h-dvh relative lg:block transition-all duration-200 ease-in-out p-2`}
+        } hidden h-dvh relative lg:block transition-all duration-200 ease-in-out p-2 z-50`}
       >
         <div className="flex p-3 bg-white h-full lg:relative flex-col justify-between overflow-y-auto border border-grey-750 scrollbar-thin rounded-xl scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden">
           <div>
             <div className="pb-4 flex justify-between items-center">
-              {size.width < 1024 ? (
-                <div
-                  className="cursor-pointer"
-                  onClick={() => {
-                    router.push('/settings');
-                  }}
-                >
-                  {userInfo.profilePicture ? (
-                    <img
-                      className="w-12 h-12 rounded-full object-cover"
-                      src={userInfo.profilePicture}
-                      alt=""
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-[28px] flex justify-center items-center bg-[#F3F6F8]">
-                      <PersonIcon fill="#485972" />
-                    </div>
-                  )}
-                </div>
-              ) : (
+              <Button
+                paddingStyles="p-0 m-0"
+                onClick={() => {
+                  router.push('/Home');
+                }}
+              >
                 <AirqoLogo className="w-[46.56px] h-8 flex flex-col flex-1" />
-              )}
+              </Button>
             </div>
             <div className="mt-4">
               <OrganizationDropdown />
@@ -176,15 +161,15 @@ const AuthenticatedSideBar = () => {
                         <div className="relative bottom-20">
                           <div
                             ref={dropdownRef}
-                            className="fixed left-24 w-40 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-[1000]"
+                            className="fixed left-24 w-40 bg-white border border-gray-200 divide-y divide-gray-100 rounded-xl shadow-lg p-1"
                           >
                             <Link href={'/collocation/overview'}>
-                              <div className="w-full p-4 hover:bg-[#f3f6f8] cursor-pointer">
+                              <div className="w-full p-4 rounded-xl hover:bg-[#f3f6f8] cursor-pointer">
                                 Overview
                               </div>
                             </Link>
                             <Link href={'/collocation/collocate'}>
-                              <div className="w-full p-4 hover:bg-[#f3f6f8] cursor-pointer">
+                              <div className="w-full p-4 rounded-xl hover:bg-[#f3f6f8] cursor-pointer">
                                 Collocate
                               </div>
                             </Link>

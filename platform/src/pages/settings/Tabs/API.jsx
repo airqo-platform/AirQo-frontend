@@ -11,10 +11,7 @@ const API = ({ userPermissions }) => {
   const [showAddClientForm, setShowAddClientForm] = useState(false);
 
   return (
-    <div
-      data-testid="api-tab"
-      className="px-3 lg:px-16 mb-5 flex flex-col gap-10"
-    >
+    <div data-testid="api-tab" className="flex flex-col gap-10">
       <ContentBox noMargin>
         <div className="px-3 py-4 md:flex justify-between items-center gap-5">
           <div>

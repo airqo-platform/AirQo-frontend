@@ -2,8 +2,8 @@ const defaultTheme = require('tailwindcss/defaultTheme');
 
 module.exports = {
   content: [
-    './src/pages/**/*.{js,jsx}',
-    './src/common/components/**/*.{js,jsx}',
+    './src/pages/**/*.{js,jsx,ts,tsx}',
+    './src/common/components/**/*.{js,jsx,ts,tsx}',
     './node_modules/react-tailwindcss-datepicker/dist/index.esm.js',
     './node_modules/flowbite-react/**/*.js',
   ],
@@ -15,7 +15,6 @@ module.exports = {
       fontFamily: {
         sans: ['Inter', ...defaultTheme.fontFamily.sans],
       },
-      // Follow https://tailwindcss.com/docs/customizing-colors to customise colors
       colors: {
         transparent: 'transparent',
         current: 'currentColor',
@@ -139,26 +138,15 @@ module.exports = {
   ],
   daisyui: {
     themes: [
-      // Platform themes extending default daisy themes (can be further adapted)
-      // https://daisyui.com/docs/themes/
       {
         light: {
           ...require('daisyui/src/colors/themes')['[data-theme=light]'],
           primary: '#53b4f4',
           accent: '#ed1164',
-          'base-200': '#ebf0f9', // off-white
-          'base-300': '#e2faff', // off-blue
+          'base-200': '#ebf0f9',
+          'base-300': '#e2faff',
         },
       },
-      // {
-      //   dark: {
-      //     ...require('daisyui/src/colors/themes')['[data-theme=light]'],
-      //     primary: '#53b4f4',
-      //     accent: '#ed1164',
-      //     'base-200': '#ebf0f9', // off-white
-      //     'base-300': '#e2faff', // off-blue
-      //   },
-      // },
     ],
   },
 };

@@ -151,20 +151,14 @@ const CustomDropdown = ({
         <div
           ref={setPopperElement}
           style={{
-            ...styles.popper,
-            ...customPopperStyle,
+            ...(sidebar && isCollapsed ? {} : styles.popper),
+            ...(sidebar && isCollapsed ? {} : customPopperStyle),
             zIndex: 1000,
           }}
-          {...attributes.popper}
-          className={`min-w-52 w-auto bg-white border border-gray-200 divide-y divide-gray-100 rounded-xl shadow-lg ${dropDownClass}`}
+          {...(sidebar && isCollapsed ? {} : attributes.popper)}
+          className={`bg-white border border-gray-200 divide-y divide-gray-100 rounded-xl shadow-lg w-auto ${dropDownClass} ${sidebar && isCollapsed ? 'fixed left-24 top-20 max-w-[220px]' : 'min-w-52 '}`}
         >
-          <div
-            className={
-              sidebar && isCollapsed ? 'fixed left-24 bottom-14' : 'p-1'
-            }
-          >
-            {children}
-          </div>
+          <div className="p-1">{children}</div>
         </div>
       </Transition>
     </div>

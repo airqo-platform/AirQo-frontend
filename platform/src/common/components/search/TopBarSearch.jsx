@@ -8,7 +8,7 @@ const TopBarSearch = React.memo(
   ({
     data,
     onSearch,
-    onClearSearch,
+    onClearSearch = () => {}, // Default function
     focus = true,
     placeholder = 'Search...',
     className = '',
@@ -24,7 +24,9 @@ const TopBarSearch = React.memo(
     const fuseRef = useRef(null);
 
     useEffect(() => {
-      fuseRef.current = new Fuse(data, fuseOptions);
+      if (data && data.length > 0) {
+        fuseRef.current = new Fuse(data, fuseOptions);
+      }
     }, [data, fuseOptions]);
 
     useEffect(() => {
@@ -49,7 +51,7 @@ const TopBarSearch = React.memo(
         }
 
         debounceRef.current = setTimeout(() => {
-          if (value.trim()) {
+          if (value.trim() && fuseRef.current) {
             const results = fuseRef.current.search(value);
             onSearch(results);
           } else {
@@ -92,10 +94,12 @@ const TopBarSearch = React.memo(
   },
 );
 
+TopBarSearch.displayName = 'TopBarSearch';
+
 TopBarSearch.propTypes = {
   data: PropTypes.array.isRequired,
   onSearch: PropTypes.func.isRequired,
-  onClearSearch: PropTypes.func.isRequired,
+  onClearSearch: PropTypes.func,
   focus: PropTypes.bool,
   placeholder: PropTypes.string,
   className: PropTypes.string,
