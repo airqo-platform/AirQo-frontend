@@ -168,7 +168,7 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
 
         <Button
           paddingStyles="p-0 m-0"
-          className="lg:hidden relative flex items-center justify-start z-10 w-auto focus:outline-none border border-gray-200 rounded-xl"
+          className="lg:hidden relative flex items-center justify-start z-10 w-auto focus:outline-none border border-gray-200 rounded-xl bg-white"
           onClick={handleDrawer}
         >
           <span className="p-2">

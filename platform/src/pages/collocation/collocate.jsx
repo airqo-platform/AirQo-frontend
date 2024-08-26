@@ -7,7 +7,6 @@ import ContentBox from '@/components/Layout/content_box';
 import { useDispatch, useSelector } from 'react-redux';
 import { getDeviceStatusSummary } from '@/lib/store/services/collocation';
 import Tabs from '@/components/Tabs';
-import Tab from '@/components/Tabs/Tab';
 import Table from '@/components/Collocation/DeviceStatus/Table';
 import Toast from '@/components/Toast';
 import EmptyState from '@/components/Collocation/Collocate/empty_state';
@@ -79,36 +78,36 @@ const Collocate = () => {
           {deviceStatusSummary ? (
             <div className="w-full">
               <Tabs>
-                <Tab label="All">
+                <div label="All">
                   <Table
                     collocationDevices={deviceStatusSummary}
                     isLoading={isLoading}
                   />
-                </Tab>
-                <Tab label="Passed">
+                </div>
+                <div label="Passed">
                   <Table
                     collocationDevices={filterDevicesByStatus('PASSED')}
                     isLoading={isLoading}
                   />
-                </Tab>
-                <Tab label="Failed">
+                </div>
+                <div label="Failed">
                   <Table
                     collocationDevices={filterDevicesByStatus('FAILED')}
                     isLoading={isLoading}
                   />
-                </Tab>
-                <Tab label="Running">
+                </div>
+                <div label="Running">
                   <Table
                     collocationDevices={filterDevicesByStatus('RUNNING')}
                     isLoading={isLoading}
                   />
-                </Tab>
-                <Tab label="Scheduled">
+                </div>
+                <div label="Scheduled">
                   <Table
                     collocationDevices={filterDevicesByStatus('SCHEDULED')}
                     isLoading={isLoading}
                   />
-                </Tab>
+                </div>
               </Tabs>
             </div>
           ) : (
