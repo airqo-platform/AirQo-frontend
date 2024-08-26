@@ -13,9 +13,9 @@ const Button = ({
   color,
   bgColor,
   Icon,
-  paddingStyles = 'py-2 px-4',
+  paddingStyles = 'py-2 px-4 shadow-sm',
 }) => {
-  let buttonClass = `flex justify-center items-center cursor-pointer shadow-sm ${paddingStyles} rounded-xl sm:gap-1 ${className} transition transform active:scale-95`;
+  let buttonClass = `flex justify-center items-center cursor-pointer ${paddingStyles} rounded-xl sm:gap-1 ${className} transition transform active:scale-95`;
   let textColor = '';
   let backgroundColor = '';
   let border = '';

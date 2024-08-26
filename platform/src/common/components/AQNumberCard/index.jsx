@@ -12,6 +12,7 @@ import TrendUpIcon from '@/icons/Analytics/trendUpIcon';
 import TrendDownIcon from '@/icons/Analytics/trendDownIcon';
 import LongArrowRight from '@/icons/Analytics/longArrowRight';
 import PropTypes from 'prop-types';
+import Button from '../Button';
 
 const AQNumberCard = ({
   reading,
@@ -42,14 +43,17 @@ const AQNumberCard = ({
   const windowWidth = useWindowSize().width;
 
   return (
-    <div
+    <Button
+      type="button"
+      paddingStyles="p-0 m-0"
+      onClick={null}
       className={`${
         count <= 2
           ? 'w-full md:min-w-[200px] md:max-w-[50%] float-left'
           : 'w-full'
-      } ${isLoading && 'animate-pulse'} relative h-[164.48px] flex-col justify-start items-center inline-flex`}
+      } ${isLoading && 'animate-pulse'}  relative h-[164.48px] flex-col justify-start items-center inline-flex`}
     >
-      <div className="border border-gray-200 rounded-xl overflow-hidden w-full shadow-sm">
+      <div className="border border-gray-200 rounded-xl overflow-hidden w-full">
         <div className="self-stretch w-full h-[68.48px] px-4 pt-3.5 pb-[10.48px] bg-white flex-col justify-start items-start flex">
           <div className="self-stretch justify-between items-start inline-flex">
             <div className="flex-col justify-start items-start inline-flex">
@@ -99,7 +103,7 @@ const AQNumberCard = ({
           </div>
         </div>
       </div>
-    </div>
+    </Button>
   );
 };
 
