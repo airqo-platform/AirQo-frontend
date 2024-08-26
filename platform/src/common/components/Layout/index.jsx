@@ -98,20 +98,20 @@ const Layout = ({
   }, [dispatch, router, userInfo]);
 
   return (
-    <>
+    <div>
       <Head>
         <title>{pageTitle}</title>
         <meta property="og:title" content={pageTitle} key="title" />
       </Head>
-      <div className="flex bg-[#f6f6f7] h-auto" data-testid="layout">
+      <div className="flex bg-[#f6f6f7]" data-testid="layout">
         <aside className="fixed left-0 top-0 text-[#1C1D20] z-50 transition-all duration-300 ease-in-out">
           <AuthenticatedSideBar />
         </aside>
         <main
-          className={`${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'} flex-1 transition-all duration-300 ease-in-out`}
+          className={`${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'} h-auto flex-1 transition-all duration-300 ease-in-out`}
         >
           <div
-            className={`${router.pathname === '/map' ? '' : 'max-w-[1600px] mx-auto py-6 space-y-8 px-4 sm:px-6 lg:px-8'} `}
+            className={`${router.pathname === '/map' ? '' : 'max-w-[1600px] mx-auto space-y-8 px-4 py-8 sm:px-6 lg:px-8'} overflow-hidden `}
           >
             {noTopNav && (
               <TopBar
@@ -120,7 +120,7 @@ const Layout = ({
               />
             )}
             <div
-              className={`text-[#1C1D20] transition-all duration-300 ease-in-out overflow-hidden h-auto`}
+              className={`text-[#1C1D20] transition-all duration-300 ease-in-out overflow-hidden`}
             >
               {children}
             </div>
@@ -128,7 +128,7 @@ const Layout = ({
         </main>
       </div>
       <SideBarDrawer />
-    </>
+    </div>
   );
 };
 

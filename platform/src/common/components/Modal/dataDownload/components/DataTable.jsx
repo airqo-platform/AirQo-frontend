@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import ShortLeftArrow from '@/icons/Analytics/shortLeftArrow';
 import ShortRightArrow from '@/icons/Analytics/shortRightArrow';
-import Button from '../../Button';
+import Button from '../../../Button';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
-import TopBarSearch from '../../search/TopBarSearch';
+import TopBarSearch from '../../../search/TopBarSearch';
 
 const DataTable = ({
   setSelectedSites,

@@ -6,6 +6,7 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "node .next/standalone/server.js",
+    "start-local": "next start",
     "cypress:open": "cypress open",
     "lint": "eslint .",
     "format": "prettier --write ."
