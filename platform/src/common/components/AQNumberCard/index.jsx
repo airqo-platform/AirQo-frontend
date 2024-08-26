@@ -8,43 +8,38 @@ import UnknownAQ from '@/icons/Charts/Invalid';
 import WindIcon from '@/icons/Common/wind.svg';
 import CustomTooltip from '../Tooltip';
 import { useWindowSize } from '@/lib/windowSize';
-import { capitalizeAllText } from '@/core/utils/strings';
+import TrendUpIcon from '@/icons/Analytics/trendUpIcon';
+import TrendDownIcon from '@/icons/Analytics/trendDownIcon';
+import LongArrowRight from '@/icons/Analytics/longArrowRight';
 import PropTypes from 'prop-types';
 
 const AQNumberCard = ({
   reading,
   location,
+  country,
   pollutant,
   count,
   locationFullName,
   isLoading = false,
 }) => {
-  let airQualityText = '';
-  let AirQualityIcon = null;
-  const window = useWindowSize().width;
+  const airQualityLevels = [
+    { max: 12, text: 'Air Quality is Good', icon: GoodAir },
+    { max: 35.4, text: 'Air Quality is Moderate', icon: Moderate },
+    {
+      max: 55.4,
+      text: 'Air Quality is Unhealthy for Sensitive Groups',
+      icon: UnhealthySG,
+    },
+    { max: 150.4, text: 'Air Quality is Unhealthy', icon: Unhealthy },
+    { max: 250.4, text: 'Air Quality is Very Unhealthy', icon: VeryUnhealthy },
+    { max: 500, text: 'Air Quality is Hazardous', icon: Hazardous },
+  ];
 
-  if (reading >= 0 && reading <= 12) {
-    airQualityText = 'Air Quality is Good';
-    AirQualityIcon = GoodAir;
-  } else if (reading > 12 && reading <= 35.4) {
-    airQualityText = 'Air Quality is Moderate';
-    AirQualityIcon = Moderate;
-  } else if (reading > 35.4 && reading <= 55.4) {
-    airQualityText = 'Air Quality is Unhealthy for Sensitive Groups';
-    AirQualityIcon = UnhealthySG;
-  } else if (reading > 55.4 && reading <= 150.4) {
-    airQualityText = 'Air Quality is Unhealthy';
-    AirQualityIcon = Unhealthy;
-  } else if (reading > 150.4 && reading <= 250.4) {
-    airQualityText = 'Air Quality is Very Unhealthy';
-    AirQualityIcon = VeryUnhealthy;
-  } else if (reading > 250.4 && reading <= 500) {
-    airQualityText = 'Air Quality is Hazardous';
-    AirQualityIcon = Hazardous;
-  } else {
-    airQualityText = 'Air Quality is Unknown';
-    AirQualityIcon = UnknownAQ;
-  }
+  const { text: airQualityText, icon: AirQualityIcon } = airQualityLevels.find(
+    (level) => reading <= level.max,
+  ) || { text: 'Air Quality is Unknown', icon: UnknownAQ };
+
+  const windowWidth = useWindowSize().width;
 
   return (
     <div
@@ -52,34 +47,27 @@ const AQNumberCard = ({
         count <= 2
           ? 'w-full md:min-w-[200px] md:max-w-[50%] float-left'
           : 'w-full'
-      } ${
-        isLoading && 'animate-pulse'
-      } relative h-[164.48px] flex-col justify-start items-center inline-flex`}
+      } ${isLoading && 'animate-pulse'} relative h-[164.48px] flex-col justify-start items-center inline-flex`}
     >
-      <div className="border border-gray-200 rounded-lg overflow-hidden w-full shadow-sm">
+      <div className="border border-gray-200 rounded-xl overflow-hidden w-full shadow-sm">
         <div className="self-stretch w-full h-[68.48px] px-4 pt-3.5 pb-[10.48px] bg-white flex-col justify-start items-start flex">
-          <div className="self-stretch justify-between items-center inline-flex">
+          <div className="self-stretch justify-between items-start inline-flex">
             <div className="flex-col justify-start items-start inline-flex">
-              {location !== '--' ? (
-                <div
-                  className="text-gray-700 text-base font-medium leading-normal whitespace-nowrap overflow-ellipsis"
-                  title={capitalizeAllText(locationFullName)}
-                >
-                  {capitalizeAllText(
-                    location.length > 17
-                      ? location.slice(0, 17) + '...'
-                      : location,
-                  )}
-                </div>
-              ) : (
-                <div className="text-gray-700 text-base font-medium leading-normal whitespace-nowrap overflow-ellipsis">
-                  {capitalizeAllText(
-                    location.length > 17
-                      ? location.slice(0, 17) + '...'
-                      : location,
-                  )}
-                </div>
-              )}
+              <div
+                className="text-gray-700 text-base font-medium leading-normal whitespace-nowrap overflow-ellipsis capitalize"
+                title={locationFullName}
+              >
+                {location.length > 17
+                  ? `${location.slice(0, 17)}...`
+                  : location}
+              </div>
+              <div className="text-sm text-slate-400 capitalize">{country}</div>
+            </div>
+            <div
+              className={`bg-green-50 text-green-500 pl-[8px] pr-[4px] rounded-xl text-sm flex items-center gap-2`}
+            >
+              <TrendDownIcon fill="#12B76A" />
+              <span>{'32%'}</span>
             </div>
           </div>
         </div>
@@ -102,7 +90,7 @@ const AQNumberCard = ({
           <div className="absolute right-3 bottom-1 z-10">
             <CustomTooltip
               tooltipsText={airQualityText}
-              position={window > 1024 ? 'top' : 'left'}
+              position={windowWidth > 1024 ? 'top' : 'left'}
             >
               <div className="w-16 h-16 justify-center items-center flex">
                 {AirQualityIcon && <AirQualityIcon />}
@@ -118,6 +106,7 @@ const AQNumberCard = ({
 AQNumberCard.propTypes = {
   reading: PropTypes.number,
   location: PropTypes.string,
+  country: PropTypes.string,
   pollutant: PropTypes.string,
   count: PropTypes.number,
   locationFullName: PropTypes.string,

@@ -74,7 +74,7 @@ const OverView = () => {
   const preferenceData =
     useSelector((state) => state.defaults.individual_preferences) || [];
   const siteData = useSelector((state) => state.grids.sitesSummary);
-  const { isLoading: isLoadingMeasurements, error } = useFetchMeasurements();
+  const { isLoading: isLoadingMeasurements } = useFetchMeasurements();
   const chartData = useSelector((state) => state.chart);
 
   function getSiteName(siteId) {
@@ -98,6 +98,7 @@ const OverView = () => {
       location_name: '--',
       formatted_name: '--',
       description: '--',
+      country: '--',
     },
     pm2_5: {
       value: '--',
@@ -205,6 +206,7 @@ const OverView = () => {
                       getExistingSiteName(event.site_id) ||
                       event?.siteDetails?.search_name
                     }
+                    country={event?.siteDetails?.country}
                     locationFullName={
                       getSiteName(event.site_id) ||
                       getExistingSiteName(event.site_id) ||
@@ -221,6 +223,7 @@ const OverView = () => {
                   <AQNumberCard
                     key={index}
                     location={'--'}
+                    country={'--'}
                     locationFullName={'--'}
                     reading={'--'}
                     count={displayData.length}
