@@ -1,212 +1,43 @@
 import React, { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
-import CheckIcon from '@/icons/tickIcon';
-import CustomDropdown from '../../../Dropdowns/CustomDropdown';
-import DatePicker from '../../../Calendar/DatePicker';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import CalibrateIcon from '@/icons/Analytics/calibrateIcon';
 import FileTypeIcon from '@/icons/Analytics/fileTypeIcon';
 import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
 import WindIcon from '@/icons/Analytics/windIcon';
 import EditIcon from '@/icons/Analytics/EditIcon';
-import { toast } from 'sonner';
 import DataTable from '../components/DataTable';
-import Button from '../../../Button';
-// Define options as constants outside the component
+import CustomFields from '../components/CustomFields';
+import LongArrowLeft from '@/icons/Analytics/longArrowLeft';
+import {
+  POLLUTANT_OPTIONS,
+  DATA_TYPE_OPTIONS,
+  FREQUENCY_OPTIONS,
+  FILE_TYPE_OPTIONS,
+  tableData,
+} from '../constants';
+import Footer from '../components/Footer';
 
-const POLLUTANT_OPTIONS = [
-  { id: 1, name: 'PM2.5' },
-  { id: 2, name: 'PM10' },
-  { id: 3, name: 'CO' },
-  { id: 4, name: 'SO2' },
-  { id: 5, name: 'NO2' },
-];
-
-const DATA_TYPE_OPTIONS = [
-  { id: 1, name: 'Calibrated Data' },
-  { id: 2, name: 'Raw Data' },
-];
-
-const FREQUENCY_OPTIONS = [
-  { id: 1, name: 'Daily' },
-  { id: 2, name: 'Hourly' },
-  { id: 3, name: 'Weekly' },
-  { id: 4, name: 'Monthly' },
-];
-
-const FILE_TYPE_OPTIONS = [
-  { id: 1, name: 'CSV' },
-  { id: 2, name: 'Json' },
-  { id: 3, name: 'PDF' },
-];
-
-const tableData = [
-  {
-    id: 1,
-    location: 'Makerere University ',
-    city: 'Kampala',
-    country: 'Uganda',
-    owner: 'AirQo',
-  },
-  {
-    id: 2,
-    location: 'KCCA',
-    city: 'Kampala',
-    country: 'Uganda',
-    owner: 'KCCA',
-  },
-  {
-    id: 3,
-    location: 'Ntinda',
-    city: 'Kampala',
-    country: 'Uganda',
-    owner: 'AirQo',
-  },
-  {
-    id: 4,
-    location: 'Makindye',
-    city: 'Kampala',
-    country: 'Uganda',
-    owner: 'AirQo',
-  },
-  {
-    id: 5,
-    location: 'Nakawa',
-    city: 'Kampala',
-    country: 'Uganda',
-    owner: 'KCCA',
-  },
-  {
-    id: 6,
-    location: 'Kansanga',
-    city: 'Kampala',
-    country: 'Uganda',
-    owner: 'AirQo',
-  },
-  {
-    id: 5,
-    location: 'Nakawa',
-    city: 'Kampala',
-    country: 'Uganda',
-    owner: 'KCCA',
-  },
-  {
-    id: 6,
-    location: 'Kansanga',
-    city: 'Kampala',
-    country: 'Uganda',
-    owner: 'AirQo',
-  },
-  {
-    id: 5,
-    location: 'Nakawa',
-    city: 'Kampala',
-    country: 'Uganda',
-    owner: 'KCCA',
-  },
-  {
-    id: 6,
-    location: 'Kansanga',
-    city: 'Kampala',
-    country: 'Uganda',
-    owner: 'AirQo',
-  },
-];
-
-const CustomFields = ({
-  field = false,
-  title,
-  options = [],
-  id,
-  icon,
-  btnText,
-  edit = false,
-  useCalendar = false,
-  handleOptionSelect,
-  defaultOption,
-}) => {
-  const [selectedOption, setSelectedOption] = useState(
-    defaultOption || options[0],
-  );
-
-  const handleSelect = useCallback(
-    (option) => {
-      setSelectedOption(option);
-      handleOptionSelect(id, option);
-    },
-    [id, handleOptionSelect],
-  );
-
+export const DownloadDataHeader = () => {
   return (
-    <div className="w-full h-auto flex flex-col gap-2 justify-start">
-      <label className="w-[280px] h-auto p-0 m-0 text-[#7A7F87]">{title}</label>
-      {field ? (
-        <input
-          className="bg-transparent text-[16px] font-medium leading-6 p-0 m-0 w-full h-auto border-none"
-          value={selectedOption.name}
-          onChange={(e) => handleSelect({ name: e.target.value })}
-          type="text"
-          name={id}
-          disabled={!edit}
-        />
-      ) : useCalendar ? (
-        <DatePicker
-          customPopperStyle={{ left: '-7px' }}
-          onChange={(date) => handleSelect({ name: date })}
-        />
-      ) : (
-        <CustomDropdown
-          tabID={id}
-          tabStyle="w-full bg-white px-3 py-2"
-          dropdown
-          tabIcon={icon}
-          btnText={btnText || selectedOption.name}
-          customPopperStyle={{ left: '-7px' }}
-          dropDownClass="w-full"
-        >
-          {options.map((option) => (
-            <span
-              key={option.id}
-              onClick={() => handleSelect(option)}
-              className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center  ${
-                selectedOption.id === option.id ? 'bg-[#EBF5FF] rounded-md' : ''
-              }`}
-            >
-              <span className="flex items-center capitalize space-x-2">
-                <span>{option.name}</span>
-              </span>
-              {selectedOption.id === option.id && (
-                <CheckIcon fill={'#145FFF'} />
-              )}
-            </span>
-          ))}
-        </CustomDropdown>
-      )}
-    </div>
+    <h3
+      className="flex text-lg leading-6 font-medium text-gray-900"
+      id="modal-title"
+    >
+      <button type="button" onClick={null}>
+        <LongArrowLeft className="mr-2" />
+      </button>
+      Download air quality data
+    </h3>
   );
 };
 
-CustomFields.propTypes = {
-  field: PropTypes.bool,
-  title: PropTypes.string,
-  options: PropTypes.array,
-  id: PropTypes.string,
-  icon: PropTypes.node,
-  btnText: PropTypes.string,
-  edit: PropTypes.bool,
-  useCalendar: PropTypes.bool,
-  handleOptionSelect: PropTypes.func,
-  defaultOption: PropTypes.object,
-};
-
-const DataDownload = () => {
-  const preferences = useSelector(
-    (state) => state.defaults.individual_preferences,
-  );
+const DataDownload = ({ onClose }) => {
   const userInfo = useSelector((state) => state.login.userInfo);
   const [selectedSites, setSelectedSites] = useState([]);
   const [clearSelected, setClearSelected] = useState(false);
+  const [error, setError] = useState('');
 
   const NETWORK_OPTIONS = userInfo?.groups?.map((network) => ({
     id: network._id,
@@ -238,15 +69,11 @@ const DataDownload = () => {
     (e) => {
       e.preventDefault();
       if (!formData.duration) {
-        toast.error('Please select a duration', {
-          position: 'top-center',
-        });
+        setError('Please select a duration');
         return;
       }
       if (selectedSites.length === 0) {
-        toast.error('Please select at least one location', {
-          position: 'top-center',
-        });
+        setError('Please select at least one location');
         return;
       }
       // Prepare data for API
@@ -255,6 +82,9 @@ const DataDownload = () => {
         selectedSites,
       };
       console.log('Submitting data to API:', apiData);
+
+      // implementation for submit logic
+
       // reset form data
       setFormData({
         title: 'Untitled Report',
@@ -268,11 +98,12 @@ const DataDownload = () => {
     },
     [formData, selectedSites],
   );
+
   return (
     <>
       {/* section 1 */}
       <form
-        className="w-[280px] relative h-auto bg-[#f6f6f7] space-y-3 px-5 pt-5 pb-14"
+        className="w-[280px] h-[658px] relative bg-[#f6f6f7] space-y-3 px-5 pt-5 pb-14"
         onSubmit={handleSubmit}
       >
         <button
@@ -343,41 +174,26 @@ const DataDownload = () => {
         <div className="px-8 pt-6 pb-4 overflow-y-auto">
           <DataTable
             data={tableData}
+            selectedSites={selectedSites}
             setSelectedSites={setSelectedSites}
-            clearSelectedSites={clearSelected}
+            clearSites={clearSelected}
           />
         </div>
-        <div className="bg-gray-50 absolute bottom-0 right-0 w-full px-4 py-3 sm:px-6 flex items-center justify-between">
-          <div className="text-sm leading-5 font-normal">
-            {selectedSites.length === 0 ? (
-              'Select locations to continue'
-            ) : (
-              <div>
-                <span className="text-blue-600">{`${selectedSites.length} 
-                          ${selectedSites.length === 1 ? 'location' : 'locations'} selected
-                        `}</span>
-                <button
-                  type="button"
-                  className="ml-2"
-                  onClick={handleClearSelection}
-                >
-                  Clear
-                </button>
-              </div>
-            )}
-          </div>
-          <div className="sm:flex sm:flex-row-reverse gap-2">
-            <Button type="button" variant={'filled'} onClick={handleSubmit}>
-              Download
-            </Button>
-            <Button type="button" variant={'outlined'} onClick={onClose}>
-              Cancel
-            </Button>
-          </div>
-        </div>
+        <Footer
+          setError={setError}
+          errorMessage={error}
+          selectedSites={selectedSites}
+          handleClearSelection={handleClearSelection}
+          handleSubmit={handleSubmit}
+          onClose={onClose}
+        />
       </div>
     </>
   );
+};
+
+DataDownload.propTypes = {
+  onClose: PropTypes.func,
 };
 
 export default DataDownload;

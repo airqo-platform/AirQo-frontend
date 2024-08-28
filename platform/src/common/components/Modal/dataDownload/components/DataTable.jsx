@@ -4,15 +4,16 @@ import ShortRightArrow from '@/icons/Analytics/shortRightArrow';
 import Button from '../../../Button';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 import TopBarSearch from '../../../search/TopBarSearch';
+import PropTypes from 'prop-types';
 
 const DataTable = ({
-  setSelectedSites,
   data,
+  selectedSites,
+  setSelectedSites,
   itemsPerPage = 7,
-  clearSelectedSites,
+  clearSites,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedSites, setSelectedSitesState] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
   const [activeButton, setActiveButton] = useState('all');
   const [searchResults, setSearchResults] = useState([]);
@@ -28,11 +29,9 @@ const DataTable = ({
   }, [selectedSites, setSelectedSites]);
 
   useEffect(() => {
-    if (clearSelectedSites) {
-      setSelectedSitesState([]);
-      setSelectAll(false);
-    }
-  }, [clearSelectedSites]);
+    setSelectedSites([]);
+    setSelectAll(false);
+  }, [clearSites]);
 
   const filteredData = useMemo(() => {
     return searchResults.length > 0
@@ -47,7 +46,7 @@ const DataTable = ({
   };
 
   const handleCheckboxChange = (item) => {
-    setSelectedSitesState((prevSelectedSites) => {
+    setSelectedSites((prevSelectedSites) => {
       if (prevSelectedSites.includes(item)) {
         return prevSelectedSites.filter((site) => site !== item);
       } else {
@@ -57,7 +56,7 @@ const DataTable = ({
   };
 
   const handleSelectAllChange = () => {
-    setSelectedSitesState(selectAll ? [] : filteredData);
+    setSelectedSites(selectAll ? [] : filteredData);
     setSelectAll(!selectAll);
   };
 
@@ -205,6 +204,22 @@ const DataTable = ({
       )}
     </div>
   );
+};
+
+DataTable.propTypes = {
+  data: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      location: PropTypes.string.isRequired,
+      city: PropTypes.string.isRequired,
+      country: PropTypes.string.isRequired,
+      owner: PropTypes.string.isRequired,
+    }),
+  ).isRequired,
+  selectedSites: PropTypes.arrayOf(PropTypes.object).isRequired,
+  setSelectedSites: PropTypes.func,
+  clearSites: PropTypes.func,
+  itemsPerPage: PropTypes.number,
 };
 
 export default DataTable;

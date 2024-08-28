@@ -23,6 +23,7 @@ import { locationSearchSlice } from './services/search/LocationSearchSlice';
 import { apiClientSlice } from './services/apiClient/index';
 import sidebarReducer from './services/sideBar/SideBarSlice';
 import autoMergeLevel1 from 'redux-persist/lib/stateReconciler/autoMergeLevel1';
+import modalSlice from './services/downloadModal';
 
 const persistConfig = {
   key: 'root',
@@ -35,6 +36,7 @@ const rootReducer = combineReducers({
   sidebar: sidebarReducer,
   collocation: collocationReducer,
   selectedCollocateDevices: selectedCollocateDevicesReducer,
+  modal: modalSlice,
   collocationData: collocationDataReducer,
   [createAccountSlice.name]: createAccountSlice.reducer,
   [userLoginSlice.name]: userLoginSlice.reducer,

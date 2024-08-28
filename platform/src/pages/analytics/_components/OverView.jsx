@@ -15,7 +15,9 @@ import {
 } from '@/lib/store/services/charts/ChartSlice';
 import SettingsIcon from '@/icons/settings.svg';
 import PlusIcon from '@/icons/map/plusIcon';
-import DownloadDataModal from '@/components/Modal/dataDownload';
+import DownloadIcon from '@/icons/Analytics/downloadIcon';
+import Modal from '@/components/Modal/dataDownload';
+import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 
 const timeOptions = ['hourly', 'daily', 'weekly', 'monthly'];
 const pollutant = [
@@ -67,6 +69,7 @@ const useFetchMeasurements = () => {
 const OverView = () => {
   // events hook
   const dispatch = useDispatch();
+  const isOpen = useSelector((state) => state.modal.openModal);
   const recentLocationMeasurements = useSelector(
     (state) => state.recentMeasurements.measurements,
   );
@@ -186,11 +189,34 @@ const OverView = () => {
             <TabButtons
               btnText="Add location"
               Icon={<PlusIcon width={16} height={16} />}
-              onClick={null}
+              onClick={() => {
+                dispatch(setOpenModal(true));
+                dispatch(
+                  setModalType({
+                    type: 'addLocation',
+                    ids: [],
+                  }),
+                );
+              }}
             />
 
             {/* download data modal */}
-            <DownloadDataModal />
+            <TabButtons
+              btnText="Download Data"
+              Icon={<DownloadIcon width={16} height={17} color="white" />}
+              onClick={() => {
+                dispatch(setOpenModal(true));
+                dispatch(
+                  setModalType({
+                    type: 'download',
+                    ids: [],
+                  }),
+                );
+              }}
+              btnStyle={
+                'bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl'
+              }
+            />
           </div>
         </div>
 
@@ -201,6 +227,15 @@ const OverView = () => {
                 return (
                   <AQNumberCard
                     key={index}
+                    handleClick={() => {
+                      dispatch(setOpenModal(true));
+                      dispatch(
+                        setModalType({
+                          type: 'location',
+                          ids: [],
+                        }),
+                      );
+                    }}
                     location={
                       getSiteName(event.site_id) ||
                       getExistingSiteName(event.site_id) ||
@@ -248,6 +283,8 @@ const OverView = () => {
           />
         </div>
       </div>
+      {/* Modal */}
+      <Modal isOpen={isOpen} onClose={() => dispatch(setOpenModal(false))} />
     </BorderlessContentBox>
   );
 };

@@ -8,9 +8,7 @@ import UnknownAQ from '@/icons/Charts/Invalid';
 import WindIcon from '@/icons/Common/wind.svg';
 import CustomTooltip from '../Tooltip';
 import { useWindowSize } from '@/lib/windowSize';
-import TrendUpIcon from '@/icons/Analytics/trendUpIcon';
 import TrendDownIcon from '@/icons/Analytics/trendDownIcon';
-import LongArrowRight from '@/icons/Analytics/longArrowRight';
 import PropTypes from 'prop-types';
 import Button from '../Button';
 
@@ -22,6 +20,7 @@ const AQNumberCard = ({
   count,
   locationFullName,
   isLoading = false,
+  handleClick,
 }) => {
   const airQualityLevels = [
     { max: 12, text: 'Air Quality is Good', icon: GoodAir },
@@ -46,7 +45,7 @@ const AQNumberCard = ({
     <Button
       type="button"
       paddingStyles="p-0 m-0"
-      onClick={null}
+      onClick={handleClick}
       className={`${
         count <= 2
           ? 'w-full md:min-w-[200px] md:max-w-[50%] float-left'
@@ -115,6 +114,7 @@ AQNumberCard.propTypes = {
   count: PropTypes.number,
   locationFullName: PropTypes.string,
   isLoading: PropTypes.bool,
+  handleClick: PropTypes.func,
 };
 
 export default AQNumberCard;
