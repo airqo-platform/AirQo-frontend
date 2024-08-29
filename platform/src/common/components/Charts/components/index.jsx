@@ -68,7 +68,7 @@ export const getAirQualityLevelText = (value) => {
  * @returns {JSX.Element}
  * @description Custom tooltip component for line graph
  */
-export const CustomGraphTooltip = ({ active, payload, activeIndex }) => {
+const CustomGraphTooltip = ({ active, payload, activeIndex }) => {
   const chartData = useSelector((state) => state.chart);
   const { timeFrame } = chartData;
 
@@ -152,7 +152,7 @@ export const CustomGraphTooltip = ({ active, payload, activeIndex }) => {
  * @returns {JSX.Element}
  * @description Custom axis tick component for line chart
  */
-export const CustomizedAxisTick = ({ x, y, payload, fill }) => {
+const CustomizedAxisTick = ({ x, y, payload, fill }) => {
   const chartData = useSelector((state) => state.chart);
   const { timeFrame } = chartData;
 
@@ -196,7 +196,7 @@ export const CustomizedAxisTick = ({ x, y, payload, fill }) => {
  * @returns {JSX.Element}
  * @description Custom dot component for line chart
  */
-export const CustomDot = (props) => {
+const CustomDot = (props) => {
   const { cx, cy, fill, payload } = props;
 
   if (!payload.active) {
@@ -210,7 +210,7 @@ export const CustomDot = (props) => {
  * Customized legend component
  * @param {Object} props
  */
-export const renderCustomizedLegend = (props) => {
+const renderCustomizedLegend = (props) => {
   const { payload } = props;
 
   // Sort the payload array from darkest to lightest color
@@ -259,7 +259,7 @@ export const renderCustomizedLegend = (props) => {
  * Customized label component for ReferenceLine
  * @param {Object} props
  */
-export const CustomReferenceLabel = (props) => {
+const CustomReferenceLabel = (props) => {
   const { viewBox } = props;
   const x = viewBox.width + viewBox.x - 10;
   const y = viewBox.y + 3;
@@ -283,7 +283,7 @@ export const CustomReferenceLabel = (props) => {
  * Customized bar component for bar chart
  * @param {Object} props
  */
-export const CustomBar = (props) => {
+const CustomBar = (props) => {
   const { fill, x, y, width, height } = props;
 
   return (
@@ -301,6 +301,15 @@ export const CustomBar = (props) => {
       </foreignObject>
     </g>
   );
+};
+
+export {
+  CustomBar,
+  CustomReferenceLabel,
+  renderCustomizedLegend,
+  CustomDot,
+  CustomizedAxisTick,
+  CustomGraphTooltip,
 };
 
 CustomGraphTooltip.propTypes = {

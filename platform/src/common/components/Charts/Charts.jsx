@@ -37,13 +37,10 @@ const WHO_STANDARD_VALUES = {
   no2: 25,
 };
 
-/**
- * @description Custom hook to fetch analytics data
- * @returns {Object} isLoading, error, loadingTime
- */
-export const useAnalytics = () => {
+const useAnalyticsData = (customBody) => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
+  const analyticsData = useSelector((state) => state.analytics.data);
   const refreshChart = useSelector((state) => state.chart.refreshChart);
   const preferencesLoading = useSelector(
     (state) => state.userDefaults.status === 'loading',
@@ -53,55 +50,10 @@ export const useAnalytics = () => {
   );
   const preferenceData =
     useSelector((state) => state.defaults.individual_preferences) || [];
+  const siteData = useSelector((state) => state.grids.sitesSummary);
+
   const [error, setError] = useState(null);
   const [loadingTime, setLoadingTime] = useState(0);
-
-  const fetchData = useCallback(async () => {
-    if (preferencesLoading || !preferenceData.length) return;
-
-    const { selected_sites } = preferenceData[0];
-    const chartSites = selected_sites?.map((site) => site['_id']);
-
-    try {
-      setError(null);
-      const startTime = Date.now();
-      setLoadingTime(startTime);
-      await dispatch(
-        fetchAnalyticsData({
-          sites: chartSites,
-          startDate: chartData.chartDataRange.startDate,
-          endDate: chartData.chartDataRange.endDate,
-          chartType: chartData.chartType,
-          frequency: chartData.timeFrame,
-          pollutant: chartData.pollutionType,
-          organisation_name: chartData.organizationName,
-        }),
-      );
-    } catch (err) {
-      setError(err.message);
-      dispatch(setAnalyticsData(null));
-    } finally {
-      dispatch(setRefreshChart(false));
-      setLoadingTime(Date.now() - loadingTime);
-    }
-  }, [chartData, refreshChart, preferenceData]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData, refreshChart]);
-
-  return { isLoading, error, loadingTime };
-};
-
-/**
- * @description Custom hook to transform analytics data for chart
- * @returns {Object} dataForChart, allKeys
- */
-export const useAnalyticsData = () => {
-  const analyticsData = useSelector((state) => state.analytics.data);
-  const preferenceData =
-    useSelector((state) => state.defaults.individual_preferences) || [];
-  const siteData = useSelector((state) => state.grids.sitesSummary);
 
   const getSiteName = useCallback(
     (siteId) => {
@@ -120,6 +72,42 @@ export const useAnalyticsData = () => {
     },
     [siteData],
   );
+
+  const fetchData = useCallback(async () => {
+    if (preferencesLoading || !preferenceData.length) return;
+
+    const { selected_sites } = preferenceData[0];
+    const chartSites = selected_sites?.map((site) => site['_id']);
+
+    const defaultBody = {
+      sites: chartSites,
+      startDate: chartData.chartDataRange.startDate,
+      endDate: chartData.chartDataRange.endDate,
+      chartType: chartData.chartType,
+      frequency: chartData.timeFrame,
+      pollutant: chartData.pollutionType,
+      organisation_name: chartData.organizationName,
+    };
+
+    const body = { ...defaultBody, ...customBody };
+
+    try {
+      setError(null);
+      const startTime = Date.now();
+      dispatch(setAnalyticsData(null));
+      await dispatch(fetchAnalyticsData(body));
+      setLoadingTime(Date.now() - startTime);
+    } catch (err) {
+      setError(err.message);
+      dispatch(setAnalyticsData(null));
+    } finally {
+      dispatch(setRefreshChart(false));
+    }
+  }, [chartData, dispatch, preferenceData]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData, refreshChart]);
 
   const transformedData = useMemo(() => {
     if (!analyticsData?.length) return { dataForChart: [], allKeys: new Set() };
@@ -149,26 +137,18 @@ export const useAnalyticsData = () => {
     return { dataForChart, allKeys };
   }, [analyticsData, getSiteName, getExistingSiteName]);
 
-  return transformedData;
+  return { ...transformedData, isLoading, error, loadingTime };
 };
-
-/**
- * @description Charts component
- * @param {String} chartType - Type of chart to render
- * @param {String} width - Width of the chart
- * @param {String} height - Height of the chart
- * @returns {React.Component} Charts
- */
 const Charts = ({
+  customBody,
   chartType = 'line',
   width = '100%',
   height = '100%',
   id,
 }) => {
   const chartData = useSelector((state) => state.chart);
-  const { isLoading, error, loadingTime } = useAnalytics();
-  const { dataForChart, allKeys } = useAnalyticsData();
-  const analyticsData = useSelector((state) => state.analytics.data);
+  const { dataForChart, allKeys, isLoading, error, loadingTime } =
+    useAnalyticsData(customBody && customBody);
   const [showLoadingMessage, setShowLoadingMessage] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [activeIndex, setActiveIndex] = useState(null);
@@ -215,7 +195,7 @@ const Charts = ({
     [],
   );
 
-  if (error || analyticsData?.error?.message) {
+  if (error) {
     return (
       <div className="ml-10 pr-10 flex justify-center text-center items-center w-full h-full text-sm">
         <p className="text-red-500 text-center">
@@ -242,7 +222,7 @@ const Charts = ({
     );
   }
 
-  if ((hasLoaded && !analyticsData) || analyticsData?.length === 0) {
+  if (hasLoaded && dataForChart.length === 0) {
     return (
       <div className="ml-10 pr-10 flex justify-center items-center w-full h-full text-center text-sm text-gray-600">
         No data found. Please try other time periods or customize using other
@@ -293,81 +273,64 @@ const Charts = ({
       />
     </YAxis>,
     <Legend key="legend" content={renderCustomizedLegend} />,
-  ];
 
-  const renderChart = () => {
-    if (chartType === 'line') {
-      return (
-        <LineChart {...commonProps}>
-          {commonComponents}
-          {Array.from(allKeys)
-            .filter((key) => key !== 'time')
-            .map((key, index) => (
-              <Line
-                key={key}
-                dataKey={key}
-                type="monotone"
-                stroke={getLineColor(index, activeIndex, colors)}
-                strokeWidth={4}
-                dot={<CustomDot />}
-                activeDot={{ r: 6 }}
-                onMouseEnter={(o) => handleMouseEnter(o, index)}
-                onMouseLeave={handleMouseLeave}
-              />
-            ))}
-          <ReferenceLine
-            key="referenceLine"
-            y={WHO_STANDARD_VALUE}
-            label={CustomReferenceLabel}
-            ifOverflow="extendDomain"
-            stroke="red"
-            strokeOpacity={1}
-            strokeDasharray={0}
-          />
-          <Tooltip
-            content={<CustomGraphTooltip activeIndex={activeIndex} />}
-            cursor={{
+    <Tooltip
+      key="tooltip"
+      content={<CustomGraphTooltip activeIndex={activeIndex} />}
+      cursor={
+        chartType === 'line'
+          ? {
               stroke: '#aaa',
               strokeOpacity: 0.3,
               strokeWidth: 2,
               strokeDasharray: '3 3',
-            }}
-          />
-        </LineChart>
-      );
-    } else if (chartType === 'bar') {
-      return (
-        <BarChart {...commonProps}>
-          {commonComponents}
-          {Array.from(allKeys)
-            .filter((key) => key !== 'time')
-            .map((key, index) => (
-              <Bar
-                key={key}
-                dataKey={key}
-                fill={colors[index % colors.length]}
-                barSize={12}
-                shape={<CustomBar />}
-                onMouseEnter={(o) => handleMouseEnter(o, index)}
-                onMouseLeave={handleMouseLeave}
-              />
-            ))}
-          <ReferenceLine
-            key="referenceLine"
-            y={WHO_STANDARD_VALUE}
-            label={CustomReferenceLabel}
-            ifOverflow="extendDomain"
-            stroke="red"
-            strokeOpacity={1}
-            strokeDasharray={0}
-          />
-          <Tooltip
-            content={<CustomGraphTooltip activeIndex={activeIndex} />}
-            cursor={{ fill: '#eee', fillOpacity: 0.3 }}
-          />
-        </BarChart>
-      );
-    }
+            }
+          : { fill: '#eee', fillOpacity: 0.3 }
+      }
+    />,
+  ];
+
+  const renderChart = () => {
+    const ChartComponent = chartType === 'line' ? LineChart : BarChart;
+    const DataComponent = chartType === 'line' ? Line : Bar;
+
+    return (
+      <ChartComponent {...commonProps}>
+        {commonComponents}
+        {Array.from(allKeys)
+          .filter((key) => key !== 'time')
+          .map((key, index) => (
+            <DataComponent
+              key={key}
+              dataKey={key}
+              {...(chartType === 'line'
+                ? {
+                    type: 'monotone',
+                    stroke: getLineColor(index, activeIndex, colors),
+                    strokeWidth: 4,
+                    dot: <CustomDot />,
+                    activeDot: { r: 6 },
+                  }
+                : {
+                    fill: colors[index % colors.length],
+                    barSize: 12,
+                    shape: <CustomBar />,
+                  })}
+              onMouseEnter={(o) => handleMouseEnter(o, index)}
+              onMouseLeave={handleMouseLeave}
+            />
+          ))}{' '}
+        <ReferenceLine
+          key="referenceLine"
+          y={WHO_STANDARD_VALUE}
+          label={CustomReferenceLabel}
+          ifOverflow="extendDomain"
+          stroke="red"
+          strokeOpacity={1}
+          strokeDasharray={0}
+        />
+      </ChartComponent>
+    );
   };
 
   return (
@@ -380,7 +343,8 @@ const Charts = ({
 };
 
 Charts.propTypes = {
-  chartType: PropTypes.string,
+  customBody: PropTypes.object,
+  chartType: PropTypes.oneOf(['line', 'bar']),
   width: PropTypes.string,
   height: PropTypes.string,
   id: PropTypes.string,

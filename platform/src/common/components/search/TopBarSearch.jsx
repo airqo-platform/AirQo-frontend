@@ -97,8 +97,8 @@ const TopBarSearch = React.memo(
 TopBarSearch.displayName = 'TopBarSearch';
 
 TopBarSearch.propTypes = {
-  data: PropTypes.array.isRequired,
-  onSearch: PropTypes.func.isRequired,
+  data: PropTypes.array,
+  onSearch: PropTypes.func,
   onClearSearch: PropTypes.func,
   focus: PropTypes.bool,
   placeholder: PropTypes.string,

@@ -1,9 +1,9 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import ChartContainer from '@/components/Charts/ChartContainer';
 import AQNumberCard from '@/components/AQNumberCard';
 import BorderlessContentBox from '@/components/Layout/borderless_content_box';
-import { useDispatch, useSelector } from 'react-redux';
 import { fetchRecentMeasurementsData } from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
 import CustomCalendar from '@/components/Calendar/CustomCalendar';
 import CheckIcon from '@/icons/tickIcon';
@@ -19,18 +19,15 @@ import DownloadIcon from '@/icons/Analytics/downloadIcon';
 import Modal from '@/components/Modal/dataDownload';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 
-const timeOptions = ['hourly', 'daily', 'weekly', 'monthly'];
-const pollutant = [
+const TIME_OPTIONS = ['hourly', 'daily', 'weekly', 'monthly'];
+const POLLUTANT_OPTIONS = [
   { id: 'pm2_5', name: 'PM2.5' },
   { id: 'pm10', name: 'PM10' },
-  // { id: 'no2', name: 'NO2' },
 ];
 
 const useFetchMeasurements = () => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
   const preferenceData =
     useSelector((state) => state.defaults.individual_preferences) || [];
   const preferencesLoading = useSelector(
@@ -38,14 +35,18 @@ const useFetchMeasurements = () => {
   );
   const refreshChart = useSelector((state) => state.chart.refreshChart);
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
     if (preferencesLoading || !preferenceData.length) return;
-    const { selected_sites } = preferenceData[0];
-    const chartSites = selected_sites?.map((site) => site['_id']);
 
     const fetchData = async () => {
       setIsLoading(true);
       try {
+        const { selected_sites } = preferenceData[0];
+        const chartSites = selected_sites?.map((site) => site['_id']);
+
         if (chartSites?.length > 0) {
           await dispatch(
             fetchRecentMeasurementsData({
@@ -61,13 +62,12 @@ const useFetchMeasurements = () => {
     };
 
     fetchData();
-  }, [chartData, preferenceData, refreshChart]);
+  }, [dispatch, preferenceData, chartData, refreshChart]);
 
   return { isLoading, error };
 };
 
 const OverView = () => {
-  // events hook
   const dispatch = useDispatch();
   const isOpen = useSelector((state) => state.modal.openModal);
   const recentLocationMeasurements = useSelector(
@@ -80,46 +80,76 @@ const OverView = () => {
   const { isLoading: isLoadingMeasurements } = useFetchMeasurements();
   const chartData = useSelector((state) => state.chart);
 
-  function getSiteName(siteId) {
-    if (preferenceData?.length === 0) {
-      return null;
+  const getSiteName = useCallback(
+    (siteId) => {
+      if (!preferenceData.length) return null;
+      const site = preferenceData[0]?.selected_sites?.find(
+        (site) => site._id === siteId,
+      );
+      return site ? site.search_name?.split(',')[0] : '';
+    },
+    [preferenceData],
+  );
+
+  const getExistingSiteName = useCallback(
+    (siteId) => {
+      const site = siteData?.sites?.find((site) => site._id === siteId);
+      return site ? site.search_name : '';
+    },
+    [siteData],
+  );
+
+  const dummyData = useMemo(
+    () => ({
+      siteDetails: {
+        search_name: '--',
+        location_name: '--',
+        formatted_name: '--',
+        description: '--',
+        country: '--',
+      },
+      pm2_5: {
+        value: '--',
+      },
+    }),
+    [],
+  );
+
+  const displayData = useMemo(() => {
+    let data = recentLocationMeasurements
+      ? recentLocationMeasurements.slice(0, 4)
+      : [];
+    while (data.length < 4) {
+      data.push(dummyData);
     }
-    const site = preferenceData[0]?.selected_sites?.find(
-      (site) => site._id === siteId,
-    );
-    return site ? site.search_name?.split(',')[0] : '';
-  }
+    return data;
+  }, [recentLocationMeasurements, dummyData]);
 
-  const getExistingSiteName = (siteId) => {
-    const site = siteData?.sites?.find((site) => site._id === siteId);
-    return site ? site.search_name : '';
-  };
-
-  const dummyData = {
-    siteDetails: {
-      search_name: '--',
-      location_name: '--',
-      formatted_name: '--',
-      description: '--',
-      country: '--',
+  const handleOpenModal = useCallback(
+    (type, ids = []) => {
+      dispatch(setOpenModal(true));
+      dispatch(setModalType({ type, ids }));
     },
-    pm2_5: {
-      value: '--',
+    [dispatch],
+  );
+
+  const handleTimeFrameChange = useCallback(
+    (option) => {
+      dispatch(setTimeFrame(option));
     },
-  };
+    [dispatch],
+  );
 
-  let displayData = recentLocationMeasurements
-    ? recentLocationMeasurements.slice(0, 4)
-    : [];
-
-  while (displayData.length < 4) {
-    displayData.push(dummyData);
-  }
+  const handlePollutantChange = useCallback(
+    (pollutantId) => {
+      dispatch(setPollutant(pollutantId));
+    },
+    [dispatch],
+  );
 
   return (
     <BorderlessContentBox>
       <div className="space-y-8">
-        {/* top tabs */}
         <div className="w-full flex flex-wrap gap-2 justify-between">
           <div className="space-x-2 flex">
             <CustomDropdown
@@ -128,12 +158,10 @@ const OverView = () => {
               id="days"
               className="left-0"
             >
-              {timeOptions.map((option) => (
+              {TIME_OPTIONS.map((option) => (
                 <span
                   key={option}
-                  onClick={() => {
-                    dispatch(setTimeFrame(option));
-                  }}
+                  onClick={() => handleTimeFrameChange(option)}
                   className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                     chartData.timeFrame === option
                       ? 'bg-[#EBF5FF] rounded-md'
@@ -154,7 +182,7 @@ const OverView = () => {
             <CustomCalendar
               initialStartDate={chartData.chartDataRange.startDate}
               initialEndDate={chartData.chartDataRange.endDate}
-              className="-left-24 md:left-14 lg:left-[118px]  top-11"
+              className="-left-24 md:left-14 lg:left-[118px] top-11"
               dropdown
             />
             <CustomDropdown
@@ -163,12 +191,10 @@ const OverView = () => {
               id="pollutant"
               className="left-0"
             >
-              {pollutant.map((option) => (
+              {POLLUTANT_OPTIONS.map((option) => (
                 <span
                   key={option.id}
-                  onClick={() => {
-                    dispatch(setPollutant(option.id));
-                  }}
+                  onClick={() => handlePollutantChange(option.id)}
                   className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                     chartData.pollutionType === option.id
                       ? 'bg-[#EBF5FF] rounded-md'
@@ -189,30 +215,12 @@ const OverView = () => {
             <TabButtons
               btnText="Add location"
               Icon={<PlusIcon width={16} height={16} />}
-              onClick={() => {
-                dispatch(setOpenModal(true));
-                dispatch(
-                  setModalType({
-                    type: 'addLocation',
-                    ids: [],
-                  }),
-                );
-              }}
+              onClick={() => handleOpenModal('addLocation')}
             />
-
-            {/* download data modal */}
             <TabButtons
               btnText="Download Data"
               Icon={<DownloadIcon width={16} height={17} color="white" />}
-              onClick={() => {
-                dispatch(setOpenModal(true));
-                dispatch(
-                  setModalType({
-                    type: 'download',
-                    ids: [],
-                  }),
-                );
-              }}
+              onClick={() => handleOpenModal('download')}
               btnStyle={
                 'bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl'
               }
@@ -220,56 +228,30 @@ const OverView = () => {
           </div>
         </div>
 
-        {/* Cards */}
         <div className={`gap-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4`}>
-          {!isLoadingMeasurements
-            ? displayData.map((event, index) => {
-                return (
-                  <AQNumberCard
-                    key={index}
-                    handleClick={() => {
-                      dispatch(setOpenModal(true));
-                      dispatch(
-                        setModalType({
-                          type: 'location',
-                          ids: [],
-                        }),
-                      );
-                    }}
-                    location={
-                      getSiteName(event.site_id) ||
-                      getExistingSiteName(event.site_id) ||
-                      event?.siteDetails?.search_name
-                    }
-                    country={event?.siteDetails?.country}
-                    locationFullName={
-                      getSiteName(event.site_id) ||
-                      getExistingSiteName(event.site_id) ||
-                      event?.siteDetails?.search_name
-                    }
-                    reading={event.pm2_5.value}
-                    count={displayData.length}
-                    pollutant={pollutantType}
-                  />
-                );
-              })
-            : displayData.map((event, index) => {
-                return (
-                  <AQNumberCard
-                    key={index}
-                    location={'--'}
-                    country={'--'}
-                    locationFullName={'--'}
-                    reading={'--'}
-                    count={displayData.length}
-                    pollutant={pollutantType}
-                    isLoading={isLoadingMeasurements}
-                  />
-                );
-              })}
+          {displayData.map((event, index) => (
+            <AQNumberCard
+              key={index}
+              handleClick={() => handleOpenModal('location')}
+              location={
+                getSiteName(event.site_id) ||
+                getExistingSiteName(event.site_id) ||
+                event?.siteDetails?.search_name
+              }
+              country={event?.siteDetails?.country}
+              locationFullName={
+                getSiteName(event.site_id) ||
+                getExistingSiteName(event.site_id) ||
+                event?.siteDetails?.search_name
+              }
+              reading={event.pm2_5.value}
+              count={displayData.length}
+              pollutant={pollutantType}
+              isLoading={isLoadingMeasurements}
+            />
+          ))}
         </div>
 
-        {/* charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ChartContainer
             chartType="line"
@@ -283,10 +265,9 @@ const OverView = () => {
           />
         </div>
       </div>
-      {/* Modal */}
       <Modal isOpen={isOpen} onClose={() => dispatch(setOpenModal(false))} />
     </BorderlessContentBox>
   );
 };
 
-export default OverView;
+export default React.memo(OverView);
