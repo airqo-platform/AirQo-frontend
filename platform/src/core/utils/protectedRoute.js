@@ -1,11 +1,7 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useSelector, useDispatch } from 'react-redux';
-import { resetStore } from '@/lib/store/services/account/LoginSlice';
-import { resetChecklist } from '@/lib/store/services/checklists/CheckData';
-import { resetAllTasks } from '@/lib/store/services/checklists/CheckList';
-import { resetChartStore } from '@/lib/store/services/charts/ChartSlice';
-import { clearIndividualPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
+import LogoutUser from '@/core/utils/LogoutUser';
 
 export default function withAuth(Component) {
   return function WithAuthComponent(props) {
@@ -23,12 +19,7 @@ export default function withAuth(Component) {
 
     useEffect(() => {
       if (!storedUserGroup) {
-        localStorage.clear();
-        dispatch(resetStore());
-        dispatch(resetChartStore());
-        dispatch(clearIndividualPreferences());
-        dispatch(resetAllTasks());
-        dispatch(resetChecklist());
+        LogoutUser(dispatch, router);
         router.push('/account/login');
       }
     }, [storedUserGroup]);

@@ -253,46 +253,37 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   const fetchAndProcessWaqData = useCallback(
     async (cities) => {
       setLoadingOthers(true);
-      const batchSize = 50; // Adjust this value based on API limits and performance
-      const batches = [];
-
-      for (let i = 0; i < cities.length; i += batchSize) {
-        batches.push(cities.slice(i, i + batchSize));
-      }
-
       try {
-        const allData = await Promise.all(
-          batches.map(async (batch) => {
-            const batchResponses = await axios.get('/api/proxy', {
-              params: { cities: batch.join(',') },
-            });
-            return batchResponses.data;
-          }),
+        const responses = await Promise.allSettled(
+          cities.map((city) => axios.get(`/api/proxy?city=${city}`)),
         );
 
-        const processedData = allData
-          .flat()
-          .filter((cityData) => cityData?.data?.city)
-          .map((cityData) => {
+        return responses
+          .filter(
+            (response) =>
+              response.status === 'fulfilled' &&
+              response.value?.data?.data?.city,
+          )
+          .map((response) => {
+            const cityData = response.value.data.data;
             const waqiPollutant = pollutant === 'pm2_5' ? 'pm25' : pollutant;
             const aqi = getAQICategory(
               pollutant,
-              cityData.data.iaqi[waqiPollutant]?.v,
+              cityData.iaqi[waqiPollutant]?.v,
             );
             return createFeature(
-              cityData.data.idx,
-              cityData.data.city.name,
-              [cityData.data.city.geo[1], cityData.data.city.geo[0]],
+              cityData.idx,
+              cityData.city.name,
+              [cityData.city.geo[1], cityData.city.geo[0]],
               aqi,
-              cityData.data.iaqi.no2?.v,
-              cityData.data.iaqi.pm10?.v,
-              cityData.data.iaqi.pm25?.v,
-              cityData.data.time.iso,
-              getForecastForPollutant(cityData.data),
+              cityData.iaqi.no2?.v,
+              cityData.iaqi.pm10?.v,
+              cityData.iaqi.pm25?.v,
+              cityData.time.iso,
+              getForecastForPollutant(cityData),
             );
-          });
-
-        return processedData;
+          })
+          .filter(Boolean);
       } catch (error) {
         console.error('Error fetching AQI data:', error);
         return [];
@@ -330,27 +321,37 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     [pollutant, createFeature],
   );
 
-  const fetchAndProcessData = useCallback(async () => {
-    setLoadingOthers(true);
+  const fetchAndProcessMapReadings = useCallback(async () => {
     try {
-      const [mapReadingsResponse, waqDataResponse] = await Promise.all([
-        getMapReadings(),
-        fetchAndProcessWaqData(AQI_FOR_CITIES),
-      ]);
-
-      const newMapReadingsData = processMapReadingsData(mapReadingsResponse);
-      dispatch(setMapReadingsData(newMapReadingsData));
-
-      dispatch(setWaqData(waqDataResponse));
-
-      return [...newMapReadingsData, ...waqDataResponse];
+      setLoading(true);
+      const response = await getMapReadings();
+      return processMapReadingsData(response);
     } catch (error) {
-      console.error('Error fetching and processing data:', error);
+      console.error('Error fetching map readings data:', error);
       return [];
     } finally {
-      setLoadingOthers(false);
+      setLoading(false);
     }
-  }, [dispatch, processMapReadingsData, fetchAndProcessWaqData]);
+  }, [processMapReadingsData]);
+
+  // Fetch and process data
+  const fetchAndProcessData = useCallback(async () => {
+    if (!mapReadingsData || mapReadingsData.length === 0) {
+      const newMapReadingsData = await fetchAndProcessMapReadings();
+      dispatch(setMapReadingsData(newMapReadingsData));
+    }
+
+    if (!waqData || waqData.length === 0) {
+      const newWaqData = await fetchAndProcessWaqData(AQI_FOR_CITIES);
+      dispatch(setWaqData(newWaqData));
+    }
+  }, [
+    dispatch,
+    fetchAndProcessMapReadings,
+    fetchAndProcessWaqData,
+    mapReadingsData,
+    waqData,
+  ]);
 
   /**
    * Get the two most common AQIs in a cluster.
@@ -385,9 +386,11 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     }));
   }, []);
 
-  const clusterUpdate = useCallback(() => {
+  /**
+   * Update the clusters on the map
+   */
+  const clusterUpdate = useCallback(async () => {
     const map = mapRef.current;
-    if (!map) return;
 
     // Initialize Super cluster
     const index = new Supercluster({
@@ -397,108 +400,31 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     // Assign the index instance to indexRef.current
     indexRef.current = index;
 
-    const updateClusters = () => {
-      try {
-        const zoom = map.getZoom();
-        const bounds = map.getBounds();
-        const bbox = [
-          bounds.getWest(),
-          bounds.getSouth(),
-          bounds.getEast(),
-          bounds.getNorth(),
-        ];
-        const clusters = index.getClusters(bbox, Math.floor(zoom));
-
-        // Remove existing markers
-        markersRef.current.forEach((marker) => marker.remove());
-        markersRef.current = [];
-
-        // Add clusters and unclustered points as custom HTML markers
-        clusters.forEach((feature) => {
-          const el = document.createElement('div');
-          el.style.cursor = 'pointer';
-
-          const popup = new mapboxgl.Popup({
-            offset: NodeType === 'Node' ? 35 : NodeType === 'Number' ? 42 : 58,
-            closeButton: false,
-            maxWidth: 'none',
-            className: 'my-custom-popup hidden md:block',
-          }).setHTML(createPopupHTML({ feature, images }));
-
-          if (feature.properties.cluster) {
-            // Clustered point
-            el.className =
-              'clustered flex justify-center items-center bg-white rounded-full p-2 shadow-md';
-            el.innerHTML = createClusterNode({
-              feature: {
-                ...feature,
-                properties: {
-                  ...feature.properties,
-                  aqi: getTwoMostCommonAQIs(feature),
-                },
-              },
-              NodeType,
-            });
-
-            el.addEventListener('click', () => {
-              map.flyTo({
-                center: feature.geometry.coordinates,
-                zoom: zoom + 2,
-              });
-            });
-          } else {
-            // Unclustered point
-            el.style.zIndex = 1;
-            el.innerHTML = UnclusteredNode({ feature, NodeType, selectedNode });
-
-            el.addEventListener('mouseenter', () => {
-              marker.togglePopup();
-              el.style.zIndex = 9999;
-            });
-            el.addEventListener('mouseleave', () => {
-              marker.togglePopup();
-              el.style.zIndex = 1;
-            });
-
-            el.addEventListener('click', () => {
-              if (selectedNode === feature.properties._id) return;
-              dispatch(setSelectedNode(feature.properties._id));
-              dispatch(setSelectedWeeklyPrediction(null));
-              dispatch(setMapLoading(true));
-              dispatch(setOpenLocationDetails(true));
-              dispatch(setSelectedLocation(feature.properties));
-              dispatch(
-                setCenter({
-                  latitude: feature.geometry.coordinates[1],
-                  longitude: feature.geometry.coordinates[0],
-                }),
-              );
-              dispatch(setZoom(15));
-            });
-          }
-
-          const marker = new mapboxgl.Marker(el)
-            .setLngLat(feature.geometry.coordinates)
-            .addTo(map);
-
-          if (!feature.properties.cluster) {
-            marker.setPopup(popup);
-          }
-
-          markersRef.current.push(marker);
-        });
-      } catch (error) {
-        console.error('Error updating clusters: ', error);
-      }
-    };
-
     map.on('zoomend', updateClusters);
     map.on('moveend', updateClusters);
 
-    // Combine mapReadingsData and waqData
-    const data = [...mapReadingsData, ...waqData];
-    index.load(data);
-    updateClusters();
+    // Use state variables instead of fetching new data
+    if (mapReadingsData?.length > 0) {
+      try {
+        index.load(mapReadingsData);
+        updateClusters();
+      } catch (error) {
+        // console.error('Error loading map readings data into Supercluster: ', error);
+        return;
+      }
+    }
+
+    if (waqData?.length > 0) {
+      try {
+        // Combine mapReadingsData and waqData
+        const data = [...mapReadingsData, ...waqData];
+        index.load(data);
+        updateClusters();
+      } catch (error) {
+        // console.error('Error loading AQI data into Supercluster: ', error);
+        return;
+      }
+    }
   }, [
     selectedNode,
     NodeType,
@@ -508,13 +434,114 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     waqData,
     mapReadingsData,
     width,
-    dispatch,
-    getTwoMostCommonAQIs,
-    createClusterNode,
-    UnclusteredNode,
-    createPopupHTML,
-    images,
   ]);
+
+  const updateClusters = useCallback(() => {
+    try {
+      const zoom = mapRef.current.getZoom();
+      const bounds = mapRef.current.getBounds();
+      const bbox = [
+        bounds.getWest(),
+        bounds.getSouth(),
+        bounds.getEast(),
+        bounds.getNorth(),
+      ];
+      const clusters = indexRef.current.getClusters(bbox, Math.floor(zoom));
+
+      // Remove existing markers
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
+
+      // Add unclustered points as custom HTML markers
+      clusters.forEach((feature) => {
+        const el = document.createElement('div');
+        el.style.cursor = 'pointer';
+
+        if (!feature.properties.cluster) {
+          // unclustered
+          el.style.zIndex = 1;
+          el.innerHTML = UnclusteredNode({ feature, NodeType, selectedNode });
+
+          // Add popup to unclustered node
+          const popup = new mapboxgl.Popup({
+            offset: NodeType === 'Node' ? 35 : NodeType === 'Number' ? 42 : 58,
+            closeButton: false,
+            maxWidth: 'none',
+            className: 'my-custom-popup hidden md:block',
+          }).setHTML(createPopupHTML({ feature, images }));
+
+          const marker = new mapboxgl.Marker(el)
+            .setLngLat(feature.geometry.coordinates)
+            .setPopup(popup)
+            .addTo(mapRef.current);
+
+          // Show the popup when the user hovers over the node
+          el.addEventListener('mouseenter', () => {
+            marker.togglePopup();
+            el.style.zIndex = 9999;
+          });
+          el.addEventListener('mouseleave', () => {
+            marker.togglePopup();
+            el.style.zIndex = 1;
+          });
+
+          // Set selectedSite when the user clicks on the node
+          el.addEventListener('click', () => {
+            // If the selected node is the same as the previously selected node, return early
+            if (selectedNode === feature.properties._id) {
+              return;
+            }
+
+            dispatch(setSelectedNode(feature.properties._id));
+            dispatch(setSelectedWeeklyPrediction(null));
+            dispatch(setMapLoading(true));
+            dispatch(setOpenLocationDetails(true));
+            dispatch(setSelectedLocation(feature.properties));
+
+            // set the lat,lng and zoom in the URL
+            dispatch(
+              setCenter({
+                latitude: feature.geometry.coordinates[1],
+                longitude: feature.geometry.coordinates[0],
+              }),
+            );
+            dispatch(setZoom(15));
+          });
+
+          markersRef.current.push(marker);
+        } else {
+          // clustered
+          el.zIndex = 444;
+          el.className =
+            'clustered flex justify-center items-center bg-white rounded-full p-2 shadow-md';
+
+          // Get the two most common AQIs in the cluster
+          const mostCommonAQIs = getTwoMostCommonAQIs(feature);
+
+          // Include the most common AQIs in the properties of the cluster feature
+          feature.properties.aqi = mostCommonAQIs;
+
+          el.innerHTML = createClusterNode({ feature, NodeType });
+          const marker = new mapboxgl.Marker(el)
+            .setLngLat(feature.geometry.coordinates)
+            .addTo(mapRef.current);
+
+          // Add click event to zoom in when a user clicks on a cluster
+          el.addEventListener('click', () => {
+            mapRef.current.flyTo({
+              center: feature.geometry.coordinates,
+              zoom: zoom + 2,
+            });
+          });
+
+          markersRef.current.push(marker);
+        }
+      });
+    } catch (error) {
+      console.error('Error updating clusters: ', error);
+      return;
+    }
+  }, [clusterUpdate]);
 
   useEffect(() => {
     fetchAndProcessData();

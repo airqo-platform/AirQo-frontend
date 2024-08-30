@@ -6,35 +6,27 @@ import { wrapper } from '@/lib/store';
 import { useEffect } from 'react';
 import { Toaster } from 'sonner';
 import PropTypes from 'prop-types';
+import Loading from '@/components/Loader';
 
-export default function App({ Component, ...rest }) {
+function App({ Component, ...rest }) {
   const { store, props } = wrapper.useWrappedStore(rest);
   const persistor = persistStore(store);
 
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS === 'staging') {
-      return;
-    } else {
-      // Disable context menu (right click)
-      document.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-      });
-
-      // Disable F12 key (open developer tools)
+    if (process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS !== 'staging') {
+      document.addEventListener('contextmenu', (e) => e.preventDefault());
       document.addEventListener('keydown', (e) => {
-        if (e.keyCode === 123) {
-          e.preventDefault();
-        }
+        if (e.keyCode === 123) e.preventDefault();
       });
     }
   }, []);
 
   return (
     <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
+      <PersistGate loading={<Loading />} persistor={persistor}>
         <Component {...props.pageProps} />
+        <Toaster expand={true} richColors />
       </PersistGate>
-      <Toaster expand={true} richColors />
     </Provider>
   );
 }
@@ -43,3 +35,5 @@ App.propTypes = {
   Component: PropTypes.elementType.isRequired,
   pageProps: PropTypes.object.isRequired,
 };
+
+export default App;

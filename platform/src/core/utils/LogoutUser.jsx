@@ -1,18 +1,18 @@
-// import { clearIndividualPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
-// import { resetStore } from '@/lib/store/services/account/LoginSlice';
-// import { resetChartStore } from '@/lib/store/services/charts/ChartSlice';
-
 const LogoutUser = async (dispatch, router) => {
   try {
-    // Dispatch actions
-    // await Promise.all([
-    //   dispatch(resetStore()),
-    //   dispatch(resetChartStore()),
-    //   dispatch(clearIndividualPreferences()),
-    // ]);
+    // Dispatch the RESET_APP action to clear the entire Redux store
+    dispatch({ type: 'RESET_APP' });
 
     // Clear local storage
-    localStorage.clear();
+    if (typeof window !== 'undefined') {
+      localStorage.clear();
+    }
+
+    // Purge the persistor
+    const store = router.store || window.__NEXT_REDUX_STORE__;
+    if (store && store.__persistor) {
+      await store.__persistor.purge();
+    }
 
     // Navigate to login page
     await router.push('/account/login');
