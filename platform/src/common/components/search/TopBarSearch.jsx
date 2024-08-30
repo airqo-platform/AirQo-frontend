@@ -17,6 +17,7 @@ const TopBarSearch = React.memo(
       keys: ['name', 'description'], // Adjust these based on your data structure
       threshold: 0.4,
     },
+    customWidth = 'max-w-[192px]',
   }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const inputRef = useRef(null);
@@ -69,7 +70,7 @@ const TopBarSearch = React.memo(
 
     return (
       <div
-        className={`relative flex w-full max-w-[192px] items-center justify-center ${className}`}
+        className={`relative flex w-full ${customWidth} items-center justify-center ${className}`}
       >
         <div className="absolute left-0 flex items-center justify-center pl-3 bg-white border h-9 rounded-xl rounded-r-none border-r-0 border-input-light-outline focus:border-input-light-outline">
           <SearchIcon />
@@ -97,6 +98,7 @@ const TopBarSearch = React.memo(
 TopBarSearch.displayName = 'TopBarSearch';
 
 TopBarSearch.propTypes = {
+  customWidth: PropTypes.string,
   data: PropTypes.array,
   onSearch: PropTypes.func,
   onClearSearch: PropTypes.func,

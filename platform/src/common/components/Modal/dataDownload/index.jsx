@@ -6,6 +6,7 @@ import Close from '@/icons/close_icon';
 import PropTypes from 'prop-types';
 import DataDownload, { DownloadDataHeader } from './modules/DataDownload';
 import AddLocations, { AddLocationHeader } from './modules/AddLocations';
+import MoreInsights, { InSightsHeader } from './modules/MoreInsights';
 
 const Modal = ({ isOpen, onClose }) => {
   const modalType = useSelector((state) => state.modal.modalType.type);
@@ -17,7 +18,7 @@ const Modal = ({ isOpen, onClose }) => {
       case 'addLocation':
         return <AddLocationHeader />;
       case 'location':
-        return 'nothing';
+        return <InSightsHeader />;
       default:
     }
   };
@@ -29,7 +30,7 @@ const Modal = ({ isOpen, onClose }) => {
       case 'addLocation':
         return <AddLocations onClose={onClose} />;
       case 'location':
-        return 'nothing';
+        return <MoreInsights />;
       default:
     }
   };

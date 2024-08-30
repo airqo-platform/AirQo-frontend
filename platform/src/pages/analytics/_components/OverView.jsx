@@ -18,12 +18,7 @@ import PlusIcon from '@/icons/map/plusIcon';
 import DownloadIcon from '@/icons/Analytics/downloadIcon';
 import Modal from '@/components/Modal/dataDownload';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
-
-const TIME_OPTIONS = ['hourly', 'daily', 'weekly', 'monthly'];
-const POLLUTANT_OPTIONS = [
-  { id: 'pm2_5', name: 'PM2.5' },
-  { id: 'pm10', name: 'PM10' },
-];
+import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 
 const useFetchMeasurements = () => {
   const dispatch = useDispatch();
@@ -255,12 +250,12 @@ const OverView = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ChartContainer
             chartType="line"
-            chartTitle="Air quality over time"
+            chartTitle="Air pollution data over time"
             height={400}
           />
           <ChartContainer
             chartType="bar"
-            chartTitle="Air quality over time"
+            chartTitle="Air pollution data over time"
             height={400}
           />
         </div>

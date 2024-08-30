@@ -12,7 +12,15 @@ import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
 import PropTypes from 'prop-types';
 
 const ChartContainer = memo(
-  ({ chartType, chartTitle, height, width, id, defaultBody }) => {
+  ({
+    chartType,
+    chartTitle,
+    height,
+    width,
+    id,
+    defaultBody,
+    showTitle = true,
+  }) => {
     const dispatch = useDispatch();
     const chartRef = useRef(null);
     const dropdownRef = useRef(null);
@@ -166,29 +174,31 @@ const ChartContainer = memo(
         id="analytics-chart"
       >
         <div className="flex flex-col items-start gap-1 w-auto h-auto p-4">
-          <div className="flex items-center justify-between w-full h-8">
-            <div className="text-lg not-italic font-medium leading-[26px]">
-              {chartTitle}
+          {showTitle && (
+            <div className="flex items-center justify-between w-full h-8">
+              <div className="text-lg not-italic font-medium leading-[26px]">
+                {chartTitle}
+              </div>
+              <div ref={dropdownRef}>
+                <CustomDropdown
+                  btnText="More"
+                  dropdown
+                  tabID={`options-btn-${id}`}
+                  tabStyle="py-1 px-2 rounded-xl"
+                  id={`options-${id}`}
+                  alignment="right"
+                >
+                  {isLoading ? (
+                    <div className="p-2">
+                      <Spinner width={20} height={20} />
+                    </div>
+                  ) : (
+                    renderDropdownContent()
+                  )}
+                </CustomDropdown>
+              </div>
             </div>
-            <div ref={dropdownRef}>
-              <CustomDropdown
-                btnText="More"
-                dropdown
-                tabID={`options-btn-${id}`}
-                tabStyle="py-1 px-2 rounded-xl"
-                id={`options-${id}`}
-                alignment="right"
-              >
-                {isLoading ? (
-                  <div className="p-2">
-                    <Spinner width={20} height={20} />
-                  </div>
-                ) : (
-                  renderDropdownContent()
-                )}
-              </CustomDropdown>
-            </div>
-          </div>
+          )}
           <div
             ref={chartRef}
             className="mt-6 -ml-[27px] relative"
@@ -223,6 +233,7 @@ const ChartContainer = memo(
 );
 
 ChartContainer.propTypes = {
+  showTitle: PropTypes.bool,
   defaultBody: PropTypes.object,
   chartType: PropTypes.string.isRequired,
   chartTitle: PropTypes.string.isRequired,

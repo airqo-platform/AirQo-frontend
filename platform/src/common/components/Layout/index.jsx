@@ -25,6 +25,7 @@ const Layout = ({
   topbarTitle,
   noBorderBottom,
   noTopNav = true,
+  showSearch,
 }) => {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -117,6 +118,7 @@ const Layout = ({
               <TopBar
                 topbarTitle={topbarTitle}
                 noBorderBottom={noBorderBottom}
+                showSearch={showSearch}
               />
             )}
             <div
@@ -133,6 +135,7 @@ const Layout = ({
 };
 
 Layout.propTypes = {
+  showSearch: PropTypes.bool,
   pageTitle: PropTypes.string,
   children: PropTypes.node.isRequired,
   topbarTitle: PropTypes.string,

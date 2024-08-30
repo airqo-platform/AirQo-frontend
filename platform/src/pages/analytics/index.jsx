@@ -27,7 +27,12 @@ const AuthenticatedHomePage = () => {
   }, [dispatch]);
 
   return (
-    <Layout topbarTitle={'Analytics'} noBorderBottom pageTitle={'Analytics'}>
+    <Layout
+      topbarTitle={'Analytics'}
+      noBorderBottom
+      pageTitle={'Analytics'}
+      showSearch
+    >
       <AlertBox
         type={alert.type}
         message={alert.message}

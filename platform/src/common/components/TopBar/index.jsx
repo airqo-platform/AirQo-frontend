@@ -18,7 +18,7 @@ import {
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import LogoutUser from '@/core/utils/LogoutUser';
 
-const TopBar = ({ topbarTitle, noBorderBottom }) => {
+const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
   const router = useRouter();
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.login.userInfo);
@@ -119,68 +119,84 @@ const TopBar = ({ topbarTitle, noBorderBottom }) => {
   );
 
   return (
-    <nav
-      className={`z-50 w-full py-2 ${!noBorderBottom ? 'border-b-[1px] border-b-grey-750' : ''}`}
-    >
-      <div id="topBar-nav" className="flex justify-between items-center">
-        <div className="block lg:hidden relative z-10 w-full">
+    <div className="space-y-3">
+      <nav
+        className={`z-50 w-full py-2 px-2 rounded-xl bg-white shadow-sm border border-gray-200 lg:shadow-none lg:bg-transparent lg:border-none ${!noBorderBottom ? 'border-b-[1px] border-b-grey-750' : ''}`}
+      >
+        <div id="topBar-nav" className="flex justify-between items-center">
+          <div className="block lg:hidden relative z-10 w-full">
+            <Button
+              paddingStyles="p-0 m-0"
+              onClick={() => {
+                router.push('/Home');
+              }}
+            >
+              <AirqoLogo className="w-[46.56px] h-8" />
+            </Button>
+          </div>
+
+          <div className="font-medium hidden lg:flex items-center text-2xl text-neutral-light-800">
+            <div className="flex items-center gap-[10px]">
+              <span className="p-2 rounded-full bg-[#E2E3E5]">
+                <ChartIcon width={20} height={20} />
+              </span>
+              <div>{topbarTitle}</div>
+            </div>
+          </div>
+
+          <div className="hidden lg:flex gap-2 items-center">
+            <TopBarSearch />
+            <CustomDropdown
+              tabIcon={
+                userInfo.profilePicture ? (
+                  <img
+                    className="w-8 h-8 rounded-full object-cover"
+                    src={userInfo.profilePicture || placeholderImage}
+                    alt="User avatar"
+                  />
+                ) : (
+                  <UserIcon />
+                )
+              }
+              alignment="right"
+              tabStyle={`border-none ${userInfo.profilePicture ? '' : 'bg-yellow-200 p-2'} shadow-none rounded-full`}
+              id="user"
+              className="right-0"
+            >
+              {renderDropdownContent()}
+            </CustomDropdown>
+          </div>
+
           <Button
             paddingStyles="p-0 m-0"
-            onClick={() => {
-              router.push('/Home');
-            }}
+            className="lg:hidden relative flex items-center justify-start z-10 w-auto focus:outline-none"
+            onClick={handleDrawer}
           >
-            <AirqoLogo className="w-[46.56px] h-8" />
+            <span className="p-2">
+              <MenuBarIcon />
+            </span>
           </Button>
         </div>
-
-        <div className="font-medium hidden lg:flex items-center text-2xl text-neutral-light-800">
-          <div className="flex items-center gap-[10px]">
-            <span className="p-2 rounded-full bg-[#E2E3E5]">
-              <ChartIcon width={20} height={20} />
-            </span>
-            <div>{topbarTitle}</div>
+      </nav>
+      {showSearch && (
+        <div className="lg:hidden flex flex-col md:flex-row justify-between py-2 gap-3 items-center w-full">
+          <div className="font-medium flex items-center justify-start w-full text-2xl text-neutral-light-800">
+            <div className="flex items-center gap-[10px]">
+              <span className="p-2 rounded-full bg-[#E2E3E5]">
+                <ChartIcon width={20} height={20} />
+              </span>
+              <div>{topbarTitle}</div>
+            </div>
           </div>
+          <TopBarSearch customWidth="md:max-w-[192px]" />
         </div>
-
-        <div className="hidden lg:flex gap-2 items-center">
-          <TopBarSearch />
-          <CustomDropdown
-            tabIcon={
-              userInfo.profilePicture ? (
-                <img
-                  className="w-8 h-8 rounded-full object-cover"
-                  src={userInfo.profilePicture || placeholderImage}
-                  alt="User avatar"
-                />
-              ) : (
-                <UserIcon />
-              )
-            }
-            alignment="right"
-            tabStyle={`border-none ${userInfo.profilePicture ? '' : 'bg-yellow-200 p-2'} shadow-none rounded-full`}
-            id="user"
-            className="right-0"
-          >
-            {renderDropdownContent()}
-          </CustomDropdown>
-        </div>
-
-        <Button
-          paddingStyles="p-0 m-0"
-          className="lg:hidden relative flex items-center justify-start z-10 w-auto focus:outline-none border border-gray-200 rounded-xl bg-white"
-          onClick={handleDrawer}
-        >
-          <span className="p-2">
-            <MenuBarIcon />
-          </span>
-        </Button>
-      </div>
-    </nav>
+      )}
+    </div>
   );
 };
 
 TopBar.propTypes = {
+  showSearch: PropTypes.bool,
   topbarTitle: PropTypes.string,
   noBorderBottom: PropTypes.bool,
 };
