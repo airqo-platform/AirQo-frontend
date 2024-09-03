@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
-import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
+import { showGetInvolvedModal } from 'reduxStore/GetInvolved';
 import engineerImg from 'src/assets/img/highlights/engineer.webp';
 import GoogleOrgIcon from 'src/assets/img/highlights/google-org.svg';
 import { Link } from 'react-router-dom';
@@ -29,7 +29,7 @@ const MainSection = () => {
 
 const SubSection = () => {
   const dispatch = useDispatch();
-  const showModal = () => dispatch(showGetInvolvedModal(true));
+  const showModal = () => dispatch(showGetInvolvedModal({ openModal: true }));
 
   const { t } = useTranslation();
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import SEO from 'utilities/seo';
 import { useInitScrollTop, useClickOutside } from 'utilities/customHooks';
 import { useDispatch, useSelector } from 'react-redux';
-import { setActiveResource } from 'reduxStore/CleanAirNetwork/CleanAir';
+import { setActiveResource, fetchCleanAirData } from 'reduxStore/CleanAirNetwork';
 import { ReportComponent } from 'components/CleanAir';
 import { useTranslation } from 'react-i18next';
 import { RegisterSection, IntroSection, RotatingLoopIcon } from 'components/CleanAir';
@@ -13,7 +13,6 @@ import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArro
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import CleanAirPageContainer from './Page';
-import { fetchCleanAirData } from 'reduxStore/CleanAirNetwork/CleanAir';
 import { isEmpty } from 'underscore';
 
 const ITEMS_PER_PAGE = 3;

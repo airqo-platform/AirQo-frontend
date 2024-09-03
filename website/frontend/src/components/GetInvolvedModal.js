@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Modal, Box } from '@mui/material';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import CloseIcon from 'assets/svg/close-thin.svg';
@@ -10,8 +10,7 @@ import DeveloperIcon from 'assets/svg/Developer.svg';
 import PartnersIcon from 'assets/svg/Partners.svg';
 import PolicyIcon from 'assets/svg/Policy.svg';
 import ResearchIcon from 'assets/svg/Research.svg';
-import { useGetInvolvedData } from 'reduxStore/GetInvolved/selectors';
-import { showGetInvolvedModal, updateGetInvolvedData } from 'reduxStore/GetInvolved/operations';
+import { showGetInvolvedModal, updateGetInvolvedData } from 'reduxStore/GetInvolved';
 import { sendInquiryApi } from 'apis';
 import { Link } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
@@ -32,70 +31,65 @@ const BoxWrapper = React.forwardRef(({ children }, ref) => (
 
 const GetInvolvedTab = ({ icon, category, infoText }) => {
   const dispatch = useDispatch();
+  const { category: selectedCategory } = useSelector((state) => state.getInvolved);
   const { t } = useTranslation();
-  const getInvolvedData = useGetInvolvedData();
 
   const onClick = () => {
     dispatch(updateGetInvolvedData({ category: categoryMapper[category.toLowerCase()], slide: 1 }));
   };
+
   return (
     <div
       onClick={onClick}
       className={`GetInvolvedTab ${
-        categoryMapper[category.toLowerCase()] === getInvolvedData.category
-          ? 'tab-active'
-          : 'tab-inactive'
+        categoryMapper[category.toLowerCase()] === selectedCategory ? 'tab-active' : 'tab-inactive'
       }`}>
       <div className="img-placeholder">{icon}</div>
       <div className="text-holder">
-        I’m a <strong>{category}</strong>. <br />
+        I'm a <strong>{category}</strong>. <br />
         {infoText}
       </div>
     </div>
   );
 };
 
-const GetInvolvedLanding = ({ t }) => (
-  <div>
-    <GetInvolvedTab
-      icon={<PartnersIcon />}
-      category={t('getInvolvedModal.cards.first.category')}
-      infoText={t('getInvolvedModal.cards.first.infoText')}
-    />
-    <GetInvolvedTab
-      icon={<PolicyIcon />}
-      category={t('getInvolvedModal.cards.second.category')}
-      infoText={t('getInvolvedModal.cards.second.infoText')}
-    />
-    <GetInvolvedTab
-      icon={<ChampionIcon />}
-      category={t('getInvolvedModal.cards.third.category')}
-      infoText={t('getInvolvedModal.cards.third.infoText')}
-    />
-    <GetInvolvedTab
-      icon={<ResearchIcon />}
-      category={t('getInvolvedModal.cards.fourth.category')}
-      infoText={t('getInvolvedModal.cards.fourth.infoText')}
-    />
-    <GetInvolvedTab
-      icon={<DeveloperIcon />}
-      category={t('getInvolvedModal.cards.fifth.category')}
-      infoText={t('getInvolvedModal.cards.fifth.infoText')}
-    />
-  </div>
-);
+const GetInvolvedLanding = () => {
+  const { t } = useTranslation();
+  const categories = [
+    { icon: <PartnersIcon />, key: 'first' },
+    { icon: <PolicyIcon />, key: 'second' },
+    { icon: <ChampionIcon />, key: 'third' },
+    { icon: <ResearchIcon />, key: 'fourth' },
+    { icon: <DeveloperIcon />, key: 'fifth' }
+  ];
 
-const GetInvolvedEmail = ({ t }) => {
+  return (
+    <div>
+      {categories.map(({ icon, key }) => (
+        <GetInvolvedTab
+          key={key}
+          icon={icon}
+          category={t(`getInvolvedModal.cards.${key}.category`)}
+          infoText={t(`getInvolvedModal.cards.${key}.infoText`)}
+        />
+      ))}
+    </div>
+  );
+};
+
+const GetInvolvedEmail = () => {
   const dispatch = useDispatch();
-  const getInvolvedData = useGetInvolvedData();
+  const { t } = useTranslation();
+  const getInvolvedData = useSelector((state) => state.getInvolved);
   const [emailState, setEmailState] = useState(getInvolvedData);
   const [loading, setLoading] = useState(false);
 
   const handleOnChange = (id) => (event) => {
-    setEmailState({ ...emailState, [id]: event.target.value });
+    setEmailState((prev) => ({ ...prev, [id]: event.target.value }));
   };
+
   const handleOnCheckboxChange = (event) => {
-    setEmailState({ ...emailState, acceptedTerms: event.target.checked });
+    setEmailState((prev) => ({ ...prev, acceptedTerms: event.target.checked }));
   };
 
   const checkAllFilled = () =>
@@ -105,59 +99,41 @@ const GetInvolvedEmail = ({ t }) => {
     if (!checkAllFilled() || loading) return;
     setLoading(true);
 
-    sendInquiryApi({
-      fullName: `${emailState.firstName} ${emailState.lastName}`,
-      email: emailState.email,
-      category: emailState.category,
-      message: 'Get involved - Request from the website'
-    })
-      .then((data) => {
-        dispatch(updateGetInvolvedData({ ...setEmailState, complete: true }));
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.log(err);
-        setLoading(false);
+    try {
+      await sendInquiryApi({
+        fullName: `${emailState.firstName} ${emailState.lastName}`,
+        email: emailState.email,
+        category: emailState.category,
+        message: 'Get involved - Request from the website'
       });
+      dispatch(updateGetInvolvedData({ ...emailState, complete: true }));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
+
   return (
     <div className="form-section">
       <div className="wrapper">
         <form className="register-form">
-          <div className="form-field">
-            <label>{t('getInvolvedModal.form.fname')}</label>
-            <input
-              type="text"
-              id="fname"
-              defaultValue={emailState.firstName}
-              onChange={handleOnChange('firstName')}
-              required
-            />
-          </div>
-          <div className="form-field">
-            <label>{t('getInvolvedModal.form.lname')}</label>
-            <input
-              type="text"
-              id="lname"
-              defaultValue={emailState.lastName}
-              onChange={handleOnChange('lastName')}
-              required
-            />
-          </div>
-          <div className="form-field">
-            <label>{t('getInvolvedModal.form.email')}</label>
-            <input
-              type="email"
-              id="email"
-              defaultValue={emailState.email}
-              onChange={handleOnChange('email')}
-              required
-            />
-          </div>
+          {['firstName', 'lastName', 'email'].map((field) => (
+            <div key={field} className="form-field">
+              <label>{t(`getInvolvedModal.form.${field}`)}</label>
+              <input
+                type={field === 'email' ? 'email' : 'text'}
+                id={field}
+                value={emailState[field] || ''}
+                onChange={handleOnChange(field)}
+                required
+              />
+            </div>
+          ))}
           <div className="input-field">
             <input
               type="checkbox"
-              defaultChecked={emailState.acceptedTerms}
+              checked={emailState.acceptedTerms}
               onChange={handleOnCheckboxChange}
               required
             />
@@ -184,10 +160,11 @@ const GetInvolvedEmail = ({ t }) => {
 const GetInvolvedRegistryContent = () => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
-  const getInvolvedData = useGetInvolvedData();
+  const { slide } = useSelector((state) => state.getInvolved);
 
-  const hideModal = () => dispatch(showGetInvolvedModal(false));
-  const goBack = () => dispatch(updateGetInvolvedData({ slide: getInvolvedData.slide - 1 }));
+  const hideModal = () => dispatch(showGetInvolvedModal({ openModal: false }));
+  const goBack = () => dispatch(updateGetInvolvedData({ slide: slide - 1 }));
+
   return (
     <>
       <div className="banner">
@@ -209,22 +186,30 @@ const GetInvolvedRegistryContent = () => {
         </div>
       </div>
       <div className="content">
-        <span>
-          {getInvolvedData.slide ? <ArrowBackIcon onClick={goBack} /> : <span />}
+        <div
+          style={{
+            width: '100%',
+            display: 'flex',
+            justifyContent: slide > 0 ? 'space-between' : 'flex-end',
+            cursor: 'pointer'
+          }}>
+          {slide > 0 && <ArrowBackIcon onClick={goBack} />}
           <CloseIcon onClick={hideModal} />
-        </span>
-        {getInvolvedData.slide <= 0 ? <GetInvolvedLanding t={t} /> : <GetInvolvedEmail t={t} />}
+        </div>
+        {slide <= 0 ? <GetInvolvedLanding /> : <GetInvolvedEmail />}
       </div>
     </>
   );
 };
 
-const GetInvolvedComplete = ({ t }) => {
+const GetInvolvedComplete = () => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   const backToHomePage = () => {
-    dispatch(showGetInvolvedModal(false));
+    dispatch(showGetInvolvedModal({ openModal: false }));
   };
+
   return (
     <div className="complete">
       <div className="content-wrapper">
@@ -240,18 +225,16 @@ const GetInvolvedComplete = ({ t }) => {
 };
 
 const GetInvolvedModal = () => {
+  const { openModal, complete } = useSelector((state) => state.getInvolved);
   const dispatch = useDispatch();
-  const { t } = useTranslation();
-  const getInvolvedData = useGetInvolvedData();
 
-  const hideModal = () => dispatch(showGetInvolvedModal(false));
+  const hideModal = () => dispatch(showGetInvolvedModal({ openModal: false }));
 
   return (
-    <Modal open={getInvolvedData.openModal} onClose={hideModal}>
+    <Modal open={openModal} onClose={hideModal}>
       <BoxWrapper tabIndex={-1}>
         <Box className="GetInvolvedModal">
-          {!getInvolvedData.complete && <GetInvolvedRegistryContent />}
-          {getInvolvedData.complete && <GetInvolvedComplete t={t} />}
+          {complete ? <GetInvolvedComplete /> : <GetInvolvedRegistryContent />}
         </Box>
       </BoxWrapper>
     </Modal>

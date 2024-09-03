@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { Modal, Box } from '@mui/material';
 import MakText from 'icons/nav/MakText';
@@ -21,8 +21,7 @@ import Senegal from 'icons/africanCities/countries/senegal.svg';
 import Mozambique from 'icons/africanCities/countries/mozambique.svg';
 import Cameroon from 'icons/africanCities/countries/cameroon.svg';
 
-import { useAirqloudSummaryData, useCurrentAirqloudData } from 'reduxStore/AirQlouds/selectors';
-import { setCurrentAirQloudData } from 'reduxStore/AirQlouds/operations';
+import { setCurrentAirQloudData } from 'reduxStore/AirQlouds';
 import { useTranslation, Trans } from 'react-i18next';
 import LocationTracker from './LoctionTracker/LocationTracker';
 
@@ -62,8 +61,8 @@ const Footer = () => {
   const [open, setOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState('');
 
-  const airqloudSummaries = useAirqloudSummaryData();
-  const currentAirqloud = useCurrentAirqloudData();
+  const airqloudSummaries = useSelector((state) => state.airqlouds.summary);
+  const currentAirqloud = useSelector((state) => state.airqlouds.currentAirqloud);
   const [selectedAirqloud, setSelectedAirqloud] = useState(currentAirqloud);
   const { t } = useTranslation();
 
@@ -155,7 +154,9 @@ const Footer = () => {
                   <Link to="/products/api">{t('navbar.products.subnav.api.name')}</Link>
                 </span>
                 <span>
-                  <Link to="/products/mobile-app">{t('navbar.products.subnav.mobileapp.name')}</Link>
+                  <Link to="/products/mobile-app">
+                    {t('navbar.products.subnav.mobileapp.name')}
+                  </Link>
                 </span>
                 <span>
                   <Link to="/products/calibrate">AirQalibrate</Link>
@@ -166,10 +167,14 @@ const Footer = () => {
               <span>{t('navbar.solutions.title')}</span>
               <div>
                 <span>
-                  <Link to="/solutions/african-cities">{t('navbar.solutions.subnav.cities.name')}</Link>
+                  <Link to="/solutions/african-cities">
+                    {t('navbar.solutions.subnav.cities.name')}
+                  </Link>
                 </span>
                 <span>
-                  <Link to="/solutions/communities">{t('navbar.solutions.subnav.communities.name')}</Link>
+                  <Link to="/solutions/communities">
+                    {t('navbar.solutions.subnav.communities.name')}
+                  </Link>
                 </span>
                 <span>
                   <Link to="/solutions/research">{t('navbar.solutions.subnav.research.name')}</Link>
@@ -180,7 +185,7 @@ const Footer = () => {
               <span>{t('navbar.about.title')}</span>
               <div>
                 <span>
-                  <Link to="/about-us">{t('navbar.about.title')}  AirQo</Link>
+                  <Link to="/about-us">{t('navbar.about.title')} AirQo</Link>
                 </span>
                 <span>
                   <Link to="/resources">{t('navbar.about.subnav.resources')}</Link>
@@ -217,7 +222,9 @@ const Footer = () => {
                   <span key={key}>{value}</span>
                 ))}
               </span>{' '}
-              <span className="count-text">{t('footer.monitors')} <span className='airqloud-name'>{currentAirqloud}</span></span>
+              <span className="count-text">
+                {t('footer.monitors')} <span className="airqloud-name">{currentAirqloud}</span>
+              </span>
             </div>
           </div>
         </div>

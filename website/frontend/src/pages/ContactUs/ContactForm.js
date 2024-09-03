@@ -3,9 +3,8 @@ import ContactUs from '.';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { Link, useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { useDispatch } from 'react-redux';
-import { postContactUsInquiry } from 'reduxStore/ContactUs/operations';
-import { useInquiryData } from 'reduxStore/ContactUs/selectors';
+import { useDispatch, useSelector } from 'react-redux';
+import { postContactUsInquiry } from 'reduxStore/ContactUs';
 import { isEmpty } from 'underscore';
 import { useTranslation, Trans } from 'react-i18next';
 
@@ -14,7 +13,7 @@ const ContactForm = () => {
   const { t } = useTranslation();
   const history = useNavigate();
   const dispatch = useDispatch();
-  const inquiryData = useInquiryData();
+  const inquiryData = useSelector((state) => state.inquiry);
   const [loading, setLoading] = useState(false);
   const [fullName, setName] = useState('');
   const [email, setEmail] = useState('');

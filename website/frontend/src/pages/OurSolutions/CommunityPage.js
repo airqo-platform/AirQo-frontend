@@ -14,14 +14,14 @@ import AirQoArrowLeft from 'assets/img/community/AirQo_arrow_left.svg';
 import AirQoQuotes from 'assets/img/community/AirQo_quotes.webp';
 import Page from '../Page';
 import { useDispatch } from 'react-redux';
-import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
+import { showGetInvolvedModal } from 'reduxStore/GetInvolved';
 import SEO from 'utilities/seo';
 import { useTranslation } from 'react-i18next';
 
 const CommunityPage = () => {
   useInitScrollTop();
   const dispatch = useDispatch();
-  const showModal = () => dispatch(showGetInvolvedModal(true));
+  const showModal = () => dispatch(showGetInvolvedModal({ openModal: true }));
   const { t } = useTranslation();
   return (
     <Page>
