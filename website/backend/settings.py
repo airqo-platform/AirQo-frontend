@@ -16,8 +16,6 @@ import cloudinary
 import dj_database_url
 from django.utils.translation import gettext_lazy as _
 
-from drf_yasg.generators import OpenAPISchemaGenerator
-
 # from dotenv import load_dotenv
 
 # load_dotenv()
@@ -113,14 +111,6 @@ INSTALLED_APPS = [
     'backend.impact.apps.ImpactConfig',
     'backend.cleanair.apps.CleanAirConfig',
 ]
-
-
-class BothHttpAndHttpsSchemaGenerator(OpenAPISchemaGenerator):
-    def get_schema(self, request=None, public=False):
-        schema = super().get_schema(request, public)
-        schema.schemes = ["http", "https"]
-        return schema
-
 
 MIDDLEWARE = [
     # CORS middleware should be placed as high as possible to work correctly
