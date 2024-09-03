@@ -1,337 +1,244 @@
-# AirQo Website.
+# AirQo Website
 
-##
+## Table of Contents
 
-- [AirQo Website.](#airqo-website)
-  - [](#)
+- [AirQo Website](#airqo-website)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
   - [Prerequisites](#prerequisites)
-    - [OSX, Linux, Windows](#osx-linux-windows)
-    - [Docker](#docker)
-    - [Git](#git)
-  - [Setting up the development environment](#setting-up-the-development-environment)
-    - [Clone the repository](#clone-the-repository)
-    - [OSX](#osx)
-      - [HomeBrew](#homebrew)
-      - [Direnv](#direnv)
-      - [PostgreSQL](#postgresql)
-    - [Linux](#linux)
-      - [Pip](#pip)
-      - [PostgreSQL](#postgresql-1)
-      - [Set up PostgreSQL](#set-up-postgresql)
-    - [Windows](#windows)
-      - [Create Python Virtual Environment](#create-python-virtual-environment)
-  - [Running the stack](#running-the-stack)
-    - [Create the `.envrc` and `.env` files](#create-the-envrc-and-env-files)
-    - [OSX, Linux, and Windows](#osx-linux-and-windows)
-      - [Install `Python` and `node` requirements](#install-python-and-node-requirements)
-    - [Run the website frontend](#run-the-website-frontend)
-    - [Run the website app](#run-the-website-app)
+  - [Development Setup](#development-setup)
+    - [Clone the Repository](#clone-the-repository)
+    - [Environment Setup](#environment-setup)
+      - [OSX](#osx)
+      - [Linux](#linux)
+      - [Windows](#windows)
+    - [Database Setup](#database-setup)
+    - [Environment Variables](#environment-variables)
+  - [Running the Application](#running-the-application)
+    - [Backend (Django)](#backend-django)
+    - [Frontend (React)](#frontend-react)
   - [Database Management](#database-management)
-  - [Development Invoke Commands](#development-invoke-commands)
-    - [Running servers](#running-servers)
-    - [Lint checks and auto fixing](#lint-checks-and-auto-fixing)
-      - [Static builds](#static-builds)
-    - [Docker](#docker-1)
+  - [Development Commands](#development-commands)
+  - [Docker Setup](#docker-setup)
+  - [Troubleshooting](#troubleshooting)
+  - [Contributing](#contributing)
+  - [License](#license)
+
+## Overview
+
+AirQo Website is a web application built with Django (backend) and React (frontend). This README provides instructions for setting up the development environment, running the application, and managing the project.
 
 ## Prerequisites
 
-#### OSX, Linux, Windows
+- Python 3.7 or higher
+- Node.js v12 or higher
+- npm
+- Git
+- PostgreSQL 13.x
+- Docker (optional)
 
-- `Python 3.6 or higher (Python 3.7 preferred)` [Python Download](https://www.python.org/)
-- `NodeJs v12` [Node Download](https://nodejs.org/en/download/)
-- `Npm` [NpmJs](https://www.npmjs.com/get-npm)
+## Development Setup
 
-#### Docker
+### Clone the Repository
 
-- `Docker` [Install Docker Engine](https://docs.docker.com/engine/install/)
+```bash
+git clone https://github.com/airqo-platform/AirQo-frontend.git
+cd AirQo-frontend/website
+```
 
-#### Git
+### Environment Setup
 
-- `Git` [Installing Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
+#### OSX
 
-## Setting up the development environment
+1. Install Homebrew:
 
-### Clone the repository
+   ```bash
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
 
-    git clone https://github.com/airqo-platform/AirQo-frontend.git
+2. Install direnv:
 
-Change directory into the `website` folder of the cloned `AirQo-frontend` folder
+   ```bash
+   brew install direnv
+   ```
 
-### OSX
+3. Add direnv hook to your shell configuration file (`~/.zshrc` or `~/.bash_profile`):
 
-#### HomeBrew
+   ```bash
+   eval "$(direnv hook zsh)"  # or bash
+   ```
 
-Now Install homebrew
+4. Install PostgreSQL:
 
-    /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+   ```bash
+   brew install postgresql@13
+   ```
 
-#### Direnv
+5. Start PostgreSQL service:
+   ```bash
+   brew services start postgresql@13
+   ```
 
-Install `direnv` on your local machine, and set it up so it works
-in your shell. These are the instructions for the (default) bash shell. If
-you're using a different shell, you probably know where to configure it for
-yours or the check the [direnv setup page](https://direnv.net/docs/hook.html) for your shell:
+#### Linux
 
-    brew install direnv   # for Macs
+1. Install required packages:
 
-Then, add the following line to the end of your shell configuration file as follows:
+   ```bash
+   sudo apt-get update
+   sudo apt-get install python3-pip postgresql
+   ```
 
-For BASH, add below to `~/.bash_profile` or `~/.profile`
+2. Install pipenv:
 
-    eval "$(direnv hook bash)"
+   ```bash
+   pip install --user pipenv
+   ```
 
-For ZSH, add below to `~/.zshrc`
+3. Start PostgreSQL service:
+   ```bash
+   sudo systemctl start postgresql
+   ```
 
-    eval "$(direnv hook zsh)"
+#### Windows
 
-#### PostgreSQL
+1. Install PostgreSQL from the [official website](https://www.postgresql.org/download/windows/).
 
-The easiest way to install postgres on `MacOS` is through the [native app](https://postgresapp.com/downloads.html).
+2. Install virtualenv:
 
-Use version 13.x
+   ```bash
+   pip install virtualenv
+   ```
 
-Brew installation
+3. Create and activate a virtual environment:
+   ```bash
+   virtualenv env
+   .\env\Scripts\activate
+   ```
 
-    brew install postgresql@13.4
+### Database Setup
 
-After installing, follow the post-install console outputs and put the correct path to postgresql@13.4 in your `bash_profile` or `.zshrc` file.
+1. Access PostgreSQL:
 
-start the local service
+   ```bash
+   sudo -u postgres psql
+   ```
 
-    brew services start postgresql@13.4 # if installed using homebrew
-    or
-    pg_ctl -D /usr/local/var/postgres start # if not installed using homebrew
+2. Create a new user and database:
 
-Now we need to create two new users in postgresql.
+   ```sql
+   CREATE USER yourusername WITH PASSWORD 'yourpassword' CREATEDB;
+   CREATE DATABASE airqo_db OWNER yourusername;
+   ```
 
-    psql postgres
+3. Exit PostgreSQL:
+   ```sql
+   \q
+   ```
 
-_NOTE_: if using zsh, error `zsh: command not found: psql`, you need to include `export PATH="/usr/local/Cellar/postgresql@13.4/13.4.XX/bin:$PATH"` in your `~/.zshrc`, after replacing `XX` with the actual patch/directory you have.
+### Environment Variables
 
-- type `CREATE USER YOURUSERNAME CREATEDB;` (use your `whoami` username).
-- then press enter and exit the psql shell with `\q`
+1. Create `.envrc` and `.env` files in the project root:
 
-Stop the postgresql service using
+   ```bash
+   cp .env.sample .env
+   ```
 
-    brew services stop postgresql@13.4  # if installed using homebrew
-    or
-    pg_ctl -D /usr/local/var/postgres stop  # if not installed using homebrew
+2. Add the following to `.envrc`:
 
-### Linux
+   ```
+   layout python python3
+   PATH_add node_modules/.bin
+   dotenv
+   ```
 
-#### Pip
+3. Populate the `.env` file with necessary environment variables (refer to `.env.sample`).
 
-Install `pip` on your local machine in order to setup a virtual environment. [Setup](https://pip.pypa.io/en/stable/installation/)
+## Running the Application
 
-Then install `pipenv` to create the virtual environment shell.
+### Backend (Django)
 
-    pip install --user pipenv
+1. Install Python dependencies:
 
-To create a virtual environment:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-    pipenv install shell
+2. Run migrations:
 
-To activate virtual environment:
+   ```bash
+   python manage.py migrate
+   ```
 
-    pipenv shell
+3. Start the Django development server:
+   ```bash
+   python manage.py runserver
+   ```
 
-To deactivate virtual environment:
+### Frontend (React)
 
-    $ exit
+1. Install Node.js dependencies:
 
-#### PostgreSQL
+   ```bash
+   npm install
+   ```
 
-To use the apt repository, follow these steps:
+2. Start the React development server:
+   ```bash
+   npm run standalone
+   ```
 
-    # Create the file repository configuration:
-    sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-
-    # Import the repository signing key:
-    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-
-    # Update the package lists:
-    sudo apt-get update
-
-#### Set up PostgreSQL
-
-After installed, run `PostgreSQL` to generate the initial data using
-
-    sudo service postgresql start
-
-or
-
-    sudo systemctl start postgresql
-
-Now we need to create a new user in Postgresql.
-
-    sudo su postgres
-
-- open a postgresql shell using `psql`.
-- type `CREATE USER <YOURUSERNAME> CREATEDB;` where `<YOURUSERNAME>` matches your login / `whoami`
-- type `CREATE USER gitprime_app_user CREATEDB;`
-- type `ALTER USER <YOURUSERNAME> WITH SUPERUSER;` to give your user the super role.
-- then press enter and exit the shell with `\q`
-
-Stop the postgresql service using
-
-    sudo service postgresql stop
-
-or
-
-    sudo systemctl stop postgresql
-
-### Windows
-
-**NOTE**: Currently the environment does not run well on Windows Bash / WSL ( Windows Subsystem for Linux ).
-There are too many issues with line terminators and other environment inconsistencies.
-
-We will have to configure the environment manually, `direnv` cant help us here.
-
-First install `postgresql` on `Windows` [Postgresql Windows Installers](https://www.postgresql.org/download/windows/)
-
-#### Create Python Virtual Environment
-
-In your `Windows` command shell prompt type in
-
-    pip install virtualenv
-
-Create the virtual environment
-
-    virtualenv env
-
-Activate the environment
-
-    \env\Scripts\activate.bat
-
-**NOTE**: It is important at this point to add the path to the `node_modules` in the environment path variable. check [windows setting path](https://www.windows-commandline.com/set-path-command-line/)
-for more details.
-
-## Running the stack
-
-### Create the `.envrc` and `.env` files
-
-**Note:** You will only need a .env file if you intend on running this website application on Linux or with Docker
-
-In the `.envrc` file add the following code
-
-    layout python python3.7
-    PATH_add node_modules/.bin
-    dotenv
-
-In summary, this ensures a python virtual environment is created each time you cd into this directory.
-The `PATH` variable is updated with the `node_modules` path and `.env` loaded.
-
-Populate the `.env` file in the root of the folder with the values of the keys given in [.env.sample](./.env.sample) file as a template.
-
-Here is the [documentation link](https://wiki.airqo.net/#/../api/users?id=login) on how to get an authentication token for the `REACT_APP_AUTHORIZATION_TOKEN` variable.
-
-**Note**: Remove `DATABASE_URI` variable if you are using docker
-
-### OSX, Linux, and Windows
-
-**For OSX**, you need to allow `direnv` to load the new changes, so run the command below:
-
-    direnv allow .
-
-**For Linux**, activate your virtual environment with:
-
-    pipenv shell
-
-#### Install `Python` and `node` requirements
-
-Python requirements
-
-    pip install -r requirements.txt
-
-Node requirements
-
-    npm install
-
-### Run the website frontend
-
-To run the website `frontend` on its own, run the command:
-
-    npm run standalone
-
-The `frontend` will run on http://localhost:8081
-
-### Run the website app
-
-For `Linux` activate a virtual environment. Once properly setup, run the following commands in two separate terminals:
-
-    # Terminal 1 (shell)
-    python manage.py collectstatic
-    python manage.py makemigrations
-    inv run-web
-
-    # Terminal 2
-    inv run-build
-    inv webpack-server
-
-At this point you should be able to navigate to the local instance at http://localhost:8000/
+The application should now be accessible at `http://localhost:8000/` (Django) and `http://localhost:8081/` (React).
 
 ## Database Management
 
-Create a `superuser` to access the content management portal in your development environment. In your virtual environment:
+1. Create a superuser:
 
-    python manage.py createsuperuser
+   ```bash
+   python manage.py createsuperuser
+   ```
 
-Follow the prompts and take note of your `username` and `password` values.
+2. Access the admin panel at `http://localhost:8000/admin/`
 
-To make `table` entries [run the website app](#run-the-website-app) and route to http://localhost:8000/admin/ <br>
-Sign in with your credentials and choose the `table` you'd like to make edits to. Your changes can be viewed on the frontend http://localhost:8000/
+## Development Commands
 
-To view the `API` route to http://localhost:8000/api/
+- Run Django server: `inv run-web`
+- Run webpack dev-server: `inv webpack-server`
+- Run JS lint checks: `inv lint-js`
+- Auto-fix JS lint issues: `inv prettier-js`
+- Run webpack build (production): `inv run-build`
 
-    Alternatively, you can use the deployment environment database URI to make table entries.
+## Docker Setup
 
-## Development Invoke Commands
+1. Build the Docker image:
 
-### Running servers
+   ```bash
+   docker build . \
+       --build-arg REACT_WEB_STATIC_HOST=<value> \
+       --build-arg REACT_NETMANAGER_BASE_URL=<value> \
+       --build-arg REACT_APP_BASE_AIRQLOUDS_URL=<value> \
+       --build-arg REACT_APP_BASE_NEWSLETTER_URL=<value> \
+       --build-arg REACT_APP_WEBSITE_BASE_URL=<value> \
+       --build-arg REACT_APP_AUTHORIZATION_TOKEN=<value> \
+       --build-arg REACT_APP_GEO_LOCATION_URL=<value> \
+       --tag airqo-website:latest
+   ```
 
-Running django server
+2. Run the Docker container:
+   ```bash
+   docker run -d -p 8080:8080 --env-file=.env airqo-website:latest
+   ```
 
-    inv run-web
+The application should be accessible at `http://localhost:8080/`
 
-Running webpack dev-server
+## Troubleshooting
 
-    inv webpack-server
+- If you encounter any issues with `direnv`, make sure it's properly set up in your shell configuration.
+- For Windows users, ensure that the `node_modules/.bin` directory is added to your system's PATH.
 
-### Lint checks and auto fixing
+## Contributing
 
-Running `JS` lint checks
+Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
-    inv lint-js
+## License
 
-Auto fixing `JS` lint issues
-
-    inv prettier-js
-
-#### Static builds
-
-Running `Webpack` build (production)
-
-    inv run-build
-
-### Docker
-
-Build the application docker image with the command below. Make sure that your `google_application_credentials.json` file is at the root of the website folder just as your .env file
-
-    docker build . \
-        --build-arg REACT_WEB_STATIC_HOST=<<enter REACT_WEB_STATIC_HOST value>> \
-        --build-arg REACT_NETMANAGER_BASE_URL=<<enter REACT_NETMANAGER_BASE_URL value>> \
-        --build-arg REACT_APP_BASE_AIRQLOUDS_URL=<<enter REACT_APP_BASE_AIRQLOUDS_URL value>> \
-        --build-arg REACT_APP_BASE_NEWSLETTER_URL=<<enter REACT_APP_BASE_NEWSLETTER_URL value>> \
-        --build-arg REACT_APP_WEBSITE_BASE_URL=<<enter REACT_APP_WEBSITE_BASE_URL value>> \
-        --build-arg REACT_APP_AUTHORIZATION_TOKEN=<<enter REACT_APP_AUTHORIZATION_TOKEN value>> \
-        --build-arg REACT_APP_GEO_LOCATION_URL=<<enter REACT_APP_GEO_LOCATION_URL value>> \
-        --tag <<enter an image tag of choice>>
-
-Run the website application container with the command bellow
-
-    docker run -d \
-        -p 8080:8080 \
-        --env-file=.env \
-        <<enter an image tag used in the step above>>
-
-After a few minutes, you should be able to access the website via port 8080 http://localhost:8080/
+This project is licensed under the [MIT License](LICENSE).

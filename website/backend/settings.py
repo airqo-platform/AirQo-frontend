@@ -16,9 +16,9 @@ import cloudinary
 import dj_database_url
 from django.utils.translation import gettext_lazy as _
 
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 
-# load_dotenv()
+load_dotenv()
 
 
 # Read environment
@@ -250,14 +250,29 @@ cloudinary.config(
 # =========================
 # Django REST Framework
 # =========================
+LOGIN_URL = '/admin/login/'
+LOGOUT_URL = '/admin/logout/'
+
 REST_FRAMEWORK = {
-    # Use Django's standard `django.contrib.auth` permissions and django guardian's per-object permissions
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.DjangoObjectPermissions",
+        "rest_framework.permissions.DjangoModelPermissions",
     ],
     "DEFAULT_FILTER_BACKENDS": (
         "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.OrderingFilter",
     ),
+    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
     "NON_FIELD_ERRORS_KEY": "errors",
+}
+
+# Update Swagger settings
+SWAGGER_SETTINGS = {
+    'LOGIN_URL': '/admin/login/',
+    'LOGOUT_URL': '/admin/logout/',
+    'USE_SESSION_AUTH': True,
+    'SECURITY_DEFINITIONS': {
+        'basic': {
+            'type': 'basic'
+        }
+    },
 }
