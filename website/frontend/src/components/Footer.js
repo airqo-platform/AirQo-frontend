@@ -21,7 +21,8 @@ import Senegal from 'icons/africanCities/countries/senegal.svg';
 import Mozambique from 'icons/africanCities/countries/mozambique.svg';
 import Cameroon from 'icons/africanCities/countries/cameroon.svg';
 
-import { setCurrentAirQloudData } from 'reduxStore/AirQlouds';
+import { setCurrentAirQloudData, loadAirQloudSummaryData } from 'reduxStore/AirQlouds';
+
 import { useTranslation, Trans } from 'react-i18next';
 import LocationTracker from './LoctionTracker/LocationTracker';
 
@@ -67,6 +68,10 @@ const Footer = () => {
   const { t } = useTranslation();
 
   const currentAirqloudData = airqloudSummaries[currentAirqloud] || { numberOfSites: 0 };
+
+  useEffect(() => {
+    dispatch(loadAirQloudSummaryData());
+  }, []);
 
   const explodeSummaryCount = (numberOfSites) => {
     const paddedCount = numberOfSites.toString().padStart(4, '0');
