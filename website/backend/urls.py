@@ -6,6 +6,7 @@ from drf_yasg import openapi
 from django.conf import settings
 from rest_framework import permissions
 from django.contrib.auth.decorators import user_passes_test
+from functools import wraps
 
 # Import your views
 from .career import views as career_views
@@ -50,6 +51,15 @@ router.register(r'forum_events', cleanair_views.ForumEventViewSet)
 def is_admin(user):
     return user.is_authenticated and user.is_staff
 
+# Custom decorator combining user_passes_test and is_admin
+
+
+def admin_required(view_func):
+    @wraps(view_func)
+    def wrapped_view(request, *args, **kwargs):
+        return user_passes_test(is_admin)(view_func)(request, *args, **kwargs)
+    return wrapped_view
+
 
 # Config DRF Auto-Swagger Generation
 schema_view = get_schema_view(
@@ -66,12 +76,12 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include(router.urls)),
-    path('api/', user_passes_test(is_admin)(schema_view.with_ui('swagger',
+    path('api/', admin_required(schema_view.with_ui('swagger',
          cache_timeout=0)), name='schema-swagger-ui'),
-    path('api/doc/', user_passes_test(is_admin)
-         (schema_view.with_ui('swagger', cache_timeout=0)), name='schema-swagger-ui'),
-    path('api/redoc/', user_passes_test(is_admin)
-         (schema_view.with_ui('redoc', cache_timeout=0)), name='schema-redoc'),
+    path('api/doc/', admin_required(schema_view.with_ui('swagger',
+         cache_timeout=0)), name='schema-swagger-ui'),
+    path('api/redoc/', admin_required(schema_view.with_ui('redoc',
+         cache_timeout=0)), name='schema-redoc'),
     path('', include('frontend.urls')),
 ]
 

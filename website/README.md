@@ -146,7 +146,7 @@ cd AirQo-frontend/website
 2. Add the following to `.envrc`:
 
    ```
-   layout python python3.7
+   layout python python3
    PATH_add node_modules/.bin
    dotenv
    ```
