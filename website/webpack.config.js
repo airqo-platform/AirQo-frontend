@@ -1,12 +1,34 @@
 const path = require('path');
 const webpack = require('webpack');
+// const autoprefixer = require('autoprefixer');
+// const webpack = require('webpack');
+// const TerserPlugin = require('terser-webpack-plugin');
 const dotenv = require('dotenv');
-const TerserPlugin = require('terser-webpack-plugin');
-const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 
 dotenv.config();
 
 const ROOT = path.resolve(__dirname, 'frontend');
+
+function stripLoaderConfig() {
+  return {
+    loader: 'strip-loader',
+    options: {
+      strip: [
+        'assert',
+        'typeCheck',
+        'log.log',
+        'log.debug',
+        'log.deprecate',
+        'log.info',
+        'log.warn'
+      ]
+    }
+  };
+}
+
+function compact(items) {
+  return items.filter((item) => item);
+}
 
 function postCSSLoader() {
   return {
@@ -29,9 +51,8 @@ function removeTrailingSlash(str) {
   return str.replace(/\/+$/, '');
 }
 
-const config = (env, argv) => {
-  const NODE_ENV = argv?.mode || process.env.NODE_ENV || 'production';
-  const isDevelopment = NODE_ENV !== 'production';
+const config = () => {
+  const NODE_ENV = process.env.NODE_ENV || 'local';
 
   const STATIC_URL = removeTrailingSlash(process.env.REACT_WEB_STATIC_HOST);
 
@@ -51,9 +72,11 @@ const config = (env, argv) => {
     return prev;
   }, {});
 
-  return {
-    mode: NODE_ENV,
+  function prodOnly(x) {
+    return NODE_ENV === 'production' ? x : undefined;
+  }
 
+  return {
     context: path.resolve(__dirname),
 
     entry: './frontend/index.js',
@@ -61,8 +84,7 @@ const config = (env, argv) => {
     output: {
       path: DIST_DIR,
       filename: '[name].bundle.js',
-      publicPath: PUBLIC_PATH,
-      clean: true // Clean the output directory before emit
+      publicPath: PUBLIC_PATH
     },
 
     // webpack 5 comes with devServer which loads in development mode
@@ -79,10 +101,7 @@ const config = (env, argv) => {
 
     resolve: {
       modules: [ROOT, 'frontend/src', 'node_modules'],
-      extensions: ['.js', '.jsx', '.ts', '.tsx', '...'],
-      alias: {
-        '@': path.resolve(__dirname, 'frontend/src')
-      }
+      extensions: ['.js', '.jsx', '.ts', '.tsx', '...']
     },
 
     module: {
@@ -90,25 +109,27 @@ const config = (env, argv) => {
         {
           test: /\.(js|jsx|ts|tsx)$/,
           exclude: /node_modules/,
-          use: [
+          use: compact([
             {
-              loader: 'babel-loader',
-              options: {
-                cacheDirectory: true,
-                cacheCompression: false
-              }
-            }
-          ]
+              loader: 'babel-loader'
+            },
+            prodOnly(stripLoaderConfig())
+          ])
         },
 
         // Inlined CSS definitions for JS components
         {
           test: /\.css$/,
-          use: ['style-loader', 'css-loader', postCSSLoader()]
+          use: compact([{ loader: 'style-loader' }, { loader: 'css-loader' }, postCSSLoader()])
         },
         {
           test: /\.s[ac]ss$/i,
-          use: ['style-loader', 'css-loader', postCSSLoader(), 'sass-loader']
+          use: compact([
+            { loader: 'style-loader' },
+            { loader: 'css-loader' },
+            postCSSLoader(),
+            { loader: 'sass-loader' }
+          ])
         },
         // Webp
         {
@@ -149,28 +170,7 @@ const config = (env, argv) => {
       ]
     },
 
-    optimization: {
-      minimize: !isDevelopment,
-      minimizer: [
-        new TerserPlugin({
-          terserOptions: {
-            compress: {
-              drop_console: true
-            }
-          }
-        }),
-        new CssMinimizerPlugin()
-      ]
-    },
-
-    plugins: [
-      new webpack.DefinePlugin(envKeys),
-      new webpack.ids.HashedModuleIdsPlugin() // so that file hashes don't change unexpectedly
-    ],
-
-    cache: {
-      type: 'filesystem'
-    }
+    plugins: [new webpack.DefinePlugin(envKeys)]
   };
 };
 
