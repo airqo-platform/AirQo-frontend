@@ -1,9 +1,14 @@
-const config = require('./webpack.config');
+const { merge } = require('webpack-merge');
+const baseConfig = require('./webpack.config.js');
 
-// Override the public path
-config.output.publicPath = 'http://localhost:8081/static/frontend/';
-
-// Set the static public path to match what Django expects
-config.devServer.static.publicPath = '/static/';
-
-module.exports = config;
+module.exports = merge(baseConfig, {
+  mode: 'development',
+  output: {
+    publicPath: 'http://localhost:8081/static/frontend/'
+  },
+  devServer: {
+    static: {
+      publicPath: '/static/'
+    }
+  }
+});
