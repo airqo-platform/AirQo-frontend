@@ -472,7 +472,9 @@
       "button": "S'abonner",
       "subscribed": "Merci de votre participation",
       "failed": "Oups! Un problème s'est produit. Veuillez réessayer!",
-      "placeholder": "Saisissez votre adresse e-mail"
+      "emailPlaceholder": "Courriel",
+      "firstNamePlaceholder": "Prénom",
+      "lastNamePlaceholder": "Nom"
     }
   },
   "products": {

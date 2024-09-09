@@ -6,8 +6,8 @@ export const loadNewsletterData = createAsyncThunk(
   'newsletter/loadNewsletterData',
   async (data, { rejectWithValue }) => {
     try {
-      await newsletterSubscriptionApi(data);
-      return { email: data.email, successful: true };
+      const res = await newsletterSubscriptionApi(data);
+      return { ...data, successful: res.success };
     } catch (err) {
       return rejectWithValue({ successful: false });
     }
