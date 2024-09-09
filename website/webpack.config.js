@@ -1,9 +1,9 @@
 const path = require('path');
 const webpack = require('webpack');
-// const autoprefixer = require('autoprefixer');
-// const webpack = require('webpack');
-// const TerserPlugin = require('terser-webpack-plugin');
 const dotenv = require('dotenv');
+const TerserPlugin = require('terser-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 
 dotenv.config();
 
@@ -52,7 +52,8 @@ function removeTrailingSlash(str) {
 }
 
 const config = () => {
-  const NODE_ENV = process.env.NODE_ENV || 'local';
+  const NODE_ENV = process.env.NODE_ENV || 'development';
+  const isProduction = NODE_ENV === 'production';
 
   const STATIC_URL = removeTrailingSlash(process.env.REACT_WEB_STATIC_HOST);
 
@@ -68,26 +69,20 @@ const config = () => {
     if (next.startsWith('REACT_')) {
       prev[`process.env.${next}`] = JSON.stringify(process.env[next]);
     }
-
     return prev;
   }, {});
 
-  function prodOnly(x) {
-    return NODE_ENV === 'production' ? x : undefined;
-  }
-
   return {
+    mode: isProduction ? 'production' : 'development',
     context: path.resolve(__dirname),
-
     entry: './frontend/index.js',
-
     output: {
       path: DIST_DIR,
       filename: '[name].bundle.js',
-      publicPath: PUBLIC_PATH
+      publicPath: PUBLIC_PATH,
+      clean: true
     },
-
-    // webpack 5 comes with devServer which loads in development mode
+    devtool: isProduction ? 'source-map' : 'eval-cheap-module-source-map',
     devServer: {
       port: 8081,
       headers: { 'Access-Control-Allow-Origin': '*' },
@@ -98,12 +93,10 @@ const config = () => {
         directory: './static'
       }
     },
-
     resolve: {
       modules: [ROOT, 'frontend/src', 'node_modules'],
       extensions: ['.js', '.jsx', '.ts', '.tsx', '...']
     },
-
     module: {
       rules: [
         {
@@ -111,25 +104,30 @@ const config = () => {
           exclude: /node_modules/,
           use: compact([
             {
-              loader: 'babel-loader'
+              loader: 'babel-loader',
+              options: {
+                cacheDirectory: true
+              }
             },
-            prodOnly(stripLoaderConfig())
+            isProduction && stripLoaderConfig()
           ])
         },
-
-        // Inlined CSS definitions for JS components
         {
           test: /\.css$/,
-          use: compact([{ loader: 'style-loader' }, { loader: 'css-loader' }, postCSSLoader()])
+          use: [
+            isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
+            'css-loader',
+            postCSSLoader()
+          ]
         },
         {
           test: /\.s[ac]ss$/i,
-          use: compact([
-            { loader: 'style-loader' },
-            { loader: 'css-loader' },
+          use: [
+            isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
+            'css-loader',
             postCSSLoader(),
-            { loader: 'sass-loader' }
-          ])
+            'sass-loader'
+          ]
         },
         // Webp
         {
@@ -169,8 +167,28 @@ const config = () => {
         }
       ]
     },
-
-    plugins: [new webpack.DefinePlugin(envKeys)]
+    plugins: [
+      new webpack.DefinePlugin(envKeys),
+      isProduction &&
+        new MiniCssExtractPlugin({
+          filename: '[name].bundle.css'
+        })
+    ].filter(Boolean),
+    optimization: {
+      minimizer: [
+        new TerserPlugin({
+          terserOptions: {
+            compress: {
+              drop_console: isProduction
+            }
+          }
+        }),
+        new CssMinimizerPlugin()
+      ]
+    },
+    performance: {
+      hints: isProduction ? 'warning' : false
+    }
   };
 };
 

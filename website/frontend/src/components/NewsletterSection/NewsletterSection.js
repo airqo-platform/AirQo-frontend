@@ -65,7 +65,8 @@ const NewsletterSection = () => {
           <div
             style={{
               display: 'flex',
-              width: '100%'
+              width: '100%',
+              marginBottom: '10px'
             }}>
             <input
               type="email"

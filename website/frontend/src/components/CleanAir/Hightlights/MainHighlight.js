@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllEvents } from '../../../../reduxStore/Events';
+import { getAllEvents } from 'reduxStore/Events';
 import { isEmpty } from 'underscore';
 import { useNavigate } from 'react-router-dom';
 import { AccessTimeOutlined, CalendarMonth } from '@mui/icons-material';
