@@ -171,7 +171,7 @@ const config = () => {
       new webpack.DefinePlugin(envKeys),
       isProduction &&
         new MiniCssExtractPlugin({
-          filename: '[name].bundle.css'
+          filename: '[name].[contenthash].css'
         })
     ].filter(Boolean),
     optimization: {
@@ -184,10 +184,10 @@ const config = () => {
           }
         }),
         new CssMinimizerPlugin()
-      ]
-    },
-    performance: {
-      hints: isProduction ? 'warning' : false
+      ],
+      splitChunks: {
+        chunks: 'all'
+      }
     }
   };
 };
