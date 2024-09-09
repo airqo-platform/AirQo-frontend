@@ -1,224 +1,240 @@
-@import "lib/colors";
-@import "lib/variables";
+@import 'lib/colors';
+@import 'lib/variables';
 
-$tab_width: 120px;
-$text-size: 17px;
-$text-size-h2:40px;
-
-.tos-page{
-    width:100%;
-    height:auto;
-
-    .content{
-        display:grid;
-        grid-template-columns: $gridColumn;
-        .tos-top, .tos-sub{
-            grid-column: 2 / 3;
-        }
-    }
-
-    .tos-header{
-        background-color: $aq-white-3;
-        .content{
-            height:244px;
-            .tos-top{
-                display:grid;
-                grid-template-columns: 1fr;
-                grid-template-rows: 190px 54px;
-            }
-            h2{
-                font-size: 48px;
-                font-weight: 700;
-                font-style: normal;
-                line-height: 48px;
-                display:flex;
-                align-items: center;
-                padding-top:25px;
-            }
-            .header-nav{
-                position: relative;
-                span{
-                    position: absolute;
-                    bottom:0px;
-                }
-                #tab1{
-                    left: 0;
-                }
-                #tab2{
-                    left:$tab_width + 10px;
-                }
-                button{
-                    border:0px;
-                    outline: none;
-                    cursor: pointer;
-                    padding:0 0 5px 0;
-                    background-color: transparent;
-                    height:32px;
-                    width:$tab_width;
-                    font-size:14px;
-                    font-weight: 400;
-                    line-height: 20px;
-                    flex-grow: 0;
-                }
-                .selected{
-                    border-bottom: 2px solid $aq-black-0;
-                    color:$aq-black-0;
-                    cursor: pointer;
-                }
-                .unselected{
-                    border-bottom: 0px;
-                    color:$aq-grey-0;
-                }
-            }
-        }
-    }
-
-    .tos-body{
-        background-color: $aq-white-0;
-        margin-bottom: 3%;
-
-        .tos-sub{
-            display:grid;
-            grid-template-columns: 2fr 5fr;
-            grid-column-gap: 50px;
-            padding-top:60px;
-            .sidenav{
-                height:100%;
-                div{
-                    padding-top: 10px;
-                    a{
-                        font-size: 17px;
-                        outline: none;
-                        text-decoration: none;
-                        text-decoration-color: none;
-                        font-weight: 400;
-                        line-height: 26px;
-                        flex-grow: 0;
-                        color: $aq-grey-0;
-                        transition: color 0.5s;
-                    }
-                }
-                div.selected a{
-                    color: $aq-black-0;
-                }
-                div:first-child{
-                    padding-top:0px;
-                }
-                div a.active, div a:hover, div a:focus{
-                    color:$aq-black-0
-                }
-            }
-            .tos-wording{
-                margin-left: 5%;
-                max-height: 780px;
-                overflow-x: hidden;
-                overflow-y: scroll;
-                padding-right: 40px;
-                text-align: justify;
-                div:first-child{
-                    padding-top: 0px;
-                    margin-top:-5.5%;
-                }
-                div{
-                    h2{
-                        font-size: $text-size-h2;
-                        font-weight: 700;
-                        line-height: 42px;
-                        color:$aq-black-0;
-                        text-transform: capitalize;
-                    }
-                    ol{
-                        margin-left:-2%;
-                        margin-top: -3%;
-                        li{
-                            font-size: $text-size;
-                            font-weight: 400;
-                            list-style: decimal;
-                            line-height: 22px;
-                            padding-bottom: 10px;
-                        }
-                        p{
-                            font-size: $text-size;
-                            font-weight: 400;
-                            line-height: 22px;
-                            margin:0 0 0 -3%;
-                        }
-                        .bulleted{
-                            list-style: disc;
-                        }
-                    }
-                    p{
-                        margin-top:-3%;
-                        font-size: $text-size;
-                        font-weight: 400;
-                        line-height: 22px;
-                        padding-bottom: 10px;
-                    }
-                }
-            }
-            ::-webkit-scrollbar{
-                width:14px;
-            }
-            ::-webkit-scrollbar-button{
-                display:none;
-            }
-            ::-webkit-scrollbar-track{
-                background: $aq-white-3;
-                opacity:0.2;
-            }
-            ::-webkit-scrollbar-thumb{
-                background: $aq-blue-0;
-                border-radius: 10px;
-            }
-            ::-webkit-scrollbar-corner{
-                border-radius: 10px;
-            }
-        }
-    }
-    #show-more {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding-bottom: 80px;
-        padding-top: 40px;
-
-        .btn {
-            border: none;
-            outline: none;
-            font-size: $pillFont;
-            font-weight: 400;
-            color: $aq-blue-4;
-            cursor: pointer;
-            text-transform: capitalize;
-            background-color: transparent;
-        }
-    }
+@mixin sticky-sidebar {
+  position: sticky;
+  top: 2rem;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
 }
-@media(max-width: $mainBreakPoint){
-    .tos-page{
-        .tos-body{
-            .tos-sub{
-                display: grid;
-                grid-template-columns: 1fr;
-                .sidenav{
-                    display:none;
-                }
-                .tos-wording{
-                    max-height: max-content;
-                    text-align: left;
-                    div{
-                        ol{
-                            margin-left: -5%;
-                            p{
-                                margin-left: -6%;
-                            }
-                        }
-                    }
-                }
-                ::-webkit-scrollbar{
-                    display: none;
-                }
-            }
-        }
+
+// Legal Page Styles
+.tos-header {
+  background-color: $aq-white-3;
+  padding-top: 25px;
+
+  .header-body {
+    margin: 0 auto;
+    max-width: 1200px;
+
+    .page-title {
+      text-align: left;
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+      margin-left: 32px;
     }
+
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #e0e0e0;
+
+      .tab-button {
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s;
+
+        &:hover {
+          background-color: #f0f0f0;
+        }
+
+        &.selected {
+          font-weight: bold;
+          border-bottom: 2px solid #007bff;
+        }
+      }
+    }
+  }
+}
+
+.legal-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+
+  a {
+    color: #135dff;
+    text-decoration: underline;
+
+    &:hover {
+      color: #135dff;
+    }
+  }
+
+  .content-wrapper {
+    display: flex;
+  }
+
+  .tab-content {
+    display: flex;
+    padding: 2rem;
+
+    .sidebar {
+      width: 250px;
+      padding-right: 2rem;
+      position: sticky;
+      top: 2rem;
+      max-height: calc(100vh - 4rem);
+
+      ul {
+        list-style-type: none;
+        padding: 0;
+
+        li {
+          margin-bottom: 0.5rem;
+
+          a {
+            color: #333;
+            text-decoration: none;
+            transition: color 0.3s;
+
+            &:hover {
+              color: #007bff;
+            }
+          }
+        }
+      }
+    }
+
+    .content {
+      flex: 1;
+
+      h2 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+      }
+
+      p {
+        margin-bottom: 1rem;
+        line-height: 1.6;
+      }
+    }
+  }
+}
+
+// AirQoData Styles
+.airqo-data {
+  min-height: 100vh;
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .sidebar {
+      width: 25%;
+      padding: 1rem;
+      border-right: 1px solid #e0e0e0;
+
+      nav {
+        position: sticky;
+        top: 1rem;
+
+        a {
+          display: block;
+          padding: 0.5rem 1rem;
+          margin-bottom: 0.5rem;
+          color: #333;
+          text-decoration: none;
+          border-radius: 4px;
+          transition: background-color 0.3s ease;
+
+          &:hover {
+            background-color: #f0f0f0;
+          }
+
+          &.active {
+            background-color: #007bff;
+            color: #ffffff;
+          }
+        }
+      }
+    }
+
+    .main-content {
+      width: 75%;
+      padding: 2rem;
+
+      .section {
+        margin-bottom: 2rem;
+        scroll-margin-top: 100px;
+
+        h2 {
+          font-size: 1.8rem;
+          font-weight: bold;
+          margin-bottom: 1rem;
+        }
+
+        .content {
+          font-size: 1rem;
+          line-height: 1.6;
+
+          p {
+            margin-bottom: 1rem;
+          }
+
+          ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+
+            li {
+              margin-bottom: 0.5rem;
+            }
+          }
+
+          h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .airqo-data {
+    .container {
+      .content-wrapper {
+        flex-direction: column;
+      }
+
+      .sidebar,
+      .main-content {
+        width: 100%;
+      }
+
+      .sidebar {
+        border-right: none;
+        border-bottom: 1px solid #e0e0e0;
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .legal-page {
+    .tab-content {
+      flex-direction: column;
+
+      .sidebar {
+        width: 100%;
+        padding-right: 0;
+        margin-bottom: 2rem;
+      }
+    }
+  }
 }
