@@ -1,17 +1,9 @@
 # Stage 1: Build frontend
-FROM node:20-slim as frontend-builder
+FROM node:20-slim as frontend
 
 WORKDIR /app
 
-# Install dependencies
-COPY package.json package-lock.json ./
-RUN npm ci --silent
-
-# Copy source files
-COPY webpack.config.js .babelrc ./
-COPY frontend ./frontend
-
-# Build frontend
+# Combine ARG and ENV declarations
 ARG REACT_WEB_STATIC_HOST
 ARG REACT_NETMANAGER_BASE_URL
 ARG REACT_APP_BASE_AIRQLOUDS_URL
@@ -32,38 +24,27 @@ ENV REACT_WEB_STATIC_HOST=$REACT_WEB_STATIC_HOST \
     REACT_APP_NETMANAGER_URL=$REACT_APP_NETMANAGER_URL \
     REACT_APP_OPENCAGE_API_KEY=$REACT_APP_OPENCAGE_API_KEY
 
+COPY ./package.json ./package-lock.json /app/
+RUN npm ci --silent
+
+COPY ./webpack.config.js ./.babelrc /app/
+COPY ./frontend /app/frontend
 RUN npm run build
 
 # Stage 2: Build backend
 FROM python:3.12-slim
 
 WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Python dependencies
-COPY requirements.txt ./
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
-# Copy frontend build
-COPY --from=frontend-builder /app/frontend /app/frontend
-
-# Copy backend files
-COPY manage.py google_application_credentials.json ./
-COPY backend ./backend
-
-# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app
+    PYTHONUNBUFFERED=1
 
-# Create a non-root user and switch to it
-RUN useradd -m myuser
-USER myuser
+COPY requirements.txt /app/
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
+
+COPY manage.py google_application_credentials.json /app/
+COPY ./backend /app/backend
+COPY --from=frontend /app/frontend /app/frontend
 
 EXPOSE 8080
 
