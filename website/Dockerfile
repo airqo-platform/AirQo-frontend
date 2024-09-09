@@ -35,7 +35,7 @@ ENV REACT_WEB_STATIC_HOST=$REACT_WEB_STATIC_HOST \
 RUN npm run build
 
 # Stage 2: Build backend
-FROM python:3.12-slim as backend-builder
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -49,17 +49,8 @@ COPY requirements.txt ./
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Stage 3: Final image
-FROM python:3.12-slim
-
-WORKDIR /app
-
-# Copy Python dependencies from backend-builder
-COPY --from=backend-builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=backend-builder /usr/local/bin /usr/local/bin
-
 # Copy frontend build
-COPY --from=frontend-builder /app/frontend/static/frontend /app/frontend/static/frontend
+COPY --from=frontend-builder /app/frontend /app/frontend
 
 # Copy backend files
 COPY manage.py google_application_credentials.json ./
@@ -67,7 +58,8 @@ COPY backend ./backend
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
 
 # Create a non-root user and switch to it
 RUN useradd -m myuser
