@@ -7,6 +7,8 @@ import LoadSpinner from './src/components/LoadSpinner';
 import store from './store';
 import NetworkStatus from './NetworkStatus';
 import Scroll_to_top from './src/components/Scroll_to_top';
+import { PersistGate } from 'redux-persist/integration/react';
+import { persistStore } from 'redux-persist';
 
 import HomePage from 'src/pages/HomePage';
 import Press from './src/pages/Press/Press';
@@ -41,52 +43,56 @@ import Error404 from 'src/pages/ErrorPages/Error404';
 import ExploreApp from './src/pages/ExploreData';
 
 const App = () => {
+  const persistor = persistStore(store);
+
   return (
     <NetworkStatus>
       <Provider store={store}>
-        <I18nextProvider i18n={i18n}>
-          <Router>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/solutions/research" element={<ResearchPage />} />
-              <Route path="/solutions/communities" element={<CommunityPage />} />
-              <Route path="/solutions/african-cities" element={<AfricanCitiesPage />} />
-              <Route path="/careers" element={<CareerPage />} />
-              <Route path="/careers/:uniqueTitle" element={<CareerDetailPage />} />
-              <Route path="/about-us" element={<AboutUsPage />} />
-              <Route path="/press" element={<Press />} />
-              <Route path="/legal" element={<LegalPage />} />
-              <Route path="/contact" element={<ContactUsPage />} />
-              <Route path="/contact/form" element={<ContactForm />} />
-              <Route path="/contact/sent" element={<Feedback />} />
-              <Route path="/explore-data" element={<ExploreData />} />
-              <Route path="/explore-data/download-apps" element={<ExploreApp />} />
-              <Route path="/partners/:uniqueTitle" element={<PartnerDetailPage />} />
-              <Route path="/resources" element={<PublicationsPage />} />
-              <Route path="/events" element={<EventsPage />} />
-              <Route path="/events/:uniqueTitle" element={<EventsDetailsPage />} />
-              <Route path="/products/monitor" element={<MonitorPage />} />
-              <Route path="/products/analytics" element={<AnalyticsPage />} />
-              <Route path="/products/mobile-app" element={<MobileAppPage />} />
-              <Route path="/products/api" element={<APIPage />} />
-              <Route path="/download-apps" element={<QRCodeRedirectPage />} />
-              <Route path="/products/calibrate" element={<CalibrationPage />} />
-              <Route path="/clean-air" element={<CleanAirPage />} />
-              <Route path="/clean-air/about" element={<CleanAirPage />} />
-              <Route path="/clean-air/membership" element={<CleanAirMemberPage />} />
-              <Route path="/clean-air/events" element={<CleanAirEventsPage />} />
-              <Route path="/clean-air/resources" element={<CleanAirResourcesPage />} />
-              <Route path="/clean-air/forum" element={<CleanAirForumEvent />} />
-              <Route
-                path="/clean-air/event-details/:uniqueTitle"
-                element={<CleanAirEventsDetailsPage />}
-              />
-              <Route path="*" element={<Error404 />} />
-            </Routes>
-          </Router>
-        </I18nextProvider>
+        <PersistGate loading={<LoadSpinner />} persistor={persistor}>
+          <I18nextProvider i18n={i18n}>
+            <Router>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/solutions/research" element={<ResearchPage />} />
+                <Route path="/solutions/communities" element={<CommunityPage />} />
+                <Route path="/solutions/african-cities" element={<AfricanCitiesPage />} />
+                <Route path="/careers" element={<CareerPage />} />
+                <Route path="/careers/:uniqueTitle" element={<CareerDetailPage />} />
+                <Route path="/about-us" element={<AboutUsPage />} />
+                <Route path="/press" element={<Press />} />
+                <Route path="/legal" element={<LegalPage />} />
+                <Route path="/contact" element={<ContactUsPage />} />
+                <Route path="/contact/form" element={<ContactForm />} />
+                <Route path="/contact/sent" element={<Feedback />} />
+                <Route path="/explore-data" element={<ExploreData />} />
+                <Route path="/explore-data/download-apps" element={<ExploreApp />} />
+                <Route path="/partners/:uniqueTitle" element={<PartnerDetailPage />} />
+                <Route path="/resources" element={<PublicationsPage />} />
+                <Route path="/events" element={<EventsPage />} />
+                <Route path="/events/:uniqueTitle" element={<EventsDetailsPage />} />
+                <Route path="/products/monitor" element={<MonitorPage />} />
+                <Route path="/products/analytics" element={<AnalyticsPage />} />
+                <Route path="/products/mobile-app" element={<MobileAppPage />} />
+                <Route path="/products/api" element={<APIPage />} />
+                <Route path="/download-apps" element={<QRCodeRedirectPage />} />
+                <Route path="/products/calibrate" element={<CalibrationPage />} />
+                <Route path="/clean-air" element={<CleanAirPage />} />
+                <Route path="/clean-air/about" element={<CleanAirPage />} />
+                <Route path="/clean-air/membership" element={<CleanAirMemberPage />} />
+                <Route path="/clean-air/events" element={<CleanAirEventsPage />} />
+                <Route path="/clean-air/resources" element={<CleanAirResourcesPage />} />
+                <Route path="/clean-air/forum" element={<CleanAirForumEvent />} />
+                <Route
+                  path="/clean-air/event-details/:uniqueTitle"
+                  element={<CleanAirEventsDetailsPage />}
+                />
+                <Route path="*" element={<Error404 />} />
+              </Routes>
+            </Router>
+          </I18nextProvider>
 
-        <Scroll_to_top />
+          <Scroll_to_top />
+        </PersistGate>
       </Provider>
     </NetworkStatus>
   );

@@ -1,3 +1,4 @@
+import { combineReducers } from 'redux';
 import airqloudSlice from './AirQlouds';
 import newsLetterSlice from './Newsletter';
 import getInvolvedSlice from './GetInvolved';
@@ -16,7 +17,7 @@ import ImpactReducer from './ImpactNumbers/ImpactSlice';
 import cleanAirSlice from './CleanAirNetwork';
 import inquirySlice from './ContactUs';
 
-const rootReducer = {
+const rootReducer = combineReducers({
   airqlouds: airqloudSlice,
   newsletter: newsLetterSlice,
   getInvolved: getInvolvedSlice,
@@ -34,6 +35,6 @@ const rootReducer = {
   citiesData: CitiesReducer,
   impactData: ImpactReducer,
   cleanAirData: cleanAirSlice
-};
+});
 
 export default rootReducer;
