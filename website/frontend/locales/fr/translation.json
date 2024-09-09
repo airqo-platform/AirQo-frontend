@@ -89,8 +89,8 @@
       }
     },
     "form": {
-      "fname": "Prénom",
-      "lname": "Nom de famille",
+      "firstName": "Prénom",
+      "lastName": "Nom de famille",
       "email": "Adresse email",
       "terms": "J’accepte les <1>Conditions d’utilisation</1> et <1>Politique de confidentialité</1>",
       "cta": {

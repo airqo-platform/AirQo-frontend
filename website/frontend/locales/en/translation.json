@@ -89,8 +89,8 @@
       }
     },
     "form": {
-      "fname": "First name",
-      "lname": "Last name",
+      "firstName": "First name",
+      "lastName": "Last name",
       "email": "Email address",
       "terms": "I agree to the <1>Terms of Service</1> and <1>Privacy Policy</1>",
       "cta": {
