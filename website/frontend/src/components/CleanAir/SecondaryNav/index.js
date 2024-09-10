@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { setActiveTab } from '../../../../reduxStore/CleanAirNetwork/CleanAir';
+import { setActiveTab } from '../../../../reduxStore/CleanAirNetwork';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';

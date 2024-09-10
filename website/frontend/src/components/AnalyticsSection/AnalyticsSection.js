@@ -20,7 +20,7 @@ const AnalyticsSection = () => {
         </div>
       </div>
       <div className="analytics-img">
-        <img src={AnalyticsDashboard} alt="Analytics Dashboard" />
+        <img loading="lazy" src={AnalyticsDashboard} alt="Analytics Dashboard" />
       </div>
     </div>
   );

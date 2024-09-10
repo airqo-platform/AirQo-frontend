@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 import Loadspinner from '../../components/LoadSpinner';
 import PageMini from '../PageMini';
 import { useTranslation } from 'react-i18next';
-import { getAllEvents } from 'reduxStore/Events/EventSlice';
+import { getAllEvents } from 'reduxStore/Events';
 
 const EventDetails = () => {
   useInitScrollTop();

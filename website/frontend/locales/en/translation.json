@@ -89,8 +89,8 @@
       }
     },
     "form": {
-      "fname": "First name",
-      "lname": "Last name",
+      "firstName": "First name",
+      "lastName": "Last name",
       "email": "Email address",
       "terms": "I agree to the <1>Terms of Service</1> and <1>Privacy Policy</1>",
       "cta": {
@@ -471,7 +471,9 @@
       "button": "Subscribe",
       "subscribed": "Thanks for joining",
       "failed": "Oops! Something went wrong. Please try again!",
-      "placeholder": "Enter your email"
+      "emailPlaceholder": "Email",
+      "firstNamePlaceholder": "First Name",
+      "lastNamePlaceholder": "Last Name"
     }
   },
   "products": {

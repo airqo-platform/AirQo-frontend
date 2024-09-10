@@ -19,7 +19,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import CleanAirPageContainer from './Page';
 import { isEmpty } from 'underscore';
-import { getAllEvents } from 'reduxStore/Events/EventSlice';
+import { getAllEvents } from 'reduxStore/Events';
 
 /**
  * @description function to calculate the difference between two dates

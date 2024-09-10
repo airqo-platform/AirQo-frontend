@@ -18,7 +18,7 @@ const ApiSection = () => {
         </div>
       </div>
       <div className="api-section-img">
-        <img src={ApiSectionImg} />
+        <img loading="lazy" src={ApiSectionImg} />
       </div>
     </div>
   );
