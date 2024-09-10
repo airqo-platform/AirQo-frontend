@@ -9,7 +9,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import SectionLoader from '../../components/LoadSpinner/SectionLoader';
 import { useTranslation } from 'react-i18next';
 import { isEmpty } from 'underscore';
-import { getAllEvents } from 'reduxStore/Events/EventSlice';
+import { getAllEvents } from 'reduxStore/Events';
 
 /**
  * @description function to calculate the difference between two dates

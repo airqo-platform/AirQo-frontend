@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
+import { showGetInvolvedModal } from 'reduxStore/GetInvolved';
 import AirQo from 'icons/nav/AirQo';
 import MenuIcon from 'assets/svg/Menu.svg';
 import CloseIcon from 'assets/svg/Close.svg';
@@ -13,7 +13,7 @@ const TopBar = () => {
   // Translation hook
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const showModal = () => dispatch(showGetInvolvedModal(true));
+  const showModal = () => dispatch(showGetInvolvedModal({ openModal: true }));
 
   const toggleMenu = () => {
     setOpenItem(null);

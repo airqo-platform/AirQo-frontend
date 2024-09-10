@@ -1,17 +1,16 @@
-import React, { Suspense, useEffect, useState, useCallback } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 import LoadSpinner from './src/components/LoadSpinner';
-import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
 import store from './store';
-import PartnerDetailPage from './src/pages/Partners';
-import Error404 from 'src/pages/ErrorPages/Error404';
-import { ExploreApp } from './src/pages/ExploreData';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import NetworkStatus from './NetworkStatus';
+import Scroll_to_top from './src/components/Scroll_to_top';
+import { PersistGate } from 'redux-persist/integration/react';
+import { persistStore } from 'redux-persist';
 
+import HomePage from 'src/pages/HomePage';
 import Press from './src/pages/Press/Press';
 import LegalPage from './src/pages/Legal';
 import ResearchPage from './src/pages/OurSolutions/ResearchPage';
@@ -39,38 +38,18 @@ import CleanAirEventsPage from './src/pages/CleanAir/CleanAirEvents';
 import CleanAirResourcesPage from './src/pages/CleanAir/CleanAirPublications';
 import CleanAirEventsDetailsPage from './src/pages/CleanAir/EventDetails';
 import CleanAirForumEvent from './src/pages/CleanAir/CleanAirForumEvent';
-
-const HomePage = React.lazy(() => import('src/pages/HomePage'));
-
-store.dispatch(loadAirQloudSummaryData());
+import PartnerDetailPage from './src/pages/Partners';
+import Error404 from 'src/pages/ErrorPages/Error404';
+import ExploreApp from './src/pages/ExploreData';
 
 const App = () => {
-  const [showScroll, setShowScroll] = useState(false);
-
-  const checkScrollTop = useCallback(() => {
-    const shouldShowScroll = window.scrollY >= 400;
-    if (showScroll !== shouldShowScroll) {
-      setShowScroll(shouldShowScroll);
-    }
-  }, [showScroll]);
-
-  useEffect(() => {
-    window.addEventListener('scroll', checkScrollTop);
-    return () => window.removeEventListener('scroll', checkScrollTop);
-  }, [checkScrollTop]);
-
-  const ScrollTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  };
+  const persistor = persistStore(store);
 
   return (
     <NetworkStatus>
       <Provider store={store}>
-        <I18nextProvider i18n={i18n}>
-          <Suspense fallback={<LoadSpinner />}>
+        <PersistGate loading={<LoadSpinner />} persistor={persistor}>
+          <I18nextProvider i18n={i18n}>
             <Router>
               <Routes>
                 <Route path="/" element={<HomePage />} />
@@ -110,20 +89,10 @@ const App = () => {
                 <Route path="*" element={<Error404 />} />
               </Routes>
             </Router>
-          </Suspense>
-        </I18nextProvider>
-        {showScroll && (
-          <div className="scroll-top" onClick={ScrollTop}>
-            <ArrowUpwardIcon
-              className="scroll-top-icon"
-              sx={{
-                width: '40px',
-                height: '40px',
-                color: '#FFF'
-              }}
-            />
-          </div>
-        )}
+          </I18nextProvider>
+
+          <Scroll_to_top />
+        </PersistGate>
       </Provider>
     </NetworkStatus>
   );

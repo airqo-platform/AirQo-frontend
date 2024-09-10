@@ -89,8 +89,8 @@
       }
     },
     "form": {
-      "fname": "Prénom",
-      "lname": "Nom de famille",
+      "firstName": "Prénom",
+      "lastName": "Nom de famille",
       "email": "Adresse email",
       "terms": "J’accepte les <1>Conditions d’utilisation</1> et <1>Politique de confidentialité</1>",
       "cta": {
@@ -472,7 +472,9 @@
       "button": "S'abonner",
       "subscribed": "Merci de votre participation",
       "failed": "Oups! Un problème s'est produit. Veuillez réessayer!",
-      "placeholder": "Saisissez votre adresse e-mail"
+      "emailPlaceholder": "Courriel",
+      "firstNamePlaceholder": "Prénom",
+      "lastNamePlaceholder": "Nom"
     }
   },
   "products": {
@@ -939,6 +941,7 @@
     "blog": "Blog",
     "tos": "Termes de Service",
     "privacy": "Politique de Confidentialité",
+    "AirQoData": "Données AirQo",
     "by": "Un projet de",
     "modal": {
       "title": "Pays AirQloud",

@@ -12,6 +12,7 @@ class PartnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Partner
         fields = '__all__'
+        ref_name = 'PartnerList'
 
     descriptions = PartnerDescriptionsSerializer(read_only=True, many=True)
     partner_image = serializers.SerializerMethodField()

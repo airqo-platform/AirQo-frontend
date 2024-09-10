@@ -3,8 +3,7 @@ import { Link } from 'react-scroll';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import { useInitScrollTop } from 'utilities/customHooks';
-import { useTeamData } from 'reduxStore/Team/selectors';
-import { loadTeamData } from 'reduxStore/Team/operations';
+import { loadTeamData } from 'reduxStore/Team';
 import Profile from 'components/Profile';
 import Page from './Page';
 
@@ -13,23 +12,21 @@ import Vector1 from 'assets/img/about_us_vector_3.png';
 import Vector2 from 'assets/img/about-us-vector-2.png';
 import SEO from 'utilities/seo';
 
-import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
-import { usePartnersData } from '../../reduxStore/Partners/selectors';
+import { showGetInvolvedModal } from 'reduxStore/GetInvolved';
 import { useNavigate } from 'react-router-dom';
-import { useBoardData } from '../../reduxStore/Board/selectors';
-import { loadBoardData } from '../../reduxStore/Board/operations';
-import { loadPartnersData } from 'reduxStore/Partners/operations';
+import { loadBoardData } from '../../reduxStore/Board';
+import { loadPartnersData } from 'reduxStore/Partners';
 import { useTranslation } from 'react-i18next';
 
 const AboutUsPage = () => {
   useInitScrollTop();
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const teamData = useTeamData();
-  const allPartnersData = usePartnersData();
-  const boardData = useBoardData();
+  const teamData = useSelector((state) => state.teamData.team);
+  const allPartnersData = useSelector((state) => state.partnersData.partners);
+  const boardData = useSelector((state) => state.boardData.board);
   const navigate = useNavigate();
-  const showModal = () => dispatch(showGetInvolvedModal(true));
+  const showModal = () => dispatch(showGetInvolvedModal({ openModal: true }));
   const partnersData = allPartnersData.filter((partner) => partner.website_category === 'airqo');
   const language = useSelector((state) => state.eventsNavTab.languageTab);
 
