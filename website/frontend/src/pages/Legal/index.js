@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import PrivacyPolicy from './PrivacyPolicy';
 import TermsOfService from './TermsOfService';
 import AirQoData from './AirQo_Data';
@@ -11,19 +12,33 @@ const TabButton = ({ label, isSelected, onClick }) => (
 );
 
 const LegalPage = () => {
-  const [selectedTab, setSelectedTab] = useState('TermsOfService');
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [selectedTab, setSelectedTab] = useState('terms');
 
   const tabs = [
-    { id: 'TermsOfService', label: 'Terms of Service', component: TermsOfService },
-    { id: 'PrivacyPolicy', label: 'Privacy Policy', component: PrivacyPolicy },
-    { id: 'AirQoData', label: 'AirQo Data', component: AirQoData }
+    { id: 'terms', label: 'Terms of Service', component: TermsOfService },
+    { id: 'privacy', label: 'Privacy Policy', component: PrivacyPolicy },
+    { id: 'airqoData', label: 'AirQo Data', component: AirQoData }
   ];
 
-  const SelectedComponent = tabs.find((tab) => tab.id === selectedTab).component;
-
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tabFromUrl = params.get('tab');
+    if (tabFromUrl && tabs.some((tab) => tab.id === tabFromUrl)) {
+      setSelectedTab(tabFromUrl);
+    } else {
+      setSelectedTab('terms');
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  }, [location]);
+
+  const handleTabChange = (tabId) => {
+    setSelectedTab(tabId);
+    navigate(`/legal?tab=${tabId}`, { replace: true });
+  };
+
+  const SelectedComponent = tabs.find((tab) => tab.id === selectedTab)?.component || TermsOfService;
 
   return (
     <Page>
@@ -36,7 +51,7 @@ const LegalPage = () => {
                 key={tab.id}
                 label={tab.label}
                 isSelected={selectedTab === tab.id}
-                onClick={() => setSelectedTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
               />
             ))}
           </div>
