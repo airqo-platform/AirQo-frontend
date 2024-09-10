@@ -155,7 +155,9 @@ const Footer = () => {
                   <Link to="/products/api">{t('navbar.products.subnav.api.name')}</Link>
                 </span>
                 <span>
-                  <Link to="/products/mobile-app">{t('navbar.products.subnav.mobileapp.name')}</Link>
+                  <Link to="/products/mobile-app">
+                    {t('navbar.products.subnav.mobileapp.name')}
+                  </Link>
                 </span>
                 <span>
                   <Link to="/products/calibrate">AirQalibrate</Link>
@@ -166,10 +168,14 @@ const Footer = () => {
               <span>{t('navbar.solutions.title')}</span>
               <div>
                 <span>
-                  <Link to="/solutions/african-cities">{t('navbar.solutions.subnav.cities.name')}</Link>
+                  <Link to="/solutions/african-cities">
+                    {t('navbar.solutions.subnav.cities.name')}
+                  </Link>
                 </span>
                 <span>
-                  <Link to="/solutions/communities">{t('navbar.solutions.subnav.communities.name')}</Link>
+                  <Link to="/solutions/communities">
+                    {t('navbar.solutions.subnav.communities.name')}
+                  </Link>
                 </span>
                 <span>
                   <Link to="/solutions/research">{t('navbar.solutions.subnav.research.name')}</Link>
@@ -180,7 +186,7 @@ const Footer = () => {
               <span>{t('navbar.about.title')}</span>
               <div>
                 <span>
-                  <Link to="/about-us">{t('navbar.about.title')}  AirQo</Link>
+                  <Link to="/about-us">{t('navbar.about.title')} AirQo</Link>
                 </span>
                 <span>
                   <Link to="/resources">{t('navbar.about.subnav.resources')}</Link>
@@ -217,7 +223,9 @@ const Footer = () => {
                   <span key={key}>{value}</span>
                 ))}
               </span>{' '}
-              <span className="count-text">{t('footer.monitors')} <span className='airqloud-name'>{currentAirqloud}</span></span>
+              <span className="count-text">
+                {t('footer.monitors')} <span className="airqloud-name">{currentAirqloud}</span>
+              </span>
             </div>
           </div>
         </div>
@@ -226,10 +234,13 @@ const Footer = () => {
             <div className="text-copyright">© {new Date().getFullYear()} AirQo</div>
             <div className="terms-section">
               <span className="text-terms mr-24">
-                <Link to="/legal">{t('footer.tos')}</Link>
+                <Link to="/legal?tab=terms">{t('footer.tos')}</Link>
               </span>
               <span className="text-terms mr-24">
-                <Link to="/legal">{t('footer.privacy')}</Link>
+                <Link to="/legal?tab=privacy">{t('footer.privacy')}</Link>
+              </span>
+              <span className="text-terms mr-24">
+                <Link to="/legal?tab=airqoData">{t('footer.AirQoData')}</Link>
               </span>
               {/* <span className="text-terms mr-24">Sustainability</span> */}
             </div>
