@@ -12,7 +12,7 @@ import LanguageSwitcher from 'src/components/LanguageSwitcher';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { getEventApi } from '../../../apis';
-import { getAllEvents } from 'reduxStore/Events/EventSlice';
+import { getAllEvents } from 'reduxStore/Events';
 
 const EventDetails = () => {
   useInitScrollTop();

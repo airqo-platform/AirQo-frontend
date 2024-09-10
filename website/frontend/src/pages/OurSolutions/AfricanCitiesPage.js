@@ -7,7 +7,7 @@ import ArrowRight from 'icons/research/arrow-right.svg';
 import SEO from 'utilities/seo';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
-import { getAllCities } from '../../../reduxStore/AfricanCities/CitiesSlice';
+import { getAllCities } from '../../../reduxStore/AfricanCities';
 import SectionLoader from '../../components/LoadSpinner/SectionLoader';
 import { useTranslation } from 'react-i18next';
 import { t } from 'i18next';

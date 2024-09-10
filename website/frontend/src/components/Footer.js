@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { Modal, Box } from '@mui/material';
 import MakText from 'icons/nav/MakText';
@@ -21,8 +21,8 @@ import Senegal from 'icons/africanCities/countries/senegal.svg';
 import Mozambique from 'icons/africanCities/countries/mozambique.svg';
 import Cameroon from 'icons/africanCities/countries/cameroon.svg';
 
-import { useAirqloudSummaryData, useCurrentAirqloudData } from 'reduxStore/AirQlouds/selectors';
-import { setCurrentAirQloudData } from 'reduxStore/AirQlouds/operations';
+import { setCurrentAirQloudData, loadAirQloudSummaryData } from 'reduxStore/AirQlouds';
+
 import { useTranslation, Trans } from 'react-i18next';
 import LocationTracker from './LoctionTracker/LocationTracker';
 
@@ -62,12 +62,16 @@ const Footer = () => {
   const [open, setOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState('');
 
-  const airqloudSummaries = useAirqloudSummaryData();
-  const currentAirqloud = useCurrentAirqloudData();
+  const airqloudSummaries = useSelector((state) => state.airqlouds.summary);
+  const currentAirqloud = useSelector((state) => state.airqlouds.currentAirqloud);
   const [selectedAirqloud, setSelectedAirqloud] = useState(currentAirqloud);
   const { t } = useTranslation();
 
   const currentAirqloudData = airqloudSummaries[currentAirqloud] || { numberOfSites: 0 };
+
+  useEffect(() => {
+    dispatch(loadAirQloudSummaryData());
+  }, []);
 
   const explodeSummaryCount = (numberOfSites) => {
     const paddedCount = numberOfSites.toString().padStart(4, '0');

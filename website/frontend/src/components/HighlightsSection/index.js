@@ -2,12 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Pagination from './pagination';
 import Post from './post';
-import { useHighlightsData } from '../../../reduxStore/Highlights/selectors';
-import { loadHighlightsData, loadTagsData } from '../../../reduxStore/Highlights/operations';
+import { loadHighlightsData, loadTagsData } from '../../../reduxStore/Highlights';
 
 const HighlightsSection = () => {
   const dispatch = useDispatch();
-  const highlightsData = useHighlightsData();
+  const highlightsData = useSelector((state) => state.highlightsData.highlights);
   const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   useEffect(() => {

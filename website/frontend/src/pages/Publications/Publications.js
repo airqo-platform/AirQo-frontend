@@ -2,10 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useInitScrollTop } from 'utilities/customHooks';
 import SEO from 'utilities/seo';
-import {
-  usePublicationsData,
-  usePublicationsLoadingData
-} from '../../../reduxStore/Publications/selectors';
 import Page from '../Page';
 import CardComponent from './CardComponent';
 import Pagination from './Pagination';
@@ -13,15 +9,15 @@ import ReportComponent from './ReportComponent';
 import { useTranslation } from 'react-i18next';
 import { isEmpty } from 'underscore';
 import SectionLoader from '../../components/LoadSpinner/SectionLoader';
-import { loadPublicationsData } from 'reduxStore/Publications/operations';
+import { loadPublicationsData } from 'reduxStore/Publications';
 
 const PublicationsPage = () => {
   useInitScrollTop();
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const [selectedTab, setSelectedTab] = useState('');
-  const publicationsData = usePublicationsData();
-  const loading = usePublicationsLoadingData();
+  const publicationsData = useSelector((state) => state.publicationsData.publications);
+  const loading = useSelector((state) => state.publicationsData.loading);
   const language = useSelector((state) => state.eventsNavTab.languageTab);
 
   useEffect(() => {

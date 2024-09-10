@@ -1,9 +1,8 @@
 import React, { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { useInitScrollTop } from 'utilities/customHooks';
-import { loadCareersListingData } from 'reduxStore/Careers/operations';
-import { useCareerListingData, useCareerLoadingData } from 'reduxStore/Careers/selectors';
+import { loadCareersListingData } from 'reduxStore/Careers';
 import { isEmpty } from 'underscore';
 import Loadspinner from 'src/components/LoadSpinner';
 import PageMini from './PageMini';
@@ -23,8 +22,8 @@ const CareerDetailPage = () => {
   const { t } = useTranslation();
   const { uniqueTitle } = useParams();
   const dispatch = useDispatch();
-  const careerListing = useCareerListingData();
-  const loading = useCareerLoadingData();
+  const careerListing = useSelector((state) => state.careersData.listing);
+  const loading = useSelector((state) => state.careersData.loading);
   const listing = careerListing[uniqueTitle] || {};
 
   useEffect(() => {

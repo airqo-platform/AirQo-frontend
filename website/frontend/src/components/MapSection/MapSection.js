@@ -1,6 +1,7 @@
 import React from 'react';
 import HomePageMap from 'assets/img/homepage-map.png';
 import MapWrapper from 'assets/img/MapWrapper.png';
+import NewMap from 'assets/img/new-map.png';
 import useWindowSize from 'utilities/customHooks';
 import { Link } from 'react-router-dom';
 import { NETMANAGER_URL } from '../../../config/urls';
@@ -15,24 +16,22 @@ const MapSection = () => {
       <div className="backdrop">
         <div className="map-content">
           <span id="first-pill">
-            <p>{t("homepage.mapSection.pill")}</p>
+            <p>{t('homepage.mapSection.pill')}</p>
           </span>
-          <h3 className="content-h">{t("homepage.mapSection.title")}</h3>
+          <h3 className="content-h">{t('homepage.mapSection.title')}</h3>
           <span className="content-p">
-            <p>{t("homepage.mapSection.subText")}
-            </p>
+            <p>{t('homepage.mapSection.subText')}</p>
           </span>
-          <Link to={`${NETMANAGER_URL}/map`} target='_blank'>
+          <Link to={`${NETMANAGER_URL}/map`} target="_blank">
             <span id="second-pill">
-              <p>{t("homepage.mapSection.cta")} {'-->'}</p>
+              <p>
+                {t('homepage.mapSection.cta')} {'-->'}
+              </p>
             </span>
           </Link>
         </div>
         <div className="map-image">
-          <img
-            className="map-img"
-            src={windowSize.width <= largeScreen ? HomePageMap : MapWrapper}
-          />
+          <img className="map-img" loading="lazy" src={NewMap} />
         </div>
       </div>
     </div>
