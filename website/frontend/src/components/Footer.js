@@ -238,10 +238,13 @@ const Footer = () => {
             <div className="text-copyright">© {new Date().getFullYear()} AirQo</div>
             <div className="terms-section">
               <span className="text-terms mr-24">
-                <Link to="/legal">{t('footer.tos')}</Link>
+                <Link to="/legal?tab=terms">{t('footer.tos')}</Link>
               </span>
               <span className="text-terms mr-24">
-                <Link to="/legal">{t('footer.privacy')}</Link>
+                <Link to="/legal?tab=privacy">{t('footer.privacy')}</Link>
+              </span>
+              <span className="text-terms mr-24">
+                <Link to="/legal?tab=airqoData">{t('footer.AirQoData')}</Link>
               </span>
               {/* <span className="text-terms mr-24">Sustainability</span> */}
             </div>
