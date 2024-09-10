@@ -13,6 +13,7 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import NetworkStatus from './NetworkStatus';
 
 import Press from './src/pages/Press/Press';
+import LegalPage from './src/pages/Legal';
 import ResearchPage from './src/pages/OurSolutions/ResearchPage';
 import CommunityPage from './src/pages/OurSolutions/CommunityPage';
 import AfricanCitiesPage from './src/pages/OurSolutions/AfricanCitiesPage';
@@ -40,7 +41,6 @@ import CleanAirEventsDetailsPage from './src/pages/CleanAir/EventDetails';
 import CleanAirForumEvent from './src/pages/CleanAir/CleanAirForumEvent';
 
 const HomePage = React.lazy(() => import('src/pages/HomePage'));
-const LegalPage = React.lazy(() => import('./src/pages/Legal'));
 
 store.dispatch(loadAirQloudSummaryData());
 
