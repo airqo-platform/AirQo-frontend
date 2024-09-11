@@ -101,14 +101,19 @@ const AdminClientsTable = () => {
       });
   };
 
+  const displayIPAddresses = (client) => {
+    return Array.isArray(client.ip_addresses)
+      ? client.ip_addresses.join(', ')
+      : client.ip_addresses;
+  };
+
   return (
     <div>
       <div className='overflow-x-scroll'>
         {isError.isError && <Toast type={isError.type} message={isError.message} />}
         <table
           className='border-collapse rounded-lg text-xs text-left w-full mb-6'
-          data-testid='settings-clients-table'
-        >
+          data-testid='settings-clients-table'>
           <thead>
             <tr className='text-secondary-neutral-light-500 text-xs border-y border-y-secondary-neutral-light-100 bg-secondary-neutral-light-25'>
               <th scope='col' className='font-medium w-[200px] px-4 py-3 opacity-40'>
@@ -141,21 +146,18 @@ const AdminClientsTable = () => {
                       <tr className={`border-b border-b-secondary-neutral-light-100`} key={index}>
                         <td
                           scope='row'
-                          className='w-[200px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-800 uppercase'
-                        >
+                          className='w-[200px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-800 uppercase'>
                           {client?.name}
                         </td>
                         <td
                           scope='row'
-                          className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
-                        >
+                          className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'>
                           {client?._id}
                         </td>
                         <td
                           scope='row'
-                          className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'
-                        >
-                          {client?.ip_address}
+                          className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'>
+                          {displayIPAddresses(client)}
                         </td>
                         <td scope='row' className='w-[138px] px-4 py-3'>
                           <div
@@ -163,15 +165,13 @@ const AdminClientsTable = () => {
                               client?.isActive
                                 ? 'bg-success-50 text-success-700'
                                 : 'bg-secondary-neutral-light-50 text-secondary-neutral-light-500'
-                            }`}
-                          >
+                            }`}>
                             {client?.isActive ? 'Activated' : 'Not Activated'}
                           </div>
                         </td>
                         <td
                           scope='row'
-                          className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400 capitalize flex items-center gap-2'
-                        >
+                          className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400 capitalize flex items-center gap-2'>
                           <div
                             className={`w-9 h-9 p-2.5 bg-white rounded border border-gray-200 flex justify-center items-center ${
                               client?.isActive ? 'cursor-not-allowed' : 'cursor-pointer'
@@ -185,8 +185,7 @@ const AdminClientsTable = () => {
                             }}
                             title={
                               client?.isActive ? 'Client is already activated' : 'Activate client'
-                            }
-                          >
+                            }>
                             <CheckIcon />
                           </div>
                           <div
@@ -204,8 +203,7 @@ const AdminClientsTable = () => {
                               !client?.isActive
                                 ? 'Client is already deactivated'
                                 : 'Deactivate client'
-                            }
-                          >
+                            }>
                             <CloseIcon />
                           </div>
                         </td>
@@ -236,8 +234,7 @@ const AdminClientsTable = () => {
         onClose={() => setConfirmClientActivation(false)}
         handleClick={handleActivate}
         primaryButtonText={'Activate'}
-        loading={isLoadingActivation}
-      >
+        loading={isLoadingActivation}>
         <h3 className='self-stretch text-gray-700 text-lg font-medium leading-relaxed'>
           Activate client
         </h3>
@@ -248,8 +245,7 @@ const AdminClientsTable = () => {
         onClose={() => setConfirmClientDeactivation(false)}
         handleClick={handleDeactivate}
         primaryButtonText={'Deactivate'}
-        loading={isLoadingActivation}
-      >
+        loading={isLoadingActivation}>
         <h3 className='self-stretch text-gray-700 text-lg font-medium leading-relaxed'>
           Deactivate client
         </h3>
