@@ -1,4 +1,4 @@
-import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit';
+import { configureStore } from '@reduxjs/toolkit';
 import { createWrapper } from 'next-redux-wrapper';
 import { persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
@@ -57,11 +57,12 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
 const store = () =>
   configureStore({
     reducer: persistedReducer,
-    middleware: getDefaultMiddleware({
-      thunk: true,
-      immutableCheck: false,
-      serializableCheck: false,
-    }),
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        thunk: true,
+        immutableCheck: false,
+        serializableCheck: false,
+      }),
   });
 
 export const wrapper = createWrapper(store);
