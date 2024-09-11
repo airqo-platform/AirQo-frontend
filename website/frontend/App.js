@@ -4,11 +4,10 @@ import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 import LoadSpinner from './src/components/LoadSpinner';
-import store from './store';
+import store, { persistor } from './store';
 import NetworkStatus from './NetworkStatus';
 import Scroll_to_top from './src/components/Scroll_to_top';
 import { PersistGate } from 'redux-persist/integration/react';
-import { persistStore } from 'redux-persist';
 
 import HomePage from 'src/pages/HomePage';
 import Press from './src/pages/Press/Press';
@@ -43,8 +42,6 @@ import Error404 from 'src/pages/ErrorPages/Error404';
 import ExploreApp from './src/pages/ExploreData';
 
 const App = () => {
-  const persistor = persistStore(store);
-
   return (
     <NetworkStatus>
       <Provider store={store}>
