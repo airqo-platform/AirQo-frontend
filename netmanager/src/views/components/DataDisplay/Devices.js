@@ -295,11 +295,27 @@ const CreateDevice = ({ open, setOpen }) => {
   const loaderStatus = useSelector((state) => state.HorizontalLoader.loading);
 
   const handleDeviceDataChange = (key) => (event) => {
-    return setNewDevice({ ...newDevice, [key]: event.target.value });
+    const newValue = event.target.value;
+    setNewDevice({ ...newDevice, [key]: newValue });
+
+    if (key === 'long_name') {
+      setErrors({
+        ...errors,
+        long_name: newValue.trim() === '' ? 'Device name is required' : ''
+      });
+    }
   };
 
   const handleDropdownChange = (event, { name }) => {
-    return setNewDevice({ ...newDevice, [name]: event.value });
+    const newValue = event.value;
+    setNewDevice({ ...newDevice, [name]: newValue });
+
+    if (name === 'category') {
+      setErrors({
+        ...errors,
+        category: newValue === '' ? 'Category is required' : ''
+      });
+    }
   };
 
   const handleRegisterClose = () => {
@@ -311,6 +327,10 @@ const CreateDevice = ({ open, setOpen }) => {
       device_number: ''
     });
     setErrors({ long_name: '', category: '', network: '', device_number: '' });
+  };
+
+  const isFormValid = () => {
+    return newDevice.long_name.trim() !== '' && newDevice.category !== '';
   };
 
   const handleRegisterSubmit = (e) => {
@@ -342,8 +362,13 @@ const CreateDevice = ({ open, setOpen }) => {
 
         return;
       } else {
-        // Create a copy of newDevice and remove empty fields
-        const deviceDataToSend = dropEmpty({ ...newDevice });
+        // Create a copy of newDevice
+        const deviceDataToSend = { ...newDevice };
+
+        // Remove device_number if it's empty
+        if (!deviceDataToSend.device_number) {
+          delete deviceDataToSend.device_number;
+        }
 
         // Use deviceDataToSend instead of newDevice in the API call
         createAxiosInstance()
@@ -472,7 +497,7 @@ const CreateDevice = ({ open, setOpen }) => {
             Cancel
           </Button>
           <Button
-            disabled={loaderStatus}
+            disabled={loaderStatus || !isFormValid()}
             variant="contained"
             color="primary"
             type="submit"
@@ -512,11 +537,27 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
   const loaderStatus = useSelector((state) => state.HorizontalLoader.loading);
 
   const handleDeviceDataChange = (key) => (event) => {
-    return setNewDevice({ ...newDevice, [key]: event.target.value });
+    const newValue = event.target.value;
+    setNewDevice({ ...newDevice, [key]: newValue });
+
+    if (key === 'long_name') {
+      setErrors({
+        ...errors,
+        long_name: newValue.trim() === '' ? 'Device name is required' : ''
+      });
+    }
   };
 
   const handleDropdownChange = (event, { name }) => {
-    return setNewDevice({ ...newDevice, [name]: event.value });
+    const newValue = event.value;
+    setNewDevice({ ...newDevice, [name]: newValue });
+
+    if (name === 'category') {
+      setErrors({
+        ...errors,
+        category: newValue === '' ? 'Category is required' : ''
+      });
+    }
   };
 
   const handleRegisterClose = () => {
@@ -529,6 +570,10 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
       device_number: ''
     });
     setErrors({ long_name: '', category: '', network: '', device_number: '' });
+  };
+
+  const isFormValid = () => {
+    return newDevice.long_name.trim() !== '' && newDevice.category !== '';
   };
 
   const handleRegisterSubmit = async (e) => {
@@ -547,8 +592,13 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
           );
           return;
         } else {
-          // Create a copy of newDevice and remove empty fields
-          const deviceDataToSend = dropEmpty({ ...newDevice });
+          // Create a copy of newDevice
+          const deviceDataToSend = { ...newDevice };
+
+          // Remove device_number if it's empty
+          if (!deviceDataToSend.device_number) {
+            delete deviceDataToSend.device_number;
+          }
 
           const resData = await softCreateDeviceApi(deviceDataToSend, {
             headers: { 'Content-Type': 'application/json' }
@@ -662,7 +712,7 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             Cancel
           </Button>
           <Button
-            disabled={loaderStatus}
+            disabled={loaderStatus || !isFormValid()}
             variant="contained"
             color="primary"
             type="submit"
