@@ -18,6 +18,11 @@ import { setLoading } from 'redux/HorizontalLoader/index';
 import { getNetworkListSummaryApi } from '../../../apis/accessControl';
 import OutlinedSelect from '../../CustomSelects/OutlinedSelect';
 import ConfirmDialog from '../../../containers/ConfirmDialog';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 
 const gridItemStyle = {
   padding: '5px'
@@ -64,6 +69,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
   const [editLoading, setEditLoading] = useState(false);
 
   const [open, setConfirmOpen] = useState(false);
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
 
   useEffect(() => {
     if (deviceData) {
@@ -92,70 +98,56 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
     setErrors({});
   };
 
-  const handleEditSubmit = async () => {
+  const handleSaveClick = () => {
+    setSaveModalOpen(true);
+  };
+
+  const handleSaveModalClose = () => {
+    setSaveModalOpen(false);
+  };
+
+  const handleSave = async (isSoftUpdate) => {
+    setSaveModalOpen(false);
     setEditLoading(true);
     dispatch(setLoading(true));
 
     if (editData.deployment_date)
       editData.deployment_date = new Date(editData.deployment_date).toISOString();
 
-    if (ACTIVE_ENVIRONMENT === 'staging') {
-      await softUpdateDeviceDetails(deviceData._id, editData)
-        .then((responseData) => {
-          const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-          if (!isEmpty(activeNetwork)) {
-            dispatch(loadDevicesData(activeNetwork.net_name));
-          }
-          dispatch(
-            updateMainAlert({
-              message: responseData.message,
-              show: true,
-              severity: 'success'
-            })
-          );
+    const updateFunction = isSoftUpdate ? softUpdateDeviceDetails : updateDeviceDetails;
+    const updateTarget = isSoftUpdate ? 'Platform' : 'ThingSpeak';
+
+    try {
+      const responseData = await updateFunction(deviceData._id, editData);
+      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadDevicesData(activeNetwork.net_name));
+      }
+      dispatch(
+        updateMainAlert({
+          message: `${responseData.message} Device details updated on ${updateTarget}.`,
+          show: true,
+          severity: 'success'
         })
-        .catch((err) => {
-          const newErrors = (err.response && err.response.data && err.response.data.errors) || {};
-          setErrors(newErrors);
-          dispatch(
-            updateMainAlert({
-              message:
-                (err.response && err.response.data && err.response.data.message) ||
-                (err.response && err.response.message),
-              show: true,
-              severity: 'error'
-            })
-          );
-        });
-    } else {
-      await updateDeviceDetails(deviceData._id, editData)
-        .then((responseData) => {
-          const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-          if (!isEmpty(activeNetwork)) {
-            dispatch(loadDevicesData(activeNetwork.net_name));
-          }
-          dispatch(
-            updateMainAlert({
-              message: responseData.message,
-              show: true,
-              severity: 'success'
-            })
-          );
+      );
+    } catch (err) {
+      const errorResponse = err.response && err.response.data;
+      const errorMessage = errorResponse && errorResponse.errors && errorResponse.errors.message;
+      const newErrors = (errorResponse && errorResponse.errors) || {};
+      setErrors(newErrors);
+      dispatch(
+        updateMainAlert({
+          message:
+            errorMessage ||
+            errorResponse.message ||
+            err.message ||
+            'An error occurred during update',
+          show: true,
+          severity: 'error'
         })
-        .catch((err) => {
-          const newErrors = (err.response && err.response.data && err.response.data.errors) || {};
-          setErrors(newErrors);
-          dispatch(
-            updateMainAlert({
-              message:
-                (err.response && err.response.data && err.response.data.message) ||
-                (err.response && err.response.message),
-              show: true,
-              severity: 'error'
-            })
-          );
-        });
+      );
     }
+
     setEditLoading(false);
     dispatch(setLoading(false));
   };
@@ -442,13 +434,28 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               variant="contained"
               color="primary"
               disabled={weightedBool(editLoading, isEmpty(editData))}
-              onClick={handleEditSubmit}
+              onClick={handleSaveClick}
               style={{ marginLeft: '10px' }}
             >
               Save Changes
             </Button>
           </Grid>
         </Grid>
+
+        <Dialog open={saveModalOpen} onClose={handleSaveModalClose}>
+          <DialogTitle>Choose Update Method</DialogTitle>
+          <DialogContent>
+            <DialogContentText>How would you like to save your changes?</DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => handleSave(true)} color="primary" variant="outlined">
+              Local Sync
+            </Button>
+            <Button onClick={() => handleSave(false)} color="primary" variant="contained" autoFocus>
+              Global Sync
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         <ConfirmDialog
           open={open}
