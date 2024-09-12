@@ -19,6 +19,7 @@ const AdminClientsTable = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingActivation, setIsLoadingActivation] = useState(false);
+  const [isLoadingDeactivation, setIsLoadingDeactivation] = useState(false);
   const [confirmClientActivation, setConfirmClientActivation] = useState(false);
   const [confirmClientDeactivation, setConfirmClientDeactivation] = useState(false);
   const [isActivated, setIsActivated] = useState(false);
@@ -80,7 +81,7 @@ const AdminClientsTable = () => {
   };
 
   const handleDeactivate = async () => {
-    setIsLoadingActivation(true);
+    setIsLoadingDeactivation(true);
     const data = {
       _id: selectedClient._id,
       isActive: false,
@@ -95,7 +96,7 @@ const AdminClientsTable = () => {
         setErrorState('Failed to deactivate client', 'error');
       })
       .finally(() => {
-        setIsLoadingActivation(false);
+        setIsLoadingDeactivation(false);
         setConfirmClientDeactivation(false);
         setSelectedClient(null);
       });
@@ -245,7 +246,7 @@ const AdminClientsTable = () => {
         onClose={() => setConfirmClientDeactivation(false)}
         handleClick={handleDeactivate}
         primaryButtonText={'Deactivate'}
-        loading={isLoadingActivation}>
+        loading={isLoadingDeactivation}>
         <h3 className='self-stretch text-gray-700 text-lg font-medium leading-relaxed'>
           Deactivate client
         </h3>
