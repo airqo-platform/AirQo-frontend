@@ -186,7 +186,8 @@ const createDeviceColumns = (history, setDelState) => [
               className={'underline-hover'}
               onClick={(event) => {
                 event.stopPropagation();
-              }}>
+              }}
+            >
               {data.site && data.site.description}
             </Link>
           )
@@ -216,7 +217,8 @@ const createDeviceColumns = (history, setDelState) => [
               style={{
                 color: deviceStatus === 'deployed' ? 'green' : 'red',
                 textTransform: 'capitalize'
-              }}>
+              }}
+            >
               {deviceStatus}
             </span>
           }
@@ -291,21 +293,44 @@ const CreateDevice = ({ open, setOpen }) => {
   const loaderStatus = useSelector((state) => state.HorizontalLoader.loading);
 
   const handleDeviceDataChange = (key) => (event) => {
-    return setNewDevice({ ...newDevice, [key]: event.target.value });
+    const newValue = event.target.value;
+    setNewDevice({ ...newDevice, [key]: newValue });
+
+    if (key === 'long_name') {
+      setErrors({
+        ...errors,
+        long_name: newValue.trim() === '' ? 'Device name is required' : ''
+      });
+    }
   };
 
   const handleDropdownChange = (event, { name }) => {
-    return setNewDevice({ ...newDevice, [name]: event.value });
+    const newValue = event.value;
+    setNewDevice({ ...newDevice, [name]: newValue });
+
+    if (name === 'category') {
+      setErrors({
+        ...errors,
+        category: newValue === '' ? 'Category is required' : ''
+      });
+    }
   };
 
   const handleRegisterClose = () => {
     setOpen(false);
-    setNewDevice({ long_name: '', category: CATEGORIES[0].value, network: selectedNetwork });
+    setNewDevice({
+      long_name: '',
+      category: CATEGORIES[0].value,
+      network: selectedNetwork
+    });
     setErrors({ long_name: '', category: '', network: '' });
   };
 
+  const isFormValid = () => {
+    return newDevice.long_name.trim() !== '' && newDevice.category !== '';
+  };
+
   const handleRegisterSubmit = (e) => {
-    // Set loading to true when submitting
     dispatch(loadStatus(true));
     if (!isEmpty(userNetworks)) {
       const userNetworksNames = userNetworks.map((network) => network.net_name);
@@ -318,63 +343,55 @@ const CreateDevice = ({ open, setOpen }) => {
             severity: 'error'
           })
         );
-
-        //clear the new device form
-        setNewDevice({
-          long_name: '',
-          category: CATEGORIES[0].value,
-          network: selectedNetwork
-        });
-        setErrors({ long_name: '', category: '', network: '' });
-
-        // Set loading to false when done
+        handleRegisterClose();
         dispatch(loadStatus(false));
-
         return;
-      } else {
-        createAxiosInstance()
-          .post(REGISTER_DEVICE_URI, dropEmpty(newDevice), {
-            headers: { 'Content-Type': 'application/json' }
-          })
-          .then((res) => res.data)
-          .then((resData) => {
-            handleRegisterClose();
-
-            dispatch(loadStatus(false));
-
-            if (!isEmpty(selectedNetwork)) {
-              dispatch(loadDevicesData(selectedNetwork));
-            }
-            dispatch(
-              updateMainAlert({
-                message: `${resData.message}. ${
-                  newDevice.network !== selectedNetwork
-                    ? `Switch to the ${newDevice.network} organisation to see the new device.`
-                    : ''
-                }`,
-                show: true,
-                severity: 'success'
-              })
-            );
-
-            dispatch(loadStatus(false));
-            dispatch(setRefresh(true));
-          })
-          .catch((error) => {
-            const errors = error.response && error.response.data && error.response.data.errors;
-            setErrors(errors || initialErrors);
-            dispatch(
-              updateMainAlert({
-                message: error.response && error.response.data && error.response.data.message,
-                show: true,
-                severity: 'error',
-                extra: createAlertBarExtraContentFromObject(errors || {})
-              })
-            );
-            // Set loading to false when done
-            dispatch(loadStatus(false));
-          });
       }
+
+      createAxiosInstance()
+        .post(REGISTER_DEVICE_URI, newDevice, {
+          headers: { 'Content-Type': 'application/json' }
+        })
+        .then((res) => res.data)
+        .then((resData) => {
+          handleRegisterClose();
+          dispatch(loadStatus(false));
+          if (!isEmpty(selectedNetwork)) {
+            dispatch(loadDevicesData(selectedNetwork));
+          }
+          dispatch(
+            updateMainAlert({
+              message: `${resData.message}. ${
+                newDevice.network !== selectedNetwork
+                  ? `Switch to the ${newDevice.network} organisation to see the new device.`
+                  : ''
+              }`,
+              show: true,
+              severity: 'success'
+            })
+          );
+          dispatch(setRefresh(true));
+        })
+        .catch((error) => {
+          const errorResponse = error.response && error.response.data;
+          const errorMessage =
+            errorResponse && errorResponse.errors && errorResponse.errors.message;
+          setErrors((errorResponse && errorResponse.errors) || {});
+          dispatch(
+            updateMainAlert({
+              message:
+                errorMessage ||
+                errorResponse.message ||
+                'An error occurred while creating the device',
+              show: true,
+              severity: 'error',
+              extra: createAlertBarExtraContentFromObject(
+                (errorResponse && errorResponse.errors) || {}
+              )
+            })
+          );
+          dispatch(loadStatus(false));
+        });
     }
   };
 
@@ -383,7 +400,8 @@ const CreateDevice = ({ open, setOpen }) => {
       open={open}
       onClose={handleRegisterClose}
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description">
+      aria-describedby="form-dialog-description"
+    >
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Add a device
       </DialogTitle>
@@ -439,12 +457,13 @@ const CreateDevice = ({ open, setOpen }) => {
             Cancel
           </Button>
           <Button
-            disabled={loaderStatus}
+            disabled={loaderStatus || !isFormValid()}
             variant="contained"
             color="primary"
             type="submit"
             onClick={handleRegisterSubmit}
-            style={{ margin: '0 15px' }}>
+            style={{ margin: '0 15px' }}
+          >
             Register
           </Button>
         </Grid>
@@ -461,33 +480,75 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
   const newDeviceInitState = {
     long_name: '',
     category: CATEGORIES[0].value,
-    network: selectedNetwork
+    network: selectedNetwork,
+    device_number: '',
+    write_key: '',
+    read_key: ''
   };
 
   const initialErrors = {
     long_name: '',
     category: '',
-    network: ''
+    network: '',
+    device_number: '',
+    write_key: '',
+    read_key: ''
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
   const [errors, setErrors] = useState(initialErrors);
+  const [showMoreOptions, setShowMoreOptions] = useState(false);
+
   const userNetworks = JSON.parse(localStorage.getItem('userNetworks')) || [];
   const loaderStatus = useSelector((state) => state.HorizontalLoader.loading);
 
   const handleDeviceDataChange = (key) => (event) => {
-    return setNewDevice({ ...newDevice, [key]: event.target.value });
+    const newValue = event.target.value;
+    setNewDevice({ ...newDevice, [key]: newValue });
+
+    if (key === 'long_name') {
+      setErrors({
+        ...errors,
+        long_name: newValue.trim() === '' ? 'Device name is required' : ''
+      });
+    }
   };
 
   const handleDropdownChange = (event, { name }) => {
-    return setNewDevice({ ...newDevice, [name]: event.value });
+    const newValue = event.value;
+    setNewDevice({ ...newDevice, [name]: newValue });
+
+    if (name === 'category') {
+      setErrors({
+        ...errors,
+        category: newValue === '' ? 'Category is required' : ''
+      });
+    }
   };
 
   const handleRegisterClose = () => {
     setOpen(false);
     dispatch(loadStatus(false));
-    setNewDevice({ long_name: '', category: CATEGORIES[0].value, network: selectedNetwork });
-    setErrors({ long_name: '', category: '', network: '' });
+    setNewDevice({
+      long_name: '',
+      category: CATEGORIES[0].value,
+      network: selectedNetwork,
+      device_number: '',
+      write_key: '',
+      read_key: ''
+    });
+    setErrors({
+      long_name: '',
+      category: '',
+      network: '',
+      device_number: '',
+      write_key: '',
+      read_key: ''
+    });
+  };
+
+  const isFormValid = () => {
+    return newDevice.long_name.trim() !== '' && newDevice.category !== '';
   };
 
   const handleRegisterSubmit = async (e) => {
@@ -506,7 +567,21 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
           );
           return;
         } else {
-          const resData = await softCreateDeviceApi(dropEmpty(newDevice), {
+          // Create a copy of newDevice
+          const deviceDataToSend = { ...newDevice };
+
+          // Remove device_number, write_key, and read_key if they're empty
+          if (!deviceDataToSend.device_number) {
+            delete deviceDataToSend.device_number;
+          }
+          if (!deviceDataToSend.write_key) {
+            delete deviceDataToSend.write_key;
+          }
+          if (!deviceDataToSend.read_key) {
+            delete deviceDataToSend.read_key;
+          }
+
+          const resData = await softCreateDeviceApi(deviceDataToSend, {
             headers: { 'Content-Type': 'application/json' }
           });
 
@@ -531,18 +606,24 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
         }
       }
     } catch (error) {
-      const errors = error.response && error.response.data && error.response.data.errors;
-      setErrors(errors || initialErrors);
+      const errorResponse = error.response && error.response.data;
+      const errorMessage = errorResponse && errorResponse.errors && errorResponse.errors.message;
+      setErrors((errorResponse && errorResponse.errors) || {});
       dispatch(
         updateMainAlert({
-          message: error.response && error.response.data && error.response.data.message,
+          message:
+            errorMessage || errorResponse.message || 'An error occurred while creating the device',
           show: true,
           severity: 'error',
-          extra: createAlertBarExtraContentFromObject(errors || {})
+          extra: createAlertBarExtraContentFromObject((errorResponse && errorResponse.errors) || {})
         })
       );
       dispatch(loadStatus(false));
     }
+  };
+
+  const toggleMoreOptions = () => {
+    setShowMoreOptions(!showMoreOptions);
   };
 
   return (
@@ -550,9 +631,10 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
       open={open}
       onClose={handleRegisterClose}
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description">
+      aria-describedby="form-dialog-description"
+    >
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
-        Soft add a device
+        Import existing device
       </DialogTitle>
 
       <DialogContent className={classes.dialogContent}>
@@ -593,7 +675,49 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             variant="outlined"
             error={!!errors.network}
             helperText={errors.network}
-            disabled></TextField>
+            disabled
+          ></TextField>
+
+          <Button onClick={toggleMoreOptions} color="primary" style={{ marginTop: '10px' }}>
+            {showMoreOptions ? 'Show less options' : 'Show more options'}
+          </Button>
+
+          {showMoreOptions && (
+            <>
+              <TextField
+                margin="dense"
+                label="Channel ID (Optional)"
+                variant="outlined"
+                value={newDevice.device_number}
+                onChange={handleDeviceDataChange('device_number')}
+                fullWidth
+                error={!!errors.device_number}
+                helperText={errors.device_number}
+              />
+
+              <TextField
+                margin="dense"
+                label="Write Key (Optional)"
+                variant="outlined"
+                value={newDevice.write_key}
+                onChange={handleDeviceDataChange('write_key')}
+                fullWidth
+                error={!!errors.write_key}
+                helperText={errors.write_key}
+              />
+
+              <TextField
+                margin="dense"
+                label="Read Key (Optional)"
+                variant="outlined"
+                value={newDevice.read_key}
+                onChange={handleDeviceDataChange('read_key')}
+                fullWidth
+                error={!!errors.read_key}
+                helperText={errors.read_key}
+              />
+            </>
+          )}
         </form>
       </DialogContent>
 
@@ -603,12 +727,13 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             Cancel
           </Button>
           <Button
-            disabled={loaderStatus}
+            disabled={loaderStatus || !isFormValid()}
             variant="contained"
             color="primary"
             type="submit"
             onClick={handleRegisterSubmit}
-            style={{ margin: '0 15px' }}>
+            style={{ margin: '0 15px' }}
+          >
             Register
           </Button>
         </Grid>
@@ -695,14 +820,16 @@ const DevicesTable = (props) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end'
-          }}>
+          }}
+        >
           {activeNetwork.net_name === 'airqo' && (
             <Button
               variant="contained"
               color="primary"
               type="submit"
               align="right"
-              onClick={() => setRegisterOpen(true)}>
+              onClick={() => setRegisterOpen(true)}
+            >
               {' '}
               Add AirQo Device
             </Button>
@@ -712,8 +839,9 @@ const DevicesTable = (props) => {
             color="primary"
             type="submit"
             style={{ marginLeft: '20px' }}
-            onClick={() => setSoftRegisterOpen(true)}>
-            Add External Device
+            onClick={() => setSoftRegisterOpen(true)}
+          >
+            Import Exisiting Device
           </Button>
         </div>
         <UsersListBreadCrumb
