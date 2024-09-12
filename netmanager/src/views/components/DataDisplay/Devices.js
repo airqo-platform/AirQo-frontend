@@ -480,7 +480,7 @@ const CreateDevice = ({ open, setOpen }) => {
 
           <TextField
             margin="dense"
-            label="Device Number (Optional)"
+            label="Channel ID (Optional)"
             variant="outlined"
             value={newDevice.device_number}
             onChange={handleDeviceDataChange('device_number')}
@@ -649,7 +649,7 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
       aria-describedby="form-dialog-description"
     >
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
-        Soft add a device
+        Import existing device
       </DialogTitle>
 
       <DialogContent className={classes.dialogContent}>
@@ -695,7 +695,7 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
 
           <TextField
             margin="dense"
-            label="Device Number (Optional)"
+            label="Channel ID (Optional)"
             variant="outlined"
             value={newDevice.device_number}
             onChange={handleDeviceDataChange('device_number')}
@@ -826,7 +826,7 @@ const DevicesTable = (props) => {
             style={{ marginLeft: '20px' }}
             onClick={() => setSoftRegisterOpen(true)}
           >
-            Add External Device
+            Import Exisiting Device
           </Button>
         </div>
         <UsersListBreadCrumb
