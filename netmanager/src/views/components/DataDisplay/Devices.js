@@ -186,7 +186,8 @@ const createDeviceColumns = (history, setDelState) => [
               className={'underline-hover'}
               onClick={(event) => {
                 event.stopPropagation();
-              }}>
+              }}
+            >
               {data.site && data.site.description}
             </Link>
           )
@@ -216,7 +217,8 @@ const createDeviceColumns = (history, setDelState) => [
               style={{
                 color: deviceStatus === 'deployed' ? 'green' : 'red',
                 textTransform: 'capitalize'
-              }}>
+              }}
+            >
               {deviceStatus}
             </span>
           }
@@ -275,13 +277,15 @@ const CreateDevice = ({ open, setOpen }) => {
   const newDeviceInitState = {
     long_name: '',
     category: CATEGORIES[0].value,
-    network: selectedNetwork
+    network: selectedNetwork,
+    device_number: ''
   };
 
   const initialErrors = {
     long_name: '',
     category: '',
-    network: ''
+    network: '',
+    device_number: ''
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
@@ -300,8 +304,13 @@ const CreateDevice = ({ open, setOpen }) => {
 
   const handleRegisterClose = () => {
     setOpen(false);
-    setNewDevice({ long_name: '', category: CATEGORIES[0].value, network: selectedNetwork });
-    setErrors({ long_name: '', category: '', network: '' });
+    setNewDevice({
+      long_name: '',
+      category: CATEGORIES[0].value,
+      network: selectedNetwork,
+      device_number: ''
+    });
+    setErrors({ long_name: '', category: '', network: '', device_number: '' });
   };
 
   const handleRegisterSubmit = (e) => {
@@ -323,17 +332,22 @@ const CreateDevice = ({ open, setOpen }) => {
         setNewDevice({
           long_name: '',
           category: CATEGORIES[0].value,
-          network: selectedNetwork
+          network: selectedNetwork,
+          device_number: ''
         });
-        setErrors({ long_name: '', category: '', network: '' });
+        setErrors({ long_name: '', category: '', network: '', device_number: '' });
 
         // Set loading to false when done
         dispatch(loadStatus(false));
 
         return;
       } else {
+        // Create a copy of newDevice and remove empty fields
+        const deviceDataToSend = dropEmpty({ ...newDevice });
+
+        // Use deviceDataToSend instead of newDevice in the API call
         createAxiosInstance()
-          .post(REGISTER_DEVICE_URI, dropEmpty(newDevice), {
+          .post(REGISTER_DEVICE_URI, deviceDataToSend, {
             headers: { 'Content-Type': 'application/json' }
           })
           .then((res) => res.data)
@@ -361,14 +375,21 @@ const CreateDevice = ({ open, setOpen }) => {
             dispatch(setRefresh(true));
           })
           .catch((error) => {
-            const errors = error.response && error.response.data && error.response.data.errors;
-            setErrors(errors || initialErrors);
+            const errorResponse = error.response && error.response.data;
+            const errorMessage =
+              errorResponse && errorResponse.errors && errorResponse.errors.message;
+            setErrors((errorResponse && errorResponse.errors) || {});
             dispatch(
               updateMainAlert({
-                message: error.response && error.response.data && error.response.data.message,
+                message:
+                  errorMessage ||
+                  errorResponse.message ||
+                  'An error occurred while creating the device',
                 show: true,
                 severity: 'error',
-                extra: createAlertBarExtraContentFromObject(errors || {})
+                extra: createAlertBarExtraContentFromObject(
+                  (errorResponse && errorResponse.errors) || {}
+                )
               })
             );
             // Set loading to false when done
@@ -383,7 +404,8 @@ const CreateDevice = ({ open, setOpen }) => {
       open={open}
       onClose={handleRegisterClose}
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description">
+      aria-describedby="form-dialog-description"
+    >
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Add a device
       </DialogTitle>
@@ -430,6 +452,17 @@ const CreateDevice = ({ open, setOpen }) => {
             helperText={errors.network}
             disabled
           />
+
+          <TextField
+            margin="dense"
+            label="Device Number (Optional)"
+            variant="outlined"
+            value={newDevice.device_number}
+            onChange={handleDeviceDataChange('device_number')}
+            fullWidth
+            error={!!errors.device_number}
+            helperText={errors.device_number}
+          />
         </form>
       </DialogContent>
 
@@ -444,7 +477,8 @@ const CreateDevice = ({ open, setOpen }) => {
             color="primary"
             type="submit"
             onClick={handleRegisterSubmit}
-            style={{ margin: '0 15px' }}>
+            style={{ margin: '0 15px' }}
+          >
             Register
           </Button>
         </Grid>
@@ -461,13 +495,15 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
   const newDeviceInitState = {
     long_name: '',
     category: CATEGORIES[0].value,
-    network: selectedNetwork
+    network: selectedNetwork,
+    device_number: ''
   };
 
   const initialErrors = {
     long_name: '',
     category: '',
-    network: ''
+    network: '',
+    device_number: ''
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
@@ -486,8 +522,13 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
   const handleRegisterClose = () => {
     setOpen(false);
     dispatch(loadStatus(false));
-    setNewDevice({ long_name: '', category: CATEGORIES[0].value, network: selectedNetwork });
-    setErrors({ long_name: '', category: '', network: '' });
+    setNewDevice({
+      long_name: '',
+      category: CATEGORIES[0].value,
+      network: selectedNetwork,
+      device_number: ''
+    });
+    setErrors({ long_name: '', category: '', network: '', device_number: '' });
   };
 
   const handleRegisterSubmit = async (e) => {
@@ -506,7 +547,10 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
           );
           return;
         } else {
-          const resData = await softCreateDeviceApi(dropEmpty(newDevice), {
+          // Create a copy of newDevice and remove empty fields
+          const deviceDataToSend = dropEmpty({ ...newDevice });
+
+          const resData = await softCreateDeviceApi(deviceDataToSend, {
             headers: { 'Content-Type': 'application/json' }
           });
 
@@ -531,14 +575,16 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
         }
       }
     } catch (error) {
-      const errors = error.response && error.response.data && error.response.data.errors;
-      setErrors(errors || initialErrors);
+      const errorResponse = error.response && error.response.data;
+      const errorMessage = errorResponse && errorResponse.errors && errorResponse.errors.message;
+      setErrors((errorResponse && errorResponse.errors) || {});
       dispatch(
         updateMainAlert({
-          message: error.response && error.response.data && error.response.data.message,
+          message:
+            errorMessage || errorResponse.message || 'An error occurred while creating the device',
           show: true,
           severity: 'error',
-          extra: createAlertBarExtraContentFromObject(errors || {})
+          extra: createAlertBarExtraContentFromObject((errorResponse && errorResponse.errors) || {})
         })
       );
       dispatch(loadStatus(false));
@@ -550,7 +596,8 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
       open={open}
       onClose={handleRegisterClose}
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description">
+      aria-describedby="form-dialog-description"
+    >
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Soft add a device
       </DialogTitle>
@@ -593,7 +640,19 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             variant="outlined"
             error={!!errors.network}
             helperText={errors.network}
-            disabled></TextField>
+            disabled
+          ></TextField>
+
+          <TextField
+            margin="dense"
+            label="Device Number (Optional)"
+            variant="outlined"
+            value={newDevice.device_number}
+            onChange={handleDeviceDataChange('device_number')}
+            fullWidth
+            error={!!errors.device_number}
+            helperText={errors.device_number}
+          />
         </form>
       </DialogContent>
 
@@ -608,7 +667,8 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             color="primary"
             type="submit"
             onClick={handleRegisterSubmit}
-            style={{ margin: '0 15px' }}>
+            style={{ margin: '0 15px' }}
+          >
             Register
           </Button>
         </Grid>
@@ -695,14 +755,16 @@ const DevicesTable = (props) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end'
-          }}>
+          }}
+        >
           {activeNetwork.net_name === 'airqo' && (
             <Button
               variant="contained"
               color="primary"
               type="submit"
               align="right"
-              onClick={() => setRegisterOpen(true)}>
+              onClick={() => setRegisterOpen(true)}
+            >
               {' '}
               Add AirQo Device
             </Button>
@@ -712,7 +774,8 @@ const DevicesTable = (props) => {
             color="primary"
             type="submit"
             style={{ marginLeft: '20px' }}
-            onClick={() => setSoftRegisterOpen(true)}>
+            onClick={() => setSoftRegisterOpen(true)}
+          >
             Add External Device
           </Button>
         </div>
