@@ -277,13 +277,15 @@ const CreateDevice = ({ open, setOpen }) => {
   const newDeviceInitState = {
     long_name: '',
     category: CATEGORIES[0].value,
-    network: selectedNetwork
+    network: selectedNetwork,
+    description: ''
   };
 
   const initialErrors = {
     long_name: '',
     category: '',
-    network: ''
+    network: '',
+    description: ''
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
@@ -321,9 +323,10 @@ const CreateDevice = ({ open, setOpen }) => {
     setNewDevice({
       long_name: '',
       category: CATEGORIES[0].value,
-      network: selectedNetwork
+      network: selectedNetwork,
+      description: ''
     });
-    setErrors({ long_name: '', category: '', network: '' });
+    setErrors({ long_name: '', category: '', network: '', description: '' });
   };
 
   const isFormValid = () => {
@@ -448,6 +451,19 @@ const CreateDevice = ({ open, setOpen }) => {
             helperText={errors.network}
             disabled
           />
+
+          <TextField
+            margin="dense"
+            label="Description (Optional)"
+            variant="outlined"
+            value={newDevice.description}
+            onChange={handleDeviceDataChange('description')}
+            fullWidth
+            multiline
+            rows={3}
+            error={!!errors.description}
+            helperText={errors.description}
+          />
         </form>
       </DialogContent>
 
@@ -482,8 +498,9 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
     category: CATEGORIES[0].value,
     network: selectedNetwork,
     device_number: '',
-    write_key: '',
-    read_key: ''
+    writeKey: '',
+    readKey: '',
+    description: ''
   };
 
   const initialErrors = {
@@ -491,8 +508,9 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
     category: '',
     network: '',
     device_number: '',
-    write_key: '',
-    read_key: ''
+    writeKey: '',
+    readKey: '',
+    description: ''
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
@@ -534,16 +552,18 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
       category: CATEGORIES[0].value,
       network: selectedNetwork,
       device_number: '',
-      write_key: '',
-      read_key: ''
+      writeKey: '',
+      readKey: '',
+      description: ''
     });
     setErrors({
       long_name: '',
       category: '',
       network: '',
       device_number: '',
-      write_key: '',
-      read_key: ''
+      writeKey: '',
+      readKey: '',
+      description: ''
     });
   };
 
@@ -565,20 +585,21 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
               severity: 'error'
             })
           );
+          dispatch(loadStatus(false));
           return;
         } else {
           // Create a copy of newDevice
           const deviceDataToSend = { ...newDevice };
 
-          // Remove device_number, write_key, and read_key if they're empty
+          // Remove device_number, writeKey, and readKey if they're empty
           if (!deviceDataToSend.device_number) {
             delete deviceDataToSend.device_number;
           }
-          if (!deviceDataToSend.write_key) {
-            delete deviceDataToSend.write_key;
+          if (!deviceDataToSend.writeKey) {
+            delete deviceDataToSend.writeKey;
           }
-          if (!deviceDataToSend.read_key) {
-            delete deviceDataToSend.read_key;
+          if (!deviceDataToSend.readKey) {
+            delete deviceDataToSend.readKey;
           }
 
           const resData = await softCreateDeviceApi(deviceDataToSend, {
@@ -678,6 +699,19 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             disabled
           ></TextField>
 
+          <TextField
+            margin="dense"
+            label="Description (Optional)"
+            variant="outlined"
+            value={newDevice.description}
+            onChange={handleDeviceDataChange('description')}
+            fullWidth
+            multiline
+            rows={3}
+            error={!!errors.description}
+            helperText={errors.description}
+          />
+
           <Button onClick={toggleMoreOptions} color="primary" style={{ marginTop: '10px' }}>
             {showMoreOptions ? 'Show less options' : 'Show more options'}
           </Button>
@@ -699,22 +733,22 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
                 margin="dense"
                 label="Write Key (Optional)"
                 variant="outlined"
-                value={newDevice.write_key}
-                onChange={handleDeviceDataChange('write_key')}
+                value={newDevice.writeKey}
+                onChange={handleDeviceDataChange('writeKey')}
                 fullWidth
-                error={!!errors.write_key}
-                helperText={errors.write_key}
+                error={!!errors.writeKey}
+                helperText={errors.writeKey}
               />
 
               <TextField
                 margin="dense"
                 label="Read Key (Optional)"
                 variant="outlined"
-                value={newDevice.read_key}
-                onChange={handleDeviceDataChange('read_key')}
+                value={newDevice.readKey}
+                onChange={handleDeviceDataChange('readKey')}
                 fullWidth
-                error={!!errors.read_key}
-                helperText={errors.read_key}
+                error={!!errors.readKey}
+                helperText={errors.readKey}
               />
             </>
           )}
