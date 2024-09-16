@@ -17,12 +17,9 @@
     <meta property="og:image:width" content="400" />
     <meta property="og:image:height" content="300" />
     <meta property="og:site_name" content="AirQo" />
-  </head>
-  <body>
-    <div id="app"></div>
     <script src="{% static 'frontend/main.bundle.js' %}" defer></script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script src="https://www.googletagmanager.com/gtag/js?id=G-79ZVCLEDSG" defer></script>
+    <script src="https://www.googletagmanager.com/gtag/js?id=G-79ZVCLEDSG" async></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
@@ -47,5 +44,8 @@
         a.appendChild(r);
       })(window, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=');
     </script>
+  </head>
+  <body>
+    <div id="app"></div>
   </body>
 </html>
