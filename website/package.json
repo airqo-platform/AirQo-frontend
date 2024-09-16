@@ -7,8 +7,7 @@
     "serve": "webpack serve --config webpack.dev.config.js --mode development",
     "standalone": "webpack serve --config webpack.fullapp.config.js --mode development",
     "build": "webpack --mode production",
-    "test": "jest",
-    "start": "concurrently \"python manage.py runserver\" \"npm run serve\""
+    "test": "jest"
   },
   "author": "",
   "license": "ISC",
