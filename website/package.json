@@ -4,10 +4,11 @@
   "description": "AirQo website",
   "main": "index.js",
   "scripts": {
-    "serve": "webpack serve --config webpack.dev.config.js --mode development",
-    "standalone": "webpack serve --config webpack.fullapp.config.js --mode development",
-    "build": "webpack --mode production",
-    "test": "jest"
+    "serve": "webpack serve --config webpack.dev.config.js",
+    "standalone": "webpack serve --config webpack.fullapp.config.js",
+    "build": "NODE_ENV=production webpack --config webpack.config.js",
+    "test": "jest",
+    "start": "concurrently \"python manage.py runserver\" \"npm run serve\""
   },
   "author": "",
   "license": "ISC",
@@ -45,6 +46,7 @@
     "babel-jest": "^29.6.4",
     "babel-loader": "^9.1.2",
     "classnames": "^2.3.2",
+    "concurrently": "^9.0.1",
     "css-loader": "^7.1.2",
     "date-fns": "^3.6.0",
     "dotenv": "^16.0.3",
