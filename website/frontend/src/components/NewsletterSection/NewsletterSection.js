@@ -15,8 +15,6 @@ const NewsletterSection = () => {
   const newsletterData = useSelector((state) => state.newsletter);
   const { t } = useTranslation();
 
-  console.info(newsletterData);
-
   const handleOnChange = (event) => {
     const { name, value } = event.target;
     setFormData((prevState) => ({

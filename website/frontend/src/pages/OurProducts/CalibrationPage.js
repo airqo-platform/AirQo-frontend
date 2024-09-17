@@ -9,12 +9,22 @@ import Section3Image from '../../assets/img/OurProducts/Calibration/section-3.we
 import NavTab from '../../components/nav/NavTab';
 import { OpenInNew } from '@mui/icons-material';
 import { useTranslation, Trans } from 'react-i18next';
+import SEO from 'utilities/seo';
 
 const CalibrationPage = () => {
   useInitScrollTop();
   const { t } = useTranslation();
   return (
     <Page>
+      <SEO
+        title="AirQo Calibrate Tool - Enhance Air Quality Data Accuracy"
+        siteTitle="AirQo"
+        description="Discover AirQo's Calibrate tool, designed to improve the accuracy of air quality monitoring sensors across Africa. Learn how we ensure reliable air quality data through advanced calibration methods."
+        canonicalUrl="https://airqo.africa/products/calibrate"
+        keywords="AirQo, calibrate tool, air quality calibration, sensor accuracy, air pollution Africa, air quality data"
+        article={false}
+      />
+
       <div className="product-page calibrate mobile-app analytics api">
         <Header
           style={{ backgroundColor: '#e6e8fa' }}

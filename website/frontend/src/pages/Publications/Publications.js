@@ -74,7 +74,10 @@ const PublicationsPage = () => {
       <SEO
         title="Publications"
         siteTitle="AirQo Publications"
-        description="Discover AirQo's latest collection of research publications"
+        description="Discover AirQo's latest collection of research publications and resources on air quality monitoring and management in Africa."
+        canonicalUrl="https://airqo.africa/solutions/resources"
+        image="https://airqo.mak.ac.ug/og-image-resources.jpg"
+        keywords="air quality publications, research papers, environmental reports, African air quality data"
       />
       {loading ? (
         <div

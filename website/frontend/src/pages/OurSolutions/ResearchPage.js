@@ -115,9 +115,12 @@ const ResearchPage = () => {
     <Page>
       <div className="ResearchPage">
         <SEO
-          title="Our Solutions"
-          siteTitle="For Research"
-          description="AirQo actively collaborates with researchers across the world to jointly tackle air quality research challenges."
+          title="Our Solutions for Research"
+          siteTitle="AirQo"
+          description="AirQo actively collaborates with researchers worldwide to jointly tackle air quality research challenges. Explore our innovative approaches and data-driven insights."
+          canonicalUrl="https://airqo.africa/solutions/research"
+          image="https://res.cloudinary.com/dbibjvyhm/image/upload/v1726578905/website/photos/AirQo_Web_IMG01_bw3obp.webp"
+          keywords="air quality research, environmental science, data analysis, collaboration, African air quality"
         />
         <ResearchHeroSection />
         <ResearchContent />

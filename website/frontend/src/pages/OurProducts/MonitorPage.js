@@ -9,6 +9,7 @@ import Section4Image from '../../assets/img/OurProducts/Monitor/activate.webp';
 import { FileDownloadOutlined } from '@mui/icons-material';
 import { useInitScrollTop } from 'utilities/customHooks';
 import { useTranslation, Trans } from 'react-i18next';
+import SEO from 'utilities/seo';
 
 const MaintenanceManual =
   'https://res.cloudinary.com/dbibjvyhm/image/upload/v1716038904/website/docs/Binos-Maintenance-Manual_agusuh.pdf';
@@ -20,6 +21,15 @@ const MonitorPage = () => {
   const { t } = useTranslation();
   return (
     <Page>
+      <SEO
+        title="Binos Air Quality Monitor"
+        siteTitle="AirQo"
+        description="Explore AirQo's Binos Monitor, a low-cost, AI-powered air quality monitor designed for real-time, precise measurements across African cities. Learn how AirQo is improving air quality monitoring in Uganda and beyond."
+        keywords="AirQo, Binos Monitor, air quality sensor, real-time air pollution data, AI air monitoring, low-cost air sensor, environmental health, Uganda, Africa"
+        canonicalUrl="https://airqo.mak.ac.ug/products/monitor"
+        image="https://res.cloudinary.com/dbibjvyhm/image/upload/v1726576617/website/photos/monitor_bafpll.webp"
+      />
+
       <div className="product-page monitor">
         <Header
           pageTitle={t('products.monitor.header.pageTitle')}

@@ -27,10 +27,12 @@ const CommunityPage = () => {
     <Page>
       <div className="CommunityPage">
         <SEO
-          title="Our Solutions"
-          siteTitle="For Communities"
-          description="AirQo harnesses the value that comes with bringing together community members passionate about
-                            clean air and a healthy environment"
+          title="Our Solutions for Communities"
+          siteTitle="AirQo"
+          description="AirQo harnesses the value of bringing together community members passionate about clean air and a healthy environment. Join our network of local champions driving positive change in air quality."
+          canonicalUrl="https://airqo.africa/solutions/communities"
+          image="https://res.cloudinary.com/dbibjvyhm/image/upload/v1726578795/website/photos/ForCommunities_oepvth.webp"
+          keywords="community engagement, clean air advocates, environmental health, air quality awareness, local action"
         />
         <div className="page-container">
           <div className="hero">
