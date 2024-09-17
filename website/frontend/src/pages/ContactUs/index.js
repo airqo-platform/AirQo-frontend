@@ -12,10 +12,18 @@ const ContactUs = ({ children, arrow }) => {
       <LanguageSwitcher />
       <PageMini>
         <SEO
-          title="Contact Us"
-          siteTitle="AirQo"
-          description="Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard or mobile app. Get in touch"
+          title="Contact AirQo | Real-Time Air Quality Monitoring Across Africa"
+          siteTitle="AirQo Africa"
+          description="Get in touch with AirQo, a leading African air quality research initiative. Explore our air quality analytics dashboard and mobile app for real-time and historic air quality data across Africa. Learn more about our satellite data projects and how we are using machine learning to fight pollution."
+          canonicalUrls={[
+            'https://airqo.africa/contact',
+            'https://airqo.net/contact',
+            'https://airqo.mak.ac.ug/contact'
+          ]}
+          keywords="AirQo, air quality, Africa, real-time air monitoring, pollution, machine learning, air quality data, environmental justice, air quality prediction"
+          article={false}
         />
+
         <div className="contact-us">
           <div className="left-section">
             <div className="section-container">

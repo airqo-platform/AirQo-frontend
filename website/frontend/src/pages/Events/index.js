@@ -72,9 +72,15 @@ const EventsPage = () => {
       <Page>
         {/* SEO */}
         <SEO
-          title="Events"
-          siteTitle="AirQo"
-          description="Advancing air quality management in African cities"
+          title="Air Quality Events"
+          siteTitle="AirQo Africa"
+          description="Join AirQo in advancing air quality management in African cities through innovative events, workshops, and initiatives like CLEAN-Air Africa, championing liveable urban environments and healthier air."
+          keywords="AirQo, air quality, Africa, events, air pollution, environmental health, CLEAN-Air Africa, air quality sensors, air management workshops"
+          canonicalUrl={[
+            'https://airqo.africa/events',
+            'https://airqo.net/events',
+            'https://airqo.mak.ac.ug/events'
+          ]}
         />
 
         {loading ? (

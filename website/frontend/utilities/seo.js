@@ -19,7 +19,7 @@ const SEO = ({
       canonicalUrls.length > 0
         ? canonicalUrls
         : [typeof window !== 'undefined' ? window.location.href : ''],
-    image: image
+    image: image || ''
   };
 
   return (

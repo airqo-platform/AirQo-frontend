@@ -30,9 +30,6 @@ const AboutUsPage = () => {
   const partnersData = allPartnersData.filter((partner) => partner.website_category === 'airqo');
   const language = useSelector((state) => state.eventsNavTab.languageTab);
 
-  const domain = window.location.hostname.includes('airqo.net') ? 'airqo.net' : 'airqo.africa';
-  const imageUrl = `https://${domain}/frontend/src/assets/img/team.webp`;
-
   useEffect(() => {
     try {
       if (isEmpty(teamData)) {
@@ -91,9 +88,13 @@ const AboutUsPage = () => {
           title="About Us | AirQo Africa"
           siteTitle="AirQo"
           description="AirQo is a pioneer in improving air quality across Africa, utilizing AI and low-cost sensor technology to provide real-time air quality data. Learn how we empower communities, shape policies, and collaborate with global partners to combat air pollution in African cities."
-          canonicalUrls={['https://airqo.africa/about-us', 'https://airqo.net/about-us']}
+          canonicalUrls={[
+            'https://airqo.africa/about-us',
+            'https://airqo.net/about-us',
+            'https://airqo.mak.ac.ug/about-us'
+          ]}
           keywords="AirQo, air quality Africa, AI air pollution sensors, African cities pollution, real-time air quality data, clean air initiatives"
-          image={imageUrl}
+          image="https://res.cloudinary.com/dbibjvyhm/image/upload/v1726573501/team_fcaqrn.webp"
           article={false}
         />
 

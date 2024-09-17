@@ -10,6 +10,7 @@ import Section3Image from '../../assets/img/OurProducts/Analytics/analytics-dash
 import NavTab from '../../components/nav/NavTab';
 import { FileDownloadOutlined } from '@mui/icons-material';
 import { useTranslation, Trans } from 'react-i18next';
+import SEO from 'utilities/seo';
 
 const UserManual =
   'https://res.cloudinary.com/dbibjvyhm/image/upload/v1716038899/website/docs/AirQoAnalyticsPlatformUserGuide_ssyebk.pdf';
@@ -19,6 +20,19 @@ const AnalyticsPage = () => {
   const { t } = useTranslation();
   return (
     <Page>
+      <SEO
+        title="AirQo Analytics - Real-Time Air Quality Insights for Africa"
+        siteTitle="AirQo"
+        description="Discover AirQo's advanced analytics platform for monitoring and analyzing air quality in African cities. Gain real-time insights and historical data on particulate matter (PM2.5, PM10) and leverage customizable charts, data export options, and forecasting tools to manage air pollution effectively."
+        keywords="AirQo, air quality, analytics, PM2.5, PM10, air pollution, real-time air quality data, African cities, air quality monitors, environmental data"
+        canonicalUrl={[
+          'https://airqo.africa/products/analytics',
+          'https://airqo.net/products/analytics',
+          'https://airqo.mak.ac.ug/products/analytics'
+        ]}
+        article={false}
+      />
+
       <div className="product-page analytics">
         <Header
           pageTitle={t('products.Analytics.header.pageTitle')}
