@@ -42,7 +42,7 @@ const postCSSLoader = {
 
 // configuration
 module.exports = (env, argv) => {
-  const isStandalone = env && env.STANDALONE;
+  const isStandalone = env?.STANDALONE;
 
   const config = {
     mode: NODE_ENV,
