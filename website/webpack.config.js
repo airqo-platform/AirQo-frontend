@@ -2,6 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const dotenv = require('dotenv');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 // Load environment variables
 dotenv.config();
@@ -13,24 +14,22 @@ const IS_PROD = NODE_ENV === 'production';
 const IS_DEV = NODE_ENV === 'development';
 
 // Utility functions
-const strToBool = (str) => ['true', '1', 'yes', 'y'].includes((str || '').toLowerCase());
+const strToBool = (value) => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    return ['true', '1', 'yes', 'y'].includes(value.toLowerCase());
+  }
+  return false;
+};
 const removeTrailingSlash = (str) => (str || '').replace(/\/+$/, '');
 
 // Environment-specific configurations
 const STATIC_URL = removeTrailingSlash(process.env.REACT_WEB_STATIC_HOST);
-const DEBUG = strToBool(process.env.DEBUG);
-const PUBLIC_PATH = DEBUG ? `${STATIC_URL}/static/frontend/` : `${STATIC_URL}/frontend/`;
+const PUBLIC_PATH = IS_DEV ? `${STATIC_URL}/static/frontend/` : `${STATIC_URL}/frontend/`;
 const STATIC_DIR = 'frontend/static/frontend';
 const DIST_DIR = path.resolve(__dirname, STATIC_DIR);
 
 // Loader configurations
-const stripLoaderConfig = {
-  loader: 'strip-loader',
-  options: {
-    strip: ['assert', 'typeCheck', 'log.log', 'log.debug', 'log.deprecate', 'log.info', 'log.warn']
-  }
-};
-
 const postCSSLoader = {
   loader: 'postcss-loader',
   options: {
@@ -40,9 +39,9 @@ const postCSSLoader = {
   }
 };
 
-// configuration
-module.exports = (env, argv) => {
-  const isStandalone = env?.STANDALONE;
+// Configuration
+module.exports = (env = {}, argv) => {
+  const isStandalone = strToBool(env.STANDALONE);
 
   const config = {
     mode: NODE_ENV,
@@ -51,11 +50,12 @@ module.exports = (env, argv) => {
     output: {
       path: DIST_DIR,
       filename: '[name].bundle.js',
-      publicPath: isStandalone ? '/' : PUBLIC_PATH
+      publicPath: isStandalone ? '/' : PUBLIC_PATH,
+      clean: true
     },
     resolve: {
       modules: [ROOT, 'frontend/src', 'node_modules'],
-      extensions: ['.js', '.jsx', '.ts', '.tsx', '...']
+      extensions: ['.js', '.jsx', '.ts', '.tsx', '.json']
     },
     module: {
       rules: [
@@ -63,7 +63,7 @@ module.exports = (env, argv) => {
         {
           test: /\.(js|jsx|ts|tsx)$/,
           exclude: /node_modules/,
-          use: ['babel-loader', ...(IS_PROD ? [stripLoaderConfig] : [])]
+          use: ['babel-loader']
         },
         // CSS
         {
@@ -75,6 +75,7 @@ module.exports = (env, argv) => {
           test: /\.s[ac]ss$/i,
           use: ['style-loader', 'css-loader', postCSSLoader, 'sass-loader']
         },
+        // Assets (images, fonts, etc.)
         // Webp
         {
           test: /\.webp$/,
@@ -117,11 +118,28 @@ module.exports = (env, argv) => {
             return env;
           }, {})
       ),
-      new HtmlWebpackPlugin({ template: './frontend/standaloneIndex.html' })
-    ]
+      new HtmlWebpackPlugin({
+        template: './frontend/standaloneIndex.html',
+        favicon: './frontend/assets/favicon.ico'
+      })
+    ],
+    optimization: {
+      minimize: IS_PROD,
+      minimizer: IS_PROD
+        ? [
+            new TerserPlugin({
+              terserOptions: {
+                compress: {
+                  drop_console: true
+                }
+              }
+            })
+          ]
+        : []
+    }
   };
 
-  // Development server configuration (used for both dev and standalone)
+  // Development server configuration
   const devServerConfig = {
     port: 8081,
     headers: { 'Access-Control-Allow-Origin': '*' },
@@ -131,21 +149,14 @@ module.exports = (env, argv) => {
     static: {
       directory: './static',
       publicPath: '/static/'
+    },
+    devMiddleware: {
+      publicPath: isStandalone ? '/' : 'http://localhost:8081/static/frontend/'
     }
   };
 
-  // Development-specific configuration
-  if (IS_DEV && !isStandalone) {
-    config.devServer = {
-      ...devServerConfig,
-      devMiddleware: {
-        publicPath: 'http://localhost:8081/static/frontend/'
-      }
-    };
-  }
-
-  // Standalone configuration
-  if (isStandalone) {
+  // Apply devServer configuration for development and standalone modes
+  if (IS_DEV || isStandalone) {
     config.devServer = devServerConfig;
   }
 
