@@ -23,8 +23,8 @@ const SEO = ({
     url: canonicalUrl || (typeof window !== 'undefined' ? window.location.href : ''),
     image: image || '',
     author: author || organizationName,
-    datePublished: datePublished || new Date().toISOString(),
-    dateModified: dateModified || new Date().toISOString()
+    datePublished: datePublished,
+    dateModified: dateModified
   };
 
   const schemaOrgWebPage = {

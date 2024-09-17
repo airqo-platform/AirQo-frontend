@@ -1594,7 +1594,7 @@
           width: 100%;
           height: 74px;
           background-color: $background-color;
-          overflow-x: scroll;
+          overflow-x: auto;
 
           &::-webkit-scrollbar {
             display: none;
@@ -1653,7 +1653,7 @@
           height: 74px;
           margin-top: 10px;
           background-color: $background-color;
-          overflow-x: scroll;
+          overflow-x: auto;
 
           // sticky navigation on scroll
           .nav {
