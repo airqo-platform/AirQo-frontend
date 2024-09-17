@@ -40,7 +40,7 @@ const postCSSLoader = {
   }
 };
 
-// Webpack configuration
+// configuration
 module.exports = (env, argv) => {
   const isStandalone = env && env.STANDALONE;
 
