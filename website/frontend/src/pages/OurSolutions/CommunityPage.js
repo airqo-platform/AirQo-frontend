@@ -30,11 +30,7 @@ const CommunityPage = () => {
           title="Our Solutions for Communities"
           siteTitle="AirQo"
           description="AirQo harnesses the value of bringing together community members passionate about clean air and a healthy environment. Join our network of local champions driving positive change in air quality."
-          canonicalUrl={[
-            'https://airqo.africa/solutions/communities',
-            'https://airqo.net/solutions/communities',
-            'https://airqo.mak.ac.ug/solutions/communities'
-          ]}
+          canonicalUrl="https://airqo.africa/solutions/communities"
           image="https://res.cloudinary.com/dbibjvyhm/image/upload/v1726578795/website/photos/ForCommunities_oepvth.webp"
           keywords="community engagement, clean air advocates, environmental health, air quality awareness, local action"
         />

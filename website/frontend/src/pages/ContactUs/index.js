@@ -15,11 +15,7 @@ const ContactUs = ({ children, arrow }) => {
           title="Contact AirQo | Real-Time Air Quality Monitoring Across Africa"
           siteTitle="AirQo Africa"
           description="Get in touch with AirQo, a leading African air quality research initiative. Explore our air quality analytics dashboard and mobile app for real-time and historic air quality data across Africa. Learn more about our satellite data projects and how we are using machine learning to fight pollution."
-          canonicalUrls={[
-            'https://airqo.africa/contact',
-            'https://airqo.net/contact',
-            'https://airqo.mak.ac.ug/contact'
-          ]}
+          canonicalUrl="https://airqo.africa/contact"
           keywords="AirQo, air quality, Africa, real-time air monitoring, pollution, machine learning, air quality data, environmental justice, air quality prediction"
           article={false}
         />

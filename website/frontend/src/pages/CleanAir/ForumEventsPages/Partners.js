@@ -27,11 +27,7 @@ const Partners = ({
         title="CLEAN-Air Forum Partners"
         siteTitle="AirQo Africa"
         description="Discover the key partners and collaborators of the CLEAN-Air Forum. Explore how these organizations are working together to improve air quality management and urban health across Africa."
-        canonicalUrl={[
-          'https://airqo.africa/clean-air/forum#partners',
-          'https://airqo.net/clean-air/forum#partners',
-          'https://airqo.mak.ac.ug/clean-air/forum#partners'
-        ]}
+        canonicalUrl="https://airqo.africa/clean-air/forum#partners"
         article={false}
         keywords="CLEAN-Air Forum partnerships, environmental collaborations, air quality initiatives, African environmental organizations"
       />

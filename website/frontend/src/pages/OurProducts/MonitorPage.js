@@ -26,11 +26,7 @@ const MonitorPage = () => {
         siteTitle="AirQo"
         description="Explore AirQo's Binos Monitor, a low-cost, AI-powered air quality monitor designed for real-time, precise measurements across African cities. Learn how AirQo is improving air quality monitoring in Uganda and beyond."
         keywords="AirQo, Binos Monitor, air quality sensor, real-time air pollution data, AI air monitoring, low-cost air sensor, environmental health, Uganda, Africa"
-        canonicalUrls={[
-          'https://airqo.mak.ac.ug/products/monitor',
-          'https://airqo.africa/products/monitor',
-          'https://airqo.net/products/monitor'
-        ]}
+        canonicalUrl="https://airqo.mak.ac.ug/products/monitor"
         image="https://res.cloudinary.com/dbibjvyhm/image/upload/v1726576617/website/photos/monitor_bafpll.webp"
       />
 

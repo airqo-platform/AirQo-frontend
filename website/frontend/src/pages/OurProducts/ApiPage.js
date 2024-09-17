@@ -21,11 +21,7 @@ const ApiPage = () => {
         siteTitle="AirQo"
         description="Access real-time and historical air quality data for African cities through AirQo's comprehensive API. Integrate air quality analytics seamlessly into your applications to support environmental monitoring and decision-making."
         keywords="AirQo, Air Quality API, African cities, air quality data, environmental monitoring, API integration, real-time data, historical air quality, pollution monitoring, air quality analytics"
-        canonicalUrl={[
-          'https://airqo.africa/products/api',
-          'https://airqo.net/products/api',
-          'https://airqo.mak.ac.ug/products/api'
-        ]}
+        canonicalUrl="https://airqo.africa/products/api"
       />
 
       <div className="product-page api mobile-app analytics">

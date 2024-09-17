@@ -108,11 +108,7 @@ const CareerPage = () => {
           title="Careers at AirQo"
           siteTitle="Join the Clean Air Revolution in Africa"
           description="Join AirQo's passionate team in pioneering air quality monitoring across Africa. Help us achieve our vision of Clean Air for all African Cities through innovation and dedication."
-          canonicalUrl={[
-            'https://airqo.africa/careers',
-            'https://airqo.net/careers',
-            'https://airqo.mak.ac.ug/careers'
-          ]}
+          canonicalUrl="https://airqo.africa/careers"
           keywords="careers, jobs, air quality, environmental science, Africa, technology, innovation"
           article={false}
         />

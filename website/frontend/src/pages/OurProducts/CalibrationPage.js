@@ -20,11 +20,7 @@ const CalibrationPage = () => {
         title="AirQo Calibrate Tool - Enhance Air Quality Data Accuracy"
         siteTitle="AirQo"
         description="Discover AirQo's Calibrate tool, designed to improve the accuracy of air quality monitoring sensors across Africa. Learn how we ensure reliable air quality data through advanced calibration methods."
-        canonicalUrl={[
-          'https://airqo.africa/products/calibrate',
-          'https://airqo.net/products/calibrate',
-          'https://airqo.mak.ac.ug/products/calibrate'
-        ]}
+        canonicalUrl="https://airqo.africa/products/calibrate"
         keywords="AirQo, calibrate tool, air quality calibration, sensor accuracy, air pollution Africa, air quality data"
         article={false}
       />

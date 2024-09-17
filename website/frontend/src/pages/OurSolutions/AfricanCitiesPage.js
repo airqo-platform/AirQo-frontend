@@ -243,11 +243,7 @@ const AfricanCitiesPage = () => {
           title="Our Solutions for African Cities"
           siteTitle="AirQo"
           description="AirQo leverages high-resolution air quality monitoring networks to advance air quality management in African cities. Discover our tailored solutions for urban environments."
-          canonicalUrl={[
-            'https://airqo.africa/solutions/african-cities',
-            'https://airqo.net/solutions/african-cities',
-            'https://airqo.mak.ac.ug/solutions/african-cities'
-          ]}
+          canonicalUrl="https://airqo.africa/solutions/african-cities"
           keywords="air quality management, African cities, urban pollution, environmental monitoring, smart cities"
         />
         <CityHeroSection />

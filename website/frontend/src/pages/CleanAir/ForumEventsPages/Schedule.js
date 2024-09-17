@@ -77,11 +77,7 @@ const Schedule = ({ schedule, registration, forumEvents }) => {
         title="CLEAN-Air Forum Schedule"
         siteTitle="AirQo Africa"
         description="Explore the comprehensive schedule of events, panel discussions, and workshops at the CLEAN-Air Forum. Plan your participation in this pivotal air quality management conference for African cities."
-        canonicalUrl={[
-          'https://airqo.africa/clean-air/forum#schedule',
-          'https://airqo.net/clean-air/forum#schedule',
-          'https://airqo.mak.ac.ug/clean-air/forum#schedule'
-        ]}
+        canonicalUrl="https://airqo.africa/clean-air/forum#schedule"
         article={false}
         keywords="CLEAN-Air Forum events, air quality workshops, environmental panels, African urban health conference"
       />

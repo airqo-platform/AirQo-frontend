@@ -12,11 +12,7 @@ const Glossary = ({ glossaryDetails }) => {
         title="Air Quality Management Glossary - CLEAN-Air Forum"
         siteTitle="AirQo Africa"
         description="Access a comprehensive glossary of air quality management terms curated by the CLEAN-Air Forum. Enhance your understanding of key concepts in environmental science and urban health specific to African contexts."
-        canonicalUrl={[
-          'https://airqo.africa/clean-air/forum#glossary',
-          'https://airqo.net/clean-air/forum#glossary',
-          'https://airqo.mak.ac.ug/clean-air/forum#glossary'
-        ]}
+        canonicalUrl="https://airqo.africa/clean-air/forum#glossary"
         article={false}
         keywords="air quality terminology, environmental science glossary, urban health definitions, African air pollution terms"
       />

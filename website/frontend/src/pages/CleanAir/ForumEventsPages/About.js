@@ -12,11 +12,7 @@ const Index = ({ engagements, forumEvents }) => {
         title="About CLEAN-Air Forum"
         siteTitle="AirQo Africa"
         description="Learn about the CLEAN-Air Forum, a pioneering platform fostering critical discussions and collaborations on air quality management across Africa. Discover our mission, objectives, and impact on urban environmental policies."
-        canonicalUrl={[
-          'https://airqo.africa/clean-air/forum#about',
-          'https://airqo.net/clean-air/forum#about',
-          'https://airqo.mak.ac.ug/clean-air/forum#about'
-        ]}
+        canonicalUrl="https://airqo.africa/clean-air/forum#about"
         keywords="CLEAN-Air Forum mission, air quality initiatives, African environmental policy, urban health collaboration"
         article={false}
       />

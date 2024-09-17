@@ -6,20 +6,51 @@ const SEO = ({
   title,
   description,
   siteTitle,
-  canonicalUrls = [],
+  canonicalUrl,
   image,
   article,
   keywords,
-  lang = 'en'
+  lang = 'en',
+  author,
+  datePublished,
+  dateModified,
+  organizationName,
+  organizationLogo
 }) => {
   const seo = {
     title: title || siteTitle,
     description: description,
-    urls:
-      canonicalUrls.length > 0
-        ? canonicalUrls
-        : [typeof window !== 'undefined' ? window.location.href : ''],
-    image: image || ''
+    url: canonicalUrl || (typeof window !== 'undefined' ? window.location.href : ''),
+    image: image || '',
+    author: author || organizationName,
+    datePublished: datePublished || new Date().toISOString(),
+    dateModified: dateModified || new Date().toISOString()
+  };
+
+  const schemaOrgWebPage = {
+    '@context': 'https://schema.org',
+    '@type': article ? 'Article' : 'WebPage',
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': seo.url
+    },
+    headline: seo.title,
+    description: seo.description,
+    image: seo.image,
+    author: {
+      '@type': 'Person',
+      name: seo.author
+    },
+    datePublished: seo.datePublished,
+    dateModified: seo.dateModified,
+    publisher: {
+      '@type': 'Organization',
+      name: organizationName,
+      logo: {
+        '@type': 'ImageObject',
+        url: organizationLogo
+      }
+    }
   };
 
   return (
@@ -31,36 +62,38 @@ const SEO = ({
       titleTemplate={`%s | ${siteTitle}`}>
       <meta name="description" content={seo.description} />
       <meta name="keywords" content={keywords} />
+      <meta name="author" content={seo.author} />
+
       {/* Open Graph / Facebook */}
       <meta property="og:type" content={article ? 'article' : 'website'} />
       <meta property="og:title" content={seo.title} />
       <meta property="og:description" content={seo.description} />
       <meta property="og:site_name" content={siteTitle} />
       {seo.image && <meta property="og:image" content={seo.image} />}
-      {seo.urls[0] && <meta property="og:url" content={seo.urls[0]} />}{' '}
-      {/* Use the first canonical URL for OG URL */}
+      {seo.url && <meta property="og:url" content={seo.url} />}
+
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={seo.title} />
       <meta name="twitter:description" content={seo.description} />
       {seo.image && <meta name="twitter:image" content={seo.image} />}
-      {/* Canonical URLs */}
-      {seo.urls.map((url, index) => (
-        <link key={index} rel="canonical" href={url} />
-      ))}
+
+      {/* Additional SEO-friendly meta tags */}
+      <meta name="robots" content="index, follow" />
+      <meta
+        name="googlebot"
+        content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+      />
+      <meta
+        name="bingbot"
+        content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+      />
+
+      {/* Canonical URL */}
+      {seo.url && <link rel="canonical" href={seo.url} />}
+
       {/* JSON-LD structured data */}
-      <script type="application/ld+json">
-        {`
-          {
-            "@context": "https://schema.org",
-            "@type": "${article ? 'Article' : 'WebPage'}",
-            "headline": "${seo.title}",
-            "description": "${seo.description}",
-            "image": "${seo.image || ''}",
-            "url": "${seo.urls[0]}"
-          }
-        `}
-      </script>
+      <script type="application/ld+json">{JSON.stringify(schemaOrgWebPage)}</script>
     </Helmet>
   );
 };
@@ -69,11 +102,16 @@ SEO.propTypes = {
   title: PropTypes.string.isRequired,
   description: PropTypes.string.isRequired,
   siteTitle: PropTypes.string.isRequired,
-  canonicalUrls: PropTypes.arrayOf(PropTypes.string),
+  canonicalUrl: PropTypes.string,
   image: PropTypes.string,
   article: PropTypes.bool,
   keywords: PropTypes.string,
-  lang: PropTypes.string
+  lang: PropTypes.string,
+  author: PropTypes.string,
+  datePublished: PropTypes.string,
+  dateModified: PropTypes.string,
+  organizationName: PropTypes.string,
+  organizationLogo: PropTypes.string
 };
 
 export default SEO;

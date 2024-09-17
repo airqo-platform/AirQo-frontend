@@ -166,11 +166,7 @@ const CleanAirForumEvent = () => {
         title="CLEAN-Air Forum"
         siteTitle="AirQo Africa"
         description="Join the CLEAN-Air Forum, a premier platform for discussing and advancing air quality management strategies in Africa. Connect with experts, policymakers, and innovators shaping the future of clean air in urban environments."
-        canonicalUrl={[
-          'https://airqo.africa/clean-air/forum',
-          'https://airqo.net/clean-air/forum',
-          'https://airqo.mak.ac.ug/clean-air/forum'
-        ]}
+        canonicalUrl="https://airqo.africa/clean-air/forum"
         article={false}
         keywords="CLEAN-Air Forum, air quality management, African cities, environmental conference, urban health, policy discussions"
       />

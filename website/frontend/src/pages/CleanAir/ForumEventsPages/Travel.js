@@ -12,11 +12,7 @@ const Travel = ({ vaccinationDetails, support, visaDetails, accommodation }) => 
         title="Travel Information for CLEAN-Air Forum"
         siteTitle="AirQo Africa"
         description="Find comprehensive travel information for attending the CLEAN-Air Forum. Get details on accommodation, transportation, and local attractions to make your participation in this key air quality event seamless."
-        canonicalUrl={[
-          'https://airqo.africa/clean-air/forum#travel',
-          'https://airqo.net/clean-air/forum#travel',
-          'https://airqo.mak.ac.ug/clean-air/forum#travel'
-        ]}
+        canonicalUrl="https://airqo.africa/clean-air/forum#travel"
         article={false}
         keywords="CLEAN-Air Forum travel, conference accommodation, African cities transport, environmental event logistics"
       />

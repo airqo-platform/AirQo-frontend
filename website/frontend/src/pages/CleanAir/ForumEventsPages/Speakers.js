@@ -19,11 +19,7 @@ const Speakers = ({ speakers, sectionText, keyNoteSpeakers }) => {
         title="CLEAN-Air Forum Speakers"
         siteTitle="AirQo Africa"
         description="Get to know the influential speakers and thought leaders presenting at the CLEAN-Air Forum. Discover insights from experts in air quality management, environmental policy, and urban health in Africa."
-        canonicalUrl={[
-          'https://airqo.africa/clean-air/forum#speakers',
-          'https://airqo.net/clean-air/forum#speakers',
-          'https://airqo.mak.ac.ug/clean-air/forum#speakers'
-        ]}
+        canonicalUrl="https://airqo.africa/clean-air/forum#speakers"
         article={false}
         keywords="CLEAN-Air Forum presenters, air quality experts, environmental speakers, African urban health leaders"
       />

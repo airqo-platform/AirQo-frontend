@@ -73,11 +73,7 @@ const Resources = ({ Resources }) => {
         title="CLEAN-Air Forum Resources"
         siteTitle="AirQo Africa"
         description="Access a wealth of resources on air quality management in Africa, curated by the CLEAN-Air Forum. Find research papers, policy briefs, and practical guides to support clean air initiatives in urban environments."
-        canonicalUrl={[
-          'https://airqo.africa/clean-air/forum#resources',
-          'https://airqo.net/clean-air/forum#resources',
-          'https://airqo.mak.ac.ug/clean-air/forum#resources'
-        ]}
+        canonicalUrl="https://airqo.africa/clean-air/forum#resources"
         article={false}
         keywords="air quality resources, environmental research, African urban health studies, clean air policy documents"
       />

@@ -25,11 +25,7 @@ const AnalyticsPage = () => {
         siteTitle="AirQo"
         description="Discover AirQo's advanced analytics platform for monitoring and analyzing air quality in African cities. Gain real-time insights and historical data on particulate matter (PM2.5, PM10) and leverage customizable charts, data export options, and forecasting tools to manage air pollution effectively."
         keywords="AirQo, air quality, analytics, PM2.5, PM10, air pollution, real-time air quality data, African cities, air quality monitors, environmental data"
-        canonicalUrl={[
-          'https://airqo.africa/products/analytics',
-          'https://airqo.net/products/analytics',
-          'https://airqo.mak.ac.ug/products/analytics'
-        ]}
+        canonicalUrl="https://airqo.africa/products/analytics"
         article={false}
       />
 
