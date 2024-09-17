@@ -28,7 +28,8 @@ const PublicationsPage = () => {
   const getInitialTab = () => {
     const url = new URL(window.location);
     const tabParam = url.searchParams.get('tab');
-    return tabParam || 'Research'; // Default to 'Research' if no tab is specified
+    const allowedTabs = ['Research', 'Reports', 'Guides'];
+    return allowedTabs.includes(tabParam) ? tabParam : 'Research';
   };
 
   const [selectedTab, setSelectedTab] = useState(getInitialTab);

@@ -99,14 +99,14 @@ const TopBar = () => {
                     </Link>
                   </div>
                   <div className="dropdown-list-item">
-                    <Link
-                      to="https://platform.airqo.net/reports"
+                    <a
+                      href="https://platform.airqo.net/reports"
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ textDecoration: 'none' }}>
                       <h3>{t('navbar.products.subnav.reporting.name')}</h3>
                       <h4>{t('navbar.products.subnav.reporting.desc')}</h4>
-                    </Link>
+                    </a>
                   </div>
                 </div>
               </div>
