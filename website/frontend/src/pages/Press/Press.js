@@ -40,9 +40,16 @@ const Press = () => {
     <>
       <Page>
         <SEO
-          title="Press"
-          siteTitle="AirQo"
-          description="Find stories about AirQo that we think you'll love."
+          title="AirQo Press Coverage"
+          siteTitle="AirQo Africa"
+          description="Explore the latest news, articles, and media coverage about AirQo's innovative air quality monitoring solutions in Africa. Discover how we're making headlines in environmental technology and urban health."
+          canonicalUrl={[
+            'https://airqo.africa/press',
+            'https://airqo.net/press',
+            'https://airqo.mak.ac.ug/press'
+          ]}
+          keywords="AirQo press, air quality news, environmental technology, African innovation, urban health, media coverage"
+          article={false}
         />
         {loading ? (
           <div

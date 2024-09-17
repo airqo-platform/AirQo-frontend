@@ -3,6 +3,7 @@ import DOMPurify from 'dompurify';
 import { FaRegFilePdf, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { BsFiletypePpt } from 'react-icons/bs';
 import { FaRegFileWord } from 'react-icons/fa';
+import SEO from 'utilities/seo';
 
 const Resources = ({ Resources }) => {
   const [collapsedSessions, setCollapsedSessions] = useState(
@@ -68,6 +69,18 @@ const Resources = ({ Resources }) => {
 
   return (
     <div>
+      <SEO
+        title="CLEAN-Air Forum Resources"
+        siteTitle="AirQo Africa"
+        description="Access a wealth of resources on air quality management in Africa, curated by the CLEAN-Air Forum. Find research papers, policy briefs, and practical guides to support clean air initiatives in urban environments."
+        canonicalUrl={[
+          'https://airqo.africa/clean-air/forum#resources',
+          'https://airqo.net/clean-air/forum#resources',
+          'https://airqo.mak.ac.ug/clean-air/forum#resources'
+        ]}
+        article={false}
+        keywords="air quality resources, environmental research, African urban health studies, clean air policy documents"
+      />
       <div
         style={{
           display: 'flex',

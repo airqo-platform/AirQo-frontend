@@ -15,6 +15,7 @@ import Glossary from './ForumEventsPages/Glossary';
 import Resources from './ForumEventsPages/Resources';
 import CommitteePage from './ForumEventsPages/CommitteePage';
 import { ButtonCTA } from 'components/CleanAir';
+import SEO from 'utilities/seo';
 
 /**
  * CleanAirForumEvent component
@@ -161,6 +162,18 @@ const CleanAirForumEvent = () => {
 
   return (
     <Page showNewsLetter={true} showBottomCTAS={false} showSubNav={false}>
+      <SEO
+        title="CLEAN-Air Forum"
+        siteTitle="AirQo Africa"
+        description="Join the CLEAN-Air Forum, a premier platform for discussing and advancing air quality management strategies in Africa. Connect with experts, policymakers, and innovators shaping the future of clean air in urban environments."
+        canonicalUrl={[
+          'https://airqo.africa/clean-air/forum',
+          'https://airqo.net/clean-air/forum',
+          'https://airqo.mak.ac.ug/clean-air/forum'
+        ]}
+        article={false}
+        keywords="CLEAN-Air Forum, air quality management, African cities, environmental conference, urban health, policy discussions"
+      />
       {isLoading ? (
         <div
           style={{

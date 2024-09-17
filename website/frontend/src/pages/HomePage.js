@@ -22,7 +22,10 @@ const HomePage = () => {
         <SEO
           title="AirQo Africa"
           siteTitle="Clean Air for all African Cities"
-          description="AirQo is Africa's leading air quality monitoring, research and analytics network. We use low cost technologies and AI to close the gaps in air quality data across the continent. Work with us to find data-driven solutions to your air quality challenges."
+          description="AirQo is Africa's leading air quality monitoring network, using low-cost sensors and AI to provide crucial data for African cities. Join us in creating data-driven solutions for cleaner air across the continent."
+          canonicalUrl={['https://airqo.africa', 'https://airqo.net', 'https://airqo.mak.ac.ug']}
+          keywords="air quality, Africa, pollution monitoring, clean air, urban health, environmental data, AI, smart cities"
+          article={false}
         />
         <Hero />
         <Partners />
