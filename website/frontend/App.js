@@ -99,9 +99,7 @@ const AppRoutes = () => (
 
 const App = () => {
   useEffect(() => {
-    if (process.env.NODE_ENV === 'production') {
-      ReactGA4.initialize('G-79ZVCLEDSG');
-    }
+    ReactGA4.initialize('G-79ZVCLEDSG');
   }, []);
 
   return (
