@@ -85,10 +85,15 @@ const AboutUsPage = () => {
     <Page>
       <div className="AboutUsPage">
         <SEO
-          title="About Us"
+          title="About Us | AirQo Africa"
           siteTitle="AirQo"
-          description="At AirQo we empower communities across Africa with accurate, hyperlocal, and timely air quality data to drive air pollution mitigation actions."
+          description="AirQo is a pioneer in improving air quality across Africa, utilizing AI and low-cost sensor technology to provide real-time air quality data. Learn how we empower communities, shape policies, and collaborate with global partners to combat air pollution in African cities."
+          canonicalUrl="https://airqo.africa/about-us"
+          keywords="AirQo, air quality Africa, AI air pollution sensors, African cities pollution, real-time air quality data, clean air initiatives"
+          image="https://res.cloudinary.com/dbibjvyhm/image/upload/v1726573501/team_fcaqrn.webp"
+          article={false}
         />
+
         <div className="AboutUsPage__hero">
           <div className="content">
             <h2>{t('about.aboutUs.header.pageTitle')}</h2>

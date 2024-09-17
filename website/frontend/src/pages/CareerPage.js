@@ -105,9 +105,12 @@ const CareerPage = () => {
     <Page>
       <div className="CareersPage">
         <SEO
-          title="Careers"
-          siteTitle="AirQo"
-          description="Be part of a team pioneering air quality monitoring in Africa. Together, we work passionately towards our vision for Clean Air for all African Cities."
+          title="Careers at AirQo"
+          siteTitle="Join the Clean Air Revolution in Africa"
+          description="Join AirQo's passionate team in pioneering air quality monitoring across Africa. Help us achieve our vision of Clean Air for all African Cities through innovation and dedication."
+          canonicalUrl="https://airqo.africa/careers"
+          keywords="careers, jobs, air quality, environmental science, Africa, technology, innovation"
+          article={false}
         />
         <div
           className="careers-banner"

@@ -74,9 +74,12 @@ const Schedule = ({ schedule, registration, forumEvents }) => {
     <>
       {/* SEO */}
       <SEO
-        title="Schedule for CLEAN-Air Forum"
-        siteTitle="CLEAN-Air Forum"
-        description="Explore the schedule of events and discussions taking place at the CLEAN-Air Forum on air quality management."
+        title="CLEAN-Air Forum Schedule"
+        siteTitle="AirQo Africa"
+        description="Explore the comprehensive schedule of events, panel discussions, and workshops at the CLEAN-Air Forum. Plan your participation in this pivotal air quality management conference for African cities."
+        canonicalUrl="https://airqo.africa/clean-air/forum#schedule"
+        article={false}
+        keywords="CLEAN-Air Forum events, air quality workshops, environmental panels, African urban health conference"
       />
 
       <div className="separator" />

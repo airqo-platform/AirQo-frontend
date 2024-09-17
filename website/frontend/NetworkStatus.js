@@ -1,3 +1,4 @@
+import React from 'react';
 import { useNetwork } from './utilities/useNetwork';
 import OopsImage from 'src/assets/svg/errors/Oops.svg';
 
