@@ -29,6 +29,10 @@
         "calibrate": {
           "name": "AirQalibrate",
           "desc": "Étalonnez les données de vos capteurs à faible coût"
+        },
+        "reporting": {
+          "name": "Outil de Rapports sur la Qualité de l'Air",
+          "desc": "Générer et télécharger des rapports"
         }
       }
     },
