@@ -29,6 +29,10 @@
         "calibrate": {
           "name": "AirQalibrate",
           "desc": "Calibrate your low-cost sensor data"
+        },
+        "reporting": {
+          "name": "Air Quality Reporting Tool",
+          "desc": "Generate and download reports"
         }
       }
     },

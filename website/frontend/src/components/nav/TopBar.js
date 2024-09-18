@@ -98,6 +98,16 @@ const TopBar = () => {
                       <h4>{t('navbar.products.subnav.calibrate.desc')}</h4>
                     </Link>
                   </div>
+                  <div className="dropdown-list-item">
+                    <a
+                      href="https://platform.airqo.net/reports"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ textDecoration: 'none' }}>
+                      <h3>{t('navbar.products.subnav.reporting.name')}</h3>
+                      <h4>{t('navbar.products.subnav.reporting.desc')}</h4>
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
