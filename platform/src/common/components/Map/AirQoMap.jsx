@@ -592,10 +592,19 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
    */
   const refreshMap = useCallback(() => {
     const map = mapRef.current;
-    map.setStyle(map.getStyle());
+
+    // Ensure the map has a valid style URL to reset it
+    const originalStyle =
+      map.getStyle().sprite.split('/').slice(0, -1).join('/') + '/style.json';
+
+    map.setStyle(originalStyle);
+
     setRefresh((prev) => !prev);
-    selectedNode && dispatch(setSelectedNode(null));
+    if (selectedNode) {
+      dispatch(setSelectedNode(null));
+    }
     dispatch(reSetMap());
+
     setToastMessage({
       message: 'Map refreshed successfully',
       type: 'success',
