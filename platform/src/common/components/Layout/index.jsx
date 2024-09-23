@@ -112,7 +112,7 @@ const Layout = ({
           className={`${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'} h-auto flex-1 transition-all duration-300 ease-in-out`}
         >
           <div
-            className={`${router.pathname === '/map' ? '' : 'max-w-[1600px] mx-auto space-y-8 px-4 py-8 sm:px-6 lg:px-8'} overflow-hidden `}
+            className={`${router.pathname === '/map' ? '' : 'max-w-[1200px] mx-auto space-y-8 px-4 py-8 sm:px-6 lg:px-8'} overflow-hidden `}
           >
             {noTopNav && (
               <TopBar
