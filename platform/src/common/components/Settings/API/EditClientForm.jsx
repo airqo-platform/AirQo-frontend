@@ -6,7 +6,7 @@ import { updateClientApi, getClientsApi } from '@/core/apis/Settings';
 import {
   addClients,
   addClientsDetails,
-  performRefresh,
+  perfzormRefresh,
 } from '@/lib/store/services/apiClient';
 import { getUserDetails } from '@/core/apis/Account';
 import PlusIcon from '@/icons/Actions/PlusIcon';
@@ -134,14 +134,14 @@ const EditClientForm = ({ open, closeModal, data }) => {
       loading={loading}
       ModalIcon={PersonIcon}
     >
-      {isError?.isError && (
-        <Toast type={isError?.type} message={isError?.message} />
+      {isError.isError && (
+        <Toast type={isError.type} message={isError.message} />
       )}
       <h3 className="text-lg font-medium text-secondary-neutral-light-800 leading-[26px] mb-2">
         Edit client
       </h3>
 
-      <div className="flex flex-col gap-3 justify-start">
+      <div className="flex flex-col gap-3 justify-start max-h-[350px] overflow-y-auto">
         <div className="relative">
           <input
             type="text"
@@ -154,7 +154,7 @@ const EditClientForm = ({ open, closeModal, data }) => {
           />
           {clientName && (
             <button
-              className="absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto"
+              className="absolute inset-y-0 right-0 flex justify-center items-center mr-3"
               onClick={() => handleRemoveInputValue('clientName')}
             >
               ✕
