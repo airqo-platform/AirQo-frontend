@@ -167,7 +167,9 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     }
   }, [mapData.center, mapData.zoom, mapRef.current]);
 
-  // Formatting and processing data section
+  /**
+   * Handling data section
+   */
   const createFeature = useCallback(
     (id, name, coordinates, aqi, no2, pm10, pm2_5, time, forecast) => ({
       type: 'Feature',
@@ -188,10 +190,11 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     [],
   );
 
-  // Forecast data processing
+  // Forecast data
   const getForecastForPollutant = useCallback(
     (cityData) => {
       if (!cityData || !cityData.forecast?.daily) return null;
+
       const dailyForecast = cityData.forecast.daily;
       const forecastDataArray =
         pollutant === 'pm2_5' ? dailyForecast.pm25 : dailyForecast.pm10;
@@ -204,42 +207,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     [pollutant],
   );
 
-  const getTwoMostCommonAQIs = useCallback((cluster) => {
-    const leaves = indexRef.current.getLeaves(
-      cluster.properties.cluster_id,
-      Infinity,
-    );
-    const aqiCounts = leaves.reduce((acc, leaf) => {
-      const aqi = leaf.properties.airQuality;
-      acc[aqi] = (acc[aqi] || 0) + 1;
-      return acc;
-    }, {});
-
-    // Sort AQIs by their count in descending order
-    const sortedAQIs = Object.entries(aqiCounts).sort((a, b) => b[1] - a[1]);
-
-    // Return the two most common AQIs or duplicate the first if only one exists
-    const mostCommonAQIs =
-      sortedAQIs.length > 1
-        ? sortedAQIs.slice(0, 2)
-        : [sortedAQIs[0], sortedAQIs[0]];
-
-    // Filter the leaves that match the two most common AQIs
-    return leaves
-      .filter((leaf) =>
-        mostCommonAQIs
-          .map((aqi) => aqi[0]) // Get AQI categories
-          .includes(leaf.properties.airQuality),
-      )
-      .map((leaf) => ({
-        aqi: leaf.properties.aqi,
-        pm2_5: leaf.properties.pm2_5,
-        pm10: leaf.properties.pm10,
-        no2: leaf.properties.no2,
-      }));
-  }, []);
-
-  // Processing WAQI data
+  // formatting waq data
   const fetchAndProcessWaqData = useCallback(
     async (cities) => {
       setLoadingOthers(true);
@@ -248,18 +216,16 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
           cities.map((city) => axios.get(`/api/proxy?city=${city}`)),
         );
 
+        // Filter and process the fulfilled responses
         const fulfilledResponses = responses.filter(
           (response) =>
             response.status === 'fulfilled' && response.value?.data?.data?.city,
         );
 
-        if (fulfilledResponses.length === 0) {
-          console.warn('No valid WAQI data received');
-          return [];
+        // Stop loading as soon as we process the fulfilled responses
+        if (fulfilledResponses.length > 0) {
+          setLoadingOthers(false);
         }
-
-        // Stop loading when we successfully receive valid responses
-        setLoadingOthers(false);
 
         // Map the data into the desired format
         return fulfilledResponses
@@ -288,20 +254,22 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         console.error('Error fetching AQI data:', error);
         return [];
       } finally {
-        setLoadingOthers(false);
+        setLoadingOthers(false); // Ensures loading is stopped in case of error
       }
     },
     [pollutant, createFeature, getForecastForPollutant],
   );
 
-  // Fetch and process map readings
+  // formatting readings data
   const fetchAndProcessMapReadings = useCallback(async () => {
     try {
       setLoading(true);
+
       const response = await getMapReadings();
       console.info('response', response);
 
       if (response.success && response?.measurements?.length > 0) {
+        // Process and filter the data in the same step
         return response.measurements
           .filter(
             (item) => item.siteDetails && item.no2 && item.pm10 && item.pm2_5,
@@ -323,10 +291,10 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
               null,
             );
           });
-      } else {
-        console.warn('No valid Map readings data received');
-        return [];
       }
+
+      setLoading(false);
+      return [];
     } catch (error) {
       console.error('Error fetching map readings data:', error);
       return [];
@@ -335,33 +303,55 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     }
   }, [pollutant, createFeature]);
 
-  // Fetch and process both Map readings and WAQ data
   const fetchAndProcessData = useCallback(async () => {
-    const [mapReadingsDataResult, waqDataResult] = await Promise.allSettled([
-      fetchAndProcessMapReadings(),
-      fetchAndProcessWaqData(AQI_FOR_CITIES),
-    ]);
-
-    if (
-      mapReadingsDataResult.status === 'fulfilled' &&
-      mapReadingsDataResult.value.length > 0
-    ) {
-      dispatch(setMapReadingsData(mapReadingsDataResult.value));
-    } else {
-      console.warn('Map readings data could not be fetched or is empty');
+    if (!mapReadingsData.length) {
+      const newMapReadingsData = await fetchAndProcessMapReadings();
+      dispatch(setMapReadingsData(newMapReadingsData));
     }
 
-    if (
-      waqDataResult.status === 'fulfilled' &&
-      waqDataResult.value.length > 0
-    ) {
-      dispatch(setWaqData(waqDataResult.value));
-    } else {
-      console.warn('WAQI data could not be fetched or is empty');
+    if (!waqData.length) {
+      const newWaqData = await fetchAndProcessWaqData(AQI_FOR_CITIES);
+      dispatch(setWaqData(newWaqData));
     }
-  }, [dispatch, fetchAndProcessMapReadings, fetchAndProcessWaqData]);
+  }, [
+    dispatch,
+    fetchAndProcessMapReadings,
+    fetchAndProcessWaqData,
+    mapReadingsData,
+    waqData,
+  ]);
 
-  // Cluster update logic
+  const getTwoMostCommonAQIs = useCallback((cluster) => {
+    const leaves = indexRef.current.getLeaves(
+      cluster.properties.cluster_id,
+      Infinity,
+    );
+    const aqiCounts = leaves.reduce((acc, leaf) => {
+      const aqi = leaf.properties.airQuality;
+      acc[aqi] = (acc[aqi] || 0) + 1;
+      return acc;
+    }, {});
+
+    const sortedAQIs = Object.entries(aqiCounts).sort((a, b) => b[1] - a[1]);
+    const mostCommonAQIs =
+      sortedAQIs.length > 1
+        ? sortedAQIs.slice(0, 2)
+        : [sortedAQIs[0], sortedAQIs[0]];
+
+    return leaves
+      .filter((leaf) =>
+        mostCommonAQIs
+          .map((aqi) => aqi[0])
+          .includes(leaf.properties.airQuality),
+      )
+      .map((leaf) => ({
+        aqi: leaf.properties.aqi,
+        pm2_5: leaf.properties.pm2_5,
+        pm10: leaf.properties.pm10,
+        no2: leaf.properties.no2,
+      }));
+  }, []);
+
   const clusterUpdate = useCallback(async () => {
     const map = mapRef.current;
 
@@ -721,7 +711,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
       {loadingOthers && (
         <div className="absolute bg-white rounded-md p-2 top-4 right-16 flex items-center z-50">
           <Loader width={20} height={20} />
-          <span className="ml-2 text-sm">Loading AQ data...</span>
+          <span className="ml-2 text-sm">Loading AQI data...</span>
         </div>
       )}
 
