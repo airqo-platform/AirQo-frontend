@@ -21,6 +21,8 @@ import {
 import {
   CustomGeolocateControl,
   CustomZoomControl,
+  IconButton,
+  LoadingOverlay,
 } from './components/MapControls';
 import LayerModal from './components/LayerModal';
 import Loader from '@/components/Spinner';
@@ -73,62 +75,41 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   const lng = urlParams.get('lng');
   const zm = urlParams.get('zm');
 
-  /**
-   * Once user user leaves the map page when unmounting the component clear the data
-   * @sideEffect
-   * - Clear data on unmount
-   * @returns {void}
-   * */
+  // Clear data on component unmount
   useEffect(() => {
     return () => {
       dispatch(clearData());
     };
-  }, []);
+  }, [dispatch]);
 
-  /**
-   * Stop loaders after 10 seconds
-   */
+  // Stop loaders after 10 seconds
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const loaderTimer = setTimeout(() => {
       setLoading(false);
     }, 10000);
 
-    return () => clearTimeout(timer);
-  }, [loading, dispatch, loadingOthers]);
+    // Cleanup the timer when component unmounts or dependencies change
+    return () => clearTimeout(loaderTimer);
+  }, [loading]);
 
-  /**
-   * set sidebar skeleton loader to false after 2 seconds
-   */
+  // Stop map loading skeleton after 2 seconds
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const skeletonTimer = setTimeout(() => {
       dispatch(setMapLoading(false));
     }, 2000);
 
-    return () => clearTimeout(timer);
+    // Cleanup the timer when component unmounts or dependencies change
+    return () => clearTimeout(skeletonTimer);
   }, [dispatch, selectedNode]);
 
-  /**
-   * Clear data on unmount
-   * @sideEffect
-   * - Clear data on unmount when lat, lng and zm are not present
-   * @returns {void}
-   */
+  // Clear map state if lat, lng, or zm params are missing
   useEffect(() => {
     if (!lat && !lng && !zm) {
       dispatch(reSetMap());
     }
-  }, []);
+  }, [lat, lng, zm, dispatch]);
 
-  /**
-   * Initialize the map
-   * @sideEffect
-   * - Initialize the map
-   * - Add map controls
-   * - Load data
-   * - Update clusters
-   * - Fetch location boundaries
-   * @returns {void}
-   */
+  // Initialize the map and add controls
   useEffect(() => {
     const initializeMap = async () => {
       try {
@@ -145,50 +126,36 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
 
         mapRef.current = map;
 
-        map.on('load', async () => {
+        // Add map controls once map is loaded
+        map.on('load', () => {
           map.resize();
 
-          // Check if the conditions for hiding controls are met
+          // Add controls if the width is above 1024 or no node is selected
           if (!(width < 1024 && selectedNode)) {
             const zoomControl = new CustomZoomControl(dispatch);
-            map.addControl(zoomControl, 'bottom-right');
-
             const geolocateControl = new CustomGeolocateControl(
               setToastMessage,
             );
+            map.addControl(zoomControl, 'bottom-right');
             map.addControl(geolocateControl, 'bottom-right');
           }
         });
       } catch (error) {
-        // console.error('Error initializing the Map: ', error);
-        return;
+        console.error('Error initializing the Map: ', error);
       }
     };
 
     initializeMap();
 
+    // Cleanup map instance on unmount
     return () => {
       if (mapRef.current) {
         mapRef.current.remove();
       }
     };
-  }, [
-    mapStyle,
-    NodeType,
-    mapboxApiAccessToken,
-    width < 1024 && selectedNode,
-    width,
-  ]);
+  }, [mapStyle, NodeType, mapboxApiAccessToken, width, selectedNode]);
 
-  /**
-   * Set the map center and zoom
-   * when the mapData changes
-   * @param {Object} mapData - Map data
-   * @param {Object} mapRef - Map reference
-   * @returns {void}
-   * @sideEffect
-   * - Fly to the new center and zoom
-   */
+  // Fly to new center and zoom when mapData changes
   useEffect(() => {
     if (mapRef.current && mapData.center && mapData.zoom) {
       const { latitude, longitude } = mapData.center;
@@ -196,20 +163,12 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         mapRef.current.flyTo({
           center: [longitude, latitude],
           zoom: mapData.zoom,
-          essential: true,
+          essential: true, // Ensures the transition happens only when necessary
         });
       }
     }
   }, [mapData.center, mapData.zoom, mapRef.current]);
 
-  /**
-   * Fetch data from the API
-   * and process the data
-   * update the clusters
-   * @param {Array} cities - Array of cities
-   * @returns {Promise<Array>} - Array of data
-   * @returns {Promise<Array>} - Array of data
-   */
   const createFeature = useCallback(
     (id, name, coordinates, aqi, no2, pm10, pm2_5, time, forecast) => ({
       type: 'Feature',
@@ -230,10 +189,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     [],
   );
 
-  /**
-   * Get the forecast for a pollutant
-   * @param {Object} cityData - City data
-   * */
   const getForecastForPollutant = useCallback(
     (cityData) => {
       if (!cityData || !cityData.forecast?.daily) return null;
@@ -334,14 +289,13 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     }
   }, [processMapReadingsData]);
 
-  // Fetch and process data
   const fetchAndProcessData = useCallback(async () => {
-    if (!mapReadingsData || mapReadingsData.length === 0) {
+    if (!mapReadingsData.length) {
       const newMapReadingsData = await fetchAndProcessMapReadings();
       dispatch(setMapReadingsData(newMapReadingsData));
     }
 
-    if (!waqData || waqData.length === 0) {
+    if (!waqData.length) {
       const newWaqData = await fetchAndProcessWaqData(AQI_FOR_CITIES);
       dispatch(setWaqData(newWaqData));
     }
@@ -353,16 +307,12 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     waqData,
   ]);
 
-  /**
-   * Get the two most common AQIs in a cluster.
-   * @param {Object} cluster - Cluster object
-   */
   const getTwoMostCommonAQIs = useCallback((cluster) => {
     const leaves = indexRef.current.getLeaves(
       cluster.properties.cluster_id,
       Infinity,
     );
-    const aqiCounts = leaves?.reduce((acc, leaf) => {
+    const aqiCounts = leaves.reduce((acc, leaf) => {
       const aqi = leaf.properties.airQuality;
       acc[aqi] = (acc[aqi] || 0) + 1;
       return acc;
@@ -374,57 +324,151 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         ? sortedAQIs.slice(0, 2)
         : [sortedAQIs[0], sortedAQIs[0]];
 
-    const leavesWithMostCommonAQIs = leaves?.filter((leaf) =>
-      mostCommonAQIs.map((aqi) => aqi[0]).includes(leaf.properties.airQuality),
-    );
-
-    return leavesWithMostCommonAQIs.map((leaf) => ({
-      aqi: leaf.properties.aqi,
-      pm2_5: leaf.properties.pm2_5,
-      pm10: leaf.properties.pm10,
-      no2: leaf.properties.no2,
-    }));
+    return leaves
+      .filter((leaf) =>
+        mostCommonAQIs
+          .map((aqi) => aqi[0])
+          .includes(leaf.properties.airQuality),
+      )
+      .map((leaf) => ({
+        aqi: leaf.properties.aqi,
+        pm2_5: leaf.properties.pm2_5,
+        pm10: leaf.properties.pm10,
+        no2: leaf.properties.no2,
+      }));
   }, []);
 
-  /**
-   * Update the clusters on the map
-   */
   const clusterUpdate = useCallback(async () => {
     const map = mapRef.current;
 
-    // Initialize Super cluster
     const index = new Supercluster({
       radius: NodeType === 'Emoji' ? 40 : NodeType === 'Node' ? 60 : 80,
     });
 
-    // Assign the index instance to indexRef.current
     indexRef.current = index;
 
-    map.on('zoomend', updateClusters);
-    map.on('moveend', updateClusters);
+    const handleClusterUpdate = () => {
+      try {
+        const zoom = map.getZoom();
+        const bounds = map.getBounds();
+        const bbox = [
+          bounds.getWest(),
+          bounds.getSouth(),
+          bounds.getEast(),
+          bounds.getNorth(),
+        ];
 
-    // Use state variables instead of fetching new data
+        const clusters = index.getClusters(bbox, Math.floor(zoom));
+
+        markersRef.current.forEach((marker) => marker.remove());
+        markersRef.current = [];
+
+        clusters.forEach((feature) => {
+          const el = document.createElement('div');
+          el.style.cursor = 'pointer';
+
+          if (!feature.properties.cluster) {
+            el.style.zIndex = 1;
+            el.innerHTML = UnclusteredNode({ feature, NodeType, selectedNode });
+
+            const popup = new mapboxgl.Popup({
+              offset:
+                NodeType === 'Node' ? 35 : NodeType === 'Number' ? 42 : 58,
+              closeButton: false,
+              maxWidth: 'none',
+              className: 'my-custom-popup hidden md:block',
+            }).setHTML(createPopupHTML({ feature, images }));
+
+            const marker = new mapboxgl.Marker(el)
+              .setLngLat(feature.geometry.coordinates)
+              .setPopup(popup)
+              .addTo(map);
+
+            el.addEventListener('mouseenter', () => {
+              marker.togglePopup();
+              el.style.zIndex = 9999;
+            });
+            el.addEventListener('mouseleave', () => {
+              marker.togglePopup();
+              el.style.zIndex = 1;
+            });
+
+            el.addEventListener('click', () => {
+              if (selectedNode === feature.properties._id) return;
+
+              dispatch(setSelectedNode(feature.properties._id));
+              dispatch(setSelectedWeeklyPrediction(null));
+              dispatch(setMapLoading(true));
+              dispatch(setOpenLocationDetails(true));
+              dispatch(setSelectedLocation(feature.properties));
+
+              dispatch(
+                setCenter({
+                  latitude: feature.geometry.coordinates[1],
+                  longitude: feature.geometry.coordinates[0],
+                }),
+              );
+              dispatch(setZoom(15));
+            });
+
+            markersRef.current.push(marker);
+          } else {
+            el.zIndex = 444;
+            el.className =
+              'clustered flex justify-center items-center bg-white rounded-full p-2 shadow-md';
+
+            const mostCommonAQIs = getTwoMostCommonAQIs(feature);
+            feature.properties.aqi = mostCommonAQIs;
+
+            el.innerHTML = createClusterNode({ feature, NodeType });
+            const marker = new mapboxgl.Marker(el)
+              .setLngLat(feature.geometry.coordinates)
+              .addTo(map);
+
+            el.addEventListener('click', () => {
+              map.flyTo({
+                center: feature.geometry.coordinates,
+                zoom: zoom + 2,
+              });
+            });
+
+            markersRef.current.push(marker);
+          }
+        });
+      } catch (error) {
+        console.error('Error updating clusters: ', error);
+      }
+    };
+
+    map.on('zoomend', handleClusterUpdate);
+    map.on('moveend', handleClusterUpdate);
+
     if (mapReadingsData?.length > 0) {
       try {
         index.load(mapReadingsData);
-        updateClusters();
+        handleClusterUpdate();
       } catch (error) {
-        // console.error('Error loading map readings data into Supercluster: ', error);
-        return;
+        console.error(
+          'Error loading map readings data into Supercluster: ',
+          error,
+        );
       }
     }
 
     if (waqData?.length > 0) {
       try {
-        // Combine mapReadingsData and waqData
         const data = [...mapReadingsData, ...waqData];
         index.load(data);
-        updateClusters();
+        handleClusterUpdate();
       } catch (error) {
-        // console.error('Error loading AQI data into Supercluster: ', error);
-        return;
+        console.error('Error loading AQI data into Supercluster: ', error);
       }
     }
+
+    return () => {
+      map.off('zoomend', handleClusterUpdate);
+      map.off('moveend', handleClusterUpdate);
+    };
   }, [
     selectedNode,
     NodeType,
@@ -434,114 +478,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     waqData,
     mapReadingsData,
     width,
+    getTwoMostCommonAQIs,
   ]);
-
-  const updateClusters = useCallback(() => {
-    try {
-      const zoom = mapRef.current.getZoom();
-      const bounds = mapRef.current.getBounds();
-      const bbox = [
-        bounds.getWest(),
-        bounds.getSouth(),
-        bounds.getEast(),
-        bounds.getNorth(),
-      ];
-      const clusters = indexRef.current.getClusters(bbox, Math.floor(zoom));
-
-      // Remove existing markers
-      markersRef.current.forEach((marker) => marker.remove());
-      markersRef.current = [];
-
-      // Add unclustered points as custom HTML markers
-      clusters.forEach((feature) => {
-        const el = document.createElement('div');
-        el.style.cursor = 'pointer';
-
-        if (!feature.properties.cluster) {
-          // unclustered
-          el.style.zIndex = 1;
-          el.innerHTML = UnclusteredNode({ feature, NodeType, selectedNode });
-
-          // Add popup to unclustered node
-          const popup = new mapboxgl.Popup({
-            offset: NodeType === 'Node' ? 35 : NodeType === 'Number' ? 42 : 58,
-            closeButton: false,
-            maxWidth: 'none',
-            className: 'my-custom-popup hidden md:block',
-          }).setHTML(createPopupHTML({ feature, images }));
-
-          const marker = new mapboxgl.Marker(el)
-            .setLngLat(feature.geometry.coordinates)
-            .setPopup(popup)
-            .addTo(mapRef.current);
-
-          // Show the popup when the user hovers over the node
-          el.addEventListener('mouseenter', () => {
-            marker.togglePopup();
-            el.style.zIndex = 9999;
-          });
-          el.addEventListener('mouseleave', () => {
-            marker.togglePopup();
-            el.style.zIndex = 1;
-          });
-
-          // Set selectedSite when the user clicks on the node
-          el.addEventListener('click', () => {
-            // If the selected node is the same as the previously selected node, return early
-            if (selectedNode === feature.properties._id) {
-              return;
-            }
-
-            dispatch(setSelectedNode(feature.properties._id));
-            dispatch(setSelectedWeeklyPrediction(null));
-            dispatch(setMapLoading(true));
-            dispatch(setOpenLocationDetails(true));
-            dispatch(setSelectedLocation(feature.properties));
-
-            // set the lat,lng and zoom in the URL
-            dispatch(
-              setCenter({
-                latitude: feature.geometry.coordinates[1],
-                longitude: feature.geometry.coordinates[0],
-              }),
-            );
-            dispatch(setZoom(15));
-          });
-
-          markersRef.current.push(marker);
-        } else {
-          // clustered
-          el.zIndex = 444;
-          el.className =
-            'clustered flex justify-center items-center bg-white rounded-full p-2 shadow-md';
-
-          // Get the two most common AQIs in the cluster
-          const mostCommonAQIs = getTwoMostCommonAQIs(feature);
-
-          // Include the most common AQIs in the properties of the cluster feature
-          feature.properties.aqi = mostCommonAQIs;
-
-          el.innerHTML = createClusterNode({ feature, NodeType });
-          const marker = new mapboxgl.Marker(el)
-            .setLngLat(feature.geometry.coordinates)
-            .addTo(mapRef.current);
-
-          // Add click event to zoom in when a user clicks on a cluster
-          el.addEventListener('click', () => {
-            mapRef.current.flyTo({
-              center: feature.geometry.coordinates,
-              zoom: zoom + 2,
-            });
-          });
-
-          markersRef.current.push(marker);
-        }
-      });
-    } catch (error) {
-      console.error('Error updating clusters: ', error);
-      return;
-    }
-  }, [clusterUpdate]);
 
   useEffect(() => {
     fetchAndProcessData();
@@ -695,66 +633,47 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
 
   return (
     <div className="relative w-full h-full">
+      {/* Map Container */}
       <div ref={mapContainerRef} className={customStyle} />
 
-      <div
-        className={`${
-          width < 1024 && selectedNode
-            ? 'hidden'
-            : 'relative left-4 z-50 md:block'
-        }`}
-      >
-        <div className="absolute bottom-2 z-[900]">
-          <AirQualityLegend pollutant={pollutant} />
-        </div>
-      </div>
-
-      <div
-        className={`${
-          width < 1024 && selectedNode
-            ? 'hidden'
-            : 'absolute top-4 right-0 z-40'
-        }`}
-      >
-        <div className="flex flex-col gap-4">
-          <div className="relative">
-            <div className="relative inline-block">
-              <button
-                onClick={() => setIsOpen(true)}
-                title="Map Layers"
-                className="inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md"
-              >
-                <LayerIcon />
-              </button>
-            </div>
+      {/* Air Quality Legend */}
+      {width >= 1024 || !selectedNode ? (
+        <div className="relative left-4 z-50 md:block">
+          <div className="absolute bottom-2 z-[900]">
+            <AirQualityLegend pollutant={pollutant} />
           </div>
-          <button
+        </div>
+      ) : null}
+
+      {/* Map Controls */}
+      {width >= 1024 || !selectedNode ? (
+        <div className="absolute top-4 right-0 z-40 flex flex-col gap-4">
+          <IconButton
+            onClick={() => setIsOpen(true)}
+            title="Map Layers"
+            icon={<LayerIcon />}
+          />
+          <IconButton
             onClick={refreshMap}
             title="Refresh Map"
-            className="inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md"
-          >
-            <RefreshIcon />
-          </button>
-          <button
+            icon={<RefreshIcon />}
+          />
+          <IconButton
             onClick={shareLocation}
             title="Share Location"
-            className="inline-flex items-center justify-center w-10 h-10 md:w-12 md:h-12 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md"
-          >
-            <ShareIcon />
-          </button>
+            icon={<ShareIcon />}
+          />
         </div>
-      </div>
+      ) : null}
 
+      {/* Loading Overlay */}
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center z-[10000]">
-          <div className="bg-white w-[70px] h-[70px] flex justify-center items-center rounded-md shadow-md">
-            <span className="ml-2">
-              <Loader width={32} height={32} />
-            </span>
-          </div>
-        </div>
+        <LoadingOverlay size={70}>
+          <Loader width={32} height={32} />
+        </LoadingOverlay>
       )}
 
+      {/* Layer Modal */}
       <LayerModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
@@ -765,21 +684,21 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         onStyleSelect={(style) => setMapStyle(style.url)}
       />
 
+      {/* Loading Other Data */}
       {loadingOthers && (
-        <div className="absolute bg-white rounded-md p-2 top-4 right-16 flex items-center justify-center z-50">
+        <div className="absolute bg-white rounded-md p-2 top-4 right-16 flex items-center z-50">
           <Loader width={20} height={20} />
           <span className="ml-2 text-sm">Loading AQI data...</span>
         </div>
       )}
 
-      {toastMessage.message !== '' && (
+      {/* Toast Notification */}
+      {toastMessage.message && (
         <Toast
           message={toastMessage.message}
           clearData={() => setToastMessage({ message: '', type: '' })}
           type={toastMessage.type}
           timeout={3000}
-          dataTestId="map-toast"
-          size="lg"
           bgColor={toastMessage.bgColor}
           position="bottom"
         />

@@ -7,7 +7,7 @@ import mapboxgl from 'mapbox-gl';
 
 /**
  * CustomZoomControl
- * @description Custom mapbox zoom control
+ * @description Custom mapbox zoom control with zoom in and zoom out buttons
  * @returns {HTMLElement} container
  */
 export class CustomZoomControl {
@@ -20,6 +20,7 @@ export class CustomZoomControl {
       this.map?.zoomOut(),
     );
 
+    // Append buttons to the container
     this.container.append(
       this.zoomInButton,
       this.createSeparator(),
@@ -27,6 +28,7 @@ export class CustomZoomControl {
     );
   }
 
+  // Create the container for zoom controls
   createContainer() {
     const container = document.createElement('div');
     container.className =
@@ -34,13 +36,13 @@ export class CustomZoomControl {
     return container;
   }
 
+  // Create individual button with an icon and click handler
   createButton(title, component, onClick) {
     const button = document.createElement('button');
     button.className =
       'mapboxgl-ctrl-icon rounded-full m-1 md:m-2 flex items-center justify-center';
     button.type = 'button';
     button.title = title;
-    button.addEventListener('click', onClick);
 
     const div = document.createElement('div');
     div.className = 'flex items-center justify-center h-full w-full';
@@ -49,21 +51,26 @@ export class CustomZoomControl {
     const root = createRoot(div);
     root.render(React.cloneElement(component));
 
+    button.addEventListener('click', onClick);
     return button;
   }
 
+  // Create a separator line between buttons
   createSeparator() {
     const separator = document.createElement('div');
     separator.className = 'border-t border-gray-300 w-full';
     return separator;
   }
 
+  // Called when control is added to the map
   onAdd(map) {
     this.map = map;
+    // Add event listener to update URL with map state
     this.map.on('moveend', this.updateUrlWithMapState);
     return this.container;
   }
 
+  // Update the URL with current map coordinates and zoom level
   updateUrlWithMapState = () => {
     const center = this.map.getCenter();
     const zoom = this.map.getZoom();
@@ -74,18 +81,19 @@ export class CustomZoomControl {
     window.history.pushState({}, '', url);
   };
 
+  // Called when control is removed from the map
   onRemove() {
-    this.map.off('moveend', this.updateUrlWithMapState);
-    this.container.parentNode.removeChild(this.container);
+    this.map.off('moveend', this.updateUrlWithMapState); // Cleanup listener
+    this.container.parentNode?.removeChild(this.container);
     this.map = undefined;
   }
 }
 
 /**
  * CustomGeolocateControl
- * @description Custom mapbox geolocate control
+ * @description Custom mapbox geolocate control to find the user's location
  * @returns {HTMLElement} container
- * @param {Function} setToastMessage
+ * @param {Function} setToastMessage - Function to display feedback to the user
  */
 export class CustomGeolocateControl {
   constructor(setToastMessage) {
@@ -94,10 +102,12 @@ export class CustomGeolocateControl {
     this.geolocateButton = this._createButton('Locate Me', <GeoIcon />, () =>
       this._locate(),
     );
+
+    // Append geolocation button to the container
     this.container.appendChild(this.geolocateButton);
   }
 
-  // creates the GEO container
+  // Create the container for the geolocation control
   _createContainer() {
     const container = document.createElement('div');
     container.className =
@@ -105,7 +115,7 @@ export class CustomGeolocateControl {
     return container;
   }
 
-  // creates the GEO button
+  // Create a button for geolocation functionality
   _createButton(title, component, onClick) {
     const button = document.createElement('button');
     button.className =
@@ -115,7 +125,6 @@ export class CustomGeolocateControl {
 
     const div = document.createElement('div');
     div.className = 'flex items-center justify-center h-full w-full';
-
     button.appendChild(div);
 
     const root = createRoot(div);
@@ -125,16 +134,19 @@ export class CustomGeolocateControl {
     return button;
   }
 
+  // Called when the control is added to the map
   onAdd(map) {
     this.map = map;
     return this.container;
   }
 
+  // Called when the control is removed from the map
   onRemove() {
-    this.container.parentNode.removeChild(this.container);
+    this.container.parentNode?.removeChild(this.container);
     this.map = undefined;
   }
 
+  // Locate the user's current position using the browser's geolocation API
   _locate() {
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by your browser.');
@@ -152,6 +164,7 @@ export class CustomGeolocateControl {
     );
   }
 
+  // Handle successful geolocation
   _handleGeolocationSuccess(position) {
     this.setToastMessage({
       message: 'Location tracked successfully.',
@@ -159,18 +172,19 @@ export class CustomGeolocateControl {
       bgColor: 'bg-blue-600',
     });
 
+    const { longitude, latitude } = position.coords;
+
+    // Fly to the user's location
     this.map.flyTo({
-      center: [position.coords.longitude, position.coords.latitude],
+      center: [longitude, latitude],
       zoom: 14,
       speed: 1,
     });
 
-    // Use the default Mapbox marker icon
-    new mapboxgl.Marker()
-      .setLngLat([position.coords.longitude, position.coords.latitude])
-      .addTo(this.map);
+    // Add a marker to the user's location
+    new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(this.map);
 
-    // Check if the source already exists
+    // Check if the 'circle-source' already exists, if not, add it
     if (!this.map.getSource('circle-source')) {
       this.map.addSource('circle-source', {
         type: 'geojson',
@@ -181,10 +195,7 @@ export class CustomGeolocateControl {
               type: 'Feature',
               geometry: {
                 type: 'Point',
-                coordinates: [
-                  position.coords.longitude,
-                  position.coords.latitude,
-                ],
+                coordinates: [longitude, latitude],
               },
             },
           ],
@@ -192,26 +203,25 @@ export class CustomGeolocateControl {
       });
     }
 
-    // Add the layer if it doesn't exist
+    // Add a circle layer around the geolocated point
     if (!this.map.getLayer('circle-layer')) {
       this.map.addLayer({
         id: 'circle-layer',
         type: 'circle',
         source: 'circle-source',
         paint: {
-          // Use a stepped expression to increase the circle radius as the zoom level increases
           'circle-radius': [
             'step',
             ['zoom'],
-            20, // circle radius at zoom levels less than 14
-            14,
-            50, // circle radius at zoom level 14
-            16,
-            100, // circle radius at zoom level 16
-            18,
-            200, // circle radius at zoom level 18
             20,
-            400, // circle radius at zoom level 20
+            14,
+            50,
+            16,
+            100,
+            18,
+            200,
+            20,
+            400,
           ],
           'circle-color': '#0000ff',
           'circle-opacity': 0.2,
@@ -220,6 +230,7 @@ export class CustomGeolocateControl {
     }
   }
 
+  // Handle geolocation errors and show an error toast
   _handleGeolocationError(error) {
     this.setToastMessage({
       message: 'Error tracking location.',
@@ -227,3 +238,38 @@ export class CustomGeolocateControl {
     });
   }
 }
+
+/**
+ * IconButton
+ * @description Reusable button component with customizable icons
+ * @param {Function} onClick - Click event handler
+ * @param {string} title - Button title for accessibility
+ * @param {ReactNode} icon - Icon to be displayed inside the button
+ * @returns JSX Element
+ */
+export const IconButton = ({ onClick, title, icon }) => (
+  <button
+    onClick={onClick}
+    title={title}
+    className="inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md"
+  >
+    {icon}
+  </button>
+);
+
+/**
+ * LoadingOverlay
+ * @description Display a loading overlay centered on the screen
+ * @param {ReactNode} children - Loading content to display (like a spinner)
+ * @param {number} size - Size of the overlay
+ * @returns JSX Element
+ */
+export const LoadingOverlay = ({ children, size }) => (
+  <div className="absolute inset-0 flex items-center justify-center z-[10000]">
+    <div
+      className={`bg-white w-[${size}px] h-[${size}px] flex justify-center items-center rounded-md shadow-md`}
+    >
+      {children}
+    </div>
+  </div>
+);
