@@ -1,62 +1,73 @@
-import PersonIcon from '@/icons/Settings/person.svg';
-import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import DialogWrapper from '../../Modal/DialogWrapper';
 import Toast from '@/components/Toast';
 import { updateClientApi, getClientsApi } from '@/core/apis/Settings';
-import { useDispatch } from 'react-redux';
-import { addClients, addClientsDetails } from '@/lib/store/services/apiClient';
+import {
+  addClients,
+  addClientsDetails,
+  performRefresh,
+} from '@/lib/store/services/apiClient';
 import { getUserDetails } from '@/core/apis/Account';
+import PlusIcon from '@/icons/Actions/PlusIcon';
+import DeleteIcon from '@/icons/Actions/DeleteIcon';
+import PersonIcon from '@/icons/Settings/person.svg';
 
-const EditClientForm = ({
-  open,
-  closeModal,
-  cIP = '',
-  cName = '',
-  clientID,
-}) => {
+const EditClientForm = ({ open, closeModal, data }) => {
   const dispatch = useDispatch();
+  const userInfo = useSelector((state) => state.login.userInfo);
+  const clientID = data?._id;
   const [loading, setLoading] = useState(false);
   const [isError, setIsError] = useState({
     isError: false,
     message: '',
     type: '',
   });
-  const [clientName, setClientName] = useState(cName);
-  const [ipAddress, setIpAddress] = useState(cIP);
-  const userInfo = useSelector((state) => state.login.userInfo);
+  const [clientName, setClientName] = useState('');
+  const [ipAddresses, setIpAddresses] = useState(['']);
 
   useEffect(() => {
-    setClientName(cName);
-    setIpAddress(cIP);
-  }, [cName, cIP]);
+    handleInitialData();
+  }, [data]);
 
-  const handleInputValueChange = (type, value) => {
+  const handleInitialData = () => {
+    setClientName(data?.name || '');
+
+    const ipAddresses = Array.isArray(data?.ip_addresses)
+      ? data?.ip_addresses
+      : data?.ip_addresses
+        ? [data?.ip_addresses]
+        : [''];
+
+    setIpAddresses(ipAddresses);
+  };
+
+  const handleInputValueChange = useCallback((type, value, index) => {
     if (type === 'clientName') {
       setClientName(value);
     } else if (type === 'ipAddress') {
-      setIpAddress(value);
+      setIpAddresses((prev) => {
+        const newIpAddresses = [...prev];
+        newIpAddresses[index] = value;
+        return newIpAddresses;
+      });
     }
-  };
+  }, []);
 
-  const handleRemoveInputValue = (value) => {
-    if (value === 'clientName') {
+  const handleRemoveInputValue = useCallback((type, index) => {
+    if (type === 'clientName') {
       setClientName('');
-    } else if (value === 'ipAddress') {
-      setIpAddress('');
+    } else if (type === 'ipAddress') {
+      setIpAddresses((prev) => prev.filter((_, i) => i !== index));
     }
-  };
+  }, []);
+
+  const handleAddIpAddress = useCallback(() => {
+    setIpAddresses((prev) => [...prev, '']);
+  }, []);
 
   const handleSubmit = async () => {
     setLoading(true);
-
-    const setErrorState = (message) => {
-      setIsError({
-        isError: true,
-        message,
-        type: 'error',
-      });
-    };
 
     if (!clientName) {
       setIsError({
@@ -74,33 +85,34 @@ const EditClientForm = ({
         user_id: userInfo?._id,
       };
 
-      if (ipAddress) {
-        data.ip_address = ipAddress;
+      const filteredIpAddresses = ipAddresses.filter((ip) => ip.trim() !== '');
+      if (filteredIpAddresses.length > 0) {
+        data.ip_addresses = filteredIpAddresses;
       }
 
       const response = await updateClientApi(data, clientID);
-
       if (response.success !== true) {
         throw new Error('Failed to update client');
       }
-
       const res = await getUserDetails(userInfo?._id);
-
       const resp = await getClientsApi(userInfo?._id);
-
       dispatch(addClients(res.users[0].clients));
       dispatch(addClientsDetails(resp.clients));
-
+      dispatch(performRefresh());
       closeModal();
     } catch (error) {
-      setErrorState(error?.response?.data?.message || 'Failed to Edit client');
+      setIsError({
+        isError: true,
+        message: error?.response?.data?.message || 'Failed to Edit client',
+        type: 'error',
+      });
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (isError?.isError) {
+    if (isError.isError) {
       const timer = setTimeout(() => {
         setIsError({
           isError: false,
@@ -111,14 +123,14 @@ const EditClientForm = ({
 
       return () => clearTimeout(timer);
     }
-  }, [isError]);
+  }, [isError.isError]);
 
   return (
     <DialogWrapper
       open={open}
       onClose={closeModal}
       handleClick={handleSubmit}
-      primaryButtonText={'Update'}
+      primaryButtonText="Update"
       loading={loading}
       ModalIcon={PersonIcon}
     >
@@ -140,8 +152,7 @@ const EditClientForm = ({
               handleInputValueChange('clientName', e.target.value)
             }
           />
-
-          {clientName?.length > 0 && (
+          {clientName && (
             <button
               className="absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto"
               onClick={() => handleRemoveInputValue('clientName')}
@@ -151,29 +162,36 @@ const EditClientForm = ({
           )}
         </div>
 
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Enter ip address (Optional)"
-            className="input input-bordered w-full pl-3 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded"
-            value={ipAddress}
-            onChange={(e) =>
-              handleInputValueChange('ipAddress', e.target.value)
-            }
-          />
-
-          {ipAddress?.length > 0 && (
+        {ipAddresses.map((ip, index) => (
+          <div key={index} className="relative">
+            <input
+              type="text"
+              placeholder={`Enter IP address ${index + 1}`}
+              className="input input-bordered w-full pl-3 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded"
+              value={ip}
+              onChange={(e) =>
+                handleInputValueChange('ipAddress', e.target.value, index)
+              }
+            />
             <button
-              className="absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto"
-              onClick={() => handleRemoveInputValue('ipAddress')}
+              className="absolute inset-y-0 right-0 flex justify-center items-center mr-3"
+              onClick={() => handleRemoveInputValue('ipAddress', index)}
             >
-              ✕
+              <DeleteIcon />
             </button>
-          )}
-        </div>
+          </div>
+        ))}
+
+        <button
+          onClick={handleAddIpAddress}
+          className="flex items-center justify-start text-sm text-blue-600 hover:text-blue-800"
+        >
+          <PlusIcon size={16} className="mr-1" fill="black" />
+          Add another IP address
+        </button>
       </div>
     </DialogWrapper>
   );
 };
 
-export default EditClientForm;
+export default React.memo(EditClientForm);

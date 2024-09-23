@@ -1,12 +1,13 @@
 import PersonIcon from '@/icons/Settings/person.svg';
 import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import DialogWrapper from '../../Modal/DialogWrapper';
 import Toast from '@/components/Toast';
 import { createClientApi } from '@/core/apis/Settings';
-import { useDispatch } from 'react-redux';
-import { addClients } from '@/lib/store/services/apiClient';
+import { addClients, performRefresh } from '@/lib/store/services/apiClient';
 import { getUserDetails } from '@/core/apis/Account';
+import PlusIcon from '@/icons/Actions/PlusIcon';
+import DeleteIcon from '@/icons/Actions/DeleteIcon';
 
 const AddClientForm = ({ open, closeModal }) => {
   const dispatch = useDispatch();
@@ -17,23 +18,30 @@ const AddClientForm = ({ open, closeModal }) => {
     type: '',
   });
   const [clientName, setClientName] = useState('');
-  const [ipAddress, setIpAddress] = useState('');
+  const [ipAddresses, setIpAddresses] = useState(['']);
   const userInfo = useSelector((state) => state.login.userInfo);
 
-  const handleInputValueChange = (type, value) => {
+  const handleInputValueChange = (type, value, index) => {
     if (type === 'clientName') {
       setClientName(value);
     } else if (type === 'ipAddress') {
-      setIpAddress(value);
+      const newIpAddresses = [...ipAddresses];
+      newIpAddresses[index] = value;
+      setIpAddresses(newIpAddresses);
     }
   };
 
-  const handleRemoveInputValue = (value) => {
-    if (value === 'clientName') {
+  const handleRemoveInputValue = (type, index) => {
+    if (type === 'clientName') {
       setClientName('');
-    } else if (value === 'ipAddress') {
-      setIpAddress('');
+    } else if (type === 'ipAddress') {
+      const newIpAddresses = ipAddresses.filter((_, i) => i !== index);
+      setIpAddresses(newIpAddresses);
     }
+  };
+
+  const handleAddIpAddress = () => {
+    setIpAddresses([...ipAddresses, '']);
   };
 
   const handleSubmit = async () => {
@@ -47,13 +55,8 @@ const AddClientForm = ({ open, closeModal }) => {
       });
     };
 
-    // TODO: Handling cases where clientName is empty
     if (!clientName) {
-      setIsError({
-        isError: true,
-        message: "Client name can't be empty",
-        type: 'error',
-      });
+      setErrorState("Client name can't be empty");
       setLoading(false);
       return;
     }
@@ -64,9 +67,9 @@ const AddClientForm = ({ open, closeModal }) => {
         user_id: userInfo?._id,
       };
 
-      // Add ipAddress to data if it is not empty
-      if (ipAddress) {
-        data.ip_address = ipAddress;
+      const filteredIpAddresses = ipAddresses.filter((ip) => ip.trim() !== '');
+      if (filteredIpAddresses.length > 0) {
+        data.ip_addresses = filteredIpAddresses;
       }
 
       const response = await createClientApi(data);
@@ -78,6 +81,7 @@ const AddClientForm = ({ open, closeModal }) => {
           dispatch(addClients(res.users[0].clients));
         }
       }
+      dispatch(performRefresh());
       closeModal();
     } catch (error) {
       setErrorState(
@@ -93,7 +97,7 @@ const AddClientForm = ({ open, closeModal }) => {
       open={open}
       onClose={closeModal}
       handleClick={handleSubmit}
-      primaryButtonText={'Register'}
+      primaryButtonText="Register"
       loading={loading}
       ModalIcon={PersonIcon}
     >
@@ -104,7 +108,7 @@ const AddClientForm = ({ open, closeModal }) => {
         Create new client
       </h3>
 
-      <div className="flex flex-col gap-3 justify-start">
+      <div className="flex flex-col gap-3 justify-start max-h-[350px] overflow-y-auto">
         <div className="relative">
           <input
             type="text"
@@ -115,37 +119,45 @@ const AddClientForm = ({ open, closeModal }) => {
               handleInputValueChange('clientName', e.target.value)
             }
           />
-
-          {clientName?.length > 0 && (
+          {clientName && (
             <button
-              className="absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto"
-              onClick={() => handleRemoveInputValue(clientName)}
+              className="absolute inset-y-0 right-0 flex justify-center items-center mr-3"
+              onClick={() => handleRemoveInputValue('clientName')}
             >
-              ✕
+              x
             </button>
           )}
         </div>
 
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Enter ip address (optional)"
-            className="input input-bordered w-full pl-3 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded"
-            value={ipAddress}
-            onChange={(e) =>
-              handleInputValueChange('ipAddress', e.target.value)
-            }
-          />
+        {ipAddresses.map((ip, index) => (
+          <div key={index} className="relative">
+            <input
+              type="text"
+              placeholder={`${index > 0 ? `Enter IP address ${index + 1}` : 'Enter IP address (Optional)'}`}
+              className="input input-bordered w-full pl-3 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded"
+              value={ip}
+              onChange={(e) =>
+                handleInputValueChange('ipAddress', e.target.value, index)
+              }
+            />
+            {index > 0 && (
+              <button
+                className="absolute inset-y-0 right-0 flex justify-center items-center mr-3"
+                onClick={() => handleRemoveInputValue('ipAddress', index)}
+              >
+                <DeleteIcon />
+              </button>
+            )}
+          </div>
+        ))}
 
-          {ipAddress?.length > 0 && (
-            <button
-              className="absolute inset-y-0 right-0 flex justify-center items-center mr-3 pointer-events-auto"
-              onClick={() => handleRemoveInputValue(ipAddress)}
-            >
-              ✕
-            </button>
-          )}
-        </div>
+        <button
+          onClick={handleAddIpAddress}
+          className="flex items-center justify-start text-sm text-blue-600 hover:text-blue-800"
+        >
+          <PlusIcon size={16} className="mr-1" fill={'black'} />
+          Add another IP address
+        </button>
       </div>
     </DialogWrapper>
   );

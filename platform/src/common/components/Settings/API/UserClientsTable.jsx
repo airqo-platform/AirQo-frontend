@@ -172,6 +172,12 @@ const UserClientsTable = () => {
     }
   };
 
+  const displayIPAddresses = (client) => {
+    return Array.isArray(client.ip_addresses)
+      ? client.ip_addresses.join(', ')
+      : client.ip_addresses;
+  };
+
   return (
     <div className="overflow-x-scroll">
       {isError.isError && (
@@ -252,7 +258,7 @@ const UserClientsTable = () => {
                         scope="row"
                         className="w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400"
                       >
-                        {client.ip_address}
+                        {displayIPAddresses(client)}
                       </td>
                       <td scope="row" className="w-[142px] px-4 py-3">
                         <div
@@ -372,9 +378,7 @@ const UserClientsTable = () => {
       <EditClientForm
         open={openEditForm}
         closeModal={() => setOpenEditForm(false)}
-        cIP={selectedClient?.ip_address}
-        cName={selectedClient?.name}
-        clientID={selectedClient?._id}
+        data={selectedClient}
       />
 
       <DialogWrapper

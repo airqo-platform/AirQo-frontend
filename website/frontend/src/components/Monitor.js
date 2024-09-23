@@ -22,7 +22,7 @@ const Monitor = () => {
         </Link>
       </div>
       <div className="Monitor-img">
-        <img src={MonitorImg} alt="Monitor Image" />
+        <img loading="lazy" src={MonitorImg} alt="Monitor Image" />
       </div>
     </div>
   );

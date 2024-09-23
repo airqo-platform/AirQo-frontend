@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
-import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
+import { showGetInvolvedModal } from 'reduxStore/GetInvolved';
 import useWindowSize from 'utilities/customHooks';
 import { Link } from 'react-router-dom';
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
@@ -59,7 +59,10 @@ const VideoPlayer = ({ videoURL, thumbnailURL }) => {
 const Hero = () => {
   const size = useWindowSize();
   const dispatch = useDispatch();
-  const showModal = useCallback(() => dispatch(showGetInvolvedModal(true)), [dispatch]);
+  const showModal = useCallback(
+    () => dispatch(showGetInvolvedModal({ openModal: true })),
+    [dispatch]
+  );
 
   const [modalVisible, setModalVisible] = useState(false);
 

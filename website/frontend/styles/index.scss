@@ -176,3 +176,35 @@ img {
     transform: translateY(0);
   }
 }
+
+/* Define your custom scrollbar styles */
+$scrollbar-width: 8px;
+$scrollbar-height: 8px;
+$scrollbar-track-color: #f1f1f1; // Light grey for the track
+$scrollbar-thumb-color: #135dff; // Blue for the thumb
+$scrollbar-thumb-hover-color: darken(#135dff, 10%); // Darker blue for the thumb on hover
+$scrollbar-thumb-border-radius: 10px; // Border radius for the thumb
+
+::-webkit-scrollbar {
+  width: $scrollbar-width;
+  height: $scrollbar-height;
+}
+
+::-webkit-scrollbar-track {
+  background: $scrollbar-track-color;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $scrollbar-thumb-color;
+  border-radius: $scrollbar-thumb-border-radius;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: $scrollbar-thumb-hover-color;
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: $scrollbar-thumb-color $scrollbar-track-color;
+}

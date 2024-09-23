@@ -1,129 +1,115 @@
-import React, { Suspense, useEffect, useState, useCallback } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 import LoadSpinner from './src/components/LoadSpinner';
-import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
 import store from './store';
-import PartnerDetailPage from './src/pages/Partners';
-import Error404 from 'src/pages/ErrorPages/Error404';
-import { ExploreApp } from './src/pages/ExploreData';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import NetworkStatus from './NetworkStatus';
+import Scroll_to_top from './src/components/Scroll_to_top';
+import ReactGA4 from 'react-ga4';
 
-import Press from './src/pages/Press/Press';
-import LegalPage from './src/pages/Legal';
-import ResearchPage from './src/pages/OurSolutions/ResearchPage';
-import CommunityPage from './src/pages/OurSolutions/CommunityPage';
-import AfricanCitiesPage from './src/pages/OurSolutions/AfricanCitiesPage';
-import AboutUsPage from './src/pages/AboutUsPage';
-import ContactUsPage from './src/pages/ContactUs/ContactUs';
-import ContactForm from './src/pages/ContactUs/ContactForm';
-import Feedback from './src/pages/ContactUs/Feedback';
-import ExploreData from './src/pages/ExploreData';
-import CareerPage from './src/pages/CareerPage';
-import CareerDetailPage from './src/pages/CareerDetailPage';
-import PublicationsPage from './src/pages/Publications/Publications';
-import EventsPage from './src/pages/Events';
-import EventsDetailsPage from './src/pages/Events/Details';
-import MonitorPage from './src/pages/OurProducts/MonitorPage';
-import AnalyticsPage from './src/pages/OurProducts/AnalyticsPage';
-import MobileAppPage from './src/pages/OurProducts/MobileAppPage';
-import APIPage from './src/pages/OurProducts/ApiPage';
-import CalibrationPage from './src/pages/OurProducts/CalibrationPage';
-import QRCodeRedirectPage from './src/pages/ExploreData/Redirect';
-import CleanAirPage from './src/pages/CleanAir/CleanAirAbout';
-import CleanAirMemberPage from './src/pages/CleanAir/CleanAirPartners';
-import CleanAirEventsPage from './src/pages/CleanAir/CleanAirEvents';
-import CleanAirResourcesPage from './src/pages/CleanAir/CleanAirPublications';
-import CleanAirEventsDetailsPage from './src/pages/CleanAir/EventDetails';
-import CleanAirForumEvent from './src/pages/CleanAir/CleanAirForumEvent';
+// Lazy load components
+const HomePage = lazy(() => import('src/pages/HomePage'));
+const Press = lazy(() => import('./src/pages/Press/Press'));
+const LegalPage = lazy(() => import('./src/pages/Legal'));
+const ResearchPage = lazy(() => import('./src/pages/OurSolutions/ResearchPage'));
+const CommunityPage = lazy(() => import('./src/pages/OurSolutions/CommunityPage'));
+const AfricanCitiesPage = lazy(() => import('./src/pages/OurSolutions/AfricanCitiesPage'));
+const AboutUsPage = lazy(() => import('./src/pages/AboutUsPage'));
+const ContactUsPage = lazy(() => import('./src/pages/ContactUs/ContactUs'));
+const ContactForm = lazy(() => import('./src/pages/ContactUs/ContactForm'));
+const Feedback = lazy(() => import('./src/pages/ContactUs/Feedback'));
+const ExploreData = lazy(() => import('./src/pages/ExploreData'));
+const CareerPage = lazy(() => import('./src/pages/CareerPage'));
+const CareerDetailPage = lazy(() => import('./src/pages/CareerDetailPage'));
+const PublicationsPage = lazy(() => import('./src/pages/Publications/Publications'));
+const EventsPage = lazy(() => import('./src/pages/Events'));
+const EventsDetailsPage = lazy(() => import('./src/pages/Events/Details'));
+const MonitorPage = lazy(() => import('./src/pages/OurProducts/MonitorPage'));
+const AnalyticsPage = lazy(() => import('./src/pages/OurProducts/AnalyticsPage'));
+const MobileAppPage = lazy(() => import('./src/pages/OurProducts/MobileAppPage'));
+const APIPage = lazy(() => import('./src/pages/OurProducts/ApiPage'));
+const CalibrationPage = lazy(() => import('./src/pages/OurProducts/CalibrationPage'));
+const QRCodeRedirectPage = lazy(() => import('./src/pages/ExploreData/Redirect'));
+const CleanAirPage = lazy(() => import('./src/pages/CleanAir/CleanAirAbout'));
+const CleanAirMemberPage = lazy(() => import('./src/pages/CleanAir/CleanAirPartners'));
+const CleanAirEventsPage = lazy(() => import('./src/pages/CleanAir/CleanAirEvents'));
+const CleanAirResourcesPage = lazy(() => import('./src/pages/CleanAir/CleanAirPublications'));
+const CleanAirEventsDetailsPage = lazy(() => import('./src/pages/CleanAir/EventDetails'));
+const CleanAirForumEvent = lazy(() => import('./src/pages/CleanAir/CleanAirForumEvent'));
+const PartnerDetailPage = lazy(() => import('./src/pages/Partners'));
+const Error404 = lazy(() => import('src/pages/ErrorPages/Error404'));
+const ExploreApp = lazy(() => import('./src/pages/ExploreData'));
 
-const HomePage = React.lazy(() => import('src/pages/HomePage'));
+const ROUTES = [
+  { path: '/', Component: HomePage },
+  { path: '/solutions/research', Component: ResearchPage },
+  { path: '/solutions/communities', Component: CommunityPage },
+  { path: '/solutions/african-cities', Component: AfricanCitiesPage },
+  { path: '/careers', Component: CareerPage },
+  { path: '/careers/:uniqueTitle', Component: CareerDetailPage },
+  { path: '/about-us', Component: AboutUsPage },
+  { path: '/press', Component: Press },
+  { path: '/legal', Component: LegalPage },
+  { path: '/contact', Component: ContactUsPage },
+  { path: '/contact/form', Component: ContactForm },
+  { path: '/contact/sent', Component: Feedback },
+  { path: '/explore-data', Component: ExploreData },
+  { path: '/explore-data/download-apps', Component: ExploreApp },
+  { path: '/partners/:uniqueTitle', Component: PartnerDetailPage },
+  { path: '/resources', Component: PublicationsPage },
+  { path: '/events', Component: EventsPage },
+  { path: '/events/:uniqueTitle', Component: EventsDetailsPage },
+  { path: '/products/monitor', Component: MonitorPage },
+  { path: '/products/analytics', Component: AnalyticsPage },
+  { path: '/products/mobile-app', Component: MobileAppPage },
+  { path: '/products/api', Component: APIPage },
+  { path: '/download-apps', Component: QRCodeRedirectPage },
+  { path: '/products/calibrate', Component: CalibrationPage },
+  { path: '/clean-air', Component: CleanAirPage },
+  { path: '/clean-air/about', Component: CleanAirPage },
+  { path: '/clean-air/membership', Component: CleanAirMemberPage },
+  { path: '/clean-air/events', Component: CleanAirEventsPage },
+  { path: '/clean-air/resources', Component: CleanAirResourcesPage },
+  { path: '/clean-air/forum', Component: CleanAirForumEvent },
+  { path: '/clean-air/event-details/:uniqueTitle', Component: CleanAirEventsDetailsPage },
+  { path: '*', Component: Error404 }
+];
 
-store.dispatch(loadAirQloudSummaryData());
+const PageTracker = () => {
+  const location = useLocation();
+  useEffect(() => {
+    ReactGA4.send({ hitType: 'pageview', page: location.pathname + location.search });
+  }, [location]);
+  return null;
+};
+
+const AppRoutes = () => (
+  <Suspense fallback={<LoadSpinner />}>
+    <PageTracker />
+    <Routes>
+      {ROUTES.map(({ path, Component }) => (
+        <Route key={path} path={path} element={<Component />} />
+      ))}
+    </Routes>
+    <Scroll_to_top />
+  </Suspense>
+);
 
 const App = () => {
-  const [showScroll, setShowScroll] = useState(false);
-
-  const checkScrollTop = useCallback(() => {
-    const shouldShowScroll = window.scrollY >= 400;
-    if (showScroll !== shouldShowScroll) {
-      setShowScroll(shouldShowScroll);
-    }
-  }, [showScroll]);
-
   useEffect(() => {
-    window.addEventListener('scroll', checkScrollTop);
-    return () => window.removeEventListener('scroll', checkScrollTop);
-  }, [checkScrollTop]);
-
-  const ScrollTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  };
+    ReactGA4.initialize('G-79ZVCLEDSG');
+  }, []);
 
   return (
     <NetworkStatus>
       <Provider store={store}>
         <I18nextProvider i18n={i18n}>
-          <Suspense fallback={<LoadSpinner />}>
-            <Router>
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/solutions/research" element={<ResearchPage />} />
-                <Route path="/solutions/communities" element={<CommunityPage />} />
-                <Route path="/solutions/african-cities" element={<AfricanCitiesPage />} />
-                <Route path="/careers" element={<CareerPage />} />
-                <Route path="/careers/:uniqueTitle" element={<CareerDetailPage />} />
-                <Route path="/about-us" element={<AboutUsPage />} />
-                <Route path="/press" element={<Press />} />
-                <Route path="/legal" element={<LegalPage />} />
-                <Route path="/contact" element={<ContactUsPage />} />
-                <Route path="/contact/form" element={<ContactForm />} />
-                <Route path="/contact/sent" element={<Feedback />} />
-                <Route path="/explore-data" element={<ExploreData />} />
-                <Route path="/explore-data/download-apps" element={<ExploreApp />} />
-                <Route path="/partners/:uniqueTitle" element={<PartnerDetailPage />} />
-                <Route path="/resources" element={<PublicationsPage />} />
-                <Route path="/events" element={<EventsPage />} />
-                <Route path="/events/:uniqueTitle" element={<EventsDetailsPage />} />
-                <Route path="/products/monitor" element={<MonitorPage />} />
-                <Route path="/products/analytics" element={<AnalyticsPage />} />
-                <Route path="/products/mobile-app" element={<MobileAppPage />} />
-                <Route path="/products/api" element={<APIPage />} />
-                <Route path="/download-apps" element={<QRCodeRedirectPage />} />
-                <Route path="/products/calibrate" element={<CalibrationPage />} />
-                <Route path="/clean-air" element={<CleanAirPage />} />
-                <Route path="/clean-air/about" element={<CleanAirPage />} />
-                <Route path="/clean-air/membership" element={<CleanAirMemberPage />} />
-                <Route path="/clean-air/events" element={<CleanAirEventsPage />} />
-                <Route path="/clean-air/resources" element={<CleanAirResourcesPage />} />
-                <Route path="/clean-air/forum" element={<CleanAirForumEvent />} />
-                <Route
-                  path="/clean-air/event-details/:uniqueTitle"
-                  element={<CleanAirEventsDetailsPage />}
-                />
-                <Route path="*" element={<Error404 />} />
-              </Routes>
-            </Router>
-          </Suspense>
+          <Router>
+            <AppRoutes />
+          </Router>
         </I18nextProvider>
-        {showScroll && (
-          <div className="scroll-top" onClick={ScrollTop}>
-            <ArrowUpwardIcon
-              className="scroll-top-icon"
-              sx={{
-                width: '40px',
-                height: '40px',
-                color: '#FFF'
-              }}
-            />
-          </div>
-        )}
       </Provider>
     </NetworkStatus>
   );

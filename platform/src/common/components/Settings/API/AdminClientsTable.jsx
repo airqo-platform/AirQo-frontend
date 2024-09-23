@@ -22,6 +22,7 @@ const AdminClientsTable = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingActivation, setIsLoadingActivation] = useState(false);
+  const [isLoadingDeactivation, setIsLoadingDeactivation] = useState(false);
   const [confirmClientActivation, setConfirmClientActivation] = useState(false);
   const [confirmClientDeactivation, setConfirmClientDeactivation] =
     useState(false);
@@ -84,7 +85,7 @@ const AdminClientsTable = () => {
   };
 
   const handleDeactivate = async () => {
-    setIsLoadingActivation(true);
+    setIsLoadingDeactivation(true);
     const data = {
       _id: selectedClient._id,
       isActive: false,
@@ -99,10 +100,16 @@ const AdminClientsTable = () => {
         setErrorState('Failed to deactivate client', 'error');
       })
       .finally(() => {
-        setIsLoadingActivation(false);
+        setIsLoadingDeactivation(false);
         setConfirmClientDeactivation(false);
         setSelectedClient(null);
       });
+  };
+
+  const displayIPAddresses = (client) => {
+    return Array.isArray(client.ip_addresses)
+      ? client.ip_addresses.join(', ')
+      : client.ip_addresses;
   };
 
   return (
@@ -182,7 +189,7 @@ const AdminClientsTable = () => {
                           scope="row"
                           className="w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400"
                         >
-                          {client?.ip_address}
+                          {displayIPAddresses(client)}
                         </td>
                         <td scope="row" className="w-[138px] px-4 py-3">
                           <div
@@ -281,7 +288,7 @@ const AdminClientsTable = () => {
         onClose={() => setConfirmClientDeactivation(false)}
         handleClick={handleDeactivate}
         primaryButtonText={'Deactivate'}
-        loading={isLoadingActivation}
+        loading={isLoadingDeactivation}
       >
         <h3 className="self-stretch text-gray-700 text-lg font-medium leading-relaxed">
           Deactivate client

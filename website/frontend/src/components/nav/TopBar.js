@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
+import { showGetInvolvedModal } from 'reduxStore/GetInvolved';
 import AirQo from 'icons/nav/AirQo';
 import MenuIcon from 'assets/svg/Menu.svg';
 import CloseIcon from 'assets/svg/Close.svg';
@@ -13,7 +13,7 @@ const TopBar = () => {
   // Translation hook
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const showModal = () => dispatch(showGetInvolvedModal(true));
+  const showModal = () => dispatch(showGetInvolvedModal({ openModal: true }));
 
   const toggleMenu = () => {
     setOpenItem(null);
@@ -97,6 +97,16 @@ const TopBar = () => {
                       <h3>{t('navbar.products.subnav.calibrate.name')}</h3>
                       <h4>{t('navbar.products.subnav.calibrate.desc')}</h4>
                     </Link>
+                  </div>
+                  <div className="dropdown-list-item">
+                    <a
+                      href="https://platform.airqo.net/reports"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ textDecoration: 'none' }}>
+                      <h3>{t('navbar.products.subnav.reporting.name')}</h3>
+                      <h4>{t('navbar.products.subnav.reporting.desc')}</h4>
+                    </a>
                   </div>
                 </div>
               </div>

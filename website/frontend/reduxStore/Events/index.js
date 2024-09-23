@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { getAllEventsApi } from '../../apis';
-import { isEmpty } from 'underscore';
 
 // Async thunk for fetching all events
 export const getAllEvents = createAsyncThunk(

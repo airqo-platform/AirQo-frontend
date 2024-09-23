@@ -33,10 +33,8 @@ const DeviceView = () => {
   });
 
   useEffect(() => {
-    if (isEmpty(devices)) {
-      dispatch(getOrgDevices(activeNetwork.net_name));
-      dispatch(updateDeviceDetails(deviceData));
-    }
+    dispatch(getOrgDevices(activeNetwork.net_name));
+    dispatch(updateDeviceDetails(deviceData));
   }, []);
 
   return (
@@ -46,7 +44,8 @@ const DeviceView = () => {
         alignItems: 'center',
         justifyContent: 'center',
         flexWrap: 'wrap'
-      }}>
+      }}
+    >
       <DeviceToolBar deviceName={deviceData.name} />
       <DeviceToolBarContainer>
         <Switch>

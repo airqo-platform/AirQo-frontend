@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
-import { setCurrentAirQloudData } from 'reduxStore/AirQlouds/operations';
+import { setCurrentAirQloudData } from 'reduxStore/AirQlouds';
 
 const API_KEY = process.env.REACT_APP_OPENCAGE_API_KEY;
 const DEFAULT_COUNTRY = 'Uganda';

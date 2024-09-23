@@ -10,12 +10,23 @@ import Section2OverlapImage from '../../assets/img/OurProducts/MobileApp/section
 import Section3Image from '../../assets/img/OurProducts/MobileApp/section-3.webp';
 import GetApp from '../../components/get-app/GetApp';
 import { useTranslation, Trans } from 'react-i18next';
+import SEO from 'utilities/seo';
 
 const MobileAppPage = () => {
   useInitScrollTop();
   const { t } = useTranslation();
   return (
     <Page>
+      <SEO
+        title="AirQo Mobile App - Monitor Air Quality Across Africa"
+        siteTitle="AirQo"
+        description="Stay updated on real-time air quality data across Africa with the AirQo mobile app. Access historical trends and forecasts, covering Uganda, Kenya, Cameroon, and beyond. Empowering communities with data for healthier living."
+        canonicalUrl="https://airqo.africa/products/mobile-app"
+        keywords="AirQo, air quality, mobile app, real-time air monitoring, Africa air pollution, Uganda, Kenya, air quality forecast, pollution alerts"
+        image="https://res.cloudinary.com/dbibjvyhm/image/upload/v1726576251/website/photos/Get-app_ha3sbf.png"
+        article={false}
+      />
+
       <div className="product-page mobile-app">
         <Header
           style={{ backgroundColor: '#FFFDEA' }}

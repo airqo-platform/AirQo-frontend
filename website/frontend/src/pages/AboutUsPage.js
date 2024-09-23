@@ -3,8 +3,7 @@ import { Link } from 'react-scroll';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import { useInitScrollTop } from 'utilities/customHooks';
-import { useTeamData } from 'reduxStore/Team/selectors';
-import { loadTeamData } from 'reduxStore/Team/operations';
+import { loadTeamData } from 'reduxStore/Team';
 import Profile from 'components/Profile';
 import Page from './Page';
 
@@ -13,23 +12,21 @@ import Vector1 from 'assets/img/about_us_vector_3.png';
 import Vector2 from 'assets/img/about-us-vector-2.png';
 import SEO from 'utilities/seo';
 
-import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
-import { usePartnersData } from '../../reduxStore/Partners/selectors';
+import { showGetInvolvedModal } from 'reduxStore/GetInvolved';
 import { useNavigate } from 'react-router-dom';
-import { useBoardData } from '../../reduxStore/Board/selectors';
-import { loadBoardData } from '../../reduxStore/Board/operations';
-import { loadPartnersData } from 'reduxStore/Partners/operations';
+import { loadBoardData } from '../../reduxStore/Board';
+import { loadPartnersData } from 'reduxStore/Partners';
 import { useTranslation } from 'react-i18next';
 
 const AboutUsPage = () => {
   useInitScrollTop();
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const teamData = useTeamData();
-  const allPartnersData = usePartnersData();
-  const boardData = useBoardData();
+  const teamData = useSelector((state) => state.teamData.team);
+  const allPartnersData = useSelector((state) => state.partnersData.partners);
+  const boardData = useSelector((state) => state.boardData.board);
   const navigate = useNavigate();
-  const showModal = () => dispatch(showGetInvolvedModal(true));
+  const showModal = () => dispatch(showGetInvolvedModal({ openModal: true }));
   const partnersData = allPartnersData.filter((partner) => partner.website_category === 'airqo');
   const language = useSelector((state) => state.eventsNavTab.languageTab);
 
@@ -88,10 +85,15 @@ const AboutUsPage = () => {
     <Page>
       <div className="AboutUsPage">
         <SEO
-          title="About Us"
+          title="About Us | AirQo Africa"
           siteTitle="AirQo"
-          description="At AirQo we empower communities across Africa with accurate, hyperlocal, and timely air quality data to drive air pollution mitigation actions."
+          description="AirQo is a pioneer in improving air quality across Africa, utilizing AI and low-cost sensor technology to provide real-time air quality data. Learn how we empower communities, shape policies, and collaborate with global partners to combat air pollution in African cities."
+          canonicalUrl="https://airqo.africa/about-us"
+          keywords="AirQo, air quality Africa, AI air pollution sensors, African cities pollution, real-time air quality data, clean air initiatives"
+          image="https://res.cloudinary.com/dbibjvyhm/image/upload/v1726573501/team_fcaqrn.webp"
+          article={false}
         />
+
         <div className="AboutUsPage__hero">
           <div className="content">
             <h2>{t('about.aboutUs.header.pageTitle')}</h2>

@@ -7,7 +7,7 @@ import ArrowRight from 'icons/research/arrow-right.svg';
 import SEO from 'utilities/seo';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
-import { getAllCities } from '../../../reduxStore/AfricanCities/CitiesSlice';
+import { getAllCities } from '../../../reduxStore/AfricanCities';
 import SectionLoader from '../../components/LoadSpinner/SectionLoader';
 import { useTranslation } from 'react-i18next';
 import { t } from 'i18next';
@@ -240,9 +240,11 @@ const AfricanCitiesPage = () => {
     <Page>
       <div className="AfricanCitiesPage">
         <SEO
-          title="Our Solutions"
-          siteTitle="For African Cities"
-          description="Leveraging a high-resolution air quality monitoring network to advance air quality management in African cities."
+          title="Our Solutions for African Cities"
+          siteTitle="AirQo"
+          description="AirQo leverages high-resolution air quality monitoring networks to advance air quality management in African cities. Discover our tailored solutions for urban environments."
+          canonicalUrl="https://airqo.africa/solutions/african-cities"
+          keywords="air quality management, African cities, urban pollution, environmental monitoring, smart cities"
         />
         <CityHeroSection />
         <div className="content-wrapper">
