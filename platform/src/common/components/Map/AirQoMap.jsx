@@ -169,6 +169,9 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     }
   }, [mapData.center, mapData.zoom, mapRef.current]);
 
+  /**
+   * Handling data section
+   */
   const createFeature = useCallback(
     (id, name, coordinates, aqi, no2, pm10, pm2_5, time, forecast) => ({
       type: 'Feature',
@@ -189,6 +192,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     [],
   );
 
+  // Forecast data
   const getForecastForPollutant = useCallback(
     (cityData) => {
       if (!cityData || !cityData.forecast?.daily) return null;
@@ -205,6 +209,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     [pollutant],
   );
 
+  // formatting waq data
   const fetchAndProcessWaqData = useCallback(
     async (cities) => {
       setLoadingOthers(true);
@@ -249,6 +254,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     [pollutant, createFeature, getForecastForPollutant],
   );
 
+  // formatting readings data
   const processMapReadingsData = useCallback(
     (response) => {
       return response.measurements
@@ -276,6 +282,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     [pollutant, createFeature],
   );
 
+  // fetching map readings data
   const fetchAndProcessMapReadings = useCallback(async () => {
     try {
       setLoading(true);
