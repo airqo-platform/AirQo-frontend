@@ -2,7 +2,8 @@ import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/animations/scale.css';
 import 'tippy.js/themes/light.css';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import PropTypes from 'prop-types';
 // Icons
 import GoodAir from '@/icons/Charts/GoodAir';
 import ModerateAir from '@/icons/Charts/Moderate';
@@ -15,132 +16,127 @@ import DownArrow from '@/icons/map/downArrow';
 import { useWindowSize } from '@/lib/windowSize';
 
 /**
- * AirQualityLegend
- * @returns {HTMLElement}
+ * AirQualityLegend component
+ * Displays air quality levels based on the selected pollutant
  */
 export const AirQualityLegend = ({ pollutant }) => {
   const [show, setShow] = useState(true);
   const { width } = useWindowSize();
-
   const size = width < 1024 ? 30 : 40;
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth <= 768) {
-        setShow(false);
-      } else {
-        setShow(true);
-      }
+      setShow(window.innerWidth > 768);
     };
-    handleResize();
     window.addEventListener('resize', handleResize);
     return () => {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
 
-  // Define different AQI levels for each pollutant
-  const pollutantLevels = {
-    pm2_5: [
-      {
-        range: '0.0μg/m3 - 9.0μg/m3',
-        label: 'Air Quality is Good',
-        icon: <GoodAir width={size} height={size} />,
-      },
-      {
-        range: '9.1μg/m3 - 35.4μg/m3',
-        label: 'Air Quality is Moderate',
-        icon: <ModerateAir width={size} height={size} />,
-      },
-      {
-        range: '35.5μg/m3 - 55.4μg/m3',
-        label: 'Air Quality is Unhealthy for Sensitive Groups',
-        icon: <UnhealthyForSensitiveGroups width={size} height={size} />,
-      },
-      {
-        range: '55.5μg/m3 - 125.4μg/m3',
-        label: 'Air Quality is Unhealthy',
-        icon: <Unhealthy width={size} height={size} />,
-      },
-      {
-        range: '125.5μg/m3 - 225.4μg/m3',
-        label: 'Air Quality is Very Unhealthy',
-        icon: <VeryUnhealthy width={size} height={size} />,
-      },
-      {
-        range: '225.5μg/m3 +',
-        label: 'Air Quality is Hazardous',
-        icon: <Hazardous width={size} height={size} />,
-      },
-    ],
-    pm10: [
-      {
-        range: '0.0μg/m3 - 54.0μg/m3',
-        label: 'Air Quality is Good',
-        icon: <GoodAir width={size} height={size} />,
-      },
-      {
-        range: '54.1μg/m3 - 154.0μg/m3',
-        label: 'Air Quality is Moderate',
-        icon: <ModerateAir width={size} height={size} />,
-      },
-      {
-        range: '154.1μg/m3 - 254.0μg/m3',
-        label: 'Air Quality is Unhealthy for Sensitive Groups',
-        icon: <UnhealthyForSensitiveGroups width={size} height={size} />,
-      },
-      {
-        range: '254.1μg/m3 - 354.0μg/m3',
-        label: 'Air Quality is Unhealthy',
-        icon: <Unhealthy width={size} height={size} />,
-      },
-      {
-        range: '354.1μg/m3 - 424.0μg/m3',
-        label: 'Air Quality is Very Unhealthy',
-        icon: <VeryUnhealthy width={size} height={size} />,
-      },
-      {
-        range: '424.1μg/m3 - 604.0μg/m3',
-        label: 'Air Quality is Hazardous',
-        icon: <Hazardous width={size} height={size} />,
-      },
-    ],
-    no2: [
-      {
-        range: '0.0μg/m3 - 53.0μg/m3',
-        label: 'Air Quality is Good',
-        icon: <GoodAir width={size} height={size} />,
-      },
-      {
-        range: '53.1μg/m3 - 100.0μg/m3',
-        label: 'Air Quality is Moderate',
-        icon: <ModerateAir width={size} height={size} />,
-      },
-      {
-        range: '100.1μg/m3 - 360.0μg/m3',
-        label: 'Air Quality is Unhealthy for Sensitive Groups',
-        icon: <UnhealthyForSensitiveGroups width={size} height={size} />,
-      },
-      {
-        range: '360.1μg/m3 - 649.0μg/m3',
-        label: 'Air Quality is Unhealthy',
-        icon: <Unhealthy width={size} height={size} />,
-      },
-      {
-        range: '649.1μg/m3 - 1249.0μg/m3',
-        label: 'Air Quality is Very Unhealthy',
-        icon: <VeryUnhealthy width={size} height={size} />,
-      },
-      {
-        range: '1249.1μg/m3 - 2049.0μg/m3',
-        label: 'Air Quality is Hazardous',
-        icon: <Hazardous width={size} height={size} />,
-      },
-    ],
-  };
+  const pollutantLevels = useMemo(
+    () => ({
+      pm2_5: [
+        {
+          range: '0.0μg/m3 - 9.0μg/m3',
+          label: 'Air Quality is Good',
+          icon: <GoodAir width={size} height={size} />,
+        },
+        {
+          range: '9.1μg/m3 - 35.4μg/m3',
+          label: 'Air Quality is Moderate',
+          icon: <ModerateAir width={size} height={size} />,
+        },
+        {
+          range: '35.5μg/m3 - 55.4μg/m3',
+          label: 'Air Quality is Unhealthy for Sensitive Groups',
+          icon: <UnhealthyForSensitiveGroups width={size} height={size} />,
+        },
+        {
+          range: '55.5μg/m3 - 125.4μg/m3',
+          label: 'Air Quality is Unhealthy',
+          icon: <Unhealthy width={size} height={size} />,
+        },
+        {
+          range: '125.5μg/m3 - 225.4μg/m3',
+          label: 'Air Quality is Very Unhealthy',
+          icon: <VeryUnhealthy width={size} height={size} />,
+        },
+        {
+          range: '225.5μg/m3 +',
+          label: 'Air Quality is Hazardous',
+          icon: <Hazardous width={size} height={size} />,
+        },
+      ],
+      pm10: [
+        {
+          range: '0.0μg/m3 - 54.0μg/m3',
+          label: 'Air Quality is Good',
+          icon: <GoodAir width={size} height={size} />,
+        },
+        {
+          range: '54.1μg/m3 - 154.0μg/m3',
+          label: 'Air Quality is Moderate',
+          icon: <ModerateAir width={size} height={size} />,
+        },
+        {
+          range: '154.1μg/m3 - 254.0μg/m3',
+          label: 'Air Quality is Unhealthy for Sensitive Groups',
+          icon: <UnhealthyForSensitiveGroups width={size} height={size} />,
+        },
+        {
+          range: '254.1μg/m3 - 354.0μg/m3',
+          label: 'Air Quality is Unhealthy',
+          icon: <Unhealthy width={size} height={size} />,
+        },
+        {
+          range: '354.1μg/m3 - 424.0μg/m3',
+          label: 'Air Quality is Very Unhealthy',
+          icon: <VeryUnhealthy width={size} height={size} />,
+        },
+        {
+          range: '424.1μg/m3 - 604.0μg/m3',
+          label: 'Air Quality is Hazardous',
+          icon: <Hazardous width={size} height={size} />,
+        },
+      ],
+      no2: [
+        {
+          range: '0.0μg/m3 - 53.0μg/m3',
+          label: 'Air Quality is Good',
+          icon: <GoodAir width={size} height={size} />,
+        },
+        {
+          range: '53.1μg/m3 - 100.0μg/m3',
+          label: 'Air Quality is Moderate',
+          icon: <ModerateAir width={size} height={size} />,
+        },
+        {
+          range: '100.1μg/m3 - 360.0μg/m3',
+          label: 'Air Quality is Unhealthy for Sensitive Groups',
+          icon: <UnhealthyForSensitiveGroups width={size} height={size} />,
+        },
+        {
+          range: '360.1μg/m3 - 649.0μg/m3',
+          label: 'Air Quality is Unhealthy',
+          icon: <Unhealthy width={size} height={size} />,
+        },
+        {
+          range: '649.1μg/m3 - 1249.0μg/m3',
+          label: 'Air Quality is Very Unhealthy',
+          icon: <VeryUnhealthy width={size} height={size} />,
+        },
+        {
+          range: '1249.1μg/m3 - 2049.0μg/m3',
+          label: 'Air Quality is Hazardous',
+          icon: <Hazardous width={size} height={size} />,
+        },
+      ],
+    }),
+    [size],
+  );
 
-  // Get the levels for the current pollutant
-  const levels = pollutantLevels[pollutant];
+  const levels = pollutantLevels[pollutant] || [];
 
   return (
     <div className="flex flex-col items-center rounded-full shadow-md p-1 md:p-2 bg-white">
@@ -166,10 +162,10 @@ export const AirQualityLegend = ({ pollutant }) => {
             offset={[0, 20]}
             placement="right"
             theme="light"
-            animation={'scale'}
+            animation="scale"
           >
             <button
-              className={`bg-${level.color}-500 rounded-full mb-2 last:mb-0`}
+              className="bg-transparent rounded-full mb-2 last:mb-0"
               aria-label={level.label}
             >
               {level.icon}
@@ -179,3 +175,10 @@ export const AirQualityLegend = ({ pollutant }) => {
     </div>
   );
 };
+
+// Add PropTypes for validation
+AirQualityLegend.propTypes = {
+  pollutant: PropTypes.oneOf(['pm2_5', 'pm10', 'no2']).isRequired,
+};
+
+export default AirQualityLegend;

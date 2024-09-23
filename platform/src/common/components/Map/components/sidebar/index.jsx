@@ -365,16 +365,15 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
         )}
       </div>
 
-      {/* Main Content Section */}
       <div className="sidebar-scroll-bar">
-        {/* Loading State */}
-        {mapLoading && selectedLocation
+        {/* Suggested locations */}
+        {mapLoading || !suggestedSites || suggestedSites.length === 0
           ? renderLoadingSkeleton()
           : !isSearchFocused &&
             !openLocationDetails &&
-            suggestedSites?.length > 0 && (
+            suggestedSites.length > 0 && (
               <>
-                <div className="flex justify-between items-center px-4">
+                <div className="flex justify-between items-center mt-4 px-4">
                   <div className="flex gap-1">
                     <span className="font-medium text-secondary-neutral-dark-400 text-sm">
                       Sort by:
@@ -452,7 +451,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
         {/* Selected Site Details */}
         {selectedLocation && !mapLoading && (
           <div>
-            <div className="bg-secondary-neutral-dark-50 pt-6 pb-5">
+            <div className="pt-6 pb-5">
               <div className="flex items-center gap-2 text-black-800 mb-4 mx-4">
                 <Button paddingStyles="p-0" onClick={handleExit}>
                   <ArrowLeftIcon />

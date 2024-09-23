@@ -88,7 +88,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
       setLoading(false);
     }, 10000);
 
-    // Cleanup the timer when component unmounts or dependencies change
     return () => clearTimeout(loaderTimer);
   }, [loading]);
 
@@ -98,7 +97,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
       dispatch(setMapLoading(false));
     }, 2000);
 
-    // Cleanup the timer when component unmounts or dependencies change
     return () => clearTimeout(skeletonTimer);
   }, [dispatch, selectedNode]);
 
@@ -218,12 +216,19 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
           cities.map((city) => axios.get(`/api/proxy?city=${city}`)),
         );
 
-        return responses
-          .filter(
-            (response) =>
-              response.status === 'fulfilled' &&
-              response.value?.data?.data?.city,
-          )
+        // Filter and process the fulfilled responses
+        const fulfilledResponses = responses.filter(
+          (response) =>
+            response.status === 'fulfilled' && response.value?.data?.data?.city,
+        );
+
+        // Stop loading as soon as we process the fulfilled responses
+        if (fulfilledResponses.length > 0) {
+          setLoadingOthers(false);
+        }
+
+        // Map the data into the desired format
+        return fulfilledResponses
           .map((response) => {
             const cityData = response.value.data.data;
             const waqiPollutant = pollutant === 'pm2_5' ? 'pm25' : pollutant;
@@ -231,6 +236,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
               pollutant,
               cityData.iaqi[waqiPollutant]?.v,
             );
+
             return createFeature(
               cityData.idx,
               cityData.city.name,
@@ -248,53 +254,53 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         console.error('Error fetching AQI data:', error);
         return [];
       } finally {
-        setLoadingOthers(false);
+        setLoadingOthers(false); // Ensures loading is stopped in case of error
       }
     },
     [pollutant, createFeature, getForecastForPollutant],
   );
 
   // formatting readings data
-  const processMapReadingsData = useCallback(
-    (response) => {
-      return response.measurements
-        .filter(
-          (item) => item.siteDetails && item.no2 && item.pm10 && item.pm2_5,
-        )
-        .map((item) => {
-          const aqi = getAQICategory(pollutant, item[pollutant].value);
-          return createFeature(
-            item.siteDetails._id,
-            item.siteDetails.name,
-            [
-              item.siteDetails.approximate_longitude,
-              item.siteDetails.approximate_latitude,
-            ],
-            aqi,
-            item.no2.value,
-            item.pm10.value,
-            item.pm2_5.value,
-            item.time,
-            null,
-          );
-        });
-    },
-    [pollutant, createFeature],
-  );
-
-  // fetching map readings data
   const fetchAndProcessMapReadings = useCallback(async () => {
     try {
       setLoading(true);
+
       const response = await getMapReadings();
-      return processMapReadingsData(response);
+
+      if (response.success && response?.measurements?.length > 0) {
+        // Process and filter the data in the same step
+        return response.measurements
+          .filter(
+            (item) => item.siteDetails && item.no2 && item.pm10 && item.pm2_5,
+          )
+          .map((item) => {
+            const aqi = getAQICategory(pollutant, item[pollutant]?.value);
+            return createFeature(
+              item.siteDetails._id,
+              item.siteDetails.name,
+              [
+                item.siteDetails.approximate_longitude,
+                item.siteDetails.approximate_latitude,
+              ],
+              aqi,
+              item.no2?.value,
+              item.pm10?.value,
+              item.pm2_5?.value,
+              item.time,
+              null,
+            );
+          });
+      }
+
+      setLoading(false);
+      return [];
     } catch (error) {
       console.error('Error fetching map readings data:', error);
       return [];
     } finally {
       setLoading(false);
     }
-  }, [processMapReadingsData]);
+  }, [pollutant, createFeature]);
 
   const fetchAndProcessData = useCallback(async () => {
     if (!mapReadingsData.length) {
@@ -497,15 +503,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   }, [clusterUpdate]);
 
   /**
-   * Resize the map
-   * @sideEffect
-   * - Resizes the map when the window is resized and side bar is closed
-   */
-  useEffect(() => {
-    mapRef.current.resize();
-  }, [window.innerWidth, window.innerHeight, selectedNode]);
-
-  /**
    * Fetch location boundaries
    */
   useEffect(() => {
@@ -646,6 +643,15 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
       });
     }
   }, []);
+
+  /**
+   * Resize the map
+   * @sideEffect
+   * - Resizes the map when the window is resized and side bar is closed
+   */
+  useEffect(() => {
+    mapRef.current.resize();
+  }, [window.innerWidth, window.innerHeight, selectedNode]);
 
   return (
     <div className="relative w-full h-full">

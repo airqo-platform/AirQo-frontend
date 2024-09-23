@@ -267,7 +267,7 @@ export const IconButton = ({ onClick, title, icon }) => (
 export const LoadingOverlay = ({ children, size }) => (
   <div className="absolute inset-0 flex items-center justify-center z-[10000]">
     <div
-      className={`bg-white w-[${size}px] h-[${size}px] flex justify-center items-center rounded-md shadow-md`}
+      className={`bg-white w-[${size}px] h-[${size}px] flex justify-center items-center rounded-md shadow-md p-3`}
     >
       {children}
     </div>

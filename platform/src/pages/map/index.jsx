@@ -13,13 +13,15 @@ const Index = () => {
   const { width } = useWindowSize();
   const gridsDataSummary =
     useSelector((state) => state.grids.gridsDataSummary?.grids) || [];
-  const [siteDetails, setSiteDetails] = useState([]);
-  const isAdmin = true;
-  const [pollutant] = useState('pm2_5');
   const preferences =
     useSelector((state) => state.defaults.individual_preferences) || [];
   const selectedNode = useSelector((state) => state.map.selectedNode);
 
+  const [siteDetails, setSiteDetails] = useState([]);
+  const [pollutant] = useState('pm2_5');
+  const isAdmin = true;
+
+  // Fetch grid data summary
   const fetchGridsData = useCallback(() => {
     dispatch(getGridsDataSummary()).catch((error) => {
       console.error('Failed to fetch grids data:', error);
@@ -30,6 +32,7 @@ const Index = () => {
     fetchGridsData();
   }, [fetchGridsData]);
 
+  // Set site details when grid data summary changes
   useEffect(() => {
     if (gridsDataSummary.length > 0) {
       const newSiteDetails = gridsDataSummary.flatMap((grid) => grid.sites);
@@ -37,6 +40,7 @@ const Index = () => {
     }
   }, [gridsDataSummary]);
 
+  // Function to get random unique sites
   const getRandomSites = useCallback((sites, count) => {
     return sites
       .sort(() => 0.5 - Math.random())
@@ -47,9 +51,10 @@ const Index = () => {
       );
   }, []);
 
+  // Set suggested sites based on user preferences or randomly selected sites
   useEffect(() => {
     const preferencesSelectedSitesData =
-      preferences?.flatMap((pref) => pref.selected_sites) || [];
+      preferences.flatMap((pref) => pref.selected_sites) || [];
 
     if (preferencesSelectedSitesData.length > 0) {
       dispatch(addSuggestedSites(preferencesSelectedSitesData));
@@ -59,6 +64,7 @@ const Index = () => {
     }
   }, [preferences, siteDetails, dispatch, getRandomSites]);
 
+  // Get user's current location and store it in localStorage
   useEffect(() => {
     const storedUserLocation = JSON.parse(localStorage.getItem('userLocation'));
     if (!storedUserLocation) {
@@ -79,6 +85,7 @@ const Index = () => {
     }
   }, []);
 
+  // Responsive layout based on screen size
   const sidebarClassName =
     width < 1024
       ? `${selectedNode ? 'h-[70%]' : 'h-1/2 w-full sidebar-scroll-bar'}`
@@ -91,7 +98,7 @@ const Index = () => {
 
   return (
     <Layout noTopNav={width < 1024}>
-      <div className="relative pt-2 pr-2 pb-2 pl-0 flex flex-col-reverse lg:flex-row w-full h-dvh overflow-hidden transition-all duration-500 ease-in-out">
+      <div className="relative flex flex-col-reverse lg:flex-row w-full h-dvh overflow-hidden pt-2 pr-2 pb-2 pl-0 transition-all duration-500 ease-in-out">
         <div
           className={`${sidebarClassName} transition-all duration-500 ease-in-out`}
         >

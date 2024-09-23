@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import Image from 'next/image';
 import { isSameDay } from 'date-fns';
 import WindIcon from '@/icons/Common/wind.svg';
@@ -9,6 +10,7 @@ const PollutantCard = ({ selectedSite, selectedWeeklyPrediction }) => {
   const recentLocationMeasurements = useSelector(
     (state) => state.recentMeasurements.measurements,
   );
+
   const [pm2_5Value, setPM25Value] = useState('-');
   const [imageSrc, setImageSrc] = useState(images['Invalid']);
 
@@ -74,6 +76,18 @@ const PollutantCard = ({ selectedSite, selectedWeeklyPrediction }) => {
       />
     </div>
   );
+};
+
+// PropTypes for validation
+PollutantCard.propTypes = {
+  selectedSite: PropTypes.shape({
+    time: PropTypes.string,
+    pm2_5: PropTypes.number,
+  }),
+  selectedWeeklyPrediction: PropTypes.shape({
+    time: PropTypes.string,
+    pm2_5: PropTypes.number,
+  }),
 };
 
 export default PollutantCard;

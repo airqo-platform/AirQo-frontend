@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
+import PropTypes from 'prop-types';
 import Image from 'next/image';
 import { isValid, format, isSameDay } from 'date-fns';
 import { getAQIcon, images } from '../../MapNodes';
@@ -17,14 +18,17 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
   const selectedWeeklyPrediction = useSelector(
     (state) => state.map.selectedWeeklyPrediction,
   );
+
+  // Local state
   const [value, setValue] = useState(
-    selectedSite?.time ? new Date(selectedSite.time) : new Date(),
+    () => new Date(selectedSite?.time || Date.now()),
   );
   const [openDatePicker, setOpenDatePicker] = useState(false);
   const dropdownRef = useRef(null);
-  const currentDay = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-  });
+  const currentDay = useMemo(
+    () => new Date().toLocaleDateString('en-US', { weekday: 'long' }),
+    [],
+  );
   const weekDays = [
     'Monday',
     'Tuesday',
@@ -35,49 +39,103 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
     'Sunday',
   ];
 
-  const handleDateValueChange = (newValue) => {
+  // Close date picker when clicking outside
+  useOutsideClick(dropdownRef, () => setOpenDatePicker(false));
+
+  // Handle date picker changes
+  const handleDateValueChange = useCallback((newValue) => {
     const date = newValue.start ? new Date(newValue.start) : new Date();
     setValue(date);
-  };
+  }, []);
 
-  useOutsideClick(dropdownRef, () => {
-    setOpenDatePicker(false);
-  });
+  // Format date safely
+  const safeFormatDate = useCallback(
+    (date) => (isValid(date) ? format(date, 'MMM dd, yyyy') : 'Invalid date'),
+    [],
+  );
 
-  const isActive = (prediction) => {
-    const predictionDay = new Date(prediction.time).toLocaleDateString(
-      'en-US',
-      {
-        weekday: 'long',
-      },
-    );
-    return selectedWeeklyPrediction
-      ? prediction.time === selectedWeeklyPrediction.time
-      : predictionDay === currentDay;
-  };
-
-  const safeFormatDate = (date) => {
-    return isValid(date) ? format(date, 'MMM dd, yyyy') : 'Invalid date';
-  };
-
-  const getImageSrc = (prediction) => {
-    if (
-      isSameDay(
-        new Date(selectedSite.time || recentLocationMeasurements?.[0]?.time),
-        new Date(prediction.time),
-      )
-    ) {
-      return (
-        images[
-          getAQIcon(
-            'pm2_5',
-            selectedSite.pm2_5 || recentLocationMeasurements?.[0]?.pm2_5?.value,
-          )
-        ] || images['Invalid']
+  // Get active state for prediction
+  const isActive = useCallback(
+    (prediction) => {
+      const predictionDay = new Date(prediction.time).toLocaleDateString(
+        'en-US',
+        {
+          weekday: 'long',
+        },
       );
-    }
-    return images[getAQIcon('pm2_5', prediction.pm2_5)] || images['Invalid'];
-  };
+      return selectedWeeklyPrediction
+        ? prediction.time === selectedWeeklyPrediction.time
+        : predictionDay === currentDay;
+    },
+    [selectedWeeklyPrediction, currentDay],
+  );
+
+  // Get the image source for the prediction
+  const getImageSrc = useCallback(
+    (prediction) => {
+      const siteTime = new Date(
+        selectedSite.time || recentLocationMeasurements?.[0]?.time,
+      );
+      const predictionTime = new Date(prediction.time);
+      const pm25Value =
+        selectedSite.pm2_5 || recentLocationMeasurements?.[0]?.pm2_5?.value;
+
+      if (isSameDay(siteTime, predictionTime)) {
+        return images[getAQIcon('pm2_5', pm25Value)] || images['Invalid'];
+      }
+      return images[getAQIcon('pm2_5', prediction.pm2_5)] || images['Invalid'];
+    },
+    [selectedSite, recentLocationMeasurements],
+  );
+
+  // Render individual prediction block
+  const renderPredictionBlock = useCallback(
+    (prediction, index) => (
+      <div
+        key={index}
+        onClick={() => dispatch(setSelectedWeeklyPrediction(prediction))}
+        className={`rounded-[40px] px-0.5 pt-1.5 pb-0.5 flex flex-col justify-center items-center gap-2 shadow ${
+          isActive(prediction) ? 'bg-blue-600' : 'bg-secondary-neutral-dark-100'
+        }`}
+      >
+        <div className="flex flex-col items-center justify-start gap-[3px]">
+          <div
+            className={`text-center text-sm font-semibold leading-tight ${
+              isActive(prediction)
+                ? 'text-primary-300'
+                : 'text-secondary-neutral-dark-400'
+            }`}
+          >
+            {new Date(prediction.time)
+              .toLocaleDateString('en-US', { weekday: 'long' })
+              .charAt(0)}
+          </div>
+          {loading ? (
+            <Spinner width={6} height={6} />
+          ) : (
+            <div
+              className={`text-center text-sm font-medium leading-tight ${
+                isActive(prediction)
+                  ? 'text-white'
+                  : 'text-secondary-neutral-dark-200'
+              }`}
+            >
+              {new Date(prediction.time).toLocaleDateString('en-US', {
+                day: 'numeric',
+              })}
+            </div>
+          )}
+        </div>
+        <Image
+          src={getImageSrc(prediction)}
+          alt="Air Quality Icon"
+          width={32}
+          height={32}
+        />
+      </div>
+    ),
+    [dispatch, getImageSrc, isActive, loading],
+  );
 
   return (
     <div className="relative">
@@ -104,54 +162,7 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
       </div>
       <div className="flex justify-between items-center gap-2">
         {weeklyPredictions && weeklyPredictions.length > 0
-          ? weeklyPredictions.map((prediction, index) => (
-              <div
-                key={index}
-                onClick={() =>
-                  dispatch(setSelectedWeeklyPrediction(prediction))
-                }
-                className={`rounded-[40px] px-0.5 pt-1.5 pb-0.5 flex flex-col justify-center items-center gap-2 shadow ${
-                  isActive(prediction)
-                    ? 'bg-blue-600'
-                    : 'bg-secondary-neutral-dark-100'
-                }`}
-              >
-                <div className="flex flex-col items-center justify-start gap-[3px]">
-                  <div
-                    className={`text-center text-sm font-semibold leading-tight ${
-                      isActive(prediction)
-                        ? 'text-primary-300'
-                        : 'text-secondary-neutral-dark-400'
-                    }`}
-                  >
-                    {new Date(prediction.time)
-                      .toLocaleDateString('en-US', { weekday: 'long' })
-                      .charAt(0)}
-                  </div>
-                  {loading ? (
-                    <Spinner width={6} height={6} />
-                  ) : (
-                    <div
-                      className={`text-center text-sm font-medium leading-tight ${
-                        isActive(prediction)
-                          ? 'text-white'
-                          : 'text-secondary-neutral-dark-200'
-                      }`}
-                    >
-                      {new Date(prediction.time).toLocaleDateString('en-US', {
-                        day: 'numeric',
-                      })}
-                    </div>
-                  )}
-                </div>
-                <Image
-                  src={getImageSrc(prediction)}
-                  alt="Air Quality Icon"
-                  width={32}
-                  height={32}
-                />
-              </div>
-            ))
+          ? weeklyPredictions.map(renderPredictionBlock)
           : weekDays.map((day) => (
               <div
                 className={`rounded-[40px] px-0.5 pt-1.5 pb-0.5 flex flex-col justify-center items-center gap-2 shadow ${
@@ -184,6 +195,20 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
       </div>
     </div>
   );
+};
+
+Predictions.propTypes = {
+  selectedSite: PropTypes.shape({
+    time: PropTypes.string,
+    pm2_5: PropTypes.number,
+  }),
+  weeklyPredictions: PropTypes.arrayOf(
+    PropTypes.shape({
+      time: PropTypes.string.isRequired,
+      pm2_5: PropTypes.number.isRequired,
+    }),
+  ),
+  loading: PropTypes.bool,
 };
 
 export default Predictions;

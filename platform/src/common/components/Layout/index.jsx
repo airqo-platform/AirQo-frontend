@@ -35,10 +35,12 @@ const Layout = ({
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
 
+  // Set chart details based on preference data
   useEffect(() => {
     SetChartDetails(dispatch, preferenceData);
   }, [dispatch, preferenceData]);
 
+  // Fetch user checklists if not fetched already
   const fetchUserData = useCallback(() => {
     if (userInfo?._id && !localStorage.getItem('dataFetched')) {
       dispatch(fetchUserChecklists(userInfo._id)).then((action) => {
@@ -55,20 +57,27 @@ const Layout = ({
 
   useEffect(fetchUserData, [fetchUserData]);
 
+  // Update user's checklist items at regular intervals
   useEffect(() => {
-    let timer;
     if (userInfo?._id && cardCheckList) {
-      timer = setTimeout(() => {
+      const timer = setTimeout(() => {
         dispatch(
           updateUserChecklists({ user_id: userInfo._id, items: cardCheckList }),
         );
       }, 5000);
+
+      return () => clearTimeout(timer);
     }
-    return () => clearTimeout(timer);
   }, [dispatch, userInfo, cardCheckList]);
 
+  // Track inactivity and log out the user after a timeout
   useEffect(() => {
     let lastActivity = Date.now();
+
+    const resetTimer = () => {
+      lastActivity = Date.now();
+    };
+
     const activityEvents = [
       'mousedown',
       'mousemove',
@@ -76,10 +85,6 @@ const Layout = ({
       'scroll',
       'touchstart',
     ];
-    const resetTimer = () => {
-      lastActivity = Date.now();
-    };
-
     activityEvents.forEach((event) =>
       window.addEventListener(event, resetTimer),
     );
@@ -99,36 +104,35 @@ const Layout = ({
   }, [dispatch, router, userInfo]);
 
   return (
-    <div>
+    <div className="flex min-h-screen bg-[#f6f6f7]" data-testid="layout">
       <Head>
         <title>{pageTitle}</title>
         <meta property="og:title" content={pageTitle} key="title" />
       </Head>
-      <div className="flex bg-[#f6f6f7]" data-testid="layout">
-        <aside className="fixed left-0 top-0 text-[#1C1D20] z-50 transition-all duration-300 ease-in-out">
-          <AuthenticatedSideBar />
-        </aside>
-        <main
-          className={`${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'} h-auto flex-1 transition-all duration-300 ease-in-out`}
+
+      <aside className="fixed left-0 top-0 z-50 text-[#1C1D20] transition-all duration-300 ease-in-out">
+        <AuthenticatedSideBar />
+      </aside>
+
+      <main
+        className={`flex-1 transition-all duration-300 ease-in-out overflow-y-auto ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
+      >
+        <div
+          className={`${router.pathname === '/map' ? '' : 'max-w-[1200px] mx-auto space-y-8 px-4 py-8 sm:px-6 lg:px-8'} overflow-hidden`}
         >
-          <div
-            className={`${router.pathname === '/map' ? '' : 'max-w-[1200px] mx-auto space-y-8 px-4 py-8 sm:px-6 lg:px-8'} overflow-hidden `}
-          >
-            {noTopNav && (
-              <TopBar
-                topbarTitle={topbarTitle}
-                noBorderBottom={noBorderBottom}
-                showSearch={showSearch}
-              />
-            )}
-            <div
-              className={`text-[#1C1D20] transition-all duration-300 ease-in-out overflow-hidden`}
-            >
-              {children}
-            </div>
+          {noTopNav && (
+            <TopBar
+              topbarTitle={topbarTitle}
+              noBorderBottom={noBorderBottom}
+              showSearch={showSearch}
+            />
+          )}
+          <div className="text-[#1C1D20] transition-all duration-300 ease-in-out overflow-hidden">
+            {children}
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
+
       <SideBarDrawer />
     </div>
   );
