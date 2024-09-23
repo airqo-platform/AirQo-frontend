@@ -34,6 +34,7 @@ const Layout = ({
     useSelector((state) => state.defaults.individual_preferences) || [];
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
+  const isMapRoute = router.pathname === '/map';
 
   // Set chart details based on preference data
   useEffect(() => {
@@ -115,7 +116,7 @@ const Layout = ({
       </aside>
 
       <main
-        className={`flex-1 transition-all duration-300 ease-in-out overflow-y-auto ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
+        className={`flex-1 transition-all duration-300 ease-in-out ${!isMapRoute ? 'overflow-y-auto' : 'overflow-hidden'} ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
       >
         <div
           className={`${router.pathname === '/map' ? '' : 'max-w-[1200px] mx-auto space-y-8 px-4 py-8 sm:px-6 lg:px-8'} overflow-hidden`}

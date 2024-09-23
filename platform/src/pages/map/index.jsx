@@ -88,17 +88,17 @@ const Index = () => {
   // Responsive layout based on screen size
   const sidebarClassName =
     width < 1024
-      ? `${selectedNode ? 'h-[70%]' : 'h-1/2 w-full sidebar-scroll-bar'}`
+      ? `${selectedNode ? 'h-[70%]' : 'h-full w-full sidebar-scroll-bar'}`
       : 'h-full min-w-[380px] lg:w-[470px]';
 
   const mapClassName =
     width < 1024
-      ? `${selectedNode ? 'h-[30%]' : 'h-1/2 w-full'}`
+      ? `${selectedNode ? 'h-[30%]' : 'h-full w-full'}`
       : 'h-full w-full';
 
   return (
     <Layout noTopNav={width < 1024}>
-      <div className="relative flex flex-col-reverse lg:flex-row w-full h-dvh overflow-hidden pt-2 pr-2 pb-2 pl-0 transition-all duration-500 ease-in-out">
+      <div className="relative flex flex-col-reverse lg:flex-row w-full h-dvh pt-2 pr-2 pb-2 pl-0 transition-all duration-500 ease-in-out">
         <div
           className={`${sidebarClassName} transition-all duration-500 ease-in-out`}
         >

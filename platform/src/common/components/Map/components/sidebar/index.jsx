@@ -330,7 +330,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   );
 
   return (
-    <div className="w-full rounded-l-xl shadow-sm h-full bg-white overflow-hidden">
+    <div className="w-full rounded-l-xl shadow-sm h-full bg-white overflow-y-auto lg:overflow-hidden">
       {/* Sidebar Header Section */}
       <div
         className={`${!isSearchFocused && !openLocationDetails ? 'space-y-4' : 'hidden'} pt-4`}
@@ -393,7 +393,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
 
         {/* Search Results Section */}
         {isSearchFocused && !openLocationDetails && (
-          <div className="flex flex-col h-full pt-4 w-auto">
+          <div className="flex flex-col h-dvh pt-4 w-auto">
             <div className="flex flex-col gap-5 px-4">
               <SidebarHeader
                 isAdmin={isAdmin}
