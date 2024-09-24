@@ -8,7 +8,7 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
-  background-color: #f6f6f7; // The desired background color
+  // background-color: #f6f6f7;
   box-sizing: border-box;
 }
 
@@ -28,7 +28,7 @@ body > div#__next {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: inherit; // Ensures the background color is inherited
+  background-color: inherit;
 }
 
 /* Remove border click effect for Daisy UI input */

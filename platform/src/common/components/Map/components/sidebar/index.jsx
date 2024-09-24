@@ -67,7 +67,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     (state) => state.locationSearch.searchTerm,
   );
   const suggestedSites = useSelector((state) => state.map.suggestedSites);
-  const selectedNode = useSelector((state) => state.map.selectedNode);
 
   const isSearchFocused = isFocused || reduxSearchTerm.length > 0;
 
