@@ -34,12 +34,17 @@ export default [
       ...react.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/jsx-filename-extension': [1, { extensions: ['.js', '.jsx'] }],
+      'react/prop-types': 'off',
+      'react/display-name': 'off',
       'prettier/prettier': [
         'error',
         {
           endOfLine: 'auto',
         },
       ],
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      'no-console': 'warn',
+      'no-debugger': 'error',
       ...eslintConfigPrettier.rules,
     },
   },
