@@ -20,6 +20,7 @@ import {
   fetchAnalyticsData,
   setAnalyticsData,
 } from '@/lib/store/services/charts/ChartData';
+import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
 import {
   renderCustomizedLegend,
   CustomDot,
@@ -42,9 +43,6 @@ const useAnalyticsData = (customBody) => {
   const chartData = useSelector((state) => state.chart);
   const analyticsData = useSelector((state) => state.analytics.data);
   const refreshChart = useSelector((state) => state.chart.refreshChart);
-  const preferencesLoading = useSelector(
-    (state) => state.userDefaults.status === 'loading',
-  );
   const isLoading = useSelector(
     (state) => state.analytics.status === 'loading',
   );
@@ -74,7 +72,7 @@ const useAnalyticsData = (customBody) => {
   );
 
   const fetchData = useCallback(async () => {
-    if (preferencesLoading || !preferenceData.length) return;
+    if (!preferenceData.length) return;
 
     const { selected_sites } = preferenceData[0];
     const chartSites = selected_sites?.map((site) => site['_id']);
@@ -94,12 +92,10 @@ const useAnalyticsData = (customBody) => {
     try {
       setError(null);
       const startTime = Date.now();
-      dispatch(setAnalyticsData(null));
       await dispatch(fetchAnalyticsData(body));
       setLoadingTime(Date.now() - startTime);
     } catch (err) {
       setError(err.message);
-      dispatch(setAnalyticsData(null));
     } finally {
       dispatch(setRefreshChart(false));
     }

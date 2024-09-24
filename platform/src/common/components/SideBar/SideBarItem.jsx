@@ -134,7 +134,7 @@ SideBarDropdownItem.propTypes = {
 SidebarItem.propTypes = {
   Icon: PropTypes.elementType,
   label: PropTypes.string.isRequired,
-  navPath: PropTypes.string.isRequired,
+  navPath: PropTypes.string,
   onClick: PropTypes.func,
   children: PropTypes.node,
   toggleMethod: PropTypes.func,

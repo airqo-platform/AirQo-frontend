@@ -11,18 +11,18 @@ import collocationReducer from './services/collocation';
 import collocationDataReducer from './services/collocation/collocationDataSlice';
 import { createAccountSlice } from './services/account/CreationSlice';
 import { userLoginSlice } from './services/account/LoginSlice';
-import { chartSlice } from './services/charts/ChartSlice';
+import chartsReducer from './services/charts/ChartSlice';
 import { gridsSlice } from './services/deviceRegistry/GridsSlice';
-import { defaultsSlice } from './services/account/UserDefaultsSlice';
+import defaultsReducer from './services/account/UserDefaultsSlice';
 import userDefaultsReducer from './services/charts/userDefaultsSlice';
-import { recentMeasurementsSlice } from './services/deviceRegistry/RecentMeasurementsSlice';
-import { cardSlice } from './services/checklists/CheckList';
+import recentMeasurementReducer from './services/deviceRegistry/RecentMeasurementsSlice';
+import cardReducer from './services/checklists/CheckList';
 import checklistsReducer from './services/checklists/CheckData';
 import analyticsReducer from './services/charts/ChartData';
 import { groupInfoSlice } from './services/groups/GroupInfoSlice';
 import { mapSlice } from './services/map/MapSlice';
 import { locationSearchSlice } from './services/search/LocationSearchSlice';
-import { apiClientSlice } from './services/apiClient/index';
+import apiClientReducer from './services/apiClient/index';
 import sidebarReducer from './services/sideBar/SideBarSlice';
 import modalSlice from './services/downloadModal';
 
@@ -35,18 +35,18 @@ const appReducer = combineReducers({
   collocationData: collocationDataReducer,
   creation: createAccountSlice.reducer,
   login: userLoginSlice.reducer,
-  chart: chartSlice.reducer,
+  chart: chartsReducer,
   grids: gridsSlice.reducer,
-  defaults: defaultsSlice.reducer,
-  cardChecklist: cardSlice.reducer,
+  defaults: defaultsReducer,
+  cardChecklist: cardReducer,
   map: mapSlice.reducer,
   userDefaults: userDefaultsReducer,
-  recentMeasurements: recentMeasurementsSlice.reducer,
+  recentMeasurements: recentMeasurementReducer,
   checklists: checklistsReducer,
   analytics: analyticsReducer,
   groupInfo: groupInfoSlice.reducer,
   locationSearch: locationSearchSlice.reducer,
-  apiClient: apiClientSlice.reducer,
+  apiClient: apiClientReducer,
 });
 
 const rootReducer = (state, action) => {

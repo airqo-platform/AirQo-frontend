@@ -42,7 +42,16 @@ export default [
           endOfLine: 'auto',
         },
       ],
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      'no-unused-vars': [
+        'error',
+        {
+          vars: 'all',
+          varsIgnorePattern: '^_',
+          args: 'after-used',
+          ignoreRestSiblings: true,
+          argsIgnorePattern: '^_',
+        },
+      ],
       'no-console': 'warn',
       'no-debugger': 'error',
       ...eslintConfigPrettier.rules,
