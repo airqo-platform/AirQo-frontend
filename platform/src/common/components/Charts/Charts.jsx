@@ -37,6 +37,7 @@ const WHO_STANDARD_VALUES = {
   no2: 25,
 };
 
+// Custom hook for analytics data fetching
 const useAnalyticsData = (customBody) => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
@@ -55,6 +56,7 @@ const useAnalyticsData = (customBody) => {
   const [error, setError] = useState(null);
   const [loadingTime, setLoadingTime] = useState(0);
 
+  // Memoize helper functions to get site names
   const getSiteName = useCallback(
     (siteId) => {
       const site = preferenceData[0]?.selected_sites?.find(
@@ -73,6 +75,7 @@ const useAnalyticsData = (customBody) => {
     [siteData],
   );
 
+  // Function to fetch data
   const fetchData = useCallback(async () => {
     if (preferencesLoading || !preferenceData.length) return;
 
@@ -103,12 +106,14 @@ const useAnalyticsData = (customBody) => {
     } finally {
       dispatch(setRefreshChart(false));
     }
-  }, [chartData, dispatch, preferenceData]);
+  }, [chartData, dispatch, preferenceData, customBody]);
 
+  // Fetch data whenever dependencies change
   useEffect(() => {
     fetchData();
   }, [fetchData, refreshChart]);
 
+  // Transform data for charts
   const transformedData = useMemo(() => {
     if (!analyticsData?.length) return { dataForChart: [], allKeys: new Set() };
 
@@ -139,6 +144,7 @@ const useAnalyticsData = (customBody) => {
 
   return { ...transformedData, isLoading, error, loadingTime };
 };
+
 const Charts = ({
   customBody,
   chartType = 'line',
@@ -148,13 +154,14 @@ const Charts = ({
 }) => {
   const chartData = useSelector((state) => state.chart);
   const { dataForChart, allKeys, isLoading, error, loadingTime } =
-    useAnalyticsData(customBody && customBody);
+    useAnalyticsData(customBody);
   const [showLoadingMessage, setShowLoadingMessage] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [activeIndex, setActiveIndex] = useState(null);
 
   const WHO_STANDARD_VALUE = WHO_STANDARD_VALUES[chartData.pollutionType] || 0;
 
+  // Handle loading message based on loading time
   useEffect(() => {
     let timeoutId;
     if (isLoading && loadingTime > 5000) {
@@ -200,7 +207,7 @@ const Charts = ({
       <div className="ml-10 pr-10 flex justify-center text-center items-center w-full h-full text-sm">
         <p className="text-red-500 text-center">
           An error has occurred. Please try again later or reach out to our
-          support team for assistance.
+          support team.
         </p>
       </div>
     );
@@ -226,7 +233,7 @@ const Charts = ({
     return (
       <div className="ml-10 pr-10 flex justify-center items-center w-full h-full text-center text-sm text-gray-600">
         No data found. Please try other time periods or customize using other
-        locations
+        locations.
       </div>
     );
   }
@@ -273,7 +280,6 @@ const Charts = ({
       />
     </YAxis>,
     <Legend key="legend" content={renderCustomizedLegend} />,
-
     <Tooltip
       key="tooltip"
       content={<CustomGraphTooltip activeIndex={activeIndex} />}
@@ -319,7 +325,7 @@ const Charts = ({
               onMouseEnter={(o) => handleMouseEnter(o, index)}
               onMouseLeave={handleMouseLeave}
             />
-          ))}{' '}
+          ))}
         <ReferenceLine
           key="referenceLine"
           y={WHO_STANDARD_VALUE}
