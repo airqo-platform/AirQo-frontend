@@ -78,7 +78,7 @@ const useLocationBoundaries = ({ mapRef, mapData, setLoading }) => {
     };
 
     fetchLocationBoundaries();
-  }, [mapRef, mapData, setLoading]);
+  }, [mapData.location]);
 };
 
 export default useLocationBoundaries;

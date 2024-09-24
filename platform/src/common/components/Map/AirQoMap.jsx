@@ -159,6 +159,13 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     };
   }, [mapStyle, NodeType, mapboxApiAccessToken, width]);
 
+  // Use the custom hook for location boundaries
+  useLocationBoundaries({
+    mapRef,
+    mapData,
+    setLoading,
+  });
+
   // Fly to new center and zoom when mapData changes
   useEffect(() => {
     if (mapRef.current && mapData.center && mapData.zoom) {
@@ -179,13 +186,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
       clusterUpdate();
     }
   }, [clusterUpdate]);
-
-  // Use the custom hook for location boundaries
-  useLocationBoundaries({
-    mapRef,
-    mapData,
-    setLoading,
-  });
 
   /**
    * Resize the map on window resize or when a node is selected/deselected
