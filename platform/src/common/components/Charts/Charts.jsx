@@ -92,10 +92,12 @@ const useAnalyticsData = (customBody) => {
     try {
       setError(null);
       const startTime = Date.now();
+      dispatch(setAnalyticsData(null));
       await dispatch(fetchAnalyticsData(body));
       setLoadingTime(Date.now() - startTime);
     } catch (err) {
       setError(err.message);
+      dispatch(setAnalyticsData(null));
     } finally {
       dispatch(setRefreshChart(false));
     }

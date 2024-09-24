@@ -15,7 +15,7 @@ import {
 import { updateCards } from '@/lib/store/services/checklists/CheckList';
 import SetChartDetails from '@/core/utils/SetChartDetails';
 import LogoutUser from '@/core/utils/LogoutUser';
-import { getIndividualUserPreferences } from '@/lib/store/services/account/userDefaultsSlice';
+import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 
 const INACTIVITY_TIMEOUT = 3600000; // 1 hour in milliseconds
 const CHECK_INTERVAL = 10000; // 10 seconds
