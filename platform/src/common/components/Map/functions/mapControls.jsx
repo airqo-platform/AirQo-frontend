@@ -1,9 +1,10 @@
+import React, { useCallback } from 'react';
 import GeoIcon from '@/icons/map/gpsIcon';
-import React from 'react';
 import PlusIcon from '@/icons/map/plusIcon';
 import MinusIcon from '@/icons/map/minusIcon';
 import { createRoot } from 'react-dom/client';
 import mapboxgl from 'mapbox-gl';
+import { setSelectedNode } from '@/lib/store/services/map/MapSlice';
 
 /**
  * CustomZoomControl
@@ -238,6 +239,69 @@ export class CustomGeolocateControl {
     });
   }
 }
+
+// Function to refresh the map
+export const useRefreshMap = (
+  setToastMessage,
+  mapRef,
+  dispatch,
+  selectedNode,
+) =>
+  useCallback(() => {
+    const map = mapRef.current;
+    if (map) {
+      try {
+        const originalStyle =
+          map.getStyle().sprite.split('/').slice(0, -1).join('/') +
+          '/style.json';
+        map.setStyle(originalStyle); // Refresh map by resetting its style
+
+        setToastMessage({
+          message: 'Map refreshed successfully',
+          type: 'success',
+          bgColor: 'bg-blue-600',
+        });
+      } catch (error) {
+        console.error('Error refreshing the map:', error);
+      }
+
+      if (selectedNode) {
+        dispatch(setSelectedNode(null)); // Reset selected node if one was selected
+      }
+    }
+  }, [mapRef, dispatch, setToastMessage, selectedNode]);
+
+// Function to share map location
+export const useShareLocation = (setToastMessage, mapRef) =>
+  useCallback(() => {
+    try {
+      const map = mapRef.current;
+      if (map) {
+        const center = map.getCenter();
+        const zoom = map.getZoom();
+        const url = new URL(window.location.href);
+
+        url.searchParams.set('lat', center.lat.toFixed(4));
+        url.searchParams.set('lng', center.lng.toFixed(4));
+        url.searchParams.set('zm', zoom.toFixed(2));
+
+        navigator.clipboard.writeText(url.toString()); // Copy URL to clipboard
+
+        setToastMessage({
+          message: 'Location URL copied to clipboard',
+          type: 'success',
+          bgColor: 'bg-blue-600',
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing location:', error);
+      setToastMessage({
+        message: 'Failed to copy location URL',
+        type: 'error',
+        bgColor: 'bg-red-600',
+      });
+    }
+  }, [mapRef, setToastMessage]);
 
 /**
  * IconButton
