@@ -1,4 +1,5 @@
-export { default as useMapData } from './fetchData';
+export { default as useMapData } from './useMapData';
+export { default as useLocationBoundaries } from './useLocationBoundaries';
 export {
   useRefreshMap,
   useShareLocation,
@@ -6,4 +7,4 @@ export {
   CustomGeolocateControl,
   IconButton,
   LoadingOverlay,
-} from './mapControls';
+} from './useMapControls';

@@ -8,6 +8,8 @@ import LightMode from '@/images/map/light.webp';
 import SatelliteMode from '@/images/map/satellite.webp';
 import StreetsMode from '@/images/map/street.webp';
 
+export const BOUNDARY_URL = 'https://nominatim.openstreetmap.org/search';
+
 export const mapStyles = [
   {
     url: 'mapbox://styles/mapbox/streets-v11',

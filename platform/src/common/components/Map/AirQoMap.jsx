@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import mapboxgl from 'mapbox-gl';
-import axios from 'axios';
 import { useWindowSize } from '@/lib/windowSize';
 import {
   setMapLoading,
@@ -26,6 +25,7 @@ import {
   CustomGeolocateControl,
   IconButton,
   LoadingOverlay,
+  useLocationBoundaries,
 } from './functions';
 
 const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
@@ -92,10 +92,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   // Custom hook to fetch data and manage map data
   const { mapRef, fetchAndProcessData, clusterUpdate } = useMapData({
     NodeType,
-    selectedNode,
     mapStyle,
     pollutant,
-    refresh: null, // Pass any refresh dependencies if needed
     setLoading,
     setLoadingOthers,
   });
@@ -159,20 +157,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         mapRef.current.remove();
       }
     };
-  }, [
-    mapStyle,
-    NodeType,
-    mapboxApiAccessToken,
-    width,
-    selectedNode,
-    fetchAndProcessData,
-    lat,
-    lng,
-    zm,
-    mapData.center.latitude,
-    mapData.center.longitude,
-    mapData.zoom,
-  ]);
+  }, [mapStyle, NodeType, mapboxApiAccessToken, width]);
 
   // Fly to new center and zoom when mapData changes
   useEffect(() => {
@@ -182,7 +167,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         mapRef.current.flyTo({
           center: [longitude, latitude],
           zoom: mapData.zoom,
-          essential: true, // Ensures the transition happens only when necessary
+          essential: true,
         });
       }
     }
@@ -195,88 +180,12 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     }
   }, [clusterUpdate]);
 
-  /**
-   * Fetch location boundaries
-   */
-  useEffect(() => {
-    const fetchLocationBoundaries = async () => {
-      setLoading(true);
-      const map = mapRef.current;
-
-      if (!map) return;
-
-      // Remove existing boundaries if any
-      if (map.getLayer('location-boundaries')) {
-        map.removeLayer('location-boundaries');
-      }
-
-      if (map.getSource('location-boundaries')) {
-        map.removeSource('location-boundaries');
-      }
-
-      let queryString = mapData.location.country;
-      if (mapData.location.city) {
-        queryString = `${mapData.location.city}, ${queryString}`;
-      }
-
-      try {
-        const response = await axios.get(
-          `https://nominatim.openstreetmap.org/search`,
-          {
-            params: {
-              q: queryString,
-              polygon_geojson: 1,
-              format: 'json',
-            },
-          },
-        );
-
-        const data = response.data;
-
-        if (data && data.length > 0) {
-          const boundaryData = data[0].geojson;
-
-          map.addSource('location-boundaries', {
-            type: 'geojson',
-            data: boundaryData,
-          });
-
-          map.addLayer({
-            id: 'location-boundaries',
-            type: 'fill',
-            source: 'location-boundaries',
-            paint: {
-              'fill-color': '#0000FF',
-              'fill-opacity': 0.2,
-              'fill-outline-color': '#0000FF',
-            },
-          });
-
-          const { lat: boundaryLat, lon: boundaryLon } = data[0];
-          map.flyTo({
-            center: [parseFloat(boundaryLon), parseFloat(boundaryLat)],
-            zoom: mapData.location.city && mapData.location.country ? 10 : 5,
-          });
-
-          map.on('zoomend', function () {
-            const zoom = map.getZoom();
-            const opacity = zoom > 10 ? 0 : 0.2;
-            map.setPaintProperty(
-              'location-boundaries',
-              'fill-opacity',
-              opacity,
-            );
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching location boundaries:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLocationBoundaries();
-  }, [mapData.location]);
+  // Use the custom hook for location boundaries
+  useLocationBoundaries({
+    mapRef,
+    mapData,
+    setLoading,
+  });
 
   /**
    * Resize the map on window resize or when a node is selected/deselected

@@ -27,10 +27,8 @@ import { useWindowSize } from '@/lib/windowSize';
 
 const useMapData = ({
   NodeType,
-  selectedNode,
   mapStyle,
   pollutant,
-  refresh,
   setLoading,
   setLoadingOthers,
 }) => {
@@ -41,6 +39,7 @@ const useMapData = ({
   const mapReadingsData = useSelector((state) => state.map.mapReadingsData);
   const waqData = useSelector((state) => state.map.waqData);
   const { width } = useWindowSize();
+  const selectedNode = useSelector((state) => state.map.selectedNode);
 
   // Helper to create a map feature
   const createFeature = useCallback(
@@ -349,7 +348,6 @@ const useMapData = ({
     NodeType,
     mapStyle,
     pollutant,
-    refresh,
     waqData,
     mapReadingsData,
     width,
