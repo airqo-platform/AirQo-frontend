@@ -1,10 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 
 const Carousel_1 = ({
   className = 'max-w-[256px]',
   cardWidth = 'min-w-[213px]',
 }) => {
+  const dispatch = useDispatch();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState(0);
   const [isSliding, setIsSliding] = useState(false);
@@ -15,6 +17,7 @@ const Carousel_1 = ({
       title: 'Take action',
       description:
         'Did you know that trees absorb pollution from the air we breathe.',
+      type: 'plant_tree',
       buttonText: 'Plant a Tree — $10',
       bgColor: 'bg-green-50',
       borderColor: 'border-green-200',
@@ -26,6 +29,7 @@ const Carousel_1 = ({
       title: 'Take action',
       description:
         'Buy an air pollution monitoring device for your city — we install for free!',
+      type: 'buy_device',
       buttonText: 'Install a device — $200',
       bgColor: 'bg-blue-50',
       borderColor: 'border-blue-200',
@@ -70,6 +74,14 @@ const Carousel_1 = ({
     setTouchStartX(0);
   };
 
+  const handleOpenModal = useCallback(
+    (type, ids = []) => {
+      dispatch(setOpenModal(true));
+      dispatch(setModalType({ type, ids }));
+    },
+    [dispatch],
+  );
+
   // Render the button for collapsed state
   const renderCollapsedButton = (slide, index) => (
     <button
@@ -94,7 +106,7 @@ const Carousel_1 = ({
       <button
         type="button"
         className={`mt-4 px-4 py-2 ${slide.btnColor} border ${slide.btnBorderColor} text-sm font-semibold rounded-full transition ${slide.btnHoverColor}`}
-        onClick={() => null}
+        onClick={() => handleOpenModal(slide.type)}
       >
         {slide.buttonText}
       </button>

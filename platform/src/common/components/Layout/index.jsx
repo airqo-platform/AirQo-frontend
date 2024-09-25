@@ -17,6 +17,8 @@ import SetChartDetails from '@/core/utils/SetChartDetails';
 import LogoutUser from '@/core/utils/LogoutUser';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { useDebounce } from '@/core/hooks';
+import { setOpenModal } from '@/lib/store/services/downloadModal';
+import Modal from '../Modal/dataDownload';
 import updateUserPreferences from '@/core/utils/UpdateUserPreferences';
 
 const INACTIVITY_TIMEOUT = 3600000; // 1 hour in milliseconds
@@ -37,6 +39,7 @@ const Layout = ({
     useSelector((state) => state.defaults.individual_preferences) || [];
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
+  const isOpen = useSelector((state) => state.modal.openModal);
   const isMapRoute = router.pathname === '/map';
 
   // Use the custom useDebounce hook to debounce cardCheckList changes by 5 seconds
@@ -183,6 +186,7 @@ const Layout = ({
       </main>
 
       <SideBarDrawer />
+      <Modal isOpen={isOpen} onClose={() => dispatch(setOpenModal(false))} />
     </div>
   );
 };

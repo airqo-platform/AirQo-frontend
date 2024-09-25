@@ -7,6 +7,8 @@ import PropTypes from 'prop-types';
 import DataDownload, { DownloadDataHeader } from './modules/DataDownload';
 import AddLocations, { AddLocationHeader } from './modules/AddLocations';
 import MoreInsights, { InSightsHeader } from './modules/MoreInsights';
+import PlantTree, { AddPlantTreeHeader } from './modules/PlantTree';
+import BuyDevice, { AddBuyDeviceHeader } from './modules/BuyDevice';
 
 const Modal = ({ isOpen, onClose }) => {
   const modalType = useSelector((state) => state.modal.modalType.type);
@@ -19,6 +21,10 @@ const Modal = ({ isOpen, onClose }) => {
         return <AddLocationHeader />;
       case 'location':
         return <InSightsHeader />;
+      case 'plant_tree':
+        return <AddPlantTreeHeader />;
+      case 'buy_device':
+        return <AddBuyDeviceHeader />;
       default:
     }
   };
@@ -31,6 +37,10 @@ const Modal = ({ isOpen, onClose }) => {
         return <AddLocations onClose={onClose} />;
       case 'location':
         return <MoreInsights />;
+      case 'plant_tree':
+        return <PlantTree onClose={onClose} />;
+      case 'buy_device':
+        return <BuyDevice onClose={onClose} />;
       default:
     }
   };
