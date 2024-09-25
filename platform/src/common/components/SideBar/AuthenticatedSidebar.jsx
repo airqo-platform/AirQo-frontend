@@ -21,6 +21,7 @@ import Link from 'next/link';
 import LeftArrowIcon from '@/icons/SideBar/leftArrowIcon';
 import RightArrowIcon from '@/icons/SideBar/rightArrowIcon';
 import Button from '../Button';
+import Carousel_1 from '../carousels/Carousel_1';
 
 const AuthenticatedSideBar = () => {
   const dispatch = useDispatch();
@@ -109,22 +110,22 @@ const AuthenticatedSideBar = () => {
           isCollapsed ? 'w-[88px]' : 'w-[256px]'
         } hidden h-dvh relative lg:block transition-all duration-200 ease-in-out p-2 z-50`}
       >
-        <div className="flex p-3 bg-white h-full lg:relative flex-col justify-between overflow-y-auto border border-grey-750 scrollbar-thin rounded-xl scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden">
-          <div>
-            <div className="pb-4 flex justify-between items-center">
-              <Button
-                paddingStyles="p-0 m-0"
-                onClick={() => {
-                  router.push('/Home');
-                }}
-                variant="text"
-              >
-                <AirqoLogo className="w-[46.56px] h-8 flex flex-col flex-1" />
-              </Button>
-            </div>
-            <div className="mt-4">
-              <OrganizationDropdown />
-            </div>
+        <div className="flex p-3 bg-white h-full lg:relative flex-col overflow-y-auto border border-grey-750 scrollbar-thin rounded-xl scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden">
+          <div className="pb-4 flex justify-between items-center">
+            <Button
+              paddingStyles="p-0 m-0"
+              onClick={() => {
+                router.push('/Home');
+              }}
+              variant="text"
+            >
+              <AirqoLogo className="w-[46.56px] h-8 flex flex-col flex-1" />
+            </Button>
+          </div>
+          <div className="mt-4">
+            <OrganizationDropdown />
+          </div>
+          <div className="flex flex-col justify-between h-full">
             <div className="mt-10 space-y-2">
               <SidebarItem
                 label="Home"
@@ -213,6 +214,7 @@ const AuthenticatedSideBar = () => {
                 iconOnly={isCollapsed}
               />
             </div>
+            <Carousel_1 />
           </div>
         </div>
         {/* collapse sidebar */}

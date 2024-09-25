@@ -16,6 +16,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { setToggleDrawer } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useRouter } from 'next/router';
 import LogoutUser from '@/core/utils/LogoutUser';
+import Carousel_1 from '../carousels/Carousel_1';
 
 const SideBarDrawer = () => {
   const dispatch = useDispatch();
@@ -92,30 +93,30 @@ const SideBarDrawer = () => {
       <div
         className={`${drawerClasses} fixed right-0 top-0 h-full z-[999999] border-l-grey-750 border-l-[1px] transition-all duration-200 ease-in-out overflow-hidden`}
       >
-        <div className="flex p-4 bg-white h-full flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden">
-          <div>
-            <div className="pb-4 flex justify-between items-center">
-              {width < 1024 ? (
-                <div
-                  className="cursor-pointer"
-                  onClick={() => router.push('/settings')}
-                >
-                  {renderUserAvatar()}
-                </div>
-              ) : (
-                <AirqoLogo className="w-[46.56px] h-8 flex flex-col flex-1" />
-              )}
-              <button
-                type="button"
-                className="relative w-auto focus:outline-none border border-gray-200 rounded-xl p-2"
-                onClick={closeDrawer}
+        <div className="flex p-4 bg-white h-full flex-col  overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden">
+          <div className="pb-4 flex justify-between items-center">
+            {width < 1024 ? (
+              <div
+                className="cursor-pointer"
+                onClick={() => router.push('/settings')}
               >
-                <CloseIcon />
-              </button>
-            </div>
-            <div className="mt-4">
-              <OrganizationDropdown />
-            </div>
+                {renderUserAvatar()}
+              </div>
+            ) : (
+              <AirqoLogo className="w-[46.56px] h-8 flex flex-col flex-1" />
+            )}
+            <button
+              type="button"
+              className="relative w-auto focus:outline-none border border-gray-200 rounded-xl p-2"
+              onClick={closeDrawer}
+            >
+              <CloseIcon />
+            </button>
+          </div>
+          <div className="mt-4">
+            <OrganizationDropdown />
+          </div>
+          <div className="flex flex-col justify-between h-full">
             <div className="mt-11 space-y-3">
               <SideBarItem label="Home" Icon={HomeIcon} navPath="/Home" />
               <SideBarItem
@@ -161,6 +162,7 @@ const SideBarDrawer = () => {
                 />
               </div>
             </div>
+            <Carousel_1 className="w-full" cardWidth="min-w-[250px]" />
           </div>
         </div>
       </div>
