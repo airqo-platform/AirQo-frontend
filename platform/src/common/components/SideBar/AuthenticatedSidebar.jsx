@@ -126,8 +126,10 @@ const AuthenticatedSideBar = () => {
                 iconOnly={isCollapsed}
               />
 
-              {!isCollapsed && (
-                <div className="text-xs text-[#7A7F87] px-3 py-3 font-semibold">
+              {isCollapsed ? (
+                <hr className="h-[0.5px] bg-grey-150 transition-all duration-300 ease-in-out" />
+              ) : (
+                <div className="text-xs text-[#7A7F87] px-3 py-3 font-semibold transition-all duration-300 ease-in-out">
                   Network
                 </div>
               )}
