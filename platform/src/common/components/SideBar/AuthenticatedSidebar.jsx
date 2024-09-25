@@ -15,7 +15,7 @@ import {
   setToggleDrawer,
   setSidebar,
 } from '@/lib/store/services/sideBar/SideBarSlice';
-import useOutsideClick from '@/core/utils/useOutsideClick';
+import { useOutsideClick } from '@/core/hooks';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import LeftArrowIcon from '@/icons/SideBar/leftArrowIcon';

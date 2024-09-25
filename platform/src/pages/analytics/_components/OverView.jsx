@@ -25,16 +25,14 @@ const useFetchMeasurements = () => {
   const chartData = useSelector((state) => state.chart);
   const preferenceData =
     useSelector((state) => state.defaults.individual_preferences) || [];
-  const preferencesLoading = useSelector(
-    (state) => state.userDefaults.status === 'loading',
-  );
+
   const refreshChart = useSelector((state) => state.chart.refreshChart);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (preferencesLoading || !preferenceData.length) return;
+    if (!preferenceData.length) return;
 
     const fetchData = async () => {
       setIsLoading(true);
@@ -250,13 +248,15 @@ const OverView = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ChartContainer
             chartType="line"
-            chartTitle="Air pollution data over time"
+            chartTitle="Air Pollution Data Over Time"
             height={400}
+            id="air-pollution-line-chart-1"
           />
           <ChartContainer
             chartType="bar"
-            chartTitle="Air pollution data over time"
+            chartTitle="Air Pollution Data Over Time"
             height={400}
+            id="air-pollution-bar-chart-1"
           />
         </div>
       </div>

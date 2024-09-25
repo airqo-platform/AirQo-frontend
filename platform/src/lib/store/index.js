@@ -14,7 +14,6 @@ import { userLoginSlice } from './services/account/LoginSlice';
 import chartsReducer from './services/charts/ChartSlice';
 import { gridsSlice } from './services/deviceRegistry/GridsSlice';
 import defaultsReducer from './services/account/UserDefaultsSlice';
-import userDefaultsReducer from './services/charts/userDefaultsSlice';
 import recentMeasurementReducer from './services/deviceRegistry/RecentMeasurementsSlice';
 import cardReducer from './services/checklists/CheckList';
 import checklistsReducer from './services/checklists/CheckData';
@@ -40,7 +39,6 @@ const appReducer = combineReducers({
   defaults: defaultsReducer,
   cardChecklist: cardReducer,
   map: mapSlice.reducer,
-  userDefaults: userDefaultsReducer,
   recentMeasurements: recentMeasurementReducer,
   checklists: checklistsReducer,
   analytics: analyticsReducer,

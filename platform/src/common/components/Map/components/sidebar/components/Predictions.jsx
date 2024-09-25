@@ -8,7 +8,7 @@ import { setSelectedWeeklyPrediction } from '@/lib/store/services/map/MapSlice';
 import Button from '@/components/Button';
 import Calendar from '@/components/Calendar/Calendar';
 import Spinner from '@/components/Spinner';
-import useOutsideClick from '@/core/utils/useOutsideClick';
+import { useOutsideClick } from '@/core/hooks';
 
 const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
   const dispatch = useDispatch();

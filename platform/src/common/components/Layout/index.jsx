@@ -16,6 +16,8 @@ import { updateCards } from '@/lib/store/services/checklists/CheckList';
 import SetChartDetails from '@/core/utils/SetChartDetails';
 import LogoutUser from '@/core/utils/LogoutUser';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
+import { useDebounce } from '@/core/hooks';
+import updateUserPreferences from '@/core/utils/UpdateUserPreferences';
 
 const INACTIVITY_TIMEOUT = 3600000; // 1 hour in milliseconds
 const CHECK_INTERVAL = 10000; // 10 seconds
@@ -37,49 +39,81 @@ const Layout = ({
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const isMapRoute = router.pathname === '/map';
 
+  // Use the custom useDebounce hook to debounce cardCheckList changes by 5 seconds
+  const debouncedCardCheckList = useDebounce(cardCheckList, 5000);
+
+  /**
+   * Fetches user preferences on component mount.
+   */
   useEffect(() => {
-    const userId = JSON.parse(localStorage.getItem('loggedUser'))?._id;
-    if (userId) {
-      dispatch(getIndividualUserPreferences(userId));
+    const storedUser = localStorage.getItem('loggedUser');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        const userId = parsedUser?._id;
+        if (userId) {
+          dispatch(getIndividualUserPreferences(userId));
+        }
+      } catch (error) {
+        console.error('Failed to parse loggedUser from localStorage:', error);
+      }
     }
   }, [dispatch]);
 
-  // Set chart details based on preference data
+  /**
+   * Sets chart details based on user preferences.
+   */
   useEffect(() => {
-    SetChartDetails(dispatch, preferenceData);
+    if (preferenceData.length) {
+      SetChartDetails(dispatch, preferenceData);
+    }
   }, [dispatch, preferenceData]);
 
-  // Fetch user checklists if not fetched already
+  /**
+   * Fetches user checklists if they haven't been fetched already.
+   */
   const fetchUserData = useCallback(() => {
     if (userInfo?._id && !localStorage.getItem('dataFetched')) {
-      dispatch(fetchUserChecklists(userInfo._id)).then((action) => {
-        if (fetchUserChecklists.fulfilled.match(action)) {
-          const { payload } = action;
-          if (payload?.length > 0) {
-            dispatch(updateCards(payload[0].items));
+      dispatch(fetchUserChecklists(userInfo._id))
+        .then((action) => {
+          if (fetchUserChecklists.fulfilled.match(action)) {
+            const { payload } = action;
+            if (payload?.length > 0) {
+              dispatch(updateCards(payload[0].items));
+            }
+            localStorage.setItem('dataFetched', 'true');
           }
-          localStorage.setItem('dataFetched', 'true');
-        }
-      });
+        })
+        .catch((error) => {
+          console.error('Failed to fetch user checklists:', error);
+        });
     }
   }, [dispatch, userInfo]);
 
-  useEffect(fetchUserData, [fetchUserData]);
-
-  // Update user's checklist items at regular intervals
   useEffect(() => {
-    if (userInfo?._id && cardCheckList) {
-      const timer = setTimeout(() => {
-        dispatch(
-          updateUserChecklists({ user_id: userInfo._id, items: cardCheckList }),
-        );
-      }, 5000);
+    fetchUserData();
+  }, [fetchUserData]);
 
-      return () => clearTimeout(timer);
+  /**
+   * Updates the user's checklist items with the debounced value to prevent
+   * excessive dispatches.
+   */
+  useEffect(() => {
+    if (userInfo?._id && debouncedCardCheckList) {
+      dispatch(
+        updateUserChecklists({
+          user_id: userInfo._id,
+          items: debouncedCardCheckList,
+        }),
+      ).catch((error) => {
+        console.error('Failed to update user checklists:', error);
+      });
     }
-  }, [dispatch, userInfo, cardCheckList]);
+  }, [dispatch, userInfo, debouncedCardCheckList]);
 
-  // Track inactivity and log out the user after a timeout
+  /**
+   * Tracks user inactivity and logs out the user after a specified timeout.
+   */
   useEffect(() => {
     let lastActivity = Date.now();
 
@@ -124,10 +158,16 @@ const Layout = ({
       </aside>
 
       <main
-        className={`flex-1 transition-all duration-300 ease-in-out ${!isMapRoute ? 'overflow-y-auto' : 'overflow-hidden'} ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
+        className={`flex-1 transition-all duration-300 ease-in-out ${
+          !isMapRoute ? 'overflow-y-auto' : 'overflow-hidden'
+        } ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
       >
         <div
-          className={`${router.pathname === '/map' ? '' : 'max-w-[1200px] mx-auto space-y-8 px-4 py-8 sm:px-6 lg:px-8'} overflow-hidden`}
+          className={`${
+            router.pathname === '/map'
+              ? ''
+              : 'max-w-[1200px] mx-auto space-y-8 px-4 py-8 sm:px-6 lg:px-8'
+          } overflow-hidden`}
         >
           {noTopNav && (
             <TopBar

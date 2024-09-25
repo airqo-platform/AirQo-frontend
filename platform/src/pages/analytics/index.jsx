@@ -4,7 +4,7 @@ import Layout from '@/components/Layout';
 import OverView from './_components/OverView';
 import AlertBox from '@/components/AlertBox';
 
-import useOutsideClick from '@/core/utils/useOutsideClick';
+import { useOutsideClick } from '@/core/hooks';
 
 const AuthenticatedHomePage = () => {
   const [alert, setAlert] = useState({ type: '', message: '', show: false });

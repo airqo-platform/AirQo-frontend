@@ -3,7 +3,7 @@ import CalendarIcon from '@/icons/Analytics/calendarIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import { setChartDataRange } from '@/lib/store/services/charts/ChartSlice';
 import Calendar from './Calendar';
-import useOutsideClick from '@/core/utils/useOutsideClick';
+import { useOutsideClick } from '@/core/hooks';
 import {
   differenceInDays,
   isSameDay,

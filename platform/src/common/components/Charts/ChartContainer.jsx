@@ -1,39 +1,41 @@
-'use client';
 import React, { useRef, useCallback, useState, useEffect, memo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
-import Chart from './Charts';
+import { useDispatch, useSelector, shallowEqual } from 'react-redux';
+import PropTypes from 'prop-types';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import Spinner from '@/components/Spinner';
 import CheckIcon from '@/icons/tickIcon';
+import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
 import PrintReportModal from '@/components/Modal/PrintReportModal';
+import Chart from './Charts';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
-import PropTypes from 'prop-types';
 
 const ChartContainer = memo(
   ({
     chartType,
     chartTitle,
-    height,
-    width,
+    height = '300px',
+    width = '100%',
     id,
-    defaultBody,
+    defaultBody = {},
     showTitle = true,
   }) => {
     const dispatch = useDispatch();
     const chartRef = useRef(null);
     const dropdownRef = useRef(null);
+
     const {
       status: isLoading,
       chartDataRange,
       chartSites,
-    } = useSelector((state) => state.chart);
+    } = useSelector((state) => state.chart, shallowEqual);
+
     const [openShare, setOpenShare] = useState(false);
     const [shareFormat, setShareFormat] = useState(null);
     const [loadingFormat, setLoadingFormat] = useState(null);
     const [downloadComplete, setDownloadComplete] = useState(null);
 
+    // Handle click outside for dropdown
     useEffect(() => {
       const handleClickOutside = (event) => {
         if (
@@ -49,95 +51,72 @@ const ChartContainer = memo(
         document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const exportChart = useCallback(
-      async (format) => {
-        if (!chartRef.current) return;
+    const exportChart = useCallback(async (format) => {
+      if (!chartRef.current) return;
 
-        setDownloadComplete(null);
-        setLoadingFormat(format);
+      setDownloadComplete(null);
+      setLoadingFormat(format);
 
-        try {
-          const rect = chartRef.current.getBoundingClientRect();
-          const extraSpace = 20;
-          const canvasWidth = rect.width + extraSpace;
-          const canvasHeight = rect.height + extraSpace;
+      try {
+        const canvas = await html2canvas(chartRef.current, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#fff',
+        });
 
-          const canvas = await html2canvas(chartRef.current, {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: rect.backgroundColor,
-            width: canvasWidth,
-            height: canvasHeight,
-            scrollX: 0,
-            scrollY: 0,
-          });
-
+        if (format === 'png' || format === 'jpg') {
+          const imgData = canvas.toDataURL(`image/${format}`, 0.8);
           const link = document.createElement('a');
+          link.href = imgData;
           link.download = `airquality-data.${format}`;
-
-          if (format === 'png' || format === 'jpg') {
-            canvas.toBlob(
-              (blob) => {
-                link.href = URL.createObjectURL(blob);
-                link.click();
-                setLoadingFormat(null);
-                setDownloadComplete(format);
-              },
-              `image/${format}`,
-              0.8,
-            );
-          } else if (format === 'pdf') {
-            const pdf = new jsPDF({
-              orientation: 'landscape',
-              unit: 'px',
-              format: [canvasWidth, canvasHeight],
-            });
-            pdf.addImage(
-              canvas.toDataURL('image/png', 0.8),
-              'PNG',
-              0,
-              0,
-              canvasWidth,
-              canvasHeight,
-            );
-            pdf.save('airquality-data.pdf');
-            setLoadingFormat(null);
-            setDownloadComplete(format);
-          } else {
-            throw new Error('Unsupported format');
-          }
-        } catch (error) {
-          console.error('Error exporting chart:', error);
-          setLoadingFormat(null);
+          document.body.appendChild(link); // Append to body to make it clickable in Firefox
+          link.click();
+          document.body.removeChild(link); // Remove after clicking
+        } else if (format === 'pdf') {
+          const pdf = new jsPDF({
+            orientation: 'landscape',
+            unit: 'px',
+            format: [canvas.width, canvas.height],
+          });
+          const imgData = canvas.toDataURL('image/png', 0.8);
+          pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+          pdf.save('airquality-data.pdf');
+        } else {
+          throw new Error('Unsupported format');
         }
-      },
-      [chartRef],
-    );
 
-    const refreshChart = () => {
+        setDownloadComplete(format);
+      } catch (error) {
+        console.error('Error exporting chart:', error);
+      } finally {
+        setLoadingFormat(null);
+      }
+    }, []);
+
+    const refreshChart = useCallback(() => {
       dispatch(setRefreshChart(true));
-    };
+    }, [dispatch]);
 
-    const shareReport = (format) => {
+    const shareReport = useCallback((format) => {
       setShareFormat(format);
       setOpenShare(true);
-    };
+    }, []);
 
-    const renderDropdownContent = useCallback(() => {
-      return (
+    const renderDropdownContent = useCallback(
+      () => (
         <>
-          <a
+          <button
             onClick={refreshChart}
-            className="flex justify-between items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+            className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >
-            <span>Refresh</span>
-          </a>
+            Refresh
+          </button>
           <hr className="border-gray-200" />
-          {['jpg', 'pdf'].map((format) => (
-            <a
+          {['png', 'jpg', 'pdf'].map((format) => (
+            <button
               key={format}
               onClick={() => exportChart(format)}
-              className="flex justify-between items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+              className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             >
               <span>Export as {format.toUpperCase()}</span>
               <span className="-mr-2">
@@ -146,39 +125,32 @@ const ChartContainer = memo(
                   <CheckIcon fill="#1E40AF" width={20} height={20} />
                 )}
               </span>
-            </a>
+            </button>
           ))}
           <hr className="border-gray-200" />
           {['csv', 'pdf'].map((format) => (
-            <a
+            <button
               key={format}
               onClick={() => shareReport(format)}
-              className="flex justify-between items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+              className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             >
               <span>Share report as {format.toUpperCase()}</span>
-            </a>
+            </button>
           ))}
         </>
-      );
-    }, [
-      refreshChart,
-      exportChart,
-      loadingFormat,
-      downloadComplete,
-      shareReport,
-    ]);
+      ),
+      [exportChart, loadingFormat, downloadComplete, refreshChart, shareReport],
+    );
 
     return (
       <div
-        className="border-[0.5px] bg-white rounded-xl border-grey-150 shadow-sm"
+        className="border bg-white rounded-xl border-grey-150 shadow-sm"
         id="analytics-chart"
       >
-        <div className="flex flex-col items-start gap-1 w-auto h-auto p-4">
+        <div className="flex flex-col items-start gap-1 w-full p-4">
           {showTitle && (
             <div className="flex items-center justify-between w-full h-8">
-              <div className="text-lg not-italic font-medium leading-[26px]">
-                {chartTitle}
-              </div>
+              <h3 className="text-lg font-medium">{chartTitle}</h3>
               <div ref={dropdownRef}>
                 <CustomDropdown
                   btnText="More"
@@ -202,7 +174,7 @@ const ChartContainer = memo(
           <div
             ref={chartRef}
             className="mt-6 -ml-[27px] relative"
-            style={{ width: width || '100%', height: height || '300px' }}
+            style={{ width, height }}
           >
             <Chart
               customBody={defaultBody}
@@ -215,9 +187,9 @@ const ChartContainer = memo(
         </div>
 
         <PrintReportModal
-          title="Share report"
+          title="Share Report"
           btnText="Send"
-          shareModel={true}
+          shareModel
           open={openShare}
           onClose={() => setOpenShare(false)}
           format={shareFormat}
@@ -233,13 +205,13 @@ const ChartContainer = memo(
 );
 
 ChartContainer.propTypes = {
-  showTitle: PropTypes.bool,
-  defaultBody: PropTypes.object,
-  chartType: PropTypes.string.isRequired,
+  chartType: PropTypes.oneOf(['line', 'bar']).isRequired,
   chartTitle: PropTypes.string.isRequired,
-  height: PropTypes.string,
-  width: PropTypes.string,
+  height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   id: PropTypes.string.isRequired,
+  defaultBody: PropTypes.object,
+  showTitle: PropTypes.bool,
 };
 
 ChartContainer.displayName = 'ChartContainer';

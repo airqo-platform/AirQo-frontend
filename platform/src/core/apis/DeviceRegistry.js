@@ -11,43 +11,27 @@ import {
 
 // Get grid locations
 export const getAllGridLocationsApi = async () => {
-  try {
-    const response = await createAxiosInstance().get(`${GRID_LOCATIONS_URL}`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await createAxiosInstance().get(`${GRID_LOCATIONS_URL}`);
+  return response.data;
 };
 
 // Get grid location details
 export const getGridLocationDetails = async (gridID) => {
-  try {
-    const response = await createAxiosInstance().get(
-      `${GRID_LOCATIONS_URL}/${gridID}`,
-    );
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await createAxiosInstance().get(
+    `${GRID_LOCATIONS_URL}/${gridID}`,
+  );
+  return response.data;
 };
 
 // Get Sites Summary
 export const getSiteSummaryDetails = async () => {
-  try {
-    const response = await createAxiosInstance().get(`${SITES_URL}/summary`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await createAxiosInstance().get(`${SITES_URL}/summary`);
+  return response.data;
 };
 
 export const getGirdsSummaryDetails = async () => {
-  try {
-    const response = await createAxiosInstance().get(`${GRIDS_SUMMARY_URL}`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await createAxiosInstance().get(`${GRIDS_SUMMARY_URL}`);
+  return response.data;
 };
 
 export const getAnalyticsData = async (body) => {
