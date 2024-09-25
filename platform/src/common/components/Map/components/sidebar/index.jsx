@@ -283,13 +283,15 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
             <div onClick={() => setIsFocused(true)} className="mt-5 px-4">
               <SearchField showSearchResultsNumber={false} focus={false} />
             </div>
-            <div className="flex items-center mt-5 overflow-hidden px-4 transition-all duration-300 ease-in-out">
-              <button
+            <div className="flex items-center mt-5 overflow-hidden px-4 py-2 transition-all duration-300 ease-in-out">
+              <Button
+                type="button"
+                variant="filled"
                 onClick={handleAllSelection}
-                className="py-[6px] px-[10px] rounded-full mb-3 bg-blue-500 text-white text-sm font-medium"
+                className="py-[6px] px-[10px] border-none rounded-full mb-3 text-sm font-medium"
               >
                 All
-              </button>
+              </Button>
               <div className="country-scroll-bar">
                 <CountryList
                   data={countryData}
@@ -394,7 +396,12 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
           <div>
             <div className="pt-6 pb-5">
               <div className="flex items-center gap-2 text-black-800 mb-4 mx-4">
-                <Button paddingStyles="p-0" onClick={handleExit}>
+                <Button
+                  paddingStyles="p-0"
+                  onClick={handleExit}
+                  variant="text"
+                  type="button"
+                >
                   <ArrowLeftIcon />
                 </Button>
                 <h3 className="text-xl font-medium leading-7">

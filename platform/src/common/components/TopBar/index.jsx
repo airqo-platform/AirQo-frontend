@@ -130,6 +130,7 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
               onClick={() => {
                 router.push('/Home');
               }}
+              variant="text"
             >
               <AirqoLogo className="w-[46.56px] h-8" />
             </Button>
@@ -171,6 +172,7 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
             paddingStyles="p-0 m-0"
             className="lg:hidden relative flex items-center justify-start z-10 w-auto focus:outline-none"
             onClick={handleDrawer}
+            variant="text"
           >
             <span className="p-2">
               <MenuBarIcon />

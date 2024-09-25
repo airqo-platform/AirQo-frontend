@@ -1,5 +1,6 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
+import Button from '@/components/Button';
 import {
   setLocation,
   addSuggestedSites,
@@ -56,13 +57,15 @@ const CountryList = ({
         }
 
         return (
-          <div
+          <Button
             key={index}
+            type="button"
             className={`flex items-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 py-[6px] px-[10px]  min-w-max space-x-2 m-0 ${
               selectedCountry?.country === country.country
                 ? 'border-2 border-blue-400'
                 : ''
             }`}
+            variant="outline"
             onClick={() => handleClick(country)}
           >
             <img
@@ -74,7 +77,7 @@ const CountryList = ({
             <span className="text-sm text-secondary-neutral-light-600 font-medium">
               {country.country}
             </span>
-          </div>
+          </Button>
         );
       })}
     </div>
