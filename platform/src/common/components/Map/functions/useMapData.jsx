@@ -161,32 +161,27 @@ const useMapData = ({
   // Refactored fetchAndProcessData with improved error handling
   const fetchAndProcessData = useCallback(async () => {
     try {
-      // Ensure both requests are being processed correctly
-      const [mapReadingsDataResult, waqDataResult] = await Promise.allSettled([
-        fetchAndProcessMapReadings(),
-        fetchAndProcessWaqData(AQI_FOR_CITIES),
-      ]);
+      // Fetch map readings data first
+      const mapReadingsDataResult = await fetchAndProcessMapReadings();
 
-      // Check for fulfilled requests and handle accordingly
-      if (
-        mapReadingsDataResult.status === 'fulfilled' &&
-        mapReadingsDataResult.value.length > 0
-      ) {
-        dispatch(setMapReadingsData(mapReadingsDataResult.value));
+      // Check if mapReadingsDataResult has data and update the map
+      if (mapReadingsDataResult.length > 0) {
+        dispatch(setMapReadingsData(mapReadingsDataResult));
       } else {
-        console.error('Map readings data could not be fetched or is empty');
+        console.warn('Map readings data could not be fetched or is empty');
       }
 
-      if (
-        waqDataResult.status === 'fulfilled' &&
-        waqDataResult.value.length > 0
-      ) {
-        dispatch(setWaqData(waqDataResult.value));
+      // Fetch WAQI data afterward in the background
+      const waqDataResult = await fetchAndProcessWaqData(AQI_FOR_CITIES);
+
+      // Check if waqDataResult has data and update the map
+      if (waqDataResult.length > 0) {
+        dispatch(setWaqData(waqDataResult));
       } else {
-        console.error('WAQI data could not be fetched or is empty');
+        console.warn('WAQI data could not be fetched or is empty');
       }
     } catch (error) {
-      console.error('Error processing map and WAQI data:', error);
+      console.error('Error processing data:', error);
     }
   }, [dispatch, fetchAndProcessMapReadings, fetchAndProcessWaqData]);
 

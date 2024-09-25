@@ -20,7 +20,7 @@ const Option = ({ isSelected, children, onSelect, image, disabled }) => (
         layout="fill"
         objectFit="cover"
         className="rounded-lg"
-        loading="lazy"
+        loading="eager"
       />
     </div>
     <span>{children}</span>
