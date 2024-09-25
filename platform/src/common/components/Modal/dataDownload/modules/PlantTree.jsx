@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Image from 'next/image';
 import Footer from '../components/Footer';
 import RightArrowIcon from '@/icons/SideBar/rightArrowIcon';
-import PlantTreeImg from '@/images/carousel/plantTree.png';
+import PlantTreeImg from '@/images/carousel/plantTree.webp';
 
 const AddPlantTreeHeader = () => (
   <h3

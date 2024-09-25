@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Image from 'next/image';
 import Footer from '../components/Footer';
 import RightArrowIcon from '@/icons/SideBar/rightArrowIcon';
-import BuyDeviceImg from '@/images/carousel/buyDevice.png';
+import BuyDeviceImg from '@/images/carousel/buyDevice.webp';
 
 const AddBuyDeviceHeader = () => (
   <h3
