@@ -79,7 +79,11 @@ const OrganizationDropdown = () => {
     return (
       <CustomDropdown
         trigger={
-          <Button paddingStyles="p-0 m-0" className="w-full">
+          <Button
+            paddingStyles="p-0 m-0"
+            className="w-full border-none"
+            variant="outlined"
+          >
             <div
               className={`w-full h-12 p-2 bg-white rounded-xl border border-gray-200 ${isCollapsed ? 'flex justify-center' : 'inline-flex justify-between items-center'} hover:bg-gray-100`}
             >

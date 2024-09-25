@@ -117,6 +117,7 @@ const AuthenticatedSideBar = () => {
                 onClick={() => {
                   router.push('/Home');
                 }}
+                variant="text"
               >
                 <AirqoLogo className="w-[46.56px] h-8 flex flex-col flex-1" />
               </Button>
