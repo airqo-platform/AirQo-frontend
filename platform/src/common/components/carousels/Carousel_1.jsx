@@ -89,7 +89,7 @@ const Carousel_1 = ({
       type="button"
       className={`mt-4 px-4 py-2 ${slide.btnColor} border w-[38px] mx-1 flex items-center justify-center ${slide.btnBorderColor} text-sm font-semibold rounded-xl transition ${slide.btnHoverColor}`}
       style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
-      onClick={() => null}
+      onClick={() => handleOpenModal(slide.type)}
     >
       {slide.buttonText}
     </button>
