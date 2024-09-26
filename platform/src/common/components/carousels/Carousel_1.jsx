@@ -124,7 +124,7 @@ const Carousel_1 = ({
         {/* Carousel items */}
         <div
           className={`flex ${!isCollapsed ? '-ml-1' : ''} transition-transform duration-500 ease-in-out`}
-          style={{ transform: `translateX(-${currentIndex * 101}%)` }}
+          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
           {slides.map((slide, index) =>
             isCollapsed
@@ -139,7 +139,9 @@ const Carousel_1 = ({
             <button
               key={index}
               onClick={() => handleSlideChange(index)}
-              className={`dot w-2 h-2 rounded-full mx-1 bg-gray-300 transition-colors duration-300 ${currentIndex === index ? 'bg-black-600' : ''}`}
+              className={`dot w-2 h-2 rounded-full mx-1 bg-gray-300 transition-colors duration-300 ${
+                currentIndex === index ? 'bg-black-800' : ''
+              }`}
             ></button>
           ))}
         </div>
