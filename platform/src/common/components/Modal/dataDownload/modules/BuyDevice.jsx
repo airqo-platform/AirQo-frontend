@@ -17,7 +17,7 @@ const AddBuyDeviceHeader = () => (
 );
 
 const BuyDevice = ({ onClose }) => {
-  const [selectedAmount, setSelectedAmount] = useState('$10');
+  const [selectedAmount, setSelectedAmount] = useState('$200');
   const [customAmount, setCustomAmount] = useState('');
 
   const predefinedDonations = [
@@ -39,7 +39,7 @@ const BuyDevice = ({ onClose }) => {
 
   const handleClearCustomAmount = () => {
     setCustomAmount('');
-    setSelectedAmount('$10');
+    setSelectedAmount('$200');
   };
 
   const getFinalAmount = () => {

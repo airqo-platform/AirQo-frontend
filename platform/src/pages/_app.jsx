@@ -4,20 +4,20 @@ import { useEffect, useState } from 'react';
 import { wrapper } from '@/lib/store';
 import { Toaster } from 'sonner';
 import PropTypes from 'prop-types';
+import Loading from '@/components/Loader';
 
 function App({ Component, ...rest }) {
   const { store, props } = wrapper.useWrappedStore(rest);
   const [hydrated, setHydrated] = useState(false);
 
-  // Manually track rehydration without PersistGate
   useEffect(() => {
-    setHydrated(true); // Once component mounts, consider state as hydrated
+    setHydrated(true);
 
     // Disable dev tools in non-staging environments
     if (process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS !== 'staging') {
       document.addEventListener('contextmenu', (e) => e.preventDefault());
       document.addEventListener('keydown', (e) => {
-        if (e.keyCode === 123) e.preventDefault(); // Prevent F12 for dev tools
+        if (e.keyCode === 123) e.preventDefault();
       });
     }
 
@@ -30,7 +30,7 @@ function App({ Component, ...rest }) {
   }, []);
 
   // Only show the component if hydration is complete
-  if (!hydrated) return null;
+  if (!hydrated) return <Loading />;
 
   return (
     <Provider store={store}>
