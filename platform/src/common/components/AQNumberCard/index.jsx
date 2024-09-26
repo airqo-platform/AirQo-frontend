@@ -60,7 +60,9 @@ const AQNumberCard = ({
             >
               {location.length > 17 ? `${location.slice(0, 17)}...` : location}
             </div>
-            <div className="text-sm text-slate-400 capitalize">{country}</div>
+            <div className="text-sm text-left text-slate-400 capitalize">
+              {country}
+            </div>
           </div>
 
           {/* Trend Info */}

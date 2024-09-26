@@ -215,7 +215,7 @@ const Calendar = ({
       <div
         className={`z-[1000] border border-gray-100 bg-white shadow-lg rounded-xl ${
           showTwoCalendars
-            ? 'max-w-full min-w-[260px] md:min-w-[660px] lg:min-w-[800px]'
+            ? 'max-w-full min-w-[260px] md:min-w-[660px] lg:min-w-[700px]'
             : 'w-full max-w-[241px]'
         }`}
       >

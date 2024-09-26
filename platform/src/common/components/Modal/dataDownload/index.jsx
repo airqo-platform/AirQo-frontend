@@ -9,6 +9,7 @@ import AddLocations, { AddLocationHeader } from './modules/AddLocations';
 import MoreInsights, { InSightsHeader } from './modules/MoreInsights';
 import PlantTree, { AddPlantTreeHeader } from './modules/PlantTree';
 import BuyDevice, { AddBuyDeviceHeader } from './modules/BuyDevice';
+import Search, { AddSearchHeader } from './modules/Search';
 
 const Modal = ({ isOpen, onClose }) => {
   const modalType = useSelector((state) => state.modal.modalType.type);
@@ -25,6 +26,8 @@ const Modal = ({ isOpen, onClose }) => {
         return <AddPlantTreeHeader />;
       case 'buy_device':
         return <AddBuyDeviceHeader />;
+      case 'search':
+        return <AddSearchHeader />;
       default:
     }
   };
@@ -41,6 +44,8 @@ const Modal = ({ isOpen, onClose }) => {
         return <PlantTree onClose={onClose} />;
       case 'buy_device':
         return <BuyDevice onClose={onClose} />;
+      case 'search':
+        return <Search onClose={onClose} />;
       default:
     }
   };

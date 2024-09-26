@@ -11,7 +11,7 @@ import UserIcon from '@/icons/Topbar/userIcon';
 import ChartIcon from '@/icons/Topbar/chartIcon';
 import CustomDropdown from '../Dropdowns/CustomDropdown';
 import TopBarSearch from '../search/TopBarSearch';
-
+import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import {
   setToggleDrawer,
   setSidebar,
@@ -118,6 +118,14 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
     </>
   );
 
+  const handleOpenModal = useCallback(
+    (type, ids = []) => {
+      dispatch(setOpenModal(true));
+      dispatch(setModalType({ type, ids }));
+    },
+    [dispatch],
+  );
+
   return (
     <div className="space-y-3">
       <nav
@@ -146,7 +154,18 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
           </div>
 
           <div className="hidden lg:flex gap-2 items-center">
-            <TopBarSearch />
+            <Button
+              type="button"
+              variant="text"
+              className=""
+              paddingStyles="p-0 m-0"
+              onClick={() => {
+                handleOpenModal('search');
+              }}
+            >
+              <TopBarSearch />
+            </Button>
+
             <CustomDropdown
               tabIcon={
                 userInfo.profilePicture ? (
@@ -190,7 +209,14 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
               <div>{topbarTitle}</div>
             </div>
           </div>
-          <TopBarSearch customWidth="md:max-w-[192px]" />
+          <button
+            type="button"
+            onClick={() => {
+              handleOpenModal('search');
+            }}
+          >
+            <TopBarSearch customWidth="md:max-w-[192px]" />
+          </button>
         </div>
       )}
     </div>
