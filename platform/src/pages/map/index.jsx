@@ -34,27 +34,28 @@ const Index = () => {
 
   // Set site details when grid data summary changes
   useEffect(() => {
-    if (gridsDataSummary.length > 0) {
-      const newSiteDetails = gridsDataSummary.flatMap((grid) => grid.sites);
+    if (Array.isArray(gridsDataSummary) && gridsDataSummary.length > 0) {
+      const newSiteDetails = gridsDataSummary.flatMap(
+        (grid) => grid.sites || [],
+      );
       setSiteDetails(newSiteDetails);
     }
   }, [gridsDataSummary]);
 
   // Function to get random unique sites
   const getRandomSites = useCallback((sites, count) => {
-    return sites
-      .sort(() => 0.5 - Math.random())
-      .slice(0, count)
-      .filter(
-        (site, index, self) =>
-          self.findIndex((s) => s._id === site._id) === index,
-      );
+    const uniqueSites = sites.filter(
+      (site, index, self) =>
+        self.findIndex((s) => s._id === site._id) === index,
+    );
+    return uniqueSites.sort(() => 0.5 - Math.random()).slice(0, count);
   }, []);
 
   // Set suggested sites based on user preferences or randomly selected sites
   useEffect(() => {
-    const preferencesSelectedSitesData =
-      preferences.flatMap((pref) => pref.selected_sites) || [];
+    const preferencesSelectedSitesData = preferences.flatMap(
+      (pref) => pref.selected_sites || [],
+    );
 
     if (preferencesSelectedSitesData.length > 0) {
       dispatch(addSuggestedSites(preferencesSelectedSitesData));
@@ -66,22 +67,24 @@ const Index = () => {
 
   // Get user's current location and store it in localStorage
   useEffect(() => {
-    const storedUserLocation = JSON.parse(localStorage.getItem('userLocation'));
-    if (!storedUserLocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          localStorage.setItem(
-            'userLocation',
-            JSON.stringify({
-              lat: position.coords.latitude,
-              long: position.coords.longitude,
-            }),
-          );
-        },
-        (error) => {
-          console.error('Geolocation error:', error);
-        },
-      );
+    if (typeof window !== 'undefined') {
+      const storedUserLocation = localStorage.getItem('userLocation');
+      if (!storedUserLocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            localStorage.setItem(
+              'userLocation',
+              JSON.stringify({
+                lat: position.coords.latitude,
+                long: position.coords.longitude,
+              }),
+            );
+          },
+          (error) => {
+            console.error('Geolocation error:', error);
+          },
+        );
+      }
     }
   }, []);
 

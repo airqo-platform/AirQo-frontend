@@ -48,12 +48,16 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   );
 
   // Parse and Validate URL Parameters
-  const urlParams = new URLSearchParams(window.location.search);
-  const latParam = parseFloat(urlParams.get('lat'));
-  const lngParam = parseFloat(urlParams.get('lng'));
-  const zmParam = parseFloat(urlParams.get('zm'));
-  const hasValidParams =
-    !isNaN(latParam) && !isNaN(lngParam) && !isNaN(zmParam);
+  let latParam, lngParam, zmParam;
+  let hasValidParams = false;
+
+  if (typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search);
+    latParam = parseFloat(urlParams.get('lat'));
+    lngParam = parseFloat(urlParams.get('lng'));
+    zmParam = parseFloat(urlParams.get('zm'));
+    hasValidParams = !isNaN(latParam) && !isNaN(lngParam) && !isNaN(zmParam);
+  }
 
   // Redux Selectors
   const mapData = useSelector((state) => state.map);
@@ -178,7 +182,9 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   useEffect(() => {
     if (loading) {
       const loaderTimer = setTimeout(() => {
-        setLoading(false);
+        if (!mapRef.current || mapRef.current.isStyleLoaded()) {
+          setLoading(false);
+        }
       }, 10000);
 
       return () => clearTimeout(loaderTimer);
@@ -228,20 +234,23 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   // Update Clusters When Data Changes
   useEffect(() => {
     if (mapRef.current) {
-      clusterUpdate();
+      try {
+        clusterUpdate();
+      } catch (error) {
+        console.error('Cluster update failed:', error);
+      }
     }
   }, [clusterUpdate]);
 
   // Handle Window Resize
   useEffect(() => {
     const handleResize = () => {
-      if (mapRef.current) {
+      if (mapRef.current && mapRef.current.isStyleLoaded()) {
         mapRef.current.resize();
       }
     };
 
     window.addEventListener('resize', handleResize);
-
     handleResize();
 
     return () => {
