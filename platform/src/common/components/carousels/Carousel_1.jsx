@@ -140,7 +140,7 @@ const Carousel_1 = ({
               key={index}
               onClick={() => handleSlideChange(index)}
               className={`dot w-2 h-2 rounded-full mx-1 bg-gray-300 transition-colors duration-300 ${
-                currentIndex === index ? 'bg-black-800' : ''
+                currentIndex === index ? 'bg-zinc-950' : ''
               }`}
             ></button>
           ))}
