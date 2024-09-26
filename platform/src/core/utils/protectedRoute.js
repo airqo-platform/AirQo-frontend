@@ -5,66 +5,65 @@ import LogoutUser from '@/core/utils/LogoutUser';
 
 export default function withAuth(Component) {
   return function WithAuthComponent(props) {
-    const storedUserGroup = localStorage.getItem('activeGroup');
-
     const dispatch = useDispatch();
     const router = useRouter();
     const userCredentials = useSelector((state) => state.login);
 
     useEffect(() => {
-      if (!userCredentials.success) {
-        router.push('/account/login');
-      }
-    }, [userCredentials]);
+      if (typeof window !== 'undefined') {
+        const storedUserGroup = localStorage.getItem('activeGroup');
 
-    useEffect(() => {
-      if (!storedUserGroup) {
-        LogoutUser(dispatch, router);
-        router.push('/account/login');
-      }
-    }, [storedUserGroup]);
+        if (!userCredentials.success) {
+          router.push('/account/login');
+        }
 
-    return userCredentials.success && <Component {...props} />;
+        if (!storedUserGroup) {
+          LogoutUser(dispatch, router);
+        }
+      }
+    }, [userCredentials, dispatch, router]);
+
+    // Render the component if the user is authenticated
+    return userCredentials.success ? <Component {...props} /> : null;
   };
 }
 
 export const withPermission = (Component, requiredPermission) => {
-  const WithPermission = (props) => {
-    const storedUserGroup = localStorage.getItem('activeGroup');
-    const parsedUserGroup = storedUserGroup ? JSON.parse(storedUserGroup) : {};
-    const currentRole = parsedUserGroup && parsedUserGroup.role;
+  return function WithPermission(props) {
     const router = useRouter();
 
-    // Check if the user has the required permission
-    const hasPermission =
-      currentRole &&
-      currentRole?.role_permissions?.some(
-        (permission) => permission.permission === requiredPermission,
-      );
+    useEffect(() => {
+      if (typeof window !== 'undefined') {
+        const storedUserGroup = localStorage.getItem('activeGroup');
+        const parsedUserGroup = storedUserGroup
+          ? JSON.parse(storedUserGroup)
+          : {};
+        const currentRole = parsedUserGroup?.role;
 
-    if (!hasPermission) {
-      // If the user doesn't have permission, redirect to a "permission denied" page
-      router.push('/permission-denied');
-      return null;
-    }
+        const hasPermission = currentRole?.role_permissions?.some(
+          (permission) => permission.permission === requiredPermission,
+        );
 
-    // If the user has permission, render the requested component
+        if (!hasPermission) {
+          router.push('/permission-denied');
+        }
+      }
+    }, [requiredPermission, router]);
+
     return <Component {...props} />;
   };
-
-  return WithPermission;
 };
 
 export const checkAccess = (requiredPermission) => {
-  if (requiredPermission) {
+  if (requiredPermission && typeof window !== 'undefined') {
     const storedGroupObj = localStorage.getItem('activeGroup');
-    const currentRole = storedGroupObj ? JSON.parse(storedGroupObj).role : {};
+    const currentRole = storedGroupObj ? JSON.parse(storedGroupObj).role : null;
 
-    const permissions =
-      currentRole &&
-      currentRole.role_permissions &&
-      currentRole.role_permissions.map((item) => item.permission);
+    const permissions = currentRole?.role_permissions?.map(
+      (item) => item.permission,
+    );
 
-    return permissions && permissions.includes(requiredPermission);
+    return permissions?.includes(requiredPermission) ?? false;
   }
+  return false;
 };

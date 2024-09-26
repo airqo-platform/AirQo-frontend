@@ -49,7 +49,6 @@ const appReducer = combineReducers({
 
 const rootReducer = (state, action) => {
   if (action.type === 'RESET_APP') {
-    // to clear the state of all reducers
     state = undefined;
   }
   return appReducer(state, action);
@@ -58,7 +57,7 @@ const rootReducer = (state, action) => {
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['login', 'userDefaults', 'checklists'], // Only persist these reducers
+  whitelist: ['login', 'checklists'],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -74,7 +73,7 @@ const makeStore = () => {
       }),
   });
 
-  store.__persistor = persistStore(store); // Expose persistor on the store
+  store.__persistor = persistStore(store);
   return store;
 };
 
