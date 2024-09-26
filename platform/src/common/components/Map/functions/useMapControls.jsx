@@ -271,37 +271,90 @@ export const useRefreshMap = (
     }
   }, [mapRef, dispatch, setToastMessage, selectedNode]);
 
-// Function to share map location
-export const useShareLocation = (setToastMessage, mapRef) =>
-  useCallback(() => {
+/**
+ * Custom hook to share the current map location by copying the URL with updated parameters.
+ */
+export const useShareLocation = (setToastMessage, mapRef) => {
+  return useCallback(async () => {
+    const map = mapRef.current;
+
+    if (!map) {
+      setToastMessage({
+        message: 'Map is not available.',
+        type: 'error',
+        bgColor: 'bg-red-600',
+      });
+      return;
+    }
+
     try {
-      const map = mapRef.current;
-      if (map) {
-        const center = map.getCenter();
-        const zoom = map.getZoom();
-        const url = new URL(window.location.href);
+      // Get the current center and zoom level of the map
+      const center = map.getCenter();
+      const zoom = map.getZoom();
 
-        url.searchParams.set('lat', center.lat.toFixed(4));
-        url.searchParams.set('lng', center.lng.toFixed(4));
-        url.searchParams.set('zm', zoom.toFixed(2));
+      // Construct a new URL based on the current location without existing search params
+      const currentUrl = new URL(window.location.href);
+      const baseUrl = `${currentUrl.origin}${currentUrl.pathname}`;
+      const url = new URL(baseUrl);
 
-        navigator.clipboard.writeText(url.toString()); // Copy URL to clipboard
+      // Update or set the search parameters for latitude, longitude, and zoom
+      url.searchParams.set('lat', center.lat.toFixed(4));
+      url.searchParams.set('lng', center.lng.toFixed(4));
+      url.searchParams.set('zm', zoom.toFixed(2));
 
+      const shareUrl = url.toString();
+
+      // Check if the Clipboard API is available
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        // Use the Clipboard API to copy the URL
+        await navigator.clipboard.writeText(shareUrl);
         setToastMessage({
-          message: 'Location URL copied to clipboard',
+          message: 'Location URL copied to clipboard!',
           type: 'success',
           bgColor: 'bg-blue-600',
         });
+      } else {
+        // Fallback method for browsers that do not support the Clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = shareUrl;
+        textArea.style.position = 'fixed';
+        textArea.style.top = '-1000px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+          const successful = document.execCommand('copy');
+          if (successful) {
+            setToastMessage({
+              message: 'Location URL copied to clipboard!',
+              type: 'success',
+              bgColor: 'bg-blue-600',
+            });
+          } else {
+            throw new Error('Copy command was unsuccessful');
+          }
+        } catch (err) {
+          console.error('Fallback: Oops, unable to copy', err);
+          setToastMessage({
+            message: 'Failed to copy location URL.',
+            type: 'error',
+            bgColor: 'bg-red-600',
+          });
+        } finally {
+          document.body.removeChild(textArea);
+        }
       }
     } catch (error) {
       console.error('Error sharing location:', error);
       setToastMessage({
-        message: 'Failed to copy location URL',
+        message: 'An unexpected error occurred.',
         type: 'error',
         bgColor: 'bg-red-600',
       });
     }
   }, [mapRef, setToastMessage]);
+};
 
 /**
  * IconButton

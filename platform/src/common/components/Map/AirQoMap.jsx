@@ -1,4 +1,3 @@
-// AirQoMap.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import mapboxgl from 'mapbox-gl';
@@ -7,6 +6,8 @@ import {
   setMapLoading,
   reSetMap,
   clearData,
+  setCenter,
+  setZoom,
 } from '@/lib/store/services/map/MapSlice';
 import LayerModal from './components/LayerModal';
 import Loader from '@/components/Spinner';
@@ -32,64 +33,33 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   const dispatch = useDispatch();
   const mapContainerRef = useRef(null);
   const { width } = useWindowSize();
+
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [loadingOthers, setLoadingOthers] = useState(false);
-  const urls = new URL(window.location.href);
-  const urlParams = new URLSearchParams(urls.search);
-  const mapData = useSelector((state) => state.map);
-  const selectedNode = useSelector((state) => state.map.selectedNode);
   const [toastMessage, setToastMessage] = useState({
     message: '',
     type: '',
     bgColor: '',
   });
-
-  // Default node type is Emoji and default map style is streets
   const [NodeType, setNodeType] = useState('Emoji');
   const [mapStyle, setMapStyle] = useState(
     'mapbox://styles/mapbox/streets-v11',
   );
 
-  const lat = urlParams.get('lat');
-  const lng = urlParams.get('lng');
-  const zm = urlParams.get('zm');
+  // Parse and Validate URL Parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const latParam = parseFloat(urlParams.get('lat'));
+  const lngParam = parseFloat(urlParams.get('lng'));
+  const zmParam = parseFloat(urlParams.get('zm'));
+  const hasValidParams =
+    !isNaN(latParam) && !isNaN(lngParam) && !isNaN(zmParam);
 
-  // Clear data on component unmount
-  useEffect(() => {
-    return () => {
-      dispatch(clearData());
-    };
-  }, [dispatch]);
+  // Redux Selectors
+  const mapData = useSelector((state) => state.map);
+  const selectedNode = useSelector((state) => state.map.selectedNode);
 
-  // Stop loaders after 10 seconds
-  useEffect(() => {
-    if (loading) {
-      const loaderTimer = setTimeout(() => {
-        setLoading(false);
-      }, 10000);
-      return () => clearTimeout(loaderTimer);
-    }
-  }, [loading]);
-
-  // Stop map loading skeleton after 2 seconds when a node is selected
-  useEffect(() => {
-    if (selectedNode) {
-      const skeletonTimer = setTimeout(() => {
-        dispatch(setMapLoading(false));
-      }, 2000);
-      return () => clearTimeout(skeletonTimer);
-    }
-  }, [dispatch, selectedNode]);
-
-  // Clear map state if lat, lng, or zm params are missing
-  useEffect(() => {
-    if (!lat && !lng && !zm) {
-      dispatch(reSetMap());
-    }
-  }, [lat, lng, zm, dispatch]);
-
-  // Custom hook to fetch data and manage map data
+  // Custom Hooks
   const { mapRef, fetchAndProcessData, clusterUpdate } = useMapData({
     NodeType,
     mapStyle,
@@ -97,8 +67,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     setLoading,
     setLoadingOthers,
   });
-
-  // Use custom hooks for refreshing map and sharing location
   const refreshMap = useRefreshMap(
     setToastMessage,
     mapRef,
@@ -107,16 +75,32 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   );
   const shareLocation = useShareLocation(setToastMessage, mapRef);
 
-  // Initialize the map and add controls
+  // Clear Data on Unmount
+  useEffect(() => {
+    return () => {
+      dispatch(clearData());
+    };
+  }, [dispatch]);
+
+  // Set Center and Zoom Based on URL Params or Reset Map
+  useEffect(() => {
+    if (hasValidParams) {
+      dispatch(setCenter({ latitude: latParam, longitude: lngParam }));
+      dispatch(setZoom(zmParam));
+    } else {
+      dispatch(reSetMap());
+    }
+  }, [hasValidParams, latParam, lngParam, zmParam, dispatch]);
+
+  // Initialize Map
   useEffect(() => {
     const initializeMap = async () => {
       try {
         mapboxgl.accessToken = mapboxApiAccessToken;
-        const initialCenter = [
-          lng ? parseFloat(lng) : mapData.center.longitude,
-          lat ? parseFloat(lat) : mapData.center.latitude,
-        ];
-        const initialZoom = zm ? parseFloat(zm) : mapData.zoom;
+        const initialCenter = hasValidParams
+          ? [lngParam, latParam]
+          : [mapData.center.longitude, mapData.center.latitude];
+        const initialZoom = hasValidParams ? zmParam : mapData.zoom;
 
         const map = new mapboxgl.Map({
           container: mapContainerRef.current,
@@ -143,30 +127,84 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
 
           // Fetch and process data once the map is loaded
           fetchAndProcessData();
+
+          // Stop initial loading
+          setLoading(false);
+          dispatch(setMapLoading(false));
+        });
+
+        // Handle map errors
+        map.on('error', (e) => {
+          console.error('Mapbox error:', e.error);
+          setLoading(false);
         });
       } catch (error) {
         console.error('Error initializing the Map: ', error);
+        setToastMessage({
+          message: 'Failed to initialize the map.',
+          type: 'error',
+          bgColor: 'bg-red-500',
+        });
+        setLoading(false);
       }
     };
 
-    initializeMap();
+    // Initialize the map only once
+    if (!mapRef.current) {
+      initializeMap();
+    } else {
+      // If map is already initialized, update its style and other properties
+      mapRef.current.setStyle(mapStyle);
+      const newCenter = hasValidParams
+        ? [lngParam, latParam]
+        : [mapData.center.longitude, mapData.center.latitude];
+      const newZoom = hasValidParams ? zmParam : mapData.zoom;
+      mapRef.current.flyTo({
+        center: newCenter,
+        zoom: newZoom,
+        essential: true,
+      });
+    }
 
-    // Cleanup map instance on unmount
     return () => {
       if (mapRef.current) {
         mapRef.current.remove();
+        mapRef.current = null;
       }
     };
   }, [mapStyle, NodeType, mapboxApiAccessToken, width]);
 
-  // Use the custom hook for location boundaries
+  // Manage Loading State Timeout
+  useEffect(() => {
+    if (loading) {
+      const loaderTimer = setTimeout(() => {
+        setLoading(false);
+      }, 10000);
+
+      return () => clearTimeout(loaderTimer);
+    }
+  }, [loading]);
+
+  // Handle Node Selection Loading
+  useEffect(() => {
+    if (selectedNode) {
+      const skeletonTimer = setTimeout(() => {
+        dispatch(setMapLoading(false));
+        setLoading(false);
+      }, 2000);
+
+      return () => clearTimeout(skeletonTimer);
+    }
+  }, [dispatch, selectedNode]);
+
+  // Handle Location Boundaries
   useLocationBoundaries({
     mapRef,
     mapData,
     setLoading,
   });
 
-  // Fly to new center and zoom when mapData changes
+  // Fly to New Center and Zoom When Map Data Changes
   useEffect(() => {
     if (mapRef.current && mapData.center && mapData.zoom) {
       const { latitude, longitude } = mapData.center;
@@ -178,18 +216,23 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
         });
       }
     }
-  }, [mapData.center, mapData.zoom]);
+  }, [
+    mapData.center,
+    mapData.zoom,
+    hasValidParams,
+    latParam,
+    lngParam,
+    zmParam,
+  ]);
 
-  // Update clusters whenever data changes
+  // Update Clusters When Data Changes
   useEffect(() => {
     if (mapRef.current) {
       clusterUpdate();
     }
   }, [clusterUpdate]);
 
-  /**
-   * Resize the map on window resize or when a node is selected/deselected
-   */
+  // Handle Window Resize
   useEffect(() => {
     const handleResize = () => {
       if (mapRef.current) {
@@ -199,7 +242,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
 
     window.addEventListener('resize', handleResize);
 
-    // Trigger resize when selectedNode changes
     handleResize();
 
     return () => {
@@ -272,7 +314,9 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
       {toastMessage.message && (
         <Toast
           message={toastMessage.message}
-          clearData={() => setToastMessage({ message: '', type: '' })}
+          clearData={() =>
+            setToastMessage({ message: '', type: '', bgColor: '' })
+          }
           type={toastMessage.type}
           timeout={3000}
           bgColor={toastMessage.bgColor}

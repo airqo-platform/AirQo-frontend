@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import Button from '@/components/Button';
 import {
@@ -36,17 +36,22 @@ const CountryList = ({
   );
 
   // Handle click event
-  const handleClick = (country) => {
-    setSelectedCountry(country);
-    dispatch(setLocation({ country: country.country }));
-    // sort the siteDetails by country and set them as selected Sites
-    const selectedSites =
-      siteDetails.filter((site) => site.country === country.country) || [];
-    if (selectedSites.length > 0) {
-      selectedSites.sort((a, b) => a.name.localeCompare(b.name));
-    }
-    dispatch(addSuggestedSites(selectedSites));
-  };
+  const handleClick = useCallback(
+    (country) => {
+      setSelectedCountry(country);
+
+      dispatch(setLocation({ country: country.country, city: '' }));
+
+      // Filter the siteDetails for the selected country and sort them by name
+      const selectedSites = siteDetails
+        .filter((site) => site.country === country.country)
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      // Dispatch the sorted selected sites to the Redux store
+      dispatch(addSuggestedSites(selectedSites));
+    },
+    [dispatch, siteDetails],
+  );
 
   return (
     <div className="flex space-x-2 ml-2 mb-2">
