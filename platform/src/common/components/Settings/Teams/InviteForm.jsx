@@ -189,26 +189,27 @@ const TeamInviteForm = ({ open, closeModal }) => {
 
             <div>
               <Button
-                className="text-sm font-medium text-primary-600 leading-5 gap-2 h-5 mt-3 mb-8 w-auto pl-0"
+                type="button"
+                variant="text"
+                className="shadow-none"
+                paddingStyles="py-3 m-0"
+                color="text-blue-600"
                 onClick={handleAddEmail}
               >
                 <PlusIcon /> <span>Add email</span>
               </Button>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-3 w-full justify-end">
               <Button
-                className="text-sm font-medium text-secondary-neutral-light-600 leading-5 w-[170px] h-[44px] border border-secondary-neutral-light-100 rounded"
+                type="button"
                 onClick={handleCancel}
+                variant="outlined"
                 disabled={loading}
               >
                 Cancel
               </Button>
-              <Button
-                className="text-sm font-medium bg-primary-600 text-white leading-5 w-[170px] h-[44px] rounded disabled:bg-gray-400 disabled:text-gray-800"
-                onClick={handleSubmit}
-                disabled={loading}
-              >
+              <Button type="button" onClick={handleSubmit} disabled={loading}>
                 {loading ? <Spinner /> : 'Send invites'}
               </Button>
             </div>

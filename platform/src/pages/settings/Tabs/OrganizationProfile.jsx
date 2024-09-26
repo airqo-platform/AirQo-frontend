@@ -391,7 +391,7 @@ const OrganizationProfile = () => {
                         </h3>
                       )}
                     </div>
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-4">
                       <Button
                         className="text-sm font-medium text-secondary-neutral-light-500"
                         onClick={confirmDeleteProfileImage}
@@ -523,15 +523,16 @@ const OrganizationProfile = () => {
                 </div>
                 <div className="col-span-full flex justify-end gap-3 border-t border-t-secondary-neutral-light-100 w-full px-3 py-4">
                   <Button
+                    type="button"
                     onClick={handleCancel}
-                    className="text-sm font-medium leading-5 text-secondary-neutral-light-600 py-3 px-4 rounded border border-secondary-neutral-light-100 bg-white"
+                    variant="outlined"
                     disabled={isLoading}
                   >
                     Cancel
                   </Button>
                   <Button
+                    type="button"
                     onClick={handleSubmit}
-                    className="text-sm font-medium leading-5 text-white py-3 px-4 rounded bg-blue-600"
                     disabled={isLoading}
                   >
                     {isLoading ? 'Loading...' : 'Save'}

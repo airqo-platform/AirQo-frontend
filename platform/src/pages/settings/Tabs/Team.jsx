@@ -25,10 +25,7 @@ const Team = ({ users, loading }) => {
           <h3 className="text-secondary-neutral-light-800 font-medium text-lg">
             Team members
           </h3>
-          <Button
-            onClick={() => setOpen(!open)}
-            className="flex justify-center items-center gap-2 rounded py-3 px-4 bg-blue-600 text-white text-sm font-medium"
-          >
+          <Button type="button" onClick={() => setOpen(!open)}>
             <AddIcon /> Invite member
           </Button>
         </div>

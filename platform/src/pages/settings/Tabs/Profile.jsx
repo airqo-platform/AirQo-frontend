@@ -394,7 +394,7 @@ const Profile = () => {
                       </h3>
                     )}
                   </div>
-                  <div className="flex items-center">
+                  <div className="flex items-center gap-4">
                     <Button
                       className="text-sm font-medium text-secondary-neutral-light-500"
                       onClick={confirmDeleteProfileImage}
@@ -522,7 +522,8 @@ const Profile = () => {
               <div className="col-span-full flex justify-end gap-3 border-t border-t-secondary-neutral-light-100 w-full px-3 py-4">
                 <Button
                   onClick={handleCancel}
-                  className="text-sm font-medium leading-5 text-secondary-neutral-light-600 py-3 px-4 rounded border border-secondary-neutral-light-100 bg-white"
+                  className="text-sm font-medium leading-5 py-3 px-4"
+                  variant="outlined"
                   disabled={isLoading}
                 >
                   Cancel

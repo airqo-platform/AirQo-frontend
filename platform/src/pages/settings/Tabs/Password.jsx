@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import AlertBox from '@/components/AlertBox';
 import Spinner from '@/components/Spinner';
 import ContentBox from '@/components/Layout/content_box';
+import Button from '@/components/Button';
 
 const Password = () => {
   const userInfo = useSelector((state) => state.login.userInfo);
@@ -172,19 +173,19 @@ const Password = () => {
                   </form>
                   <div className="border-b border-gray-200 dark:border-gray-700" />
                   <div className="flex justify-end p-4 gap-2">
-                    <button
+                    <Button
                       type="button"
                       onClick={handleReset}
-                      className="bg-white text-gray-500 border border-gray-200 text-sm font-medium py-3 px-4 rounded focus:outline-none focus:shadow-outline"
+                      variant="outlined"
                     >
                       Cancel
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       data-testid="save-button"
                       onClick={handleSubmit}
                       disabled={isDisabled}
-                      className={`text-white text-sm font-medium py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
+                      className={` ${
                         isDisabled
                           ? 'bg-blue-300 opacity-50 cursor-not-allowed'
                           : 'bg-blue-600 hover:bg-blue-700'
@@ -200,7 +201,7 @@ const Password = () => {
                       ) : (
                         'Save'
                       )}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
