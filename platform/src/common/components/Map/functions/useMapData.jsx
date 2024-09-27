@@ -237,7 +237,8 @@ const useMapData = ({
     markersRef.current = [];
 
     clusters.forEach((feature) => {
-      const el = document.createElement('div');
+      const el =
+        typeof document !== 'undefined' ? document.createElement('div') : null;
       el.style.cursor = 'pointer';
 
       if (!feature.properties.cluster) {

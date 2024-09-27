@@ -12,6 +12,7 @@ export default [
         process: 'readonly',
         console: 'readonly',
         window: 'readonly',
+        document: 'readonly',
       },
       parserOptions: {
         ecmaFeatures: {
