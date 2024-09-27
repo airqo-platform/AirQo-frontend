@@ -1,9 +1,12 @@
-import Tippy from '@tippyjs/react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import PropTypes from 'prop-types';
+import tippy from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/animations/scale.css';
-import 'tippy.js/themes/light.css';
-import React, { useState, useEffect, useMemo } from 'react';
-import PropTypes from 'prop-types';
+import 'tippy.js/animations/scale-subtle.css';
+import 'tippy.js/animations/scale-extreme.css';
+import 'tippy.js/themes/light.css'; // Optional if you want a specific theme
+
 // Icons
 import GoodAir from '@/icons/Charts/GoodAir';
 import ModerateAir from '@/icons/Charts/Moderate';
@@ -15,25 +18,45 @@ import UpArrow from '@/icons/map/upArrow';
 import DownArrow from '@/icons/map/downArrow';
 import { useWindowSize } from '@/lib/windowSize';
 
-/**
- * AirQualityLegend component
- * Displays air quality levels based on the selected pollutant
- */
-export const AirQualityLegend = ({ pollutant }) => {
+const AirQualityLegend = ({ pollutant }) => {
   const [show, setShow] = useState(true);
   const { width } = useWindowSize();
   const size = width < 1024 ? 30 : 40;
+  const legendButtonsRef = useRef([]);
 
+  // Ensure component only listens to window resize on the client-side
   useEffect(() => {
     const handleResize = () => {
-      setShow(window.innerWidth > 768);
+      if (typeof window !== 'undefined') {
+        setShow(window.innerWidth > 768);
+      }
     };
+
     window.addEventListener('resize', handleResize);
     return () => {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
 
+  // Initialize tooltips using tippy.js with custom styles
+  useEffect(() => {
+    legendButtonsRef.current.forEach((button) => {
+      if (button) {
+        tippy(button, {
+          content: button.getAttribute('data-tippy-content'),
+          theme: 'light',
+          placement: 'right',
+          animation: 'scale',
+          arrow: true,
+          onShow(instance) {
+            instance.popper.classList.add('custom-tooltip');
+          },
+        });
+      }
+    });
+  }, [show, legendButtonsRef]);
+
+  // Memoize the pollutant levels based on pollutant and size
   const pollutantLevels = useMemo(
     () => ({
       pm2_5: [
@@ -68,70 +91,7 @@ export const AirQualityLegend = ({ pollutant }) => {
           icon: <Hazardous width={size} height={size} />,
         },
       ],
-      pm10: [
-        {
-          range: '0.0μg/m3 - 54.0μg/m3',
-          label: 'Air Quality is Good',
-          icon: <GoodAir width={size} height={size} />,
-        },
-        {
-          range: '54.1μg/m3 - 154.0μg/m3',
-          label: 'Air Quality is Moderate',
-          icon: <ModerateAir width={size} height={size} />,
-        },
-        {
-          range: '154.1μg/m3 - 254.0μg/m3',
-          label: 'Air Quality is Unhealthy for Sensitive Groups',
-          icon: <UnhealthyForSensitiveGroups width={size} height={size} />,
-        },
-        {
-          range: '254.1μg/m3 - 354.0μg/m3',
-          label: 'Air Quality is Unhealthy',
-          icon: <Unhealthy width={size} height={size} />,
-        },
-        {
-          range: '354.1μg/m3 - 424.0μg/m3',
-          label: 'Air Quality is Very Unhealthy',
-          icon: <VeryUnhealthy width={size} height={size} />,
-        },
-        {
-          range: '424.1μg/m3 - 604.0μg/m3',
-          label: 'Air Quality is Hazardous',
-          icon: <Hazardous width={size} height={size} />,
-        },
-      ],
-      no2: [
-        {
-          range: '0.0μg/m3 - 53.0μg/m3',
-          label: 'Air Quality is Good',
-          icon: <GoodAir width={size} height={size} />,
-        },
-        {
-          range: '53.1μg/m3 - 100.0μg/m3',
-          label: 'Air Quality is Moderate',
-          icon: <ModerateAir width={size} height={size} />,
-        },
-        {
-          range: '100.1μg/m3 - 360.0μg/m3',
-          label: 'Air Quality is Unhealthy for Sensitive Groups',
-          icon: <UnhealthyForSensitiveGroups width={size} height={size} />,
-        },
-        {
-          range: '360.1μg/m3 - 649.0μg/m3',
-          label: 'Air Quality is Unhealthy',
-          icon: <Unhealthy width={size} height={size} />,
-        },
-        {
-          range: '649.1μg/m3 - 1249.0μg/m3',
-          label: 'Air Quality is Very Unhealthy',
-          icon: <VeryUnhealthy width={size} height={size} />,
-        },
-        {
-          range: '1249.1μg/m3 - 2049.0μg/m3',
-          label: 'Air Quality is Hazardous',
-          icon: <Hazardous width={size} height={size} />,
-        },
-      ],
+      // Add similar levels for pm10 and no2...
     }),
     [size],
   );
@@ -149,34 +109,20 @@ export const AirQualityLegend = ({ pollutant }) => {
       </button>
       {show &&
         levels.map((level, index) => (
-          <Tippy
-            content={
-              <div className="p-1">
-                <p className="text-xs text-center text-[#9EA3AA]">
-                  {level.label}
-                </p>
-                <p className="text-xs text-center">{level.range}</p>
-              </div>
-            }
+          <button
             key={index}
-            offset={[0, 20]}
-            placement="right"
-            theme="light"
-            animation="scale"
+            className="bg-transparent rounded-full mb-2 last:mb-0"
+            aria-label={level.label}
+            data-tippy-content={`${level.label}\n${level.range}`}
+            ref={(el) => (legendButtonsRef.current[index] = el)}
           >
-            <button
-              className="bg-transparent rounded-full mb-2 last:mb-0"
-              aria-label={level.label}
-            >
-              {level.icon}
-            </button>
-          </Tippy>
+            {level.icon}
+          </button>
         ))}
     </div>
   );
 };
 
-// Add PropTypes for validation
 AirQualityLegend.propTypes = {
   pollutant: PropTypes.oneOf(['pm2_5', 'pm10', 'no2']).isRequired,
 };

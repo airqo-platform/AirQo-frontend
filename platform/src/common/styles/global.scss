@@ -30,6 +30,12 @@ body > div#__next {
   flex-direction: column;
   background-color: inherit;
 }
+// Map Legend Styles
+.custom-tooltip {
+  box-shadow: none;
+  text-align: center;
+  padding: 2px 4px;
+}
 
 /* Remove border click effect for Daisy UI input */
 input:focus {

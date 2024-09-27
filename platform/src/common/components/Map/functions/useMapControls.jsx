@@ -252,7 +252,9 @@ export class CustomGeolocateControl {
   }
 }
 
-// Function to refresh the map
+/**
+ * Function to refresh the map
+ */
 export const useRefreshMap = (
   setToastMessage,
   mapRef,
@@ -261,6 +263,7 @@ export const useRefreshMap = (
 ) =>
   useCallback(() => {
     const map = mapRef.current;
+
     if (map) {
       try {
         const originalStyle =
@@ -275,6 +278,11 @@ export const useRefreshMap = (
         });
       } catch (error) {
         console.error('Error refreshing the map:', error);
+        setToastMessage({
+          message: 'Failed to refresh the map',
+          type: 'error',
+          bgColor: 'bg-red-600',
+        });
       }
 
       if (selectedNode) {
@@ -300,6 +308,16 @@ export const useShareLocation = (setToastMessage, mapRef) => {
     }
 
     try {
+      // Ensure window and navigator are available (to avoid SSR issues)
+      if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+        setToastMessage({
+          message: 'This feature is only available in the browser.',
+          type: 'error',
+          bgColor: 'bg-red-600',
+        });
+        return;
+      }
+
       // Get the current center and zoom level of the map
       const center = map.getCenter();
       const zoom = map.getZoom();

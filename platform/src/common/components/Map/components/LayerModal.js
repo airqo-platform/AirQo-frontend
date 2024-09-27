@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import Image from 'next/image';
 
@@ -8,11 +8,15 @@ import Image from 'next/image';
 const Option = ({ isSelected, children, onSelect, image, disabled }) => (
   <button
     onClick={onSelect}
-    className={`flex flex-col items-center space-y-3 ${isSelected ? 'border-blue-500' : ''} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+    className={`flex flex-col items-center space-y-3 ${
+      isSelected ? 'border-blue-500' : ''
+    } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     disabled={disabled}
   >
     <div
-      className={`w-8 h-8 md:w-14 md:h-14 relative rounded-lg ${isSelected ? 'border-2 border-blue-500 ring-4 ring-light-blue-100' : ''} border-2`}
+      className={`w-8 h-8 md:w-14 md:h-14 relative rounded-lg ${
+        isSelected ? 'border-2 border-blue-500 ring-4 ring-light-blue-100' : ''
+      } border-2`}
     >
       <Image
         src={image}
@@ -54,25 +58,46 @@ const LayerModal = ({
   const [selectedStyle, setSelectedStyle] = useState(mapStyles[0]);
   const [selectedMapDetail, setSelectedMapDetail] = useState(mapDetails[0]);
 
-  const handleApply = () => {
+  useEffect(() => {
+    if (mapStyles[0]) {
+      setSelectedStyle(mapStyles[0]);
+    }
+    if (mapDetails[0]) {
+      setSelectedMapDetail(mapDetails[0]);
+    }
+  }, [mapStyles, mapDetails]);
+
+  const handleApply = useCallback(() => {
     onStyleSelect(selectedStyle);
     onMapDetailsSelect(selectedMapDetail.name);
     onClose();
-  };
+  }, [
+    selectedStyle,
+    selectedMapDetail,
+    onStyleSelect,
+    onMapDetailsSelect,
+    onClose,
+  ]);
 
-  const handleSelectStyle = (style) => {
-    setSelectedStyle(style);
-  };
+  const handleSelectStyle = useCallback(
+    (style) => {
+      setSelectedStyle(style);
+    },
+    [setSelectedStyle],
+  );
 
-  const handleSelectDetail = (detail) => {
-    setSelectedMapDetail(detail);
-  };
+  const handleSelectDetail = useCallback(
+    (detail) => {
+      setSelectedMapDetail(detail);
+    },
+    [setSelectedMapDetail],
+  );
 
   if (!isOpen) return null;
 
   return (
     <div className="absolute inset-0 w-full h-full flex items-center justify-center">
-      <div className="absolute inset-0 bg-[#4e4e4e3b]"></div>
+      <div className="absolute inset-0 bg-[#4e4e4e3b]" onClick={onClose}></div>
       <div
         onClick={(e) => e.stopPropagation()}
         className="relative z-50 bg-white rounded-lg overflow-hidden shadow-xl sm:max-w-lg sm:w-full"
@@ -93,7 +118,7 @@ const LayerModal = ({
             ))}
           </div>
           <div className="w-full bg-grey-200 h-[2px] my-2" />
-          <h3 className="text-lg font-semibold mb-3">Map type</h3>
+          <h3 className="text-lg font-semibold mb-3">Map Type</h3>
           <div className="flex justify-between">
             {mapStyles.map((style) => (
               <Option

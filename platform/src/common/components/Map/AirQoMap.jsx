@@ -12,7 +12,7 @@ import {
 import LayerModal from './components/LayerModal';
 import Loader from '@/components/Spinner';
 import Toast from '../Toast';
-import { AirQualityLegend } from './components/Legend';
+import AirQualityLegend from './components/Legend';
 import { mapStyles, mapDetails } from './data/constants';
 import LayerIcon from '@/icons/map/layerIcon';
 import RefreshIcon from '@/icons/map/refreshIcon';
@@ -138,11 +138,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
 
         map.on('error', (e) => {
           console.error('Mapbox error:', e.error);
-          setToastMessage({
-            message: 'Failed to initialize the map.',
-            type: 'error',
-            bgColor: 'bg-red-500',
-          });
         });
       } catch (error) {
         console.error('Error initializing the map:', error);
