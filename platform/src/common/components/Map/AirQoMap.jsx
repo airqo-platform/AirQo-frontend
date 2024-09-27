@@ -336,7 +336,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
 };
 
 AirQoMap.propTypes = {
-  customStyle: PropTypes.string, // Assuming customStyle is a string of class names
+  customStyle: PropTypes.string,
   mapboxApiAccessToken: PropTypes.string.isRequired,
   pollutant: PropTypes.string.isRequired,
 };

@@ -5,6 +5,7 @@ import { wrapper } from '@/lib/store';
 import { Toaster } from 'sonner';
 import PropTypes from 'prop-types';
 import Loading from '@/components/Loader';
+import ErrorBoundary from './ErrorBoundary';
 
 function App({ Component, ...rest }) {
   const { store, props } = wrapper.useWrappedStore(rest);
@@ -34,7 +35,9 @@ function App({ Component, ...rest }) {
 
   return (
     <Provider store={store}>
-      <Component {...props.pageProps} />
+      <ErrorBoundary>
+        <Component {...props.pageProps} />
+      </ErrorBoundary>
       <Toaster expand={true} richColors />
     </Provider>
   );
