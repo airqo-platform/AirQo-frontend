@@ -15,7 +15,7 @@ import {
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import {
   fetchRecentMeasurementsData,
-  clearMeasurementsData,
+  // clearMeasurementsData,
 } from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
 import { dailyPredictionsApi } from '@/core/apis/predict';
 import { capitalizeAllText } from '@/core/utils/strings';
@@ -41,6 +41,7 @@ import {
 import ArrowLeftIcon from '@/icons/arrow_left.svg';
 import SidebarHeader from './components/SidebarHeader';
 import SearchResultsSkeleton from './components/SearchResultsSkeleton';
+import useGoogleMaps from '@/core/hooks/useGoogleMaps';
 
 const MapSidebar = ({ siteDetails, isAdmin }) => {
   const dispatch = useDispatch();
@@ -59,7 +60,9 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   const openLocationDetails = useSelector(
     (state) => state.map.showLocationDetails,
   );
-  const selectedLocation = useSelector((state) => state.map.selectedLocation);
+  const selectedLocation = useSelector(
+    (state) => state?.map?.selectedLocation ?? null,
+  );
   const mapLoading = useSelector((state) => state.map.mapLoading);
   const measurementsLoading = useSelector(
     (state) => state.recentMeasurements.status,
@@ -74,11 +77,17 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
 
   const isSearchFocused = isFocused || reduxSearchTerm.length > 0;
 
-  // Memoized Autocomplete Session Token
-  const autoCompleteSessionToken = useMemo(
-    () => new google.maps.places.AutocompleteSessionToken(),
-    [],
+  const googleMapsLoaded = useGoogleMaps(
+    process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY,
   );
+
+  // Memoized Autocomplete Session Token
+  const autoCompleteSessionToken = useMemo(() => {
+    if (googleMapsLoaded && window.google) {
+      return new window.google.maps.places.AutocompleteSessionToken();
+    }
+    return null;
+  }, [googleMapsLoaded]);
 
   /**
    * Fetch Weekly Predictions
@@ -123,7 +132,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
       }, []);
       setCountryData(uniqueCountries);
     } else {
-      console.error('Oops! Unable to load sites and show countries');
+      console.error('No valid siteDetails data available.');
     }
   }, [siteDetails]);
 
@@ -169,11 +178,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
    */
   const handleLocationSelect = useCallback(
     async (data) => {
-      dispatch(setOpenLocationDetails(true));
-      setIsFocused(false);
-      dispatch(clearMeasurementsData());
-      setWeeklyPredictions([]);
-
       try {
         let updatedData = data;
         let latitude, longitude;
@@ -183,12 +187,18 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
           if (placeDetails.latitude && placeDetails.longitude) {
             updatedData = { ...updatedData, ...placeDetails };
             ({ latitude, longitude } = placeDetails);
+          } else {
+            throw new Error('Geolocation details are missing');
           }
         } else {
           latitude =
-            data?.geometry?.coordinates[1] || data?.approximate_latitude;
+            data?.geometry?.coordinates?.[1] || data?.approximate_latitude;
           longitude =
-            data?.geometry?.coordinates[0] || data?.approximate_longitude;
+            data?.geometry?.coordinates?.[0] || data?.approximate_longitude;
+        }
+
+        if (!latitude || !longitude) {
+          throw new Error('Location coordinates are missing');
         }
 
         dispatch(setCenter({ latitude, longitude }));
@@ -210,10 +220,13 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
    * Handle Search Functionality
    */
   const handleSearch = useCallback(async () => {
-    // When search term is empty, show the default message
     if (!reduxSearchTerm || reduxSearchTerm.length <= 1) {
       setSearchResults([]);
-      setLoading(false);
+      return;
+    }
+
+    if (!googleMapsLoaded || !autoCompleteSessionToken) {
+      console.error('Google Maps API is not loaded yet.');
       return;
     }
 
@@ -225,12 +238,14 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
         reduxSearchTerm,
         autoCompleteSessionToken,
       );
-      if (predictions && predictions.length > 0) {
-        const locations = predictions.map((prediction) => ({
-          description: prediction.description,
-          place_id: prediction.place_id,
-        }));
-        setSearchResults(locations);
+
+      if (predictions?.length) {
+        setSearchResults(
+          predictions.map(({ description, place_id }) => ({
+            description,
+            place_id,
+          })),
+        );
       } else {
         setSearchResults([]);
       }
@@ -240,7 +255,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     } finally {
       setLoading(false);
     }
-  }, [reduxSearchTerm, autoCompleteSessionToken]);
+  }, [reduxSearchTerm, autoCompleteSessionToken, googleMapsLoaded]);
 
   /**
    * Handle Exit from Search or Details

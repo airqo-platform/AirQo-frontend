@@ -13,13 +13,18 @@ import { setSelectedNode } from '@/lib/store/services/map/MapSlice';
  */
 export class CustomZoomControl {
   constructor() {
+    this.map = null;
     this.container = this.createContainer();
-    this.zoomInButton = this.createButton('Zoom In', <PlusIcon />, () =>
-      this.map?.zoomIn(),
-    );
-    this.zoomOutButton = this.createButton('Zoom Out', <MinusIcon />, () =>
-      this.map?.zoomOut(),
-    );
+    this.zoomInButton = this.createButton('Zoom In', <PlusIcon />, () => {
+      if (this.map) {
+        this.map.zoomIn();
+      }
+    });
+    this.zoomOutButton = this.createButton('Zoom Out', <MinusIcon />, () => {
+      if (this.map) {
+        this.map.zoomOut();
+      }
+    });
 
     // Append buttons to the container
     this.container.append(
@@ -29,7 +34,6 @@ export class CustomZoomControl {
     );
   }
 
-  // Create the container for zoom controls
   createContainer() {
     const container = document.createElement('div');
     container.className =
@@ -37,7 +41,6 @@ export class CustomZoomControl {
     return container;
   }
 
-  // Create individual button with an icon and click handler
   createButton(title, component, onClick) {
     const button = document.createElement('button');
     button.className =
@@ -50,31 +53,36 @@ export class CustomZoomControl {
     button.appendChild(div);
 
     const root = createRoot(div);
-    root.render(React.cloneElement(component));
+    if (component) {
+      root.render(React.cloneElement(component));
+    } else {
+      console.error(`${title} icon component is missing.`);
+    }
 
     button.addEventListener('click', onClick);
     return button;
   }
 
-  // Create a separator line between buttons
   createSeparator() {
     const separator = document.createElement('div');
     separator.className = 'border-t border-gray-300 w-full';
     return separator;
   }
 
-  // Called when control is added to the map
   onAdd(map) {
     this.map = map;
-    // Add event listener to update URL with map state
-    this.map.on('moveend', this.updateUrlWithMapState);
+    if (this.map) {
+      this.map.on('moveend', this.updateUrlWithMapState);
+    }
     return this.container;
   }
 
-  // Update the URL with current map coordinates and zoom level
   updateUrlWithMapState = () => {
+    if (!this.map) return;
     const center = this.map.getCenter();
     const zoom = this.map.getZoom();
+    if (!center || isNaN(zoom)) return;
+
     const url = new URL(window.location);
     url.searchParams.set('lat', center.lat.toFixed(4));
     url.searchParams.set('lng', center.lng.toFixed(4));
@@ -82,11 +90,14 @@ export class CustomZoomControl {
     window.history.pushState({}, '', url);
   };
 
-  // Called when control is removed from the map
   onRemove() {
-    this.map.off('moveend', this.updateUrlWithMapState); // Cleanup listener
-    this.container.parentNode?.removeChild(this.container);
-    this.map = undefined;
+    if (this.map) {
+      this.map.off('moveend', this.updateUrlWithMapState);
+    }
+    if (this.container.parentNode) {
+      this.container.parentNode.removeChild(this.container);
+    }
+    this.map = null;
   }
 }
 
@@ -98,26 +109,24 @@ export class CustomZoomControl {
  */
 export class CustomGeolocateControl {
   constructor(setToastMessage) {
-    this.setToastMessage = setToastMessage;
-    this.container = this._createContainer();
-    this.geolocateButton = this._createButton('Locate Me', <GeoIcon />, () =>
-      this._locate(),
-    );
+    this.map = null;
+    this.setToastMessage = setToastMessage || (() => {});
+    this.container = this.createContainer();
+    this.geolocateButton = this.createButton('Locate Me', <GeoIcon />, () => {
+      this.locateUser();
+    });
 
-    // Append geolocation button to the container
     this.container.appendChild(this.geolocateButton);
   }
 
-  // Create the container for the geolocation control
-  _createContainer() {
+  createContainer() {
     const container = document.createElement('div');
     container.className =
       'mapboxgl-ctrl mapboxgl-ctrl-group flex flex-col items-center justify-center rounded-full shadow-md overflow-hidden bg-white p-1 m-1 md:p-2 md:m-2';
     return container;
   }
 
-  // Create a button for geolocation functionality
-  _createButton(title, component, onClick) {
+  createButton(title, component, onClick) {
     const button = document.createElement('button');
     button.className =
       'inline-flex items-center justify-center w-[50px] h-[50px] rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500';
@@ -129,34 +138,41 @@ export class CustomGeolocateControl {
     button.appendChild(div);
 
     const root = createRoot(div);
-    root.render(React.cloneElement(component));
+    if (component) {
+      root.render(React.cloneElement(component));
+    } else {
+      console.error(`${title} icon component is missing.`);
+    }
 
     button.addEventListener('click', onClick);
     return button;
   }
 
-  // Called when the control is added to the map
   onAdd(map) {
     this.map = map;
     return this.container;
   }
 
-  // Called when the control is removed from the map
   onRemove() {
-    this.container.parentNode?.removeChild(this.container);
-    this.map = undefined;
+    if (this.container.parentNode) {
+      this.container.parentNode.removeChild(this.container);
+    }
+    this.map = null;
   }
 
-  // Locate the user's current position using the browser's geolocation API
-  _locate() {
+  locateUser() {
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser.');
+      this.setToastMessage({
+        message: 'Geolocation is not supported by your browser.',
+        type: 'error',
+        bgColor: 'bg-red-500',
+      });
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => this._handleGeolocationSuccess(position),
-      (error) => this._handleGeolocationError(error),
+      (position) => this.handleGeolocationSuccess(position),
+      (error) => this.handleGeolocationError(error),
       {
         enableHighAccuracy: true,
         timeout: 5000,
@@ -165,27 +181,24 @@ export class CustomGeolocateControl {
     );
   }
 
-  // Handle successful geolocation
-  _handleGeolocationSuccess(position) {
+  handleGeolocationSuccess(position) {
+    if (!this.map) return;
+
+    const { longitude, latitude } = position.coords;
     this.setToastMessage({
       message: 'Location tracked successfully.',
       type: 'success',
       bgColor: 'bg-blue-600',
     });
 
-    const { longitude, latitude } = position.coords;
-
-    // Fly to the user's location
     this.map.flyTo({
       center: [longitude, latitude],
       zoom: 14,
       speed: 1,
     });
 
-    // Add a marker to the user's location
     new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(this.map);
 
-    // Check if the 'circle-source' already exists, if not, add it
     if (!this.map.getSource('circle-source')) {
       this.map.addSource('circle-source', {
         type: 'geojson',
@@ -204,7 +217,6 @@ export class CustomGeolocateControl {
       });
     }
 
-    // Add a circle layer around the geolocated point
     if (!this.map.getLayer('circle-layer')) {
       this.map.addLayer({
         id: 'circle-layer',
@@ -231,11 +243,11 @@ export class CustomGeolocateControl {
     }
   }
 
-  // Handle geolocation errors and show an error toast
-  _handleGeolocationError(error) {
+  handleGeolocationError(error) {
     this.setToastMessage({
-      message: 'Error tracking location.',
+      message: `Error tracking location: ${error.message}`,
       type: 'error',
+      bgColor: 'bg-red-500',
     });
   }
 }
@@ -254,7 +266,7 @@ export const useRefreshMap = (
         const originalStyle =
           map.getStyle().sprite.split('/').slice(0, -1).join('/') +
           '/style.json';
-        map.setStyle(originalStyle); // Refresh map by resetting its style
+        map.setStyle(originalStyle);
 
         setToastMessage({
           message: 'Map refreshed successfully',
@@ -266,7 +278,7 @@ export const useRefreshMap = (
       }
 
       if (selectedNode) {
-        dispatch(setSelectedNode(null)); // Reset selected node if one was selected
+        dispatch(setSelectedNode(null));
       }
     }
   }, [mapRef, dispatch, setToastMessage, selectedNode]);

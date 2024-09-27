@@ -101,10 +101,13 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     const initializeMap = async () => {
       try {
         mapboxgl.accessToken = mapboxApiAccessToken;
+
         const initialCenter = hasValidParams
           ? [lngParam, latParam]
           : [mapData.center.longitude, mapData.center.latitude];
         const initialZoom = hasValidParams ? zmParam : mapData.zoom;
+
+        if (!mapContainerRef.current) return; // Ensure container exists
 
         const map = new mapboxgl.Map({
           container: mapContainerRef.current,
@@ -115,35 +118,34 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
 
         mapRef.current = map;
 
-        // Add map controls once map is loaded
         map.on('load', () => {
           map.resize();
 
-          // Add controls if the width is above 1024 or no node is selected
+          // Add controls conditionally
           if (!(width < 1024 && selectedNode)) {
-            const zoomControl = new CustomZoomControl(dispatch);
-            const geolocateControl = new CustomGeolocateControl(
-              setToastMessage,
+            map.addControl(new CustomZoomControl(dispatch), 'bottom-right');
+            map.addControl(
+              new CustomGeolocateControl(setToastMessage),
+              'bottom-right',
             );
-            map.addControl(zoomControl, 'bottom-right');
-            map.addControl(geolocateControl, 'bottom-right');
           }
 
-          // Fetch and process data once the map is loaded
+          // Fetch data once map is loaded
           fetchAndProcessData();
-
-          // Stop initial loading
           setLoading(false);
           dispatch(setMapLoading(false));
         });
 
-        // Handle map errors
         map.on('error', (e) => {
           console.error('Mapbox error:', e.error);
-          setLoading(false);
+          setToastMessage({
+            message: 'Failed to initialize the map.',
+            type: 'error',
+            bgColor: 'bg-red-500',
+          });
         });
       } catch (error) {
-        console.error('Error initializing the Map: ', error);
+        console.error('Error initializing the map:', error);
         setToastMessage({
           message: 'Failed to initialize the map.',
           type: 'error',
@@ -153,19 +155,16 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
       }
     };
 
-    // Initialize the map only once
     if (!mapRef.current) {
       initializeMap();
     } else {
-      // If map is already initialized, update its style and other properties
+      // Update the map's style, center, and zoom
       mapRef.current.setStyle(mapStyle);
-      const newCenter = hasValidParams
-        ? [lngParam, latParam]
-        : [mapData.center.longitude, mapData.center.latitude];
-      const newZoom = hasValidParams ? zmParam : mapData.zoom;
       mapRef.current.flyTo({
-        center: newCenter,
-        zoom: newZoom,
+        center: hasValidParams
+          ? [lngParam, latParam]
+          : [mapData.center.longitude, mapData.center.latitude],
+        zoom: hasValidParams ? zmParam : mapData.zoom,
         essential: true,
       });
     }

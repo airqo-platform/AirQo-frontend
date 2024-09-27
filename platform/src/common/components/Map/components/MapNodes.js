@@ -38,7 +38,7 @@ export const images = {
 
 const markerDetails = {
   pm2_5: [
-    { limit: 500.5, category: 'Invalid' || 'undefined' },
+    { limit: 500.5, category: 'Invalid' }, // No need for '||' since it's a constant
     { limit: 225.5, category: 'Hazardous' },
     { limit: 125.5, category: 'VeryUnhealthy' },
     { limit: 55.5, category: 'Unhealthy' },
@@ -47,7 +47,7 @@ const markerDetails = {
     { limit: 0.0, category: 'GoodAir' },
   ],
   pm10: [
-    { limit: 604.1, category: 'Invalid' || 'undefined' },
+    { limit: 604.1, category: 'Invalid' },
     { limit: 424.1, category: 'Hazardous' },
     { limit: 354.1, category: 'VeryUnhealthy' },
     { limit: 254.1, category: 'Unhealthy' },
@@ -56,7 +56,7 @@ const markerDetails = {
     { limit: 0.0, category: 'GoodAir' },
   ],
   no2: [
-    { limit: 2049.1, category: 'Invalid' || 'undefined' },
+    { limit: 2049.1, category: 'Invalid' },
     { limit: 1249.1, category: 'Hazardous' },
     { limit: 649.1, category: 'VeryUnhealthy' },
     { limit: 360.1, category: 'Unhealthy' },
@@ -65,7 +65,7 @@ const markerDetails = {
     { limit: 0.0, category: 'GoodAir' },
   ],
   o3: [
-    { limit: 604.1, category: 'Invalid' || 'undefined' },
+    { limit: 604.1, category: 'Invalid' },
     { limit: 504.1, category: 'Hazardous' },
     { limit: 404.1, category: 'VeryUnhealthy' },
     { limit: 204.1, category: 'Unhealthy' },
@@ -74,7 +74,7 @@ const markerDetails = {
     { limit: 0.0, category: 'GoodAir' },
   ],
   co: [
-    { limit: 50.5, category: 'Invalid' || 'undefined' },
+    { limit: 50.5, category: 'Invalid' },
     { limit: 40.5, category: 'Hazardous' },
     { limit: 30.5, category: 'VeryUnhealthy' },
     { limit: 10.5, category: 'Unhealthy' },
@@ -83,7 +83,7 @@ const markerDetails = {
     { limit: 0.0, category: 'GoodAir' },
   ],
   so2: [
-    { limit: 1004.1, category: 'Invalid' || 'undefined' },
+    { limit: 1004.1, category: 'Invalid' },
     { limit: 804.1, category: 'Hazardous' },
     { limit: 604.1, category: 'VeryUnhealthy' },
     { limit: 304.1, category: 'Unhealthy' },
@@ -111,7 +111,7 @@ const colors = {
  * @returns {Object}
  */
 export const getAQICategory = (pollutant, value) => {
-  if (!markerDetails.hasOwnProperty(pollutant)) {
+  if (!Object.prototype.hasOwnProperty.call(markerDetails, pollutant)) {
     throw new Error(`Invalid pollutant: ${pollutant}`);
   }
 
@@ -128,7 +128,7 @@ export const getAQICategory = (pollutant, value) => {
 };
 
 export const getAQIcon = (pollutant, value) => {
-  if (!markerDetails.hasOwnProperty(pollutant)) {
+  if (!Object.prototype.hasOwnProperty.call(markerDetails, pollutant)) {
     throw new Error(`Invalid pollutant: ${pollutant}`);
   }
 
@@ -141,7 +141,7 @@ export const getAQIcon = (pollutant, value) => {
 };
 
 export const getAQIMessage = (pollutant, timePeriod, value) => {
-  if (!markerDetails.hasOwnProperty(pollutant)) {
+  if (!Object.prototype.hasOwnProperty.call(markerDetails, pollutant)) {
     throw new Error(`Invalid pollutant: ${pollutant}`);
   }
 
@@ -183,52 +183,42 @@ export const getAQIMessage = (pollutant, timePeriod, value) => {
  * @returns {String}
  */
 export const UnclusteredNode = ({ feature, NodeType, selectedNode }) => {
-  // Check if feature.properties.aqi is defined
-  if (feature.properties && feature.properties.aqi) {
-    const Icon = images[feature.properties.aqi.icon];
-    const isActive =
-      selectedNode && selectedNode === feature.properties._id ? 'active' : '';
+  if (!feature?.properties?.aqi?.icon) {
+    console.error('feature.properties.aqi.icon is not defined', feature);
+    return '';
+  }
 
-    if (NodeType === 'Number') {
-      return `
-      <div id="${
-        feature.properties._id
-      }" class="unClustered-Number shadow-md ${isActive}"
-          style="background-color: ${feature.properties.aqi.color}; color: ${
-            feature.properties.aqi.color
-          }; width: 40px; height: 40px;"
-        >
-        <p class="text-[#000] text-xs font-bold">${feature.properties.pm2_5.toFixed(
-          2,
-        )}</p>
-        <span class="arrow"></span>
-      </div>
-      `;
-    }
+  const Icon = images[feature.properties.aqi.icon] || images['Invalid'];
+  const isActive =
+    selectedNode && selectedNode === feature.properties._id ? 'active' : '';
 
-    if (NodeType === 'Node') {
-      return `
-      <div id="${feature.properties._id}" class="unClustered-Node shadow-md ${isActive}"
-        style="background-color: ${feature.properties.aqi.color}; color: ${feature.properties.aqi.color}; width: 30px; height: 30px;"
-      >
-        <span class="arrow"></span> 
-      </div>
-      `;
-    }
+  if (NodeType === 'Number') {
     return `
-      <div id="${feature.properties._id}" class="unClustered shadow-md ${isActive}">
-        <img src="${Icon}" alt="AQI Icon" class="w-full h-full" />
+      <div id="${feature.properties._id}" 
+        class="unClustered-Number shadow-md ${isActive}"
+        style="background-color: ${feature.properties.aqi.color}; color: ${feature.properties.aqi.color}; width: 40px; height: 40px;">
+        <p class="text-[#000] text-xs font-bold">${feature.properties.pm2_5.toFixed(2)}</p>
         <span class="arrow"></span>
       </div>
     `;
-  } else {
-    // Handle the case where feature.properties.aqi is not defined
-    console.error(
-      'feature.properties.aqi is not defined for feature: ',
-      feature,
-    );
-    return '';
   }
+
+  if (NodeType === 'Node') {
+    return `
+      <div id="${feature.properties._id}" 
+        class="unClustered-Node shadow-md ${isActive}"
+        style="background-color: ${feature.properties.aqi.color}; color: ${feature.properties.aqi.color}; width: 30px; height: 30px;">
+        <span class="arrow"></span> 
+      </div>
+    `;
+  }
+
+  return `
+    <div id="${feature.properties._id}" class="unClustered shadow-md ${isActive}">
+      <img src="${Icon}" alt="AQI Icon" class="w-full h-full" />
+      <span class="arrow"></span>
+    </div>
+  `;
 };
 
 /**
