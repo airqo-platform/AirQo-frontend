@@ -147,7 +147,7 @@ const AuthenticatedSideBar = () => {
                       {dropdown && (
                         <div
                           ref={dropdownRef}
-                          className="fixed left-24 w-40 bg-white border border-gray-200 divide-y divide-gray-100 rounded-xl shadow-lg p-1"
+                          className="fixed left-24 top-[300px] w-40 bg-white border border-gray-200 divide-y divide-gray-100 rounded-xl shadow-lg p-1"
                         >
                           <Link href={'/collocation/overview'}>
                             <div className="w-full p-4 rounded-xl hover:bg-[#f3f6f8] cursor-pointer">
