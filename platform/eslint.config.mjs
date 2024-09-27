@@ -10,6 +10,8 @@ export default [
       globals: {
         browser: true,
         process: 'readonly',
+        console: 'readonly',
+        window: 'readonly',
       },
       parserOptions: {
         ecmaFeatures: {
