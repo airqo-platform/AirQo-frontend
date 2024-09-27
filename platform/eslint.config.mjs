@@ -1,4 +1,3 @@
-import globals from 'globals';
 import js from '@eslint/js';
 import react from 'eslint-plugin-react';
 import prettier from 'eslint-plugin-prettier';
@@ -9,7 +8,7 @@ export default [
     files: ['**/*.{js,mjs,cjs,jsx}'],
     languageOptions: {
       globals: {
-        ...globals.browser,
+        browser: true,
         process: 'readonly',
       },
       parserOptions: {
@@ -36,12 +35,7 @@ export default [
       'react/jsx-filename-extension': [1, { extensions: ['.js', '.jsx'] }],
       'react/prop-types': 'off',
       'react/display-name': 'off',
-      'prettier/prettier': [
-        'error',
-        {
-          endOfLine: 'auto',
-        },
-      ],
+      'prettier/prettier': ['error', { endOfLine: 'auto' }],
       'no-unused-vars': [
         'error',
         {
