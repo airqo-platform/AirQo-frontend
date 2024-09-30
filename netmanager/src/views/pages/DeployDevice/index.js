@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import {
   Box,
@@ -8,22 +8,23 @@ import {
   Step,
   StepLabel,
   Button,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
-  FormControl,
-  FormLabel,
   TextField,
   Grid,
   Card,
   CardContent,
   CardHeader,
   Divider,
+  Checkbox,
+  FormControlLabel,
+  Snackbar,
   IconButton
 } from '@material-ui/core';
+import { Alert } from '@material-ui/lab';
+import CloseIcon from '@material-ui/icons/Close';
 import OutlinedSelect from '../../components/CustomSelects/OutlinedSelect';
-import LocationOnIcon from '@material-ui/icons/LocationOn';
-// import { DEPLOY_DEVICE_URI } from 'src/config/urls/deviceRegistry';
+import { Map, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import { batchDeployDevicesApi } from '../../apis/deviceRegistry';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -47,10 +48,11 @@ const useStyles = makeStyles((theme) => ({
   },
   buttons: {
     display: 'flex',
-    justifyContent: 'flex-end'
+    justifyContent: 'center',
+    marginTop: theme.spacing(3)
   },
   button: {
-    marginTop: theme.spacing(3),
+    width: 180,
     marginLeft: theme.spacing(1)
   },
   cardContent: {
@@ -95,7 +97,8 @@ const useStyles = makeStyles((theme) => ({
     height: 250,
     border: '1px solid #ccc',
     borderRadius: theme.shape.borderRadius,
-    overflow: 'hidden'
+    overflow: 'hidden',
+    position: 'relative'
   },
   mapPreviewPlaceholder: {
     width: '100%',
@@ -106,6 +109,16 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: '#f0f0f0',
     border: '1px solid #ccc',
     borderRadius: theme.shape.borderRadius
+  },
+  infoCard: {
+    backgroundColor: theme.palette.grey[100],
+    padding: theme.spacing(2),
+    borderRadius: theme.shape.borderRadius,
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(2)
+  },
+  alert: {
+    width: '100%'
   }
 }));
 
@@ -114,44 +127,32 @@ const steps = ['Device Details', 'Site Details', 'Deploy'];
 const DeployDevice = () => {
   const classes = useStyles();
   const [activeStep, setActiveStep] = useState(0);
-  const [deviceChoice, setDeviceChoice] = useState({
-    value: 'existing',
-    label: 'Select Existing Device'
-  });
-  const [device, setDevice] = useState(null);
-  const [newDeviceName, setNewDeviceName] = useState('');
-  const [newDeviceNetwork, setNewDeviceNetwork] = useState('');
-  const [newDeviceDescription, setNewDeviceDescription] = useState('');
+  const [deviceId, setDeviceId] = useState('');
+  const [powerType, setPowerType] = useState('');
+  const [mountType, setMountType] = useState('');
+  const [height, setHeight] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
-  const [visibility, setVisibility] = useState({ value: 'public', label: 'Public' });
-  const [mapUrl, setMapUrl] = useState('');
+  const [siteName, setSiteName] = useState('');
+  const [isPrimaryDevice, setIsPrimaryDevice] = useState(false);
+  const [deviceName, setDeviceName] = useState('');
+  const mapRef = useRef();
+  const [openAlert, setOpenAlert] = useState(false);
+  const [alertSeverity, setAlertSeverity] = useState('success');
+  const [alertMessage, setAlertMessage] = useState('');
 
-  const mapview = process.env.REACT_APP_MAP_PREVIEW;
-
-  useEffect(() => {
-    if (latitude && longitude) {
-      setMapUrl(`${mapview}/?mlat=${latitude}&mlon=${longitude}&zoom=13`);
-    } else {
-      setMapUrl('');
-    }
-  }, [latitude, longitude]);
-
-  // Mock data for cohorts and devices
-  const deviceOptions = [
-    { value: 'device1', label: 'Device 1' },
-    { value: 'device2', label: 'Device 2' },
-    { value: 'device3', label: 'Device 3' }
+  const powerTypeOptions = [
+    { value: 'solar', label: 'Solar' },
+    { value: 'mains', label: 'Mains' },
+    { value: 'alternator', label: 'Alternator' }
   ];
 
-  const visibilityOptions = [
-    { value: 'public', label: 'Public' },
-    { value: 'private', label: 'Private' }
-  ];
-
-  const deviceChoiceOptions = [
-    { value: 'existing', label: 'Select Existing Device' },
-    { value: 'new', label: 'Create New Device' }
+  const mountTypeOptions = [
+    { value: 'faceboard', label: 'Faceboard' },
+    { value: 'pole', label: 'Pole' },
+    { value: 'rooftop', label: 'Rooftop' },
+    { value: 'suspended', label: 'Suspended' },
+    { value: 'wall', label: 'Wall' }
   ];
 
   const handleNext = () => {
@@ -162,17 +163,76 @@ const DeployDevice = () => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
-  const handleDeploy = () => {
-    // Implement the deploy logic here
-    console.log('Deploying device...');
-    // You can use DEPLOY_DEVICE_URI here for API calls related to device deployment
-  };
+  const handleDeploy = async () => {
+    const deployData = [
+      {
+        date: new Date().toISOString(),
+        height: parseFloat(height),
+        mountType: mountType.value,
+        powerType: powerType.value,
+        isPrimaryInLocation: isPrimaryDevice,
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+        site_name: siteName,
+        network: 'airqo',
+        deviceName: deviceName
+      }
+    ];
 
-  const openMap = () => {
-    if (latitude && longitude) {
-      window.open(`${mapview}/?mlat=${latitude}&mlon=${longitude}&zoom=13`, '_blank');
+    try {
+      const response = await batchDeployDevicesApi(deployData);
+
+      if (response.success) {
+        if (
+          response.successful_deployments.length > 0 &&
+          response.failed_deployments.length === 0
+        ) {
+          setAlertSeverity('success');
+          setAlertMessage('Device deployed successfully!');
+
+          // Reset form values
+          setDeviceId('');
+          setDeviceName('');
+          setPowerType('');
+          setMountType('');
+          setHeight('');
+          setLatitude('');
+          setLongitude('');
+          setSiteName('');
+          setIsPrimaryDevice(false);
+
+          // Reset to first step
+          setActiveStep(0);
+        } else if (response.failed_deployments.length > 0) {
+          setAlertSeverity('error');
+          const errorMessage = response.failed_deployments[0].error.message;
+          setAlertMessage(`Deployment failed: ${errorMessage}`);
+        } else {
+          setAlertSeverity('warning');
+          setAlertMessage('No deployments were processed. Please try again.');
+        }
+      } else {
+        setAlertSeverity('error');
+        setAlertMessage('Deployment failed. Please try again.');
+      }
+      setOpenAlert(true);
+    } catch (error) {
+      console.error('Deployment failed:', error);
+      setAlertSeverity('error');
+      setAlertMessage('An error occurred during deployment. Please try again.');
+      setOpenAlert(true);
     }
   };
+
+  const handleCloseAlert = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenAlert(false);
+  };
+
+  const isStep0Valid = deviceId && powerType && mountType && height && height > 0 && deviceName;
+  const isStep1Valid = latitude && longitude && siteName;
 
   const renderStepContent = (step) => {
     switch (step) {
@@ -183,83 +243,90 @@ const DeployDevice = () => {
               <Grid item xs={12}>
                 <div className={classes.labelContainer}>
                   <Typography variant="subtitle1" className={classes.label}>
-                    Device Selection
+                    Device ID *
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    label="Device ID"
+                    variant="outlined"
+                    value={deviceId}
+                    onChange={(e) => setDeviceId(e.target.value)}
+                  />
+                </div>
+              </Grid>
+              <Grid item xs={12}>
+                <div className={classes.labelContainer}>
+                  <Typography variant="subtitle1" className={classes.label}>
+                    Device Name *
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    label="Device Name"
+                    variant="outlined"
+                    value={deviceName}
+                    onChange={(e) => setDeviceName(e.target.value)}
+                  />
+                </div>
+              </Grid>
+              <Grid item xs={12}>
+                <div className={classes.labelContainer}>
+                  <Typography variant="subtitle1" className={classes.label}>
+                    Power Type *
                   </Typography>
                   <OutlinedSelect
-                    label="Device Selection"
-                    options={deviceChoiceOptions}
-                    value={deviceChoice}
-                    onChange={(selectedOption) => setDeviceChoice(selectedOption)}
-                    placeholder="Select Device Option"
+                    label="Power Type"
+                    options={powerTypeOptions}
+                    value={powerType}
+                    onChange={(selectedOption) => setPowerType(selectedOption)}
+                    placeholder="Select Power Type"
+                  />
+                </div>
+              </Grid>
+              <Grid item xs={12}>
+                <div className={classes.labelContainer}>
+                  <Typography variant="subtitle1" className={classes.label}>
+                    Mount Type *
+                  </Typography>
+                  <OutlinedSelect
+                    label="Mount Type"
+                    options={mountTypeOptions}
+                    value={mountType}
+                    onChange={(selectedOption) => setMountType(selectedOption)}
+                    placeholder="Select Mount Type"
+                  />
+                </div>
+              </Grid>
+              <Grid item xs={12}>
+                <div className={classes.labelContainer}>
+                  <Typography variant="subtitle1" className={classes.label}>
+                    Height *
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    label="Height"
+                    variant="outlined"
+                    type="number"
+                    value={height}
+                    onChange={(e) => setHeight(e.target.value)}
+                    helperText={height <= 0 ? 'Height must be greater than 0' : ''}
+                  />
+                </div>
+              </Grid>
+              <Grid item xs={12}>
+                <div className={classes.infoCard}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={isPrimaryDevice}
+                        onChange={(e) => setIsPrimaryDevice(e.target.checked)}
+                        color="primary"
+                      />
+                    }
+                    label="Set as primary device of location"
                   />
                 </div>
               </Grid>
             </Grid>
-            {deviceChoice.value === 'existing' ? (
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <div className={classes.labelContainer}>
-                    <Typography variant="subtitle1" className={classes.label}>
-                      Select Device
-                    </Typography>
-                    <OutlinedSelect
-                      label="Device"
-                      options={deviceOptions}
-                      value={device}
-                      onChange={(selectedOption) => setDevice(selectedOption)}
-                      placeholder="Select Device"
-                    />
-                  </div>
-                </Grid>
-              </Grid>
-            ) : (
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <div className={classes.labelContainer}>
-                    <Typography variant="subtitle1" className={classes.label}>
-                      Device Name
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      label="Device Name"
-                      variant="outlined"
-                      value={newDeviceName}
-                      onChange={(e) => setNewDeviceName(e.target.value)}
-                    />
-                  </div>
-                </Grid>
-                <Grid item xs={12}>
-                  <div className={classes.labelContainer}>
-                    <Typography variant="subtitle1" className={classes.label}>
-                      Network
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      label="Network"
-                      variant="outlined"
-                      value={newDeviceNetwork}
-                      onChange={(e) => setNewDeviceNetwork(e.target.value)}
-                    />
-                  </div>
-                </Grid>
-                <Grid item xs={12}>
-                  <div className={classes.labelContainer}>
-                    <Typography variant="subtitle1" className={classes.label}>
-                      Description
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      label="Description"
-                      variant="outlined"
-                      multiline
-                      rows={4}
-                      value={newDeviceDescription}
-                      onChange={(e) => setNewDeviceDescription(e.target.value)}
-                    />
-                  </div>
-                </Grid>
-              </Grid>
-            )}
           </>
         );
       case 1:
@@ -270,7 +337,7 @@ const DeployDevice = () => {
                 <Grid item xs={12}>
                   <div className={classes.labelContainer}>
                     <Typography variant="subtitle1" className={classes.label}>
-                      Latitude
+                      Latitude *
                     </Typography>
                     <TextField
                       fullWidth
@@ -284,7 +351,7 @@ const DeployDevice = () => {
                 <Grid item xs={12}>
                   <div className={classes.labelContainer}>
                     <Typography variant="subtitle1" className={classes.label}>
-                      Longitude
+                      Longitude *
                     </Typography>
                     <TextField
                       fullWidth
@@ -298,37 +365,49 @@ const DeployDevice = () => {
                 <Grid item xs={12}>
                   <div className={classes.labelContainer}>
                     <Typography variant="subtitle1" className={classes.label}>
-                      Device Visibility
+                      Site Name *
                     </Typography>
-                    <OutlinedSelect
-                      label="Visibility"
-                      options={visibilityOptions}
-                      value={visibility}
-                      onChange={(selectedOption) => setVisibility(selectedOption)}
-                      placeholder="Select Visibility"
+                    <TextField
+                      fullWidth
+                      label="Site Name"
+                      variant="outlined"
+                      value={siteName}
+                      onChange={(e) => setSiteName(e.target.value)}
                     />
                   </div>
                 </Grid>
               </Grid>
             </div>
             <div className={classes.mapContainer}>
-              {mapUrl ? (
-                <iframe
-                  title="Location Preview"
-                  src={mapUrl}
+              {/* {latitude && longitude ? (
+                <Map
+                  center={[latitude, longitude]}
+                  zoom={13}
+                  scrollWheelZoom={false}
                   className={classes.mapPreview}
-                  frameBorder="0"
-                  scrolling="no"
-                  marginHeight="0"
-                  marginWidth="0"
-                />
+                  ref={mapRef}
+                >
+                  <TileLayer
+                    url='https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}'
+                    attribution='Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+                  />
+                  <Marker position={[latitude, longitude]}>
+                    <Popup>Deployment site</Popup>
+                  </Marker>
+                </Map>
               ) : (
                 <div className={classes.mapPreviewPlaceholder}>
                   <Typography variant="body2" color="textSecondary">
                     Enter latitude and longitude to see the map preview
                   </Typography>
                 </div>
-              )}
+              )} */}
+
+              <div className={classes.mapPreviewPlaceholder}>
+                <Typography variant="body2" color="textSecondary">
+                  Map preview will appear here
+                </Typography>
+              </div>
             </div>
           </div>
         );
@@ -341,21 +420,18 @@ const DeployDevice = () => {
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Typography variant="subtitle1">Device Details</Typography>
-                <Typography>
-                  Device Name: {deviceChoice.value === 'existing' ? device?.label : newDeviceName}
-                </Typography>
-                <Typography>
-                  Network: {deviceChoice.value === 'existing' ? device?.network : newDeviceNetwork}
-                </Typography>
-                {deviceChoice.value === 'new' && (
-                  <Typography>Description: {newDeviceDescription}</Typography>
-                )}
+                <Typography>Device ID: {deviceId}</Typography>
+                <Typography>Device Name: {deviceName}</Typography>
+                <Typography>Power Type: {powerType.label}</Typography>
+                <Typography>Mount Type: {mountType.label}</Typography>
+                <Typography>Height: {height}</Typography>
+                <Typography>Primary Device: {isPrimaryDevice ? 'Yes' : 'No'}</Typography>
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="subtitle1">Site Details</Typography>
                 <Typography>Latitude: {latitude}</Typography>
                 <Typography>Longitude: {longitude}</Typography>
-                <Typography>Visibility: {visibility.label}</Typography>
+                <Typography>Site Name: {siteName}</Typography>
               </Grid>
               <Grid item xs={12}>
                 <Typography variant="body2" color="textSecondary">
@@ -396,6 +472,9 @@ const DeployDevice = () => {
                 color="primary"
                 onClick={activeStep === steps.length - 1 ? handleDeploy : handleNext}
                 className={classes.button}
+                disabled={
+                  (activeStep === 0 && !isStep0Valid) || (activeStep === 1 && !isStep1Valid)
+                }
               >
                 {activeStep === steps.length - 1 ? 'Deploy' : 'Next'}
               </Button>
@@ -403,6 +482,30 @@ const DeployDevice = () => {
           </CardContent>
         </Card>
       </Container>
+      <Snackbar
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left'
+        }}
+        open={openAlert}
+        autoHideDuration={10000}
+        onClose={handleCloseAlert}
+      >
+        <Alert
+          elevation={6}
+          variant="filled"
+          onClose={handleCloseAlert}
+          severity={alertSeverity}
+          className={classes.alert}
+          action={
+            <IconButton aria-label="close" color="inherit" size="small" onClick={handleCloseAlert}>
+              <CloseIcon fontSize="inherit" />
+            </IconButton>
+          }
+        >
+          {alertMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
