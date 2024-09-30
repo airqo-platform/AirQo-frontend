@@ -22,7 +22,7 @@ import {
 import { Alert } from '@material-ui/lab';
 import CloseIcon from '@material-ui/icons/Close';
 import OutlinedSelect from '../../components/CustomSelects/OutlinedSelect';
-import { Map, TileLayer, Marker, Popup } from 'react-leaflet';
+import { Map as LeafletMap, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { batchDeployDevicesApi } from '../../apis/deviceRegistry';
 
@@ -307,8 +307,8 @@ const DeployDevice = () => {
                     variant="outlined"
                     type="number"
                     value={height}
-                    onChange={(e) => setHeight(e.target.value)}
-                    helperText={height <= 0 ? 'Height must be greater than 0' : ''}
+                    onChange={(e) => setHeight(parseFloat(e.target.value))}
+                    helperText={height && height <= 0 ? 'Height must be greater than 0' : ''}
                   />
                 </div>
               </Grid>
@@ -344,7 +344,10 @@ const DeployDevice = () => {
                       label="Latitude"
                       variant="outlined"
                       value={latitude}
-                      onChange={(e) => setLatitude(e.target.value)}
+                      onChange={(e) => setLatitude(parseFloat(e.target.value))}
+                      helperText={
+                        latitude < -90 || latitude > 90 ? 'Latitude must be between -90 and 90' : ''
+                      }
                     />
                   </div>
                 </Grid>
@@ -358,7 +361,12 @@ const DeployDevice = () => {
                       label="Longitude"
                       variant="outlined"
                       value={longitude}
-                      onChange={(e) => setLongitude(e.target.value)}
+                      onChange={(e) => setLongitude(parseFloat(e.target.value))}
+                      helperText={
+                        longitude < -180 || longitude > 180
+                          ? 'Longitude must be between -180 and 180'
+                          : ''
+                      }
                     />
                   </div>
                 </Grid>
@@ -380,7 +388,7 @@ const DeployDevice = () => {
             </div>
             <div className={classes.mapContainer}>
               {/* {latitude && longitude ? (
-                <Map
+                <LeafletMap
                   center={[latitude, longitude]}
                   zoom={13}
                   scrollWheelZoom={false}
@@ -394,7 +402,7 @@ const DeployDevice = () => {
                   <Marker position={[latitude, longitude]}>
                     <Popup>Deployment site</Popup>
                   </Marker>
-                </Map>
+                </LeafletMap>
               ) : (
                 <div className={classes.mapPreviewPlaceholder}>
                   <Typography variant="body2" color="textSecondary">
