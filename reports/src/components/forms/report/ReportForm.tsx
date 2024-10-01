@@ -1,19 +1,20 @@
+'use client';
 import {
   formatISO,
-  addDays,
   differenceInDays,
   subDays,
   startOfQuarter,
   subQuarters,
+  startOfMonth,
+  endOfMonth,
+  subMonths,
 } from 'date-fns';
 import { useRouter } from 'next/navigation';
-import { useTheme } from 'next-themes';
 import React, { useState, FormEvent } from 'react';
 import { FaDownload } from 'react-icons/fa';
 import { IoInformationCircleSharp } from 'react-icons/io5';
 import { MdOutlineAppShortcut } from 'react-icons/md';
 import { useDispatch } from 'react-redux';
-import { RingLoader } from 'react-spinners';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -44,15 +45,12 @@ const reportTypes = [{ value: 'airqo', label: 'AirQo Air Quality Template' }];
 const ReportForm = ({ grids }: any) => {
   const dispatch = useDispatch();
   const router = useRouter();
-  const { theme } = useTheme();
-  const loaderColor = theme === 'dark' ? '#fff' : '#013ee6';
   const [isLoading, setIsLoading] = useState(false);
   const [showShortCut, setShowShortCut] = useState(false);
   const [selectedButton, setSelectedButton] = useState('last-7-days');
 
-  // Get today's date and the date 7 days ago
   const today = new Date();
-  const lastWeek = addDays(today, -7);
+  const lastWeek = subDays(today, 7);
 
   const [formState, setFormState] = useState({
     title: '',
@@ -78,13 +76,15 @@ const ReportForm = ({ grids }: any) => {
     });
   };
 
-  const handleChange = (name: string, buttonId: string) => (value: any) => {
-    setSelectedButton(buttonId);
-    setFormState({
-      ...formState,
-      [name]: value,
-    });
-  };
+  const handleChange =
+    (name: string, buttonId: string = '') =>
+    (value: any) => {
+      setSelectedButton(buttonId);
+      setFormState({
+        ...formState,
+        [name]: value,
+      });
+    };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -140,25 +140,12 @@ const ReportForm = ({ grids }: any) => {
         },
       });
 
-      setFormState({
-        title: '',
-        reportTemplate: '',
-        location: '',
-        dateRange: {
-          from: new Date(),
-          to: new Date(),
-        },
-      });
-
-      const uuid = uuidv4();
-      const idWithoutHyphens = uuid.replace(/-/g, '');
-      const randomId = idWithoutHyphens.substring(0, 16);
-
-      router.push(`/home/${randomId}`);
+      // Redirect to the newly generated report page immediately after fetching the report data
+      const uuid = uuidv4().replace(/-/g, '').substring(0, 16);
+      router.push(`/home/${uuid}`);
     } catch (error: any) {
-      const errorMessage =
-        error?.response?.data.message || error.message || 'Server timeout, please try again later';
-      toast.error(errorMessage, {
+      console.error('Error fetching report data:', error);
+      toast.error('An error occurred while generating the report. Please try again later.', {
         style: {
           background: 'red',
           color: 'white',
@@ -173,44 +160,44 @@ const ReportForm = ({ grids }: any) => {
   const getButtonClass = (buttonId: string) => {
     return `${selectedButton === buttonId ? 'bg-green-700' : 'bg-blue-700'} hover:${
       selectedButton === buttonId ? 'bg-green-800' : 'bg-blue-800'
-    } text-white p-2`;
+    } text-white p-2 rounded transition-all duration-200`;
   };
 
   return (
     <>
       {isLoading ? (
-        <div className="w-full h-[400px] flex flex-col justify-center text-center items-center">
-          <RingLoader color={loaderColor} />
+        <div className="w-full h-[400px] flex flex-col justify-center items-center text-center">
+          <div className="spinnerLoader"></div>
           <p className="text-gray-500 pt-4 dark:text-gray-400">Please wait, generating report...</p>
         </div>
       ) : (
-        <div className="space-y-5">
-          <h1 className="text-2xl font-semibold">Report Details</h1>
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <Label htmlFor="Title">Enter report title</Label>
+        <div className="space-y-6 p-6 bg-white dark:bg-gray-800 rounded-md shadow-sm">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Report Details</h1>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="Title">Enter Report Title</Label>
               <Input
                 name="title"
                 id="Title"
                 type="text"
-                className="dark:text-gray-500"
+                className="dark:text-gray-500 p-3 rounded-md border border-gray-300 dark:border-gray-600"
                 placeholder="Enter report title"
                 value={formState.title}
-                onChange={(e) => handleChange('title', '')(e.target.value)}
+                onChange={(e) => handleChange('title')(e.target.value)}
               />
             </div>
 
-            <div>
-              <Label htmlFor="ReportTemplate">Select report template</Label>
+            <div className="space-y-2">
+              <Label htmlFor="ReportTemplate">Select Report Template</Label>
               <Select
                 name="reportTemplate"
-                onValueChange={(value) => handleChange('reportTemplate', '')(value)}
+                onValueChange={handleChange('reportTemplate')}
                 value={formState.reportTemplate}
               >
-                <SelectTrigger id="ReportTemplate" className="dark:text-gray-500">
+                <SelectTrigger id="ReportTemplate" className="dark:text-gray-500 p-3 rounded-md">
                   <SelectValue placeholder="Select report template" />
                 </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-800 dark:text-gray-400">
+                <SelectContent className="bg-white dark:bg-gray-800 dark:text-gray-400 rounded-md shadow-sm">
                   <SelectGroup>
                     {reportTypes.map((type) => (
                       <SelectItem key={type.value} value={type.value}>
@@ -222,26 +209,22 @@ const ReportForm = ({ grids }: any) => {
               </Select>
             </div>
 
-            <div>
-              <Label htmlFor="Locations">Select location</Label>
+            <div className="space-y-2">
+              <Label htmlFor="Locations">Select Location</Label>
               <Select
                 name="location"
-                onValueChange={(value) => handleChange('location', '')(value)}
+                onValueChange={handleChange('location')}
                 value={formState.location}
               >
-                <SelectTrigger id="Locations" className="dark:text-gray-500">
+                <SelectTrigger id="Locations" className="dark:text-gray-500 p-3 rounded-md">
                   <SelectValue placeholder="Select location" />
                 </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-800 dark:text-gray-400">
-                  <SelectGroup className="h-[240px]">
+                <SelectContent className="bg-white dark:bg-gray-800 dark:text-gray-400 rounded-md shadow-sm">
+                  <SelectGroup>
                     {grids
                       .filter((grid: any) => !['country'].includes(grid.admin_level))
                       .map((type: { _id: string; long_name: string }) => (
-                        <SelectItem
-                          key={type._id}
-                          value={type._id}
-                          className="cursor-pointer dark:text-white"
-                        >
+                        <SelectItem key={type._id} value={type._id} className="cursor-pointer">
                           {type.long_name}
                         </SelectItem>
                       ))}
@@ -252,27 +235,28 @@ const ReportForm = ({ grids }: any) => {
 
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <Label htmlFor="date">Select date range</Label>
+                <Label htmlFor="date">Select Date Range</Label>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger id="date" type="button">
                       <IoInformationCircleSharp className="cursor-pointer" />
                     </TooltipTrigger>
-                    <TooltipContent className="bg-white dark:bg-gray-800 dark:text-gray-400 p-2 rounded-md">
+                    <TooltipContent className="bg-white dark:bg-gray-800 dark:text-gray-400 p-2 rounded-md shadow-sm">
                       <p>
-                        Select the date range you would like to generate the report for not
-                        exceeding 2 months.
+                        Select the date range you would like to generate the report for. The date
+                        range should not exceed 120 days.
                       </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
+
               {!showShortCut ? (
-                <div className="flex flex-wrap gap-2 items-center">
+                <div className="flex items-center gap-2">
                   <DatePickerWithRange
                     className="dark:text-gray-500"
                     value={formState.dateRange}
-                    onChange={(value: any) => handleChange('dateRange', '')(value)}
+                    onChange={handleChange('dateRange')}
                   />
                   <TooltipProvider>
                     <Tooltip>
@@ -283,7 +267,7 @@ const ReportForm = ({ grids }: any) => {
                       >
                         <MdOutlineAppShortcut size={25} />
                       </TooltipTrigger>
-                      <TooltipContent className="bg-white dark:bg-gray-800 dark:text-gray-400 p-2 rounded-md">
+                      <TooltipContent className="bg-white dark:bg-gray-800 dark:text-gray-400 p-2 rounded-md shadow-sm">
                         <p>Click here to show shortcuts for date range selection.</p>
                       </TooltipContent>
                     </Tooltip>
@@ -292,11 +276,11 @@ const ReportForm = ({ grids }: any) => {
               ) : (
                 <div className="flex flex-col">
                   <div className="flex flex-wrap gap-2 items-center py-4">
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
                       <b>From:</b> {formState.dateRange.from.toDateString()}
                     </span>
-                    <span className="text-sm text-gray-500">-</span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">-</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
                       <b>To:</b> {formState.dateRange.to.toDateString()}
                     </span>
                   </div>
@@ -310,71 +294,61 @@ const ReportForm = ({ grids }: any) => {
                       Hide Shortcuts
                     </Button>
 
-                    <Button
-                      type="button"
-                      className={getButtonClass('last-7-days')}
-                      onClick={() => {
-                        const today = new Date();
-                        const lastWeek = subDays(today, 7);
-                        handleChange(
-                          'dateRange',
-                          'last-7-days',
-                        )({
-                          from: lastWeek,
-                          to: today,
-                        });
-                      }}
-                    >
-                      Last 7 days
-                    </Button>
-                    <Button
-                      type="button"
-                      className={getButtonClass('last-30-days')}
-                      onClick={() => {
-                        const today = new Date();
-                        const lastMonth = subDays(today, 30);
-                        handleChange(
-                          'dateRange',
-                          'last-30-days',
-                        )({
-                          from: lastMonth,
-                          to: today,
-                        });
-                      }}
-                    >
-                      Last 30 days
-                    </Button>
-                    <Button
-                      type="button"
-                      className={getButtonClass('last-quarter')}
-                      onClick={() => {
-                        const today = new Date();
-                        const startOfCurrentQuarter = startOfQuarter(today);
-                        const lastQuarter = subQuarters(startOfCurrentQuarter, 1);
-                        handleChange(
-                          'dateRange',
-                          'last-quarter',
-                        )({
-                          from: lastQuarter,
-                          to: startOfCurrentQuarter,
-                        });
-                      }}
-                    >
-                      Last Quarter
-                    </Button>
+                    {[
+                      { label: 'Last 7 Days', value: 'last-7-days', from: subDays(today, 7) },
+                      { label: 'Last 30 Days', value: 'last-30-days', from: subDays(today, 30) },
+                      {
+                        label: 'This Month',
+                        value: 'this-month',
+                        from: startOfMonth(today),
+                        to: endOfMonth(today),
+                      },
+                      {
+                        label: 'Last Month',
+                        value: 'last-month',
+                        from: startOfMonth(subMonths(today, 1)),
+                        to: endOfMonth(subMonths(today, 1)),
+                      },
+                      {
+                        label: 'Last Quarter',
+                        value: 'last-quarter',
+                        from: subQuarters(startOfQuarter(today), 1),
+                        to: startOfQuarter(today),
+                      },
+                    ].map((shortcut) => (
+                      <Button
+                        key={shortcut.value}
+                        type="button"
+                        className={getButtonClass(shortcut.value)}
+                        onClick={() =>
+                          handleChange(
+                            'dateRange',
+                            shortcut.value,
+                          )({
+                            from: shortcut.from,
+                            to: shortcut.to || today,
+                          })
+                        }
+                      >
+                        {shortcut.label}
+                      </Button>
+                    ))}
                   </div>
                 </div>
               )}
             </div>
 
             <div className="flex space-x-4 items-center">
-              <Button type="submit" className="p-2 bg-blue-700 hover:bg-blue-800 text-white">
+              <Button
+                type="submit"
+                className="p-3 bg-blue-700 hover:bg-blue-800 text-white flex items-center rounded-md"
+              >
                 <FaDownload className="mr-2 h-4 w-4" />
                 Generate Report
               </Button>
               <Button
                 type="button"
-                className="bg-gray-300 hover:bg-gray-400 text-gray-800 p-2"
+                className="p-3 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md"
                 onClick={handleClearForm}
               >
                 Clear Form

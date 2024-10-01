@@ -5,16 +5,15 @@ import CustomInputField from '@/components/ui/customInputField';
 
 const Page = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-600">
+    <div className="min-h-screen">
       <FormComponent btnText="Login">
         <CustomInputField
           name="email"
           type="email"
           autoComplete="email"
           placeholder="JoneDoe@airqo.net"
-          label="Email Id"
+          label="Email"
         />
-
         <CustomInputField
           name="password"
           type="password"
