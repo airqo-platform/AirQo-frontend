@@ -38,7 +38,7 @@ const HelpPopup = () => {
       {/* Help Popup */}
       {showHelpPopup && (
         <div
-          className={`fixed bottom-[94px] right-6 w-80 p-5 bg-white shadow-xl rounded-lg border border-gray-200 dark:bg-gray-800 dark:text-white transition-opacity duration-300 ease-in-out ${
+          className={`fixed bottom-[94px] right-6 w-80 p-5 bg-white shadow-xl rounded-xl border border-gray-200 dark:bg-gray-800 dark:text-white transition-opacity duration-300 ease-in-out ${
             showHelpPopup ? 'opacity-100' : 'opacity-0'
           }`}
         >
@@ -71,7 +71,7 @@ const HelpPopup = () => {
                   Send Feedback
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-white dark:bg-gray-800 dark:text-white rounded-lg p-6 shadow-lg max-w-md">
+              <DialogContent className="bg-white dark:bg-gray-800 dark:text-white rounded-xl p-6 shadow-lg max-w-md">
                 <DialogTitle>Send Feedback</DialogTitle>
                 <DialogDescription>
                   We would love to hear your thoughts or issues you are experiencing with our app.

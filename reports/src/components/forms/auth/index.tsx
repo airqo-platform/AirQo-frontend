@@ -74,7 +74,7 @@ const Index: React.FC<FormComponentProps> = ({ children, btnText }) => {
       {/* Left Section */}
       <div className="hidden lg:flex flex-1 bg-gradient-to-b from-blue-700 via-blue-600 to-blue-500 text-white p-12 flex-col justify-center items-start relative">
         <Image
-          src="https://images.unsplash.com/reserve/L55hYy77SLqb6zeTMlWr_IMG_9035.jpg?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1727817732/reporting-tool/login-image_v9uyq0.jpg"
           alt="Air Quality"
           layout="fill"
           objectFit="cover"
@@ -90,8 +90,8 @@ const Index: React.FC<FormComponentProps> = ({ children, btnText }) => {
       </div>
 
       {/* Right Section - Login Form */}
-      <div className="flex flex-1 items-center justify-center p-6 lg:p-12 w-full">
-        <Card className="bg-white dark:bg-[#1a202c] border-none p-6 lg:p-8 rounded-lg shadow-2xl w-full max-w-lg">
+      <div className="flex flex-1 bg-white items-center justify-center p-6 lg:p-12 w-full">
+        <Card className=" dark:bg-[#1a202c] border-none p-6 lg:p-8 w-full max-w-lg">
           <CardContent>
             <div className="flex justify-center mb-5">
               <Image src={AirQoLogo} alt="AirQo Logo" className="w-16 lg:w-20" />
@@ -126,11 +126,11 @@ const Index: React.FC<FormComponentProps> = ({ children, btnText }) => {
             </FormProvider>
             <p className="text-center text-sm text-gray-600 mt-6">
               By signing in, you agree to our{' '}
-              <a href="/terms" className="underline text-blue-600">
+              <a href="https://www.airqo.net/legal?tab=terms" className="underline text-blue-600">
                 Terms of Service
               </a>{' '}
               and{' '}
-              <a href="/privacy" className="underline text-blue-600">
+              <a href="https://www.airqo.net/legal?tab=privacy" className="underline text-blue-600">
                 Privacy Policy
               </a>
               .

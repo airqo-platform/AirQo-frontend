@@ -171,7 +171,7 @@ const ReportForm = ({ grids }: any) => {
           <p className="text-gray-500 pt-4 dark:text-gray-400">Please wait, generating report...</p>
         </div>
       ) : (
-        <div className="space-y-6 p-6 bg-white dark:bg-gray-800 rounded-md shadow-sm">
+        <div className="space-y-6 p-6 border border-gray-200  bg-white dark:bg-gray-800 rounded-xl shadow-sm">
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Report Details</h1>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">

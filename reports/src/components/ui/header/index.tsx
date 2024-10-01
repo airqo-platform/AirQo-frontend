@@ -77,8 +77,8 @@ const Header = () => {
   );
 
   return (
-    <div className="sticky top-0 z-50">
-      <nav className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div className="sticky top-0 z-50 p-1">
+      <nav className="flex items-center mx-[10px] justify-between rounded-xl px-6 py-4 border bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700 shadow-sm">
         <div className="hidden md:block" />
         <div className="md:hidden">
           <DrawerComponent links={links} />
@@ -90,7 +90,7 @@ const Header = () => {
                 <BsGrid3X3GapFill size={20} />
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="flex flex-row max-w-[180px] flex-wrap justify-center items-center gap-4 mr-5 p-3 bg-white dark:bg-gray-800 dark:text-gray-300">
+            <DropdownMenuContent className="flex flex-row max-w-[180px] flex-wrap justify-center items-center gap-4 mr-5 p-3 rounded-xl bg-white dark:bg-gray-800 dark:text-gray-300">
               {Products.map((item, index) => (
                 <DropdownMenuCheckboxItem
                   key={index}
@@ -119,11 +119,11 @@ const Header = () => {
                 <div>
                   <BsPerson
                     size={34}
-                    className="text-gray-600 text-2xl cursor-pointer rounded-full bg-gray-200 p-2 dark:bg-gray-700 dark:text-gray-300"
+                    className="text-gray-600 text-2xl cursor-pointer rounded-full bg-yellow-200 p-2 dark:bg-gray-700 dark:text-gray-300"
                   />
                 </div>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="relative right-6 w-52 bg-white dark:bg-gray-800 dark:text-gray-300">
+              <DropdownMenuContent className="relative right-6 w-52 bg-white rounded-xl dark:bg-gray-800 dark:text-gray-300">
                 <DropdownMenuLabel>
                   {session?.user?.email && session?.user?.email.length > 30
                     ? session?.user?.email.slice(0, 30) + '...'
@@ -133,7 +133,7 @@ const Header = () => {
                 {List.map((item, index) => (
                   <DropdownMenuCheckboxItem
                     key={index}
-                    className="pl-1 w-full rounded-md cursor-pointer"
+                    className="pl-1 w-full cursor-pointer"
                     onClick={item.onClick}
                   >
                     {item.icon}

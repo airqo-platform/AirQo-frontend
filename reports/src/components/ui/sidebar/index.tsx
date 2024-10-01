@@ -45,41 +45,43 @@ const SideBar: React.FC = () => {
     }`;
 
   return (
-    <div className="bg-blue-700 w-60 h-full hidden md:flex flex-col justify-between text-white shadow-md">
-      <div>
-        <div className="flex flex-row items-center justify-start space-x-3 p-4">
-          <Image
-            alt="AirQo Logo"
-            src={AirQoLogo}
-            priority
-            className="rounded-full"
-            width={50}
-            height={50}
-          />
-          <h1 className="text-xl font-bold">AQ Report</h1>
+    <div className="w-72 p-1 h-full hidden md:block text-white">
+      <div className="bg-blue-700 rounded-xl w-full h-full md:flex flex-col shadow-sm justify-between">
+        <div>
+          <div className="flex flex-row items-center justify-start space-x-3 p-4">
+            <Image
+              alt="AirQo Logo"
+              src={AirQoLogo}
+              priority
+              className="rounded-full"
+              width={50}
+              height={50}
+            />
+            <h1 className="text-xl font-bold">AQ Report</h1>
+          </div>
+          <Separator className="bg-white" />
+          <nav className="flex flex-col items-center space-y-3 justify-center p-4">
+            {links.map(({ href, icon: Icon, label }) => {
+              const active = isActive(href);
+              return (
+                <Link href={Array.isArray(href) ? href[0] : href} key={label} className="w-full">
+                  <div
+                    className={getLinkClassNames(active)}
+                    aria-current={active ? 'page' : undefined}
+                  >
+                    <Icon />
+                    <span>{label}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </nav>
         </div>
-        <Separator className="bg-white" />
-        <nav className="flex flex-col items-center space-y-3 justify-center p-4">
-          {links.map(({ href, icon: Icon, label }) => {
-            const active = isActive(href);
-            return (
-              <Link href={Array.isArray(href) ? href[0] : href} key={label} className="w-full">
-                <div
-                  className={getLinkClassNames(active)}
-                  aria-current={active ? 'page' : undefined}
-                >
-                  <Icon />
-                  <span>{label}</span>
-                </div>
-              </Link>
-            );
-          })}
-        </nav>
+        <footer className="p-4 text-center">
+          <p className="text-sm">© {year} AQ Report</p>
+          <small className="text-[10px]">Powered by AirQo</small>
+        </footer>
       </div>
-      <footer className="p-4 text-center">
-        <p className="text-sm">© {year} AQ Report</p>
-        <small className="text-[10px]">Powered by AirQo</small>
-      </footer>
     </div>
   );
 };

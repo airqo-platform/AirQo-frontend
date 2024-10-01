@@ -60,7 +60,7 @@ const ReportPage = ({ params }: { params: { reportID: string } }) => {
   return (
     <div>
       <div className="space-y-8 px-8 py-6">
-        <Breadcrumb className="w-full py-4 px-4 border border-gray-300 rounded-lg bg-white dark:bg-gray-800 dark:border-gray-700 shadow-sm">
+        <Breadcrumb className="w-full py-4 px-4 border border-gray-300 rounded-xl bg-white dark:bg-gray-800 dark:border-gray-700 shadow-sm">
           <BreadcrumbList>
             <BreadcrumbItem>
               <Link href="/home" className="text-blue-600 hover:underline">
@@ -74,7 +74,7 @@ const ReportPage = ({ params }: { params: { reportID: string } }) => {
           </BreadcrumbList>
         </Breadcrumb>
 
-        <div className="bg-white p-8 border border-gray-300 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+        <div className="bg-white p-8 border border-gray-300 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white">
           <h2 className="text-3xl font-semibold text-gray-900 dark:text-white mb-6">
             Report Details
           </h2>

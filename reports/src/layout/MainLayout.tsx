@@ -11,7 +11,7 @@ interface LayoutProps {
 
 // Configuration for NextTopLoader
 const loaderConfig = {
-  color: '#2299DD',
+  color: '#1e40af',
   initialPosition: 0.08,
   crawlSpeed: 200,
   height: 4,
@@ -32,7 +32,7 @@ export default function MainLayout({ children }: LayoutProps) {
         <SideBar />
         <main className="flex flex-col flex-1 w-full overflow-y-auto">
           <Header />
-          <div className="p-4 relative">{children}</div>
+          <div className="p-4 max-w-7xl w-full mx-auto relative">{children}</div>
         </main>
       </div>
     </>
