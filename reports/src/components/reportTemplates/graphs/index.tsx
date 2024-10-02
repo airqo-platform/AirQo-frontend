@@ -1,243 +1,170 @@
 /* eslint-disable jsx-a11y/alt-text */
 'use client';
 
-import { Image, Text, StyleSheet } from '@react-pdf/renderer';
-import axios, { CancelTokenSource } from 'axios';
+import { Image } from '@react-pdf/renderer';
+import axios from 'axios';
 import React, { FC, useEffect, useState, useMemo } from 'react';
 
-// TypeScript Interfaces
 interface ChartProps {
-  chartData: ChartData;
+  chartData: any;
   width?: number;
   height?: number;
   graphTitle?: string;
   xAxisTitle?: string;
   yAxisTitle?: string;
-  chartType: 'bar' | 'line';
-  fillBelowLine?: boolean; // New prop to control overlay for line charts
 }
 
-interface ChartData {
-  labels: string[];
-  datasets: ChartDataset[];
-}
-
-interface ChartDataset {
-  label: string;
-  data: number[];
-  backgroundColor?: string | string[];
-  borderColor?: string | string[];
-  fill?: boolean;
-}
-
-// Helper Function to Get Month Color
-const monthColors: { [key: string]: string } = {
-  Jan: 'rgba(128, 0, 0, 0.7)', // Dark Red
-  Feb: 'rgba(0, 0, 128, 0.7)', // Dark Blue
-  Mar: 'rgba(128, 128, 0, 0.7)', // Olive
-  Apr: 'rgba(0, 128, 0, 0.7)', // Dark Green
-  May: 'rgba(128, 0, 128, 0.7)', // Purple
-  Jun: 'rgba(139, 69, 19, 0.7)', // Saddle Brown
-  Jul: 'rgba(0, 128, 128, 0.7)', // Teal
-  Aug: 'rgba(184, 134, 11, 0.7)', // Dark Goldenrod
-  Sep: 'rgba(0, 139, 139, 0.7)', // Dark Cyan
-  Oct: 'rgba(85, 107, 47, 0.7)', // Dark Olive Green
-  Nov: 'rgba(153, 50, 204, 0.7)', // Dark Orchid
-  Dec: 'rgba(139, 0, 0, 0.7)', // Dark Red
-};
-
+// Function to assign colors based on month abbreviations
 const getMonthColor = (label: string): string => {
+  const monthColors: { [key: string]: string } = {
+    Jan: 'rgba(128, 0, 0, 0.7)', // Dark Red
+    Feb: 'rgba(0, 0, 128, 0.7)', // Dark Blue
+    Mar: 'rgba(128, 128, 0, 0.7)', // Olive
+    Apr: 'rgba(0, 128, 0, 0.7)', // Dark Green
+    May: 'rgba(128, 0, 128, 0.7)', // Purple
+    Jun: 'rgba(139, 69, 19, 0.7)', // Saddle Brown
+    Jul: 'rgba(0, 128, 128, 0.7)', // Teal
+    Aug: 'rgba(184, 134, 11, 0.7)', // Dark Goldenrod
+    Sep: 'rgba(0, 139, 139, 0.7)', // Dark Cyan
+    Oct: 'rgba(85, 107, 47, 0.7)', // Dark Olive Green
+    Nov: 'rgba(153, 50, 204, 0.7)', // Dark Orchid
+    Dec: 'rgba(139, 0, 0, 0.7)', // Dark Red
+  };
+
   const monthAbbreviation = label.split(' ')[0];
   return monthColors[monthAbbreviation] || 'rgba(0, 0, 255, 0.4)';
 };
 
-// Generic Chart Component
-export const Chart: FC<ChartProps> = ({
-  chartData,
-  width = 525, // Adjusted to fit within A4 page with 35pt padding on each side
-  height = 300, // Reduced height to prevent overflow
-  graphTitle = '',
-  xAxisTitle = '',
-  yAxisTitle = '',
-  chartType,
-  fillBelowLine = false, // Default to no fill
-}) => {
-  const [chartImageUrl, setChartImageUrl] = useState<string>('');
-  const [error, setError] = useState<string>('');
+// Function to determine maxTicksLimit based on number of labels
+const determineMaxTicksLimit = (labelsCount: number, desiredMaxTicks: number = 20): number => {
+  if (labelsCount <= desiredMaxTicks) return labelsCount;
+  return desiredMaxTicks;
+};
 
-  // Memoize Chart Configuration
-  const chartConfig = useMemo(() => {
-    const datasets = chartData.datasets.map((dataset) => {
-      let backgroundColor = dataset.backgroundColor;
+// Function to generate chart configuration
+const generateChartConfig = (
+  type: 'bar' | 'line',
+  chartData: any,
+  graphTitle: string,
+  xAxisTitle: string,
+  yAxisTitle: string,
+) => {
+  const maxTicksLimit = determineMaxTicksLimit(chartData.labels.length, 20);
 
-      // Apply dynamic background colors for bar charts with 'Date' x-axis
-      if (chartType === 'bar' && xAxisTitle === 'Date') {
-        backgroundColor = chartData.labels.map((label) => getMonthColor(label));
-      } else if (chartType === 'bar' && !Array.isArray(dataset.backgroundColor)) {
-        backgroundColor = 'rgba(0, 0, 255, 0.4)';
-      }
-
-      // For line charts, optionally fill below the line
-      const fill = chartType === 'line' && fillBelowLine ? true : false;
-
-      return {
+  const baseConfig = {
+    data: {
+      ...chartData,
+      datasets: chartData.datasets.map((dataset: any) => ({
         ...dataset,
-        backgroundColor,
-        borderColor: dataset.borderColor || 'rgba(0, 0, 0, 1)',
-        fill,
-      };
-    });
-
-    return {
-      type: chartType,
-      data: {
-        labels: chartData.labels,
-        datasets,
+        backgroundColor:
+          xAxisTitle === 'Date'
+            ? chartData.labels.map((label: any) => getMonthColor(label))
+            : type === 'bar'
+              ? 'rgba(0, 0, 255, 0.4)'
+              : 'rgba(0, 0, 255, 0.4)',
+        borderColor: type === 'line' ? 'rgba(0, 0, 255, 1)' : undefined,
+        fill: type === 'line' ? true : undefined,
+      })),
+    },
+    options: {
+      title: {
+        display: !!graphTitle,
+        text: graphTitle,
+        fontSize: 20,
+        fontColor: '#000000',
       },
-      options: {
-        plugins: {
-          title: {
-            display: Boolean(graphTitle),
-            text: graphTitle,
-            font: {
-              size: 16,
-              weight: 'bold',
-            },
-            color: '#000000',
-            padding: {
-              top: 10,
-              bottom: 20,
-            },
-          },
-          legend: {
-            display: chartType === 'line',
-            labels: {
-              color: 'black',
-              font: {
-                size: 10,
-              },
-            },
-          },
-        },
-        scales: {
-          x: {
-            title: {
-              display: Boolean(xAxisTitle),
-              text: xAxisTitle,
-              font: {
-                size: 12,
-                weight: 'bold',
-              },
-              color: 'black',
+      scales: {
+        xAxes: [
+          {
+            scaleLabel: {
+              display: xAxisTitle !== '',
+              labelString: xAxisTitle,
+              fontColor: 'black',
             },
             ticks: {
-              autoSkip: chartData.labels.length > 20, // Enable autoSkip for large datasets
-              maxTicksLimit: 20, // Limit the number of ticks
+              autoSkip: true,
+              maxTicksLimit: maxTicksLimit,
               maxRotation: 45,
               minRotation: 45,
-              color: 'black',
-              font: {
-                size: 10,
-              },
+              fontColor: 'black',
+              fontSize: 10, // Reduced tick size for x-axis
             },
           },
-          y: {
-            title: {
-              display: Boolean(yAxisTitle),
-              text: yAxisTitle,
-              font: {
-                size: 12,
-                weight: 'bold',
-              },
-              color: 'black',
-              align: 'center', // Align the label to be vertical
+        ],
+        yAxes: [
+          {
+            scaleLabel: {
+              display: yAxisTitle !== '',
+              labelString: yAxisTitle,
+              fontColor: 'black',
             },
             ticks: {
               beginAtZero: true,
-              color: 'black',
-              stepSize: 10, // Adjusted step size for better spacing of y-axis values
-              font: {
-                size: 10,
-              },
+              fontColor: 'black',
+              fontSize: 10, // Reduced tick size for y-axis
             },
           },
-        },
-        responsive: false, // Disable responsiveness for PDF rendering
-        maintainAspectRatio: false,
+        ],
       },
-    };
-  }, [chartData, graphTitle, xAxisTitle, yAxisTitle, chartType, fillBelowLine]);
+      legend: {
+        display: false,
+      },
+      responsive: false,
+      maintainAspectRatio: false,
+    },
+  };
 
-  // Effect to Generate Chart Image
+  return {
+    type,
+    data: baseConfig.data,
+    options: baseConfig.options,
+  };
+};
+
+// Generic Chart Component
+const Chart: FC<ChartProps & { type: 'bar' | 'line' }> = ({
+  type,
+  chartData,
+  width = 530,
+  height = 400,
+  graphTitle = '',
+  xAxisTitle = '',
+  yAxisTitle = '',
+}) => {
+  const [chartImageUrl, setChartImageUrl] = useState<string>('');
+
+  const chartConfig = useMemo(
+    () => generateChartConfig(type, chartData, graphTitle, xAxisTitle, yAxisTitle),
+    [type, chartData, graphTitle, xAxisTitle, yAxisTitle],
+  );
+
   useEffect(() => {
-    let cancelTokenSource: CancelTokenSource;
-
     const generateChart = async () => {
       try {
-        cancelTokenSource = axios.CancelToken.source();
-        const response = await axios.post(
-          '/reports/api/generateChart',
-          {
-            chartConfig,
-            width,
-            height,
-          },
-          {
-            cancelToken: cancelTokenSource.token,
-          },
-        );
+        const response = await axios.post('/reports/api/generateChart', {
+          chartConfig,
+          width,
+          height,
+        });
 
         if (response.data.url) {
           setChartImageUrl(response.data.url);
         } else {
-          setError('Chart image URL not received');
+          console.error('Chart image URL not returned');
         }
-      } catch (err: any) {
-        if (axios.isCancel(err)) {
-          console.log('Chart generation cancelled');
-        } else {
-          console.error('Error generating chart:', err);
-          setError('Failed to generate chart');
-        }
+      } catch (error) {
+        console.error('Error generating chart:', error);
       }
     };
 
     generateChart();
-
-    // Cleanup to cancel the request if the component unmounts or dependencies change
-    return () => {
-      if (cancelTokenSource) {
-        cancelTokenSource.cancel('Operation canceled by the user.');
-      }
-    };
   }, [chartConfig, width, height]);
 
-  // Render Error Message if Any
-  if (error) {
-    return <Text style={styles.errorText}>{error}</Text>;
-  }
-
-  // Render Loading Indicator
-  if (!chartImageUrl) {
-    return <Text style={styles.loadingText}>Loading chart...</Text>;
-  }
-
-  // Render the Chart Image
-  return <Image src={chartImageUrl} style={{ width, height }} />;
+  return chartImageUrl ? <Image src={chartImageUrl} /> : null;
 };
 
-// Stylesheet
-const styles = StyleSheet.create({
-  errorText: {
-    color: 'red',
-    fontSize: 10,
-    textAlign: 'center',
-    margin: 10,
-  },
-  loadingText: {
-    color: 'gray',
-    fontSize: 10,
-    textAlign: 'center',
-    margin: 10,
-  },
-});
+// Specialized BarChart Component
+export const BarChartComponent: FC<ChartProps> = (props) => <Chart type="bar" {...props} />;
+
+// Specialized LineChart Component
+export const LineChartComponent: FC<ChartProps> = (props) => <Chart type="line" {...props} />;
