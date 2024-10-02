@@ -6,7 +6,6 @@ import axios, { CancelTokenSource } from 'axios';
 import React, { FC, useEffect, useState, useMemo } from 'react';
 
 // TypeScript Interfaces
-
 interface ChartProps {
   chartData: ChartData;
   width?: number;
@@ -15,6 +14,7 @@ interface ChartProps {
   xAxisTitle?: string;
   yAxisTitle?: string;
   chartType: 'bar' | 'line';
+  fillBelowLine?: boolean; // New prop to control overlay for line charts
 }
 
 interface ChartData {
@@ -31,7 +31,6 @@ interface ChartDataset {
 }
 
 // Helper Function to Get Month Color
-
 const monthColors: { [key: string]: string } = {
   Jan: 'rgba(128, 0, 0, 0.7)', // Dark Red
   Feb: 'rgba(0, 0, 128, 0.7)', // Dark Blue
@@ -53,15 +52,15 @@ const getMonthColor = (label: string): string => {
 };
 
 // Generic Chart Component
-
-const Chart: FC<ChartProps> = ({
+export const Chart: FC<ChartProps> = ({
   chartData,
-  width = 800,
-  height = 400,
+  width = 525, // Adjusted to fit within A4 page with 35pt padding on each side
+  height = 300, // Reduced height to prevent overflow
   graphTitle = '',
   xAxisTitle = '',
   yAxisTitle = '',
   chartType,
+  fillBelowLine = false, // Default to no fill
 }) => {
   const [chartImageUrl, setChartImageUrl] = useState<string>('');
   const [error, setError] = useState<string>('');
@@ -70,7 +69,6 @@ const Chart: FC<ChartProps> = ({
   const chartConfig = useMemo(() => {
     const datasets = chartData.datasets.map((dataset) => {
       let backgroundColor = dataset.backgroundColor;
-      // let borderColor = dataset.borderColor;
 
       // Apply dynamic background colors for bar charts with 'Date' x-axis
       if (chartType === 'bar' && xAxisTitle === 'Date') {
@@ -79,11 +77,14 @@ const Chart: FC<ChartProps> = ({
         backgroundColor = 'rgba(0, 0, 255, 0.4)';
       }
 
+      // For line charts, optionally fill below the line
+      const fill = chartType === 'line' && fillBelowLine ? true : false;
+
       return {
         ...dataset,
         backgroundColor,
         borderColor: dataset.borderColor || 'rgba(0, 0, 0, 1)',
-        fill: chartType === 'line' ? false : undefined,
+        fill,
       };
     });
 
@@ -94,52 +95,78 @@ const Chart: FC<ChartProps> = ({
         datasets,
       },
       options: {
-        title: {
-          display: Boolean(graphTitle),
-          text: graphTitle,
-          fontSize: 20,
-          fontColor: '#000000',
+        plugins: {
+          title: {
+            display: Boolean(graphTitle),
+            text: graphTitle,
+            font: {
+              size: 16,
+              weight: 'bold',
+            },
+            color: '#000000',
+            padding: {
+              top: 10,
+              bottom: 20,
+            },
+          },
+          legend: {
+            display: chartType === 'line',
+            labels: {
+              color: 'black',
+              font: {
+                size: 10,
+              },
+            },
+          },
         },
         scales: {
-          xAxes: [
-            {
-              scaleLabel: {
-                display: Boolean(xAxisTitle),
-                labelString: xAxisTitle,
-                fontColor: 'black',
+          x: {
+            title: {
+              display: Boolean(xAxisTitle),
+              text: xAxisTitle,
+              font: {
+                size: 12,
+                weight: 'bold',
               },
-              ticks: {
-                autoSkip: chartData.labels.length > 20, // Enable autoSkip for large datasets
-                maxTicksLimit: 20, // Limit the number of ticks
-                autoSkipPadding: 10,
-                maxRotation: 45,
-                minRotation: 45,
-                fontColor: 'black',
+              color: 'black',
+            },
+            ticks: {
+              autoSkip: chartData.labels.length > 20, // Enable autoSkip for large datasets
+              maxTicksLimit: 20, // Limit the number of ticks
+              maxRotation: 45,
+              minRotation: 45,
+              color: 'black',
+              font: {
+                size: 10,
               },
             },
-          ],
-          yAxes: [
-            {
-              scaleLabel: {
-                display: Boolean(yAxisTitle),
-                labelString: yAxisTitle,
-                fontColor: 'black',
+          },
+          y: {
+            title: {
+              display: Boolean(yAxisTitle),
+              text: yAxisTitle,
+              font: {
+                size: 12,
+                weight: 'bold',
               },
-              ticks: {
-                beginAtZero: true,
-                fontColor: 'black',
+              color: 'black',
+              align: 'center', // Align the label to be vertical
+            },
+            ticks: {
+              beginAtZero: true,
+              color: 'black',
+              stepSize: 10, // Adjusted step size for better spacing of y-axis values
+              font: {
+                size: 10,
               },
             },
-          ],
-        },
-        legend: {
-          display: false,
+          },
         },
         responsive: false, // Disable responsiveness for PDF rendering
         maintainAspectRatio: false,
       },
     };
-  }, [chartData, graphTitle, xAxisTitle, yAxisTitle, chartType]);
+  }, [chartData, graphTitle, xAxisTitle, yAxisTitle, chartType, fillBelowLine]);
 
   // Effect to Generate Chart Image
   useEffect(() => {
@@ -199,30 +226,17 @@ const Chart: FC<ChartProps> = ({
   return <Image src={chartImageUrl} style={{ width, height }} />;
 };
 
-// Specific Chart Type Components
-
-export const BarChart: FC<Omit<ChartProps, 'chartType'> & { chartType?: 'bar' }> = ({
-  chartType = 'bar',
-  ...props
-}) => <Chart {...props} chartType={chartType} />;
-
-export const LineChart: FC<Omit<ChartProps, 'chartType'> & { chartType?: 'line' }> = ({
-  chartType = 'line',
-  ...props
-}) => <Chart {...props} chartType={chartType} />;
-
 // Stylesheet
-
 const styles = StyleSheet.create({
   errorText: {
     color: 'red',
-    fontSize: 12,
+    fontSize: 10,
     textAlign: 'center',
     margin: 10,
   },
   loadingText: {
     color: 'gray',
-    fontSize: 12,
+    fontSize: 10,
     textAlign: 'center',
     margin: 10,
   },

@@ -5,11 +5,11 @@ import { Page, Text, View, Document, StyleSheet, Image } from '@react-pdf/render
 import { format } from 'date-fns';
 import React, { useMemo } from 'react';
 
-import { BarChart, LineChart } from '../graphs';
+import { Chart } from '../graphs';
 
 import TemplateLogo from '@/public/images/templateLogo.png';
 
-// Define TypeScript interfaces for data structures
+// TypeScript Interfaces
 interface Period {
   startTime: string;
   endTime: string;
@@ -52,7 +52,7 @@ interface Template1Props {
   data: Data;
 }
 
-// Define Table Row interface
+// Table Row Interface
 interface TableRow {
   healthConcern: string;
   pm25: string;
@@ -99,43 +99,36 @@ const Table: React.FC<{ rows: TableRow[] }> = ({ rows }) => (
   </View>
 );
 
-// BarChart Component Wrapper
-const BarChartComponent: React.FC<{
+// Chart Component Wrapper
+const ChartComponent: React.FC<{
   chartData: any;
   graphTitle: string;
   xAxisTitle: string;
   yAxisTitle: string;
   caption: string;
-}> = ({ chartData, graphTitle, xAxisTitle, yAxisTitle, caption }) => (
-  <View>
-    <BarChart
+  chartType: 'bar' | 'line';
+}> = ({ chartData, graphTitle, xAxisTitle, yAxisTitle, caption, chartType }) => (
+  <View style={styles.chartContainer}>
+    <Chart
       chartData={chartData}
       graphTitle={graphTitle}
       xAxisTitle={xAxisTitle}
       yAxisTitle={yAxisTitle}
+      chartType={chartType}
     />
     <Text style={styles.figureCaption}>{caption}</Text>
   </View>
 );
 
-// LineChart Component Wrapper
-const LineChartComponent: React.FC<{
-  chartData: any;
-  graphTitle: string;
-  xAxisTitle: string;
-  yAxisTitle: string;
-  caption: string;
-}> = ({ chartData, graphTitle, xAxisTitle, yAxisTitle, caption }) => (
-  <View>
-    <LineChart
-      chartData={chartData}
-      graphTitle={graphTitle}
-      xAxisTitle={xAxisTitle}
-      yAxisTitle={yAxisTitle}
-    />
-    <Text style={styles.figureCaption}>{caption}</Text>
-  </View>
+// Section Title Component
+const SectionTitle: React.FC<{ title: string }> = ({ title }) => (
+  <Text style={styles.subTitle}>{title}</Text>
 );
+
+// Helper Function to Get Month Name
+const getMonthName = (monthNumber: number) => {
+  return format(new Date(2024, monthNumber - 1), 'MMMM');
+};
 
 // Main Template Component
 const Template1: React.FC<Template1Props> = ({ data }) => {
@@ -274,11 +267,6 @@ const Template1: React.FC<Template1Props> = ({ data }) => {
     [data.diurnal],
   );
 
-  // Helper Function to Get Month Name
-  const getMonthName = (monthNumber: number) => {
-    return format(new Date(2024, monthNumber - 1), 'MMMM');
-  };
-
   return (
     <Document
       title="Air Quality Report"
@@ -351,12 +339,13 @@ const Template1: React.FC<Template1Props> = ({ data }) => {
         </View>
 
         {/* Site Monthly Mean PM2.5 Bar Chart */}
-        <BarChartComponent
+        <ChartComponent
           chartData={chartData1}
           graphTitle={`Site Monthly Mean PM2.5 for ${data.sites['grid name'][0]}`}
           xAxisTitle="Locations"
           yAxisTitle="PM2.5 Raw Values"
           caption={`Figure 1: Monthly mean PM2.5 for different sites in ${data.sites['grid name'][0]}`}
+          chartType="bar"
         />
 
         {/* Top 5 Locations Text */}
@@ -387,22 +376,24 @@ const Template1: React.FC<Template1Props> = ({ data }) => {
         </Text>
 
         {/* Daily Mean PM2.5 Bar Chart */}
-        <BarChartComponent
+        <ChartComponent
           chartData={chartData2}
           graphTitle={`Daily Mean PM2.5 for ${data.sites['grid name'][0]}`}
           xAxisTitle="Date"
           yAxisTitle="PM2.5 Raw Values"
           caption={`Figure 2: Daily mean PM2.5 for ${data.sites['grid name'][0]}`}
+          chartType="bar"
         />
 
         {/* Diurnal PM2.5 Line Chart */}
         <SectionTitle title="Diurnal" />
-        <LineChartComponent
+        <ChartComponent
           chartData={chartData3}
           graphTitle={`Diurnal PM2.5 for ${data.sites['grid name'][0]}`}
           xAxisTitle="Hour"
           yAxisTitle="PM2.5 Raw Values"
           caption={`Figure 3: Diurnal PM2.5 for ${data.sites['grid name'][0]} (local time)`}
+          chartType="line"
         />
 
         {/* Diurnal PM2.5 Analysis */}
@@ -418,13 +409,6 @@ const Template1: React.FC<Template1Props> = ({ data }) => {
           It{"'"}s important to note that the PM2.5 values in this dataset are higher than the WHO
           recommended standard, indicating a need for interventions to improve air quality.
         </Text>
-
-        {/* Page Number */}
-        <Text
-          style={styles.pageNumber}
-          render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
-          fixed
-        />
 
         {/* Conclusion Section */}
         <SectionTitle title="Conclusion" />
@@ -464,15 +448,17 @@ const Template1: React.FC<Template1Props> = ({ data }) => {
             </View>
           ))}
         </View>
+
+        {/* Page Number */}
+        <Text
+          style={styles.pageNumber}
+          render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
+          fixed
+        />
       </Page>
     </Document>
   );
 };
-
-// Section Title Component
-const SectionTitle: React.FC<{ title: string }> = ({ title }) => (
-  <Text style={styles.subTitle}>{title}</Text>
-);
 
 // Stylesheet
 const styles = StyleSheet.create({
@@ -486,8 +472,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   logo: {
-    width: 'auto',
+    width: 100,
     height: 60,
+    objectFit: 'contain',
   },
   page: {
     paddingTop: 35,
@@ -495,36 +482,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 35,
   },
   titleContainer: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
   },
   title: {
-    fontSize: 20,
+    fontSize: 18,
     textAlign: 'center',
     fontWeight: 'bold',
   },
   subTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     marginVertical: 12,
   },
   text: {
-    fontSize: 12,
+    fontSize: 11,
     textAlign: 'justify',
     fontFamily: 'Times-Roman',
-    lineHeight: 1.5,
+    lineHeight: 1.4,
     marginVertical: 6,
   },
   figureCaption: {
     textAlign: 'center',
-    fontSize: 10,
-    marginVertical: 10,
+    fontSize: 9,
+    marginVertical: 8,
   },
   pageNumber: {
     position: 'absolute',
-    fontSize: 12,
+    fontSize: 10,
     bottom: 30,
     left: 0,
     right: 0,
@@ -556,7 +541,7 @@ const styles = StyleSheet.create({
   },
   tableCell: {
     margin: 5,
-    fontSize: 10,
+    fontSize: 9,
     textAlign: 'center',
   },
   listItem: {
@@ -572,10 +557,13 @@ const styles = StyleSheet.create({
   },
   itemContent: {
     flex: 1,
-    fontSize: 12,
+    fontSize: 11,
     textAlign: 'left',
     fontFamily: 'Times-Roman',
-    lineHeight: 1.5,
+    lineHeight: 1.4,
+  },
+  chartContainer: {
+    marginVertical: 10,
   },
 });
 
