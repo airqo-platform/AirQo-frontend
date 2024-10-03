@@ -127,7 +127,6 @@ const steps = ['Device Details', 'Site Details', 'Deploy'];
 const DeployDevice = () => {
   const classes = useStyles();
   const [activeStep, setActiveStep] = useState(0);
-  const [deviceId, setDeviceId] = useState('');
   const [powerType, setPowerType] = useState('');
   const [mountType, setMountType] = useState('');
   const [height, setHeight] = useState('');
@@ -140,6 +139,10 @@ const DeployDevice = () => {
   const [openAlert, setOpenAlert] = useState(false);
   const [alertSeverity, setAlertSeverity] = useState('success');
   const [alertMessage, setAlertMessage] = useState('');
+  const [latitudeError, setLatitudeError] = useState('');
+  const [longitudeError, setLongitudeError] = useState('');
+  const [siteNameError, setSiteNameError] = useState('');
+  const [deviceNameError, setDeviceNameError] = useState('');
 
   const powerTypeOptions = [
     { value: 'solar', label: 'Solar' },
@@ -191,7 +194,6 @@ const DeployDevice = () => {
           setAlertMessage('Device deployed successfully!');
 
           // Reset form values
-          setDeviceId('');
           setDeviceName('');
           setPowerType('');
           setMountType('');
@@ -231,8 +233,66 @@ const DeployDevice = () => {
     setOpenAlert(false);
   };
 
-  const isStep0Valid = deviceId && powerType && mountType && height && height > 0 && deviceName;
-  const isStep1Valid = latitude && longitude && siteName;
+  const isStep0Valid =
+    powerType && mountType && height && height > 0 && deviceName && !deviceNameError;
+  const isStep1Valid =
+    latitude && longitude && siteName && !latitudeError && !longitudeError && !siteNameError;
+
+  const validateCoordinate = (value, setter) => {
+    if (value === '') {
+      setter('');
+      return;
+    }
+
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) {
+      setter('Must be a valid number');
+    } else if (!value.includes('.') || value.split('.')[1]?.length < 5) {
+      setter('Must have at least 5 decimal places');
+    } else {
+      setter('');
+    }
+  };
+
+  const handleLatitudeChange = (e) => {
+    const value = e.target.value;
+    setLatitude(value);
+    validateCoordinate(value, setLatitudeError);
+  };
+
+  const handleLongitudeChange = (e) => {
+    const value = e.target.value;
+    setLongitude(value);
+    validateCoordinate(value, setLongitudeError);
+  };
+
+  const validateSiteName = (value) => {
+    if (value.length <= 3) {
+      setSiteNameError('Site name must be longer than 3 characters');
+    } else {
+      setSiteNameError('');
+    }
+  };
+
+  const handleSiteNameChange = (e) => {
+    const value = e.target.value;
+    setSiteName(value);
+    validateSiteName(value);
+  };
+
+  const validateDeviceName = (value) => {
+    if (value.length < 4) {
+      setDeviceNameError('Device name must be at least 4 characters long');
+    } else {
+      setDeviceNameError('');
+    }
+  };
+
+  const handleDeviceNameChange = (e) => {
+    const value = e.target.value;
+    setDeviceName(value);
+    validateDeviceName(value);
+  };
 
   const renderStepContent = (step) => {
     switch (step) {
@@ -243,20 +303,6 @@ const DeployDevice = () => {
               <Grid item xs={12}>
                 <div className={classes.labelContainer}>
                   <Typography variant="subtitle1" className={classes.label}>
-                    Device ID *
-                  </Typography>
-                  <TextField
-                    fullWidth
-                    label="Device ID"
-                    variant="outlined"
-                    value={deviceId}
-                    onChange={(e) => setDeviceId(e.target.value)}
-                  />
-                </div>
-              </Grid>
-              <Grid item xs={12}>
-                <div className={classes.labelContainer}>
-                  <Typography variant="subtitle1" className={classes.label}>
                     Device Name *
                   </Typography>
                   <TextField
@@ -264,7 +310,9 @@ const DeployDevice = () => {
                     label="Device Name"
                     variant="outlined"
                     value={deviceName}
-                    onChange={(e) => setDeviceName(e.target.value)}
+                    onChange={handleDeviceNameChange}
+                    error={!!deviceNameError}
+                    helperText={deviceNameError}
                   />
                 </div>
               </Grid>
@@ -303,7 +351,7 @@ const DeployDevice = () => {
                   </Typography>
                   <TextField
                     fullWidth
-                    label="Height"
+                    label="Height (meters)"
                     variant="outlined"
                     type="number"
                     value={height}
@@ -344,9 +392,13 @@ const DeployDevice = () => {
                       label="Latitude"
                       variant="outlined"
                       value={latitude}
-                      onChange={(e) => setLatitude(parseFloat(e.target.value))}
+                      onChange={handleLatitudeChange}
+                      error={!!latitudeError}
                       helperText={
-                        latitude < -90 || latitude > 90 ? 'Latitude must be between -90 and 90' : ''
+                        latitudeError ||
+                        (latitude && (parseFloat(latitude) < -90 || parseFloat(latitude) > 90)
+                          ? 'Latitude must be between -90 and 90'
+                          : '')
                       }
                     />
                   </div>
@@ -361,11 +413,13 @@ const DeployDevice = () => {
                       label="Longitude"
                       variant="outlined"
                       value={longitude}
-                      onChange={(e) => setLongitude(parseFloat(e.target.value))}
+                      onChange={handleLongitudeChange}
+                      error={!!longitudeError}
                       helperText={
-                        longitude < -180 || longitude > 180
+                        longitudeError ||
+                        (longitude && (parseFloat(longitude) < -180 || parseFloat(longitude) > 180)
                           ? 'Longitude must be between -180 and 180'
-                          : ''
+                          : '')
                       }
                     />
                   </div>
@@ -380,37 +434,15 @@ const DeployDevice = () => {
                       label="Site Name"
                       variant="outlined"
                       value={siteName}
-                      onChange={(e) => setSiteName(e.target.value)}
+                      onChange={handleSiteNameChange}
+                      error={!!siteNameError}
+                      helperText={siteNameError}
                     />
                   </div>
                 </Grid>
               </Grid>
             </div>
             <div className={classes.mapContainer}>
-              {/* {latitude && longitude ? (
-                <LeafletMap
-                  center={[latitude, longitude]}
-                  zoom={13}
-                  scrollWheelZoom={false}
-                  className={classes.mapPreview}
-                  ref={mapRef}
-                >
-                  <TileLayer
-                    url='https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}'
-                    attribution='Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
-                  />
-                  <Marker position={[latitude, longitude]}>
-                    <Popup>Deployment site</Popup>
-                  </Marker>
-                </LeafletMap>
-              ) : (
-                <div className={classes.mapPreviewPlaceholder}>
-                  <Typography variant="body2" color="textSecondary">
-                    Enter latitude and longitude to see the map preview
-                  </Typography>
-                </div>
-              )} */}
-
               <div className={classes.mapPreviewPlaceholder}>
                 <Typography variant="body2" color="textSecondary">
                   Map preview will appear here
@@ -428,7 +460,6 @@ const DeployDevice = () => {
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Typography variant="subtitle1">Device Details</Typography>
-                <Typography>Device ID: {deviceId}</Typography>
                 <Typography>Device Name: {deviceName}</Typography>
                 <Typography>Power Type: {powerType.label}</Typography>
                 <Typography>Mount Type: {mountType.label}</Typography>
