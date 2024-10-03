@@ -36,7 +36,10 @@ const getMonthColor = (label: string): string => {
 };
 
 // Function to determine maxTicksLimit based on number of labels
-const determineMaxTicksLimit = (labelsCount: number, desiredMaxTicks: number = 20): number => {
+const determineMaxTicksLimit = (
+  labelsCount: number,
+  desiredMaxTicks: number = 20,
+): number => {
   if (labelsCount <= desiredMaxTicks) return labelsCount;
   return desiredMaxTicks;
 };
@@ -70,8 +73,9 @@ const generateChartConfig = (
       title: {
         display: !!graphTitle,
         text: graphTitle,
-        fontSize: 20,
+        fontSize: 25,
         fontColor: '#000000',
+        fontFamily: 'Arial',
       },
       scales: {
         xAxes: [
@@ -87,7 +91,8 @@ const generateChartConfig = (
               maxRotation: 45,
               minRotation: 45,
               fontColor: 'black',
-              fontSize: 10, // Reduced tick size for x-axis
+              fontSize: 10,
+              fontFamily: 'Arial',
             },
           },
         ],
@@ -101,7 +106,8 @@ const generateChartConfig = (
             ticks: {
               beginAtZero: true,
               fontColor: 'black',
-              fontSize: 10, // Reduced tick size for y-axis
+              fontSize: 10,
+              fontFamily: 'Arial',
             },
           },
         ],
@@ -134,7 +140,8 @@ const Chart: FC<ChartProps & { type: 'bar' | 'line' }> = ({
   const [chartImageUrl, setChartImageUrl] = useState<string>('');
 
   const chartConfig = useMemo(
-    () => generateChartConfig(type, chartData, graphTitle, xAxisTitle, yAxisTitle),
+    () =>
+      generateChartConfig(type, chartData, graphTitle, xAxisTitle, yAxisTitle),
     [type, chartData, graphTitle, xAxisTitle, yAxisTitle],
   );
 
@@ -164,7 +171,11 @@ const Chart: FC<ChartProps & { type: 'bar' | 'line' }> = ({
 };
 
 // Specialized BarChart Component
-export const BarChartComponent: FC<ChartProps> = (props) => <Chart type="bar" {...props} />;
+export const BarChartComponent: FC<ChartProps> = (props) => (
+  <Chart type="bar" {...props} />
+);
 
 // Specialized LineChart Component
-export const LineChartComponent: FC<ChartProps> = (props) => <Chart type="line" {...props} />;
+export const LineChartComponent: FC<ChartProps> = (props) => (
+  <Chart type="line" {...props} />
+);

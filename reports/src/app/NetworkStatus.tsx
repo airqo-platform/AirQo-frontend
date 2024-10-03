@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 
 import { useNetworkChecker } from '@/hooks/useNetworkChecker';
-import NoInternetSVG from '@/public/svgs/NoInternetSVG';
+import NoInternetSVG from '@/public/assets/svgs/NoInternetSVG';
 
 const NetworkStatus: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [retrying, setRetrying] = useState(false);
@@ -11,7 +11,9 @@ const NetworkStatus: React.FC<React.PropsWithChildren> = ({ children }) => {
 
   const handleRetry = () => {
     setRetrying(true);
-    setRetryTimer(setTimeout(() => window.location.reload(), 5000) as unknown as number);
+    setRetryTimer(
+      setTimeout(() => window.location.reload(), 5000) as unknown as number,
+    );
   };
 
   const cancelRetry = () => {
@@ -37,7 +39,8 @@ const NetworkStatus: React.FC<React.PropsWithChildren> = ({ children }) => {
             Oops! No Internet Connection
           </h1>
           <p className="text-lg mb-6 text-gray-700">
-            It seems you are offline. Please check your connection and try again.
+            It seems you are offline. Please check your connection and try
+            again.
           </p>
           <div className="space-x-4">
             <button

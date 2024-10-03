@@ -9,7 +9,7 @@ import Table from '../components/Table';
 import { BarChartComponent, LineChartComponent } from '../graphs';
 import styles from '../styles';
 
-import TemplateLogo from '@/public/images/templateLogo.png';
+import TemplateLogo from '@/public/assets/images/templateLogo.png';
 
 interface SiteMonthlyMeanPM {
   site_name: string;
@@ -56,13 +56,15 @@ const AQITableData = [
   {
     healthConcern: 'Good',
     pm25: '0 - 12',
-    precautions: 'None: Air quality is satisfactory; and air pollution poses little or no risk.',
+    precautions:
+      'None: Air quality is satisfactory; and air pollution poses little or no risk.',
     bgColor: '#00e400',
   },
   {
     healthConcern: 'Moderate',
     pm25: '12.1 - 35.4',
-    precautions: 'Unusually sensitive people should consider reducing prolonged or heavy exertion.',
+    precautions:
+      'Unusually sensitive people should consider reducing prolonged or heavy exertion.',
     bgColor: '#ff0',
   },
   {
@@ -174,7 +176,9 @@ const Template1: FC<Template1Props> = ({ data }) => {
 
   const chartData2 = useMemo(() => {
     return {
-      labels: data.daily_mean_pm.map((item) => format(new Date(item.date), 'MMM d')),
+      labels: data.daily_mean_pm.map((item) =>
+        format(new Date(item.date), 'MMM d'),
+      ),
       datasets: [
         {
           label: 'Daily Mean PM2.5',
@@ -244,54 +248,67 @@ const Template1: FC<Template1Props> = ({ data }) => {
         {/* Executive Summary */}
         <Section title="Executive Summary">
           <Text style={styles.text}>
-            This report summarizes the temporal air quality profiles observed by the AirQo monitors
-            installed at {data.sites['grid name'][0]} between {startDate} and {endDate}. The AirQo
-            monitor measures particulate matter (PM2.5) concentration, one of the primary air
-            pollutants. PM2.5 are fine inhalable particles with diameters generally 2.5 micrometers
-            and smaller. The data from the site indicates that the air quality at this location
-            during the monitored period mainly alternated between moderate and unhealthy.
+            This report summarizes the temporal air quality profiles observed by
+            the AirQo monitors installed at {data.sites['grid name'][0]} between{' '}
+            {startDate} and {endDate}. The AirQo monitor measures particulate
+            matter (PM2.5) concentration, one of the primary air pollutants.
+            PM2.5 are fine inhalable particles with diameters generally 2.5
+            micrometers and smaller. The data from the site indicates that the
+            air quality at this location during the monitored period mainly
+            alternated between moderate and unhealthy.
           </Text>
         </Section>
 
         {/* Introduction */}
         <Section title="Introduction">
           <Text style={styles.text}>
-            Air quality is a vital aspect of human health, well-being, and environmental
-            sustainability. Prolonged exposure to air pollution can cause various adverse effects,
-            such as respiratory infections, cardiovascular diseases, lung cancer, and premature
-            death. Other associated effects due to short-term exposure are asthma attacks and
+            Air quality is a vital aspect of human health, well-being, and
+            environmental sustainability. Prolonged exposure to air pollution
+            can cause various adverse effects, such as respiratory infections,
+            cardiovascular diseases, lung cancer, and premature death. Other
+            associated effects due to short-term exposure are asthma attacks and
             chronic bronchitis.
             {'\n'} {'\n'}
-            Among the various pollutants monitored, one key metric of interest is PM2.5. PM2.5
-            refers to particulate matter with a diameter of 2.5 micrometers or smaller. These
-            microscopic particles, often generated from various sources such as vehicle emissions,
-            industrial processes, rubbish and biomass burning, construction activities, mining
-            activities, dust from unpaved roads, etc., can pose significant health risks when
-            inhaled. Due to their small size, PM2.5 particles can penetrate deep into the lungs,
-            potentially causing respiratory and cardiovascular issues. The sources of PM2.5
-            pollution in Kampala may include traffic emissions, biomass burning, industrial
-            processes, dust from unpaved roads, and construction activities.
+            Among the various pollutants monitored, one key metric of interest
+            is PM2.5. PM2.5 refers to particulate matter with a diameter of 2.5
+            micrometers or smaller. These microscopic particles, often generated
+            from various sources such as vehicle emissions, industrial
+            processes, rubbish and biomass burning, construction activities,
+            mining activities, dust from unpaved roads, etc., can pose
+            significant health risks when inhaled. Due to their small size,
+            PM2.5 particles can penetrate deep into the lungs, potentially
+            causing respiratory and cardiovascular issues. The sources of PM2.5
+            pollution in Kampala may include traffic emissions, biomass burning,
+            industrial processes, dust from unpaved roads, and construction
+            activities.
           </Text>
           <Text style={styles.text}>
-            This report encapsulates the findings from meticulous data analysis from {startDate} to{' '}
-            {endDate}. The focus of this investigation revolved around the values of PM2.5, a
-            critical parameter in evaluating air quality. It aims to provide an insightful overview
-            of this locale&apos;s air quality conditions and neighborhood.
+            This report encapsulates the findings from meticulous data analysis
+            from {startDate} to {endDate}. The focus of this investigation
+            revolved around the values of PM2.5, a critical parameter in
+            evaluating air quality. It aims to provide an insightful overview of
+            this locale&apos;s air quality conditions and neighborhood.
           </Text>
         </Section>
 
         {/* Data Presentation */}
         <Section title="Data Presentation">
           <Text style={styles.text}>
-            Data for this report is presented and visualized using the US-EPA Air Quality Index
-            (AQI) to communicate the health risks associated with PM2.5 exposure. The data
-            visualization is based on a simplified approach that adopts the raw concentration
-            categorization with the corresponding AQI color codes.
+            Data for this report is presented and visualized using the US-EPA
+            Air Quality Index (AQI) to communicate the health risks associated
+            with PM2.5 exposure. The data visualization is based on a simplified
+            approach that adopts the raw concentration categorization with the
+            corresponding AQI color codes.
           </Text>
 
           {/* AQI Table */}
-          <Table headers={['Health Concern', 'PM2.5 (µg/m³)', 'Precautions']} rows={AQITableData} />
-          <Text style={styles.figureCaption}>Table 1: Air Quality Index (US-EPA)</Text>
+          <Table
+            headers={['Health Concern', 'PM2.5 (µg/m³)', 'Precautions']}
+            rows={AQITableData}
+          />
+          <Text style={styles.figureCaption}>
+            Table 1: Air Quality Index (US-EPA)
+          </Text>
 
           {/* Bar Chart 1 */}
           <BarChartComponent
@@ -301,16 +318,18 @@ const Template1: FC<Template1Props> = ({ data }) => {
             yAxisTitle="PM2.5 Raw Values"
           />
           <Text style={styles.figureCaption}>
-            Figure 1: Monthly mean PM2.5 for different sites in {data.sites['grid name'][0]}
+            Figure 1: Monthly mean PM2.5 for different sites in{' '}
+            {data.sites['grid name'][0]}
           </Text>
 
           {/* Top 5 Locations */}
           <Text style={styles.text}>
-            The locations with the highest PM2.5 raw values in the dataset for the specified period
-            include{' '}
+            The locations with the highest PM2.5 raw values in the dataset for
+            the specified period include{' '}
             {top5Locations.map((location, index) => (
               <React.Fragment key={location.site_name}>
-                {location.site_name}, recording a PM2.5 value of {location.pm2_5_raw_value} µg/m³ in{' '}
+                {location.site_name}, recording a PM2.5 value of{' '}
+                {location.pm2_5_raw_value} µg/m³ in{' '}
                 {getMonthName(location.month)}
                 {index < top5Locations.length - 1 ? ', followed by ' : '.'}
               </React.Fragment>
@@ -319,14 +338,17 @@ const Template1: FC<Template1Props> = ({ data }) => {
 
           {/* Bottom 3 Locations */}
           <Text style={styles.text}>
-            In contrast to the locations with the highest PM2.5 values, there are several locations
-            that stand out for their notably low PM2.5 values. As shown in Figure 1, the locations
-            with the lowest recorded PM2.5 values include{' '}
+            In contrast to the locations with the highest PM2.5 values, there
+            are several locations that stand out for their notably low PM2.5
+            values. As shown in Figure 1, the locations with the lowest recorded
+            PM2.5 values include{' '}
             {bottom3Locations.map((location, index) => (
               <React.Fragment key={location.site_name}>
-                {location.site_name}, with a value of {location.pm2_5_raw_value} µg/m³ in{' '}
-                {getMonthName(location.month)}
-                {index < bottom3Locations.length - 1 ? ', closely followed by ' : '.'}
+                {location.site_name}, with a value of {location.pm2_5_raw_value}{' '}
+                µg/m³ in {getMonthName(location.month)}
+                {index < bottom3Locations.length - 1
+                  ? ', closely followed by '
+                  : '.'}
               </React.Fragment>
             ))}
           </Text>
@@ -351,55 +373,68 @@ const Template1: FC<Template1Props> = ({ data }) => {
               yAxisTitle="PM2.5 Raw Values"
             />
             <Text style={styles.figureCaption}>
-              Figure 3: Diurnal PM2.5 for {data.sites['grid name'][0]} (local time)
+              Figure 3: Diurnal PM2.5 for {data.sites['grid name'][0]} (local
+              time)
             </Text>
             <Text style={styles.text}>
-              The hourly variation of PM2.5 concentrations reveals insights into air quality
-              patterns for {data.sites['grid name'][0]}. The highest PM2.5 value occurs at{' '}
-              {highestPM25Hour.hour}:00, with a value of {highestPM25Hour.pm2_5_raw_value} µg/m³,
-              while the lowest is at {lowestPM25Hour.hour}:00, with a value of{' '}
-              {lowestPM25Hour.pm2_5_raw_value} µg/m³. Peak concentrations are observed at night and
-              in the morning, indicating potential contributing sources or activities. Daytime hours
-              generally show lower PM2.5 levels, suggesting improved air quality during the day.
+              The hourly variation of PM2.5 concentrations reveals insights into
+              air quality patterns for {data.sites['grid name'][0]}. The highest
+              PM2.5 value occurs at {highestPM25Hour.hour}:00, with a value of{' '}
+              {highestPM25Hour.pm2_5_raw_value} µg/m³, while the lowest is at{' '}
+              {lowestPM25Hour.hour}:00, with a value of{' '}
+              {lowestPM25Hour.pm2_5_raw_value} µg/m³. Peak concentrations are
+              observed at night and in the morning, indicating potential
+              contributing sources or activities. Daytime hours generally show
+              lower PM2.5 levels, suggesting improved air quality during the
+              day.
               {'\n'}
               {'\n'}
-              It&apos;s important to note that the PM2.5 values in this dataset are higher than the
-              WHO recommended standard, indicating a need for interventions to improve air quality.
+              It&apos;s important to note that the PM2.5 values in this dataset
+              are higher than the WHO recommended standard, indicating a need
+              for interventions to improve air quality.
             </Text>
           </Section>
 
           {/* Page Number */}
           <Text
             style={styles.pageNumber}
-            render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
+            render={({ pageNumber, totalPages }) =>
+              `${pageNumber} / ${totalPages}`
+            }
             fixed
           />
 
           {/* Conclusion */}
           <Section title="Conclusion">
             <Text style={styles.text}>
-              The analysis of the data reveals that air quality varies significantly over time, with
-              periods of both moderate and unhealthy conditions. It&apos;s observed that these
-              fluctuations may be influenced by various factors, including seasonal changes. For
-              instance, the washout effect during the rainy season could potentially contribute to
-              these variations. Specifically, for the period from {startDate} to {endDate}, the
-              PM2.5 raw values ranged from {data.monthly_pm[0].pm2_5_raw_value} µg/m³ to{' '}
-              {data.monthly_pm[1].pm2_5_raw_value} µg/m³ respectively.
+              The analysis of the data reveals that air quality varies
+              significantly over time, with periods of both moderate and
+              unhealthy conditions. It&apos;s observed that these fluctuations
+              may be influenced by various factors, including seasonal changes.
+              For instance, the washout effect during the rainy season could
+              potentially contribute to these variations. Specifically, for the
+              period from {startDate} to {endDate}, the PM2.5 raw values ranged
+              from {data?.monthly_pm[0]?.pm2_5_raw_value} µg/m³ to{' '}
+              {data?.monthly_pm[1]?.pm2_5_raw_value} µg/m³ respectively.
               {'\n'}
-              This pattern underscores the importance of continuous monitoring and the
-              implementation of effective interventions to maintain air quality within safe limits.
-              Ensuring good air quality is crucial for the well-being of both residents and
-              visitors. Therefore, it&apos;s imperative to adopt long-term strategies and measures
-              that can effectively mitigate the impact of factors leading to poor air quality.
+              This pattern underscores the importance of continuous monitoring
+              and the implementation of effective interventions to maintain air
+              quality within safe limits. Ensuring good air quality is crucial
+              for the well-being of both residents and visitors. Therefore,
+              it&apos;s imperative to adopt long-term strategies and measures
+              that can effectively mitigate the impact of factors leading to
+              poor air quality.
               {'\n'}
               {'\n'}
-              In conclusion, continuous monitoring, timely intervention, and effective policies are
-              key to maintaining good air quality and safeguarding public health.
+              In conclusion, continuous monitoring, timely intervention, and
+              effective policies are key to maintaining good air quality and
+              safeguarding public health.
               {'\n'}
               {'\n'}
             </Text>
             <Text style={styles.text}>
-              To protect yourself from air pollution, we suggest the following measures:
+              To protect yourself from air pollution, we suggest the following
+              measures:
             </Text>
             <View style={styles.list}>
               <ListItem text="Check the air quality in your area at different hours of the day." />

@@ -1,5 +1,5 @@
+import MainLayout from '@/components/layout/MainLayout';
 import HelpPage from '@/components/pages/help';
-import MainLayout from '@/layout/MainLayout';
 
 const Help = () => {
   return (

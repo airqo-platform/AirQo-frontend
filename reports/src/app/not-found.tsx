@@ -14,7 +14,9 @@ const NotFound = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-800 text-white">
       <div className="text-center px-6 py-12 bg-white bg-opacity-10 rounded-lg shadow-lg max-w-lg">
         <h1 className="text-7xl font-extrabold mb-4">404</h1>
-        <p className="text-2xl mb-6">Oops! The page you are looking for could not be found.</p>
+        <p className="text-2xl mb-6">
+          Oops! The page you are looking for could not be found.
+        </p>
         <Button
           type="button"
           onClick={handleBack}

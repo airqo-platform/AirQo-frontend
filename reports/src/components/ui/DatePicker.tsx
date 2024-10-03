@@ -7,7 +7,11 @@ import { DateRange, SelectRangeEventHandler } from 'react-day-picker';
 import { Button } from '../ui/button';
 import { Calendar } from '../ui/calendar';
 
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
 export function DatePickerWithRange({
@@ -36,7 +40,8 @@ export function DatePickerWithRange({
             {value?.from ? (
               value.to ? (
                 <>
-                  {format(value.from, 'LLL dd, y')} - {format(value.to, 'LLL dd, y')}
+                  {format(value.from, 'LLL dd, y')} -{' '}
+                  {format(value.to, 'LLL dd, y')}
                 </>
               ) : (
                 format(value.from, 'LLL dd, y')

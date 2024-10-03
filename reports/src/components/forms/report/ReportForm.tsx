@@ -30,7 +30,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import {
   setStartDate,
   setEndDate,
@@ -91,7 +96,13 @@ const ReportForm = ({ grids }: any) => {
 
     const { title, reportTemplate, location, dateRange } = formState;
 
-    if (!title || !reportTemplate || !location || !dateRange.from || !dateRange.to) {
+    if (
+      !title ||
+      !reportTemplate ||
+      !location ||
+      !dateRange.from ||
+      !dateRange.to
+    ) {
       toast.error('All fields are required', {
         style: {
           background: 'red',
@@ -119,7 +130,8 @@ const ReportForm = ({ grids }: any) => {
 
     const data = {
       grid_id: location,
-      start_time: formatISO(dateRange.from, { representation: 'date' }) + 'T00:00',
+      start_time:
+        formatISO(dateRange.from, { representation: 'date' }) + 'T00:00',
       end_time: formatISO(dateRange.to, { representation: 'date' }) + 'T00:00',
     };
 
@@ -145,13 +157,16 @@ const ReportForm = ({ grids }: any) => {
       router.push(`/home/${uuid}`);
     } catch (error: any) {
       console.error('Error fetching report data:', error);
-      toast.error('An error occurred while generating the report. Please try again later.', {
-        style: {
-          background: 'red',
-          color: 'white',
-          border: 'none',
+      toast.error(
+        'An error occurred while generating the report. Please try again later.',
+        {
+          style: {
+            background: 'red',
+            color: 'white',
+            border: 'none',
+          },
         },
-      });
+      );
     } finally {
       setIsLoading(false);
     }
@@ -168,11 +183,15 @@ const ReportForm = ({ grids }: any) => {
       {isLoading ? (
         <div className="w-full h-[400px] flex flex-col justify-center items-center text-center">
           <div className="spinnerLoader"></div>
-          <p className="text-gray-500 pt-4 dark:text-gray-400">Please wait, generating report...</p>
+          <p className="text-gray-500 pt-4 dark:text-gray-400">
+            Please wait, generating report...
+          </p>
         </div>
       ) : (
         <div className="space-y-6 p-6 border border-gray-200  bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Report Details</h1>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+            Report Details
+          </h1>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="Title">Enter Report Title</Label>
@@ -194,7 +213,10 @@ const ReportForm = ({ grids }: any) => {
                 onValueChange={handleChange('reportTemplate')}
                 value={formState.reportTemplate}
               >
-                <SelectTrigger id="ReportTemplate" className="dark:text-gray-500 p-3 rounded-md">
+                <SelectTrigger
+                  id="ReportTemplate"
+                  className="dark:text-gray-500 p-3 rounded-md"
+                >
                   <SelectValue placeholder="Select report template" />
                 </SelectTrigger>
                 <SelectContent className="bg-white dark:bg-gray-800 dark:text-gray-400 rounded-md shadow-sm">
@@ -216,15 +238,24 @@ const ReportForm = ({ grids }: any) => {
                 onValueChange={handleChange('location')}
                 value={formState.location}
               >
-                <SelectTrigger id="Locations" className="dark:text-gray-500 p-3 rounded-md">
+                <SelectTrigger
+                  id="Locations"
+                  className="dark:text-gray-500 p-3 rounded-md"
+                >
                   <SelectValue placeholder="Select location" />
                 </SelectTrigger>
                 <SelectContent className="bg-white dark:bg-gray-800 dark:text-gray-400 rounded-md shadow-sm">
                   <SelectGroup>
                     {grids
-                      .filter((grid: any) => !['country'].includes(grid.admin_level))
+                      .filter(
+                        (grid: any) => !['country'].includes(grid.admin_level),
+                      )
                       .map((type: { _id: string; long_name: string }) => (
-                        <SelectItem key={type._id} value={type._id} className="cursor-pointer">
+                        <SelectItem
+                          key={type._id}
+                          value={type._id}
+                          className="cursor-pointer"
+                        >
                           {type.long_name}
                         </SelectItem>
                       ))}
@@ -243,8 +274,8 @@ const ReportForm = ({ grids }: any) => {
                     </TooltipTrigger>
                     <TooltipContent className="bg-white dark:bg-gray-800 dark:text-gray-400 p-2 rounded-md shadow-sm">
                       <p>
-                        Select the date range you would like to generate the report for. The date
-                        range should not exceed 120 days.
+                        Select the date range you would like to generate the
+                        report for. The date range should not exceed 120 days.
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -268,7 +299,9 @@ const ReportForm = ({ grids }: any) => {
                         <MdOutlineAppShortcut size={25} />
                       </TooltipTrigger>
                       <TooltipContent className="bg-white dark:bg-gray-800 dark:text-gray-400 p-2 rounded-md shadow-sm">
-                        <p>Click here to show shortcuts for date range selection.</p>
+                        <p>
+                          Click here to show shortcuts for date range selection.
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -279,7 +312,9 @@ const ReportForm = ({ grids }: any) => {
                     <span className="text-sm text-gray-500 dark:text-gray-400">
                       <b>From:</b> {formState.dateRange.from.toDateString()}
                     </span>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">-</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      -
+                    </span>
                     <span className="text-sm text-gray-500 dark:text-gray-400">
                       <b>To:</b> {formState.dateRange.to.toDateString()}
                     </span>
@@ -295,8 +330,16 @@ const ReportForm = ({ grids }: any) => {
                     </Button>
 
                     {[
-                      { label: 'Last 7 Days', value: 'last-7-days', from: subDays(today, 7) },
-                      { label: 'Last 30 Days', value: 'last-30-days', from: subDays(today, 30) },
+                      {
+                        label: 'Last 7 Days',
+                        value: 'last-7-days',
+                        from: subDays(today, 7),
+                      },
+                      {
+                        label: 'Last 30 Days',
+                        value: 'last-30-days',
+                        from: subDays(today, 30),
+                      },
                       {
                         label: 'This Month',
                         value: 'this-month',

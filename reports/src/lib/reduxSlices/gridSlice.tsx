@@ -2,14 +2,17 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { getGridData } from '@/services/api';
 
 // First, create the async thunk
-export const fetchGrids = createAsyncThunk('grids/fetchGrids', async (_, { getState }) => {
-  const { grids } = (getState() as { grids: GridState }).grids;
-  if (grids.length === 0) {
-    const response = await getGridData();
-    return response.grids;
-  }
-  return grids;
-});
+export const fetchGrids = createAsyncThunk(
+  'grids/fetchGrids',
+  async (_, { getState }) => {
+    const { grids } = (getState() as { grids: GridState }).grids;
+    if (grids.length === 0) {
+      const response = await getGridData();
+      return response.grids;
+    }
+    return grids;
+  },
+);
 
 interface GridState {
   grids: any[];

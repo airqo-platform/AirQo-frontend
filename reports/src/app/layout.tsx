@@ -18,10 +18,17 @@ export const metadata: Metadata = {
 };
 
 // Define the RootLayout component
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body className={`${inter.className} dark:bg-[#1a202c]`} suppressHydrationWarning={true}>
+      <body
+        className={`${inter.className} dark:bg-[#1a202c]`}
+        suppressHydrationWarning={true}
+      >
         <NetworkStatus>
           <AppProvider
             attribute="class"

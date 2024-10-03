@@ -1,5 +1,5 @@
+import MainLayout from '@/components/layout/MainLayout';
 import ReportPage from '@/components/pages/home/ReportPage';
-import MainLayout from '@/layout/MainLayout';
 
 interface IReport {
   reportID: string;

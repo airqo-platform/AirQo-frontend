@@ -11,7 +11,7 @@ import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import AirQoLogo from '@/public/images/airqo.png';
+import AirQoLogo from '@/public/assets/images/airqo.png';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -82,25 +82,33 @@ const Index: React.FC<FormComponentProps> = ({ children, btnText }) => {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black opacity-75"></div>
         <div className="relative max-w-lg">
-          <h1 className="text-4xl lg:text-5xl font-bold mb-6">Built for Clean Air.</h1>
+          <h1 className="text-4xl lg:text-5xl font-bold mb-6">
+            Built for Clean Air.
+          </h1>
           <p className="text-lg lg:text-xl mb-8">
-            Access customizable, secure air quality reports for various regions in Africa.
+            Access customizable, secure air quality reports for various regions
+            in Africa.
           </p>
         </div>
       </div>
 
       {/* Right Section - Login Form */}
       <div className="flex flex-1 bg-white items-center justify-center p-6 lg:p-12 w-full">
-        <Card className=" dark:bg-[#1a202c] border-none p-6 lg:p-8 w-full max-w-lg">
+        <Card className=" dark:bg-[#1a202c] border-none p-6 lg:p-8 shadow-none w-full max-w-lg">
           <CardContent>
             <div className="flex justify-center mb-5">
-              <Image src={AirQoLogo} alt="AirQo Logo" className="w-16 lg:w-20" />
+              <Image
+                src={AirQoLogo}
+                alt="AirQo Logo"
+                className="w-16 lg:w-20"
+              />
             </div>
             <h2 className="text-2xl lg:text-3xl font-semibold text-gray-900 dark:text-white text-center mb-6 lg:mb-8">
               Sign In to Your Account
             </h2>
             <p className="text-center text-gray-600 mb-6 lg:mb-8">
-              Access the AirQo Air Quality Reporting tool for different locations in Africa.
+              Access the AirQo Air Quality Reporting tool for different
+              locations in Africa.
             </p>
             <FormProvider {...formMethods}>
               <form
@@ -126,11 +134,17 @@ const Index: React.FC<FormComponentProps> = ({ children, btnText }) => {
             </FormProvider>
             <p className="text-center text-sm text-gray-600 mt-6">
               By signing in, you agree to our{' '}
-              <a href="https://www.airqo.net/legal?tab=terms" className="underline text-blue-600">
+              <a
+                href="https://www.airqo.net/legal?tab=terms"
+                className="underline text-blue-600"
+              >
                 Terms of Service
               </a>{' '}
               and{' '}
-              <a href="https://www.airqo.net/legal?tab=privacy" className="underline text-blue-600">
+              <a
+                href="https://www.airqo.net/legal?tab=privacy"
+                className="underline text-blue-600"
+              >
                 Privacy Policy
               </a>
               .

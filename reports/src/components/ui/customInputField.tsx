@@ -3,7 +3,13 @@ import React, { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { FaRegEye, FaRegEyeSlash } from 'react-icons/fa';
 
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
 interface CustomInputFieldProps {
@@ -36,7 +42,9 @@ const CustomInputField: React.FC<CustomInputFieldProps> = ({
         <FormItem>
           <FormLabel>{label}</FormLabel>
           <FormControl>
-            <div className={`${type === 'password' ? 'relative items-center flex' : 'block'}`}>
+            <div
+              className={`${type === 'password' ? 'relative items-center flex' : 'block'}`}
+            >
               <Input
                 type={type === 'password' && showPassword ? 'text' : type}
                 autoComplete={autoComplete}

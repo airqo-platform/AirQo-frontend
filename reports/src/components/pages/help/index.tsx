@@ -10,9 +10,9 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import Section1 from '@/public/images/section1.png';
-import Section2 from '@/public/images/section2.png';
-import Section3 from '@/public/images/section3.png';
+import Section1 from '@/public/assets/images/section1.png';
+import Section2 from '@/public/assets/images/section2.png';
+import Section3 from '@/public/assets/images/section3.png';
 
 const HelpPage = () => {
   return (
@@ -34,14 +34,16 @@ const HelpPage = () => {
       <div className="min-h-screen bg-white dark:bg-gray-800 text-gray-900 rounded-xl border border-gray-300 dark:text-white p-6">
         <div className="space-y-10">
           {/* Page Title */}
-          <h1 className="text-3xl font-bold text-center">How to Generate a Report</h1>
+          <h1 className="text-3xl font-bold text-center">
+            How to Generate a Report
+          </h1>
 
           {/* Video Walkthrough Section */}
           <div className="space-y-4">
             <h2 className="text-2xl font-semibold">Video Walkthrough</h2>
             <p className="text-lg">
-              Watch this video to get a step-by-step guide on how to generate your air quality
-              report using the AQ Report tool.
+              Watch this video to get a step-by-step guide on how to generate
+              your air quality report using the AQ Report tool.
             </p>
             <div className="w-full h-64 md:h-80 lg:h-96 rounded-xl overflow-hidden shadow-sm">
               <iframe
@@ -58,14 +60,19 @@ const HelpPage = () => {
 
           {/* Step-by-Step Guide Section */}
           <div className="space-y-4">
-            <h2 className="text-2xl font-semibold">Step-by-Step Guide with Screenshots</h2>
+            <h2 className="text-2xl font-semibold">
+              Step-by-Step Guide with Screenshots
+            </h2>
 
             {/* Step 1 */}
             <div className="bg-white dark:bg-gray-700 rounded-xl shadow-sm p-6 space-y-4">
-              <h3 className="text-xl font-medium">Step 1: Enter Report Details</h3>
+              <h3 className="text-xl font-medium">
+                Step 1: Enter Report Details
+              </h3>
               <p>
-                Start by filling in the report title, selecting the report template, and specifying
-                the location for which you want to generate the report.
+                Start by filling in the report title, selecting the report
+                template, and specifying the location for which you want to
+                generate the report.
               </p>
               <div className="w-full mt-4 rounded-xl overflow-hidden">
                 <Image
@@ -82,8 +89,9 @@ const HelpPage = () => {
             <div className="bg-white dark:bg-gray-700 rounded-xl shadow-sm p-6 space-y-4">
               <h3 className="text-xl font-medium">Step 2: Select Date Range</h3>
               <p>
-                Choose the desired date range to generate the report for. You can also use shortcuts
-                for common ranges such as "Last 7 days", "This Month", or "Last Quarter".
+                Choose the desired date range to generate the report for. You
+                can also use shortcuts for common ranges such as "Last 7 days",
+                "This Month", or "Last Quarter".
               </p>
               <div className="w-full mt-4 rounded-xl overflow-hidden">
                 <Image
@@ -100,8 +108,9 @@ const HelpPage = () => {
             <div className="bg-white dark:bg-gray-700 rounded-xl shadow-sm p-6 space-y-4">
               <h3 className="text-xl font-medium">Step 3: Generate Report</h3>
               <p>
-                Finally, click the "Generate Report" button to generate your air quality report. You
-                can also clear the form if you need to start over.
+                Finally, click the "Generate Report" button to generate your air
+                quality report. You can also clear the form if you need to start
+                over.
               </p>
               <div className="w-full mt-4 rounded-xl overflow-hidden">
                 <Image
@@ -119,8 +128,8 @@ const HelpPage = () => {
           <div className="space-y-4">
             <h2 className="text-2xl font-semibold">Still Need Help?</h2>
             <p className="text-lg">
-              If you have any questions or encounter any issues, feel free to reach out to our
-              support team.
+              If you have any questions or encounter any issues, feel free to
+              reach out to our support team.
             </p>
             <div className="bg-blue-100 dark:bg-gray-700 p-6 rounded-xl shadow-sm">
               <p className="text-lg">
@@ -130,9 +139,6 @@ const HelpPage = () => {
                     support@airqo.net
                   </span>
                 </Link>
-              </p>
-              <p className="text-lg">
-                <strong>Phone:</strong> +256 (888) 456-7890
               </p>
             </div>
           </div>

@@ -23,7 +23,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { formatDate } from '@/lib/util';
+import { formatDate } from '@/utils';
 import { useAppSelector } from '@/lib/utils';
 
 interface ReportRowProps {
@@ -55,7 +55,10 @@ const ReportPage = ({ params }: { params: { reportID: string } }) => {
     () => formatDate(reportData.startDate),
     [reportData.startDate],
   );
-  const formattedEndDate = useMemo(() => formatDate(reportData.endDate), [reportData.endDate]);
+  const formattedEndDate = useMemo(
+    () => formatDate(reportData.endDate),
+    [reportData.endDate],
+  );
 
   return (
     <div>
@@ -80,7 +83,10 @@ const ReportPage = ({ params }: { params: { reportID: string } }) => {
           </h2>
           <ReportRow label="Report ID" value={params.reportID} />
           <ReportRow label="Report Title" value={reportData.reportTitle} />
-          <ReportRow label="Report Template" value={reportData.reportTemplate} />
+          <ReportRow
+            label="Report Template"
+            value={reportData.reportTemplate}
+          />
           <ReportRow label="From" value={formattedStartDate} />
           <ReportRow label="To" value={formattedEndDate} isLast />
         </div>
@@ -92,7 +98,8 @@ const ReportPage = ({ params }: { params: { reportID: string } }) => {
                 console.error(error);
                 return (
                   <p className="text-red-600 text-center font-semibold">
-                    An error occurred while generating the report. Please try again later.
+                    An error occurred while generating the report. Please try
+                    again later.
                   </p>
                 );
               }
@@ -102,7 +109,9 @@ const ReportPage = ({ params }: { params: { reportID: string } }) => {
                   {loading ? (
                     <div className="flex items-center space-x-4">
                       <ClipLoader color={loaderColor} size={24} />
-                      <p className="text-blue-600 dark:text-blue-400">Processing your report...</p>
+                      <p className="text-blue-600 dark:text-blue-400">
+                        Processing your report...
+                      </p>
                     </div>
                   ) : (
                     <>
@@ -112,7 +121,8 @@ const ReportPage = ({ params }: { params: { reportID: string } }) => {
                         className="no-underline"
                       >
                         <Button className="bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition ease-in-out px-6 py-3 rounded-lg flex items-center">
-                          <AiOutlineFilePdf className="mr-2" /> Download Report as PDF
+                          <AiOutlineFilePdf className="mr-2" /> Download Report
+                          as PDF
                         </Button>
                       </a>
 

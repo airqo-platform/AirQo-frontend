@@ -1,13 +1,12 @@
 {
   "name": "reports",
-  "version": "0.5.2",
+  "version": "0.6.2",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "lint:fix": "next lint --fix",
     "format": "prettier --write ."
   },
   "dependencies": {
@@ -56,10 +55,6 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@babel/core": "^7.25.2",
-    "@babel/preset-env": "^7.25.3",
-    "@babel/preset-react": "^7.24.7",
-    "@babel/preset-typescript": "^7.24.7",
     "@types/json2csv": "^5.0.7",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20",
@@ -73,6 +68,7 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsx-a11y": "^6.9.0",
+    "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-react": "^7.35.0",
     "eslint-plugin-react-hooks": "^4.6.2",
     "postcss": "^8",

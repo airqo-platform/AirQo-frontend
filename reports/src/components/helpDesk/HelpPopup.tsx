@@ -1,4 +1,5 @@
 'use client';
+
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import React, { useState } from 'react';
@@ -16,13 +17,52 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { sendFeedback } from '@/services/api';
 
 const HelpPopup = () => {
   const [showHelpPopup, setShowHelpPopup] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState({
+    email: '',
+    message: '',
+    country: '',
+  });
+
   const router = useRouter();
   const { data: session } = useSession();
   const userEmail = session?.user?.email || '';
+
+  // Handle feedback submission
+  const handleFeedbackSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const feedbackData = {
+      email: feedback.email || userEmail,
+      subject: 'Reporting tool feedback submission',
+      message: feedback.message,
+      country: feedback.country,
+    };
+
+    try {
+      console.info('Sending feedback:', feedbackData);
+      const response = await sendFeedback(feedbackData);
+      if (response.success) {
+        setShowFeedbackModal(false);
+        setShowSuccessDialog(true);
+        setFeedback({ email: '', message: '', country: '' });
+      } else {
+        alert('Error: Unable to send feedback. Please try again.');
+      }
+    } catch (error: unknown) {
+      alert('Error: Something went wrong. Please try again later.');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="fixed bottom-6 right-6">
@@ -62,7 +102,10 @@ const HelpPopup = () => {
             >
               Visit Help Page
             </Button>
-            <Dialog open={showFeedbackModal} onOpenChange={setShowFeedbackModal}>
+            <Dialog
+              open={showFeedbackModal}
+              onOpenChange={setShowFeedbackModal}
+            >
               <DialogTrigger asChild>
                 <Button
                   className="bg-gray-300 text-gray-800 p-3 rounded-md shadow hover:bg-gray-400 transition-all duration-300"
@@ -74,15 +117,11 @@ const HelpPopup = () => {
               <DialogContent className="bg-white dark:bg-gray-800 dark:text-white rounded-xl p-6 shadow-lg max-w-md">
                 <DialogTitle>Send Feedback</DialogTitle>
                 <DialogDescription>
-                  We would love to hear your thoughts or issues you are experiencing with our app.
+                  We would love to hear your thoughts or issues you are
+                  experiencing with our app.
                 </DialogDescription>
                 <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    // Handle feedback form submission logic here
-                    alert('Thank you for your feedback!');
-                    setShowFeedbackModal(false);
-                  }}
+                  onSubmit={handleFeedbackSubmit}
                   className="mt-4 space-y-4"
                 >
                   <div>
@@ -93,7 +132,23 @@ const HelpPopup = () => {
                       placeholder="Enter your email"
                       className="mt-1"
                       required
-                      defaultValue={userEmail}
+                      value={feedback.email || userEmail}
+                      onChange={(e) =>
+                        setFeedback({ ...feedback, email: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="country">Country (Optional)</Label>
+                    <Input
+                      type="text"
+                      id="country"
+                      placeholder="Enter your country"
+                      className="mt-1"
+                      value={feedback.country}
+                      onChange={(e) =>
+                        setFeedback({ ...feedback, country: e.target.value })
+                      }
                     />
                   </div>
                   <div>
@@ -103,14 +158,43 @@ const HelpPopup = () => {
                       placeholder="Type your feedback here"
                       className="mt-1"
                       required
+                      value={feedback.message}
+                      onChange={(e) =>
+                        setFeedback({ ...feedback, message: e.target.value })
+                      }
                     />
                   </div>
                   <div className="flex justify-end mt-4">
-                    <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
-                      Submit Feedback
+                    <Button
+                      type="submit"
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      disabled={loading}
+                    >
+                      {loading ? 'Submitting...' : 'Submit Feedback'}
                     </Button>
                   </div>
                 </form>
+              </DialogContent>
+            </Dialog>
+            {/* Success Dialog */}
+            <Dialog
+              open={showSuccessDialog}
+              onOpenChange={setShowSuccessDialog}
+            >
+              <DialogContent className="bg-white dark:bg-gray-800 dark:text-white rounded-xl p-6 shadow-lg max-w-sm">
+                <DialogTitle>Feedback Submitted</DialogTitle>
+                <DialogDescription>
+                  Thank you for your feedback! We have received your message and
+                  will get back to you soon.
+                </DialogDescription>
+                <div className="flex justify-end mt-4">
+                  <Button
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={() => setShowSuccessDialog(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
               </DialogContent>
             </Dialog>
           </div>

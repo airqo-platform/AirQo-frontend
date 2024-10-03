@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
-import ErrorBoundaryImage from '@/public/images/ErrorBoundary.png';
+import ErrorBoundaryImage from '@/public/assets/images/ErrorBoundary.png';
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -41,10 +41,13 @@ const ErrorComponent: React.FC<ErrorProps> = ({ error }) => {
           />
         </div>
         <div className="space-y-4">
-          <h2 className="text-3xl font-bold text-gray-900">Oops! Something Went Wrong</h2>
+          <h2 className="text-3xl font-bold text-gray-900">
+            Oops! Something Went Wrong
+          </h2>
           <p className="text-lg text-gray-500 max-w-md mx-auto">
-            We&apos;re sorry for the inconvenience. Our team has been notified and is working on a
-            fix. Please try again later or return to the home page.
+            We&apos;re sorry for the inconvenience. Our team has been notified
+            and is working on a fix. Please try again later or return to the
+            home page.
           </p>
         </div>
         <div>

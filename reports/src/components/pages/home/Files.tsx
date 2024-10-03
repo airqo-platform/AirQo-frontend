@@ -5,9 +5,9 @@ import React, { useEffect, useState } from 'react';
 import { AiOutlineFilePdf } from 'react-icons/ai';
 import { MdDelete } from 'react-icons/md';
 
+import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
-import MainLayout from '@/layout/MainLayout';
-import { formatDate } from '@/lib/util';
+import { formatDate } from '@/utils';
 
 interface SavedReport {
   title: string;
@@ -32,14 +32,19 @@ const Files = () => {
     if (!session?.user) return;
 
     const updatedReports = savedReports.filter((_, i) => i !== index);
-    localStorage.setItem(`savedReports-${session.user.email}`, JSON.stringify(updatedReports));
+    localStorage.setItem(
+      `savedReports-${session.user.email}`,
+      JSON.stringify(updatedReports),
+    );
     setSavedReports(updatedReports);
   };
 
   return (
     <MainLayout>
       <div className="space-y-6 px-6 py-4">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Saved Reports</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+          Saved Reports
+        </h1>
 
         {savedReports.length === 0 ? (
           <div className="text-center p-10 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
@@ -72,7 +77,10 @@ interface SavedReportItemProps {
   onRemove: () => void;
 }
 
-const SavedReportItem: React.FC<SavedReportItemProps> = ({ report, onRemove }) => (
+const SavedReportItem: React.FC<SavedReportItemProps> = ({
+  report,
+  onRemove,
+}) => (
   <li className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-300 dark:border-gray-700">
     <div>
       <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">

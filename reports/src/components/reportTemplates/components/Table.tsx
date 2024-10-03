@@ -25,7 +25,10 @@ const Table: FC<TableProps> = ({ headers, rows }) => (
     {rows.map((row, rowIndex) => (
       <View
         key={rowIndex}
-        style={[styles.tableRow, { backgroundColor: row.bgColor || 'transparent' }]}
+        style={[
+          styles.tableRow,
+          { backgroundColor: row.bgColor || 'transparent' },
+        ]}
       >
         {Object.keys(row).map((key, colIndex) =>
           key !== 'bgColor' ? (
