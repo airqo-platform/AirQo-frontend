@@ -17,7 +17,13 @@ import {
   Checkbox,
   FormControlLabel,
   Snackbar,
-  IconButton
+  IconButton,
+  Paper,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  CircularProgress
 } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import CloseIcon from '@material-ui/icons/Close';
@@ -28,6 +34,7 @@ import { batchDeployDevicesApi } from '../../apis/deviceRegistry';
 import L from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+import { DeviceHub, Power, Height, LocationOn, Home } from '@material-ui/icons';
 
 let DefaultIcon = L.icon({
   iconUrl: icon,
@@ -131,6 +138,23 @@ const useStyles = makeStyles((theme) => ({
     position: 'absolute',
     top: 0,
     left: 0
+  },
+  previewPaper: {
+    padding: theme.spacing(2),
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(2)
+  },
+  previewTitle: {
+    marginBottom: theme.spacing(2)
+  },
+  previewSection: {
+    marginBottom: theme.spacing(2)
+  },
+  previewList: {
+    backgroundColor: theme.palette.background.paper
+  },
+  previewIcon: {
+    color: theme.palette.primary.main
   }
 }));
 
@@ -155,6 +179,7 @@ const DeployDevice = () => {
   const [longitudeError, setLongitudeError] = useState('');
   const [siteNameError, setSiteNameError] = useState('');
   const [deviceNameError, setDeviceNameError] = useState('');
+  const [isDeploying, setIsDeploying] = useState(false);
 
   const powerTypeOptions = [
     { value: 'solar', label: 'Solar' },
@@ -179,6 +204,7 @@ const DeployDevice = () => {
   };
 
   const handleDeploy = async () => {
+    setIsDeploying(true);
     const deployData = [
       {
         date: new Date().toISOString(),
@@ -235,6 +261,8 @@ const DeployDevice = () => {
       setAlertSeverity('error');
       setAlertMessage('An error occurred during deployment. Please try again.');
       setOpenAlert(true);
+    } finally {
+      setIsDeploying(false);
     }
   };
 
@@ -458,7 +486,7 @@ const DeployDevice = () => {
               {latitude && longitude ? (
                 <LeafletMap
                   center={[latitude, longitude]}
-                  zoom={13}
+                  zoom={15}
                   scrollWheelZoom={false}
                   className={classes.map}
                 >
@@ -486,27 +514,48 @@ const DeployDevice = () => {
             <Typography variant="h6" gutterBottom>
               Deployment Preview
             </Typography>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1">Device Details</Typography>
-                <Typography>Device Name: {deviceName}</Typography>
-                <Typography>Power Type: {powerType.label}</Typography>
-                <Typography>Mount Type: {mountType.label}</Typography>
-                <Typography>Height: {height}</Typography>
-                <Typography>Primary Device: {isPrimaryDevice ? 'Yes' : 'No'}</Typography>
+            <Paper elevation={3} className={classes.previewPaper}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Device Details
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Name:</strong> {deviceName}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Power Type:</strong> {powerType.label}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Mount Type:</strong> {mountType.label}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Height:</strong> {height} meters
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Primary Device:</strong> {isPrimaryDevice ? 'Yes' : 'No'}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Site Details
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Latitude:</strong> {latitude}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Longitude:</strong> {longitude}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Site Name:</strong> {siteName}
+                  </Typography>
+                </Grid>
               </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1">Site Details</Typography>
-                <Typography>Latitude: {latitude}</Typography>
-                <Typography>Longitude: {longitude}</Typography>
-                <Typography>Site Name: {siteName}</Typography>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="body2" color="textSecondary">
-                  Please review the details above. Click 'Deploy' to proceed with the deployment.
-                </Typography>
-              </Grid>
-            </Grid>
+            </Paper>
+            <Typography variant="body2" color="textSecondary" style={{ marginTop: '16px' }}>
+              Please review the details above carefully. If everything looks correct, click 'Deploy'
+              to proceed with the deployment.
+            </Typography>
           </div>
         );
       default:
@@ -541,10 +590,20 @@ const DeployDevice = () => {
                 onClick={activeStep === steps.length - 1 ? handleDeploy : handleNext}
                 className={classes.button}
                 disabled={
-                  (activeStep === 0 && !isStep0Valid) || (activeStep === 1 && !isStep1Valid)
+                  (activeStep === 0 && !isStep0Valid) ||
+                  (activeStep === 1 && !isStep1Valid) ||
+                  isDeploying
                 }
               >
-                {activeStep === steps.length - 1 ? 'Deploy' : 'Next'}
+                {activeStep === steps.length - 1 ? (
+                  isDeploying ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    'Deploy'
+                  )
+                ) : (
+                  'Next'
+                )}
               </Button>
             </div>
           </CardContent>
