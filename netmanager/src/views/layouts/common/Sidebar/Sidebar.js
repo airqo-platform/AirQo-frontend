@@ -44,6 +44,7 @@ import GrainIcon from '@material-ui/icons/Grain';
 import GroupAddIcon from '@material-ui/icons/GroupAdd';
 import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';
 import AppsIcon from '@material-ui/icons/Apps';
+import DeviceHubIcon from '@material-ui/icons/DeviceHub';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -107,6 +108,12 @@ const allMainPages = [
     title: 'Export data',
     href: '/export-data/options',
     icon: <CloudDownloadIcon />
+  },
+  {
+    title: 'Deploy Device',
+    href: '/deploy-device',
+    icon: <DeviceHubIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
   },
   {
     title: 'Locate',
