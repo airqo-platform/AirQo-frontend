@@ -25,6 +25,18 @@ import OutlinedSelect from '../../components/CustomSelects/OutlinedSelect';
 import { Map as LeafletMap, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { batchDeployDevicesApi } from '../../apis/deviceRegistry';
+import L from 'leaflet';
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41]
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -72,36 +84,29 @@ const useStyles = makeStyles((theme) => ({
   },
   siteDetailsContainer: {
     display: 'flex',
-    [theme.breakpoints.down('sm')]: {
-      flexDirection: 'column'
+    flexDirection: 'column',
+    [theme.breakpoints.up('md')]: {
+      flexDirection: 'row'
     }
   },
   siteDetailsFields: {
     flex: 1,
-    marginRight: theme.spacing(2),
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    [theme.breakpoints.down('sm')]: {
-      marginRight: 0,
-      marginBottom: theme.spacing(2)
+    marginBottom: theme.spacing(2),
+    [theme.breakpoints.up('md')]: {
+      marginRight: theme.spacing(2),
+      marginBottom: 0
     }
   },
   mapContainer: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column'
-  },
-  mapPreview: {
-    width: '100%',
     height: 250,
-    border: '1px solid #ccc',
-    borderRadius: theme.shape.borderRadius,
+    width: '100%',
+    [theme.breakpoints.up('md')]: {
+      width: '50%'
+    },
     overflow: 'hidden',
     position: 'relative'
   },
   mapPreviewPlaceholder: {
-    width: '100%',
     height: 250,
     display: 'flex',
     alignItems: 'center',
@@ -119,6 +124,13 @@ const useStyles = makeStyles((theme) => ({
   },
   alert: {
     width: '100%'
+  },
+  map: {
+    height: '100%',
+    width: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0
   }
 }));
 
@@ -443,11 +455,28 @@ const DeployDevice = () => {
               </Grid>
             </div>
             <div className={classes.mapContainer}>
-              <div className={classes.mapPreviewPlaceholder}>
-                <Typography variant="body2" color="textSecondary">
-                  Map preview will appear here
-                </Typography>
-              </div>
+              {latitude && longitude ? (
+                <LeafletMap
+                  center={[latitude, longitude]}
+                  zoom={13}
+                  scrollWheelZoom={false}
+                  className={classes.map}
+                >
+                  <TileLayer
+                    url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+                    attribution="Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012"
+                  />
+                  <Marker position={[latitude, longitude]}>
+                    <Popup>Deployment site</Popup>
+                  </Marker>
+                </LeafletMap>
+              ) : (
+                <div className={classes.mapPreviewPlaceholder}>
+                  <Typography variant="body2" color="textSecondary">
+                    Map preview will appear here
+                  </Typography>
+                </div>
+              )}
             </div>
           </div>
         );
