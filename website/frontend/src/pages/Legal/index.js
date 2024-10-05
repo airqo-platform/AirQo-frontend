@@ -6,8 +6,13 @@ import AirQoData from './AirQo_Data';
 import AirQoPayments from './AirQo_Payments';
 import Page from '../Page';
 
+// Reusable TabButton component with better accessibility
 const TabButton = ({ label, isSelected, onClick }) => (
-  <button className={`tab-button ${isSelected ? 'selected' : ''}`} onClick={onClick}>
+  <button
+    className={`tab-button ${isSelected ? 'selected' : ''}`}
+    onClick={onClick}
+    aria-pressed={isSelected}
+    aria-label={label}>
     {label}
   </button>
 );
@@ -15,8 +20,9 @@ const TabButton = ({ label, isSelected, onClick }) => (
 const LegalPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [selectedTab, setSelectedTab] = useState('terms');
+  const [selectedTab, setSelectedTab] = useState('');
 
+  // Define the available tabs with their corresponding components
   const tabs = [
     { id: 'terms', label: 'Terms of Service', component: TermsOfService },
     { id: 'privacy', label: 'Privacy Policy', component: PrivacyPolicy },
@@ -24,6 +30,7 @@ const LegalPage = () => {
     { id: 'airqoPayments', label: 'Payment Terms & Refund Policy', component: AirQoPayments }
   ];
 
+  // Handle URL query to select the correct tab
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tabFromUrl = params.get('tab');
@@ -35,11 +42,15 @@ const LegalPage = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [location]);
 
+  // Handle tab change and update URL accordingly
   const handleTabChange = (tabId) => {
-    setSelectedTab(tabId);
-    navigate(`/legal?tab=${tabId}`, { replace: true });
+    if (tabId !== selectedTab) {
+      setSelectedTab(tabId);
+      navigate(`/legal?tab=${tabId}`, { replace: true });
+    }
   };
 
+  // Retrieve the currently selected component
   const SelectedComponent = tabs.find((tab) => tab.id === selectedTab)?.component || TermsOfService;
 
   return (
