@@ -474,9 +474,13 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
       userName: parsedData.email,
       email: parsedData.email,
       firstName: parsedData.firstName,
-      lastName: parsedData.lastName,
-      user_id: parsedData._id
+      lastName: parsedData.lastName
     };
+
+    // Add user_id only if it exists
+    if (parsedData._id) {
+      deployData.user_id = parsedData._id;
+    }
 
     await deployDeviceApi(deviceData.name, deployData)
       .then((responseData) => {
@@ -527,9 +531,13 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
       userName: parsedData.email,
       email: parsedData.email,
       firstName: parsedData.firstName,
-      lastName: parsedData.lastName,
-      user_id: parsedData._id
+      lastName: parsedData.lastName
     };
+
+    // Add user_id only if it exists
+    if (parsedData._id) {
+      responseData.user_id = parsedData._id;
+    }
 
     await recallDeviceApi(deviceData.name, responseData)
       .then((responseData) => {

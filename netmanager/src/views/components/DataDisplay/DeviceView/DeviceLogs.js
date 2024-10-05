@@ -92,18 +92,18 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log, loading, setLoad
     const extracted_tags = [];
     tags && tags.map((tag) => extracted_tags.push(tag.value));
     let currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    let userId = '';
-    if (currentUser) {
-      userId = currentUser._id;
-    }
     const logData = {
       deviceName,
       locationName: deviceLocation,
       date: selectedDate.toISOString(),
       tags: extracted_tags,
-      description: description,
-      user_id: userId
+      description: description
     };
+
+    // Add user_id only if it exists
+    if (currentUser && currentUser._id) {
+      logData.user_id = currentUser._id;
+    }
 
     setLoading(true);
     dispatch(loadStatus(true));
@@ -269,9 +269,13 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow, loading, setLoadin
       userName: parsedData.email,
       email: parsedData.email,
       firstName: parsedData.firstName,
-      lastName: parsedData.lastName,
-      user_id: parsedData._id
+      lastName: parsedData.lastName
     };
+
+    // Add user_id only if it exists
+    if (parsedData._id) {
+      logData.user_id = parsedData._id;
+    }
 
     setLoading(true);
     dispatch(loadStatus(true));
