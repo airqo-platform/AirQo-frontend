@@ -7,31 +7,44 @@ class ErrorBoundary extends Component {
     errorInfo: null
   };
 
-  // This lifecycle method is invoked after an error has been thrown
   static getDerivedStateFromError(error) {
+    // Update state to display fallback UI on error
     return { hasError: true };
   }
 
-  // This method is called with the error and error information
   componentDidCatch(error, errorInfo) {
+    // Log error information for debugging
     console.error('Caught an error:', error, errorInfo);
     this.setState({ error, errorInfo });
+    // TODO: Implement logging to an error reporting service here
   }
+
+  handleReload = () => {
+    // Reload the current page to recover from the error
+    window.location.reload();
+  };
 
   render() {
     if (this.state.hasError) {
       return (
-        <div className="text-center p-6">
-          <h1 className="text-2xl font-bold text-red-600">Something went wrong.</h1>
-          <p className="text-gray-700 mt-4">An error occurred, and we are working to fix it.</p>
-          {process.env.NODE_ENV === 'development' && (
-            <details className="whitespace-pre-wrap text-sm text-left mt-4">
-              <summary className="cursor-pointer">Error Details</summary>
-              {this.state.error && this.state.error.toString()}
-              <br />
-              {this.state.errorInfo && this.state.errorInfo.componentStack}
-            </details>
-          )}
+        <div className="error-boundary">
+          <div className="error-content">
+            <h1 className="error-title">Oops! Something Went Wrong</h1>
+            <p className="error-message">
+              An unexpected error occurred. Our team has been notified, and we are working to
+              resolve the issue.
+            </p>
+            <button className="error-button" onClick={this.handleReload}>
+              Reload Page
+            </button>
+            {process.env.NODE_ENV === 'development' && (
+              <details className="error-details">
+                <summary className="error-summary">Error Details</summary>
+                <p>{this.state.error && this.state.error.toString()}</p>
+                <pre>{this.state.errorInfo && this.state.errorInfo.componentStack}</pre>
+              </details>
+            )}
+          </div>
         </div>
       );
     }
