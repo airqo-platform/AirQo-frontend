@@ -22,7 +22,6 @@ import Mozambique from 'icons/africanCities/countries/mozambique.svg';
 import Cameroon from 'icons/africanCities/countries/cameroon.svg';
 
 import { setCurrentAirQloudData, loadAirQloudSummaryData } from 'reduxStore/AirQlouds';
-
 import { useTranslation, Trans } from 'react-i18next';
 import LocationTracker from './LoctionTracker/LocationTracker';
 
@@ -32,12 +31,9 @@ const style = {
   left: '50%',
   transform: 'translate(-50%, -50%)',
   maxWidth: 600,
-  // minHeight: 200,
   width: '90%',
   bgcolor: 'background.paper',
   outline: 'none'
-  // boxShadow: 24,
-  // p: 4,
 };
 
 const flagMapper = {
@@ -60,10 +56,10 @@ const CountryTab = ({ className, flag, name, onClick }) => (
 const Footer = () => {
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState('uganda');
 
   const airqloudSummaries = useSelector((state) => state.airqlouds.summary);
-  const currentAirqloud = useSelector((state) => state.airqlouds.currentAirqloud);
+  const currentAirqloud = useSelector((state) => state.airqlouds.currentAirqloud) || 'uganda';
   const [selectedAirqloud, setSelectedAirqloud] = useState(currentAirqloud);
   const { t } = useTranslation();
 
@@ -71,7 +67,7 @@ const Footer = () => {
 
   useEffect(() => {
     dispatch(loadAirQloudSummaryData());
-  }, []);
+  }, [dispatch]);
 
   const explodeSummaryCount = (numberOfSites) => {
     const paddedCount = numberOfSites.toString().padStart(4, '0');
@@ -101,7 +97,6 @@ const Footer = () => {
     setSelectedCountry(currentAirqloud);
   }, [currentAirqloud]);
 
-  // an array for the countries
   const countries = [
     { name: 'Uganda', flag: <Uganda /> },
     { name: 'Kenya', flag: <Kenya /> },
@@ -112,7 +107,6 @@ const Footer = () => {
     { name: 'Mozambique', flag: <Mozambique /> },
     { name: 'Cameroon', flag: <Cameroon /> }
   ];
-
   return (
     <footer className="footer-wrapper">
       <div className="Footer">
