@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import PrivacyPolicy from './PrivacyPolicy';
 import TermsOfService from './TermsOfService';
 import AirQoData from './AirQo_Data';
-import AirQoPayments from './AirQo_Payments';
+// import AirQoPayments from './AirQo_Payments';
 import Page from '../Page';
 
 // Reusable TabButton component with better accessibility
@@ -26,8 +26,8 @@ const LegalPage = () => {
   const tabs = [
     { id: 'terms', label: 'Terms of Service', component: TermsOfService },
     { id: 'privacy', label: 'Privacy Policy', component: PrivacyPolicy },
-    { id: 'airqoData', label: 'AirQo Data', component: AirQoData },
-    { id: 'airqoPayments', label: 'Payment Terms & Refund Policy', component: AirQoPayments }
+    { id: 'airqoData', label: 'AirQo Data', component: AirQoData }
+    // { id: 'airqoPayments', label: 'Payment Terms & Refund Policy', component: AirQoPayments }
   ];
 
   // Handle URL query to select the correct tab
