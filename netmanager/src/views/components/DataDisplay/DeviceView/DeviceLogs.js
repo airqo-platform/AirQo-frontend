@@ -91,12 +91,18 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log, loading, setLoad
     evt.preventDefault();
     const extracted_tags = [];
     tags && tags.map((tag) => extracted_tags.push(tag.value));
+    let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    let userId = '';
+    if (currentUser) {
+      userId = currentUser._id;
+    }
     const logData = {
       deviceName,
       locationName: deviceLocation,
       date: selectedDate.toISOString(),
       tags: extracted_tags,
-      description: description
+      description: description,
+      user_id: userId
     };
 
     setLoading(true);
@@ -209,7 +215,8 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log, loading, setLoad
             variant="contained"
             color="primary"
             onClick={handleSubmit}
-            style={{ marginLeft: '10px' }}>
+            style={{ marginLeft: '10px' }}
+          >
             Save Changes
           </Button>
         </Grid>
@@ -262,7 +269,8 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow, loading, setLoadin
       userName: parsedData.email,
       email: parsedData.email,
       firstName: parsedData.firstName,
-      lastName: parsedData.lastName
+      lastName: parsedData.lastName,
+      user_id: parsedData._id
     };
 
     setLoading(true);
@@ -387,7 +395,8 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow, loading, setLoadin
             variant="contained"
             color="primary"
             onClick={handleSubmit}
-            style={{ marginLeft: '10px' }}>
+            style={{ marginLeft: '10px' }}
+          >
             Add Log
           </Button>
         </Grid>
@@ -541,13 +550,15 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
           display: 'flex',
           justifyContent: 'flex-end',
           margin: '10px 0'
-        }}>
+        }}
+      >
         <Button
           style={{ marginRight: '5px' }}
           variant="contained"
           color="primary"
           disabled={show.logTable}
-          onClick={() => setShow({ logTable: true, addLog: false, editLog: false })}>
+          onClick={() => setShow({ logTable: true, addLog: false, editLog: false })}
+        >
           {' '}
           Logs Table
         </Button>
@@ -557,7 +568,8 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
           disabled={show.addLog}
           onClick={() => {
             setShow({ logTable: false, addLog: true, editLog: false });
-          }}>
+          }}
+        >
           {' '}
           Add Log
         </Button>
