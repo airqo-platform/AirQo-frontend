@@ -16,6 +16,7 @@ const LegalPage = () => {
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState('terms');
 
+  // test
   const tabs = [
     { id: 'terms', label: 'Terms of Service', component: TermsOfService },
     { id: 'privacy', label: 'Privacy Policy', component: PrivacyPolicy },
