@@ -575,7 +575,7 @@ const TermsOfService = () => {
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [sections, activeSection, setActiveSection]);
+  }, [sections, activeSection]);
 
   return (
     <div className="airqo-data">
