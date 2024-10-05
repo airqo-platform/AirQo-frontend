@@ -20,7 +20,8 @@ import {
   UPDATE_DEVICE_HOST,
   SEND_DEVICE_HOST_MONEY,
   GET_TRANSACTION_HISTORY,
-  GET_MAP_READING_URI
+  GET_MAP_READING_URI,
+  BATCH_DEPLOY_DEVICE_URI
 } from 'config/urls/deviceRegistry';
 import { DEVICE_MAINTENANCE_LOG_URI } from 'config/urls/deviceMonitoring';
 import { DEVICE_RECENT_FEEDS } from 'config/urls/dataManagement';
@@ -362,4 +363,10 @@ export const getTransactionDetails = async (id) => {
     .get(`${GET_TRANSACTION_HISTORY}/${id}`)
     .then((response) => response.data)
     .catch((error) => error.response.data);
+};
+
+export const batchDeployDevicesApi = async (deployData) => {
+  return createAxiosInstance()
+    .post(BATCH_DEPLOY_DEVICE_URI, deployData)
+    .then((response) => response.data);
 };

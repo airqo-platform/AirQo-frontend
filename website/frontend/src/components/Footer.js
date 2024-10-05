@@ -246,6 +246,9 @@ const Footer = () => {
               <span className="text-terms mr-24">
                 <Link to="/legal?tab=airqoData">{t('footer.AirQoData')}</Link>
               </span>
+              <span className="text-terms mr-24">
+                <Link to="/legal?tab=airqoPayments">{t('footer.AirQoPayments')}</Link>
+              </span>
               {/* <span className="text-terms mr-24">Sustainability</span> */}
             </div>
           </div>
