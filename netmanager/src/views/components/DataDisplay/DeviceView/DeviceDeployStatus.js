@@ -145,7 +145,7 @@ const sensorFeedNameMapper = {
   CO2: { label: 'Carbon dioxide', range: { min: 0, max: 50000 } },
   IntakeTemperature: { label: 'Intake Temperature', range: { min: 0, max: 100 } },
   IntakeHumidity: { label: 'Intake Humidity', range: { min: 0, max: 100 } },
-  BatteryVoltage: { label: 'Battery Voltage', range: { min: 0, max: 100 } },
+  BatteryVoltage: { label: 'Battery Voltage', range: { min: 0, max: 100 } }
 };
 
 const isValidSensorValue = (sensorValue, sensorValidator) => {
@@ -164,7 +164,8 @@ const EmptyDeviceTest = ({ loading, onClick }) => {
           color="primary"
           disabled={loading}
           onClick={onClick}
-          style={{ textTransform: 'lowercase' }}>
+          style={{ textTransform: 'lowercase' }}
+        >
           run
         </Button>{' '}
         to initiate the test
@@ -201,13 +202,15 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
               justifyContent: 'center',
               width: '100%',
               marginBottom: '30px'
-            }}>
+            }}
+          >
             <span>
               Device last pushed data{' '}
               {isDateInPast(recentFeed.created_at) ? (
                 <>
                   <span
-                    className={elapsedDurationSeconds > elapseLimit ? classes.error : classes.root}>
+                    className={elapsedDurationSeconds > elapseLimit ? classes.error : classes.root}
+                  >
                     {getFirstNDurations(elapsedDurationMapper, 2)}
                   </span>{' '}
                   ago.
@@ -230,7 +233,8 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
               alignItems: 'center',
               margin: '10px 30px',
               color: elapsedDurationSeconds > elapseLimit ? 'grey' : 'inherit'
-            }}>
+            }}
+          >
             {feedKeys.map((key, index) => (
               <div style={senorListStyle} key={index}>
                 {isValidSensorValue(
@@ -270,7 +274,8 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
             margin: '10px 30px',
             height: '70%',
             color: 'red'
-          }}>
+          }}
+        >
           <ErrorIcon className={classes.error} /> Device test has failed, please cross check the
           functionality of device
         </div>
@@ -322,7 +327,8 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
         style={{
           maxWidth: '500px',
           width: '100%'
-        }}>
+        }}
+      >
         <div className="dropdown-rapper-recall">
           {selectVisible && ( // Only render the select when selectVisible is true
             <Select
@@ -341,13 +347,15 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
           placement="top"
           disableFocusListener={false}
           disableHoverListener={false}
-          disableTouchListener={false}>
+          disableTouchListener={false}
+        >
           <span>
             <Button
               variant="contained"
               color="primary"
               disabled={!deviceData.isActive || recallLoading}
-              onClick={handleRecallClick}>
+              onClick={handleRecallClick}
+            >
               {recallLoading ? 'Recalling' : 'Recall Device'}
             </Button>
           </span>
@@ -469,6 +477,11 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
       lastName: parsedData.lastName
     };
 
+    // Add user_id only if it exists
+    if (parsedData._id) {
+      deployData.user_id = parsedData._id;
+    }
+
     await deployDeviceApi(deviceData.name, deployData)
       .then((responseData) => {
         const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
@@ -521,6 +534,11 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
       lastName: parsedData.lastName
     };
 
+    // Add user_id only if it exists
+    if (parsedData._id) {
+      responseData.user_id = parsedData._id;
+    }
+
     await recallDeviceApi(deviceData.name, responseData)
       .then((responseData) => {
         dispatch(
@@ -564,20 +582,23 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
           margin: '0 auto',
           alignItems: 'baseline',
           justifyContent: 'flex-end'
-        }}>
+        }}
+      >
         <span
           style={{
             display: 'flex',
             alignItems: 'bottom',
             justifyContent: 'flex-end'
-          }}>
+          }}
+        >
           <span
             style={{
               display: 'flex',
               alignItems: 'center',
               fontSize: '1.2rem',
               marginRight: '10px'
-            }}>
+            }}
+          >
             <span
               style={{
                 fontSize: '0.7rem',
@@ -586,14 +607,16 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
                 border: '1px solid #ffffff',
                 borderRadius: '5px',
                 padding: '0 5px'
-              }}>
+              }}
+            >
               Deploy status
             </span>{' '}
             <span
               style={{
                 color: deviceStatus === 'deployed' ? 'green' : 'red',
                 textTransform: 'capitalize'
-              }}>
+              }}
+            >
               {deviceStatus}
             </span>
           </span>
@@ -607,7 +630,8 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
           minHeight: '400px',
           padding: '20px 20px',
           maxWidth: '1500px'
-        }}>
+        }}
+      >
         <Grid container spacing={1}>
           <Grid items xs={12} sm={6}>
             <div style={{ marginBottom: '15px' }}>
@@ -627,7 +651,8 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
                     color: 'red',
                     textAlign: 'left',
                     fontSize: '0.7rem'
-                  }}>
+                  }}
+                >
                   {errors.site_id}
                 </div>
               )}
@@ -670,7 +695,8 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
                 native: true,
                 style: { width: '100%', height: '50px' }
               }}
-              variant="outlined">
+              variant="outlined"
+            >
               <option value="" />
               <option value="Mains">Mains</option>
               <option value="Solar">Solar</option>
@@ -698,7 +724,8 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
                 native: true,
                 style: { width: '100%', height: '50px' }
               }}
-              fullWidth>
+              fullWidth
+            >
               <option value="" />
               <option value="Faceboard">Faceboard</option>
               <option value="Pole">Pole</option>
@@ -765,7 +792,8 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
                   color="primary"
                   disabled={deviceTestLoading}
                   onClick={runDeviceTest}
-                  style={{ marginLeft: '10px 10px' }}>
+                  style={{ marginLeft: '10px 10px' }}
+                >
                   Run device test
                 </Button>
               </Grid>
@@ -776,7 +804,8 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
                   color="primary"
                   disabled={deviceTestLoading}
                   onClick={runDeviceTest}
-                  style={{ marginLeft: '10px 10px' }}>
+                  style={{ marginLeft: '10px 10px' }}
+                >
                   Run device test
                 </Button>
               </Grid>
@@ -795,7 +824,8 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
                   justifyContent: 'center',
                   height: '100%',
                   color: 'red'
-                }}>
+                }}
+              >
                 Could not fetch device feeds
               </div>
             )}
@@ -817,14 +847,16 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
               placement="top"
               disableFocusListener={runReport.successfulTestRun && !deviceData.isActive}
               disableHoverListener={runReport.successfulTestRun && !deviceData.isActive}
-              disableTouchListener={runReport.successfulTestRun && !deviceData.isActive}>
+              disableTouchListener={runReport.successfulTestRun && !deviceData.isActive}
+            >
               <span>
                 <Button
                   variant="contained"
                   color="primary"
                   disabled={weightedBool(deployLoading, deviceData.isActive || inputErrors)}
                   onClick={handleDeploySubmit}
-                  style={{ marginLeft: '10px' }}>
+                  style={{ marginLeft: '10px' }}
+                >
                   {deployLoading ? 'Deploying' : deployed ? 'Deployed' : 'Deploy'}
                 </Button>
               </span>
