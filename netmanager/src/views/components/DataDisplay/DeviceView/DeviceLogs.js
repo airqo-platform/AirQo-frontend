@@ -538,7 +538,7 @@ const DeviceLogs = ({ deviceName, deviceLocation }) => {
 
           Add Log
         </Button>
-      </Grid>
+      </div>
 
       {showEditLogForm && (
         <EditLog
@@ -560,7 +560,7 @@ const DeviceLogs = ({ deviceName, deviceLocation }) => {
           setLoading={setLoading}
         />
       )}
-    </div>
+      </>
   );
 };
 
