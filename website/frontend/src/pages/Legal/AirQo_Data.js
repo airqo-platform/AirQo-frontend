@@ -238,20 +238,31 @@ const AirQoData = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      const sectionElements = sections.map((section) => document.getElementById(section.id));
+      if (!sections || sections.length === 0) return;
+
+      const sectionElements = sections
+        .map((section) => document.getElementById(section.id))
+        .filter((element) => element !== null); // Filter out null elements
+
+      if (sectionElements.length === 0) return;
+
       const currentSection = sectionElements.find((element) => {
         const rect = element.getBoundingClientRect();
         return rect.top <= 100 && rect.bottom > 100;
       });
 
-      if (currentSection) {
+      if (currentSection && currentSection.id !== activeSection) {
         setActiveSection(currentSection.id);
       }
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [sections]);
+
+    // Clean up event listener on component unmount
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [sections, activeSection]);
 
   return (
     <div className="airqo-data">

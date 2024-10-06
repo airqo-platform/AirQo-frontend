@@ -1,164 +1,174 @@
 const path = require('path');
 const webpack = require('webpack');
 const dotenv = require('dotenv');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const TerserPlugin = require('terser-webpack-plugin');
 
-// Load environment variables
 dotenv.config();
 
-// Constants
 const ROOT = path.resolve(__dirname, 'frontend');
-const NODE_ENV = process.env.NODE_ENV || 'development';
-const IS_PROD = NODE_ENV === 'production';
-const IS_DEV = NODE_ENV === 'development';
 
-// Utility functions
-const strToBool = (value) => {
-  if (typeof value === 'boolean') return value;
-  if (typeof value === 'string') {
-    return ['true', '1', 'yes', 'y'].includes(value.toLowerCase());
-  }
-  return false;
-};
-const removeTrailingSlash = (str) => (str || '').replace(/\/+$/, '');
-
-// Environment-specific configurations
-const STATIC_URL = removeTrailingSlash(process.env.REACT_WEB_STATIC_HOST);
-const PUBLIC_PATH = IS_DEV ? `${STATIC_URL}/static/frontend/` : `${STATIC_URL}/frontend/`;
-const STATIC_DIR = 'frontend/static/frontend';
-const DIST_DIR = path.resolve(__dirname, STATIC_DIR);
-
-// Loader configurations
-const postCSSLoader = {
-  loader: 'postcss-loader',
-  options: {
-    postcssOptions: {
-      plugins: [['postcss-preset-env', {}]]
+function stripLoaderConfig() {
+  return {
+    loader: 'strip-loader',
+    options: {
+      strip: [
+        'assert',
+        'typeCheck',
+        'log.log',
+        'log.debug',
+        'log.deprecate',
+        'log.info',
+        'log.warn'
+      ]
     }
+  };
+}
+
+function compact(items) {
+  return items.filter((item) => item);
+}
+
+function postCSSLoader() {
+  return {
+    loader: 'postcss-loader',
+    options: {
+      postcssOptions: {
+        plugins: [['postcss-preset-env', {}]]
+      }
+    }
+  };
+}
+
+function strToBool(str) {
+  const truthy = ['true', '0', 'yes', 'y'];
+  return truthy.includes((str || '').toLowerCase());
+}
+
+function removeTrailingSlash(str) {
+  if (str === undefined) return '';
+  return str.replace(/\/+$/, '');
+}
+
+const config = () => {
+  const NODE_ENV = process.env.NODE_ENV || 'local';
+
+  const STATIC_URL = removeTrailingSlash(process.env.REACT_WEB_STATIC_HOST);
+
+  const PUBLIC_PATH = strToBool(process.env.DEBUG)
+    ? `${STATIC_URL}/static/frontend/`
+    : `${STATIC_URL}/frontend/`;
+
+  const STATIC_DIR = 'frontend/static/frontend';
+
+  const DIST_DIR = path.resolve(__dirname, STATIC_DIR);
+
+  const envKeys = Object.keys(process.env).reduce((prev, next) => {
+    if (next.startsWith('REACT_')) {
+      prev[`process.env.${next}`] = JSON.stringify(process.env[next]);
+    }
+
+    return prev;
+  }, {});
+
+  function prodOnly(x) {
+    return NODE_ENV === 'production' ? x : undefined;
   }
-};
 
-// Configuration
-module.exports = (env = {}, argv) => {
-  const isStandalone = strToBool(env.STANDALONE);
-
-  const config = {
-    mode: NODE_ENV,
+  return {
     context: path.resolve(__dirname),
+
     entry: './frontend/index.js',
+
     output: {
       path: DIST_DIR,
       filename: '[name].bundle.js',
-      publicPath: isStandalone ? '/' : PUBLIC_PATH,
-      clean: true
+      publicPath: PUBLIC_PATH
     },
+
+    // webpack 5 comes with devServer which loads in development mode
+    devServer: {
+      port: 8081,
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      compress: true,
+      hot: true,
+      historyApiFallback: true,
+      static: {
+        directory: './static'
+      }
+    },
+
     resolve: {
       modules: [ROOT, 'frontend/src', 'node_modules'],
-      extensions: ['.js', '.jsx', '.ts', '.tsx', '.json']
+      extensions: ['.js', '.jsx', '.ts', '.tsx', '...']
     },
+
     module: {
       rules: [
-        // JavaScript and TypeScript
         {
           test: /\.(js|jsx|ts|tsx)$/,
           exclude: /node_modules/,
-          use: ['babel-loader']
+          use: compact([
+            {
+              loader: 'babel-loader'
+            },
+            prodOnly(stripLoaderConfig())
+          ])
         },
-        // CSS
+
+        // Inlined CSS definitions for JS components
         {
           test: /\.css$/,
-          use: ['style-loader', 'css-loader', postCSSLoader]
+          use: compact([{ loader: 'style-loader' }, { loader: 'css-loader' }, postCSSLoader()])
         },
-        // SASS
         {
           test: /\.s[ac]ss$/i,
-          use: ['style-loader', 'css-loader', postCSSLoader, 'sass-loader']
+          use: compact([
+            { loader: 'style-loader' },
+            { loader: 'css-loader' },
+            postCSSLoader(),
+            { loader: 'sass-loader' }
+          ])
         },
-        // Assets (images, fonts, etc.)
         // Webp
         {
           test: /\.webp$/,
           type: 'asset/resource'
         },
+
         // SVGs
         {
           test: /\.svg$/,
           use: ['@svgr/webpack']
         },
+
         // Images
         {
           test: /\.(png|jpe?g|ico)$/i,
           type: 'asset/resource'
         },
-        // PDFs and GIFs
+
+        // pdfs, gifs
         {
           test: /\.(pdf|gif)$/,
-          type: 'asset/resource',
-          generator: {
-            filename: 'assets/[name][ext]'
-          }
+          use: 'file-loader?name=[path][name].[ext]'
         },
-        // Video
+
+        // video
         {
           test: /\.(mov|mp4)$/,
-          type: 'asset/resource',
-          generator: {
-            filename: 'assets/[name][ext]'
-          }
+          use: [
+            {
+              loader: 'file-loader',
+              options: {
+                name: '[path][name].[ext]'
+              }
+            }
+          ]
         }
       ]
     },
-    plugins: [
-      new webpack.DefinePlugin(
-        Object.keys(process.env)
-          .filter((key) => key.startsWith('REACT_'))
-          .reduce((env, key) => {
-            env[`process.env.${key}`] = JSON.stringify(process.env[key]);
-            return env;
-          }, {})
-      ),
-      new HtmlWebpackPlugin({
-        template: './frontend/standaloneIndex.html',
-        favicon: './frontend/assets/favicon.ico'
-      })
-    ],
-    optimization: {
-      minimize: IS_PROD,
-      minimizer: IS_PROD
-        ? [
-            new TerserPlugin({
-              terserOptions: {
-                compress: {
-                  drop_console: true
-                }
-              }
-            })
-          ]
-        : []
-    }
+
+    plugins: [new webpack.DefinePlugin(envKeys)]
   };
-
-  // Development server configuration
-  const devServerConfig = {
-    port: 8081,
-    headers: { 'Access-Control-Allow-Origin': '*' },
-    compress: true,
-    hot: true,
-    historyApiFallback: true,
-    static: {
-      directory: './static',
-      publicPath: '/static/'
-    },
-    devMiddleware: {
-      publicPath: isStandalone ? '/' : 'http://localhost:8081/static/frontend/'
-    }
-  };
-
-  // Apply devServer configuration for development and standalone modes
-  if (IS_DEV || isStandalone) {
-    config.devServer = devServerConfig;
-  }
-
-  return config;
 };
+
+module.exports = config();

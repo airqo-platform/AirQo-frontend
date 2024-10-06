@@ -1,7 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Serif+Text:ital@0;1&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Serif+Text:ital@0;1&family=Roboto+Mono:ital,wght@0,400;0,500;0,600;1,500;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@100;200;300;400;500;600;700;800;900&family=DM+Serif+Text:ital@0;1&family=Roboto+Mono:ital,wght@0,400;0,500;0,600;1,500;1,600&display=swap');
 
 @import 'normalize';
 
@@ -207,4 +205,77 @@ $scrollbar-thumb-border-radius: 10px; // Border radius for the thumb
 * {
   scrollbar-width: thin;
   scrollbar-color: $scrollbar-thumb-color $scrollbar-track-color;
+}
+
+.error-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f0f4ff; // Light blue background
+  padding: 20px;
+  box-sizing: border-box;
+
+  .error-content {
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .error-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #1e3a8a; // Navy blue color
+  }
+
+  .error-message {
+    margin-top: 16px;
+    color: #374151; // Dark gray color
+    font-size: 1rem;
+  }
+
+  .error-button {
+    margin-top: 24px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: #ffffff;
+    background-color: #3b82f6; // Blue color for button
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: #2563eb; // Darker blue on hover
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4); // Focus ring with blue color
+    }
+  }
+
+  .error-details {
+    margin-top: 20px;
+    text-align: left;
+    color: #1e3a8a; // Navy blue for details text
+
+    .error-summary {
+      cursor: pointer;
+      font-weight: bold;
+      color: #2563eb; // Darker blue color
+    }
+
+    p,
+    pre {
+      margin-top: 8px;
+      font-size: 0.875rem;
+      color: #374151; // Dark gray for error details
+      white-space: pre-wrap;
+    }
+  }
 }
