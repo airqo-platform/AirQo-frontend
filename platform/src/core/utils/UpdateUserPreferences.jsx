@@ -31,7 +31,7 @@ const UpdateUserPreferences = async (
       toggleCustomise();
       dispatch(completeTask(2));
     } else {
-      throw new Error('Error updating user preferences');
+      throw error;
     }
   } catch (error) {
     console.error(`Error updating user preferences: ${error}`);

@@ -6,6 +6,8 @@ const BASE_DEVICE_REGISTRY_URL_V2 = "https://staging-platform.airqo.net/api/v2";
 
 export const ACTIVITY_URI = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/activities`;
 
+export const BATCH_DEPLOY_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/activities/deploy/batch`;
+
 export const REGISTER_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL_V2}/devices`;
 
 export const ALL_DEVICES_URI = `${BASE_DEVICE_REGISTRY_URL_V2}/devices`;

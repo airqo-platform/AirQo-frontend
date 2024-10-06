@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CleanAirResource, ForumEvent, Engagement, Partner, Program, Session, Support, Person, Objective
+from .models import CleanAirResource, ForumEvent, Engagement, Partner, Program, Session, Support, Person, Objective, ForumResource, ResourceFile, ResourceSession
 
 
 class CleanAirResourceSerializer(serializers.ModelSerializer):
@@ -31,6 +31,7 @@ class PartnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Partner
         exclude = ['order']
+        ref_name = 'CleanAirPartner'
 
 
 class SessionSerializer(serializers.ModelSerializer):
@@ -43,9 +44,10 @@ class SessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Session
         exclude = ['order', 'session_details']
+        ref_name = 'CleanAirSession'
 
 
-class ProgramSerializer(serializers.ModelSerializer):
+class CleanAirProgramSerializer(serializers.ModelSerializer):
     sub_text_html = serializers.SerializerMethodField()
     sessions = SessionSerializer(many=True)
 
@@ -56,6 +58,7 @@ class ProgramSerializer(serializers.ModelSerializer):
     class Meta:
         model = Program
         exclude = ['order']
+        ref_name = 'CleanAirProgram'
 
 
 class SupportSerializer(serializers.ModelSerializer):
@@ -80,11 +83,35 @@ class PersonSerializer(serializers.ModelSerializer):
         exclude = ['bio', 'order']
 
 
+class ResourceFileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ResourceFile
+        fields = ['file', 'resource_summary', 'session']
+
+
+class ResourceSessionSerializer(serializers.ModelSerializer):
+    resource_files = ResourceFileSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ResourceSession
+        fields = '__all__'
+
+
+class ForumResourceSerializer(serializers.ModelSerializer):
+    resource_sessions = ResourceSessionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ForumResource
+        fields = '__all__'
+
+
 class ForumEventSerializer(serializers.ModelSerializer):
+    forum_resources = ForumResourceSerializer(many=True, read_only=True)
     engagements = EngagementSerializer(read_only=True)
     partners = PartnerSerializer(many=True, read_only=True)
     supports = SupportSerializer(many=True, read_only=True)
-    programs = ProgramSerializer(many=True, read_only=True)
+    programs = CleanAirProgramSerializer(many=True, read_only=True)
     persons = PersonSerializer(many=True, read_only=True)
     background_image = serializers.SerializerMethodField()
     introduction_html = serializers.SerializerMethodField()

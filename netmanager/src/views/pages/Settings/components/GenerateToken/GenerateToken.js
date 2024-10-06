@@ -25,11 +25,14 @@ import {
   DialogContent,
   TextField,
   DialogActions,
-  CircularProgress
+  CircularProgress,
+  IconButton
 } from '@material-ui/core';
 import CheckIcon from '@material-ui/icons/Check';
 import { getUserDetails } from '../../../../../reducer/Join/actions';
 import { isEmpty, isEqual } from 'underscore';
+import AddIcon from '@material-ui/icons/Add';
+import DeleteIcon from '@material-ui/icons/Delete';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -121,32 +124,46 @@ const InactiveClientModal = (props) => {
   );
 };
 
+// Register client
 const RegisterClient = (props) => {
+  const { open, onClose, data, onRegister } = props;
   const dispatch = useDispatch();
   const classes = useStyles();
-  const { open, onClose, data, onRegister } = props;
   const [clientName, setClientName] = useState('');
-  const [clientIP, setClientIP] = useState('');
-  const [clientNameError, setClientNameError] = useState(false);
+  const [clientIPs, setClientIPs] = useState(['']);
   const userID = data.user._id;
+  const [clientNameError, setClientNameError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleAddIP = () => {
+    setClientIPs([...clientIPs, '']);
+  };
+
+  const handleRemoveIP = (index) => {
+    const newIPs = clientIPs.filter((_, i) => i !== index);
+    setClientIPs(newIPs);
+  };
+
+  const handleIPChange = (index, value) => {
+    const newIPs = [...clientIPs];
+    newIPs[index] = value;
+    setClientIPs(newIPs);
+  };
 
   const handleSubmit = async () => {
     if (!clientName) {
       setClientNameError(true);
       return;
     }
+    const validIPs = clientIPs.filter((ip) => ip.trim() !== '');
+    const data = {
+      name: clientName,
+      user_id: userID,
+      ...(validIPs.length > 0 && { ip_addresses: validIPs })
+    };
+
     setIsLoading(true);
     try {
-      const data = {
-        name: clientName,
-        user_id: userID
-      };
-
-      if (clientIP) {
-        data.ip_address = clientIP;
-      }
-
       const response = await createClientApi(data);
       if (response.success === true) {
         dispatch(
@@ -159,20 +176,12 @@ const RegisterClient = (props) => {
         onClose();
         onRegister();
         setClientName('');
-        setClientIP('');
+        setClientIPs(['']);
       } else {
-        onClose();
-        dispatch(
-          updateMainAlert({
-            message: 'Client registration failed',
-            show: true,
-            severity: 'error'
-          })
-        );
+        throw new Error('Registration failed');
       }
     } catch (error) {
       console.error(error);
-      onClose();
       dispatch(
         updateMainAlert({
           message: 'Client registration failed',
@@ -180,13 +189,185 @@ const RegisterClient = (props) => {
           severity: 'error'
         })
       );
+    } finally {
+      setIsLoading(false);
+      onClose();
     }
-    setIsLoading(false);
   };
 
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle className={classes.DialogTitle}>Register Client</DialogTitle>
+      <DialogContent
+        className={classes.DialogContent}
+        style={{ maxHeight: '400px', overflowY: 'auto' }}>
+        <div style={{ width: '100%', marginBottom: '10px' }}>
+          <TextField
+            label="Client Name"
+            value={clientName}
+            variant="outlined"
+            onChange={(e) => {
+              setClientName(e.target.value);
+              setClientNameError(false);
+            }}
+            error={clientNameError}
+            helperText={clientNameError && 'Please enter a client name'}
+            fullWidth
+            margin="normal"
+          />
+        </div>
+        {clientIPs.map((ip, index) => (
+          <div
+            key={index}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+            <TextField
+              label={`Client IP ${index + 1}`}
+              value={ip}
+              variant="outlined"
+              onChange={(e) => handleIPChange(index, e.target.value)}
+              fullWidth
+            />
+            {index > 0 && (
+              <IconButton onClick={() => handleRemoveIP(index)} color="secondary">
+                <DeleteIcon />
+              </IconButton>
+            )}
+          </div>
+        ))}
+        <Button
+          startIcon={<AddIcon />}
+          onClick={handleAddIP}
+          variant="outlined"
+          fullWidth
+          style={{ marginTop: '10px' }}>
+          Add Another IP
+        </Button>
+      </DialogContent>
+      <DialogActions className={classes.DialogActions}>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button
+          color="primary"
+          variant="contained"
+          onClick={handleSubmit}
+          disabled={isLoading}
+          className={classes.DialogButton}>
+          {isLoading ? <CircularProgress size={24} /> : 'Submit'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+// Edit client
+const EditClient = (props) => {
+  const dispatch = useDispatch();
+  const classes = useStyles();
+  const { open, onClose, data, onEdit } = props;
+  const [clientName, setClientName] = useState('');
+  const [clientIPs, setClientIPs] = useState(['']);
+  const [clientNameError, setClientNameError] = useState(false);
+  const [clientIPErrors, setClientIPErrors] = useState([]);
+  const client_id = data._id;
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    handleInitialData();
+  }, [data]);
+
+  const handleInitialData = () => {
+    setClientName(data.name || '');
+
+    const ipAddresses = Array.isArray(data.ip_addresses)
+      ? data.ip_addresses
+      : data.ip_addresses
+      ? [data.ip_addresses]
+      : [''];
+
+    setClientIPs(ipAddresses);
+    setClientNameError(false);
+    setClientIPErrors(new Array(ipAddresses.length).fill(false));
+  };
+
+  const handleAddIP = () => {
+    setClientIPs([...clientIPs, '']);
+    setClientIPErrors([...clientIPErrors, false]);
+  };
+
+  const handleRemoveIP = (index) => {
+    const newIPs = clientIPs.filter((_, i) => i !== index);
+    const newErrors = clientIPErrors.filter((_, i) => i !== index);
+    setClientIPs(newIPs);
+    setClientIPErrors(newErrors);
+  };
+
+  const handleIPChange = (index, value) => {
+    const newIPs = [...clientIPs];
+    newIPs[index] = value;
+    setClientIPs(newIPs);
+
+    const newErrors = [...clientIPErrors];
+    newErrors[index] = false;
+    setClientIPErrors(newErrors);
+  };
+
+  const isValidIP = (ip) => {
+    const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    return ipRegex.test(ip);
+  };
+
+  const handleSubmit = async () => {
+    if (!clientName) {
+      setClientNameError(true);
+      return;
+    }
+
+    const newIPErrors = clientIPs.map((ip) => ip.trim() !== '' && !isValidIP(ip));
+    setClientIPErrors(newIPErrors);
+
+    if (newIPErrors.some((error) => error)) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const validIPs = clientIPs.filter((ip) => ip.trim() !== '');
+      const updatedData = {
+        name: clientName,
+        ...(validIPs.length > 0 && { ip_addresses: validIPs })
+      };
+
+      const response = await updateClientApi(updatedData, client_id);
+      if (response.success === true) {
+        dispatch(
+          updateMainAlert({
+            message: 'Client details updated successfully',
+            show: true,
+            severity: 'success'
+          })
+        );
+        onClose();
+        onEdit();
+      } else {
+        throw new Error('Update failed');
+      }
+    } catch (error) {
+      console.error(error);
+      dispatch(
+        updateMainAlert({
+          message: 'Client details update failed',
+          show: true,
+          severity: 'error'
+        })
+      );
+    } finally {
+      setIsLoading(false);
+      onClose();
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle className={classes.DialogTitle}>Edit Client</DialogTitle>
       <DialogContent className={classes.DialogContent}>
         <div style={{ marginBottom: '10px', width: '100%' }}>
           <TextField
@@ -200,151 +381,37 @@ const RegisterClient = (props) => {
             error={clientNameError}
             helperText={clientNameError && 'Please enter a client name'}
             fullWidth
+            margin="normal"
           />
         </div>
-        <div style={{ width: '100%' }}>
-          <TextField
-            label="Client IP (Optional)"
-            value={clientIP}
-            variant="outlined"
-            onChange={(e) => {
-              setClientIP(e.target.value);
-            }}
-            fullWidth
-          />
-        </div>
-      </DialogContent>
-      <DialogActions className={classes.DialogActions}>
-        <Button onClick={onClose}>Cancel</Button>
+        {clientIPs.map((ip, index) => (
+          <div
+            key={index}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+            <TextField
+              label={`Client IP ${index + 1}`}
+              value={ip}
+              variant="outlined"
+              onChange={(e) => handleIPChange(index, e.target.value)}
+              error={clientIPErrors[index]}
+              helperText={clientIPErrors[index] && 'Please enter a valid IP address'}
+              fullWidth
+            />
+            <IconButton onClick={() => handleRemoveIP(index)} color="secondary">
+              <DeleteIcon />
+            </IconButton>
+          </div>
+        ))}
         <Button
-          color="primary"
-          variant="contained"
-          onClick={handleSubmit}
-          className={classes.DialogButton}
-          disabled={isLoading}>
-          {isLoading ? <CircularProgress size={24} /> : 'Submit'}
+          startIcon={<AddIcon />}
+          onClick={handleAddIP}
+          variant="outlined"
+          fullWidth
+          style={{ marginTop: '10px' }}>
+          Add Another IP
         </Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
-
-const EditClient = (props) => {
-  const dispatch = useDispatch();
-  const classes = useStyles();
-  const { open, onClose, data, onEdit } = props;
-  const [clientName, setClientName] = useState('');
-  const [clientIP, setClientIP] = useState('');
-  const [clientNameError, setClientNameError] = useState(false);
-  const [clientIPError, setClientIPError] = useState(false);
-  const client_id = data._id;
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleInitialData = () => {
-    setClientName(data.name ? data.name : '');
-    setClientIP(data.ip_address ? data.ip_address : '');
-    setClientIPError(false);
-    setClientNameError(false);
-  };
-
-  useEffect(() => {
-    handleInitialData();
-  }, [data]);
-
-  const isValidIP = (ip) => {
-    const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-    return ipRegex.test(ip);
-  };
-
-  const handleSubmit = async () => {
-    if (!clientName) {
-      setClientNameError(true);
-      return;
-    }
-    if (clientIP && !isValidIP(clientIP)) {
-      setClientIPError(true);
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const data = {
-        name: clientName
-      };
-
-      // Add clientIP to the data if it's provided
-      if (clientIP) {
-        data.ip_address = clientIP;
-      }
-
-      const response = await updateClientApi(data, client_id);
-      if (response.success === true) {
-        dispatch(
-          updateMainAlert({
-            message: 'Client details updated successfully',
-            show: true,
-            severity: 'success'
-          })
-        );
-        onClose();
-        onEdit();
-      } else {
-        onClose();
-        dispatch(
-          updateMainAlert({
-            message: 'Client details update failed',
-            show: true,
-            severity: 'error'
-          })
-        );
-      }
-    } catch (error) {
-      console.error(error);
-      onClose();
-      dispatch(
-        updateMainAlert({
-          message: 'Client details update failed',
-          show: true,
-          severity: 'error'
-        })
-      );
-    }
-    setIsLoading(false);
-  };
-
-  return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle className={classes.DialogTitle}>Edit Client</DialogTitle>
-      <DialogContent className={classes.DialogContent}>
-        <div style={{ marginBottom: '10px', width: '100%' }}>
-          <TextField
-            label="Client Name"
-            defaultValue={clientName}
-            variant="outlined"
-            onChange={(e) => {
-              setClientName(e.target.value);
-              setClientNameError(false);
-            }}
-            error={clientNameError}
-            helperText={clientNameError && 'Please enter a client name'}
-            fullWidth
-          />
-        </div>
-        <div style={{ width: '100%' }}>
-          <TextField
-            label="Client IP (Optional)"
-            value={clientIP}
-            variant="outlined"
-            onChange={(e) => {
-              setClientIP(e.target.value);
-              setClientIPError(false);
-            }}
-            error={clientIPError}
-            helperText={clientIPError && 'Please enter a valid client IP'}
-            fullWidth
-          />
-        </div>
       </DialogContent>
-      <DialogActions className={classes.DialogActions}>
+      <DialogActions>
         <Button
           onClick={() => {
             handleInitialData();
@@ -355,10 +422,10 @@ const EditClient = (props) => {
         <Button
           color="primary"
           variant="contained"
-          onClick={() => handleSubmit()}
-          className={classes.DialogButton}
-          disabled={isLoading}>
-          {isLoading ? <CircularProgress size={24} /> : 'Edit'}
+          onClick={handleSubmit}
+          disabled={isLoading}
+          className={classes.DialogButton}>
+          {isLoading ? <CircularProgress size={24} /> : 'Save'}
         </Button>
       </DialogActions>
     </Dialog>
@@ -527,7 +594,7 @@ const GenerateToken = (props) => {
                   label: 'Client ID'
                 },
                 {
-                  id: 'ip_address',
+                  id: 'ip_addresses',
                   label: 'Client IP Address'
                 },
                 {

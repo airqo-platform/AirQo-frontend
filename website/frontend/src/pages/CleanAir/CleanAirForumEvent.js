@@ -12,8 +12,10 @@ import Speakers from './ForumEventsPages/Speakers';
 import Partners from './ForumEventsPages/Partners';
 import Travel from './ForumEventsPages/Travel';
 import Glossary from './ForumEventsPages/Glossary';
+import Resources from './ForumEventsPages/Resources';
 import CommitteePage from './ForumEventsPages/CommitteePage';
 import { ButtonCTA } from 'components/CleanAir';
+import SEO from 'utilities/seo';
 
 /**
  * CleanAirForumEvent component
@@ -38,6 +40,7 @@ const CleanAirForumEvent = () => {
   const [accommodation, setAccommodation] = useState(null);
   const [visaDetails, setVisaDetails] = useState(null);
   const [glossaryDetails, setGlossaryDetails] = useState(null);
+  const [resources, setResources] = useState(null);
   const [support, setSupport] = useState(null);
   const [registration, setRegistration] = useState(null);
   const [schedule, setSchedule] = useState(null);
@@ -52,7 +55,8 @@ const CleanAirForumEvent = () => {
     { name: t('cleanAirSite.Forum.subNav.speakers'), url: 'speakers' },
     { name: t('cleanAirSite.Forum.subNav.partners'), url: 'partners' },
     { name: t('cleanAirSite.Forum.subNav.Travel'), url: 'travel' },
-    { name: t('cleanAirSite.Forum.subNav.Glossary'), url: 'glossary' }
+    { name: t('cleanAirSite.Forum.subNav.Glossary'), url: 'glossary' },
+    { name: t('cleanAirSite.Forum.subNav.Resources'), url: 'resources' }
   ];
 
   const refMapping = {
@@ -145,6 +149,7 @@ const CleanAirForumEvent = () => {
           setAccommodation(event.travel_logistics_accommodation_details_html);
           setSupport(event.supports);
           setSchedule(event.programs);
+          setResources(event.forum_resources);
         }
       } catch (error) {
         console.error('Error fetching forum events:', error);
@@ -157,6 +162,14 @@ const CleanAirForumEvent = () => {
 
   return (
     <Page showNewsLetter={true} showBottomCTAS={false} showSubNav={false}>
+      <SEO
+        title="CLEAN-Air Forum"
+        siteTitle="AirQo Africa"
+        description="Join the CLEAN-Air Forum, a premier platform for discussing and advancing air quality management strategies in Africa. Connect with experts, policymakers, and innovators shaping the future of clean air in urban environments."
+        canonicalUrl="https://airqo.africa/clean-air/forum"
+        article={false}
+        keywords="CLEAN-Air Forum, air quality management, African cities, environmental conference, urban health, policy discussions"
+      />
       {isLoading ? (
         <div
           style={{
@@ -306,6 +319,7 @@ const CleanAirForumEvent = () => {
               />
             )}
             {activeSection === 'glossary' && <Glossary glossaryDetails={glossaryDetails} />}
+            {activeSection === 'resources' && <Resources Resources={resources} />}
           </div>
         </div>
       ) : (

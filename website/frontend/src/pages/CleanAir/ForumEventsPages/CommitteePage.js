@@ -16,9 +16,12 @@ const CommitteePage = ({ committee, sectionText }) => {
     <>
       {/* SEO */}
       <SEO
-        title="Committee of CLEAN-Air Forum"
-        siteTitle="CLEAN-Air Forum"
-        description="Meet the committee members driving the discussions on air quality management at the CLEAN-Air Forum."
+        title="CLEAN-Air Forum Committee"
+        siteTitle="AirQo Africa"
+        description="Meet the distinguished committee members driving the CLEAN-Air Forum. Learn about the experts and leaders shaping discussions on air quality management and environmental policy in Africa."
+        canonicalUrl="https://airqo.africa/clean-air/forum#committee"
+        article={false}
+        keywords="CLEAN-Air Forum committee, environmental experts, air quality leaders, African policymakers"
       />
 
       <div className="separator" />

@@ -155,7 +155,11 @@ const DataTable = ({
                     style={{ cursor: 'pointer' }}>
                     {columns.map((column) => (
                       <TableCell key={column.id} style={column.cellStyle}>
-                        {column.format ? column.format(null, row) : row[column.id]}
+                        {Array.isArray(row[column.id])
+                          ? row[column.id].join(', ')
+                          : column.format
+                          ? column.format(null, row)
+                          : row[column.id]}
                       </TableCell>
                     ))}
                   </TableRow>

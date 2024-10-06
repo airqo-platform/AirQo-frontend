@@ -1,33 +1,21 @@
 import axios from 'axios';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN;
+
+const axiosInstance = axios.create({
+  baseURL: BASE_URL,
+  params: {
+    token: API_TOKEN,
+  },
+});
 
 export const getReportData = async (data: any) => {
-  try {
-    const response = await axios.post(
-      `${BASE_URL}/analytics/grid/report`,
-      data,
-      {
-        params: {
-          token: process.env.NEXT_PUBLIC_API_TOKEN,
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await axiosInstance.post('/analytics/grid/report', data);
+  return response.data;
 };
 
 export const getGridData = async () => {
-  try {
-    const response = await axios.get(`${BASE_URL}/devices/grids`, {
-      params: {
-        token: process.env.NEXT_PUBLIC_API_TOKEN,
-      },
-    });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await axiosInstance.get('/devices/grids/summary');
+  return response.data;
 };

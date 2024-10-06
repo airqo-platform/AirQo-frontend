@@ -1,9 +1,9 @@
 import React from 'react';
-import { useTagsData } from '../../../reduxStore/Highlights/selectors';
+import { useSelector } from 'react-redux';
 import ImageLoader from '../LoadSpinner/ImageLoader';
 
 const Post = ({ postImg, Tags, title, article_link, article_title }) => {
-  const tags = useTagsData();
+  const tags = useSelector((state) => state.highlightsData.tags);
 
   return (
     <div className="feature">

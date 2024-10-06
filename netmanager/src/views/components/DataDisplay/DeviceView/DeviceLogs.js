@@ -79,6 +79,10 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log, loading, setLoad
 
   const handleSubmit = async (evt) => {
     evt.preventDefault();
+    const extracted_tags = [];
+    tags && tags.map((tag) => extracted_tags.push(tag.value));
+    let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
     const logData = {
       deviceName,
       locationName: deviceLocation,
@@ -86,6 +90,11 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log, loading, setLoad
       tags: tags.map(tag => tag.value),
       description
     };
+
+    // Add user_id only if it exists
+    if (currentUser && currentUser._id) {
+      logData.user_id = currentUser._id;
+    }
 
     setLoading(true);
     dispatch(setLoader(true));
@@ -233,7 +242,8 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log, loading, setLoad
           <Button
             variant="contained"
             color="primary"
-            type="submit"
+            onClick={handleSubmit}
+
             style={{ marginLeft: '10px' }}
           >
             Save Changes
@@ -294,6 +304,11 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow, loading, setLoadin
       tags: tags.map(tag => tag.value),
       description
     };
+
+    // Add user_id only if it exists
+    if (parsedData._id) {
+      logData.user_id = parsedData._id;
+    }
 
     setLoading(true);
     dispatch(setLoader(true));
@@ -398,7 +413,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow, loading, setLoadin
           <Button
             variant="contained"
             color="primary"
-            type="submit"
+            onClick={handleSubmit}
             style={{ marginLeft: '10px' }}
           >
             Add Log
@@ -493,39 +508,34 @@ const DeviceLogs = ({ deviceName, deviceLocation }) => {
   };
 
   return (
-    <div>
-      <TableTitle deviceName={deviceName} />
+    <>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          margin: '10px 0'
+        }}
+      >
+        <Button
+          style={{ marginRight: '5px' }}
+          variant="contained"
+          color="primary"
+          disabled={show.logTable}
+          onClick={() => setShow({ logTable: true, addLog: false, editLog: false })}
+        >
+          {' '}
+          Logs Table
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          disabled={show.addLog}
+          onClick={() => {
+            setShow({ logTable: false, addLog: true, editLog: false });
+          }}
+        >
+          {' '}
 
-      <TableContainer component={Paper} style={{ marginTop: '20px' }}>
-        <Table>
-          <TableBody>
-            {logs.map((log, index) => (
-              <TableRow key={index}>
-                <TableCell>{humanReadableDate(log.date)}</TableCell>
-                <TableCell>{log.description}</TableCell>
-                <TableCell>{log.tags.join(', ')}</TableCell>
-                <TableCell>
-                  <Tooltip title="Edit">
-                    <EditIcon
-                      style={{ cursor: 'pointer', marginRight: '10px' }}
-                      onClick={() => handleEditLog(log)}
-                    />
-                  </Tooltip>
-                  <Tooltip title="Delete">
-                    <DeleteIcon
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => handleDeleteLog(log._id)}
-                    />
-                  </Tooltip>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      <Grid container justify="flex-end" style={{ marginTop: '20px' }}>
-        <Button variant="contained" color="primary" onClick={handleAddLog}>
           Add Log
         </Button>
       </Grid>

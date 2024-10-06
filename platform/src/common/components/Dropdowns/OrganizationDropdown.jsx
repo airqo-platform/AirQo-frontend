@@ -37,10 +37,12 @@ const OrganizationDropdown = () => {
 
     try {
       const response = await dispatch(updateUserPreferences(data));
-      if (response.payload.success) {
+      if (response && response.payload && response.payload.success) {
         localStorage.setItem('activeGroup', JSON.stringify(group));
         // Refetch the preferences
         await dispatch(getIndividualUserPreferences(userId));
+      } else {
+        throw new Error('Failed to update preferences');
       }
     } catch (error) {
       throw error;
@@ -85,10 +87,12 @@ const OrganizationDropdown = () => {
                 <div
                   className={`pt-0.5 justify-start items-start gap-1 ${
                     !isCollapsed ? 'flex' : 'hidden'
-                  }`}>
+                  }`}
+                >
                   <div
                     className='text-slate-500 text-sm font-medium uppercase leading-tight text-left'
-                    title={activeGroup?.grp_title}>
+                    title={activeGroup?.grp_title}
+                  >
                     {activeGroup?.grp_title?.length > 10
                       ? `${activeGroup.grp_title.slice(0, 10)}...`
                       : activeGroup?.grp_title}
@@ -98,14 +102,16 @@ const OrganizationDropdown = () => {
               <span
                 className={`${
                   userInfo && userInfo.groups && userInfo.groups.length > 1 ? 'block' : 'hidden'
-                } ${!isCollapsed ? 'flex' : 'hidden'}`}>
+                } ${!isCollapsed ? 'flex' : 'hidden'}`}
+              >
                 <ChevronDownIcon />
               </span>
             </div>
           </button>
         }
         sidebar={true}
-        id='options'>
+        id='options'
+      >
         {userInfo &&
           userInfo.groups &&
           userInfo.groups.map((format) => (
@@ -117,7 +123,8 @@ const OrganizationDropdown = () => {
                 activeGroup &&
                 activeGroup?.grp_title === format?.grp_title &&
                 'bg-secondary-neutral-light-50'
-              }`}>
+              }`}
+            >
               <div className='grow shrink basis-0 h-6 justify-start items-center gap-2 flex'>
                 <div className='w-8 h-8 py-1.5 bg-gray-50 rounded-full justify-center items-center flex'>
                   <div className='w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight'>
@@ -126,7 +133,8 @@ const OrganizationDropdown = () => {
                 </div>
                 <div
                   className='max-w-[120px] w-full text-gray-700 text-sm font-normal leading-tight uppercase'
-                  title={format.grp_title}>
+                  title={format.grp_title}
+                >
                   {format && format.grp_title && format.grp_title.length > 10
                     ? formatString(format.grp_title.slice(0, 10)) + '...'
                     : formatString(format.grp_title)}

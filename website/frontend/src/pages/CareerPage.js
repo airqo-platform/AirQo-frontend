@@ -1,19 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInitScrollTop } from 'utilities/customHooks';
-import { loadCareersListingData, loadCareersDepartmentsData } from 'reduxStore/Careers/operations';
-import { useDispatch } from 'react-redux';
+import { loadCareersListingData, loadCareersDepartmentsData } from 'reduxStore/Careers';
+import { useDispatch, useSelector } from 'react-redux';
 import Page from './Page';
-import {
-  useCareerListingData,
-  useCareerDepartmentsData,
-  useCareerLoadingData
-} from 'reduxStore/Careers/selectors';
 import { groupBy } from 'underscore';
 import SectionLoader from '../components/LoadSpinner/SectionLoader';
 import SEO from 'utilities/seo';
 import { useTranslation, Trans } from 'react-i18next';
-import { useSelector } from 'react-redux';
 import CareerImage from 'src/icons/careers/careers.webp';
 
 const JobListing = ({ title, uniqueTitle, type, key }) => {
@@ -65,9 +59,10 @@ const CareerPage = () => {
   let language = '';
 
   try {
-    careerListing = useCareerListingData();
-    departments = useCareerDepartmentsData();
-    loading = useCareerLoadingData();
+    careerListing = useSelector((state) => state.careersData.listing);
+    departments = useSelector((state) => state.careersData.departments);
+
+    loading = useSelector((state) => state.careersData.loading);
     groupedListing = groupBy(Object.values(careerListing), (v) => v['department']['name']);
     language = useSelector((state) => state.eventsNavTab.languageTab);
   } catch (error) {
@@ -104,15 +99,18 @@ const CareerPage = () => {
     } catch (error) {
       console.error('An error occurred while dispatching data: ', error);
     }
-  }, [careerListing, language, dispatch]);
+  }, [language]);
 
   return (
     <Page>
       <div className="CareersPage">
         <SEO
-          title="Careers"
-          siteTitle="AirQo"
-          description="Be part of a team pioneering air quality monitoring in Africa. Together, we work passionately towards our vision for Clean Air for all African Cities."
+          title="Careers at AirQo"
+          siteTitle="Join the Clean Air Revolution in Africa"
+          description="Join AirQo's passionate team in pioneering air quality monitoring across Africa. Help us achieve our vision of Clean Air for all African Cities through innovation and dedication."
+          canonicalUrl="https://airqo.africa/careers"
+          keywords="careers, jobs, air quality, environmental science, Africa, technology, innovation"
+          article={false}
         />
         <div
           className="careers-banner"

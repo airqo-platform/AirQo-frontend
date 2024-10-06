@@ -2,17 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { isEmpty } from 'underscore';
 import SEO from 'utilities/seo';
 import { SplitTextSection, RegisterSection, IntroSection } from 'components/CleanAir';
-import { usePartnersData } from '../../../reduxStore/Partners/selectors';
 import Membership from 'assets/img/cleanAir/membership.webp';
 import { useTranslation } from 'react-i18next';
 import CleanAirPageContainer from './Page';
 import { useDispatch, useSelector } from 'react-redux';
-import { loadPartnersData } from 'reduxStore/Partners/operations';
+import { loadPartnersData } from 'reduxStore/Partners';
 
 const CleanAirPartners = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const partnersData = usePartnersData();
+  const partnersData = useSelector((state) => state.partnersData.partners);
   const isLoading = isEmpty(partnersData);
   const [implementingPartners, setImplementingPartners] = useState([]);
   const [policyPartners, setPolicyPartners] = useState([]);

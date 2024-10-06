@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
+import { showGetInvolvedModal } from 'reduxStore/GetInvolved';
 import AirQo from 'icons/nav/AirQo';
 import MenuIcon from 'assets/svg/Menu.svg';
 import CloseIcon from 'assets/svg/Close.svg';
@@ -13,8 +13,7 @@ const TopBar = () => {
   // Translation hook
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const showModal = () => dispatch(showGetInvolvedModal(true));
-  const [showEvent, setShowEvent] = useState(false);
+  const showModal = () => dispatch(showGetInvolvedModal({ openModal: true }));
 
   const toggleMenu = () => {
     setOpenItem(null);
@@ -51,25 +50,6 @@ const TopBar = () => {
       setOpenItem(openItem === item ? null : item);
     } else {
       return;
-    }
-  };
-
-  useEffect(() => {
-    checkEventDate();
-  }, []);
-
-  const checkEventDate = () => {
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth();
-
-    // Show the event link starting from February (5 months before July)
-    if (currentMonth >= 1 && currentMonth < 7) {
-      setShowEvent(true);
-    }
-
-    // Hide the event link after July has ended
-    if (currentMonth >= 7) {
-      setShowEvent(false);
     }
   };
 
@@ -117,6 +97,16 @@ const TopBar = () => {
                       <h3>{t('navbar.products.subnav.calibrate.name')}</h3>
                       <h4>{t('navbar.products.subnav.calibrate.desc')}</h4>
                     </Link>
+                  </div>
+                  <div className="dropdown-list-item">
+                    <a
+                      href="https://platform.airqo.net/reports"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ textDecoration: 'none' }}>
+                      <h3>{t('navbar.products.subnav.reporting.name')}</h3>
+                      <h4>{t('navbar.products.subnav.reporting.desc')}</h4>
+                    </a>
                   </div>
                 </div>
               </div>
@@ -179,13 +169,11 @@ const TopBar = () => {
                     <h3>{t('navbar.about.subnav.careers')}</h3>
                   </Link>
                 </div>
-                {showEvent && (
-                  <div className="dropdown-list-item">
-                    <Link to="/clean-air/forum">
-                      <h3>{t('navbar.about.subnav.forumEvent')}</h3>
-                    </Link>
-                  </div>
-                )}
+                <div className="dropdown-list-item">
+                  <Link to="/clean-air/forum">
+                    <h3>{t('navbar.about.subnav.forumEvent')}</h3>
+                  </Link>
+                </div>
                 <div className="dropdown-list-item">
                   <Link to="/contact">
                     <h3>{t('navbar.about.subnav.contact')}</h3>

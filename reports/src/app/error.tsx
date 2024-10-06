@@ -28,12 +28,10 @@ const ErrorComponent: React.FC<ErrorProps> = ({ error }) => {
           />
         </div>
         <div className="space-y-8">
-          <h2 className="text-2xl font-semibold text-gray-900">
-            Oops! Something went wrong
-          </h2>
+          <h2 className="text-2xl font-semibold text-gray-900">Oops! Something went wrong</h2>
           <p className="text-lg text-gray-500 max-w-lg">
-            We&apos;re sorry for the inconvenience. Our team has been notified
-            and we&apos;re working on a fix. Please try again later.
+            We&apos;re sorry for the inconvenience. Our team has been notified and we&apos;re
+            working on a fix. Please try again later.
           </p>
         </div>
         <div>

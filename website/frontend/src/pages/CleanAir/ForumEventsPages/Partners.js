@@ -24,9 +24,12 @@ const Partners = ({
     <>
       {/* SEO */}
       <SEO
-        title="Partners of CLEAN-Air Forum"
-        siteTitle="CLEAN-Air Forum"
-        description="Discover the partners collaborating with the CLEAN-Air Forum to improve air quality management in Africa."
+        title="CLEAN-Air Forum Partners"
+        siteTitle="AirQo Africa"
+        description="Discover the key partners and collaborators of the CLEAN-Air Forum. Explore how these organizations are working together to improve air quality management and urban health across Africa."
+        canonicalUrl="https://airqo.africa/clean-air/forum#partners"
+        article={false}
+        keywords="CLEAN-Air Forum partnerships, environmental collaborations, air quality initiatives, African environmental organizations"
       />
 
       <div>

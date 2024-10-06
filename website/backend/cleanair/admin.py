@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
-from .models import CleanAirResource, ForumEvent, Partner, Program, Session, Support, Person, Engagement, Objective
+from .models import CleanAirResource, ForumEvent, Partner, Program, Session, Support, Person, Engagement, Objective, ForumResource, ResourceFile, ResourceSession
 from nested_admin import NestedTabularInline, NestedModelAdmin
 
 # Inlines
@@ -26,6 +26,17 @@ class SessionInline(NestedTabularInline):
 class SupportInline(NestedTabularInline):
     model = Support
     extra = 0
+
+
+class ResourceFileInline(NestedTabularInline):
+    model = ResourceFile
+    extra = 1
+
+
+class ResourceSessionInline(NestedTabularInline):
+    model = ResourceSession
+    extra = 1
+    inlines = [ResourceFileInline]
 
 # Admins
 
@@ -83,3 +94,12 @@ class PartnerAdmin(admin.ModelAdmin):
         width, height = 100, 200
         from django.utils.html import escape, format_html
         return format_html(f'<img src="{escape(obj.partner_logo.url)}" height="{height}" />')
+
+
+@admin.register(ForumResource)
+class ForumResourceAdmin(NestedModelAdmin):
+    inlines = [ResourceSessionInline]
+    list_display = ('resource_title', 'resource_authors',
+                    'order', 'forum_event')
+    search_fields = ('resource_title', 'resource_authors')
+    list_filter = ('forum_event',)

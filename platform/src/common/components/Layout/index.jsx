@@ -36,7 +36,7 @@ const Layout = ({
    */
   useEffect(() => {
     SetChartDetails(dispatch, preferenceData);
-  }, []);
+  }, [preferenceData]);
 
   /**
    * Fetch user checklists from the database
@@ -148,7 +148,8 @@ const Layout = ({
           <div
             className={`w-full h-dvh ${
               router.pathname === '/map' ? 'overflow-hidden' : 'overflow-y-auto'
-            } transition-all duration-300 ease-in-out`}>
+            } transition-all duration-300 ease-in-out`}
+          >
             {noTopNav && <TopBar topbarTitle={topbarTitle} noBorderBottom={noBorderBottom} />}
             <div className='overflow-hidden w-full'>{children}</div>
           </div>

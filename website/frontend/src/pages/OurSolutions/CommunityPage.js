@@ -14,23 +14,25 @@ import AirQoArrowLeft from 'assets/img/community/AirQo_arrow_left.svg';
 import AirQoQuotes from 'assets/img/community/AirQo_quotes.webp';
 import Page from '../Page';
 import { useDispatch } from 'react-redux';
-import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
+import { showGetInvolvedModal } from 'reduxStore/GetInvolved';
 import SEO from 'utilities/seo';
 import { useTranslation } from 'react-i18next';
 
 const CommunityPage = () => {
   useInitScrollTop();
   const dispatch = useDispatch();
-  const showModal = () => dispatch(showGetInvolvedModal(true));
+  const showModal = () => dispatch(showGetInvolvedModal({ openModal: true }));
   const { t } = useTranslation();
   return (
     <Page>
       <div className="CommunityPage">
         <SEO
-          title="Our Solutions"
-          siteTitle="For Communities"
-          description="AirQo harnesses the value that comes with bringing together community members passionate about
-                            clean air and a healthy environment"
+          title="Our Solutions for Communities"
+          siteTitle="AirQo"
+          description="AirQo harnesses the value of bringing together community members passionate about clean air and a healthy environment. Join our network of local champions driving positive change in air quality."
+          canonicalUrl="https://airqo.africa/solutions/communities"
+          image="https://res.cloudinary.com/dbibjvyhm/image/upload/v1726578795/website/photos/ForCommunities_oepvth.webp"
+          keywords="community engagement, clean air advocates, environmental health, air quality awareness, local action"
         />
         <div className="page-container">
           <div className="hero">

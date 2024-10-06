@@ -10,10 +10,12 @@ const Index = ({ engagements, forumEvents }) => {
       {/* SEO */}
       <SEO
         title="About CLEAN-Air Forum"
-        siteTitle="CLEAN-Air Forum"
-        description="Learn about the CLEAN-Air Forum, a platform dedicated to fostering discussions on air quality management in Africa."
+        siteTitle="AirQo Africa"
+        description="Learn about the CLEAN-Air Forum, a pioneering platform fostering critical discussions and collaborations on air quality management across Africa. Discover our mission, objectives, and impact on urban environmental policies."
+        canonicalUrl="https://airqo.africa/clean-air/forum#about"
+        keywords="CLEAN-Air Forum mission, air quality initiatives, African environmental policy, urban health collaboration"
+        article={false}
       />
-
       {/* Introduction section */}
       {forumEvents[0].introduction_html && (
         <>

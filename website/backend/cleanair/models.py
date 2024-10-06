@@ -261,7 +261,59 @@ class Person(BaseModel):
         return self.name
 
 
+class ForumResource(models.Model):
+    resource_title = models.CharField(max_length=120)
+    resource_authors = models.CharField(max_length=200, default="AirQo")
+    order = models.IntegerField(default=1)
+    forum_event = models.ForeignKey(
+        'ForumEvent',
+        null=True,
+        blank=True,
+        related_name="forum_resources",
+        on_delete=models.SET_NULL,
+    )
+
+    class Meta:
+        ordering = ['order', '-id']
+
+    def __str__(self):
+        return self.resource_title
+
+
+class ResourceSession(models.Model):
+    session_title = models.CharField(max_length=120)
+    forum_resource = models.ForeignKey(
+        'ForumResource',
+        related_name="resource_sessions",
+        on_delete=models.CASCADE,
+        default=1
+    )
+    order = models.IntegerField(default=1)
+
+    class Meta:
+        ordering = ['order', '-id']
+
+    def __str__(self):
+        return self.session_title
+
+
+class ResourceFile(models.Model):
+    resource_summary = models.TextField(blank=True, null=True)
+    file = models.FileField(upload_to='cleanair/resources/')
+    session = models.ForeignKey(
+        'ResourceSession', related_name='resource_files', on_delete=models.CASCADE, null=True, blank=True, default=1)
+    order = models.IntegerField(default=1)
+
+    class Meta:
+        ordering = ['order', '-id']
+
+    def __str__(self):
+        return self.file.name
+
+
 # signals.py
+
+
 @receiver(pre_save, dispatch_uid="append_short_name", sender=ForumEvent)
 def append_short_name(sender, instance, *args, **kwargs):
     if not instance.unique_title:

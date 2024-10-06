@@ -1,15 +1,17 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-
 import './styles/index.scss';
-
 import App from './App';
-
 import './i18n';
 
-const app = document.getElementById('app');
+const rootElement = document.getElementById('app');
 
-const root = createRoot(app)
+if (rootElement) {
+  const root = createRoot(rootElement);
 
-// Bootstrap the main app
-root.render(<App />);
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+}

@@ -2,6 +2,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 html {
@@ -27,7 +28,7 @@ a {
   margin: 10px auto;
   max-width: 300px;
   padding: 20px 12px 10px 20px;
-  font: 13px "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  font: 13px 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
 }
 .form-style-graph li {
   padding: 0;
@@ -41,10 +42,10 @@ a {
   display: block;
   font-weight: bold;
 }
-.form-style-graph input[type="date"],
-.form-style-graph input[type="search"],
-.form-style-graph input[type="time"],
-.form-style-graph input[type="input"],
+.form-style-graph input[type='date'],
+.form-style-graph input[type='search'],
+.form-style-graph input[type='time'],
+.form-style-graph input[type='input'],
 select {
   box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -53,9 +54,9 @@ select {
   padding: 7px;
   margin: 0px;
 }
-.form-style-graph input[type="date"]:focus,
-.form-style-graph input[type="search"]:focus,
-.form-style-graph input[type="time"]:focus,
+.form-style-graph input[type='date']:focus,
+.form-style-graph input[type='search']:focus,
+.form-style-graph input[type='time']:focus,
 .form-style-graph select:focus {
   -moz-box-shadow: 0 0 8px #88d5e9;
   -webkit-box-shadow: 0 0 8px #88d5e9;
@@ -74,15 +75,15 @@ select {
   border: none;
   color: #fff;
 }
-.form-style-graph input[type="submit"],
-.form-style-graph input[type="button"] {
+.form-style-graph input[type='submit'],
+.form-style-graph input[type='button'] {
   background: #4b99ad;
   padding: 8px 15px 8px 15px;
   border: none;
   color: #fff;
 }
-.form-style-graph input[type="submit"]:hover,
-.form-style-graph input[type="button"]:hover {
+.form-style-graph input[type='submit']:hover,
+.form-style-graph input[type='button']:hover {
   background: #4691a4;
   box-shadow: none;
   -moz-box-shadow: none;
@@ -174,7 +175,7 @@ select {
   // min-width: 12%;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
   padding: 5px 10px;
-  font-family: "Open Sans", sans-serif;
+  font-family: 'Open Sans', sans-serif;
   font-weight: 300;
   color: #000;
   border-radius: 5px;
@@ -201,7 +202,7 @@ select {
 }
 
 .filter__p {
-  font-family: "Open Sans", sans-serif;
+  font-family: 'Open Sans', sans-serif;
   font-size: 12px;
 }
 
