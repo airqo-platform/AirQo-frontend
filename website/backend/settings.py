@@ -107,8 +107,7 @@ ROOT_URLCONF = "backend.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [
-            os.path.join(BASE_DIR, 'frontend', 'templates'),],
+        "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -157,7 +156,7 @@ STATIC_HOST = env("REACT_WEB_STATIC_HOST", default="http://localhost:8081/")
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "frontend/assets/"),
-    os.path.join(BASE_DIR, 'frontend'),
+    os.path.join(BASE_DIR, 'frontend', 'static'),
 ]
 STATIC_URL = STATIC_HOST + "static/"
 

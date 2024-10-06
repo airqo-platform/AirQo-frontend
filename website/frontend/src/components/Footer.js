@@ -22,7 +22,6 @@ import Mozambique from 'icons/africanCities/countries/mozambique.svg';
 import Cameroon from 'icons/africanCities/countries/cameroon.svg';
 
 import { setCurrentAirQloudData, loadAirQloudSummaryData } from 'reduxStore/AirQlouds';
-
 import { useTranslation, Trans } from 'react-i18next';
 import LocationTracker from './LoctionTracker/LocationTracker';
 
@@ -32,12 +31,9 @@ const style = {
   left: '50%',
   transform: 'translate(-50%, -50%)',
   maxWidth: 600,
-  // minHeight: 200,
   width: '90%',
   bgcolor: 'background.paper',
   outline: 'none'
-  // boxShadow: 24,
-  // p: 4,
 };
 
 const flagMapper = {
@@ -59,21 +55,39 @@ const CountryTab = ({ className, flag, name, onClick }) => (
 
 const Footer = () => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
+
   const [open, setOpen] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState('uganda');
+  const [selectedAirqloud, setSelectedAirqloud] = useState('uganda');
 
   const airqloudSummaries = useSelector((state) => state.airqlouds.summary);
-  const currentAirqloud = useSelector((state) => state.airqlouds.currentAirqloud);
-  const [selectedAirqloud, setSelectedAirqloud] = useState(currentAirqloud);
-  const { t } = useTranslation();
+  const currentAirqloud = useSelector((state) => state.airqlouds.currentAirqloud) || 'uganda';
+  const error = useSelector((state) => state.airqlouds.error);
 
   const currentAirqloudData = airqloudSummaries[currentAirqloud] || { numberOfSites: 0 };
 
   useEffect(() => {
-    dispatch(loadAirQloudSummaryData());
-  }, []);
+    const fetchData = async () => {
+      try {
+        await dispatch(loadAirQloudSummaryData()).unwrap();
+      } catch (err) {
+        console.error('Failed to load AirQloud summary data:', err);
+      }
+    };
+
+    fetchData();
+  }, [dispatch]);
+
+  useEffect(() => {
+    setSelectedCountry(currentAirqloud);
+  }, [currentAirqloud]);
 
   const explodeSummaryCount = (numberOfSites) => {
+    if (typeof numberOfSites !== 'number' || numberOfSites < 0) {
+      console.warn('Invalid number of sites:', numberOfSites);
+      return ['0', '0', '0', '0'];
+    }
     const paddedCount = numberOfSites.toString().padStart(4, '0');
     return paddedCount.split('');
   };
@@ -97,11 +111,6 @@ const Footer = () => {
     setOpen(false);
   };
 
-  useEffect(() => {
-    setSelectedCountry(currentAirqloud);
-  }, [currentAirqloud]);
-
-  // an array for the countries
   const countries = [
     { name: 'Uganda', flag: <Uganda /> },
     { name: 'Kenya', flag: <Kenya /> },
@@ -112,7 +121,6 @@ const Footer = () => {
     { name: 'Mozambique', flag: <Mozambique /> },
     { name: 'Cameroon', flag: <Cameroon /> }
   ];
-
   return (
     <footer className="footer-wrapper">
       <div className="Footer">
