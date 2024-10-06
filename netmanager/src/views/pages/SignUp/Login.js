@@ -45,9 +45,8 @@ class Login extends Component {
     anchorElem.setAttribute('rel', 'stylesheet');
     anchorElem.setAttribute('id', 'logincdn');
 
-    //document.body.appendChild(anchorElem);
     document.getElementsByTagName('head')[0].appendChild(anchorElem);
-    // If logged in and user navigates to Login page, should redirect them to dashboard
+ 
     if (this.props.auth.isAuthenticated) {
       this.props.history.push('/analytics');
     }
@@ -72,22 +71,22 @@ class Login extends Component {
   onChange = (e) => {
     e.preventDefault();
     const { id, value } = e.target;
-    let errors = this.props.errors;
 
+    let errors = { ...this.state.errors };
+  
     if (id === 'organization') {
       window.history.pushState({}, null, `${window.location.pathname}?${id}=${value}`);
     }
-
+  
+    // Update the errors object immutably
     errors[id] = value.length === 0 ? `This field is required` : '';
-
-    this.setState(
-      {
-        errors,
-        [id]: value
-      },
-      () => {}
-    );
+  
+    this.setState({
+      errors,
+      [id]: value
+    });
   };
+  
 
   toggleShowPassword = () => {
     this.setState({ ...this.state, showPassword: !this.state.showPassword });
