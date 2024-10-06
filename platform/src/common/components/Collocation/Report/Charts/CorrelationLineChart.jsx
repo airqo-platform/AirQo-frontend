@@ -47,12 +47,12 @@ const CorrelationChart = ({
       lines.push(
         <Line
           key={`${device}_${sensorKey1}`}
-          type='monotone'
+          type="monotone"
           dataKey={`${device}.${sensorKey1}`}
           name={`Sensor 01 ${device}`}
           stroke={color}
           dot={false}
-          strokeWidth='1.5'
+          strokeWidth="1.5"
           isAnimationActive={false}
         />,
       );
@@ -60,13 +60,13 @@ const CorrelationChart = ({
       lines.push(
         <Line
           key={`${device}_${sensorKey2}`}
-          type='monotone'
+          type="monotone"
           dataKey={`${device}.${sensorKey2}`}
           name={`Sensor 02 ${device}`}
           stroke={color}
           dot={false}
-          strokeWidth='1.5'
-          strokeDasharray='5 5'
+          strokeWidth="1.5"
+          strokeDasharray="5 5"
           isAnimationActive={false}
         />,
       );
@@ -79,9 +79,14 @@ const CorrelationChart = ({
 
   return (
     <div className={`w-full ${height ? `h-[${height}px]` : 'h-80'}`}>
-      <ResponsiveContainer width='100%' height='100%'>
-        <LineChart data={sortedData} className='text-xs -ml-7'>
-          <CartesianGrid vertical={false} stroke='#000000' strokeOpacity='0.1' strokeWidth={0.5} />
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={sortedData} className="text-xs -ml-7">
+          <CartesianGrid
+            vertical={false}
+            stroke="#000000"
+            strokeOpacity="0.1"
+            strokeWidth={0.5}
+          />
           <XAxis
             dataKey={'timestamp'}
             tickFormatter={(timestamp, index) => {
@@ -91,18 +96,21 @@ const CorrelationChart = ({
               return '';
             }}
             padding={{ left: 60, right: 20 }}
-            strokeWidth='0.5'
-            stroke='#000000'
-            strokeOpacity='0.1'
+            strokeWidth="0.5"
+            stroke="#000000"
+            strokeOpacity="0.1"
           />
           <YAxis
             axisLine={false}
-            stroke='#000000'
-            strokeOpacity='0.1'
+            stroke="#000000"
+            strokeOpacity="0.1"
             strokeWidth={0.5}
-            tickMargin='-30'
+            tickMargin="-30"
           />
-          <Tooltip formatter={(value) => value.toFixed(2)} wrapperClassName='text-xs' />
+          <Tooltip
+            formatter={(value) => value.toFixed(2)}
+            wrapperClassName="text-xs"
+          />
 
           {renderLines()}
         </LineChart>

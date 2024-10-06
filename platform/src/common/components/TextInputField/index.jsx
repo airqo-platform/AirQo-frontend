@@ -2,11 +2,13 @@ import React from 'react';
 
 const TextInputField = ({ id, value, onChange, label, type, Icon }) => {
   return (
-    <div className='relative flex flex-col gap-[6px]'>
-      <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>{label}</label>
-      <div className='flex items-center'>
+    <div className="relative flex flex-col gap-[6px]">
+      <label className="text-gray-720 text-sm leading-4 tracking-[-0.42px]">
+        {label}
+      </label>
+      <div className="flex items-center">
         {Icon && (
-          <span className='absolute left-0 top-3 w-10 h-full flex items-center justify-center'>
+          <span className="absolute left-0 top-3 w-10 h-full flex items-center justify-center">
             <Icon />
           </span>
         )}

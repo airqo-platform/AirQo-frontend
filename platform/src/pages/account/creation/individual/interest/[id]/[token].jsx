@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import AccountPageLayout from '@/components/Account/Layout';
 import RadioComponent from '@/components/Account/RadioComponent';
-import { updateUserCreationDetails, verifyUserEmailApi } from '@/core/apis/Account';
+import {
+  updateUserCreationDetails,
+  verifyUserEmailApi,
+} from '@/core/apis/Account';
 import { useRouter } from 'next/router';
 import Toast from '@/components/Toast';
 import Spinner from '@/components/Spinner';
@@ -93,18 +96,27 @@ const IndividualAccountInterest = () => {
       pageTitle={'Interest | AirQo'}
       rightText={
         "What you've built here is so much better for air pollution monitoring than anything else on the market!"
-      }>
-      {updateError.state && <Toast type={'error'} timeout={5000} message={updateError.message} />}
-      <div className='w-full px-[2px]'>
-        <h2 className='text-3xl text-black-700 font-medium'>Help us understand your interest</h2>
-        <p className='text-xl text-black-700 font-normal mt-3'>
+      }
+    >
+      {updateError.state && (
+        <Toast type={'error'} timeout={5000} message={updateError.message} />
+      )}
+      <div className="w-full px-[2px]">
+        <h2 className="text-3xl text-black-700 font-medium">
+          Help us understand your interest
+        </h2>
+        <p className="text-xl text-black-700 font-normal mt-3">
           We will help you get started based on your response
         </p>
-        <div className='mt-6'>
-          <div className='w-full grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-4'>
+        <div className="mt-6">
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-4">
             {clickedButton === ''
               ? radioButtonText.map((text, index) => (
-                  <div key={index} className='w-full' onClick={() => setClickedButton(text)}>
+                  <div
+                    key={index}
+                    className="w-full"
+                    onClick={() => setClickedButton(text)}
+                  >
                     <RadioComponent
                       text={text}
                       titleFont={'text-md font-normal'}
@@ -116,7 +128,7 @@ const IndividualAccountInterest = () => {
               : radioButtonText
                   .filter((button) => button === clickedButton)
                   .map((text, index) => (
-                    <div key={index} className='w-full col-span-2'>
+                    <div key={index} className="w-full col-span-2">
                       <RadioComponent
                         text={text}
                         titleFont={'text-md font-normal'}
@@ -124,15 +136,18 @@ const IndividualAccountInterest = () => {
                         width={'w-full'}
                         checked={true}
                       />
-                      <div className='mt-6'>
-                        <div className='w-full'>
-                          <div className='text-sm'>Give us more details about your interests?</div>
-                          <div className='mt-2 w-full'>
+                      <div className="mt-6">
+                        <div className="w-full">
+                          <div className="text-sm">
+                            Give us more details about your interests?
+                          </div>
+                          <div className="mt-2 w-full">
                             <textarea
                               onChange={(e) => setInterest(e.target.value)}
-                              rows='3'
-                              className='textarea textarea-lg w-full bg-white rounded-lg border-input-light-outline focus:border-input-outline'
-                              placeholder='Type here'></textarea>
+                              rows="3"
+                              className="textarea textarea-lg w-full bg-white rounded-lg border-input-light-outline focus:border-input-outline"
+                              placeholder="Type here"
+                            ></textarea>
                           </div>
                         </div>
                       </div>
@@ -140,19 +155,25 @@ const IndividualAccountInterest = () => {
                   ))}
           </div>
         </div>
-        <div className='mt-10'>
-          <div className='lg:w-1/3 mt-6 md:mt-0 md:w-full'>
+        <div className="mt-10">
+          <div className="lg:w-1/3 mt-6 md:mt-0 md:w-full">
             {clickedButton === '' && interest === null ? (
               <button
                 style={{ textTransform: 'none' }}
-                className='w-full btn btn-disabled bg-white rounded-[12px] text-sm outline-none border-none'>
-                {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
+                className="w-full btn btn-disabled bg-white rounded-[12px] text-sm outline-none border-none"
+              >
+                {loading ? (
+                  <Spinner data-testid="spinner" width={25} height={25} />
+                ) : (
+                  'Continue'
+                )}
               </button>
             ) : (
               <button
                 style={{ textTransform: 'none' }}
-                className='w-full btn bg-blue-900 rounded-[12px] text-sm outline-none border-none hover:bg-blue-950'
-                onClick={() => handleUpdate()}>
+                className="w-full btn bg-blue-900 rounded-[12px] text-sm outline-none border-none hover:bg-blue-950"
+                onClick={() => handleUpdate()}
+              >
                 Continue
               </button>
             )}

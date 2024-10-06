@@ -23,30 +23,42 @@ const AddMonitor = () => {
   const dispatch = useDispatch();
   const [isCollocating, setCollocating] = useState(false);
 
-  const schedulingResponse = useSelector((state) => state.collocation.collocateDevices);
+  const schedulingResponse = useSelector(
+    (state) => state.collocation.collocateDevices,
+  );
 
-  const { collocationDevices, status, error } = useSelector((state) => state.deviceRegistry);
+  const { collocationDevices, status, error } = useSelector(
+    (state) => state.deviceRegistry,
+  );
 
   const selectedCollocateDevices = useSelector(
     (state) => state.selectedCollocateDevices.selectedCollocateDevices,
   );
 
-  const startDate = useSelector((state) => state.selectedCollocateDevices.startDate);
-  const endDate = useSelector((state) => state.selectedCollocateDevices.endDate);
+  const startDate = useSelector(
+    (state) => state.selectedCollocateDevices.startDate,
+  );
+  const endDate = useSelector(
+    (state) => state.selectedCollocateDevices.endDate,
+  );
   const scheduledBatchName = useSelector(
     (state) => state.selectedCollocateDevices.scheduledBatchName,
   );
   const scheduledBatchDataCompletenessThreshold = useSelector(
-    (state) => state.selectedCollocateDevices.scheduledBatchDataCompletenessThreshold,
+    (state) =>
+      state.selectedCollocateDevices.scheduledBatchDataCompletenessThreshold,
   );
   const scheduledBatchInterCorrelationThreshold = useSelector(
-    (state) => state.selectedCollocateDevices.scheduledBatchInterCorrelationThreshold,
+    (state) =>
+      state.selectedCollocateDevices.scheduledBatchInterCorrelationThreshold,
   );
   const scheduledBatchIntraCorrelationThreshold = useSelector(
-    (state) => state.selectedCollocateDevices.scheduledBatchIntraCorrelationThreshold,
+    (state) =>
+      state.selectedCollocateDevices.scheduledBatchIntraCorrelationThreshold,
   );
   const scheduledBatchDifferencesThreshold = useSelector(
-    (state) => state.selectedCollocateDevices.scheduledBatchDifferencesThreshold,
+    (state) =>
+      state.selectedCollocateDevices.scheduledBatchDifferencesThreshold,
   );
 
   useEffect(() => {
@@ -92,7 +104,11 @@ const AddMonitor = () => {
   };
 
   return (
-    <Layout pageTitle={'Add monitor | Collocation'}>
+    <Layout
+      pageTitle={'Add monitor | Collocation'}
+      noBorderBottom
+      topbarTitle={'Collocation'}
+    >
       {status && status === 'failed' && (
         <Toast
           type={'error'}
@@ -105,49 +121,54 @@ const AddMonitor = () => {
         />
       )}
       {/* SKELETON LOADER */}
-      {status && status === 'loading' ? (
-        <SkeletonFrame />
-      ) : (
-        <>
-          <NavigationBreadCrumb navTitle={'Add monitor'}>
-            <div className='flex'>
-              <Button
-                className={`rounded-none text-white bg-blue-900 border border-blue-900 font-medium ${
-                  selectedCollocateDevices.length > 0 &&
-                  startDate &&
-                  endDate &&
-                  scheduledBatchName &&
-                  scheduledBatchDifferencesThreshold >= 0 &&
-                  scheduledBatchDifferencesThreshold <= 5 &&
-                  scheduledBatchDataCompletenessThreshold >= 0 &&
-                  scheduledBatchDataCompletenessThreshold <= 100 &&
-                  scheduledBatchInterCorrelationThreshold >= 0 &&
-                  scheduledBatchInterCorrelationThreshold <= 1 &&
-                  scheduledBatchIntraCorrelationThreshold >= 0 &&
-                  scheduledBatchIntraCorrelationThreshold <= 1 &&
-                  !isCollocating
-                    ? 'cursor-pointer'
-                    : 'opacity-40 cursor-not-allowed'
-                }`}
-                onClick={handleCollocation}
-                dataTestId={'collocation-schedule-button'}
-              >
-                Start collocation
-              </Button>
-            </div>
-          </NavigationBreadCrumb>
-          <ContentBox>
-            <div className='grid grid-cols-1 md:grid-cols-3'>
-              {/* DEVICE TABLE */}
-              <Table collocationDevices={collocationDevices} />
-              {/* CALENDAR */}
-              <ScheduleCalendar />
-            </div>
-          </ContentBox>
-        </>
-      )}
+      <div className="px-4 md:px-6 lg:px-10 pb-3">
+        {status && status === 'loading' ? (
+          <SkeletonFrame />
+        ) : (
+          <>
+            <NavigationBreadCrumb navTitle={'Add monitor'}>
+              <div className="flex">
+                <Button
+                  className={`rounded-none text-white bg-blue-900 border border-blue-900 font-medium ${
+                    selectedCollocateDevices.length > 0 &&
+                    startDate &&
+                    endDate &&
+                    scheduledBatchName &&
+                    scheduledBatchDifferencesThreshold >= 0 &&
+                    scheduledBatchDifferencesThreshold <= 5 &&
+                    scheduledBatchDataCompletenessThreshold >= 0 &&
+                    scheduledBatchDataCompletenessThreshold <= 100 &&
+                    scheduledBatchInterCorrelationThreshold >= 0 &&
+                    scheduledBatchInterCorrelationThreshold <= 1 &&
+                    scheduledBatchIntraCorrelationThreshold >= 0 &&
+                    scheduledBatchIntraCorrelationThreshold <= 1 &&
+                    !isCollocating
+                      ? 'cursor-pointer'
+                      : 'opacity-40 cursor-not-allowed'
+                  }`}
+                  onClick={handleCollocation}
+                  dataTestId={'collocation-schedule-button'}
+                >
+                  Start collocation
+                </Button>
+              </div>
+            </NavigationBreadCrumb>
+            <ContentBox noMargin>
+              <div className="grid grid-cols-1 md:grid-cols-3">
+                {/* DEVICE TABLE */}
+                <Table collocationDevices={collocationDevices} />
+                {/* CALENDAR */}
+                <ScheduleCalendar />
+              </div>
+            </ContentBox>
+          </>
+        )}
+      </div>
     </Layout>
   );
 };
 
-export default withPermission(withAuth(AddMonitor), 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');
+export default withPermission(
+  withAuth(AddMonitor),
+  'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
+);
