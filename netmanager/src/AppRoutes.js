@@ -136,7 +136,12 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <PrivateRoute exact path="/teams/:id" component={TeamsView} layout={MainLayout} />
 
             <PrivateRoute path="/device/:deviceName" component={DeviceView} layout={MainLayout} />
-            <PrivateRoute exact path="/locate" component={Map} layout={MainLayout} />
+            {/* <PrivateRoute exact path="/locate" component={Map} layout={MainLayout} /> */}
+            <PrivateRoute exact path="/locate">
+              <MainLayout>
+                <Map />
+              </MainLayout>
+            </PrivateRoute>
             <Route exact path="/map">
               <MainLayout>
                 <OverlayMap />
