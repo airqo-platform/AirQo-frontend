@@ -144,12 +144,12 @@ const AppRoutes = ({ auth, logoutUser }) => {
             </Route>
             <PrivateRoute component={Account} exact layout={MainLayout} path="/account" />
             <PrivateRoute exact path="/manager/map" component={ManagerMap} layout={MainLayout} />
-            <PrivateRoute
+            {/* <PrivateRoute
               exact
               path="/manager/fault_detection"
               component={FaultDetection}
               layout={MainLayout}
-            />
+            /> */}
             <PrivateRoute
               exact
               path="/manager/stats"
