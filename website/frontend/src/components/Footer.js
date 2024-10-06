@@ -55,21 +55,39 @@ const CountryTab = ({ className, flag, name, onClick }) => (
 
 const Footer = () => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
+
   const [open, setOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState('uganda');
+  const [selectedAirqloud, setSelectedAirqloud] = useState('uganda');
 
   const airqloudSummaries = useSelector((state) => state.airqlouds.summary);
   const currentAirqloud = useSelector((state) => state.airqlouds.currentAirqloud) || 'uganda';
-  const [selectedAirqloud, setSelectedAirqloud] = useState(currentAirqloud);
-  const { t } = useTranslation();
+  const error = useSelector((state) => state.airqlouds.error);
 
   const currentAirqloudData = airqloudSummaries[currentAirqloud] || { numberOfSites: 0 };
 
   useEffect(() => {
-    dispatch(loadAirQloudSummaryData());
+    const fetchData = async () => {
+      try {
+        await dispatch(loadAirQloudSummaryData()).unwrap();
+      } catch (err) {
+        console.error('Failed to load AirQloud summary data:', err);
+      }
+    };
+
+    fetchData();
   }, [dispatch]);
 
+  useEffect(() => {
+    setSelectedCountry(currentAirqloud);
+  }, [currentAirqloud]);
+
   const explodeSummaryCount = (numberOfSites) => {
+    if (typeof numberOfSites !== 'number' || numberOfSites < 0) {
+      console.warn('Invalid number of sites:', numberOfSites);
+      return ['0', '0', '0', '0'];
+    }
     const paddedCount = numberOfSites.toString().padStart(4, '0');
     return paddedCount.split('');
   };
@@ -92,10 +110,6 @@ const Footer = () => {
     dispatch(setCurrentAirQloudData(selectedCountry));
     setOpen(false);
   };
-
-  useEffect(() => {
-    setSelectedCountry(currentAirqloud);
-  }, [currentAirqloud]);
 
   const countries = [
     { name: 'Uganda', flag: <Uganda /> },
