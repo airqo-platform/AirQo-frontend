@@ -24,7 +24,7 @@ const ManagerMap = lazy(() =>
 const ManagerStats = lazy(() =>
   import('./views/components/DataDisplay/DeviceManagement/ManagementStats')
 );
-const Map = lazy(() => import('./views/components/Map'));
+const MapsWithState = lazy(() => import('./views/components/Map'));
 const OverlayMap = lazy(() => import('./views/pages/Map'));
 const ForgotPassword = lazy(() => import('./views/pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./views/pages/ResetPassword'));
@@ -136,12 +136,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <PrivateRoute exact path="/teams/:id" component={TeamsView} layout={MainLayout} />
 
             <PrivateRoute path="/device/:deviceName" component={DeviceView} layout={MainLayout} />
-            {/* <PrivateRoute exact path="/locate" component={Map} layout={MainLayout} /> */}
-            <PrivateRoute exact path="/locate">
-              <MainLayout>
-                <Map />
-              </MainLayout>
-            </PrivateRoute>
+            <PrivateRoute exact path="/locate" component={MapsWithState} layout={MainLayout} />
             <Route exact path="/map">
               <MainLayout>
                 <OverlayMap />
