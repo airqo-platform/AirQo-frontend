@@ -221,29 +221,7 @@ const OverView = () => {
           </div>
         </div>
 
-        <div className={`gap-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4`}>
-          {displayData.map((event, index) => (
-            <AQNumberCard
-              key={index}
-              handleClick={() => handleOpenModal('location')}
-              location={
-                getSiteName(event.site_id) ||
-                getExistingSiteName(event.site_id) ||
-                event?.siteDetails?.search_name
-              }
-              country={event?.siteDetails?.country}
-              locationFullName={
-                getSiteName(event.site_id) ||
-                getExistingSiteName(event.site_id) ||
-                event?.siteDetails?.search_name
-              }
-              reading={event.pm2_5.value}
-              count={displayData.length}
-              pollutant={pollutantType}
-              isLoading={isLoadingMeasurements}
-            />
-          ))}
-        </div>
+        <AQNumberCard />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ChartContainer

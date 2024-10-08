@@ -1,32 +1,58 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import PropTypes from 'prop-types';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { tableData } from '../constants';
 import LongArrowLeft from '@/icons/Analytics/longArrowLeft';
 import DataTable from '../components/DataTable';
 import Footer from '../components/Footer';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 import LocationCard from '../components/LocationCard';
+import { useDispatch } from 'react-redux';
+import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 
-const AddLocationHeader = ({ onBack }) => (
-  <h3
-    className="flex text-lg leading-6 font-medium text-gray-900"
-    id="modal-title"
-  >
-    <button type="button" onClick={onBack}>
-      <LongArrowLeft className="mr-2" />
-    </button>
-    Add Location
-  </h3>
-);
+const AddLocationHeader = () => {
+  const dispatch = useDispatch();
+  const handleOpenModal = useCallback(
+    (type, ids = []) => {
+      dispatch(setOpenModal(true));
+      dispatch(setModalType({ type, ids }));
+    },
+    [dispatch],
+  );
 
-AddLocationHeader.propTypes = {
-  onBack: PropTypes.func.isRequired,
+  return (
+    <h3
+      className="flex text-lg leading-6 font-medium text-gray-900"
+      id="modal-title"
+    >
+      <button type="button" onClick={() => handleOpenModal('location')}>
+        <LongArrowLeft className="mr-2" />
+      </button>
+      Add Location
+    </h3>
+  );
 };
 
 const AddLocations = ({ onClose }) => {
+  const selectedSiteIds = ['1', '2', '3'];
   const [selectedSites, setSelectedSites] = useState([]);
   const [clearSelected, setClearSelected] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  // Populate `selectedSites` based on `selectedSiteIds`
+  useEffect(() => {
+    const initialSelectedSites = tableData.filter((site) =>
+      selectedSiteIds.includes(String(site.id)),
+    );
+    setSelectedSites(initialSelectedSites);
+  }, []);
+
+  // Simulating data fetch
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false); // Stop loading after 2 seconds
+    }, 2000);
+    return () => clearTimeout(timer); // Clear the timer on unmount
+  }, []);
 
   const handleClearSelection = useCallback(() => {
     setClearSelected(true);
@@ -34,23 +60,26 @@ const AddLocations = ({ onClose }) => {
     setTimeout(() => setClearSelected(false), 0);
   }, []);
 
-  const handleToggleSite = useCallback((site) => {
-    setSelectedSites((prev) => {
-      const isSelected = prev.some((s) => s.id === site.id);
-      if (isSelected) {
-        return prev.filter((s) => s.id !== site.id);
-      } else {
-        return [...prev, site];
-      }
-    });
-  }, []);
+  const handleToggleSite = useCallback(
+    (site) => {
+      setSelectedSites((prev) => {
+        const isSelected = prev.some((s) => s.id === site.id);
+        if (isSelected) {
+          return prev.filter((s) => s.id !== site.id);
+        } else {
+          return [...prev, site];
+        }
+      });
+    },
+    [setSelectedSites],
+  );
 
   const handleSubmit = useCallback(() => {
-    // implementation for submit logic
+    // Implement submission logic
   }, []);
 
   const selectedSitesContent = useMemo(() => {
-    if (selectedSites.length === 0) {
+    if (selectedSites.length === 0 && !loading) {
       return (
         <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-center items-center">
           <span className="p-2 rounded-full bg-[#F6F6F7] mb-2">
@@ -62,9 +91,14 @@ const AddLocations = ({ onClose }) => {
     }
 
     return selectedSites.map((site) => (
-      <LocationCard key={site.id} site={site} onToggle={handleToggleSite} />
+      <LocationCard
+        key={site.id}
+        site={site}
+        onToggle={handleToggleSite}
+        isLoading={loading}
+      />
     ));
-  }, [selectedSites, handleToggleSite]);
+  }, [selectedSites, handleToggleSite, loading]);
 
   return (
     <>
@@ -78,6 +112,8 @@ const AddLocations = ({ onClose }) => {
             selectedSites={selectedSites}
             setSelectedSites={setSelectedSites}
             clearSites={clearSelected}
+            selectedSiteIds={selectedSiteIds}
+            loading={loading}
           />
         </div>
         <Footer
@@ -92,10 +128,6 @@ const AddLocations = ({ onClose }) => {
       </div>
     </>
   );
-};
-
-AddLocations.propTypes = {
-  onClose: PropTypes.func.isRequired,
 };
 
 export { AddLocationHeader };

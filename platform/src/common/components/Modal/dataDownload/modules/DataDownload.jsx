@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
 import WorldIcon from '@/icons/SideBar/world_Icon';
@@ -9,7 +9,6 @@ import WindIcon from '@/icons/Analytics/windIcon';
 import EditIcon from '@/icons/Analytics/EditIcon';
 import DataTable from '../components/DataTable';
 import CustomFields from '../components/CustomFields';
-import LongArrowLeft from '@/icons/Analytics/longArrowLeft';
 import {
   POLLUTANT_OPTIONS,
   DATA_TYPE_OPTIONS,
@@ -25,9 +24,6 @@ export const DownloadDataHeader = () => {
       className="flex text-lg leading-6 font-medium text-gray-900"
       id="modal-title"
     >
-      <button type="button" onClick={null}>
-        <LongArrowLeft className="mr-2" />
-      </button>
       Download air quality data
     </h3>
   );
@@ -38,6 +34,15 @@ const DataDownload = ({ onClose }) => {
   const [selectedSites, setSelectedSites] = useState([]);
   const [clearSelected, setClearSelected] = useState(false);
   const [error, setError] = useState('');
+  const selectedSiteIds = ['1', '2', '3'];
+  const [loading, setLoading] = useState(true);
+
+  // Simulating data fetch
+  useEffect(() => {
+    setTimeout(() => {
+      setLoading(false); // Data is fetched
+    }, 2000); // Simulate a 2-second delay
+  }, []);
 
   const NETWORK_OPTIONS = userInfo?.groups?.map((network) => ({
     id: network._id,
@@ -177,6 +182,8 @@ const DataDownload = ({ onClose }) => {
             selectedSites={selectedSites}
             setSelectedSites={setSelectedSites}
             clearSites={clearSelected}
+            selectedSiteIds={selectedSiteIds}
+            loading={loading}
           />
         </div>
         <Footer

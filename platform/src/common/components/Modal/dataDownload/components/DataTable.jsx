@@ -1,20 +1,24 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { MdIndeterminateCheckBox } from 'react-icons/md';
 import ShortLeftArrow from '@/icons/Analytics/shortLeftArrow';
 import ShortRightArrow from '@/icons/Analytics/shortRightArrow';
 import Button from '../../../Button';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 import TopBarSearch from '../../../search/TopBarSearch';
-import PropTypes from 'prop-types';
+import TableLoadingSkeleton from './TableLoadingSkeleton';
 
 const DataTable = ({
-  data,
-  selectedSites,
+  data = [],
+  selectedSites = [],
   setSelectedSites,
   itemsPerPage = 7,
   clearSites,
+  selectedSiteIds = [],
+  loading = false,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectAll, setSelectAll] = useState(false);
+  const [indeterminate, setIndeterminate] = useState(false);
   const [activeButton, setActiveButton] = useState('all');
   const [searchResults, setSearchResults] = useState([]);
 
@@ -31,13 +35,18 @@ const DataTable = ({
   useEffect(() => {
     setSelectedSites([]);
     setSelectAll(false);
+    setIndeterminate(false);
   }, [clearSites]);
 
+  // Filtered data based on active tab (all or favorites)
   const filteredData = useMemo(() => {
+    if (activeButton === 'favorites') {
+      return data.filter((item) => selectedSiteIds.includes(String(item.id)));
+    }
     return searchResults.length > 0
       ? searchResults.map((result) => result.item)
       : data;
-  }, [searchResults, data]);
+  }, [activeButton, data, selectedSiteIds, searchResults]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
@@ -56,9 +65,28 @@ const DataTable = ({
   };
 
   const handleSelectAllChange = () => {
-    setSelectedSites(selectAll ? [] : filteredData);
-    setSelectAll(!selectAll);
+    if (selectAll || indeterminate) {
+      setSelectedSites([]);
+      setSelectAll(false);
+      setIndeterminate(false);
+    } else {
+      setSelectedSites(filteredData);
+      setSelectAll(true);
+    }
   };
+
+  useEffect(() => {
+    if (selectedSites.length === filteredData.length) {
+      setSelectAll(true);
+      setIndeterminate(false);
+    } else if (selectedSites.length > 0) {
+      setSelectAll(false);
+      setIndeterminate(true);
+    } else {
+      setSelectAll(false);
+      setIndeterminate(false);
+    }
+  }, [selectedSites, filteredData]);
 
   const handleSearch = (results) => {
     setSearchResults(results);
@@ -141,47 +169,62 @@ const DataTable = ({
           }}
         />
       </div>
-      <div className="relative overflow-x-auto border rounded-xl">
-        {filteredData.length === 0 ? (
-          <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-            No data available.
-          </div>
-        ) : (
-          <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-            <thead className="text-xs text-gray-700 border-b capitalize bg-[#f9fafb] dark:bg-gray-700 dark:text-gray-400">
-              <tr>
-                <th scope="col" className="p-4">
-                  <div className="flex items-center">
-                    <input
-                      id="checkbox-all-search"
-                      type="checkbox"
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                      checked={selectAll}
-                      onChange={handleSelectAllChange}
-                    />
-                    <label htmlFor="checkbox-all-search" className="sr-only">
-                      checkbox
-                    </label>
-                  </div>
-                </th>
-                <th scope="col" className="py-3 font-normal">
-                  Location
-                </th>
-                <th scope="col" className="px-3 py-3 font-normal">
-                  City
-                </th>
-                <th scope="col" className="px-3 py-3 font-normal">
-                  Country
-                </th>
-                <th scope="col" className="px-3 py-3 font-normal">
-                  Owner
-                </th>
-              </tr>
-            </thead>
-            <tbody>{renderTableRows()}</tbody>
-          </table>
-        )}
-      </div>
+
+      {loading ? (
+        <TableLoadingSkeleton />
+      ) : (
+        <div className="relative overflow-x-auto border rounded-xl">
+          {filteredData.length === 0 ? (
+            <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+              No data available.
+            </div>
+          ) : (
+            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+              <thead className="text-xs text-gray-700 border-b capitalize bg-[#f9fafb] dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                  <th scope="col" className="p-4">
+                    <div className="flex items-center">
+                      {indeterminate ? (
+                        <div
+                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                          onClick={handleSelectAllChange}
+                        >
+                          <MdIndeterminateCheckBox size={20} />
+                        </div>
+                      ) : (
+                        <input
+                          id="checkbox-all-search"
+                          type="checkbox"
+                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                          checked={selectAll}
+                          onChange={handleSelectAllChange}
+                        />
+                      )}
+                      <label htmlFor="checkbox-all-search" className="sr-only">
+                        checkbox
+                      </label>
+                    </div>
+                  </th>
+                  <th scope="col" className="py-3 font-normal">
+                    Location
+                  </th>
+                  <th scope="col" className="px-3 py-3 font-normal">
+                    City
+                  </th>
+                  <th scope="col" className="px-3 py-3 font-normal">
+                    Country
+                  </th>
+                  <th scope="col" className="px-3 py-3 font-normal">
+                    Owner
+                  </th>
+                </tr>
+              </thead>
+              <tbody>{renderTableRows()}</tbody>
+            </table>
+          )}
+        </div>
+      )}
+
       {filteredData.length > itemsPerPage && (
         <div className="flex justify-center gap-2 items-center">
           <Button
@@ -204,22 +247,6 @@ const DataTable = ({
       )}
     </div>
   );
-};
-
-DataTable.propTypes = {
-  data: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      location: PropTypes.string.isRequired,
-      city: PropTypes.string.isRequired,
-      country: PropTypes.string.isRequired,
-      owner: PropTypes.string.isRequired,
-    }),
-  ).isRequired,
-  selectedSites: PropTypes.arrayOf(PropTypes.object).isRequired,
-  setSelectedSites: PropTypes.func,
-  clearSites: PropTypes.func,
-  itemsPerPage: PropTypes.number,
 };
 
 export default DataTable;
