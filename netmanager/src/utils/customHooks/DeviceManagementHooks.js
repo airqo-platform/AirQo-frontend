@@ -2,8 +2,8 @@ import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import moment from "moment";
 import { isEmpty } from "underscore";
-import { loadUptimeLeaderboardData } from "redux/DeviceManagement/operations";
-import { useUptimeLeaderboardData } from "redux/DeviceManagement/selectors";
+import { loadUptimeLeaderboardData } from "reducer/DeviceManagement/operations";
+import { useUptimeLeaderboardData } from "reducer/DeviceManagement/selectors";
 import { roundToEndOfDay, roundToStartOfDay } from "../dateTime";
 
 export const useDeviceUptimeLeaderboard = () => {

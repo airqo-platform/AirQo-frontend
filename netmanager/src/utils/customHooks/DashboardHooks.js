@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 
 import { isEmpty } from "underscore";
-import { useDashboardSitesData } from "redux/Dashboard/selectors";
-import { loadSites } from "redux/Dashboard/operations";
+import { useDashboardSitesData } from "reducer/Dashboard/selectors";
+import { loadSites } from "reducer/Dashboard/operations";
 import { createSiteOptions } from "utils/sites";
 
 export const useDashboardSites = () => {

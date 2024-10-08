@@ -6,7 +6,7 @@ import AddGridToolbar from './AddGridForm';
 import GridsTable from './GridsTable';
 import BreadCrumb from './breadcrumb';
 import { withPermission } from '../../containers/PageAccess';
-import { fetchGridsSummary } from 'redux/Analytics/operations';
+import { fetchGridsSummary } from 'reducer/Analytics/operations';
 import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
 
 const useStyles = makeStyles((theme) => ({

@@ -13,12 +13,12 @@ import {
 } from '@material-ui/core';
 import OutlinedSelect from 'views/components/CustomSelects/OutlinedSelect';
 import { useDashboardSiteOptions, usePollutantsOptions } from 'utils/customHooks';
-import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
-import { updateUserDefaultGraphData } from 'redux/Dashboard/operations';
-import { useAuthUser } from 'redux/Join/selectors';
+import { useCurrentAirQloudData } from 'reducer/AirQloud/selectors';
+import { updateUserDefaultGraphData } from 'reducer/Dashboard/operations';
+import { useAuthUser } from 'reducer/Join/selectors';
 import { createUserChartDefaultsApi } from 'views/apis/authService';
 import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { isEmpty } from 'underscore';
 import Typography from '@material-ui/core/Typography';
 import { Close } from '@material-ui/icons';

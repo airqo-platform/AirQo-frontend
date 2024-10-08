@@ -6,15 +6,15 @@ import { getFirstDuration } from 'utils/dateTime';
 import Filter from '../Dashboard/components/Map/Filter';
 import MapPopup from '../Dashboard/components/Map/MapPopup';
 import Divider from '@material-ui/core/Divider';
-import { loadPM25HeatMapData, loadMapEventsData } from 'redux/MapData/operations';
-import { usePM25HeatMapData, useEventsMapData } from 'redux/MapData/selectors';
+import { loadPM25HeatMapData, loadMapEventsData } from 'reducer/MapData/operations';
+import { usePM25HeatMapData, useEventsMapData } from 'reducer/MapData/selectors';
 import SettingsIcon from '@material-ui/icons/Settings';
 import RichTooltip from '../../containers/RichToolTip';
 import { MenuItem } from '@material-ui/core';
 import Checkbox from '@material-ui/core/Checkbox';
 import { useInitScrollTop } from 'utils/customHooks';
 import { ErrorBoundary } from '../../ErrorBoundary';
-import { useOrgData } from 'redux/Join/selectors';
+import { useOrgData } from 'reducer/Join/selectors';
 import Indicator from '../Dashboard/components/Map/Indicator ';
 // css
 import 'assets/css/overlay-map.css';

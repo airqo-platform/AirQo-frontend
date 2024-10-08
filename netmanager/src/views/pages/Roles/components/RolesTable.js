@@ -25,12 +25,12 @@ import {
   updateRoleApi
 } from '../../../apis/accessControl';
 import { useDispatch } from 'react-redux';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { isEmpty } from 'underscore';
 import { RemoveRedEye } from '@material-ui/icons';
 import UserPopupTable from './UserPopupTable';
 import OutlinedSelect from '../../../components/CustomSelects/OutlinedSelect';
-import { loadRolesSummary } from 'redux/AccessControl/operations';
+import { loadRolesSummary } from 'reducer/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {},

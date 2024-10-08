@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useUserPreferenceData } from "redux/UserPreference/selectors";
+import { useUserPreferenceData } from "reducer/UserPreference/selectors";
 
 export function useJiraHelpDesk() {
   const preferenceKey = "feedbackBtn";
