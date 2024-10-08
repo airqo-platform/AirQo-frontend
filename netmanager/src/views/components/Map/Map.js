@@ -5,7 +5,10 @@ import PropTypes from 'prop-types';
 import Select from 'react-select';
 
 import { Map, FeatureGroup, LayerGroup, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet-draw/dist/leaflet.draw.css';
 import { EditControl } from 'react-leaflet-draw';
+import 'leaflet-draw';
 import createAxiosInstance from '../../apis/axiosConfig';
 import L from 'leaflet';
 import FullscreenControl from 'react-leaflet-fullscreen';
@@ -719,7 +722,6 @@ class Maps extends React.Component {
                 this._onFeatureGroupReady(reactFGref);
               }}>
               <EditControl
-                ref="edit"
                 position="topright"
                 onEdited={this._onEdited}
                 onCreated={this._onCreated}
