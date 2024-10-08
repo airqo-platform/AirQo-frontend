@@ -721,7 +721,7 @@ class Maps extends React.Component {
               ref={(reactFGref) => {
                 this._onFeatureGroupReady(reactFGref);
               }}>
-              <EditControl
+              {/* <EditControl
                 position="topright"
                 onEdited={this._onEdited}
                 onCreated={this._onCreated}
@@ -736,7 +736,7 @@ class Maps extends React.Component {
                   circle: false,
                   circlemarker: false
                 }}
-              />
+              /> */}
             </FeatureGroup>
           </Map>
         </div>
