@@ -666,24 +666,36 @@ const ExportData = (props) => {
                       <Grid item md={6} xs={12}>
                         <TextField
                           label="Start Date"
-                          className="step-1"
                           fullWidth
+                          margin="normal"
                           variant="outlined"
                           value={startDate}
                           InputLabelProps={{ shrink: true }}
                           type="date"
                           onChange={(event) => setStartDate(event.target.value)}
+                          sx={{
+                            marginBottom: 2, 
+                            backgroundColor: '#f5f5f5', 
+                            borderRadius: 2,
+                          }}
                         />
                       </Grid>
                       <Grid item md={6} xs={12}>
                         <TextField
+                          id="outlined-basic"
                           label="End Date"
                           fullWidth
+                          margin="normal"
                           variant="outlined"
                           value={endDate}
                           InputLabelProps={{ shrink: true }}
                           type="date"
                           onChange={(event) => setEndDate(event.target.value)}
+                          sx={{
+                            backgroundColor: '#f5f5f5',
+                            borderRadius: 2,
+                            height: 56,
+                          }}
                         />
                       </Grid>
 
