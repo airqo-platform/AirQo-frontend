@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
+import PropTypes from 'prop-types';
 import {
   LineChart,
   Line,
@@ -45,9 +46,53 @@ const formatYAxisTick = (tick) => {
 };
 
 /**
- * FlexibleChart Component
+ * ChartLoadingSkeleton Component
+ * Displays a skeleton loader mimicking the chart structure.
  */
-const Charts_2 = React.memo(
+const ChartLoadingSkeleton = ({ width, height }) => {
+  return (
+    <div
+      style={{
+        width: width || '100%',
+        height: height || '300px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f0f0f0',
+        position: 'relative',
+      }}
+    >
+      {/* Simple CSS-based skeleton */}
+      <div className="animate-pulse w-3/4 h-3/4 bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300 rounded-md"></div>
+      <style>{`
+        .animate-pulse {
+          animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+          0% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.4;
+          }
+          100% {
+            opacity: 1;
+          }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+ChartLoadingSkeleton.propTypes = {
+  width: PropTypes.string,
+  height: PropTypes.string,
+};
+
+/**
+ * MoreInsightsChart Component
+ */
+const MoreInsightsChart = React.memo(
   ({
     data,
     chartType = 'line',
@@ -55,6 +100,7 @@ const Charts_2 = React.memo(
     height = '300px',
     id,
     pollutionType,
+    isLoading = false, // New isLoading prop
   }) => {
     const [activeIndex, setActiveIndex] = useState(null);
 
@@ -109,8 +155,11 @@ const Charts_2 = React.memo(
       return Math.ceil(data.length / 8);
     }, [data.length]);
 
-    return (
-      <div id={id} className="pt-2">
+    /**
+     * Memoized render for table rows to prevent unnecessary re-renders.
+     */
+    const renderChart = useMemo(() => {
+      return (
         <ResponsiveContainer width={width} height={height}>
           <ChartComponent
             data={data}
@@ -209,11 +258,45 @@ const Charts_2 = React.memo(
             )}
           </ChartComponent>
         </ResponsiveContainer>
+      );
+    }, [
+      ChartComponent,
+      DataComponent,
+      data,
+      dataKeys,
+      height,
+      width,
+      chartType,
+      getColor,
+      handleMouseLeave,
+      activeIndex,
+      calculateXAxisInterval,
+      pollutionType,
+      WHO_STANDARD_VALUE,
+    ]);
+
+    return (
+      <div id={id} className="pt-2">
+        {isLoading ? (
+          <ChartLoadingSkeleton width={width} height={height} />
+        ) : (
+          renderChart
+        )}
       </div>
     );
   },
 );
 
-Charts_2.displayName = 'Charts_2';
+MoreInsightsChart.displayName = 'MoreInsightsChart';
 
-export default Charts_2;
+MoreInsightsChart.propTypes = {
+  data: PropTypes.arrayOf(PropTypes.object).isRequired,
+  chartType: PropTypes.oneOf(['line', 'bar']),
+  width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  id: PropTypes.string,
+  pollutionType: PropTypes.oneOf(['pm2_5', 'pm10', 'no2', 'other']),
+  isLoading: PropTypes.bool, // New prop
+};
+
+export default MoreInsightsChart;

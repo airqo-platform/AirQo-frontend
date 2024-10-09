@@ -1,7 +1,6 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import PropTypes from 'prop-types';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import DownloadIcon from '@/icons/Analytics/downloadIcon';
-import Charts_2 from '@/components/Charts/Charts_2';
+import MoreInsightsChart from '@/components/Charts/MoreInsightsChart';
 import CustomCalendar from '@/components/Calendar/CustomCalendar';
 import CheckIcon from '@/icons/tickIcon';
 import TabButtons from '@/components/Button/TabButtons';
@@ -21,16 +20,16 @@ const InSightsHeader = () => (
   </h3>
 );
 
-InSightsHeader.propTypes = {
-  onBack: PropTypes.func.isRequired,
-};
-
 const MoreInsights = () => {
   const dispatch = useDispatch();
+
+  // State for selected sites
   const [selectedSites, setSelectedSites] = useState([
     { id: 1, location: 'Makerere University', country: 'Uganda' },
     { id: 2, location: 'Nakasero Hill', country: 'Uganda' },
   ]);
+
+  // State for frequency, date range, and chart type
   const [frequency, setFrequency] = useState('daily');
   const [dateRange, setDateRange] = useState({
     startDate: null,
@@ -38,43 +37,74 @@ const MoreInsights = () => {
   });
   const [chartType, setChartType] = useState('line');
 
+  // State for loading and error
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   // Sample sites data
   const sites = [
     { id: 1, location: 'Makerere University', country: 'Uganda' },
     { id: 2, location: 'Nakasero Hill', country: 'Uganda' },
   ];
 
-  // Mock data representing air quality data for different locations
-  const allSiteData = {
-    1: [
-      {
-        time: '2024-05-20T10:00:00.000000Z',
-        pm2_5: 12.34,
-        pm10: 40.56,
-        no2: 22.78,
-      },
-      {
-        time: '2024-05-20T11:00:00.000000Z',
-        pm2_5: 16.45,
-        pm10: 43.21,
-        no2: 24.12,
-      },
-    ],
-    2: [
-      {
-        time: '2024-05-20T10:00:00.000000Z',
-        pm2_5: 22.34,
-        pm10: 42.56,
-        no2: 20.78,
-      },
-      {
-        time: '2024-05-20T11:00:00.000000Z',
-        pm2_5: 18.45,
-        pm10: 48.21,
-        no2: 23.12,
-      },
-    ],
-  };
+  // State to store fetched data
+  const [allSiteData, setAllSiteData] = useState({});
+
+  /**
+   * Simulate fetching data from an API
+   */
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Simulate API delay
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        // Mock data representing air quality data for different locations
+        const fetchedData = {
+          1: [
+            {
+              time: '2024-05-20T10:00:00.000000Z',
+              pm2_5: 12.34,
+              pm10: 40.56,
+              no2: 22.78,
+            },
+            {
+              time: '2024-05-20T11:00:00.000000Z',
+              pm2_5: 16.45,
+              pm10: 43.21,
+              no2: 24.12,
+            },
+          ],
+          2: [
+            {
+              time: '2024-05-20T10:00:00.000000Z',
+              pm2_5: 22.34,
+              pm10: 42.56,
+              no2: 20.78,
+            },
+            {
+              time: '2024-05-20T11:00:00.000000Z',
+              pm2_5: 18.45,
+              pm10: 48.21,
+              no2: 23.12,
+            },
+          ],
+        };
+
+        // Simulate successful data fetching
+        setAllSiteData(fetchedData);
+      } catch (err) {
+        console.error(err);
+        setError('Failed to fetch air quality data.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   /**
    * Handles the toggling of selected sites.
@@ -111,7 +141,7 @@ const MoreInsights = () => {
     });
 
     return Object.values(combinedData);
-  }, [selectedSites]);
+  }, [selectedSites, allSiteData]);
 
   /**
    * Generates the content for selected sites in the sidebar.
@@ -124,10 +154,10 @@ const MoreInsights = () => {
           site={site}
           onToggle={handleToggleSite}
           isSelected={selectedSites.some((s) => s.id === site.id)}
-          isLoading={false}
+          isLoading={loading}
         />
       )),
-    [selectedSites, handleToggleSite, sites],
+    [selectedSites, handleToggleSite, sites, loading],
   );
 
   const handleOpenModal = useCallback(
@@ -143,18 +173,26 @@ const MoreInsights = () => {
       {/* Sidebar for Selected Sites */}
       <div className="w-[280px] h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-5 pb-14">
         {selectedSitesContent}
-
-        <button
-          onClick={() => handleOpenModal('addLocation')}
-          className="bg-blue-50 w-full rounded-xl px-2 py-4 h-[70px] flex justify-center items-center text-blue-500"
-        >
-          + Add location
-        </button>
+        {!loading && (
+          <button
+            onClick={() => handleOpenModal('addLocation')}
+            className="bg-blue-50 w-full rounded-xl px-2 py-4 h-[70px] flex justify-center items-center text-blue-500"
+          >
+            + Add location
+          </button>
+        )}
       </div>
 
       {/* Main Content Area */}
       <div className="bg-white relative w-full h-auto">
         <div className="px-8 pt-6 pb-4 space-y-4 overflow-y-auto">
+          {/* Handle Error State */}
+          {error && (
+            <div className="w-full p-4 bg-red-100 text-red-700 rounded-md">
+              {error}
+            </div>
+          )}
+
           <div className="w-full flex flex-wrap gap-2 justify-between">
             <div className="space-x-2 flex">
               {/* Frequency Dropdown */}
@@ -163,6 +201,7 @@ const MoreInsights = () => {
                 dropdown
                 id="frequency"
                 className="left-0"
+                isLoading={loading}
               >
                 {TIME_OPTIONS.map((option) => (
                   <span
@@ -189,6 +228,7 @@ const MoreInsights = () => {
                 }
                 className="left-16 top-11"
                 dropdown
+                isLoading={loading}
               />
 
               {/* Chart Type Dropdown */}
@@ -196,6 +236,7 @@ const MoreInsights = () => {
                 btnText={chartType.charAt(0).toUpperCase() + chartType.slice(1)}
                 id="chartType"
                 className="left-0"
+                isLoading={loading}
               >
                 {CHART_TYPE.map((option) => (
                   <span
@@ -219,6 +260,7 @@ const MoreInsights = () => {
                 Icon={<DownloadIcon width={16} height={17} color="white" />}
                 onClick={() => null}
                 btnStyle="bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl"
+                isLoading={loading}
               />
             </div>
           </div>
@@ -226,13 +268,14 @@ const MoreInsights = () => {
           {/* Flexible Chart */}
           <div className="w-full h-auto border rounded-xl border-grey-150 p-2">
             {selectedSites.length > 0 ? (
-              <Charts_2
+              <MoreInsightsChart
                 data={chartData}
                 chartType={chartType}
                 width="100%"
                 height={380}
                 id="air-quality-chart"
                 pollutionType="pm2_5"
+                isLoading={loading}
               />
             ) : (
               <div className="w-full flex flex-col justify-center items-center h-[380px] text-gray-500">
@@ -250,6 +293,7 @@ const MoreInsights = () => {
             airQuality="Kampala’s Air Quality has been Good this month compared to last month."
             pollutionSource="Factory, Dusty road"
             pollutant="PM2.5"
+            isLoading={loading}
           />
         </div>
       </div>
