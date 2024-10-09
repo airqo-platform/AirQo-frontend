@@ -44,10 +44,11 @@ const DataDownload = ({ onClose }) => {
     }, 2000); // Simulate a 2-second delay
   }, []);
 
-  const NETWORK_OPTIONS = userInfo?.groups?.map((network) => ({
-    id: network._id,
-    name: network.grp_title,
-  }));
+  const NETWORK_OPTIONS =
+    userInfo?.groups?.map((network) => ({
+      id: network._id,
+      name: network.grp_title,
+    })) || [];
 
   const [formData, setFormData] = useState({
     title: 'Untitled Report',
@@ -102,6 +103,21 @@ const DataDownload = ({ onClose }) => {
       });
     },
     [formData, selectedSites],
+  );
+
+  // Define handleToggleSite function
+  const handleToggleSite = useCallback(
+    (site) => {
+      setSelectedSites((prev) => {
+        const isSelected = prev.some((s) => s.id === site.id);
+        if (isSelected) {
+          return prev.filter((s) => s.id !== site.id);
+        } else {
+          return [...prev, site];
+        }
+      });
+    },
+    [setSelectedSites],
   );
 
   return (
@@ -184,6 +200,7 @@ const DataDownload = ({ onClose }) => {
             clearSites={clearSelected}
             selectedSiteIds={selectedSiteIds}
             loading={loading}
+            onToggleSite={handleToggleSite} // Pass the function here
           />
         </div>
         <Footer

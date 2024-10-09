@@ -96,6 +96,7 @@ const AddLocations = ({ onClose }) => {
         site={site}
         onToggle={handleToggleSite}
         isLoading={loading}
+        isSelected={true}
       />
     ));
   }, [selectedSites, handleToggleSite, loading]);
@@ -114,6 +115,7 @@ const AddLocations = ({ onClose }) => {
             clearSites={clearSelected}
             selectedSiteIds={selectedSiteIds}
             loading={loading}
+            onToggleSite={handleToggleSite}
           />
         </div>
         <Footer
