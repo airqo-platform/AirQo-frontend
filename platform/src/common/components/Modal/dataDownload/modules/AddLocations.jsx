@@ -32,14 +32,14 @@ const AddLocationHeader = () => {
 };
 
 const AddLocations = ({ onClose }) => {
+  const [selectedSites, setSelectedSites] = useState([]);
+  const [clearSelected, setClearSelected] = useState(false);
+  const [error, setError] = useState('');
   const selectedSiteIds = [
     '654b50a8c4e34500135a6691',
     '6549f515f59f69001325b935',
     '6549f3f721bac300137ab49e',
   ];
-  const [selectedSites, setSelectedSites] = useState([]);
-  const [clearSelected, setClearSelected] = useState(false);
-  const [error, setError] = useState('');
   const { sitesSummaryData, loading, error: fetchError } = useSitesSummary();
 
   // Populate `selectedSites` based on `selectedSiteIds`
@@ -88,12 +88,17 @@ const AddLocations = ({ onClose }) => {
 
     if (loading) {
       return (
-        <LocationCard
-          site={{}}
-          onToggle={handleToggleSite}
-          isLoading={loading}
-          isSelected={false}
-        />
+        <div className="space-y-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <LocationCard
+              key={index}
+              site={{}}
+              onToggle={handleToggleSite}
+              isLoading={loading}
+              isSelected={false}
+            />
+          ))}
+        </div>
       );
     }
 

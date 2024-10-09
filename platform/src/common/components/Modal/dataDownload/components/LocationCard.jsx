@@ -3,19 +3,12 @@ import React from 'react';
 const LocationCard = ({ site, onToggle, isSelected, isLoading }) => {
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-3 w-full">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <div
-            key={index}
-            className="flex flex-col gap-3 p-3 items-start bg-gray-100 rounded-xl animate-pulse w-full h-[68px]"
-          >
-            <div className="flex justify-between w-full h-auto">
-              <div className="w-2/3 h-4 bg-gray-300 rounded mb-1"></div>
-              <div className="w-4 h-4 bg-gray-300 rounded"></div>
-            </div>
-            <div className="w-2/3 h-3 bg-gray-300 rounded"></div>
-          </div>
-        ))}
+      <div className="flex flex-col gap-3 p-3 items-start bg-gray-100 rounded-xl animate-pulse w-full h-[68px]">
+        <div className="flex justify-between w-full h-auto">
+          <div className="w-2/3 h-4 bg-gray-300 rounded mb-1"></div>
+          <div className="w-4 h-4 bg-gray-300 rounded"></div>
+        </div>
+        <div className="w-2/3 h-3 bg-gray-300 rounded"></div>
       </div>
     );
   }

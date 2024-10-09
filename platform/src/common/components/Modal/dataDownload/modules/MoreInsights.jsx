@@ -8,6 +8,7 @@ import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
 import { TIME_OPTIONS, CHART_TYPE } from '@/lib/constants';
 import AirQualityCard from '../components/AirQualityCard';
 import LocationCard from '../components/LocationCard';
+import LocationIcon from '@/icons/Analytics/LocationIcon';
 import { useDispatch } from 'react-redux';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 
@@ -146,19 +147,47 @@ const MoreInsights = () => {
   /**
    * Generates the content for selected sites in the sidebar.
    */
-  const selectedSitesContent = useMemo(
-    () =>
-      sites.map((site) => (
-        <LocationCard
-          key={site.id}
-          site={site}
-          onToggle={handleToggleSite}
-          isSelected={selectedSites.some((s) => s.id === site.id)}
-          isLoading={loading}
-        />
-      )),
-    [selectedSites, handleToggleSite, sites, loading],
-  );
+  const selectedSitesContent = useMemo(() => {
+    // If no sites are selected and it's not loading, show "No locations selected"
+    if (selectedSites?.length === 0 && !loading) {
+      return (
+        <div className="text-gray-500 w-full text-sm h-auto flex flex-col justify-center items-center">
+          <span className="p-2 rounded-full bg-[#F6F6F7] mb-2">
+            <LocationIcon width={20} height={20} fill="#9EA3AA" />
+          </span>
+          No locations selected
+        </div>
+      );
+    }
+
+    // Show loading skeletons if the data is still loading
+    if (loading) {
+      return (
+        <div className="space-y-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <LocationCard
+              key={index}
+              site={{}} // Passing an empty object during loading
+              onToggle={handleToggleSite}
+              isLoading={loading}
+              isSelected={false} // Not selected while loading
+            />
+          ))}
+        </div>
+      );
+    }
+
+    // Map through the sites once loaded and render them
+    return sites.map((site) => (
+      <LocationCard
+        key={site.id} // Assuming `site.id` is the unique key
+        site={site}
+        onToggle={handleToggleSite}
+        isSelected={selectedSites.some((s) => s.id === site.id)} // Check if the site is selected
+        isLoading={loading}
+      />
+    ));
+  }, [selectedSites, handleToggleSite, sites, loading]);
 
   const handleOpenModal = useCallback(
     (type, ids = []) => {
