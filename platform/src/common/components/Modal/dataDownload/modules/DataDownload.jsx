@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
 import WorldIcon from '@/icons/SideBar/world_Icon';
@@ -14,35 +14,30 @@ import {
   DATA_TYPE_OPTIONS,
   FREQUENCY_OPTIONS,
   FILE_TYPE_OPTIONS,
-  tableData,
 } from '../constants';
 import Footer from '../components/Footer';
+import useSitesSummary from '@/core/hooks/useSitesSummary';
 
-export const DownloadDataHeader = () => {
-  return (
-    <h3
-      className="flex text-lg leading-6 font-medium text-gray-900"
-      id="modal-title"
-    >
-      Download air quality data
-    </h3>
-  );
-};
+export const DownloadDataHeader = () => (
+  <h3
+    className="flex text-lg leading-6 font-medium text-gray-900"
+    id="modal-title"
+  >
+    Download air quality data
+  </h3>
+);
 
 const DataDownload = ({ onClose }) => {
   const userInfo = useSelector((state) => state.login.userInfo);
   const [selectedSites, setSelectedSites] = useState([]);
   const [clearSelected, setClearSelected] = useState(false);
-  const [error, setError] = useState('');
-  const selectedSiteIds = ['1', '2', '3'];
-  const [loading, setLoading] = useState(true);
-
-  // Simulating data fetch
-  useEffect(() => {
-    setTimeout(() => {
-      setLoading(false); // Data is fetched
-    }, 2000); // Simulate a 2-second delay
-  }, []);
+  const [formError, setFormError] = useState('');
+  const selectedSiteIds = [
+    '654b50a8c4e34500135a6691',
+    '6549f515f59f69001325b935',
+    '6549f3f721bac300137ab49e',
+  ];
+  const { sitesSummaryData, loading, error: fetchError } = useSitesSummary();
 
   const NETWORK_OPTIONS =
     userInfo?.groups?.map((network) => ({
@@ -75,11 +70,11 @@ const DataDownload = ({ onClose }) => {
     (e) => {
       e.preventDefault();
       if (!formData.duration) {
-        setError('Please select a duration');
+        setFormError('Please select a duration');
         return;
       }
       if (selectedSites.length === 0) {
-        setError('Please select at least one location');
+        setFormError('Please select at least one location');
         return;
       }
       // Prepare data for API
@@ -89,9 +84,7 @@ const DataDownload = ({ onClose }) => {
       };
       console.log('Submitting data to API:', apiData);
 
-      // implementation for submit logic
-
-      // reset form data
+      // Reset form data
       setFormData({
         title: 'Untitled Report',
         network: NETWORK_OPTIONS[0],
@@ -105,16 +98,13 @@ const DataDownload = ({ onClose }) => {
     [formData, selectedSites],
   );
 
-  // Define handleToggleSite function
   const handleToggleSite = useCallback(
     (site) => {
       setSelectedSites((prev) => {
-        const isSelected = prev.some((s) => s.id === site.id);
-        if (isSelected) {
-          return prev.filter((s) => s.id !== site.id);
-        } else {
-          return [...prev, site];
-        }
+        const isSelected = prev.some((s) => s.id === site._id);
+        return isSelected
+          ? prev.filter((s) => s.id !== site._id)
+          : [...prev, site];
       });
     },
     [setSelectedSites],
@@ -169,7 +159,7 @@ const DataDownload = ({ onClose }) => {
         <CustomFields
           title="Duration"
           id="duration"
-          useCalendar={true}
+          useCalendar
           defaultOption={formData.duration}
           handleOptionSelect={handleOptionSelect}
         />
@@ -189,23 +179,32 @@ const DataDownload = ({ onClose }) => {
           defaultOption={formData.fileType}
           handleOptionSelect={handleOptionSelect}
         />
+        {/* Display Form Errors */}
+        {formError && <p className="text-red-600 text-sm">{formError}</p>}
       </form>
       {/* section 2 */}
       <div className="bg-white relative w-full h-auto">
         <div className="px-8 pt-6 pb-4 overflow-y-auto">
+          {/* Display Fetch Errors */}
+
           <DataTable
-            data={tableData}
+            data={sitesSummaryData}
             selectedSites={selectedSites}
             setSelectedSites={setSelectedSites}
             clearSites={clearSelected}
             selectedSiteIds={selectedSiteIds}
             loading={loading}
-            onToggleSite={handleToggleSite} // Pass the function here
+            onToggleSite={handleToggleSite}
           />
+          {fetchError && (
+            <p className="text-red-600 py-4 px-1 text-sm">
+              Error fetching data: {fetchError.message}
+            </p>
+          )}
         </div>
         <Footer
-          setError={setError}
-          errorMessage={error}
+          setError={setFormError}
+          errorMessage={formError}
           selectedSites={selectedSites}
           handleClearSelection={handleClearSelection}
           handleSubmit={handleSubmit}

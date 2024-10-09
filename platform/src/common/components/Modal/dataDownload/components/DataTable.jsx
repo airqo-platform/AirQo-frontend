@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import PropTypes from 'prop-types';
 import { MdIndeterminateCheckBox } from 'react-icons/md';
 import ShortLeftArrow from '@/icons/Analytics/shortLeftArrow';
 import ShortRightArrow from '@/icons/Analytics/shortRightArrow';
@@ -7,6 +6,45 @@ import Button from '../../../Button';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 import TopBarSearch from '../../../search/TopBarSearch';
 import TableLoadingSkeleton from './TableLoadingSkeleton';
+
+// Separate TableRow component for better readability
+const TableRow = ({ item, isSelected, onToggleSite, index }) => (
+  <tr
+    key={item._id || index} // Fallback to index if _id is not available
+    className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+  >
+    <td className="w-4 p-4">
+      <div className="flex items-center">
+        <input
+          id={`checkbox-table-search-${index}`}
+          type="checkbox"
+          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+          checked={isSelected}
+          onChange={() => onToggleSite(item)}
+        />
+        <label htmlFor={`checkbox-table-search-${index}`} className="sr-only">
+          checkbox
+        </label>
+      </div>
+    </td>
+    <th
+      scope="row"
+      className="py-2 font-medium flex items-center text-gray-900 whitespace-nowrap dark:text-white"
+    >
+      <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
+        <LocationIcon width={16} height={16} fill="#9EA3AA" />
+      </span>
+      {item?.location_name
+        ? item.location_name.split(',')[0].length > 25
+          ? `${item.location_name.split(',')[0].substring(0, 25)}...`
+          : item.location_name.split(',')[0]
+        : 'Unknown Location'}
+    </th>
+    <td className="px-3 py-2">{item.city || 'N/A'}</td>
+    <td className="px-3 py-2">{item.country || 'N/A'}</td>
+    <td className="px-3 py-2">{item.data_provider || 'N/A'}</td>
+  </tr>
+);
 
 const DataTable = ({
   data = [],
@@ -24,12 +62,12 @@ const DataTable = ({
   const [activeButton, setActiveButton] = useState('all');
   const [searchResults, setSearchResults] = useState([]);
 
-  // Remove duplicates based on 'id'
+  // Remove duplicates based on '_id'
   const uniqueData = useMemo(() => {
     const seen = new Set();
-    return data.filter((item) => {
-      if (seen.has(item.id)) return false;
-      seen.add(item.id);
+    return data?.filter((item) => {
+      if (!item._id || seen.has(item._id)) return false;
+      seen.add(item._id);
       return true;
     });
   }, [data]);
@@ -57,7 +95,9 @@ const DataTable = ({
   const filteredData = useMemo(() => {
     let filtered =
       activeButton === 'favorites'
-        ? uniqueData.filter((item) => selectedSiteIds.includes(String(item.id)))
+        ? uniqueData?.filter((item) =>
+            selectedSiteIds.includes(String(item._id)),
+          )
         : uniqueData;
 
     if (searchResults.length > 0) {
@@ -68,13 +108,18 @@ const DataTable = ({
   }, [activeButton, uniqueData, selectedSiteIds, searchResults]);
 
   const totalPages = useMemo(
-    () => Math.ceil(filteredData.length / itemsPerPage),
+    () => Math.ceil(filteredData?.length / itemsPerPage),
     [filteredData, itemsPerPage],
   );
 
-  const handleClick = useCallback((page) => {
-    setCurrentPage(page);
-  }, []);
+  const handleClick = useCallback(
+    (page) => {
+      if (page >= 1 && page <= totalPages) {
+        setCurrentPage(page);
+      }
+    },
+    [totalPages],
+  );
 
   const handleSelectAllChange = useCallback(() => {
     if (selectAll || indeterminate) {
@@ -91,7 +136,7 @@ const DataTable = ({
   // Update selectAll and indeterminate states based on selection
   useEffect(() => {
     if (
-      selectedSites.length === filteredData.length &&
+      selectedSites.length === filteredData?.length &&
       filteredData.length > 0
     ) {
       setSelectAll(true);
@@ -117,44 +162,17 @@ const DataTable = ({
   const renderTableRows = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return filteredData.slice(startIndex, endIndex).map((item, index) => (
-      <tr
-        key={item.id}
-        className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-      >
-        <td className="w-4 p-4">
-          <div className="flex items-center">
-            <input
-              id={`checkbox-table-search-${startIndex + index}`}
-              type="checkbox"
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-              checked={selectedSites.some((site) => site.id === item.id)}
-              onChange={() => onToggleSite(item)}
-            />
-            <label
-              htmlFor={`checkbox-table-search-${startIndex + index}`}
-              className="sr-only"
-            >
-              checkbox
-            </label>
-          </div>
-        </td>
-        <th
-          scope="row"
-          className="py-2 font-medium flex items-center text-gray-900 whitespace-nowrap dark:text-white"
-        >
-          <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
-            <LocationIcon width={16} height={16} fill="#9EA3AA" />
-          </span>
-          {item.location.length > 25
-            ? `${item.location.substring(0, 25)}...`
-            : item.location}
-        </th>
-        <td className="px-3 py-2">{item.city}</td>
-        <td className="px-3 py-2">{item.country}</td>
-        <td className="px-3 py-2">{item.owner}</td>
-      </tr>
-    ));
+    return filteredData
+      ?.slice(startIndex, endIndex)
+      .map((item, index) => (
+        <TableRow
+          key={item._id || index}
+          item={item}
+          isSelected={selectedSites.some((site) => site._id === item._id)}
+          onToggleSite={onToggleSite}
+          index={startIndex + index}
+        />
+      ));
   }, [filteredData, currentPage, itemsPerPage, selectedSites, onToggleSite]);
 
   return (
@@ -193,7 +211,7 @@ const DataTable = ({
         <TableLoadingSkeleton />
       ) : (
         <div className="relative overflow-x-auto border rounded-xl">
-          {filteredData.length === 0 ? (
+          {filteredData?.length === 0 ? (
             <div className="p-4 text-center text-gray-500 dark:text-gray-400">
               No data available.
             </div>
@@ -272,30 +290,4 @@ const DataTable = ({
     </div>
   );
 };
-
-DataTable.propTypes = {
-  data: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      location: PropTypes.string.isRequired,
-      city: PropTypes.string.isRequired,
-      country: PropTypes.string.isRequired,
-      owner: PropTypes.string.isRequired,
-    }),
-  ).isRequired,
-  selectedSites: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-    }),
-  ).isRequired,
-  setSelectedSites: PropTypes.func.isRequired,
-  itemsPerPage: PropTypes.number,
-  clearSites: PropTypes.bool,
-  selectedSiteIds: PropTypes.arrayOf(
-    PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  ),
-  loading: PropTypes.bool,
-  onToggleSite: PropTypes.func.isRequired,
-};
-
 export default DataTable;

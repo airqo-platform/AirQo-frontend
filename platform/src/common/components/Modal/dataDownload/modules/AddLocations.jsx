@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { tableData } from '../constants';
 import LongArrowLeft from '@/icons/Analytics/longArrowLeft';
 import DataTable from '../components/DataTable';
 import Footer from '../components/Footer';
@@ -7,6 +6,7 @@ import LocationIcon from '@/icons/Analytics/LocationIcon';
 import LocationCard from '../components/LocationCard';
 import { useDispatch } from 'react-redux';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
+import useSitesSummary from '@/core/hooks/useSitesSummary';
 
 const AddLocationHeader = () => {
   const dispatch = useDispatch();
@@ -32,26 +32,22 @@ const AddLocationHeader = () => {
 };
 
 const AddLocations = ({ onClose }) => {
-  const selectedSiteIds = ['1', '2', '3'];
+  const selectedSiteIds = [
+    '654b50a8c4e34500135a6691',
+    '6549f515f59f69001325b935',
+    '6549f3f721bac300137ab49e',
+  ];
   const [selectedSites, setSelectedSites] = useState([]);
   const [clearSelected, setClearSelected] = useState(false);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
+  const { sitesSummaryData, loading, error: fetchError } = useSitesSummary();
 
   // Populate `selectedSites` based on `selectedSiteIds`
   useEffect(() => {
-    const initialSelectedSites = tableData.filter((site) =>
-      selectedSiteIds.includes(String(site.id)),
+    const initialSelectedSites = sitesSummaryData?.filter((site) =>
+      selectedSiteIds.includes(String(site._id)),
     );
     setSelectedSites(initialSelectedSites);
-  }, []);
-
-  // Simulating data fetch
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false); // Stop loading after 2 seconds
-    }, 2000);
-    return () => clearTimeout(timer); // Clear the timer on unmount
   }, []);
 
   const handleClearSelection = useCallback(() => {
@@ -63,9 +59,9 @@ const AddLocations = ({ onClose }) => {
   const handleToggleSite = useCallback(
     (site) => {
       setSelectedSites((prev) => {
-        const isSelected = prev.some((s) => s.id === site.id);
+        const isSelected = prev.some((s) => s._id === site._id);
         if (isSelected) {
-          return prev.filter((s) => s.id !== site.id);
+          return prev.filter((s) => s._id !== site._id);
         } else {
           return [...prev, site];
         }
@@ -79,7 +75,7 @@ const AddLocations = ({ onClose }) => {
   }, []);
 
   const selectedSitesContent = useMemo(() => {
-    if (selectedSites.length === 0 && !loading) {
+    if (selectedSites?.length === 0 && !loading) {
       return (
         <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-center items-center">
           <span className="p-2 rounded-full bg-[#F6F6F7] mb-2">
@@ -90,9 +86,20 @@ const AddLocations = ({ onClose }) => {
       );
     }
 
-    return selectedSites.map((site) => (
+    if (loading) {
+      return (
+        <LocationCard
+          site={{}}
+          onToggle={handleToggleSite}
+          isLoading={loading}
+          isSelected={false}
+        />
+      );
+    }
+
+    return selectedSites?.map((site) => (
       <LocationCard
-        key={site.id}
+        key={site._id}
         site={site}
         onToggle={handleToggleSite}
         isLoading={loading}
@@ -109,7 +116,7 @@ const AddLocations = ({ onClose }) => {
       <div className="bg-white relative w-full h-auto">
         <div className="px-8 pt-6 pb-4 overflow-y-auto">
           <DataTable
-            data={tableData}
+            data={sitesSummaryData}
             selectedSites={selectedSites}
             setSelectedSites={setSelectedSites}
             clearSites={clearSelected}
@@ -117,6 +124,11 @@ const AddLocations = ({ onClose }) => {
             loading={loading}
             onToggleSite={handleToggleSite}
           />
+          {fetchError && (
+            <p className="text-red-600 py-4 px-1 text-sm">
+              Error fetching data: {fetchError.message}
+            </p>
+          )}
         </div>
         <Footer
           btnText="Done"

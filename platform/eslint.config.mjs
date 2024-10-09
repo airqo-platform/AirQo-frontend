@@ -24,6 +24,9 @@ export default [
         URLSearchParams: 'readonly',
         Headers: 'readonly',
         FormData: 'writable',
+        AbortController: 'writable',
+        AbortSignal: 'readonly',
+        TextEncoder: 'readonly',
       },
       parserOptions: {
         ecmaFeatures: { jsx: true },
