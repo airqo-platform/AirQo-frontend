@@ -1,33 +1,30 @@
+// DatePicker.js
 import React, { useState, useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
+import { format, subMonths } from 'date-fns';
+import { usePopper } from 'react-popper';
+import { Transition } from '@headlessui/react';
+import Calendar from './Calendar';
 import CalendarIcon from '@/icons/Analytics/calendarIcon';
 import TabButtons from '../Button/TabButtons';
-import { Transition } from '@headlessui/react';
-import { usePopper } from 'react-popper';
-import Calendar from './Calendar';
-import { format } from 'date-fns';
-import PropTypes from 'prop-types';
 
+/**
+ * DatePicker component integrates the Calendar and manages its visibility.
+ */
 const DatePicker = ({ customPopperStyle, alignment, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [referenceElement, setReferenceElement] = useState(null);
   const [popperElement, setPopperElement] = useState(null);
   const [selectedDate, setSelectedDate] = useState({ start: null, end: null });
   const popperRef = useRef(null);
+
   const { styles, attributes } = usePopper(referenceElement, popperElement, {
     placement: alignment === 'right' ? 'bottom-end' : 'bottom-start',
     modifiers: [
-      {
-        name: 'offset',
-        options: {
-          offset: [0, 8],
-        },
-      },
+      { name: 'offset', options: { offset: [0, 8] } },
       {
         name: 'preventOverflow',
-        options: {
-          boundary: 'viewport',
-          padding: 8,
-        },
+        options: { boundary: 'viewport', padding: 8 },
       },
       {
         name: 'flip',
@@ -40,36 +37,14 @@ const DatePicker = ({ customPopperStyle, alignment, onChange }) => {
           ],
         },
       },
-      {
-        name: 'computeStyles',
-        options: {
-          adaptive: false,
-        },
-      },
-
-      {
-        name: 'eventListeners',
-        options: {
-          scroll: true,
-          resize: true,
-        },
-      },
-
-      {
-        name: 'hide',
-      },
-
-      {
-        name: 'arrow',
-        options: {
-          padding: 8,
-        },
-      },
+      { name: 'computeStyles', options: { adaptive: false } },
+      { name: 'eventListeners', options: { scroll: true, resize: true } },
+      { name: 'arrow', options: { padding: 8 } },
     ],
   });
 
-  const handleClick = () => {
-    setIsOpen(!isOpen);
+  const handleToggle = () => {
+    setIsOpen((prev) => !prev);
   };
 
   const handleValueChange = (newValue) => {
@@ -100,10 +75,10 @@ const DatePicker = ({ customPopperStyle, alignment, onChange }) => {
   }, [isOpen, referenceElement]);
 
   const formattedStartDate = selectedDate.start
-    ? format(selectedDate.start, 'MMM d, yy')
+    ? format(selectedDate.start, 'MMM d, yyyy')
     : '';
   const formattedEndDate = selectedDate.end
-    ? format(selectedDate.end, 'MMM d, yy')
+    ? format(selectedDate.end, 'MMM d, yyyy')
     : '';
   const btnText =
     selectedDate.start && selectedDate.end
@@ -111,17 +86,19 @@ const DatePicker = ({ customPopperStyle, alignment, onChange }) => {
       : 'Select Date Range';
 
   return (
-    <div>
+    <div className="relative">
       <TabButtons
         Icon={<CalendarIcon />}
         btnText={btnText}
         tabButtonClass="w-full"
         dropdown
-        onClick={handleClick}
+        onClick={handleToggle}
         id="datePicker"
-        type={'button'}
-        btnStyle={'w-full bg-white border-grey-750 px-4 py-2'}
+        type="button"
+        btnStyle="w-full bg-white border-gray-750 px-4 py-2"
         tabRef={setReferenceElement}
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
       />
       <Transition
         show={isOpen}
@@ -131,29 +108,21 @@ const DatePicker = ({ customPopperStyle, alignment, onChange }) => {
         leave="ease-in duration-200"
         leaveFrom="opacity-100 translate-y-0 sm:scale-100"
         leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-        className="relative"
+        className="absolute z-50"
       >
         <div
           ref={(node) => {
             setPopperElement(node);
             popperRef.current = node;
           }}
-          style={{
-            ...styles.popper,
-            ...customPopperStyle,
-            zIndex: 1000,
-          }}
+          style={{ ...styles.popper, ...customPopperStyle }}
           {...attributes.popper}
         >
           <Calendar
             showTwoCalendars={false}
-            initialMonth1={
-              new Date(new Date().getFullYear(), new Date().getMonth() - 1)
-            }
+            initialMonth1={subMonths(new Date(), 1)}
             initialMonth2={new Date()}
-            handleValueChange={(newValue) => {
-              handleValueChange(newValue);
-            }}
+            handleValueChange={handleValueChange}
             closeDatePicker={() => setIsOpen(false)}
           />
         </div>
@@ -164,8 +133,13 @@ const DatePicker = ({ customPopperStyle, alignment, onChange }) => {
 
 DatePicker.propTypes = {
   customPopperStyle: PropTypes.object,
-  alignment: PropTypes.string,
-  onChange: PropTypes.func,
+  alignment: PropTypes.oneOf(['left', 'right']),
+  onChange: PropTypes.func.isRequired,
+};
+
+DatePicker.defaultProps = {
+  customPopperStyle: {},
+  alignment: 'left',
 };
 
 export default DatePicker;

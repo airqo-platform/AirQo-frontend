@@ -17,6 +17,7 @@ import {
 } from '../constants';
 import Footer from '../components/Footer';
 import useSitesSummary from '@/core/hooks/useSitesSummary';
+// import { getSitesSummaryApi } from '@/core/apis/Analytics';
 
 export const DownloadDataHeader = () => (
   <h3
@@ -32,6 +33,7 @@ const DataDownload = ({ onClose }) => {
   const [selectedSites, setSelectedSites] = useState([]);
   const [clearSelected, setClearSelected] = useState(false);
   const [formError, setFormError] = useState('');
+  const [downloadLoading, setDownloadLoading] = useState(false);
   const selectedSiteIds = [
     '654b50a8c4e34500135a6691',
     '6549f515f59f69001325b935',
@@ -67,33 +69,64 @@ const DataDownload = ({ onClose }) => {
   }, []);
 
   const handleSubmit = useCallback(
-    (e) => {
+    async (e) => {
       e.preventDefault();
-      if (!formData.duration) {
-        setFormError('Please select a duration');
+      setDownloadLoading(true);
+
+      // Check for form errors
+      if (
+        !formData.duration ||
+        !formData.duration.name?.start ||
+        !formData.duration.name?.end
+      ) {
+        setFormError(
+          'Please select a valid duration with both start and end dates',
+        );
+        setDownloadLoading(false);
         return;
       }
+
       if (selectedSites.length === 0) {
         setFormError('Please select at least one location');
+        setDownloadLoading(false);
         return;
       }
+
       // Prepare data for API
       const apiData = {
-        ...formData,
-        selectedSites,
+        startDateTime: formData.duration.name.start.toISOString(),
+        endDateTime: formData.duration.name.end.toISOString(),
+        sites: selectedSites.map((site) => site._id),
+        network: formData.network.name,
+        datatype: formData.dataType.name.toLowerCase(),
+        pollutants: [formData.pollutant.name.toLowerCase().replace('.', '_')],
+        resolution: formData.frequency.name.toLowerCase(),
+        downloadType: formData.fileType.name.toLowerCase(),
+        outputFormat: 'airqo-standard',
       };
-      console.log('Submitting data to API:', apiData);
 
-      // Reset form data
-      setFormData({
-        title: 'Untitled Report',
-        network: NETWORK_OPTIONS[0],
-        dataType: DATA_TYPE_OPTIONS[0],
-        pollutant: POLLUTANT_OPTIONS[0],
-        duration: null,
-        frequency: FREQUENCY_OPTIONS[0],
-        fileType: FILE_TYPE_OPTIONS[0],
-      });
+      try {
+        // TODO: Replace with your actual API call
+        console.log('API data:', apiData);
+      } catch (error) {
+        // Log the error and set a user-friendly error message
+        console.error('Error downloading data:', error);
+        setFormError('An error occurred while downloading. Please try again.');
+      } finally {
+        // Reset loading state after the process is done
+        setDownloadLoading(false);
+
+        // Reset form data after submission
+        setFormData({
+          title: 'Untitled Report',
+          network: NETWORK_OPTIONS[0],
+          dataType: DATA_TYPE_OPTIONS[0],
+          pollutant: POLLUTANT_OPTIONS[0],
+          duration: null,
+          frequency: FREQUENCY_OPTIONS[0],
+          fileType: FILE_TYPE_OPTIONS[0],
+        });
+      }
     },
     [formData, selectedSites],
   );
@@ -179,14 +212,11 @@ const DataDownload = ({ onClose }) => {
           defaultOption={formData.fileType}
           handleOptionSelect={handleOptionSelect}
         />
-        {/* Display Form Errors */}
-        {formError && <p className="text-red-600 text-sm">{formError}</p>}
       </form>
       {/* section 2 */}
       <div className="bg-white relative w-full h-auto">
         <div className="px-8 pt-6 pb-4 overflow-y-auto">
           {/* Display Fetch Errors */}
-
           <DataTable
             data={sitesSummaryData}
             selectedSites={selectedSites}
@@ -209,6 +239,7 @@ const DataDownload = ({ onClose }) => {
           handleClearSelection={handleClearSelection}
           handleSubmit={handleSubmit}
           onClose={onClose}
+          loading={downloadLoading}
         />
       </div>
     </>

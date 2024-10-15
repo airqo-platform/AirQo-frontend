@@ -10,6 +10,7 @@ const Footer = ({
   handleSubmit,
   onClose,
   btnText = 'Download',
+  loading = false, // New loading prop
 }) => {
   useEffect(() => {
     if (errorMessage) {
@@ -17,6 +18,7 @@ const Footer = ({
       return () => clearTimeout(timer);
     }
   }, [errorMessage]);
+
   return (
     <div className="bg-gray-50 absolute bottom-0 right-0 w-full px-4 py-3 sm:px-6 flex items-center justify-between">
       <div className="text-sm leading-5 font-normal">
@@ -42,10 +44,27 @@ const Footer = ({
         )}
       </div>
       <div className="sm:flex sm:flex-row-reverse gap-2">
-        <Button type="button" variant={'filled'} onClick={handleSubmit}>
-          {btnText}
+        <Button
+          type="button"
+          variant={'filled'}
+          onClick={handleSubmit}
+          disabled={loading} // Disable button when loading
+        >
+          {loading ? (
+            <div className="flex items-center gap-2">
+              <span className="animate-spin w-4 h-4 border-2 border-t-transparent border-white rounded-full"></span>
+              <span>Downloading...</span>
+            </div>
+          ) : (
+            btnText
+          )}
         </Button>
-        <Button type="button" variant={'outlined'} onClick={onClose}>
+        <Button
+          type="button"
+          variant={'outlined'}
+          onClick={onClose}
+          disabled={loading}
+        >
           Cancel
         </Button>
       </div>
@@ -61,6 +80,7 @@ Footer.propTypes = {
   onClose: PropTypes.func,
   btnText: PropTypes.string,
   setError: PropTypes.func,
+  loading: PropTypes.bool, // New prop type for loading
 };
 
 export default Footer;
