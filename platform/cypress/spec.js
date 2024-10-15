@@ -1,3 +1,3 @@
 it('loads the home page', () => {
-    cy.visit('/')
-  })
+  cy.visit('/');
+});

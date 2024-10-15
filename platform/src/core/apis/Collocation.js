@@ -37,7 +37,9 @@ export const getCollocationResultsApi = async ({ devices, batchId }) => {
 };
 
 export const getDataCompletenessResultsApi = async ({ devices, batchId }) => {
-  const response = await getRequest(`${COLLOCATION}/data-completeness?batchId=${batchId}`);
+  const response = await getRequest(
+    `${COLLOCATION}/data-completeness?batchId=${batchId}`,
+  );
   return response;
 };
 
@@ -55,16 +57,20 @@ export const getInterSensorCorrelationApi = async (addInterSensorInput) => {
   return response;
 };
 
-export const getCollocationStatisticsApi = async (addCollocationStatisticsInput) => {
+export const getCollocationStatisticsApi = async (
+  addCollocationStatisticsInput,
+) => {
   const response = await getRequest(
-    `${COLLOCATION}/statistics?devices=${addCollocationStatisticsInput.devices || ''}&batchId=${
-      addCollocationStatisticsInput.batchId
-    }`,
+    `${COLLOCATION}/statistics?devices=${
+      addCollocationStatisticsInput.devices || ''
+    }&batchId=${addCollocationStatisticsInput.batchId}`,
   );
   return response;
 };
 
 export const getCollocationBatchResultsApi = async (batchId) => {
-  const response = await getRequest(`${COLLOCATION}/results?batchId=${batchId}`);
+  const response = await getRequest(
+    `${COLLOCATION}/results?batchId=${batchId}`,
+  );
   return response;
 };

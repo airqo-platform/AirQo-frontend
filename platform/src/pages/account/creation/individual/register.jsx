@@ -24,7 +24,9 @@ const IndividualAccountRegistration = () => {
   const [password, setPassword] = useState('');
   const [passwordType, setPasswordType] = useState('password');
   const [passwordWordErrors, setPasswordWordErrors] = useState(false);
-  let passwordRegex = new RegExp('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&.*,]).{6,}$');
+  let passwordRegex = new RegExp(
+    '^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&.*,]).{6,}$',
+  );
 
   const dispatch = useDispatch();
   const router = useRouter();
@@ -58,7 +60,13 @@ const IndividualAccountRegistration = () => {
 
     try {
       const response = await dispatch(
-        createUser({ email, firstName, lastName, password, category: 'individual' }),
+        createUser({
+          email,
+          firstName,
+          lastName,
+          password,
+          category: 'individual',
+        }),
       );
       if (!response.payload.success) {
         setCreationErrors({
@@ -98,10 +106,13 @@ const IndividualAccountRegistration = () => {
     <AccountPageLayout
       childrenHeight={'lg:h-[680]'}
       childrenTop={'mt-16'}
-      pageTitle={'Create Account | AirQo'}>
-      <div className='w-full'>
-        <h2 className='text-3xl text-black-700 font-medium'>Let's get started</h2>
-        <p className='text-xl text-black-700 font-normal mt-3'>
+      pageTitle={'Create Account | AirQo'}
+    >
+      <div className="w-full">
+        <h2 className="text-3xl text-black-700 font-medium">
+          Let's get started
+        </h2>
+        <p className="text-xl text-black-700 font-normal mt-3">
           Get access to air quality analytics across Africa
         </p>
         <form onSubmit={handleSubmit}>
@@ -119,122 +130,128 @@ const IndividualAccountRegistration = () => {
             />
           )}
 
-          <div className='mt-6'>
-            <div className='flex flex-row justify-between'>
-              <div className='w-full'>
-                <div className='text-sm text-gray-500'>First name*</div>
-                <div className='mt-2 w-11/12'>
+          <div className="mt-6">
+            <div className="flex flex-row justify-between">
+              <div className="w-full">
+                <div className="text-sm text-gray-500">First name*</div>
+                <div className="mt-2 w-11/12">
                   <input
                     onChange={(e) => {
                       setFirstName(e.target.value);
                     }}
-                    type='text'
-                    placeholder='Enter your name'
+                    type="text"
+                    placeholder="Enter your name"
                     className={`input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500`}
-                    pattern='[A-Za-z]{3,}'
+                    pattern="[A-Za-z]{3,}"
                     required
                   />
                 </div>
               </div>
-              <div className='w-full'>
-                <div className='text-sm text-gray-500'>Last name*</div>
-                <div className='mt-2 w-full'>
+              <div className="w-full">
+                <div className="text-sm text-gray-500">Last name*</div>
+                <div className="mt-2 w-full">
                   <input
                     onChange={(e) => {
                       setLastName(e.target.value);
                     }}
-                    type='text'
-                    placeholder='Enter your name'
+                    type="text"
+                    placeholder="Enter your name"
                     className={`input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500`}
-                    pattern='[A-Za-z]{2,}'
+                    pattern="[A-Za-z]{2,}"
                     required
                   />
                 </div>
               </div>
             </div>
           </div>
-          <div className='mt-6'>
-            <div className='w-full'>
-              <div className='text-sm text-gray-500'>Email address*</div>
-              <div className='mt-2 w-full'>
+          <div className="mt-6">
+            <div className="w-full">
+              <div className="text-sm text-gray-500">Email address*</div>
+              <div className="mt-2 w-full">
                 <input
                   value={email || ''}
                   onChange={(e) => setEmail(e.target.value)}
-                  type='email'
-                  placeholder='Enter your email'
+                  type="email"
+                  placeholder="Enter your email"
                   className={`input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500 ${
-                    email.length >= 3 && !email.includes('@') ? 'border-red-600' : ''
+                    email.length >= 3 && !email.includes('@')
+                      ? 'border-red-600'
+                      : ''
                   }`}
                   required
                 />
                 {email.length >= 3 && !email.includes('@') && (
-                  <div className='flex flex-row items-start text-xs text-red-600 py-2'>
-                    <HintIcon className='w-8 h-8' />
+                  <div className="flex flex-row items-start text-xs text-red-600 py-2">
+                    <HintIcon className="w-8 h-8" />
                     <span>Please provide a valid email address!</span>
                   </div>
                 )}
               </div>
             </div>
           </div>
-          <div className='mt-6'>
-            <div className='w-full'>
-              <div className='text-sm text-gray-500'>Password*</div>
-              <div className='mt-2 w-full relative'>
+          <div className="mt-6">
+            <div className="w-full">
+              <div className="text-sm text-gray-500">Password*</div>
+              <div className="mt-2 w-full relative">
                 <input
                   onChange={(e) => {
                     setPassword(e.target.value);
                     validatePassword(e.target.value);
                   }}
-                  pattern='^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&]).{8,}$'
+                  pattern="^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&]).{8,}$"
                   minLength={'6'}
                   maxLength={'20'}
                   type={passwordType}
-                  placeholder='Create password'
+                  placeholder="Create password"
                   className={`input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500 focus:${
                     passwordWordErrors && 'border-red-600'
                   } ${passwordWordErrors && 'border-red-600'}`}
                   required
                 />
-                <span className='text-gray-400 text-sm'>Must be at least 8 characters</span>
+                <span className="text-gray-400 text-sm">
+                  Must be at least 8 characters
+                </span>
                 <div
-                  className='absolute right-4 top-[25px]  transform -translate-y-1/2 cursor-pointer'
-                  onClick={showPassword}>
+                  className="absolute right-4 top-[25px]  transform -translate-y-1/2 cursor-pointer"
+                  onClick={showPassword}
+                >
                   {passwordType === 'password' ? (
                     <VisibilityOffIcon />
                   ) : (
-                    <VisibilityOnIcon className='stroke-1 stroke-svg-green' />
+                    <VisibilityOnIcon className="stroke-1 stroke-svg-green" />
                   )}
                 </div>
                 {passwordWordErrors && (
-                  <div className='flex flex-row items-start text-xs text-red-600 py-2'>
-                    <HintIcon className='w-8 h-8 mr-2' />{' '}
+                  <div className="flex flex-row items-start text-xs text-red-600 py-2">
+                    <HintIcon className="w-8 h-8 mr-2" />{' '}
                     <span>
-                      Password must be more than 6 characters and contain an uppercase letter(A-Z),
-                      lowercase letter(a-z), a number(0-9) and special character(#?!@$%^&.*,)
+                      Password must be more than 6 characters and contain an
+                      uppercase letter(A-Z), lowercase letter(a-z), a
+                      number(0-9) and special character(#?!@$%^&.*,)
                     </span>
                   </div>
                 )}
               </div>
             </div>
           </div>
-          <div className='mt-6'>
-            <div className='flex flex-row items-center'>
+          <div className="mt-6">
+            <div className="flex flex-row items-center">
               <div>
                 <input
-                  type='checkbox'
-                  className='default:bg-white h-6 w-6 rounded border border-check-box checked:bg-blue-900 focus:border-check-box hover:cursor-pointer'
+                  type="checkbox"
+                  className="default:bg-white h-6 w-6 rounded border border-check-box checked:bg-blue-900 focus:border-check-box hover:cursor-pointer"
                   onChange={(event) => toggleChecked(event)}
                   required
                 />
               </div>
-              <div className='ml-3'>
-                <p className='text-xs'>
+              <div className="ml-3">
+                <p className="text-xs">
                   I agree to the{' '}
-                  <a href='#' className='underline'>
+                  <a href="#" className="underline">
                     Terms of Service
                   </a>{' '}
                   and{' '}
-                  <a href='#' className='underline'>
+                  <a href="#" className="underline">
                     Privacy Policy
                   </a>
                 </p>
@@ -242,22 +259,28 @@ const IndividualAccountRegistration = () => {
             </div>
           </div>
 
-          <div className='mt-10 mb-3'>
-            <div className='flex flex-col-reverse md:flex-row items-center justify-start md:justify-between'>
-              <div className='w-full'>
+          <div className="mt-10 mb-3">
+            <div className="flex flex-col-reverse md:flex-row items-center justify-start md:justify-between">
+              <div className="w-full">
                 <button
-                  type='submit'
+                  type="submit"
                   onClick={
-                    password !== '' && !passwordWordErrors && checked ? handleSubmit : undefined
+                    password !== '' && !passwordWordErrors && checked
+                      ? handleSubmit
+                      : undefined
                   }
                   style={{ textTransform: 'none' }}
                   className={`w-full btn text-sm outline-none border-none rounded-[12px] ${
                     password !== '' && !passwordWordErrors && checked
                       ? 'bg-blue-900 text-white hover:bg-blue-950'
                       : 'btn-disabled bg-white'
-                  }`}>
-                  {loading && password !== '' && !passwordWordErrors && checked ? (
-                    <Spinner data-testid='spinner' width={25} height={25} />
+                  }`}
+                >
+                  {loading &&
+                  password !== '' &&
+                  !passwordWordErrors &&
+                  checked ? (
+                    <Spinner data-testid="spinner" width={25} height={25} />
                   ) : (
                     'Continue'
                   )}
@@ -265,12 +288,14 @@ const IndividualAccountRegistration = () => {
               </div>
             </div>
           </div>
-          <div className='mt-8 flex justify-center w-full'>
+          <div className="mt-8 flex justify-center w-full">
             <div>
-              <span className='text-sm text-grey-300'>Already have an account?</span>
-              <span className='text-sm text-blue-900 font-medium'>
+              <span className="text-sm text-grey-300">
+                Already have an account?
+              </span>
+              <span className="text-sm text-blue-900 font-medium">
                 {' '}
-                <Link href='/account/login'>Log in</Link>
+                <Link href="/account/login">Log in</Link>
               </span>
             </div>
           </div>

@@ -259,7 +259,10 @@ const Profile = () => {
     if (updatedProfilePicture) {
       const formData = new FormData();
       formData.append('file', updatedProfilePicture);
-      formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_PRESET);
+      formData.append(
+        'upload_preset',
+        process.env.NEXT_PUBLIC_CLOUDINARY_PRESET,
+      );
       formData.append('folder', 'profiles');
 
       setProfileUploading(true);
@@ -272,7 +275,10 @@ const Profile = () => {
             userID,
           )
             .then((responseData) => {
-              localStorage.setItem('loggedUser', JSON.stringify({ _id: userID, ...userData }));
+              localStorage.setItem(
+                'loggedUser',
+                JSON.stringify({ _id: userID, ...userData }),
+              );
               dispatch(setUserInfo({ _id: userID, ...userData }));
               // updated user alert
               setIsError({
@@ -354,37 +360,43 @@ const Profile = () => {
           })
         }
       />
-      <div className='block lg:flex justify-start lg:gap-8 w-full'>
-        <div className='mb-6'>
-          <h3 className='text-sm font-medium leading-5 text-grey-710'>Personal information</h3>
-          <p className='text-sm text-grey-500 leading-5'>Update your photo and personal details.</p>
+      <div className="block lg:flex justify-start lg:gap-8 w-full">
+        <div className="mb-6">
+          <h3 className="text-sm font-medium leading-5 text-grey-710">
+            Personal information
+          </h3>
+          <p className="text-sm text-grey-500 leading-5">
+            Update your photo and personal details.
+          </p>
         </div>
 
-        <div className='w-full mb-12'>
+        <div className="w-full mb-12">
           <ContentBox noMargin>
             <>
-              <div className='w-full p-3 md:p-6'>
-                <div className='flex items-center md:gap-6 w-full mb-6'>
+              <div className="w-full p-3 md:p-6">
+                <div className="flex items-center md:gap-6 w-full mb-6">
                   <div
-                    className='w-16 h-16 bg-secondary-neutral-light-25 rounded-full flex justify-center items-center cursor-pointer'
+                    className="w-16 h-16 bg-secondary-neutral-light-25 rounded-full flex justify-center items-center cursor-pointer"
                     onClick={handleAvatarClick}
-                    title='Tap to change profile image'
+                    title="Tap to change profile image"
                   >
                     {userData.profilePicture ? (
                       <img
                         src={userData.profilePicture}
-                        alt={`${userData.firstName + ' ' + userData.lastName} profile image`}
-                        className='w-full h-full rounded-full object-cover'
+                        alt={`${
+                          userData.firstName + ' ' + userData.lastName
+                        } profile image`}
+                        className="w-full h-full rounded-full object-cover"
                       />
                     ) : (
-                      <h3 className='text-center text-2xl leading-8 font-medium text-blue-600'>
+                      <h3 className="text-center text-2xl leading-8 font-medium text-blue-600">
                         {userData.firstName[0] + userData.lastName[0]}
                       </h3>
                     )}
                   </div>
-                  <div className='flex items-center'>
+                  <div className="flex items-center gap-4">
                     <Button
-                      className='text-sm font-medium text-secondary-neutral-light-500'
+                      className="text-sm font-medium text-secondary-neutral-light-500"
                       onClick={confirmDeleteProfileImage}
                     >
                       Delete
@@ -401,64 +413,64 @@ const Profile = () => {
                       {updatedProfilePicture && !profileUploading
                         ? 'Save photo'
                         : profileUploading
-                        ? 'Uploading...'
-                        : 'Update'}
+                          ? 'Uploading...'
+                          : 'Update'}
                     </Button>
                   </div>
                 </div>
-                <form className='grid grid-cols-2 gap-6'>
-                  <div className='gap-[6px] col-span-1'>
+                <form className="grid grid-cols-2 gap-6">
+                  <div className="gap-[6px] col-span-1">
                     <TextInputField
-                      id='firstName'
+                      id="firstName"
                       value={userData.firstName}
                       onChange={handleChange}
-                      label='First name'
-                      type='text'
+                      label="First name"
+                      type="text"
                     />
                   </div>
 
-                  <div className='gap-[6px] col-span-1'>
+                  <div className="gap-[6px] col-span-1">
                     <TextInputField
-                      id='lastName'
+                      id="lastName"
                       value={userData.lastName}
                       onChange={handleChange}
-                      label='Last name'
-                      type='text'
+                      label="Last name"
+                      type="text"
                     />
                   </div>
-                  <div className='gap-[6px] col-span-full'>
+                  <div className="gap-[6px] col-span-full">
                     <TextInputField
-                      id='email'
+                      id="email"
                       value={userData.email}
                       onChange={handleChange}
-                      label='Email'
-                      type='email'
+                      label="Email"
+                      type="email"
                     />
                   </div>
-                  <div className='gap-[6px] col-span-full'>
+                  <div className="gap-[6px] col-span-full">
                     <TextInputField
-                      id='jobTitle'
+                      id="jobTitle"
                       value={userData.jobTitle}
                       onChange={handleChange}
-                      label='Job title'
-                      type='text'
+                      label="Job title"
+                      type="text"
                     />
                   </div>
 
-                  <div className='relative flex flex-col gap-[6px] md:col-span-1 col-span-full'>
-                    <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
+                  <div className="relative flex flex-col gap-[6px] md:col-span-1 col-span-full">
+                    <label className="text-gray-720 text-sm leading-4 tracking-[-0.42px]">
                       Country
                     </label>
-                    <div className='relative'>
+                    <div className="relative">
                       <select
-                        type='text'
-                        id='country'
+                        type="text"
+                        id="country"
                         value={userData.country}
                         onChange={handleChange}
-                        className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm w-full rounded p-3 dark:placeholder-white-400 dark:text-white'
+                        className="bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm w-full rounded p-3 dark:placeholder-white-400 dark:text-white"
                         required
                       >
-                        <option value='' disabled></option>
+                        <option value="" disabled></option>
                         {countryOptions.map((country) => (
                           <option value={country.value} key={country.value}>
                             {country.label}
@@ -468,22 +480,22 @@ const Profile = () => {
                     </div>
                   </div>
 
-                  <div className='relative flex flex-col gap-[6px] md:col-span-1 col-span-full'>
-                    <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
+                  <div className="relative flex flex-col gap-[6px] md:col-span-1 col-span-full">
+                    <label className="text-gray-720 text-sm leading-4 tracking-[-0.42px]">
                       Timezone
                     </label>
-                    <div className='absolute left-0 top-3 w-10 h-full flex items-center justify-center'>
+                    <div className="absolute left-0 top-3 w-10 h-full flex items-center justify-center">
                       <ClockIcon />
                     </div>
                     <select
-                      type='text'
-                      id='timezone'
+                      type="text"
+                      id="timezone"
                       value={userData.timezone}
                       onChange={handleChange}
-                      className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full pl-10 pr-3 py-3 dark:placeholder-white-400 dark:text-white'
+                      className="bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full pl-10 pr-3 py-3 dark:placeholder-white-400 dark:text-white"
                       required
                     >
-                      <option value='' disabled></option>
+                      <option value="" disabled></option>
                       {timeZonesArr.map((timeZone) => (
                         <option value={timeZone.value} key={timeZone.value}>
                           {timeZone.label}
@@ -492,32 +504,33 @@ const Profile = () => {
                     </select>
                   </div>
 
-                  <div className='relative flex flex-col gap-[6px] col-span-full'>
-                    <label className='text-gray-720 text-sm leading-4 tracking-[-0.42px]'>
+                  <div className="relative flex flex-col gap-[6px] col-span-full">
+                    <label className="text-gray-720 text-sm leading-4 tracking-[-0.42px]">
                       Bio
                     </label>
                     <textarea
-                      type='email'
-                      id='description'
+                      type="email"
+                      id="description"
                       value={userData.description}
                       onChange={handleChange}
-                      className='bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full p-3 dark:placeholder-white-400 dark:text-white'
+                      className="bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full p-3 dark:placeholder-white-400 dark:text-white"
                       required
                     />
                   </div>
                 </form>
               </div>
-              <div className='col-span-full flex justify-end gap-3 border-t border-t-secondary-neutral-light-100 w-full px-3 py-4'>
+              <div className="col-span-full flex justify-end gap-3 border-t border-t-secondary-neutral-light-100 w-full px-3 py-4">
                 <Button
                   onClick={handleCancel}
-                  className='text-sm font-medium leading-5 text-secondary-neutral-light-600 py-3 px-4 rounded border border-secondary-neutral-light-100 bg-white'
+                  className="text-sm font-medium leading-5 py-3 px-4"
+                  variant="outlined"
                   disabled={isLoading}
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSubmit}
-                  className='text-sm font-medium leading-5 text-white py-3 px-4 rounded bg-blue-600'
+                  className="text-sm font-medium leading-5 text-white py-3 px-4 rounded bg-blue-600"
                   disabled={isLoading}
                 >
                   {isLoading ? 'Loading...' : 'Save'}
@@ -532,7 +545,7 @@ const Profile = () => {
         handleConfirm={deleteProfileImage}
         closeModal={() => setShowDeleteProfileModal(false)}
         description={`Are you sure you want to delete your profile image?`}
-        confirmButton='Delete'
+        confirmButton="Delete"
       />
     </BorderlessContentBox>
   );

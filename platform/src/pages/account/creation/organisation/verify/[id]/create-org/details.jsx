@@ -68,14 +68,18 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
         });
       } else {
         try {
-          const response = await dispatch(postUserPreferences(createPreference));
+          const response = await dispatch(
+            postUserPreferences(createPreference),
+          );
           if (response.payload.success) {
             // update selected cohort preference
             const data = {
               user_id: id,
               cohort_ids: [token],
             };
-            const updateUserPrefResponse = await dispatch(updateUserPreferences(data));
+            const updateUserPrefResponse = await dispatch(
+              updateUserPreferences(data),
+            );
             if (updateUserPrefResponse.payload.success) {
               handleComponentSwitch();
             } else {
@@ -102,78 +106,86 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
 
   useEffect(() => {
     if (isEmpty(token)) {
-      router.push(`/account/creation/organisation/verify/${id}/create-org/token-confirmation`);
+      router.push(
+        `/account/creation/organisation/verify/${id}/create-org/token-confirmation`,
+      );
     }
   }, []);
 
   return (
-    <div className='lg:mb-3 md:mb-5 w-full'>
+    <div className="lg:mb-3 md:mb-5 w-full">
       <ProgressComponent colorFirst colorSecond />
-      <div className='w-full'>
-        <h2 className='text-3xl text-black font-semibold lg:w-10/12 md:mt-20 lg:mt-2'>
+      <div className="w-full">
+        <h2 className="text-3xl text-black font-semibold lg:w-10/12 md:mt-20 lg:mt-2">
           Tell us about your organisation
         </h2>
         <form onSubmit={handleSubmit}>
           {creationErrors.state && (
-            <Toast type={'error'} timeout={7000} message={creationErrors.message} />
+            <Toast
+              type={'error'}
+              timeout={7000}
+              message={creationErrors.message}
+            />
           )}
-          <div className='mt-6'>
-            <div className='w-full'>
-              <div className='text-sm text-grey-300'>Organisation Name*</div>
-              <div className='mt-2 w-full'>
+          <div className="mt-6">
+            <div className="w-full">
+              <div className="text-sm text-grey-300">Organisation Name*</div>
+              <div className="mt-2 w-full">
                 {orgName.length <= 2 ? (
                   <input
                     onChange={(e) => setOrgName(e.target.value)}
-                    type='text'
-                    placeholder='Enter a unique name'
-                    className='input text-sm w-full h-12 rounded-lg bg-white border-input-light-outline focus:border-input-light-outline'
+                    type="text"
+                    placeholder="Enter a unique name"
+                    className="input text-sm w-full h-12 rounded-lg bg-white border-input-light-outline focus:border-input-light-outline"
                     required
                   />
                 ) : (
                   <input
                     onChange={(e) => setOrgName(e.target.value)}
-                    type='text'
-                    placeholder='Enter a unique name'
-                    className='input text-sm w-full h-12 rounded-lg bg-white focus:border-input-outline border-input-outline'
+                    type="text"
+                    placeholder="Enter a unique name"
+                    className="input text-sm w-full h-12 rounded-lg bg-white focus:border-input-outline border-input-outline"
                     required
                   />
                 )}
               </div>
             </div>
           </div>
-          <div className='mt-6'>
-            <div className='w-full'>
-              <div className='text-sm text-grey-300'>Website</div>
-              <div className='mt-2 w-full'>
+          <div className="mt-6">
+            <div className="w-full">
+              <div className="text-sm text-grey-300">Website</div>
+              <div className="mt-2 w-full">
                 {orgWebsite.length >= 3 && !orgWebsite.includes('.') ? (
                   <>
-                    <div className='flex flex-row'>
-                      <span className='bg-white border border-input-light-outline w-auto h-12 p-3 text-sm rounded-l-lg text-grey-350 font-normal'>
+                    <div className="flex flex-row">
+                      <span className="bg-white border border-input-light-outline w-auto h-12 p-3 text-sm rounded-l-lg text-grey-350 font-normal">
                         https://
                       </span>
                       <input
-                        placeholder='example.com'
+                        placeholder="example.com"
                         onChange={(e) => setOrgWebsite(e.target.value)}
-                        type='text'
+                        type="text"
                         minLength={4}
-                        className='w-full h-12 rounded-r-lg bg-white border-red-600 focus:border-red-600 text-sm'
+                        className="w-full h-12 rounded-r-lg bg-white border-red-600 focus:border-red-600 text-sm"
                         required
                       />
                     </div>
-                    <div className='flex flex-row items-start text-xs text-red-600 py-2'>
-                      <HintIcon className='mr-2 stroke-grey-350' />
-                      <span>Please provide a valid website! Ex: www.example.com</span>
+                    <div className="flex flex-row items-start text-xs text-red-600 py-2">
+                      <HintIcon className="mr-2 stroke-grey-350" />
+                      <span>
+                        Please provide a valid website! Ex: www.example.com
+                      </span>
                     </div>
                   </>
                 ) : (
-                  <div className='flex flex-row'>
-                    <span className='bg-white border border-input-light-outline w-auto h-12 p-3 text-sm rounded-l-lg text-grey-350 font-normal'>
+                  <div className="flex flex-row">
+                    <span className="bg-white border border-input-light-outline w-auto h-12 p-3 text-sm rounded-l-lg text-grey-350 font-normal">
                       https://
                     </span>
                     <input
                       onChange={(e) => setOrgWebsite(e.target.value)}
-                      type='text'
-                      placeholder='example.com'
+                      type="text"
+                      placeholder="example.com"
                       minLength={4}
                       className={`text-sm w-full h-12 rounded-r-lg bg-white ${
                         orgWebsite.length <= 2
@@ -187,43 +199,47 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
               </div>
             </div>
           </div>
-          <div className='mt-6'>
-            <div className='w-full'>
-              <div className='text-sm flex justify-between text-grey-300'>
+          <div className="mt-6">
+            <div className="w-full">
+              <div className="text-sm flex justify-between text-grey-300">
                 <span>About your Organisation</span>
                 <span>0/200</span>
               </div>
-              <div className='mt-2 w-full flex flex-col justify-start'>
+              <div className="mt-2 w-full flex flex-col justify-start">
                 <textarea
                   onChange={(e) => setOrgDescription(e.target.value)}
-                  className='text-sm textarea textarea-lg border border-input-light-outline w-full focus:border-input-outline'
+                  className="text-sm textarea textarea-lg border border-input-light-outline w-full focus:border-input-outline"
                   rows={4}
-                  placeholder='Enter a description...'
+                  placeholder="Enter a description..."
                 ></textarea>
-                <span className='text-xs flex space-x-1 text-grey-300 mt-2'>
+                <span className="text-xs flex space-x-1 text-grey-300 mt-2">
                   <InfoCircle />
                   <span>Write a short description</span>
                 </span>
               </div>
             </div>
           </div>
-          <div className='mt-6'>
+          <div className="mt-6">
             {orgName !== '' ? (
-              <div className='w-full'>
+              <div className="w-full">
                 <button
-                  type='submit'
+                  type="submit"
                   onClick={handleSubmit}
-                  className='w-full btn rounded-[12px] bg-blue-900 text-sm outline-none border-none hover:bg-blue-950'
+                  className="w-full btn rounded-[12px] bg-blue-900 text-sm outline-none border-none hover:bg-blue-950"
                   style={{ textTransform: 'none' }}
                 >
-                  {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
+                  {loading ? (
+                    <Spinner data-testid="spinner" width={25} height={25} />
+                  ) : (
+                    'Continue'
+                  )}
                 </button>
               </div>
             ) : (
-              <div className='w-full'>
+              <div className="w-full">
                 <button
-                  type='submit'
-                  className='w-full btn btn-disabled rounded-[12px] bg-white text-sm outline-none border-none'
+                  type="submit"
+                  className="w-full btn btn-disabled rounded-[12px] bg-white text-sm outline-none border-none"
                   style={{ textTransform: 'none' }}
                 >
                   Continue
@@ -247,7 +263,9 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
     state: false,
     message: '',
   });
-  const orgDetails = useSelector((state) => state.creation.org_creation_response);
+  const orgDetails = useSelector(
+    (state) => state.creation.org_creation_response,
+  );
   const organisationId = orgDetails._id;
   countries.registerLocale(englishLocale);
   const industryList = [
@@ -380,7 +398,9 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
     };
     dispatch(setOrgUpdateDetails(orgData));
     try {
-      const response = await dispatch(updateOrganisationDetails(orgData, organisationId));
+      const response = await dispatch(
+        updateOrganisationDetails(orgData, organisationId),
+      );
       if (!response.payload.success) {
         setCreationErrors({
           state: true,
@@ -397,22 +417,26 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
   };
 
   return (
-    <div className='w-full'>
+    <div className="w-full">
       <ProgressComponent colorFirst colorSecond colorThird />
-      <div className='w-full'>
-        <h2 className='text-3xl text-black font-semibold w-full lg:w-10/12 md:mt-20 lg:mt-2'>
+      <div className="w-full">
+        <h2 className="text-3xl text-black font-semibold w-full lg:w-10/12 md:mt-20 lg:mt-2">
           Tell us about your organization
         </h2>
         <form onSubmit={handleSubmit}>
           {creationErrors.state && (
-            <Toast type={'error'} timeout={7000} message={creationErrors.message} />
+            <Toast
+              type={'error'}
+              timeout={7000}
+              message={creationErrors.message}
+            />
           )}
-          <div className='mt-6'>
-            <div className='w-full'>
-              <div className='text-sm text-grey-300'>Industry</div>
-              <div className='mt-2 w-full'>
+          <div className="mt-6">
+            <div className="w-full">
+              <div className="text-sm text-grey-300">Industry</div>
+              <div className="mt-2 w-full">
                 <select
-                  className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'
+                  className="w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline"
                   onChange={(e) => setOrgIndustry(e.target.value)}
                 >
                   {industryList.map((country, key) => (
@@ -424,12 +448,12 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
               </div>
             </div>
           </div>
-          <div className='mt-6'>
-            <div className='w-full'>
-              <div className='text-sm text-grey-300'>Country</div>
-              <div className='mt-2 w-full flex flex-row'>
+          <div className="mt-6">
+            <div className="w-full">
+              <div className="text-sm text-grey-300">Country</div>
+              <div className="mt-2 w-full flex flex-row">
                 <select
-                  className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'
+                  className="w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline"
                   onChange={(e) => setOrgCountry(e.target.value)}
                 >
                   {Object.entries(countryList).map(([code, country], key) => (
@@ -441,12 +465,12 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
               </div>
             </div>
           </div>
-          <div className='mt-6'>
-            <div className='w-full text-grey-300'>
-              <div className='text-sm'>Timezone</div>
-              <div className='mt-2 w-full'>
+          <div className="mt-6">
+            <div className="w-full text-grey-300">
+              <div className="text-sm">Timezone</div>
+              <div className="mt-2 w-full">
                 <select
-                  className='w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline'
+                  className="w-full text-sm text-grey-350 font-normal select select-bordered outline-offset-0 border-input-light-outline focus-visible:border-input-outline"
                   onChange={(e) => setOrgTimeZone(e.target.value)}
                 >
                   {timeZoneList.map((zone, key) => (
@@ -458,22 +482,26 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
               </div>
             </div>
           </div>
-          <div className='mt-10'>
-            <div className='w-full'>
+          <div className="mt-10">
+            <div className="w-full">
               <button
-                type='submit'
+                type="submit"
                 onClick={handleSubmit}
-                className='w-full btn rounded-[12px] bg-blue-900 text-sm outline-none border-none hover:bg-blue-950'
+                className="w-full btn rounded-[12px] bg-blue-900 text-sm outline-none border-none hover:bg-blue-950"
                 style={{ textTransform: 'none' }}
               >
-                {loading ? <Spinner data-testid='spinner' width={25} height={25} /> : 'Continue'}
+                {loading ? (
+                  <Spinner data-testid="spinner" width={25} height={25} />
+                ) : (
+                  'Continue'
+                )}
               </button>
             </div>
           </div>
         </form>
-        <div className='flex flex-row items-center justify-end mt-6'>
-          <Link href='/analytics'>
-            <span className='text-sm text-blue-900 font-medium hover:cursor-pointer hover:text-blue-950'>
+        <div className="flex flex-row items-center justify-end mt-6">
+          <Link href="/analytics">
+            <span className="text-sm text-blue-900 font-medium hover:cursor-pointer hover:text-blue-950">
               Complete this later
             </span>
           </Link>
@@ -519,14 +547,18 @@ const CreateOrganisationDetailsPageThree = () => {
 
   const handleLocationSelect = (item) => {
     locationArray.includes(item)
-      ? setLocationArray(locationArray.filter((location) => location._id !== item._id))
+      ? setLocationArray(
+          locationArray.filter((location) => location._id !== item._id),
+        )
       : setLocationArray((locations) => [...locations, item]);
     setInputSelect(true);
     setLocation('');
   };
 
   const removeLocation = (item) => {
-    setLocationArray(locationArray.filter((location) => location._id !== item._id));
+    setLocationArray(
+      locationArray.filter((location) => location._id !== item._id),
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -566,21 +598,25 @@ const CreateOrganisationDetailsPageThree = () => {
   }, [gridLocationsData]);
 
   return (
-    <div className='relative h-[600px] w-full'>
+    <div className="relative h-[600px] w-full">
       <ProgressComponent colorFirst colorSecond colorThird colorFourth />
-      <div className='w-full h-auto'>
-        <h2 className='text-3xl text-black font-semibold w-full lg:w-10/12 md:mt-20 lg:mt-2'>
+      <div className="w-full h-auto">
+        <h2 className="text-3xl text-black font-semibold w-full lg:w-10/12 md:mt-20 lg:mt-2">
           Choose locations you are interested in
         </h2>
-        <form onSubmit={handleSubmit} className='h-full'>
+        <form onSubmit={handleSubmit} className="h-full">
           {creationErrors.state && (
-            <Toast type={'error'} timeout={6000} message={creationErrors.message} />
+            <Toast
+              type={'error'}
+              timeout={6000}
+              message={creationErrors.message}
+            />
           )}
-          <div className='mt-6'>
-            <div className='w-full'>
-              <div className='text-sm'>Add Locations</div>
-              <div className='mt-2 w-full flex flex-row items-center justify-start '>
-                <div className='flex items-center justify-center pl-3 bg-white border h-12 rounded-lg rounded-r-none border-r-0 border-input-light-outline focus:border-input-light-outline'>
+          <div className="mt-6">
+            <div className="w-full">
+              <div className="text-sm">Add Locations</div>
+              <div className="mt-2 w-full flex flex-row items-center justify-start ">
+                <div className="flex items-center justify-center pl-3 bg-white border h-12 rounded-lg rounded-r-none border-r-0 border-input-light-outline focus:border-input-light-outline">
                   <SearchIcon />
                 </div>
                 <input
@@ -589,8 +625,8 @@ const CreateOrganisationDetailsPageThree = () => {
                   }}
                   onClick={() => toggleInputSelect()}
                   value={location}
-                  placeholder='Search locations'
-                  className='input text-sm w-full h-12 rounded-lg bg-white border-l-0 rounded-l-none border-input-light-outline focus:border-input-light-outline'
+                  placeholder="Search locations"
+                  className="input text-sm w-full h-12 rounded-lg bg-white border-l-0 rounded-l-none border-input-light-outline focus:border-input-light-outline"
                 />
               </div>
               {location !== '' && (
@@ -602,46 +638,56 @@ const CreateOrganisationDetailsPageThree = () => {
                   {filteredLocations.length > 0 ? (
                     filteredLocations.map((location, key) => (
                       <div
-                        className='flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer'
+                        className="flex flex-row justify-start items-center mb-0.5 text-sm w-full hover:cursor-pointer"
                         onClick={() => {
                           handleLocationSelect(location);
                         }}
                         key={key}
                       >
                         <LocationIcon />
-                        <div className='text-sm ml-1 text-black capitalize'>{location.name}</div>
+                        <div className="text-sm ml-1 text-black capitalize">
+                          {location.name}
+                        </div>
                       </div>
                     ))
                   ) : (
-                    <div className='flex flex-row justify-start items-center mb-0.5 text-sm w-full'>
+                    <div className="flex flex-row justify-start items-center mb-0.5 text-sm w-full">
                       <LocationIcon />
-                      <div className='text-sm ml-1 text-black font-medium capitalize'>
+                      <div className="text-sm ml-1 text-black font-medium capitalize">
                         Location not found
                       </div>
                     </div>
                   )}
                 </div>
               )}
-              <div className='mt-1 flex space-x-1 text-xs text-grey-350'>
+              <div className="mt-1 flex space-x-1 text-xs text-grey-350">
                 <InfoCircle />
                 <span>Select any 4 locations</span>
               </div>
             </div>
           </div>
           {inputSelect && (
-            <div className='mt-4 flex flex-row flex-wrap overflow-y-clip'>
+            <div className="mt-4 flex flex-row flex-wrap overflow-y-clip">
               {locationArray.length > 0 ? (
                 locationArray.map((location, key) => (
                   <div
-                    className='bg-green-150 flex flex-row items-center mr-2 px-3 py-1 rounded-xl mb-2'
+                    className="bg-green-150 flex flex-row items-center mr-2 px-3 py-1 rounded-xl mb-2"
                     key={key}
                   >
-                    <span className='text-sm text-blue-600 font-semibold mr-1'>
+                    <span className="text-sm text-blue-600 font-semibold mr-1">
                       {location.name}
                     </span>
-                    <div onClick={() => removeLocation(location)} className='hover:cursor-pointer'>
-                      <span className='mt-[4px]'>
-                        <CloseIcon fill='#145FFF' strokeWidth='2' width={16} height={16} />
+                    <div
+                      onClick={() => removeLocation(location)}
+                      className="hover:cursor-pointer"
+                    >
+                      <span className="mt-[4px]">
+                        <CloseIcon
+                          fill="#145FFF"
+                          strokeWidth="2"
+                          width={16}
+                          height={16}
+                        />
                       </span>
                     </div>
                   </div>
@@ -651,38 +697,38 @@ const CreateOrganisationDetailsPageThree = () => {
               )}
             </div>
           )}
-          <div className='absolute w-full bottom-6'>
-            <div className='mt-6 relative w-auto'>
+          <div className="absolute w-full bottom-6">
+            <div className="mt-6 relative w-auto">
               {locationArray.length === 4 ? (
-                <div className='w-full'>
+                <div className="w-full">
                   <button
-                    type='submit'
+                    type="submit"
                     onClick={handleSubmit}
                     style={{ textTransform: 'none' }}
-                    className='w-full btn bg-blue-900 rounded-[12px] text-sm outline-none border-none hover:bg-blue-950'
+                    className="w-full btn bg-blue-900 rounded-[12px] text-sm outline-none border-none hover:bg-blue-950"
                   >
                     {loading ? (
-                      <Spinner data-testid='spinner' width={25} height={25} />
+                      <Spinner data-testid="spinner" width={25} height={25} />
                     ) : (
                       'Continue'
                     )}
                   </button>
                 </div>
               ) : (
-                <div className='w-full'>
+                <div className="w-full">
                   <button
-                    type='submit'
+                    type="submit"
                     style={{ textTransform: 'none' }}
-                    className='w-full btn btn-disabled bg-white rounded-[12px] text-sm outline-none border-none'
+                    className="w-full btn btn-disabled bg-white rounded-[12px] text-sm outline-none border-none"
                   >
                     Continue
                   </button>
                 </div>
               )}
             </div>
-            <div className='flex flex-row items-center justify-end mt-4 relative'>
-              <Link href='/account/creation/get-started'>
-                <span className='text-sm text-blue-900 font-medium hover:cursor-pointer hover:text-blue-950'>
+            <div className="flex flex-row items-center justify-end mt-4 relative">
+              <Link href="/account/creation/get-started">
+                <span className="text-sm text-blue-900 font-medium hover:cursor-pointer hover:text-blue-950">
                   Complete this later
                 </span>
               </Link>
@@ -714,7 +760,9 @@ const CreateOrganisationDetails = () => {
       }
     >
       {nextComponent === 'pageOne' && (
-        <CreateOrganisationDetailsPageOne handleComponentSwitch={() => handleSwitchTo('pageTwo')} />
+        <CreateOrganisationDetailsPageOne
+          handleComponentSwitch={() => handleSwitchTo('pageTwo')}
+        />
       )}
       {nextComponent === 'pageTwo' && (
         <CreateOrganisationDetailsPageTwo

@@ -16,7 +16,9 @@ export const getPlaceDetails = async (placeId) => {
           place_id,
         });
       } else {
-        reject(new Error(`Failed to retrieve details for place with ID ${placeId}`));
+        reject(
+          new Error(`Failed to retrieve details for place with ID ${placeId}`),
+        );
       }
     });
   });

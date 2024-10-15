@@ -60,23 +60,26 @@ const CustomTable = ({
   }
 
   return (
-    <div className='overflow-x-scroll md:overflow-x-hidden'>
+    <div className="overflow-x-scroll md:overflow-x-hidden">
       <table
-        className='table-fixed border-collapse text-xs text-left w-auto md:w-full my-6'
+        className="table-fixed border-collapse text-xs text-left w-auto md:w-full my-6"
         data-testid={dataTestId}
       >
         <colgroup>
-          <col className='w-[61px]' />
+          <col className="w-[61px]" />
           {headers.map((header, columnIndex) => (
-            <col key={header} style={{ width: `${size - 61 / headers.length}%` }} />
+            <col
+              key={header}
+              style={{ width: `${size - 61 / headers.length}%` }}
+            />
           ))}
         </colgroup>
         <thead>
-          <tr className='border-b border-b-slate-300 text-black-900'>
-            <th scope='col' className='px-4 pb-2'></th>
+          <tr className="border-b border-b-slate-300 text-black-900">
+            <th scope="col" className="px-4 pb-2"></th>
             {headers.map((header, columnIndex) => (
               <th
-                scope='col'
+                scope="col"
                 key={header}
                 className={`px-4 pb-2 font-normal ${
                   sortColumn === columnIndex &&
@@ -88,7 +91,11 @@ const CustomTable = ({
                 {sortableColumns.includes(columnIndex) && (
                   <>
                     {sortColumn === columnIndex &&
-                      (sortDirection === 'asc' ? <ArrowUpIcon /> : <ArrowDownIcon />)}
+                      (sortDirection === 'asc' ? (
+                        <ArrowUpIcon />
+                      ) : (
+                        <ArrowDownIcon />
+                      ))}
                   </>
                 )}
               </th>
@@ -99,7 +106,7 @@ const CustomTable = ({
         {isLoading ? (
           <tbody>
             <tr>
-              <td colSpan={(headers.length + 1).toString()} className='mx-auto'>
+              <td colSpan={(headers.length + 1).toString()} className="mx-auto">
                 <Spinner />
               </td>
             </tr>
@@ -109,22 +116,22 @@ const CustomTable = ({
             {!isEmpty(sortedData) ? (
               <>
                 {sortedData.map((row, rowIndex) => (
-                  <tr key={rowIndex} className='border-b border-b-slate-300'>
-                    <td className='px-4 py-2 w-[61px] h-14'>
+                  <tr key={rowIndex} className="border-b border-b-slate-300">
+                    <td className="px-4 py-2 w-[61px] h-14">
                       <input
-                        type='checkbox'
-                        className='h-4 w-4 text-indigo-600 transition duration-150 ease-in-out'
+                        type="checkbox"
+                        className="h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
                         checked={selectedRows.includes(rowIndex)}
                         onChange={() => toggleRow(rowIndex)}
                       />
                     </td>
                     {Object.values(row).map((cell, cellIndex) => (
-                      <td key={cellIndex} className='px-4 py-2 font-normal'>
+                      <td key={cellIndex} className="px-4 py-2 font-normal">
                         {typeof cell === 'number'
                           ? cell.toFixed(2)
                           : moment(cell).isValid()
-                          ? moment(cell).format('MMM DD, YYYY')
-                          : cell}
+                            ? moment(cell).format('MMM DD, YYYY')
+                            : cell}
                       </td>
                     ))}
                   </tr>
@@ -134,7 +141,7 @@ const CustomTable = ({
               <tr>
                 <td
                   colSpan={(headers.length + 1).toString()}
-                  className='text-center pt-6 text-grey-300'
+                  className="text-center pt-6 text-grey-300"
                 >
                   Unable to get {type} information
                 </td>
