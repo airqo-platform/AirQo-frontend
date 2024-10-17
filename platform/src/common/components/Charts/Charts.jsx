@@ -1,3 +1,4 @@
+// src/components/Charts.jsx
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -15,7 +16,6 @@ import {
   ReferenceLine,
 } from 'recharts';
 
-import Spinner from '@/components/Spinner';
 import { useAnalyticsData } from './functions';
 import {
   renderCustomizedLegend,
@@ -26,7 +26,9 @@ import {
   CustomReferenceLabel,
   colors,
 } from './components';
+import SkeletonLoader from './components/SkeletonLoader';
 
+// WHO standards for pollution types
 const WHO_STANDARD_VALUES = {
   pm2_5: 15,
   pm10: 45,
@@ -120,7 +122,6 @@ const Charts = ({
       <XAxis
         key="xAxis"
         dataKey="time"
-        tickLine
         tick={<CustomizedAxisTick fill="#1C1D20" />}
         interval={calculateXAxisInterval(dataForChart.length)}
         axisLine={false}
@@ -131,9 +132,9 @@ const Charts = ({
         key="yAxis"
         axisLine={false}
         fontSize={12}
+        tickFormatter={formatYAxisTick}
         tickLine={false}
         tick={{ fill: '#1C1D20' }}
-        tickFormatter={formatYAxisTick}
       >
         <Label
           value={pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
@@ -171,9 +172,6 @@ const Charts = ({
     ],
   );
 
-  /**
-   * Determines which chart component to use based on the 'chartType' prop.
-   */
   const ChartComponent = chartType === 'line' ? LineChart : BarChart;
   const DataComponent = chartType === 'line' ? Line : Bar;
 
@@ -185,13 +183,13 @@ const Charts = ({
   /**
    * Conditional Rendering Logic:
    * 1. If there's an error, display the error message.
-   * 2. If data is loading or hasn't loaded yet, display the spinner and potentially the loading message.
+   * 2. If data is loading or hasn't loaded yet, display the skeleton loader and potentially the loading message.
    * 3. If data has loaded but is empty, inform the user that no data was found.
    * 4. Otherwise, display the chart.
    */
   if (error) {
     return (
-      <div className="ml-10 pr-10 flex justify-center text-center items-center w-full h-full text-sm">
+      <div className="flex justify-center items-center w-full h-full text-sm text-center">
         <p className="text-red-500">
           An error occurred while fetching data. Please try again later or
           refresh the page.
@@ -202,10 +200,10 @@ const Charts = ({
 
   if (isLoading || !hasLoaded) {
     return (
-      <div className="ml-10 flex flex-col justify-center text-center items-center w-full h-full">
-        <Spinner />
+      <div className="flex flex-col justify-center items-center w-full h-full">
+        <SkeletonLoader width={width} height={height} />
         {showLoadingMessage && (
-          <span className="text-yellow-500 mt-2">
+          <span className="text-yellow-500 mt-2 text-center px-4">
             The data is currently being processed. We appreciate your patience.
           </span>
         )}
@@ -215,7 +213,7 @@ const Charts = ({
 
   if (hasLoaded && dataForChart.length === 0) {
     return (
-      <div className="ml-10 pr-10 flex justify-center items-center w-full h-full text-center text-sm text-gray-600">
+      <div className="flex justify-center items-center w-full h-full text-center text-sm text-gray-600 px-4">
         No data found. Please try other time periods or customize using other
         locations.
       </div>

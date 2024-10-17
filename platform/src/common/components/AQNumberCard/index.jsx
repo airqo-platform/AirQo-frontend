@@ -60,7 +60,7 @@ const AQNumberCard = () => {
       } catch (error) {
         console.error('Error fetching recent measurements:', error);
       } finally {
-        setLoading(false); // Ensure loading state is stopped once data is fetched
+        setLoading(false);
       }
     }
   }, [dispatch, selectedSiteIds]);

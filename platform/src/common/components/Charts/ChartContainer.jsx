@@ -1,14 +1,15 @@
+// src/components/ChartContainer.jsx
 import React, { useRef, useCallback, useState, useEffect, memo } from 'react';
 import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 import PropTypes from 'prop-types';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
-import Spinner from '@/components/Spinner';
 import CheckIcon from '@/icons/tickIcon';
 import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
 import PrintReportModal from '@/components/Modal/PrintReportModal';
 import Chart from './Charts';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
+import SkeletonLoader from './components/SkeletonLoader';
 
 const ChartContainer = memo(
   ({
@@ -64,7 +65,7 @@ const ChartContainer = memo(
           backgroundColor: '#fff',
         });
 
-        if (format === 'png' || format === 'jpg') {
+        if (['png', 'jpg'].includes(format)) {
           const imgData = canvas.toDataURL(`image/${format}`, 0.8);
           const link = document.createElement('a');
           link.href = imgData;
@@ -119,8 +120,10 @@ const ChartContainer = memo(
               className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             >
               <span>Export as {format.toUpperCase()}</span>
-              <span className="-mr-2">
-                {loadingFormat === format && <Spinner width={15} height={15} />}
+              <span className="-mr-2 flex items-center">
+                {loadingFormat === format && (
+                  <div className="animate-spin h-4 w-4 border-2 border-t-blue-500 border-gray-300 rounded-full"></div>
+                )}
                 {downloadComplete === format && (
                   <CheckIcon fill="#1E40AF" width={20} height={20} />
                 )}
@@ -144,12 +147,12 @@ const ChartContainer = memo(
 
     return (
       <div
-        className="border bg-white rounded-xl border-grey-150 shadow-sm"
+        className="border bg-white rounded-xl border-gray-200 shadow-sm"
         id="analytics-chart"
       >
         <div className="flex flex-col items-start gap-1 w-full p-4">
           {showTitle && (
-            <div className="flex items-center justify-between w-full h-8">
+            <div className="flex items-center justify-between w-full">
               <h3 className="text-lg font-medium">{chartTitle}</h3>
               <div ref={dropdownRef}>
                 <CustomDropdown
@@ -161,9 +164,11 @@ const ChartContainer = memo(
                   alignment="right"
                 >
                   {isLoading ? (
-                    <div className="p-2">
-                      <Spinner width={20} height={20} />
-                    </div>
+                    <SkeletonLoader
+                      width="150px"
+                      height="40px"
+                      className="p-2"
+                    />
                   ) : (
                     renderDropdownContent()
                   )}
@@ -173,7 +178,7 @@ const ChartContainer = memo(
           )}
           <div
             ref={chartRef}
-            className="mt-6 -ml-[27px] relative"
+            className="mt-6 relative"
             style={{ width, height }}
           >
             <Chart
