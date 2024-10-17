@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
 import WorldIcon from '@/icons/SideBar/world_Icon';
@@ -30,16 +30,21 @@ export const DownloadDataHeader = () => (
 
 const DataDownload = ({ onClose }) => {
   const userInfo = useSelector((state) => state.login.userInfo);
+  const preferencesData = useSelector(
+    (state) => state.defaults.individual_preferences,
+  );
   const [selectedSites, setSelectedSites] = useState([]);
   const [clearSelected, setClearSelected] = useState(false);
   const [formError, setFormError] = useState('');
   const [downloadLoading, setDownloadLoading] = useState(false);
-  const selectedSiteIds = [
-    '654b50a8c4e34500135a6691',
-    '6549f515f59f69001325b935',
-    '6549f3f721bac300137ab49e',
-  ];
   const { sitesSummaryData, loading, error: fetchError } = useSitesSummary();
+  // Extract selected site IDs from preferencesData
+  const selectedSiteIds = useMemo(() => {
+    if (preferencesData[0]?.selected_sites?.length) {
+      return preferencesData[0].selected_sites.map((site) => site._id);
+    }
+    return [];
+  }, [preferencesData]);
 
   const NETWORK_OPTIONS =
     userInfo?.groups?.map((network) => ({

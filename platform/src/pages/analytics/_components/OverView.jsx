@@ -19,6 +19,7 @@ import DownloadIcon from '@/icons/Analytics/downloadIcon';
 import Modal from '@/components/Modal/dataDownload';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
+import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 
 const useFetchMeasurements = () => {
   const dispatch = useDispatch();
@@ -63,60 +64,17 @@ const useFetchMeasurements = () => {
 const OverView = () => {
   const dispatch = useDispatch();
   const isOpen = useSelector((state) => state.modal.openModal);
-  const recentLocationMeasurements = useSelector(
-    (state) => state.recentMeasurements.measurements,
-  );
-  const pollutantType = useSelector((state) => state.chart.pollutionType);
-  const preferenceData =
-    useSelector((state) => state.defaults.individual_preferences) || [];
-  const siteData = useSelector((state) => state.grids.sitesSummary);
   const { isLoading: isLoadingMeasurements } = useFetchMeasurements();
   const chartData = useSelector((state) => state.chart);
 
-  const getSiteName = useCallback(
-    (siteId) => {
-      if (!preferenceData.length) return null;
-      const site = preferenceData[0]?.selected_sites?.find(
-        (site) => site._id === siteId,
-      );
-      return site ? site.search_name?.split(',')[0] : '';
-    },
-    [preferenceData],
-  );
+  // get loggedUser from local storage
+  const user = JSON.parse(localStorage.getItem('loggedUser'));
 
-  const getExistingSiteName = useCallback(
-    (siteId) => {
-      const site = siteData?.sites?.find((site) => site._id === siteId);
-      return site ? site.search_name : '';
-    },
-    [siteData],
-  );
-
-  const dummyData = useMemo(
-    () => ({
-      siteDetails: {
-        search_name: '--',
-        location_name: '--',
-        formatted_name: '--',
-        description: '--',
-        country: '--',
-      },
-      pm2_5: {
-        value: '--',
-      },
-    }),
-    [],
-  );
-
-  const displayData = useMemo(() => {
-    let data = recentLocationMeasurements
-      ? recentLocationMeasurements.slice(0, 4)
-      : [];
-    while (data.length < 4) {
-      data.push(dummyData);
-    }
-    return data;
-  }, [recentLocationMeasurements, dummyData]);
+  // Fetch use preferences data
+  useEffect(() => {
+    if (!user) return;
+    dispatch(getIndividualUserPreferences(user._id));
+  }, [dispatch]);
 
   const handleOpenModal = useCallback(
     (type, ids = []) => {

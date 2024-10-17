@@ -4,26 +4,23 @@ import DataTable from '../components/DataTable';
 import Footer from '../components/Footer';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 import LocationCard from '../components/LocationCard';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import useSitesSummary from '@/core/hooks/useSitesSummary';
 
 const AddLocationHeader = () => {
   const dispatch = useDispatch();
-  const handleOpenModal = useCallback(
-    (type, ids = []) => {
-      dispatch(setOpenModal(true));
-      dispatch(setModalType({ type, ids }));
-    },
-    [dispatch],
-  );
+  const handleOpenModal = useCallback(() => {
+    dispatch(setOpenModal(true));
+    dispatch(setModalType({ type: 'location', ids: [] }));
+  }, [dispatch]);
 
   return (
     <h3
       className="flex text-lg leading-6 font-medium text-gray-900"
       id="modal-title"
     >
-      <button type="button" onClick={() => handleOpenModal('location')}>
+      <button type="button" onClick={handleOpenModal}>
         <LongArrowLeft className="mr-2" />
       </button>
       Add Location
@@ -32,23 +29,31 @@ const AddLocationHeader = () => {
 };
 
 const AddLocations = ({ onClose }) => {
+  const preferencesData = useSelector(
+    (state) => state.defaults.individual_preferences,
+  );
   const [selectedSites, setSelectedSites] = useState([]);
   const [clearSelected, setClearSelected] = useState(false);
   const [error, setError] = useState('');
-  const selectedSiteIds = [
-    '654b50a8c4e34500135a6691',
-    '6549f515f59f69001325b935',
-    '6549f3f721bac300137ab49e',
-  ];
   const { sitesSummaryData, loading, error: fetchError } = useSitesSummary();
+
+  // Extract selected site IDs from preferencesData
+  const selectedSiteIds = useMemo(() => {
+    if (preferencesData[0]?.selected_sites?.length) {
+      return preferencesData[0].selected_sites.map((site) => site._id);
+    }
+    return [];
+  }, [preferencesData]);
 
   // Populate `selectedSites` based on `selectedSiteIds`
   useEffect(() => {
-    const initialSelectedSites = sitesSummaryData?.filter((site) =>
-      selectedSiteIds.includes(String(site._id)),
-    );
-    setSelectedSites(initialSelectedSites);
-  }, []);
+    if (sitesSummaryData && selectedSiteIds.length) {
+      const initialSelectedSites = sitesSummaryData.filter((site) =>
+        selectedSiteIds.includes(site._id),
+      );
+      setSelectedSites(initialSelectedSites || []);
+    }
+  }, [sitesSummaryData, selectedSiteIds]);
 
   const handleClearSelection = useCallback(() => {
     setClearSelected(true);
@@ -60,22 +65,24 @@ const AddLocations = ({ onClose }) => {
     (site) => {
       setSelectedSites((prev) => {
         const isSelected = prev.some((s) => s._id === site._id);
-        if (isSelected) {
-          return prev.filter((s) => s._id !== site._id);
-        } else {
-          return [...prev, site];
-        }
+        return isSelected
+          ? prev.filter((s) => s._id !== site._id)
+          : [...prev, site];
       });
     },
     [setSelectedSites],
   );
 
   const handleSubmit = useCallback(() => {
-    // Implement submission logic
-  }, []);
+    if (selectedSites.length === 0) {
+      setError('No locations selected');
+    } else {
+      console.info('Selected Sites:', selectedSites); // Submit selected sites
+    }
+  }, [selectedSites]);
 
   const selectedSitesContent = useMemo(() => {
-    if (selectedSites?.length === 0 && !loading) {
+    if (!loading && selectedSites?.length === 0) {
       return (
         <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-center items-center">
           <span className="p-2 rounded-full bg-[#F6F6F7] mb-2">
