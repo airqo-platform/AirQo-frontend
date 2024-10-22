@@ -7,6 +7,7 @@ import LocationCard from '../components/LocationCard';
 import { useDispatch, useSelector } from 'react-redux';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import useSitesSummary from '@/core/hooks/useSitesSummary';
+// import { updateUserPreferencesApi } from '@/core/apis/Analytics';
 
 const AddLocationHeader = () => {
   const dispatch = useDispatch();
@@ -72,6 +73,8 @@ const AddLocations = ({ onClose }) => {
     },
     [setSelectedSites],
   );
+
+  console.info(selectedSiteIds);
 
   const handleSubmit = useCallback(() => {
     if (selectedSites.length === 0) {
