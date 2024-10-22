@@ -16,8 +16,6 @@ import {
   FILE_TYPE_OPTIONS,
 } from '../constants';
 import Footer from '../components/Footer';
-import useSitesSummary from '@/core/hooks/useSitesSummary';
-// import { getSitesSummaryApi } from '@/core/apis/Analytics';
 
 export const DownloadDataHeader = () => (
   <h3
@@ -37,7 +35,11 @@ const DataDownload = ({ onClose }) => {
   const [clearSelected, setClearSelected] = useState(false);
   const [formError, setFormError] = useState('');
   const [downloadLoading, setDownloadLoading] = useState(false);
-  const { sitesSummaryData, loading, error: fetchError } = useSitesSummary();
+  const {
+    sitesSummaryData,
+    loading,
+    error: fetchError,
+  } = useSelector((state) => state.sites);
   // Extract selected site IDs from preferencesData
   const selectedSiteIds = useMemo(() => {
     if (preferencesData[0]?.selected_sites?.length) {

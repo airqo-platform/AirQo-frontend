@@ -3,7 +3,6 @@ import {
   DATA_EXPORT_URL,
   SHARE_REPORT_URL,
   SITES_SUMMARY_URL,
-  REPLACE_PREFERENCES_URL,
 } from '../urls/analytics';
 
 export const exportDataApi = async (body) => {
@@ -42,11 +41,4 @@ export const getSitesSummaryApi = async ({ signal, timeout = 110000 }) => {
       throw error;
     }
   }
-};
-
-// Replacing user selected sites api
-export const replaceUserSelectedSitesApi = async (body) => {
-  return await createAxiosInstance()
-    .put(REPLACE_PREFERENCES_URL, body)
-    .then((response) => response.data);
 };

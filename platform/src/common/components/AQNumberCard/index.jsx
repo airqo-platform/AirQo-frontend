@@ -126,81 +126,85 @@ const AQNumberCard = () => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {loading
-        ? Array.from({ length: MAX_CARDS }).map((_, index) => (
-            <div key={index}>{skeletonLoader()}</div>
-          ))
-        : preferencesData[0]?.selected_sites
-            ?.slice(0, MAX_CARDS)
-            .map((site, index) => {
-              const reading = getPollutantReading(site._id);
-              const { text: airQualityText, icon: AirQualityIcon } =
-                getAirQualityLevel(reading);
-              const isClickable = site.name && reading !== null;
+      {loading ? (
+        Array.from({ length: MAX_CARDS }).map((_, index) => (
+          <div key={index}>{skeletonLoader()}</div>
+        ))
+      ) : preferencesData?.[0]?.selected_sites?.length > 0 ? (
+        preferencesData[0].selected_sites
+          ?.slice(0, MAX_CARDS)
+          .map((site, index) => {
+            const reading = getPollutantReading(site._id);
+            const { text: airQualityText, icon: AirQualityIcon } =
+              getAirQualityLevel(reading);
+            const isClickable = site.name && reading !== null;
 
-              return (
-                <button
-                  className="w-full h-auto"
-                  onClick={isClickable ? () => handleOpenModal(site) : null}
-                  key={index}
+            return (
+              <button
+                className="w-full h-auto"
+                onClick={isClickable ? () => handleOpenModal(site) : null}
+                key={index}
+              >
+                <div
+                  className={`relative w-full flex flex-col justify-between bg-white border border-gray-200 rounded-xl px-4 py-6 h-[200px] shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out ${
+                    isClickable ? 'cursor-pointer' : 'cursor-default'
+                  }`}
                 >
-                  <div
-                    className={`relative w-full flex flex-col justify-between bg-white border border-gray-200 rounded-xl px-4 py-6 h-[200px] shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out ${
-                      isClickable ? 'cursor-pointer' : 'cursor-default'
-                    }`}
-                  >
-                    <div className="flex justify-between items-center mb-4">
-                      <div>
-                        <div
-                          className="text-gray-700 text-[18px] font-medium capitalize text-left max-w-full"
-                          title={site.name || 'No Location Data'}
-                        >
-                          {truncateText(site.search_name, 12)}
-                        </div>
-                        <div className="text-base text-left text-slate-400 capitalize">
-                          {site.country || '---'}
-                        </div>
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <div
+                        className="text-gray-700 text-[18px] font-medium capitalize text-left max-w-full"
+                        title={site.name || 'No Location Data'}
+                      >
+                        {truncateText(site.search_name, 12)}
                       </div>
-
-                      <div className="pl-[8px] pr-[4px] rounded-xl text-sm flex items-center gap-2 bg-gray-50 text-gray-500">
-                        <TrendDownIcon fill="#808080" />
-                        <span>--</span>
+                      <div className="text-base text-left text-slate-400 capitalize">
+                        {site.country || '---'}
                       </div>
                     </div>
 
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <div className="flex items-center gap-1 mb-2">
-                          <div className="p-[2.62px] bg-gray-100 rounded-full flex items-center justify-center">
-                            <WindIcon width="10.48px" height="10.48px" />
-                          </div>
-                          <div className="text-slate-400 text-sm font-medium">
-                            {pollutantType ? pollutantType.toUpperCase() : '--'}
-                          </div>
-                        </div>
-                        <div className="text-gray-700 text-[28px] font-extrabold">
-                          {reading !== null ? reading.toFixed(2) : '--'}
-                        </div>
-                      </div>
-
-                      <div className="relative">
-                        <CustomTooltip
-                          tooltipsText={airQualityText}
-                          position={windowWidth > 1024 ? 'top' : 'left'}
-                        >
-                          <div className="w-16 h-16 flex">
-                            {AirQualityIcon && <AirQualityIcon />}
-                          </div>
-                        </CustomTooltip>
-                      </div>
+                    <div className="pl-[8px] pr-[4px] rounded-xl text-sm flex items-center gap-2 bg-gray-50 text-gray-500">
+                      <TrendDownIcon fill="#808080" />
+                      <span>--</span>
                     </div>
                   </div>
-                </button>
-              );
-            })}
+
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="flex items-center gap-1 mb-2">
+                        <div className="p-[2.62px] bg-gray-100 rounded-full flex items-center justify-center">
+                          <WindIcon width="10.48px" height="10.48px" />
+                        </div>
+                        <div className="text-slate-400 text-sm font-medium">
+                          {pollutantType ? pollutantType.toUpperCase() : '--'}
+                        </div>
+                      </div>
+                      <div className="text-gray-700 text-[28px] font-extrabold">
+                        {reading !== null ? reading.toFixed(2) : '--'}
+                      </div>
+                    </div>
+
+                    <div className="relative">
+                      <CustomTooltip
+                        tooltipsText={airQualityText}
+                        position={windowWidth > 1024 ? 'top' : 'left'}
+                      >
+                        <div className="w-16 h-16 flex">
+                          {AirQualityIcon && <AirQualityIcon />}
+                        </div>
+                      </CustomTooltip>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            );
+          })
+      ) : (
+        <p>No selected sites available</p>
+      )}
 
       {/* Add Location Box if fewer than MAX_CARDS and not loading */}
-      {!loading && preferencesData[0]?.selected_sites?.length < MAX_CARDS && (
+      {!loading && preferencesData?.[0]?.selected_sites?.length < MAX_CARDS && (
         <button
           onClick={() => handleOpenModal('addLocation')}
           className="border-dashed border-2 border-blue-400 bg-blue-50 rounded-xl px-4 py-6 h-[200px] flex justify-center items-center text-blue-500"

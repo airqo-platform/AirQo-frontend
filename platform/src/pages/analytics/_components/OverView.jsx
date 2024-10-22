@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ChartContainer from '@/components/Charts/ChartContainer';
 import AQNumberCard from '@/components/AQNumberCard';
@@ -20,6 +20,7 @@ import Modal from '@/components/Modal/dataDownload';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
+import { fetchSitesSummary } from '@/lib/store/services/sitesSummarySlice';
 
 const useFetchMeasurements = () => {
   const dispatch = useDispatch();
@@ -69,6 +70,11 @@ const OverView = () => {
 
   // get loggedUser from local storage
   const user = JSON.parse(localStorage.getItem('loggedUser'));
+
+  // Dispatch the async action to fetch the sites summary data when the component mounts
+  useEffect(() => {
+    dispatch(fetchSitesSummary());
+  }, [dispatch]);
 
   // Fetch use preferences data
   useEffect(() => {

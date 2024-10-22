@@ -24,6 +24,7 @@ import { locationSearchSlice } from './services/search/LocationSearchSlice';
 import apiClientReducer from './services/apiClient/index';
 import sidebarReducer from './services/sideBar/SideBarSlice';
 import modalSlice from './services/downloadModal';
+import sitesSummaryReducer from './services/sitesSummarySlice';
 
 const appReducer = combineReducers({
   deviceRegistry: deviceRegistryReducer,
@@ -45,6 +46,7 @@ const appReducer = combineReducers({
   groupInfo: groupInfoSlice.reducer,
   locationSearch: locationSearchSlice.reducer,
   apiClient: apiClientReducer,
+  sites: sitesSummaryReducer,
 });
 
 const rootReducer = (state, action) => {
