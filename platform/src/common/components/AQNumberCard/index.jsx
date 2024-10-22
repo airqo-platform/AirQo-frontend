@@ -117,9 +117,9 @@ const AQNumberCard = () => {
 
   // Open modal for location
   const handleOpenModal = useCallback(
-    (site) => {
+    (type, ids = []) => {
       dispatch(setOpenModal(true));
-      dispatch(setModalType({ type: 'location', site }));
+      dispatch(setModalType({ type, ids }));
     },
     [dispatch],
   );

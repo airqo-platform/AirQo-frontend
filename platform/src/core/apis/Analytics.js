@@ -8,7 +8,7 @@ import {
 export const exportDataApi = async (body) => {
   return await createAxiosInstance()
     .post(DATA_EXPORT_URL, body)
-    .then((response) => response.data);
+    .then((response) => response);
 };
 
 export const shareReportApi = async (body) => {

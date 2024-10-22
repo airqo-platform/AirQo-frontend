@@ -27,6 +27,9 @@ export default [
         AbortController: 'writable',
         AbortSignal: 'readonly',
         TextEncoder: 'readonly',
+        Blob: 'readonly',
+        File: 'readonly',
+        FileReader: 'readonly',
       },
       parserOptions: {
         ecmaFeatures: { jsx: true },
