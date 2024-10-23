@@ -69,8 +69,8 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
                       ? grid?.description?.split(',').slice(1).join(',')
                       : grid?.description
                     : grid.region?.includes(',') && grid.region?.split(',').slice(1).join('').trim()
-                    ? grid.region?.split(',').slice(1).join(',')
-                    : grid.region,
+                      ? grid.region?.split(',').slice(1).join(',')
+                      : grid.region,
                 )}
               </span>
             </div>

@@ -129,17 +129,6 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   }, [loading, dispatch, loadingOthers]);
 
   /**
-   * set sidebar skeleton loader to false after 2 seconds
-   */
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      dispatch(setMapLoading(false));
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [dispatch, selectedNode]);
-
-  /**
    * Clear data on unmount
    * @sideEffect
    * - Clear data on unmount when lat, lng and zm are not present
@@ -494,9 +483,9 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
               return;
             }
 
+            dispatch(setMapLoading(true));
             dispatch(setSelectedNode(feature.properties._id));
             dispatch(setSelectedWeeklyPrediction(null));
-            dispatch(setMapLoading(true));
             dispatch(setOpenLocationDetails(true));
             dispatch(setSelectedLocation(feature.properties));
 

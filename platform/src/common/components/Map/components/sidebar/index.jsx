@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   setCenter,
   setZoom,
-  setLocation,
   setOpenLocationDetails,
   setSelectedLocation,
   addSuggestedSites,
@@ -20,7 +19,7 @@ import ArrowLeftIcon from '@/icons/arrow_left.svg';
 import Button from '@/components/Button';
 import Toast from '../../../Toast';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
-import { dailyPredictionsApi } from '@/core/apis/predict';
+import { dailyPredictionsApi, satellitePredictionsApi } from '@/core/apis/predict';
 import { capitalizeAllText } from '@/core/utils/strings';
 import {
   fetchRecentMeasurementsData,
@@ -99,12 +98,12 @@ const index = ({ siteDetails, isAdmin }) => {
   const [searchResults, setSearchResults] = useState([]);
   const openLocationDetailsSection = useSelector((state) => state.map.showLocationDetails);
   const selectedLocationDetails = useSelector((state) => state.map.selectedLocation);
-  const mapLoading = useSelector((state) => state.map.mapLoading);
   const [showLocationDetails, setShowLocationDetails] = useState(false);
   const [isLoading, setLoading] = useState(false);
   const [weeklyPredictions, setWeeklyPredictions] = useState([]);
   const [showNoResultsMsg, setShowNoResultsMsg] = useState(false);
   const measurementsLoading = useSelector((state) => state.recentMeasurements.status);
+  const [loadingSiteData, setLoadingSiteData] = useState(false);
   const [locationSearchPreferences, setLocationSearchPreferences] = useState({
     custom: [],
     nearMe: [],
@@ -122,15 +121,6 @@ const index = ({ siteDetails, isAdmin }) => {
     () => new google.maps.places.AutocompleteSessionToken(),
     [google.maps.places.AutocompleteSessionToken],
   );
-
-  // Sidebar loading effect
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      dispatch(setMapLoading(false));
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [dispatch, selectedSite]);
 
   useEffect(() => {
     dispatch(setOpenLocationDetails(false));
@@ -186,19 +176,27 @@ const index = ({ siteDetails, isAdmin }) => {
 
   // Fetch measurements
   useEffect(() => {
-    if (selectedSite) {
-      const { _id } = selectedSite;
-      if (_id) {
-        dispatch(setMapLoading(true));
-        try {
-          dispatch(fetchRecentMeasurementsData({ site_id: _id }));
-          fetchWeeklyPredictions();
-        } catch (error) {
-          console.error(error.message);
-        }
+    const fetchSiteData = async () => {
+      if (!selectedSite || !selectedSite._id) return;
+
+      dispatch(setMapLoading(true));
+
+      try {
+        // Fetch the recent measurements data
+        await dispatch(fetchRecentMeasurementsData({ site_id: selectedSite._id }));
+
+        // Fetch the weekly predictions
+        await fetchWeeklyPredictions();
+      } catch (error) {
+        console.error('Error fetching site data:', error.message);
+      } finally {
+        // Ensure loading state is reset regardless of success or failure
+        dispatch(setMapLoading(false));
       }
-    }
-  }, [selectedSite]);
+    };
+
+    fetchSiteData();
+  }, [selectedSite, dispatch]);
 
   useEffect(() => {
     if (selectedSites) {
@@ -225,41 +223,68 @@ const index = ({ siteDetails, isAdmin }) => {
   // Handle location select
   const handleLocationSelect = useCallback(
     async (data) => {
-      dispatch(setOpenLocationDetails(true));
-      setIsFocused(false);
-      dispatch(clearMeasurementsData());
-      setWeeklyPredictions([]);
       try {
-        let newDataValue = data;
+        dispatch(setOpenLocationDetails(true));
+        setIsFocused(false);
+        dispatch(clearMeasurementsData());
+        setWeeklyPredictions([]);
+        setLoadingSiteData(true);
 
+        let updatedLocationData = data;
         let latitude, longitude;
 
+        // Handle location data when `place_id` is available
         if (data?.place_id) {
           try {
             const placeDetails = await getPlaceDetails(data.place_id);
+
+            // If valid latitude and longitude are found in place details
             if (placeDetails.latitude && placeDetails.longitude) {
-              newDataValue = { ...newDataValue, ...placeDetails };
-              latitude = newDataValue?.latitude;
-              longitude = newDataValue?.longitude;
+              const satelliteResponse = await satellitePredictionsApi({
+                latitude: placeDetails.latitude,
+                longitude: placeDetails.longitude,
+              });
+
+              updatedLocationData = {
+                ...updatedLocationData,
+                ...placeDetails,
+                ...satelliteResponse,
+              };
+
+              latitude = placeDetails.latitude;
+              longitude = placeDetails.longitude;
+            } else {
+              throw new Error('Failed to retrieve valid latitude/longitude from place details.');
             }
           } catch (error) {
-            console.error(error.message);
+            console.error('Error fetching place details or satellite predictions:', error.message);
             return;
           }
         } else {
+          // Handle fallback for non-place_id data
           latitude = data?.geometry?.coordinates[1] || data?.approximate_latitude;
           longitude = data?.geometry?.coordinates[0] || data?.approximate_longitude;
         }
 
+        if (!latitude || !longitude) {
+          throw new Error('Location coordinates are missing.');
+        }
+
+        // Update map center and zoom
         dispatch(setCenter({ latitude, longitude }));
         dispatch(setZoom(11));
-        dispatch(setSelectedLocation(newDataValue));
+
+        // Set the selected location data
+        dispatch(setSelectedLocation(updatedLocationData));
       } catch (error) {
+        console.error('Error handling location select:', error.message);
         setIsError({
           isError: true,
           message: error.message,
           type: 'error',
         });
+      } finally {
+        setLoadingSiteData(false);
       }
     },
     [dispatch],
@@ -388,44 +413,28 @@ const index = ({ siteDetails, isAdmin }) => {
 
       {/* section 1 */}
       <div className='sidebar-scroll-bar'>
-        {selectedSite && mapLoading ? (
-          // show a loading skeleton
-          <div className='flex flex-col gap-4 animate-pulse px-4 mt-5'>
-            {Array.from({ length: 6 }, (_, index) => (
-              <div key={index} className='bg-secondary-neutral-dark-50 rounded-xl w-full h-16' />
-            ))}
-          </div>
-        ) : (
-          <div className={`${isFocused || showLocationDetails ? 'hidden' : ''}`}>
-            {selectedSites && selectedSites.length > 0 && (
-              <>
-                <div className='flex justify-between items-center px-4'>
-                  <div className='flex gap-1'>
-                    <div className='font-medium text-secondary-neutral-dark-400 text-sm'>
-                      Sort by:
-                    </div>
-                    <select className='rounded-md m-0 p-0 text-sm text-center font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none'>
-                      <option value='custom'>Suggested</option>
-                      {/* <option value='near_me'>Near me</option> */}
-                    </select>
+        <div className={`${isFocused || showLocationDetails ? 'hidden' : ''}`}>
+          {selectedSites && selectedSites.length > 0 && (
+            <>
+              <div className='flex justify-between items-center px-4'>
+                <div className='flex gap-1'>
+                  <div className='font-medium text-secondary-neutral-dark-400 text-sm'>
+                    Sort by:
                   </div>
-                  {/* <Button
-                        className='text-sm font-medium'
-                        paddingStyles='p-0'
-                        variant='primaryText'
-                        onClick={() => {}}>
-                        Filters
-                      </Button> */}
+                  <select className='rounded-md m-0 p-0 text-sm text-center font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none'>
+                    <option value='custom'>Suggested</option>
+                    {/* <option value='near_me'>Near me</option> */}
+                  </select>
                 </div>
-                <LocationCards
-                  searchResults={selectedSites}
-                  isLoading={isLoading}
-                  handleLocationSelect={handleLocationSelect}
-                />
-              </>
-            )}
-          </div>
-        )}
+              </div>
+              <LocationCards
+                searchResults={selectedSites}
+                isLoading={isLoading}
+                handleLocationSelect={handleLocationSelect}
+              />
+            </>
+          )}
+        </div>
 
         {/* Section 2 */}
         <div
@@ -499,54 +508,55 @@ const index = ({ siteDetails, isAdmin }) => {
           )}
         </div>
 
-        {selectedSite && !mapLoading && (
-          <div>
-            <div className='bg-secondary-neutral-dark-50 pt-6 pb-5'>
-              <div className='flex items-center gap-2 text-black-800 mb-4 mx-4'>
-                <Button paddingStyles='p-0' onClick={handleExit}>
-                  <ArrowLeftIcon />
-                </Button>
-                <h3 className='text-xl font-medium leading-7'>
-                  {
-                    capitalizeAllText(
-                      selectedSite?.description ||
-                        selectedSite?.search_name ||
-                        selectedSite?.location,
-                    )?.split(',')[0]
-                  }
-                </h3>
-              </div>
-
-              <div className='mx-4'>
-                <WeekPrediction
-                  selectedSite={selectedSite}
-                  weeklyPredictions={weeklyPredictions}
-                  loading={isLoading}
-                />
-              </div>
+        {/* Section 3 */}
+        <div className={`${isFocused ? 'hidden' : ''}`}>
+          <div className='bg-secondary-neutral-dark-50 pt-6 pb-5'>
+            <div className='flex items-center gap-2 text-black-800 mb-4 mx-4'>
+              <Button paddingStyles='p-0' onClick={handleExit}>
+                <ArrowLeftIcon />
+              </Button>
+              <h3 className='text-xl font-medium leading-7'>
+                {
+                  capitalizeAllText(
+                    selectedSite?.description ||
+                      selectedSite?.search_name ||
+                      selectedSite?.location,
+                  )?.split(',')[0]
+                }
+              </h3>
             </div>
 
-            <div className='border border-secondary-neutral-light-100 my-5' />
-
-            <div
-              className={`mx-4 mb-5 ${
-                width < 1024 ? 'sidebar-scroll-bar h-dvh' : ''
-              } flex flex-col gap-4`}>
-              {/* Pollutant Card */}
-              <PollutantCard
+            <div className='mx-4'>
+              <WeekPrediction
                 selectedSite={selectedSite}
-                selectedWeeklyPrediction={selectedWeeklyPrediction}
-              />
-
-              {/* Alert Card */}
-              <LocationAlertCard
-                title='Air Quality Alerts'
-                selectedSite={selectedSite}
-                selectedWeeklyPrediction={selectedWeeklyPrediction}
+                weeklyPredictions={weeklyPredictions}
+                loading={isLoading}
               />
             </div>
           </div>
-        )}
+
+          <div className='border border-secondary-neutral-light-100 my-5' />
+
+          <div
+            className={`mx-4 mb-5 ${
+              width < 1024 ? 'sidebar-scroll-bar h-dvh' : ''
+            } flex flex-col gap-4`}>
+            {/* Pollutant Card */}
+            <PollutantCard
+              selectedSite={selectedSite}
+              isLoading={loadingSiteData}
+              selectedWeeklyPrediction={selectedWeeklyPrediction}
+            />
+
+            {/* Alert Card */}
+            <LocationAlertCard
+              title='Air Quality Alerts'
+              selectedSite={selectedSite}
+              isLoading={loadingSiteData}
+              selectedWeeklyPrediction={selectedWeeklyPrediction}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

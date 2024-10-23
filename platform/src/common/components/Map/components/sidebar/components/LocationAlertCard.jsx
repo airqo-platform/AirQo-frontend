@@ -1,110 +1,103 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
 import { getAQICategory, getAQIMessage } from '../../MapNodes';
-import { isToday, isTomorrow, isThisWeek, format, isSameDay } from 'date-fns';
+import { isToday, isTomorrow, isThisWeek, format, isValid } from 'date-fns';
 import { useSelector } from 'react-redux';
 
-// Helper function to insert space before capital letters
 const addSpacesToCategory = (category) => {
-  return category.split('').reduce((result, char, index) => {
-    if (index > 0 && char === char.toUpperCase()) {
-      return result + ' ' + char;
-    }
-    return result + char;
-  }, '');
+  return category.replace(/([A-Z])/g, ' $1').trim();
 };
 
-// Helper function to format the date message
 const formatDateMessage = (date) => {
-  if (isToday(date)) {
-    return 'today';
-  } else if (isTomorrow(date)) {
-    return 'tomorrow';
-  } else if (isThisWeek(date)) {
-    return 'this week';
-  } else {
-    return format(date, 'MMMM do');
+  // Validate the date before formatting
+  if (!isValid(date)) {
+    return null; // Return null or a default string if the date is invalid
   }
+
+  if (isToday(date)) return 'today';
+  if (isTomorrow(date)) return 'tomorrow';
+  if (isThisWeek(date)) return 'this week';
+  return format(date, 'MMMM do');
 };
+
+const LoadingSkeleton = () => (
+  <div className='animate-pulse flex-col gap-3 p-3 bg-white rounded-lg shadow border border-secondary-neutral-dark-100'>
+    <div className='flex items-center justify-between mb-2'>
+      <div className='flex gap-3'>
+        <div className='w-10 h-10 bg-secondary-neutral-dark-50 rounded-full'></div>
+        <div className='h-4 w-36 bg-secondary-neutral-dark-50 rounded'></div>
+      </div>
+      <div className='w-7 h-7 bg-secondary-neutral-dark-50 rounded-full'></div>
+    </div>
+    <div className='h-4 w-full bg-secondary-neutral-dark-50 rounded mb-2'></div>
+    <div className='h-4 w-3/4 bg-secondary-neutral-dark-50 rounded'></div>
+  </div>
+);
 
 const LocationAlertCard = ({
   title,
   selectedSite,
   selectedWeeklyPrediction,
   isCollapsed = true,
+  isLoading,
 }) => {
   const recentLocationMeasurements = useSelector((state) => state.recentMeasurements.measurements);
   const [collapsed, setCollapsed] = useState(isCollapsed);
 
   const getAirQualityMessage = () => {
-    if (
-      (selectedWeeklyPrediction && selectedWeeklyPrediction.airQuality) ||
-      selectedSite?.airQuality ||
-      recentLocationMeasurements?.[0]?.pm2_5?.value
-    ) {
+    const pm2_5Value =
+      selectedSite?.pm2_5 ||
+      recentLocationMeasurements?.[0]?.pm2_5?.value ||
+      selectedSite?.pm2_5_prediction;
+
+    if (pm2_5Value) {
       const locationName =
-        selectedWeeklyPrediction && selectedWeeklyPrediction.description
-          ? selectedWeeklyPrediction.description.split(',')[0]
-          : selectedSite?.description?.split(',')[0] ||
-            selectedSite?.name?.split(',')[0] ||
-            selectedSite?.search_name ||
-            selectedSite?.location ||
-            recentLocationMeasurements?.[0]?.siteDetails.search_name;
+        selectedWeeklyPrediction?.description?.split(',')[0] ||
+        selectedSite?.description?.split(',')[0] ||
+        selectedSite?.name?.split(',')[0] ||
+        selectedSite?.search_name ||
+        selectedSite?.location ||
+        recentLocationMeasurements?.[0]?.siteDetails?.search_name;
 
       const airQualityCategory = selectedWeeklyPrediction
-        ? isSameDay(
-            new Date(selectedSite.time || recentLocationMeasurements?.[0]?.time),
-            new Date(selectedWeeklyPrediction.time),
-          )
-          ? addSpacesToCategory(
-              getAQICategory(
-                'pm2_5',
-                selectedSite.pm2_5 || recentLocationMeasurements?.[0]?.pm2_5?.value,
-              ).category,
-            )
-          : addSpacesToCategory(getAQICategory('pm2_5', selectedWeeklyPrediction.pm2_5).category)
-        : addSpacesToCategory(
-            getAQICategory(
-              'pm2_5',
-              selectedSite.pm2_5 || recentLocationMeasurements?.[0]?.pm2_5?.value,
-            ).category,
-          );
+        ? addSpacesToCategory(getAQICategory('pm2_5', selectedWeeklyPrediction.pm2_5).category)
+        : addSpacesToCategory(getAQICategory('pm2_5', pm2_5Value).category);
 
-      const dateMessage = formatDateMessage(
-        selectedWeeklyPrediction
-          ? isSameDay(
-              new Date(selectedSite.time || recentLocationMeasurements?.[0]?.time),
-              new Date(selectedWeeklyPrediction.time),
-            )
-            ? new Date(selectedSite.time || recentLocationMeasurements?.[0]?.time)
-            : new Date(selectedWeeklyPrediction.time)
-          : new Date(selectedSite.time || recentLocationMeasurements?.[0]?.time),
+      const dateValue = new Date(
+        selectedWeeklyPrediction?.time ||
+          selectedSite?.time ||
+          recentLocationMeasurements?.[0]?.time,
       );
+
+      const dateMessage = formatDateMessage(dateValue);
+
+      // If the dateMessage is null, fallback to a default string
+      const formattedDateMessage = dateMessage || 'an upcoming day';
 
       const aqiMessage = getAQIMessage(
         'pm2_5',
-        dateMessage,
+        formattedDateMessage,
         selectedWeeklyPrediction
           ? selectedWeeklyPrediction.pm2_5.toFixed(2)
-          : selectedSite?.pm2_5?.toFixed(2) ||
-              recentLocationMeasurements?.[0]?.pm2_5?.value.toFixed(2),
+          : pm2_5Value.toFixed(2),
       );
 
       return (
         <>
           <span className='text-blue-500'>{locationName}'s</span> Air Quality is expected to be{' '}
-          {airQualityCategory} {dateMessage}. {aqiMessage}
+          {airQualityCategory} {formattedDateMessage}. {aqiMessage}
         </>
       );
-    } else {
-      return 'No air quality for this place.';
     }
+    return 'No air quality information for this place.';
   };
 
-  return (
+  return isLoading ? (
+    <LoadingSkeleton />
+  ) : (
     <div className='p-3 bg-white rounded-lg shadow border border-secondary-neutral-dark-100 flex-col justify-center items-center'>
       <div
-        className={`flex justify-between items-center ${collapsed && 'mb-2'} cursor-pointer`}
+        className={`flex justify-between items-center ${collapsed ? 'mb-2' : ''} cursor-pointer`}
         onClick={() => setCollapsed(!collapsed)}>
         <div className='flex justify-start items-center gap-3'>
           <div className='w-10 h-10 rounded-full bg-secondary-neutral-dark-50 p-2 flex items-center justify-center text-xl font-bold'>
