@@ -1,11 +1,9 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import LongArrowLeft from '@/icons/Analytics/longArrowLeft';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 import DataTable from '../components/DataTable';
 import Footer from '../components/Footer';
 import LocationCard from '../components/LocationCard';
-import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 
 /**
@@ -13,21 +11,11 @@ import { replaceUserPreferences } from '@/lib/store/services/account/UserDefault
  * Includes a back button that opens another modal.
  */
 const AddLocationHeader = () => {
-  const dispatch = useDispatch();
-
-  const handleOpenModal = useCallback(() => {
-    dispatch(setOpenModal(true));
-    dispatch(setModalType({ type: 'location', ids: [] }));
-  }, [dispatch]);
-
   return (
     <h3
       className="flex text-lg leading-6 font-medium text-gray-900"
       id="modal-title"
     >
-      <button type="button" onClick={handleOpenModal}>
-        <LongArrowLeft className="mr-2" />
-      </button>
       Add Location
     </h3>
   );

@@ -9,7 +9,7 @@ import { TIME_OPTIONS, CHART_TYPE } from '@/lib/constants';
 import AirQualityCard from '../components/AirQualityCard';
 import LocationCard from '../components/LocationCard';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 
 const InSightsHeader = () => (
@@ -23,6 +23,8 @@ const InSightsHeader = () => (
 
 const MoreInsights = () => {
   const dispatch = useDispatch();
+  const { data } = useSelector((state) => state.modal.modalType);
+  console.log(data);
 
   // State for selected sites
   const [selectedSites, setSelectedSites] = useState([
@@ -204,7 +206,7 @@ const MoreInsights = () => {
         {selectedSitesContent}
         {!loading && (
           <button
-            onClick={() => handleOpenModal('addLocation')}
+            onClick={() => handleOpenModal('moreSights')}
             className="bg-blue-50 w-full rounded-xl px-2 py-4 h-[70px] flex justify-center items-center text-blue-500"
           >
             + Add location

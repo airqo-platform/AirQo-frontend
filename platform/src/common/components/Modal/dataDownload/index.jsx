@@ -10,6 +10,7 @@ import MoreInsights, { InSightsHeader } from './modules/MoreInsights';
 import PlantTree, { AddPlantTreeHeader } from './modules/PlantTree';
 import BuyDevice, { AddBuyDeviceHeader } from './modules/BuyDevice';
 import Search, { AddSearchHeader } from './modules/Search';
+import SelectMore, { SelectMoreHeader } from './modules/SelectMore';
 
 const Modal = ({ isOpen, onClose }) => {
   const modalType = useSelector((state) => state.modal.modalType.type);
@@ -20,8 +21,10 @@ const Modal = ({ isOpen, onClose }) => {
         return <DownloadDataHeader />;
       case 'addLocation':
         return <AddLocationHeader />;
-      case 'location':
+      case 'inSights':
         return <InSightsHeader />;
+      case 'moreSights':
+        return <SelectMoreHeader />;
       case 'plant_tree':
         return <AddPlantTreeHeader />;
       case 'buy_device':
@@ -38,8 +41,10 @@ const Modal = ({ isOpen, onClose }) => {
         return <DataDownload onClose={onClose} />;
       case 'addLocation':
         return <AddLocations onClose={onClose} />;
-      case 'location':
+      case 'inSights':
         return <MoreInsights />;
+      case 'moreSights':
+        return <SelectMore onClose={onClose} />;
       case 'plant_tree':
         return <PlantTree onClose={onClose} />;
       case 'buy_device':
