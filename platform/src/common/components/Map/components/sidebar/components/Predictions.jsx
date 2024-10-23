@@ -44,17 +44,17 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
   const getImageSrc = (prediction) => {
     if (
       isSameDay(
-        new Date(selectedSite.time || recentLocationMeasurements?.[0]?.time),
+        new Date(selectedSite?.time || recentLocationMeasurements?.[0]?.time),
         new Date(prediction.time),
       )
     ) {
       return (
         images[
-          getAQIcon('pm2_5', selectedSite.pm2_5 || recentLocationMeasurements?.[0]?.pm2_5?.value)
+          getAQIcon('pm2_5', selectedSite?.pm2_5 || recentLocationMeasurements?.[0]?.pm2_5?.value)
         ] || images['Invalid']
       );
     }
-    return images[getAQIcon('pm2_5', prediction.pm2_5)] || images['Invalid'];
+    return images[getAQIcon('pm2_5', prediction?.pm2_5)] || images['Invalid'];
   };
 
   return (
