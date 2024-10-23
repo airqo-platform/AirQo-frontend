@@ -79,7 +79,7 @@ const DataTable = ({
    */
   const uniqueData = useMemo(() => {
     const seen = new Set();
-    return data.filter((item) => {
+    return data?.filter((item) => {
       if (!item._id || seen.has(item._id)) return false;
       seen.add(item._id);
       return true;
@@ -133,7 +133,7 @@ const DataTable = ({
    * Calculate total number of pages based on filtered data and items per page.
    */
   const totalPages = useMemo(
-    () => Math.ceil(filteredData.length / itemsPerPage),
+    () => Math.ceil(filteredData?.length / itemsPerPage),
     [filteredData, itemsPerPage],
   );
 
@@ -171,8 +171,8 @@ const DataTable = ({
    */
   useEffect(() => {
     if (
-      selectedSites.length === filteredData.length &&
-      filteredData.length > 0
+      selectedSites.length === filteredData?.length &&
+      filteredData?.length > 0
     ) {
       setSelectAll(true);
       setIndeterminate(false);
@@ -205,8 +205,20 @@ const DataTable = ({
    * Render table rows based on current page and filtered data.
    */
   const renderTableRows = useMemo(() => {
+    // Ensure filteredData is defined and is an array
+    if (!Array.isArray(filteredData)) {
+      return null; // Or you can return a placeholder like an empty array `[]` or loading state
+    }
+
+    // Calculate start and end index based on pagination
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
+
+    // Handle edge case if filteredData is empty
+    if (filteredData.length === 0) {
+      return <p>No data available</p>;
+    }
+
     return filteredData
       .slice(startIndex, endIndex)
       .map((item, index) => (
@@ -258,7 +270,7 @@ const DataTable = ({
         <TableLoadingSkeleton />
       ) : (
         <div className="relative overflow-x-auto border rounded-xl">
-          {filteredData.length === 0 ? (
+          {filteredData && filteredData.length === 0 ? (
             <div className="p-4 text-center text-gray-500 dark:text-gray-400">
               No data available.
             </div>
