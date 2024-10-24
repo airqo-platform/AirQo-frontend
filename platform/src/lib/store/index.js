@@ -1,61 +1,71 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { createWrapper } from 'next-redux-wrapper';
-import { persistReducer } from 'redux-persist';
+import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { combineReducers } from 'redux';
+
+// Import your reducers
 import deviceRegistryReducer from './services/deviceRegistry';
 import selectedCollocateDevicesReducer from './services/collocation/selectedCollocateDevicesSlice';
 import collocationReducer from './services/collocation';
 import collocationDataReducer from './services/collocation/collocationDataSlice';
 import { createAccountSlice } from './services/account/CreationSlice';
 import { userLoginSlice } from './services/account/LoginSlice';
-import { chartSlice } from './services/charts/ChartSlice';
+import chartsReducer from './services/charts/ChartSlice';
 import { gridsSlice } from './services/deviceRegistry/GridsSlice';
-import { defaultsSlice } from './services/account/UserDefaultsSlice';
-import userDefaultsReducer from './services/charts/userDefaultsSlice';
-import { recentMeasurementsSlice } from './services/deviceRegistry/RecentMeasurementsSlice';
-import { cardSlice } from './services/checklists/CheckList';
+import defaultsReducer from './services/account/UserDefaultsSlice';
+import recentMeasurementReducer from './services/deviceRegistry/RecentMeasurementsSlice';
+import cardReducer from './services/checklists/CheckList';
 import checklistsReducer from './services/checklists/CheckData';
 import analyticsReducer from './services/charts/ChartData';
 import { groupInfoSlice } from './services/groups/GroupInfoSlice';
 import { mapSlice } from './services/map/MapSlice';
 import { locationSearchSlice } from './services/search/LocationSearchSlice';
-import { apiClientSlice } from './services/apiClient/index';
+import apiClientReducer from './services/apiClient/index';
 import sidebarReducer from './services/sideBar/SideBarSlice';
-import autoMergeLevel1 from 'redux-persist/lib/stateReconciler/autoMergeLevel1';
+import modalSlice from './services/downloadModal';
+import sitesSummaryReducer from './services/sitesSummarySlice';
 
-const persistConfig = {
-  key: 'root',
-  storage,
-  stateReconciler: autoMergeLevel1,
-};
-
-const rootReducer = combineReducers({
+const appReducer = combineReducers({
   deviceRegistry: deviceRegistryReducer,
   sidebar: sidebarReducer,
   collocation: collocationReducer,
   selectedCollocateDevices: selectedCollocateDevicesReducer,
+  modal: modalSlice,
   collocationData: collocationDataReducer,
-  [createAccountSlice.name]: createAccountSlice.reducer,
-  [userLoginSlice.name]: userLoginSlice.reducer,
-  [chartSlice.name]: chartSlice.reducer,
-  [gridsSlice.name]: gridsSlice.reducer,
-  [defaultsSlice.name]: defaultsSlice.reducer,
-  [cardSlice.name]: cardSlice.reducer,
+  creation: createAccountSlice.reducer,
+  login: userLoginSlice.reducer,
+  chart: chartsReducer,
+  grids: gridsSlice.reducer,
+  defaults: defaultsReducer,
+  cardChecklist: cardReducer,
   map: mapSlice.reducer,
-  userDefaults: userDefaultsReducer,
-  [recentMeasurementsSlice.name]: recentMeasurementsSlice.reducer,
+  recentMeasurements: recentMeasurementReducer,
   checklists: checklistsReducer,
   analytics: analyticsReducer,
-  [groupInfoSlice.name]: groupInfoSlice.reducer,
-  [locationSearchSlice.name]: locationSearchSlice.reducer,
-  [apiClientSlice.name]: apiClientSlice.reducer,
+  groupInfo: groupInfoSlice.reducer,
+  locationSearch: locationSearchSlice.reducer,
+  apiClient: apiClientReducer,
+  sites: sitesSummaryReducer,
 });
+
+const rootReducer = (state, action) => {
+  if (action.type === 'RESET_APP') {
+    state = undefined;
+  }
+  return appReducer(state, action);
+};
+
+const persistConfig = {
+  key: 'root',
+  storage,
+  whitelist: ['login', 'checklists'],
+};
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-const store = () =>
-  configureStore({
+const makeStore = () => {
+  const store = configureStore({
     reducer: persistedReducer,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
@@ -65,6 +75,10 @@ const store = () =>
       }),
   });
 
-export const wrapper = createWrapper(store);
+  store.__persistor = persistStore(store);
+  return store;
+};
 
-export default store;
+export const wrapper = createWrapper(makeStore);
+
+export default makeStore;

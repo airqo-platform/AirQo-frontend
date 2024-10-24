@@ -4,40 +4,44 @@ import {
   getIndividualUserPreferences,
 } from '@/lib/store/services/account/UserDefaultsSlice';
 
-// Define your function
-const UpdateUserPreferences = async (
+const updateUserPreferences = async (
   userId,
   selectedLocations,
   chartData,
   dispatch,
   toggleCustomise = () => {},
 ) => {
+  if (!userId || !selectedLocations || !chartData) {
+    console.error('Missing required data for updating user preferences');
+    return;
+  }
+
   const data = {
     user_id: userId,
     selected_sites: selectedLocations,
-    startDate: chartData.chartDataRange.startDate,
-    endDate: chartData.chartDataRange.endDate,
-    chartType: chartData.chartType,
-    pollutant: chartData.pollutionType,
-    frequency: chartData.timeFrame,
+    startDate: chartData?.chartDataRange?.startDate,
+    endDate: chartData?.chartDataRange?.endDate,
+    chartType: chartData?.chartType,
+    pollutant: chartData?.pollutionType,
+    frequency: chartData?.timeFrame,
     period: {
-      label: chartData.chartDataRange.label,
+      label: chartData?.chartDataRange?.label,
     },
   };
+
   try {
     const response = await dispatch(replaceUserPreferences(data));
-    if (response.payload && response.payload.success) {
-      dispatch(getIndividualUserPreferences(userId));
+
+    if (response?.payload?.success) {
+      await dispatch(getIndividualUserPreferences(userId));
       toggleCustomise();
-      dispatch(completeTask(2));
+      await dispatch(completeTask(2));
     } else {
-      throw error;
+      throw new Error('Failed to update user preferences');
     }
   } catch (error) {
-    console.error(`Error updating user preferences: ${error}`);
+    console.error('Error updating user preferences:', error.message || error);
   }
 };
 
-// Now you can call updateUserPreferences from other functions
-
-export default UpdateUserPreferences;
+export default updateUserPreferences;

@@ -22,6 +22,7 @@ const sidebarSlice = createSlice({
   },
 });
 
-export const { toggleSidebar, setSidebar, setToggleDrawer, toggleDrawer } = sidebarSlice.actions;
+export const { toggleSidebar, setSidebar, setToggleDrawer, toggleDrawer } =
+  sidebarSlice.actions;
 
 export default sidebarSlice.reducer;

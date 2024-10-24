@@ -8,7 +8,8 @@ export const formatDateString = (
 ) => moment.utc(t).tz(client_IANA_timezone).format(format);
 
 export const getElapsedDurationMapper = (dateTimeStr) => {
-  let delta = Math.abs(moment.utc(new Date()) - moment.utc(new Date(dateTimeStr))) / 1000;
+  let delta =
+    Math.abs(moment.utc(new Date()) - moment.utc(new Date(dateTimeStr))) / 1000;
   let seconds = delta;
   let result = {};
   let structure = {
@@ -95,6 +96,8 @@ export const getDateString = (ISODateString) => {
 export const getGMTOffset = () => {
   const timezoneOffset = new Date().getTimezoneOffset();
   const offsetAbsoluteValue = Math.abs(timezoneOffset);
-  const hourDifference = ('00' + Math.floor(offsetAbsoluteValue / 60)).slice(-2);
+  const hourDifference = ('00' + Math.floor(offsetAbsoluteValue / 60)).slice(
+    -2,
+  );
   return `GMT${timezoneOffset < 0 ? '+' : '-'}${hourDifference}`;
 };

@@ -1,10 +1,9 @@
 import React, { useState, useRef } from 'react';
-import CalendarIcon from '@/icons/calendar.svg';
-import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
+import CalendarIcon from '@/icons/Analytics/calendarIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import { setChartDataRange } from '@/lib/store/services/charts/ChartSlice';
 import Calendar from './Calendar';
-import useOutsideClick from '@/core/utils/useOutsideClick';
+import { useOutsideClick } from '@/core/hooks';
 import {
   differenceInDays,
   isSameDay,
@@ -19,6 +18,9 @@ import {
   format,
   getYear,
 } from 'date-fns';
+import TabButtons from '../Button/TabButtons';
+import { Transition } from '@headlessui/react';
+import PropTypes from 'prop-types';
 
 /**
  * @param {Object} props
@@ -32,7 +34,7 @@ import {
  * @returns {JSX.Element}
  * @description CustomCalendar component
  */
-const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, className }) => {
+const CustomCalendar = ({ initialStartDate, initialEndDate, className }) => {
   const containerRef = useRef(null);
   const dispatch = useDispatch();
   const [openDatePicker, setOpenDatePicker] = useState(false);
@@ -91,7 +93,10 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
         isSameDay(endDate, endOfMonth(today))
       ) {
         label = 'This month';
-      } else if (isSameDay(startDate, startOfYear(today)) && isSameDay(endDate, endOfYear(today))) {
+      } else if (
+        isSameDay(startDate, startOfYear(today)) &&
+        isSameDay(endDate, endOfYear(today))
+      ) {
         label = 'This year';
       } else if (
         isSameDay(startDate, startOfYear(subDays(today, 365))) &&
@@ -123,7 +128,9 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
    */
   const DatePickerHiddenInput = () => (
     <Calendar
-      initialMonth1={new Date(new Date().getFullYear(), new Date().getMonth() - 1)}
+      initialMonth1={
+        new Date(new Date().getFullYear(), new Date().getMonth() - 1)
+      }
       initialMonth2={new Date()}
       handleValueChange={handleValueChange}
       closeDatePicker={() => setOpenDatePicker(false)}
@@ -151,27 +158,39 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
   });
 
   return (
-    <div className='relative cursor-pointer date-picker-container' ref={containerRef}>
-      <button
+    <div
+      className="relative cursor-pointer date-picker-container"
+      ref={containerRef}
+    >
+      <TabButtons
+        Icon={<CalendarIcon />}
+        btnText={chartData.chartDataRange.label}
+        dropdown
         onClick={handleClick}
-        type='button'
-        className='relative border border-grey-750 rounded-xl flex items-center justify-between gap-2 px-4 py-3'>
-        {Icon ? <Icon /> : <CalendarIcon />}
-        <span className='hidden sm:inline-block text-sm font-medium'>
-          {chartData.chartDataRange.label}
-        </span>
-        {dropdown && <ChevronDownIcon />}
-      </button>
-      <div
-        className={`absolute z-50 max-w-[350px] ${className} ${
-          openDatePicker
-            ? 'opacity-100 translate-y-0 visible'
-            : 'opacity-0 -translate-y-2 invisible'
-        } transition-all duration-400 ease-in-out transform`}>
-        <DatePickerHiddenInput />
-      </div>
+        id="datePicker"
+        type={'button'}
+      />
+      <Transition
+        show={openDatePicker}
+        enter="ease-out duration-300"
+        enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        enterTo="opacity-100 translate-y-0 sm:scale-100"
+        leave="ease-in duration-200"
+        leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+        leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+      >
+        <div className={`absolute z-50 max-w-[350px] ${className}`}>
+          <DatePickerHiddenInput />
+        </div>
+      </Transition>
     </div>
   );
+};
+
+CustomCalendar.propTypes = {
+  initialStartDate: PropTypes.instanceOf(Date),
+  initialEndDate: PropTypes.instanceOf(Date),
+  className: PropTypes.string,
 };
 
 export default CustomCalendar;
