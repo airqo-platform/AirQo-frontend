@@ -18,20 +18,23 @@ const RadioComponent = ({
         width || 'lg:w-fit w-11/12'
       } border ${border || 'border-radio-border'} cursor-pointer rounded-lg ${
         checked && 'ring-2 ring-blue-600'
-      }`}>
-      <div className='flex flex-row items-center'>
-        <div className='flex items-center'>
+      }`}
+    >
+      <div className="flex flex-row items-center">
+        <div className="flex items-center">
           <input
-            type='radio'
+            type="radio"
             name={text}
-            className='border rounded-2xl border-radio-border h-5 w-5 bg-white checked:bg-blue-900'
+            className="border rounded-2xl border-radio-border h-5 w-5 bg-white checked:bg-blue-900"
             checked={checked || false}
             onChange={onChangeFunc}
           />
         </div>
-        <div className={`ml-3 ${titleFont || 'text-xl font-semibold'}`}>{text}</div>
+        <div className={`ml-3 ${titleFont || 'text-xl font-semibold'}`}>
+          {text}
+        </div>
       </div>
-      {subText && <div className='mt-2 text-sm'>{subText}</div>}
+      {subText && <div className="mt-2 text-sm">{subText}</div>}
     </div>
   );
 };

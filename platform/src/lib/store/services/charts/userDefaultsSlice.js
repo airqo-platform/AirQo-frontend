@@ -1,5 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { getUserDefaults, updateUserDefaults, getUserPreferencesApi } from '@/core/apis/Account';
+import {
+  getUserDefaults,
+  updateUserDefaults,
+  getUserPreferencesApi,
+} from '@/core/apis/Account';
 
 const actionTypes = {
   FETCH_USER_DEFAULTS: 'userDefaults/fetch',
@@ -7,7 +11,12 @@ const actionTypes = {
   FETCH_USER_PREFERENCES: 'userPreferences/fetch',
 };
 
-const initialState = { defaults: null, preferences: null, status: 'idle', error: null };
+const initialState = {
+  defaults: null,
+  preferences: null,
+  status: 'idle',
+  error: null,
+};
 
 // getting user defaults
 export const fetchUserDefaults = createAsyncThunk(
@@ -56,7 +65,9 @@ const userDefaultsSlice = createSlice({
           state.status = 'succeeded';
           if (action.type.startsWith(actionTypes.FETCH_USER_DEFAULTS)) {
             state.defaults = action.payload;
-          } else if (action.type.startsWith(actionTypes.FETCH_USER_PREFERENCES)) {
+          } else if (
+            action.type.startsWith(actionTypes.FETCH_USER_PREFERENCES)
+          ) {
             state.preferences = action.payload;
           }
         },

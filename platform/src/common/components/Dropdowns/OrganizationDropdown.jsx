@@ -1,8 +1,10 @@
+'use client';
 import React, { useEffect, useMemo, useState } from 'react';
 import CustomDropdown from './CustomDropdown';
-import CheckIcon from '@/icons/tickIcon';
-import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
+import ChevronDownIcon from '@/icons/Common/chevron_downIcon';
+import RadioIcon from '@/icons/SideBar/radioIcon';
 import { useDispatch, useSelector } from 'react-redux';
+import Button from '../Button';
 import {
   updateUserPreferences,
   getIndividualUserPreferences,
@@ -22,7 +24,9 @@ const OrganizationDropdown = () => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState({});
-  const preferences = useSelector((state) => state.defaults.individual_preferences);
+  const preferences = useSelector(
+    (state) => state.defaults.individual_preferences,
+  );
   const userInfo = useSelector((state) => state.login.userInfo);
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
 
@@ -37,15 +41,11 @@ const OrganizationDropdown = () => {
 
     try {
       const response = await dispatch(updateUserPreferences(data));
-      if (response && response.payload && response.payload.success) {
+      if (response && response.payload.success) {
         localStorage.setItem('activeGroup', JSON.stringify(group));
         // Refetch the preferences
         await dispatch(getIndividualUserPreferences(userId));
-      } else {
-        throw new Error('Failed to update preferences');
       }
-    } catch (error) {
-      throw error;
     } finally {
       setLoading(false);
     }
@@ -54,7 +54,10 @@ const OrganizationDropdown = () => {
   useEffect(() => {
     const storedActiveGroup = JSON.parse(localStorage.getItem('activeGroup'));
 
-    if (storedActiveGroup && (!preferences || preferences[0]?.group_id === '')) {
+    if (
+      storedActiveGroup &&
+      (!preferences || preferences[0]?.group_id === '')
+    ) {
       handleUpdatePreferences(storedActiveGroup);
     }
   }, [userInfo, preferences]);
@@ -76,12 +79,20 @@ const OrganizationDropdown = () => {
     return (
       <CustomDropdown
         trigger={
-          <button className='w-full'>
-            <div className='w-full h-12 pl-2 pr-3 py-2 bg-white rounded-xl border border-gray-200 justify-between items-center inline-flex'>
-              <div className='justify-start items-center gap-3 flex'>
-                <div className='w-8 h-8 py-1.5 bg-gray-50 rounded-full justify-center items-center flex gap-3'>
-                  <div className='w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight'>
-                    {activeGroup?.grp_title ? activeGroup.grp_title[0] : ''}
+          <Button
+            paddingStyles="p-0 m-0"
+            className="w-full border-none"
+            variant="outlined"
+          >
+            <div
+              className={`w-full h-12 p-2 bg-white rounded-xl border border-gray-200 ${isCollapsed ? 'flex justify-center' : 'inline-flex justify-between items-center'} hover:bg-gray-100`}
+            >
+              <div className="justify-start items-center gap-3 flex">
+                <div className="w-8 h-8 bg-yellow-200 py-1.5 rounded-full justify-center items-center flex gap-3">
+                  <div className="w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight">
+                    {activeGroup?.grp_title
+                      ? activeGroup.grp_title.slice(0, 2)
+                      : ''}
                   </div>
                 </div>
                 <div
@@ -90,7 +101,7 @@ const OrganizationDropdown = () => {
                   }`}
                 >
                   <div
-                    className='text-slate-500 text-sm font-medium uppercase leading-tight text-left'
+                    className="text-sm font-medium uppercase leading-tight text-left"
                     title={activeGroup?.grp_title}
                   >
                     {activeGroup?.grp_title?.length > 10
@@ -101,38 +112,40 @@ const OrganizationDropdown = () => {
               </div>
               <span
                 className={`${
-                  userInfo && userInfo.groups && userInfo.groups.length > 1 ? 'block' : 'hidden'
+                  userInfo && userInfo.groups && userInfo.groups.length > 1
+                    ? 'block'
+                    : 'hidden'
                 } ${!isCollapsed ? 'flex' : 'hidden'}`}
               >
                 <ChevronDownIcon />
               </span>
             </div>
-          </button>
+          </Button>
         }
         sidebar={true}
-        id='options'
+        id="options"
       >
         {userInfo &&
           userInfo.groups &&
           userInfo.groups.map((format) => (
-            <a
+            <button
               key={format._id}
-              href='#'
               onClick={() => handleDropdownSelect(format)}
-              className={`w-full h-11 px-3.5 py-2.5 justify-between items-center inline-flex ${
-                activeGroup &&
-                activeGroup?.grp_title === format?.grp_title &&
-                'bg-secondary-neutral-light-50'
-              }`}
+              className={`w-full h-11 px-3.5 rounded-xl py-2.5 justify-between items-center inline-flex ${
+                activeGroup && activeGroup?.grp_title === format?.grp_title
+                  ? 'bg-[#EBF5FF] text-blue-600'
+                  : 'hover:bg-gray-100'
+              }  
+              `}
             >
-              <div className='grow shrink basis-0 h-6 justify-start items-center gap-2 flex'>
-                <div className='w-8 h-8 py-1.5 bg-gray-50 rounded-full justify-center items-center flex'>
-                  <div className='w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight'>
-                    {format?.grp_title ? format.grp_title[0] : ''}
+              <div className="grow shrink basis-0 h-6 justify-start items-center gap-2 flex">
+                <div className="w-8 h-8 py-1.5 bg-yellow-200 border border-white rounded-full justify-center items-center flex">
+                  <div className="w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight">
+                    {format?.grp_title ? format.grp_title.slice(0, 2) : ''}
                   </div>
                 </div>
                 <div
-                  className='max-w-[120px] w-full text-gray-700 text-sm font-normal leading-tight uppercase'
+                  className="max-w-[120px] w-full text-left text-sm font-medium leading-tight uppercase"
                   title={format.grp_title}
                 >
                   {format && format.grp_title && format.grp_title.length > 10
@@ -142,12 +155,17 @@ const OrganizationDropdown = () => {
               </div>
               {loading && selectedGroup._id === format._id ? (
                 <span>
-                  <Spinner width={20} height={20} />
+                  <Spinner width={16} height={16} />
                 </span>
-              ) : activeGroup && activeGroup?.grp_title === format?.grp_title ? (
-                <CheckIcon fill='#145FFF' />
-              ) : null}
-            </a>
+              ) : activeGroup &&
+                activeGroup?.grp_title === format?.grp_title ? (
+                <span className="ml-2">
+                  <RadioIcon />
+                </span>
+              ) : (
+                <input type="radio" className="border-[#C4C7CB]" />
+              )}
+            </button>
           ))}
       </CustomDropdown>
     );

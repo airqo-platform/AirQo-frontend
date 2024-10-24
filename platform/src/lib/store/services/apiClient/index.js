@@ -20,5 +20,6 @@ export const apiClientSlice = createSlice({
   },
 });
 
-export const { addClients, addClientsDetails, performRefresh } = apiClientSlice.actions;
+export const { addClients, addClientsDetails, performRefresh } =
+  apiClientSlice.actions;
 export default apiClientSlice.reducer;

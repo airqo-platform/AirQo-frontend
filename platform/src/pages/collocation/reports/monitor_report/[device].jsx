@@ -58,7 +58,9 @@ const MonitorReport = () => {
     rejected: isFetchInterSensorCorrelationDataError,
   } = useSelector((state) => state.collocation.interSensorCorrelationData);
 
-  const collocationResults = collocationResultsData ? collocationResultsData.data : null;
+  const collocationResults = collocationResultsData
+    ? collocationResultsData.data
+    : null;
   const dataCompletenessResults = dataCompletenessResultsData
     ? dataCompletenessResultsData.data
     : null;
@@ -76,7 +78,9 @@ const MonitorReport = () => {
 
   let deviceStatusSummary = data ? data : [];
 
-  let batchDevices = deviceStatusSummary.filter((device) => device.batch_id === batchId);
+  let batchDevices = deviceStatusSummary.filter(
+    (device) => device.batch_id === batchId,
+  );
   let graphColors = [
     '#0e3b5d',
     '#0099ff',
@@ -150,8 +154,10 @@ const MonitorReport = () => {
   }, [dataCompletenessResults]);
 
   const [correlationDevices, setCorrelationDevices] = useState([device]);
-  const [intraCorrelationConcentration, setIntraCorrelationConcentration] = useState('2.5');
-  const [interCorrelationConcentration, setInterCorrelationConcentration] = useState('2.5');
+  const [intraCorrelationConcentration, setIntraCorrelationConcentration] =
+    useState('2.5');
+  const [interCorrelationConcentration, setInterCorrelationConcentration] =
+    useState('2.5');
 
   const toggleIntraCorrelationConcentrationChange = (newValue) => {
     setIntraCorrelationConcentration(newValue);
@@ -162,7 +168,10 @@ const MonitorReport = () => {
   };
 
   return (
-    <Layout topbarTitle={'Collocation'} pageTitle={'Collocation Monitor Report'}>
+    <Layout
+      topbarTitle={'Collocation'}
+      pageTitle={'Collocation Monitor Report'}
+    >
       <NavigationBreadCrumb navTitle={'Monitor Report'} />
       {(isFetchCollocationResultsError || isFetchDataCompletenessError) && (
         <Toast
@@ -172,11 +181,13 @@ const MonitorReport = () => {
           dataTestId={'monitor-report-error-toast'}
         />
       )}
-      <div data-testid='correlation-chart'>
+      <div data-testid="correlation-chart">
         <IntraCorrelationChart
           collocationResults={collocationResults}
           intraCorrelationConcentration={intraCorrelationConcentration}
-          toggleIntraCorrelationConcentrationChange={toggleIntraCorrelationConcentrationChange}
+          toggleIntraCorrelationConcentrationChange={
+            toggleIntraCorrelationConcentrationChange
+          }
           isLoading={isFetchCollocationResultsLoading}
           deviceList={batchDevices}
           graphColors={graphColors}
@@ -202,4 +213,7 @@ const MonitorReport = () => {
   );
 };
 
-export default withPermission(withAuth(MonitorReport), 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');
+export default withPermission(
+  withAuth(MonitorReport),
+  'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
+);

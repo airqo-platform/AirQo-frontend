@@ -1,61 +1,83 @@
-import React, { useState, useEffect, useRef } from 'react';
-import CollapseIcon from '@/icons/SideBar/Collapse.svg';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useWindowSize } from '@/lib/windowSize';
-import SideBarItem, { SideBarDropdownItem, SidebarIconItem } from './SideBarItem';
+import SidebarItem, { SideBarDropdownItem } from './SideBarItem';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import HomeIcon from '@/icons/SideBar/HomeIcon';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import CollocateIcon from '@/icons/SideBar/CollocateIcon';
-import LogoutIcon from '@/icons/SideBar/LogoutIcon';
 import OrganizationDropdown from '../Dropdowns/OrganizationDropdown';
 import { checkAccess } from '@/core/utils/protectedRoute';
-import PersonIcon from '@/icons/Settings/PersonIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   toggleSidebar,
   setToggleDrawer,
   setSidebar,
 } from '@/lib/store/services/sideBar/SideBarSlice';
-import useOutsideClick from '@/core/utils/useOutsideClick';
+import { useOutsideClick } from '@/core/hooks';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { updateUserChecklists } from '@/lib/store/services/checklists/CheckData';
-import LogoutUser from '@/core/utils/LogoutUser';
+import LeftArrowIcon from '@/icons/SideBar/leftArrowIcon';
+import RightArrowIcon from '@/icons/SideBar/rightArrowIcon';
+import Button from '../Button';
+import Carousel_1 from '../carousels/Carousel_1';
+
+const MAX_WIDTH = '(max-width: 1024px)';
 
 const AuthenticatedSideBar = () => {
   const dispatch = useDispatch();
   const size = useWindowSize();
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const router = useRouter();
-  const [dropdown, setDropdown] = useState(false);
-  const currentRoute = router.pathname;
-  const navPaths = ['/collocation/overview', '/collocation/collocate'];
-  const isCurrentRoute = navPaths.some((path) => currentRoute.includes(path));
-  const dropdownRef = useRef(null);
-  const userInfo = useSelector((state) => state.login.userInfo);
-  const cardCheckList = useSelector((state) => state.cardChecklist.cards);
-  const [isLoading, setIsLoading] = useState(false);
 
-  // Toggle Dropdown open and close
+  const [dropdown, setDropdown] = useState(false);
+  const dropdownRef = useRef(null);
   const [collocationOpen, setCollocationOpen] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
 
+  // Media query and route handling
+  useEffect(() => {
+    const handleRouteChange = () => {
+      if (router.pathname === '/map') {
+        dispatch(setSidebar(true));
+      }
+    };
+
+    const handleMediaQueryChange = (e) => {
+      if (e.matches) {
+        dispatch(setSidebar(true));
+      }
+    };
+
+    const mediaQuery = window.matchMedia(MAX_WIDTH);
+    handleRouteChange();
+    mediaQuery.addEventListener('change', handleMediaQueryChange);
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleMediaQueryChange);
+    };
+  }, [dispatch, router.pathname]);
+
+  // Handle window resizing for sidebar collapse in mobile view
+  useEffect(() => {
+    if (size.width < 1024) {
+      dispatch(setSidebar(false));
+      dispatch(setToggleDrawer(false));
+    }
+  }, [size.width, dispatch]);
+
+  // Retrieve dropdown states from localStorage
   useEffect(() => {
     const collocationOpenState = localStorage.getItem('collocationOpen');
     const analyticsOpenState = localStorage.getItem('analyticsOpen');
 
-    if (collocationOpenState) {
+    if (collocationOpenState)
       setCollocationOpen(JSON.parse(collocationOpenState));
-    }
-
-    if (analyticsOpenState) {
-      setAnalyticsOpen(JSON.parse(analyticsOpenState));
-    }
+    if (analyticsOpenState) setAnalyticsOpen(JSON.parse(analyticsOpenState));
   }, []);
 
-  // local storage
+  // Save dropdown states to localStorage
   useEffect(() => {
     localStorage.setItem('collocationOpen', JSON.stringify(collocationOpen));
     localStorage.setItem('analyticsOpen', JSON.stringify(analyticsOpen));
@@ -66,177 +88,131 @@ const AuthenticatedSideBar = () => {
     setDropdown(false);
   });
 
-  const toggleDropdown = () => {
-    setDropdown(!dropdown);
-  };
-
-  // if its mobile view, close the sidebar when a link is clicked
-  useEffect(() => {
-    if (size.width < 1024) {
-      dispatch(setSidebar(false));
-      dispatch(setToggleDrawer(false));
-    }
-  }, [size.width]);
-
-  // Handle logout
-  const handleLogout = async (event) => {
-    event.preventDefault();
-
-    setIsLoading(true);
-
-    const action = await dispatch(
-      updateUserChecklists({
-        user_id: userInfo._id,
-        items: cardCheckList,
-      }),
-    );
-
-    // Check the status of the updateUserChecklists request
-    if (updateUserChecklists.rejected.match(action)) {
-      setIsLoading(false);
-      return;
-    }
-
-    LogoutUser(dispatch, router);
-
-    setIsLoading(false);
-  };
+  // Toggle dropdown visibility
+  const toggleDropdown = useCallback(() => {
+    setDropdown((prevState) => !prevState);
+  }, []);
 
   return (
-    <>
-      {/* sidebar */}
+    <div>
       <div
-        className={`${
-          isCollapsed ? 'w-[88px]' : 'w-72'
-        } hidden lg:block transition-all duration-200 ease-in-out`}
+        className={`transition-all duration-200 ease-in-out ${isCollapsed ? 'w-[88px]' : 'w-[256px]'} hidden h-dvh lg:block relative p-2 z-50`}
       >
-        <div className='flex p-4 bg-white h-dvh lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden'>
-          <div>
-            <div className='pb-4 flex justify-between items-center'>
-              {size.width < 1024 ? (
-                <div
-                  className='cursor-pointer'
-                  onClick={() => {
-                    router.push('/settings');
-                  }}
-                >
-                  {userInfo.profilePicture ? (
-                    <img
-                      className='w-12 h-12 rounded-full object-cover'
-                      src={userInfo.profilePicture || PlaceholderImage}
-                      alt=''
-                    />
-                  ) : (
-                    <div className='w-12 h-12 rounded-[28px] flex justify-center items-center bg-[#F3F6F8]'>
-                      <PersonIcon fill='#485972' />
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <AirqoLogo className='w-[46.56px] h-8 flex flex-col flex-1' />
-              )}
-              <div className={`${isCollapsed ? 'hidden' : ''} flex justify-between items-center`}>
-                <button type='button' onClick={() => dispatch(toggleSidebar())}>
-                  <CollapseIcon className='invisible md:invisible lg:visible pt-1 h-full flex flex-col flex-3' />
-                </button>
-              </div>
-            </div>
-            <div className='mt-4'>
-              <OrganizationDropdown />
-            </div>
-            <div className='mt-11 space-y-3'>
+        <div className="flex p-3 bg-white h-full lg:relative flex-col overflow-y-auto border border-grey-750 scrollbar-thin rounded-xl scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden">
+          <div className="pb-4 flex justify-between items-center">
+            <Button
+              paddingStyles="p-0 m-0"
+              onClick={() => router.push('/Home')}
+              variant="text"
+            >
+              <AirqoLogo className="w-[46.56px] h-8 flex flex-col flex-1" />
+            </Button>
+          </div>
+          <div className="mt-4">
+            <OrganizationDropdown />
+          </div>
+          <div className="flex flex-col justify-between h-full">
+            <div className="mt-10 space-y-2">
+              <SidebarItem
+                label="Home"
+                Icon={HomeIcon}
+                navPath="/Home"
+                iconOnly={isCollapsed}
+              />
+              <SidebarItem
+                label="Analytics"
+                Icon={BarChartIcon}
+                navPath="/analytics"
+                iconOnly={isCollapsed}
+              />
+
               {isCollapsed ? (
-                <SidebarIconItem IconComponent={HomeIcon} navPath='/Home' />
+                <hr className="h-[0.5px] bg-grey-150 transition-all duration-300 ease-in-out" />
               ) : (
-                <SideBarItem label='Home' Icon={HomeIcon} navPath='/Home' />
-              )}
-              {isCollapsed ? (
-                <SidebarIconItem IconComponent={BarChartIcon} navPath='/analytics' />
-              ) : (
-                <SideBarItem label='Analytics' Icon={BarChartIcon} navPath='/analytics' />
-              )}
-              {isCollapsed ? (
-                <hr className='my-3 h-[0.5px] bg-grey-150 transition-all duration-300 ease-in-out' />
-              ) : (
-                <div className='text-xs text-[#6F87A1] px-[10px] my-3 mx-4 font-semibold transition-all duration-300 ease-in-out'>
+                <div className="text-xs text-[#7A7F87] px-3 py-3 font-semibold transition-all duration-300 ease-in-out">
                   Network
                 </div>
               )}
+
               {checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES') && (
                 <>
                   {isCollapsed ? (
-                    <div className='relative'>
-                      <div onClick={toggleDropdown}>
-                        <div
-                          className={`relative flex items-center p-4 rounded-xl cursor-pointer ${
-                            isCurrentRoute ? 'bg-light-blue' : ''
-                          } hover:bg-gray-200`}
-                        >
-                          {isCurrentRoute && (
-                            <span className='bg-blue-600 w-1 h-1/2 mr-2 absolute rounded-xl -left-2'></span>
-                          )}
-                          <CollocateIcon fill={isCurrentRoute ? '#145FFF' : '#6F87A1'} />
-                        </div>
-                      </div>
+                    <div className="relative">
+                      <SidebarItem
+                        Icon={CollocateIcon}
+                        navPath="#"
+                        iconOnly
+                        onClick={toggleDropdown}
+                      />
                       {dropdown && (
-                        <div className='relative bottom-20'>
-                          <div
-                            ref={dropdownRef}
-                            className='fixed left-24 w-40 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-[1000]'
-                          >
-                            <Link href={'/collocation/overview'}>
-                              <div className='w-full p-4 hover:bg-[#f3f6f8] cursor-pointer'>
-                                Overview
-                              </div>
-                            </Link>
-                            <Link href={'/collocation/collocate'}>
-                              <div className='w-full p-4 hover:bg-[#f3f6f8] cursor-pointer'>
-                                Collocate
-                              </div>
-                            </Link>
-                          </div>
+                        <div
+                          ref={dropdownRef}
+                          className="fixed left-24 top-[300px] w-40 bg-white border border-gray-200 divide-y divide-gray-100 rounded-xl shadow-lg p-1"
+                        >
+                          <Link href={'/collocation/overview'}>
+                            <div className="w-full p-4 rounded-xl hover:bg-[#f3f6f8] cursor-pointer">
+                              Overview
+                            </div>
+                          </Link>
+                          <Link href={'/collocation/collocate'}>
+                            <div className="w-full p-4 rounded-xl hover:bg-[#f3f6f8] cursor-pointer">
+                              Collocate
+                            </div>
+                          </Link>
                         </div>
                       )}
                     </div>
                   ) : (
-                    <SideBarItem
-                      label='Collocation'
+                    <SidebarItem
+                      label="Collocation"
                       Icon={CollocateIcon}
                       dropdown
                       toggleMethod={() => setCollocationOpen(!collocationOpen)}
                       toggleState={collocationOpen}
                     >
-                      <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
                       <SideBarDropdownItem
-                        itemLabel='Collocate'
-                        itemPath='/collocation/collocate'
+                        itemLabel="Overview"
+                        itemPath="/collocation/overview"
                       />
-                    </SideBarItem>
+                      <SideBarDropdownItem
+                        itemLabel="Collocate"
+                        itemPath="/collocation/collocate"
+                      />
+                    </SidebarItem>
                   )}
                 </>
               )}
-              {isCollapsed ? (
-                <SidebarIconItem IconComponent={WorldIcon} navPath='/map' />
-              ) : (
-                <SideBarItem label='AirQo map' Icon={WorldIcon} navPath='/map' />
-              )}
+
+              <SidebarItem
+                label="Pollution map"
+                Icon={WorldIcon}
+                navPath="/map"
+                iconOnly={isCollapsed}
+              />
+              <SidebarItem
+                label="Settings"
+                Icon={SettingsIcon}
+                navPath="/settings"
+                iconOnly={isCollapsed}
+              />
             </div>
-          </div>
-          <div>
-            {isCollapsed ? (
-              <SidebarIconItem IconComponent={SettingsIcon} navPath='/settings' />
-            ) : (
-              <SideBarItem label='Settings' Icon={SettingsIcon} navPath='/settings' />
-            )}
-            {size.width < 1024 && (
-              <div onClick={handleLogout}>
-                <SideBarItem label={isLoading ? 'Logging out...' : 'Logout'} Icon={LogoutIcon} />
-              </div>
-            )}
+
+            {/* TODO: Add carousel BACK later */}
+            {/* <Carousel_1 /> */}
           </div>
         </div>
+
+        {/* Sidebar collapse button */}
+        {router.pathname !== '/map' && (
+          <div className="absolute flex rounded-full top-11 -right-[3px] z-50 bg-white p-[2px] shadow-md justify-between items-center border">
+            <button type="button" onClick={() => dispatch(toggleSidebar())}>
+              <LeftArrowIcon className={isCollapsed ? 'hidden' : 'block'} />
+              <RightArrowIcon className={isCollapsed ? 'block' : 'hidden'} />
+            </button>
+          </div>
+        )}
       </div>
-    </>
+    </div>
   );
 };
 

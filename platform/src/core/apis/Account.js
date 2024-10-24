@@ -21,26 +21,16 @@ if (typeof window !== 'undefined') {
   jwtToken = window.localStorage.getItem('token');
 }
 
-const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN;
-
 axios.defaults.headers.common.Authorization = jwtToken;
 
 export const forgotPasswordApi = async (data) => {
-  try {
-    const response = await createAxiosInstance().post(FORGOT_PWD_URL, data);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await createAxiosInstance().post(FORGOT_PWD_URL, data);
+  return response.data;
 };
 
 export const resetPasswordApi = async (data) => {
-  try {
-    const response = await createAxiosInstance().put(RESET_PWD_URL, data);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await createAxiosInstance().put(RESET_PWD_URL, data);
+  return response.data;
 };
 
 // Register User Details
@@ -75,7 +65,9 @@ export const getAssignedGroupMembers = async (groupID) => {
 
 export const inviteUserToGroupTeam = async (groupID, userEmails) => {
   return await createAxiosInstance()
-    .post(`${USERS_URL}/requests/emails/groups/${groupID}`, { emails: userEmails })
+    .post(`${USERS_URL}/requests/emails/groups/${groupID}`, {
+      emails: userEmails,
+    })
     .then((response) => response.data);
 };
 
@@ -88,7 +80,10 @@ export const acceptGroupTeamInvite = async (body) => {
 // Update [Individual]User Details
 export const updateUserCreationDetails = async (data, identifier) => {
   try {
-    const response = await axios.put(`${UPDATE_USER_DETAILS_URL}/${identifier}`, data);
+    const response = await axios.put(
+      `${UPDATE_USER_DETAILS_URL}/${identifier}`,
+      data,
+    );
     return response.data;
   } catch (error) {
     return error;
@@ -108,7 +103,10 @@ export const createOrganisation = async (data) => {
 // Update Organisation
 export const updateOrganisationApi = async (data) => {
   try {
-    const response = await createAxiosInstance().put(`${GROUPS_URL}/${data.grp_id}`, data);
+    const response = await createAxiosInstance().put(
+      `${GROUPS_URL}/${data.grp_id}`,
+      data,
+    );
     return response.data;
   } catch (error) {
     return error;
@@ -117,76 +115,68 @@ export const updateOrganisationApi = async (data) => {
 
 // Post User Defaults
 export const postUserDefaultsApi = async (data) => {
-  try {
-    const response = await createAxiosInstance().post(`${USER_DEFAULTS_URL}`, data);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await createAxiosInstance().post(
+    `${USER_DEFAULTS_URL}`,
+    data,
+  );
+  return response.data;
 };
 
 // Update User Defaults
 export const updateUserDefaultsApi = async (data) => {
-  try {
-    const response = await createAxiosInstance().put(`${USER_DEFAULTS_URL}`, data.sites, {
+  const response = await createAxiosInstance().put(
+    `${USER_DEFAULTS_URL}`,
+    data.sites,
+    {
       params: {
         id: data.user_id,
       },
-    });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+    },
+  );
+  return response.data;
 };
 
 // Verify user email
 export const verifyUserEmailApi = async (identifier, token) => {
-  try {
-    const response = await createAxiosInstance().get(`${VERIFY_USER_URL}/${identifier}/${token}`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await createAxiosInstance().get(
+    `${VERIFY_USER_URL}/${identifier}/${token}`,
+  );
+  return response.data;
 };
 
 // Post User Preferences
 export const postUserPreferencesApi = async (data) => {
-  try {
-    const response = await createAxiosInstance().post(`${USER_PREFERENCES_URL}`, data);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await createAxiosInstance().post(
+    `${USER_PREFERENCES_URL}`,
+    data,
+  );
+  return response.data;
 };
 
 // Update/Upsert User Preferences
 export const updateUserPreferencesApi = async (data) => {
-  try {
-    const response = await createAxiosInstance().post(`${USER_PREFERENCES_URL}/upsert`, data);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await createAxiosInstance().post(
+    `${USER_PREFERENCES_URL}/upsert`,
+    data,
+  );
+  return response.data;
 };
 
 // Get Individual User preferences
 export const getUserPreferencesApi = async (identifier) => {
-  try {
-    const response = await createAxiosInstance().get(`${USER_PREFERENCES_URL}/${identifier}`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await createAxiosInstance().get(
+    `${USER_PREFERENCES_URL}/${identifier}`,
+  );
+  return response.data;
 };
 
 // Patch/Replace User Preferences
 export const patchUserPreferencesApi = async (data) => {
-  try {
-    const response = await createAxiosInstance().patch(`${USER_PREFERENCES_URL}/replace`, data);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await createAxiosInstance().patch(
+    `${USER_PREFERENCES_URL}/replace`,
+    data,
+  );
+  return response.data;
 };
 
 // User Defaults

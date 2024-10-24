@@ -20,16 +20,22 @@ export const getGridLocation = createAsyncThunk('/get/grid', async (gridID) => {
   return response;
 });
 
-export const getSitesSummary = createAsyncThunk('/get/sites-summary', async () => {
-  const response = await getSiteSummaryDetails();
-  return response;
-});
+export const getSitesSummary = createAsyncThunk(
+  '/get/sites-summary',
+  async () => {
+    const response = await getSiteSummaryDetails();
+    return response;
+  },
+);
 
 // New async thunk for getting grids data summary
-export const getGridsDataSummary = createAsyncThunk('/get/grids-data-summary', async () => {
-  const response = await getGirdsSummaryDetails();
-  return response;
-});
+export const getGridsDataSummary = createAsyncThunk(
+  '/get/grids-data-summary',
+  async () => {
+    const response = await getGirdsSummaryDetails();
+    return response;
+  },
+);
 
 export const gridsSlice = createSlice({
   name: 'grids',

@@ -64,7 +64,10 @@ const ContactAdminModal = ({ open, onClose }) => {
     } catch (error) {
       setLoading(false);
       setErrorMessage(
-        error && error.response && error.response.data && error.response.data.message,
+        error &&
+          error.response &&
+          error.response.data &&
+          error.response.data.message,
       );
       setTimeout(() => {
         setErrorMessage('');
@@ -80,52 +83,58 @@ const ContactAdminModal = ({ open, onClose }) => {
       loading={loading}
     >
       <div>
-        <div className='flex justify-between items-center'>
-          <h2 className='self-stretch text-gray-700 text-lg font-medium leading-relaxed'>
+        <div className="flex justify-between items-center">
+          <h2 className="self-stretch text-gray-700 text-lg font-medium leading-relaxed">
             Contact Admin Support
           </h2>
         </div>
-        <div className='mt-4'>
-          <div className='w-full'>
-            <div className='text-sm text-secondary-neutral-light-600'>Full Name</div>
-            <div className='mt-2 w-full'>
+        <div className="mt-4">
+          <div className="w-full">
+            <div className="text-sm text-secondary-neutral-light-600">
+              Full Name
+            </div>
+            <div className="mt-2 w-full">
               <input
                 onChange={(e) => setFullName(e.target.value)}
-                type='text'
-                placeholder='Enter your full name'
+                type="text"
+                placeholder="Enter your full name"
                 className={`input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500`}
                 required
               />
             </div>
           </div>
-          <div className='mt-4'>
-            <div className='w-full'>
-              <div className='text-sm text-secondary-neutral-light-600'>Email</div>
-              <div className='mt-2 w-full'>
+          <div className="mt-4">
+            <div className="w-full">
+              <div className="text-sm text-secondary-neutral-light-600">
+                Email
+              </div>
+              <div className="mt-2 w-full">
                 <input
                   onChange={(e) => setEmail(e.target.value)}
-                  type='email'
-                  placeholder='Enter your email'
+                  type="email"
+                  placeholder="Enter your email"
                   className={`input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500`}
                   required
                 />
               </div>
               {email && email.length > 3 && !isValidEmail(email) && (
-                <div className='flex flex-row items-start text-xs text-red-600 py-2'>
-                  <HintIcon className='w-8 h-8' />
+                <div className="flex flex-row items-start text-xs text-red-600 py-2">
+                  <HintIcon className="w-8 h-8" />
                   <span>Please provide a valid email address!</span>
                 </div>
               )}
             </div>
           </div>
-          <div className='mt-4'>
-            <div className='w-full'>
-              <div className='text-sm text-secondary-neutral-light-600'>Message</div>
-              <div className='mt-2 w-full'>
+          <div className="mt-4">
+            <div className="w-full">
+              <div className="text-sm text-secondary-neutral-light-600">
+                Message
+              </div>
+              <div className="mt-2 w-full">
                 <textarea
                   onChange={(e) => setMessage(e.target.value)}
-                  rows='3'
-                  placeholder='Enter your message'
+                  rows="3"
+                  placeholder="Enter your message"
                   className={`textarea textarea-lg w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500`}
                   required
                 ></textarea>
@@ -134,13 +143,13 @@ const ContactAdminModal = ({ open, onClose }) => {
           </div>
         </div>
         {successMessage && (
-          <div className='flex flex-row items-start text-xs text-green-600 bg-green-50 py-2 px-2 rounded'>
+          <div className="flex flex-row items-start text-xs text-green-600 bg-green-50 py-2 px-2 rounded">
             <span>{successMessage}</span>
           </div>
         )}
         {errorMessage && (
-          <div className='flex flex-row items-center text-xs text-red-600 bg-red-50 px-2 rounded'>
-            <HintIcon className='w-8 h-8 mr-1 pt-2' />
+          <div className="flex flex-row items-center text-xs text-red-600 bg-red-50 px-2 rounded">
+            <HintIcon className="w-8 h-8 mr-1 pt-2" />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -196,27 +205,29 @@ const ConfirmOrganizationCohortToken = () => {
     >
       <ProgressComponent colorFirst />
       <div>
-        <h2 className='text-3xl text-black-800 font-semibold'>
+        <h2 className="text-3xl text-black-800 font-semibold">
           Please enter your organisation token
         </h2>
-        <p className='text-base text-black-800 font-normal mt-3'>
+        <p className="text-base text-black-800 font-normal mt-3">
           The organisation token is provided by AirQo
         </p>
         <form onSubmit={handleSubmit}>
-          <div className='mt-8'>
-            <div className='w-full'>
-              <div className='text-sm text-secondary-neutral-light-600'>Organization token</div>
-              <div className='mt-2 w-full'>
+          <div className="mt-8">
+            <div className="w-full">
+              <div className="text-sm text-secondary-neutral-light-600">
+                Organization token
+              </div>
+              <div className="mt-2 w-full">
                 <input
                   onChange={(e) => setToken(e.target.value)}
-                  type='text'
-                  placeholder='Enter your token'
+                  type="text"
+                  placeholder="Enter your token"
                   className={`input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500`}
                   required
                 />
                 {tokenErrorMsg && (
-                  <div className='flex flex-row items-start text-xs text-red-600 py-2'>
-                    <HintIcon className='w-8 h-8 mr-2' />
+                  <div className="flex flex-row items-start text-xs text-red-600 py-2">
+                    <HintIcon className="w-8 h-8 mr-2" />
                     <span>{tokenErrorMsg}</span>
                   </div>
                 )}
@@ -224,18 +235,18 @@ const ConfirmOrganizationCohortToken = () => {
             </div>
           </div>
 
-          <div className='mt-6'>
-            <div className='flex flex-col-reverse md:flex-row items-center justify-start md:justify-between'>
-              <div className='w-full'>
+          <div className="mt-6">
+            <div className="flex flex-col-reverse md:flex-row items-center justify-start md:justify-between">
+              <div className="w-full">
                 <button
                   style={{ textTransform: 'none' }}
-                  type='submit'
+                  type="submit"
                   onClick={handleSubmit}
-                  className='w-full btn text-sm outline-none border-none rounded-[12px] bg-blue-900 text-white hover:bg-blue-950
-                  '
+                  className="w-full btn text-sm outline-none border-none rounded-[12px] bg-blue-900 text-white hover:bg-blue-950
+                  "
                 >
                   {loading && token !== '' && !tokenErrorMsg ? (
-                    <Spinner data-testid='spinner' width={25} height={25} />
+                    <Spinner data-testid="spinner" width={25} height={25} />
                   ) : (
                     'Continue'
                   )}
@@ -244,24 +255,31 @@ const ConfirmOrganizationCohortToken = () => {
             </div>
           </div>
 
-          <div className='mt-8 w-full flex justify-start'>
-            <div className='flex flex-col gap-3'>
-              <div className='text-sm text-blue-960 font-medium'>Don't have a token?</div>
-              <div className='text-sm text-blue-900'>
+          <div className="mt-8 w-full flex justify-start">
+            <div className="flex flex-col gap-3">
+              <div className="text-sm text-blue-960 font-medium">
+                Don't have a token?
+              </div>
+              <div className="text-sm text-blue-900">
                 {' '}
-                <button type='button' onClick={() => setModalOpen(true)}>
+                <button type="button" onClick={() => setModalOpen(true)}>
                   Contact admin
                 </button>
               </div>
-              <div className='text-sm text-blue-900'>
+              <div className="text-sm text-blue-900">
                 {' '}
-                <Link href='/account/login'>Proceed as an individual</Link>
+                <Link href="/account/login">Proceed as an individual</Link>
               </div>
             </div>
           </div>
         </form>
       </div>
-      {modalOpen && <ContactAdminModal open={modalOpen} onClose={() => setModalOpen(false)} />}
+      {modalOpen && (
+        <ContactAdminModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+        />
+      )}
     </AccountPageLayout>
   );
 };

@@ -1,3 +1,5 @@
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import GoodAir from '@/icons/Charts/GoodAir';
 import Hazardous from '@/icons/Charts/Hazardous';
 import Moderate from '@/icons/Charts/Moderate';
@@ -8,98 +10,230 @@ import UnknownAQ from '@/icons/Charts/Invalid';
 import WindIcon from '@/icons/Common/wind.svg';
 import CustomTooltip from '../Tooltip';
 import { useWindowSize } from '@/lib/windowSize';
-import { capitalizeAllText } from '@/core/utils/strings';
+import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
+import TrendDownIcon from '@/icons/Analytics/trendDownIcon';
+import { fetchRecentMeasurementsData } from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
 
-const AQNumberCard = ({
-  reading,
-  location,
-  pollutant,
-  count,
-  locationFullName,
-  isLoading = false,
-}) => {
-  let airQualityText = '';
-  let AirQualityIcon = null;
-  const window = useWindowSize().width;
+const AQNumberCard = () => {
+  const dispatch = useDispatch();
+  const { width: windowWidth } = useWindowSize();
+  const [loading, setLoading] = useState(true);
 
-  if (reading >= 0 && reading <= 12) {
-    airQualityText = 'Air Quality is Good';
-    AirQualityIcon = GoodAir;
-  } else if (reading > 12 && reading <= 35.4) {
-    airQualityText = 'Air Quality is Moderate';
-    AirQualityIcon = Moderate;
-  } else if (reading > 35.4 && reading <= 55.4) {
-    airQualityText = 'Air Quality is Unhealthy for Sensitive Groups';
-    AirQualityIcon = UnhealthySG;
-  } else if (reading > 55.4 && reading <= 150.4) {
-    airQualityText = 'Air Quality is Unhealthy';
-    AirQualityIcon = Unhealthy;
-  } else if (reading > 150.4 && reading <= 250.4) {
-    airQualityText = 'Air Quality is Very Unhealthy';
-    AirQualityIcon = VeryUnhealthy;
-  } else if (reading > 250.4 && reading <= 500) {
-    airQualityText = 'Air Quality is Hazardous';
-    AirQualityIcon = Hazardous;
-  } else {
-    airQualityText = 'Air Quality is Unknown';
-    AirQualityIcon = UnknownAQ;
-  }
+  const recentLocationMeasurements = useSelector(
+    (state) => state.recentMeasurements.measurements,
+  );
+  const pollutantType = useSelector((state) => state.chart.pollutionType);
+  const preferencesData = useSelector(
+    (state) => state.defaults.individual_preferences,
+  );
+
+  // Memoize selected site IDs to prevent unnecessary computations
+  const selectedSiteIds = useMemo(() => {
+    return preferencesData?.[0]?.selected_sites?.map((site) => site._id) || [];
+  }, [preferencesData]);
+
+  const MAX_CARDS = 4;
+
+  const airQualityLevels = useMemo(
+    () => [
+      { max: 12, text: 'Air Quality is Good', icon: GoodAir },
+      { max: 35.4, text: 'Air Quality is Moderate', icon: Moderate },
+      {
+        max: 55.4,
+        text: 'Air Quality is Unhealthy for Sensitive Groups',
+        icon: UnhealthySG,
+      },
+      { max: 150.4, text: 'Air Quality is Unhealthy', icon: Unhealthy },
+      {
+        max: 250.4,
+        text: 'Air Quality is Very Unhealthy',
+        icon: VeryUnhealthy,
+      },
+      { max: 500, text: 'Air Quality is Hazardous', icon: Hazardous },
+    ],
+    [],
+  );
+
+  // Fetch measurements for all selected sites
+  const fetchMeasurementsForSites = useCallback(async () => {
+    if (selectedSiteIds.length > 0) {
+      setLoading(true);
+      try {
+        await dispatch(
+          fetchRecentMeasurementsData({ site_id: selectedSiteIds.join(',') }),
+        );
+      } catch (error) {
+        console.error('Error fetching recent measurements:', error);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setLoading(false);
+    }
+  }, [dispatch]);
+
+  // Load data on component mount and when selectedSiteIds change
+  useEffect(() => {
+    fetchMeasurementsForSites();
+  }, [fetchMeasurementsForSites]);
+
+  // Helper function to get air quality level
+  const getAirQualityLevel = useCallback(
+    (reading) => {
+      if (reading === null) {
+        return { text: 'Air Quality is Unknown', icon: UnknownAQ };
+      }
+      return (
+        airQualityLevels.find((level) => reading <= level.max) || {
+          text: 'Air Quality is Unknown',
+          icon: UnknownAQ,
+        }
+      );
+    },
+    [airQualityLevels],
+  );
+
+  // Helper function to get pollutant reading for a site
+  const getPollutantReading = useCallback(
+    (siteId) => {
+      const measurement = recentLocationMeasurements.find(
+        (m) => m.site_id === siteId,
+      );
+      if (measurement) {
+        return pollutantType === 'pm2_5'
+          ? measurement.pm2_5?.calibratedValue
+          : measurement.pm10?.calibratedValue;
+      }
+      return null;
+    },
+    [recentLocationMeasurements, pollutantType],
+  );
+
+  // Helper function to truncate text with ellipsis
+  const truncateText = useCallback((text, maxLength) => {
+    if (!text) return '---';
+    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+  }, []);
+
+  // Skeleton loader for loading state
+  const SkeletonCard = () => (
+    <div className="w-full bg-gray-200 animate-pulse rounded-xl px-4 py-10">
+      <div className="h-6 w-3/4 bg-gray-300 rounded"></div>
+      <div className="mt-2 h-4 w-1/2 bg-gray-300 rounded"></div>
+      <div className="mt-4 h-8 w-full bg-gray-300 rounded"></div>
+    </div>
+  );
+
+  // Open modal handler
+  const handleOpenModal = useCallback(
+    (type, ids = null, data = null) => {
+      dispatch(setModalType({ type, ids, data }));
+      dispatch(setOpenModal(true));
+    },
+    [dispatch],
+  );
+
+  // Render site cards
+  const renderSiteCards = () => {
+    return preferencesData?.[0]?.selected_sites
+      ?.slice(0, MAX_CARDS)
+      .map((site, index) => {
+        const reading = getPollutantReading(site._id);
+        const { text: airQualityText, icon: AirQualityIcon } =
+          getAirQualityLevel(reading);
+        // const isClickable = site.name && reading !== null;
+        const isClickable = true;
+
+        return (
+          <button
+            key={index}
+            className="w-full h-auto"
+            onClick={() => {
+              handleOpenModal('inSights', [], site);
+            }}
+            // disabled={!isClickable}
+          >
+            <div
+              className={`relative w-full flex flex-col justify-between bg-white border border-gray-200 rounded-xl px-4 py-6 h-[200px] shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out ${
+                isClickable ? 'cursor-pointer' : 'cursor-default'
+              }`}
+            >
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <div
+                    className="text-gray-700 text-[18px] font-medium capitalize text-left max-w-full"
+                    title={site.name || 'No Location Data'}
+                  >
+                    {truncateText(site.name, 12)}
+                  </div>
+                  <div className="text-base text-left text-slate-400 capitalize">
+                    {site.country || '---'}
+                  </div>
+                </div>
+
+                <div className="pl-2 pr-1 rounded-xl text-sm flex items-center gap-2 bg-gray-50 text-gray-500">
+                  <TrendDownIcon fill="#808080" />
+                  <span>--</span>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="flex items-center gap-1 mb-2">
+                    <div className="p-[2.62px] bg-gray-100 rounded-full flex items-center justify-center">
+                      <WindIcon width="10.48px" height="10.48px" />
+                    </div>
+                    <div className="text-slate-400 text-sm font-medium">
+                      {pollutantType ? pollutantType.toUpperCase() : '--'}
+                    </div>
+                  </div>
+                  <div className="text-gray-700 text-[28px] font-extrabold">
+                    {reading !== null ? reading.toFixed(2) : '--'}
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <CustomTooltip
+                    tooltipsText={airQualityText}
+                    position={windowWidth > 1024 ? 'top' : 'left'}
+                  >
+                    <div className="w-16 h-16 flex">
+                      {AirQualityIcon && <AirQualityIcon />}
+                    </div>
+                  </CustomTooltip>
+                </div>
+              </div>
+            </div>
+          </button>
+        );
+      });
+  };
 
   return (
-    <div
-      className={`${count <= 2 ? 'w-full md:min-w-[200px] md:max-w-[50%] float-left' : 'w-full'} ${
-        isLoading && 'animate-pulse'
-      } relative h-[164.48px] bg-white flex-col justify-start items-center inline-flex`}
-    >
-      <div className='border border-gray-200 rounded-lg overflow-hidden w-full'>
-        <div className='self-stretch w-full h-[68.48px] px-4 pt-3.5 pb-[10.48px] bg-white border-b border-b-gray-200 flex-col justify-start items-start flex'>
-          <div className='self-stretch justify-between items-center inline-flex'>
-            <div className='flex-col justify-start items-start inline-flex'>
-              {location !== '--' ? (
-                <div
-                  className='text-gray-700 text-base font-medium leading-normal whitespace-nowrap overflow-ellipsis'
-                  title={capitalizeAllText(locationFullName)}
-                >
-                  {capitalizeAllText(
-                    location.length > 17 ? location.slice(0, 17) + '...' : location,
-                  )}
-                </div>
-              ) : (
-                <div className='text-gray-700 text-base font-medium leading-normal whitespace-nowrap overflow-ellipsis'>
-                  {capitalizeAllText(
-                    location.length > 17 ? location.slice(0, 17) + '...' : location,
-                  )}
-                </div>
-              )}
-              <div className='text-slate-400 text-sm font-medium leading-tight'>Daily Avg.</div>
-            </div>
-          </div>
-        </div>
-        <div className='self-stretch w-full pl-4 pr-5 py-4 bg-white justify-between items-center inline-flex gap-4'>
-          <div className='flex-col justify-start items-start gap-0.5 inline-flex'>
-            <div className='flex-col justify-start items-start gap-0.5 flex'>
-              <div className='justify-start items-center gap-0.5 inline-flex'>
-                <div className='p-[2.62px] bg-slate-100 rounded-[18.35px] justify-center items-center flex'>
-                  <WindIcon width='10.48px' height='10.48px' />
-                </div>
-                <div className='text-slate-400 text-sm font-medium leading-tight'>
-                  {pollutant === 'pm2_5' ? 'PM2.5' : 'PM10'}
-                </div>
-              </div>
-              <div className='text-gray-700 text-[28px] font-extrabold leading-7'>
-                {typeof reading === 'number' ? reading.toFixed(2) : reading}
-              </div>
-            </div>
-          </div>
-          <div className='absolute right-3 bottom-1 z-10'>
-            <CustomTooltip tooltipsText={airQualityText} position={window > 1024 ? 'top' : 'left'}>
-              <div className='w-16 h-16 justify-center items-center flex'>
-                {AirQualityIcon && <AirQualityIcon />}
-              </div>
-            </CustomTooltip>
-          </div>
-        </div>
-      </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {loading ? (
+        // Display skeleton loaders while loading
+        Array.from({ length: MAX_CARDS }).map((_, index) => (
+          <SkeletonCard key={index} />
+        ))
+      ) : (
+        <>
+          {/* Render site cards if any */}
+          {preferencesData?.[0]?.selected_sites?.length > 0 &&
+            renderSiteCards()}
+
+          {/* Show Add Location button if there are fewer than MAX_CARDS */}
+          {preferencesData?.[0]?.selected_sites?.length < MAX_CARDS && (
+            <button
+              onClick={() => handleOpenModal('addLocation')}
+              className="border-dashed border-2 border-blue-400 bg-blue-50 rounded-xl px-4 py-6 h-[200px] flex justify-center items-center text-blue-500 transition-transform transform hover:scale-95"
+              aria-label="Add Location"
+            >
+              + Add location
+            </button>
+          )}
+        </>
+      )}
     </div>
   );
 };
