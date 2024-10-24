@@ -12,20 +12,24 @@ import LocationCard from '../components/LocationCard';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
-import { subDays } from 'date-fns';
+import { subDays, isValid, parseISO } from 'date-fns';
 
-// Utility function to validate date
-const isValidDate = (date) => date instanceof Date && !isNaN(date);
+/**
+ * Validates whether the input is a valid Date object.
+ */
+const isValidDate = (date) => isValid(date);
 
-// Helper function to process chart data with enhanced error handling
+/**
+ * Processes raw chart data by validating dates and organizing data by time and site.
+ */
 const processChartData = (data, selectedSites) => {
   const combinedData = {};
 
   data.forEach((dataPoint) => {
     const { value, time, site_id } = dataPoint;
 
-    // Validate the time
-    const date = new Date(time);
+    // Parse and validate the time using parseISO for consistent parsing
+    const date = parseISO(time);
     if (!isValidDate(date)) {
       console.warn(`Invalid date encountered: ${time}`);
       return; // Skip invalid date entries
@@ -34,8 +38,7 @@ const processChartData = (data, selectedSites) => {
     const site = selectedSites.find((s) => s._id === site_id);
     if (!site) return; // Ignore data for sites not selected
 
-    const siteName =
-      site.name || site.name?.split(',')[0] || 'Unknown Location';
+    const siteName = site.name?.split(',')[0] || 'Unknown Location';
     const formattedTime = date.toLocaleString();
 
     if (!combinedData[formattedTime]) {
@@ -45,7 +48,7 @@ const processChartData = (data, selectedSites) => {
     combinedData[formattedTime][siteName] = value;
   });
 
-  // Convert to array and sort by time
+  // Convert the combined data object to an array and sort it by time
   const sortedData = Object.values(combinedData).sort(
     (a, b) => new Date(a.time) - new Date(b.time),
   );
@@ -65,20 +68,21 @@ const InSightsHeader = () => (
 const MoreInsights = () => {
   const dispatch = useDispatch();
   const { data: modalData } = useSelector((state) => state.modal.modalType);
-  const [chartLoadings, setChartLoadings] = useState(false);
+  const [chartLoading, setChartLoading] = useState(false);
 
-  // Ensure modalData is always an array
+  // Ensure modalData is always an array for consistency
   const selectedSites = useMemo(() => {
     if (!modalData) return [];
     return Array.isArray(modalData) ? modalData : [modalData];
   }, [modalData]);
 
-  // Extract site IDs from selected sites
-  const selectedSiteIds = useMemo(() => {
-    return selectedSites.map((site) => site._id);
-  }, [selectedSites]);
+  // Extract site IDs from selected sites for API requests
+  const selectedSiteIds = useMemo(
+    () => selectedSites.map((site) => site._id),
+    [selectedSites],
+  );
 
-  // State for frequency, chart type, and date range
+  // State variables for frequency, chart type, and date range
   const [frequency, setFrequency] = useState('daily');
   const [chartType, setChartType] = useState('line');
   const [dateRange, setDateRange] = useState({
@@ -87,15 +91,15 @@ const MoreInsights = () => {
     label: 'Last 7 days',
   });
 
-  // State for loading and error
-  const [loading, setLoading] = useState(false);
+  // State variables for loading and error management
   const [error, setError] = useState(null);
 
-  // State to store fetched data
+  // State to store fetched analytics data
   const [allSiteData, setAllSiteData] = useState([]);
 
   /**
-   * Fetch analytics data based on selected sites, date range, frequency, and chart type.
+   * Fetches analytics data based on selected sites, date range, frequency, and chart type.
+   * Includes robust error handling and date validations.
    */
   const fetchAnalyticsData = useCallback(async () => {
     if (selectedSiteIds.length === 0) {
@@ -103,10 +107,18 @@ const MoreInsights = () => {
       return;
     }
 
-    // Validate dateRange
     const { startDate, endDate } = dateRange;
+
+    // Validate dateRange
     if (!isValidDate(startDate) || !isValidDate(endDate)) {
       setError('Invalid date range selected.');
+      setAllSiteData([]);
+      return;
+    }
+
+    // Ensure startDate is not after endDate
+    if (startDate > endDate) {
+      setError('Start date must be before the end date.');
       setAllSiteData([]);
       return;
     }
@@ -121,37 +133,43 @@ const MoreInsights = () => {
       organisation_name: 'airqo',
     };
 
-    // setLoading(true);
-    setChartLoadings(true);
+    // Set loading states before initiating the API call
+    setChartLoading(true);
     setError(null);
+
     try {
       const response = await getAnalyticsData(requestBody);
+
       if (response.status === 'success') {
         if (Array.isArray(response.data)) {
-          setAllSiteData(response.data); // Assuming response.data is the array of data points
+          setAllSiteData(response.data); // Store the fetched data
         } else {
+          // Handle unexpected data formats gracefully
           throw new Error('Unexpected data format received from the server.');
         }
       } else {
+        // Handle API response errors
         throw new Error(response.message || 'Failed to fetch analytics data.');
       }
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Failed to fetch analytics data.');
+      setError(
+        err.message || 'An error occurred while fetching analytics data.',
+      );
       setAllSiteData([]);
     } finally {
-      // setLoading(false);
-      setChartLoadings(false);
+      // Reset loading states after the API call
+      setChartLoading(false);
     }
   }, [selectedSiteIds, dateRange, frequency, chartType]);
 
-  // Fetch data on component mount and when dependencies change
+  // Fetch data on component mount and whenever dependencies change
   useEffect(() => {
     fetchAnalyticsData();
   }, [fetchAnalyticsData]);
 
   /**
-   * Filters and combines data from all selected sites for chart display.
+   * Processes and memoizes chart data for optimized rendering.
    */
   const chartData = useMemo(() => {
     if (allSiteData.length === 0) return [];
@@ -160,11 +178,11 @@ const MoreInsights = () => {
   }, [allSiteData, selectedSites]);
 
   /**
-   * Generates the content for selected sites in the sidebar.
+   * Generates the content for the selected sites in the sidebar.
+   * Displays loading skeletons, selected sites, or a message when no sites are selected.
    */
   const selectedSitesContent = useMemo(() => {
-    // If no sites are selected and it's not loading, show "No locations selected"
-    if (selectedSites.length === 0 && !loading) {
+    if (selectedSites.length === 0) {
       return (
         <div className="text-gray-500 w-full text-sm h-auto flex flex-col justify-center items-center">
           <span className="p-2 rounded-full bg-[#F6F6F7] mb-2">
@@ -175,37 +193,20 @@ const MoreInsights = () => {
       );
     }
 
-    // Show loading skeletons if the data is still loading
-    if (loading) {
-      return (
-        <div className="space-y-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <LocationCard
-              key={index}
-              site={{}}
-              onToggle={() => {}}
-              isLoading={loading}
-              isSelected={false}
-            />
-          ))}
-        </div>
-      );
-    }
-
-    // Map through the selected sites and render them
     return selectedSites.map((site) => (
       <LocationCard
         key={site._id}
         site={site}
         onToggle={() => {}}
         isSelected={true}
-        isLoading={loading}
+        isLoading={false}
       />
     ));
-  }, [selectedSites, loading]);
+  }, [selectedSites]);
 
   /**
    * Handles opening the modal with the specified type, ids, and data.
+   * Utilizes Redux actions for state management.
    */
   const handleOpenModal = useCallback(
     (type, ids = [], data = null) => {
@@ -217,11 +218,11 @@ const MoreInsights = () => {
 
   return (
     <>
-      {/* Sidebar for Selected Sites */}
+      {/* -------------------- Sidebar for Selected Sites -------------------- */}
       <div className="w-[280px] h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-5 pb-14">
         {selectedSitesContent}
-        {/* TODO: Implement Add Location Button back later */}
-        {/* {!loading && (
+        {/* Add Location Button */}
+        {/* {!chartLoading && (
           <button
             onClick={() => handleOpenModal('moreSights')}
             className="bg-blue-50 w-full rounded-xl px-2 py-4 h-[70px] flex justify-center items-center text-blue-500 transition-transform transform hover:scale-95"
@@ -231,16 +232,17 @@ const MoreInsights = () => {
         )} */}
       </div>
 
-      {/* Main Content Area */}
+      {/* -------------------- Main Content Area -------------------- */}
       <div className="bg-white relative w-full h-full">
         <div className="px-8 pt-6 pb-4 space-y-4 relative h-full overflow-y-hidden">
-          {/* Handle Error State */}
+          {/* -------------------- Error Display -------------------- */}
           {error && (
             <div className="w-full p-4 bg-red-100 text-red-700 rounded-md">
               {error}
             </div>
           )}
 
+          {/* -------------------- Controls: Dropdowns and Actions -------------------- */}
           <div className="w-full flex flex-wrap gap-2 justify-between">
             <div className="space-x-2 flex">
               {/* Frequency Dropdown */}
@@ -249,7 +251,7 @@ const MoreInsights = () => {
                 dropdown
                 id="frequency"
                 className="left-0"
-                isLoading={loading}
+                isLoading={chartLoading}
               >
                 {TIME_OPTIONS.map((option) => (
                   <span
@@ -272,11 +274,11 @@ const MoreInsights = () => {
                 initialStartDate={dateRange.startDate}
                 initialEndDate={dateRange.endDate}
                 onChange={(start, end) =>
-                  setDateRange({ startDate: start, endDate: end })
+                  setDateRange({ startDate: start, endDate: end, label: '' })
                 }
                 className="left-16 top-11"
                 dropdown
-                isLoading={loading}
+                isLoading={chartLoading}
               />
 
               {/* Chart Type Dropdown */}
@@ -284,7 +286,7 @@ const MoreInsights = () => {
                 btnText={chartType.charAt(0).toUpperCase() + chartType.slice(1)}
                 id="chartType"
                 className="left-0"
-                isLoading={loading}
+                isLoading={chartLoading}
               >
                 {CHART_TYPE.map((option) => (
                   <span
@@ -301,9 +303,8 @@ const MoreInsights = () => {
               </CustomDropdown>
             </div>
 
-            {/* Right Side: Actions */}
+            {/* Actions: Download Data */}
             <div className="space-x-2 flex">
-              {/* TODO: include this back later */}
               {/* <TabButtons
                 btnText="Download Data"
                 Icon={<DownloadIcon width={16} height={17} color="white" />}
@@ -315,12 +316,12 @@ const MoreInsights = () => {
                   )
                 }
                 btnStyle="bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl"
-                isLoading={loading}
+                isLoading={chartLoading}
               /> */}
             </div>
           </div>
 
-          {/* Flexible Chart */}
+          {/* -------------------- Chart Display -------------------- */}
           <div className="w-full h-auto border rounded-xl border-grey-150 p-2">
             {selectedSiteIds.length > 0 ? (
               <MoreInsightsChart
@@ -330,7 +331,7 @@ const MoreInsights = () => {
                 height={380}
                 id="air-quality-chart"
                 pollutantType="pm2_5"
-                isLoading={chartLoadings}
+                isLoading={chartLoading}
               />
             ) : (
               <div className="w-full flex flex-col justify-center items-center h-[380px] text-gray-500">
@@ -343,13 +344,12 @@ const MoreInsights = () => {
             )}
           </div>
 
-          {/* Air Quality Card */}
-          {/* TODO: Implement this back later */}
+          {/* -------------------- Air Quality Card -------------------- */}
           {/* <AirQualityCard
             airQuality="Kampala’s Air Quality has been Good this month compared to last month."
             pollutionSource="Factory, Dusty road"
             pollutant="PM2.5"
-            isLoading={chartLoadings}
+            isLoading={chartLoading}
           /> */}
         </div>
       </div>
