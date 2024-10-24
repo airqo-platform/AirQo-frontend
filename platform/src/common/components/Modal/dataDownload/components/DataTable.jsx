@@ -259,7 +259,16 @@ const DataTable = ({
           onSearch={handleSearch}
           onClearSearch={handleClearSearch}
           fuseOptions={{
-            keys: ['name', 'city', 'country', 'data_provider'],
+            keys: [
+              'name',
+              'search_name',
+              'parish',
+              'district',
+              'sub_county',
+              'city',
+              'country',
+              'data_provider',
+            ],
             threshold: 0.3,
           }}
         />

@@ -22,6 +22,7 @@ const AQNumberCard = () => {
   const recentLocationMeasurements = useSelector(
     (state) => state.recentMeasurements.measurements,
   );
+
   const pollutantType = useSelector((state) => state.chart.pollutionType);
   const preferencesData = useSelector(
     (state) => state.defaults.individual_preferences,
@@ -54,11 +55,14 @@ const AQNumberCard = () => {
     [],
   );
 
-  // Fetch measurements for all selected sites
+  // Simulate data fetching with mock data
   const fetchMeasurementsForSites = useCallback(async () => {
     if (selectedSiteIds.length > 0) {
       setLoading(true);
       try {
+        // Simulate network delay
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
         await dispatch(
           fetchRecentMeasurementsData({ site_id: selectedSiteIds.join(',') }),
         );
@@ -70,7 +74,7 @@ const AQNumberCard = () => {
     } else {
       setLoading(false);
     }
-  }, [dispatch]);
+  }, [dispatch, selectedSiteIds]);
 
   // Load data on component mount and when selectedSiteIds change
   useEffect(() => {
@@ -80,7 +84,7 @@ const AQNumberCard = () => {
   // Helper function to get air quality level
   const getAirQualityLevel = useCallback(
     (reading) => {
-      if (reading === null) {
+      if (reading === null || reading === undefined) {
         return { text: 'Air Quality is Unknown', icon: UnknownAQ };
       }
       return (
@@ -100,9 +104,12 @@ const AQNumberCard = () => {
         (m) => m.site_id === siteId,
       );
       if (measurement) {
-        return pollutantType === 'pm2_5'
-          ? measurement.pm2_5?.calibratedValue
-          : measurement.pm10?.calibratedValue;
+        // Ensure pollutantType is either 'pm2_5' or 'pm10'
+        if (pollutantType === 'pm2_5') {
+          return measurement.pm2_5?.value ?? null;
+        } else if (pollutantType === 'pm10') {
+          return measurement.pm10?.value ?? null;
+        }
       }
       return null;
     },
@@ -137,7 +144,7 @@ const AQNumberCard = () => {
   const renderSiteCards = () => {
     return preferencesData?.[0]?.selected_sites
       ?.slice(0, MAX_CARDS)
-      .map((site, index) => {
+      .map((site) => {
         const reading = getPollutantReading(site._id);
         const { text: airQualityText, icon: AirQualityIcon } =
           getAirQualityLevel(reading);
@@ -146,7 +153,7 @@ const AQNumberCard = () => {
 
         return (
           <button
-            key={index}
+            key={site._id}
             className="w-full h-auto"
             onClick={() => {
               handleOpenModal('inSights', [], site);
