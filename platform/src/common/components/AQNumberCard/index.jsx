@@ -74,7 +74,7 @@ const AQNumberCard = () => {
     } else {
       setLoading(false);
     }
-  }, [dispatch, selectedSiteIds]);
+  }, [dispatch]);
 
   // Load data on component mount and when selectedSiteIds change
   useEffect(() => {
@@ -168,7 +168,7 @@ const AQNumberCard = () => {
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <div
-                    className="text-gray-700 text-[18px] font-medium capitalize text-left max-w-full"
+                    className="text-gray-800 text-lg font-medium capitalize text-left max-w-full"
                     title={site.name || 'No Location Data'}
                   >
                     {truncateText(site.name, 12)}

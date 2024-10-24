@@ -27,13 +27,7 @@ import {
   colors,
 } from './components';
 import SkeletonLoader from './components/SkeletonLoader';
-
-// WHO standards for pollution types
-const WHO_STANDARD_VALUES = {
-  pm2_5: 15,
-  pm10: 45,
-  no2: 25,
-};
+import { WHO_STANDARD_VALUES } from './constants';
 
 // Main Chart Component
 const Charts = ({

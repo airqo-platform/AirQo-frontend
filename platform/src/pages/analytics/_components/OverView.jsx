@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import ChartContainer from '@/components/Charts/ChartContainer';
 import AQNumberCard from '@/components/AQNumberCard';
 import BorderlessContentBox from '@/components/Layout/borderless_content_box';
-import { fetchRecentMeasurementsData } from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
 import CustomCalendar from '@/components/Calendar/CustomCalendar';
 import CheckIcon from '@/icons/tickIcon';
 import TabButtons from '@/components/Button/TabButtons';
@@ -24,50 +23,9 @@ import { fetchSitesSummary } from '@/lib/store/services/sitesSummarySlice';
 import { setChartDataRange } from '@/lib/store/services/charts/ChartSlice';
 import { subDays } from 'date-fns';
 
-const useFetchMeasurements = () => {
-  const dispatch = useDispatch();
-  const chartData = useSelector((state) => state.chart);
-  const preferenceData =
-    useSelector((state) => state.defaults.individual_preferences) || [];
-
-  const refreshChart = useSelector((state) => state.chart.refreshChart);
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (!preferenceData.length) return;
-
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const { selected_sites } = preferenceData[0];
-        const chartSites = selected_sites?.map((site) => site['_id']);
-
-        if (chartSites?.length > 0) {
-          await dispatch(
-            fetchRecentMeasurementsData({
-              site_id: chartSites.join(','),
-            }),
-          );
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [dispatch, preferenceData, chartData, refreshChart]);
-
-  return { isLoading, error };
-};
-
 const OverView = () => {
   const dispatch = useDispatch();
   const isOpen = useSelector((state) => state.modal.openModal);
-  const { isLoading: isLoadingMeasurements } = useFetchMeasurements();
   const chartData = useSelector((state) => state.chart);
   const [dateRange, setDateRange] = useState({
     startDate: subDays(new Date(), 7),

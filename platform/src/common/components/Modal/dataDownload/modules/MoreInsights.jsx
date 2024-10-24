@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+// MoreInsights.jsx
+import React, { useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 // import DownloadIcon from '@/icons/Analytics/downloadIcon';
 import MoreInsightsChart from '@/components/Charts/MoreInsightsChart';
@@ -11,51 +12,12 @@ import { TIME_OPTIONS, CHART_TYPE } from '@/lib/constants';
 import LocationCard from '../components/LocationCard';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 // import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
-import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
-import { subDays, isValid, parseISO } from 'date-fns';
+import { subDays } from 'date-fns';
+import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
 
 /**
- * Validates whether the input is a valid Date object.
+ * InSightsHeader Component
  */
-const isValidDate = (date) => isValid(date);
-
-/**
- * Processes raw chart data by validating dates and organizing data by time and site.
- */
-const processChartData = (data, selectedSites) => {
-  const combinedData = {};
-
-  data.forEach((dataPoint) => {
-    const { value, time, site_id } = dataPoint;
-
-    // Parse and validate the time using parseISO for consistent parsing
-    const date = parseISO(time);
-    if (!isValidDate(date)) {
-      console.warn(`Invalid date encountered: ${time}`);
-      return; // Skip invalid date entries
-    }
-
-    const site = selectedSites.find((s) => s._id === site_id);
-    if (!site) return; // Ignore data for sites not selected
-
-    const siteName = site.name?.split(',')[0] || 'Unknown Location';
-    const formattedTime = date.toLocaleString();
-
-    if (!combinedData[formattedTime]) {
-      combinedData[formattedTime] = { time: formattedTime };
-    }
-
-    combinedData[formattedTime][siteName] = value;
-  });
-
-  // Convert the combined data object to an array and sort it by time
-  const sortedData = Object.values(combinedData).sort(
-    (a, b) => new Date(a.time) - new Date(b.time),
-  );
-
-  return sortedData;
-};
-
 const InSightsHeader = () => (
   <h3
     className="flex text-lg leading-6 font-medium text-gray-900"
@@ -65,10 +27,12 @@ const InSightsHeader = () => (
   </h3>
 );
 
+/**
+ * MoreInsights Component
+ */
 const MoreInsights = () => {
   // const dispatch = useDispatch();
   const { data: modalData } = useSelector((state) => state.modal.modalType);
-  const [chartLoading, setChartLoading] = useState(false);
 
   // Ensure modalData is always an array for consistency
   const selectedSites = useMemo(() => {
@@ -91,91 +55,14 @@ const MoreInsights = () => {
     label: 'Last 7 days',
   });
 
-  // State variables for loading and error management
-  const [error, setError] = useState(null);
-
-  // State to store fetched analytics data
-  const [allSiteData, setAllSiteData] = useState([]);
-
-  /**
-   * Fetches analytics data based on selected sites, date range, frequency, and chart type.
-   * Includes robust error handling and date validations.
-   */
-  const fetchAnalyticsData = useCallback(async () => {
-    if (selectedSiteIds.length === 0) {
-      setAllSiteData([]);
-      return;
-    }
-
-    const { startDate, endDate } = dateRange;
-
-    // Validate dateRange
-    if (!isValidDate(startDate) || !isValidDate(endDate)) {
-      setError('Invalid date range selected.');
-      setAllSiteData([]);
-      return;
-    }
-
-    // Ensure startDate is not after endDate
-    if (startDate > endDate) {
-      setError('Start date must be before the end date.');
-      setAllSiteData([]);
-      return;
-    }
-
-    const requestBody = {
-      sites: selectedSiteIds,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      chartType,
-      frequency,
-      pollutant: 'pm2_5',
-      organisation_name: 'airqo',
-    };
-
-    // Set loading states before initiating the API call
-    setChartLoading(true);
-    setError(null);
-
-    try {
-      const response = await getAnalyticsData(requestBody);
-
-      if (response.status === 'success') {
-        if (Array.isArray(response.data)) {
-          setAllSiteData(response.data); // Store the fetched data
-        } else {
-          // Handle unexpected data formats gracefully
-          throw new Error('Unexpected data format received from the server.');
-        }
-      } else {
-        // Handle API response errors
-        throw new Error(response.message || 'Failed to fetch analytics data.');
-      }
-    } catch (err) {
-      console.error(err);
-      setError(
-        err.message || 'An error occurred while fetching analytics data.',
-      );
-      setAllSiteData([]);
-    } finally {
-      // Reset loading states after the API call
-      setChartLoading(false);
-    }
-  }, [selectedSiteIds, dateRange, frequency, chartType]);
-
-  // Fetch data on component mount and whenever dependencies change
-  useEffect(() => {
-    fetchAnalyticsData();
-  }, [fetchAnalyticsData]);
-
-  /**
-   * Processes and memoizes chart data for optimized rendering.
-   */
-  const chartData = useMemo(() => {
-    if (allSiteData.length === 0) return [];
-
-    return processChartData(allSiteData, selectedSites);
-  }, [allSiteData, selectedSites]);
+  const { allSiteData, chartLoading, error } = useFetchAnalyticsData({
+    selectedSiteIds,
+    dateRange,
+    chartType,
+    frequency,
+    pollutant: 'pm2_5',
+    organisationName: 'airqo',
+  });
 
   /**
    * Generates the content for the selected sites in the sidebar.
@@ -213,7 +100,6 @@ const MoreInsights = () => {
   //     dispatch(setModalType({ type, ids, data }));
   //     dispatch(setOpenModal(true));
   //   },
-  //   [dispatch],
   // );
 
   return (
@@ -323,25 +209,17 @@ const MoreInsights = () => {
 
           {/* -------------------- Chart Display -------------------- */}
           <div className="w-full h-auto border rounded-xl border-grey-150 p-2">
-            {selectedSiteIds.length > 0 ? (
-              <MoreInsightsChart
-                data={chartData}
-                chartType={chartType}
-                width="100%"
-                height={380}
-                id="air-quality-chart"
-                pollutantType="pm2_5"
-                isLoading={chartLoading}
-              />
-            ) : (
-              <div className="w-full flex flex-col justify-center items-center h-[380px] text-gray-500">
-                <p className="text-lg font-medium mb-2">No Data Available</p>
-                <p className="text-sm">
-                  Please select at least one location to view the air quality
-                  data.
-                </p>
-              </div>
-            )}
+            <MoreInsightsChart
+              data={allSiteData}
+              selectedSites={selectedSites}
+              chartType={chartType}
+              frequency={frequency}
+              width="100%"
+              height={380}
+              id="air-quality-chart"
+              pollutantType="pm2_5"
+              isLoading={chartLoading}
+            />
           </div>
 
           {/* -------------------- Air Quality Card -------------------- */}
