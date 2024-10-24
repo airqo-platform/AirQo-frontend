@@ -30,7 +30,7 @@ import moment from 'moment';
 import JsPDF from 'jspdf';
 import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
 import { usePollutantsOptions } from 'utils/customHooks';
-import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
+import { useCurrentAirQloudData } from 'reducer/AirQloud/selectors';
 import { flattenSiteOptions } from 'utils/sites';
 import OutlinedSelect from 'views/components/CustomSelects/OutlinedSelect';
 import { isEmpty } from 'underscore';

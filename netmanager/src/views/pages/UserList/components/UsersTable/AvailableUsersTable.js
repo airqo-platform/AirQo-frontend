@@ -11,8 +11,8 @@ import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { isEmpty } from 'underscore';
 import { useDispatch } from 'react-redux';
 import { assignUserNetworkApi } from '../../../../apis/accessControl';
-import { updateMainAlert } from 'redux/MainAlert/operations';
-import { fetchAvailableNetworkUsers } from 'redux/AccessControl/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
+import { fetchAvailableNetworkUsers } from 'reducer/AccessControl/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import UsersListBreadCrumb from '../Breadcrumb';
 

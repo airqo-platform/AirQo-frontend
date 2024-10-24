@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DataTable from './Table';
 import ErrorBoundary from '../../ErrorBoundary/ErrorBoundary';
-import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
+import { setLoading as loadStatus } from 'reducer/HorizontalLoader/index';
 
 import { makeStyles } from '@material-ui/styles';
 import { useHistory } from 'react-router-dom';
@@ -18,10 +18,10 @@ import {
   IconButton
 } from '@material-ui/core';
 import { createTeamApi } from '../../apis/accessControl';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Tooltip from '@material-ui/core/Tooltip';
-import { getUserDetails } from 'redux/Join/actions';
+import { getUserDetails } from 'reducer/Join/actions';
 import { Close as CloseIcon } from '@material-ui/icons';
 
 import CustomMaterialTable from '../../components/Table/CustomMaterialTable';

@@ -3,10 +3,10 @@ import ReloadIcon from '@material-ui/icons/Replay';
 import { Box, Tooltip, makeStyles } from '@material-ui/core';
 import Select from 'react-select';
 import { useDispatch } from 'react-redux';
-import { useCurrentAirQloudData, useAirqloudsSummaryData } from 'redux/AirQloud/selectors';
-import { setCurrentAirQloudData, fetchAirqloudsSummaryData } from 'redux/AirQloud/operations';
-import { resetDefaultGraphData } from 'redux/Dashboard/operations';
-import { refreshAirQloud } from 'redux/AirQloud/operations';
+import { useCurrentAirQloudData, useAirqloudsSummaryData } from 'reducer/AirQloud/selectors';
+import { setCurrentAirQloudData, fetchAirqloudsSummaryData } from 'reducer/AirQloud/operations';
+import { resetDefaultGraphData } from 'reducer/Dashboard/operations';
+import { refreshAirQloud } from 'reducer/AirQloud/operations';
 
 import 'assets/css/dropdown.css';
 import { isEmpty } from 'underscore';

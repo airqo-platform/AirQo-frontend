@@ -14,7 +14,7 @@ import {
 
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { loginUser } from '../../../redux/Join/actions';
+import { loginUser } from '../../../reducer/Join/actions';
 import classnames from 'classnames';
 
 const useStyles = makeStyles(() => ({

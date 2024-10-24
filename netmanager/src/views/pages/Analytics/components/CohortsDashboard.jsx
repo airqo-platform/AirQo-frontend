@@ -11,11 +11,11 @@ import {
   AddChart,
   PollutantCategory
 } from '../../Dashboard/components';
-import { useUserDefaultGraphsData } from 'redux/Dashboard/selectors';
-import { loadUserDefaultGraphData } from 'redux/Dashboard/operations';
+import { useUserDefaultGraphsData } from 'reducer/Dashboard/selectors';
+import { loadUserDefaultGraphData } from 'reducer/Dashboard/operations';
 import D3CustomisableChart from '../../../components/d3/CustomisableChart';
-import { loadMapEventsData } from 'redux/MapData/operations';
-import { useEventsMapData } from 'redux/MapData/selectors';
+import { loadMapEventsData } from 'reducer/MapData/operations';
+import { useEventsMapData } from 'reducer/MapData/selectors';
 import { PM_25_CATEGORY } from '../../../../utils/categories';
 import { createDeviceOptions } from '..';
 import { formatString } from './AirqloudDropdown';

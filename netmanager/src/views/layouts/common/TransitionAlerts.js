@@ -4,8 +4,8 @@ import { Collapse, IconButton } from "@material-ui/core";
 import CloseIcon from "@material-ui/icons/Close";
 import Alert from "@material-ui/lab/Alert";
 import { createStyles, makeStyles } from "@material-ui/styles";
-import { useMainAlertData } from "redux/MainAlert/selectors";
-import { hideMainAlert } from "redux/MainAlert/operations";
+import { useMainAlertData } from "reducer/MainAlert/selectors";
+import { hideMainAlert } from "reducer/MainAlert/operations";
 
 
 const useAlertStyles = makeStyles((theme) =>

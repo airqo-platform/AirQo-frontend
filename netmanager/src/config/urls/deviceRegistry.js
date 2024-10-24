@@ -2,7 +2,7 @@ import { stripTrailingSlash } from '../utils';
 
 const BASE_DEVICE_REGISTRY_URL = stripTrailingSlash(process.env.REACT_APP_BASE_URL);
 
-const BASE_DEVICE_REGISTRY_URL_V2 = stripTrailingSlash(process.env.REACT_APP_BASE_URL_V2);
+const BASE_DEVICE_REGISTRY_URL_V2 = "https://staging-platform.airqo.net/api/v2";
 
 export const ACTIVITY_URI = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/activities`;
 

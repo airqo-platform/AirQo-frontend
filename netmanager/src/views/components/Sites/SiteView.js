@@ -6,14 +6,14 @@ import { useHistory, useParams } from 'react-router-dom';
 import { ArrowBackIosRounded } from '@material-ui/icons';
 import { Button, Grid, Paper, TextField, Typography } from '@material-ui/core';
 
-import { useSiteDetailsData } from 'redux/SiteRegistry/selectors';
-import { loadSiteDetails } from 'redux/SiteRegistry/operations';
+import { useSiteDetailsData } from 'reducer/SiteRegistry/selectors';
+import { loadSiteDetails } from 'reducer/SiteRegistry/operations';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
 import { useInitScrollTop } from 'utils/customHooks';
 import { humanReadableDate } from 'utils/dateTime';
-import { useSiteBackUrl } from 'redux/Urls/selectors';
+import { useSiteBackUrl } from 'reducer/Urls/selectors';
 import { updateSiteApi } from 'views/apis/deviceRegistry';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 
 // styles
 import { makeStyles } from '@material-ui/core/styles';
@@ -23,7 +23,7 @@ import 'react-leaflet-fullscreen/dist/styles.css';
 import 'assets/css/location-registry.css';
 import { withPermission } from '../../containers/PageAccess';
 
-import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
+import { setLoading as loadStatus } from 'reducer/HorizontalLoader/index';
 
 const gridItemStyle = {
   padding: '5px',

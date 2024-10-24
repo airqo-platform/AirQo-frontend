@@ -26,14 +26,14 @@ import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import ConfirmDialog from 'views/containers/ConfirmDialog';
 import { isEmpty } from 'underscore';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchNetworkUsers } from 'redux/AccessControl/operations';
+import { fetchNetworkUsers } from 'reducer/AccessControl/operations';
 import { assignUserToRoleApi } from '../../../../apis/accessControl';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import LoadingOverlay from 'react-loading-overlay';
 import UsersListBreadCrumb from '../Breadcrumb';
 // dropdown component
 import Dropdown from 'react-select';
-import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
+import { setLoading as loadStatus } from 'reducer/HorizontalLoader/index';
 
 const useStyles = makeStyles((theme) => ({
   root: {},

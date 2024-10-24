@@ -1,15 +1,15 @@
 import React from 'react';
 import { getByTestId, render, screen } from '@testing-library/react';
 import { Provider, useDispatch, useSelector } from 'react-redux';
-import { createStore } from 'redux';
+import { configureStore } from '@reduxjs/toolkit';
 import { BrowserRouter as Router } from 'react-router-dom';
-import RootReducer from '../../redux/SiteRegistry/reducers';
+import RootReducer from '../../reducer/SiteRegistry/reducers';
 import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import GridsRegistry from '../../views/pages/GridsRegistry';
 import AddGridToolbar from '../../views/pages/GridsRegistry/AddGridForm';
 
 const theme = createMuiTheme();
-const store = createStore(RootReducer);
+const store = configureStore(RootReducer);
 
 Storage.prototype.getItem = jest.fn(() =>
   JSON.stringify({
