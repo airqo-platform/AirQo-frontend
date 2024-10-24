@@ -27,7 +27,7 @@ const TableRowComponent = ({ item, isSelected, onToggleSite, index }) => (
           onChange={() => onToggleSite(item)}
         />
         <label htmlFor={`checkbox-table-search-${index}`} className="sr-only">
-          Select {item.location_name || 'Unknown Location'}
+          Select {item.name || 'Unknown Location'}
         </label>
       </div>
     </td>
@@ -38,10 +38,10 @@ const TableRowComponent = ({ item, isSelected, onToggleSite, index }) => (
       <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
         <LocationIcon width={16} height={16} fill="#9EA3AA" />
       </span>
-      {item?.location_name
-        ? item.location_name.split(',')[0].length > 25
-          ? `${item.location_name.split(',')[0].substring(0, 25)}...`
-          : item.location_name.split(',')[0]
+      {item?.name
+        ? item.name.split(',')[0].length > 25
+          ? `${item.name.split(',')[0].substring(0, 25)}...`
+          : item.name.split(',')[0]
         : 'Unknown Location'}
     </th>
     <td className="px-3 py-2">{item.city || 'N/A'}</td>
@@ -259,7 +259,7 @@ const DataTable = ({
           onSearch={handleSearch}
           onClearSearch={handleClearSearch}
           fuseOptions={{
-            keys: ['location_name', 'city', 'country', 'data_provider'],
+            keys: ['name', 'city', 'country', 'data_provider'],
             threshold: 0.3,
           }}
         />

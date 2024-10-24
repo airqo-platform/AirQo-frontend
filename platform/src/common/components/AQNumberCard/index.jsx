@@ -164,7 +164,7 @@ const AQNumberCard = () => {
                     className="text-gray-700 text-[18px] font-medium capitalize text-left max-w-full"
                     title={site.name || 'No Location Data'}
                   >
-                    {truncateText(site.search_name, 12)}
+                    {truncateText(site.name, 12)}
                   </div>
                   <div className="text-base text-left text-slate-400 capitalize">
                     {site.country || '---'}

@@ -162,7 +162,9 @@ const SideBarDrawer = () => {
                 />
               </div>
             </div>
-            <Carousel_1 className="w-full" cardWidth="min-w-[250px]" />
+
+            {/* TODO: Add carousel BACK later */}
+            {/* <Carousel_1 className="w-full" cardWidth="min-w-[250px]" /> */}
           </div>
         </div>
       </div>

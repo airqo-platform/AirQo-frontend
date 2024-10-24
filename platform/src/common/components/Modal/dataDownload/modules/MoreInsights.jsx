@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import DownloadIcon from '@/icons/Analytics/downloadIcon';
 import MoreInsightsChart from '@/components/Charts/MoreInsightsChart';
 import CustomCalendar from '@/components/Calendar/CustomCalendar';
@@ -9,8 +10,9 @@ import { TIME_OPTIONS, CHART_TYPE } from '@/lib/constants';
 import AirQualityCard from '../components/AirQualityCard';
 import LocationCard from '../components/LocationCard';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
-import { useDispatch, useSelector } from 'react-redux';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
+import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
+import { subDays } from 'date-fns'; // For date manipulation
 
 const InSightsHeader = () => (
   <h3
@@ -21,137 +23,121 @@ const InSightsHeader = () => (
   </h3>
 );
 
+// Helper function to process chart data
+const processChartData = (data, selectedSites) => {
+  const combinedData = {};
+
+  data.forEach((dataPoint) => {
+    const { value, time, site_id } = dataPoint;
+    const site = selectedSites.find((s) => s._id === site_id);
+    if (!site) return; // Ignore data for sites not selected
+    const siteName =
+      site.name || site.name?.split(',')[0] || 'Unknown Location';
+    const formattedTime = new Date(time).toLocaleString();
+
+    if (!combinedData[formattedTime]) {
+      combinedData[formattedTime] = { time: formattedTime };
+    }
+
+    combinedData[formattedTime][siteName] = value;
+  });
+
+  // Convert to array and sort by time
+  const sortedData = Object.values(combinedData).sort(
+    (a, b) => new Date(a.time) - new Date(b.time),
+  );
+
+  return sortedData;
+};
+
 const MoreInsights = () => {
   const dispatch = useDispatch();
-  const { data } = useSelector((state) => state.modal.modalType);
-  console.log(data);
+  const { data: modalData } = useSelector((state) => state.modal.modalType);
 
-  // State for selected sites
-  const [selectedSites, setSelectedSites] = useState([
-    { id: 1, location: 'Makerere University', country: 'Uganda' },
-    { id: 2, location: 'Nakasero Hill', country: 'Uganda' },
-  ]);
+  // Ensure modalData is always an array
+  const selectedSites = useMemo(() => {
+    if (!modalData) return [];
+    return Array.isArray(modalData) ? modalData : [modalData];
+  }, [modalData]);
+
+  // Extract site IDs from selected sites
+  const selectedSiteIds = useMemo(() => {
+    return selectedSites.map((site) => site._id);
+  }, [selectedSites]);
 
   // State for frequency, date range, and chart type
   const [frequency, setFrequency] = useState('daily');
   const [dateRange, setDateRange] = useState({
-    startDate: null,
-    endDate: null,
+    startDate: subDays(new Date(), 7), // Default to past 7 days
+    endDate: new Date(),
   });
   const [chartType, setChartType] = useState('line');
+
+  // console.log(selectedSiteIds, dateRange, frequency, chartType);
 
   // State for loading and error
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Sample sites data
-  const sites = [
-    { id: 1, location: 'Makerere University', country: 'Uganda' },
-    { id: 2, location: 'Nakasero Hill', country: 'Uganda' },
-  ];
-
   // State to store fetched data
-  const [allSiteData, setAllSiteData] = useState({});
+  const [allSiteData, setAllSiteData] = useState([]);
 
   /**
-   * Simulate fetching data from an API
+   * Fetch analytics data based on selected sites, date range, frequency, and chart type.
    */
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+  const fetchAnalyticsData = useCallback(async () => {
+    if (selectedSiteIds.length === 0) {
+      setAllSiteData([]);
+      return;
+    }
 
-        // Mock data representing air quality data for different locations
-        const fetchedData = {
-          1: [
-            {
-              time: '2024-05-20T10:00:00.000000Z',
-              pm2_5: 12.34,
-              pm10: 40.56,
-              no2: 22.78,
-            },
-            {
-              time: '2024-05-20T11:00:00.000000Z',
-              pm2_5: 16.45,
-              pm10: 43.21,
-              no2: 24.12,
-            },
-          ],
-          2: [
-            {
-              time: '2024-05-20T10:00:00.000000Z',
-              pm2_5: 22.34,
-              pm10: 42.56,
-              no2: 20.78,
-            },
-            {
-              time: '2024-05-20T11:00:00.000000Z',
-              pm2_5: 18.45,
-              pm10: 48.21,
-              no2: 23.12,
-            },
-          ],
-        };
-
-        // Simulate successful data fetching
-        setAllSiteData(fetchedData);
-      } catch (err) {
-        console.error(err);
-        setError('Failed to fetch air quality data.');
-      } finally {
-        setLoading(false);
-      }
+    const defaultBody = {
+      sites: selectedSiteIds,
+      startDate: dateRange.startDate.toISOString(),
+      endDate: dateRange.endDate.toISOString(),
+      chartType,
+      frequency,
+      pollutant: 'pm2_5',
+      organisation_name: 'airqo',
     };
 
-    fetchData();
-  }, []);
-
-  /**
-   * Handles the toggling of selected sites.
-   */
-  const handleToggleSite = useCallback((site) => {
-    setSelectedSites((prevSelectedSites) => {
-      const isSelected = prevSelectedSites.some((s) => s.id === site.id);
-      if (isSelected) {
-        // Deselecting the site
-        return prevSelectedSites.filter((s) => s.id !== site.id);
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await getAnalyticsData(defaultBody);
+      if (response.status === 'success') {
+        setAllSiteData(response.data); // Assuming response.data is the array of data points
       } else {
-        // Selecting the site
-        return [...prevSelectedSites, site];
+        setError(response.message || 'Failed to fetch analytics data.');
       }
-    });
-  }, []);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch analytics data.');
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedSiteIds, dateRange, frequency, chartType]);
+
+  // Fetch data on component mount and when dependencies change
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, [fetchAnalyticsData]);
 
   /**
    * Filters and combines data from all selected sites for chart display.
    */
   const chartData = useMemo(() => {
-    if (selectedSites.length === 0) return [];
+    if (allSiteData.length === 0) return [];
 
-    const combinedData = {};
-
-    selectedSites.forEach((site) => {
-      const siteData = allSiteData[site.id] || [];
-      siteData.forEach((dataPoint) => {
-        if (!combinedData[dataPoint.time]) {
-          combinedData[dataPoint.time] = { time: dataPoint.time };
-        }
-        combinedData[dataPoint.time][site.location] = dataPoint.pm2_5;
-      });
-    });
-
-    return Object.values(combinedData);
-  }, [selectedSites, allSiteData]);
+    return processChartData(allSiteData, selectedSites);
+  }, [allSiteData, selectedSites]);
 
   /**
    * Generates the content for selected sites in the sidebar.
    */
   const selectedSitesContent = useMemo(() => {
     // If no sites are selected and it's not loading, show "No locations selected"
-    if (selectedSites?.length === 0 && !loading) {
+    if (selectedSites.length === 0 && !loading) {
       return (
         <div className="text-gray-500 w-full text-sm h-auto flex flex-col justify-center items-center">
           <span className="p-2 rounded-full bg-[#F6F6F7] mb-2">
@@ -170,7 +156,7 @@ const MoreInsights = () => {
             <LocationCard
               key={index}
               site={{}} // Passing an empty object during loading
-              onToggle={handleToggleSite}
+              onToggle={() => {}} // No toggle during loading
               isLoading={loading}
               isSelected={false} // Not selected while loading
             />
@@ -179,22 +165,25 @@ const MoreInsights = () => {
       );
     }
 
-    // Map through the sites once loaded and render them
-    return sites.map((site) => (
+    // Map through the selected sites and render them
+    return selectedSites.map((site) => (
       <LocationCard
-        key={site.id} // Assuming `site.id` is the unique key
+        key={site._id} // Using `_id` as the unique key
         site={site}
-        onToggle={handleToggleSite}
-        isSelected={selectedSites.some((s) => s.id === site.id)} // Check if the site is selected
+        onToggle={() => {}} // Implement toggle if needed
+        isSelected={true} // All sites from modal are selected
         isLoading={loading}
       />
     ));
-  }, [selectedSites, handleToggleSite, sites, loading]);
+  }, [selectedSites, loading]);
 
+  /**
+   * Handles opening the modal with the specified type, ids, and data.
+   */
   const handleOpenModal = useCallback(
-    (type, ids = []) => {
+    (type, ids = [], data = null) => {
+      dispatch(setModalType({ type, ids, data }));
       dispatch(setOpenModal(true));
-      dispatch(setModalType({ type, ids }));
     },
     [dispatch],
   );
@@ -204,19 +193,23 @@ const MoreInsights = () => {
       {/* Sidebar for Selected Sites */}
       <div className="w-[280px] h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-5 pb-14">
         {selectedSitesContent}
-        {!loading && (
+        {/* TODO: Implement Add Location Button back later */}
+        {/* {!loading && (
           <button
             onClick={() => handleOpenModal('moreSights')}
-            className="bg-blue-50 w-full rounded-xl px-2 py-4 h-[70px] flex justify-center items-center text-blue-500"
+            className="bg-blue-50 w-full rounded-xl px-2 py-4 h-[70px] flex justify-center items-center text-blue-500 transition-transform transform hover:scale-95"
           >
             + Add location
           </button>
-        )}
+        )} */}
       </div>
 
       {/* Main Content Area */}
-      <div className="bg-white relative w-full h-auto">
-        <div className="px-8 pt-6 pb-4 space-y-4 overflow-y-auto">
+      <div className="bg-white relative w-full h-full">
+        <div className="px-8 pt-6 pb-4 space-y-4 relative h-full overflow-y-hidden">
+          {/* Header */}
+          <InSightsHeader />
+
           {/* Handle Error State */}
           {error && (
             <div className="w-full p-4 bg-red-100 text-red-700 rounded-md">
@@ -286,26 +279,33 @@ const MoreInsights = () => {
 
             {/* Right Side: Actions */}
             <div className="space-x-2 flex">
-              <TabButtons
+              {/* TODO: include this back later */}
+              {/* <TabButtons
                 btnText="Download Data"
                 Icon={<DownloadIcon width={16} height={17} color="white" />}
-                onClick={() => null}
+                onClick={() =>
+                  handleOpenModal(
+                    'downloadData',
+                    selectedSiteIds,
+                    selectedSites,
+                  )
+                }
                 btnStyle="bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl"
                 isLoading={loading}
-              />
+              /> */}
             </div>
           </div>
 
           {/* Flexible Chart */}
           <div className="w-full h-auto border rounded-xl border-grey-150 p-2">
-            {selectedSites.length > 0 ? (
+            {selectedSiteIds.length > 0 ? (
               <MoreInsightsChart
                 data={chartData}
                 chartType={chartType}
                 width="100%"
                 height={380}
                 id="air-quality-chart"
-                pollutionType="pm2_5"
+                pollutantType="pm2_5"
                 isLoading={loading}
               />
             ) : (
@@ -320,12 +320,13 @@ const MoreInsights = () => {
           </div>
 
           {/* Air Quality Card */}
-          <AirQualityCard
+          {/* TODO: Implement this back later */}
+          {/* <AirQualityCard
             airQuality="Kampala’s Air Quality has been Good this month compared to last month."
             pollutionSource="Factory, Dusty road"
             pollutant="PM2.5"
             isLoading={loading}
-          />
+          /> */}
         </div>
       </div>
     </>

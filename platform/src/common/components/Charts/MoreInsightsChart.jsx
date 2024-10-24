@@ -275,6 +275,14 @@ const MoreInsightsChart = React.memo(
       WHO_STANDARD_VALUE,
     ]);
 
+    if (Array.isArray(data) && data.length === 0 && !isLoading) {
+      return (
+        <div className="w-full flex flex-col justify-center items-center h-[380px] text-gray-500">
+          <p className="text-lg font-medium mb-2">No Data Available</p>
+        </div>
+      );
+    }
+
     return (
       <div id={id} className="pt-2">
         {isLoading ? (

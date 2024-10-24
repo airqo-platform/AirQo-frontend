@@ -108,6 +108,12 @@ const AddLocations = ({ onClose }) => {
       return;
     }
 
+    // if the locations are more than 4, show an error message
+    if (selectedSites.length > 4) {
+      setError('You can select up to 4 locations only');
+      return;
+    }
+
     // Start the loading state for submission
     setSubmitLoading(true);
 

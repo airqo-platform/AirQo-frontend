@@ -196,7 +196,9 @@ const AuthenticatedSideBar = () => {
                 iconOnly={isCollapsed}
               />
             </div>
-            <Carousel_1 />
+
+            {/* TODO: Add carousel BACK later */}
+            {/* <Carousel_1 /> */}
           </div>
         </div>
 

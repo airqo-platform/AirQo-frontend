@@ -154,7 +154,8 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
           </div>
 
           <div className="hidden lg:flex gap-2 items-center">
-            <Button
+            {/* TODO: Add search bar back */}
+            {/* <Button
               type="button"
               variant="text"
               className=""
@@ -164,7 +165,7 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
               }}
             >
               <TopBarSearch />
-            </Button>
+            </Button> */}
 
             <CustomDropdown
               tabIcon={
@@ -209,6 +210,7 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
               <div>{topbarTitle}</div>
             </div>
           </div>
+
           <button
             type="button"
             onClick={() => {

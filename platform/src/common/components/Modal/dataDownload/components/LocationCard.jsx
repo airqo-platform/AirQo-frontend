@@ -1,6 +1,13 @@
 import React from 'react';
 
+// Helper function to handle truncation logic
+const truncateName = (name, maxLength = 25) => {
+  if (!name) return 'Unknown Location';
+  return name.length > maxLength ? `${name.substring(0, maxLength)}...` : name;
+};
+
 const LocationCard = ({ site, onToggle, isSelected, isLoading }) => {
+  // Display loading skeleton while loading
   if (isLoading) {
     return (
       <div className="flex flex-col gap-3 p-3 items-start bg-gray-100 rounded-xl animate-pulse w-full h-[68px]">
@@ -13,6 +20,11 @@ const LocationCard = ({ site, onToggle, isSelected, isLoading }) => {
     );
   }
 
+  // Determine display name (search_name or fallback to location_name)
+  const displayName = truncateName(
+    site?.name || site?.search_name?.split(',')[0],
+  );
+
   return (
     <div
       onClick={() => onToggle(site)}
@@ -21,14 +33,10 @@ const LocationCard = ({ site, onToggle, isSelected, isLoading }) => {
       } rounded-lg shadow-sm transition-all w-full`}
     >
       <div className="flex flex-col gap-2">
-        <h1 className="text-sm font-medium text-gray-900">
-          {site?.location_name
-            ? site.location_name.split(',')[0].length > 25
-              ? `${site.location_name.split(',')[0].substring(0, 25)}...`
-              : site.location_name.split(',')[0]
-            : 'Unknown Location'}
-        </h1>
-        <small className="text-xs text-gray-500">{site.country}</small>
+        <h1 className="text-sm font-medium text-gray-900">{displayName}</h1>
+        <small className="text-xs text-gray-500">
+          {site.country || 'Unknown Country'}
+        </small>
       </div>
       <div>
         <input
@@ -38,8 +46,7 @@ const LocationCard = ({ site, onToggle, isSelected, isLoading }) => {
             e.stopPropagation();
             onToggle(site);
           }}
-          onClick={(e) => e.stopPropagation()}
-          className="w-4 h-4 text-blue-600 bg-white cursor-pointer border-blue-300 relative bottom-3 rounded focus:ring-blue-500"
+          className="w-4 h-4 text-blue-600 bg-white cursor-pointer border-blue-300 rounded focus:ring-blue-500"
         />
       </div>
     </div>

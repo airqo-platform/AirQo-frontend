@@ -78,8 +78,8 @@ const DataDownload = ({ onClose }) => {
 
   // Form data state
   const [formData, setFormData] = useState({
-    title: 'Untitled Report',
-    network: NETWORK_OPTIONS[0],
+    title: { name: 'Untitled Report' },
+    network: NETWORK_OPTIONS[0] || { id: '', name: 'Default Network' },
     dataType: DATA_TYPE_OPTIONS[0],
     pollutant: POLLUTANT_OPTIONS[0],
     duration: null,
@@ -158,7 +158,7 @@ const DataDownload = ({ onClose }) => {
         // Determine the file extension and MIME type
         const fileExtension = formData.fileType.name.toLowerCase();
         const mimeType = getMimeType(fileExtension);
-        const fileName = `${formData.title}.${fileExtension}`;
+        const fileName = `${formData.title.name}.${fileExtension}`;
 
         if (fileExtension === 'csv') {
           // Handle CSV: response.data is a CSV string
@@ -228,8 +228,8 @@ const DataDownload = ({ onClose }) => {
 
         // Reset form data after submission
         setFormData({
-          title: 'Untitled Report',
-          network: NETWORK_OPTIONS[0],
+          title: { name: 'Untitled Report' },
+          network: NETWORK_OPTIONS[0] || { id: '', name: 'Default Network' },
           dataType: DATA_TYPE_OPTIONS[0],
           pollutant: POLLUTANT_OPTIONS[0],
           duration: null,
@@ -276,7 +276,7 @@ const DataDownload = ({ onClose }) => {
           title="Title"
           edit={edit}
           id="title"
-          defaultOption={{ name: formData.title }}
+          defaultOption={{ name: formData.title.name }}
           handleOptionSelect={handleOptionSelect}
         />
         <CustomFields
