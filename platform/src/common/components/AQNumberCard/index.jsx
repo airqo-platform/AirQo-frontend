@@ -70,7 +70,7 @@ const AQNumberCard = () => {
     } else {
       setLoading(false);
     }
-  }, [dispatch]);
+  }, [dispatch, selectedSiteIds]);
 
   // Load data on component mount and when selectedSiteIds change
   useEffect(() => {
