@@ -188,7 +188,9 @@ const AQNumberCard = () => {
                     </div>
                   </div>
                   <div className="text-gray-700 text-[28px] font-extrabold">
-                    {reading !== null ? reading.toFixed(2) : '--'}
+                    {typeof reading === 'number' && !isNaN(reading)
+                      ? reading.toFixed(2)
+                      : '--'}
                   </div>
                 </div>
 
