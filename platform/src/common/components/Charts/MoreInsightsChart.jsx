@@ -40,8 +40,8 @@ const WHO_STANDARD_VALUES = {
  * @returns {string|number} - Formatted tick.
  */
 const formatYAxisTick = (tick) => {
-  if (tick >= 1_000_000) return `${tick / 1_000_000}M`;
-  if (tick >= 1_000) return `${tick / 1_000}K`;
+  if (tick >= 1_000_000) return `${(tick / 1_000_000).toFixed(1)}M`;
+  if (tick >= 1_000) return `${(tick / 1_000).toFixed(1)}K`;
   return tick;
 };
 
@@ -85,8 +85,8 @@ const ChartLoadingSkeleton = ({ width, height }) => {
 };
 
 ChartLoadingSkeleton.propTypes = {
-  width: PropTypes.string,
-  height: PropTypes.string,
+  width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 /**
@@ -100,11 +100,44 @@ const MoreInsightsChart = React.memo(
     height = '300px',
     id,
     pollutionType,
-    isLoading = false, // New isLoading prop
+    isLoading = false,
   }) => {
     const [activeIndex, setActiveIndex] = useState(null);
+    const [dataError, setDataError] = useState(null);
 
-    // Memoized WHO standard value based on pollution type
+    /**
+     * Validate and sanitize data
+     */
+    const sanitizedData = useMemo(() => {
+      if (!Array.isArray(data)) {
+        setDataError('Data is not an array.');
+        return [];
+      }
+
+      return data.map((item, index) => {
+        const newItem = { ...item };
+        if (!newItem.time) {
+          console.warn(`Data item at index ${index} is missing 'time' field.`);
+          newItem.time = 'N/A';
+        } else {
+          const date = new Date(newItem.time);
+          if (isNaN(date.getTime())) {
+            console.warn(
+              `Invalid time value at index ${index}: ${newItem.time}`,
+            );
+            newItem.time = 'Invalid Date';
+          } else {
+            // Optionally format the time
+            newItem.time = date.toLocaleString(); // Adjust formatting as needed
+          }
+        }
+        return newItem;
+      });
+    }, [data]);
+
+    /**
+     * Memoized WHO standard value based on pollution type
+     */
     const WHO_STANDARD_VALUE = useMemo(
       () => WHO_STANDARD_VALUES[pollutionType] || 0,
       [pollutionType],
@@ -112,14 +145,11 @@ const MoreInsightsChart = React.memo(
 
     /**
      * Handler to reset the active index when the mouse leaves a data point.
-     * Memoized to avoid creating a new function on every render.
      */
     const handleMouseLeave = useCallback(() => setActiveIndex(null), []);
 
     /**
      * Determines the color of the line or bar based on the active index.
-     * If no index is active, all lines/bars use their default colors.
-     * Memoized to prevent unnecessary recalculations.
      */
     const getColor = useCallback(
       (index) =>
@@ -136,17 +166,15 @@ const MoreInsightsChart = React.memo(
     const DataComponent = chartType === 'line' ? Line : Bar;
 
     /**
-     * Memoized unique data keys for plotting, excluding the 'time' key.
+     * Unique data keys for plotting, excluding the 'time' key.
      */
     const dataKeys = useMemo(() => {
-      return data.length > 0
-        ? Object.keys(data[0]).filter((key) => key !== 'time')
-        : [];
-    }, [data]);
+      if (sanitizedData.length === 0) return [];
+      return Object.keys(sanitizedData[0]).filter((key) => key !== 'time');
+    }, [sanitizedData]);
 
     /**
      * Calculates the interval for the X-axis ticks based on screen width.
-     * Memoized to ensure this is only calculated when the screen width or data changes.
      */
     const calculateXAxisInterval = useCallback(() => {
       const screenWidth = window.innerWidth;
@@ -156,14 +184,31 @@ const MoreInsightsChart = React.memo(
     }, [data.length]);
 
     /**
-     * Memoized render for table rows to prevent unnecessary re-renders.
+     * Render the chart or appropriate messages based on state
      */
     const renderChart = useMemo(() => {
+      if (dataError) {
+        return (
+          <div className="w-full flex flex-col justify-center items-center h-[380px] text-red-500">
+            <p className="text-lg font-medium mb-2">Data Error</p>
+            <p className="text-sm">{dataError}</p>
+          </div>
+        );
+      }
+
+      if (sanitizedData.length === 0) {
+        return (
+          <div className="w-full flex flex-col justify-center items-center h-[380px] text-gray-500">
+            <p className="text-lg font-medium mb-2">No Data Available</p>
+          </div>
+        );
+      }
+
       return (
         <ResponsiveContainer width={width} height={height}>
           <ChartComponent
-            data={data}
-            margin={{ top: 38, right: 10 }}
+            data={sanitizedData}
+            margin={{ top: 38, right: 10, left: 10, bottom: 10 }}
             style={{ cursor: 'pointer' }}
           >
             {/* Grid */}
@@ -246,7 +291,7 @@ const MoreInsightsChart = React.memo(
             ))}
 
             {/* Reference Line */}
-            {pollutionType && (
+            {pollutionType && WHO_STANDARD_VALUE > 0 && (
               <ReferenceLine
                 y={WHO_STANDARD_VALUE}
                 label={<CustomReferenceLabel />}
@@ -262,7 +307,7 @@ const MoreInsightsChart = React.memo(
     }, [
       ChartComponent,
       DataComponent,
-      data,
+      sanitizedData,
       dataKeys,
       height,
       width,
@@ -273,15 +318,8 @@ const MoreInsightsChart = React.memo(
       calculateXAxisInterval,
       pollutionType,
       WHO_STANDARD_VALUE,
+      dataError,
     ]);
-
-    if (Array.isArray(data) && data.length === 0 && !isLoading) {
-      return (
-        <div className="w-full flex flex-col justify-center items-center h-[380px] text-gray-500">
-          <p className="text-lg font-medium mb-2">No Data Available</p>
-        </div>
-      );
-    }
 
     return (
       <div id={id} className="pt-2">
@@ -298,13 +336,22 @@ const MoreInsightsChart = React.memo(
 MoreInsightsChart.displayName = 'MoreInsightsChart';
 
 MoreInsightsChart.propTypes = {
-  data: PropTypes.arrayOf(PropTypes.object).isRequired,
+  data: PropTypes.arrayOf(
+    PropTypes.shape({
+      time: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.number,
+        PropTypes.instanceOf(Date),
+      ]).isRequired,
+      // Add other keys based on your data structure
+    }),
+  ).isRequired,
   chartType: PropTypes.oneOf(['line', 'bar']),
   width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   id: PropTypes.string,
   pollutionType: PropTypes.oneOf(['pm2_5', 'pm10', 'no2', 'other']),
-  isLoading: PropTypes.bool, // New prop
+  isLoading: PropTypes.bool,
 };
 
 export default MoreInsightsChart;
