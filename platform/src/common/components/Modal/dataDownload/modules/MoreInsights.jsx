@@ -12,28 +12,31 @@ import LocationCard from '../components/LocationCard';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
-import { subDays } from 'date-fns'; // For date manipulation
+import { subDays } from 'date-fns';
 
-const InSightsHeader = () => (
-  <h3
-    className="flex text-lg leading-6 font-medium text-gray-900"
-    id="modal-title"
-  >
-    Analytics
-  </h3>
-);
+// Utility function to validate date
+const isValidDate = (date) => date instanceof Date && !isNaN(date);
 
-// Helper function to process chart data
+// Helper function to process chart data with enhanced error handling
 const processChartData = (data, selectedSites) => {
   const combinedData = {};
 
   data.forEach((dataPoint) => {
     const { value, time, site_id } = dataPoint;
+
+    // Validate the time
+    const date = new Date(time);
+    if (!isValidDate(date)) {
+      console.warn(`Invalid date encountered: ${time}`);
+      return; // Skip invalid date entries
+    }
+
     const site = selectedSites.find((s) => s._id === site_id);
     if (!site) return; // Ignore data for sites not selected
+
     const siteName =
       site.name || site.name?.split(',')[0] || 'Unknown Location';
-    const formattedTime = new Date(time).toLocaleString();
+    const formattedTime = date.toLocaleString();
 
     if (!combinedData[formattedTime]) {
       combinedData[formattedTime] = { time: formattedTime };
@@ -50,9 +53,19 @@ const processChartData = (data, selectedSites) => {
   return sortedData;
 };
 
+const InSightsHeader = () => (
+  <h3
+    className="flex text-lg leading-6 font-medium text-gray-900"
+    id="modal-title"
+  >
+    Analytics
+  </h3>
+);
+
 const MoreInsights = () => {
   const dispatch = useDispatch();
   const { data: modalData } = useSelector((state) => state.modal.modalType);
+  const [chartLoadings, setChartLoadings] = useState(false);
 
   // Ensure modalData is always an array
   const selectedSites = useMemo(() => {
@@ -65,15 +78,14 @@ const MoreInsights = () => {
     return selectedSites.map((site) => site._id);
   }, [selectedSites]);
 
-  // State for frequency, date range, and chart type
+  // State for frequency, chart type, and date range
   const [frequency, setFrequency] = useState('daily');
-  const [dateRange, setDateRange] = useState({
-    startDate: subDays(new Date(), 7), // Default to past 7 days
-    endDate: new Date(),
-  });
   const [chartType, setChartType] = useState('line');
-
-  // console.log(selectedSiteIds, dateRange, frequency, chartType);
+  const [dateRange, setDateRange] = useState({
+    startDate: subDays(new Date(), 7),
+    endDate: new Date(),
+    label: 'Last 7 days',
+  });
 
   // State for loading and error
   const [loading, setLoading] = useState(false);
@@ -91,30 +103,45 @@ const MoreInsights = () => {
       return;
     }
 
-    const defaultBody = {
+    // Validate dateRange
+    const { startDate, endDate } = dateRange;
+    if (!isValidDate(startDate) || !isValidDate(endDate)) {
+      setError('Invalid date range selected.');
+      setAllSiteData([]);
+      return;
+    }
+
+    const requestBody = {
       sites: selectedSiteIds,
-      startDate: dateRange.startDate.toISOString(),
-      endDate: dateRange.endDate.toISOString(),
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
       chartType,
       frequency,
       pollutant: 'pm2_5',
       organisation_name: 'airqo',
     };
 
-    setLoading(true);
+    // setLoading(true);
+    setChartLoadings(true);
     setError(null);
     try {
-      const response = await getAnalyticsData(defaultBody);
+      const response = await getAnalyticsData(requestBody);
       if (response.status === 'success') {
-        setAllSiteData(response.data); // Assuming response.data is the array of data points
+        if (Array.isArray(response.data)) {
+          setAllSiteData(response.data); // Assuming response.data is the array of data points
+        } else {
+          throw new Error('Unexpected data format received from the server.');
+        }
       } else {
-        setError(response.message || 'Failed to fetch analytics data.');
+        throw new Error(response.message || 'Failed to fetch analytics data.');
       }
     } catch (err) {
       console.error(err);
-      setError('Failed to fetch analytics data.');
+      setError(err.message || 'Failed to fetch analytics data.');
+      setAllSiteData([]);
     } finally {
-      setLoading(false);
+      // setLoading(false);
+      setChartLoadings(false);
     }
   }, [selectedSiteIds, dateRange, frequency, chartType]);
 
@@ -155,10 +182,10 @@ const MoreInsights = () => {
           {Array.from({ length: 4 }).map((_, index) => (
             <LocationCard
               key={index}
-              site={{}} // Passing an empty object during loading
-              onToggle={() => {}} // No toggle during loading
+              site={{}}
+              onToggle={() => {}}
               isLoading={loading}
-              isSelected={false} // Not selected while loading
+              isSelected={false}
             />
           ))}
         </div>
@@ -168,10 +195,10 @@ const MoreInsights = () => {
     // Map through the selected sites and render them
     return selectedSites.map((site) => (
       <LocationCard
-        key={site._id} // Using `_id` as the unique key
+        key={site._id}
         site={site}
-        onToggle={() => {}} // Implement toggle if needed
-        isSelected={true} // All sites from modal are selected
+        onToggle={() => {}}
+        isSelected={true}
         isLoading={loading}
       />
     ));
@@ -207,9 +234,6 @@ const MoreInsights = () => {
       {/* Main Content Area */}
       <div className="bg-white relative w-full h-full">
         <div className="px-8 pt-6 pb-4 space-y-4 relative h-full overflow-y-hidden">
-          {/* Header */}
-          <InSightsHeader />
-
           {/* Handle Error State */}
           {error && (
             <div className="w-full p-4 bg-red-100 text-red-700 rounded-md">
@@ -306,7 +330,7 @@ const MoreInsights = () => {
                 height={380}
                 id="air-quality-chart"
                 pollutantType="pm2_5"
-                isLoading={loading}
+                isLoading={chartLoadings}
               />
             ) : (
               <div className="w-full flex flex-col justify-center items-center h-[380px] text-gray-500">
@@ -325,7 +349,7 @@ const MoreInsights = () => {
             airQuality="Kampala’s Air Quality has been Good this month compared to last month."
             pollutionSource="Factory, Dusty road"
             pollutant="PM2.5"
-            isLoading={loading}
+            isLoading={chartLoadings}
           /> */}
         </div>
       </div>

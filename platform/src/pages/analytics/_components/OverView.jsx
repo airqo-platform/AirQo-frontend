@@ -21,6 +21,8 @@ import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { fetchSitesSummary } from '@/lib/store/services/sitesSummarySlice';
+import { setChartDataRange } from '@/lib/store/services/charts/ChartSlice';
+import { subDays } from 'date-fns';
 
 const useFetchMeasurements = () => {
   const dispatch = useDispatch();
@@ -67,6 +69,11 @@ const OverView = () => {
   const isOpen = useSelector((state) => state.modal.openModal);
   const { isLoading: isLoadingMeasurements } = useFetchMeasurements();
   const chartData = useSelector((state) => state.chart);
+  const [dateRange, setDateRange] = useState({
+    startDate: subDays(new Date(), 7),
+    endDate: new Date(),
+    label: 'Last 7 days',
+  });
 
   // get loggedUser from local storage
   const user = JSON.parse(localStorage.getItem('loggedUser'));
@@ -136,9 +143,13 @@ const OverView = () => {
                 </span>
               ))}
             </CustomDropdown>
+
             <CustomCalendar
-              initialStartDate={chartData.chartDataRange.startDate}
-              initialEndDate={chartData.chartDataRange.endDate}
+              initialStartDate={dateRange.startDate}
+              initialEndDate={dateRange.endDate}
+              onChange={(start, end) =>
+                dispatch(setChartDataRange({ start, end }))
+              }
               className="-left-24 md:left-14 lg:left-[70px] top-11"
               dropdown
             />
