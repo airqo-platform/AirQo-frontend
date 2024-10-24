@@ -14,26 +14,29 @@ import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
 import { subDays } from 'date-fns'; // For date manipulation
 
-const InSightsHeader = () => (
-  <h3
-    className="flex text-lg leading-6 font-medium text-gray-900"
-    id="modal-title"
-  >
-    Analytics
-  </h3>
-);
+// Utility function to validate date
+const isValidDate = (date) => date instanceof Date && !isNaN(date);
 
-// Helper function to process chart data
+// Helper function to process chart data with enhanced error handling
 const processChartData = (data, selectedSites) => {
   const combinedData = {};
 
   data.forEach((dataPoint) => {
     const { value, time, site_id } = dataPoint;
+
+    // Validate the time
+    const date = new Date(time);
+    if (!isValidDate(date)) {
+      console.warn(`Invalid date encountered: ${time}`);
+      return; // Skip invalid date entries
+    }
+
     const site = selectedSites.find((s) => s._id === site_id);
     if (!site) return; // Ignore data for sites not selected
+
     const siteName =
       site.name || site.name?.split(',')[0] || 'Unknown Location';
-    const formattedTime = new Date(time).toLocaleString();
+    const formattedTime = date.toLocaleString();
 
     if (!combinedData[formattedTime]) {
       combinedData[formattedTime] = { time: formattedTime };
@@ -49,6 +52,15 @@ const processChartData = (data, selectedSites) => {
 
   return sortedData;
 };
+
+const InSightsHeader = () => (
+  <h3
+    className="flex text-lg leading-6 font-medium text-gray-900"
+    id="modal-title"
+  >
+    Analytics
+  </h3>
+);
 
 const MoreInsights = () => {
   const dispatch = useDispatch();
@@ -73,8 +85,6 @@ const MoreInsights = () => {
   });
   const [chartType, setChartType] = useState('line');
 
-  // console.log(selectedSiteIds, dateRange, frequency, chartType);
-
   // State for loading and error
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -87,6 +97,13 @@ const MoreInsights = () => {
    */
   const fetchAnalyticsData = useCallback(async () => {
     if (selectedSiteIds.length === 0) {
+      setAllSiteData([]);
+      return;
+    }
+
+    // Validate dateRange
+    if (!isValidDate(dateRange.startDate) || !isValidDate(dateRange.endDate)) {
+      setError('Invalid date range selected.');
       setAllSiteData([]);
       return;
     }
@@ -106,13 +123,18 @@ const MoreInsights = () => {
     try {
       const response = await getAnalyticsData(defaultBody);
       if (response.status === 'success') {
-        setAllSiteData(response.data); // Assuming response.data is the array of data points
+        if (Array.isArray(response.data)) {
+          setAllSiteData(response.data); // Assuming response.data is the array of data points
+        } else {
+          throw new Error('Unexpected data format received from the server.');
+        }
       } else {
-        setError(response.message || 'Failed to fetch analytics data.');
+        throw new Error(response.message || 'Failed to fetch analytics data.');
       }
     } catch (err) {
       console.error(err);
-      setError('Failed to fetch analytics data.');
+      setError(err.message || 'Failed to fetch analytics data.');
+      setAllSiteData([]);
     } finally {
       setLoading(false);
     }
@@ -155,10 +177,10 @@ const MoreInsights = () => {
           {Array.from({ length: 4 }).map((_, index) => (
             <LocationCard
               key={index}
-              site={{}} // Passing an empty object during loading
-              onToggle={() => {}} // No toggle during loading
+              site={{}}
+              onToggle={() => {}}
               isLoading={loading}
-              isSelected={false} // Not selected while loading
+              isSelected={false}
             />
           ))}
         </div>
@@ -168,10 +190,10 @@ const MoreInsights = () => {
     // Map through the selected sites and render them
     return selectedSites.map((site) => (
       <LocationCard
-        key={site._id} // Using `_id` as the unique key
+        key={site._id}
         site={site}
-        onToggle={() => {}} // Implement toggle if needed
-        isSelected={true} // All sites from modal are selected
+        onToggle={() => {}}
+        isSelected={true}
         isLoading={loading}
       />
     ));
