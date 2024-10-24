@@ -1,16 +1,16 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import DownloadIcon from '@/icons/Analytics/downloadIcon';
+import { useSelector } from 'react-redux';
+// import DownloadIcon from '@/icons/Analytics/downloadIcon';
 import MoreInsightsChart from '@/components/Charts/MoreInsightsChart';
 import CustomCalendar from '@/components/Calendar/CustomCalendar';
 import CheckIcon from '@/icons/tickIcon';
-import TabButtons from '@/components/Button/TabButtons';
+// import TabButtons from '@/components/Button/TabButtons';
 import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
 import { TIME_OPTIONS, CHART_TYPE } from '@/lib/constants';
-import AirQualityCard from '../components/AirQualityCard';
+// import AirQualityCard from '../components/AirQualityCard';
 import LocationCard from '../components/LocationCard';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
-import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
+// import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
 import { subDays, isValid, parseISO } from 'date-fns';
 
@@ -66,7 +66,7 @@ const InSightsHeader = () => (
 );
 
 const MoreInsights = () => {
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
   const { data: modalData } = useSelector((state) => state.modal.modalType);
   const [chartLoading, setChartLoading] = useState(false);
 
@@ -208,13 +208,13 @@ const MoreInsights = () => {
    * Handles opening the modal with the specified type, ids, and data.
    * Utilizes Redux actions for state management.
    */
-  const handleOpenModal = useCallback(
-    (type, ids = [], data = null) => {
-      dispatch(setModalType({ type, ids, data }));
-      dispatch(setOpenModal(true));
-    },
-    [dispatch],
-  );
+  // const handleOpenModal = useCallback(
+  //   (type, ids = [], data = null) => {
+  //     dispatch(setModalType({ type, ids, data }));
+  //     dispatch(setOpenModal(true));
+  //   },
+  //   [dispatch],
+  // );
 
   return (
     <>
