@@ -159,7 +159,7 @@ const ChartContainer = memo(
               </span>
             </button>
           ))}
-          <hr className="border-gray-200" />
+          {/* <hr className="border-gray-200" />
           {['csv', 'pdf'].map((format) => (
             <button
               key={format}
@@ -168,7 +168,7 @@ const ChartContainer = memo(
             >
               <span>Share report as {format.toUpperCase()}</span>
             </button>
-          ))}
+          ))} */}
         </>
       ),
       [exportChart, loadingFormat, downloadComplete, refreshChart, shareReport],
@@ -194,7 +194,7 @@ const ChartContainer = memo(
                 >
                   {chartLoading ? (
                     <SkeletonLoader
-                      width="150px"
+                      width="100%"
                       height="40px"
                       className="p-2"
                     />
