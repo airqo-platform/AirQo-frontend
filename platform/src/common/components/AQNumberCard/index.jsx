@@ -191,7 +191,11 @@ const AQNumberCard = () => {
                       <WindIcon width="10.48px" height="10.48px" />
                     </div>
                     <div className="text-slate-400 text-sm font-medium">
-                      {pollutantType ? pollutantType.toUpperCase() : '--'}
+                      {pollutantType
+                        ? pollutantType === 'pm2_5'
+                          ? 'PM2.5'
+                          : 'PM10'
+                        : '---'}
                     </div>
                   </div>
                   <div className="text-gray-700 text-[28px] font-extrabold">
