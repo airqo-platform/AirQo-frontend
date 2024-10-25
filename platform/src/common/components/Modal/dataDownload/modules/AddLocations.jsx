@@ -30,12 +30,6 @@ const AddLocationHeader = () => {
 const AddLocations = ({ onClose }) => {
   const dispatch = useDispatch();
 
-  // Memoize user data from local storage to avoid rerenders
-  const user = useMemo(
-    () => JSON.parse(localStorage.getItem('loggedUser')),
-    [],
-  );
-
   // Retrieve user preferences from Redux store
   const preferencesData = useSelector(
     (state) => state.defaults.individual_preferences,
@@ -141,8 +135,8 @@ const AddLocations = ({ onClose }) => {
       .then(() => {
         // Optionally, provide feedback or close the modal
         onClose();
-        if (user) {
-          dispatch(getIndividualUserPreferences(user._id));
+        if (userID) {
+          dispatch(getIndividualUserPreferences(userID));
         }
         dispatch(setRefreshChart(true));
       })
