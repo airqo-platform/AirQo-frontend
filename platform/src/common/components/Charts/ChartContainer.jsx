@@ -50,6 +50,8 @@ const ChartContainer = memo(
       (state) => state.defaults.individual_preferences,
     );
 
+    const user_selected_sites = preferencesData?.[0]?.selected_sites;
+
     // Extract selected site IDs from preferencesData
     const selectedSiteIds = useMemo(() => {
       return (
@@ -134,9 +136,9 @@ const ChartContainer = memo(
     }, []);
 
     const handleOpenModal = useCallback(
-      (type, ids = []) => {
+      (type, ids = null, data = null) => {
+        dispatch(setModalType({ type, ids, data }));
         dispatch(setOpenModal(true));
-        dispatch(setModalType({ type, ids }));
       },
       [dispatch],
     );
@@ -170,7 +172,7 @@ const ChartContainer = memo(
           ))}
           <hr className="border-gray-200" />
           <button
-            onClick={() => handleOpenModal('inSights', selectedSiteIds)}
+            onClick={() => handleOpenModal('inSights', [], user_selected_sites)}
             className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >
             More insights
@@ -222,7 +224,7 @@ const ChartContainer = memo(
           )}
           <div
             ref={chartRef}
-            className="mt-6 relative"
+            className="my-6 relative"
             style={{ width, height }}
           >
             <MoreInsightsChart

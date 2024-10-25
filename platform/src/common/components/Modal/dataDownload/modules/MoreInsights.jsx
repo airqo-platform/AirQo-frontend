@@ -1,5 +1,5 @@
 // MoreInsights.jsx
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 // import DownloadIcon from '@/icons/Analytics/downloadIcon';
 import MoreInsightsChart from '@/components/Charts/MoreInsightsChart';
@@ -66,10 +66,10 @@ const MoreInsights = () => {
     refetch,
   });
 
-  // method to toggle refetch
-  const toggleRefetch = () => {
-    setRefetch(!refetch);
-  };
+  // Method to toggle refetch
+  const toggleRefetch = useCallback(() => {
+    setRefetch((prev) => !prev);
+  }, []);
 
   /**
    * Generates the content for the selected sites in the sidebar.
@@ -107,6 +107,7 @@ const MoreInsights = () => {
   //     dispatch(setModalType({ type, ids, data }));
   //     dispatch(setOpenModal(true));
   //   },
+  //   [dispatch]
   // );
 
   return (
@@ -160,7 +161,7 @@ const MoreInsights = () => {
                     <span>
                       {option.charAt(0).toUpperCase() + option.slice(1)}
                     </span>
-                    {frequency === option && <CheckIcon fill={'#145FFF'} />}
+                    {frequency === option && <CheckIcon fill="#145FFF" />}
                   </span>
                 ))}
               </CustomDropdown>
@@ -197,7 +198,7 @@ const MoreInsights = () => {
                     }`}
                   >
                     <span>{option.name}</span>
-                    {chartType === option.id && <CheckIcon fill={'#145FFF'} />}
+                    {chartType === option.id && <CheckIcon fill="#145FFF" />}
                   </span>
                 ))}
               </CustomDropdown>
@@ -209,11 +210,7 @@ const MoreInsights = () => {
                 btnText="Download Data"
                 Icon={<DownloadIcon width={16} height={17} color="white" />}
                 onClick={() =>
-                  handleOpenModal(
-                    'downloadData',
-                    selectedSiteIds,
-                    selectedSites,
-                  )
+                  handleOpenModal('downloadData', selectedSiteIds, selectedSites)
                 }
                 btnStyle="bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl"
                 isLoading={chartLoading}

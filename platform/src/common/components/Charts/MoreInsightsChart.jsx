@@ -57,7 +57,7 @@ const MoreInsightsChart = React.memo(
       data.forEach((dataPoint) => {
         const { site_id, name } = dataPoint;
         if (!siteIdToName[site_id]) {
-          siteIdToName[site_id] = name.split(',')[0] || 'Unknown Location';
+          siteIdToName[site_id] = name || 'Unknown Location';
         }
       });
 
@@ -74,14 +74,13 @@ const MoreInsightsChart = React.memo(
         // Only include data points from selected sites
         if (!selectedSiteIds.includes(site_id)) return;
 
-        const siteName = siteIdToName[site_id] || 'Unknown Location';
         const rawTime = time;
 
         if (!combinedData[rawTime]) {
           combinedData[rawTime] = { time: rawTime };
         }
 
-        combinedData[rawTime][siteName] = value;
+        combinedData[rawTime][site_id] = value;
       });
 
       // Convert the combined data object to an array and sort it by time
@@ -89,16 +88,24 @@ const MoreInsightsChart = React.memo(
         (a, b) => new Date(a.time) - new Date(b.time),
       );
 
-      return sortedData;
+      return { sortedData, siteIdToName };
     }, []);
 
     /**
      * Memoized processed chart data
      */
-    const chartData = useMemo(() => {
-      if (!data || !selectedSites) return [];
+    const { sortedData: chartData, siteIdToName } = useMemo(() => {
+      if (!data || !selectedSites) return { sortedData: [], siteIdToName: {} };
       return processChartData(data, selectedSites);
     }, [data, selectedSites, processChartData]);
+
+    /**
+     * Unique data keys for plotting, which are site IDs.
+     */
+    const dataKeys = useMemo(() => {
+      if (chartData.length === 0) return [];
+      return Object.keys(chartData[0]).filter((key) => key !== 'time');
+    }, [chartData]);
 
     /**
      * Memoized WHO standard value based on pollutant type
@@ -131,14 +138,6 @@ const MoreInsightsChart = React.memo(
     const DataComponent = chartType === 'line' ? Line : Bar;
 
     /**
-     * Unique data keys for plotting, excluding the 'time' key.
-     */
-    const dataKeys = useMemo(() => {
-      if (chartData.length === 0) return [];
-      return Object.keys(chartData[0]).filter((key) => key !== 'time');
-    }, [chartData]);
-
-    /**
      * Calculates the interval for the X-axis ticks based on screen width.
      */
     const calculateXAxisInterval = useCallback(() => {
@@ -155,15 +154,6 @@ const MoreInsightsChart = React.memo(
       () => calculateXAxisInterval(),
       [calculateXAxisInterval],
     );
-
-    /**
-     * Memoized WHO standard value based on pollutant type
-     */
-    const whoStandardValue = useMemo(() => {
-      return pollutantType && WHO_STANDARD_VALUES[pollutantType]
-        ? WHO_STANDARD_VALUES[pollutantType]
-        : null;
-    }, [pollutantType]);
 
     /**
      * Render the chart or appropriate messages based on state
@@ -267,6 +257,7 @@ const MoreInsightsChart = React.memo(
               <DataComponent
                 key={key}
                 dataKey={key}
+                name={siteIdToName[key] || 'Unknown Location'}
                 type={chartType === 'line' ? 'monotone' : undefined}
                 stroke={chartType === 'line' ? getColor(index) : undefined}
                 strokeWidth={chartType === 'line' ? 4 : undefined}
@@ -281,9 +272,9 @@ const MoreInsightsChart = React.memo(
             ))}
 
             {/* Reference Line */}
-            {whoStandardValue && (
+            {WHO_STANDARD_VALUE && (
               <ReferenceLine
-                y={whoStandardValue}
+                y={WHO_STANDARD_VALUE}
                 label={<CustomReferenceLabel />}
                 ifOverflow="extendDomain"
                 stroke="red"
@@ -309,8 +300,8 @@ const MoreInsightsChart = React.memo(
       WHO_STANDARD_VALUE,
       dataKeys,
       renderCustomizedLegend,
-      whoStandardValue,
       frequency,
+      siteIdToName,
     ]);
 
     return (
