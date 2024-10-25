@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ChartContainer from '@/components/Charts/ChartContainer';
 import AQNumberCard from '@/components/AQNumberCard';
@@ -11,6 +11,8 @@ import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
 import {
   setTimeFrame,
   setPollutant,
+  setChartDataRange,
+  setRefreshChart,
 } from '@/lib/store/services/charts/ChartSlice';
 import SettingsIcon from '@/icons/settings.svg';
 import PlusIcon from '@/icons/map/plusIcon';
@@ -20,10 +22,6 @@ import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { fetchSitesSummary } from '@/lib/store/services/sitesSummarySlice';
-import {
-  setChartDataRange,
-  setRefreshChart,
-} from '@/lib/store/services/charts/ChartSlice';
 import { subDays } from 'date-fns';
 
 const OverView = () => {
@@ -36,20 +34,25 @@ const OverView = () => {
     label: 'Last 7 days',
   });
 
-  // get loggedUser from local storage
-  const user = JSON.parse(localStorage.getItem('loggedUser'));
+  // Memoize user data from local storage to avoid rerenders
+  const user = useMemo(
+    () => JSON.parse(localStorage.getItem('loggedUser')),
+    [],
+  );
 
-  // Dispatch the async action to fetch the sites summary data when the component mounts
+  // Fetch sites summary only once when the component mounts
   useEffect(() => {
     dispatch(fetchSitesSummary());
   }, [dispatch]);
 
-  // Fetch use preferences data
+  // Fetch user preferences only if a user is found in local storage
   useEffect(() => {
-    if (!user) return;
-    dispatch(getIndividualUserPreferences(user._id));
-  }, [dispatch]);
+    if (user) {
+      dispatch(getIndividualUserPreferences(user._id));
+    }
+  }, [dispatch, user]);
 
+  // Memoize handleOpenModal to avoid unnecessary rerenders
   const handleOpenModal = useCallback(
     (type, ids = []) => {
       dispatch(setOpenModal(true));
@@ -58,6 +61,7 @@ const OverView = () => {
     [dispatch],
   );
 
+  // Memoize handleTimeFrameChange and handlePollutantChange
   const handleTimeFrameChange = useCallback(
     (option) => {
       dispatch(setTimeFrame(option));
@@ -96,12 +100,10 @@ const OverView = () => {
                   }`}
                 >
                   <span className="flex items-center space-x-2">
-                    <span>
-                      {option.charAt(0).toUpperCase() + option.slice(1)}
-                    </span>
+                    {option.charAt(0).toUpperCase() + option.slice(1)}
                   </span>
                   {chartData.timeFrame === option && (
-                    <CheckIcon fill={'#145FFF'} />
+                    <CheckIcon fill="#145FFF" />
                   )}
                 </span>
               ))}
@@ -112,11 +114,13 @@ const OverView = () => {
               initialEndDate={dateRange.endDate}
               onChange={(startDate, endDate, label) => {
                 dispatch(setChartDataRange({ startDate, endDate, label }));
+                setDateRange({ startDate, endDate, label });
                 dispatch(setRefreshChart(true));
               }}
               className="-left-24 md:left-14 lg:left-[70px] top-11"
               dropdown
             />
+
             <CustomDropdown
               tabIcon={<SettingsIcon />}
               btnText="Pollutant"
@@ -134,15 +138,16 @@ const OverView = () => {
                   }`}
                 >
                   <span className="flex items-center space-x-2">
-                    <span>{option.name}</span>
+                    {option.name}
                   </span>
                   {chartData.pollutionType === option.id && (
-                    <CheckIcon fill={'#145FFF'} />
+                    <CheckIcon fill="#145FFF" />
                   )}
                 </span>
               ))}
             </CustomDropdown>
           </div>
+
           <div className="space-x-2 flex">
             <TabButtons
               btnText="Add location"
@@ -153,9 +158,7 @@ const OverView = () => {
               btnText="Download Data"
               Icon={<DownloadIcon width={16} height={17} color="white" />}
               onClick={() => handleOpenModal('download')}
-              btnStyle={
-                'bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl'
-              }
+              btnStyle="bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl"
             />
           </div>
         </div>
@@ -177,6 +180,7 @@ const OverView = () => {
           />
         </div>
       </div>
+
       <Modal isOpen={isOpen} onClose={() => dispatch(setOpenModal(false))} />
     </BorderlessContentBox>
   );

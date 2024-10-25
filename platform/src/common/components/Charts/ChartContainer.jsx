@@ -57,7 +57,7 @@ const ChartContainer = memo(
       return (
         preferencesData?.[0]?.selected_sites?.map((site) => site._id) || []
       );
-    }, [preferencesData]);
+    }, []);
 
     const { allSiteData, chartLoading } = useFetchAnalyticsData({
       selectedSiteIds,

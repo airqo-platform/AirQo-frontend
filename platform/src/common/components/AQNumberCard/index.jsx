@@ -31,7 +31,7 @@ const AQNumberCard = () => {
   // Memoize selected site IDs to prevent unnecessary computations
   const selectedSiteIds = useMemo(() => {
     return preferencesData?.[0]?.selected_sites?.map((site) => site._id) || [];
-  }, [preferencesData]);
+  }, []);
 
   const MAX_CARDS = 4;
 
@@ -74,7 +74,7 @@ const AQNumberCard = () => {
     } else {
       setLoading(false);
     }
-  }, [dispatch]);
+  }, [dispatch, selectedSiteIds]);
 
   // Load data on component mount and when selectedSiteIds change
   useEffect(() => {

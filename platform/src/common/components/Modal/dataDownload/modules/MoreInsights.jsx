@@ -128,7 +128,7 @@ const MoreInsights = () => {
 
       {/* -------------------- Main Content Area -------------------- */}
       <div className="bg-white relative w-full h-full">
-        <div className="px-8 pt-6 pb-4 space-y-4 relative h-full overflow-y-hidden">
+        <div className="px-8 pt-6 pb-4 space-y-4 relative h-full overflow-hidden">
           {/* -------------------- Error Display -------------------- */}
           {error && (
             <div className="w-full p-4 bg-red-100 text-red-700 rounded-md">
