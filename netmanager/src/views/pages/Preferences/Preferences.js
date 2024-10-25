@@ -244,11 +244,10 @@ const Preferences = () => {
 
   const handleAddManualSite = (event, newValue) => {
     if (newValue) {
-      const { _id, name, search_name } = newValue;
+      const { _id, isFeatured, ...siteDetails } = newValue;
       const newSite = {
         site_id: _id,
-        name,
-        search_name
+        ...siteDetails
       };
       setNewSelectedSites([...newSelectedSites, newSite]);
       setManualSiteInput('');
@@ -263,7 +262,14 @@ const Preferences = () => {
     setIsSaving(true);
     setError(null);
 
-    const saveOperation = setDefaultSelectedSitesApi([...selectedSites, ...newSelectedSites]);
+    const saveOperation = setDefaultSelectedSitesApi([
+      ...selectedSites,
+      ...newSelectedSites.map(({ site_id, ...rest }) => ({
+        site_id,
+        ...rest,
+        isFeatured: false // Ensure new sites are not featured by default
+      }))
+    ]);
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Operation timed out')), SAVE_TIMEOUT)
     );
@@ -326,24 +332,6 @@ const Preferences = () => {
   const handleKeyDown = (event) => {
     if (event.key === 'Escape') {
       handleCloseModal();
-    }
-  };
-
-  const handleTabKey = (e) => {
-    const focusableModalElements = modalRef.current.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    const firstElement = focusableModalElements[0];
-    const lastElement = focusableModalElements[focusableModalElements.length - 1];
-
-    if (!e.shiftKey && document.activeElement === lastElement) {
-      firstElement.focus();
-      e.preventDefault();
-    }
-
-    if (e.shiftKey && document.activeElement === firstElement) {
-      lastElement.focus();
-      e.preventDefault();
     }
   };
 
