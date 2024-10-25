@@ -153,6 +153,8 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+const SAVE_TIMEOUT = 30000; // 30 seconds timeout
+
 const Preferences = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -242,16 +244,23 @@ const Preferences = () => {
   const handleSaveSites = async () => {
     setIsSaving(true);
     setError(null);
+
+    const saveOperation = setUserPreferencesApi([...selectedSites, ...newSelectedSites]);
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Operation timed out')), SAVE_TIMEOUT)
+    );
+
     try {
-      const updatedSites = [...selectedSites, ...newSelectedSites];
-      await setUserPreferencesApi(updatedSites);
-      setSelectedSites(updatedSites);
+      await Promise.race([saveOperation, timeoutPromise]);
+      setSelectedSites([...selectedSites, ...newSelectedSites]);
       setModalOpen(false);
       showSnackbar('Sites updated successfully');
     } catch (error) {
       console.error('Error updating sites:', error);
       const errorMessage =
-        error.response?.data?.message || error.message || 'An unknown error occurred';
+        error.message === 'Operation timed out'
+          ? 'The operation timed out. Please try again.'
+          : error.response?.data?.message || error.message || 'An unknown error occurred';
       setError(`Failed to update sites: ${errorMessage}`);
       showSnackbar(`Error updating sites: ${errorMessage}`, 'error');
     } finally {
