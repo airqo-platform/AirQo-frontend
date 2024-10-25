@@ -15,6 +15,7 @@ import {
   CircularProgress,
   Box
 } from '@material-ui/core';
+import { Skeleton } from '@material-ui/lab';
 import TextField from '@material-ui/core/TextField';
 import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -131,6 +132,24 @@ const useStyles = makeStyles((theme) => ({
     fontSize: 48,
     marginBottom: theme.spacing(2),
     color: theme.palette.text.secondary
+  },
+  srOnly: {
+    position: 'absolute',
+    width: '1px',
+    height: '1px',
+    padding: '0',
+    margin: '-1px',
+    overflow: 'hidden',
+    clip: 'rect(0, 0, 0, 0)',
+    whiteSpace: 'nowrap',
+    borderWidth: '0'
+  },
+  skeletonCard: {
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    padding: theme.spacing(1)
   }
 }));
 
@@ -277,6 +296,39 @@ const Preferences = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
+  const handleKeyDown = (event) => {
+    if (event.key === 'Escape') {
+      handleCloseModal();
+    }
+  };
+
+  const handleTabKey = (e) => {
+    const focusableModalElements = modalRef.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstElement = focusableModalElements[0];
+    const lastElement = focusableModalElements[focusableModalElements.length - 1];
+
+    if (!e.shiftKey && document.activeElement === lastElement) {
+      firstElement.focus();
+      e.preventDefault();
+    }
+
+    if (e.shiftKey && document.activeElement === firstElement) {
+      lastElement.focus();
+      e.preventDefault();
+    }
+  };
+
+  const modalRef = React.useRef(null);
+
+  useEffect(() => {
+    if (modalOpen) {
+      const timer = setTimeout(() => modalRef.current.focus(), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [modalOpen]);
+
   return (
     <Container className={classes.root}>
       <Typography variant="h4" className={classes.title}>
@@ -287,9 +339,21 @@ const Preferences = () => {
           Selected Sites
         </Typography>
         {isLoading ? (
-          <div className={classes.loaderContainer}>
-            <CircularProgress />
-          </div>
+          <Grid container spacing={2}>
+            {[1, 2, 3, 4].map((item) => (
+              <Grid item xs={12} sm={6} md={4} key={item}>
+                <Card className={classes.skeletonCard}>
+                  <CardContent>
+                    <Skeleton variant="text" width="80%" height={24} />
+                    <Skeleton variant="text" width="60%" />
+                  </CardContent>
+                  <CardActions>
+                    <Skeleton variant="rect" width={100} height={36} />
+                  </CardActions>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
         ) : selectedSites.length === 0 ? (
           <div className={classes.emptyState}>
             <AddIcon className={classes.emptyStateIcon} />
@@ -344,11 +408,27 @@ const Preferences = () => {
           </Grid>
         )}
       </Paper>
-      <Modal className={classes.modal} open={modalOpen} onClose={handleCloseModal}>
-        <div className={classes.modalContent}>
-          <Typography variant="h6" gutterBottom>
+      <Modal
+        className={classes.modal}
+        open={modalOpen}
+        onClose={handleCloseModal}
+        aria-labelledby="modal-title"
+        aria-describedby="modal-description"
+      >
+        <div
+          className={classes.modalContent}
+          ref={modalRef}
+          tabIndex={-1}
+          onKeyDown={handleKeyDown}
+          role="dialog"
+          aria-modal="true"
+        >
+          <Typography id="modal-title" variant="h6" gutterBottom>
             Select sites
           </Typography>
+          <div id="modal-description" className={classes.srOnly}>
+            This modal allows you to select sites to add to your preferences.
+          </div>
           <Autocomplete
             className={classes.autocomplete}
             options={availableSites}
@@ -360,16 +440,22 @@ const Preferences = () => {
             }}
             onChange={handleAddManualSite}
             renderInput={(params) => (
-              <TextField {...params} label="Enter site name" variant="outlined" />
+              <TextField
+                {...params}
+                label="Enter site name"
+                variant="outlined"
+                aria-label="Site selection"
+              />
             )}
           />
-          <div className={classes.chipContainer}>
+          <div className={classes.chipContainer} role="list" aria-label="Selected sites">
             {newSelectedSites.map((site) => (
               <Chip
                 key={site.site_id}
                 label={`${site.name} (${site.search_name})`}
                 onDelete={() => handleRemoveNewSite(site)}
                 className={classes.chip}
+                role="listitem"
               />
             ))}
           </div>
@@ -379,11 +465,20 @@ const Preferences = () => {
               color="primary"
               variant="contained"
               disabled={newSelectedSites.length === 0 || isSaving}
+              aria-label="Save selected sites"
             >
               Save Selected Sites
               {isSaving && <CircularProgress size={24} className={classes.buttonProgress} />}
             </Button>
           </div>
+          <Button
+            onClick={handleCloseModal}
+            color="secondary"
+            aria-label="Close modal"
+            style={{ position: 'absolute', top: 10, right: 10 }}
+          >
+            Close
+          </Button>
         </div>
       </Modal>
       <Snackbar
