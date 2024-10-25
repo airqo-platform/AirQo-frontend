@@ -13,7 +13,6 @@ import PermissionDenied from './views/pages/PermissionDenied';
 import { logoutUser } from './redux/Join/actions';
 import { connect } from 'react-redux';
 import ConfirmDialog from './views/containers/ConfirmDialog';
-import Preferences from './views/pages/Preferences/Preferences';
 
 // lazy imports
 const Landing = lazy(() => import('./views/layouts/Landing'));
@@ -58,6 +57,7 @@ const SimRegistry = lazy(() => import('./views/components/SIM/SimRegistry'));
 const UserStats = lazy(() => import('./views/pages/UserStats/UserStats'));
 const ClientActivation = lazy(() => import('./views/pages/clients'));
 const DeployDevice = lazy(() => import('./views/pages/DeployDevice'));
+const Preferences = lazy(() => import('./views/pages/Preferences/Preferences'));
 
 const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
@@ -241,6 +241,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
     </Router>
   );
 };
+
 const mapStateToProps = (state) => ({
   auth: state.auth
 });

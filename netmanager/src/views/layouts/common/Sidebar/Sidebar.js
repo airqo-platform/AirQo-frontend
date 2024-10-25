@@ -45,7 +45,6 @@ import GroupAddIcon from '@material-ui/icons/GroupAdd';
 import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';
 import AppsIcon from '@material-ui/icons/Apps';
 import DeviceHubIcon from '@material-ui/icons/DeviceHub';
-import SettingsApplicationsIcon from '@material-ui/icons/SettingsApplications';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
