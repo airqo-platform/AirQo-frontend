@@ -30,6 +30,7 @@ export default [
         Blob: 'readonly',
         File: 'readonly',
         FileReader: 'readonly',
+        performance: 'readonly',
       },
       parserOptions: {
         ecmaFeatures: { jsx: true },

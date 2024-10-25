@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import { Transition } from '@headlessui/react';
 import { usePopper } from 'react-popper';
 import TabButtons from '@/components/Button/TabButtons';
-import PropTypes from 'prop-types';
 
 const CustomDropdown = ({
   tabButtonClass,
@@ -18,7 +17,7 @@ const CustomDropdown = ({
   id,
   openDropdown = false,
   sidebar = false,
-  trigger = false,
+  trigger = null,
   alignment = 'left',
   customPopperStyle = {},
 }) => {
@@ -33,58 +32,21 @@ const CustomDropdown = ({
     {
       placement: alignment === 'right' ? 'bottom-end' : 'bottom-start',
       modifiers: [
-        {
-          name: 'offset',
-          options: {
-            offset: [0, 8],
-          },
-        },
+        { name: 'offset', options: { offset: [0, 8] } },
         {
           name: 'preventOverflow',
-          options: {
-            boundary: 'viewport',
-            padding: 8,
-          },
+          options: { boundary: 'viewport', padding: 8 },
         },
-        {
-          name: 'flip',
-          options: {
-            fallbackPlacements: [
-              'top-start',
-              'top-end',
-              'bottom-start',
-              'bottom-end',
-            ],
-          },
-        },
-        {
-          name: 'computeStyles',
-          options: {
-            adaptive: false,
-          },
-        },
-
-        {
-          name: 'eventListeners',
-          options: {
-            scroll: true,
-            resize: true,
-          },
-        },
-
-        {
-          name: 'hide',
-        },
-
-        {
-          name: 'arrow',
-          options: {
-            padding: 8,
-          },
-        },
+        { name: 'flip', options: { fallbackPlacements: ['top', 'bottom'] } },
+        { name: 'computeStyles', options: { adaptive: false } },
+        { name: 'eventListeners', options: { scroll: true, resize: true } },
       ],
     },
   );
+
+  const closeDropdown = useCallback(() => {
+    setIsOpen(false);
+  }, []);
 
   const handleClickOutside = useCallback(
     (event) => {
@@ -94,10 +56,10 @@ const CustomDropdown = ({
         referenceElement &&
         !referenceElement.contains(event.target)
       ) {
-        setIsOpen(false);
+        closeDropdown();
       }
     },
-    [popperElement, referenceElement],
+    [popperElement, referenceElement, closeDropdown],
   );
 
   useEffect(() => {
@@ -119,13 +81,19 @@ const CustomDropdown = ({
     setIsOpen((prevIsOpen) => !prevIsOpen);
   };
 
+  const handleItemClick = useCallback(
+    (callback) => {
+      if (callback) callback();
+      closeDropdown();
+    },
+    [closeDropdown],
+  );
+
   return (
     <div className="relative" id={id}>
       {trigger ? (
-        <div ref={setReferenceElement}>
-          {React.cloneElement(trigger, {
-            onClick: handleDropdown,
-          })}
+        <div ref={setReferenceElement} onClick={handleDropdown}>
+          {React.cloneElement(trigger, { onClick: handleDropdown })}
         </div>
       ) : (
         <TabButtons
@@ -156,30 +124,23 @@ const CustomDropdown = ({
             zIndex: 1000,
           }}
           {...(sidebar && isCollapsed ? {} : attributes.popper)}
-          className={`bg-white border border-gray-200 divide-y divide-gray-100 rounded-xl shadow-lg w-auto ${dropDownClass} ${sidebar && isCollapsed ? 'fixed left-24 top-20 max-w-[220px]' : 'min-w-52 '}`}
+          className={`bg-white border border-gray-200 divide-y divide-gray-100 rounded-xl shadow-lg w-auto ${dropDownClass} ${
+            sidebar && isCollapsed
+              ? 'fixed left-24 top-20 max-w-[220px]'
+              : 'min-w-52'
+          }`}
         >
-          <div className="p-1">{children}</div>
+          <div className="p-1" onClick={() => handleItemClick()}>
+            {React.Children.map(children, (child) =>
+              React.cloneElement(child, {
+                onClick: () => handleItemClick(child.props.onClick),
+              }),
+            )}
+          </div>
         </div>
       </Transition>
     </div>
   );
 };
 
-CustomDropdown.propTypes = {
-  tabButtonClass: PropTypes.string,
-  btnText: PropTypes.string,
-  dropdown: PropTypes.bool,
-  tabIcon: PropTypes.func,
-  tabStyle: PropTypes.string,
-  tabID: PropTypes.string,
-  children: PropTypes.node,
-  dropDownClass: PropTypes.string,
-  id: PropTypes.string,
-  openDropdown: PropTypes.bool,
-  sidebar: PropTypes.bool,
-  trigger: PropTypes.node,
-  alignment: PropTypes.string,
-  customPopperStyle: PropTypes.object,
-};
-
-export default CustomDropdown;
+export default React.memo(CustomDropdown);
