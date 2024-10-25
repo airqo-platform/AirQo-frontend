@@ -187,7 +187,12 @@ const Preferences = () => {
     setError(null);
     try {
       const response = await getDefaultSelectedSitesApi();
-      setSelectedSites(response.selected_sites || []);
+      if (response && response.selected_sites) {
+        setSelectedSites(response.selected_sites);
+      } else {
+        setSelectedSites([]);
+        console.warn('No selected sites data in the response');
+      }
     } catch (error) {
       console.error('Error fetching selected sites:', error);
       const errorMessage =
