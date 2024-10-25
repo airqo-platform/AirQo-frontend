@@ -18,7 +18,11 @@ import {
 import TextField from '@material-ui/core/TextField';
 import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
-import { getUserPreferencesApi, setUserPreferencesApi } from 'views/apis/authService';
+import {
+  getUserPreferencesApi,
+  setUserPreferencesApi,
+  deleteUserPreferenceSiteApi
+} from 'views/apis/authService';
 import { useSitesSummaryData } from 'redux/SiteRegistry/selectors';
 import { Alert, Autocomplete } from '@material-ui/lab';
 import { useDispatch, useSelector } from 'react-redux';
@@ -134,15 +138,18 @@ const Preferences = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const [selectedSites, setSelectedSites] = useState([]);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
   const [modalOpen, setModalOpen] = useState(false);
   const [newSelectedSites, setNewSelectedSites] = useState([]);
   const [manualSiteInput, setManualSiteInput] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [removingSites, setRemovingSites] = useState(new Set());
 
   const allSites = useSitesSummaryData();
   const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
@@ -162,10 +169,10 @@ const Preferences = () => {
       setSelectedSites(response.selected_sites || []);
     } catch (error) {
       console.error('Error fetching selected sites:', error);
-      setError('Failed to fetch selected sites. Please try again later.');
-      setSnackbarMessage('Error fetching selected sites');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      const errorMessage =
+        error.response?.data?.message || error.message || 'An unknown error occurred';
+      setError(`Failed to fetch selected sites: ${errorMessage}`);
+      showSnackbar(`Error fetching selected sites: ${errorMessage}`, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -185,7 +192,7 @@ const Preferences = () => {
     const selectedSiteIds = new Set(selectedSites.map((site) => site.site_id));
     const uniqueSearchNames = new Set();
     return allSites.filter((site) => {
-      if (!site.search_name || selectedSiteIds.has(site._id)) {
+      if (!site.search_name || selectedSiteIds.has(site._id) || !site.isOnline) {
         return false;
       }
       if (uniqueSearchNames.has(site.search_name)) {
@@ -221,39 +228,53 @@ const Preferences = () => {
       await setUserPreferencesApi(updatedSites);
       setSelectedSites(updatedSites);
       setModalOpen(false);
-      setSnackbarMessage('Sites updated successfully');
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
+      showSnackbar('Sites updated successfully');
     } catch (error) {
       console.error('Error updating sites:', error);
-      setError('Failed to update sites. Please try again later.');
-      setSnackbarMessage('Error updating sites');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      const errorMessage =
+        error.response?.data?.message || error.message || 'An unknown error occurred';
+      setError(`Failed to update sites: ${errorMessage}`);
+      showSnackbar(`Error updating sites: ${errorMessage}`, 'error');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleRemoveSite = async (siteToRemove) => {
-    setIsSaving(true);
+    if (removingSites.has(siteToRemove.site_id)) {
+      return; // Prevent multiple removal attempts for the same site
+    }
+
+    setRemovingSites((prev) => new Set(prev).add(siteToRemove.site_id));
     setError(null);
+
     try {
-      const updatedSites = selectedSites.filter((site) => site.site_id !== siteToRemove.site_id);
-      await setUserPreferencesApi(updatedSites);
-      setSelectedSites(updatedSites);
-      setSnackbarMessage('Site removed successfully');
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
+      await deleteUserPreferenceSiteApi(siteToRemove.site_id);
+      setSelectedSites((prevSites) =>
+        prevSites.filter((site) => site.site_id !== siteToRemove.site_id)
+      );
+      showSnackbar('Site removed successfully');
     } catch (error) {
       console.error('Error removing site:', error);
-      setError('Failed to remove site. Please try again later.');
-      setSnackbarMessage('Error removing site');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      const errorMessage =
+        error.response?.data?.message || error.message || 'An unknown error occurred';
+      setError(`Failed to remove site: ${errorMessage}`);
+      showSnackbar(`Error removing site: ${errorMessage}`, 'error');
     } finally {
-      setIsSaving(false);
+      setRemovingSites((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(siteToRemove.site_id);
+        return newSet;
+      });
     }
+  };
+
+  const showSnackbar = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const closeSnackbar = () => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
   return (
@@ -306,9 +327,9 @@ const Preferences = () => {
                       onClick={() => handleRemoveSite(site)}
                       color="secondary"
                       size="small"
-                      disabled={isSaving}
+                      disabled={removingSites.has(site.site_id)}
                     >
-                      Remove
+                      {removingSites.has(site.site_id) ? 'Removing...' : 'Remove'}
                     </Button>
                   </CardActions>
                 </Card>
@@ -370,12 +391,12 @@ const Preferences = () => {
           vertical: 'bottom',
           horizontal: 'left'
         }}
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSnackbarOpen(false)}
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={closeSnackbar}
       >
-        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity}>
-          {snackbarMessage}
+        <Alert onClose={closeSnackbar} severity={snackbar.severity}>
+          {snackbar.message}
         </Alert>
       </Snackbar>
     </Container>

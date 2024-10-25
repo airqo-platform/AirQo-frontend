@@ -97,3 +97,9 @@ export const setUserPreferencesApi = async (selectedSites) => {
     })
     .then((response) => response.data);
 };
+
+export const deleteUserPreferenceSiteApi = async (siteId) => {
+  return await createAxiosInstance()
+    .delete(`${BASE_AUTH_SERVICE_URL_V2}/users/preferences/selected-sites/${siteId}`)
+    .then((response) => response.data);
+};
