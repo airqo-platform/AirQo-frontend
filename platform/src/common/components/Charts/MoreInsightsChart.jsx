@@ -1,5 +1,5 @@
+// MoreInsightsChart.jsx
 import React, { useState, useCallback, useMemo } from 'react';
-import PropTypes from 'prop-types';
 import {
   LineChart,
   Line,
@@ -19,75 +19,15 @@ import {
   renderCustomizedLegend,
   CustomDot,
   CustomBar,
-  CustomizedAxisTick,
   CustomGraphTooltip,
   CustomReferenceLabel,
   colors,
 } from './components';
 
-/**
- * WHO standard values for reference lines.
- */
-const WHO_STANDARD_VALUES = {
-  pm2_5: 15,
-  pm10: 45,
-  no2: 25,
-};
-
-/**
- * Formats Y-axis ticks to display in 'K' or 'M' for thousands or millions.
- * @param {number} tick - The tick value.
- * @returns {string|number} - Formatted tick.
- */
-const formatYAxisTick = (tick) => {
-  if (tick >= 1_000_000) return `${(tick / 1_000_000).toFixed(1)}M`;
-  if (tick >= 1_000) return `${(tick / 1_000).toFixed(1)}K`;
-  return tick;
-};
-
-/**
- * ChartLoadingSkeleton Component
- * Displays a skeleton loader mimicking the chart structure.
- */
-const ChartLoadingSkeleton = ({ width, height }) => {
-  return (
-    <div
-      style={{
-        width: width || '100%',
-        height: height || '300px',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f0f0f0',
-        position: 'relative',
-      }}
-    >
-      {/* Simple CSS-based skeleton */}
-      <div className="animate-pulse w-3/4 h-3/4 bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300 rounded-md"></div>
-      <style>{`
-        .animate-pulse {
-          animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-          0% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.4;
-          }
-          100% {
-            opacity: 1;
-          }
-        }
-      `}</style>
-    </div>
-  );
-};
-
-ChartLoadingSkeleton.propTypes = {
-  width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-};
+import { parseAndValidateISODate } from '@/core/utils/dateUtils';
+import { WHO_STANDARD_VALUES } from './constants';
+import { formatYAxisTick, CustomizedAxisTick } from './utils';
+import SkeletonLoader from './components/SkeletonLoader';
 
 /**
  * MoreInsightsChart Component
@@ -95,52 +35,84 @@ ChartLoadingSkeleton.propTypes = {
 const MoreInsightsChart = React.memo(
   ({
     data,
+    selectedSites, // Array of site IDs
     chartType = 'line',
+    frequency = 'daily',
     width = '100%',
     height = '300px',
     id,
-    pollutionType,
+    pollutantType,
     isLoading = false,
   }) => {
     const [activeIndex, setActiveIndex] = useState(null);
-    const [dataError, setDataError] = useState(null);
 
     /**
-     * Validate and sanitize data
+     * Processes raw chart data by validating dates and organizing data by time and site.
      */
-    const sanitizedData = useMemo(() => {
-      if (!Array.isArray(data)) {
-        setDataError('Data is not an array.');
-        return [];
-      }
+    const processChartData = useCallback((data, selectedSiteIds) => {
+      const combinedData = {};
+      const siteIdToName = {};
 
-      return data.map((item, index) => {
-        const newItem = { ...item };
-        if (!newItem.time) {
-          console.warn(`Data item at index ${index} is missing 'time' field.`);
-          newItem.time = 'N/A';
-        } else {
-          const date = new Date(newItem.time);
-          if (isNaN(date.getTime())) {
-            console.warn(
-              `Invalid time value at index ${index}: ${newItem.time}`,
-            );
-            newItem.time = 'Invalid Date';
-          } else {
-            // Optionally format the time
-            newItem.time = date.toLocaleString(); // Adjust formatting as needed
-          }
+      // Build a mapping from site_id to site name
+      data.forEach((dataPoint) => {
+        const { site_id, name } = dataPoint;
+        if (!siteIdToName[site_id]) {
+          siteIdToName[site_id] = name || 'Unknown Location';
         }
-        return newItem;
       });
-    }, [data]);
+
+      // Process each data point
+      data.forEach((dataPoint) => {
+        const { value, time, site_id } = dataPoint;
+
+        // Parse and validate the time using the utility function
+        const date = parseAndValidateISODate(time);
+        if (!date) {
+          return;
+        }
+
+        // Only include data points from selected sites
+        if (!selectedSiteIds.includes(site_id)) return;
+
+        const rawTime = time;
+
+        if (!combinedData[rawTime]) {
+          combinedData[rawTime] = { time: rawTime };
+        }
+
+        combinedData[rawTime][site_id] = value;
+      });
+
+      // Convert the combined data object to an array and sort it by time
+      const sortedData = Object.values(combinedData).sort(
+        (a, b) => new Date(a.time) - new Date(b.time),
+      );
+
+      return { sortedData, siteIdToName };
+    }, []);
 
     /**
-     * Memoized WHO standard value based on pollution type
+     * Memoized processed chart data
+     */
+    const { sortedData: chartData, siteIdToName } = useMemo(() => {
+      if (!data || !selectedSites) return { sortedData: [], siteIdToName: {} };
+      return processChartData(data, selectedSites);
+    }, [data, selectedSites, processChartData]);
+
+    /**
+     * Unique data keys for plotting, which are site IDs.
+     */
+    const dataKeys = useMemo(() => {
+      if (chartData.length === 0) return [];
+      return Object.keys(chartData[0]).filter((key) => key !== 'time');
+    }, [chartData]);
+
+    /**
+     * Memoized WHO standard value based on pollutant type
      */
     const WHO_STANDARD_VALUE = useMemo(
-      () => WHO_STANDARD_VALUES[pollutionType] || 0,
-      [pollutionType],
+      () => WHO_STANDARD_VALUES[pollutantType] || 0,
+      [pollutantType],
     );
 
     /**
@@ -166,40 +138,34 @@ const MoreInsightsChart = React.memo(
     const DataComponent = chartType === 'line' ? Line : Bar;
 
     /**
-     * Unique data keys for plotting, excluding the 'time' key.
-     */
-    const dataKeys = useMemo(() => {
-      if (sanitizedData.length === 0) return [];
-      return Object.keys(sanitizedData[0]).filter((key) => key !== 'time');
-    }, [sanitizedData]);
-
-    /**
      * Calculates the interval for the X-axis ticks based on screen width.
      */
     const calculateXAxisInterval = useCallback(() => {
       const screenWidth = window.innerWidth;
-      if (screenWidth < 768) return Math.ceil(data.length / 4);
-      if (screenWidth < 1024) return Math.ceil(data.length / 6);
-      return Math.ceil(data.length / 8);
-    }, [data.length]);
+      if (screenWidth < 768) return Math.ceil(chartData.length / 4);
+      if (screenWidth < 1024) return Math.ceil(chartData.length / 6);
+      return Math.ceil(chartData.length / 8);
+    }, [chartData.length]);
+
+    /**
+     * Memoized X-axis interval
+     */
+    const xAxisInterval = useMemo(
+      () => calculateXAxisInterval(),
+      [calculateXAxisInterval],
+    );
 
     /**
      * Render the chart or appropriate messages based on state
      */
     const renderChart = useMemo(() => {
-      if (dataError) {
-        return (
-          <div className="w-full flex flex-col justify-center items-center h-[380px] text-red-500">
-            <p className="text-lg font-medium mb-2">Data Error</p>
-            <p className="text-sm">{dataError}</p>
-          </div>
-        );
-      }
-
-      if (sanitizedData.length === 0) {
+      if (chartData.length === 0) {
         return (
           <div className="w-full flex flex-col justify-center items-center h-[380px] text-gray-500">
             <p className="text-lg font-medium mb-2">No Data Available</p>
+            <p className="text-sm">
+              Please select at least one location to view the air quality data.
+            </p>
           </div>
         );
       }
@@ -207,8 +173,8 @@ const MoreInsightsChart = React.memo(
       return (
         <ResponsiveContainer width={width} height={height}>
           <ChartComponent
-            data={sanitizedData}
-            margin={{ top: 38, right: 10, left: 10, bottom: 10 }}
+            data={chartData}
+            margin={{ top: 38, right: 10, left: -15, bottom: 10 }}
             style={{ cursor: 'pointer' }}
           >
             {/* Grid */}
@@ -222,8 +188,18 @@ const MoreInsightsChart = React.memo(
             <XAxis
               dataKey="time"
               tickLine
-              tick={<CustomizedAxisTick fill="#1C1D20" />}
-              interval={calculateXAxisInterval()}
+              tick={({ x, y, payload, fill, index }) => (
+                <CustomizedAxisTick
+                  x={x}
+                  y={y}
+                  payload={payload}
+                  fill={fill}
+                  frequency={frequency}
+                  index={index}
+                  numTicks={chartData.length}
+                />
+              )}
+              interval={xAxisInterval}
               axisLine={false}
               scale="point"
               padding={{ left: 30, right: 30 }}
@@ -231,6 +207,7 @@ const MoreInsightsChart = React.memo(
 
             {/* Y-Axis */}
             <YAxis
+              domain={[0, 'auto']}
               axisLine={false}
               fontSize={12}
               tickLine={false}
@@ -239,18 +216,21 @@ const MoreInsightsChart = React.memo(
             >
               <Label
                 value={
-                  pollutionType === 'pm2_5'
-                    ? 'PM2.5 (µg/m³)'
-                    : pollutionType === 'pm10'
-                      ? 'PM10 (µg/m³)'
-                      : 'Pollutant (µg/m³)'
+                  pollutantType === 'pm2_5'
+                    ? 'PM2.5'
+                    : pollutantType === 'pm10'
+                      ? 'PM10'
+                      : 'Pollutant'
                 }
-                position="insideTopRight"
+                position="top"
                 fill="#1C1D20"
-                offset={0}
                 fontSize={12}
-                dy={-35}
-                dx={34}
+                angle={0}
+                dx={0}
+                dy={-20}
+                style={{
+                  textAnchor: 'start',
+                }}
               />
             </YAxis>
 
@@ -277,6 +257,7 @@ const MoreInsightsChart = React.memo(
               <DataComponent
                 key={key}
                 dataKey={key}
+                name={siteIdToName[key] || 'Unknown Location'}
                 type={chartType === 'line' ? 'monotone' : undefined}
                 stroke={chartType === 'line' ? getColor(index) : undefined}
                 strokeWidth={chartType === 'line' ? 4 : undefined}
@@ -291,7 +272,7 @@ const MoreInsightsChart = React.memo(
             ))}
 
             {/* Reference Line */}
-            {pollutionType && WHO_STANDARD_VALUE > 0 && (
+            {WHO_STANDARD_VALUE && (
               <ReferenceLine
                 y={WHO_STANDARD_VALUE}
                 label={<CustomReferenceLabel />}
@@ -307,24 +288,26 @@ const MoreInsightsChart = React.memo(
     }, [
       ChartComponent,
       DataComponent,
-      sanitizedData,
-      dataKeys,
-      height,
-      width,
+      chartData,
       chartType,
+      width,
+      height,
+      xAxisInterval,
       getColor,
       handleMouseLeave,
       activeIndex,
-      calculateXAxisInterval,
-      pollutionType,
+      pollutantType,
       WHO_STANDARD_VALUE,
-      dataError,
+      dataKeys,
+      renderCustomizedLegend,
+      frequency,
+      siteIdToName,
     ]);
 
     return (
-      <div id={id} className="pt-2">
+      <div id={id} className="pt-4">
         {isLoading ? (
-          <ChartLoadingSkeleton width={width} height={height} />
+          <SkeletonLoader width={width} height={height} />
         ) : (
           renderChart
         )}
@@ -334,24 +317,5 @@ const MoreInsightsChart = React.memo(
 );
 
 MoreInsightsChart.displayName = 'MoreInsightsChart';
-
-MoreInsightsChart.propTypes = {
-  data: PropTypes.arrayOf(
-    PropTypes.shape({
-      time: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.number,
-        PropTypes.instanceOf(Date),
-      ]).isRequired,
-      // Add other keys based on your data structure
-    }),
-  ).isRequired,
-  chartType: PropTypes.oneOf(['line', 'bar']),
-  width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  id: PropTypes.string,
-  pollutionType: PropTypes.oneOf(['pm2_5', 'pm10', 'no2', 'other']),
-  isLoading: PropTypes.bool,
-};
 
 export default MoreInsightsChart;

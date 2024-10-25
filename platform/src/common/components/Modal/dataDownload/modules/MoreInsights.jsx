@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+// MoreInsights.jsx
+import React, { useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 // import DownloadIcon from '@/icons/Analytics/downloadIcon';
 import MoreInsightsChart from '@/components/Charts/MoreInsightsChart';
@@ -11,51 +12,12 @@ import { TIME_OPTIONS, CHART_TYPE } from '@/lib/constants';
 import LocationCard from '../components/LocationCard';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 // import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
-import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
-import { subDays, isValid, parseISO } from 'date-fns';
+import { subDays } from 'date-fns';
+import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
 
 /**
- * Validates whether the input is a valid Date object.
+ * InSightsHeader Component
  */
-const isValidDate = (date) => isValid(date);
-
-/**
- * Processes raw chart data by validating dates and organizing data by time and site.
- */
-const processChartData = (data, selectedSites) => {
-  const combinedData = {};
-
-  data.forEach((dataPoint) => {
-    const { value, time, site_id } = dataPoint;
-
-    // Parse and validate the time using parseISO for consistent parsing
-    const date = parseISO(time);
-    if (!isValidDate(date)) {
-      console.warn(`Invalid date encountered: ${time}`);
-      return; // Skip invalid date entries
-    }
-
-    const site = selectedSites.find((s) => s._id === site_id);
-    if (!site) return; // Ignore data for sites not selected
-
-    const siteName = site.name?.split(',')[0] || 'Unknown Location';
-    const formattedTime = date.toLocaleString();
-
-    if (!combinedData[formattedTime]) {
-      combinedData[formattedTime] = { time: formattedTime };
-    }
-
-    combinedData[formattedTime][siteName] = value;
-  });
-
-  // Convert the combined data object to an array and sort it by time
-  const sortedData = Object.values(combinedData).sort(
-    (a, b) => new Date(a.time) - new Date(b.time),
-  );
-
-  return sortedData;
-};
-
 const InSightsHeader = () => (
   <h3
     className="flex text-lg leading-6 font-medium text-gray-900"
@@ -65,10 +27,13 @@ const InSightsHeader = () => (
   </h3>
 );
 
+/**
+ * MoreInsights Component
+ */
 const MoreInsights = () => {
   // const dispatch = useDispatch();
   const { data: modalData } = useSelector((state) => state.modal.modalType);
-  const [chartLoading, setChartLoading] = useState(false);
+  const [refetch, setRefetch] = useState(false);
 
   // Ensure modalData is always an array for consistency
   const selectedSites = useMemo(() => {
@@ -91,91 +56,20 @@ const MoreInsights = () => {
     label: 'Last 7 days',
   });
 
-  // State variables for loading and error management
-  const [error, setError] = useState(null);
+  const { allSiteData, chartLoading, error } = useFetchAnalyticsData({
+    selectedSiteIds,
+    dateRange,
+    chartType,
+    frequency,
+    pollutant: 'pm2_5',
+    organisationName: 'airqo',
+    refetch,
+  });
 
-  // State to store fetched analytics data
-  const [allSiteData, setAllSiteData] = useState([]);
-
-  /**
-   * Fetches analytics data based on selected sites, date range, frequency, and chart type.
-   * Includes robust error handling and date validations.
-   */
-  const fetchAnalyticsData = useCallback(async () => {
-    if (selectedSiteIds.length === 0) {
-      setAllSiteData([]);
-      return;
-    }
-
-    const { startDate, endDate } = dateRange;
-
-    // Validate dateRange
-    if (!isValidDate(startDate) || !isValidDate(endDate)) {
-      setError('Invalid date range selected.');
-      setAllSiteData([]);
-      return;
-    }
-
-    // Ensure startDate is not after endDate
-    if (startDate > endDate) {
-      setError('Start date must be before the end date.');
-      setAllSiteData([]);
-      return;
-    }
-
-    const requestBody = {
-      sites: selectedSiteIds,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      chartType,
-      frequency,
-      pollutant: 'pm2_5',
-      organisation_name: 'airqo',
-    };
-
-    // Set loading states before initiating the API call
-    setChartLoading(true);
-    setError(null);
-
-    try {
-      const response = await getAnalyticsData(requestBody);
-
-      if (response.status === 'success') {
-        if (Array.isArray(response.data)) {
-          setAllSiteData(response.data); // Store the fetched data
-        } else {
-          // Handle unexpected data formats gracefully
-          throw new Error('Unexpected data format received from the server.');
-        }
-      } else {
-        // Handle API response errors
-        throw new Error(response.message || 'Failed to fetch analytics data.');
-      }
-    } catch (err) {
-      console.error(err);
-      setError(
-        err.message || 'An error occurred while fetching analytics data.',
-      );
-      setAllSiteData([]);
-    } finally {
-      // Reset loading states after the API call
-      setChartLoading(false);
-    }
-  }, [selectedSiteIds, dateRange, frequency, chartType]);
-
-  // Fetch data on component mount and whenever dependencies change
-  useEffect(() => {
-    fetchAnalyticsData();
-  }, [fetchAnalyticsData]);
-
-  /**
-   * Processes and memoizes chart data for optimized rendering.
-   */
-  const chartData = useMemo(() => {
-    if (allSiteData.length === 0) return [];
-
-    return processChartData(allSiteData, selectedSites);
-  }, [allSiteData, selectedSites]);
+  // Method to toggle refetch
+  const toggleRefetch = useCallback(() => {
+    setRefetch((prev) => !prev);
+  }, []);
 
   /**
    * Generates the content for the selected sites in the sidebar.
@@ -213,7 +107,7 @@ const MoreInsights = () => {
   //     dispatch(setModalType({ type, ids, data }));
   //     dispatch(setOpenModal(true));
   //   },
-  //   [dispatch],
+  //   [dispatch]
   // );
 
   return (
@@ -234,7 +128,7 @@ const MoreInsights = () => {
 
       {/* -------------------- Main Content Area -------------------- */}
       <div className="bg-white relative w-full h-full">
-        <div className="px-8 pt-6 pb-4 space-y-4 relative h-full overflow-y-hidden">
+        <div className="px-8 pt-6 pb-4 space-y-4 relative h-full overflow-hidden">
           {/* -------------------- Error Display -------------------- */}
           {error && (
             <div className="w-full p-4 bg-red-100 text-red-700 rounded-md">
@@ -256,7 +150,10 @@ const MoreInsights = () => {
                 {TIME_OPTIONS.map((option) => (
                   <span
                     key={option}
-                    onClick={() => setFrequency(option)}
+                    onClick={() => {
+                      setFrequency(option);
+                      toggleRefetch();
+                    }}
                     className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                       frequency === option ? 'bg-[#EBF5FF] rounded-md' : ''
                     }`}
@@ -264,7 +161,7 @@ const MoreInsights = () => {
                     <span>
                       {option.charAt(0).toUpperCase() + option.slice(1)}
                     </span>
-                    {frequency === option && <CheckIcon fill={'#145FFF'} />}
+                    {frequency === option && <CheckIcon fill="#145FFF" />}
                   </span>
                 ))}
               </CustomDropdown>
@@ -273,9 +170,10 @@ const MoreInsights = () => {
               <CustomCalendar
                 initialStartDate={dateRange.startDate}
                 initialEndDate={dateRange.endDate}
-                onChange={(start, end) =>
-                  setDateRange({ startDate: start, endDate: end, label: '' })
-                }
+                onChange={(start, end) => {
+                  setDateRange({ startDate: start, endDate: end, label: '' });
+                  toggleRefetch();
+                }}
                 className="left-16 top-11"
                 dropdown
                 isLoading={chartLoading}
@@ -291,13 +189,16 @@ const MoreInsights = () => {
                 {CHART_TYPE.map((option) => (
                   <span
                     key={option.id}
-                    onClick={() => setChartType(option.id)}
+                    onClick={() => {
+                      setChartType(option.id);
+                      toggleRefetch();
+                    }}
                     className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                       chartType === option.id ? 'bg-[#EBF5FF] rounded-md' : ''
                     }`}
                   >
                     <span>{option.name}</span>
-                    {chartType === option.id && <CheckIcon fill={'#145FFF'} />}
+                    {chartType === option.id && <CheckIcon fill="#145FFF" />}
                   </span>
                 ))}
               </CustomDropdown>
@@ -309,11 +210,7 @@ const MoreInsights = () => {
                 btnText="Download Data"
                 Icon={<DownloadIcon width={16} height={17} color="white" />}
                 onClick={() =>
-                  handleOpenModal(
-                    'downloadData',
-                    selectedSiteIds,
-                    selectedSites,
-                  )
+                  handleOpenModal('downloadData', selectedSiteIds, selectedSites)
                 }
                 btnStyle="bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl"
                 isLoading={chartLoading}
@@ -323,25 +220,17 @@ const MoreInsights = () => {
 
           {/* -------------------- Chart Display -------------------- */}
           <div className="w-full h-auto border rounded-xl border-grey-150 p-2">
-            {selectedSiteIds.length > 0 ? (
-              <MoreInsightsChart
-                data={chartData}
-                chartType={chartType}
-                width="100%"
-                height={380}
-                id="air-quality-chart"
-                pollutantType="pm2_5"
-                isLoading={chartLoading}
-              />
-            ) : (
-              <div className="w-full flex flex-col justify-center items-center h-[380px] text-gray-500">
-                <p className="text-lg font-medium mb-2">No Data Available</p>
-                <p className="text-sm">
-                  Please select at least one location to view the air quality
-                  data.
-                </p>
-              </div>
-            )}
+            <MoreInsightsChart
+              data={allSiteData}
+              selectedSites={selectedSiteIds}
+              chartType={chartType}
+              frequency={frequency}
+              width="100%"
+              height={380}
+              id="air-quality-chart"
+              pollutantType="pm2_5"
+              isLoading={chartLoading}
+            />
           </div>
 
           {/* -------------------- Air Quality Card -------------------- */}

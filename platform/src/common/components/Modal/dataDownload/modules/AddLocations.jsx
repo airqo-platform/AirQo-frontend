@@ -5,6 +5,8 @@ import DataTable from '../components/DataTable';
 import Footer from '../components/Footer';
 import LocationCard from '../components/LocationCard';
 import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
+import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
+import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 
 /**
  * Header component for the Add Location modal.
@@ -133,6 +135,10 @@ const AddLocations = ({ onClose }) => {
       .then(() => {
         // Optionally, provide feedback or close the modal
         onClose();
+        if (userID) {
+          dispatch(getIndividualUserPreferences(userID));
+        }
+        dispatch(setRefreshChart(true));
       })
       .catch((err) => {
         // Handle any errors during the dispatch

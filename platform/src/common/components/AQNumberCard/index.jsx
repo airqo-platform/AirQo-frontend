@@ -31,7 +31,7 @@ const AQNumberCard = () => {
   // Memoize selected site IDs to prevent unnecessary computations
   const selectedSiteIds = useMemo(() => {
     return preferencesData?.[0]?.selected_sites?.map((site) => site._id) || [];
-  }, [preferencesData]);
+  }, []);
 
   const MAX_CARDS = 4;
 
@@ -168,7 +168,7 @@ const AQNumberCard = () => {
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <div
-                    className="text-gray-700 text-[18px] font-medium capitalize text-left max-w-full"
+                    className="text-gray-800 text-lg font-medium capitalize text-left max-w-full"
                     title={site.name || 'No Location Data'}
                   >
                     {truncateText(site.name, 12)}
@@ -191,7 +191,11 @@ const AQNumberCard = () => {
                       <WindIcon width="10.48px" height="10.48px" />
                     </div>
                     <div className="text-slate-400 text-sm font-medium">
-                      {pollutantType ? pollutantType.toUpperCase() : '--'}
+                      {pollutantType
+                        ? pollutantType === 'pm2_5'
+                          ? 'PM2.5'
+                          : 'PM10'
+                        : '---'}
                     </div>
                   </div>
                   <div className="text-gray-700 text-[28px] font-extrabold">
