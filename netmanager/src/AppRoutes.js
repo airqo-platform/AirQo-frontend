@@ -13,6 +13,7 @@ import PermissionDenied from './views/pages/PermissionDenied';
 import { logoutUser } from './redux/Join/actions';
 import { connect } from 'react-redux';
 import ConfirmDialog from './views/containers/ConfirmDialog';
+import Preferences from './views/pages/Preferences/Preferences';
 
 // lazy imports
 const Landing = lazy(() => import('./views/layouts/Landing'));
@@ -119,6 +120,12 @@ const AppRoutes = ({ auth, logoutUser }) => {
               exact
               path="/admin/users/users-statistics"
               component={UserStats}
+              layout={MainLayout}
+            />
+            <PrivateRoute
+              exact
+              path="/admin/users/preferences"
+              component={Preferences}
               layout={MainLayout}
             />
             <PrivateRoute
