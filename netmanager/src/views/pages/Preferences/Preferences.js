@@ -20,7 +20,7 @@ import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
 import { getUserPreferencesApi, setUserPreferencesApi } from 'views/apis/authService';
 import { useSitesSummaryData } from 'redux/SiteRegistry/selectors';
-import { Autocomplete } from '@material-ui/lab';
+import { Alert, Autocomplete } from '@material-ui/lab';
 import { useDispatch, useSelector } from 'react-redux';
 import { loadSitesSummary } from 'redux/SiteRegistry/operations';
 
@@ -123,11 +123,13 @@ const Preferences = () => {
   const [selectedSites, setSelectedSites] = useState([]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [modalOpen, setModalOpen] = useState(false);
   const [newSelectedSites, setNewSelectedSites] = useState([]);
   const [manualSiteInput, setManualSiteInput] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState(null);
 
   const allSites = useSitesSummaryData();
   const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
@@ -141,12 +143,15 @@ const Preferences = () => {
 
   const fetchSelectedSites = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const response = await getUserPreferencesApi();
       setSelectedSites(response.selected_sites || []);
     } catch (error) {
       console.error('Error fetching selected sites:', error);
+      setError('Failed to fetch selected sites. Please try again later.');
       setSnackbarMessage('Error fetching selected sites');
+      setSnackbarSeverity('error');
       setSnackbarOpen(true);
     } finally {
       setIsLoading(false);
@@ -197,16 +202,20 @@ const Preferences = () => {
 
   const handleSaveSites = async () => {
     setIsSaving(true);
+    setError(null);
     try {
       const updatedSites = [...selectedSites, ...newSelectedSites];
       await setUserPreferencesApi(updatedSites);
       setSelectedSites(updatedSites);
       setModalOpen(false);
       setSnackbarMessage('Sites updated successfully');
+      setSnackbarSeverity('success');
       setSnackbarOpen(true);
     } catch (error) {
       console.error('Error updating sites:', error);
+      setError('Failed to update sites. Please try again later.');
       setSnackbarMessage('Error updating sites');
+      setSnackbarSeverity('error');
       setSnackbarOpen(true);
     } finally {
       setIsSaving(false);
@@ -214,16 +223,23 @@ const Preferences = () => {
   };
 
   const handleRemoveSite = async (siteToRemove) => {
-    const updatedSites = selectedSites.filter((site) => site.site_id !== siteToRemove.site_id);
+    setIsSaving(true);
+    setError(null);
     try {
+      const updatedSites = selectedSites.filter((site) => site.site_id !== siteToRemove.site_id);
       await setUserPreferencesApi(updatedSites);
       setSelectedSites(updatedSites);
       setSnackbarMessage('Site removed successfully');
+      setSnackbarSeverity('success');
       setSnackbarOpen(true);
     } catch (error) {
       console.error('Error removing site:', error);
+      setError('Failed to remove site. Please try again later.');
       setSnackbarMessage('Error removing site');
+      setSnackbarSeverity('error');
       setSnackbarOpen(true);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -240,6 +256,8 @@ const Preferences = () => {
           <div className={classes.loaderContainer}>
             <CircularProgress />
           </div>
+        ) : error ? (
+          <Alert severity="error">{error}</Alert>
         ) : (
           <Grid container spacing={2}>
             {selectedSites.map((site) => (
@@ -259,6 +277,7 @@ const Preferences = () => {
                       onClick={() => handleRemoveSite(site)}
                       color="secondary"
                       size="small"
+                      disabled={isSaving}
                     >
                       Remove
                     </Button>
@@ -325,8 +344,11 @@ const Preferences = () => {
         open={snackbarOpen}
         autoHideDuration={3000}
         onClose={() => setSnackbarOpen(false)}
-        message={snackbarMessage}
-      />
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
