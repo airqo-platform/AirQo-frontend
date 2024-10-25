@@ -5,6 +5,8 @@ import DataTable from '../components/DataTable';
 import Footer from '../components/Footer';
 import LocationCard from '../components/LocationCard';
 import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
+import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
+import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 
 /**
  * Header component for the Add Location modal.
@@ -27,6 +29,12 @@ const AddLocationHeader = () => {
  */
 const AddLocations = ({ onClose }) => {
   const dispatch = useDispatch();
+
+  // Memoize user data from local storage to avoid rerenders
+  const user = useMemo(
+    () => JSON.parse(localStorage.getItem('loggedUser')),
+    [],
+  );
 
   // Retrieve user preferences from Redux store
   const preferencesData = useSelector(
@@ -133,6 +141,10 @@ const AddLocations = ({ onClose }) => {
       .then(() => {
         // Optionally, provide feedback or close the modal
         onClose();
+        if (user) {
+          dispatch(getIndividualUserPreferences(user._id));
+        }
+        dispatch(setRefreshChart(true));
       })
       .catch((err) => {
         // Handle any errors during the dispatch
