@@ -1,10 +1,11 @@
-import { useSelector } from 'react-redux';
-import { useState, useCallback, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useState, useEffect } from 'react';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
+import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
 
 /**
  * Custom hook to fetch analytics data based on selected sites, date range, frequency, and chart type.
- * Includes error handling and data validation.
+ * Includes error handling and data validation. Refetches data on page refresh and when flags change.
  */
 const useFetchAnalyticsData = ({
   selectedSiteIds = [],
@@ -13,11 +14,13 @@ const useFetchAnalyticsData = ({
   frequency = 'daily',
   pollutant = 'pm2_5',
   organisationName = 'airqo',
+  refetch = false,
 }) => {
+  const dispatch = useDispatch();
   const [allSiteData, setAllSiteData] = useState([]);
   const [chartLoading, setChartLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { refreshChart } = useSelector((state) => state.chart);
+  const refreshChart = useSelector((state) => state.chart.refreshChart);
 
   /**
    * Validates and converts input dates to ISO strings.
@@ -25,7 +28,7 @@ const useFetchAnalyticsData = ({
    * @returns {Object} - Contains ISO strings for startDate and endDate.
    * @throws Will throw an error if dates are invalid.
    */
-  const getValidDateRange = useCallback(() => {
+  const getValidDateRange = () => {
     let { startDate, endDate } = dateRange;
 
     // Convert to Date objects if they're not already
@@ -53,69 +56,65 @@ const useFetchAnalyticsData = ({
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
     };
-  }, [dateRange]);
+  };
 
-  /**
-   * Fetches analytics data based on selected sites, date range, frequency, and chart type.
-   * Includes robust error handling and date validations.
-   */
-  const fetchAnalyticsData = useCallback(async () => {
-    if (selectedSiteIds.length === 0) {
-      setAllSiteData([]);
-      setError(null);
-      return;
-    }
-
-    try {
-      const validDateRange = getValidDateRange();
-
-      const requestBody = {
-        sites: selectedSiteIds,
-        startDate: validDateRange.startDate,
-        endDate: validDateRange.endDate,
-        chartType,
-        frequency,
-        pollutant,
-        organisation_name: organisationName,
-      };
-
-      // Set loading states before initiating the API call
-      setChartLoading(true);
-      setError(null);
-
-      const response = await getAnalyticsData(requestBody);
-
-      if (response.status === 'success') {
-        if (Array.isArray(response.data)) {
-          setAllSiteData(response.data);
-        } else {
-          throw new Error('Unexpected data format received from the server.');
-        }
-      } else {
-        throw new Error(response.message || 'Failed to fetch analytics data.');
-      }
-    } catch (err) {
-      console.error('Error fetching analytics data:', err);
-      setError(
-        err.message || 'An error occurred while fetching analytics data.',
-      );
-      setAllSiteData([]);
-    } finally {
-      setChartLoading(false);
-    }
-  }, [
-    // selectedSiteIds,
-    getValidDateRange,
-    frequency,
-    pollutant,
-    // organisationName,
-    refreshChart,
-  ]);
-
-  // Fetch data whenever dependencies change
   useEffect(() => {
+    /**
+     * Fetches analytics data based on selected sites, date range, frequency, and chart type.
+     * Includes robust error handling and date validations.
+     */
+    const fetchAnalyticsData = async () => {
+      // If no sites are selected, clear data and exit early
+      if (selectedSiteIds.length === 0) {
+        setAllSiteData([]);
+        setError(null);
+        return;
+      }
+
+      try {
+        const validDateRange = getValidDateRange();
+
+        const requestBody = {
+          sites: selectedSiteIds,
+          startDate: validDateRange.startDate,
+          endDate: validDateRange.endDate,
+          chartType,
+          frequency,
+          pollutant,
+          organisation_name: organisationName,
+        };
+
+        // Set loading states before initiating the API call
+        setChartLoading(true);
+        setError(null);
+
+        const response = await getAnalyticsData(requestBody);
+
+        if (response.status === 'success') {
+          if (Array.isArray(response.data)) {
+            setAllSiteData(response.data);
+          } else {
+            throw new Error('Unexpected data format received from the server.');
+          }
+        } else {
+          throw new Error(
+            response.message || 'Failed to fetch analytics data.',
+          );
+        }
+      } catch (err) {
+        console.error('Error fetching analytics data:', err);
+        setError(
+          err.message || 'An error occurred while fetching analytics data.',
+        );
+        setAllSiteData([]);
+      } finally {
+        setChartLoading(false);
+        dispatch(setRefreshChart(false));
+      }
+    };
+
     fetchAnalyticsData();
-  }, [fetchAnalyticsData]);
+  }, [refreshChart, refetch]);
 
   return { allSiteData, chartLoading, error };
 };

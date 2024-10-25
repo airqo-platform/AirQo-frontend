@@ -1,15 +1,23 @@
 // src/components/ChartContainer.jsx
-import React, { useRef, useCallback, useState, useEffect, memo } from 'react';
-import { useDispatch, useSelector, shallowEqual } from 'react-redux';
+import React, {
+  useRef,
+  useCallback,
+  useState,
+  useEffect,
+  memo,
+  useMemo,
+} from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import CheckIcon from '@/icons/tickIcon';
 import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
 import PrintReportModal from '@/components/Modal/PrintReportModal';
-import Chart from './Charts';
+import MoreInsightsChart from './MoreInsightsChart';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
 import SkeletonLoader from './components/SkeletonLoader';
+import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
 
 const ChartContainer = memo(
   ({
@@ -18,7 +26,6 @@ const ChartContainer = memo(
     height = '300px',
     width = '100%',
     id,
-    defaultBody = {},
     showTitle = true,
   }) => {
     const dispatch = useDispatch();
@@ -26,15 +33,37 @@ const ChartContainer = memo(
     const dropdownRef = useRef(null);
 
     const {
-      status: isLoading,
       chartDataRange,
       chartSites,
-    } = useSelector((state) => state.chart, shallowEqual);
+      timeFrame,
+      organizationName,
+      pollutionType,
+    } = useSelector((state) => state.chart);
 
     const [openShare, setOpenShare] = useState(false);
     const [shareFormat, setShareFormat] = useState(null);
     const [loadingFormat, setLoadingFormat] = useState(null);
     const [downloadComplete, setDownloadComplete] = useState(null);
+
+    const preferencesData = useSelector(
+      (state) => state.defaults.individual_preferences,
+    );
+
+    // Extract selected site IDs from preferencesData
+    const selectedSiteIds = useMemo(() => {
+      return (
+        preferencesData?.[0]?.selected_sites?.map((site) => site._id) || []
+      );
+    }, [preferencesData]);
+
+    const { allSiteData, chartLoading } = useFetchAnalyticsData({
+      selectedSiteIds,
+      dateRange: chartDataRange,
+      chartType,
+      frequency: timeFrame,
+      pollutant: pollutionType,
+      organisationName: organizationName,
+    });
 
     // Handle click outside for dropdown
     useEffect(() => {
@@ -163,7 +192,7 @@ const ChartContainer = memo(
                   id={`options-${id}`}
                   alignment="right"
                 >
-                  {isLoading ? (
+                  {chartLoading ? (
                     <SkeletonLoader
                       width="150px"
                       height="40px"
@@ -181,12 +210,16 @@ const ChartContainer = memo(
             className="mt-6 relative"
             style={{ width, height }}
           >
-            <Chart
-              customBody={defaultBody}
-              id={id}
+            <MoreInsightsChart
+              data={allSiteData}
+              selectedSites={selectedSiteIds}
               chartType={chartType}
-              width={width}
+              frequency={timeFrame}
+              width="100%"
               height={height}
+              id={id}
+              pollutantType={pollutionType}
+              isLoading={chartLoading}
             />
           </div>
         </div>

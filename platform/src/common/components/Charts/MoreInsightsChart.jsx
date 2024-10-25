@@ -35,9 +35,9 @@ import SkeletonLoader from './components/SkeletonLoader';
 const MoreInsightsChart = React.memo(
   ({
     data,
-    selectedSites,
+    selectedSites, // Array of site IDs
     chartType = 'line',
-    frequency = 'daily', // Added frequency prop
+    frequency = 'daily',
     width = '100%',
     height = '300px',
     id,
@@ -49,9 +49,19 @@ const MoreInsightsChart = React.memo(
     /**
      * Processes raw chart data by validating dates and organizing data by time and site.
      */
-    const processChartData = useCallback((data, selectedSites) => {
+    const processChartData = useCallback((data, selectedSiteIds) => {
       const combinedData = {};
+      const siteIdToName = {};
 
+      // Build a mapping from site_id to site name
+      data.forEach((dataPoint) => {
+        const { site_id, name } = dataPoint;
+        if (!siteIdToName[site_id]) {
+          siteIdToName[site_id] = name.split(',')[0] || 'Unknown Location';
+        }
+      });
+
+      // Process each data point
       data.forEach((dataPoint) => {
         const { value, time, site_id } = dataPoint;
 
@@ -61,10 +71,10 @@ const MoreInsightsChart = React.memo(
           return;
         }
 
-        const site = selectedSites.find((s) => s._id === site_id);
-        if (!site) return;
+        // Only include data points from selected sites
+        if (!selectedSiteIds.includes(site_id)) return;
 
-        const siteName = site.name?.split(',')[0] || 'Unknown Location';
+        const siteName = siteIdToName[site_id] || 'Unknown Location';
         const rawTime = time;
 
         if (!combinedData[rawTime]) {
@@ -300,6 +310,7 @@ const MoreInsightsChart = React.memo(
       dataKeys,
       renderCustomizedLegend,
       whoStandardValue,
+      frequency,
     ]);
 
     return (

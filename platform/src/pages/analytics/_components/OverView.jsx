@@ -20,7 +20,10 @@ import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { fetchSitesSummary } from '@/lib/store/services/sitesSummarySlice';
-import { setChartDataRange } from '@/lib/store/services/charts/ChartSlice';
+import {
+  setChartDataRange,
+  setRefreshChart,
+} from '@/lib/store/services/charts/ChartSlice';
 import { subDays } from 'date-fns';
 
 const OverView = () => {
@@ -58,6 +61,7 @@ const OverView = () => {
   const handleTimeFrameChange = useCallback(
     (option) => {
       dispatch(setTimeFrame(option));
+      dispatch(setRefreshChart(true));
     },
     [dispatch],
   );
@@ -65,6 +69,7 @@ const OverView = () => {
   const handlePollutantChange = useCallback(
     (pollutantId) => {
       dispatch(setPollutant(pollutantId));
+      dispatch(setRefreshChart(true));
     },
     [dispatch],
   );
@@ -105,9 +110,10 @@ const OverView = () => {
             <CustomCalendar
               initialStartDate={dateRange.startDate}
               initialEndDate={dateRange.endDate}
-              onChange={(start, end) =>
-                dispatch(setChartDataRange({ start, end }))
-              }
+              onChange={(startDate, endDate, label) => {
+                dispatch(setChartDataRange({ startDate, endDate, label }));
+                dispatch(setRefreshChart(true));
+              }}
               className="-left-24 md:left-14 lg:left-[70px] top-11"
               dropdown
             />

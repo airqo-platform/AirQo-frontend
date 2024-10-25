@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 
 const Button = ({
@@ -75,39 +74,6 @@ const Button = ({
       {children}
     </button>
   );
-};
-
-Button.propTypes = {
-  onClick: PropTypes.func,
-  className: PropTypes.string,
-  path: PropTypes.string,
-  children: PropTypes.node.isRequired,
-  dataTestId: PropTypes.string,
-  disabled: PropTypes.bool,
-  type: PropTypes.oneOf(['button', 'submit', 'reset']),
-  variant: PropTypes.oneOf([
-    'filled',
-    'outlined',
-    'text',
-    'disabled',
-    'primaryText',
-  ]),
-  color: PropTypes.string,
-  bgColor: PropTypes.string,
-  Icon: PropTypes.elementType,
-  paddingStyles: PropTypes.string,
-};
-
-Button.defaultProps = {
-  onClick: () => {},
-  className: '',
-  disabled: false,
-  type: 'button',
-  variant: 'filled',
-  color: '',
-  bgColor: '',
-  Icon: null,
-  paddingStyles: 'py-2 px-4 shadow-sm',
 };
 
 export default Button;

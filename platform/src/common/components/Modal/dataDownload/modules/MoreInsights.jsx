@@ -33,6 +33,7 @@ const InSightsHeader = () => (
 const MoreInsights = () => {
   // const dispatch = useDispatch();
   const { data: modalData } = useSelector((state) => state.modal.modalType);
+  const [refetch, setRefetch] = useState(false);
 
   // Ensure modalData is always an array for consistency
   const selectedSites = useMemo(() => {
@@ -62,7 +63,13 @@ const MoreInsights = () => {
     frequency,
     pollutant: 'pm2_5',
     organisationName: 'airqo',
+    refetch,
   });
+
+  // method to toggle refetch
+  const toggleRefetch = () => {
+    setRefetch(!refetch);
+  };
 
   /**
    * Generates the content for the selected sites in the sidebar.
@@ -142,7 +149,10 @@ const MoreInsights = () => {
                 {TIME_OPTIONS.map((option) => (
                   <span
                     key={option}
-                    onClick={() => setFrequency(option)}
+                    onClick={() => {
+                      setFrequency(option);
+                      toggleRefetch();
+                    }}
                     className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                       frequency === option ? 'bg-[#EBF5FF] rounded-md' : ''
                     }`}
@@ -159,9 +169,10 @@ const MoreInsights = () => {
               <CustomCalendar
                 initialStartDate={dateRange.startDate}
                 initialEndDate={dateRange.endDate}
-                onChange={(start, end) =>
-                  setDateRange({ startDate: start, endDate: end, label: '' })
-                }
+                onChange={(start, end) => {
+                  setDateRange({ startDate: start, endDate: end, label: '' });
+                  toggleRefetch();
+                }}
                 className="left-16 top-11"
                 dropdown
                 isLoading={chartLoading}
@@ -177,7 +188,10 @@ const MoreInsights = () => {
                 {CHART_TYPE.map((option) => (
                   <span
                     key={option.id}
-                    onClick={() => setChartType(option.id)}
+                    onClick={() => {
+                      setChartType(option.id);
+                      toggleRefetch();
+                    }}
                     className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                       chartType === option.id ? 'bg-[#EBF5FF] rounded-md' : ''
                     }`}
@@ -211,7 +225,7 @@ const MoreInsights = () => {
           <div className="w-full h-auto border rounded-xl border-grey-150 p-2">
             <MoreInsightsChart
               data={allSiteData}
-              selectedSites={selectedSites}
+              selectedSites={selectedSiteIds}
               chartType={chartType}
               frequency={frequency}
               width="100%"
