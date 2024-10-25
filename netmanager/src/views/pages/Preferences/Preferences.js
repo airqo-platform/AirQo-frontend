@@ -347,26 +347,39 @@ const Preferences = () => {
   const handleToggleFeatured = async (site) => {
     setUpdatingSiteId(site.site_id);
     setError(null);
+
+    const newFeaturedStatus = !site.isFeatured;
+
     try {
-      const updatedSites = selectedSites.map((s) => ({
-        site_id: s.site_id,
-        isFeatured: s.site_id === site.site_id ? !s.isFeatured : false
-      }));
+      // Optimistically update the UI
+      setSelectedSites((prevSites) =>
+        prevSites.map((s) => ({
+          ...s,
+          isFeatured: s.site_id === site.site_id ? newFeaturedStatus : false
+        }))
+      );
 
-      // Call API to update all sites
-      await Promise.all(updatedSites.map((s) => updateDefaultSelectedSiteApi(s.site_id, s)));
+      // Only update the changed site
+      await updateDefaultSelectedSiteApi(site.site_id, {
+        site_id: site.site_id,
+        isFeatured: newFeaturedStatus
+      });
 
-      setSelectedSites(updatedSites);
       showSnackbar('Site updated successfully');
-
-      // Refresh the default sites cards
-      await fetchSelectedSites();
     } catch (error) {
       console.error('Error updating site:', error);
       const errorMessage =
         error.response?.data?.message || error.message || 'An unknown error occurred';
       setError(`Failed to update site: ${errorMessage}`);
       showSnackbar(`Error updating site: ${errorMessage}`, 'error');
+
+      // Revert the optimistic update
+      setSelectedSites((prevSites) =>
+        prevSites.map((s) => ({
+          ...s,
+          isFeatured: s.site_id === site.site_id ? !newFeaturedStatus : s.isFeatured
+        }))
+      );
     } finally {
       setUpdatingSiteId(null);
     }
