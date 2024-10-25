@@ -114,6 +114,19 @@ const useStyles = makeStyles((theme) => ({
   siteSearchName: {
     fontSize: '0.875rem',
     color: theme.palette.text.secondary
+  },
+  emptyState: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: theme.spacing(3),
+    textAlign: 'center'
+  },
+  emptyStateIcon: {
+    fontSize: 48,
+    marginBottom: theme.spacing(2),
+    color: theme.palette.text.secondary
   }
 }));
 
@@ -172,7 +185,7 @@ const Preferences = () => {
     const selectedSiteIds = new Set(selectedSites.map((site) => site.site_id));
     const uniqueSearchNames = new Set();
     return allSites.filter((site) => {
-      if (!site.search_name || selectedSiteIds.has(site._id) || !site.isOnline) {
+      if (!site.search_name || selectedSiteIds.has(site._id)) {
         return false;
       }
       if (uniqueSearchNames.has(site.search_name)) {
@@ -256,8 +269,24 @@ const Preferences = () => {
           <div className={classes.loaderContainer}>
             <CircularProgress />
           </div>
-        ) : error ? (
-          <Alert severity="error">{error}</Alert>
+        ) : selectedSites.length === 0 ? (
+          <div className={classes.emptyState}>
+            <AddIcon className={classes.emptyStateIcon} />
+            <Typography variant="h6" gutterBottom>
+              No sites selected
+            </Typography>
+            <Typography variant="body2" color="textSecondary" gutterBottom>
+              You haven't selected any sites yet. Click the button below to add sites.
+            </Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={handleOpenModal}
+            >
+              Add Sites
+            </Button>
+          </div>
         ) : (
           <Grid container spacing={2}>
             {selectedSites.map((site) => (
