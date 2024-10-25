@@ -103,3 +103,9 @@ export const deleteDefaultSelectedSiteApi = async (siteId) => {
     .delete(`${BASE_AUTH_SERVICE_URL_V2}/users/preferences/selected-sites/${siteId}`)
     .then((response) => response.data);
 };
+
+export const updateDefaultSelectedSiteApi = async (siteId, siteData) => {
+  return await createAxiosInstance()
+    .put(`${BASE_AUTH_SERVICE_URL_V2}/users/preferences/selected-sites/${siteId}`, siteData)
+    .then((response) => response.data);
+};

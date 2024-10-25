@@ -13,16 +13,19 @@ import {
   Modal,
   Chip,
   CircularProgress,
-  Box
+  IconButton
 } from '@material-ui/core';
 import { Skeleton } from '@material-ui/lab';
 import TextField from '@material-ui/core/TextField';
 import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
+import StarIcon from '@material-ui/icons/Star';
+import StarBorderIcon from '@material-ui/icons/StarBorder';
 import {
   getDefaultSelectedSitesApi,
   setDefaultSelectedSitesApi,
-  deleteDefaultSelectedSiteApi
+  deleteDefaultSelectedSiteApi,
+  updateDefaultSelectedSiteApi
 } from 'views/apis/authService';
 import { useSitesSummaryData } from 'redux/SiteRegistry/selectors';
 import { Alert, Autocomplete } from '@material-ui/lab';
@@ -44,7 +47,8 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
-    padding: theme.spacing(1)
+    padding: theme.spacing(1),
+    position: 'relative' // Add this
   },
   addCard: {
     height: '100%',
@@ -95,6 +99,7 @@ const useStyles = makeStyles((theme) => ({
     height: '200px'
   },
   buttonProgress: {
+    color: theme.palette.primary.main,
     position: 'absolute',
     top: '50%',
     left: '50%',
@@ -109,8 +114,10 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(1, 1, 0, 1)
   },
   cardActions: {
-    padding: theme.spacing(0, 1, 1, 1),
-    justifyContent: 'center'
+    padding: theme.spacing(1),
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
   },
   siteName: {
     fontWeight: 'bold',
@@ -150,6 +157,12 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: 'column',
     justifyContent: 'space-between',
     padding: theme.spacing(1)
+  },
+  starIcon: {
+    color: theme.palette.warning.main
+  },
+  starIconInactive: {
+    color: theme.palette.grey[400]
   }
 }));
 
@@ -171,6 +184,7 @@ const Preferences = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
   const [removingSites, setRemovingSites] = useState(new Set());
+  const [updatingSiteId, setUpdatingSiteId] = useState(null);
 
   const allSites = useSitesSummaryData();
   const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
@@ -198,7 +212,7 @@ const Preferences = () => {
       const errorMessage =
         error.response?.data?.message || error.message || 'An unknown error occurred';
       setError(`Failed to fetch selected sites: ${errorMessage}`);
-      showSnackbar(`Error fetching selected sites: ${errorMessage}`, 'error');
+      showSnackbar(`Error refreshing sites: ${errorMessage}`, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -213,12 +227,11 @@ const Preferences = () => {
     setModalOpen(false);
   };
 
-  // Filter out already selected sites, ensure unique search_name, and check isOnline status
   const availableSites = useMemo(() => {
     const selectedSiteIds = new Set(selectedSites.map((site) => site.site_id));
     const uniqueSearchNames = new Set();
     return allSites.filter((site) => {
-      if (!site.search_name || selectedSiteIds.has(site._id) || !site.isOnline) {
+      if (!site.search_name || selectedSiteIds.has(site._id) || !site.isOnline || site.isFeatured) {
         return false;
       }
       if (uniqueSearchNames.has(site.search_name)) {
@@ -343,6 +356,43 @@ const Preferences = () => {
     }
   }, [modalOpen]);
 
+  const handleToggleFeatured = async (site) => {
+    setUpdatingSiteId(site.site_id);
+    setError(null);
+    try {
+      const updatedSites = selectedSites.map((s) => ({
+        site_id: s.site_id,
+        isFeatured: s.site_id === site.site_id ? !s.isFeatured : false
+      }));
+
+      // Call API to update all sites
+      await Promise.all(updatedSites.map((s) => updateDefaultSelectedSiteApi(s.site_id, s)));
+
+      setSelectedSites(updatedSites);
+      showSnackbar('Site updated successfully');
+
+      // Refresh the default sites cards
+      await fetchSelectedSites();
+    } catch (error) {
+      console.error('Error updating site:', error);
+      const errorMessage =
+        error.response?.data?.message || error.message || 'An unknown error occurred';
+      setError(`Failed to update site: ${errorMessage}`);
+      showSnackbar(`Error updating site: ${errorMessage}`, 'error');
+    } finally {
+      setUpdatingSiteId(null);
+    }
+  };
+
+  // Sort sites with favorited site first
+  const sortedSites = useMemo(() => {
+    return [...selectedSites].sort((a, b) => {
+      if (a.isFeatured && !b.isFeatured) return -1;
+      if (!a.isFeatured && b.isFeatured) return 1;
+      return 0;
+    });
+  }, [selectedSites]);
+
   return (
     <Container className={classes.root}>
       <Typography variant="h4" className={classes.title}>
@@ -368,7 +418,7 @@ const Preferences = () => {
               </Grid>
             ))}
           </Grid>
-        ) : selectedSites.length === 0 ? (
+        ) : sortedSites.length === 0 ? (
           <div className={classes.emptyState}>
             <AddIcon className={classes.emptyStateIcon} />
             <Typography variant="h6" gutterBottom>
@@ -388,7 +438,7 @@ const Preferences = () => {
           </div>
         ) : (
           <Grid container spacing={2}>
-            {selectedSites.map((site) => (
+            {sortedSites.map((site) => (
               <Grid item xs={12} sm={6} md={4} key={site.site_id}>
                 <Card className={classes.card}>
                   <CardContent className={classes.cardContent}>
@@ -405,10 +455,24 @@ const Preferences = () => {
                       onClick={() => handleRemoveSite(site)}
                       color="secondary"
                       size="small"
-                      disabled={removingSites.has(site.site_id)}
+                      disabled={true} // Disabled for now
                     >
-                      {removingSites.has(site.site_id) ? 'Removing...' : 'Remove'}
+                      Remove
                     </Button>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleToggleFeatured(site)}
+                      disabled={updatingSiteId !== null}
+                      aria-label={site.isFeatured ? 'Unmark as featured' : 'Mark as featured'}
+                    >
+                      {updatingSiteId === site.site_id ? (
+                        <CircularProgress size={24} className={classes.buttonProgress} />
+                      ) : site.isFeatured ? (
+                        <StarIcon className={classes.starIcon} />
+                      ) : (
+                        <StarBorderIcon className={classes.starIconInactive} />
+                      )}
+                    </IconButton>
                   </CardActions>
                 </Card>
               </Grid>
