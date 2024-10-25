@@ -20,9 +20,9 @@ import TextField from '@material-ui/core/TextField';
 import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
 import {
-  getUserPreferencesApi,
-  setUserPreferencesApi,
-  deleteUserPreferenceSiteApi
+  getDefaultSelectedSitesApi,
+  setDefaultSelectedSitesApi,
+  deleteDefaultSelectedSiteApi
 } from 'views/apis/authService';
 import { useSitesSummaryData } from 'redux/SiteRegistry/selectors';
 import { Alert, Autocomplete } from '@material-ui/lab';
@@ -186,7 +186,7 @@ const Preferences = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await getUserPreferencesApi();
+      const response = await getDefaultSelectedSitesApi();
       setSelectedSites(response.selected_sites || []);
     } catch (error) {
       console.error('Error fetching selected sites:', error);
@@ -245,7 +245,7 @@ const Preferences = () => {
     setIsSaving(true);
     setError(null);
 
-    const saveOperation = setUserPreferencesApi([...selectedSites, ...newSelectedSites]);
+    const saveOperation = setDefaultSelectedSitesApi([...selectedSites, ...newSelectedSites]);
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Operation timed out')), SAVE_TIMEOUT)
     );
@@ -277,7 +277,7 @@ const Preferences = () => {
     setError(null);
 
     try {
-      await deleteUserPreferenceSiteApi(siteToRemove.site_id);
+      await deleteDefaultSelectedSiteApi(siteToRemove.site_id);
       setSelectedSites((prevSites) =>
         prevSites.filter((site) => site.site_id !== siteToRemove.site_id)
       );

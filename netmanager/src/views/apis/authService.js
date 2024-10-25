@@ -84,13 +84,13 @@ export const getLogsApi = async (params) => {
     .then((response) => response.data);
 };
 
-export const getUserPreferencesApi = async () => {
+export const getDefaultSelectedSitesApi = async () => {
   return await createAxiosInstance()
     .get(`${BASE_AUTH_SERVICE_URL_V2}/users/preferences/selected-sites`)
     .then((response) => response.data);
 };
 
-export const setUserPreferencesApi = async (selectedSites) => {
+export const setDefaultSelectedSitesApi = async (selectedSites) => {
   return await createAxiosInstance()
     .post(`${BASE_AUTH_SERVICE_URL_V2}/users/preferences/selected-sites`, {
       selected_sites: selectedSites
@@ -98,7 +98,7 @@ export const setUserPreferencesApi = async (selectedSites) => {
     .then((response) => response.data);
 };
 
-export const deleteUserPreferenceSiteApi = async (siteId) => {
+export const deleteDefaultSelectedSiteApi = async (siteId) => {
   return await createAxiosInstance()
     .delete(`${BASE_AUTH_SERVICE_URL_V2}/users/preferences/selected-sites/${siteId}`)
     .then((response) => response.data);
