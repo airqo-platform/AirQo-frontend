@@ -17,6 +17,7 @@ import PrintReportModal from '@/components/Modal/PrintReportModal';
 import MoreInsightsChart from './MoreInsightsChart';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
 import SkeletonLoader from './components/SkeletonLoader';
+import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
 
 const ChartContainer = memo(
@@ -132,6 +133,14 @@ const ChartContainer = memo(
       setOpenShare(true);
     }, []);
 
+    const handleOpenModal = useCallback(
+      (type, ids = []) => {
+        dispatch(setOpenModal(true));
+        dispatch(setModalType({ type, ids }));
+      },
+      [dispatch],
+    );
+
     const renderDropdownContent = useCallback(
       () => (
         <>
@@ -159,8 +168,14 @@ const ChartContainer = memo(
               </span>
             </button>
           ))}
-          {/* <hr className="border-gray-200" />
-          {['csv', 'pdf'].map((format) => (
+          <hr className="border-gray-200" />
+          <button
+            onClick={() => handleOpenModal('inSights', selectedSiteIds)}
+            className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
+            More insights
+          </button>
+          {/* {['csv', 'pdf'].map((format) => (
             <button
               key={format}
               onClick={() => shareReport(format)}
