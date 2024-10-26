@@ -13,13 +13,11 @@ import {
   updateUserChecklists,
 } from '@/lib/store/services/checklists/CheckData';
 import { updateCards } from '@/lib/store/services/checklists/CheckList';
-import SetChartDetails from '@/core/utils/SetChartDetails';
 import LogoutUser from '@/core/utils/LogoutUser';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { useDebounce } from '@/core/hooks';
 import { setOpenModal } from '@/lib/store/services/downloadModal';
 import Modal from '../Modal/dataDownload';
-import updateUserPreferences from '@/core/utils/UpdateUserPreferences';
 
 const INACTIVITY_TIMEOUT = 3600000; // 1 hour in milliseconds
 const CHECK_INTERVAL = 10000; // 10 seconds
@@ -35,8 +33,6 @@ const Layout = ({
   const router = useRouter();
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.login.userInfo);
-  const preferenceData =
-    useSelector((state) => state.defaults.individual_preferences) || [];
   const cardCheckList = useSelector((state) => state.cardChecklist.cards);
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const isOpen = useSelector((state) => state.modal.openModal);
@@ -62,15 +58,6 @@ const Layout = ({
       }
     }
   }, [dispatch]);
-
-  /**
-   * Sets chart details based on user preferences.
-   */
-  useEffect(() => {
-    if (preferenceData.length) {
-      SetChartDetails(dispatch, preferenceData);
-    }
-  }, [dispatch, preferenceData]);
 
   /**
    * Fetches user checklists if they haven't been fetched already.

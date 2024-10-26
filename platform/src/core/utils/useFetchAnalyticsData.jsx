@@ -1,8 +1,10 @@
-import { useSelector, useDispatch } from 'react-redux';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
-import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
+import { parseAndValidateISODate } from '@/core/utils/dateUtils';
 
+/**
+ * Custom hook to fetch analytics data based on provided parameters.
+ */
 const useFetchAnalyticsData = ({
   selectedSiteIds = [],
   dateRange = { startDate: new Date(), endDate: new Date() },
@@ -10,88 +12,79 @@ const useFetchAnalyticsData = ({
   frequency = 'daily',
   pollutant = 'pm2_5',
   organisationName = 'airqo',
-  refetch,
 }) => {
-  const dispatch = useDispatch();
   const [allSiteData, setAllSiteData] = useState([]);
-  const [chartLoading, setChartLoading] = useState(true); // Start loading only initially
+  const [chartLoading, setChartLoading] = useState(true);
   const [error, setError] = useState(null);
-  const refreshChart = useSelector((state) => state.chart.refreshChart);
 
-  const getValidDateRange = useCallback(() => {
-    let { startDate, endDate } = dateRange;
-
-    if (!(startDate instanceof Date)) startDate = new Date(startDate);
-    if (!(endDate instanceof Date)) endDate = new Date(endDate);
-
-    if (isNaN(startDate) || isNaN(endDate) || startDate > endDate) {
-      throw new Error('Invalid date range provided.');
-    }
-
-    return {
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-    };
-  }, [dateRange]);
-
+  /**
+   * Fetches analytics data from the API.
+   */
   const fetchAnalyticsData = useCallback(async () => {
-    if (!selectedSiteIds.length) {
-      setAllSiteData([]);
-      setError(null);
-      setChartLoading(false);
-      return;
-    }
-
     setChartLoading(true);
+    setError(null);
 
     try {
-      const validDateRange = getValidDateRange();
+      if (selectedSiteIds.length === 0) {
+        // No sites selected, clear data and error, set loading to false
+        setAllSiteData([]);
+        setError(null);
+        setChartLoading(false);
+        return;
+      }
 
       const requestBody = {
         sites: selectedSiteIds,
-        startDate: validDateRange.startDate,
-        endDate: validDateRange.endDate,
+        startDate: parseAndValidateISODate(dateRange.startDate),
+        endDate: parseAndValidateISODate(dateRange.endDate),
         chartType,
         frequency,
         pollutant,
         organisation_name: organisationName,
       };
 
-      const response = await getAnalyticsData(requestBody);
+      const controller = new AbortController();
+
+      const response = await getAnalyticsData({
+        body: requestBody,
+        signal: controller.signal,
+      });
 
       if (response.status === 'success' && Array.isArray(response.data)) {
         setAllSiteData(response.data);
-        setChartLoading(false);
       } else {
+        setAllSiteData([]);
         throw new Error(response.message || 'Failed to fetch analytics data.');
       }
     } catch (err) {
       console.error('Error fetching analytics data:', err);
-      setError(
-        err.message || 'An error occurred while fetching analytics data.',
-      );
+      setError(err.message || 'An unexpected error occurred.');
       setAllSiteData([]);
-      setChartLoading(false);
     } finally {
-      dispatch(setRefreshChart(false));
+      setChartLoading(false);
     }
   }, [
     selectedSiteIds,
-    // getValidDateRange,
-    // chartType,
-    // frequency,
-    // pollutant,
-    // organisationName,
-    // dispatch,
-    refreshChart,
-    refetch,
+    dateRange.startDate,
+    dateRange.endDate,
+    chartType,
+    frequency,
+    pollutant,
+    organisationName,
   ]);
 
   useEffect(() => {
     fetchAnalyticsData();
   }, [fetchAnalyticsData]);
 
-  return { allSiteData, chartLoading, error };
+  /**
+   * Refetch function to manually trigger data fetching.
+   */
+  const refetch = useCallback(() => {
+    fetchAnalyticsData();
+  }, [fetchAnalyticsData]);
+
+  return { allSiteData, chartLoading, error, refetch };
 };
 
 export default useFetchAnalyticsData;
