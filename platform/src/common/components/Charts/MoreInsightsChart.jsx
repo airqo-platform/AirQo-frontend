@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   LineChart,
   Line,
@@ -33,8 +33,8 @@ import SkeletonLoader from './components/SkeletonLoader';
  */
 const MoreInsightsChart = React.memo(
   ({
-    data,
-    selectedSites, // Array of site IDs
+    data = [],
+    selectedSites = [], // Array of site IDs; if empty, include all sites
     chartType = 'line',
     frequency = 'daily',
     width = '100%',
@@ -51,14 +51,20 @@ const MoreInsightsChart = React.memo(
     const processChartData = useCallback((data, selectedSiteIds) => {
       const combinedData = {};
       const siteIdToName = {};
+      const allSiteIds = new Set();
 
       // Build a mapping from site_id to site name
       data.forEach((dataPoint) => {
         const { site_id, name } = dataPoint;
-        if (!siteIdToName[site_id]) {
-          siteIdToName[site_id] = name || 'Unknown Location';
+        if (site_id && name) {
+          siteIdToName[site_id] = name;
+          allSiteIds.add(site_id);
         }
       });
+
+      // If selectedSiteIds is empty, include all site_ids
+      const sitesToInclude =
+        selectedSiteIds.length > 0 ? selectedSiteIds : Array.from(allSiteIds);
 
       // Process each data point
       data.forEach((dataPoint) => {
@@ -71,7 +77,7 @@ const MoreInsightsChart = React.memo(
         }
 
         // Only include data points from selected sites
-        if (!selectedSiteIds.includes(site_id)) return;
+        if (!sitesToInclude.includes(site_id)) return;
 
         const rawTime = time;
 
@@ -79,6 +85,7 @@ const MoreInsightsChart = React.memo(
           combinedData[rawTime] = { time: rawTime };
         }
 
+        // Assign value to the corresponding site_id
         combinedData[rawTime][site_id] = value;
       });
 
@@ -94,7 +101,8 @@ const MoreInsightsChart = React.memo(
      * Memoized processed chart data
      */
     const { sortedData: chartData, siteIdToName } = useMemo(() => {
-      if (!data || !selectedSites) return { sortedData: [], siteIdToName: {} };
+      if (!data || data.length === 0)
+        return { sortedData: [], siteIdToName: {} };
       return processChartData(data, selectedSites);
     }, [data, selectedSites, processChartData]);
 
@@ -103,7 +111,14 @@ const MoreInsightsChart = React.memo(
      */
     const dataKeys = useMemo(() => {
       if (chartData.length === 0) return [];
-      return Object.keys(chartData[0]).filter((key) => key !== 'time');
+      // Extract all unique keys excluding 'time'
+      const keys = new Set();
+      chartData.forEach((item) => {
+        Object.keys(item).forEach((key) => {
+          if (key !== 'time') keys.add(key);
+        });
+      });
+      return Array.from(keys);
     }, [chartData]);
 
     /**
@@ -153,6 +168,18 @@ const MoreInsightsChart = React.memo(
       () => calculateXAxisInterval(),
       [calculateXAxisInterval],
     );
+
+    /**
+     * Effect to update X-axis interval on window resize for responsiveness
+     */
+    useEffect(() => {
+      const handleResize = () => {
+        // Force recalculation by updating a state or triggering a re-render
+        // Here, we do nothing because xAxisInterval is recalculated on dependency change
+      };
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     /**
      * Render the chart or appropriate messages based on state

@@ -65,7 +65,7 @@ const MoreInsights = () => {
 
   const { allSiteData, chartLoading, error, refetch } = useFetchAnalyticsData({
     selectedSiteIds,
-    dateRange, // Pass the entire dateRange object
+    dateRange,
     chartType,
     frequency,
     pollutant: 'pm2_5',
