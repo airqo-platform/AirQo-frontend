@@ -23,15 +23,13 @@ const AQNumberCard = () => {
     (state) => state.recentMeasurements.measurements,
   );
 
-  const pollutantType = useSelector((state) => state.chart.pollutionType);
+  const { chartSites, pollutionType: pollutantType } = useSelector(
+    (state) => state.chart,
+  );
+
   const preferencesData = useSelector(
     (state) => state.defaults.individual_preferences,
   );
-
-  // Memoize selected site IDs to prevent unnecessary computations
-  const selectedSiteIds = useMemo(() => {
-    return preferencesData?.[0]?.selected_sites?.map((site) => site._id) || [];
-  }, []);
 
   const MAX_CARDS = 4;
 
@@ -55,33 +53,44 @@ const AQNumberCard = () => {
     [],
   );
 
-  // Simulate data fetching with mock data
-  const fetchMeasurementsForSites = useCallback(async () => {
-    if (selectedSiteIds.length > 0) {
-      setLoading(true);
-      try {
-        // Simulate network delay
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+  // Fetch measurements for sites with support for cancellation
+  const fetchMeasurementsForSites = useCallback(
+    async (controller) => {
+      if (chartSites.length > 0) {
+        setLoading(true);
 
-        await dispatch(
-          fetchRecentMeasurementsData({ site_id: selectedSiteIds.join(',') }),
-        );
-      } catch (error) {
-        console.error('Error fetching recent measurements:', error);
-      } finally {
+        try {
+          await dispatch(
+            fetchRecentMeasurementsData({
+              params: { site_id: chartSites.join(',') },
+              signal: controller.signal,
+            }),
+          ).unwrap();
+        } catch (error) {
+          if (error.name !== 'CanceledError') {
+            console.error('Error fetching recent measurements:', error);
+          }
+        } finally {
+          setLoading(false);
+        }
+      } else {
         setLoading(false);
       }
-    } else {
-      setLoading(false);
-    }
-  }, [dispatch, selectedSiteIds]);
+    },
+    [dispatch, chartSites],
+  );
 
   // Load data on component mount and when selectedSiteIds change
   useEffect(() => {
-    fetchMeasurementsForSites();
+    const controller = new AbortController();
+
+    // Call the fetch function with the controller
+    fetchMeasurementsForSites(controller);
+
+    // Cleanup: cancel request if component unmounts
+    return () => controller.abort();
   }, [fetchMeasurementsForSites]);
 
-  // Helper function to get air quality level
   const getAirQualityLevel = useCallback(
     (reading) => {
       if (reading === null || reading === undefined) {
@@ -97,14 +106,12 @@ const AQNumberCard = () => {
     [airQualityLevels],
   );
 
-  // Helper function to get pollutant reading for a site
   const getPollutantReading = useCallback(
     (siteId) => {
       const measurement = recentLocationMeasurements.find(
         (m) => m.site_id === siteId,
       );
       if (measurement) {
-        // Ensure pollutantType is either 'pm2_5' or 'pm10'
         if (pollutantType === 'pm2_5') {
           return measurement.pm2_5?.value ?? null;
         } else if (pollutantType === 'pm10') {
@@ -116,13 +123,11 @@ const AQNumberCard = () => {
     [recentLocationMeasurements, pollutantType],
   );
 
-  // Helper function to truncate text with ellipsis
   const truncateText = useCallback((text, maxLength) => {
     if (!text) return '---';
     return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
   }, []);
 
-  // Skeleton loader for loading state
   const SkeletonCard = () => (
     <div className="w-full bg-gray-200 animate-pulse rounded-xl px-4 py-10">
       <div className="h-6 w-3/4 bg-gray-300 rounded"></div>
@@ -131,7 +136,6 @@ const AQNumberCard = () => {
     </div>
   );
 
-  // Open modal handler
   const handleOpenModal = useCallback(
     (type, ids = null, data = null) => {
       dispatch(setModalType({ type, ids, data }));
@@ -140,7 +144,6 @@ const AQNumberCard = () => {
     [dispatch],
   );
 
-  // Render site cards
   const renderSiteCards = () => {
     return preferencesData?.[0]?.selected_sites
       ?.slice(0, MAX_CARDS)
@@ -148,7 +151,6 @@ const AQNumberCard = () => {
         const reading = getPollutantReading(site._id);
         const { text: airQualityText, icon: AirQualityIcon } =
           getAirQualityLevel(reading);
-        // const isClickable = site.name && reading !== null;
         const isClickable = true;
 
         return (
@@ -158,7 +160,6 @@ const AQNumberCard = () => {
             onClick={() => {
               handleOpenModal('inSights', [], site);
             }}
-            // disabled={!isClickable}
           >
             <div
               className={`relative w-full flex flex-col justify-between bg-white border border-gray-200 rounded-xl px-4 py-6 h-[200px] shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out ${
@@ -191,11 +192,7 @@ const AQNumberCard = () => {
                       <WindIcon width="10.48px" height="10.48px" />
                     </div>
                     <div className="text-slate-400 text-sm font-medium">
-                      {pollutantType
-                        ? pollutantType === 'pm2_5'
-                          ? 'PM2.5'
-                          : 'PM10'
-                        : '---'}
+                      {pollutantType === 'pm2_5' ? 'PM2.5' : 'PM10'}
                     </div>
                   </div>
                   <div className="text-gray-700 text-[28px] font-extrabold">
@@ -225,17 +222,13 @@ const AQNumberCard = () => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {loading ? (
-        // Display skeleton loaders while loading
         Array.from({ length: MAX_CARDS }).map((_, index) => (
           <SkeletonCard key={index} />
         ))
       ) : (
         <>
-          {/* Render site cards if any */}
-          {preferencesData?.[0]?.selected_sites?.length > 0 &&
-            renderSiteCards()}
+          {renderSiteCards()}
 
-          {/* Show Add Location button if there are fewer than MAX_CARDS */}
           {preferencesData?.[0]?.selected_sites?.length < MAX_CARDS && (
             <button
               onClick={() => handleOpenModal('addLocation')}

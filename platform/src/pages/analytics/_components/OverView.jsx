@@ -1,5 +1,6 @@
-'use client';
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+// src/components/OverView.jsx
+
+import React, { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ChartContainer from '@/components/Charts/ChartContainer';
 import AQNumberCard from '@/components/AQNumberCard';
@@ -20,9 +21,8 @@ import DownloadIcon from '@/icons/Analytics/downloadIcon';
 import Modal from '@/components/Modal/dataDownload';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
-import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
-import { fetchSitesSummary } from '@/lib/store/services/sitesSummarySlice';
 import { subDays } from 'date-fns';
+import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
 
 const OverView = () => {
   const dispatch = useDispatch();
@@ -33,24 +33,6 @@ const OverView = () => {
     endDate: new Date(),
     label: 'Last 7 days',
   });
-
-  // Memoize user data from local storage to avoid rerenders
-  const user = useMemo(
-    () => JSON.parse(localStorage.getItem('loggedUser')),
-    [],
-  );
-
-  // Fetch sites summary only once when the component mounts
-  useEffect(() => {
-    dispatch(fetchSitesSummary());
-  }, [dispatch]);
-
-  // Fetch user preferences only if a user is found in local storage
-  useEffect(() => {
-    if (user) {
-      dispatch(getIndividualUserPreferences(user._id));
-    }
-  }, [dispatch, user]);
 
   // Memoize handleOpenModal to avoid unnecessary rerenders
   const handleOpenModal = useCallback(
@@ -73,6 +55,31 @@ const OverView = () => {
   const handlePollutantChange = useCallback(
     (pollutantId) => {
       dispatch(setPollutant(pollutantId));
+      dispatch(setRefreshChart(true));
+    },
+    [dispatch],
+  );
+
+  /**
+   * Handles date range selection from the calendar.
+   * Converts Date objects to ISO strings before dispatching.
+   */
+  const handleDateChange = useCallback(
+    (startDate, endDate, label) => {
+      const { startDateISO, endDateISO } = formatDateRangeToISO(
+        startDate,
+        endDate,
+      );
+
+      setDateRange({ startDate, endDate, label });
+
+      dispatch(
+        setChartDataRange({
+          startDate: startDateISO,
+          endDate: endDateISO,
+          label,
+        }),
+      );
       dispatch(setRefreshChart(true));
     },
     [dispatch],
@@ -112,11 +119,7 @@ const OverView = () => {
             <CustomCalendar
               initialStartDate={dateRange.startDate}
               initialEndDate={dateRange.endDate}
-              onChange={(startDate, endDate, label) => {
-                dispatch(setChartDataRange({ startDate, endDate, label }));
-                setDateRange({ startDate, endDate, label });
-                dispatch(setRefreshChart(true));
-              }}
+              onChange={handleDateChange}
               className="-left-24 md:left-14 lg:left-[70px] top-11"
               dropdown
             />
@@ -166,17 +169,19 @@ const OverView = () => {
         <AQNumberCard />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Line Chart */}
           <ChartContainer
             chartType="line"
             chartTitle="Air Pollution Data Over Time"
             height={400}
-            id="air-pollution-line-chart-1"
+            id="air-pollution-line-chart"
           />
+          {/* Bar Chart */}
           <ChartContainer
             chartType="bar"
             chartTitle="Air Pollution Data Over Time"
             height={400}
-            id="air-pollution-bar-chart-1"
+            id="air-pollution-bar-chart"
           />
         </div>
       </div>

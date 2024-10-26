@@ -1,24 +1,17 @@
-// src/components/ChartContainer.jsx
-import React, {
-  useRef,
-  useCallback,
-  useState,
-  useEffect,
-  memo,
-  useMemo,
-} from 'react';
+import React, { useRef, useCallback, useEffect, memo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import CheckIcon from '@/icons/tickIcon';
 import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
-import PrintReportModal from '@/components/Modal/PrintReportModal';
+// import PrintReportModal from '@/components/Modal/PrintReportModal';
 import MoreInsightsChart from './MoreInsightsChart';
-import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
 import SkeletonLoader from './components/SkeletonLoader';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
+// import { toast } from 'sonner';
+// import checkCircleIcon from '@/icons/Analytics/checkCircleIcon';
 
 const ChartContainer = memo(
   ({
@@ -33,6 +26,7 @@ const ChartContainer = memo(
     const chartRef = useRef(null);
     const dropdownRef = useRef(null);
 
+    // Extract necessary data from Redux store
     const {
       chartDataRange,
       chartSites,
@@ -41,32 +35,28 @@ const ChartContainer = memo(
       pollutionType,
     } = useSelector((state) => state.chart);
 
-    const [openShare, setOpenShare] = useState(false);
-    const [shareFormat, setShareFormat] = useState(null);
-    const [loadingFormat, setLoadingFormat] = useState(null);
-    const [downloadComplete, setDownloadComplete] = useState(null);
-
     const preferencesData = useSelector(
       (state) => state.defaults.individual_preferences,
     );
+    const user_selected_sites = preferencesData?.[0]?.selected_sites || [];
 
-    const user_selected_sites = preferencesData?.[0]?.selected_sites;
+    // State for handling sharing and exporting
+    // const [openShare, setOpenShare] = useState(false);
+    // const [shareFormat, setShareFormat] = useState(null);
+    const [loadingFormat, setLoadingFormat] = React.useState(null);
+    const [downloadComplete, setDownloadComplete] = React.useState(null);
 
-    // Extract selected site IDs from preferencesData
-    const selectedSiteIds = useMemo(() => {
-      return (
-        preferencesData?.[0]?.selected_sites?.map((site) => site._id) || []
-      );
-    }, []);
-
-    const { allSiteData, chartLoading } = useFetchAnalyticsData({
-      selectedSiteIds,
-      dateRange: chartDataRange,
-      chartType,
-      frequency: timeFrame,
-      pollutant: pollutionType,
-      organisationName: organizationName,
-    });
+    // Fetch analytics data using the custom hook
+    const { allSiteData, chartLoading, error, refetch } = useFetchAnalyticsData(
+      {
+        selectedSiteIds: chartSites,
+        dateRange: chartDataRange,
+        chartType,
+        frequency: timeFrame,
+        pollutant: pollutionType,
+        organisationName: organizationName,
+      },
+    );
 
     // Handle click outside for dropdown
     useEffect(() => {
@@ -84,6 +74,11 @@ const ChartContainer = memo(
         document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    /**
+     * Exports the chart in the specified format.
+     *
+     * @param {string} format - The format to export the chart (png, jpg, pdf).
+     */
     const exportChart = useCallback(async (format) => {
       if (!chartRef.current) return;
 
@@ -119,6 +114,12 @@ const ChartContainer = memo(
         }
 
         setDownloadComplete(format);
+        // toast('Download complete', {
+        //   className: 'bg-black text-white p-2 rounded-md max-w-xs',
+        //   duration: 5000,
+        //   position: 'bottom-center',
+        //   icon: <checkCircleIcon width={20} height={20} />,
+        // });
       } catch (error) {
         console.error('Error exporting chart:', error);
       } finally {
@@ -126,15 +127,16 @@ const ChartContainer = memo(
       }
     }, []);
 
-    const refreshChart = useCallback(() => {
-      dispatch(setRefreshChart(true));
-    }, [dispatch]);
+    /**
+     * Refreshes the chart data by calling the refetch function from the hook.
+     */
+    const handleRefreshChart = useCallback(() => {
+      refetch();
+    }, [refetch]);
 
-    const shareReport = useCallback((format) => {
-      setShareFormat(format);
-      setOpenShare(true);
-    }, []);
-
+    /**
+     * Opens a modal with specified type and data.
+     */
     const handleOpenModal = useCallback(
       (type, ids = null, data = null) => {
         dispatch(setModalType({ type, ids, data }));
@@ -143,11 +145,14 @@ const ChartContainer = memo(
       [dispatch],
     );
 
+    /**
+     * Renders the content of the dropdown menu.
+     */
     const renderDropdownContent = useCallback(
       () => (
         <>
           <button
-            onClick={refreshChart}
+            onClick={handleRefreshChart}
             className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >
             Refresh
@@ -188,7 +193,28 @@ const ChartContainer = memo(
           ))} */}
         </>
       ),
-      [exportChart, loadingFormat, downloadComplete, refreshChart, shareReport],
+      [
+        exportChart,
+        loadingFormat,
+        downloadComplete,
+        handleRefreshChart,
+        handleOpenModal,
+        user_selected_sites,
+      ],
+    );
+
+    const ErrorOverlay = () => (
+      <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+        <p className="text-red-500 font-semibold">
+          Something went wrong. Please try again.
+        </p>
+        <button
+          onClick={refetch}
+          className="ml-4 text-red-500 font-semibold underline"
+        >
+          Try again
+        </button>
+      </div>
     );
 
     return (
@@ -197,7 +223,7 @@ const ChartContainer = memo(
         id="analytics-chart"
       >
         <div className="flex flex-col items-start gap-1 w-full p-4">
-          {showTitle && (
+          {showTitle && !chartLoading && (
             <div className="flex items-center justify-between w-full">
               <h3 className="text-lg font-medium">{chartTitle}</h3>
               <div ref={dropdownRef}>
@@ -209,39 +235,37 @@ const ChartContainer = memo(
                   id={`options-${id}`}
                   alignment="right"
                 >
-                  {chartLoading ? (
-                    <SkeletonLoader
-                      width="100%"
-                      height="40px"
-                      className="p-2"
-                    />
-                  ) : (
-                    renderDropdownContent()
-                  )}
+                  {renderDropdownContent()}
                 </CustomDropdown>
               </div>
             </div>
           )}
           <div
             ref={chartRef}
-            className="my-6 relative"
+            className="my-3 relative"
             style={{ width, height }}
           >
-            <MoreInsightsChart
-              data={allSiteData}
-              selectedSites={selectedSiteIds}
-              chartType={chartType}
-              frequency={timeFrame}
-              width="100%"
-              height={height}
-              id={id}
-              pollutantType={pollutionType}
-              isLoading={chartLoading}
-            />
+            {chartLoading && <SkeletonLoader width={width} height={height} />}
+
+            {!chartLoading && error && <ErrorOverlay />}
+
+            {!chartLoading && !error && allSiteData?.length > 0 ? (
+              <MoreInsightsChart
+                data={allSiteData}
+                selectedSites={chartSites}
+                chartType={chartType}
+                frequency={timeFrame}
+                width="100%"
+                height={height}
+                id={id}
+                pollutantType={pollutionType}
+                isLoading={chartLoading}
+              />
+            ) : null}
           </div>
         </div>
 
-        <PrintReportModal
+        {/* <PrintReportModal
           title="Share Report"
           btnText="Send"
           shareModel
@@ -253,7 +277,7 @@ const ChartContainer = memo(
             endDate: chartDataRange.endDate,
             sites: chartSites,
           }}
-        />
+        /> */}
       </div>
     );
   },
@@ -265,8 +289,8 @@ ChartContainer.propTypes = {
   height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   id: PropTypes.string.isRequired,
-  defaultBody: PropTypes.object,
   showTitle: PropTypes.bool,
+  // defaultBody: PropTypes.object, // Commented out as per your request
 };
 
 ChartContainer.displayName = 'ChartContainer';
