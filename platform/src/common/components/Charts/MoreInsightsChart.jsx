@@ -49,6 +49,7 @@ const MoreInsightsChart = React.memo(
 
     // Reference to the chart container
     const containerRef = useRef(null);
+    // Use the custom hook to get container dimensions
     const { width: containerWidth } = useResizeObserver(containerRef);
 
     /**
@@ -117,6 +118,7 @@ const MoreInsightsChart = React.memo(
      */
     const dataKeys = useMemo(() => {
       if (chartData.length === 0) return [];
+      // Extract all unique keys excluding 'time'
       const keys = new Set();
       chartData.forEach((item) => {
         Object.keys(item).forEach((key) => {
@@ -162,19 +164,9 @@ const MoreInsightsChart = React.memo(
      */
     const calculateStep = useCallback(() => {
       const minLabelWidth = 40;
-      const minPointsToShow = 5;
-
       if (containerWidth === 0) return 1;
-
-      // Calculate the maximum number of labels that can fit within the container width
       const maxLabels = Math.floor(containerWidth / minLabelWidth);
-
-      // Determine the minimum number of labels to display, ensuring at least 5 are shown
-      const labelsToShow = Math.max(minPointsToShow, maxLabels);
-
-      // Calculate the step value to distribute the labels evenly across the available data points
-      const step = Math.ceil(chartData.length / labelsToShow);
-
+      const step = Math.ceil(chartData.length / maxLabels);
       return step;
     }, [containerWidth, chartData.length]);
 
