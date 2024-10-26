@@ -1,3 +1,5 @@
+// src/components/Charts/ChartContainer.jsx
+
 import React, { useRef, useCallback, useEffect, memo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -5,11 +7,10 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import CheckIcon from '@/icons/tickIcon';
 import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
-// import PrintReportModal from '@/components/Modal/PrintReportModal';
+// import PrintReportModal from '@/components/Modal/PrintReportModal'; // Retained as per request
 import MoreInsightsChart from './MoreInsightsChart';
 import SkeletonLoader from './components/SkeletonLoader';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
-import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
 import CustomToast from '../Toast/CustomToast';
 
 const ChartContainer = memo(
@@ -20,42 +21,27 @@ const ChartContainer = memo(
     width = '100%',
     id,
     showTitle = true,
+    data = [],
+    chartLoading,
+    error,
+    refetch,
   }) => {
     const dispatch = useDispatch();
     const chartRef = useRef(null);
     const dropdownRef = useRef(null);
 
     // Extract necessary data from Redux store
-    const {
-      chartDataRange,
-      chartSites,
-      timeFrame,
-      organizationName,
-      pollutionType,
-    } = useSelector((state) => state.chart);
-
+    const { chartSites, timeFrame, pollutionType } = useSelector(
+      (state) => state.chart,
+    );
     const preferencesData = useSelector(
       (state) => state.defaults.individual_preferences,
     );
     const user_selected_sites = preferencesData?.[0]?.selected_sites || [];
 
     // State for handling sharing and exporting
-    // const [openShare, setOpenShare] = useState(false);
-    // const [shareFormat, setShareFormat] = useState(null);
     const [loadingFormat, setLoadingFormat] = React.useState(null);
     const [downloadComplete, setDownloadComplete] = React.useState(null);
-
-    // Fetch analytics data using the custom hook
-    const { allSiteData, chartLoading, error, refetch } = useFetchAnalyticsData(
-      {
-        selectedSiteIds: chartSites,
-        dateRange: chartDataRange,
-        chartType,
-        frequency: timeFrame,
-        pollutant: pollutionType,
-        organisationName: organizationName,
-      },
-    );
 
     // Handle click outside for dropdown
     useEffect(() => {
@@ -176,7 +162,8 @@ const ChartContainer = memo(
           >
             More insights
           </button>
-          {/* {['csv', 'pdf'].map((format) => (
+          {/* 
+          {['csv', 'pdf'].map((format) => (
             <button
               key={format}
               onClick={() => shareReport(format)}
@@ -184,7 +171,8 @@ const ChartContainer = memo(
             >
               <span>Share report as {format.toUpperCase()}</span>
             </button>
-          ))} */}
+          ))} 
+          */}
         </>
       ),
       [
@@ -243,9 +231,9 @@ const ChartContainer = memo(
 
             {!chartLoading && error && <ErrorOverlay />}
 
-            {!chartLoading && !error && allSiteData?.length > 0 && (
+            {!chartLoading && !error && data?.length > 0 && (
               <MoreInsightsChart
-                data={allSiteData}
+                data={data}
                 selectedSites={chartSites}
                 chartType={chartType}
                 frequency={timeFrame}
@@ -259,7 +247,8 @@ const ChartContainer = memo(
           </div>
         </div>
 
-        {/* <PrintReportModal
+        {/* 
+        <PrintReportModal
           title="Share Report"
           btnText="Send"
           shareModel
@@ -271,7 +260,8 @@ const ChartContainer = memo(
             endDate: chartDataRange.endDate,
             sites: chartSites,
           }}
-        /> */}
+        /> 
+        */}
       </div>
     );
   },
@@ -284,6 +274,10 @@ ChartContainer.propTypes = {
   width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   id: PropTypes.string.isRequired,
   showTitle: PropTypes.bool,
+  data: PropTypes.array.isRequired,
+  chartLoading: PropTypes.bool.isRequired,
+  error: PropTypes.string,
+  refetch: PropTypes.func.isRequired,
   // defaultBody: PropTypes.object, // Commented out as per your request
 };
 

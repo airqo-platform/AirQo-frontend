@@ -1,4 +1,5 @@
-// MoreInsights.jsx
+// src/components/MoreInsights.jsx
+
 import React, { useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 // import DownloadIcon from '@/icons/Analytics/downloadIcon';
@@ -14,7 +15,6 @@ import LocationIcon from '@/icons/Analytics/LocationIcon';
 // import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { subDays } from 'date-fns';
 import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
-
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
 
 /**
@@ -35,6 +35,7 @@ const InSightsHeader = () => (
 const MoreInsights = () => {
   // const dispatch = useDispatch();
   const { data: modalData } = useSelector((state) => state.modal.modalType);
+  const chartData = useSelector((state) => state.chart);
 
   // Ensure modalData is always an array for consistency
   const selectedSites = useMemo(() => {
@@ -52,24 +53,29 @@ const MoreInsights = () => {
   const [frequency, setFrequency] = useState('daily');
   const [chartType, setChartType] = useState('line');
 
-  const { startDateISO, endDateISO } = formatDateRangeToISO(
-    subDays(new Date(), 7),
-    new Date(),
-  );
+  // Initialize date range to last 7 days
+  const initialDateRange = useMemo(() => {
+    const { startDateISO, endDateISO } = formatDateRangeToISO(
+      subDays(new Date(), 7),
+      new Date(),
+    );
+    return {
+      startDate: startDateISO,
+      endDate: endDateISO,
+      label: 'Last 7 days',
+    };
+  }, []);
 
-  const [dateRange, setDateRange] = useState({
-    startDate: startDateISO,
-    endDate: endDateISO,
-    label: 'Last 7 days',
-  });
+  const [dateRange, setDateRange] = useState(initialDateRange);
 
+  // Fetch analytics data using custom hook
   const { allSiteData, chartLoading, error, refetch } = useFetchAnalyticsData({
     selectedSiteIds,
     dateRange,
     chartType,
     frequency,
-    pollutant: 'pm2_5',
-    organisationName: 'airqo',
+    pollutant: chartData.pollutionType,
+    organisationName: chartData.organisationName,
   });
 
   /**
@@ -159,8 +165,10 @@ const MoreInsights = () => {
                   <span
                     key={option}
                     onClick={() => {
-                      setFrequency(option);
-                      handleParameterChange();
+                      if (frequency !== option) {
+                        setFrequency(option);
+                        handleParameterChange();
+                      }
                     }}
                     className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                       frequency === option ? 'bg-[#EBF5FF] rounded-md' : ''
@@ -178,9 +186,8 @@ const MoreInsights = () => {
               <CustomCalendar
                 initialStartDate={new Date(dateRange.startDate)}
                 initialEndDate={new Date(dateRange.endDate)}
-                onChange={(start, end) => {
+                onChange={(start, end, label) => {
                   if (start && end) {
-                    const label = generateDateLabel(start, end);
                     setDateRange({
                       startDate: start.toISOString(),
                       endDate: end.toISOString(),
@@ -205,8 +212,10 @@ const MoreInsights = () => {
                   <span
                     key={option.id}
                     onClick={() => {
-                      setChartType(option.id);
-                      handleParameterChange();
+                      if (chartType !== option.id) {
+                        setChartType(option.id);
+                        handleParameterChange();
+                      }
                     }}
                     className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                       chartType === option.id ? 'bg-[#EBF5FF] rounded-md' : ''
@@ -252,7 +261,7 @@ const MoreInsights = () => {
           {/* <AirQualityCard
             airQuality="Kampala’s Air Quality has been Good this month compared to last month."
             pollutionSource="Factory, Dusty road"
-            pollutant="PM2.5"
+            pollutant="PM2_5"
             isLoading={chartLoading}
           /> */}
         </div>
@@ -261,16 +270,5 @@ const MoreInsights = () => {
   );
 };
 
-/**
- * Utility function to generate a label based on start and end dates.
- * You can customize this function based on your requirements.
- */
-const generateDateLabel = (start, end) => {
-  const options = { year: 'numeric', month: 'short', day: 'numeric' };
-  const startLabel = start.toLocaleDateString(undefined, options);
-  const endLabel = end.toLocaleDateString(undefined, options);
-  return `${startLabel} - ${endLabel}`;
-};
-
 export { InSightsHeader };
-export default MoreInsights;
+export default React.memo(MoreInsights);

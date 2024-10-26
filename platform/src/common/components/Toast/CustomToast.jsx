@@ -10,7 +10,7 @@ const CustomToast = () => {
     style: {
       left: '50%',
       transform: 'translateX(10%)',
-      bottom: '10px',
+      bottom: '5px',
       position: 'fixed',
     },
     icon: <CheckCircleIcon width={20} height={20} className="text-white" />,

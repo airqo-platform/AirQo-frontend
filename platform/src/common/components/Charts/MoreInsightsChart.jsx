@@ -36,14 +36,14 @@ import useResizeObserver from '@/core/utils/useResizeObserver';
 const MoreInsightsChart = React.memo(
   ({
     data = [],
-    selectedSites = [], // Array of site IDs; if empty, include all sites
+    selectedSites = [],
     chartType = 'line',
     frequency = 'daily',
     width = '100%',
     height = '300px',
     id,
     pollutantType,
-    isLoading = false,
+    isLoading,
   }) => {
     const [activeIndex, setActiveIndex] = useState(null);
 
@@ -179,7 +179,11 @@ const MoreInsightsChart = React.memo(
      * Render the chart or appropriate messages based on state
      */
     const renderChart = useMemo(() => {
-      if (chartData.length === 0 && isLoading) {
+      if (isLoading) {
+        return <SkeletonLoader width={width} height={height} />;
+      }
+
+      if (chartData.length === 0) {
         return (
           <div className="w-full flex flex-col justify-center items-center h-[380px] text-gray-500">
             <p className="text-lg font-medium mb-2">No Data Available</p>
@@ -326,11 +330,7 @@ const MoreInsightsChart = React.memo(
 
     return (
       <div id={id} ref={containerRef} className="pt-4">
-        {isLoading ? (
-          <SkeletonLoader width={width} height={height} />
-        ) : (
-          renderChart
-        )}
+        {renderChart}
       </div>
     );
   },

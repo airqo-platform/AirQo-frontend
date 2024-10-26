@@ -23,6 +23,7 @@ import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { subDays } from 'date-fns';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
+import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData'; // Import the hook
 
 const OverView = () => {
   const dispatch = useDispatch();
@@ -84,6 +85,36 @@ const OverView = () => {
     },
     [dispatch],
   );
+
+  // Fetch analytics data for Line Chart
+  const {
+    allSiteData: lineData,
+    chartLoading: lineLoading,
+    error: lineError,
+    refetch: refetchLine,
+  } = useFetchAnalyticsData({
+    selectedSiteIds: chartData.chartSites,
+    dateRange: chartData.chartDataRange,
+    chartType: 'line',
+    frequency: chartData.timeFrame,
+    pollutant: chartData.pollutionType,
+    organisationName: chartData.organizationName,
+  });
+
+  // Fetch analytics data for Bar Chart
+  const {
+    allSiteData: barData,
+    chartLoading: barLoading,
+    error: barError,
+    refetch: refetchBar,
+  } = useFetchAnalyticsData({
+    selectedSiteIds: chartData.chartSites,
+    dateRange: chartData.chartDataRange,
+    chartType: 'bar',
+    frequency: chartData.timeFrame,
+    pollutant: chartData.pollutionType,
+    organisationName: chartData.organizationName,
+  });
 
   return (
     <BorderlessContentBox>
@@ -175,6 +206,10 @@ const OverView = () => {
             chartTitle="Air Pollution Data Over Time"
             height={400}
             id="air-pollution-line-chart"
+            data={lineData}
+            chartLoading={lineLoading}
+            error={lineError}
+            refetch={refetchLine}
           />
           {/* Bar Chart */}
           <ChartContainer
@@ -182,6 +217,10 @@ const OverView = () => {
             chartTitle="Air Pollution Data Over Time"
             height={400}
             id="air-pollution-bar-chart"
+            data={barData}
+            chartLoading={barLoading}
+            error={barError}
+            refetch={refetchBar}
           />
         </div>
       </div>

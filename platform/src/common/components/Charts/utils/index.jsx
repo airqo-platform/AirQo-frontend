@@ -37,11 +37,6 @@ export const CustomizedAxisTick = ({
   index,
   step,
 }) => {
-  /**
-   * Formats the date based on the frequency.
-   * @param {string} value - The raw ISO date string.
-   * @returns {string} - Formatted date string.
-   */
   const formatDate = (value) => {
     const date = parseAndValidateISODate(value);
     if (!date) {
@@ -62,34 +57,23 @@ export const CustomizedAxisTick = ({
     }
   };
 
-  /**
-   * Determines whether to display the tick label based on the step.
-   */
   const shouldDisplayTick = () => {
     return step > 1 ? index % step === 0 : true;
   };
 
-  // If the tick should not be displayed, return null.
   if (!shouldDisplayTick()) {
     return null;
   }
-
-  // Determine if rotation is needed
-  const rotate = step > 1;
-  const rotationAngle = rotate ? -45 : 0;
-  const textAnchor = rotate ? 'end' : 'middle';
-  const dy = rotate ? '10' : '16';
 
   return (
     <g transform={`translate(${x},${y})`}>
       <text
         x={0}
         y={0}
-        dy={dy}
-        textAnchor={textAnchor}
+        dy={16}
+        textAnchor="middle"
         fill={fill || '#485972'}
         fontSize={12}
-        transform={rotate ? `rotate(${rotationAngle})` : undefined}
       >
         {formatDate(payload.value)}
       </text>
