@@ -10,8 +10,7 @@ import MoreInsightsChart from './MoreInsightsChart';
 import SkeletonLoader from './components/SkeletonLoader';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
-// import { toast } from 'sonner';
-// import checkCircleIcon from '@/icons/Analytics/checkCircleIcon';
+import CustomToast from '../Toast/CustomToast';
 
 const ChartContainer = memo(
   ({
@@ -97,9 +96,9 @@ const ChartContainer = memo(
           const link = document.createElement('a');
           link.href = imgData;
           link.download = `airquality-data.${format}`;
-          document.body.appendChild(link); // Append to body to make it clickable in Firefox
+          document.body.appendChild(link);
           link.click();
-          document.body.removeChild(link); // Remove after clicking
+          document.body.removeChild(link);
         } else if (format === 'pdf') {
           const pdf = new jsPDF({
             orientation: 'landscape',
@@ -114,12 +113,7 @@ const ChartContainer = memo(
         }
 
         setDownloadComplete(format);
-        // toast('Download complete', {
-        //   className: 'bg-black text-white p-2 rounded-md max-w-xs',
-        //   duration: 5000,
-        //   position: 'bottom-center',
-        //   icon: <checkCircleIcon width={20} height={20} />,
-        // });
+        CustomToast();
       } catch (error) {
         console.error('Error exporting chart:', error);
       } finally {
@@ -204,7 +198,7 @@ const ChartContainer = memo(
     );
 
     const ErrorOverlay = () => (
-      <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+      <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-gray-400 bg-opacity-50 z-10">
         <p className="text-red-500 font-semibold">
           Something went wrong. Please try again.
         </p>
@@ -249,7 +243,7 @@ const ChartContainer = memo(
 
             {!chartLoading && error && <ErrorOverlay />}
 
-            {!chartLoading && !error && allSiteData?.length > 0 ? (
+            {!chartLoading && !error && allSiteData?.length > 0 && (
               <MoreInsightsChart
                 data={allSiteData}
                 selectedSites={chartSites}
@@ -261,7 +255,7 @@ const ChartContainer = memo(
                 pollutantType={pollutionType}
                 isLoading={chartLoading}
               />
-            ) : null}
+            )}
           </div>
         </div>
 
