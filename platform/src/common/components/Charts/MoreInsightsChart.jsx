@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+// MoreInsightsChart.jsx
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   LineChart,
   Line,
@@ -27,6 +28,7 @@ import { parseAndValidateISODate } from '@/core/utils/dateUtils';
 import { WHO_STANDARD_VALUES } from './constants';
 import { formatYAxisTick, CustomizedAxisTick } from './utils';
 import SkeletonLoader from './components/SkeletonLoader';
+import useResizeObserver from '@/core/utils/useResizeObserver';
 
 /**
  * MoreInsightsChart Component
@@ -44,6 +46,10 @@ const MoreInsightsChart = React.memo(
     isLoading = false,
   }) => {
     const [activeIndex, setActiveIndex] = useState(null);
+
+    // Reference to the chart container
+    const containerRef = useRef(null);
+    const { width: containerWidth } = useResizeObserver(containerRef);
 
     /**
      * Processes raw chart data by validating dates and organizing data by time and site.
@@ -111,7 +117,6 @@ const MoreInsightsChart = React.memo(
      */
     const dataKeys = useMemo(() => {
       if (chartData.length === 0) return [];
-      // Extract all unique keys excluding 'time'
       const keys = new Set();
       chartData.forEach((item) => {
         Object.keys(item).forEach((key) => {
@@ -152,34 +157,31 @@ const MoreInsightsChart = React.memo(
     const DataComponent = chartType === 'line' ? Line : Bar;
 
     /**
-     * Calculates the interval for the X-axis ticks based on screen width.
+     * Calculate step based on container width and number of ticks.
+     * Assume each label requires a minimum width
      */
-    const calculateXAxisInterval = useCallback(() => {
-      const screenWidth = window.innerWidth;
-      if (screenWidth < 768) return Math.ceil(chartData.length / 4);
-      if (screenWidth < 1024) return Math.ceil(chartData.length / 6);
-      return Math.ceil(chartData.length / 8);
-    }, [chartData.length]);
+    const calculateStep = useCallback(() => {
+      const minLabelWidth = 40;
+      const minPointsToShow = 5;
+
+      if (containerWidth === 0) return 1;
+
+      // Calculate the maximum number of labels that can fit within the container width
+      const maxLabels = Math.floor(containerWidth / minLabelWidth);
+
+      // Determine the minimum number of labels to display, ensuring at least 5 are shown
+      const labelsToShow = Math.max(minPointsToShow, maxLabels);
+
+      // Calculate the step value to distribute the labels evenly across the available data points
+      const step = Math.ceil(chartData.length / labelsToShow);
+
+      return step;
+    }, [containerWidth, chartData.length]);
 
     /**
-     * Memoized X-axis interval
+     * Memoized step for labels
      */
-    const xAxisInterval = useMemo(
-      () => calculateXAxisInterval(),
-      [calculateXAxisInterval],
-    );
-
-    /**
-     * Effect to update X-axis interval on window resize for responsiveness
-     */
-    useEffect(() => {
-      const handleResize = () => {
-        // Force recalculation by updating a state or triggering a re-render
-        // Here, we do nothing because xAxisInterval is recalculated on dependency change
-      };
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    const step = useMemo(() => calculateStep(), [calculateStep]);
 
     /**
      * Render the chart or appropriate messages based on state
@@ -200,7 +202,7 @@ const MoreInsightsChart = React.memo(
         <ResponsiveContainer width={width} height={height}>
           <ChartComponent
             data={chartData}
-            margin={{ top: 38, right: 10, left: -15, bottom: 10 }}
+            margin={{ top: 38, right: 10, left: -15, bottom: 20 }}
             style={{ cursor: 'pointer' }}
           >
             {/* Grid */}
@@ -222,12 +224,11 @@ const MoreInsightsChart = React.memo(
                   fill={fill}
                   frequency={frequency}
                   index={index}
-                  numTicks={chartData.length}
+                  step={step}
                 />
               )}
-              interval={xAxisInterval}
               axisLine={false}
-              scale="point"
+              scale="auto"
               padding={{ left: 30, right: 30 }}
             />
 
@@ -318,7 +319,7 @@ const MoreInsightsChart = React.memo(
       chartType,
       width,
       height,
-      xAxisInterval,
+      step,
       getColor,
       handleMouseLeave,
       activeIndex,
@@ -332,7 +333,7 @@ const MoreInsightsChart = React.memo(
     ]);
 
     return (
-      <div id={id} className="pt-4">
+      <div id={id} ref={containerRef} className="pt-4">
         {isLoading ? (
           <SkeletonLoader width={width} height={height} />
         ) : (
