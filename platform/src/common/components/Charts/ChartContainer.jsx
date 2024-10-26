@@ -223,7 +223,7 @@ const ChartContainer = memo(
         id="analytics-chart"
       >
         <div className="flex flex-col items-start gap-1 w-full p-4">
-          {showTitle && (
+          {showTitle && !chartLoading && (
             <div className="flex items-center justify-between w-full">
               <h3 className="text-lg font-medium">{chartTitle}</h3>
               <div ref={dropdownRef}>
@@ -235,22 +235,14 @@ const ChartContainer = memo(
                   id={`options-${id}`}
                   alignment="right"
                 >
-                  {chartLoading ? (
-                    <SkeletonLoader
-                      width="100%"
-                      height="40px"
-                      className="p-2"
-                    />
-                  ) : (
-                    renderDropdownContent()
-                  )}
+                  {renderDropdownContent()}
                 </CustomDropdown>
               </div>
             </div>
           )}
           <div
             ref={chartRef}
-            className="my-6 relative"
+            className="my-3 relative"
             style={{ width, height }}
           >
             {chartLoading && <SkeletonLoader width={width} height={height} />}
