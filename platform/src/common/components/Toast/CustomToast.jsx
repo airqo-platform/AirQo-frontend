@@ -4,7 +4,7 @@ import CheckCircleIcon from '@/icons/Analytics/checkCircleIcon';
 const CustomToast = () => {
   toast('Download complete', {
     className:
-      'bg-blue-600 text-white p-3 rounded-xl max-w-[200px] w-full flex items-center justify-center space-x-2',
+      'bg-blue-600 text-white p-4 rounded-xl max-w-[200px] w-full flex items-center justify-center space-x-2',
     duration: 5000,
     position: 'bottom-center',
     style: {
