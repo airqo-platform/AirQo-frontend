@@ -45,14 +45,16 @@ const ChartContainer = memo(
     const [downloadComplete, setDownloadComplete] = React.useState(null);
 
     // Fetch analytics data using the custom hook
-    const { allSiteData, chartLoading, refetch } = useFetchAnalyticsData({
-      selectedSiteIds: chartSites,
-      dateRange: chartDataRange,
-      chartType,
-      frequency: timeFrame,
-      pollutant: pollutionType,
-      organisationName: organizationName,
-    });
+    const { allSiteData, chartLoading, error, refetch } = useFetchAnalyticsData(
+      {
+        selectedSiteIds: chartSites,
+        dateRange: chartDataRange,
+        chartType,
+        frequency: timeFrame,
+        pollutant: pollutionType,
+        organisationName: organizationName,
+      },
+    );
 
     // Handle click outside for dropdown
     useEffect(() => {
@@ -126,10 +128,6 @@ const ChartContainer = memo(
 
     /**
      * Opens a modal with specified type and data.
-     *
-     * @param {string} type - The type of modal to open.
-     * @param {Array} ids - Optional IDs related to the modal.
-     * @param {Array} data - Optional data related to the modal.
      */
     const handleOpenModal = useCallback(
       (type, ids = null, data = null) => {
@@ -197,6 +195,20 @@ const ChartContainer = memo(
       ],
     );
 
+    const ErrorOverlay = () => (
+      <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+        <p className="text-red-500 font-semibold">
+          Something went wrong. Please try again.
+        </p>
+        <button
+          onClick={refetch}
+          className="ml-4 text-red-500 font-semibold underline"
+        >
+          Try again
+        </button>
+      </div>
+    );
+
     return (
       <div
         className="border bg-white rounded-xl border-gray-200 shadow-sm"
@@ -233,9 +245,11 @@ const ChartContainer = memo(
             className="my-6 relative"
             style={{ width, height }}
           >
-            {chartLoading ? (
-              <SkeletonLoader width={width} height={height} />
-            ) : (
+            {chartLoading && <SkeletonLoader width={width} height={height} />}
+
+            {!chartLoading && error && <ErrorOverlay />}
+
+            {!chartLoading && !error && allSiteData?.length > 0 ? (
               <MoreInsightsChart
                 data={allSiteData}
                 selectedSites={chartSites}
@@ -247,7 +261,7 @@ const ChartContainer = memo(
                 pollutantType={pollutionType}
                 isLoading={chartLoading}
               />
-            )}
+            ) : null}
           </div>
         </div>
 
