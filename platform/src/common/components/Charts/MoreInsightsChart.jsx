@@ -207,7 +207,7 @@ const MoreInsightsChart = React.memo(
             {/* X-Axis */}
             <XAxis
               dataKey="time"
-              tickLine
+              tickLine={false}
               tick={({ x, y, payload, fill, index }) => (
                 <CustomizedAxisTick
                   x={x}
