@@ -8,15 +8,7 @@ const setChartDetails = async (dispatch, preferenceData) => {
     return dispatch(resetChartStore());
   }
 
-  const {
-    period,
-    selected_sites = [],
-    startDate,
-    endDate,
-    frequency,
-    chartType,
-    pollutant,
-  } = preferenceData[0];
+  const { selected_sites = [] } = preferenceData[0];
 
   const chartSites = selected_sites.map((site) => site?._id).filter(Boolean);
 
@@ -24,14 +16,6 @@ const setChartDetails = async (dispatch, preferenceData) => {
     await dispatch(
       setChartDataAtOnce({
         chartSites,
-        chartDataRange: {
-          startDate,
-          endDate,
-          label: period?.label,
-        },
-        timeFrame: frequency,
-        chartType,
-        pollutionType: pollutant,
       }),
     );
   } catch (error) {

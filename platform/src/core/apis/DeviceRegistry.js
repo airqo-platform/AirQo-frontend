@@ -34,15 +34,25 @@ export const getGirdsSummaryDetails = async () => {
   return response.data;
 };
 
-export const getAnalyticsData = async (body) => {
-  return await createAxiosInstance()
-    .post(ANALYTICS_URL, body)
-    .then((response) => response.data);
+/**
+ * Fetches analytics data from the API.
+ */
+export const getAnalyticsData = async ({ body, timeout = 150000 }) => {
+  const response = await createAxiosInstance().post(ANALYTICS_URL, body, {
+    timeout: timeout,
+  });
+  return response.data;
 };
 
-export const getRecentMeasurements = async (params) => {
+/**
+ * Fetches recent measurements from the API.
+ */
+export const getRecentMeasurements = async ({ params, timeout = 150000 }) => {
   return await createAxiosInstance(false)
-    .get(`${DEVICES}/readings/recent`, { params })
+    .get(`${DEVICES}/readings/recent`, {
+      params,
+      timeout: timeout,
+    })
     .then((response) => response.data);
 };
 

@@ -1,4 +1,3 @@
-// MoreInsightsChart.jsx
 import React, { useState, useCallback, useMemo } from 'react';
 import {
   LineChart,
@@ -159,7 +158,7 @@ const MoreInsightsChart = React.memo(
      * Render the chart or appropriate messages based on state
      */
     const renderChart = useMemo(() => {
-      if (chartData.length === 0) {
+      if (chartData.length === 0 && !isLoading) {
         return (
           <div className="w-full flex flex-col justify-center items-center h-[380px] text-gray-500">
             <p className="text-lg font-medium mb-2">No Data Available</p>
@@ -302,6 +301,7 @@ const MoreInsightsChart = React.memo(
       renderCustomizedLegend,
       frequency,
       siteIdToName,
+      isLoading,
     ]);
 
     return (

@@ -23,15 +23,18 @@ const AQNumberCard = () => {
     (state) => state.recentMeasurements.measurements,
   );
 
-  const pollutantType = useSelector((state) => state.chart.pollutionType);
+  // Extract necessary data from Redux store
+  const {
+    // chartDataRange,
+    chartSites,
+    // timeFrame,
+    // organizationName,
+    pollutionType: pollutantType,
+  } = useSelector((state) => state.chart);
+
   const preferencesData = useSelector(
     (state) => state.defaults.individual_preferences,
   );
-
-  // Memoize selected site IDs to prevent unnecessary computations
-  const selectedSiteIds = useMemo(() => {
-    return preferencesData?.[0]?.selected_sites?.map((site) => site._id) || [];
-  }, []);
 
   const MAX_CARDS = 4;
 
@@ -57,14 +60,14 @@ const AQNumberCard = () => {
 
   // Simulate data fetching with mock data
   const fetchMeasurementsForSites = useCallback(async () => {
-    if (selectedSiteIds.length > 0) {
+    if (chartSites.length > 0) {
       setLoading(true);
       try {
         // Simulate network delay
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
         await dispatch(
-          fetchRecentMeasurementsData({ site_id: selectedSiteIds.join(',') }),
+          fetchRecentMeasurementsData({ site_id: chartSites.join(',') }),
         );
       } catch (error) {
         console.error('Error fetching recent measurements:', error);
@@ -74,7 +77,7 @@ const AQNumberCard = () => {
     } else {
       setLoading(false);
     }
-  }, [dispatch, selectedSiteIds]);
+  }, [dispatch, chartSites]);
 
   // Load data on component mount and when selectedSiteIds change
   useEffect(() => {

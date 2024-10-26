@@ -15,6 +15,8 @@ import LocationIcon from '@/icons/Analytics/LocationIcon';
 import { subDays } from 'date-fns';
 import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
 
+import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
+
 /**
  * InSightsHeader Component
  */
@@ -33,7 +35,6 @@ const InSightsHeader = () => (
 const MoreInsights = () => {
   // const dispatch = useDispatch();
   const { data: modalData } = useSelector((state) => state.modal.modalType);
-  const [refetch, setRefetch] = useState(false);
 
   // Ensure modalData is always an array for consistency
   const selectedSites = useMemo(() => {
@@ -50,30 +51,37 @@ const MoreInsights = () => {
   // State variables for frequency, chart type, and date range
   const [frequency, setFrequency] = useState('daily');
   const [chartType, setChartType] = useState('line');
+
+  const { startDateISO, endDateISO } = formatDateRangeToISO(
+    subDays(new Date(), 7),
+    new Date(),
+  );
+
   const [dateRange, setDateRange] = useState({
-    startDate: subDays(new Date(), 7),
-    endDate: new Date(),
+    startDate: startDateISO,
+    endDate: endDateISO,
     label: 'Last 7 days',
   });
 
-  const { allSiteData, chartLoading, error } = useFetchAnalyticsData({
+  const { allSiteData, chartLoading, error, refetch } = useFetchAnalyticsData({
     selectedSiteIds,
-    dateRange,
+    dateRange, // Pass the entire dateRange object
     chartType,
     frequency,
     pollutant: 'pm2_5',
     organisationName: 'airqo',
-    refetch,
   });
 
-  // Method to toggle refetch
-  const toggleRefetch = useCallback(() => {
-    setRefetch((prev) => !prev);
-  }, []);
+  /**
+   * Handles refetching data when a parameter changes.
+   */
+  const handleParameterChange = useCallback(() => {
+    refetch();
+  }, [refetch]);
 
   /**
    * Generates the content for the selected sites in the sidebar.
-   * Displays loading skeletons, selected sites, or a message when no sites are selected.
+   * Displays selected sites or a message when no sites are selected.
    */
   const selectedSitesContent = useMemo(() => {
     if (selectedSites.length === 0) {
@@ -152,7 +160,7 @@ const MoreInsights = () => {
                     key={option}
                     onClick={() => {
                       setFrequency(option);
-                      toggleRefetch();
+                      handleParameterChange();
                     }}
                     className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                       frequency === option ? 'bg-[#EBF5FF] rounded-md' : ''
@@ -168,11 +176,18 @@ const MoreInsights = () => {
 
               {/* Date Range Picker */}
               <CustomCalendar
-                initialStartDate={dateRange.startDate}
-                initialEndDate={dateRange.endDate}
+                initialStartDate={new Date(dateRange.startDate)}
+                initialEndDate={new Date(dateRange.endDate)}
                 onChange={(start, end) => {
-                  setDateRange({ startDate: start, endDate: end, label: '' });
-                  toggleRefetch();
+                  if (start && end) {
+                    const label = generateDateLabel(start, end);
+                    setDateRange({
+                      startDate: start.toISOString(),
+                      endDate: end.toISOString(),
+                      label,
+                    });
+                    handleParameterChange();
+                  }
                 }}
                 className="left-16 top-11"
                 dropdown
@@ -191,7 +206,7 @@ const MoreInsights = () => {
                     key={option.id}
                     onClick={() => {
                       setChartType(option.id);
-                      toggleRefetch();
+                      handleParameterChange();
                     }}
                     className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                       chartType === option.id ? 'bg-[#EBF5FF] rounded-md' : ''
@@ -244,6 +259,17 @@ const MoreInsights = () => {
       </div>
     </>
   );
+};
+
+/**
+ * Utility function to generate a label based on start and end dates.
+ * You can customize this function based on your requirements.
+ */
+const generateDateLabel = (start, end) => {
+  const options = { year: 'numeric', month: 'short', day: 'numeric' };
+  const startLabel = start.toLocaleDateString(undefined, options);
+  const endLabel = end.toLocaleDateString(undefined, options);
+  return `${startLabel} - ${endLabel}`;
 };
 
 export { InSightsHeader };

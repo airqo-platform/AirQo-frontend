@@ -1,21 +1,12 @@
-// src/components/ChartContainer.jsx
-import React, {
-  useRef,
-  useCallback,
-  useState,
-  useEffect,
-  memo,
-  useMemo,
-} from 'react';
+import React, { useRef, useCallback, useEffect, memo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import CheckIcon from '@/icons/tickIcon';
 import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
-import PrintReportModal from '@/components/Modal/PrintReportModal';
+// import PrintReportModal from '@/components/Modal/PrintReportModal';
 import MoreInsightsChart from './MoreInsightsChart';
-import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
 import SkeletonLoader from './components/SkeletonLoader';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
@@ -33,6 +24,7 @@ const ChartContainer = memo(
     const chartRef = useRef(null);
     const dropdownRef = useRef(null);
 
+    // Extract necessary data from Redux store
     const {
       chartDataRange,
       chartSites,
@@ -41,26 +33,20 @@ const ChartContainer = memo(
       pollutionType,
     } = useSelector((state) => state.chart);
 
-    const [openShare, setOpenShare] = useState(false);
-    const [shareFormat, setShareFormat] = useState(null);
-    const [loadingFormat, setLoadingFormat] = useState(null);
-    const [downloadComplete, setDownloadComplete] = useState(null);
-
     const preferencesData = useSelector(
       (state) => state.defaults.individual_preferences,
     );
+    const user_selected_sites = preferencesData?.[0]?.selected_sites || [];
 
-    const user_selected_sites = preferencesData?.[0]?.selected_sites;
+    // State for handling sharing and exporting
+    // const [openShare, setOpenShare] = useState(false);
+    // const [shareFormat, setShareFormat] = useState(null);
+    const [loadingFormat, setLoadingFormat] = React.useState(null);
+    const [downloadComplete, setDownloadComplete] = React.useState(null);
 
-    // Extract selected site IDs from preferencesData
-    const selectedSiteIds = useMemo(() => {
-      return (
-        preferencesData?.[0]?.selected_sites?.map((site) => site._id) || []
-      );
-    }, []);
-
-    const { allSiteData, chartLoading } = useFetchAnalyticsData({
-      selectedSiteIds,
+    // Fetch analytics data using the custom hook
+    const { allSiteData, chartLoading, refetch } = useFetchAnalyticsData({
+      selectedSiteIds: chartSites,
       dateRange: chartDataRange,
       chartType,
       frequency: timeFrame,
@@ -84,6 +70,11 @@ const ChartContainer = memo(
         document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    /**
+     * Exports the chart in the specified format.
+     *
+     * @param {string} format - The format to export the chart (png, jpg, pdf).
+     */
     const exportChart = useCallback(async (format) => {
       if (!chartRef.current) return;
 
@@ -126,15 +117,20 @@ const ChartContainer = memo(
       }
     }, []);
 
-    const refreshChart = useCallback(() => {
-      dispatch(setRefreshChart(true));
-    }, [dispatch]);
+    /**
+     * Refreshes the chart data by calling the refetch function from the hook.
+     */
+    const handleRefreshChart = useCallback(() => {
+      refetch();
+    }, [refetch]);
 
-    const shareReport = useCallback((format) => {
-      setShareFormat(format);
-      setOpenShare(true);
-    }, []);
-
+    /**
+     * Opens a modal with specified type and data.
+     *
+     * @param {string} type - The type of modal to open.
+     * @param {Array} ids - Optional IDs related to the modal.
+     * @param {Array} data - Optional data related to the modal.
+     */
     const handleOpenModal = useCallback(
       (type, ids = null, data = null) => {
         dispatch(setModalType({ type, ids, data }));
@@ -143,11 +139,14 @@ const ChartContainer = memo(
       [dispatch],
     );
 
+    /**
+     * Renders the content of the dropdown menu.
+     */
     const renderDropdownContent = useCallback(
       () => (
         <>
           <button
-            onClick={refreshChart}
+            onClick={handleRefreshChart}
             className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >
             Refresh
@@ -188,7 +187,14 @@ const ChartContainer = memo(
           ))} */}
         </>
       ),
-      [exportChart, loadingFormat, downloadComplete, refreshChart, shareReport],
+      [
+        exportChart,
+        loadingFormat,
+        downloadComplete,
+        handleRefreshChart,
+        handleOpenModal,
+        user_selected_sites,
+      ],
     );
 
     return (
@@ -227,21 +233,25 @@ const ChartContainer = memo(
             className="my-6 relative"
             style={{ width, height }}
           >
-            <MoreInsightsChart
-              data={allSiteData}
-              selectedSites={selectedSiteIds}
-              chartType={chartType}
-              frequency={timeFrame}
-              width="100%"
-              height={height}
-              id={id}
-              pollutantType={pollutionType}
-              isLoading={chartLoading}
-            />
+            {chartLoading ? (
+              <SkeletonLoader width={width} height={height} />
+            ) : (
+              <MoreInsightsChart
+                data={allSiteData}
+                selectedSites={chartSites}
+                chartType={chartType}
+                frequency={timeFrame}
+                width="100%"
+                height={height}
+                id={id}
+                pollutantType={pollutionType}
+                isLoading={chartLoading}
+              />
+            )}
           </div>
         </div>
 
-        <PrintReportModal
+        {/* <PrintReportModal
           title="Share Report"
           btnText="Send"
           shareModel
@@ -253,7 +263,7 @@ const ChartContainer = memo(
             endDate: chartDataRange.endDate,
             sites: chartSites,
           }}
-        />
+        /> */}
       </div>
     );
   },
@@ -265,8 +275,8 @@ ChartContainer.propTypes = {
   height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   id: PropTypes.string.isRequired,
-  defaultBody: PropTypes.object,
   showTitle: PropTypes.bool,
+  // defaultBody: PropTypes.object, // Commented out as per your request
 };
 
 ChartContainer.displayName = 'ChartContainer';
