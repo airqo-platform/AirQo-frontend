@@ -43,8 +43,11 @@ const useFetchAnalyticsData = ({
         organisation_name: organisationName,
       };
 
+      const controller = new AbortController();
+
       const response = await getAnalyticsData({
         body: requestBody,
+        signal: controller.signal,
       });
 
       if (response.status === 'success' && Array.isArray(response.data)) {

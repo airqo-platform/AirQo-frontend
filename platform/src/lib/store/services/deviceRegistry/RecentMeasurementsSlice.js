@@ -9,8 +9,8 @@ const initialState = {
 
 export const fetchRecentMeasurementsData = createAsyncThunk(
   '/get/measurements/recent',
-  async (params) => {
-    const response = await getRecentMeasurements(params);
+  async (params, { signal }) => {
+    const response = await getRecentMeasurements({ ...params, signal });
     return response.measurements;
   },
 );

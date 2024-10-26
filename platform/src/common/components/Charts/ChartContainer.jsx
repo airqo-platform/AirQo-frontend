@@ -10,6 +10,8 @@ import MoreInsightsChart from './MoreInsightsChart';
 import SkeletonLoader from './components/SkeletonLoader';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
+// import { toast } from 'sonner';
+// import checkCircleIcon from '@/icons/Analytics/checkCircleIcon';
 
 const ChartContainer = memo(
   ({
@@ -112,6 +114,12 @@ const ChartContainer = memo(
         }
 
         setDownloadComplete(format);
+        // toast('Download complete', {
+        //   className: 'bg-black text-white p-2 rounded-md max-w-xs',
+        //   duration: 5000,
+        //   position: 'bottom-center',
+        //   icon: <checkCircleIcon width={20} height={20} />,
+        // });
       } catch (error) {
         console.error('Error exporting chart:', error);
       } finally {
