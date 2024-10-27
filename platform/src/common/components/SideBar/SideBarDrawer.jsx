@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useWindowSize } from '@/lib/windowSize';
 import SideBarItem, { SideBarDropdownItem } from './SideBarItem';
 import AirqoLogo from '@/icons/airqo_logo.svg';
@@ -15,8 +15,8 @@ import PersonIcon from '@/icons/Settings/PersonIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import { setToggleDrawer } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useRouter } from 'next/router';
+// import Carousel_1 from '../carousels/Carousel_1';
 import LogoutUser from '@/core/utils/LogoutUser';
-import Carousel_1 from '../carousels/Carousel_1';
 
 const SideBarDrawer = () => {
   const dispatch = useDispatch();
@@ -69,8 +69,32 @@ const SideBarDrawer = () => {
       </div>
     );
 
+  const renderCollocationSection = useCallback(() => {
+    if (!checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES')) {
+      return null;
+    }
+    return (
+      <SideBarItem
+        label="Collocation"
+        Icon={CollocateIcon}
+        dropdown
+        toggleMethod={toggleCollocation}
+        toggleState={collocationOpen}
+      >
+        <SideBarDropdownItem
+          itemLabel="Overview"
+          itemPath="/collocation/overview"
+        />
+        <SideBarDropdownItem
+          itemLabel="Collocate"
+          itemPath="/collocation/collocate"
+        />
+      </SideBarItem>
+    );
+  }, [collocationOpen, toggleCollocation]);
+
   // Prevent body scrolling when drawer is open
-  React.useEffect(() => {
+  useEffect(() => {
     if (togglingDrawer) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -88,12 +112,12 @@ const SideBarDrawer = () => {
           type="button"
           onClick={closeDrawer}
           className="absolute inset-0 w-full h-dvh opacity-50 bg-black-700 z-[999998] transition-all duration-200 ease-in-out"
-        ></button>
+        />
       )}
       <div
         className={`${drawerClasses} fixed right-0 top-0 h-full z-[999999] border-l-grey-750 border-l-[1px] transition-all duration-200 ease-in-out overflow-hidden`}
       >
-        <div className="flex p-4 bg-white h-full flex-col  overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden">
+        <div className="flex p-4 bg-white h-full flex-col overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden">
           <div className="pb-4 flex justify-between items-center">
             {width < 1024 ? (
               <div
@@ -127,24 +151,7 @@ const SideBarDrawer = () => {
               <div className="text-xs text-[#6F87A1] px-[10px] my-3 mx-4 font-semibold transition-all duration-300 ease-in-out">
                 Network
               </div>
-              {checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES') && (
-                <SideBarItem
-                  label="Collocation"
-                  Icon={CollocateIcon}
-                  dropdown
-                  toggleMethod={toggleCollocation}
-                  toggleState={collocationOpen}
-                >
-                  <SideBarDropdownItem
-                    itemLabel="Overview"
-                    itemPath="/collocation/overview"
-                  />
-                  <SideBarDropdownItem
-                    itemLabel="Collocate"
-                    itemPath="/collocation/collocate"
-                  />
-                </SideBarItem>
-              )}
+              {renderCollocationSection()}
               <SideBarItem
                 label="Pollution map"
                 Icon={WorldIcon}

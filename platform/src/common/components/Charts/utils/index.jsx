@@ -35,13 +35,8 @@ export const CustomizedAxisTick = ({
   fill,
   frequency,
   index,
-  numTicks,
+  step,
 }) => {
-  /**
-   * Formats the date based on the frequency.
-   * @param {string} value - The raw ISO date string.
-   * @returns {string} - Formatted date string.
-   */
   const formatDate = (value) => {
     const date = parseAndValidateISODate(value);
     if (!date) {
@@ -62,21 +57,10 @@ export const CustomizedAxisTick = ({
     }
   };
 
-  /**
-   * Controls the visibility of the X-axis ticks to avoid overcrowding.
-   * If there are too many ticks, we hide some based on the index.
-   */
   const shouldDisplayTick = () => {
-    if (frequency === 'weekly') {
-      return index % 2 === 0; // Show every second tick for weekly frequency
-    }
-    if (frequency === 'daily') {
-      return index % Math.floor(numTicks / 5) === 0; // Show fewer ticks for daily frequency
-    }
-    return true; // Show all ticks for other frequencies
+    return step > 1 ? index % step === 0 : true;
   };
 
-  // If the tick should not be displayed, return null.
   if (!shouldDisplayTick()) {
     return null;
   }

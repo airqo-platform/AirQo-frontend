@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
@@ -11,11 +11,10 @@ import VisibilityOffIcon from '@/icons/Account/visibility_off.svg';
 import VisibilityOnIcon from '@/icons/Account/visibility_on.svg';
 
 import {
-  setUserName,
-  setUserPassword,
+  setUserData,
   setUserInfo,
   setSuccess,
-  setFailure,
+  setError,
 } from '@/lib/store/services/account/LoginSlice';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { postUserLoginDetails, getUserDetails } from '@/core/apis/Account';
@@ -24,7 +23,7 @@ const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
 
 const UserLogin = () => {
-  const [error, setError] = useState('');
+  const [error, setErrorState] = useState('');
   const [loading, setLoading] = useState(false);
   const [passwordType, setPasswordType] = useState('password');
 
@@ -32,18 +31,11 @@ const UserLogin = () => {
   const router = useRouter();
   const { userData } = useSelector((state) => state.login);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token && userData) {
-      router.push('/Home');
-    }
-  }, [userData, router]);
-
   const retryWithDelay = async (fn, retries = MAX_RETRIES) => {
     try {
       return await fn();
     } catch (error) {
-      if (retries > 0 && error.response && error.response.status === 429) {
+      if (retries > 0 && error.response?.status === 429) {
         await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
         return retryWithDelay(fn, retries - 1);
       }
@@ -55,14 +47,16 @@ const UserLogin = () => {
     async (e) => {
       e.preventDefault();
       setLoading(true);
-      setError('');
+      setErrorState('');
 
       try {
         const { token } = await retryWithDelay(() =>
           postUserLoginDetails(userData),
         );
+
         localStorage.setItem('token', token);
         const decoded = jwt_decode(token);
+
         const response = await retryWithDelay(() =>
           getUserDetails(decoded._id, token),
         );
@@ -92,22 +86,13 @@ const UserLogin = () => {
         router.push('/Home');
       } catch (error) {
         dispatch(setSuccess(false));
-        let errorMessage = 'Something went wrong, please try again';
-        if (error.response) {
-          switch (error.response.status) {
-            case 429:
-              errorMessage = 'Too many requests. Please try again later.';
-              break;
-            case 401:
-              errorMessage =
-                'Invalid credentials. Please check your email and password.';
-              break;
-            default:
-              errorMessage = error.response.data.message || errorMessage;
-          }
-        }
-        dispatch(setFailure(errorMessage));
-        setError(errorMessage);
+        const errorMessage =
+          error.response?.data?.message ||
+          (error.response?.status === 401
+            ? 'Invalid credentials. Please check your email and password.'
+            : 'Something went wrong, please try again');
+        dispatch(setError(errorMessage));
+        setErrorState(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -120,6 +105,10 @@ const UserLogin = () => {
       prevType === 'password' ? 'text' : 'password',
     );
   }, []);
+
+  const handleInputChange = (key, value) => {
+    dispatch(setUserData({ key, value }));
+  };
 
   return (
     <AccountPageLayout
@@ -142,7 +131,9 @@ const UserLogin = () => {
                 <input
                   type="email"
                   data-testid="username"
-                  onChange={(e) => dispatch(setUserName(e.target.value))}
+                  onChange={(e) =>
+                    handleInputChange('userName', e.target.value)
+                  }
                   placeholder="e.g. greta.nagawa@gmail.com"
                   className="input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500"
                   required
@@ -156,7 +147,9 @@ const UserLogin = () => {
               <div className="mt-2 w-full relative">
                 <input
                   data-testid="password"
-                  onChange={(e) => dispatch(setUserPassword(e.target.value))}
+                  onChange={(e) =>
+                    handleInputChange('password', e.target.value)
+                  }
                   type={passwordType}
                   placeholder="******"
                   className="input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500"

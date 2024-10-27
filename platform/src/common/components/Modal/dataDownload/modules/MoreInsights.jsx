@@ -1,4 +1,3 @@
-// MoreInsights.jsx
 import React, { useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 // import DownloadIcon from '@/icons/Analytics/downloadIcon';
@@ -14,8 +13,8 @@ import LocationIcon from '@/icons/Analytics/LocationIcon';
 // import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { subDays } from 'date-fns';
 import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
-
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
+import SkeletonLoader from '@/components/Charts/components/SkeletonLoader';
 
 /**
  * InSightsHeader Component
@@ -35,6 +34,7 @@ const InSightsHeader = () => (
 const MoreInsights = () => {
   // const dispatch = useDispatch();
   const { data: modalData } = useSelector((state) => state.modal.modalType);
+  const chartData = useSelector((state) => state.chart);
 
   // Ensure modalData is always an array for consistency
   const selectedSites = useMemo(() => {
@@ -52,24 +52,29 @@ const MoreInsights = () => {
   const [frequency, setFrequency] = useState('daily');
   const [chartType, setChartType] = useState('line');
 
-  const { startDateISO, endDateISO } = formatDateRangeToISO(
-    subDays(new Date(), 7),
-    new Date(),
-  );
+  // Initialize date range to last 7 days
+  const initialDateRange = useMemo(() => {
+    const { startDateISO, endDateISO } = formatDateRangeToISO(
+      subDays(new Date(), 7),
+      new Date(),
+    );
+    return {
+      startDate: startDateISO,
+      endDate: endDateISO,
+      label: 'Last 7 days',
+    };
+  }, []);
 
-  const [dateRange, setDateRange] = useState({
-    startDate: startDateISO,
-    endDate: endDateISO,
-    label: 'Last 7 days',
-  });
+  const [dateRange, setDateRange] = useState(initialDateRange);
 
+  // Fetch analytics data using custom hook
   const { allSiteData, chartLoading, error, refetch } = useFetchAnalyticsData({
     selectedSiteIds,
     dateRange,
     chartType,
     frequency,
-    pollutant: 'pm2_5',
-    organisationName: 'airqo',
+    pollutant: chartData.pollutionType,
+    organisationName: chartData.organisationName,
   });
 
   /**
@@ -159,8 +164,10 @@ const MoreInsights = () => {
                   <span
                     key={option}
                     onClick={() => {
-                      setFrequency(option);
-                      handleParameterChange();
+                      if (frequency !== option) {
+                        setFrequency(option);
+                        handleParameterChange();
+                      }
                     }}
                     className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                       frequency === option ? 'bg-[#EBF5FF] rounded-md' : ''
@@ -178,9 +185,8 @@ const MoreInsights = () => {
               <CustomCalendar
                 initialStartDate={new Date(dateRange.startDate)}
                 initialEndDate={new Date(dateRange.endDate)}
-                onChange={(start, end) => {
+                onChange={(start, end, label) => {
                   if (start && end) {
-                    const label = generateDateLabel(start, end);
                     setDateRange({
                       startDate: start.toISOString(),
                       endDate: end.toISOString(),
@@ -205,8 +211,10 @@ const MoreInsights = () => {
                   <span
                     key={option.id}
                     onClick={() => {
-                      setChartType(option.id);
-                      handleParameterChange();
+                      if (chartType !== option.id) {
+                        setChartType(option.id);
+                        handleParameterChange();
+                      }
                     }}
                     className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                       chartType === option.id ? 'bg-[#EBF5FF] rounded-md' : ''
@@ -235,41 +243,45 @@ const MoreInsights = () => {
 
           {/* -------------------- Chart Display -------------------- */}
           <div className="w-full h-auto border rounded-xl border-grey-150 p-2">
-            <MoreInsightsChart
-              data={allSiteData}
-              selectedSites={selectedSiteIds}
-              chartType={chartType}
-              frequency={frequency}
-              width="100%"
-              height={380}
-              id="air-quality-chart"
-              pollutantType="pm2_5"
-              isLoading={chartLoading}
-            />
+            {chartLoading ? (
+              <SkeletonLoader width="100%" height={380} />
+            ) : error ? (
+              <div className="w-full flex items-center justify-center h-[380px]">
+                <p className="text-red-500 font-semibold">
+                  Something went wrong. Please try again.
+                </p>
+                <button
+                  onClick={refetch}
+                  className="ml-4 text-red-500 font-semibold underline"
+                >
+                  Try again
+                </button>
+              </div>
+            ) : (
+              <MoreInsightsChart
+                data={allSiteData}
+                selectedSites={selectedSiteIds}
+                chartType={chartType}
+                frequency={frequency}
+                width="100%"
+                height={380}
+                id="air-quality-chart"
+                pollutantType={chartData.pollutionType}
+              />
+            )}
           </div>
 
           {/* -------------------- Air Quality Card -------------------- */}
           {/* <AirQualityCard
             airQuality="Kampala’s Air Quality has been Good this month compared to last month."
             pollutionSource="Factory, Dusty road"
-            pollutant="PM2.5"
+            pollutant="PM2_5"
             isLoading={chartLoading}
           /> */}
         </div>
       </div>
     </>
   );
-};
-
-/**
- * Utility function to generate a label based on start and end dates.
- * You can customize this function based on your requirements.
- */
-const generateDateLabel = (start, end) => {
-  const options = { year: 'numeric', month: 'short', day: 'numeric' };
-  const startLabel = start.toLocaleDateString(undefined, options);
-  const endLabel = end.toLocaleDateString(undefined, options);
-  return `${startLabel} - ${endLabel}`;
 };
 
 export { InSightsHeader };

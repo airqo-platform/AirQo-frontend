@@ -19,6 +19,7 @@ import { exportDataApi } from '@/core/apis/Analytics';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { saveAs } from 'file-saver';
+import CustomToast from '../../../Toast/CustomToast';
 
 /**
  * Header component for the Download Data modal.
@@ -214,7 +215,8 @@ const DataDownload = ({ onClose }) => {
           throw new Error('Unsupported file type');
         }
 
-        // Optionally, provide user feedback (e.g., toast notification)
+        // Show success toast
+        CustomToast();
 
         // Clear selections after successful download
         handleClearSelection();

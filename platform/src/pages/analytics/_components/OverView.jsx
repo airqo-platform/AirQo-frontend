@@ -1,5 +1,3 @@
-// src/components/OverView.jsx
-
 import React, { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ChartContainer from '@/components/Charts/ChartContainer';
@@ -23,6 +21,7 @@ import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { subDays } from 'date-fns';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
+import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
 
 const OverView = () => {
   const dispatch = useDispatch();
@@ -34,7 +33,6 @@ const OverView = () => {
     label: 'Last 7 days',
   });
 
-  // Memoize handleOpenModal to avoid unnecessary rerenders
   const handleOpenModal = useCallback(
     (type, ids = []) => {
       dispatch(setOpenModal(true));
@@ -43,7 +41,6 @@ const OverView = () => {
     [dispatch],
   );
 
-  // Memoize handleTimeFrameChange and handlePollutantChange
   const handleTimeFrameChange = useCallback(
     (option) => {
       dispatch(setTimeFrame(option));
@@ -60,10 +57,6 @@ const OverView = () => {
     [dispatch],
   );
 
-  /**
-   * Handles date range selection from the calendar.
-   * Converts Date objects to ISO strings before dispatching.
-   */
   const handleDateChange = useCallback(
     (startDate, endDate, label) => {
       const { startDateISO, endDateISO } = formatDateRangeToISO(
@@ -84,6 +77,36 @@ const OverView = () => {
     },
     [dispatch],
   );
+
+  // Fetch analytics data for Line Chart
+  const {
+    allSiteData: lineData,
+    chartLoading: lineLoading,
+    error: lineError,
+    refetch: refetchLine,
+  } = useFetchAnalyticsData({
+    selectedSiteIds: chartData.chartSites,
+    dateRange: chartData.chartDataRange,
+    chartType: 'line',
+    frequency: chartData.timeFrame,
+    pollutant: chartData.pollutionType,
+    organisationName: chartData.organizationName,
+  });
+
+  // Fetch analytics data for Bar Chart
+  const {
+    allSiteData: barData,
+    chartLoading: barLoading,
+    error: barError,
+    refetch: refetchBar,
+  } = useFetchAnalyticsData({
+    selectedSiteIds: chartData.chartSites,
+    dateRange: chartData.chartDataRange,
+    chartType: 'bar',
+    frequency: chartData.timeFrame,
+    pollutant: chartData.pollutionType,
+    organisationName: chartData.organizationName,
+  });
 
   return (
     <BorderlessContentBox>
@@ -175,6 +198,10 @@ const OverView = () => {
             chartTitle="Air Pollution Data Over Time"
             height={400}
             id="air-pollution-line-chart"
+            data={lineData}
+            chartLoading={lineLoading}
+            error={lineError}
+            refetch={refetchLine}
           />
           {/* Bar Chart */}
           <ChartContainer
@@ -182,6 +209,10 @@ const OverView = () => {
             chartTitle="Air Pollution Data Over Time"
             height={400}
             id="air-pollution-bar-chart"
+            data={barData}
+            chartLoading={barLoading}
+            error={barError}
+            refetch={refetchBar}
           />
         </div>
       </div>
@@ -191,4 +222,4 @@ const OverView = () => {
   );
 };
 
-export default React.memo(OverView);
+export default OverView;

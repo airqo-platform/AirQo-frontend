@@ -77,7 +77,8 @@ const CustomDropdown = ({
     if (update) update();
   }, [isOpen, update]);
 
-  const handleDropdown = () => {
+  const handleDropdown = (e) => {
+    e.stopPropagation();
     setIsOpen((prevIsOpen) => !prevIsOpen);
   };
 
@@ -93,6 +94,7 @@ const CustomDropdown = ({
     <div className="relative" id={id}>
       {trigger ? (
         <div ref={setReferenceElement} onClick={handleDropdown}>
+          {/* Clone the trigger element and attach the onClick */}
           {React.cloneElement(trigger, { onClick: handleDropdown })}
         </div>
       ) : (
