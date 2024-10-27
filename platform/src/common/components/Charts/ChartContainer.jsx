@@ -1,4 +1,6 @@
-import React, { useRef, useCallback, useEffect } from 'react';
+// src/components/Charts/ChartContainer.jsx
+
+import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { jsPDF } from 'jspdf';
@@ -37,8 +39,11 @@ const ChartContainer = ({
   const user_selected_sites = preferencesData?.[0]?.selected_sites || [];
 
   // State for handling sharing and exporting
-  const [loadingFormat, setLoadingFormat] = React.useState(null);
-  const [downloadComplete, setDownloadComplete] = React.useState(null);
+  const [loadingFormat, setLoadingFormat] = useState(null);
+  const [downloadComplete, setDownloadComplete] = useState(null);
+
+  // State to control skeleton loader display
+  const [showSkeleton, setShowSkeleton] = useState(chartLoading);
 
   // Handle click outside for dropdown
   useEffect(() => {
@@ -51,6 +56,26 @@ const ChartContainer = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // TODO: TEMPORARY TO HANDLE LOADING ISSUE HAVE TO REMOVE LATER
+  useEffect(() => {
+    let timer;
+
+    if (chartLoading) {
+      setShowSkeleton(true);
+    } else {
+      timer = setTimeout(() => {
+        setShowSkeleton(false);
+      }, 4000);
+    }
+
+    // Cleanup the timer if component unmounts or chartLoading changes
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  }, [chartLoading]);
 
   /**
    * Exports the chart in the specified format.
@@ -178,6 +203,9 @@ const ChartContainer = ({
     ],
   );
 
+  /**
+   * Renders the error overlay with a retry option.
+   */
   const ErrorOverlay = () => (
     <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-gray-300 bg-opacity-50 z-10">
       <p className="text-red-500 font-semibold">
@@ -198,7 +226,7 @@ const ChartContainer = ({
       id="analytics-chart"
     >
       <div className="flex flex-col items-start gap-1 w-full p-4">
-        {showTitle && !chartLoading && (
+        {showTitle && !showSkeleton && (
           <div className="flex items-center justify-between w-full">
             <h3 className="text-lg font-medium">{chartTitle}</h3>
             <div ref={dropdownRef}>
@@ -216,7 +244,7 @@ const ChartContainer = ({
           </div>
         )}
         <div ref={chartRef} className="my-3 relative" style={{ width, height }}>
-          {chartLoading ? (
+          {showSkeleton ? (
             <SkeletonLoader width={width} height={height} />
           ) : error ? (
             <ErrorOverlay />
