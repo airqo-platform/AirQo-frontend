@@ -186,7 +186,7 @@ const ChartContainer = memo(
     );
 
     const ErrorOverlay = () => (
-      <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-gray-400 bg-opacity-50 z-10">
+      <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-gray-300 bg-opacity-50 z-10">
         <p className="text-red-500 font-semibold">
           Something went wrong. Please try again.
         </p>

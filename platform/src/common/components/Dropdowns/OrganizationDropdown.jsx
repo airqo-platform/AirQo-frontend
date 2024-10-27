@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Button from '../Button';
 import { updateUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import Spinner from '@/components/Spinner';
-
+import { setOrganizationName } from '@/lib/store/services/charts/ChartSlice';
 export const formatString = (string) => {
   return string
     .replace(/_/g, ' ')
@@ -47,6 +47,7 @@ const OrganizationDropdown = () => {
     async (group) => {
       setLoading(true);
       setSelectedGroup(group);
+      dispatch(setOrganizationName(group.grp_title));
       const userId = userInfo?._id;
 
       if (!userId || !group) {
