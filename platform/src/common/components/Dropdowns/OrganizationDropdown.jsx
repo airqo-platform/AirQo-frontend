@@ -1,105 +1,116 @@
-'use client';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import CustomDropdown from './CustomDropdown';
 import ChevronDownIcon from '@/icons/Common/chevron_downIcon';
 import RadioIcon from '@/icons/SideBar/radioIcon';
 import { useDispatch, useSelector } from 'react-redux';
 import Button from '../Button';
-import {
-  updateUserPreferences,
-  getIndividualUserPreferences,
-} from '@/lib/store/services/account/UserDefaultsSlice';
+import { updateUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import Spinner from '@/components/Spinner';
 
 export const formatString = (string) => {
   return string
     .replace(/_/g, ' ')
-    .replace(/\w\S*/g, (txt) => {
-      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-    })
+    .replace(
+      /\w\S*/g,
+      (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
+    )
     .replace('Id', 'ID');
 };
 
 const OrganizationDropdown = () => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
-  const [selectedGroup, setSelectedGroup] = useState({});
-  const preferences = useSelector(
-    (state) => state.defaults.individual_preferences,
-  );
+  const [selectedGroup, setSelectedGroup] = useState(null);
+
   const userInfo = useSelector((state) => state.login.userInfo);
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
 
-  const handleUpdatePreferences = async (group) => {
-    setLoading(true);
-    setSelectedGroup(group);
-    const userId = userInfo?._id;
-    const data = {
-      user_id: userId,
-      group_id: group._id,
-    };
+  const [activeGroup, setActiveGroup] = useState(null);
 
-    try {
-      const response = await dispatch(updateUserPreferences(data));
-      if (response && response.payload.success) {
-        localStorage.setItem('activeGroup', JSON.stringify(group));
-        // Refetch the preferences
-        await dispatch(getIndividualUserPreferences(userId));
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Initialize activeGroup from localStorage or default to the first active group
   useEffect(() => {
-    const storedActiveGroup = JSON.parse(localStorage.getItem('activeGroup'));
-
-    if (
-      storedActiveGroup &&
-      (!preferences || preferences[0]?.group_id === '')
-    ) {
-      handleUpdatePreferences(storedActiveGroup);
+    const storedActiveGroup = localStorage.getItem('activeGroup');
+    if (storedActiveGroup) {
+      const parsedGroup = JSON.parse(storedActiveGroup);
+      setActiveGroup(parsedGroup);
+    } else if (userInfo?.groups?.length > 0) {
+      const firstActiveGroup =
+        userInfo.groups.find((group) => group.status === 'ACTIVE') ||
+        userInfo.groups[0];
+      setActiveGroup(firstActiveGroup);
+      localStorage.setItem('activeGroup', JSON.stringify(firstActiveGroup));
     }
-  }, [userInfo, preferences]);
+  }, [userInfo]);
 
-  const handleDropdownSelect = (option) => {
-    const activeGroup = JSON.parse(localStorage.getItem('activeGroup'));
-    if (activeGroup?.grp_title !== option?.grp_title) {
-      handleUpdatePreferences(option);
+  // Function to handle updating user preferences
+  const handleUpdatePreferences = useCallback(
+    async (group) => {
+      setLoading(true);
+      setSelectedGroup(group);
+      const userId = userInfo?._id;
+
+      if (!userId || !group) {
+        setLoading(false);
+        return;
+      }
+
+      const data = {
+        user_id: userId,
+        group_id: group._id,
+      };
+
+      try {
+        const response = await dispatch(updateUserPreferences(data));
+        if (response && response.payload.success) {
+          setActiveGroup(group);
+          localStorage.setItem('activeGroup', JSON.stringify(group));
+        }
+      } catch (error) {
+        console.error('Failed to update user preferences:', error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [dispatch, userInfo],
+  );
+
+  // Function to handle dropdown selection
+  const handleDropdownSelect = (group) => {
+    if (activeGroup?.grp_title !== group?.grp_title) {
+      handleUpdatePreferences(group);
     }
   };
 
   // Don't render the component if there's no active group
-  const activeGroup = JSON.parse(localStorage.getItem('activeGroup'));
   if (!activeGroup) {
     return null;
   }
 
-  const dropdown = useMemo(() => {
-    return (
-      <CustomDropdown
-        trigger={
-          <Button
-            paddingStyles="p-0 m-0"
-            className="w-full border-none"
-            variant="outlined"
+  return (
+    <CustomDropdown
+      trigger={
+        <Button
+          paddingStyles="p-0 m-0"
+          className="w-full border-none"
+          variant="outlined"
+        >
+          <div
+            className={`w-full h-12 p-2 bg-white rounded-xl border border-gray-200 ${
+              isCollapsed
+                ? 'flex justify-center'
+                : 'inline-flex justify-between items-center'
+            } hover:bg-gray-100`}
           >
-            <div
-              className={`w-full h-12 p-2 bg-white rounded-xl border border-gray-200 ${isCollapsed ? 'flex justify-center' : 'inline-flex justify-between items-center'} hover:bg-gray-100`}
-            >
-              <div className="justify-start items-center gap-3 flex">
-                <div className="w-8 h-8 bg-yellow-200 py-1.5 rounded-full justify-center items-center flex gap-3">
-                  <div className="w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight">
-                    {activeGroup?.grp_title
-                      ? activeGroup.grp_title.slice(0, 2)
-                      : ''}
-                  </div>
+            <div className="justify-start items-center gap-3 flex">
+              <div className="w-8 h-8 bg-yellow-200 py-1.5 rounded-full justify-center items-center flex gap-3">
+                <div className="w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight">
+                  {activeGroup?.grp_title
+                    ? activeGroup.grp_title.slice(0, 2)
+                    : ''}
                 </div>
-                <div
-                  className={`pt-0.5 justify-start items-start gap-1 ${
-                    !isCollapsed ? 'flex' : 'hidden'
-                  }`}
-                >
+              </div>
+              {!isCollapsed && (
+                <div className="pt-0.5 justify-start items-start gap-1 flex">
                   <div
                     className="text-sm font-medium uppercase leading-tight text-left"
                     title={activeGroup?.grp_title}
@@ -109,69 +120,59 @@ const OrganizationDropdown = () => {
                       : activeGroup?.grp_title}
                   </div>
                 </div>
-              </div>
-              <span
-                className={`${
-                  userInfo && userInfo.groups && userInfo.groups.length > 1
-                    ? 'block'
-                    : 'hidden'
-                } ${!isCollapsed ? 'flex' : 'hidden'}`}
-              >
+              )}
+            </div>
+            {userInfo?.groups?.length > 1 && !isCollapsed && (
+              <span className="flex">
                 <ChevronDownIcon />
               </span>
-            </div>
-          </Button>
-        }
-        sidebar={true}
-        id="options"
-      >
-        {userInfo &&
-          userInfo.groups &&
-          userInfo.groups.map((format) => (
-            <button
-              key={format._id}
-              onClick={() => handleDropdownSelect(format)}
-              className={`w-full h-11 px-3.5 rounded-xl py-2.5 justify-between items-center inline-flex ${
-                activeGroup && activeGroup?.grp_title === format?.grp_title
-                  ? 'bg-[#EBF5FF] text-blue-600'
-                  : 'hover:bg-gray-100'
-              }  
-              `}
-            >
-              <div className="grow shrink basis-0 h-6 justify-start items-center gap-2 flex">
-                <div className="w-8 h-8 py-1.5 bg-yellow-200 border border-white rounded-full justify-center items-center flex">
-                  <div className="w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight">
-                    {format?.grp_title ? format.grp_title.slice(0, 2) : ''}
-                  </div>
-                </div>
-                <div
-                  className="max-w-[120px] w-full text-left text-sm font-medium leading-tight uppercase"
-                  title={format.grp_title}
-                >
-                  {format && format.grp_title && format.grp_title.length > 10
-                    ? formatString(format.grp_title.slice(0, 10)) + '...'
-                    : formatString(format.grp_title)}
-                </div>
+            )}
+          </div>
+        </Button>
+      }
+      sidebar={true}
+      id="organization-dropdown"
+    >
+      {userInfo?.groups?.map((group) => (
+        <button
+          key={group._id}
+          onClick={() => handleDropdownSelect(group)}
+          className={`w-full h-11 px-3.5 rounded-xl py-2.5 justify-between items-center inline-flex ${
+            activeGroup.grp_title === group.grp_title
+              ? 'bg-[#EBF5FF] text-blue-600'
+              : 'hover:bg-gray-100'
+          }`}
+        >
+          <div className="grow shrink basis-0 h-6 justify-start items-center gap-2 flex">
+            <div className="w-8 h-8 py-1.5 bg-yellow-200 border border-white rounded-full justify-center items-center flex">
+              <div className="w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight">
+                {group.grp_title.slice(0, 2)}
               </div>
-              {loading && selectedGroup._id === format._id ? (
-                <span>
-                  <Spinner width={16} height={16} />
-                </span>
-              ) : activeGroup &&
-                activeGroup?.grp_title === format?.grp_title ? (
-                <span className="ml-2">
-                  <RadioIcon />
-                </span>
-              ) : (
-                <input type="radio" className="border-[#C4C7CB]" />
-              )}
-            </button>
-          ))}
-      </CustomDropdown>
-    );
-  }, [activeGroup, userInfo?.groups, isCollapsed, loading, selectedGroup]);
-
-  return dropdown;
+            </div>
+            <div
+              className="max-w-[120px] w-full text-left text-sm font-medium leading-tight uppercase"
+              title={group.grp_title}
+            >
+              {group.grp_title.length > 10
+                ? formatString(group.grp_title.slice(0, 10)) + '...'
+                : formatString(group.grp_title)}
+            </div>
+          </div>
+          {loading && selectedGroup?._id === group._id ? (
+            <span>
+              <Spinner width={16} height={16} />
+            </span>
+          ) : activeGroup?.grp_title === group?.grp_title ? (
+            <span className="ml-2">
+              <RadioIcon />
+            </span>
+          ) : (
+            <input type="radio" className="border-[#C4C7CB]" />
+          )}
+        </button>
+      ))}
+    </CustomDropdown>
+  );
 };
 
 export default OrganizationDropdown;
