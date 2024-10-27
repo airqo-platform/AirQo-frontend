@@ -1,5 +1,3 @@
-// src/components/MoreInsights.jsx
-
 import React, { useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 // import DownloadIcon from '@/icons/Analytics/downloadIcon';
@@ -16,6 +14,7 @@ import LocationIcon from '@/icons/Analytics/LocationIcon';
 import { subDays } from 'date-fns';
 import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
+import SkeletonLoader from '@/components/Charts/components/SkeletonLoader';
 
 /**
  * InSightsHeader Component
@@ -244,17 +243,32 @@ const MoreInsights = () => {
 
           {/* -------------------- Chart Display -------------------- */}
           <div className="w-full h-auto border rounded-xl border-grey-150 p-2">
-            <MoreInsightsChart
-              data={allSiteData}
-              selectedSites={selectedSiteIds}
-              chartType={chartType}
-              frequency={frequency}
-              width="100%"
-              height={380}
-              id="air-quality-chart"
-              pollutantType="pm2_5"
-              isLoading={chartLoading}
-            />
+            {chartLoading ? (
+              <SkeletonLoader width="100%" height={380} />
+            ) : error ? (
+              <div className="w-full flex items-center justify-center h-[380px]">
+                <p className="text-red-500 font-semibold">
+                  Something went wrong. Please try again.
+                </p>
+                <button
+                  onClick={refetch}
+                  className="ml-4 text-red-500 font-semibold underline"
+                >
+                  Try again
+                </button>
+              </div>
+            ) : (
+              <MoreInsightsChart
+                data={allSiteData}
+                selectedSites={selectedSiteIds}
+                chartType={chartType}
+                frequency={frequency}
+                width="100%"
+                height={380}
+                id="air-quality-chart"
+                pollutantType={chartData.pollutionType}
+              />
+            )}
           </div>
 
           {/* -------------------- Air Quality Card -------------------- */}
@@ -271,4 +285,4 @@ const MoreInsights = () => {
 };
 
 export { InSightsHeader };
-export default React.memo(MoreInsights);
+export default MoreInsights;

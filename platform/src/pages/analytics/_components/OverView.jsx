@@ -1,5 +1,3 @@
-// src/components/OverView.jsx
-
 import React, { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ChartContainer from '@/components/Charts/ChartContainer';
@@ -35,7 +33,6 @@ const OverView = () => {
     label: 'Last 7 days',
   });
 
-  // Memoize handleOpenModal to avoid unnecessary rerenders
   const handleOpenModal = useCallback(
     (type, ids = []) => {
       dispatch(setOpenModal(true));
@@ -44,7 +41,6 @@ const OverView = () => {
     [dispatch],
   );
 
-  // Memoize handleTimeFrameChange and handlePollutantChange
   const handleTimeFrameChange = useCallback(
     (option) => {
       dispatch(setTimeFrame(option));
@@ -61,10 +57,6 @@ const OverView = () => {
     [dispatch],
   );
 
-  /**
-   * Handles date range selection from the calendar.
-   * Converts Date objects to ISO strings before dispatching.
-   */
   const handleDateChange = useCallback(
     (startDate, endDate, label) => {
       const { startDateISO, endDateISO } = formatDateRangeToISO(
@@ -230,4 +222,4 @@ const OverView = () => {
   );
 };
 
-export default React.memo(OverView);
+export default OverView;
