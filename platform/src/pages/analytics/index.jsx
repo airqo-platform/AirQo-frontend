@@ -1,10 +1,9 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import withAuth from '@/core/utils/protectedRoute';
 import Layout from '@/components/Layout';
 import { useDispatch, useSelector } from 'react-redux';
 import OverView from './_components/OverView';
 import AlertBox from '@/components/AlertBox';
-import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { fetchSitesSummary } from '@/lib/store/services/sitesSummarySlice';
 import { useOutsideClick } from '@/core/hooks';
 import { setChartSites } from '@/lib/store/services/charts/ChartSlice';
@@ -22,23 +21,10 @@ const AuthenticatedHomePage = () => {
     if (customise) setCustomise(false);
   });
 
-  // Memoize user data from local storage to avoid rerenders
-  const user = useMemo(
-    () => JSON.parse(localStorage.getItem('loggedUser')),
-    [],
-  );
-
   // Fetch sites summary only once when the component mounts
   useEffect(() => {
     dispatch(fetchSitesSummary());
   }, [dispatch]);
-
-  // Fetch user preferences only if a user is found in local storage
-  useEffect(() => {
-    if (user) {
-      dispatch(getIndividualUserPreferences(user._id));
-    }
-  }, [dispatch, user]);
 
   /**
    * Sets chart details based on user preferences.
