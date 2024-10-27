@@ -1,3 +1,4 @@
+// src/core/utils/useFetchAnalyticsData.js
 import { useState, useCallback, useEffect } from 'react';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
 import { parseAndValidateISODate } from '@/core/utils/dateUtils';
@@ -37,7 +38,7 @@ const useFetchAnalyticsData = ({
         sites: selectedSiteIds,
         startDate: parseAndValidateISODate(dateRange.startDate),
         endDate: parseAndValidateISODate(dateRange.endDate),
-        chartType,
+        chartType, // Include chartType in the request body
         frequency,
         pollutant,
         organisation_name: organisationName,

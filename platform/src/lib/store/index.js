@@ -1,8 +1,8 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { createWrapper } from 'next-redux-wrapper';
 import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
-import { combineReducers } from 'redux';
+import thunk from 'redux-thunk';
 
 // Import your reducers
 import deviceRegistryReducer from './services/deviceRegistry';
@@ -26,7 +26,8 @@ import sidebarReducer from './services/sideBar/SideBarSlice';
 import modalSlice from './services/downloadModal';
 import sitesSummaryReducer from './services/sitesSummarySlice';
 
-const appReducer = combineReducers({
+// Combine all the reducers
+const rootReducer = combineReducers({
   deviceRegistry: deviceRegistryReducer,
   sidebar: sidebarReducer,
   collocation: collocationReducer,
@@ -49,36 +50,44 @@ const appReducer = combineReducers({
   sites: sitesSummaryReducer,
 });
 
-const rootReducer = (state, action) => {
+// Root reducer wrapper to handle state reset on logout
+const appReducer = (state, action) => {
   if (action.type === 'RESET_APP') {
-    state = undefined;
+    state = undefined; // This will clear the persisted state
   }
-  return appReducer(state, action);
+  return rootReducer(state, action);
 };
 
+// Configuration for redux-persist
 const persistConfig = {
   key: 'root',
   storage,
   whitelist: ['login', 'checklists'],
 };
 
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+const persistedReducer = persistReducer(persistConfig, appReducer);
 
+// Configure store function
 const makeStore = () => {
   const store = configureStore({
     reducer: persistedReducer,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
-        thunk: true,
-        immutableCheck: false,
-        serializableCheck: false,
-      }),
+        serializableCheck: {
+          ignoredActions: [
+            'persist/PERSIST',
+            'persist/REHYDRATE',
+            'persist/PURGE',
+            'persist/REGISTER',
+          ],
+        },
+      }).concat(thunk),
   });
 
   store.__persistor = persistStore(store);
   return store;
 };
 
+// Export the store wrapper
 export const wrapper = createWrapper(makeStore);
-
 export default makeStore;

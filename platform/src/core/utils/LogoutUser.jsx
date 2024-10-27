@@ -1,24 +1,26 @@
+import { resetStore } from '@/lib/store/services/account/LoginSlice';
+
 const LogoutUser = async (dispatch, router) => {
   try {
-    // Dispatch the RESET_APP action to clear the entire Redux store
-    dispatch({ type: 'RESET_APP' });
+    // Dispatch the RESET_APP action to clear the Redux store
+    dispatch(resetStore());
 
-    // Clear local storage
+    // Clear local storage to remove any persisted user data
     if (typeof window !== 'undefined') {
       localStorage.clear();
     }
 
-    // Purge the persistor
+    // Purge the persisted Redux state to reset the application state
     const store = router.store || window.__NEXT_REDUX_STORE__;
-    if (store && store.__persistor) {
+    if (store?.__persistor) {
       await store.__persistor.purge();
     }
 
-    // Navigate to login page
+    // Redirect to the login page
     await router.push('/account/login');
   } catch (error) {
     console.error('Logout failed:', error);
-    throw error; // Re-throw the error so it can be handled in the component
+    // Optional: Show a notification or feedback to the user
   }
 };
 

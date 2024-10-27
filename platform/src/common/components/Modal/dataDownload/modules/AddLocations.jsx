@@ -6,7 +6,7 @@ import Footer from '../components/Footer';
 import LocationCard from '../components/LocationCard';
 import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
-import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
+import useUserPreferences from '@/core/hooks/useUserPreferences';
 
 /**
  * Header component for the Add Location modal.
@@ -133,20 +133,17 @@ const AddLocations = ({ onClose }) => {
     // Dispatch the Redux action to replace user preferences
     dispatch(replaceUserPreferences(payload))
       .then(() => {
-        // Optionally, provide feedback or close the modal
         onClose();
         if (userID) {
-          dispatch(getIndividualUserPreferences(userID));
+          useUserPreferences();
         }
         dispatch(setRefreshChart(true));
       })
       .catch((err) => {
-        // Handle any errors during the dispatch
         setError('Failed to update preferences');
         console.error(err);
       })
       .finally(() => {
-        // Stop the loading state after submission
         setSubmitLoading(false);
       });
   }, [selectedSites, userID, dispatch, onClose]);

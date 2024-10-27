@@ -21,7 +21,7 @@ import Link from 'next/link';
 import LeftArrowIcon from '@/icons/SideBar/leftArrowIcon';
 import RightArrowIcon from '@/icons/SideBar/rightArrowIcon';
 import Button from '../Button';
-import Carousel_1 from '../carousels/Carousel_1';
+// import Carousel_1 from '../carousels/Carousel_1';
 
 const MAX_WIDTH = '(max-width: 1024px)';
 
@@ -93,6 +93,58 @@ const AuthenticatedSideBar = () => {
     setDropdown((prevState) => !prevState);
   }, []);
 
+  // Function to render Collocation sidebar item based on permissions
+  const renderCollocationItem = useCallback(() => {
+    if (!checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES')) {
+      return null;
+    }
+
+    return isCollapsed ? (
+      <div className="relative">
+        <SidebarItem
+          Icon={CollocateIcon}
+          navPath="#"
+          iconOnly
+          onClick={toggleDropdown}
+        />
+        {dropdown && (
+          <div
+            ref={dropdownRef}
+            className="fixed left-24 top-[300px] w-40 bg-white border border-gray-200 divide-y divide-gray-100 rounded-xl shadow-lg p-1"
+          >
+            <Link href={'/collocation/overview'}>
+              <div className="w-full p-4 rounded-xl hover:bg-[#f3f6f8] cursor-pointer">
+                Overview
+              </div>
+            </Link>
+            <Link href={'/collocation/collocate'}>
+              <div className="w-full p-4 rounded-xl hover:bg-[#f3f6f8] cursor-pointer">
+                Collocate
+              </div>
+            </Link>
+          </div>
+        )}
+      </div>
+    ) : (
+      <SidebarItem
+        label="Collocation"
+        Icon={CollocateIcon}
+        dropdown
+        toggleMethod={() => setCollocationOpen(!collocationOpen)}
+        toggleState={collocationOpen}
+      >
+        <SideBarDropdownItem
+          itemLabel="Overview"
+          itemPath="/collocation/overview"
+        />
+        <SideBarDropdownItem
+          itemLabel="Collocate"
+          itemPath="/collocation/collocate"
+        />
+      </SidebarItem>
+    );
+  }, [isCollapsed, toggleDropdown, dropdown, collocationOpen]);
+
   return (
     <div>
       <div
@@ -134,54 +186,7 @@ const AuthenticatedSideBar = () => {
                 </div>
               )}
 
-              {checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES') && (
-                <>
-                  {isCollapsed ? (
-                    <div className="relative">
-                      <SidebarItem
-                        Icon={CollocateIcon}
-                        navPath="#"
-                        iconOnly
-                        onClick={toggleDropdown}
-                      />
-                      {dropdown && (
-                        <div
-                          ref={dropdownRef}
-                          className="fixed left-24 top-[300px] w-40 bg-white border border-gray-200 divide-y divide-gray-100 rounded-xl shadow-lg p-1"
-                        >
-                          <Link href={'/collocation/overview'}>
-                            <div className="w-full p-4 rounded-xl hover:bg-[#f3f6f8] cursor-pointer">
-                              Overview
-                            </div>
-                          </Link>
-                          <Link href={'/collocation/collocate'}>
-                            <div className="w-full p-4 rounded-xl hover:bg-[#f3f6f8] cursor-pointer">
-                              Collocate
-                            </div>
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <SidebarItem
-                      label="Collocation"
-                      Icon={CollocateIcon}
-                      dropdown
-                      toggleMethod={() => setCollocationOpen(!collocationOpen)}
-                      toggleState={collocationOpen}
-                    >
-                      <SideBarDropdownItem
-                        itemLabel="Overview"
-                        itemPath="/collocation/overview"
-                      />
-                      <SideBarDropdownItem
-                        itemLabel="Collocate"
-                        itemPath="/collocation/collocate"
-                      />
-                    </SidebarItem>
-                  )}
-                </>
-              )}
+              {renderCollocationItem()}
 
               <SidebarItem
                 label="Pollution map"
