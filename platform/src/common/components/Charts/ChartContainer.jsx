@@ -1,5 +1,3 @@
-// src/components/Charts/ChartContainer.jsx
-
 import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
