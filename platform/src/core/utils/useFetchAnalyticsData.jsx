@@ -38,7 +38,7 @@ const useFetchAnalyticsData = ({
         sites: selectedSiteIds,
         startDate: parseAndValidateISODate(dateRange.startDate),
         endDate: parseAndValidateISODate(dateRange.endDate),
-        chartType, // Include chartType in the request body
+        chartType,
         frequency,
         pollutant,
         organisation_name: organisationName,
