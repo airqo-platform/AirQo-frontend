@@ -6,7 +6,7 @@ import Footer from '../components/Footer';
 import LocationCard from '../components/LocationCard';
 import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
-import useUserPreferences from '@/core/hooks/useUserPreferences';
+import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 
 /**
  * Header component for the Add Location modal.
@@ -135,7 +135,7 @@ const AddLocations = ({ onClose }) => {
       .then(() => {
         onClose();
         if (userID) {
-          useUserPreferences();
+          dispatch(getIndividualUserPreferences(userID));
         }
         dispatch(setRefreshChart(true));
       })
