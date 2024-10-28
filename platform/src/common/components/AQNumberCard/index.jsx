@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import GoodAir from '@/icons/Charts/GoodAir';
 import Hazardous from '@/icons/Charts/Hazardous';
@@ -23,9 +23,7 @@ const AQNumberCard = () => {
     (state) => state.recentMeasurements.measurements,
   );
 
-  const { chartSites, pollutionType: pollutantType } = useSelector(
-    (state) => state.chart,
-  );
+  const { pollutionType: pollutantType } = useSelector((state) => state.chart);
 
   const preferencesData = useSelector(
     (state) => state.defaults.individual_preferences,
@@ -33,100 +31,87 @@ const AQNumberCard = () => {
 
   const MAX_CARDS = 4;
 
-  const airQualityLevels = useMemo(
-    () => [
-      { max: 12, text: 'Air Quality is Good', icon: GoodAir },
-      { max: 35.4, text: 'Air Quality is Moderate', icon: Moderate },
-      {
-        max: 55.4,
-        text: 'Air Quality is Unhealthy for Sensitive Groups',
-        icon: UnhealthySG,
-      },
-      { max: 150.4, text: 'Air Quality is Unhealthy', icon: Unhealthy },
-      {
-        max: 250.4,
-        text: 'Air Quality is Very Unhealthy',
-        icon: VeryUnhealthy,
-      },
-      { max: 500, text: 'Air Quality is Hazardous', icon: Hazardous },
-    ],
-    [],
-  );
-
-  // Fetch measurements for sites with support for cancellation
-  const fetchMeasurementsForSites = useCallback(
-    async (controller) => {
-      if (chartSites.length > 0) {
-        setLoading(true);
-
-        try {
-          await dispatch(
-            fetchRecentMeasurementsData({
-              params: { site_id: chartSites.join(',') },
-              signal: controller.signal,
-            }),
-          ).unwrap();
-        } catch (error) {
-          if (error.name !== 'CanceledError') {
-            console.error('Error fetching recent measurements:', error);
-          }
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        setLoading(false);
-      }
+  const airQualityLevels = [
+    { max: 12, text: 'Air Quality is Good', icon: GoodAir },
+    { max: 35.4, text: 'Air Quality is Moderate', icon: Moderate },
+    {
+      max: 55.4,
+      text: 'Air Quality is Unhealthy for Sensitive Groups',
+      icon: UnhealthySG,
     },
-    [dispatch, chartSites],
-  );
+    { max: 150.4, text: 'Air Quality is Unhealthy', icon: Unhealthy },
+    {
+      max: 250.4,
+      text: 'Air Quality is Very Unhealthy',
+      icon: VeryUnhealthy,
+    },
+    { max: 500, text: 'Air Quality is Hazardous', icon: Hazardous },
+  ];
 
-  // Load data on component mount and when selectedSiteIds change
+  const selectedSiteIds = useMemo(() => {
+    return preferencesData?.[0]?.selected_sites?.map((site) => site._id) || [];
+  }, [preferencesData]);
+
   useEffect(() => {
     const controller = new AbortController();
 
-    // Call the fetch function with the controller
-    fetchMeasurementsForSites(controller);
+    if (selectedSiteIds.length > 0) {
+      setLoading(true);
 
-    // Cleanup: cancel request if component unmounts
-    return () => controller.abort();
-  }, [fetchMeasurementsForSites]);
+      dispatch(
+        fetchRecentMeasurementsData({
+          params: { site_id: selectedSiteIds.join(',') },
+          signal: controller.signal,
+        }),
+      )
+        .unwrap()
+        .catch((error) => {
+          if (error.name !== 'CanceledError') {
+            console.error('Error fetching recent measurements:', error);
+          }
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
+    }
 
-  const getAirQualityLevel = useCallback(
-    (reading) => {
-      if (reading === null || reading === undefined) {
-        return { text: 'Air Quality is Unknown', icon: UnknownAQ };
+    return () => {
+      controller.abort();
+    };
+  }, [selectedSiteIds, dispatch]);
+
+  const getAirQualityLevel = (reading) => {
+    if (reading === null || reading === undefined) {
+      return { text: 'Air Quality is Unknown', icon: UnknownAQ };
+    }
+    return (
+      airQualityLevels.find((level) => reading <= level.max) || {
+        text: 'Air Quality is Unknown',
+        icon: UnknownAQ,
       }
-      return (
-        airQualityLevels.find((level) => reading <= level.max) || {
-          text: 'Air Quality is Unknown',
-          icon: UnknownAQ,
-        }
-      );
-    },
-    [airQualityLevels],
-  );
+    );
+  };
 
-  const getPollutantReading = useCallback(
-    (siteId) => {
-      const measurement = recentLocationMeasurements.find(
-        (m) => m.site_id === siteId,
-      );
-      if (measurement) {
-        if (pollutantType === 'pm2_5') {
-          return measurement.pm2_5?.value ?? null;
-        } else if (pollutantType === 'pm10') {
-          return measurement.pm10?.value ?? null;
-        }
+  const getPollutantReading = (siteId) => {
+    const measurement = recentLocationMeasurements.find(
+      (m) => m.site_id === siteId,
+    );
+    if (measurement) {
+      if (pollutantType === 'pm2_5') {
+        return measurement.pm2_5?.value ?? null;
+      } else if (pollutantType === 'pm10') {
+        return measurement.pm10?.value ?? null;
       }
-      return null;
-    },
-    [recentLocationMeasurements, pollutantType],
-  );
+    }
+    return null;
+  };
 
-  const truncateText = useCallback((text, maxLength) => {
+  const truncateText = (text, maxLength) => {
     if (!text) return '---';
     return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
-  }, []);
+  };
 
   const SkeletonCard = () => (
     <div className="w-full bg-gray-200 animate-pulse rounded-xl px-4 py-10">
@@ -136,13 +121,10 @@ const AQNumberCard = () => {
     </div>
   );
 
-  const handleOpenModal = useCallback(
-    (type, ids = null, data = null) => {
-      dispatch(setModalType({ type, ids, data }));
-      dispatch(setOpenModal(true));
-    },
-    [dispatch],
-  );
+  const handleOpenModal = (type, ids = null, data = null) => {
+    dispatch(setModalType({ type, ids, data }));
+    dispatch(setOpenModal(true));
+  };
 
   const renderSiteCards = () => {
     return preferencesData?.[0]?.selected_sites
