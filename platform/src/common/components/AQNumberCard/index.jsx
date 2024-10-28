@@ -114,10 +114,12 @@ const AQNumberCard = () => {
   };
 
   const SkeletonCard = () => (
-    <div className="w-full bg-gray-200 animate-pulse rounded-xl px-4 py-10">
-      <div className="h-6 w-3/4 bg-gray-300 rounded"></div>
-      <div className="mt-2 h-4 w-1/2 bg-gray-300 rounded"></div>
-      <div className="mt-4 h-8 w-full bg-gray-300 rounded"></div>
+    <div className="w-full border border-gray-200 rounded-xl px-4 py-6">
+      <div className="w-full bg-gray-200 animate-pulse rounded-xl px-4 py-10">
+        <div className="h-6 w-3/4 bg-gray-300 rounded"></div>
+        <div className="mt-2 h-4 w-1/2 bg-gray-300 rounded"></div>
+        <div className="mt-4 h-8 w-full bg-gray-300 rounded"></div>
+      </div>
     </div>
   );
 
