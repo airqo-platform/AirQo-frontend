@@ -142,6 +142,7 @@ const OverView = () => {
             <CustomCalendar
               initialStartDate={dateRange.startDate}
               initialEndDate={dateRange.endDate}
+              initial_label={dateRange.label}
               onChange={handleDateChange}
               className="-left-24 md:left-14 lg:left-[70px] top-11"
               dropdown
