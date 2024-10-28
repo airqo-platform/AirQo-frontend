@@ -1,11 +1,10 @@
 import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import PropTypes from 'prop-types';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import CheckIcon from '@/icons/tickIcon';
 import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
-// import PrintReportModal from '@/components/Modal/PrintReportModal'; // Retained as per request
+// import PrintReportModal from '@/components/Modal/PrintReportModal';
 import MoreInsightsChart from './MoreInsightsChart';
 import SkeletonLoader from './components/SkeletonLoader';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
@@ -67,7 +66,6 @@ const ChartContainer = ({
       }, 4000);
     }
 
-    // Cleanup the timer if component unmounts or chartLoading changes
     return () => {
       if (timer) {
         clearTimeout(timer);
@@ -278,20 +276,6 @@ const ChartContainer = ({
       */}
     </div>
   );
-};
-
-ChartContainer.propTypes = {
-  chartType: PropTypes.oneOf(['line', 'bar']).isRequired,
-  chartTitle: PropTypes.string.isRequired,
-  height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  id: PropTypes.string.isRequired,
-  showTitle: PropTypes.bool,
-  data: PropTypes.array.isRequired,
-  chartLoading: PropTypes.bool.isRequired,
-  error: PropTypes.string,
-  refetch: PropTypes.func.isRequired,
-  // defaultBody: PropTypes.object, // Commented out as per your request
 };
 
 export default ChartContainer;

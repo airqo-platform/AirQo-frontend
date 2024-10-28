@@ -11,12 +11,11 @@ const defaultChartSites = process.env.NEXT_PUBLIC_DEFAULT_CHART_SITES
   : [];
 
 /**
- * Utility function to calculate the ISO string for 7 days ago from the current date.
- * Ensures that the date is set accurately in UTC.
+ * Calculates the date 7 days prior to today.
  */
 const getStartDate = () => {
   const startDate = new Date();
-  startDate.setUTCDate(startDate.getUTCDate() - 7);
+  startDate.setDate(startDate.getDate() - 7);
   return startDate.toISOString();
 };
 

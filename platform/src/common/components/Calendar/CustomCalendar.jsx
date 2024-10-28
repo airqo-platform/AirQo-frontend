@@ -36,6 +36,7 @@ const isValidDate = (date) => {
 const CustomCalendar = ({
   initialStartDate,
   initialEndDate,
+  initial_label,
   onChange,
   className = '',
   dropdown = false,
@@ -46,7 +47,7 @@ const CustomCalendar = ({
   const [value, setValue] = useState({
     startDate: initialStartDate,
     endDate: initialEndDate,
-    label: '',
+    label: initial_label,
   });
 
   /**

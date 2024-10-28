@@ -23,7 +23,7 @@ export const FREQUENCY_OPTIONS = [
 export const FILE_TYPE_OPTIONS = [
   { id: 1, name: 'CSV' },
   { id: 2, name: 'Json' },
-  { id: 3, name: 'PDF' },
+  // { id: 3, name: 'PDF' },
 ];
 
 export const tableData = [

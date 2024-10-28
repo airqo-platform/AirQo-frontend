@@ -1,4 +1,3 @@
-// src/core/utils/useFetchAnalyticsData.js
 import { useState, useCallback, useEffect } from 'react';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
 import { parseAndValidateISODate } from '@/core/utils/dateUtils';
@@ -27,7 +26,6 @@ const useFetchAnalyticsData = ({
 
     try {
       if (selectedSiteIds.length === 0) {
-        // No sites selected, clear data and error, set loading to false
         setAllSiteData([]);
         setError(null);
         setChartLoading(false);
