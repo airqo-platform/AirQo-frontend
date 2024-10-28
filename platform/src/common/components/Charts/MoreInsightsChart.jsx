@@ -43,9 +43,7 @@ const MoreInsightsChart = ({
 }) => {
   const [activeIndex, setActiveIndex] = useState(null);
 
-  // Reference to the chart container
   const containerRef = useRef(null);
-  // Use the custom hook to get container dimensions
   const { width: containerWidth } = useResizeObserver(containerRef);
 
   /**
@@ -56,7 +54,6 @@ const MoreInsightsChart = ({
     const siteIdToName = {};
     const allSiteIds = new Set();
 
-    // Build a mapping from site_id to site name
     data.forEach((dataPoint) => {
       const { site_id, name } = dataPoint;
       if (site_id && name) {

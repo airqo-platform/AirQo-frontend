@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ChartContainer from '@/components/Charts/ChartContainer';
 import AQNumberCard from '@/components/AQNumberCard';
@@ -27,11 +27,34 @@ const OverView = () => {
   const dispatch = useDispatch();
   const isOpen = useSelector((state) => state.modal.openModal);
   const chartData = useSelector((state) => state.chart);
-  const [dateRange, setDateRange] = useState({
+
+  // Default date range for the last 7 days
+  const defaultDateRange = {
     startDate: subDays(new Date(), 7),
     endDate: new Date(),
     label: 'Last 7 days',
-  });
+  };
+
+  const [dateRange, setDateRange] = useState(defaultDateRange);
+
+  // Reset chart data range to default when the component is unmounted
+  useEffect(() => {
+    return () => {
+      const { startDate, endDate } = defaultDateRange;
+      const { startDateISO, endDateISO } = formatDateRangeToISO(
+        startDate,
+        endDate,
+      );
+
+      dispatch(
+        setChartDataRange({
+          startDate: startDateISO,
+          endDate: endDateISO,
+          label: defaultDateRange.label,
+        }),
+      );
+    };
+  }, [dispatch]);
 
   const handleOpenModal = useCallback(
     (type, ids = []) => {
@@ -142,6 +165,7 @@ const OverView = () => {
             <CustomCalendar
               initialStartDate={dateRange.startDate}
               initialEndDate={dateRange.endDate}
+              initial_label={dateRange.label}
               onChange={handleDateChange}
               className="-left-24 md:left-14 lg:left-[70px] top-11"
               dropdown
