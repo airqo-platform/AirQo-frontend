@@ -37,6 +37,7 @@ const AddLocations = ({ onClose }) => {
 
   // Local state management
   const [selectedSites, setSelectedSites] = useState([]);
+  const [sidebarSites, setSidebarSites] = useState([]);
   const [clearSelected, setClearSelected] = useState(false);
   const [error, setError] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -62,6 +63,7 @@ const AddLocations = ({ onClose }) => {
 
   /**
    * Populate selectedSites based on selectedSiteIds and fetched sitesSummaryData.
+   * Also initializes sidebarSites with the initially selected sites.
    */
   useEffect(() => {
     if (sitesSummaryData && selectedSiteIds.length) {
@@ -69,6 +71,7 @@ const AddLocations = ({ onClose }) => {
         selectedSiteIds.includes(site._id),
       );
       setSelectedSites(initialSelectedSites);
+      setSidebarSites(initialSelectedSites);
     }
   }, [sitesSummaryData, selectedSiteIds]);
 
@@ -84,16 +87,32 @@ const AddLocations = ({ onClose }) => {
 
   /**
    * Toggles the selection of a site.
-   * @param {Object} site - The site to toggle.
+   * Adds to selectedSites and sidebarSites if selected.
+   * Removes from selectedSites but retains in sidebarSites if unselected.
    */
-  const handleToggleSite = useCallback((site) => {
-    setSelectedSites((prev) => {
-      const isSelected = prev.some((s) => s._id === site._id);
-      return isSelected
-        ? prev.filter((s) => s._id !== site._id)
-        : [...prev, site];
-    });
-  }, []);
+  const handleToggleSite = useCallback(
+    (site) => {
+      setSelectedSites((prev) => {
+        const isSelected = prev.some((s) => s._id === site._id);
+        if (isSelected) {
+          // Remove from selectedSites
+          return prev.filter((s) => s._id !== site._id);
+        } else {
+          // Add to selectedSites
+          return [...prev, site];
+        }
+      });
+
+      setSidebarSites((prev) => {
+        const alreadyInSidebar = prev.some((s) => s._id === site._id);
+        if (!alreadyInSidebar) {
+          return [...prev, site];
+        }
+        return prev;
+      });
+    },
+    [setSelectedSites, setSidebarSites],
+  );
 
   /**
    * Handles the submission of selected sites.
@@ -149,9 +168,11 @@ const AddLocations = ({ onClose }) => {
   }, [selectedSites, userID, dispatch, onClose]);
 
   /**
-   * Generates the content for the selected sites panel.
+   * Generates the content for the sidebar.
+   * Displays only the sites that have been selected at least once.
+   * Each card reflects its current selection status.
    */
-  const selectedSitesContent = useMemo(() => {
+  const sidebarSitesContent = useMemo(() => {
     if (loading) {
       return (
         <div className="space-y-4">
@@ -168,7 +189,7 @@ const AddLocations = ({ onClose }) => {
       );
     }
 
-    if (selectedSites.length === 0) {
+    if (sidebarSites.length === 0) {
       return (
         <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-center items-center">
           <span className="p-2 rounded-full bg-[#F6F6F7] mb-2">
@@ -179,22 +200,22 @@ const AddLocations = ({ onClose }) => {
       );
     }
 
-    return selectedSites.map((site) => (
+    return sidebarSites.map((site) => (
       <LocationCard
         key={site._id}
         site={site}
         onToggle={handleToggleSite}
         isLoading={loading}
-        isSelected={true}
+        isSelected={selectedSites.some((s) => s._id === site._id)}
       />
     ));
-  }, [selectedSites, handleToggleSite, loading]);
+  }, [sidebarSites, selectedSites, handleToggleSite, loading]);
 
   return (
     <>
       {/* Selected Sites Sidebar */}
       <div className="w-[280px] h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-5 pb-14">
-        {selectedSitesContent}
+        {sidebarSitesContent}
       </div>
 
       {/* Main Content Area */}
