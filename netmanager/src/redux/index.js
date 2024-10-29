@@ -20,6 +20,7 @@ import googlePlacesReducer from './GooglePlaces/reducer';
 import LogsReducer from './Logs/reducer';
 import AnalyticsReducer from './Analytics/reducer';
 import HorizontalLoaderSlice from './HorizontalLoader/index.js';
+import defaultSitePreferencesReducer from './DefaultSitePreferences/reducer';
 
 export default combineReducers({
   auth: authReducer,
@@ -42,5 +43,6 @@ export default combineReducers({
   googlePlaces: googlePlacesReducer,
   logs: LogsReducer,
   analytics: AnalyticsReducer,
-  HorizontalLoader: HorizontalLoaderSlice
+  HorizontalLoader: HorizontalLoaderSlice,
+  defaultSitePreferences: defaultSitePreferencesReducer
 });
