@@ -37,6 +37,7 @@ import {
   deleteDefaultSite,
   updateDefaultSite
 } from 'redux/DefaultSitePreferences/operations';
+import { withPermission } from '../../containers/PageAccess';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -544,4 +545,4 @@ const Preferences = () => {
   );
 };
 
-export default Preferences;
+export default withPermission(Preferences, 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS');
