@@ -31,6 +31,12 @@ import { useSitesSummaryData } from 'redux/SiteRegistry/selectors';
 import { Alert, Autocomplete } from '@material-ui/lab';
 import { useDispatch, useSelector } from 'react-redux';
 import { loadSitesSummary } from 'redux/SiteRegistry/operations';
+import {
+  loadDefaultSites,
+  setDefaultSites,
+  deleteDefaultSite,
+  updateDefaultSite
+} from 'redux/DefaultSitePreferences/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -171,7 +177,8 @@ const SAVE_TIMEOUT = 30000; // 30 seconds timeout
 const Preferences = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const [selectedSites, setSelectedSites] = useState([]);
+  const selectedSites = useSelector((state) => state.defaultSitePreferences.sites);
+  const error = useSelector((state) => state.defaultSitePreferences.error);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -182,7 +189,6 @@ const Preferences = () => {
   const [manualSiteInput, setManualSiteInput] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState(null);
   const [removingSites, setRemovingSites] = useState(new Set());
   const [updatingSiteId, setUpdatingSiteId] = useState(null);
 
@@ -198,20 +204,11 @@ const Preferences = () => {
 
   const fetchSelectedSites = async () => {
     setIsLoading(true);
-    setError(null);
     try {
-      const response = await getDefaultSelectedSitesApi();
-      if (response && response.selected_sites) {
-        setSelectedSites(response.selected_sites);
-      } else {
-        setSelectedSites([]);
-        console.warn('No selected sites data in the response');
-      }
+      await dispatch(loadDefaultSites());
     } catch (error) {
-      console.error('Error fetching selected sites:', error);
       const errorMessage =
         error.response?.data?.message || error.message || 'An unknown error occurred';
-      setError(`Failed to fetch selected sites: ${errorMessage}`);
       showSnackbar(`Error refreshing sites: ${errorMessage}`, 'error');
     } finally {
       setIsLoading(false);
@@ -260,32 +257,31 @@ const Preferences = () => {
 
   const handleSaveSites = async () => {
     setIsSaving(true);
-    setError(null);
 
-    const saveOperation = setDefaultSelectedSitesApi([
-      ...selectedSites,
-      ...newSelectedSites.map(({ site_id, ...rest }) => ({
-        site_id,
-        ...rest,
-        isFeatured: false // Ensure new sites are not featured by default
-      }))
-    ]);
+    const saveOperation = dispatch(
+      setDefaultSites([
+        ...selectedSites,
+        ...newSelectedSites.map(({ site_id, ...rest }) => ({
+          site_id,
+          ...rest,
+          isFeatured: false
+        }))
+      ])
+    );
+
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Operation timed out')), SAVE_TIMEOUT)
     );
 
     try {
       await Promise.race([saveOperation, timeoutPromise]);
-      setSelectedSites([...selectedSites, ...newSelectedSites]);
       setModalOpen(false);
       showSnackbar('Sites updated successfully');
     } catch (error) {
-      console.error('Error updating sites:', error);
       const errorMessage =
         error.message === 'Operation timed out'
           ? 'The operation timed out. Please try again.'
           : error.response?.data?.message || error.message || 'An unknown error occurred';
-      setError(`Failed to update sites: ${errorMessage}`);
       showSnackbar(`Error updating sites: ${errorMessage}`, 'error');
     } finally {
       setIsSaving(false);
@@ -293,24 +289,16 @@ const Preferences = () => {
   };
 
   const handleRemoveSite = async (siteToRemove) => {
-    if (removingSites.has(siteToRemove.site_id)) {
-      return; // Prevent multiple removal attempts for the same site
-    }
+    if (removingSites.has(siteToRemove.site_id)) return;
 
     setRemovingSites((prev) => new Set(prev).add(siteToRemove.site_id));
-    setError(null);
 
     try {
-      await deleteDefaultSelectedSiteApi(siteToRemove.site_id);
-      setSelectedSites((prevSites) =>
-        prevSites.filter((site) => site.site_id !== siteToRemove.site_id)
-      );
+      await dispatch(deleteDefaultSite(siteToRemove.site_id));
       showSnackbar('Site removed successfully');
     } catch (error) {
-      console.error('Error removing site:', error);
       const errorMessage =
         error.response?.data?.message || error.message || 'An unknown error occurred';
-      setError(`Failed to remove site: ${errorMessage}`);
       showSnackbar(`Error removing site: ${errorMessage}`, 'error');
     } finally {
       setRemovingSites((prev) => {
@@ -346,40 +334,19 @@ const Preferences = () => {
 
   const handleToggleFeatured = async (site) => {
     setUpdatingSiteId(site.site_id);
-    setError(null);
-
-    const newFeaturedStatus = !site.isFeatured;
 
     try {
-      // Optimistically update the UI
-      setSelectedSites((prevSites) =>
-        prevSites.map((s) => ({
-          ...s,
-          isFeatured: s.site_id === site.site_id ? newFeaturedStatus : false
-        }))
+      await dispatch(
+        updateDefaultSite(site.site_id, {
+          site_id: site.site_id,
+          isFeatured: !site.isFeatured
+        })
       );
-
-      // Only update the changed site
-      await updateDefaultSelectedSiteApi(site.site_id, {
-        site_id: site.site_id,
-        isFeatured: newFeaturedStatus
-      });
-
       showSnackbar('Site updated successfully');
     } catch (error) {
-      console.error('Error updating site:', error);
       const errorMessage =
         error.response?.data?.message || error.message || 'An unknown error occurred';
-      setError(`Failed to update site: ${errorMessage}`);
       showSnackbar(`Error updating site: ${errorMessage}`, 'error');
-
-      // Revert the optimistic update
-      setSelectedSites((prevSites) =>
-        prevSites.map((s) => ({
-          ...s,
-          isFeatured: s.site_id === site.site_id ? !newFeaturedStatus : s.isFeatured
-        }))
-      );
     } finally {
       setUpdatingSiteId(null);
     }
