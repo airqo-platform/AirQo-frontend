@@ -30,7 +30,7 @@ const Footer = () => {
               width={70}
               height={60}
             />
-            <p className="text-gray-800 mt-4">
+            <p className="text-gray-800 text-lg leading-tight font-semibold mt-4">
               Clean air for all <br /> African Cities.
             </p>
           </div>
@@ -204,7 +204,7 @@ const Footer = () => {
       <div className="border-t border-gray-200 my-8"></div>
 
       {/* Bottom Section */}
-      <div className="flex flex-col lg:flex-row lg:justify-between items-center space-y-4 lg:space-y-0">
+      <div className="flex flex-col lg:flex-row lg:justify-between items-center space-y-4 lg:space-y-0 py-3">
         {/* Location Button with Dialog */}
         <CountrySelectorDialog />
 
@@ -215,22 +215,19 @@ const Footer = () => {
       <div className="border-t border-gray-200 my-8"></div>
 
       {/* Footer Bottom Section */}
-      <div className="flex flex-col text-sm lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
+      <div className="flex flex-col text-sm lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0 py-3">
         {/* Footer Bottom Links */}
-        <div className="text-center lg:text-left text-gray-600">
-          &copy; {new Date().getFullYear()} AirQo &nbsp;|&nbsp;{' '}
+        <div className="text-center lg:text-left flex flew-wrap w-full gap-3 text-gray-600">
+          &copy; {new Date().getFullYear()} AirQo{' '}
           <Link href="/legal/terms-of-service" className="hover:underline">
-            Terms of service
-          </Link>
-          &nbsp;|&nbsp;{' '}
+            Terms of Service
+          </Link>{' '}
           <Link href="/legal/privacy-policy" className="hover:underline">
             Privacy Policy
-          </Link>
-          &nbsp;|&nbsp;{' '}
+          </Link>{' '}
           <Link href="/legal/airqo-data" className="hover:underline">
             AirQo Data
-          </Link>
-          &nbsp;|&nbsp;{' '}
+          </Link>{' '}
           <Link href="/legal/payment-refund-policy" className="hover:underline">
             Payment Terms
           </Link>

@@ -43,7 +43,7 @@ const ScrollToTopButton: React.FC = () => {
       {isVisible && (
         <motion.button
           onClick={scrollToTop}
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
           whileHover={{ scale: 1.1 }}
@@ -55,7 +55,7 @@ const ScrollToTopButton: React.FC = () => {
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <FaArrowUpLong className="w-7 h-7" />
+            <FaArrowUpLong className="w-5 h-5 relative top-1" />
           </motion.div>
         </motion.button>
       )}

@@ -44,13 +44,14 @@ const HomePlayerSection = () => {
     <div className="flex flex-col-reverse px-4 lg:flex-row items-center justify-between max-w-5xl mx-auto mt-8 gap-8">
       {/* Text Section */}
       <div className="lg:w-1/2 w-full flex flex-col justify-center gap-4">
-        <h1 className="text-[32px] lg:text-[56px] font-semibold">
+        <h1 className="text-[32px] lg:text-[56px] font-medium leading-none">
           Clean air for all African cities
         </h1>
-        <p className="text-lg text-blue-600 font-medium">
-          &quot;9 out of 10 people breathe polluted air&quot;
-        </p>
         <p className="text-base mb-6 max-w-[390px]">
+          <span className="text-lg text-blue-600 font-semibold">
+            &quot;9 out of 10 people breathe polluted air&quot;
+          </span>{' '}
+          <br />
           We empower communities with accurate, hyperlocal and timely air
           quality data to drive air pollution mitigation actions.
         </p>

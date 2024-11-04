@@ -39,7 +39,7 @@ const Accordion: React.FC<AccordionProps> = ({ items }) => {
         <div
           key={index}
           className={`${
-            openItem === index ? 'bg-[#DFE8F9] rounded-xl' : ''
+            openItem === index ? 'bg-[#DFE8F9] rounded-xl py-6 px-3' : ''
           } transition-all`}
         >
           <button
@@ -138,7 +138,7 @@ const HomeStatsSection: React.FC = () => {
         .map((_, index) => (
           <div
             key={index}
-            className="h-[240px] p-6 bg-gray-200 rounded-lg flex flex-col justify-between items-start space-y-4 animate-pulse"
+            className="h-[240px] p-6 bg-gray-200 rounded-xl flex flex-col justify-between items-start space-y-4 animate-pulse"
           >
             <div className="text-left flex flex-col items-start space-y-2">
               <div className="w-16 h-8 bg-gray-300 rounded"></div>
@@ -196,8 +196,8 @@ const HomeStatsSection: React.FC = () => {
               onClick={() => setActiveTab('cities')}
               className={`px-6 py-3 ${
                 activeTab === 'cities'
-                  ? 'bg-[#2E3A59] text-white z-10 scale-105 rounded-lg'
-                  : 'bg-[#DFE8F9] text-[#2E3A59] -ml-1 rounded-l-lg'
+                  ? 'bg-[#2E3A59] text-white z-10 scale-105 rounded-xl'
+                  : 'bg-[#DFE8F9] text-[#2E3A59] -ml-1 rounded-l-xl'
               } border border-[#DFE8F9]`}
             >
               For African cities
@@ -208,7 +208,7 @@ const HomeStatsSection: React.FC = () => {
               onClick={() => setActiveTab('communities')}
               className={`px-6 py-3 ${
                 activeTab === 'communities'
-                  ? 'bg-[#2E3A59] text-white z-10 scale-105 rounded-lg'
+                  ? 'bg-[#2E3A59] text-white z-10 scale-105 rounded-xl'
                   : 'bg-[#DFE8F9] text-[#2E3A59] -ml-1 rounded-r-lg'
               } border border-[#DFE8F9]`}
             >
@@ -225,7 +225,7 @@ const HomeStatsSection: React.FC = () => {
           </div>
 
           {/* Image Section */}
-          <div className="lg:w-1/2 w-full rounded-lg">
+          <div className="lg:w-1/2 w-full rounded-xl">
             <div className="relative w-full h-[400px] overflow-hidden">
               <Image
                 src={`${
@@ -236,7 +236,7 @@ const HomeStatsSection: React.FC = () => {
                 alt="Air quality monitor installation"
                 fill
                 style={{ objectFit: 'cover' }}
-                className="rounded-lg object-contain flex justify-self-center w-full h-full max-w-[440px] transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
+                className="rounded-xl object-contain flex justify-self-center w-full h-full max-w-[440px] transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
                 loading="eager"
               />
             </div>
@@ -283,7 +283,7 @@ const HomeStatsSection: React.FC = () => {
           ].map((stat, index) => (
             <div
               key={index}
-              className="h-[240px] p-6 bg-[#DFE8F9] rounded-lg flex flex-col justify-between items-start space-y-4"
+              className="h-[240px] p-6 bg-[#DFE8F9] rounded-xl flex flex-col justify-between items-start space-y-4"
             >
               <div className="text-left flex flex-col items-start">
                 <p className="text-3xl font-bold">{stat.value}</p>
