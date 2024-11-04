@@ -1,0 +1,59 @@
+# Ensure to install Docker and Docker Compose before running this file.
+# This file is used to define the services and their configurations for the AirQo-website project.
+# It is used by the docker-compose command to start and manage the containers.
+
+# To build the containers, run the following command in the terminal:
+#   docker-compose build
+#
+# To start the containers, run the following command in the terminal:
+#   docker-compose up -d
+#
+# To stop the containers, run the following command in the terminal:
+#   docker-compose down
+#
+# To view the logs of a container, run the following command in the terminal:
+#   docker-compose logs <service-name>
+#
+# To view the logs of all containers, run the following command in the terminal:
+#   docker-compose logs --follow
+#
+# To view the status of the containers, run the following command in the terminal:
+#   docker-compose ps
+
+version: "3.3"
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: django-backend
+    env_file:
+      - ./backend/.env
+    ports:
+      - "8000:8000"
+    networks:
+      - backend-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_DJANGO_API_URL: ${NEXT_PUBLIC_DJANGO_API_URL}
+    container_name: nextjs-frontend
+    env_file:
+      - ./frontend/.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    driver: bridge
