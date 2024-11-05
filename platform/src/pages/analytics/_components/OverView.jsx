@@ -11,6 +11,7 @@ import {
   setTimeFrame,
   setPollutant,
   setChartDataRange,
+  resetChartStore,
   setRefreshChart,
 } from '@/lib/store/services/charts/ChartSlice';
 import SettingsIcon from '@/icons/settings.svg';
@@ -21,7 +22,7 @@ import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { subDays } from 'date-fns';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
-import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
+import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
 
 const OverView = () => {
   const dispatch = useDispatch();
@@ -36,23 +37,101 @@ const OverView = () => {
   };
 
   const [dateRange, setDateRange] = useState(defaultDateRange);
+  const [lineData, setLineData] = useState([]);
+  const [barData, setBarData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Reset chart data range to default when the component is unmounted
+  // Fetch analytics data
+  const fetchAnalyticsData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    // If no sites are selected, reset data
+    if (chartData.chartSites.length === 0) {
+      setLineData([]);
+      setBarData([]);
+      setLoading(false);
+      return;
+    }
+
+    const { startDate, endDate } = dateRange;
+
+    // Validate that startDate and endDate are valid Date objects
+    if (!(startDate instanceof Date) || isNaN(startDate)) {
+      setError('Invalid start date.');
+      setLineData([]);
+      setBarData([]);
+      setLoading(false);
+      return;
+    }
+
+    if (!(endDate instanceof Date) || isNaN(endDate)) {
+      setError('Invalid end date.');
+      setLineData([]);
+      setBarData([]);
+      setLoading(false);
+      return;
+    }
+
+    const requestBody = {
+      sites: chartData.chartSites,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      chartType: 'line',
+      frequency: chartData.timeFrame,
+      pollutant: chartData.pollutionType,
+      organisation_name: chartData.organizationName,
+    };
+
+    const controller = new AbortController();
+
+    try {
+      const response = await getAnalyticsData({
+        body: requestBody,
+        signal: controller.signal,
+      });
+
+      if (response.status === 'success' && Array.isArray(response.data)) {
+        setLineData(response.data);
+        setBarData(response.data);
+      } else {
+        throw new Error(response.message || 'Failed to fetch analytics data.');
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.error('Error fetching analytics data:', err);
+        setError(err.message || 'An unexpected error occurred.');
+        setLineData([]);
+        setBarData([]);
+      }
+    } finally {
+      setLoading(false);
+    }
+
+    // Cleanup function to abort fetch on unmount or dependency change
+    return () => controller.abort();
+  }, [
+    chartData.chartSites,
+    dateRange.startDate,
+    dateRange.endDate,
+    chartData.timeFrame,
+    chartData.pollutionType,
+    chartData.organizationName,
+  ]);
+
+  // Fetch data on component mount and whenever dependencies change
+  useEffect(() => {
+    fetchAnalyticsData();
+
+    // Cleanup function
+    return () => {};
+  }, [fetchAnalyticsData]);
+
+  // Reset chart data to default when the component is unmounted
   useEffect(() => {
     return () => {
-      const { startDate, endDate } = defaultDateRange;
-      const { startDateISO, endDateISO } = formatDateRangeToISO(
-        startDate,
-        endDate,
-      );
-
-      dispatch(
-        setChartDataRange({
-          startDate: startDateISO,
-          endDate: endDateISO,
-          label: defaultDateRange.label,
-        }),
-      );
+      dispatch(resetChartStore());
     };
   }, [dispatch]);
 
@@ -82,6 +161,11 @@ const OverView = () => {
 
   const handleDateChange = useCallback(
     (startDate, endDate, label) => {
+      if (!startDate || !endDate) {
+        setError('Invalid date range selected.');
+        return;
+      }
+
       const { startDateISO, endDateISO } = formatDateRangeToISO(
         startDate,
         endDate,
@@ -101,41 +185,12 @@ const OverView = () => {
     [dispatch],
   );
 
-  // Fetch analytics data for Line Chart
-  const {
-    allSiteData: lineData,
-    chartLoading: lineLoading,
-    error: lineError,
-    refetch: refetchLine,
-  } = useFetchAnalyticsData({
-    selectedSiteIds: chartData.chartSites,
-    dateRange: chartData.chartDataRange,
-    chartType: 'line',
-    frequency: chartData.timeFrame,
-    pollutant: chartData.pollutionType,
-    organisationName: chartData.organizationName,
-  });
-
-  // Fetch analytics data for Bar Chart
-  const {
-    allSiteData: barData,
-    chartLoading: barLoading,
-    error: barError,
-    refetch: refetchBar,
-  } = useFetchAnalyticsData({
-    selectedSiteIds: chartData.chartSites,
-    dateRange: chartData.chartDataRange,
-    chartType: 'bar',
-    frequency: chartData.timeFrame,
-    pollutant: chartData.pollutionType,
-    organisationName: chartData.organizationName,
-  });
-
   return (
     <BorderlessContentBox>
       <div className="space-y-8">
         <div className="w-full flex flex-wrap gap-2 justify-between">
           <div className="space-x-2 flex">
+            {/* Time Frame Dropdown */}
             <CustomDropdown
               btnText={chartData.timeFrame}
               dropdown
@@ -162,6 +217,7 @@ const OverView = () => {
               ))}
             </CustomDropdown>
 
+            {/* Custom Calendar */}
             <CustomCalendar
               initialStartDate={dateRange.startDate}
               initialEndDate={dateRange.endDate}
@@ -171,6 +227,7 @@ const OverView = () => {
               dropdown
             />
 
+            {/* Pollutant Dropdown */}
             <CustomDropdown
               tabIcon={<SettingsIcon />}
               btnText="Pollutant"
@@ -199,11 +256,13 @@ const OverView = () => {
           </div>
 
           <div className="space-x-2 flex">
+            {/* Add Location Button */}
             <TabButtons
               btnText="Add location"
               Icon={<PlusIcon width={16} height={16} />}
               onClick={() => handleOpenModal('addLocation')}
             />
+            {/* Download Data Button */}
             <TabButtons
               btnText="Download Data"
               Icon={<DownloadIcon width={16} height={17} color="white" />}
@@ -213,8 +272,10 @@ const OverView = () => {
           </div>
         </div>
 
+        {/* AQ Number Card */}
         <AQNumberCard />
 
+        {/* Charts Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Line Chart */}
           <ChartContainer
@@ -223,9 +284,9 @@ const OverView = () => {
             height={400}
             id="air-pollution-line-chart"
             data={lineData}
-            chartLoading={lineLoading}
-            error={lineError}
-            refetch={refetchLine}
+            chartLoading={loading}
+            error={error}
+            refetch={fetchAnalyticsData}
           />
           {/* Bar Chart */}
           <ChartContainer
@@ -234,13 +295,14 @@ const OverView = () => {
             height={400}
             id="air-pollution-bar-chart"
             data={barData}
-            chartLoading={barLoading}
-            error={barError}
-            refetch={refetchBar}
+            chartLoading={loading}
+            error={error}
+            refetch={fetchAnalyticsData}
           />
         </div>
       </div>
 
+      {/* Data Download Modal */}
       <Modal isOpen={isOpen} onClose={() => dispatch(setOpenModal(false))} />
     </BorderlessContentBox>
   );
