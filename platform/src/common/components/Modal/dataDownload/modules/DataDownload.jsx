@@ -20,6 +20,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import CustomToast from '../../../Toast/CustomToast';
+import { startOfDay, endOfDay } from 'date-fns';
 
 /**
  * Header component for the Download Data modal.
@@ -109,6 +110,13 @@ const DataDownload = ({ onClose }) => {
     setFormData((prevData) => ({ ...prevData, [id]: option }));
   }, []);
 
+  const toLocalISOString = (date) => {
+    const offsetDate = new Date(
+      date.getTime() - date.getTimezoneOffset() * 60000,
+    );
+    return offsetDate.toISOString().slice(0, 19); // Remove milliseconds and 'Z'
+  };
+
   /**
    * Handles the submission of the form.
    * Prepares data and calls the exportDataApi to download the data.
@@ -141,8 +149,10 @@ const DataDownload = ({ onClose }) => {
 
       // Prepare data for API
       const apiData = {
-        startDateTime: formData.duration.name.start.toISOString(),
-        endDateTime: formData.duration.name.end.toISOString(),
+        startDateTime:
+          toLocalISOString(startOfDay(formData.duration.name.start)) + ':00',
+        endDateTime:
+          toLocalISOString(endOfDay(formData.duration.name.end)) + ':59',
         sites: selectedSites.map((site) => site._id),
         network: formData.network.name,
         datatype: formData.dataType.name.toLowerCase(),
