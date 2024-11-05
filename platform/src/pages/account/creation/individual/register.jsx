@@ -96,7 +96,7 @@ const IndividualAccountRegistration = () => {
     }
   };
 
-  const toggleChecked = (e) => {
+  const toggleChecked = () => {
     if (checked) {
       setChecked(false);
     } else setChecked(true);
@@ -247,11 +247,21 @@ const IndividualAccountRegistration = () => {
               <div className="ml-3">
                 <p className="text-xs">
                   I agree to the{' '}
-                  <a href="#" className="underline">
+                  <a
+                    href="https://airqo.net/legal?tab=terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline"
+                  >
                     Terms of Service
                   </a>{' '}
                   and{' '}
-                  <a href="#" className="underline">
+                  <a
+                    href="https://airqo.net/legal?tab=privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline"
+                  >
                     Privacy Policy
                   </a>
                 </p>
