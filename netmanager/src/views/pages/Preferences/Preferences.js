@@ -21,12 +21,6 @@ import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
 import StarIcon from '@material-ui/icons/Star';
 import StarBorderIcon from '@material-ui/icons/StarBorder';
-import {
-  getDefaultSelectedSitesApi,
-  setDefaultSelectedSitesApi,
-  deleteDefaultSelectedSiteApi,
-  updateDefaultSelectedSiteApi
-} from 'views/apis/authService';
 import { useSitesSummaryData } from 'redux/SiteRegistry/selectors';
 import { Alert, Autocomplete } from '@material-ui/lab';
 import { useDispatch, useSelector } from 'react-redux';
