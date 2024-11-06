@@ -21,12 +21,20 @@ import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { subDays } from 'date-fns';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
-import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
+import {
+  fetchChartAnalyticsData,
+  resetAnalyticsData,
+} from '@/lib/store/services/charts/ChartData';
 
 const OverView = () => {
   const dispatch = useDispatch();
+
+  // Access Redux state
   const isOpen = useSelector((state) => state.modal.openModal);
   const chartData = useSelector((state) => state.chart);
+  const analyticsData = useSelector((state) => state.analytics.data);
+  const status = useSelector((state) => state.analytics.status);
+  const error = useSelector((state) => state.analytics.error);
 
   // Default date range for the last 7 days
   const defaultDateRange = {
@@ -37,25 +45,84 @@ const OverView = () => {
 
   const [dateRange, setDateRange] = useState(defaultDateRange);
 
-  // Reset chart data range to default when the component is unmounted
-  useEffect(() => {
-    return () => {
-      const { startDate, endDate } = defaultDateRange;
-      const { startDateISO, endDateISO } = formatDateRangeToISO(
-        startDate,
-        endDate,
-      );
+  /**
+   * Fetch analytics data based on selected sites and date range.
+   */
+  const fetchAnalyticsData = useCallback(() => {
+    // If no sites are selected, reset data
+    if (chartData.chartSites.length === 0) {
+      console.log('No sites selected. Resetting analytics data.');
+      dispatch(resetAnalyticsData());
+      return;
+    }
 
-      dispatch(
-        setChartDataRange({
-          startDate: startDateISO,
-          endDate: endDateISO,
-          label: defaultDateRange.label,
-        }),
-      );
+    const { startDate, endDate } = dateRange;
+
+    // Validate that startDate and endDate are valid Date objects
+    if (!(startDate instanceof Date) || isNaN(startDate)) {
+      console.error('Invalid start date:', startDate);
+      // Optionally, dispatch an error action or handle it via UI
+      return;
+    }
+
+    if (!(endDate instanceof Date) || isNaN(endDate)) {
+      console.error('Invalid end date:', endDate);
+      // Optionally, dispatch an error action or handle it via UI
+      return;
+    }
+
+    const requestBody = {
+      sites: chartData.chartSites,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      chartType: 'line',
+      frequency: chartData.timeFrame,
+      pollutant: chartData.pollutionType,
+      organisation_name: chartData.organizationName,
     };
-  }, [dispatch]);
 
+    // Dispatch the thunk with requestBody
+    dispatch(fetchChartAnalyticsData(requestBody));
+  }, [
+    dispatch,
+    chartData.chartSites,
+    chartData.timeFrame,
+    chartData.pollutionType,
+    chartData.organizationName,
+    dateRange.startDate,
+    dateRange.endDate,
+  ]);
+
+  // Fetch data on component mount and whenever dependencies change
+  useEffect(() => {
+    // Create an AbortController to handle fetch cancellation
+    const controller = new AbortController();
+
+    // Fetch analytics data
+    fetchAnalyticsData();
+
+    // Cleanup function to abort fetch on unmount
+    return () => {
+      controller.abort();
+      dispatch(resetAnalyticsData());
+    };
+  }, [fetchAnalyticsData, dispatch]);
+
+  // Listen for refresh flag to trigger data refetch
+  const refreshChart = useSelector((state) => state.chart.refreshChart);
+  useEffect(() => {
+    if (refreshChart) {
+      console.log('Refresh flag detected. Refetching analytics data.');
+      fetchAnalyticsData();
+      dispatch(setRefreshChart(false));
+    }
+  }, [refreshChart, fetchAnalyticsData, dispatch]);
+
+  /**
+   * Handles opening modals for adding locations or downloading data.
+   * @param {string} type - The type of modal to open.
+   * @param {Array} ids - Optional IDs related to the modal.
+   */
   const handleOpenModal = useCallback(
     (type, ids = []) => {
       dispatch(setOpenModal(true));
@@ -64,6 +131,10 @@ const OverView = () => {
     [dispatch],
   );
 
+  /**
+   * Handles changes to the time frame dropdown.
+   * @param {string} option - The selected time frame option.
+   */
   const handleTimeFrameChange = useCallback(
     (option) => {
       dispatch(setTimeFrame(option));
@@ -72,6 +143,10 @@ const OverView = () => {
     [dispatch],
   );
 
+  /**
+   * Handles changes to the pollutant dropdown.
+   * @param {string} pollutantId - The selected pollutant ID.
+   */
   const handlePollutantChange = useCallback(
     (pollutantId) => {
       dispatch(setPollutant(pollutantId));
@@ -80,8 +155,20 @@ const OverView = () => {
     [dispatch],
   );
 
+  /**
+   * Handles changes to the date range calendar.
+   * @param {Date} startDate - The selected start date.
+   * @param {Date} endDate - The selected end date.
+   * @param {string} label - The label for the selected date range.
+   */
   const handleDateChange = useCallback(
     (startDate, endDate, label) => {
+      if (!startDate || !endDate) {
+        console.error('Invalid date range selected.');
+        // Optionally, dispatch an error action or handle it via UI
+        return;
+      }
+
       const { startDateISO, endDateISO } = formatDateRangeToISO(
         startDate,
         endDate,
@@ -101,41 +188,12 @@ const OverView = () => {
     [dispatch],
   );
 
-  // Fetch analytics data for Line Chart
-  const {
-    allSiteData: lineData,
-    chartLoading: lineLoading,
-    error: lineError,
-    refetch: refetchLine,
-  } = useFetchAnalyticsData({
-    selectedSiteIds: chartData.chartSites,
-    dateRange: chartData.chartDataRange,
-    chartType: 'line',
-    frequency: chartData.timeFrame,
-    pollutant: chartData.pollutionType,
-    organisationName: chartData.organizationName,
-  });
-
-  // Fetch analytics data for Bar Chart
-  const {
-    allSiteData: barData,
-    chartLoading: barLoading,
-    error: barError,
-    refetch: refetchBar,
-  } = useFetchAnalyticsData({
-    selectedSiteIds: chartData.chartSites,
-    dateRange: chartData.chartDataRange,
-    chartType: 'bar',
-    frequency: chartData.timeFrame,
-    pollutant: chartData.pollutionType,
-    organisationName: chartData.organizationName,
-  });
-
   return (
     <BorderlessContentBox>
       <div className="space-y-8">
         <div className="w-full flex flex-wrap gap-2 justify-between">
           <div className="space-x-2 flex">
+            {/* Time Frame Dropdown */}
             <CustomDropdown
               btnText={chartData.timeFrame}
               dropdown
@@ -162,6 +220,7 @@ const OverView = () => {
               ))}
             </CustomDropdown>
 
+            {/* Custom Calendar */}
             <CustomCalendar
               initialStartDate={dateRange.startDate}
               initialEndDate={dateRange.endDate}
@@ -171,6 +230,7 @@ const OverView = () => {
               dropdown
             />
 
+            {/* Pollutant Dropdown */}
             <CustomDropdown
               tabIcon={<SettingsIcon />}
               btnText="Pollutant"
@@ -199,11 +259,13 @@ const OverView = () => {
           </div>
 
           <div className="space-x-2 flex">
+            {/* Add Location Button */}
             <TabButtons
               btnText="Add location"
               Icon={<PlusIcon width={16} height={16} />}
               onClick={() => handleOpenModal('addLocation')}
             />
+            {/* Download Data Button */}
             <TabButtons
               btnText="Download Data"
               Icon={<DownloadIcon width={16} height={17} color="white" />}
@@ -213,8 +275,10 @@ const OverView = () => {
           </div>
         </div>
 
+        {/* AQ Number Card */}
         <AQNumberCard />
 
+        {/* Charts Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Line Chart */}
           <ChartContainer
@@ -222,10 +286,10 @@ const OverView = () => {
             chartTitle="Air Pollution Data Over Time"
             height={400}
             id="air-pollution-line-chart"
-            data={lineData}
-            chartLoading={lineLoading}
-            error={lineError}
-            refetch={refetchLine}
+            data={analyticsData}
+            chartLoading={status === 'loading'}
+            error={status === 'failed' ? error : null}
+            refetch={fetchAnalyticsData}
           />
           {/* Bar Chart */}
           <ChartContainer
@@ -233,14 +297,15 @@ const OverView = () => {
             chartTitle="Air Pollution Data Over Time"
             height={400}
             id="air-pollution-bar-chart"
-            data={barData}
-            chartLoading={barLoading}
-            error={barError}
-            refetch={refetchBar}
+            data={analyticsData}
+            chartLoading={status === 'loading'}
+            error={status === 'failed' ? error : null}
+            refetch={fetchAnalyticsData}
           />
         </div>
       </div>
 
+      {/* Data Download Modal */}
       <Modal isOpen={isOpen} onClose={() => dispatch(setOpenModal(false))} />
     </BorderlessContentBox>
   );

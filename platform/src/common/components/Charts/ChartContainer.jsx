@@ -4,7 +4,6 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import CheckIcon from '@/icons/tickIcon';
 import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
-// import PrintReportModal from '@/components/Modal/PrintReportModal';
 import MoreInsightsChart from './MoreInsightsChart';
 import SkeletonLoader from './components/SkeletonLoader';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
@@ -54,7 +53,7 @@ const ChartContainer = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // TODO: TEMPORARY TO HANDLE LOADING ISSUE HAVE TO REMOVE LATER
+  // TEMPORARY: Handle loading issue, remove later
   useEffect(() => {
     let timer;
 
@@ -113,16 +112,23 @@ const ChartContainer = ({
       }
 
       setDownloadComplete(format);
-      CustomToast();
+      CustomToast({
+        message: `Chart exported as ${format.toUpperCase()} successfully!`,
+        type: 'success',
+      });
     } catch (error) {
       console.error('Error exporting chart:', error);
+      CustomToast({
+        message: `Failed to export chart as ${format.toUpperCase()}.`,
+        type: 'error',
+      });
     } finally {
       setLoadingFormat(null);
     }
   }, []);
 
   /**
-   * Refreshes the chart data by calling the refetch function from the hook.
+   * Refreshes the chart data by calling the refetch function from the parent.
    */
   const handleRefreshChart = useCallback(() => {
     refetch();
@@ -176,17 +182,6 @@ const ChartContainer = ({
         >
           More insights
         </button>
-        {/* 
-        {['csv', 'pdf'].map((format) => (
-          <button
-            key={format}
-            onClick={() => shareReport(format)}
-            className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-          >
-            <span>Share report as {format.toUpperCase()}</span>
-          </button>
-        ))} 
-        */}
       </>
     ),
     [
@@ -203,23 +198,23 @@ const ChartContainer = ({
    * Renders the error overlay with a retry option.
    */
   const ErrorOverlay = () => (
-    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-gray-300 bg-opacity-50 z-10">
-      <p className="text-red-500 font-semibold">
+    <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-gray-300 bg-opacity-50 z-10 p-4">
+      <p className="text-red-500 font-semibold mb-2">
         Something went wrong. Please try again.
       </p>
       <button
         onClick={refetch}
-        className="ml-4 text-red-500 font-semibold underline"
+        className="mt-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
       >
-        Try again
+        Try Again
       </button>
     </div>
   );
 
   return (
     <div
-      className="border bg-white rounded-xl border-gray-200 shadow-sm"
-      id="analytics-chart"
+      className="border bg-white rounded-xl border-gray-200 shadow-sm relative"
+      id={id}
     >
       <div className="flex flex-col items-start gap-1 w-full p-4">
         {showTitle && !showSkeleton && (
@@ -258,22 +253,6 @@ const ChartContainer = ({
           )}
         </div>
       </div>
-
-      {/* 
-      <PrintReportModal
-        title="Share Report"
-        btnText="Send"
-        shareModel
-        open={openShare}
-        onClose={() => setOpenShare(false)}
-        format={shareFormat}
-        data={{
-          startDate: chartDataRange.startDate,
-          endDate: chartDataRange.endDate,
-          sites: chartSites,
-        }}
-      /> 
-      */}
     </div>
   );
 };

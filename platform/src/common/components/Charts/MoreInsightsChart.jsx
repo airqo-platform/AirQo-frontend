@@ -55,29 +55,21 @@ const MoreInsightsChart = ({
     const allSiteIds = new Set();
 
     data.forEach((dataPoint) => {
-      const { site_id, name } = dataPoint;
+      const { site_id, name, value, time } = dataPoint;
       if (site_id && name) {
         siteIdToName[site_id] = name;
         allSiteIds.add(site_id);
       }
-    });
-
-    // If selectedSiteIds is empty, include all site_ids
-    const sitesToInclude =
-      selectedSiteIds.length > 0 ? selectedSiteIds : Array.from(allSiteIds);
-
-    // Process each data point
-    data.forEach((dataPoint) => {
-      const { value, time, site_id } = dataPoint;
 
       // Parse and validate the time using the utility function
       const date = parseAndValidateISODate(time);
       if (!date) {
+        console.warn(`Invalid date format for time: ${time}`);
         return;
       }
 
       // Only include data points from selected sites
-      if (!sitesToInclude.includes(site_id)) return;
+      if (!selectedSiteIds.includes(site_id)) return;
 
       const rawTime = time;
 

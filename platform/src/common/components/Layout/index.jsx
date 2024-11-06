@@ -36,9 +36,6 @@ const Layout = ({
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const isOpen = useSelector((state) => state.modal.openModal);
 
-  // Error Handling (Assuming useUserChecklists returns error)
-  const { error } = useUserChecklists();
-
   // Handler to close the modal
   const handleCloseModal = () => {
     dispatch(setOpenModal(false));
@@ -76,13 +73,6 @@ const Layout = ({
               noBorderBottom={noBorderBottom}
               showSearch={showSearch}
             />
-          )}
-
-          {/* Error Message */}
-          {error && (
-            <div className="w-full p-4 bg-red-100 text-red-700 rounded-md">
-              {error}
-            </div>
           )}
 
           {/* Children */}
