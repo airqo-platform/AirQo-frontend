@@ -116,7 +116,7 @@ const DataTable = ({
   const filteredData = useMemo(() => {
     let filtered =
       activeButton === 'favorites'
-        ? uniqueData.filter((item) =>
+        ? uniqueData?.filter((item) =>
             selectedSiteIds.includes(String(item._id)),
           )
         : uniqueData;
