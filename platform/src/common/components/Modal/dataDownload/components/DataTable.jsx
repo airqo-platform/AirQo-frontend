@@ -50,7 +50,6 @@ const TableRowComponent = ({ item, isSelected, onToggleSite, index }) => (
   </tr>
 );
 
-// Wrap the named function with React.memo and assign displayName
 const TableRow = React.memo(TableRowComponent);
 TableRow.displayName = 'TableRow';
 
@@ -216,7 +215,13 @@ const DataTable = ({
 
     // Handle edge case if filteredData is empty
     if (filteredData.length === 0) {
-      return <p>No data available</p>;
+      return (
+        <tr>
+          <td colSpan="5" className="p-4 text-center text-gray-500">
+            No data available
+          </td>
+        </tr>
+      );
     }
 
     return filteredData

@@ -43,7 +43,9 @@ const CustomFields = ({
       ) : useCalendar ? (
         <DatePicker
           customPopperStyle={{ left: '-7px' }}
-          onChange={(date) => handleSelect({ name: date })}
+          onChange={(date) => {
+            handleSelect({ name: date });
+          }}
         />
       ) : (
         <CustomDropdown

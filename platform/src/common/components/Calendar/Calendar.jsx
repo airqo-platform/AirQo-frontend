@@ -13,8 +13,8 @@ import {
   isSameMonth,
   startOfWeek,
   endOfWeek,
+  startOfDay,
 } from 'date-fns';
-import PropTypes from 'prop-types';
 import Footer from './components/Footer';
 import ShortCuts from './components/ShortCuts';
 import CalendarHeader from './components/CalendarHeader';
@@ -31,8 +31,8 @@ const getDayClassNames = (day, month, selectedRange) => {
     selectedRange.end &&
     isWithinInterval(day, selectedRange) &&
     !isStartOrEndDay;
-  const isStartOfWeek = day.getDay() === 0;
-  const isEndOfWeek = day.getDay() === 6;
+  const isStartOfWeek = day.getDay() === 1; // Monday
+  const isEndOfWeek = day.getDay() === 0; // Sunday
 
   let classNames = 'flex justify-center items-center ';
 
@@ -54,6 +54,11 @@ const getDayClassNames = (day, month, selectedRange) => {
   return classNames;
 };
 
+/**
+ * Calendar Component
+ * @param {Object} props - Component props.
+ * @returns {JSX.Element} - Rendered component.
+ */
 const Calendar = ({
   initialMonth1,
   initialMonth2,
@@ -61,33 +66,51 @@ const Calendar = ({
   closeDatePicker,
   showTwoCalendars = true,
 }) => {
+  // Days of the week, starting with Monday
   const daysOfWeek = useMemo(
-    () => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    () => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     [],
   );
-  const [month1, setMonth1] = useState(initialMonth1);
-  const [month2, setMonth2] = useState(initialMonth2);
+
+  // Initialize current date at the start of the day to avoid timezone issues
+  const today = startOfDay(new Date());
+
+  // State hooks for months and selected date range
+  const [month1, setMonth1] = useState(
+    showTwoCalendars
+      ? initialMonth1 || startOfMonth(today)
+      : startOfMonth(today),
+  );
+  const [month2, setMonth2] = useState(
+    showTwoCalendars
+      ? initialMonth2 || addMonths(startOfMonth(today), 1)
+      : null,
+  );
   const [selectedRange, setSelectedRange] = useState({
-    start: null,
-    end: null,
+    start: showTwoCalendars ? null : today,
+    end: showTwoCalendars ? null : today,
   });
 
+  /**
+   * Handles the selection of a day.
+   * @param {Date} day - The day that was clicked.
+   */
   const handleDayClick = useCallback(
     (day) => {
+      const normalizedDay = startOfDay(day);
       let newSelectedRange = { ...selectedRange };
 
       if (
         !newSelectedRange.start ||
         (newSelectedRange.start && newSelectedRange.end)
       ) {
-        newSelectedRange = { start: day, end: null };
+        newSelectedRange = { start: normalizedDay, end: null };
       } else if (!newSelectedRange.end) {
-        newSelectedRange.end = isBefore(day, newSelectedRange.start)
-          ? newSelectedRange.start
-          : day;
-        newSelectedRange.start = isBefore(day, newSelectedRange.start)
-          ? day
-          : newSelectedRange.start;
+        const isBeforeStart = isBefore(normalizedDay, newSelectedRange.start);
+        newSelectedRange = {
+          start: isBeforeStart ? normalizedDay : newSelectedRange.start,
+          end: isBeforeStart ? newSelectedRange.start : normalizedDay,
+        };
       }
 
       setSelectedRange(newSelectedRange);
@@ -100,40 +123,41 @@ const Calendar = ({
     [selectedRange, showTwoCalendars, handleValueChange, closeDatePicker],
   );
 
+  /**
+   * Renders the days of the month.
+   * @param {Date} month - The month for which to render days.
+   * @returns {JSX.Element[]} - Array of day elements.
+   */
   const renderDays = useCallback(
     (month) => {
-      const startDay = showTwoCalendars
-        ? startOfWeek(startOfMonth(month))
-        : startOfMonth(month);
-      const endDay = showTwoCalendars
-        ? endOfWeek(endOfMonth(month))
-        : endOfMonth(month);
+      const startDay = startOfWeek(startOfMonth(month), { weekStartsOn: 1 }); // Monday
+      const endDay = endOfWeek(endOfMonth(month), { weekStartsOn: 1 }); // Sunday
       const daysOfMonth = eachDayOfInterval({
         start: startDay,
         end: endDay,
       });
 
       return daysOfMonth.map((day) => {
-        const isToday = isSameDay(day, new Date());
-        const isCurrentMonth = isSameMonth(day, month);
+        const normalizedDay = startOfDay(day);
+        const isToday = isSameDay(normalizedDay, today);
+        const isCurrentMonth = isSameMonth(normalizedDay, month);
         const dayClasses = getDayClassNames(
-          day,
+          normalizedDay,
           month,
           selectedRange,
-          isToday,
-          showTwoCalendars,
         );
 
         return (
-          <div key={day.toISOString()} className={dayClasses}>
+          <div key={normalizedDay.toISOString()} className={dayClasses}>
             <button
-              onClick={() => handleDayClick(day)}
+              onClick={() => handleDayClick(normalizedDay)}
               className={`
                 w-10 h-10 text-sm flex justify-center items-center 
                 ${
                   (selectedRange.start &&
-                    isSameDay(day, selectedRange.start)) ||
-                  (selectedRange.end && isSameDay(day, selectedRange.end))
+                    isSameDay(normalizedDay, selectedRange.start)) ||
+                  (selectedRange.end &&
+                    isSameDay(normalizedDay, selectedRange.end))
                     ? 'bg-blue-600 dark:bg-blue-500 rounded-full text-white hover:text-white'
                     : ''
                 }
@@ -146,24 +170,29 @@ const Calendar = ({
                         ? 'text-gray-300'
                         : 'hidden'
                 }
-                hover:border-blue-600 hover:text-blue-600 hover:rounded-full hover:border dark:hover:border-gray-500 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600 
+                hover:border-blue-600 hover:text-blue-600 hover:rounded-full hover:border dark:hover:border-gray-500 
                 disabled:text-gray-300 disabled:pointer-events-none md:w-14 lg:w-16
               `}
               aria-pressed={
-                isSameDay(day, selectedRange.start) ||
-                isSameDay(day, selectedRange.end)
+                isSameDay(normalizedDay, selectedRange.start) ||
+                isSameDay(normalizedDay, selectedRange.end)
               }
-              aria-label={`Select ${format(day, 'PPP')}`}
+              aria-label={`Select ${format(normalizedDay, 'PPP')}`}
             >
-              {format(day, 'd')}
+              {format(normalizedDay, 'd')}
             </button>
           </div>
         );
       });
     },
-    [showTwoCalendars, selectedRange, handleDayClick],
+    [showTwoCalendars, selectedRange, handleDayClick, today],
   );
 
+  /**
+   * Calendar Section Component
+   * @param {Object} props - Component props.
+   * @returns {JSX.Element} - Rendered component.
+   */
   const CalendarSectionComponent = ({ month, onNextMonth, onPrevMonth }) => (
     <div
       className={`${
@@ -192,27 +221,16 @@ const Calendar = ({
     </div>
   );
 
-  // Memoize the CalendarSection component
+  // Memoize the CalendarSection component to prevent unnecessary re-renders
   const CalendarSection = React.memo(CalendarSectionComponent);
-
-  // Assign displayName to fix the ESLint error
   CalendarSection.displayName = 'CalendarSection';
 
-  // Memoization dependencies handled here
-  useCallback(CalendarSection, [
-    daysOfWeek,
-    renderDays,
-    selectedRange,
-    handleValueChange,
-    showTwoCalendars,
-  ]);
-
-  CalendarSection.propTypes = {
-    month: PropTypes.instanceOf(Date).isRequired,
-    onNextMonth: PropTypes.func.isRequired,
-    onPrevMonth: PropTypes.func.isRequired,
-  };
-
+  /**
+   * Handles navigating to the next month.
+   * @param {Date} currentMonth - The current month.
+   * @param {Date} otherMonth - The other month being displayed.
+   * @param {Function} setMonth - State setter for the month.
+   */
   const handleNextMonth = useCallback(
     (currentMonth, otherMonth, setMonth) => {
       const nextMonth = addMonths(currentMonth, 1);
@@ -223,6 +241,12 @@ const Calendar = ({
     [showTwoCalendars],
   );
 
+  /**
+   * Handles navigating to the previous month.
+   * @param {Date} currentMonth - The current month.
+   * @param {Date} otherMonth - The other month being displayed.
+   * @param {Function} setMonth - State setter for the month.
+   */
   const handlePrevMonth = useCallback(
     (currentMonth, otherMonth, setMonth) => {
       const prevMonth = subMonths(currentMonth, 1);
@@ -254,13 +278,15 @@ const Calendar = ({
               <ShortCuts setSelectedRange={setSelectedRange} />
             )}
 
+            {/* First Calendar */}
             <CalendarSection
               month={month1}
               onNextMonth={() => handleNextMonth(month1, month2, setMonth1)}
               onPrevMonth={() => handlePrevMonth(month1, month2, setMonth1)}
             />
 
-            {showTwoCalendars && (
+            {/* Second Calendar (if showTwoCalendars is true) */}
+            {showTwoCalendars && month2 && (
               <CalendarSection
                 month={month2}
                 onNextMonth={() => handleNextMonth(month2, month1, setMonth2)}
@@ -269,6 +295,7 @@ const Calendar = ({
             )}
           </div>
 
+          {/* Footer (only for two calendars) */}
           {showTwoCalendars && (
             <Footer
               selectedRange={selectedRange}
@@ -281,20 +308,6 @@ const Calendar = ({
       </div>
     </div>
   );
-};
-
-Calendar.propTypes = {
-  initialMonth1: PropTypes.instanceOf(Date),
-  initialMonth2: PropTypes.instanceOf(Date),
-  handleValueChange: PropTypes.func.isRequired,
-  closeDatePicker: PropTypes.func.isRequired,
-  showTwoCalendars: PropTypes.bool,
-};
-
-Calendar.defaultProps = {
-  initialMonth1: new Date(),
-  initialMonth2: addMonths(new Date(), 1),
-  showTwoCalendars: true,
 };
 
 Calendar.displayName = 'Calendar';
