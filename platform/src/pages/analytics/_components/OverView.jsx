@@ -11,7 +11,6 @@ import {
   setTimeFrame,
   setPollutant,
   setChartDataRange,
-  resetChartStore,
   setRefreshChart,
 } from '@/lib/store/services/charts/ChartSlice';
 import SettingsIcon from '@/icons/settings.svg';
@@ -22,12 +21,20 @@ import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { subDays } from 'date-fns';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
-import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
+import {
+  fetchChartAnalyticsData,
+  resetAnalyticsData,
+} from '@/lib/store/services/charts/ChartData';
 
 const OverView = () => {
   const dispatch = useDispatch();
+
+  // Access Redux state
   const isOpen = useSelector((state) => state.modal.openModal);
   const chartData = useSelector((state) => state.chart);
+  const analyticsData = useSelector((state) => state.analytics.data);
+  const status = useSelector((state) => state.analytics.status);
+  const error = useSelector((state) => state.analytics.error);
 
   // Default date range for the last 7 days
   const defaultDateRange = {
@@ -37,21 +44,15 @@ const OverView = () => {
   };
 
   const [dateRange, setDateRange] = useState(defaultDateRange);
-  const [lineData, setLineData] = useState([]);
-  const [barData, setBarData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Fetch analytics data
-  const fetchAnalyticsData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
+  /**
+   * Fetch analytics data based on selected sites and date range.
+   */
+  const fetchAnalyticsData = useCallback(() => {
     // If no sites are selected, reset data
     if (chartData.chartSites.length === 0) {
-      setLineData([]);
-      setBarData([]);
-      setLoading(false);
+      console.log('No sites selected. Resetting analytics data.');
+      dispatch(resetAnalyticsData());
       return;
     }
 
@@ -59,18 +60,14 @@ const OverView = () => {
 
     // Validate that startDate and endDate are valid Date objects
     if (!(startDate instanceof Date) || isNaN(startDate)) {
-      setError('Invalid start date.');
-      setLineData([]);
-      setBarData([]);
-      setLoading(false);
+      console.error('Invalid start date:', startDate);
+      // Optionally, dispatch an error action or handle it via UI
       return;
     }
 
     if (!(endDate instanceof Date) || isNaN(endDate)) {
-      setError('Invalid end date.');
-      setLineData([]);
-      setBarData([]);
-      setLoading(false);
+      console.error('Invalid end date:', endDate);
+      // Optionally, dispatch an error action or handle it via UI
       return;
     }
 
@@ -84,57 +81,48 @@ const OverView = () => {
       organisation_name: chartData.organizationName,
     };
 
-    const controller = new AbortController();
-
-    try {
-      const response = await getAnalyticsData({
-        body: requestBody,
-        signal: controller.signal,
-      });
-
-      if (response.status === 'success' && Array.isArray(response.data)) {
-        setLineData(response.data);
-        setBarData(response.data);
-      } else {
-        throw new Error(response.message || 'Failed to fetch analytics data.');
-      }
-    } catch (err) {
-      if (err.name !== 'AbortError') {
-        console.error('Error fetching analytics data:', err);
-        setError(err.message || 'An unexpected error occurred.');
-        setLineData([]);
-        setBarData([]);
-      }
-    } finally {
-      setLoading(false);
-    }
-
-    // Cleanup function to abort fetch on unmount or dependency change
-    return () => controller.abort();
+    // Dispatch the thunk with requestBody
+    dispatch(fetchChartAnalyticsData(requestBody));
   }, [
+    dispatch,
     chartData.chartSites,
-    dateRange.startDate,
-    dateRange.endDate,
     chartData.timeFrame,
     chartData.pollutionType,
     chartData.organizationName,
+    dateRange.startDate,
+    dateRange.endDate,
   ]);
 
   // Fetch data on component mount and whenever dependencies change
   useEffect(() => {
+    // Create an AbortController to handle fetch cancellation
+    const controller = new AbortController();
+
+    // Fetch analytics data
     fetchAnalyticsData();
 
-    // Cleanup function
-    return () => {};
-  }, [fetchAnalyticsData]);
-
-  // Reset chart data to default when the component is unmounted
-  useEffect(() => {
+    // Cleanup function to abort fetch on unmount
     return () => {
-      dispatch(resetChartStore());
+      controller.abort();
+      dispatch(resetAnalyticsData());
     };
-  }, [dispatch]);
+  }, [fetchAnalyticsData, dispatch]);
 
+  // Listen for refresh flag to trigger data refetch
+  const refreshChart = useSelector((state) => state.chart.refreshChart);
+  useEffect(() => {
+    if (refreshChart) {
+      console.log('Refresh flag detected. Refetching analytics data.');
+      fetchAnalyticsData();
+      dispatch(setRefreshChart(false));
+    }
+  }, [refreshChart, fetchAnalyticsData, dispatch]);
+
+  /**
+   * Handles opening modals for adding locations or downloading data.
+   * @param {string} type - The type of modal to open.
+   * @param {Array} ids - Optional IDs related to the modal.
+   */
   const handleOpenModal = useCallback(
     (type, ids = []) => {
       dispatch(setOpenModal(true));
@@ -143,6 +131,10 @@ const OverView = () => {
     [dispatch],
   );
 
+  /**
+   * Handles changes to the time frame dropdown.
+   * @param {string} option - The selected time frame option.
+   */
   const handleTimeFrameChange = useCallback(
     (option) => {
       dispatch(setTimeFrame(option));
@@ -151,6 +143,10 @@ const OverView = () => {
     [dispatch],
   );
 
+  /**
+   * Handles changes to the pollutant dropdown.
+   * @param {string} pollutantId - The selected pollutant ID.
+   */
   const handlePollutantChange = useCallback(
     (pollutantId) => {
       dispatch(setPollutant(pollutantId));
@@ -159,10 +155,17 @@ const OverView = () => {
     [dispatch],
   );
 
+  /**
+   * Handles changes to the date range calendar.
+   * @param {Date} startDate - The selected start date.
+   * @param {Date} endDate - The selected end date.
+   * @param {string} label - The label for the selected date range.
+   */
   const handleDateChange = useCallback(
     (startDate, endDate, label) => {
       if (!startDate || !endDate) {
-        setError('Invalid date range selected.');
+        console.error('Invalid date range selected.');
+        // Optionally, dispatch an error action or handle it via UI
         return;
       }
 
@@ -283,9 +286,9 @@ const OverView = () => {
             chartTitle="Air Pollution Data Over Time"
             height={400}
             id="air-pollution-line-chart"
-            data={lineData}
-            chartLoading={loading}
-            error={error}
+            data={analyticsData}
+            chartLoading={status === 'loading'}
+            error={status === 'failed' ? error : null}
             refetch={fetchAnalyticsData}
           />
           {/* Bar Chart */}
@@ -294,9 +297,9 @@ const OverView = () => {
             chartTitle="Air Pollution Data Over Time"
             height={400}
             id="air-pollution-bar-chart"
-            data={barData}
-            chartLoading={loading}
-            error={error}
+            data={analyticsData}
+            chartLoading={status === 'loading'}
+            error={status === 'failed' ? error : null}
             refetch={fetchAnalyticsData}
           />
         </div>
