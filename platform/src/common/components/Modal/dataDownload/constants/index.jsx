@@ -3,9 +3,9 @@
 export const POLLUTANT_OPTIONS = [
   { id: 1, name: 'PM2.5' },
   { id: 2, name: 'PM10' },
-  { id: 3, name: 'CO' },
-  { id: 4, name: 'SO2' },
-  { id: 5, name: 'NO2' },
+  // { id: 3, name: 'CO' },
+  // { id: 4, name: 'SO2' },
+  // { id: 5, name: 'NO2' },
 ];
 
 export const DATA_TYPE_OPTIONS = [
