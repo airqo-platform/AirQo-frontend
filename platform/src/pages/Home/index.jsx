@@ -124,6 +124,9 @@ const Home = () => {
     setStep(completedCards.length);
   }, [cardCheckList, steps]);
 
+  // console.info('checkListData', checkListData);
+  console.info('cardCheckList', cardCheckList);
+
   return (
     <Layout noBorderBottom pageTitle="Home" topbarTitle="Home">
       {checkListStatus === 'loading' && checkListData.length === 0 ? (
