@@ -19,10 +19,6 @@ export const truncate = (str) => {
   return str.length > 20 ? str.substr(0, 20 - 1) + '...' : str;
 };
 
-const truncate2 = (value) => {
-  return value.length > 10 ? `${value.substring(0, 10)}...` : value;
-};
-
 /**
  * @param {Number} value
  * @returns {Object}
@@ -210,12 +206,13 @@ const CustomDot = (props) => {
  * Customized legend component
  * @param {Object} props
  */
-const renderCustomizedLegend = (props) => {
-  const { payload } = props;
+const renderCustomizedLegend = ({ payload }) => {
+  // Determine if truncation is needed based on the number of locations
+  const shouldTruncate = payload.length > 3;
 
   // Sort the payload array from darkest to lightest color
   const sortedPayload = React.useMemo(() => {
-    return payload.sort((a, b) => {
+    return [...payload].sort((a, b) => {
       const colorToGrayscale = (color) => {
         if (color) {
           const hex = color.replace('#', '');
@@ -231,24 +228,34 @@ const renderCustomizedLegend = (props) => {
   }, [payload]);
 
   return (
-    <div className="py-4 flex flex-wrap gap-2 justify-end w-full">
+    <div className="relative flex flex-wrap justify-end gap-2 w-full p-2">
       {sortedPayload.map((entry, index) => (
         <div
           key={index}
-          style={{
-            color: '#485972',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-          }}
-          className="tooltip tooltip-top gap-1 w-auto text-[12px] leading-[14px] font-normal outline-none text-[#485972]"
-          data-tip={entry.value}
+          className="flex items-center gap-1 text-xs text-gray-700 whitespace-nowrap relative"
         >
-          <div
-            className="w-2 h-2 m-0 p-0 rounded-full inline-block"
+          <span
+            className="w-2 h-2 rounded-full"
             style={{ backgroundColor: entry.color }}
-          ></div>
-          <p className="m-0 p-0">{truncate2(entry.value)}</p>
+          ></span>
+
+          {/* Only truncate and add tooltip if shouldTruncate is true */}
+          <span
+            className={`${shouldTruncate ? 'truncate max-w-[100px] group' : ''}`}
+            title={shouldTruncate ? entry.value : null}
+          >
+            {entry.value}
+          </span>
+
+          {/* Tooltip appears only if truncation is applied */}
+          {shouldTruncate && (
+            <div className="absolute bottom-full mb-1 hidden group-hover:flex flex-col items-center">
+              <span className="text-xs text-white bg-gray-700 px-2 py-1 rounded-md shadow-md">
+                {entry.value}
+              </span>
+              <span className="w-2 h-2 bg-gray-700 rotate-45 transform -translate-y-1/2"></span>
+            </div>
+          )}
         </div>
       ))}
     </div>
