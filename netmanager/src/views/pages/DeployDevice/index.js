@@ -43,6 +43,10 @@ import ClearIcon from '@material-ui/icons/Clear';
 import { useDispatch } from 'react-redux';
 import { updateMainAlert } from '../../../redux/MainAlert/operations';
 import { debounce } from 'lodash';
+import ZoomOutMapIcon from '@material-ui/icons/ZoomOutMap';
+import FullscreenIcon from '@material-ui/icons/Fullscreen';
+import FullscreenExitIcon from '@material-ui/icons/FullscreenExit';
+import Dialog from '@material-ui/core/Dialog';
 
 let DefaultIcon = L.icon({
   iconUrl: icon,
@@ -201,6 +205,16 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: theme.shape.borderRadius,
     boxShadow: theme.shadows[2]
   },
+  fullscreenSearchContainer: {
+    position: 'absolute',
+    top: theme.spacing(2),
+    right: theme.spacing(2),
+    width: '300px',
+    zIndex: 1400, // Higher z-index for dialog
+    backgroundColor: 'white',
+    borderRadius: theme.shape.borderRadius,
+    boxShadow: theme.shadows[2]
+  },
   searchInput: {
     '& .MuiOutlinedInput-root': {
       backgroundColor: 'white'
@@ -223,6 +237,39 @@ const useStyles = makeStyles((theme) => ({
     cursor: 'pointer',
     '&:hover': {
       backgroundColor: theme.palette.action.hover
+    },
+    textAlign: 'left'
+  },
+  fullscreenButton: {
+    position: 'absolute',
+    left: theme.spacing(1),
+    zIndex: 999,
+    backgroundColor: 'white',
+    padding: '6px',
+    border: '2px solid rgba(0,0,0,0.2)',
+    borderRadius: '4px',
+    '&:hover': {
+      backgroundColor: '#f4f4f4'
+    },
+    top: '95px',
+    '& .MuiSvgIcon-root': {
+      fontSize: '20px'
+    }
+  },
+  fullscreenMap: {
+    width: '100%',
+    height: '100vh'
+  },
+  fullscreenDialog: {
+    '& .MuiDialog-paper': {
+      margin: 0,
+      maxWidth: '100%',
+      width: '100%',
+      height: '100%',
+      position: 'relative' // Ensure proper positioning of children
+    },
+    '& .leaflet-control-zoom': {
+      marginTop: '40px'
     }
   }
 }));
@@ -262,6 +309,8 @@ const DeployDevice = () => {
   const [isSearching, setIsSearching] = useState(false);
 
   const [map, setMap] = useState(null);
+
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const powerTypeOptions = [
     { value: 'solar', label: 'Solar' },
@@ -608,18 +657,12 @@ const DeployDevice = () => {
   };
 
   const formatSearchResult = (result) => {
-    const parts = [];
-    const address = result.address;
+    const displayNameParts = result.display_name.split(', ');
 
-    if (address) {
-      if (address.road) parts.push(address.road);
-      if (address.suburb) parts.push(address.suburb);
-      if (address.city) parts.push(address.city);
-      if (address.state) parts.push(address.state);
-      if (address.country) parts.push(address.country);
-    }
-
-    return parts.length > 0 ? parts.join(', ') : result.display_name;
+    return {
+      main: displayNameParts[0],
+      sub: displayNameParts.slice(1).join(', ')
+    };
   };
 
   const handleLocationSelect = (location) => {
@@ -661,6 +704,10 @@ const DeployDevice = () => {
         })
       );
     }
+  };
+
+  const handleFullscreenToggle = () => {
+    setIsFullscreen(!isFullscreen);
   };
 
   const renderStepContent = (step) => {
@@ -866,63 +913,210 @@ const DeployDevice = () => {
                 />
                 {searchResults.length > 0 && (
                   <div className={classes.searchResults}>
-                    {searchResults.map((result, index) => (
-                      <div
-                        key={index}
-                        className={classes.searchResultItem}
-                        onClick={() => handleLocationSelect(result)}
-                      >
-                        <Typography variant="body2" style={{ fontWeight: 500 }}>
-                          {formatSearchResult(result)}
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          color="textSecondary"
-                          style={{ display: 'block', marginTop: 2 }}
-                        >
-                          {result.type &&
-                            result.type.charAt(0).toUpperCase() + result.type.slice(1)}
-                        </Typography>
-                      </div>
-                    ))}
+                    {searchResults.length > 0
+                      ? searchResults.map((result, index) => {
+                          const formattedResult = formatSearchResult(result);
+                          return (
+                            <div
+                              key={index}
+                              className={classes.searchResultItem}
+                              onClick={() => handleLocationSelect(result)}
+                              role="button"
+                              tabIndex={0}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') handleLocationSelect(result);
+                              }}
+                            >
+                              {/* <LocationOn className={classes.locationIcon} /> */}
+                              <div className={classes.resultContent}>
+                                <Typography variant="body1" className={classes.resultMainText}>
+                                  {formattedResult.main}
+                                </Typography>
+                                <Typography variant="body2" className={classes.resultSubText}>
+                                  {formattedResult.sub}
+                                </Typography>
+                              </div>
+                            </div>
+                          );
+                        })
+                      : searchQuery.length >= 3 &&
+                        !isSearching && (
+                          <div className={classes.noResults}>
+                            <Typography variant="body2">No locations found</Typography>
+                          </div>
+                        )}
                   </div>
                 )}
               </div>
-              <LeafletMap
-                whenCreated={setMap}
-                center={latitude && longitude ? [latitude, longitude] : DEFAULT_CENTER}
-                zoom={15}
-                scrollWheelZoom={true}
-                className={classes.map}
-                onClick={handleMapClick}
+              <IconButton
+                className={classes.fullscreenButton}
+                onClick={handleFullscreenToggle}
+                size="small"
+                title={isFullscreen ? 'Exit fullscreen' : 'View fullscreen'}
               >
-                <TileLayer
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
-                  attribution="Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012"
-                />
-                {latitude && longitude && (
-                  <Marker
-                    position={[latitude, longitude]}
-                    draggable={true}
-                    ref={markerRef}
-                    eventHandlers={{
-                      drag: handleMarkerDrag,
-                      dragend: handleMarkerDragEnd
-                    }}
+                {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+              </IconButton>
+
+              {isFullscreen ? (
+                <Dialog
+                  fullScreen
+                  open={isFullscreen}
+                  onClose={() => setIsFullscreen(false)}
+                  className={classes.fullscreenDialog}
+                >
+                  <div className={classes.fullscreenSearchContainer}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      variant="outlined"
+                      value={searchQuery}
+                      onChange={handleSearchInputChange}
+                      placeholder="Search location..."
+                      className={classes.searchInput}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <SearchIcon color="action" />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            {isSearching ? (
+                              <CircularProgress size={20} />
+                            ) : searchQuery ? (
+                              <IconButton
+                                size="small"
+                                onClick={() => {
+                                  setSearchQuery('');
+                                  setSearchResults([]);
+                                }}
+                              >
+                                <CloseIcon />
+                              </IconButton>
+                            ) : null}
+                          </InputAdornment>
+                        )
+                      }}
+                    />
+                    {searchResults.length > 0 && (
+                      <div className={classes.searchResults}>
+                        {searchResults.length > 0
+                          ? searchResults.map((result, index) => {
+                              const formattedResult = formatSearchResult(result);
+                              return (
+                                <div
+                                  key={index}
+                                  className={classes.searchResultItem}
+                                  onClick={() => handleLocationSelect(result)}
+                                  role="button"
+                                  tabIndex={0}
+                                  onKeyPress={(e) => {
+                                    if (e.key === 'Enter') handleLocationSelect(result);
+                                  }}
+                                >
+                                  {/* <LocationOn className={classes.locationIcon} /> */}
+                                  <div className={classes.resultContent}>
+                                    <Typography variant="body1" className={classes.resultMainText}>
+                                      {formattedResult.main}
+                                    </Typography>
+                                    <Typography variant="body2" className={classes.resultSubText}>
+                                      {formattedResult.sub}
+                                    </Typography>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          : searchQuery.length >= 3 &&
+                            !isSearching && (
+                              <div className={classes.noResults}>
+                                <Typography variant="body2">No locations found</Typography>
+                              </div>
+                            )}
+                      </div>
+                    )}
+                  </div>
+
+                  <IconButton
+                    className={classes.fullscreenButton}
+                    onClick={() => setIsFullscreen(false)}
+                    size="small"
                   >
-                    <Popup>
-                      <Typography variant="body2">
-                        Lat: {latitude}
-                        <br />
-                        Lng: {longitude}
-                        {isReverseGeocoding && (
-                          <CircularProgress size={16} style={{ marginLeft: 8 }} />
-                        )}
-                      </Typography>
-                    </Popup>
-                  </Marker>
-                )}
-              </LeafletMap>
+                    <FullscreenExitIcon />
+                  </IconButton>
+
+                  <LeafletMap
+                    whenCreated={setMap}
+                    center={latitude && longitude ? [latitude, longitude] : DEFAULT_CENTER}
+                    zoom={15}
+                    scrollWheelZoom={true}
+                    className={classes.fullscreenMap}
+                    onClick={handleMapClick}
+                  >
+                    <TileLayer
+                      url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+                      attribution="Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012"
+                    />
+                    {latitude && longitude && (
+                      <Marker
+                        position={[latitude, longitude]}
+                        draggable={true}
+                        ref={markerRef}
+                        eventHandlers={{
+                          drag: handleMarkerDrag,
+                          dragend: handleMarkerDragEnd
+                        }}
+                      >
+                        <Popup>
+                          <Typography variant="body2">
+                            Lat: {latitude}
+                            <br />
+                            Lng: {longitude}
+                            {isReverseGeocoding && (
+                              <CircularProgress size={16} style={{ marginLeft: 8 }} />
+                            )}
+                          </Typography>
+                        </Popup>
+                      </Marker>
+                    )}
+                  </LeafletMap>
+                </Dialog>
+              ) : (
+                <LeafletMap
+                  whenCreated={setMap}
+                  center={latitude && longitude ? [latitude, longitude] : DEFAULT_CENTER}
+                  zoom={15}
+                  scrollWheelZoom={true}
+                  className={classes.map}
+                  onClick={handleMapClick}
+                >
+                  <TileLayer
+                    url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+                    attribution="Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012"
+                  />
+                  {latitude && longitude && (
+                    <Marker
+                      position={[latitude, longitude]}
+                      draggable={true}
+                      ref={markerRef}
+                      eventHandlers={{
+                        drag: handleMarkerDrag,
+                        dragend: handleMarkerDragEnd
+                      }}
+                    >
+                      <Popup>
+                        <Typography variant="body2">
+                          Lat: {latitude}
+                          <br />
+                          Lng: {longitude}
+                          {isReverseGeocoding && (
+                            <CircularProgress size={16} style={{ marginLeft: 8 }} />
+                          )}
+                        </Typography>
+                      </Popup>
+                    </Marker>
+                  )}
+                </LeafletMap>
+              )}
             </div>
           </div>
         );
