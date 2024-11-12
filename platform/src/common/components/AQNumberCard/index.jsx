@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { IconMap } from './IconMap';
 import CustomTooltip from '../Tooltip';
 import { useWindowSize } from '@/lib/windowSize';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { fetchRecentMeasurementsData } from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
+import PropTypes from 'prop-types';
 
 // Constants
 const AIR_QUALITY_LEVELS = [
@@ -25,8 +26,8 @@ const AIR_QUALITY_LEVELS = [
 ];
 
 const MAX_CARDS = 4;
-const TRUNCATE_LENGTH = 12;
 
+// SkeletonCard Component
 const SkeletonCard = () => (
   <div className="w-full border border-gray-200 bg-white rounded-xl px-4 py-6">
     <div className="flex flex-col justify-between h-[168px]">
@@ -51,6 +52,7 @@ const SkeletonCard = () => (
   </div>
 );
 
+// SiteCard Component
 const SiteCard = ({ site, onOpenModal, windowWidth, pollutantType }) => {
   const measurements = useSelector(
     (state) => state.recentMeasurements.measurements,
@@ -77,11 +79,37 @@ const SiteCard = ({ site, onOpenModal, windowWidth, pollutantType }) => {
   }, [reading]);
 
   const AirQualityIcon = IconMap[status];
-  const truncatedName = !site.name
-    ? '---'
-    : site.name.length > TRUNCATE_LENGTH
-      ? `${site.name.slice(0, TRUNCATE_LENGTH)}...`
-      : site.name;
+
+  // Ref and state for detecting text truncation
+  const nameRef = useRef(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useEffect(() => {
+    const checkTruncation = () => {
+      const el = nameRef.current;
+      if (el) {
+        setIsTruncated(el.scrollWidth > el.clientWidth);
+      }
+    };
+
+    // Initial check
+    checkTruncation();
+
+    // Re-check on window resize
+    window.addEventListener('resize', checkTruncation);
+    return () => {
+      window.removeEventListener('resize', checkTruncation);
+    };
+  }, [site.name, windowWidth]);
+
+  const siteNameElement = (
+    <div
+      ref={nameRef}
+      className="text-gray-800 text-lg font-medium capitalize text-left w-full max-w-[185px] md:max-w-full lg:max-w-[185px] overflow-hidden text-ellipsis whitespace-nowrap"
+    >
+      {site.name || '---'}
+    </div>
+  );
 
   return (
     <button
@@ -91,12 +119,16 @@ const SiteCard = ({ site, onOpenModal, windowWidth, pollutantType }) => {
       <div className="relative w-full flex flex-col justify-between bg-white border border-gray-200 rounded-xl px-4 py-6 h-[200px] shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out cursor-pointer">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <div
-              className="text-gray-800 text-lg font-medium capitalize text-left max-w-full"
-              title={site.name || 'No Location Data'}
-            >
-              {truncatedName}
-            </div>
+            {isTruncated ? (
+              <CustomTooltip
+                tooltipsText={site.name || 'No Location Data'}
+                position="top"
+              >
+                {siteNameElement}
+              </CustomTooltip>
+            ) : (
+              siteNameElement
+            )}
             <div className="text-base text-left text-slate-400 capitalize">
               {site.country || '---'}
             </div>
@@ -139,6 +171,18 @@ const SiteCard = ({ site, onOpenModal, windowWidth, pollutantType }) => {
   );
 };
 
+SiteCard.propTypes = {
+  site: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    name: PropTypes.string,
+    country: PropTypes.string,
+  }).isRequired,
+  onOpenModal: PropTypes.func.isRequired,
+  windowWidth: PropTypes.number.isRequired,
+  pollutantType: PropTypes.string.isRequired,
+};
+
+// AddLocationCard Component
 const AddLocationCard = ({ onOpenModal }) => (
   <button
     onClick={() => onOpenModal('addLocation')}
@@ -149,6 +193,11 @@ const AddLocationCard = ({ onOpenModal }) => (
   </button>
 );
 
+AddLocationCard.propTypes = {
+  onOpenModal: PropTypes.func.isRequired,
+};
+
+// AQNumberCard Component
 const AQNumberCard = ({ className = '' }) => {
   const dispatch = useDispatch();
   const { width: windowWidth } = useWindowSize();
@@ -236,6 +285,10 @@ const AQNumberCard = ({ className = '' }) => {
       {renderContent()}
     </div>
   );
+};
+
+AQNumberCard.propTypes = {
+  className: PropTypes.string,
 };
 
 export default React.memo(AQNumberCard);

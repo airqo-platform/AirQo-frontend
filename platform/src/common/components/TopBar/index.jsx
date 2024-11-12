@@ -10,7 +10,7 @@ import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import UserIcon from '@/icons/Topbar/userIcon';
 import ChartIcon from '@/icons/Topbar/chartIcon';
 import CustomDropdown from '../Dropdowns/CustomDropdown';
-import TopBarSearch from '../search/TopBarSearch';
+// import TopBarSearch from '../search/TopBarSearch';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import {
   setToggleDrawer,
@@ -217,7 +217,7 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
               handleOpenModal('search');
             }}
           >
-            <TopBarSearch customWidth="md:max-w-[192px]" />
+            {/* <TopBarSearch customWidth="md:max-w-[192px]" /> */}
           </button>
         </div>
       )}

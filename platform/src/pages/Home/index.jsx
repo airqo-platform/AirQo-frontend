@@ -125,7 +125,7 @@ const Home = () => {
   }, [cardCheckList, steps]);
 
   // console.info('checkListData', checkListData);
-  console.info('cardCheckList', cardCheckList);
+  // console.info('cardCheckList', cardCheckList);
 
   return (
     <Layout noBorderBottom pageTitle="Home" topbarTitle="Home">

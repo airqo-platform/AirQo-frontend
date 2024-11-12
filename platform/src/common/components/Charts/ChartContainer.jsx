@@ -38,9 +38,6 @@ const ChartContainer = ({
   const [loadingFormat, setLoadingFormat] = useState(null);
   const [downloadComplete, setDownloadComplete] = useState(null);
 
-  // State to control skeleton loader display
-  const [showSkeleton, setShowSkeleton] = useState(chartLoading);
-
   // Handle click outside for dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -53,28 +50,11 @@ const ChartContainer = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // TEMPORARY: Handle loading issue, remove later
-  useEffect(() => {
-    let timer;
-
-    if (chartLoading) {
-      setShowSkeleton(true);
-    } else {
-      timer = setTimeout(() => {
-        setShowSkeleton(false);
-      }, 4000);
-    }
-
-    return () => {
-      if (timer) {
-        clearTimeout(timer);
-      }
-    };
-  }, [chartLoading]);
+  // Update skeleton loader based on loading state
+  const showSkeleton = chartLoading;
 
   /**
    * Exports the chart in the specified format.
-   *
    * @param {string} format - The format to export the chart (png, jpg, pdf).
    */
   const exportChart = useCallback(async (format) => {
