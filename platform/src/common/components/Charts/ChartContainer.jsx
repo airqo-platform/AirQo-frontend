@@ -50,9 +50,6 @@ const ChartContainer = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Update skeleton loader based on loading state
-  const showSkeleton = chartLoading;
-
   /**
    * Exports the chart in the specified format.
    * @param {string} format - The format to export the chart (png, jpg, pdf).
@@ -197,7 +194,7 @@ const ChartContainer = ({
       id={id}
     >
       <div className="flex flex-col items-start gap-1 w-full p-4">
-        {showTitle && !showSkeleton && (
+        {showTitle && (
           <div className="flex items-center justify-between w-full">
             <h3 className="text-lg font-medium">{chartTitle}</h3>
             <div ref={dropdownRef}>
@@ -215,7 +212,7 @@ const ChartContainer = ({
           </div>
         )}
         <div ref={chartRef} className="my-3 relative" style={{ width, height }}>
-          {showSkeleton ? (
+          {chartLoading ? (
             <SkeletonLoader width={width} height={height} />
           ) : error ? (
             <ErrorOverlay />

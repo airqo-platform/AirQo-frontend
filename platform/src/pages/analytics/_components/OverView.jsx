@@ -11,7 +11,6 @@ import {
   setTimeFrame,
   setPollutant,
   setChartDataRange,
-  setRefreshChart,
 } from '@/lib/store/services/charts/ChartSlice';
 import SettingsIcon from '@/icons/settings.svg';
 import PlusIcon from '@/icons/map/plusIcon';
@@ -36,7 +35,15 @@ const OverView = () => {
   };
 
   const [dateRange, setDateRange] = useState(defaultDateRange);
-  const [retryCount, setRetryCount] = useState(0);
+
+  // Fetch analytics data
+  const { allSiteData, chartLoading, error, refetch } = useFetchAnalyticsData({
+    selectedSiteIds: chartData.chartSites,
+    dateRange: chartData.chartDataRange,
+    frequency: chartData.timeFrame,
+    pollutant: chartData.pollutionType,
+    organisationName: chartData.organizationName,
+  });
 
   // Reset chart data range to default when the component is unmounted
   useEffect(() => {
@@ -69,20 +76,20 @@ const OverView = () => {
     (option) => {
       if (chartData.timeFrame !== option) {
         dispatch(setTimeFrame(option));
-        dispatch(setRefreshChart(true));
+        refetch();
       }
     },
-    [dispatch, chartData.timeFrame],
+    [dispatch, chartData.timeFrame, refetch],
   );
 
   const handlePollutantChange = useCallback(
     (pollutantId) => {
       if (chartData.pollutionType !== pollutantId) {
         dispatch(setPollutant(pollutantId));
-        dispatch(setRefreshChart(true));
+        refetch();
       }
     },
-    [dispatch, chartData.pollutionType],
+    [dispatch, chartData.pollutionType, refetch],
   );
 
   const handleDateChange = useCallback(
@@ -101,47 +108,10 @@ const OverView = () => {
           label,
         }),
       );
-      dispatch(setRefreshChart(true));
+      refetch(); // Trigger data refetch when date range changes
     },
-    [dispatch],
+    [dispatch, refetch],
   );
-
-  // Fetch analytics data once for both Line and Bar Charts
-  const {
-    data: allSiteData,
-    isLoading,
-    error,
-    refetch,
-  } = useFetchAnalyticsData({
-    selectedSiteIds: chartData.chartSites,
-    dateRange: chartData.chartDataRange,
-    frequency: chartData.timeFrame,
-    pollutant: chartData.pollutionType,
-    organisationName: chartData.organizationName,
-  });
-
-  // Reset retryCount when parameters change
-  useEffect(() => {
-    setRetryCount(0);
-  }, [
-    chartData.chartSites,
-    chartData.chartDataRange,
-    chartData.timeFrame,
-    chartData.pollutionType,
-    chartData.organizationName,
-  ]);
-
-  // Retry fetching data when data is empty
-  useEffect(() => {
-    if (
-      !isLoading &&
-      (!allSiteData || allSiteData.length === 0) &&
-      retryCount < 2
-    ) {
-      setRetryCount((prev) => prev + 1);
-      refetch();
-    }
-  }, [allSiteData, isLoading, retryCount, refetch]);
 
   return (
     <BorderlessContentBox>
@@ -243,7 +213,7 @@ const OverView = () => {
             height={400}
             id="air-pollution-line-chart"
             data={allSiteData}
-            chartLoading={isLoading}
+            chartLoading={chartLoading}
             error={error}
             refetch={refetch}
           />
@@ -254,7 +224,7 @@ const OverView = () => {
             height={400}
             id="air-pollution-bar-chart"
             data={allSiteData}
-            chartLoading={isLoading}
+            chartLoading={chartLoading}
             error={error}
             refetch={refetch}
           />
