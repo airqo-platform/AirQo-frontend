@@ -37,6 +37,12 @@ import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import { DeviceHub, Power, Height, LocationOn, Home } from '@material-ui/icons';
 import { withPermission } from '../../containers/PageAccess';
 import theme from '../../../theme';
+import SearchIcon from '@material-ui/icons/Search';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import ClearIcon from '@material-ui/icons/Clear';
+import { useDispatch } from 'react-redux';
+import { updateMainAlert } from '../../../redux/MainAlert/operations';
+import { debounce } from 'lodash';
 
 let DefaultIcon = L.icon({
   iconUrl: icon,
@@ -184,6 +190,40 @@ const useStyles = makeStyles((theme) => ({
     fontSize: '1rem',
     color: theme.palette.text.primary,
     fontWeight: 500
+  },
+  searchContainer: {
+    position: 'absolute',
+    top: theme.spacing(2),
+    right: theme.spacing(2),
+    width: '300px',
+    zIndex: 1000,
+    backgroundColor: 'white',
+    borderRadius: theme.shape.borderRadius,
+    boxShadow: theme.shadows[2]
+  },
+  searchInput: {
+    '& .MuiOutlinedInput-root': {
+      backgroundColor: 'white'
+    }
+  },
+  searchResults: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    backgroundColor: 'white',
+    borderRadius: theme.shape.borderRadius,
+    boxShadow: theme.shadows[2],
+    maxHeight: 200,
+    overflowY: 'auto',
+    zIndex: 1000
+  },
+  searchResultItem: {
+    padding: theme.spacing(1, 2),
+    cursor: 'pointer',
+    '&:hover': {
+      backgroundColor: theme.palette.action.hover
+    }
   }
 }));
 
@@ -192,6 +232,8 @@ const steps = ['Device Details', 'Site Details', 'Deploy'];
 const DEFAULT_CENTER = [0.3476, 32.5825]; // Default center (Uganda)
 
 const DeployDevice = () => {
+  const dispatch = useDispatch();
+
   const classes = useStyles();
   const [activeStep, setActiveStep] = useState(0);
   const [powerType, setPowerType] = useState('');
@@ -214,6 +256,12 @@ const DeployDevice = () => {
 
   const markerRef = useRef(null);
   const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  const [map, setMap] = useState(null);
 
   const powerTypeOptions = [
     { value: 'solar', label: 'Solar' },
@@ -391,7 +439,9 @@ const DeployDevice = () => {
       const data = await response.json();
 
       if (data.display_name) {
+        console.log(data);
         const siteName =
+          data.display_name.split(',')[0] + ', ' + data.display_name.split(',')[1] ||
           data.address.suburb ||
           data.address.neighbourhood ||
           data.address.residential ||
@@ -431,6 +481,83 @@ const DeployDevice = () => {
     },
     [fetchAddress]
   );
+
+  const debouncedSearch = useCallback(
+    debounce(async (query) => {
+      if (!query.trim() || query.length < 3) return; // Only search if query is at least 3 characters
+
+      setIsSearching(true);
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+            query
+          )}&limit=5&addressdetails=1`
+        );
+        const data = await response.json();
+        setSearchResults(data);
+      } catch (error) {
+        console.error('Error searching location:', error);
+        dispatch(
+          updateMainAlert({
+            message: 'Error searching location. Please try again.',
+            show: true,
+            severity: 'error'
+          })
+        );
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300), // 300ms delay
+    []
+  );
+
+  const handleSearchInputChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+
+    if (value.trim().length >= 3) {
+      debouncedSearch(value);
+    } else {
+      setSearchResults([]);
+    }
+  };
+
+  const formatSearchResult = (result) => {
+    const parts = [];
+    const address = result.address;
+
+    if (address) {
+      if (address.road) parts.push(address.road);
+      if (address.suburb) parts.push(address.suburb);
+      if (address.city) parts.push(address.city);
+      if (address.state) parts.push(address.state);
+      if (address.country) parts.push(address.country);
+    }
+
+    return parts.length > 0 ? parts.join(', ') : result.display_name;
+  };
+
+  const handleLocationSelect = (location) => {
+    const lat = parseFloat(location.lat).toFixed(6);
+    const lng = parseFloat(location.lon).toFixed(6);
+
+    setLatitude(lat);
+    setLongitude(lng);
+    validateCoordinate(lat, setLatitudeError);
+    validateCoordinate(lng, setLongitudeError);
+
+    // Center map on selected location using the map instance
+    if (map) {
+      map.setView([lat, lng], 15);
+    }
+
+    // Fetch address details for the selected location
+    fetchAddress(lat, lng);
+
+    // Clear search
+    setSearchQuery('');
+    setSearchResults([]);
+  };
 
   const renderStepContent = (step) => {
     switch (step) {
@@ -599,48 +726,99 @@ const DeployDevice = () => {
               </Grid>
             </div>
             <div className={classes.mapContainer}>
-              {(latitude && longitude) || true ? ( // Always show map
-                <LeafletMap
-                  center={latitude && longitude ? [latitude, longitude] : DEFAULT_CENTER}
-                  zoom={15}
-                  scrollWheelZoom={true}
-                  className={classes.map}
-                  onClick={handleMapClick}
-                >
-                  <TileLayer
-                    url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
-                    attribution="Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012"
-                  />
-                  {latitude && longitude && (
-                    <Marker
-                      position={[latitude, longitude]}
-                      draggable={true}
-                      ref={markerRef}
-                      eventHandlers={{
-                        drag: handleMarkerDrag,
-                        dragend: handleMarkerDragEnd
-                      }}
-                    >
-                      <Popup>
-                        <Typography variant="body2">
-                          Lat: {latitude}
-                          <br />
-                          Lng: {longitude}
-                          {isReverseGeocoding && (
-                            <CircularProgress size={16} style={{ marginLeft: 8 }} />
-                          )}
+              <div className={classes.searchContainer}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  variant="outlined"
+                  value={searchQuery}
+                  onChange={handleSearchInputChange}
+                  placeholder="Search location..."
+                  className={classes.searchInput}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon color="action" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        {isSearching ? (
+                          <CircularProgress size={20} />
+                        ) : searchQuery ? (
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              setSearchQuery('');
+                              setSearchResults([]);
+                            }}
+                          >
+                            <ClearIcon />
+                          </IconButton>
+                        ) : null}
+                      </InputAdornment>
+                    )
+                  }}
+                />
+                {searchResults.length > 0 && (
+                  <div className={classes.searchResults}>
+                    {searchResults.map((result, index) => (
+                      <div
+                        key={index}
+                        className={classes.searchResultItem}
+                        onClick={() => handleLocationSelect(result)}
+                      >
+                        <Typography variant="body2" style={{ fontWeight: 500 }}>
+                          {formatSearchResult(result)}
                         </Typography>
-                      </Popup>
-                    </Marker>
-                  )}
-                </LeafletMap>
-              ) : (
-                <div className={classes.mapPreviewPlaceholder}>
-                  <Typography variant="body2" color="textSecondary">
-                    Click on the map or enter coordinates to place a marker
-                  </Typography>
-                </div>
-              )}
+                        <Typography
+                          variant="caption"
+                          color="textSecondary"
+                          style={{ display: 'block', marginTop: 2 }}
+                        >
+                          {result.type &&
+                            result.type.charAt(0).toUpperCase() + result.type.slice(1)}
+                        </Typography>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <LeafletMap
+                whenCreated={setMap}
+                center={latitude && longitude ? [latitude, longitude] : DEFAULT_CENTER}
+                zoom={15}
+                scrollWheelZoom={true}
+                className={classes.map}
+                onClick={handleMapClick}
+              >
+                <TileLayer
+                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+                  attribution="Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012"
+                />
+                {latitude && longitude && (
+                  <Marker
+                    position={[latitude, longitude]}
+                    draggable={true}
+                    ref={markerRef}
+                    eventHandlers={{
+                      drag: handleMarkerDrag,
+                      dragend: handleMarkerDragEnd
+                    }}
+                  >
+                    <Popup>
+                      <Typography variant="body2">
+                        Lat: {latitude}
+                        <br />
+                        Lng: {longitude}
+                        {isReverseGeocoding && (
+                          <CircularProgress size={16} style={{ marginLeft: 8 }} />
+                        )}
+                      </Typography>
+                    </Popup>
+                  </Marker>
+                )}
+              </LeafletMap>
             </div>
           </div>
         );
