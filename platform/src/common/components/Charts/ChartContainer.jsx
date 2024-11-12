@@ -1,4 +1,10 @@
-import React, { useRef, useCallback, useEffect, useState } from 'react';
+import React, {
+  useRef,
+  useCallback,
+  useEffect,
+  useState,
+  useMemo,
+} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -33,7 +39,10 @@ const ChartContainer = ({
   const preferencesData = useSelector(
     (state) => state.defaults.individual_preferences,
   );
-  const user_selected_sites = preferencesData?.[0]?.selected_sites || [];
+  const userSelectedSites = useMemo(
+    () => preferencesData?.[0]?.selected_sites || [],
+    [preferencesData],
+  );
 
   // State for handling sharing and exporting
   const [loadingFormat, setLoadingFormat] = useState(null);
@@ -44,7 +53,7 @@ const ChartContainer = ({
 
   // Handle click outside for dropdown
   useOutsideClick(dropdownRef, () => {
-    dropdownRef.current.classList.remove('show');
+    dropdownRef.current?.classList.remove('show');
     setDownloadComplete(null);
   });
 
@@ -139,7 +148,7 @@ const ChartContainer = ({
   /**
    * Renders the content of the dropdown menu.
    */
-  const renderDropdownContent = useCallback(
+  const renderDropdownContent = useMemo(
     () => (
       <>
         <button
@@ -168,7 +177,7 @@ const ChartContainer = ({
         ))}
         <hr className="border-gray-200" />
         <button
-          onClick={() => handleOpenModal('inSights', [], user_selected_sites)}
+          onClick={() => handleOpenModal('inSights', [], userSelectedSites)}
           className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
         >
           More insights
@@ -176,30 +185,33 @@ const ChartContainer = ({
       </>
     ),
     [
+      handleRefreshChart,
       exportChart,
       loadingFormat,
       downloadComplete,
-      handleRefreshChart,
       handleOpenModal,
-      user_selected_sites,
+      userSelectedSites,
     ],
   );
 
   /**
    * Renders the error overlay with a retry option.
    */
-  const ErrorOverlay = () => (
-    <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-gray-300 bg-opacity-50 z-10 p-4">
-      <p className="text-red-500 font-semibold mb-2">
-        Something went wrong. Please try again.
-      </p>
-      <button
-        onClick={refetch}
-        className="mt-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-      >
-        Try Again
-      </button>
-    </div>
+  const ErrorOverlay = useCallback(
+    () => (
+      <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-gray-300 bg-opacity-50 z-10 p-4">
+        <p className="text-red-500 font-semibold mb-2">
+          Something went wrong. Please try again.
+        </p>
+        <button
+          onClick={refetch}
+          className="mt-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+        >
+          Try Again
+        </button>
+      </div>
+    ),
+    [refetch],
   );
 
   return (
@@ -220,7 +232,7 @@ const ChartContainer = ({
                 id={`options-${id}`}
                 alignment="right"
               >
-                {renderDropdownContent()}
+                {renderDropdownContent}
               </CustomDropdown>
             </div>
           </div>
@@ -249,4 +261,4 @@ const ChartContainer = ({
   );
 };
 
-export default ChartContainer;
+export default React.memo(ChartContainer);

@@ -53,14 +53,12 @@ const MoreInsightsChart = ({
   const processChartData = useCallback((data, selectedSiteIds) => {
     const combinedData = {};
     const siteIdToName = {};
-    const allSiteIds = new Set();
 
     data.forEach((dataPoint) => {
       const { site_id, name, value, time } = dataPoint;
-      if (site_id && name) {
-        siteIdToName[site_id] = name;
-        allSiteIds.add(site_id);
-      }
+      if (!site_id || !name) return;
+
+      siteIdToName[site_id] = name;
 
       // Parse and validate the time using the utility function
       const date = parseAndValidateISODate(time);
@@ -309,6 +307,7 @@ const MoreInsightsChart = ({
     renderCustomizedLegend,
     frequency,
     siteIdToName,
+    refreshChart,
   ]);
 
   return (
@@ -318,4 +317,4 @@ const MoreInsightsChart = ({
   );
 };
 
-export default MoreInsightsChart;
+export default React.memo(MoreInsightsChart);
