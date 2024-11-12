@@ -83,33 +83,45 @@ const useStyles = makeStyles((theme) => ({
   },
   labelContainer: {
     display: 'flex',
-    alignItems: 'center',
-    marginBottom: theme.spacing(1)
+    alignItems: 'flex-start',
+    marginBottom: theme.spacing(2),
+    [theme.breakpoints.up('md')]: {
+      flexDirection: 'column',
+      gap: theme.spacing(1)
+    }
   },
   label: {
     minWidth: 120,
-    marginRight: theme.spacing(2)
+    marginRight: theme.spacing(2),
+    [theme.breakpoints.up('md')]: {
+      minWidth: 'auto',
+      marginRight: 0,
+      marginBottom: theme.spacing(0.5)
+    }
   },
   siteDetailsContainer: {
     display: 'flex',
     flexDirection: 'column',
     [theme.breakpoints.up('md')]: {
-      flexDirection: 'row'
+      flexDirection: 'row',
+      gap: theme.spacing(4)
     }
   },
   siteDetailsFields: {
     flex: 1,
     marginBottom: theme.spacing(2),
     [theme.breakpoints.up('md')]: {
-      marginRight: theme.spacing(2),
-      marginBottom: 0
+      flex: '0 0 350px',
+      marginBottom: 0,
+      marginRight: 20
     }
   },
   mapContainer: {
     height: 250,
     width: '100%',
     [theme.breakpoints.up('md')]: {
-      width: '50%'
+      flex: 1,
+      height: 400
     },
     overflow: 'hidden',
     position: 'relative'
@@ -341,14 +353,14 @@ const DeployDevice = () => {
         return (
           <>
             <Grid container spacing={3}>
-              <Grid item xs={12}>
+              <Grid item xs={12} lg={6}>
                 <div className={classes.labelContainer}>
                   <Typography variant="subtitle1" className={classes.label}>
                     Device Name *
                   </Typography>
                   <TextField
                     fullWidth
-                    label="Device Name"
+                    // label="Device Name"
                     variant="outlined"
                     value={deviceName}
                     onChange={handleDeviceNameChange}
@@ -357,13 +369,13 @@ const DeployDevice = () => {
                   />
                 </div>
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} lg={6}>
                 <div className={classes.labelContainer}>
                   <Typography variant="subtitle1" className={classes.label}>
                     Power Type *
                   </Typography>
                   <OutlinedSelect
-                    label="Power Type"
+                    // label="Power Type"
                     options={powerTypeOptions}
                     value={powerType}
                     onChange={(selectedOption) => setPowerType(selectedOption)}
@@ -371,13 +383,13 @@ const DeployDevice = () => {
                   />
                 </div>
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} lg={6}>
                 <div className={classes.labelContainer}>
                   <Typography variant="subtitle1" className={classes.label}>
                     Mount Type *
                   </Typography>
                   <OutlinedSelect
-                    label="Mount Type"
+                    // label="Mount Type"
                     options={mountTypeOptions}
                     value={mountType}
                     onChange={(selectedOption) => setMountType(selectedOption)}
@@ -385,7 +397,7 @@ const DeployDevice = () => {
                   />
                 </div>
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} lg={6}>
                 <div className={classes.labelContainer}>
                   <Typography variant="subtitle1" className={classes.label}>
                     Height *
@@ -401,7 +413,7 @@ const DeployDevice = () => {
                   />
                 </div>
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} lg={6}>
                 <div className={classes.infoCard}>
                   <FormControlLabel
                     control={
@@ -422,7 +434,7 @@ const DeployDevice = () => {
         return (
           <div className={classes.siteDetailsContainer}>
             <div className={classes.siteDetailsFields}>
-              <Grid container spacing={3}>
+              <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <div className={classes.labelContainer}>
                     <Typography variant="subtitle1" className={classes.label}>
@@ -430,7 +442,8 @@ const DeployDevice = () => {
                     </Typography>
                     <TextField
                       fullWidth
-                      label="Latitude"
+                      size="small"
+                      // label="Latitude"
                       variant="outlined"
                       value={latitude}
                       onChange={handleLatitudeChange}
@@ -451,7 +464,8 @@ const DeployDevice = () => {
                     </Typography>
                     <TextField
                       fullWidth
-                      label="Longitude"
+                      size="small"
+                      // label="Longitude"
                       variant="outlined"
                       value={longitude}
                       onChange={handleLongitudeChange}
@@ -472,7 +486,8 @@ const DeployDevice = () => {
                     </Typography>
                     <TextField
                       fullWidth
-                      label="Site Name"
+                      size="small"
+                      // label="Site Name"
                       variant="outlined"
                       value={siteName}
                       onChange={handleSiteNameChange}
