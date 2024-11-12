@@ -40,6 +40,7 @@ const MoreInsightsChart = ({
   height = '300px',
   id,
   pollutantType,
+  refreshChart,
 }) => {
   const [activeIndex, setActiveIndex] = useState(null);
 
@@ -167,9 +168,16 @@ const MoreInsightsChart = ({
       return (
         <div className="w-full flex flex-col justify-center items-center h-full text-gray-500">
           <p className="text-lg font-medium mb-2">No Data Available</p>
-          <p className="text-sm">
-            Please select at least one location to view the air quality data.
+          <p className="text-sm mb-4 text-center">
+            It seems there’s no data to display for the selected criteria. Try
+            refreshing the chart or adjusting your filters.
           </p>
+          <button
+            onClick={refreshChart}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Refresh Chart
+          </button>
         </div>
       );
     }
