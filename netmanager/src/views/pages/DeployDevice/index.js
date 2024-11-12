@@ -417,51 +417,94 @@ const DeployDevice = () => {
   };
 
   const handleMarkerDrag = useCallback(() => {
-    const marker = markerRef.current;
-    if (marker) {
-      const position = marker.getLatLng();
-      setLatitude(position.lat.toFixed(6));
-      setLongitude(position.lng.toFixed(6));
-      validateCoordinate(position.lat.toFixed(6), setLatitudeError);
-      validateCoordinate(position.lng.toFixed(6), setLongitudeError);
-    }
-  }, []);
-
-  const fetchAddress = useCallback(async (lat, lng) => {
-    setIsReverseGeocoding(true);
-    setSiteName('');
-    setSiteNameError('');
-
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
-      );
-      const data = await response.json();
+      const marker = markerRef.current;
+      if (!marker) return;
 
-      if (data.display_name) {
-        console.log(data);
-        const siteName =
-          data.display_name.split(',')[0] + ', ' + data.display_name.split(',')[1] ||
-          data.address.suburb ||
-          data.address.neighbourhood ||
-          data.address.residential ||
-          data.address.road ||
-          data.address.village ||
-          data.address.town ||
-          data.address.city ||
-          'Unknown Location';
-
-        setSiteName(siteName);
-        validateSiteName(siteName);
+      const position = marker.getLatLng();
+      if (!position || !position.lat || !position.lng) {
+        throw new Error('Invalid marker position');
       }
+
+      const lat = position.lat.toFixed(6);
+      const lng = position.lng.toFixed(6);
+
+      if (isNaN(parseFloat(lat)) || isNaN(parseFloat(lng))) {
+        throw new Error('Invalid coordinates from marker');
+      }
+
+      setLatitude(lat);
+      setLongitude(lng);
+      validateCoordinate(lat, setLatitudeError);
+      validateCoordinate(lng, setLongitudeError);
     } catch (error) {
-      console.error('Error fetching address:', error);
-      setSiteName('');
-      setSiteNameError('Failed to fetch location name. Please enter manually.');
-    } finally {
-      setIsReverseGeocoding(false);
+      console.error('Error during marker drag:', error);
+      dispatch(
+        updateMainAlert({
+          message: 'Error updating coordinates. Please try again.',
+          show: true,
+          severity: 'error'
+        })
+      );
     }
   }, []);
+
+  const fetchAddress = useCallback(
+    async (lat, lng) => {
+      setIsReverseGeocoding(true);
+      setSiteName('');
+      setSiteNameError('');
+
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        if (data.display_name) {
+          const siteName =
+            data.display_name.split(',')[0] + ', ' + data.display_name.split(',')[1] ||
+            data.address?.suburb ||
+            data.address?.neighbourhood ||
+            data.address?.residential ||
+            data.address?.road ||
+            data.address?.village ||
+            data.address?.town ||
+            data.address?.city ||
+            'Unknown Location';
+
+          setSiteName(siteName);
+          validateSiteName(siteName);
+        } else {
+          setSiteName('Unknown Location');
+          setSiteNameError('Could not determine location name. Please enter manually.');
+        }
+      } catch (error) {
+        console.error('Error fetching address:', error);
+        setSiteName('');
+        setSiteNameError('Failed to fetch location name. Please enter manually.');
+        dispatch(
+          updateMainAlert({
+            message: 'Error fetching location name. You can enter it manually.',
+            show: true,
+            severity: 'warning'
+          })
+        );
+      } finally {
+        setIsReverseGeocoding(false);
+      }
+    },
+    [dispatch]
+  );
 
   const handleMarkerDragEnd = useCallback(() => {
     const marker = markerRef.current;
@@ -473,18 +516,40 @@ const DeployDevice = () => {
 
   const handleMapClick = useCallback(
     (e) => {
-      setLatitude(e.latlng.lat.toFixed(6));
-      setLongitude(e.latlng.lng.toFixed(6));
-      validateCoordinate(e.latlng.lat.toFixed(6), setLatitudeError);
-      validateCoordinate(e.latlng.lng.toFixed(6), setLongitudeError);
-      fetchAddress(e.latlng.lat, e.latlng.lng);
+      try {
+        if (!e.latlng || !e.latlng.lat || !e.latlng.lng) {
+          throw new Error('Invalid click location');
+        }
+
+        const lat = e.latlng.lat.toFixed(6);
+        const lng = e.latlng.lng.toFixed(6);
+
+        if (isNaN(parseFloat(lat)) || isNaN(parseFloat(lng))) {
+          throw new Error('Invalid coordinates from map click');
+        }
+
+        setLatitude(lat);
+        setLongitude(lng);
+        validateCoordinate(lat, setLatitudeError);
+        validateCoordinate(lng, setLongitudeError);
+        fetchAddress(lat, lng);
+      } catch (error) {
+        console.error('Error handling map click:', error);
+        dispatch(
+          updateMainAlert({
+            message: 'Error selecting location. Please try again.',
+            show: true,
+            severity: 'error'
+          })
+        );
+      }
     },
     [fetchAddress]
   );
 
   const debouncedSearch = useCallback(
     debounce(async (query) => {
-      if (!query.trim() || query.length < 3) return; // Only search if query is at least 3 characters
+      if (!query.trim() || query.length < 3) return;
 
       setIsSearching(true);
       try {
@@ -493,13 +558,33 @@ const DeployDevice = () => {
             query
           )}&limit=5&addressdetails=1`
         );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
-        setSearchResults(data);
+
+        if (Array.isArray(data)) {
+          setSearchResults(data);
+          if (data.length === 0) {
+            dispatch(
+              updateMainAlert({
+                message: 'No locations found for your search.',
+                show: true,
+                severity: 'info'
+              })
+            );
+          }
+        } else {
+          throw new Error('Invalid response format');
+        }
       } catch (error) {
         console.error('Error searching location:', error);
+        setSearchResults([]);
         dispatch(
           updateMainAlert({
-            message: 'Error searching location. Please try again.',
+            message: 'Error searching location. Please try again or enter coordinates manually.',
             show: true,
             severity: 'error'
           })
@@ -507,8 +592,8 @@ const DeployDevice = () => {
       } finally {
         setIsSearching(false);
       }
-    }, 300), // 300ms delay
-    []
+    }, 300),
+    [dispatch]
   );
 
   const handleSearchInputChange = (e) => {
@@ -538,25 +623,44 @@ const DeployDevice = () => {
   };
 
   const handleLocationSelect = (location) => {
-    const lat = parseFloat(location.lat).toFixed(6);
-    const lng = parseFloat(location.lon).toFixed(6);
+    try {
+      if (!location || !location.lat || !location.lon) {
+        throw new Error('Invalid location data');
+      }
 
-    setLatitude(lat);
-    setLongitude(lng);
-    validateCoordinate(lat, setLatitudeError);
-    validateCoordinate(lng, setLongitudeError);
+      const lat = parseFloat(location.lat);
+      const lng = parseFloat(location.lon);
 
-    // Center map on selected location using the map instance
-    if (map) {
-      map.setView([lat, lng], 15);
+      if (isNaN(lat) || isNaN(lng)) {
+        throw new Error('Invalid coordinates');
+      }
+
+      const formattedLat = lat.toFixed(6);
+      const formattedLng = lng.toFixed(6);
+
+      setLatitude(formattedLat);
+      setLongitude(formattedLng);
+      validateCoordinate(formattedLat, setLatitudeError);
+      validateCoordinate(formattedLng, setLongitudeError);
+
+      if (map) {
+        map.setView([lat, lng], 15);
+      }
+
+      fetchAddress(lat, lng);
+
+      setSearchQuery('');
+      setSearchResults([]);
+    } catch (error) {
+      console.error('Error selecting location:', error);
+      dispatch(
+        updateMainAlert({
+          message: 'Error selecting location. Please try again or enter coordinates manually.',
+          show: true,
+          severity: 'error'
+        })
+      );
     }
-
-    // Fetch address details for the selected location
-    fetchAddress(lat, lng);
-
-    // Clear search
-    setSearchQuery('');
-    setSearchResults([]);
   };
 
   const renderStepContent = (step) => {
