@@ -157,7 +157,7 @@ const DataDownload = ({ onClose }) => {
             ? 'calibrated'
             : 'raw',
         pollutants: [formData.pollutant.name.toLowerCase().replace('.', '_')],
-        resolution: formData.frequency.name.toLowerCase(),
+        frequency: formData.frequency.name.toLowerCase(),
         downloadType: formData.fileType.name.toLowerCase(),
         outputFormat: 'airqo-standard',
         minimum: true,
@@ -271,7 +271,7 @@ const DataDownload = ({ onClose }) => {
     <>
       {/* Section 1: Form */}
       <form
-        className="w-[280px] h-[658px] relative bg-[#f6f6f7] space-y-3 px-5 pt-5 pb-14"
+        className="w-auto h-auto md:w-[280px] md:h-[658px] relative bg-[#f6f6f7] space-y-3 px-5 pt-5 pb-14"
         onSubmit={handleSubmit}
       >
         {/* Edit Button */}
@@ -343,7 +343,7 @@ const DataDownload = ({ onClose }) => {
 
       {/* Section 2: Data Table and Footer */}
       <div className="bg-white relative w-full h-auto">
-        <div className="px-8 pt-6 pb-4 overflow-y-auto">
+        <div className="px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
           {/* Data Table */}
           <DataTable
             data={sitesSummaryData}

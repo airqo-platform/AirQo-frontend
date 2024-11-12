@@ -214,13 +214,13 @@ const AddLocations = ({ onClose }) => {
   return (
     <>
       {/* Selected Sites Sidebar */}
-      <div className="w-[280px] h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-5 pb-14">
+      <div className="w-auto h-auto md:w-[280px] md:h-[658px] overflow-y-auto md:border-r relative space-y-3 px-4 pt-5 pb-14">
         {sidebarSitesContent}
       </div>
 
       {/* Main Content Area */}
       <div className="bg-white relative w-full h-auto">
-        <div className="px-8 pt-6 pb-4 overflow-y-auto">
+        <div className="px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
           <DataTable
             data={sitesSummaryData}
             selectedSites={selectedSites}

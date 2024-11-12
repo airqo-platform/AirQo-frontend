@@ -8,6 +8,7 @@ import MoreInsightsChart from './MoreInsightsChart';
 import SkeletonLoader from './components/SkeletonLoader';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import CustomToast from '../Toast/CustomToast';
+import useOutsideClick from '@/core/hooks/useOutsideClick';
 
 const ChartContainer = ({
   chartType,
@@ -38,17 +39,30 @@ const ChartContainer = ({
   const [loadingFormat, setLoadingFormat] = useState(null);
   const [downloadComplete, setDownloadComplete] = useState(null);
 
-  // Handle click outside for dropdown
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDownloadComplete(null);
-      }
-    };
+  // State for managing the SkeletonLoader visibility
+  const [showSkeleton, setShowSkeleton] = useState(chartLoading);
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  // Handle click outside for dropdown
+  useOutsideClick(dropdownRef, () => {
+    dropdownRef.current.classList.remove('show');
+    setDownloadComplete(null);
+  });
+
+  // Effect to manage SkeletonLoader visibility with delay
+  useEffect(() => {
+    let timer;
+    if (chartLoading) {
+      setShowSkeleton(true);
+    } else {
+      timer = setTimeout(() => {
+        setShowSkeleton(false);
+      }, 8000);
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [chartLoading]);
 
   /**
    * Exports the chart in the specified format.
@@ -212,10 +226,10 @@ const ChartContainer = ({
           </div>
         )}
         <div ref={chartRef} className="my-3 relative" style={{ width, height }}>
-          {chartLoading ? (
-            <SkeletonLoader width={width} height={height} />
-          ) : error ? (
+          {error ? (
             <ErrorOverlay />
+          ) : showSkeleton ? (
+            <SkeletonLoader width={width} height={height} />
           ) : (
             <MoreInsightsChart
               data={data}

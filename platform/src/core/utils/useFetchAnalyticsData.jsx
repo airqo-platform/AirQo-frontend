@@ -73,7 +73,6 @@ const useFetchAnalyticsData = ({
           setAllSiteData(response.data);
           setChartLoading(false);
         } else {
-          setAllSiteData([]);
           throw new Error(
             response.message || 'Failed to fetch analytics data.',
           );

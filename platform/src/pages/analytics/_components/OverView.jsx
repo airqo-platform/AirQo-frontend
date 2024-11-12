@@ -45,6 +45,8 @@ const OverView = () => {
     organisationName: chartData.organizationName,
   });
 
+  console.info(chartLoading);
+
   // Reset chart data range to default when the component is unmounted
   useEffect(() => {
     return () => {
@@ -108,7 +110,7 @@ const OverView = () => {
           label,
         }),
       );
-      refetch(); // Trigger data refetch when date range changes
+      refetch();
     },
     [dispatch, refetch],
   );
