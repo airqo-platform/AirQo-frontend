@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import {
   Box,
@@ -36,6 +36,7 @@ import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import { DeviceHub, Power, Height, LocationOn, Home } from '@material-ui/icons';
 import { withPermission } from '../../containers/PageAccess';
+import theme from '../../../theme';
 
 let DefaultIcon = L.icon({
   iconUrl: icon,
@@ -168,10 +169,27 @@ const useStyles = makeStyles((theme) => ({
   },
   previewIcon: {
     color: theme.palette.primary.main
+  },
+  tipContainer: {
+    backgroundColor: theme.palette.primary.main + '10', // Light version of primary color
+    border: `1px solid ${theme.palette.primary.main}`,
+    borderRadius: theme.shape.borderRadius,
+    padding: theme.spacing(2),
+    marginBottom: theme.spacing(3),
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(1)
+  },
+  tipText: {
+    fontSize: '1rem',
+    color: theme.palette.text.primary,
+    fontWeight: 500
   }
 }));
 
 const steps = ['Device Details', 'Site Details', 'Deploy'];
+
+const DEFAULT_CENTER = [0.3476, 32.5825]; // Default center (Uganda)
 
 const DeployDevice = () => {
   const classes = useStyles();
@@ -193,6 +211,9 @@ const DeployDevice = () => {
   const [siteNameError, setSiteNameError] = useState('');
   const [deviceNameError, setDeviceNameError] = useState('');
   const [isDeploying, setIsDeploying] = useState(false);
+
+  const markerRef = useRef(null);
+  const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
 
   const powerTypeOptions = [
     { value: 'solar', label: 'Solar' },
@@ -347,6 +368,70 @@ const DeployDevice = () => {
     validateDeviceName(value);
   };
 
+  const handleMarkerDrag = useCallback(() => {
+    const marker = markerRef.current;
+    if (marker) {
+      const position = marker.getLatLng();
+      setLatitude(position.lat.toFixed(6));
+      setLongitude(position.lng.toFixed(6));
+      validateCoordinate(position.lat.toFixed(6), setLatitudeError);
+      validateCoordinate(position.lng.toFixed(6), setLongitudeError);
+    }
+  }, []);
+
+  const fetchAddress = useCallback(async (lat, lng) => {
+    setIsReverseGeocoding(true);
+    setSiteName('');
+    setSiteNameError('');
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+      );
+      const data = await response.json();
+
+      if (data.display_name) {
+        const siteName =
+          data.address.suburb ||
+          data.address.neighbourhood ||
+          data.address.residential ||
+          data.address.road ||
+          data.address.village ||
+          data.address.town ||
+          data.address.city ||
+          'Unknown Location';
+
+        setSiteName(siteName);
+        validateSiteName(siteName);
+      }
+    } catch (error) {
+      console.error('Error fetching address:', error);
+      setSiteName('');
+      setSiteNameError('Failed to fetch location name. Please enter manually.');
+    } finally {
+      setIsReverseGeocoding(false);
+    }
+  }, []);
+
+  const handleMarkerDragEnd = useCallback(() => {
+    const marker = markerRef.current;
+    if (marker) {
+      const position = marker.getLatLng();
+      fetchAddress(position.lat, position.lng);
+    }
+  }, [fetchAddress]);
+
+  const handleMapClick = useCallback(
+    (e) => {
+      setLatitude(e.latlng.lat.toFixed(6));
+      setLongitude(e.latlng.lng.toFixed(6));
+      validateCoordinate(e.latlng.lat.toFixed(6), setLatitudeError);
+      validateCoordinate(e.latlng.lng.toFixed(6), setLongitudeError);
+      fetchAddress(e.latlng.lat, e.latlng.lng);
+    },
+    [fetchAddress]
+  );
+
   const renderStepContent = (step) => {
     switch (step) {
       case 0:
@@ -434,6 +519,13 @@ const DeployDevice = () => {
         return (
           <div className={classes.siteDetailsContainer}>
             <div className={classes.siteDetailsFields}>
+              <div className={classes.tipContainer}>
+                <LocationOn color="primary" />
+                <Typography variant="body1" className={classes.tipText}>
+                  Tip: Click anywhere on the map or drag the marker to update coordinates and site
+                  name
+                </Typography>
+              </div>
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <div className={classes.labelContainer}>
@@ -487,37 +579,65 @@ const DeployDevice = () => {
                     <TextField
                       fullWidth
                       size="small"
-                      // label="Site Name"
                       variant="outlined"
                       value={siteName}
                       onChange={handleSiteNameChange}
                       error={!!siteNameError}
                       helperText={siteNameError}
+                      disabled={isReverseGeocoding}
+                      placeholder={
+                        isReverseGeocoding ? 'Getting location name...' : 'Enter site name'
+                      }
+                      InputProps={{
+                        endAdornment: isReverseGeocoding && (
+                          <CircularProgress size={20} color="inherit" />
+                        )
+                      }}
                     />
                   </div>
                 </Grid>
               </Grid>
             </div>
             <div className={classes.mapContainer}>
-              {latitude && longitude ? (
+              {(latitude && longitude) || true ? ( // Always show map
                 <LeafletMap
-                  center={[latitude, longitude]}
+                  center={latitude && longitude ? [latitude, longitude] : DEFAULT_CENTER}
                   zoom={15}
-                  scrollWheelZoom={false}
+                  scrollWheelZoom={true}
                   className={classes.map}
+                  onClick={handleMapClick}
                 >
                   <TileLayer
                     url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
                     attribution="Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012"
                   />
-                  <Marker position={[latitude, longitude]}>
-                    <Popup>Deployment site</Popup>
-                  </Marker>
+                  {latitude && longitude && (
+                    <Marker
+                      position={[latitude, longitude]}
+                      draggable={true}
+                      ref={markerRef}
+                      eventHandlers={{
+                        drag: handleMarkerDrag,
+                        dragend: handleMarkerDragEnd
+                      }}
+                    >
+                      <Popup>
+                        <Typography variant="body2">
+                          Lat: {latitude}
+                          <br />
+                          Lng: {longitude}
+                          {isReverseGeocoding && (
+                            <CircularProgress size={16} style={{ marginLeft: 8 }} />
+                          )}
+                        </Typography>
+                      </Popup>
+                    </Marker>
+                  )}
                 </LeafletMap>
               ) : (
                 <div className={classes.mapPreviewPlaceholder}>
                   <Typography variant="body2" color="textSecondary">
-                    Map preview will appear here
+                    Click on the map or enter coordinates to place a marker
                   </Typography>
                 </div>
               )}
