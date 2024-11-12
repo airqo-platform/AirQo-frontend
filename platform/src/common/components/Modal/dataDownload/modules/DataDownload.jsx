@@ -20,6 +20,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import CustomToast from '../../../Toast/CustomToast';
+import { format } from 'date-fns';
 
 /**
  * Header component for the Download Data modal.
@@ -141,11 +142,20 @@ const DataDownload = ({ onClose }) => {
 
       // Prepare data for API
       const apiData = {
-        startDateTime: new Date(formData.duration.name.start).toISOString(),
-        endDateTime: new Date(formData.duration.name.end).toISOString(),
+        startDateTime: format(
+          new Date(formData.duration.name.start),
+          "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+        ),
+        endDateTime: format(
+          new Date(formData.duration.name.end),
+          "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+        ),
         sites: selectedSites.map((site) => site._id),
         network: formData.network.name,
-        datatype: formData.dataType.name.toLowerCase(),
+        datatype:
+          formData.dataType.name.toLowerCase() === 'calibrated data'
+            ? 'calibrated'
+            : 'raw',
         pollutants: [formData.pollutant.name.toLowerCase().replace('.', '_')],
         resolution: formData.frequency.name.toLowerCase(),
         downloadType: formData.fileType.name.toLowerCase(),

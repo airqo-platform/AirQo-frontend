@@ -226,6 +226,7 @@ const ChartContainer = ({
               height={height}
               id={id}
               pollutantType={pollutionType}
+              refreshChart={handleRefreshChart}
             />
           )}
         </div>
