@@ -165,7 +165,7 @@ const MoreInsightsChart = ({
   const renderChart = useMemo(() => {
     if (chartData.length === 0) {
       return (
-        <div className="w-full flex flex-col justify-center items-center h-[380px] text-gray-500">
+        <div className="w-full flex flex-col justify-center items-center h-full text-gray-500">
           <p className="text-lg font-medium mb-2">No Data Available</p>
           <p className="text-sm">
             Please select at least one location to view the air quality data.
@@ -304,7 +304,7 @@ const MoreInsightsChart = ({
   ]);
 
   return (
-    <div id={id} ref={containerRef} className="pt-4">
+    <div id={id} ref={containerRef} className="w-auto h-full pt-4">
       {renderChart}
     </div>
   );
