@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ChartContainer from '@/components/Charts/ChartContainer';
 import AQNumberCard from '@/components/AQNumberCard';
@@ -28,11 +28,14 @@ const OverView = () => {
   const chartData = useSelector((state) => state.chart);
 
   // Default date range for the last 7 days
-  const defaultDateRange = {
-    startDate: subDays(new Date(), 7),
-    endDate: new Date(),
-    label: 'Last 7 days',
-  };
+  const defaultDateRange = useMemo(
+    () => ({
+      startDate: subDays(new Date(), 7),
+      endDate: new Date(),
+      label: 'Last 7 days',
+    }),
+    [],
+  );
 
   const [dateRange, setDateRange] = useState(defaultDateRange);
 
@@ -62,7 +65,7 @@ const OverView = () => {
         }),
       );
     };
-  }, [dispatch]);
+  }, [dispatch, defaultDateRange]);
 
   const handleOpenModal = useCallback(
     (type, ids = []) => {
@@ -108,7 +111,7 @@ const OverView = () => {
           label,
         }),
       );
-      refetch(); // Trigger data refetch when date range changes
+      refetch();
     },
     [dispatch, refetch],
   );

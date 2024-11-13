@@ -20,7 +20,7 @@ const Footer = ({
   }, [errorMessage, setError]);
 
   return (
-    <div className="bg-gray-50 absolute bottom-0 right-0 w-full px-4 py-3 sm:px-6 flex items-center justify-between">
+    <div className="bg-gray-50 absolute bottom-0 right-0 w-full px-4 py-3 sm:px-6 flex flex-col md:flex-row items-start md:items-center gap-2 justify-between">
       {/* Error message or selected locations info */}
       <div className="text-sm leading-5 font-normal">
         {errorMessage ? (
@@ -46,12 +46,12 @@ const Footer = ({
       </div>
 
       {/* Action buttons */}
-      <div className="sm:flex sm:flex-row-reverse gap-2">
+      <div className="flex sm:flex-row-reverse gap-2">
         <Button
           type="button"
           variant="filled"
           onClick={handleSubmit}
-          disabled={loading} // Disable button when loading
+          disabled={loading}
         >
           {loading ? (
             <div className="flex items-center gap-2">
@@ -66,7 +66,7 @@ const Footer = ({
           type="button"
           variant="outlined"
           onClick={onClose}
-          disabled={loading} // Disable cancel button when loading
+          disabled={loading}
         >
           Cancel
         </Button>
