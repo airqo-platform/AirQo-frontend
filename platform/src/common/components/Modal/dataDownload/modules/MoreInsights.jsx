@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 // import DownloadIcon from '@/icons/Analytics/downloadIcon';
 import MoreInsightsChart from '@/components/Charts/MoreInsightsChart';
@@ -77,12 +77,33 @@ const MoreInsights = () => {
     organisationName: chartData.organisationName,
   });
 
+  // State for managing the SkeletonLoader visibility
+  const [showSkeleton, setShowSkeleton] = useState(chartLoading);
+
   /**
    * Handles refetching data when a parameter changes.
    */
   const handleParameterChange = useCallback(() => {
     refetch();
   }, [refetch]);
+
+  /**
+   * Effect to manage SkeletonLoader visibility with delay
+   */
+  useEffect(() => {
+    let timer;
+    if (chartLoading) {
+      setShowSkeleton(true);
+    } else {
+      timer = setTimeout(() => {
+        setShowSkeleton(false);
+      }, 8000);
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [chartLoading]);
 
   /**
    * Generates the content for the selected sites in the sidebar.
@@ -126,7 +147,7 @@ const MoreInsights = () => {
   return (
     <>
       {/* -------------------- Sidebar for Selected Sites -------------------- */}
-      <div className="w-[280px] h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-5 pb-14">
+      <div className="w-auto h-auto md:w-[280px] md:h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-5 pb-14">
         {selectedSitesContent}
         {/* Add Location Button */}
         {/* {!chartLoading && (
@@ -141,7 +162,7 @@ const MoreInsights = () => {
 
       {/* -------------------- Main Content Area -------------------- */}
       <div className="bg-white relative w-full h-full">
-        <div className="px-8 pt-6 pb-4 space-y-4 relative h-full overflow-hidden">
+        <div className="px-2 md:px-8 pt-6 pb-4 space-y-4 relative h-full overflow-y-auto md:overflow-hidden">
           {/* -------------------- Controls: Dropdowns and Actions -------------------- */}
           <div className="w-full flex flex-wrap gap-2 justify-between">
             <div className="space-x-2 flex">
@@ -188,7 +209,7 @@ const MoreInsights = () => {
                     handleParameterChange();
                   }
                 }}
-                className="left-16 top-11"
+                className="-left-10 md:left-16 top-11"
                 dropdown
                 isLoading={chartLoading}
               />
@@ -236,20 +257,20 @@ const MoreInsights = () => {
 
           {/* -------------------- Chart Display -------------------- */}
           <div className="w-full h-auto border rounded-xl border-grey-150 p-2">
-            {chartLoading ? (
-              <SkeletonLoader width="100%" height={380} />
-            ) : error ? (
-              <div className="w-full flex items-center justify-center h-[380px]">
-                <p className="text-red-500 font-semibold">
+            {error ? (
+              <div className="w-full flex flex-col items-center justify-center h-[380px]">
+                <p className="text-red-500 font-semibold mb-2">
                   Something went wrong. Please try again.
                 </p>
                 <button
                   onClick={refetch}
-                  className="ml-4 text-red-500 font-semibold underline"
+                  className="mt-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
                 >
-                  Try again
+                  Try Again
                 </button>
               </div>
+            ) : showSkeleton ? (
+              <SkeletonLoader width="100%" height={380} />
             ) : (
               <MoreInsightsChart
                 data={allSiteData}

@@ -45,15 +45,16 @@ const useFetchAnalyticsData = ({
         organisation_name: organisationName,
       };
 
+      let response;
+
       if (process.env.NODE_ENV === 'development') {
-        const response = await axios.post('/api/proxy/analytics', requestBody, {
+        response = await axios.post('/api/proxy/analytics', requestBody, {
           headers: {
             Authorization: `${token}`,
             'Content-Type': 'application/json',
           },
         });
 
-        // Check if the response status is success and set data accordingly
         if (response.status === 200 && response.data?.status === 'success') {
           setAllSiteData(response.data.data || []);
         } else {
@@ -64,16 +65,14 @@ const useFetchAnalyticsData = ({
       } else {
         const controller = new AbortController();
 
-        const response = await getAnalyticsData({
+        response = await getAnalyticsData({
           body: requestBody,
           signal: controller.signal,
         });
 
         if (response.status === 'success' && Array.isArray(response.data)) {
           setAllSiteData(response.data);
-          setChartLoading(false);
         } else {
-          setAllSiteData([]);
           throw new Error(
             response.message || 'Failed to fetch analytics data.',
           );
@@ -98,6 +97,7 @@ const useFetchAnalyticsData = ({
 
   useEffect(() => {
     fetchAnalyticsData();
+    return () => {};
   }, [fetchAnalyticsData]);
 
   /**
