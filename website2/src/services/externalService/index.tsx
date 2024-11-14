@@ -2,9 +2,7 @@ import axios from 'axios';
 
 import { removeTrailingSlash } from '@/utils';
 
-const API_BASE_URL = removeTrailingSlash(
-  process.env.NEXT_PUBLIC_EXTERNAL_API_URL || 'http://127.0.0.1:8000/api',
-);
+const API_BASE_URL = removeTrailingSlash(process.env.NEXT_PUBLIC_API_URL || '');
 
 // Axios instance to include any necessary headers
 const apiClient = axios.create({
