@@ -37,10 +37,13 @@ const TermsOfService = () => {
       content: (
         <>
           <p>
-            Welcome to <strong>AirQo Research</strong> ("AirQo"). By accessing or using our
-            platform, you agree to adhere to and be bound by these Terms of Service. If you do not
-            agree with these terms, please refrain from using our platform.
+            Welcome to <strong>AirQo Research</strong> (hereinafter referred to as{' '}
+            <strong>"AirQo"</strong>). By accessing or using our platform, you agree to these Terms
+            of Service. We’re committed to providing a helpful and responsible experience for all
+            users, and we encourage you to review these terms to understand your rights and
+            responsibilities.
           </p>
+
           <ol>
             <li>
               Some cities already have programs for air quality monitoring, so we collaborate with
