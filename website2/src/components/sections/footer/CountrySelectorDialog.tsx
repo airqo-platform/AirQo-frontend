@@ -16,6 +16,7 @@ import {
   Pagination,
 } from '@/components/ui';
 import { useDispatch } from '@/hooks';
+import { getGridsSummary } from '@/services/externalService';
 import { setSelectedCountry } from '@/store/slices/countrySlice';
 
 interface AirqloudCountry {
@@ -77,22 +78,30 @@ const CountrySelectorDialog: React.FC = () => {
   const fetchAirqloudSummary = useCallback(
     async (abortSignal: AbortSignal) => {
       try {
-        const response = await fetch(
-          `/api/proxy?endpoint=devices/grids/summary`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
+        let data;
+
+        if (process.env.NODE_ENV === 'development') {
+          // Use proxy in development
+          const response = await fetch(
+            `/api/proxy?endpoint=devices/grids/summary`,
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              signal: abortSignal,
             },
-            signal: abortSignal,
-          },
-        );
+          );
 
-        if (!response.ok) {
-          throw new Error(`Error: ${response.statusText}`);
+          if (!response.ok) {
+            throw new Error(`Error: ${response.statusText}`);
+          }
+
+          data = await response.json();
+        } else {
+          // Use getGridsSummary in production
+          data = await getGridsSummary();
         }
-
-        const data = await response.json();
 
         // Filter the data to only include grids where admin_level is "country"
         const countryLevelData: AirqloudCountry[] = data.grids.filter(
