@@ -37,10 +37,11 @@ const PrivacyPolicy = () => {
       content: (
         <>
           <p>
-            This Privacy Policy describes our policies and procedures on the collection, use and
-            disclosure of information in connection with the use of all services provided by AirQo.
-            We "AirQo" are committed to respecting and protecting your privacy and ensuring
-            responsible use of the information that we collect.
+            This Privacy Policy describes our policies and procedures on the collection, use, and
+            disclosure of information in connection with the use of all services provided by{' '}
+            <strong>AirQo Research</strong>, hereinafter referred to as <strong>"AirQo"</strong>.{' '}
+            <strong>AirQo</strong> is committed to respecting and protecting your privacy and
+            ensuring responsible use of the information that we collect.
           </p>
           <p>
             We build a range of products and services to help individuals and decision makers access
@@ -60,8 +61,8 @@ const PrivacyPolicy = () => {
           <p>
             When you use our services, we may collect information to help us improve and customize
             our products to better meet the needs of our users. We may collect this information
-            explicitly or automatically using available third-party tools. AirQo is committed to
-            ensuring the responsible use of the information that we collect.
+            explicitly or automatically using available third-party tools. <strong>AirQo</strong> is
+            committed to ensuring the responsible use of the information that we collect.
           </p>
           <p>
             This policy was developed to help you understand the information we collect and the
