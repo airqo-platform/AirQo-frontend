@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { removeTrailingSlash } from '@/utils';
 
-const API_BASE_URL = removeTrailingSlash(
-  process.env.NEXT_PUBLIC_EXTERNAL_API_URL || '',
-);
+const API_BASE_URL = removeTrailingSlash(process.env.NEXT_PUBLIC_API_URL || '');
 const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN || '';
 
 export async function GET(request: NextRequest) {
