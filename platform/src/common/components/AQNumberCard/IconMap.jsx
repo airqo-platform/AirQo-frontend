@@ -1,4 +1,3 @@
-// IconMap.js
 import GoodAir from '@/icons/Charts/GoodAir';
 import Hazardous from '@/icons/Charts/Hazardous';
 import Moderate from '@/icons/Charts/Moderate';
