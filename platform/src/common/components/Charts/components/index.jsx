@@ -19,44 +19,123 @@ export const truncate = (str) => {
   return str.length > 20 ? str.substr(0, 20 - 1) + '...' : str;
 };
 
+const pollutantRanges = {
+  pm2_5: [
+    { limit: 500.5, category: 'Invalid' },
+    { limit: 225.5, category: 'Hazardous' },
+    { limit: 125.5, category: 'VeryUnhealthy' },
+    { limit: 55.5, category: 'Unhealthy' },
+    { limit: 35.5, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 9.1, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
+  ],
+  pm10: [
+    { limit: 604.1, category: 'Invalid' },
+    { limit: 424.1, category: 'Hazardous' },
+    { limit: 354.1, category: 'VeryUnhealthy' },
+    { limit: 254.1, category: 'Unhealthy' },
+    { limit: 154.1, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 54.1, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
+  ],
+  no2: [
+    { limit: 2049.1, category: 'Invalid' },
+    { limit: 1249.1, category: 'Hazardous' },
+    { limit: 649.1, category: 'VeryUnhealthy' },
+    { limit: 360.1, category: 'Unhealthy' },
+    { limit: 100.1, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 53.1, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
+  ],
+  o3: [
+    { limit: 604.1, category: 'Invalid' },
+    { limit: 504.1, category: 'Hazardous' },
+    { limit: 404.1, category: 'VeryUnhealthy' },
+    { limit: 204.1, category: 'Unhealthy' },
+    { limit: 154.1, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 54.1, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
+  ],
+  co: [
+    { limit: 50.5, category: 'Invalid' },
+    { limit: 40.5, category: 'Hazardous' },
+    { limit: 30.5, category: 'VeryUnhealthy' },
+    { limit: 10.5, category: 'Unhealthy' },
+    { limit: 4.5, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 2.5, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
+  ],
+  so2: [
+    { limit: 1004.1, category: 'Invalid' },
+    { limit: 804.1, category: 'Hazardous' },
+    { limit: 604.1, category: 'VeryUnhealthy' },
+    { limit: 304.1, category: 'Unhealthy' },
+    { limit: 185.1, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 75.1, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
+  ],
+};
+
+// Define the mapping for categories to icons and colors
+const categoryDetails = {
+  GoodAir: {
+    text: 'Air Quality is Good',
+    icon: GoodAir,
+    color: 'text-green-500',
+  },
+  ModerateAir: {
+    text: 'Air Quality is Moderate',
+    icon: Moderate,
+    color: 'text-yellow-500',
+  },
+  UnhealthyForSensitiveGroups: {
+    text: 'Air Quality is Unhealthy for Sensitive Groups',
+    icon: UnhealthySG,
+    color: 'text-orange-500',
+  },
+  Unhealthy: {
+    text: 'Air Quality is Unhealthy',
+    icon: Unhealthy,
+    color: 'text-red-500',
+  },
+  VeryUnhealthy: {
+    text: 'Air Quality is Very Unhealthy',
+    icon: VeryUnhealthy,
+    color: 'text-purple-500',
+  },
+  Hazardous: {
+    text: 'Air Quality is Hazardous',
+    icon: Hazardous,
+    color: 'text-gray-500',
+  },
+  Invalid: {
+    text: 'Invalid Air Quality Data',
+    icon: null,
+    color: 'text-gray-300',
+  },
+};
+
 /**
  * @param {Number} value
  * @returns {Object}
  * @description Get air quality level text, icon and color based on the value
  * @returns {Object} { airQualityText, AirQualityIcon, airQualityColor }
  */
-export const getAirQualityLevelText = (value) => {
-  let airQualityText = '';
-  let AirQualityIcon = null;
-  let airQualityColor = '';
+export const getAirQualityLevelText = (value, pollutionType) => {
+  const ranges = pollutantRanges[pollutionType] || [];
 
-  if (value >= 0 && value <= 12) {
-    airQualityText = 'Air Quality is Good';
-    AirQualityIcon = GoodAir;
-    airQualityColor = 'text-green-500';
-  } else if (value > 12 && value <= 35.4) {
-    airQualityText = 'Air Quality is Moderate';
-    AirQualityIcon = Moderate;
-    airQualityColor = 'text-yellow-500';
-  } else if (value > 35.4 && value <= 55.4) {
-    airQualityText = 'Air Quality is Unhealthy for Sensitive Groups';
-    AirQualityIcon = UnhealthySG;
-    airQualityColor = 'text-orange-500';
-  } else if (value > 55.4 && value <= 150.4) {
-    airQualityText = 'Air Quality is Unhealthy';
-    AirQualityIcon = Unhealthy;
-    airQualityColor = 'text-red-500';
-  } else if (value > 150.4 && value <= 250.4) {
-    airQualityText = 'Air Quality is Very Unhealthy';
-    AirQualityIcon = VeryUnhealthy;
-    airQualityColor = 'text-purple-500';
-  } else if (value > 250.4 && value <= 500) {
-    airQualityText = 'Air Quality is Hazardous';
-    AirQualityIcon = Hazardous;
-    airQualityColor = 'text-gray-500';
-  }
+  // Find the appropriate category based on the value
+  const category =
+    ranges.find((range) => value >= range.limit)?.category || 'Invalid';
 
-  return { airQualityText, AirQualityIcon, airQualityColor };
+  // Retrieve the details for the category
+  const { text, icon, color } = categoryDetails[category] || {};
+
+  return {
+    airQualityText: text || 'Unknown Air Quality',
+    AirQualityIcon: icon,
+    airQualityColor: color || 'text-gray-300',
+  };
 };
 
 /**
@@ -67,6 +146,7 @@ export const getAirQualityLevelText = (value) => {
 const CustomGraphTooltip = ({ active, payload, activeIndex }) => {
   const chartData = useSelector((state) => state.chart);
   const { timeFrame } = chartData;
+  const { pollutionType } = useSelector((state) => state.chart);
 
   const formatDate = (value) => {
     const date = new Date(value);
@@ -82,7 +162,7 @@ const CustomGraphTooltip = ({ active, payload, activeIndex }) => {
     const hoveredPoint = payload[0];
 
     const { airQualityText, AirQualityIcon, airQualityColor } =
-      getAirQualityLevelText(hoveredPoint.value);
+      getAirQualityLevelText(hoveredPoint.value, pollutionType);
 
     return (
       <div className="bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none">

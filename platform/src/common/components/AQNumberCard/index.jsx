@@ -7,23 +7,16 @@ import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { fetchRecentMeasurementsData } from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
 import PropTypes from 'prop-types';
 
-// Constants
-const AIR_QUALITY_LEVELS = [
-  { max: 12, text: 'Air Quality is Good', status: 'good' },
-  { max: 35.4, text: 'Air Quality is Moderate', status: 'moderate' },
-  {
-    max: 55.4,
-    text: 'Air Quality is Unhealthy for Sensitive Groups',
-    status: 'unhealthy-sensitive',
-  },
-  { max: 150.4, text: 'Air Quality is Unhealthy', status: 'unhealthy' },
-  {
-    max: 250.4,
-    text: 'Air Quality is Very Unhealthy',
-    status: 'very-unhealthy',
-  },
-  { max: 500, text: 'Air Quality is Hazardous', status: 'hazardous' },
-];
+// Mapping from aqi_category to IconMap keys
+const AQI_CATEGORY_MAP = {
+  Good: 'good',
+  Moderate: 'moderate',
+  'Unhealthy for Sensitive Groups': 'unhealthy-sensitive',
+  Unhealthy: 'unhealthy',
+  'Very Unhealthy': 'very-unhealthy',
+  Hazardous: 'hazardous',
+  Unknown: 'unknown',
+};
 
 const MAX_CARDS = 4;
 
@@ -52,33 +45,32 @@ const SkeletonCard = () => (
   </div>
 );
 
-// SiteCard Component
+// SiteCard Component (refactored as shown above)
 const SiteCard = ({ site, onOpenModal, windowWidth, pollutantType }) => {
   const measurements = useSelector(
     (state) => state.recentMeasurements.measurements,
   );
 
-  const reading = useMemo(() => {
-    const measurement = measurements.find((m) => m.site_id === site._id);
-    if (!measurement) return null;
-    return pollutantType === 'pm2_5'
-      ? (measurement.pm2_5?.value ?? null)
-      : (measurement.pm10?.value ?? null);
-  }, [measurements, site._id, pollutantType]);
+  const measurement = useMemo(() => {
+    return measurements.find((m) => m.site_id === site._id);
+  }, [measurements, site._id]);
 
-  const { text: airQualityText, status } = useMemo(() => {
-    if (reading == null) {
-      return { text: 'Air Quality is Unknown', status: 'unknown' };
-    }
-    return (
-      AIR_QUALITY_LEVELS.find((level) => reading <= level.max) || {
-        text: 'Air Quality is Unknown',
-        status: 'unknown',
-      }
-    );
-  }, [reading]);
+  // Extract aqi_category from measurement
+  const aqiCategory = useMemo(() => {
+    return measurement?.aqi_category || 'Unknown';
+  }, [measurement]);
 
-  const AirQualityIcon = IconMap[status];
+  // Map aqi_category to status key for IconMap
+  const statusKey = AQI_CATEGORY_MAP[aqiCategory] || 'unknown';
+
+  // Get the air quality text
+  const airQualityText =
+    aqiCategory === 'Unknown'
+      ? 'Air Quality is Unknown'
+      : `Air Quality is ${aqiCategory}`;
+
+  // Get the corresponding icon from IconMap
+  const AirQualityIcon = IconMap[statusKey];
 
   // Ref and state for detecting text truncation
   const nameRef = useRef(null);
@@ -151,7 +143,9 @@ const SiteCard = ({ site, onOpenModal, windowWidth, pollutantType }) => {
               </div>
             </div>
             <div className="text-gray-700 text-[28px] font-extrabold">
-              {typeof reading === 'number' ? reading.toFixed(2) : '--'}
+              {typeof measurement?.[pollutantType]?.value === 'number'
+                ? measurement[pollutantType].value.toFixed(2)
+                : '--'}
             </div>
           </div>
 

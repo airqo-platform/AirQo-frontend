@@ -65,7 +65,7 @@ const ChartContainer = ({
     } else {
       timer = setTimeout(() => {
         setShowSkeleton(false);
-      }, 8000);
+      }, 5000);
     }
 
     return () => {

@@ -38,7 +38,7 @@ export const images = {
 
 const markerDetails = {
   pm2_5: [
-    { limit: 500.5, category: 'Invalid' }, // No need for '||' since it's a constant
+    { limit: 500.5, category: 'Invalid' },
     { limit: 225.5, category: 'Hazardous' },
     { limit: 125.5, category: 'VeryUnhealthy' },
     { limit: 55.5, category: 'Unhealthy' },

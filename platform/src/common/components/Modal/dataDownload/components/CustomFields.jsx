@@ -4,6 +4,13 @@ import CheckIcon from '@/icons/tickIcon';
 import CustomDropdown from '../../../Dropdowns/CustomDropdown';
 import DatePicker from '../../../Calendar/DatePicker';
 
+const formatName = (name) => {
+  if (name.toLowerCase() === 'airqo') {
+    return 'AirQo';
+  }
+  return name;
+};
+
 const CustomFields = ({
   field = false,
   title,
@@ -22,8 +29,12 @@ const CustomFields = ({
 
   const handleSelect = useCallback(
     (option) => {
-      setSelectedOption(option);
-      handleOptionSelect(id, option);
+      const formattedOption = {
+        ...option,
+        name: formatName(option.name),
+      };
+      setSelectedOption(formattedOption);
+      handleOptionSelect(id, formattedOption);
     },
     [id, handleOptionSelect],
   );
@@ -34,7 +45,7 @@ const CustomFields = ({
       {field ? (
         <input
           className="bg-transparent text-[16px] font-medium leading-6 p-0 m-0 w-full h-auto border-none"
-          value={selectedOption.name}
+          value={formatName(selectedOption.name)}
           onChange={(e) => handleSelect({ name: e.target.value })}
           type="text"
           name={id}
@@ -53,7 +64,7 @@ const CustomFields = ({
           tabStyle="w-full bg-white px-3 py-2"
           dropdown
           tabIcon={icon}
-          btnText={btnText || selectedOption.name}
+          btnText={btnText || formatName(selectedOption.name)}
           customPopperStyle={{ left: '-7px' }}
           dropDownClass="w-full"
         >
@@ -61,12 +72,12 @@ const CustomFields = ({
             <span
               key={option.id}
               onClick={() => handleSelect(option)}
-              className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center  ${
+              className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                 selectedOption.id === option.id ? 'bg-[#EBF5FF] rounded-md' : ''
               }`}
             >
               <span className="flex items-center capitalize space-x-2">
-                <span>{option.name}</span>
+                <span>{formatName(option.name)}</span>
               </span>
               {selectedOption.id === option.id && (
                 <CheckIcon fill={'#145FFF'} />
