@@ -1,4 +1,4 @@
-# Platform beta.
+# Platform beta..
 
 [![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/graph/badge.svg?token=LsBcFL42rz)](https://codecov.io/gh/airqo-platform/AirQo-frontend)
 
