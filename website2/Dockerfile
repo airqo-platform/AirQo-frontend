@@ -13,6 +13,14 @@ RUN npm install --frozen-lockfile
 # Copy the rest of the application code
 COPY . .
 
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_OPENCAGE_API_KEY
+ARG NEXT_PUBLIC_API_TOKEN
+
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+    NEXT_PUBLIC_OPENCAGE_API_KEY=$NEXT_PUBLIC_OPENCAGE_API_KEY \
+    NEXT_PUBLIC_API_TOKEN=$NEXT_PUBLIC_API_TOKEN \
+
 # Build the Next.js application for production
 RUN npm run build
 
