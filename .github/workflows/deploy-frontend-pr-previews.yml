@@ -651,7 +651,6 @@ jobs:
           echo "  runtime_version: \"3.12\"" >> app.yaml
           echo "========== Creating .env.yaml file =========="  
           echo "env_variables:" > .env.yaml
-          echo "  SECRET: ${{ secrets.WEBSITE_SECRET }}" >> .env.yaml
           echo "  NEXT_PUBLIC_API_URL: ${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_API_URL }}" >> .env.yaml
           echo "  NEXT_PUBLIC_OPENCAGE_API_KEY: ${{ secrets.WEBSITE_NEXT_PUBLIC_OPENCAGE_API_KEY }}" >> .env.yaml
           echo "  NEXT_PUBLIC_API_TOKEN: ${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_API_TOKEN }}" >> .env.yaml
