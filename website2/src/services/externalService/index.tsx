@@ -2,7 +2,7 @@ import axios from 'axios';
 
 import { removeTrailingSlash } from '@/utils';
 
-const API_BASE_URL = removeTrailingSlash(process.env.NEXT_PUBLIC_API_URL || '');
+const API_BASE_URL = `${removeTrailingSlash(process.env.NEXT_PUBLIC_API_URL || '')}/api/v2`;
 const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN || '';
 
 // Axios instance to include any necessary headers
