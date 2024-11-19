@@ -338,6 +338,9 @@ jobs:
         run: |
           cd website2/
           docker build . \
+          --build-arg NEXT_PUBLIC_API_URL=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_API_URL }} \
+          --build-arg NEXT_PUBLIC_OPENCAGE_API_KEY=${{ secrets.WEBSITE_NEXT_PUBLIC_OPENCAGE_API_KEY }} \
+          --build-arg NEXT_PUBLIC_API_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_API_TOKEN }} \         
           --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website2:${{ needs.image-tag.outputs.build_id }}
           docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website2:${{ needs.image-tag.outputs.build_id }}
           docker tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website2:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website2:latest
