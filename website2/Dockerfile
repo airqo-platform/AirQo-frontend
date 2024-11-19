@@ -1,32 +1,23 @@
-# Frontend Dockerfile
+# Use an official Node.js image as the base
 FROM node:18-alpine
 
-# Install bash and curl for wait-for-it script
-RUN apk add --no-cache bash curl
-
-# Set the working directory
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the package files and install dependencies
+# Copy package.json and package-lock.json for installing dependencies
 COPY package*.json ./
+
+# Install dependencies with a frozen lockfile to ensure reproducibility
 RUN npm install --frozen-lockfile
 
-# Copy the rest of the frontend code
+# Copy the rest of the application code
 COPY . .
 
-# Copy and set permissions for wait-for-it.sh
-COPY wait-for-it.sh /app/wait-for-it.sh
-RUN chmod +x /app/wait-for-it.sh
-
-# Accept the build argument and set it as an environment variable
-ARG NEXT_PUBLIC_DJANGO_API_URL
-ENV NEXT_PUBLIC_DJANGO_API_URL=${NEXT_PUBLIC_DJANGO_API_URL}
-
-# Build the Next.js app
+# Build the Next.js application for production
 RUN npm run build
 
-# Expose the frontend port (default Next.js is 3000)
+# Expose the port that the app will listen on
 EXPOSE 3000
 
-# Wait for the backend to be ready, then start the frontend
-CMD ["/bin/bash", "/app/wait-for-it.sh", "backend:8000", "--", "npm", "run", "start"]
+# Start the application, binding to 0.0.0.0 and using the PORT environment variable
+CMD ["npm", "run", "start"]
