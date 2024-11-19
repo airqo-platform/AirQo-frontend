@@ -29,6 +29,7 @@ jobs:
       run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }} # analytics platform
       run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
       run_website: ${{ steps.check_files.outputs.run_website }} # website
+      run_website2: ${{ steps.check_files.outputs.run_website2 }} # website2
       run_inventory: ${{ steps.check_files.outputs.run_inventory }} # inventory
       run_reports: ${{ steps.check_files.outputs.run_reports }} # reports
 
@@ -53,6 +54,7 @@ jobs:
           echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
           echo "run_docs=false" >>$GITHUB_OUTPUT    
           echo "run_website=false" >>$GITHUB_OUTPUT
+          echo "run_website2=false" >>$GITHUB_OUTPUT
           echo "run_inventory=false" >>$GITHUB_OUTPUT
           echo "run_reports=false" >>$GITHUB_OUTPUT    
 
@@ -78,6 +80,10 @@ jobs:
             if [[ $file == website/* ]]; then
               echo "run_website=true" >>$GITHUB_OUTPUT
             fi
+
+            if [[ $file == website2/* ]]; then
+              echo "run_website2=true" >>$GITHUB_OUTPUT
+            fi            
 
             if [[ $file == inventory/* ]]; then
               echo "run_inventory=true" >>$GITHUB_OUTPUT
@@ -597,6 +603,98 @@ jobs:
               repo: context.repo.repo,
               body: 'New Website changes available for preview [here](https://website-pr-previews-dot-airqo-frontend.appspot.com)'
             })
+
+  ### deploy website2 preview ###
+  website2:
+    name: build-push-website2-deploy-preview
+    needs: [check]
+    if: needs.check.outputs.run_website2 == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Login to GCR
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
+
+      - name: Google login
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: "${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}"
+
+      - name: Setup Cloud SDK(gcloud)
+        uses: "google-github-actions/setup-gcloud@v1"
+
+      - name: Create google_application_credentials.json file
+        id: create-google-application-credentials-file
+        uses: jsdaniell/create-json@v1.2.2
+        with:
+          name: "google_application_credentials.json"
+          json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
+          dir: "website2/"
+
+      - name: Create app.yaml and .env.yaml files
+        run: |
+          cd website2/
+          echo "========== Creating app.yaml file =========="          
+          echo "runtime: python" > app.yaml
+          echo "env: flex" >> app.yaml
+          echo "service: website-pr-previews" >> app.yaml
+          echo "includes:" >> app.yaml
+          echo "  - .env.yaml" >> app.yaml
+          echo "runtime_config:" >> app.yaml
+          echo "  operating_system: \"ubuntu22\"" >> app.yaml
+          echo "  runtime_version: \"3.12\"" >> app.yaml
+          echo "========== Creating .env.yaml file =========="  
+          echo "env_variables:" > .env.yaml
+          echo "  NEXT_PUBLIC_API_URL: ${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_API_URL }}" >> .env.yaml
+          echo "  NEXT_PUBLIC_OPENCAGE_API_KEY: ${{ secrets.WEBSITE_NEXT_PUBLIC_OPENCAGE_API_KEY }}" >> .env.yaml
+          echo "  NEXT_PUBLIC_API_TOKEN: ${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_API_TOKEN }}" >> .env.yaml
+          echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
+
+      - name: Build and Push Docker Image
+        run: |
+          cd website2/
+          docker build . \
+          --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website2-pr-previews:${{ github.sha }}
+          docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website2-pr-previews:${{ github.sha }}
+
+      - name: Deploy to App Engine
+        run: |-
+          cd website2/
+          gcloud app deploy  \
+            --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website2-pr-previews:${{ github.sha }} \
+            --project=${{ secrets.FRONTEND_PROJECT_ID }} \
+            --quiet
+
+      - name: Delete Old Versions
+        run: |-
+          service="website-pr-previews"
+            versions=$(gcloud app versions list --service=$service --sort-by '~LAST_DEPLOYED' --format 'value(VERSION.ID)' | grep -v 'maintenance' | sort -r | tail -n +4)
+            for version in $versions; do
+              echo "Deleting version: $version for service: $service"
+              gcloud app versions delete "$version" --service=$service --quiet
+            done
+
+  website2-pr-comment:
+    name: website2-preview-link-comment
+    if: needs.check.outputs.run_website2 == 'true'
+    needs: [website2]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'New Website2 changes available for preview [here](https://website-pr-previews-dot-airqo-frontend.appspot.com)'
+            })            
 
   ### deploy reports preview ###
   reports:
