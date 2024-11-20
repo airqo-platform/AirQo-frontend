@@ -7,4 +7,4 @@ export const DATA_EXPORT_URL = `${BASE_AUTH_URL}/analytics/data-download`;
 
 export const SHARE_REPORT_URL = `${BASE_AUTH_URL}/users/emailReport`;
 
-export const SITES_SUMMARY_URL = `${BASE_AUTH_URL}/devices/sites/summary?online_status=online`;
+export const SITES_SUMMARY_URL = `${BASE_AUTH_URL}/devices/sites/summary`;
