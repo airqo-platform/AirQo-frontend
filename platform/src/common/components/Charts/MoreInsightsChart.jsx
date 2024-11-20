@@ -244,7 +244,12 @@ const MoreInsightsChart = ({
 
           {/* Tooltip */}
           <Tooltip
-            content={<CustomGraphTooltip activeIndex={activeIndex} />}
+            content={
+              <CustomGraphTooltip
+                pollutionType={pollutantType}
+                activeIndex={activeIndex}
+              />
+            }
             cursor={
               chartType === 'line'
                 ? {

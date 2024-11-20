@@ -1,10 +1,6 @@
 import React from 'react';
-import GoodAir from '@/icons/Charts/GoodAir';
-import Hazardous from '@/icons/Charts/Hazardous';
-import Moderate from '@/icons/Charts/Moderate';
-import Unhealthy from '@/icons/Charts/Unhealthy';
-import UnhealthySG from '@/icons/Charts/UnhealthySG';
-import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
+import { pollutantRanges, categoryDetails } from '../constants';
+
 import { useSelector } from 'react-redux';
 import { format } from 'date-fns';
 import PropTypes from 'prop-types';
@@ -19,122 +15,56 @@ export const truncate = (str) => {
   return str.length > 20 ? str.substr(0, 20 - 1) + '...' : str;
 };
 
-const pollutantRanges = {
-  pm2_5: [
-    { limit: 500.5, category: 'Invalid' },
-    { limit: 225.5, category: 'Hazardous' },
-    { limit: 125.5, category: 'VeryUnhealthy' },
-    { limit: 55.5, category: 'Unhealthy' },
-    { limit: 35.5, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 9.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  pm10: [
-    { limit: 604.1, category: 'Invalid' },
-    { limit: 424.1, category: 'Hazardous' },
-    { limit: 354.1, category: 'VeryUnhealthy' },
-    { limit: 254.1, category: 'Unhealthy' },
-    { limit: 154.1, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 54.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  no2: [
-    { limit: 2049.1, category: 'Invalid' },
-    { limit: 1249.1, category: 'Hazardous' },
-    { limit: 649.1, category: 'VeryUnhealthy' },
-    { limit: 360.1, category: 'Unhealthy' },
-    { limit: 100.1, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 53.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  o3: [
-    { limit: 604.1, category: 'Invalid' },
-    { limit: 504.1, category: 'Hazardous' },
-    { limit: 404.1, category: 'VeryUnhealthy' },
-    { limit: 204.1, category: 'Unhealthy' },
-    { limit: 154.1, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 54.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  co: [
-    { limit: 50.5, category: 'Invalid' },
-    { limit: 40.5, category: 'Hazardous' },
-    { limit: 30.5, category: 'VeryUnhealthy' },
-    { limit: 10.5, category: 'Unhealthy' },
-    { limit: 4.5, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 2.5, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  so2: [
-    { limit: 1004.1, category: 'Invalid' },
-    { limit: 804.1, category: 'Hazardous' },
-    { limit: 604.1, category: 'VeryUnhealthy' },
-    { limit: 304.1, category: 'Unhealthy' },
-    { limit: 185.1, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 75.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-};
-
-// Define the mapping for categories to icons and colors
-const categoryDetails = {
-  GoodAir: {
-    text: 'Air Quality is Good',
-    icon: GoodAir,
-    color: 'text-green-500',
-  },
-  ModerateAir: {
-    text: 'Air Quality is Moderate',
-    icon: Moderate,
-    color: 'text-yellow-500',
-  },
-  UnhealthyForSensitiveGroups: {
-    text: 'Air Quality is Unhealthy for Sensitive Groups',
-    icon: UnhealthySG,
-    color: 'text-orange-500',
-  },
-  Unhealthy: {
-    text: 'Air Quality is Unhealthy',
-    icon: Unhealthy,
-    color: 'text-red-500',
-  },
-  VeryUnhealthy: {
-    text: 'Air Quality is Very Unhealthy',
-    icon: VeryUnhealthy,
-    color: 'text-purple-500',
-  },
-  Hazardous: {
-    text: 'Air Quality is Hazardous',
-    icon: Hazardous,
-    color: 'text-gray-500',
-  },
-  Invalid: {
-    text: 'Invalid Air Quality Data',
-    icon: null,
-    color: 'text-gray-300',
-  },
-};
-
 /**
- * @param {Number} value
- * @returns {Object}
- * @description Get air quality level text, icon and color based on the value
- * @returns {Object} { airQualityText, AirQualityIcon, airQualityColor }
+ * @param {Number} value - The pollutant value.
+ * @param {String} pollutionType - The type of pollutant (e.g., 'pm2_5', 'pm10', etc.).
+ * @returns {Object} - { airQualityText, AirQualityIcon, airQualityColor }
+ * @description Get air quality level text, icon, and color based on the value.
  */
 export const getAirQualityLevelText = (value, pollutionType) => {
-  const ranges = pollutantRanges[pollutionType] || [];
+  // Validate input
+  if (typeof value !== 'number' || isNaN(value) || value < 0) {
+    return {
+      airQualityText: categoryDetails['Invalid'].text,
+      AirQualityIcon: categoryDetails['Invalid'].icon,
+      airQualityColor: categoryDetails['Invalid'].color,
+    };
+  }
 
-  // Find the appropriate category based on the value
-  const category =
-    ranges.find((range) => value >= range.limit)?.category || 'Invalid';
+  // Get ranges for the specified pollution type
+  const ranges = pollutantRanges[pollutionType];
+  if (!ranges) {
+    console.error(`Invalid pollution type: ${pollutionType}`);
+    return {
+      airQualityText: categoryDetails['Invalid'].text,
+      AirQualityIcon: categoryDetails['Invalid'].icon,
+      airQualityColor: categoryDetails['Invalid'].color,
+    };
+  }
 
-  // Retrieve the details for the category
-  const { text, icon, color } = categoryDetails[category] || {};
+  // Correct range logic: Iterate through the ranges
+  for (const range of ranges) {
+    // If the value is greater than or equal to the lower bound and less than the upper bound
+    if (
+      value >= range.limit &&
+      (!ranges[ranges.indexOf(range) - 1] ||
+        value < ranges[ranges.indexOf(range) - 1].limit)
+    ) {
+      const category = range.category;
+      const { text, icon, color } = categoryDetails[category];
+      return {
+        airQualityText: text,
+        AirQualityIcon: icon,
+        airQualityColor: color,
+      };
+    }
+  }
 
+  // Fallback to Invalid
   return {
-    airQualityText: text || 'Unknown Air Quality',
-    AirQualityIcon: icon,
-    airQualityColor: color || 'text-gray-300',
+    airQualityText: categoryDetails['Invalid'].text,
+    AirQualityIcon: categoryDetails['Invalid'].icon,
+    airQualityColor: categoryDetails['Invalid'].color,
   };
 };
 
@@ -143,79 +73,75 @@ export const getAirQualityLevelText = (value, pollutionType) => {
  * @returns {JSX.Element}
  * @description Custom tooltip component for line graph
  */
-const CustomGraphTooltip = ({ active, payload, activeIndex }) => {
-  const chartData = useSelector((state) => state.chart);
-  const { timeFrame } = chartData;
-  const { pollutionType } = useSelector((state) => state.chart);
-
-  const formatDate = (value) => {
-    const date = new Date(value);
-    switch (timeFrame) {
-      case 'hourly':
-        return format(date, 'MMMM dd, yyyy, hh:mm a');
-      default:
-        return format(date, 'MMMM dd, yyyy');
-    }
-  };
-
+const CustomGraphTooltip = ({
+  active,
+  payload,
+  activeIndex,
+  pollutionType,
+}) => {
   if (active && payload && payload.length) {
-    const hoveredPoint = payload[0];
+    const hoveredPoint = payload[activeIndex] || payload[0];
+    const { value, payload: pointPayload } = hoveredPoint;
+    const time = pointPayload?.time;
 
+    // Format the date
+    const formatDate = (value) => {
+      const date = new Date(value);
+      return format(date, 'MMMM dd, yyyy');
+    };
+
+    // Get air quality details
     const { airQualityText, AirQualityIcon, airQualityColor } =
-      getAirQualityLevelText(hoveredPoint.value, pollutionType);
+      getAirQualityLevelText(value, pollutionType);
 
     return (
-      <div className="bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none">
-        <div className="flex flex-col space-y-1">
-          <span className="text-sm text-gray-300 p-2">
-            {formatDate(hoveredPoint.payload.time)}
-          </span>
-          {payload.map((point, index) => (
-            <div key={index}>
-              {activeIndex === index ? (
-                <div className="flex flex-col items-start justify-between w-full h-auto p-2">
-                  <div className="flex justify-between w-full mb-1 mt-2">
-                    <div className="flex items-center text-xs font-medium leading-[14px] text-gray-600">
-                      <div
-                        className={`w-[10px] h-[10px] rounded-xl mr-2 ${
-                          activeIndex === index ? 'bg-blue-700' : 'bg-gray-400'
-                        }`}
-                      ></div>
-                      {truncate(point.name)}
-                    </div>
-                    <div className="text-xs font-medium leading-[14px] text-gray-600">
-                      {reduceDecimalPlaces(point.value) + ' μg/m3'}
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center w-full">
-                    <div
-                      className={`${airQualityColor} text-xs font-medium leading-[14px] `}
-                    >
-                      {airQualityText}
-                    </div>
-                    <AirQualityIcon width={30} height={30} />
-                  </div>
-                </div>
-              ) : (
-                <div className="flex justify-between w-full mb-1 mt-2 p-2">
-                  <div className="flex items-center text-xs font-medium leading-[14px] text-gray-600">
-                    <div
-                      className={`w-[10px] h-[10px] rounded-xl mr-2 ${
-                        activeIndex === index ? 'bg-blue-700' : 'bg-gray-400'
-                      }`}
-                    ></div>
+      <div className="bg-white border border-gray-200 rounded-lg shadow-md w-80 p-3">
+        {/* Date Section */}
+        <div className="text-gray-400 text-sm mb-2">{formatDate(time)}</div>
+
+        {/* Location Details */}
+        <div className="space-y-2">
+          {payload.map((point, index) => {
+            const isHovered = index === activeIndex;
+            return (
+              <div
+                key={index}
+                className={`flex justify-between items-center p-2 rounded-md ${
+                  isHovered ? 'bg-gray-100' : ''
+                }`}
+              >
+                <div className="flex items-center">
+                  <div
+                    className={`w-2.5 h-2.5 rounded-full mr-3 ${
+                      isHovered ? 'bg-blue-600' : 'bg-gray-400'
+                    }`}
+                  ></div>
+                  <span
+                    className={`text-sm font-medium ${
+                      isHovered ? 'text-blue-600' : 'text-gray-600'
+                    }`}
+                  >
                     {truncate(point.name)}
-                  </div>
-                  <div className="text-xs font-medium leading-[14px] text-gray-600">
-                    {reduceDecimalPlaces(point.value) + ' μg/m3'}
-                  </div>
+                  </span>
                 </div>
-              )}
-              {index < payload.length - 1 && (
-                <div className="w-full h-[2px] bg-transparent my-1 border-t border-dotted border-gray-300" />
-              )}
-            </div>
-          ))}
+                <span
+                  className={`text-sm ${
+                    isHovered ? 'text-blue-600 font-medium' : 'text-gray-500'
+                  }`}
+                >
+                  {reduceDecimalPlaces(point.value)} μg/m³
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Air Quality Details */}
+        <div className="flex justify-between items-center mt-4 p-2 border-t border-gray-300 pt-3">
+          <div className={`text-sm font-medium ${airQualityColor}`}>
+            {airQualityText}
+          </div>
+          {AirQualityIcon && <AirQualityIcon width={24} height={24} />}
         </div>
       </div>
     );
