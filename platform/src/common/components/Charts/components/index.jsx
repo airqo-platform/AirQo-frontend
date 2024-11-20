@@ -1,13 +1,6 @@
 import React from 'react';
 import { pollutantRanges, categoryDetails } from '../constants';
 
-// Import your icon components
-import GoodAirIcon from '@/icons/Charts/GoodAir';
-import HazardousIcon from '@/icons/Charts/Hazardous';
-import ModerateIcon from '@/icons/Charts/Moderate';
-import UnhealthyIcon from '@/icons/Charts/Unhealthy';
-import UnhealthySGIcon from '@/icons/Charts/UnhealthySG';
-import VeryUnhealthyIcon from '@/icons/Charts/VeryUnhealthy';
 import { useSelector } from 'react-redux';
 import { format } from 'date-fns';
 import PropTypes from 'prop-types';
@@ -29,53 +22,49 @@ export const truncate = (str) => {
  * @description Get air quality level text, icon, and color based on the value.
  */
 export const getAirQualityLevelText = (value, pollutionType) => {
+  // Validate input
   if (typeof value !== 'number' || isNaN(value) || value < 0) {
-    const { text = 'Invalid', color = '#808080' } = categoryDetails['Invalid'];
     return {
-      airQualityText: text,
-      AirQualityIcon: null,
-      airQualityColor: color,
+      airQualityText: categoryDetails['Invalid'].text,
+      AirQualityIcon: categoryDetails['Invalid'].icon,
+      airQualityColor: categoryDetails['Invalid'].color,
     };
   }
 
+  // Get ranges for the specified pollution type
   const ranges = pollutantRanges[pollutionType];
   if (!ranges) {
-    const { text = 'Invalid', color = '#808080' } = categoryDetails['Invalid'];
+    console.error(`Invalid pollution type: ${pollutionType}`);
     return {
-      airQualityText: text,
-      AirQualityIcon: null,
-      airQualityColor: color,
+      airQualityText: categoryDetails['Invalid'].text,
+      AirQualityIcon: categoryDetails['Invalid'].icon,
+      airQualityColor: categoryDetails['Invalid'].color,
     };
   }
 
-  const sortedRanges = [...ranges].sort((a, b) => a.limit - b.limit);
-
-  let category = 'Invalid';
-  for (let i = 0; i < sortedRanges.length; i++) {
-    if (value <= sortedRanges[i].limit) {
-      category = sortedRanges[i].category;
-      break;
+  // Correct range logic: Iterate through the ranges
+  for (const range of ranges) {
+    // If the value is greater than or equal to the lower bound and less than the upper bound
+    if (
+      value >= range.limit &&
+      (!ranges[ranges.indexOf(range) - 1] ||
+        value < ranges[ranges.indexOf(range) - 1].limit)
+    ) {
+      const category = range.category;
+      const { text, icon, color } = categoryDetails[category];
+      return {
+        airQualityText: text,
+        AirQualityIcon: icon,
+        airQualityColor: color,
+      };
     }
   }
 
-  const { text = 'Invalid', color = '#808080' } =
-    categoryDetails[category] || categoryDetails['Invalid'];
-
-  const iconMap = {
-    GoodAir: GoodAirIcon,
-    ModerateAir: ModerateIcon,
-    UnhealthyForSensitiveGroups: UnhealthySGIcon,
-    Unhealthy: UnhealthyIcon,
-    VeryUnhealthy: VeryUnhealthyIcon,
-    Hazardous: HazardousIcon,
-  };
-
-  const AirQualityIcon = iconMap[category] || null;
-
+  // Fallback to Invalid
   return {
-    airQualityText: text,
-    AirQualityIcon,
-    airQualityColor: color,
+    airQualityText: categoryDetails['Invalid'].text,
+    AirQualityIcon: categoryDetails['Invalid'].icon,
+    airQualityColor: categoryDetails['Invalid'].color,
   };
 };
 
@@ -92,7 +81,6 @@ const CustomGraphTooltip = ({
 }) => {
   if (active && payload && payload.length) {
     const hoveredPoint = payload[activeIndex] || payload[0];
-
     const { value, payload: pointPayload } = hoveredPoint;
     const time = pointPayload?.time;
 
@@ -102,7 +90,7 @@ const CustomGraphTooltip = ({
       return format(date, 'MMMM dd, yyyy');
     };
 
-    // Get air quality details for the hovered location
+    // Get air quality details
     const { airQualityText, AirQualityIcon, airQualityColor } =
       getAirQualityLevelText(value, pollutionType);
 
@@ -123,13 +111,11 @@ const CustomGraphTooltip = ({
                 }`}
               >
                 <div className="flex items-center">
-                  {/* Circle Indicator */}
                   <div
                     className={`w-2.5 h-2.5 rounded-full mr-3 ${
                       isHovered ? 'bg-blue-600' : 'bg-gray-400'
                     }`}
                   ></div>
-                  {/* Location Name */}
                   <span
                     className={`text-sm font-medium ${
                       isHovered ? 'text-blue-600' : 'text-gray-600'
@@ -138,7 +124,6 @@ const CustomGraphTooltip = ({
                     {truncate(point.name)}
                   </span>
                 </div>
-                {/* Pollutant Value */}
                 <span
                   className={`text-sm ${
                     isHovered ? 'text-blue-600 font-medium' : 'text-gray-500'
@@ -156,13 +141,7 @@ const CustomGraphTooltip = ({
           <div className={`text-sm font-medium ${airQualityColor}`}>
             {airQualityText}
           </div>
-          {AirQualityIcon && (
-            <AirQualityIcon
-              width={24}
-              height={24}
-              style={{ color: airQualityColor }}
-            />
-          )}
+          {AirQualityIcon && <AirQualityIcon width={24} height={24} />}
         </div>
       </div>
     );

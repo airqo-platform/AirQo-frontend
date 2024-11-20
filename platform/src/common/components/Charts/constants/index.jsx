@@ -1,11 +1,9 @@
-/**
- * WHO standard values for reference lines.
- */
-export const WHO_STANDARD_VALUES = {
-  pm2_5: 15,
-  pm10: 45,
-  no2: 25,
-};
+import GoodAirIcon from '@/icons/Charts/GoodAir';
+import HazardousIcon from '@/icons/Charts/Hazardous';
+import ModerateIcon from '@/icons/Charts/Moderate';
+import UnhealthyIcon from '@/icons/Charts/Unhealthy';
+import UnhealthySGIcon from '@/icons/Charts/UnhealthySG';
+import VeryUnhealthyIcon from '@/icons/Charts/VeryUnhealthy';
 
 // Define the pollutant ranges based on standard AQI breakpoints
 const pollutantRanges = {
@@ -33,32 +31,32 @@ const pollutantRanges = {
 const categoryDetails = {
   GoodAir: {
     text: 'Air Quality is Good',
-    icon: 'GoodAir',
+    icon: GoodAirIcon,
     color: 'text-green-500',
   },
   ModerateAir: {
     text: 'Air Quality is Moderate',
-    icon: 'Moderate',
+    icon: ModerateIcon,
     color: 'text-yellow-500',
   },
   UnhealthyForSensitiveGroups: {
     text: 'Air Quality is Unhealthy for Sensitive Groups',
-    icon: 'UnhealthySG',
+    icon: UnhealthySGIcon,
     color: 'text-orange-500',
   },
   Unhealthy: {
     text: 'Air Quality is Unhealthy',
-    icon: 'Unhealthy',
+    icon: UnhealthyIcon,
     color: 'text-red-500',
   },
   VeryUnhealthy: {
     text: 'Air Quality is Very Unhealthy',
-    icon: 'VeryUnhealthy',
+    icon: VeryUnhealthyIcon,
     color: 'text-purple-500',
   },
   Hazardous: {
     text: 'Air Quality is Hazardous',
-    icon: 'Hazardous',
+    icon: HazardousIcon,
     color: 'text-gray-500',
   },
   Invalid: {
@@ -69,3 +67,12 @@ const categoryDetails = {
 };
 
 export { pollutantRanges, categoryDetails };
+
+/**
+ * WHO standard values for reference lines.
+ */
+export const WHO_STANDARD_VALUES = {
+  pm2_5: 15,
+  pm10: 45,
+  no2: 25,
+};
