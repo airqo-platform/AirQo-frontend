@@ -1,10 +1,13 @@
 import React from 'react';
-import GoodAir from '@/icons/Charts/GoodAir';
-import Hazardous from '@/icons/Charts/Hazardous';
-import Moderate from '@/icons/Charts/Moderate';
-import Unhealthy from '@/icons/Charts/Unhealthy';
-import UnhealthySG from '@/icons/Charts/UnhealthySG';
-import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
+import { pollutantRanges, categoryDetails } from '../constants';
+
+// Import your icon components
+import GoodAirIcon from '@/icons/Charts/GoodAir';
+import HazardousIcon from '@/icons/Charts/Hazardous';
+import ModerateIcon from '@/icons/Charts/Moderate';
+import UnhealthyIcon from '@/icons/Charts/Unhealthy';
+import UnhealthySGIcon from '@/icons/Charts/UnhealthySG';
+import VeryUnhealthyIcon from '@/icons/Charts/VeryUnhealthy';
 import { useSelector } from 'react-redux';
 import { format } from 'date-fns';
 import PropTypes from 'prop-types';
@@ -19,122 +22,87 @@ export const truncate = (str) => {
   return str.length > 20 ? str.substr(0, 20 - 1) + '...' : str;
 };
 
-const pollutantRanges = {
-  pm2_5: [
-    { limit: 500.5, category: 'Invalid' },
-    { limit: 225.5, category: 'Hazardous' },
-    { limit: 125.5, category: 'VeryUnhealthy' },
-    { limit: 55.5, category: 'Unhealthy' },
-    { limit: 35.5, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 9.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  pm10: [
-    { limit: 604.1, category: 'Invalid' },
-    { limit: 424.1, category: 'Hazardous' },
-    { limit: 354.1, category: 'VeryUnhealthy' },
-    { limit: 254.1, category: 'Unhealthy' },
-    { limit: 154.1, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 54.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  no2: [
-    { limit: 2049.1, category: 'Invalid' },
-    { limit: 1249.1, category: 'Hazardous' },
-    { limit: 649.1, category: 'VeryUnhealthy' },
-    { limit: 360.1, category: 'Unhealthy' },
-    { limit: 100.1, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 53.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  o3: [
-    { limit: 604.1, category: 'Invalid' },
-    { limit: 504.1, category: 'Hazardous' },
-    { limit: 404.1, category: 'VeryUnhealthy' },
-    { limit: 204.1, category: 'Unhealthy' },
-    { limit: 154.1, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 54.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  co: [
-    { limit: 50.5, category: 'Invalid' },
-    { limit: 40.5, category: 'Hazardous' },
-    { limit: 30.5, category: 'VeryUnhealthy' },
-    { limit: 10.5, category: 'Unhealthy' },
-    { limit: 4.5, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 2.5, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  so2: [
-    { limit: 1004.1, category: 'Invalid' },
-    { limit: 804.1, category: 'Hazardous' },
-    { limit: 604.1, category: 'VeryUnhealthy' },
-    { limit: 304.1, category: 'Unhealthy' },
-    { limit: 185.1, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 75.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-};
-
-// Define the mapping for categories to icons and colors
-const categoryDetails = {
-  GoodAir: {
-    text: 'Air Quality is Good',
-    icon: GoodAir,
-    color: 'text-green-500',
-  },
-  ModerateAir: {
-    text: 'Air Quality is Moderate',
-    icon: Moderate,
-    color: 'text-yellow-500',
-  },
-  UnhealthyForSensitiveGroups: {
-    text: 'Air Quality is Unhealthy for Sensitive Groups',
-    icon: UnhealthySG,
-    color: 'text-orange-500',
-  },
-  Unhealthy: {
-    text: 'Air Quality is Unhealthy',
-    icon: Unhealthy,
-    color: 'text-red-500',
-  },
-  VeryUnhealthy: {
-    text: 'Air Quality is Very Unhealthy',
-    icon: VeryUnhealthy,
-    color: 'text-purple-500',
-  },
-  Hazardous: {
-    text: 'Air Quality is Hazardous',
-    icon: Hazardous,
-    color: 'text-gray-500',
-  },
-  Invalid: {
-    text: 'Invalid Air Quality Data',
-    icon: null,
-    color: 'text-gray-300',
-  },
-};
-
 /**
- * @param {Number} value
- * @returns {Object}
- * @description Get air quality level text, icon and color based on the value
- * @returns {Object} { airQualityText, AirQualityIcon, airQualityColor }
+ * @param {Number} value - The pollutant value.
+ * @param {String} pollutionType - The type of pollutant (e.g., 'pm2_5', 'pm10', etc.).
+ * @returns {Object} - { airQualityText, AirQualityIcon, airQualityColor }
+ * @description Get air quality level text, icon, and color based on the value.
  */
 export const getAirQualityLevelText = (value, pollutionType) => {
-  const ranges = pollutantRanges[pollutionType] || [];
+  // Handle invalid inputs
+  if (typeof value !== 'number' || isNaN(value) || value < 0) {
+    const { text, icon, color } = categoryDetails['Invalid'];
+    return {
+      airQualityText: text,
+      AirQualityIcon: icon,
+      airQualityColor: color,
+    };
+  }
 
-  // Find the appropriate category based on the value
-  const category =
-    ranges.find((range) => value >= range.limit)?.category || 'Invalid';
+  const ranges = pollutantRanges[pollutionType];
 
-  // Retrieve the details for the category
-  const { text, icon, color } = categoryDetails[category] || {};
+  // Handle unknown pollution types
+  if (!ranges) {
+    const { text, icon, color } = categoryDetails['Invalid'];
+    return {
+      airQualityText: text,
+      AirQualityIcon: icon,
+      airQualityColor: color,
+    };
+  }
 
+  // Ensure ranges are sorted descendingly
+  const sortedRanges = [...ranges].sort((a, b) => b.limit - a.limit);
+
+  // Iterate through the sorted ranges to find the correct category
+  for (let i = 0; i < sortedRanges.length; i++) {
+    if (value > sortedRanges[i].limit) {
+      continue; // Skip if value exceeds the current limit
+    } else {
+      // Current value is <= sortedRanges[i].limit
+      const category = sortedRanges[i].category;
+      let iconComponent = null;
+
+      // Map string identifiers to actual icon components
+      switch (category) {
+        case 'GoodAir':
+          iconComponent = GoodAirIcon;
+          break;
+        case 'ModerateAir':
+          iconComponent = ModerateIcon;
+          break;
+        case 'UnhealthyForSensitiveGroups':
+          iconComponent = UnhealthySGIcon;
+          break;
+        case 'Unhealthy':
+          iconComponent = UnhealthyIcon;
+          break;
+        case 'VeryUnhealthy':
+          iconComponent = VeryUnhealthyIcon;
+          break;
+        case 'Hazardous':
+          iconComponent = HazardousIcon;
+          break;
+        default:
+          iconComponent = null;
+      }
+
+      const { text, color } =
+        categoryDetails[category] || categoryDetails['Invalid'];
+      return {
+        airQualityText: text,
+        AirQualityIcon: iconComponent,
+        airQualityColor: color,
+      };
+    }
+  }
+
+  // If value exceeds all defined ranges
+  const { text, icon, color } = categoryDetails['Invalid'];
   return {
-    airQualityText: text || 'Unknown Air Quality',
+    airQualityText: text,
     AirQualityIcon: icon,
-    airQualityColor: color || 'text-gray-300',
+    airQualityColor: color,
   };
 };
 
