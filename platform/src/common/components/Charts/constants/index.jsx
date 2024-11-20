@@ -10,22 +10,25 @@ export const WHO_STANDARD_VALUES = {
 // Define the pollutant ranges based on standard AQI breakpoints
 const pollutantRanges = {
   pm2_5: [
-    { limit: 12.0, category: 'GoodAir' },
-    { limit: 35.4, category: 'ModerateAir' },
-    { limit: 55.4, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 150.4, category: 'Unhealthy' },
-    { limit: 250.4, category: 'VeryUnhealthy' },
-    { limit: 500.4, category: 'Hazardous' },
+    { limit: 500.5, category: 'Invalid' },
+    { limit: 225.5, category: 'Hazardous' },
+    { limit: 125.5, category: 'VeryUnhealthy' },
+    { limit: 55.5, category: 'Unhealthy' },
+    { limit: 35.5, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 9.1, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
   ],
   pm10: [
-    { limit: 54.0, category: 'GoodAir' },
-    { limit: 154.0, category: 'ModerateAir' },
-    { limit: 254.0, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 354.0, category: 'Unhealthy' },
-    { limit: 424.0, category: 'VeryUnhealthy' },
-    { limit: 604.0, category: 'Hazardous' },
+    { limit: 604.1, category: 'Invalid' },
+    { limit: 424.1, category: 'Hazardous' },
+    { limit: 354.1, category: 'VeryUnhealthy' },
+    { limit: 254.1, category: 'Unhealthy' },
+    { limit: 154.1, category: 'UnhealthyForSensitiveGroups' },
+    { limit: 54.1, category: 'ModerateAir' },
+    { limit: 0.0, category: 'GoodAir' },
   ],
 };
+
 // Define the mapping for categories to icons and colors
 const categoryDetails = {
   GoodAir: {

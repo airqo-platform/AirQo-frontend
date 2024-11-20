@@ -29,7 +29,6 @@ export const truncate = (str) => {
  * @description Get air quality level text, icon, and color based on the value.
  */
 export const getAirQualityLevelText = (value, pollutionType) => {
-  // Handle invalid inputs
   if (typeof value !== 'number' || isNaN(value) || value < 0) {
     const { text = 'Invalid', color = '#808080' } = categoryDetails['Invalid'];
     return {
@@ -40,8 +39,6 @@ export const getAirQualityLevelText = (value, pollutionType) => {
   }
 
   const ranges = pollutantRanges[pollutionType];
-
-  // Handle unknown pollution types
   if (!ranges) {
     const { text = 'Invalid', color = '#808080' } = categoryDetails['Invalid'];
     return {
@@ -51,10 +48,8 @@ export const getAirQualityLevelText = (value, pollutionType) => {
     };
   }
 
-  // Ensure ranges are sorted ascendingly
   const sortedRanges = [...ranges].sort((a, b) => a.limit - b.limit);
 
-  // Iterate through ranges to find the correct category
   let category = 'Invalid';
   for (let i = 0; i < sortedRanges.length; i++) {
     if (value <= sortedRanges[i].limit) {
@@ -66,7 +61,6 @@ export const getAirQualityLevelText = (value, pollutionType) => {
   const { text = 'Invalid', color = '#808080' } =
     categoryDetails[category] || categoryDetails['Invalid'];
 
-  // Map categories to icon components
   const iconMap = {
     GoodAir: GoodAirIcon,
     ModerateAir: ModerateIcon,
@@ -90,46 +84,85 @@ export const getAirQualityLevelText = (value, pollutionType) => {
  * @returns {JSX.Element}
  * @description Custom tooltip component for line graph
  */
-const CustomGraphTooltip = ({ active, payload, pollutionType }) => {
+const CustomGraphTooltip = ({
+  active,
+  payload,
+  activeIndex,
+  pollutionType,
+}) => {
   if (active && payload && payload.length) {
-    const dataPoint = payload[0]; // Assuming the first point corresponds to the hovered location
-    const { value, name, payload: pointPayload } = dataPoint;
-    const time = pointPayload?.time; // Assuming `time` exists in the payload
+    const hoveredPoint = payload[activeIndex] || payload[0];
+
+    const { value, payload: pointPayload } = hoveredPoint;
+    const time = pointPayload?.time;
 
     // Format the date
     const formatDate = (value) => {
       const date = new Date(value);
-      return format(date, 'MMMM dd, yyyy, hh:mm a');
+      return format(date, 'MMMM dd, yyyy');
     };
 
-    // Get air quality level
+    // Get air quality details for the hovered location
     const { airQualityText, AirQualityIcon, airQualityColor } =
       getAirQualityLevelText(value, pollutionType);
 
     return (
-      <div className="bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none">
-        <div className="flex flex-col space-y-1">
-          <span className="text-sm text-gray-300 p-2">{formatDate(time)}</span>
-          <div className="flex flex-col items-start justify-between w-full h-auto p-2">
-            <div className="flex justify-between w-full mb-1 mt-2">
-              <div className="flex items-center text-xs font-medium leading-[14px] text-gray-600">
-                <div className="w-[10px] h-[10px] rounded-xl mr-2 bg-blue-700"></div>
-                {truncate(name)}
-              </div>
-              <div className="text-xs font-medium leading-[14px] text-gray-600">
-                {reduceDecimalPlaces(value) + ' μg/m³'}
-              </div>
-            </div>
-            <div className="flex justify-between items-center w-full">
+      <div className="bg-white border border-gray-200 rounded-lg shadow-md w-80 p-3">
+        {/* Date Section */}
+        <div className="text-gray-400 text-sm mb-2">{formatDate(time)}</div>
+
+        {/* Location Details */}
+        <div className="space-y-2">
+          {payload.map((point, index) => {
+            const isHovered = index === activeIndex;
+            return (
               <div
-                className="text-xs font-medium leading-[14px]"
-                style={{ color: airQualityColor }}
+                key={index}
+                className={`flex justify-between items-center p-2 rounded-md ${
+                  isHovered ? 'bg-gray-100' : ''
+                }`}
               >
-                {airQualityText}
+                <div className="flex items-center">
+                  {/* Circle Indicator */}
+                  <div
+                    className={`w-2.5 h-2.5 rounded-full mr-3 ${
+                      isHovered ? 'bg-blue-600' : 'bg-gray-400'
+                    }`}
+                  ></div>
+                  {/* Location Name */}
+                  <span
+                    className={`text-sm font-medium ${
+                      isHovered ? 'text-blue-600' : 'text-gray-600'
+                    }`}
+                  >
+                    {truncate(point.name)}
+                  </span>
+                </div>
+                {/* Pollutant Value */}
+                <span
+                  className={`text-sm ${
+                    isHovered ? 'text-blue-600 font-medium' : 'text-gray-500'
+                  }`}
+                >
+                  {reduceDecimalPlaces(point.value)} μg/m³
+                </span>
               </div>
-              {AirQualityIcon && <AirQualityIcon width={30} height={30} />}
-            </div>
+            );
+          })}
+        </div>
+
+        {/* Air Quality Details */}
+        <div className="flex justify-between items-center mt-4 p-2 border-t border-gray-300 pt-3">
+          <div className={`text-sm font-medium ${airQualityColor}`}>
+            {airQualityText}
           </div>
+          {AirQualityIcon && (
+            <AirQualityIcon
+              width={24}
+              height={24}
+              style={{ color: airQualityColor }}
+            />
+          )}
         </div>
       </div>
     );
