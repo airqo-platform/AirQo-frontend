@@ -5,7 +5,7 @@ import CustomDropdown from '../../../Dropdowns/CustomDropdown';
 import DatePicker from '../../../Calendar/DatePicker';
 
 const formatName = (name) => {
-  if (name.toLowerCase() === 'airqo') {
+  if (typeof name === 'string' && name.toLowerCase() === 'airqo') {
     return 'AirQo';
   }
   return name;

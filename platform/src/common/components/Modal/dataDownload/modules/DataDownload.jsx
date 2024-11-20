@@ -97,6 +97,16 @@ const DataDownload = ({ onClose }) => {
   const handleClearSelection = useCallback(() => {
     setClearSelected(true);
     setSelectedSites([]);
+    // Reset form data after submission
+    setFormData({
+      title: { name: 'Untitled Report' },
+      network: NETWORK_OPTIONS[0] || { id: '', name: 'Default Network' },
+      dataType: DATA_TYPE_OPTIONS[0],
+      pollutant: POLLUTANT_OPTIONS[0],
+      duration: null,
+      frequency: FREQUENCY_OPTIONS[0],
+      fileType: FILE_TYPE_OPTIONS[0],
+    });
     // Reset clearSelected flag in the next tick
     setTimeout(() => setClearSelected(false), 0);
   }, []);
@@ -238,17 +248,6 @@ const DataDownload = ({ onClose }) => {
         setFormError('An error occurred while downloading. Please try again.');
       } finally {
         setDownloadLoading(false);
-
-        // Reset form data after submission
-        setFormData({
-          title: { name: 'Untitled Report' },
-          network: NETWORK_OPTIONS[0] || { id: '', name: 'Default Network' },
-          dataType: DATA_TYPE_OPTIONS[0],
-          pollutant: POLLUTANT_OPTIONS[0],
-          duration: null,
-          frequency: FREQUENCY_OPTIONS[0],
-          fileType: FILE_TYPE_OPTIONS[0],
-        });
       }
     },
     [formData, selectedSites, NETWORK_OPTIONS, handleClearSelection, onClose],
@@ -369,7 +368,7 @@ const DataDownload = ({ onClose }) => {
           handleClearSelection={handleClearSelection}
           handleSubmit={handleSubmit}
           onClose={onClose}
-          btnText="Download"
+          btnText={downloadLoading ? 'Downloading...' : 'Download'}
           loading={downloadLoading}
         />
       </div>

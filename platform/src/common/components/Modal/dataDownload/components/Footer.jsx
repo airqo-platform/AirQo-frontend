@@ -8,8 +8,8 @@ const Footer = ({
   handleClearSelection,
   handleSubmit,
   onClose,
-  btnText = 'Download', // Default to 'Download' if no btnText is provided
-  loading = false, // Default loading state
+  btnText = 'Download',
+  loading = false,
 }) => {
   // Clear the error message after 5 seconds
   useEffect(() => {
@@ -56,7 +56,7 @@ const Footer = ({
           {loading ? (
             <div className="flex items-center gap-2">
               <span className="animate-spin w-4 h-4 border-2 border-t-transparent border-white rounded-full"></span>
-              <span>{btnText || 'Downloading...'}</span>{' '}
+              <span>{btnText}</span>{' '}
             </div>
           ) : (
             btnText
