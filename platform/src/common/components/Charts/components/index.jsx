@@ -31,10 +31,10 @@ export const truncate = (str) => {
 export const getAirQualityLevelText = (value, pollutionType) => {
   // Handle invalid inputs
   if (typeof value !== 'number' || isNaN(value) || value < 0) {
-    const { text, icon, color } = categoryDetails['Invalid'];
+    const { text = 'Invalid', color = '#808080' } = categoryDetails['Invalid'];
     return {
       airQualityText: text,
-      AirQualityIcon: icon,
+      AirQualityIcon: null,
       airQualityColor: color,
     };
   }
@@ -43,65 +43,44 @@ export const getAirQualityLevelText = (value, pollutionType) => {
 
   // Handle unknown pollution types
   if (!ranges) {
-    const { text, icon, color } = categoryDetails['Invalid'];
+    const { text = 'Invalid', color = '#808080' } = categoryDetails['Invalid'];
     return {
       airQualityText: text,
-      AirQualityIcon: icon,
+      AirQualityIcon: null,
       airQualityColor: color,
     };
   }
 
-  // Ensure ranges are sorted descendingly
-  const sortedRanges = [...ranges].sort((a, b) => b.limit - a.limit);
+  // Ensure ranges are sorted ascendingly
+  const sortedRanges = [...ranges].sort((a, b) => a.limit - b.limit);
 
-  // Iterate through the sorted ranges to find the correct category
+  // Iterate through ranges to find the correct category
+  let category = 'Invalid';
   for (let i = 0; i < sortedRanges.length; i++) {
-    if (value > sortedRanges[i].limit) {
-      continue; // Skip if value exceeds the current limit
-    } else {
-      // Current value is <= sortedRanges[i].limit
-      const category = sortedRanges[i].category;
-      let iconComponent = null;
-
-      // Map string identifiers to actual icon components
-      switch (category) {
-        case 'GoodAir':
-          iconComponent = GoodAirIcon;
-          break;
-        case 'ModerateAir':
-          iconComponent = ModerateIcon;
-          break;
-        case 'UnhealthyForSensitiveGroups':
-          iconComponent = UnhealthySGIcon;
-          break;
-        case 'Unhealthy':
-          iconComponent = UnhealthyIcon;
-          break;
-        case 'VeryUnhealthy':
-          iconComponent = VeryUnhealthyIcon;
-          break;
-        case 'Hazardous':
-          iconComponent = HazardousIcon;
-          break;
-        default:
-          iconComponent = null;
-      }
-
-      const { text, color } =
-        categoryDetails[category] || categoryDetails['Invalid'];
-      return {
-        airQualityText: text,
-        AirQualityIcon: iconComponent,
-        airQualityColor: color,
-      };
+    if (value <= sortedRanges[i].limit) {
+      category = sortedRanges[i].category;
+      break;
     }
   }
 
-  // If value exceeds all defined ranges
-  const { text, icon, color } = categoryDetails['Invalid'];
+  const { text = 'Invalid', color = '#808080' } =
+    categoryDetails[category] || categoryDetails['Invalid'];
+
+  // Map categories to icon components
+  const iconMap = {
+    GoodAir: GoodAirIcon,
+    ModerateAir: ModerateIcon,
+    UnhealthyForSensitiveGroups: UnhealthySGIcon,
+    Unhealthy: UnhealthyIcon,
+    VeryUnhealthy: VeryUnhealthyIcon,
+    Hazardous: HazardousIcon,
+  };
+
+  const AirQualityIcon = iconMap[category] || null;
+
   return {
     airQualityText: text,
-    AirQualityIcon: icon,
+    AirQualityIcon,
     airQualityColor: color,
   };
 };
@@ -111,79 +90,46 @@ export const getAirQualityLevelText = (value, pollutionType) => {
  * @returns {JSX.Element}
  * @description Custom tooltip component for line graph
  */
-const CustomGraphTooltip = ({ active, payload, activeIndex }) => {
-  const chartData = useSelector((state) => state.chart);
-  const { timeFrame } = chartData;
-  const { pollutionType } = useSelector((state) => state.chart);
-
-  const formatDate = (value) => {
-    const date = new Date(value);
-    switch (timeFrame) {
-      case 'hourly':
-        return format(date, 'MMMM dd, yyyy, hh:mm a');
-      default:
-        return format(date, 'MMMM dd, yyyy');
-    }
-  };
-
+const CustomGraphTooltip = ({ active, payload, pollutionType }) => {
   if (active && payload && payload.length) {
-    const hoveredPoint = payload[0];
+    const dataPoint = payload[0]; // Assuming the first point corresponds to the hovered location
+    const { value, name, payload: pointPayload } = dataPoint;
+    const time = pointPayload?.time; // Assuming `time` exists in the payload
 
+    // Format the date
+    const formatDate = (value) => {
+      const date = new Date(value);
+      return format(date, 'MMMM dd, yyyy, hh:mm a');
+    };
+
+    // Get air quality level
     const { airQualityText, AirQualityIcon, airQualityColor } =
-      getAirQualityLevelText(hoveredPoint.value, pollutionType);
+      getAirQualityLevelText(value, pollutionType);
 
     return (
       <div className="bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none">
         <div className="flex flex-col space-y-1">
-          <span className="text-sm text-gray-300 p-2">
-            {formatDate(hoveredPoint.payload.time)}
-          </span>
-          {payload.map((point, index) => (
-            <div key={index}>
-              {activeIndex === index ? (
-                <div className="flex flex-col items-start justify-between w-full h-auto p-2">
-                  <div className="flex justify-between w-full mb-1 mt-2">
-                    <div className="flex items-center text-xs font-medium leading-[14px] text-gray-600">
-                      <div
-                        className={`w-[10px] h-[10px] rounded-xl mr-2 ${
-                          activeIndex === index ? 'bg-blue-700' : 'bg-gray-400'
-                        }`}
-                      ></div>
-                      {truncate(point.name)}
-                    </div>
-                    <div className="text-xs font-medium leading-[14px] text-gray-600">
-                      {reduceDecimalPlaces(point.value) + ' μg/m3'}
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center w-full">
-                    <div
-                      className={`${airQualityColor} text-xs font-medium leading-[14px] `}
-                    >
-                      {airQualityText}
-                    </div>
-                    <AirQualityIcon width={30} height={30} />
-                  </div>
-                </div>
-              ) : (
-                <div className="flex justify-between w-full mb-1 mt-2 p-2">
-                  <div className="flex items-center text-xs font-medium leading-[14px] text-gray-600">
-                    <div
-                      className={`w-[10px] h-[10px] rounded-xl mr-2 ${
-                        activeIndex === index ? 'bg-blue-700' : 'bg-gray-400'
-                      }`}
-                    ></div>
-                    {truncate(point.name)}
-                  </div>
-                  <div className="text-xs font-medium leading-[14px] text-gray-600">
-                    {reduceDecimalPlaces(point.value) + ' μg/m3'}
-                  </div>
-                </div>
-              )}
-              {index < payload.length - 1 && (
-                <div className="w-full h-[2px] bg-transparent my-1 border-t border-dotted border-gray-300" />
-              )}
+          <span className="text-sm text-gray-300 p-2">{formatDate(time)}</span>
+          <div className="flex flex-col items-start justify-between w-full h-auto p-2">
+            <div className="flex justify-between w-full mb-1 mt-2">
+              <div className="flex items-center text-xs font-medium leading-[14px] text-gray-600">
+                <div className="w-[10px] h-[10px] rounded-xl mr-2 bg-blue-700"></div>
+                {truncate(name)}
+              </div>
+              <div className="text-xs font-medium leading-[14px] text-gray-600">
+                {reduceDecimalPlaces(value) + ' μg/m³'}
+              </div>
             </div>
-          ))}
+            <div className="flex justify-between items-center w-full">
+              <div
+                className="text-xs font-medium leading-[14px]"
+                style={{ color: airQualityColor }}
+              >
+                {airQualityText}
+              </div>
+              {AirQualityIcon && <AirQualityIcon width={30} height={30} />}
+            </div>
+          </div>
         </div>
       </div>
     );
