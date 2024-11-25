@@ -13,6 +13,7 @@ import MonitorDisplay from '../sections/footer/MonitorDisplay';
 import ScrollToTopButton from './ScrollToTopButton';
 
 const Footer = () => {
+  const adminUrl = `${process.env.NEXT_PUBLIC_API_URL}/website`;
   return (
     <footer
       id="WebsiteFooter"
@@ -217,23 +218,28 @@ const Footer = () => {
       {/* Footer Bottom Section */}
       <div className="flex flex-col text-sm lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
         {/* Footer Bottom Links */}
-        <div className="text-center lg:text-left text-gray-600">
-          &copy; {new Date().getFullYear()} AirQo &nbsp;|&nbsp;{' '}
+        <div className="flex flex-wrap gap-4 text-center lg:text-left text-gray-600">
+          &copy; {new Date().getFullYear()} AirQo
           <Link href="/legal/terms-of-service" className="hover:underline">
             Terms of service
           </Link>
-          &nbsp;|&nbsp;{' '}
           <Link href="/legal/privacy-policy" className="hover:underline">
             Privacy Policy
           </Link>
-          &nbsp;|&nbsp;{' '}
           <Link href="/legal/airqo-data" className="hover:underline">
             AirQo Data
           </Link>
-          &nbsp;|&nbsp;{' '}
           <Link href="/legal/payment-refund-policy" className="hover:underline">
             Payment Terms
           </Link>
+          <a
+            href={adminUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            Admin Portal
+          </a>
         </div>
 
         {/* Makerere University Attribution */}

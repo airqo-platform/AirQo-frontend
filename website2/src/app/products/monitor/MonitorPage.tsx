@@ -213,7 +213,7 @@ const MonitorPage = () => {
             variants={cardVariants}
           >
             <h3 className="font-bold text-2xl mb-4">
-              160+ Air quality monitors installed in 8 major African cities
+              250+ Air quality monitors installed in 8 major African cities
             </h3>
             <p className="text-lg text-gray-700 mb-4">
               To effectively tackle air pollution, access to data and contextual
