@@ -48,14 +48,14 @@ const ScrollToTopButton: React.FC = () => {
           transition={{ duration: 0.5, ease: 'easeOut' }}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          className="fixed right-8 top-8 lg:bottom-auto lg:-top-[30px] md:right-0 xl:-right-28 bg-blue-700 text-white p-2 shadow-md"
+          className="fixed right-8 top-8 lg:bottom-auto lg:-top-[30px] md:right-0 xl:-right-28 h-12 bg-blue-700 text-white p-2 shadow-md"
           style={{ position: 'absolute' }}
         >
           <motion.div
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <FaArrowUpLong className="w-7 h-7" />
+            <FaArrowUpLong className="w-6 h-6 relative top-2" />
           </motion.div>
         </motion.button>
       )}

@@ -196,8 +196,8 @@ const HomeStatsSection: React.FC = () => {
               onClick={() => setActiveTab('cities')}
               className={`px-6 py-3 ${
                 activeTab === 'cities'
-                  ? 'bg-[#2E3A59] text-white z-10 scale-105 rounded-lg'
-                  : 'bg-[#DFE8F9] text-[#2E3A59] -ml-1 rounded-l-lg'
+                  ? 'bg-[#2E3A59] text-white z-10 scale-105 rounded-xl'
+                  : 'bg-[#DFE8F9] text-[#2E3A59] -ml-1 rounded-l-xl'
               } border border-[#DFE8F9]`}
             >
               For African cities
@@ -208,8 +208,8 @@ const HomeStatsSection: React.FC = () => {
               onClick={() => setActiveTab('communities')}
               className={`px-6 py-3 ${
                 activeTab === 'communities'
-                  ? 'bg-[#2E3A59] text-white z-10 scale-105 rounded-lg'
-                  : 'bg-[#DFE8F9] text-[#2E3A59] -ml-1 rounded-r-lg'
+                  ? 'bg-[#2E3A59] text-white z-10 scale-105 rounded-xl'
+                  : 'bg-[#DFE8F9] text-[#2E3A59] -ml-1 rounded-r-xl'
               } border border-[#DFE8F9]`}
             >
               For Communities
