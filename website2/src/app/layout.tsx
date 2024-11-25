@@ -1,5 +1,3 @@
-// /app/layout.tsx
-
 import '@/styles/globals.scss';
 
 import localFont from 'next/font/local';
@@ -8,7 +6,7 @@ import { ReactNode } from 'react';
 import EngagementDialog from '@/components/dialogs/EngagementDialog';
 import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/context/ReduxDataProvider';
-import { getMaintenances } from '@/services/externalService';
+import { checkMaintenance } from '@/lib/maintenance';
 
 import MaintenancePage from './MaintenancePage';
 
@@ -28,45 +26,28 @@ const interFont = localFont({
   variable: '--font-inter',
 });
 
-// Define a TypeScript interface for maintenance data used within the layout
-interface MaintenanceStatus {
-  isActive: boolean;
-  message: string;
-}
-
 export default async function RootLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  let maintenance: MaintenanceStatus = { isActive: false, message: '' };
-
-  try {
-    const response = await getMaintenances();
-
-    if (response?.success && response.maintenance?.length > 0) {
-      const activeMaintenance: any = response.maintenance[0];
-      maintenance = {
-        isActive: activeMaintenance.isActive,
-        message: activeMaintenance.message,
-      };
-    }
-  } catch (error) {
-    console.error('Failed to fetch maintenance status:', error);
-    maintenance = { isActive: false, message: '' };
-  }
+  const maintenance = await checkMaintenance();
 
   return (
-    <html lang="en">
-      <body className={`${interFont.variable} antialiased`}>
-        {maintenance.isActive ? (
-          <MaintenancePage message={maintenance.message} />
-        ) : (
+    <html lang="en" className={interFont.variable}>
+      <body>
+        <ErrorBoundary>
           <ReduxDataProvider>
-            <ErrorBoundary>{children}</ErrorBoundary>
-            <EngagementDialog />
+            {maintenance.isActive ? (
+              <MaintenancePage message={maintenance.message} />
+            ) : (
+              <>
+                <EngagementDialog />
+                {children}
+              </>
+            )}
           </ReduxDataProvider>
-        )}
+        </ErrorBoundary>
       </body>
     </html>
   );
