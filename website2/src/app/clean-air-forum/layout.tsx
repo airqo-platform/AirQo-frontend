@@ -51,7 +51,7 @@ type CleanAirLayoutProps = {
   children: ReactNode;
 };
 
-// Fetch data server-side in the layout (App Router)
+// Fetch data server-side
 export default async function CleanAirLayout({
   children,
 }: CleanAirLayoutProps) {
@@ -66,6 +66,7 @@ export default async function CleanAirLayout({
   }
 
   return (
+    // Wrap the entire layout with ForumDataProvider
     <ForumDataProvider data={data}>
       <div className="min-h-screen w-full flex flex-col">
         {/* Navbar */}
