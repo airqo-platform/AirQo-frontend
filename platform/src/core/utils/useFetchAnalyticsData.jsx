@@ -1,7 +1,43 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
 import axios from 'axios';
 import { format } from 'date-fns';
+
+/**
+ * Function to fetch analytics data from the API.
+ */
+const fetchAnalytics = async (requestBody, token, signal) => {
+  const headers = {
+    Authorization: `${token}`,
+    'Content-Type': 'application/json',
+  };
+
+  if (process.env.NODE_ENV === 'development') {
+    const response = await axios.post('/api/proxy/analytics', requestBody, {
+      headers,
+      signal, // Axios supports signal for cancellation in recent versions
+    });
+
+    if (response.status === 200 && response.data?.status === 'success') {
+      return response.data.data || [];
+    } else {
+      throw new Error(
+        response.data?.message || 'Failed to fetch analytics data.',
+      );
+    }
+  } else {
+    const response = await getAnalyticsData({
+      body: requestBody,
+      signal,
+    });
+
+    if (response.status === 'success' && Array.isArray(response.data)) {
+      return response.data;
+    } else {
+      throw new Error(response.message || 'Failed to fetch analytics data.');
+    }
+  }
+};
 
 /**
  * Custom hook to fetch analytics data based on provided parameters.
@@ -17,95 +53,71 @@ const useFetchAnalyticsData = ({
   const [allSiteData, setAllSiteData] = useState([]);
   const [chartLoading, setChartLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refetchId, setRefetchId] = useState(0);
 
-  /**
-   * Fetches analytics data from the API.
-   */
-  const fetchAnalyticsData = useCallback(async () => {
-    setChartLoading(true);
-    setError(null);
+  const fetchAnalyticsData = useCallback(
+    async (signal) => {
+      setChartLoading(true);
+      setError(null);
 
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('Authorization token is missing.');
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('Authorization token is missing.');
 
-      const requestBody = {
-        sites: selectedSiteIds,
-        startDate: format(
-          new Date(dateRange.startDate),
-          "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-        ),
-        endDate: format(
-          new Date(dateRange.endDate),
-          "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-        ),
-        chartType,
-        frequency,
-        pollutant,
-        organisation_name: organisationName,
-      };
+        const requestBody = {
+          sites: selectedSiteIds,
+          startDate: format(
+            new Date(dateRange.startDate),
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+          ),
+          endDate: format(
+            new Date(dateRange.endDate),
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+          ),
+          chartType,
+          frequency,
+          pollutant,
+          organisation_name: organisationName,
+        };
 
-      let response;
-
-      if (process.env.NODE_ENV === 'development') {
-        response = await axios.post('/api/proxy/analytics', requestBody, {
-          headers: {
-            Authorization: `${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response.status === 200 && response.data?.status === 'success') {
-          setAllSiteData(response.data.data || []);
-        } else {
-          throw new Error(
-            response.data?.message || 'Failed to fetch analytics data.',
-          );
-        }
-      } else {
-        const controller = new AbortController();
-
-        response = await getAnalyticsData({
-          body: requestBody,
-          signal: controller.signal,
-        });
-
-        if (response.status === 'success' && Array.isArray(response.data)) {
-          setAllSiteData(response.data);
-        } else {
-          throw new Error(
-            response.message || 'Failed to fetch analytics data.',
-          );
-        }
+        const data = await fetchAnalytics(requestBody, token, signal);
+        setAllSiteData(data);
+      } catch (err) {
+        if (err.name === 'CanceledError' || err.name === 'AbortError') return; // Request was cancelled
+        console.error('Error fetching analytics data:', err);
+        setError(err.message || 'An unexpected error occurred.');
+        setAllSiteData([]);
+      } finally {
+        setChartLoading(false);
       }
-    } catch (err) {
-      console.error('Error fetching analytics data:', err);
-      setError(err.message || 'An unexpected error occurred.');
-      setAllSiteData([]);
-    } finally {
-      setChartLoading(false);
-    }
-  }, [
-    selectedSiteIds,
-    dateRange.startDate,
-    dateRange.endDate,
-    chartType,
-    frequency,
-    pollutant,
-    organisationName,
-  ]);
+    },
+    [
+      selectedSiteIds,
+      dateRange.startDate,
+      dateRange.endDate,
+      chartType,
+      frequency,
+      pollutant,
+      organisationName,
+    ],
+  );
 
   useEffect(() => {
-    fetchAnalyticsData();
-    return () => {};
-  }, [fetchAnalyticsData]);
+    const controller = new AbortController();
+
+    fetchAnalyticsData(controller.signal);
+
+    return () => {
+      controller.abort();
+    };
+  }, [fetchAnalyticsData, refetchId]);
 
   /**
    * Refetch function to manually trigger data fetching.
    */
   const refetch = useCallback(() => {
-    fetchAnalyticsData();
-  }, [fetchAnalyticsData]);
+    setRefetchId((prevId) => prevId + 1);
+  }, []);
 
   return { allSiteData, chartLoading, error, refetch };
 };
