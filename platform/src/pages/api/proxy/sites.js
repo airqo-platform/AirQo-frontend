@@ -6,8 +6,7 @@ export default async function handler(req, res) {
   }
 
   // Set up the target URL
-  const targetUrl =
-    'https://analytics.airqo.net/api/v2/devices/sites/summary?online_status=online';
+  const targetUrl = 'https://analytics.airqo.net/api/v2/devices/sites/summary';
 
   try {
     const response = await axios.get(targetUrl, {
