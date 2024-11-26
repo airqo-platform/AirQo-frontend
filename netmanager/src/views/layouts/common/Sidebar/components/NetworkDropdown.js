@@ -7,7 +7,8 @@ import {
   addActiveNetwork,
   fetchNetworkUsers,
   loadUserRoles,
-  fetchAvailableNetworkUsers
+  fetchAvailableNetworkUsers,
+  addCurrentUserRole
 } from 'redux/AccessControl/operations';
 import { loadDevicesData } from 'redux/DeviceRegistry/operations';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
@@ -70,21 +71,34 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    if (!userNetworks.length) return;
+
     const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-    if (activeNetwork) {
-      setSelectedItem(activeNetwork);
-    } else {
-      setSelectedItem(userNetworks[0]);
-      localStorage.setItem('activeNetwork', JSON.stringify(userNetworks[0]));
-      dispatch(addActiveNetwork(userNetworks[0]));
-      dispatch(addActiveNetwork(userNetworks[0]));
-      dispatch(loadDevicesData(userNetworks[0].net_name));
-      dispatch(loadSitesData(userNetworks[0].net_name));
-      dispatch(fetchNetworkUsers(userNetworks[0]._id));
-      dispatch(loadUserRoles(userNetworks[0]._id));
-      dispatch(fetchAvailableNetworkUsers(userNetworks[0]._id));
-    }
+    const networkToSet =
+      activeNetwork && userNetworks.find((n) => n._id === activeNetwork._id)
+        ? activeNetwork
+        : userNetworks[0];
+
+    setSelectedItem(networkToSet);
+    localStorage.setItem('activeNetwork', JSON.stringify(networkToSet));
+    dispatch(addActiveNetwork(networkToSet));
+
+    loadNetworkData(networkToSet);
   }, [dispatch, userNetworks]);
+
+  const loadNetworkData = async (network) => {
+    try {
+      await Promise.all([
+        dispatch(loadDevicesData(network.net_name)),
+        dispatch(loadSitesData(network.net_name)),
+        dispatch(fetchNetworkUsers(network._id)),
+        dispatch(loadUserRoles(network._id)),
+        dispatch(fetchAvailableNetworkUsers(network._id))
+      ]);
+    } catch (error) {
+      console.error('Error loading network data:', error);
+    }
+  };
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -95,17 +109,20 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
     setAnchorEl(null);
   };
 
-  const handleSelect = (item) => {
+  const handleSelect = async (item) => {
     setSelectedItem(item);
+    setAnchorEl(null);
+
     localStorage.setItem('activeNetwork', JSON.stringify(item));
     localStorage.setItem('currentUserRole', JSON.stringify(item.role));
-    dispatch(loadDevicesData(item.net_name));
-    dispatch(loadSitesData(item.net_name));
-    dispatch(fetchNetworkUsers(item._id));
-    dispatch(fetchAvailableNetworkUsers(item._id));
-    dispatch(loadUserRoles(item._id));
-    handleClose();
-    window.location.reload();
+
+    dispatch(addActiveNetwork(item));
+    dispatch(addCurrentUserRole(item.role));
+
+    await loadNetworkData(item);
+
+    const networkChangeEvent = new CustomEvent('networkChanged', { detail: item });
+    window.dispatchEvent(networkChangeEvent);
   };
 
   useEffect(() => {
@@ -122,7 +139,8 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
           position: 'relative',
           display: 'flex',
           flexDirection: 'column'
-        }}>
+        }}
+      >
         {open && (
           <Slide direction="up" in={open}>
             <div
@@ -133,7 +151,8 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
                 position: 'absolute',
                 top: '-20px',
                 left: '0px'
-              }}>
+              }}
+            >
               <span
                 style={{
                   color: '#175df5',
@@ -143,7 +162,8 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
                   borderTopLeftRadius: '4px',
                   borderTopRightRadius: '4px',
                   padding: '2px 5px'
-                }}>
+                }}
+              >
                 {view !== 'networks' ? 'Teams' : 'Networks'}
               </span>
             </div>
@@ -155,7 +175,8 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
             aria-haspopup="true"
             onClick={handleClick}
             variant="contained"
-            color="primary">
+            color="primary"
+          >
             {selectedItem && (selectedItem.net_name || selectedItem.grp_title)}
             <ArrowDropDown />
           </Button>
@@ -166,13 +187,15 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
         anchorEl={anchorEl}
         keepMounted
         open={Boolean(anchorEl)}
-        onClose={handleClose}>
+        onClose={handleClose}
+      >
         {(view === 'networks' ? userNetworks : groupData).length > 0 ? (
           (view === 'networks' ? userNetworks : groupData).map((item) => (
             <StyledMenuItem
               key={item._id}
               onClick={() => handleSelect(item)}
-              selected={selectedItem && selectedItem._id === item._id}>
+              selected={selectedItem && selectedItem._id === item._id}
+            >
               <ListItemText>{view === 'networks' ? item.net_name : item.grp_title}</ListItemText>
             </StyledMenuItem>
           ))
@@ -181,14 +204,13 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
             {view === 'networks' ? 'You do not have any networks' : 'You do not have any teams'}
           </StyledMenuItem>
         )}
-        <MenuItem
-          disabled
+        {/* <MenuItem
           onClick={() => {
             setView(view === 'networks' ? 'Teams' : 'networks');
             setOpen(true);
           }}>
           Switch to {view === 'networks' ? 'Teams' : 'Networks'}
-        </MenuItem>
+        </MenuItem> */}
       </StyledMenu>
     </>
   );

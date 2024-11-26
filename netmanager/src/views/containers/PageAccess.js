@@ -1,9 +1,10 @@
 import React from 'react';
 import { Redirect } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 export const withPermission = (Component, requiredPermission) => {
   const WithPermission = (props) => {
-    const currentRole = JSON.parse(localStorage.getItem('currentUserRole'));
+    const currentRole = useSelector((state) => state.accessControl.currentRole);
 
     let hasPermission = false;
     if (currentRole && currentRole.role_permissions) {
