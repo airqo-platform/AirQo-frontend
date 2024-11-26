@@ -49,6 +49,11 @@ const AddLocations = ({ onClose }) => {
     error: fetchError,
   } = useSelector((state) => state.sites);
 
+  // filter out sites that are online online_status=online from sitesSummaryData use memo
+  const filteredSites = useMemo(() => {
+    return (sitesSummaryData || []).filter((site) => site.isOnline === true);
+  }, [sitesSummaryData]);
+
   // Retrieve user ID from localStorage and memoize it
   const userID = useMemo(() => {
     const user = localStorage.getItem('loggedUser');
@@ -62,18 +67,18 @@ const AddLocations = ({ onClose }) => {
   }, [preferencesData]);
 
   /**
-   * Populate selectedSites based on selectedSiteIds and fetched sitesSummaryData.
+   * Populate selectedSites based on selectedSiteIds and fetched filteredSites.
    * Also initializes sidebarSites with the initially selected sites.
    */
   useEffect(() => {
-    if (sitesSummaryData && selectedSiteIds.length) {
-      const initialSelectedSites = sitesSummaryData.filter((site) =>
+    if (filteredSites && selectedSiteIds.length) {
+      const initialSelectedSites = filteredSites.filter((site) =>
         selectedSiteIds.includes(site._id),
       );
       setSelectedSites(initialSelectedSites);
       setSidebarSites(initialSelectedSites);
     }
-  }, [sitesSummaryData, selectedSiteIds]);
+  }, [filteredSites, selectedSiteIds]);
 
   /**
    * Clears all selected sites.
@@ -222,7 +227,7 @@ const AddLocations = ({ onClose }) => {
       <div className="bg-white relative w-full h-auto">
         <div className="px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
           <DataTable
-            data={sitesSummaryData}
+            data={filteredSites}
             selectedSites={selectedSites}
             setSelectedSites={setSelectedSites}
             clearSites={clearSelected}
