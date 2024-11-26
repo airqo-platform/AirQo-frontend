@@ -271,11 +271,17 @@ const Sidebar = (props) => {
             (network) => network.net_name === 'airqo'
           );
 
-          if (!activeNetwork) {
+          if (!activeNetwork && airqoNetwork) {
             localStorage.setItem('activeNetwork', JSON.stringify(airqoNetwork));
             dispatch(addActiveNetwork(airqoNetwork));
             dispatch(addCurrentUserRole(airqoNetwork.role));
             localStorage.setItem('currentUserRole', JSON.stringify(airqoNetwork.role));
+          } else {
+            const selectedNetwork = res.users[0].networks[0];
+            localStorage.setItem('activeNetwork', JSON.stringify(selectedNetwork));
+            dispatch(addActiveNetwork(selectedNetwork));
+            dispatch(addCurrentUserRole(selectedNetwork.role));
+            localStorage.setItem('currentUserRole', JSON.stringify(selectedNetwork.role));
           }
         }
       } catch (err) {
