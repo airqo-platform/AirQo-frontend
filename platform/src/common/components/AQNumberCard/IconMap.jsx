@@ -7,6 +7,7 @@ import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import UnknownAQ from '@/icons/Charts/Invalid';
 import WindIcon from '@/icons/Common/wind.svg';
 import TrendDownIcon from '@/icons/Analytics/trendDownIcon';
+import TrendUpIcon from '@/icons/Analytics/trendUpIcon';
 
 export const IconMap = {
   good: GoodAir,
@@ -17,5 +18,6 @@ export const IconMap = {
   hazardous: Hazardous,
   unknown: UnknownAQ,
   wind: WindIcon,
-  trend: TrendDownIcon,
+  trend1: TrendDownIcon,
+  trend2: TrendUpIcon,
 };
