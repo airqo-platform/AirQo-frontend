@@ -94,10 +94,34 @@ const SiteCard = ({ site, onOpenModal, windowWidth, pollutantType }) => {
     };
   }, [site.name, windowWidth]);
 
+  // Determine trend data
+  const trendData = useMemo(() => {
+    const averages = measurement?.averages;
+    if (!averages) return null;
+
+    const { percentageDifference } = averages;
+    const trendIcon =
+      percentageDifference > 0 ? IconMap.trend2 : IconMap.trend1;
+    const trendColor =
+      percentageDifference > 0
+        ? 'text-green-700 bg-green-100'
+        : 'text-red-700 bg-red-100';
+    const trendText =
+      percentageDifference > 0
+        ? `+${percentageDifference.toFixed(2)}%`
+        : `${percentageDifference.toFixed(2)}%`;
+
+    return {
+      trendIcon,
+      trendColor,
+      trendText,
+    };
+  }, [measurement]);
+
   const siteNameElement = (
     <div
       ref={nameRef}
-      className="text-gray-800 text-lg font-medium capitalize text-left w-full max-w-[185px] md:max-w-full lg:max-w-[185px] overflow-hidden text-ellipsis whitespace-nowrap"
+      className="text-gray-800 text-lg font-medium capitalize text-left w-full max-w-[150px] md:max-w-full lg:max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap"
     >
       {site.name || '---'}
     </div>
@@ -108,9 +132,9 @@ const SiteCard = ({ site, onOpenModal, windowWidth, pollutantType }) => {
       className="w-full h-auto"
       onClick={() => onOpenModal('inSights', [], site)}
     >
-      <div className="relative w-full flex flex-col justify-between bg-white border border-gray-200 rounded-xl px-4 py-6 h-[200px] shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out cursor-pointer">
-        <div className="flex justify-between items-center mb-4">
-          <div>
+      <div className="relative w-full flex flex-col justify-between bg-white border border-gray-200 rounded-xl px-4 py-4 h-[220px] shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out cursor-pointer">
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex flex-col">
             {isTruncated ? (
               <CustomTooltip
                 tooltipsText={site.name || 'No Location Data'}
@@ -121,28 +145,39 @@ const SiteCard = ({ site, onOpenModal, windowWidth, pollutantType }) => {
             ) : (
               siteNameElement
             )}
-            <div className="text-base text-left text-slate-400 capitalize">
+            <div className="text-sm text-left text-slate-400 capitalize">
               {site.country || '---'}
             </div>
           </div>
 
-          <div className="pl-2 pr-1 rounded-xl text-sm flex items-center gap-2 bg-gray-50 text-gray-500">
-            <IconMap.trend fill="#808080" />
-            <span>--</span>
-          </div>
+          {/* Trend Section */}
+          {trendData ? (
+            <div
+              className={`pl-1 pr-1 py-1 rounded-xl text-[10px] flex items-center gap-2 ${trendData.trendColor}`}
+              style={{ maxWidth: '70px' }}
+            >
+              <trendData.trendIcon fill="currentColor" />
+              <span>{trendData.trendText}</span>
+            </div>
+          ) : (
+            <div className="pl-1 pr-1 py-1 rounded-xl text-[10px] flex items-center gap-2 bg-gray-100 text-gray-500">
+              <IconMap.trend1 fill="#808080" />
+              <span>{'--'}</span>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-between items-center">
           <div>
             <div className="flex items-center gap-1 mb-2">
-              <div className="p-[2.62px] bg-gray-100 rounded-full flex items-center justify-center">
-                <IconMap.wind width="10.48px" height="10.48px" />
+              <div className="p-1 bg-gray-100 rounded-full flex items-center justify-center">
+                <IconMap.wind width="12px" height="12px" />
               </div>
               <div className="text-slate-400 text-sm font-medium">
                 {pollutantType === 'pm2_5' ? 'PM2.5' : 'PM10'}
               </div>
             </div>
-            <div className="text-gray-700 text-[28px] font-extrabold">
+            <div className="text-gray-700 text-[24px] font-extrabold">
               {typeof measurement?.[pollutantType]?.value === 'number'
                 ? measurement[pollutantType].value.toFixed(2)
                 : '--'}
@@ -154,7 +189,7 @@ const SiteCard = ({ site, onOpenModal, windowWidth, pollutantType }) => {
               tooltipsText={airQualityText}
               position={windowWidth > 1024 ? 'top' : 'left'}
             >
-              <div className="w-16 h-16 flex">
+              <div className="w-14 h-14 flex">
                 {AirQualityIcon && <AirQualityIcon />}
               </div>
             </CustomTooltip>
@@ -180,7 +215,7 @@ SiteCard.propTypes = {
 const AddLocationCard = ({ onOpenModal }) => (
   <button
     onClick={() => onOpenModal('addLocation')}
-    className="border-dashed border-2 border-blue-400 bg-blue-50 rounded-xl px-4 py-6 h-[200px] flex justify-center items-center text-blue-500 transition-transform transform hover:scale-95"
+    className="border-dashed border-2 border-blue-400 bg-blue-50 rounded-xl px-4 py-6 h-[220px] flex justify-center items-center text-blue-500 transition-transform transform hover:scale-95"
     aria-label="Add Location"
   >
     + Add location
