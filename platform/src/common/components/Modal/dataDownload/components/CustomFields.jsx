@@ -61,6 +61,7 @@ const CustomFields = ({
       ) : (
         <CustomDropdown
           tabID={id}
+          isField={false}
           tabStyle="w-full bg-white px-3 py-2"
           dropdown
           tabIcon={icon}
