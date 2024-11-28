@@ -78,17 +78,15 @@ const useFetchAnalyticsData = ({
   frequency = 'daily',
   pollutant = 'pm2_5',
   organisationName = 'airqo',
-  onError = null,
 }) => {
   const [allSiteData, setAllSiteData] = useState([]);
   const [chartLoading, setChartLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refetchId, setRefetchId] = useState(0);
 
-  // Refs for tracking mount state and previous data
-  const isMounted = useRef(true);
-  const prevDataRef = useRef(null);
+  // Ref for tracking active request and data state
   const activeRequestRef = useRef(null);
+  const dataRef = useRef(allSiteData);
 
   // Format date using memoization
   const formatDate = useCallback((date) => {
@@ -97,10 +95,8 @@ const useFetchAnalyticsData = ({
 
   const fetchAnalyticsData = useCallback(
     async (signal) => {
-      // Don't set loading state if we have previous data
-      if (!prevDataRef.current) {
-        setChartLoading(true);
-      }
+      // Always show loading state for new requests
+      setChartLoading(true);
       setError(null);
 
       try {
@@ -121,30 +117,22 @@ const useFetchAnalyticsData = ({
         activeRequestRef.current = fetchAnalytics(requestBody, token, signal);
         const data = await activeRequestRef.current;
 
-        // Only update state if component is still mounted
-        if (isMounted.current) {
-          setAllSiteData(data);
-          prevDataRef.current = data;
-          setChartLoading(false);
-        }
+        // Update refs and state with new data
+        dataRef.current = data;
+        setAllSiteData(data);
+        setChartLoading(false);
       } catch (err) {
-        if (!isMounted.current) return;
-        if (err.name === 'CanceledError' || err.name === 'AbortError') return;
+        if (err.name === 'CanceledError' || err.name === 'AbortError') {
+          return;
+        }
 
         console.error('Error fetching analytics data:', err);
-        const errorMessage = err.message || 'An unexpected error occurred.';
-        setError(errorMessage);
+        setError(err.message || 'An unexpected error occurred.');
 
-        // Call error callback if provided
-        if (onError) {
-          onError(errorMessage);
-        }
-
-        // Keep previous data on error if available
-        if (!prevDataRef.current) {
+        // Keep existing data if available, otherwise set empty array
+        if (!dataRef.current) {
           setAllSiteData([]);
         }
-
         setChartLoading(false);
       }
     },
@@ -157,23 +145,17 @@ const useFetchAnalyticsData = ({
       pollutant,
       organisationName,
       formatDate,
-      onError,
     ],
   );
 
   useEffect(() => {
-    isMounted.current = true;
     const controller = new AbortController();
 
     fetchAnalyticsData(controller.signal);
 
     return () => {
-      isMounted.current = false;
       controller.abort();
-      // Clean up active request
-      if (activeRequestRef.current) {
-        activeRequestRef.current = null;
-      }
+      activeRequestRef.current = null;
     };
   }, [fetchAnalyticsData, refetchId]);
 
@@ -181,14 +163,7 @@ const useFetchAnalyticsData = ({
     setRefetchId((prev) => prev + 1);
   }, []);
 
-  return {
-    allSiteData,
-    chartLoading,
-    error,
-    refetch,
-    isInitialLoading: chartLoading && !prevDataRef.current,
-    isRefetching: chartLoading && Boolean(prevDataRef.current),
-  };
+  return { allSiteData, chartLoading, error, refetch };
 };
 
 export default useFetchAnalyticsData;
