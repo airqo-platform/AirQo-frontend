@@ -3,70 +3,88 @@ import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
 import axios from 'axios';
 import { format } from 'date-fns';
 
-const API_TIMEOUT = 30000;
-const RETRY_ATTEMPTS = 3;
-const RETRY_DELAY = 2000;
-
-const handleApiResponse = (response) => {
-  // development response
-  if (response?.data?.status === 'success') {
-    return response.data.data || [];
-  }
-
-  // production response
-  if (response?.status === 'success' && Array.isArray(response.data)) {
-    return response.data;
-  }
-
-  throw new Error(
-    response?.data?.message ||
-      response?.message ||
-      'Failed to fetch analytics data',
-  );
+const CONFIG = {
+  API_TIMEOUT: 30000,
+  RETRY_ATTEMPTS: 3,
+  RETRY_DELAY: 2000,
+  DATE_FORMAT: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
 };
 
-const makeApiRequest = async (requestConfig) => {
-  const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('Request timeout')), API_TIMEOUT);
-  });
+class ApiError extends Error {
+  constructor(message, status, originalError) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.originalError = originalError;
+  }
+}
 
-  return Promise.race([requestConfig(), timeoutPromise]);
-};
-
-const fetchAnalytics = async (requestBody, token, signal, attempt = 1) => {
-  const headers = {
-    Authorization: `${token}`,
-    'Content-Type': 'application/json',
+const createApiClient = () => {
+  const handleResponse = (response) => {
+    if (response?.data?.status === 'success') {
+      return response.data.data || [];
+    }
+    if (response?.status === 'success' && Array.isArray(response.data)) {
+      return response.data;
+    }
+    throw new ApiError(
+      response?.data?.message || 'Failed to fetch analytics data',
+      response?.status,
+      null,
+    );
   };
 
-  try {
-    let response;
-    if (process.env.NODE_ENV === 'development') {
-      response = await makeApiRequest(
-        () =>
-          axios.post('/api/proxy/analytics', requestBody, { headers, signal }),
-        signal,
-      );
-    } else {
-      response = await makeApiRequest(
-        () => getAnalyticsData({ body: requestBody, signal }),
-        signal,
-      );
-    }
+  const makeRequest = async (requestConfig) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, CONFIG.API_TIMEOUT);
 
-    return handleApiResponse(response);
-  } catch (error) {
-    const shouldRetry =
-      attempt < RETRY_ATTEMPTS &&
-      error.name !== 'CanceledError' &&
-      error.name !== 'AbortError';
-
-    if (shouldRetry) {
-      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
-      return fetchAnalytics(requestBody, token, signal, attempt + 1);
+    try {
+      const response = await requestConfig(controller.signal);
+      return handleResponse(response);
+    } finally {
+      clearTimeout(timeoutId);
     }
-    throw error;
-  }
+  };
+
+  const fetchWithRetry = async (requestConfig, attempt = 1) => {
+    try {
+      return await makeRequest(requestConfig);
+    } catch (error) {
+      if (
+        attempt < CONFIG.RETRY_ATTEMPTS &&
+        !error.name.includes('Abort') &&
+        error.status !== 401 &&
+        error.status !== 403
+      ) {
+        await new Promise((resolve) => setTimeout(resolve, CONFIG.RETRY_DELAY));
+        return fetchWithRetry(requestConfig, attempt + 1);
+      }
+      throw error;
+    }
+  };
+
+  return {
+    fetch: async (requestBody, token) => {
+      const headers = {
+        Authorization: token,
+        'Content-Type': 'application/json',
+      };
+
+      const requestConfig = async (signal) => {
+        if (process.env.NODE_ENV === 'development') {
+          return axios.post('/api/proxy/analytics', requestBody, {
+            headers,
+            signal,
+          });
+        }
+        return getAnalyticsData({ body: requestBody, signal });
+      };
+
+      return fetchWithRetry(requestConfig);
+    },
+  };
 };
 
 const useFetchAnalyticsData = ({
@@ -77,39 +95,34 @@ const useFetchAnalyticsData = ({
   pollutant = 'pm2_5',
   organisationName = 'airqo',
 }) => {
-  const [allSiteData, setAllSiteData] = useState([]);
-  const [chartLoading, setChartLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [forceRefetch, setForceRefetch] = useState(0);
+  const [state, setState] = useState({
+    data: [],
+    loading: true,
+    error: null,
+  });
 
-  const activeRequestRef = useRef(null);
-  const dataRef = useRef(allSiteData);
-  const isMounted = useRef(true);
-
-  const cleanupRequest = useCallback(() => {
-    if (activeRequestRef.current) {
-      activeRequestRef.current = null;
-    }
-  }, []);
+  const mountedRef = useRef(true);
+  const apiClient = useRef(createApiClient()).current;
+  const lastRequest = useRef(null);
 
   const formatDate = useCallback((date) => {
-    return format(new Date(date), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    return format(new Date(date), CONFIG.DATE_FORMAT);
   }, []);
 
-  const fetchAnalyticsData = useCallback(
-    async (signal) => {
-      cleanupRequest();
+  const fetchData = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setState((prev) => ({
+        ...prev,
+        error: new Error('Authorization token missing'),
+        loading: false,
+      }));
+      return;
+    }
 
-      if (!isMounted.current) return;
-
-      setChartLoading(true);
-      setError(null);
-
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('Authorization token is missing.');
-
-        const requestBody = {
+    try {
+      lastRequest.current = apiClient.fetch(
+        {
           sites: selectedSiteIds,
           startDate: formatDate(dateRange.startDate),
           endDate: formatDate(dateRange.endDate),
@@ -117,68 +130,64 @@ const useFetchAnalyticsData = ({
           frequency,
           pollutant,
           organisation_name: organisationName,
-        };
+        },
+        token,
+      );
 
-        const request = fetchAnalytics(requestBody, token, signal);
-        activeRequestRef.current = request;
+      const data = await lastRequest.current;
 
-        const data = await request;
-
-        if (isMounted.current) {
-          dataRef.current = data;
-          setAllSiteData(data);
-          setChartLoading(false);
-        }
-      } catch (err) {
-        if (!isMounted.current) return;
-        if (err.name === 'CanceledError' || err.name === 'AbortError') return;
-
-        console.error('Error fetching analytics data:', err);
-        setError(err.message || 'An unexpected error occurred.');
-
-        if (!dataRef.current) {
-          setAllSiteData([]);
-        }
-        setChartLoading(false);
-      } finally {
-        if (!isMounted.current) {
-          cleanupRequest();
-        }
+      if (mountedRef.current) {
+        setState({ data, loading: false, error: null });
       }
-    },
-    [
-      selectedSiteIds,
-      dateRange.startDate,
-      dateRange.endDate,
-      chartType,
-      frequency,
-      pollutant,
-      organisationName,
-      formatDate,
-      cleanupRequest,
-    ],
-  );
+    } catch (error) {
+      if (mountedRef.current && !error.name.includes('Abort')) {
+        setState((prev) => ({
+          ...prev,
+          error: new ApiError(
+            error.message || 'Failed to fetch data',
+            error.status,
+            error,
+          ),
+          loading: false,
+        }));
+      }
+    }
+  }, [
+    selectedSiteIds,
+    dateRange.startDate,
+    dateRange.endDate,
+    chartType,
+    frequency,
+    pollutant,
+    organisationName,
+    formatDate,
+    apiClient,
+  ]);
 
   useEffect(() => {
-    isMounted.current = true;
-    const controller = new AbortController();
-
-    fetchAnalyticsData(controller.signal);
+    mountedRef.current = true;
+    setState((prev) => ({ ...prev, loading: true }));
+    fetchData();
 
     return () => {
-      isMounted.current = false;
-      controller.abort();
-      cleanupRequest();
+      mountedRef.current = false;
+      lastRequest.current = null;
     };
-  }, [fetchAnalyticsData, cleanupRequest, forceRefetch]);
+  }, [fetchData]);
 
   const refetch = useCallback(() => {
-    if (isMounted.current) {
-      setForceRefetch((prev) => prev + 1);
+    if (mountedRef.current) {
+      setState((prev) => ({ ...prev, loading: true }));
+      fetchData();
     }
-  }, []);
+  }, [fetchData]);
 
-  return { allSiteData, chartLoading, error, refetch };
+  return {
+    allSiteData: state.data,
+    chartLoading: state.loading,
+    error: state.error,
+    refetch,
+  };
 };
 
 export default useFetchAnalyticsData;
