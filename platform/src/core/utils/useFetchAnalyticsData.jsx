@@ -7,16 +7,13 @@ const API_TIMEOUT = 30000;
 const RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 2000;
 
-/**
- * Handles API response validation and data extraction
- */
 const handleApiResponse = (response) => {
-  // Development response structure
+  // development response
   if (response?.data?.status === 'success') {
     return response.data.data || [];
   }
 
-  // Production response structure
+  // production response
   if (response?.status === 'success' && Array.isArray(response.data)) {
     return response.data;
   }
@@ -28,9 +25,6 @@ const handleApiResponse = (response) => {
   );
 };
 
-/**
- * Makes API request with timeout protection
- */
 const makeApiRequest = async (requestConfig) => {
   const timeoutPromise = new Promise((_, reject) => {
     setTimeout(() => reject(new Error('Request timeout')), API_TIMEOUT);
@@ -39,9 +33,6 @@ const makeApiRequest = async (requestConfig) => {
   return Promise.race([requestConfig(), timeoutPromise]);
 };
 
-/**
- * Enhanced function to fetch analytics data with retry logic
- */
 const fetchAnalytics = async (requestBody, token, signal, attempt = 1) => {
   const headers = {
     Authorization: `${token}`,
@@ -78,9 +69,6 @@ const fetchAnalytics = async (requestBody, token, signal, attempt = 1) => {
   }
 };
 
-/**
- * Custom hook for fetching analytics data
- */
 const useFetchAnalyticsData = ({
   selectedSiteIds = [],
   dateRange = { startDate: new Date(), endDate: new Date() },
@@ -92,10 +80,17 @@ const useFetchAnalyticsData = ({
   const [allSiteData, setAllSiteData] = useState([]);
   const [chartLoading, setChartLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [refetchId, setRefetchId] = useState(0);
+  const [forceRefetch, setForceRefetch] = useState(0);
 
   const activeRequestRef = useRef(null);
   const dataRef = useRef(allSiteData);
+  const isMounted = useRef(true);
+
+  const cleanupRequest = useCallback(() => {
+    if (activeRequestRef.current) {
+      activeRequestRef.current = null;
+    }
+  }, []);
 
   const formatDate = useCallback((date) => {
     return format(new Date(date), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
@@ -103,6 +98,10 @@ const useFetchAnalyticsData = ({
 
   const fetchAnalyticsData = useCallback(
     async (signal) => {
+      cleanupRequest();
+
+      if (!isMounted.current) return;
+
       setChartLoading(true);
       setError(null);
 
@@ -120,13 +119,18 @@ const useFetchAnalyticsData = ({
           organisation_name: organisationName,
         };
 
-        activeRequestRef.current = fetchAnalytics(requestBody, token, signal);
-        const data = await activeRequestRef.current;
+        const request = fetchAnalytics(requestBody, token, signal);
+        activeRequestRef.current = request;
 
-        dataRef.current = data;
-        setAllSiteData(data);
-        setChartLoading(false);
+        const data = await request;
+
+        if (isMounted.current) {
+          dataRef.current = data;
+          setAllSiteData(data);
+          setChartLoading(false);
+        }
       } catch (err) {
+        if (!isMounted.current) return;
         if (err.name === 'CanceledError' || err.name === 'AbortError') return;
 
         console.error('Error fetching analytics data:', err);
@@ -136,6 +140,10 @@ const useFetchAnalyticsData = ({
           setAllSiteData([]);
         }
         setChartLoading(false);
+      } finally {
+        if (!isMounted.current) {
+          cleanupRequest();
+        }
       }
     },
     [
@@ -147,21 +155,27 @@ const useFetchAnalyticsData = ({
       pollutant,
       organisationName,
       formatDate,
+      cleanupRequest,
     ],
   );
 
   useEffect(() => {
+    isMounted.current = true;
     const controller = new AbortController();
+
     fetchAnalyticsData(controller.signal);
 
     return () => {
+      isMounted.current = false;
       controller.abort();
-      activeRequestRef.current = null;
+      cleanupRequest();
     };
-  }, [fetchAnalyticsData, refetchId]);
+  }, [fetchAnalyticsData, cleanupRequest, forceRefetch]);
 
   const refetch = useCallback(() => {
-    setRefetchId((prev) => prev + 1);
+    if (isMounted.current) {
+      setForceRefetch((prev) => prev + 1);
+    }
   }, []);
 
   return { allSiteData, chartLoading, error, refetch };
