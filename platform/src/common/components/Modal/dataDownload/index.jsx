@@ -57,7 +57,7 @@ const Modal = ({ isOpen, onClose }) => {
 
   return (
     <Transition show={isOpen} as={React.Fragment}>
-      <div className="fixed inset-0 z-50  h-dvh flex items-center justify-center overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
         <TransitionChild
           as={React.Fragment}
           enter="ease-out duration-300"
@@ -81,19 +81,21 @@ const Modal = ({ isOpen, onClose }) => {
           leaveFrom="opacity-100 translate-y-0 sm:scale-100"
           leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
         >
-          <div className="inline-bloc w-[380px] md:w-auto relative align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle lg:min-h-[658px] lg:min-w-[1020px] max-w-[1020px] h-auto ">
-            {/* header */}
-            <div className="flex items-center justify-between py-4 px-5 border-b border-[#E2E3E5]">
+          <div className="w-full max-w-[1020px] max-h-[90vh] bg-white rounded-lg shadow-xl overflow-y-auto transform transition-all mx-2 lg:mx-0">
+            {/* Header */}
+            <div className="flex items-center justify-between py-4 px-5 border-b border-gray-300">
               {renderHeader()}
-              <div>
-                <button type="button" onClick={onClose}>
-                  <Close fill="#000" />
-                  <span className="sr-only">Close Modal</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="focus:outline-none"
+              >
+                <Close fill="#000" />
+                <span className="sr-only">Close Modal</span>
+              </button>
             </div>
-            {/* body */}
-            <div className="flex relative flex-col overflow-y-auto md:overflow-hidden md:flex-row w-full flex-grow">
+            {/* Body */}
+            <div className="relative flex flex-col md:flex-row overflow-y-auto">
               {renderBody()}
             </div>
           </div>

@@ -20,6 +20,7 @@ const CustomDropdown = ({
   trigger = null,
   alignment = 'left',
   customPopperStyle = {},
+  isField,
 }) => {
   const [isOpen, setIsOpen] = useState(openDropdown);
   const [referenceElement, setReferenceElement] = useState(null);
@@ -107,6 +108,7 @@ const CustomDropdown = ({
           dropdown={dropdown}
           Icon={tabIcon}
           id={tabID}
+          isField={isField}
         />
       )}
       <Transition

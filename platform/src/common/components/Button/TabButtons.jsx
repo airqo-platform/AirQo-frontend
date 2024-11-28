@@ -11,6 +11,7 @@ const TabButtons = ({
   onClick,
   id,
   tabRef,
+  isField = true,
 }) => {
   return (
     <button
@@ -27,7 +28,7 @@ const TabButtons = ({
       )}
       {btnText && (
         <span
-          className={`text-sm text-start w-full px-2 font-medium capitalize ${Icon ? 'hidden md:inline-block' : ''}`}
+          className={`text-sm text-start w-full px-2 font-medium capitalize ${Icon && isField ? 'hidden md:inline-block' : ''}`}
         >
           {btnText}
         </span>
@@ -41,6 +42,7 @@ TabButtons.propTypes = {
   type: PropTypes.string,
   Icon: PropTypes.func,
   btnText: PropTypes.string,
+  isField: PropTypes.bool,
   btnStyle: PropTypes.string,
   dropdown: PropTypes.bool,
   onClick: PropTypes.func,

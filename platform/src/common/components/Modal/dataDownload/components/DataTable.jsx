@@ -238,7 +238,7 @@ const DataTable = ({
   }, [filteredData, currentPage, itemsPerPage, selectedSites, onToggleSite]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 mb-24 md:mb-0">
       {/* Header with Filters and Search */}
       <div className="flex justify-between items-center">
         {/* Filter Buttons */}

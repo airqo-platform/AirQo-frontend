@@ -138,28 +138,53 @@ const DataDownload = ({ onClose }) => {
         !formData.duration.name?.end
       ) {
         setFormError(
-          'Please select a valid duration with both start and end dates',
+          'Please select a valid duration with both start and end dates.',
         );
         setDownloadLoading(false);
         return;
       }
 
+      // Parse the start and end dates
+      const startDate = new Date(formData.duration.name.start);
+      const endDate = new Date(formData.duration.name.end);
+
+      // Frequency-based duration limit validation
+      const validateDuration = (frequency, startDate, endDate) => {
+        const sixMonthsInMs = 6 * 30 * 24 * 60 * 60 * 1000; // 6 months in milliseconds
+        const oneYearInMs = 12 * 30 * 24 * 60 * 60 * 1000; // 1 year in milliseconds
+        const durationMs = endDate - startDate;
+
+        if (frequency === 'hourly' && durationMs > sixMonthsInMs) {
+          return 'For hourly frequency, the duration cannot exceed 6 months.';
+        }
+        if (frequency === 'daily' && durationMs > oneYearInMs) {
+          return 'For daily frequency, the duration cannot exceed 1 year.';
+        }
+        return null;
+      };
+
+      const durationError = validateDuration(
+        formData.frequency.name.toLowerCase(),
+        startDate,
+        endDate,
+      );
+
+      if (durationError) {
+        setFormError(durationError);
+        setDownloadLoading(false);
+        return;
+      }
+
       if (selectedSites.length === 0) {
-        setFormError('Please select at least one location');
+        setFormError('Please select at least one location.');
         setDownloadLoading(false);
         return;
       }
 
       // Prepare data for API
       const apiData = {
-        startDateTime: format(
-          new Date(formData.duration.name.start),
-          "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-        ),
-        endDateTime: format(
-          new Date(formData.duration.name.end),
-          "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-        ),
+        startDateTime: format(startDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
+        endDateTime: format(endDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
         sites: selectedSites.map((site) => site._id),
         network: formData.network.name,
         datatype:
@@ -174,39 +199,31 @@ const DataDownload = ({ onClose }) => {
       };
 
       try {
-        // Call the exportDataApi with the prepared data
         const response = await exportDataApi(apiData);
 
-        // Determine the file extension and MIME type
+        // Handle file download
         const fileExtension = formData.fileType.name.toLowerCase();
         const mimeType = getMimeType(fileExtension);
         const fileName = `${formData.title.name}.${fileExtension}`;
 
         if (fileExtension === 'csv') {
-          // Handle CSV: response.data is a CSV string
           if (typeof response.data !== 'string') {
-            throw new Error('Invalid CSV data format');
+            throw new Error('Invalid CSV data format.');
           }
-
           const blob = new Blob([response.data], { type: mimeType });
           saveAs(blob, fileName);
         } else if (fileExtension === 'json') {
-          // Handle JSON: response.data is an object with a 'data' array
           if (!response.data || !Array.isArray(response.data.data)) {
-            throw new Error('Invalid JSON data format');
+            throw new Error('Invalid JSON data format.');
           }
-
           const json = JSON.stringify(response.data.data, null, 2);
           const blob = new Blob([json], { type: mimeType });
           saveAs(blob, fileName);
         } else if (fileExtension === 'pdf') {
-          // Handle PDF: response.data is an object with a 'data' array
           if (!response.data || !Array.isArray(response.data.data)) {
-            throw new Error('Invalid PDF data format');
+            throw new Error('Invalid PDF data format.');
           }
-
           const pdfData = response.data.data;
-
           const doc = new jsPDF();
 
           if (pdfData.length === 0) {
@@ -220,7 +237,6 @@ const DataDownload = ({ onClose }) => {
                   : '---',
               ),
             );
-
             doc.autoTable({
               head: [tableColumn],
               body: tableRows,
@@ -230,10 +246,9 @@ const DataDownload = ({ onClose }) => {
               margin: { top: 20 },
             });
           }
-
           doc.save(fileName);
         } else {
-          throw new Error('Unsupported file type');
+          throw new Error('Unsupported file type.');
         }
 
         // Show success toast
@@ -243,14 +258,13 @@ const DataDownload = ({ onClose }) => {
         handleClearSelection();
         onClose();
       } catch (error) {
-        // Handle any errors during the download process
         console.error('Error downloading data:', error);
         setFormError('An error occurred while downloading. Please try again.');
       } finally {
         setDownloadLoading(false);
       }
     },
-    [formData, selectedSites, NETWORK_OPTIONS, handleClearSelection, onClose],
+    [formData, selectedSites, handleClearSelection, onClose],
   );
 
   /**
