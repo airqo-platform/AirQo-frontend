@@ -1,46 +1,75 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
 import axios from 'axios';
 import { format } from 'date-fns';
 
+const API_TIMEOUT = 30000; // 30 seconds timeout
+const RETRY_ATTEMPTS = 3;
+const RETRY_DELAY = 2000; // 2 seconds between retries
+
 /**
- * Function to fetch analytics data from the API.
+ * Enhanced function to fetch analytics data with retry logic and timeout
  */
-const fetchAnalytics = async (requestBody, token, signal) => {
-  const headers = {
-    Authorization: `${token}`,
-    'Content-Type': 'application/json',
-  };
+const fetchAnalytics = async (requestBody, token, signal, attempt = 1) => {
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => {
+      reject(new Error('Request timeout'));
+    }, API_TIMEOUT);
+  });
 
-  if (process.env.NODE_ENV === 'development') {
-    const response = await axios.post('/api/proxy/analytics', requestBody, {
-      headers,
-      signal, // Axios supports signal for cancellation in recent versions
-    });
+  try {
+    const headers = {
+      Authorization: `${token}`,
+      'Content-Type': 'application/json',
+    };
 
-    if (response.status === 200 && response.data?.status === 'success') {
-      return response.data.data || [];
+    let response;
+    if (process.env.NODE_ENV === 'development') {
+      response = await Promise.race([
+        axios.post('/api/proxy/analytics', requestBody, {
+          headers,
+          signal,
+        }),
+        timeoutPromise,
+      ]);
+
+      if (response.status === 200 && response.data?.status === 'success') {
+        return response.data.data || [];
+      }
     } else {
-      throw new Error(
-        response.data?.message || 'Failed to fetch analytics data.',
-      );
-    }
-  } else {
-    const response = await getAnalyticsData({
-      body: requestBody,
-      signal,
-    });
+      response = await Promise.race([
+        getAnalyticsData({
+          body: requestBody,
+          signal,
+        }),
+        timeoutPromise,
+      ]);
 
-    if (response.status === 'success' && Array.isArray(response.data)) {
-      return response.data;
-    } else {
-      throw new Error(response.message || 'Failed to fetch analytics data.');
+      if (response.status === 'success' && Array.isArray(response.data)) {
+        return response.data;
+      }
     }
+
+    throw new Error(
+      response?.data?.message ||
+        response?.message ||
+        'Failed to fetch analytics data',
+    );
+  } catch (error) {
+    if (
+      attempt < RETRY_ATTEMPTS &&
+      error.name !== 'CanceledError' &&
+      error.name !== 'AbortError'
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+      return fetchAnalytics(requestBody, token, signal, attempt + 1);
+    }
+    throw error;
   }
 };
 
 /**
- * Custom hook to fetch analytics data based on provided parameters.
+ * Enhanced custom hook for fetching analytics data with improved error handling and loading states
  */
 const useFetchAnalyticsData = ({
   selectedSiteIds = [],
@@ -49,15 +78,29 @@ const useFetchAnalyticsData = ({
   frequency = 'daily',
   pollutant = 'pm2_5',
   organisationName = 'airqo',
+  onError = null,
 }) => {
   const [allSiteData, setAllSiteData] = useState([]);
   const [chartLoading, setChartLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refetchId, setRefetchId] = useState(0);
 
+  // Refs for tracking mount state and previous data
+  const isMounted = useRef(true);
+  const prevDataRef = useRef(null);
+  const activeRequestRef = useRef(null);
+
+  // Format date using memoization
+  const formatDate = useCallback((date) => {
+    return format(new Date(date), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+  }, []);
+
   const fetchAnalyticsData = useCallback(
     async (signal) => {
-      setChartLoading(true);
+      // Don't set loading state if we have previous data
+      if (!prevDataRef.current) {
+        setChartLoading(true);
+      }
       setError(null);
 
       try {
@@ -66,28 +109,42 @@ const useFetchAnalyticsData = ({
 
         const requestBody = {
           sites: selectedSiteIds,
-          startDate: format(
-            new Date(dateRange.startDate),
-            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-          ),
-          endDate: format(
-            new Date(dateRange.endDate),
-            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-          ),
+          startDate: formatDate(dateRange.startDate),
+          endDate: formatDate(dateRange.endDate),
           chartType,
           frequency,
           pollutant,
           organisation_name: organisationName,
         };
 
-        const data = await fetchAnalytics(requestBody, token, signal);
-        setAllSiteData(data);
+        // Store the request promise in ref for potential cancellation
+        activeRequestRef.current = fetchAnalytics(requestBody, token, signal);
+        const data = await activeRequestRef.current;
+
+        // Only update state if component is still mounted
+        if (isMounted.current) {
+          setAllSiteData(data);
+          prevDataRef.current = data;
+          setChartLoading(false);
+        }
       } catch (err) {
-        if (err.name === 'CanceledError' || err.name === 'AbortError') return; // Request was cancelled
+        if (!isMounted.current) return;
+        if (err.name === 'CanceledError' || err.name === 'AbortError') return;
+
         console.error('Error fetching analytics data:', err);
-        setError(err.message || 'An unexpected error occurred.');
-        setAllSiteData([]);
-      } finally {
+        const errorMessage = err.message || 'An unexpected error occurred.';
+        setError(errorMessage);
+
+        // Call error callback if provided
+        if (onError) {
+          onError(errorMessage);
+        }
+
+        // Keep previous data on error if available
+        if (!prevDataRef.current) {
+          setAllSiteData([]);
+        }
+
         setChartLoading(false);
       }
     },
@@ -99,27 +156,39 @@ const useFetchAnalyticsData = ({
       frequency,
       pollutant,
       organisationName,
+      formatDate,
+      onError,
     ],
   );
 
   useEffect(() => {
+    isMounted.current = true;
     const controller = new AbortController();
 
     fetchAnalyticsData(controller.signal);
 
     return () => {
+      isMounted.current = false;
       controller.abort();
+      // Clean up active request
+      if (activeRequestRef.current) {
+        activeRequestRef.current = null;
+      }
     };
   }, [fetchAnalyticsData, refetchId]);
 
-  /**
-   * Refetch function to manually trigger data fetching.
-   */
   const refetch = useCallback(() => {
-    setRefetchId((prevId) => prevId + 1);
+    setRefetchId((prev) => prev + 1);
   }, []);
 
-  return { allSiteData, chartLoading, error, refetch };
+  return {
+    allSiteData,
+    chartLoading,
+    error,
+    refetch,
+    isInitialLoading: chartLoading && !prevDataRef.current,
+    isRefetching: chartLoading && Boolean(prevDataRef.current),
+  };
 };
 
 export default useFetchAnalyticsData;
