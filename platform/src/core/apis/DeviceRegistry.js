@@ -60,7 +60,7 @@ export const getRecentMeasurements = async ({
 }) => {
   try {
     const response = await createAxiosInstance(false).get(
-      `${DEVICES}/measurements/recent`,
+      `${DEVICES}/readings/recent`,
       {
         params,
         timeout: timeout,
