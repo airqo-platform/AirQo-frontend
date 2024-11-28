@@ -27,6 +27,7 @@ const AirqloudUptimeChart = () => {
     _id: '',
     long_name: ''
   });
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
   const grids = useSelector((state) => state.analytics.gridsSummary);
   const [editableStartDate, setEditableStartDate] = useState(
     roundToStartOfDay(moment().subtract(1, 'days').toISOString()).toISOString()
@@ -43,11 +44,12 @@ const AirqloudUptimeChart = () => {
   });
 
   useEffect(() => {
+    if (!activeNetwork) return;
+
     if (grids.length > 0) {
       setActiveGrid(grids[0]);
     } else {
       setAirqloudsLoading(true);
-      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
       dispatch(fetchGridsSummary(activeNetwork.net_name)).then(() => {
         setAirqloudsLoading(false);
       });
@@ -224,7 +226,8 @@ const AirqloudUptimeChart = () => {
               variant="contained"
               color="primary"
               style={{ marginTop: '15px' }}
-              onClick={resetAirqloudUptimeChart}>
+              onClick={resetAirqloudUptimeChart}
+            >
               Reset chart
             </Button>
             {errorMsg && (
@@ -233,7 +236,8 @@ const AirqloudUptimeChart = () => {
                 style={{
                   color: 'red',
                   marginTop: '8px'
-                }}>
+                }}
+              >
                 {errorMsg}
               </Typography>
             )}

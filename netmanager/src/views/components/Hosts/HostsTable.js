@@ -10,7 +10,7 @@ import {
 } from '@material-ui/core';
 
 import { useHistory } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import Alert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/styles';
@@ -26,8 +26,6 @@ import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
 import Tooltip from '@material-ui/core/Tooltip';
 import UsersListBreadCrumb from '../../pages/UserList/components/Breadcrumb';
-
-const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
 const customStyles = {
   control: (base, state) => ({
@@ -102,6 +100,7 @@ const useStyles = makeStyles((theme) => ({
 const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdded }) => {
   const dispatch = useDispatch();
   const sitesData = useSitesData();
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
   const [host, setHost] = useState({
     first_name: '',
     last_name: '',
@@ -271,7 +270,8 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
             <IconButton
               onClick={() => removePhoneNumber(index)}
               aria-label="Remove Phone Number"
-              color="primary">
+              color="primary"
+            >
               <RemoveIcon />
             </IconButton>
           )}
@@ -285,7 +285,8 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
       open={addHostDialog}
       onClose={handleCloseDialog}
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description">
+      aria-describedby="form-dialog-description"
+    >
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Add a new host
       </DialogTitle>
@@ -361,7 +362,8 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
             color="primary"
             type="submit"
             onClick={handleAddHost}
-            style={{ margin: '0 15px' }}>
+            style={{ margin: '0 15px' }}
+          >
             Add Host
           </Button>
         </Grid>
@@ -381,7 +383,7 @@ const HostsTable = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [addHostDialog, setAddHostDialog] = useState(false);
   const [refreshData, setRefreshData] = useState(false);
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   const getHosts = async () => {
     try {

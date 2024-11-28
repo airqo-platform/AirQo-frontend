@@ -11,6 +11,7 @@ import BreadCrumb from './breadcrumb';
 import { useDevicesData } from 'redux/DeviceRegistry/selectors';
 import { fetchCohortsSummary } from 'redux/Analytics/operations';
 import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
+import { withPermission } from '../../containers/PageAccess';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -40,25 +41,22 @@ const CohortsRegistry = () => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [deviceOptions, setDeviceOptions] = useState([]);
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
+    if (!activeNetwork) {
+      return;
+    }
     setLoading(true);
-    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
-    dispatch(fetchCohortsSummary(activeNetwork.net_name));
+
+    if (activeNetwork) {
+      dispatch(fetchCohortsSummary(activeNetwork.net_name));
+      dispatch(loadDevicesData(activeNetwork.net_name));
+    }
+
     setTimeout(() => {
       setLoading(false);
     }, 5000);
-  }, []);
-
-  useEffect(() => {
-    setLoading(true);
-    if (!isEmpty(activeNetwork)) {
-      dispatch(loadDevicesData(activeNetwork.net_name));
-    }
-    setTimeout(() => {
-      setLoading(false);
-    }, 3000);
   }, []);
 
   useEffect(() => {
@@ -119,4 +117,4 @@ const CohortsRegistry = () => {
   );
 };
 
-export default CohortsRegistry;
+export default withPermission(CohortsRegistry, 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS');

@@ -28,7 +28,8 @@ const Scale = ({
                 className="control__indicator control__indicator1"
                 data-tip
                 data-for="good"
-                style={{ color: '#29323d' }}>
+                style={{ color: '#29323d' }}
+              >
                 {good}
               </div>
               <ReactTooltip id="good" place="right" effect="solid">
@@ -41,7 +42,8 @@ const Scale = ({
                 className="control__indicator control__indicator2"
                 data-tip
                 data-for="moderate"
-                style={{ color: '#29323d' }}>
+                style={{ color: '#29323d' }}
+              >
                 {moderate}
               </div>
               <ReactTooltip id="moderate" place="right" effect="solid" multiline="true">
@@ -54,7 +56,8 @@ const Scale = ({
                 className="control__indicator control__indicator3"
                 data-tip
                 data-for="UHFSG"
-                style={{ color: '#ffffff' }}>
+                style={{ color: '#ffffff' }}
+              >
                 {UNFSG}
               </div>
               <ReactTooltip id="UHFSG" place="right" effect="solid">
@@ -67,7 +70,8 @@ const Scale = ({
                 className="control__indicator control__indicator4"
                 data-tip
                 data-for="unhealthy"
-                style={{ color: '#ffffff' }}>
+                style={{ color: '#ffffff' }}
+              >
                 {unHealthy}
               </div>
               <ReactTooltip id="unhealthy" place="right" effect="solid">
@@ -79,7 +83,8 @@ const Scale = ({
               <div
                 className="control__indicator control__indicator5"
                 data-tip
-                data-for="veryunhealthy">
+                data-for="veryunhealthy"
+              >
                 {veryUnHealthy}
               </div>
               <ReactTooltip id="veryunhealthy" place="right" effect="solid">
@@ -113,7 +118,8 @@ const Filter = ({ pollutants }) => {
               style={{
                 color: '#3067e2',
                 cursor: 'pointer'
-              }}>
+              }}
+            >
               PM2.5 AQI
             </span>
           }
@@ -134,7 +140,8 @@ const Filter = ({ pollutants }) => {
               style={{
                 color: '#3067e2',
                 cursor: 'pointer'
-              }}>
+              }}
+            >
               PM10 AQI
             </span>
           }

@@ -9,7 +9,7 @@ import { formatDateString } from 'utils/dateTime';
 import CustomMaterialTable from 'views/components/Table/CustomMaterialTable';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { isEmpty } from 'underscore';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { assignUserNetworkApi } from '../../../../apis/accessControl';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { fetchAvailableNetworkUsers } from 'redux/AccessControl/operations';
@@ -41,7 +41,7 @@ const AvailableUsersTable = (props) => {
   const dispatch = useDispatch();
   const [isLoading, setLoading] = useState(false);
   const classes = useStyles();
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   const submitEditUser = (user) => {
     setLoading(true);
@@ -125,7 +125,8 @@ const AvailableUsersTable = (props) => {
                     <Button
                       color="primary"
                       onClick={() => submitEditUser(user)}
-                      disabled={isLoading}>
+                      disabled={isLoading}
+                    >
                       Assign User
                     </Button>
                   </div>

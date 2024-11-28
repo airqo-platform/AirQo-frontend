@@ -258,24 +258,19 @@ const Sidebar = (props) => {
     }
 
     setLoading(true);
-
-    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
     const fetchUserDetails = async () => {
       try {
         const res = await getUserDetails(user._id);
         dispatch(addUserNetworks(res.users[0].networks));
         dispatch(addUserGroupSummary(res.users[0].groups));
         if (!isEmpty(user)) {
-          localStorage.setItem('userNetworks', JSON.stringify(res.users[0].networks));
           const airqoNetwork = res.users[0].networks.find(
             (network) => network.net_name === 'airqo'
           );
 
           if (!activeNetwork) {
-            localStorage.setItem('activeNetwork', JSON.stringify(airqoNetwork));
             dispatch(addActiveNetwork(airqoNetwork));
             dispatch(addCurrentUserRole(airqoNetwork.role));
-            localStorage.setItem('currentUserRole', JSON.stringify(airqoNetwork.role));
           }
         }
       } catch (err) {
@@ -291,7 +286,6 @@ const Sidebar = (props) => {
   useEffect(() => {
     if (!isEmpty(activeNetwork)) {
       dispatch(addCurrentUserRole(activeNetwork.role));
-      localStorage.setItem('currentUserRole', JSON.stringify(activeNetwork.role));
     }
   }, [activeNetwork]);
 

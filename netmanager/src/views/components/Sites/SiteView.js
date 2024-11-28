@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import PropTypes from 'prop-types';
 import { useHistory, useParams } from 'react-router-dom';
@@ -50,7 +50,7 @@ const SiteForm = ({ site }) => {
   const [loading, setLoading] = useState(false);
   const [siteInfo, setSiteInfo] = useState({});
   const [errors, setErrors] = useState({});
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   const handleSiteInfoChange = (event) => {
     const id = event.target.id;
@@ -449,9 +449,10 @@ const SiteView = (props) => {
   const history = useHistory();
   const site = useSiteDetailsData();
   const dispatch = useDispatch();
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
+    if (!activeNetwork) return;
     if (!isEmpty(activeNetwork)) {
       dispatch(loadSiteDetails(params.id, activeNetwork.net_name));
     }

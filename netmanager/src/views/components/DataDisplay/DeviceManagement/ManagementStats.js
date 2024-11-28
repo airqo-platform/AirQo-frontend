@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import moment from 'moment';
 import { isEmpty } from 'underscore';
 import { useDevicesStatusData, useNetworkUptimeData } from 'redux/DeviceManagement/selectors';
@@ -54,7 +54,7 @@ function ManagementStat() {
   const [onlineStatusLoading, setOnlineStatusLoading] = useState(false);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [networkUptimeLoading, setNetworkUptimeLoading] = useState(false);
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   const sortLeaderBoardData = (leaderboardData) => {
     const sortByName = (device1, device2) => {
@@ -217,7 +217,8 @@ function ManagementStat() {
             flexWrap: 'wrap',
             alignItems: 'center',
             justifyContent: 'center'
-          }}>
+          }}
+        >
           <ApexChart
             options={timeSeriesChartOptions({
               stroke: {
@@ -276,7 +277,8 @@ function ManagementStat() {
                           native: true,
                           style: { width: '100%', height: '40px' }
                         }}
-                        variant="outlined">
+                        variant="outlined"
+                      >
                         <option value={'1'}>Last 24 hours</option>
                         <option value={'2'}>Last 2 days</option>
                         <option value={'3'}>Last 3 days</option>
@@ -287,12 +289,14 @@ function ManagementStat() {
                   }
                   open={leaderboardDateMenu}
                   onClose={() => toggleLeaderboardDateMenu(false)}
-                  placement="bottom-end">
+                  placement="bottom-end"
+                >
                   <EditIcon onClick={() => toggleLeaderboardDateMenu(!leaderboardDateMenu)} />
                 </RichTooltip>
               </div>
             }
-            blue>
+            blue
+          >
             <div style={{ overflow: 'auto', height: '100%' }}>
               <div className={`m-device-uptime-row uptime-table-header`}>
                 <span>device name</span>
@@ -311,7 +315,8 @@ function ManagementStat() {
                   <div
                     className={`m-device-uptime-row`}
                     key={`device-${device_name}-${index}`}
-                    onClick={() => history.push(`/device/${device_name}/overview`)}>
+                    onClick={() => history.push(`/device/${device_name}/overview`)}
+                  >
                     <span>{long_name}</span>
                     <span>{(100 - uptime).toFixed(2)}</span>
                     <span className={`${style}`}>{uptime.toFixed(2)}</span>

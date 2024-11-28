@@ -10,7 +10,7 @@ import {
   Paper,
   Typography
 } from '@material-ui/core';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/styles';
 import Alert from '@material-ui/lab/Alert';
 import Select from 'react-select';
@@ -30,8 +30,6 @@ import { useSitesSummaryData, useSitesData } from 'redux/SiteRegistry/selectors'
 import { loadSitesSummary, loadSitesData } from 'redux/SiteRegistry/operations';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import DataTable from './Table';
-
-const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -132,6 +130,7 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
   const [isChanged, setIsChanged] = useState(false);
   const hosts_id = data.map((item) => item._id);
   const [reset, setReset] = useState(false);
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
     if (data) {
@@ -230,7 +229,8 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
       style={{
         margin: '0 auto',
         padding: '20px 20px'
-      }}>
+      }}
+    >
       <Typography
         style={{
           margin: '0 0 20px 0',
@@ -239,7 +239,8 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
           fontWeight: 'bold',
           display: 'flex',
           justifyContent: 'flex-start'
-        }}>
+        }}
+      >
         Hosts Details
       </Typography>
       <form className={classes.modelWidth}>
@@ -367,14 +368,16 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
               setReset(true);
               setIsChanged(false);
             }}
-            style={{ marginRight: '8px' }}>
+            style={{ marginRight: '8px' }}
+          >
             Cancel
           </Button>
           <Button
             variant="contained"
             color="primary"
             disabled={!isChanged}
-            onClick={handleEditHost}>
+            onClick={handleEditHost}
+          >
             Save Changes
           </Button>
         </div>
@@ -476,7 +479,8 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
         open={mobileMoneyDialog}
         onClose={handleCloseDialog}
         aria-labelledby="form-dialog-title"
-        aria-describedby="form-dialog-description">
+        aria-describedby="form-dialog-description"
+      >
         <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
           Send Mobile Money
         </DialogTitle>
@@ -509,7 +513,8 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
               variant="contained"
               color="primary"
               onClick={handleMobileMoneyConfirmation}
-              style={{ margin: '0 15px' }}>
+              style={{ margin: '0 15px' }}
+            >
               Next
             </Button>
           </Grid>
@@ -519,7 +524,8 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
         open={confirmation}
         onClose={handleCloseDialog}
         aria-labelledby="form-dialog-title"
-        aria-describedby="form-dialog-description">
+        aria-describedby="form-dialog-description"
+      >
         <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
           Confirmation
         </DialogTitle>
@@ -533,7 +539,8 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
             {data.map((item) => (
               <div
                 key={item._id}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'left' }}>
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'left' }}
+              >
                 <span className={classes.confirm_field}>
                   <span className={classes.confirm_field_title}>Recipient:</span>
                   {item.first_name} {item.last_name}
@@ -557,7 +564,8 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
               onClick={() => {
                 setConfirmation(false);
                 setMobileMoneyDialog(true);
-              }}>
+              }}
+            >
               Edit
             </Button>
             <Button
@@ -565,7 +573,8 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
               variant="contained"
               color="primary"
               onClick={handleMobileMoney}
-              style={{ margin: '0 15px' }}>
+              style={{ margin: '0 15px' }}
+            >
               Send
             </Button>
           </Grid>
@@ -587,6 +596,7 @@ const HostView = () => {
   const [mobileMoneyDialog, setMobileMoneyDialog] = useState(false);
   const [refreshData, setRefreshData] = useState(false);
   const [transactions, setTransactions] = useState([]);
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   const filteredData = [];
   Object.values(sites).map((site) => {
@@ -653,10 +663,9 @@ const HostView = () => {
   }, [refreshData]);
 
   useEffect(() => {
+    if (!activeNetwork) return;
     if (isEmpty(sites)) {
-      if (!isEmpty(activeNetwork)) {
-        dispatch(loadSitesData(activeNetwork.net_name));
-      }
+      dispatch(loadSitesData(activeNetwork.net_name));
     }
   }, []);
 
@@ -669,7 +678,8 @@ const HostView = () => {
             justifyContent: 'space-between',
             alignItems: 'center',
             marginBottom: 20
-          }}>
+          }}
+        >
           <ArrowBackIosRounded
             style={{ color: '#3f51b5', cursor: 'pointer' }}
             onClick={() => history.push('/hosts')}
@@ -690,7 +700,8 @@ const HostView = () => {
                   })
                 );
               }
-            }}>
+            }}
+          >
             Send Money
           </Button>
         </div>

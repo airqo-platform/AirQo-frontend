@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/styles';
 import {
   Grid,
@@ -214,6 +214,7 @@ const ExportData = (props) => {
   const [frequency, setFrequency] = useState(null);
   const [fileType, setFileType] = useState(null);
   const [outputFormat, setOutputFormat] = useState(null);
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   // Tabs
   const [value, setValue] = useState(0);
@@ -270,19 +271,15 @@ const ExportData = (props) => {
 
   useEffect(() => {
     if (isEmpty(deviceRegistrySites)) {
-      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-      if (!isEmpty(activeNetwork)) {
-        dispatch(loadSitesData(activeNetwork.net_name));
-      }
+      if (!activeNetwork) return;
+      dispatch(loadSitesData(activeNetwork.net_name));
     }
   }, []);
 
   useEffect(() => {
     if (isEmpty(deviceList)) {
-      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-      if (!isEmpty(activeNetwork)) {
-        dispatch(loadDevicesData(activeNetwork.net_name));
-      }
+      if (!activeNetwork) return;
+      dispatch(loadDevicesData(activeNetwork.net_name));
     }
   }, []);
 

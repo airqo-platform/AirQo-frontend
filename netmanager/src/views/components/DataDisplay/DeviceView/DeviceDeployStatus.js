@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import Select from 'react-select';
 import { Button, Grid, Paper, TextField } from '@material-ui/core';
@@ -297,6 +297,7 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
   const [deploymentDate, setDeploymentDate] = useState(getDateString(deviceData.deployment_date));
   const [primaryChecked, setPrimaryChecked] = useState(deviceData.isPrimaryInLocation || false);
   const [isLoading, setIsLoading] = useState(false);
+
   const RecallButton = ({ handleRecall, recallLoading }) => {
     const [selectedRecallType, setSelectedRecallType] = useState('');
     const [selectVisible, setSelectVisible] = useState(false);
@@ -484,7 +485,6 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
 
     await deployDeviceApi(deviceData.name, deployData)
       .then((responseData) => {
-        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
         dispatch(
           updateMainAlert({
             message: responseData.message,

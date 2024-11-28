@@ -137,7 +137,7 @@ const UsersToolbar = (props) => {
 
   const [open, setOpen] = useState(false);
   const orgData = useOrgData();
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   const initialState = {
     firstName: '',
@@ -444,7 +444,8 @@ const UsersToolbar = (props) => {
                   style={{ margin: '0 15px' }}
                   onClick={onSubmit}
                   color="primary"
-                  variant="contained">
+                  variant="contained"
+                >
                   Submit
                 </Button>
               </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import TextField from '@material-ui/core/TextField';
 import Paper from '@material-ui/core/Paper';
 import { Box, Button, Grid } from '@material-ui/core';
@@ -71,6 +71,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
   const [open, setConfirmOpen] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
 
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
+
   useEffect(() => {
     if (deviceData) {
       setEditData({
@@ -119,7 +121,6 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
 
     try {
       const responseData = await updateFunction(deviceData._id, editData);
-      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
       if (!isEmpty(activeNetwork)) {
         dispatch(loadDevicesData(activeNetwork.net_name));
       }
@@ -473,13 +474,12 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
 export default function DeviceEdit({ deviceData }) {
   const dispatch = useDispatch();
   const siteOptions = useSiteOptionsData();
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
+    if (!activeNetwork) return;
     if (isEmpty(siteOptions)) {
-      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-      if (!isEmpty(activeNetwork)) {
-        dispatch(loadSitesData(activeNetwork.net_name));
-      }
+      dispatch(loadSitesData(activeNetwork.net_name));
     }
   }, []);
   return (

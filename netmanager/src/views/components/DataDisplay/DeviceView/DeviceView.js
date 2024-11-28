@@ -17,8 +17,6 @@ import { useInitScrollTop } from 'utils/customHooks';
 import { withPermission } from '../../../containers/PageAccess';
 import { getOrgDevices, updateDeviceDetails } from '../../../../redux/DeviceOverview/OverviewSlice';
 
-const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-
 const DeviceView = () => {
   useInitScrollTop();
   const dispatch = useDispatch();
@@ -26,6 +24,7 @@ const DeviceView = () => {
   const params = useParams();
   const devices = useSelector((state) => state.deviceOverviewData.devices);
   let deviceData = {};
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   const selectedDevice = devices.filter((device) => device.name === params.deviceName);
   selectedDevice.forEach((device) => {
@@ -33,6 +32,7 @@ const DeviceView = () => {
   });
 
   useEffect(() => {
+    if (!activeNetwork) return;
     dispatch(getOrgDevices(activeNetwork.net_name));
     dispatch(updateDeviceDetails(deviceData));
   }, []);

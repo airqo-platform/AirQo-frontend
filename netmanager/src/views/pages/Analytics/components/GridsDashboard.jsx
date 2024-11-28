@@ -3,12 +3,6 @@ import clsx from 'clsx';
 import { Box, Grid, Typography, makeStyles } from '@material-ui/core';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import 'chartjs-plugin-annotation';
-import {
-  AveragesChart,
-  ExceedancesChart,
-  AddChart,
-  PollutantCategory
-} from '../../Dashboard/components';
 import { useUserDefaultGraphsData } from 'redux/Dashboard/selectors';
 import { loadUserDefaultGraphData } from 'redux/Dashboard/operations';
 import D3CustomisableChart from '../../../components/d3/CustomisableChart';
@@ -18,6 +12,10 @@ import { PM_25_CATEGORY } from '../../../../utils/categories';
 import { loadMapEventsData } from 'redux/MapData/operations';
 import { useEventsMapData } from 'redux/MapData/selectors';
 import { formatString } from './AirqloudDropdown';
+import ExceedancesChart from './ExceedancesChart';
+import PollutantCategory from './PollutantCategory';
+import AveragesChart from './AveragesChart';
+import AddChart from './AddChart';
 
 const useStyles = makeStyles((theme) => ({
   chartCard: {},

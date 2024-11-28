@@ -25,12 +25,15 @@ const SitesTable = () => {
   const history = useHistory();
   const dispatch = useDispatch();
   const [sites, setSites] = useState([]);
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
   const [loading, setLoading] = useState(false);
   const [delState, setDelState] = useState({ open: false, name: '', id: '' });
   const refresh = useSelector((state) => state.HorizontalLoader.refresh);
 
   useEffect(() => {
+    if (!activeNetwork) {
+      return;
+    }
     if (!isEmpty(activeNetwork)) {
       setLoading(true);
       getSitesSummaryApi({ network: activeNetwork.net_name })

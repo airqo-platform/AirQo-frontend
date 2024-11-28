@@ -4,7 +4,7 @@ import { makeStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
 import usrsStateConnector from 'views/stateConnectors/usersStateConnector';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import { withPermission } from '../../containers/PageAccess';
 import AvailableUsersTable from './components/UsersTable/AvailableUsersTable';
@@ -24,32 +24,31 @@ const AvailableUserList = (props) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState([]);
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
-    if (!isEmpty(activeNetwork)) {
-      setLoading(true);
-      getAvailableNetworkUsersListApi(activeNetwork._id)
-        .then((res) => {
-          setUsers(res.available_users);
-        })
-        .catch((error) => {
-          let errorMessage = 'An error occurred';
-          if (error.response && error.response.data && error.response.data.message) {
-            errorMessage = error.response.data.message;
-          }
-          dispatch(
-            updateMainAlert({
-              message: errorMessage,
-              show: true,
-              severity: 'error'
-            })
-          );
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }
+    if (!activeNetwork) return;
+    setLoading(true);
+    getAvailableNetworkUsersListApi(activeNetwork._id)
+      .then((res) => {
+        setUsers(res.available_users);
+      })
+      .catch((error) => {
+        let errorMessage = 'An error occurred';
+        if (error.response && error.response.data && error.response.data.message) {
+          errorMessage = error.response.data.message;
+        }
+        dispatch(
+          updateMainAlert({
+            message: errorMessage,
+            show: true,
+            severity: 'error'
+          })
+        );
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   return (

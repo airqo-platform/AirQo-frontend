@@ -7,6 +7,7 @@ export const withPermission = (Component, requiredPermission) => {
     const currentRole = useSelector((state) => state.accessControl.currentRole);
 
     let hasPermission = false;
+
     if (currentRole && currentRole.role_permissions) {
       hasPermission = currentRole.role_permissions.some(
         (permission) => permission.permission === requiredPermission

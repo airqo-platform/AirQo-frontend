@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import CustomMaterialTable from '../../components/Table/CustomMaterialTable';
 import { useHistory } from 'react-router-dom';
 import { isEmpty } from 'validate.js';
+import { useSelector } from 'react-redux';
 
 const GridsTable = ({ gridsList }) => {
   const history = useHistory();
   const [gridsData, setGridsData] = useState([]);
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
     if (!isEmpty(gridsList)) {

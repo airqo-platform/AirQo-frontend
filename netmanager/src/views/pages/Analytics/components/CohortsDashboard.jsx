@@ -5,12 +5,6 @@ import { useDispatch } from 'react-redux';
 import { isEmpty } from 'validate.js';
 import clsx from 'clsx';
 import 'chartjs-plugin-annotation';
-import {
-  AveragesChart,
-  ExceedancesChart,
-  AddChart,
-  PollutantCategory
-} from '../../Dashboard/components';
 import { useUserDefaultGraphsData } from 'redux/Dashboard/selectors';
 import { loadUserDefaultGraphData } from 'redux/Dashboard/operations';
 import D3CustomisableChart from '../../../components/d3/CustomisableChart';
@@ -19,6 +13,10 @@ import { useEventsMapData } from 'redux/MapData/selectors';
 import { PM_25_CATEGORY } from '../../../../utils/categories';
 import { createDeviceOptions } from '..';
 import { formatString } from './AirqloudDropdown';
+import ExceedancesChart from './ExceedancesChart';
+import PollutantCategory from './PollutantCategory';
+import AveragesChart from './AveragesChart';
+import AddChart from './AddChart';
 
 const useStyles = makeStyles((theme) => ({
   chartCard: {},
