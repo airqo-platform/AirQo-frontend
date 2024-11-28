@@ -31,7 +31,7 @@ const Footer = () => {
               width={70}
               height={60}
             />
-            <p className="text-gray-800 mt-4">
+            <p className="text-gray-800 text-[16px] font-semibold mt-4">
               Clean air for all <br /> African Cities.
             </p>
           </div>
