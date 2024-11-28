@@ -215,7 +215,7 @@ SiteCard.propTypes = {
 const AddLocationCard = ({ onOpenModal }) => (
   <button
     onClick={() => onOpenModal('addLocation')}
-    className="border-dashed border-2 border-blue-400 bg-blue-50 rounded-xl px-4 py-6 h-[200px] flex justify-center items-center text-blue-500 transition-transform transform hover:scale-95"
+    className="border-dashed border-2 border-blue-400 bg-blue-50 rounded-xl px-4 py-6 h-[220px] flex justify-center items-center text-blue-500 transition-transform transform hover:scale-95"
     aria-label="Add Location"
   >
     + Add location
