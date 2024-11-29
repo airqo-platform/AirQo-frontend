@@ -55,21 +55,17 @@ const SiteCard = ({ site, onOpenModal, windowWidth, pollutantType }) => {
     return measurements.find((m) => m.site_id === site._id);
   }, [measurements, site._id]);
 
-  // Extract aqi_category from measurement
   const aqiCategory = useMemo(() => {
     return measurement?.aqi_category || 'Unknown';
   }, [measurement]);
 
-  // Map aqi_category to status key for IconMap
   const statusKey = AQI_CATEGORY_MAP[aqiCategory] || 'unknown';
 
-  // Get the air quality text
   const airQualityText =
     aqiCategory === 'Unknown'
       ? 'Air Quality is Unknown'
       : `Air Quality is ${aqiCategory}`;
 
-  // Get the corresponding icon from IconMap
   const AirQualityIcon = IconMap[statusKey];
 
   // Ref and state for detecting text truncation
@@ -84,17 +80,12 @@ const SiteCard = ({ site, onOpenModal, windowWidth, pollutantType }) => {
       }
     };
 
-    // Initial check
     checkTruncation();
-
-    // Re-check on window resize
     window.addEventListener('resize', checkTruncation);
-    return () => {
-      window.removeEventListener('resize', checkTruncation);
-    };
+    return () => window.removeEventListener('resize', checkTruncation);
   }, [site.name, windowWidth]);
 
-  // Determine trend data
+  // Determine trend data with reversed color logic
   const trendData = useMemo(() => {
     const averages = measurement?.averages;
     if (!averages) return null;
@@ -102,10 +93,11 @@ const SiteCard = ({ site, onOpenModal, windowWidth, pollutantType }) => {
     const { percentageDifference } = averages;
     const trendIcon =
       percentageDifference > 0 ? IconMap.trend2 : IconMap.trend1;
+    // Reversed color logic: positive trends are now red, negative are green
     const trendColor =
       percentageDifference > 0
-        ? 'text-green-700 bg-green-100'
-        : 'text-red-700 bg-red-100';
+        ? 'text-red-700 bg-red-100'
+        : 'text-green-700 bg-green-100';
     const trendText =
       percentageDifference > 0
         ? `+${percentageDifference.toFixed(2)}%`
@@ -121,9 +113,30 @@ const SiteCard = ({ site, onOpenModal, windowWidth, pollutantType }) => {
   const siteNameElement = (
     <div
       ref={nameRef}
-      className="text-gray-800 text-lg font-medium capitalize text-left w-full max-w-[150px] md:max-w-full lg:max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap"
+      className="text-gray-800 text-lg font-medium capitalize text-left overflow-hidden text-ellipsis whitespace-nowrap"
     >
       {site.name || '---'}
+    </div>
+  );
+
+  // Trend indicator component
+  const TrendIndicator = ({ trendData }) => (
+    <div
+      className={`shrink-0 pl-1 pr-1 py-1 rounded-xl text-[10px] flex items-center gap-2 ml-2 ${
+        trendData ? trendData.trendColor : 'bg-gray-100 text-gray-500'
+      }`}
+    >
+      {trendData ? (
+        <>
+          <trendData.trendIcon fill="currentColor" />
+          <span>{trendData.trendText}</span>
+        </>
+      ) : (
+        <>
+          <IconMap.trend1 fill="#808080" />
+          <span>{'--'}</span>
+        </>
+      )}
     </div>
   );
 
@@ -133,15 +146,13 @@ const SiteCard = ({ site, onOpenModal, windowWidth, pollutantType }) => {
       onClick={() => onOpenModal('inSights', [], site)}
     >
       <div className="relative w-full flex flex-col justify-between bg-white border border-gray-200 rounded-xl px-4 py-4 h-[220px] shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out cursor-pointer">
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex flex-col">
+        {/* Improved header section with flexible wrapping */}
+        <div className="flex flex-wrap items-start gap-2 mb-3">
+          <div className="flex-1 min-w-0">
             {isTruncated ? (
-              <CustomTooltip
-                tooltipsText={site.name || 'No Location Data'}
-                position="top"
-              >
+              <span title={site.name || 'No Location Data'}>
                 {siteNameElement}
-              </CustomTooltip>
+              </span>
             ) : (
               siteNameElement
             )}
@@ -149,22 +160,7 @@ const SiteCard = ({ site, onOpenModal, windowWidth, pollutantType }) => {
               {site.country || '---'}
             </div>
           </div>
-
-          {/* Trend Section */}
-          {trendData ? (
-            <div
-              className={`pl-1 pr-1 py-1 rounded-xl text-[10px] flex items-center gap-2 ${trendData.trendColor}`}
-              style={{ maxWidth: '70px' }}
-            >
-              <trendData.trendIcon fill="currentColor" />
-              <span>{trendData.trendText}</span>
-            </div>
-          ) : (
-            <div className="pl-1 pr-1 py-1 rounded-xl text-[10px] flex items-center gap-2 bg-gray-100 text-gray-500">
-              <IconMap.trend1 fill="#808080" />
-              <span>{'--'}</span>
-            </div>
-          )}
+          <TrendIndicator trendData={trendData} />
         </div>
 
         <div className="flex justify-between items-center">
