@@ -77,71 +77,79 @@ const index = () => {
   };
 
   const toggleConfirmPasswordVisibility = () => {
-    setConfirmPasswordType(confirmPasswordType === 'password' ? 'text' : 'password');
+    setConfirmPasswordType(
+      confirmPasswordType === 'password' ? 'text' : 'password',
+    );
   };
 
   return (
     <AccountPageLayout
-      pageTitle='AirQo Analytics | Forgot Password'
+      pageTitle="AirQo Analytics | Forgot Password"
       rightText={
         "What you've built here is so much better for air pollution monitoring than anything else on the market!"
-      }>
-      <div className='w-full'>
-        <h2 className='text-3xl text-black-700 font-medium'>Reset Your Password</h2>
-        <p className='text-xl text-black-700 font-normal mt-3'>
-          Please enter your new password below. Make sure it's something secure that you can
-          remember.
+      }
+    >
+      <div className="w-full">
+        <h2 className="text-3xl text-black-700 font-medium">
+          Reset Your Password
+        </h2>
+        <p className="text-xl text-black-700 font-normal mt-3">
+          Please enter your new password below. Make sure it's something secure
+          that you can remember.
         </p>
         <form onSubmit={handlePasswordReset}>
-          <div className='mt-6'>
-            <div className='w-full'>
-              <div className='text-sm text-grey-300'>Password</div>
-              <div className='mt-2 w-full relative'>
+          <div className="mt-6">
+            <div className="w-full">
+              <div className="text-sm text-grey-300">Password</div>
+              <div className="mt-2 w-full relative">
                 <input
                   onChange={(e) => setPassword(e.target.value)}
                   type={passwordType}
-                  placeholder='******'
+                  placeholder="******"
                   className={`input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500`}
                   required
                 />
-                <div className='absolute right-4 top-[25px]  transform -translate-y-1/2 cursor-pointer'>
+                <div className="absolute right-4 top-[25px]  transform -translate-y-1/2 cursor-pointer">
                   <div onClick={togglePasswordVisibility}>
                     {passwordType === 'password' && <VisibilityOffIcon />}
                     {passwordType === 'text' && (
-                      <VisibilityOnIcon className='stroke-1 stroke-svg-green' />
+                      <VisibilityOnIcon className="stroke-1 stroke-svg-green" />
                     )}
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div className='mt-6'>
-            <div className='w-full'>
-              <div className='text-sm text-grey-300'>Confirm Password</div>
-              <div className='mt-2 w-full relative'>
+          <div className="mt-6">
+            <div className="w-full">
+              <div className="text-sm text-grey-300">Confirm Password</div>
+              <div className="mt-2 w-full relative">
                 <input
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   type={confirmPasswordType}
-                  placeholder='******'
+                  placeholder="******"
                   className={`input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500`}
                   required
                 />
-                <div className='absolute right-4 top-[25px]  transform -translate-y-1/2 cursor-pointer'>
+                <div className="absolute right-4 top-[25px]  transform -translate-y-1/2 cursor-pointer">
                   <div onClick={toggleConfirmPasswordVisibility}>
-                    {confirmPasswordType === 'password' && <VisibilityOffIcon />}
+                    {confirmPasswordType === 'password' && (
+                      <VisibilityOffIcon />
+                    )}
                     {confirmPasswordType === 'text' && (
-                      <VisibilityOnIcon className='stroke-1 stroke-svg-green' />
+                      <VisibilityOnIcon className="stroke-1 stroke-svg-green" />
                     )}
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div className='mt-10'>
+          <div className="mt-10">
             <button
               style={{ textTransform: 'none' }}
-              className='w-full btn bg-blue-900 rounded-[12px] text-white text-sm outline-none border-none hover:bg-blue-950'
-              type='submit'>
+              className="w-full btn bg-blue-900 rounded-[12px] text-white text-sm outline-none border-none hover:bg-blue-950"
+              type="submit"
+            >
               {loading ? <Spinner width={25} height={25} /> : 'Reset Password'}
             </button>
           </div>
@@ -149,7 +157,11 @@ const index = () => {
       </div>
 
       {toastMessage.message && (
-        <Toast type={toastMessage.type} timeout={8000} message={toastMessage.message} />
+        <Toast
+          type={toastMessage.type}
+          timeout={8000}
+          message={toastMessage.message}
+        />
       )}
     </AccountPageLayout>
   );

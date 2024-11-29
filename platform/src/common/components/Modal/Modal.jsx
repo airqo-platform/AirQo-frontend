@@ -31,24 +31,24 @@ const Modal = ({
         display ? '' : 'hidden'
       }`}
     >
-      <div className='relative w-full max-w-md max-h-full'>
-        <div className='relative bg-white rounded-lg shadow dark:bg-gray-700'>
+      <div className="relative w-full max-w-md max-h-full">
+        <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
           <button
             onClick={closeModal}
-            type='button'
-            className='absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center justify-center dark:hover:bg-gray-800 dark:hover:text-white'
+            type="button"
+            className="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center justify-center dark:hover:bg-gray-800 dark:hover:text-white"
           >
-            <Close className='w-5 h-5' />
-            <span className='sr-only'>Close Modal</span>
+            <Close className="w-5 h-5" />
+            <span className="sr-only">Close Modal</span>
           </button>
-          <div className='p-6 text-center flex flex-col justify-center items-center'>
-            <h3 className='mb-5 text-lg font-normal text-gray-500 dark:text-gray-400'>
+          <div className="p-6 text-center flex flex-col justify-center items-center">
+            <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
               {description}
             </h3>
-            <div className='flex space-x-3'>
+            <div className="flex space-x-3">
               {confirmButton && (
                 <Button
-                  className='text-sm font-medium capitalize'
+                  className="text-sm font-medium capitalize"
                   variant={loading ? 'disabled' : 'filled'}
                   disabled={loading}
                   onClick={handleClick}
@@ -58,8 +58,8 @@ const Modal = ({
               )}
 
               <Button
-                className='text-sm font-medium capitalize'
-                variant='outlined'
+                className="text-sm font-medium capitalize"
+                variant="outlined"
                 disabled={loading}
                 onClick={closeModal}
               >

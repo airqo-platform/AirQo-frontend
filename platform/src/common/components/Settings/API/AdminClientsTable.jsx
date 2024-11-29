@@ -4,7 +4,10 @@ import CloseIcon from '@/icons/close_icon';
 import CheckIcon from '@/icons/tickIcon';
 import Toast from '@/components/Toast';
 import { useDispatch } from 'react-redux';
-import { getAllUserClientsApi, activateUserClientApi } from '@/core/apis/Settings';
+import {
+  getAllUserClientsApi,
+  activateUserClientApi,
+} from '@/core/apis/Settings';
 import Pagination from '../../Collocation/AddMonitor/Table/Pagination';
 import { useSelector } from 'react-redux';
 import { performRefresh } from '@/lib/store/services/apiClient';
@@ -21,7 +24,8 @@ const AdminClientsTable = () => {
   const [isLoadingActivation, setIsLoadingActivation] = useState(false);
   const [isLoadingDeactivation, setIsLoadingDeactivation] = useState(false);
   const [confirmClientActivation, setConfirmClientActivation] = useState(false);
-  const [confirmClientDeactivation, setConfirmClientDeactivation] = useState(false);
+  const [confirmClientDeactivation, setConfirmClientDeactivation] =
+    useState(false);
   const [isActivated, setIsActivated] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [clients, setClients] = useState([]);
@@ -110,26 +114,44 @@ const AdminClientsTable = () => {
 
   return (
     <div>
-      <div className='overflow-x-scroll'>
-        {isError.isError && <Toast type={isError.type} message={isError.message} />}
+      <div className="overflow-x-scroll">
+        {isError.isError && (
+          <Toast type={isError.type} message={isError.message} />
+        )}
         <table
-          className='border-collapse rounded-lg text-xs text-left w-full mb-6'
-          data-testid='settings-clients-table'>
+          className="border-collapse rounded-lg text-xs text-left w-full mb-6"
+          data-testid="settings-clients-table"
+        >
           <thead>
-            <tr className='text-secondary-neutral-light-500 text-xs border-y border-y-secondary-neutral-light-100 bg-secondary-neutral-light-25'>
-              <th scope='col' className='font-medium w-[200px] px-4 py-3 opacity-40'>
+            <tr className="text-secondary-neutral-light-500 text-xs border-y border-y-secondary-neutral-light-100 bg-secondary-neutral-light-25">
+              <th
+                scope="col"
+                className="font-medium w-[200px] px-4 py-3 opacity-40"
+              >
                 Client name
               </th>
-              <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
+              <th
+                scope="col"
+                className="font-medium w-[138px] px-4 py-3 opacity-40"
+              >
                 Client ID
               </th>
-              <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
+              <th
+                scope="col"
+                className="font-medium w-[138px] px-4 py-3 opacity-40"
+              >
                 IP Address
               </th>
-              <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
+              <th
+                scope="col"
+                className="font-medium w-[138px] px-4 py-3 opacity-40"
+              >
                 Status
               </th>
-              <th scope='col' className='font-medium w-[138px] px-4 py-3 opacity-40'>
+              <th
+                scope="col"
+                className="font-medium w-[138px] px-4 py-3 opacity-40"
+              >
                 Action
               </th>
             </tr>
@@ -141,41 +163,54 @@ const AdminClientsTable = () => {
             <tbody>
               {clients && clients.length > 0 ? (
                 clients
-                  .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                  .slice(
+                    (currentPage - 1) * itemsPerPage,
+                    currentPage * itemsPerPage,
+                  )
                   .map((client, index) => {
                     return (
-                      <tr className={`border-b border-b-secondary-neutral-light-100`} key={index}>
+                      <tr
+                        className={`border-b border-b-secondary-neutral-light-100`}
+                        key={index}
+                      >
                         <td
-                          scope='row'
-                          className='w-[200px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-800 uppercase'>
+                          scope="row"
+                          className="w-[200px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-800 uppercase"
+                        >
                           {client?.name}
                         </td>
                         <td
-                          scope='row'
-                          className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'>
+                          scope="row"
+                          className="w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400"
+                        >
                           {client?._id}
                         </td>
                         <td
-                          scope='row'
-                          className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400'>
+                          scope="row"
+                          className="w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400"
+                        >
                           {displayIPAddresses(client)}
                         </td>
-                        <td scope='row' className='w-[138px] px-4 py-3'>
+                        <td scope="row" className="w-[138px] px-4 py-3">
                           <div
                             className={`px-2 py-[2px] rounded-2xl w-auto inline-flex justify-center text-sm leading-5 items-center mx-auto ${
                               client?.isActive
                                 ? 'bg-success-50 text-success-700'
                                 : 'bg-secondary-neutral-light-50 text-secondary-neutral-light-500'
-                            }`}>
+                            }`}
+                          >
                             {client?.isActive ? 'Activated' : 'Not Activated'}
                           </div>
                         </td>
                         <td
-                          scope='row'
-                          className='w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400 capitalize flex items-center gap-2'>
+                          scope="row"
+                          className="w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400 capitalize flex items-center gap-2"
+                        >
                           <div
                             className={`w-9 h-9 p-2.5 bg-white rounded border border-gray-200 flex justify-center items-center ${
-                              client?.isActive ? 'cursor-not-allowed' : 'cursor-pointer'
+                              client?.isActive
+                                ? 'cursor-not-allowed'
+                                : 'cursor-pointer'
                             }`}
                             onClick={() => {
                               if (client?.isActive) {
@@ -185,13 +220,18 @@ const AdminClientsTable = () => {
                               setSelectedClient(client);
                             }}
                             title={
-                              client?.isActive ? 'Client is already activated' : 'Activate client'
-                            }>
+                              client?.isActive
+                                ? 'Client is already activated'
+                                : 'Activate client'
+                            }
+                          >
                             <CheckIcon />
                           </div>
                           <div
                             className={`w-9 h-9 p-2.5 bg-white rounded border border-gray-200 flex justify-center items-center ${
-                              client?.isActive ? 'cursor-pointer' : 'cursor-not-allowed'
+                              client?.isActive
+                                ? 'cursor-pointer'
+                                : 'cursor-not-allowed'
                             }`}
                             onClick={() => {
                               if (!client?.isActive) {
@@ -204,7 +244,8 @@ const AdminClientsTable = () => {
                               !client?.isActive
                                 ? 'Client is already deactivated'
                                 : 'Deactivate client'
-                            }>
+                            }
+                          >
                             <CloseIcon />
                           </div>
                         </td>
@@ -213,7 +254,7 @@ const AdminClientsTable = () => {
                   })
               ) : (
                 <tr>
-                  <td colSpan='6' className='text-center py-3 text-grey-300'>
+                  <td colSpan="6" className="text-center py-3 text-grey-300">
                     No data found
                   </td>
                 </tr>
@@ -235,22 +276,24 @@ const AdminClientsTable = () => {
         onClose={() => setConfirmClientActivation(false)}
         handleClick={handleActivate}
         primaryButtonText={'Activate'}
-        loading={isLoadingActivation}>
-        <h3 className='self-stretch text-gray-700 text-lg font-medium leading-relaxed'>
+        loading={isLoadingActivation}
+      >
+        <h3 className="self-stretch text-gray-700 text-lg font-medium leading-relaxed">
           Activate client
         </h3>
-        <div className='text-slate-500 text-sm font-normal leading-tight'>{`Are you sure you want to activate ${selectedClient?.name} client?`}</div>
+        <div className="text-slate-500 text-sm font-normal leading-tight">{`Are you sure you want to activate ${selectedClient?.name} client?`}</div>
       </DialogWrapper>
       <DialogWrapper
         open={confirmClientDeactivation}
         onClose={() => setConfirmClientDeactivation(false)}
         handleClick={handleDeactivate}
         primaryButtonText={'Deactivate'}
-        loading={isLoadingDeactivation}>
-        <h3 className='self-stretch text-gray-700 text-lg font-medium leading-relaxed'>
+        loading={isLoadingDeactivation}
+      >
+        <h3 className="self-stretch text-gray-700 text-lg font-medium leading-relaxed">
           Deactivate client
         </h3>
-        <div className='text-slate-500 text-sm font-normal leading-tight'>{`Are you sure you want to deactivate ${selectedClient?.name} client?`}</div>
+        <div className="text-slate-500 text-sm font-normal leading-tight">{`Are you sure you want to deactivate ${selectedClient?.name} client?`}</div>
       </DialogWrapper>
     </div>
   );

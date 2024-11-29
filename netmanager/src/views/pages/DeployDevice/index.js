@@ -35,6 +35,7 @@ import L from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import { DeviceHub, Power, Height, LocationOn, Home } from '@material-ui/icons';
+import { withPermission } from '../../containers/PageAccess';
 
 let DefaultIcon = L.icon({
   iconUrl: icon,
@@ -637,4 +638,4 @@ const DeployDevice = () => {
   );
 };
 
-export default DeployDevice;
+export default withPermission(DeployDevice, 'DEPLOY_AIRQO_DEVICES');

@@ -1,12 +1,9 @@
 import React from 'react';
-import GoodAir from '@/icons/Charts/GoodAir';
-import Hazardous from '@/icons/Charts/Hazardous';
-import Moderate from '@/icons/Charts/Moderate';
-import Unhealthy from '@/icons/Charts/Unhealthy';
-import UnhealthySG from '@/icons/Charts/UnhealthySG';
-import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
+import { pollutantRanges, categoryDetails } from '../constants';
+
 import { useSelector } from 'react-redux';
 import { format } from 'date-fns';
+import PropTypes from 'prop-types';
 
 export const colors = ['#11225A', '#0A46EB', '#297EFF', '#B8D9FF'];
 
@@ -19,43 +16,56 @@ export const truncate = (str) => {
 };
 
 /**
- * @param {Number} value
- * @returns {Object}
- * @description Get air quality level text, icon and color based on the value
- * @returns {Object} { airQualityText, AirQualityIcon, airQualityColor }
+ * @param {Number} value - The pollutant value.
+ * @param {String} pollutionType - The type of pollutant (e.g., 'pm2_5', 'pm10', etc.).
+ * @returns {Object} - { airQualityText, AirQualityIcon, airQualityColor }
+ * @description Get air quality level text, icon, and color based on the value.
  */
-export const getAirQualityLevelText = (value) => {
-  let airQualityText = '';
-  let AirQualityIcon = null;
-  let airQualityColor = '';
-
-  if (value >= 0 && value <= 12) {
-    airQualityText = 'Air Quality is Good';
-    AirQualityIcon = GoodAir;
-    airQualityColor = 'text-green-500';
-  } else if (value > 12 && value <= 35.4) {
-    airQualityText = 'Air Quality is Moderate';
-    AirQualityIcon = Moderate;
-    airQualityColor = 'text-yellow-500';
-  } else if (value > 35.4 && value <= 55.4) {
-    airQualityText = 'Air Quality is Unhealthy for Sensitive Groups';
-    AirQualityIcon = UnhealthySG;
-    airQualityColor = 'text-orange-500';
-  } else if (value > 55.4 && value <= 150.4) {
-    airQualityText = 'Air Quality is Unhealthy';
-    AirQualityIcon = Unhealthy;
-    airQualityColor = 'text-red-500';
-  } else if (value > 150.4 && value <= 250.4) {
-    airQualityText = 'Air Quality is Very Unhealthy';
-    AirQualityIcon = VeryUnhealthy;
-    airQualityColor = 'text-purple-500';
-  } else if (value > 250.4 && value <= 500) {
-    airQualityText = 'Air Quality is Hazardous';
-    AirQualityIcon = Hazardous;
-    airQualityColor = 'text-gray-500';
+export const getAirQualityLevelText = (value, pollutionType) => {
+  // Validate input
+  if (typeof value !== 'number' || isNaN(value) || value < 0) {
+    return {
+      airQualityText: categoryDetails['Invalid'].text,
+      AirQualityIcon: categoryDetails['Invalid'].icon,
+      airQualityColor: categoryDetails['Invalid'].color,
+    };
   }
 
-  return { airQualityText, AirQualityIcon, airQualityColor };
+  // Get ranges for the specified pollution type
+  const ranges = pollutantRanges[pollutionType];
+  if (!ranges) {
+    console.error(`Invalid pollution type: ${pollutionType}`);
+    return {
+      airQualityText: categoryDetails['Invalid'].text,
+      AirQualityIcon: categoryDetails['Invalid'].icon,
+      airQualityColor: categoryDetails['Invalid'].color,
+    };
+  }
+
+  // Correct range logic: Iterate through the ranges
+  for (const range of ranges) {
+    // If the value is greater than or equal to the lower bound and less than the upper bound
+    if (
+      value >= range.limit &&
+      (!ranges[ranges.indexOf(range) - 1] ||
+        value < ranges[ranges.indexOf(range) - 1].limit)
+    ) {
+      const category = range.category;
+      const { text, icon, color } = categoryDetails[category];
+      return {
+        airQualityText: text,
+        AirQualityIcon: icon,
+        airQualityColor: color,
+      };
+    }
+  }
+
+  // Fallback to Invalid
+  return {
+    airQualityText: categoryDetails['Invalid'].text,
+    AirQualityIcon: categoryDetails['Invalid'].icon,
+    airQualityColor: categoryDetails['Invalid'].color,
+  };
 };
 
 /**
@@ -63,160 +73,75 @@ export const getAirQualityLevelText = (value) => {
  * @returns {JSX.Element}
  * @description Custom tooltip component for line graph
  */
-export const CustomTooltipLineGraph = ({ active, payload, activeIndex }) => {
-  const chartData = useSelector((state) => state.chart);
-  const { timeFrame } = chartData;
-
-  const formatDate = (value) => {
-    const date = new Date(value);
-    switch (timeFrame) {
-      case 'hourly':
-        return format(date, 'MMMM dd, yyyy, hh:mm a');
-      default:
-        return format(date, 'MMMM dd, yyyy');
-    }
-  };
-
+const CustomGraphTooltip = ({
+  active,
+  payload,
+  activeIndex,
+  pollutionType,
+}) => {
   if (active && payload && payload.length) {
-    const hoveredPoint = payload[0];
-    const otherPoints = payload.slice(1);
+    const hoveredPoint = payload[activeIndex] || payload[0];
+    const { value, payload: pointPayload } = hoveredPoint;
+    const time = pointPayload?.time;
 
-    const { airQualityText, AirQualityIcon, airQualityColor } = getAirQualityLevelText(
-      hoveredPoint.value,
-    );
+    // Format the date
+    const formatDate = (value) => {
+      const date = new Date(value);
+      return format(date, 'MMMM dd, yyyy');
+    };
+
+    // Get air quality details
+    const { airQualityText, AirQualityIcon, airQualityColor } =
+      getAirQualityLevelText(value, pollutionType);
 
     return (
-      <div className='bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none'>
-        <div className='flex flex-col space-y-1'>
-          <div className='flex flex-col items-start justify-between w-full h-auto p-2'>
-            <span className='text-sm text-gray-300'>{formatDate(hoveredPoint.payload.time)}</span>
-            <div className='flex justify-between w-full mb-1 mt-2'>
-              <div className='flex items-center text-xs font-medium leading-[14px] text-gray-600'>
-                <div
-                  className={`w-[10px] h-[10px] rounded-xl mr-2 ${
-                    activeIndex === 0 ? 'bg-blue-700' : 'bg-gray-400'
-                  }`}></div>
-                {truncate(hoveredPoint.name)}
-              </div>
-              <div className='text-xs font-medium leading-[14px] text-gray-600'>
-                {reduceDecimalPlaces(hoveredPoint.value) + ' μg/m3'}
-              </div>
-            </div>
-            <div className='flex justify-between items-center w-full'>
-              <div className={`${airQualityColor} text-xs font-medium leading-[14px] `}>
-                {airQualityText}
-              </div>
-              <AirQualityIcon width={30} height={30} />
-            </div>
-          </div>
-          {otherPoints.length > 0 && (
-            <>
-              <div className='w-full h-[2px] bg-transparent my-1 border-t border-dotted border-gray-300' />
-              <div className='p-2 space-y-1'>
-                {otherPoints.map((point, index) => (
+      <div className="bg-white border border-gray-200 rounded-lg shadow-md w-80 p-3">
+        {/* Date Section */}
+        <div className="text-gray-400 text-sm mb-2">{formatDate(time)}</div>
+
+        {/* Location Details */}
+        <div className="space-y-2">
+          {payload.map((point, index) => {
+            const isHovered = index === activeIndex;
+            return (
+              <div
+                key={index}
+                className={`flex justify-between items-center p-2 rounded-md ${
+                  isHovered ? 'bg-gray-100' : ''
+                }`}
+              >
+                <div className="flex items-center">
                   <div
-                    key={index}
-                    className={`flex justify-between w-full mb-1 ${
-                      activeIndex === index + 1 ? 'text-black' : 'text-gray-400'
-                    }`}>
-                    <div className='flex items-center text-xs font-medium leading-[14px] text-black'>
-                      <div
-                        className={`w-[10px] h-[10px] rounded-xl mr-2 ${
-                          activeIndex === index + 1 ? 'bg-blue-700' : 'bg-gray-400'
-                        }`}></div>
-                      {truncate(point.name)}
-                    </div>
-                    <div className='text-xs font-medium leading-[14px]'>
-                      {reduceDecimalPlaces(point.value) + ' μg/m3'}
-                    </div>
-                  </div>
-                ))}
+                    className={`w-2.5 h-2.5 rounded-full mr-3 ${
+                      isHovered ? 'bg-blue-600' : 'bg-gray-400'
+                    }`}
+                  ></div>
+                  <span
+                    className={`text-sm font-medium ${
+                      isHovered ? 'text-blue-600' : 'text-gray-600'
+                    }`}
+                  >
+                    {truncate(point.name)}
+                  </span>
+                </div>
+                <span
+                  className={`text-sm ${
+                    isHovered ? 'text-blue-600 font-medium' : 'text-gray-500'
+                  }`}
+                >
+                  {reduceDecimalPlaces(point.value)} μg/m³
+                </span>
               </div>
-            </>
-          )}
+            );
+          })}
         </div>
-      </div>
-    );
-  }
-  return null;
-};
 
-/**
- * @param {Object} props
- * @returns {JSX.Element}
- * @description Custom tooltip component for bar graph
- */
-export const CustomTooltipBarGraph = ({ active, payload, activeIndex }) => {
-  const chartData = useSelector((state) => state.chart);
-  const { timeFrame } = chartData;
-
-  const formatDate = (value) => {
-    const date = new Date(value);
-    switch (timeFrame) {
-      case 'hourly':
-        return format(date, 'MMMM dd, yyyy, hh:mm a');
-      default:
-        return format(date, 'MMMM dd, yyyy');
-    }
-  };
-
-  if (active && payload && payload.length) {
-    const hoveredPoint = payload[0];
-    const otherPoints = payload.slice(1);
-
-    const { airQualityText, AirQualityIcon, airQualityColor } = getAirQualityLevelText(
-      hoveredPoint.value,
-    );
-
-    return (
-      <div className='bg-white border border-gray-200 rounded-md shadow-lg w-72 outline-none'>
-        <div className='flex flex-col space-y-1'>
-          <div className='flex flex-col items-start justify-between w-full h-auto p-2'>
-            <span className='text-sm text-gray-300'>{formatDate(hoveredPoint.payload.time)}</span>
-            <div className='flex justify-between w-full mb-1 mt-2'>
-              <div className='flex items-center text-xs font-medium leading-[14px] text-gray-600'>
-                <div
-                  className={`w-[10px] h-[10px] rounded-xl mr-2 ${
-                    activeIndex === 0 ? 'bg-blue-700' : 'bg-gray-400'
-                  }`}></div>
-                {truncate(hoveredPoint.name)}
-              </div>
-              <div className='text-xs font-medium leading-[14px] text-gray-600'>
-                {reduceDecimalPlaces(hoveredPoint.value) + ' μg/m3'}
-              </div>
-            </div>
-            <div className='flex justify-between items-center w-full'>
-              <div className={`${airQualityColor} text-xs font-medium leading-[14px] `}>
-                {airQualityText}
-              </div>
-              <AirQualityIcon width={30} height={30} />
-            </div>
+        {/* Air Quality Details */}
+        <div className="flex justify-between items-center mt-4 p-2 border-t border-gray-300 pt-3">
+          <div className={`text-sm font-medium ${airQualityColor}`}>
+            {airQualityText}
           </div>
-          {otherPoints.length > 0 && (
-            <>
-              <div className='w-full h-[2px] bg-transparent my-1 border-t border-dotted border-gray-300' />
-              <div className='p-2 space-y-1'>
-                {otherPoints.map((point, index) => (
-                  <div
-                    key={index}
-                    className={`flex justify-between w-full mb-1 ${
-                      activeIndex === index + 1 ? 'text-black' : 'text-gray-400'
-                    }`}>
-                    <div className='flex items-center text-xs font-medium leading-[14px] text-black'>
-                      <div
-                        className={`w-[10px] h-[10px] rounded-xl mr-2 ${
-                          activeIndex === index + 1 ? 'bg-blue-700' : 'bg-gray-400'
-                        }`}></div>
-                      {truncate(point.name)}
-                    </div>
-                    <div className='text-xs font-medium leading-[14px]'>
-                      {reduceDecimalPlaces(point.value) + ' μg/m3'}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
+          {AirQualityIcon && <AirQualityIcon width={24} height={24} />}
         </div>
       </div>
     );
@@ -229,7 +154,7 @@ export const CustomTooltipBarGraph = ({ active, payload, activeIndex }) => {
  * @returns {JSX.Element}
  * @description Custom axis tick component for line chart
  */
-export const CustomizedAxisTick = ({ x, y, payload }) => {
+const CustomizedAxisTick = ({ x, y, payload, fill }) => {
   const chartData = useSelector((state) => state.chart);
   const { timeFrame } = chartData;
 
@@ -254,7 +179,14 @@ export const CustomizedAxisTick = ({ x, y, payload }) => {
 
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={16} textAnchor='middle' fill='#666' fontSize={12}>
+      <text
+        x={0}
+        y={0}
+        dy={16}
+        textAnchor="middle"
+        fill={fill || '#485972'}
+        fontSize={12}
+      >
         {formatDate(payload.value)}
       </text>
     </g>
@@ -266,7 +198,7 @@ export const CustomizedAxisTick = ({ x, y, payload }) => {
  * @returns {JSX.Element}
  * @description Custom dot component for line chart
  */
-export const CustomDot = (props) => {
+const CustomDot = (props) => {
   const { cx, cy, fill, payload } = props;
 
   if (!payload.active) {
@@ -280,36 +212,56 @@ export const CustomDot = (props) => {
  * Customized legend component
  * @param {Object} props
  */
-export const renderCustomizedLegend = (props) => {
-  const { payload } = props;
+const renderCustomizedLegend = ({ payload }) => {
+  // Determine if truncation is needed based on the number of locations
+  const shouldTruncate = payload.length > 3;
 
   // Sort the payload array from darkest to lightest color
-  const sortedPayload = payload.sort((a, b) => {
-    const colorToGrayscale = (color) => {
-      if (color) {
-        const hex = color.replace('#', '');
-        const r = parseInt(hex.slice(0, 2), 16);
-        const g = parseInt(hex.slice(2, 4), 16);
-        const b = parseInt(hex.slice(4, 6), 16);
-        return 0.2126 * r + 0.7152 * g + 0.0722 * b; // ITU-R BT.709 formula
-      }
-      return 0;
-    };
-    return colorToGrayscale(a.color) - colorToGrayscale(b.color);
-  });
+  const sortedPayload = React.useMemo(() => {
+    return [...payload].sort((a, b) => {
+      const colorToGrayscale = (color) => {
+        if (color) {
+          const hex = color.replace('#', '');
+          const r = parseInt(hex.slice(0, 2), 16);
+          const g = parseInt(hex.slice(2, 4), 16);
+          const b = parseInt(hex.slice(4, 6), 16);
+          return 0.2126 * r + 0.7152 * g + 0.0722 * b; // ITU-R BT.709 formula
+        }
+        return 0;
+      };
+      return colorToGrayscale(a.color) - colorToGrayscale(b.color);
+    });
+  }, [payload]);
 
   return (
-    <div className='p-2 flex flex-wrap md:space-x-3 justify-start md:justify-end items-center w-full'>
+    <div className="relative flex flex-wrap justify-end gap-2 w-full p-2">
       {sortedPayload.map((entry, index) => (
         <div
           key={index}
-          style={{ color: '#485972' }}
-          className='tooltip tooltip-top flex items-center text-sm outline-none'
-          data-tip={entry.value}>
+          className="flex items-center gap-1 text-xs text-gray-700 whitespace-nowrap relative"
+        >
           <span
-            className='w-[10px] h-[10px] rounded-xl mr-1 ml-1 outline-none'
-            style={{ backgroundColor: entry.color }}></span>
-          {truncate(entry.value)}
+            className="w-2 h-2 rounded-full"
+            style={{ backgroundColor: entry.color }}
+          ></span>
+
+          {/* Only truncate and add tooltip if shouldTruncate is true */}
+          <span
+            className={`${shouldTruncate ? 'truncate max-w-[100px] group' : ''}`}
+            title={shouldTruncate ? entry.value : null}
+          >
+            {entry.value}
+          </span>
+
+          {/* Tooltip appears only if truncation is applied */}
+          {shouldTruncate && (
+            <div className="absolute bottom-full mb-1 hidden group-hover:flex flex-col items-center">
+              <span className="text-xs text-white bg-gray-700 px-2 py-1 rounded-md shadow-md">
+                {entry.value}
+              </span>
+              <span className="w-2 h-2 bg-gray-700 rotate-45 transform -translate-y-1/2"></span>
+            </div>
+          )}
         </div>
       ))}
     </div>
@@ -320,7 +272,7 @@ export const renderCustomizedLegend = (props) => {
  * Customized label component for ReferenceLine
  * @param {Object} props
  */
-export const CustomReferenceLabel = (props) => {
+const CustomReferenceLabel = (props) => {
   const { viewBox } = props;
   const x = viewBox.width + viewBox.x - 10;
   const y = viewBox.y + 3;
@@ -329,9 +281,10 @@ export const CustomReferenceLabel = (props) => {
     <g>
       <foreignObject x={x - 30} y={y - 14} width={40} height={25}>
         <div
-          xmlns='http://www.w3.org/1999/xhtml'
+          xmlns="http://www.w3.org/1999/xhtml"
           style={{ backgroundColor: 'red' }}
-          className='rounded-md py-[4px] px-[6px] flex justify-center text-center text-white text-[12px] font-semibold leading-[11px]'>
+          className="rounded-[2px] py-[4px] px-[6px] flex justify-center text-center text-white text-[14px] tracking-[0.16px] font-normal leading-[16px]"
+        >
           WHO
         </div>
       </foreignObject>
@@ -343,17 +296,67 @@ export const CustomReferenceLabel = (props) => {
  * Customized bar component for bar chart
  * @param {Object} props
  */
-export const CustomBar = (props) => {
+const CustomBar = (props) => {
   const { fill, x, y, width, height } = props;
 
   return (
     <g>
       <foreignObject x={x} y={y} width={width} height={height}>
         <div
-          xmlns='http://www.w3.org/1999/xhtml'
-          style={{ backgroundColor: fill, width: '100%', height: '100%', borderRadius: '5px' }}
+          xmlns="http://www.w3.org/1999/xhtml"
+          style={{
+            backgroundColor: fill,
+            width: '100%',
+            height: '100%',
+            borderRadius: '5px',
+          }}
         />
       </foreignObject>
     </g>
   );
+};
+
+export {
+  CustomBar,
+  CustomReferenceLabel,
+  renderCustomizedLegend,
+  CustomDot,
+  CustomizedAxisTick,
+  CustomGraphTooltip,
+};
+
+CustomGraphTooltip.propTypes = {
+  active: PropTypes.bool,
+  payload: PropTypes.array,
+  activeIndex: PropTypes.number,
+};
+
+CustomizedAxisTick.propTypes = {
+  x: PropTypes.number,
+  y: PropTypes.number,
+  payload: PropTypes.object,
+  fill: PropTypes.string,
+};
+
+CustomDot.propTypes = {
+  cx: PropTypes.number,
+  cy: PropTypes.number,
+  fill: PropTypes.string,
+  payload: PropTypes.object,
+};
+
+CustomBar.propTypes = {
+  fill: PropTypes.string,
+  x: PropTypes.number,
+  y: PropTypes.number,
+  width: PropTypes.number,
+  height: PropTypes.number,
+};
+
+CustomReferenceLabel.propTypes = {
+  viewBox: PropTypes.object,
+};
+
+renderCustomizedLegend.propTypes = {
+  payload: PropTypes.array,
 };

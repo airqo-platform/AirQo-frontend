@@ -18,23 +18,25 @@ import { useGetCollocationResultsMutation } from '@/lib/store/services/collocati
 const CustomLegend = () => {
   '#8884d8', '#82ca9d';
   return (
-    <div className='flex items-center justify-end mt-4 mb-3 mr-7'>
-      <div className='flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md mr-2'>
-        <hr className='w-4 h-[2px] border border-purple-550 mr-2' />
-        <span className='text-xs text-grey-300'>Sensor 01</span>
+    <div className="flex items-center justify-end mt-4 mb-3 mr-7">
+      <div className="flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md mr-2">
+        <hr className="w-4 h-[2px] border border-purple-550 mr-2" />
+        <span className="text-xs text-grey-300">Sensor 01</span>
       </div>
-      <div className='flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md'>
-        <hr className='w-4 h-[2px] border border-purple-550 border-dashed mr-2' />
-        <span className='text-xs text-grey-300'>Sensor 02</span>
+      <div className="flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md">
+        <hr className="w-4 h-[2px] border border-purple-550 border-dashed mr-2" />
+        <span className="text-xs text-grey-300">Sensor 02</span>
       </div>
-      <span className='uppercase mx-2 text-[10px] text-grey-800'>Compared to</span>
-      <div className='flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md mr-2'>
-        <hr className='w-4 h-[2px] border border-purple-400 mr-2' />
-        <span className='text-xs text-grey-300'>Sensor 01</span>
+      <span className="uppercase mx-2 text-[10px] text-grey-800">
+        Compared to
+      </span>
+      <div className="flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md mr-2">
+        <hr className="w-4 h-[2px] border border-purple-400 mr-2" />
+        <span className="text-xs text-grey-300">Sensor 01</span>
       </div>
-      <div className='flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md'>
-        <hr className='w-4 h-[2px] border border-purple-400 border-dashed mr-2' />
-        <span className='text-xs text-grey-300'>Sensor 02</span>
+      <div className="flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md">
+        <hr className="w-4 h-[2px] border border-purple-400 border-dashed mr-2" />
+        <span className="text-xs text-grey-300">Sensor 02</span>
       </div>
     </div>
   );
@@ -62,7 +64,9 @@ const InterCorrelationChart = ({
 
   useEffect(() => {
     if (!activeSelectedDeviceCollocationReportData) {
-      dispatch(addActiveSelectedDeviceCollocationReportData(collocationResults));
+      dispatch(
+        addActiveSelectedDeviceCollocationReportData(collocationResults),
+      );
     }
   }, [activeSelectedDeviceCollocationReportData, collocationResults]);
 
@@ -78,7 +82,9 @@ const InterCorrelationChart = ({
   const handleSelect = async (newDevice, newStartDate, newEndDate) => {
     let startDate = moment(newStartDate).format('YYYY-MM-DD');
     let endDate = moment(newEndDate).format('YYYY-MM-DD');
-    dispatch(addActiveSelectedDeviceReport({ device: newDevice, startDate, endDate }));
+    dispatch(
+      addActiveSelectedDeviceReport({ device: newDevice, startDate, endDate }),
+    );
 
     const response = await getCollocationResultsData({
       devices: newDevice,
@@ -107,39 +113,45 @@ const InterCorrelationChart = ({
   return (
     <Box
       isBigTitle
-      title='Inter Sensor Correlation'
-      subtitle='Detailed comparison of data between two sensors that are located within the same device. By comparing data from sensors to create a more accurate and reliable reading.'
-      contentLink='#'
+      title="Inter Sensor Correlation"
+      subtitle="Detailed comparison of data between two sensors that are located within the same device. By comparing data from sensors to create a more accurate and reliable reading."
+      contentLink="#"
     >
       {isLoading ? (
-        <div data-testid='correlation-data-loader'>
+        <div data-testid="correlation-data-loader">
           <Spinner />
         </div>
       ) : (
-        <div className='flex flex-col justify-start w-full'>
-          <div className='flex justify-between'>
-            <div className='relative'>
+        <div className="flex flex-col justify-start w-full">
+          <div className="flex justify-between">
+            <div className="relative">
               <Button
-                className='relative w-auto h-10 bg-purple-600 rounded-lg text-base font-semibold text-purple-700 ml-6'
+                className="relative w-auto h-10 bg-purple-600 rounded-lg text-base font-semibold text-purple-700 ml-6"
                 onClick={() => setIsOpen(!isOpen)}
               >
-                <span className='uppercase'>
-                  {activeSelectedDeviceReport && activeSelectedDeviceReport.device}
+                <span className="uppercase">
+                  {activeSelectedDeviceReport &&
+                    activeSelectedDeviceReport.device}
                 </span>
-                <span className='ml-2 text-purple-700'>
-                  <ArrowDropDownIcon fillColor='#584CAB' />
+                <span className="ml-2 text-purple-700">
+                  <ArrowDropDownIcon fillColor="#584CAB" />
                 </span>
               </Button>
               {isOpen && (
-                <ul className='absolute z-30 bg-white mt-1 ml-6 py-1 w-36 rounded border border-gray-200 max-h-60 overflow-y-auto text-sm'>
+                <ul className="absolute z-30 bg-white mt-1 ml-6 py-1 w-36 rounded border border-gray-200 max-h-60 overflow-y-auto text-sm">
                   {deviceList.map((device, index) => (
                     <>
-                      {activeSelectedDeviceReport.device !== device.device_name && (
+                      {activeSelectedDeviceReport.device !==
+                        device.device_name && (
                         <li
                           key={index}
-                          className='px-4 py-2 hover:bg-gray-200 cursor-pointer text-xs uppercase'
+                          className="px-4 py-2 hover:bg-gray-200 cursor-pointer text-xs uppercase"
                           onClick={() =>
-                            handleSelect(device.device_name, device.start_date, device.end_date)
+                            handleSelect(
+                              device.device_name,
+                              device.start_date,
+                              device.end_date,
+                            )
                           }
                         >
                           {device.device_name}
@@ -152,25 +164,28 @@ const InterCorrelationChart = ({
             </div>
             {correlationDevices.length == 2 ? (
               <div>
-                <Button className='max-w-[115px] h-10 bg-purple-600 rounded-lg text-base font-semibold text-purple-700 ml-6 mb-6'>
-                  <span className='text-base'>{deviceName}</span>
-                  <span className='ml-2 text-purple-700'>
-                    <ArrowDropDownIcon fillColor='#584CAB' />
+                <Button className="max-w-[115px] h-10 bg-purple-600 rounded-lg text-base font-semibold text-purple-700 ml-6 mb-6">
+                  <span className="text-base">{deviceName}</span>
+                  <span className="ml-2 text-purple-700">
+                    <ArrowDropDownIcon fillColor="#584CAB" />
                   </span>
                 </Button>
               </div>
             ) : (
-              <div className='flex flex-col-reverse md:flex-row items-center mr-6 mb-6'>
-                <span className='text-sm text-black-600 opacity-70 max-w-[96px] md:max-w-full'>
+              <div className="flex flex-col-reverse md:flex-row items-center mr-6 mb-6">
+                <span className="text-sm text-black-600 opacity-70 max-w-[96px] md:max-w-full">
                   Select a monitor to compare with{' '}
-                  <span className='uppercase'>
-                    {activeSelectedDeviceReport && activeSelectedDeviceReport.device}
+                  <span className="uppercase">
+                    {activeSelectedDeviceReport &&
+                      activeSelectedDeviceReport.device}
                   </span>
                 </span>
-                <Button className='w-auto h-10 bg-blue-200 rounded-lg text-base font-semibold text-purple-700 ml-2'>
-                  <span className='text-blue-300 text-base'>Select Monitor</span>
-                  <span className='ml-2 text-purple-700'>
-                    <ArrowDropDownIcon fillColor='#584CAB' />
+                <Button className="w-auto h-10 bg-blue-200 rounded-lg text-base font-semibold text-purple-700 ml-2">
+                  <span className="text-blue-300 text-base">
+                    Select Monitor
+                  </span>
+                  <span className="ml-2 text-purple-700">
+                    <ArrowDropDownIcon fillColor="#584CAB" />
                   </span>
                 </Button>
               </div>
@@ -191,7 +206,7 @@ const InterCorrelationChart = ({
               isInterSensorCorrelation
             />
           ) : (
-            <div className='text-center text-grey-300'>No data available</div>
+            <div className="text-center text-grey-300">No data available</div>
           )}
           {/* <CustomLegend /> */}
         </div>

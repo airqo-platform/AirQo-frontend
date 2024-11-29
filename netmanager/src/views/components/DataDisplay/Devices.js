@@ -808,7 +808,7 @@ const DevicesTable = (props) => {
       setLoading(false);
     }, 3000);
     dispatch(setRefresh(false));
-  }, [devices, refresh]);
+  }, [refresh]);
 
   const handleDeleteDevice = async () => {
     if (delDevice.name) {

@@ -38,43 +38,49 @@ const AlertBox = ({ message, type, show, hide }) => {
 
   return (
     <div
-      data-testid='alert-box'
+      data-testid="alert-box"
       className={`flex items-center p-4 mb-4 text-sm text-${color}-800 border border-${color}-300 rounded-lg bg-${color}-50 dark:bg-gray-800 dark:text-${color}-400 dark:border-${color}-800`}
-      role='alert'>
+      role="alert"
+    >
       <svg
-        width='22'
-        height='22'
-        viewBox='0 0 22 22'
-        fill='none'
-        xmlns='http://www.w3.org/2000/svg'>
+        width="22"
+        height="22"
+        viewBox="0 0 22 22"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
         <path
           d={icon}
           stroke={color}
-          strokeWidth='1.5'
-          strokeLinecap='round'
-          strokeLinejoin='round'
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
-      <span className='sr-only'>{type.charAt(0).toUpperCase() + type.slice(1)} alert: </span>
-      <div className='pl-2'>{message}</div>
+      <span className="sr-only">
+        {type.charAt(0).toUpperCase() + type.slice(1)} alert:{' '}
+      </span>
+      <div className="pl-2">{message}</div>
       <button
         onClick={() => {
           setIsVisible(false);
           hide();
         }}
-        className='ml-auto'>
+        className="ml-auto"
+      >
         <svg
-          width='12'
-          height='12'
-          viewBox='0 0 12 12'
-          fill='none'
-          xmlns='http://www.w3.org/2000/svg'>
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <path
-            d='M11 1L1 11M1 1L11 11'
+            d="M11 1L1 11M1 1L11 11"
             stroke={color}
-            strokeWidth='1.5'
-            strokeLinecap='round'
-            strokeLinejoin='round'
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </svg>
       </button>

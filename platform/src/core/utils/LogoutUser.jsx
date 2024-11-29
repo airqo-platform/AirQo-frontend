@@ -1,14 +1,27 @@
-import { clearIndividualPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { resetStore } from '@/lib/store/services/account/LoginSlice';
-import { resetChartStore } from '@/lib/store/services/charts/ChartSlice';
 
-// Define a new function for logging out
-const LogoutUser = (dispatch, router) => {
-  localStorage.clear();
-  dispatch(resetStore());
-  dispatch(resetChartStore());
-  dispatch(clearIndividualPreferences());
-  router.push('/account/login');
+const LogoutUser = async (dispatch, router) => {
+  try {
+    // Dispatch the RESET_APP action to clear the Redux store
+    dispatch(resetStore());
+
+    // Clear local storage to remove any persisted user data
+    if (typeof window !== 'undefined') {
+      localStorage.clear();
+    }
+
+    // Purge the persisted Redux state to reset the application state
+    const store = router.store || window.__NEXT_REDUX_STORE__;
+    if (store?.__persistor) {
+      await store.__persistor.purge();
+    }
+
+    // Redirect to the login page
+    await router.push('/account/login');
+  } catch (error) {
+    console.error('Logout failed:', error);
+    // Optional: Show a notification or feedback to the user
+  }
 };
 
 export default LogoutUser;

@@ -11,31 +11,23 @@ export const userLoginSlice = createSlice({
   name: 'login',
   initialState,
   reducers: {
-    setUserName: (state, action) => {
-      state.userData.userName = action.payload;
+    setUserData: (state, { payload: { key, value } }) => {
+      state.userData[key] = value;
     },
-    setUserPassword: (state, action) => {
-      state.userData.password = action.payload;
+    setUserInfo: (state, { payload }) => {
+      state.userInfo = payload;
     },
-    setUserInfo: (state, action) => {
-      state.userInfo = action.payload;
+    setError: (state, { payload }) => {
+      state.errors = payload;
     },
-    setFailure: (state, action) => {
-      state.errors = action.payload;
+    setSuccess: (state, { payload }) => {
+      state.success = payload;
     },
-    setSuccess: (state, action) => {
-      state.success = action.payload;
-    },
-    resetStore: (state) => {
-      state.userData = { userName: '', password: '' };
-      state.userInfo = {};
-      state.errors = null;
-      state.success = false;
-    },
+    resetStore: () => initialState,
   },
 });
 
-export const { setUserName, setUserPassword, setUserInfo, setFailure, setSuccess, resetStore } =
+export const { setUserData, setUserInfo, setError, setSuccess, resetStore } =
   userLoginSlice.actions;
 
 export default userLoginSlice.reducer;

@@ -44,10 +44,18 @@ describe('Settings Page', () => {
     cy.fixture('users.json').then((users) => {
       users.forEach((user, index) => {
         cy.get(`tr[data-testid="user-row-${index}"]`).should('exist');
-        cy.get(`tr[data-testid="user-row-${index}"] td`).eq(0).should('contain', user.firstName);
-        cy.get(`tr[data-testid="user-row-${index}"] td`).eq(1).should('contain', user.status);
-        cy.get(`tr[data-testid="user-row-${index}"] td`).eq(2).should('contain', user.createdAt);
-        cy.get(`tr[data-testid="user-row-${index}"] td`).eq(3).should('contain', user.jobTitle);
+        cy.get(`tr[data-testid="user-row-${index}"] td`)
+          .eq(0)
+          .should('contain', user.firstName);
+        cy.get(`tr[data-testid="user-row-${index}"] td`)
+          .eq(1)
+          .should('contain', user.status);
+        cy.get(`tr[data-testid="user-row-${index}"] td`)
+          .eq(2)
+          .should('contain', user.createdAt);
+        cy.get(`tr[data-testid="user-row-${index}"] td`)
+          .eq(3)
+          .should('contain', user.jobTitle);
         cy.get(`tr[data-testid="user-row-${index}"] td`)
           .eq(4)
           .should('contain', user.role.role_name);

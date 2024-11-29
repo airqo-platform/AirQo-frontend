@@ -1,80 +1,198 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-const defaultChartSites = process.env.NEXT_PUBLIC_DEFAULT_CHART_SITES?.split(',') || [];
+/**
+ * Parses the environment variable for default chart sites.
+ * Trims each site ID to remove any leading/trailing whitespace.
+ */
+const defaultChartSites = process.env.NEXT_PUBLIC_DEFAULT_CHART_SITES
+  ? process.env.NEXT_PUBLIC_DEFAULT_CHART_SITES.split(',').map((site) =>
+      site.trim(),
+    )
+  : [];
 
+/**
+ * Calculates the date 7 days prior to today.
+ */
 const getStartDate = () => {
   const startDate = new Date();
-  startDate.setUTCDate(startDate.getUTCDate() - 7);
-  return startDate.toISOString(); // convert to UTC ISO string
+  startDate.setDate(startDate.getDate() - 7);
+  return startDate.toISOString();
 };
 
-const defaultChartTab = 0;
-const defaultChartType = 'line';
-const defaultTimeFrame = 'daily';
-const defaultPollutionType = 'pm2_5';
-const defaultOrganizationName = 'airqo';
+/**
+ * Default chart data range representing the last 7 days.
+ */
 const defaultChartDataRange = {
   startDate: getStartDate(),
-  endDate: new Date().toISOString(), // convert to UTC ISO string
+  endDate: new Date().toISOString(),
   label: 'Last 7 days',
 };
 
+/**
+ * Initial state for the chart slice.
+ */
 const initialState = {
-  chartType: defaultChartType,
-  timeFrame: defaultTimeFrame,
-  pollutionType: defaultPollutionType,
-  organizationName: defaultOrganizationName,
+  chartType: 'line',
+  timeFrame: 'daily',
+  pollutionType: 'pm2_5',
+  organizationName: 'airqo',
   chartDataRange: defaultChartDataRange,
   chartSites: defaultChartSites,
   userDefaultID: null,
   chartAnalyticsData: [],
   refreshChart: false,
-  chartTab: defaultChartTab,
+  chartTab: 0,
 };
 
-export const chartSlice = createSlice({
+/**
+ * Chart slice using Redux Toolkit's createSlice.
+ * Manages state related to charts, including type, data range, selected sites, etc.
+ */
+const chartSlice = createSlice({
   name: 'chart',
   initialState,
   reducers: {
+    /**
+     * Sets the chart type ('line' or 'bar').
+     * Only updates if the new type differs from the current state to prevent unnecessary re-renders.
+     */
     setChartType: (state, action) => {
-      state.chartType = action.payload;
+      if (state.chartType !== action.payload) {
+        state.chartType = action.payload;
+      }
     },
+
+    /**
+     * Sets the current chart tab index.
+     * Prevents unnecessary state updates by checking for changes.
+     */
     setChartTab: (state, action) => {
-      state.chartTab = action.payload;
+      if (state.chartTab !== action.payload) {
+        state.chartTab = action.payload;
+      }
     },
+
+    /**
+     * Sets the time frame (e.g., 'daily', 'weekly').
+     * Ensures state updates only occur when necessary.
+     */
     setTimeFrame: (state, action) => {
-      state.timeFrame = action.payload;
+      if (state.timeFrame !== action.payload) {
+        state.timeFrame = action.payload;
+      }
     },
+
+    /**
+     * Sets the chart data range.
+     * Expects an object with 'startDate', 'endDate', and 'label'.
+     * Updates state only if any of these values change.
+     */
     setChartDataRange: (state, action) => {
-      state.chartDataRange = action.payload;
+      const { startDate, endDate, label } = action.payload;
+      if (
+        state.chartDataRange.startDate !== startDate ||
+        state.chartDataRange.endDate !== endDate ||
+        state.chartDataRange.label !== label
+      ) {
+        state.chartDataRange = { startDate, endDate, label };
+      }
     },
+
+    /**
+     * Sets the selected chart sites.
+     * Accepts an array of site IDs.
+     * Uses JSON.stringify for deep comparison to prevent unnecessary updates.
+     */
     setChartSites: (state, action) => {
-      state.chartSites = action.payload;
+      if (JSON.stringify(state.chartSites) !== JSON.stringify(action.payload)) {
+        state.chartSites = action.payload;
+      }
     },
+
+    /**
+     * Sets the pollutant type (e.g., 'pm2_5', 'pm10').
+     * Avoids redundant updates by checking current state.
+     */
     setPollutant: (state, action) => {
-      state.pollutionType = action.payload;
+      if (state.pollutionType !== action.payload) {
+        state.pollutionType = action.payload;
+      }
     },
+
+    /**
+     * Sets the organization name.
+     * Ensures updates occur only when there's a change.
+     */
     setOrganizationName: (state, action) => {
-      state.organizationName = action.payload;
+      if (state.organizationName !== action.payload) {
+        state.organizationName = action.payload;
+      }
     },
+
+    /**
+     * Sets the user's default ID.
+     * Prevents unnecessary state changes by checking existing value.
+     */
     setDefaultID: (state, action) => {
-      state.userDefaultID = action.payload;
+      if (state.userDefaultID !== action.payload) {
+        state.userDefaultID = action.payload;
+      }
     },
+
+    /**
+     * Sets the chart analytics data.
+     * Accepts an array of data points.
+     * Uses deep comparison to avoid redundant updates.
+     */
     setChartData: (state, action) => {
-      state.chartAnalyticsData = action.payload;
+      if (
+        JSON.stringify(state.chartAnalyticsData) !==
+        JSON.stringify(action.payload)
+      ) {
+        state.chartAnalyticsData = action.payload;
+      }
     },
+
+    /**
+     * Sets the refreshChart flag.
+     * Only updates if the new value differs from the current state.
+     */
     setRefreshChart: (state, action) => {
-      state.refreshChart = action.payload;
+      if (state.refreshChart !== action.payload) {
+        state.refreshChart = action.payload;
+      }
     },
+
+    /**
+     * Resets the chart store to the initial state.
+     * Useful for scenarios like user logout or resetting filters.
+     */
     resetChartStore: (state) => {
       Object.assign(state, initialState);
     },
+
+    /**
+     * Sets multiple chart data properties at once.
+     * Accepts an object containing one or more chart slice properties.
+     * Only updates allowed properties and prevents invalid state mutations.
+     */
     setChartDataAtOnce: (state, action) => {
-      Object.assign(state, action.payload);
+      const allowedKeys = Object.keys(initialState);
+      Object.keys(action.payload).forEach((key) => {
+        if (allowedKeys.includes(key)) {
+          // Only update if the value is different
+          if (
+            JSON.stringify(state[key]) !== JSON.stringify(action.payload[key])
+          ) {
+            state[key] = action.payload[key];
+          }
+        }
+      });
     },
   },
 });
 
+// Exporting actions for use in components
 export const {
   setChartType,
   setChartTab,

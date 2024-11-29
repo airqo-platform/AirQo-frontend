@@ -8,6 +8,7 @@ import {
   GET_LOGS
 } from 'config/urls/authService';
 import createAxiosInstance from './axiosConfig';
+import { BASE_AUTH_SERVICE_URL_V2 } from '../../config/urls/authService';
 
 export const updateUserPasswordApi = async (userId, tenant, userData) => {
   return await createAxiosInstance()
@@ -80,5 +81,31 @@ export const sendUserFeedbackApi = async (feedbackData) => {
 export const getLogsApi = async (params) => {
   return await createAxiosInstance()
     .get(GET_LOGS, { params })
+    .then((response) => response.data);
+};
+
+export const getDefaultSelectedSitesApi = async () => {
+  return await createAxiosInstance()
+    .get(`${BASE_AUTH_SERVICE_URL_V2}/users/preferences/selected-sites`)
+    .then((response) => response.data);
+};
+
+export const setDefaultSelectedSitesApi = async (selectedSites) => {
+  return await createAxiosInstance()
+    .post(`${BASE_AUTH_SERVICE_URL_V2}/users/preferences/selected-sites`, {
+      selected_sites: selectedSites
+    })
+    .then((response) => response.data);
+};
+
+export const deleteDefaultSelectedSiteApi = async (siteId) => {
+  return await createAxiosInstance()
+    .delete(`${BASE_AUTH_SERVICE_URL_V2}/users/preferences/selected-sites/${siteId}`)
+    .then((response) => response.data);
+};
+
+export const updateDefaultSelectedSiteApi = async (siteId, siteData) => {
+  return await createAxiosInstance()
+    .put(`${BASE_AUTH_SERVICE_URL_V2}/users/preferences/selected-sites/${siteId}`, siteData)
     .then((response) => response.data);
 };

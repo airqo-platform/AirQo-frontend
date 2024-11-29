@@ -80,26 +80,22 @@ const RolesTable = (props) => {
   };
 
   const showEditDialog = (role) => {
-    const permissionOptions =
-      permissions &&
-      permissions.map((permission) => {
-        return {
+    const permissionOptions = permissions
+      ? permissions.map((permission) => ({
           value: permission._id,
           label: permission.permission
-        };
-      });
+        }))
+      : [];
     setRolePermissionsOptionsOptions(permissionOptions);
 
-    // set selected permissions to the role permissions
-    const selectedPermissions =
-      role.role_permissions &&
-      role.role_permissions.map((rolePermission) => {
-        return {
+    const selectedPerms = role.role_permissions
+      ? role.role_permissions.map((rolePermission) => ({
           value: rolePermission._id,
           label: rolePermission.permission
-        };
-      });
-    setSelectedPermissions(selectedPermissions);
+        }))
+      : [];
+    setSelectedPermissions(selectedPerms);
+
     setShowEditPopup(true);
     setUpdatedRole(role);
   };
@@ -113,10 +109,11 @@ const RolesTable = (props) => {
     e.preventDefault();
     setLoading(true);
     if (!isEmpty(updatedRole)) {
-      // update role permissions
-      if (selectedPermissions && selectedPermissions.length > 0) {
-        const permissionIds = selectedPermissions.map((permission) => permission.value);
+      const permissionIds = selectedPermissions
+        ? selectedPermissions.map((permission) => permission.value)
+        : [];
 
+      if (permissionIds.length > 0) {
         updatePermissionsToRoleApi(updatedRole._id, { permission_ids: permissionIds })
           .then((res) => {
             if (!isEmpty(activeNetwork)) {
@@ -146,6 +143,15 @@ const RolesTable = (props) => {
               })
             );
           });
+      } else {
+        dispatch(
+          updateMainAlert({
+            message: 'Please select at least one permission',
+            show: true,
+            severity: 'warning'
+          })
+        );
+        setLoading(false);
       }
     } else {
       dispatch(
@@ -296,7 +302,7 @@ const RolesTable = (props) => {
               type="text"
               label="role"
               variant="outlined"
-              value={updatedRole && updatedRole.role_name}
+              value={updatedRole?.role_name || ''}
               onChange={handleUpdateRole('role_name')}
               fullWidth
               required
@@ -305,9 +311,9 @@ const RolesTable = (props) => {
             <OutlinedSelect
               className="reactSelect"
               label="Permissions"
-              onChange={(options) => setSelectedPermissions(options)}
-              options={rolePermissionsOptions}
-              value={selectedPermissions}
+              onChange={(options) => setSelectedPermissions(options || [])}
+              options={rolePermissionsOptions || []}
+              value={selectedPermissions || []}
               fullWidth
               isMulti
               scrollable

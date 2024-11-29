@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
 
 // menu icon
 import MoreHorizIcon from '@/icons/Common/more_horiz.svg';
@@ -28,27 +29,30 @@ const Dropdown = ({ onItemClick, menu, length }) => {
   }, []);
 
   return (
-    <div className='Menu_dropdown' ref={dropdownRef}>
+    <div className="Menu_dropdown" ref={dropdownRef}>
       {/* this is the button */}
       <button
-        id='dropdownMenuIconHorizontalButton'
+        id="dropdownMenuIconHorizontalButton"
         onClick={toggleDropdown}
-        className='w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center hover:border-grey-300'
-        type='button'>
+        className="w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center hover:border-grey-300"
+        type="button"
+      >
         <MoreHorizIcon />
       </button>
       {/* Dropdown menu list */}
       <div
-        id='dropdownDotsHorizontal'
+        id="dropdownDotsHorizontal"
         className={`z-10 ${
           isOpen ? 'block' : 'hidden'
-        } bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600 mt-1`}>
-        <ul className='py-2 text-sm text-gray-700 dark:text-gray-200'>
+        } bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600 mt-1`}
+      >
+        <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
           {menu.map((item) => (
-            <li key={item.id} className='px-2'>
+            <li key={item.id} className="px-2">
               <span
                 onClick={() => onItemClick(item.id)}
-                className='flex justify-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer rounded-md'>
+                className="flex justify-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer rounded-md"
+              >
                 {item.name}
               </span>
             </li>
@@ -56,7 +60,7 @@ const Dropdown = ({ onItemClick, menu, length }) => {
         </ul>
       </div>
       {/* this is custom css for the dropdown */}
-      <style jsx>{`
+      <style>{`
         .Menu_dropdown {
           position: relative;
         }
@@ -68,6 +72,17 @@ const Dropdown = ({ onItemClick, menu, length }) => {
       `}</style>
     </div>
   );
+};
+
+Dropdown.propTypes = {
+  onItemClick: PropTypes.func.isRequired,
+  menu: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string,
+      name: PropTypes.string,
+    }),
+  ).isRequired,
+  length: PropTypes.string,
 };
 
 export default Dropdown;

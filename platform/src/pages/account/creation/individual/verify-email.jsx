@@ -31,33 +31,38 @@ const IndividualAccountVerification = () => {
           type={'error'}
           timeout={5000}
           message={`${
-            errors.email || errors.message || errors.password || errors.firstName || errors.lastName
+            errors.email ||
+            errors.message ||
+            errors.password ||
+            errors.firstName ||
+            errors.lastName
           }`}
         />
       )}
-      <div className='w-full'>
-        <h2 className='text-3xl text-black-700 font-semibold lg:w-10/12 md:mt-20 lg:mt-2'>
+      <div className="w-full">
+        <h2 className="text-3xl text-black-700 font-semibold lg:w-10/12 md:mt-20 lg:mt-2">
           Please confirm your email address
         </h2>
-        <p className='text-xl text-grey-350 font-normal mt-6 lg:w-10/12'>
+        <p className="text-xl text-grey-350 font-normal mt-6 lg:w-10/12">
           An email with confirmation instructions was sent to
         </p>
-        <div className='mt-6'>
-          <div className='w-full'>
+        <div className="mt-6">
+          <div className="w-full">
             <input
-              type='email'
+              type="email"
               placeholder={`${userData.email}`}
-              className='input border border-input-light-outline h-16 w-full text-lg'
+              className="input border border-input-light-outline h-16 w-full text-lg"
               style={{ backgroundColor: '#F9FAFB', fontWeight: '500' }}
               disabled
             />
           </div>
         </div>
-        <div className='mt-6'>
-          <span className='text-sm text-grey-300'>Not seeing the email?</span>
+        <div className="mt-6">
+          <span className="text-sm text-grey-300">Not seeing the email?</span>
           <span
-            className='text-sm text-blue-900 font-medium hover:cursor-pointer'
-            onClick={() => handleSubmit()}>
+            className="text-sm text-blue-900 font-medium hover:cursor-pointer"
+            onClick={() => handleSubmit()}
+          >
             {' '}
             Resend
           </span>

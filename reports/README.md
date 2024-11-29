@@ -2,7 +2,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 this is an application that used to generate air quality reports for different locations accoss Africa and to help people make better descisions and also protect there health and improving it by knowing the locations with bad airquality.
 
-## Getting Started
+## Getting Started.
 
 First, run the development server:
 
