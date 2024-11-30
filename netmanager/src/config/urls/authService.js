@@ -1,6 +1,6 @@
 import { stripTrailingSlash } from '../utils';
 
-const BASE_AUTH_SERVICE_URL_V2 = "https://staging-platform.airqo.net/api/v2";
+export const BASE_AUTH_SERVICE_URL_V2 = stripTrailingSlash(process.env.REACT_APP_BASE_URL_V2);
 
 export const VERIFY_TOKEN_URI = `${BASE_AUTH_SERVICE_URL_V2}/users/reset/you`;
 

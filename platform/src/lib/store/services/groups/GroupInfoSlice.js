@@ -7,10 +7,13 @@ const initialState = {
   error: null,
 };
 
-const fetchGroupInfo = createAsyncThunk('groups/fetchGroupInfo', async (groupId) => {
-  const response = await getGroupDetailsApi(groupId);
-  return response.group;
-});
+const fetchGroupInfo = createAsyncThunk(
+  'groups/fetchGroupInfo',
+  async (groupId) => {
+    const response = await getGroupDetailsApi(groupId);
+    return response.group;
+  },
+);
 
 export const groupInfoSlice = createSlice({
   name: 'groupInfo',

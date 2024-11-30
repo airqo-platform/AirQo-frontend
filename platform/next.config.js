@@ -1,18 +1,39 @@
+/* eslint-disable */
 const withVideos = require('next-videos');
+const withTM = require('next-transpile-modules')(['redux-persist']);
 
-module.exports = withVideos({
-  images: {
-    remotePatterns: [],
-  },
+module.exports = withTM(
+  withVideos({
+    images: {
+      remotePatterns: [],
+    },
+    reactStrictMode: true,
 
-  // Adding support for Docker
-  output: 'standalone',
-  webpack(config) {
-    config.module.rules.push({
-      test: /\.svg$/,
-      use: ['@svgr/webpack'],
-    });
+    // Specify directories for ESLint linting
+    eslint: {
+      dirs: ['pages', 'components', 'lib', 'utils', 'hooks'],
+    },
 
-    return config;
-  },
-});
+    // Docker support (Standalone output for optimized Docker builds)
+    output: 'standalone',
+
+    // Webpack custom configuration
+    webpack(config) {
+      // Add rule for handling SVGs using @svgr/webpack
+      config.module.rules.push({
+        test: /\.svg$/,
+        use: ['@svgr/webpack'],
+      });
+
+      // Ensure compatibility with Node modules by handling environment fallbacks
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+
+      return config;
+    },
+  }),
+);

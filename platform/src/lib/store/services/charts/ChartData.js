@@ -1,40 +1,55 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { getAnalyticsData } from '@/core/apis/DeviceRegistry';
 
-export const fetchAnalyticsData = createAsyncThunk('analytics/fetchData', async (body) => {
-  const response = await getAnalyticsData(body);
-  return response.data;
-});
+// Thunk to fetch analytics data
+export const fetchChartAnalyticsData = createAsyncThunk(
+  'analytics/fetchData',
+  async (body, { signal, rejectWithValue }) => {
+    try {
+      const response = await getAnalyticsData({ body, signal });
+      return response.data; // Assuming response.data is the array
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to fetch analytics data');
+    }
+  },
+);
 
+// Initial state
 const initialState = {
   data: null,
-  status: 'idle',
+  status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
   error: null,
 };
 
+// Create slice
 const analyticsSlice = createSlice({
   name: 'analytics',
   initialState,
   reducers: {
-    setAnalyticsData: (state, action) => {
-      state.data = action.payload;
+    // Reducer to reset analytics data
+    resetAnalyticsData: (state) => {
+      state.data = null;
+      state.status = 'idle';
+      state.error = null;
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchAnalyticsData.pending, (state) => {
+      .addCase(fetchChartAnalyticsData.pending, (state) => {
         state.status = 'loading';
+        state.error = null;
       })
-      .addCase(fetchAnalyticsData.fulfilled, (state, action) => {
+      .addCase(fetchChartAnalyticsData.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.data = action.payload;
       })
-      .addCase(fetchAnalyticsData.rejected, (state, action) => {
+      .addCase(fetchChartAnalyticsData.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.error.message;
+        state.error = action.payload || 'An error occurred while fetching data';
       });
   },
 });
 
+// Export actions and reducer
+export const { resetAnalyticsData } = analyticsSlice.actions;
 export default analyticsSlice.reducer;
-export const { setAnalyticsData } = analyticsSlice.actions;

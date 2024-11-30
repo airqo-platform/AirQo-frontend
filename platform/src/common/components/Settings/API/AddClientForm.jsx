@@ -84,7 +84,9 @@ const AddClientForm = ({ open, closeModal }) => {
       dispatch(performRefresh());
       closeModal();
     } catch (error) {
-      setErrorState(error?.response?.data?.message || 'Failed to create client');
+      setErrorState(
+        error?.response?.data?.message || 'Failed to create client',
+      );
     } finally {
       setLoading(false);
     }
@@ -95,45 +97,54 @@ const AddClientForm = ({ open, closeModal }) => {
       open={open}
       onClose={closeModal}
       handleClick={handleSubmit}
-      primaryButtonText='Register'
+      primaryButtonText="Register"
       loading={loading}
-      ModalIcon={PersonIcon}>
-      {isError?.isError && <Toast type={isError?.type} message={isError?.message} />}
-      <h3 className='text-lg font-medium text-secondary-neutral-light-800 leading-[26px] mb-2'>
+      ModalIcon={PersonIcon}
+    >
+      {isError?.isError && (
+        <Toast type={isError?.type} message={isError?.message} />
+      )}
+      <h3 className="text-lg font-medium text-secondary-neutral-light-800 leading-[26px] mb-2">
         Create new client
       </h3>
 
-      <div className='flex flex-col gap-3 justify-start max-h-[350px] overflow-y-auto'>
-        <div className='relative'>
+      <div className="flex flex-col gap-3 justify-start max-h-[350px] overflow-y-auto">
+        <div className="relative">
           <input
-            type='text'
-            placeholder='Enter client name'
-            className='input input-bordered w-full pl-3 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded'
+            type="text"
+            placeholder="Enter client name"
+            className="input input-bordered w-full pl-3 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded"
             value={clientName}
-            onChange={(e) => handleInputValueChange('clientName', e.target.value)}
+            onChange={(e) =>
+              handleInputValueChange('clientName', e.target.value)
+            }
           />
           {clientName && (
             <button
-              className='absolute inset-y-0 right-0 flex justify-center items-center mr-3'
-              onClick={() => handleRemoveInputValue('clientName')}>
+              className="absolute inset-y-0 right-0 flex justify-center items-center mr-3"
+              onClick={() => handleRemoveInputValue('clientName')}
+            >
               x
             </button>
           )}
         </div>
 
         {ipAddresses.map((ip, index) => (
-          <div key={index} className='relative'>
+          <div key={index} className="relative">
             <input
-              type='text'
+              type="text"
               placeholder={`${index > 0 ? `Enter IP address ${index + 1}` : 'Enter IP address (Optional)'}`}
-              className='input input-bordered w-full pl-3 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded'
+              className="input input-bordered w-full pl-3 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded"
               value={ip}
-              onChange={(e) => handleInputValueChange('ipAddress', e.target.value, index)}
+              onChange={(e) =>
+                handleInputValueChange('ipAddress', e.target.value, index)
+              }
             />
             {index > 0 && (
               <button
-                className='absolute inset-y-0 right-0 flex justify-center items-center mr-3'
-                onClick={() => handleRemoveInputValue('ipAddress', index)}>
+                className="absolute inset-y-0 right-0 flex justify-center items-center mr-3"
+                onClick={() => handleRemoveInputValue('ipAddress', index)}
+              >
                 <DeleteIcon />
               </button>
             )}
@@ -142,8 +153,9 @@ const AddClientForm = ({ open, closeModal }) => {
 
         <button
           onClick={handleAddIpAddress}
-          className='flex items-center justify-start text-sm text-blue-600 hover:text-blue-800'>
-          <PlusIcon size={16} className='mr-1' fill={'black'} />
+          className="flex items-center justify-start text-sm text-blue-600 hover:text-blue-800"
+        >
+          <PlusIcon size={16} className="mr-1" fill={'black'} />
           Add another IP address
         </button>
       </div>

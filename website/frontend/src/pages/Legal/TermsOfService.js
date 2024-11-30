@@ -35,26 +35,37 @@ const TermsOfService = () => {
       id: 'intro',
       title: '1. Introduction',
       content: (
-        <ol>
-          <li>
-            Some cities already have programs for air quality monitoring, so we collaborate with
-            them on how to increase their coverage network.{' '}
-          </li>
-          <li>
-            By using our platform, you accept these terms and conditions in full; accordingly, if
-            you disagree with these terms and conditions or any part of these terms and conditions,
-            you must not use our platform.
-          </li>
-          <li>
-            If you register with our platform, submit any material to our platform or use any of our
-            platform services, we will ask you to expressly agree to these terms and conditions.
-          </li>
-          <li>
-            Our platform uses cookies; by using our platform or agreeing to these terms and
-            conditions, you consent to our use of cookies in accordance with the terms of our
-            Privacy and cookies policy.
-          </li>
-        </ol>
+        <>
+          <p>
+            Welcome to <strong>AirQo Research</strong> (hereinafter referred to as{' '}
+            <strong>"AirQo"</strong>). By accessing or using our platform, you agree to these Terms
+            of Service. We’re committed to providing a helpful and responsible experience for all
+            users, and we encourage you to review these terms to understand your rights and
+            responsibilities.
+          </p>
+
+          <ol>
+            <li>
+              Some cities already have programs for air quality monitoring, so we collaborate with
+              them on how to increase their coverage network.
+            </li>
+            <li>
+              By using our platform, you accept these terms and conditions in full; accordingly, if
+              you disagree with these terms and conditions or any part of these terms and
+              conditions, you must not use our platform.
+            </li>
+            <li>
+              If you register with our platform, submit any material to our platform or use any of
+              our platform services, we will ask you to expressly agree to these terms and
+              conditions.
+            </li>
+            <li>
+              Our platform uses cookies; by using our platform or agreeing to these terms and
+              conditions, you consent to our use of cookies in accordance with the terms of our
+              Privacy and cookies policy.
+            </li>
+          </ol>
+        </>
       )
     },
     {
@@ -551,20 +562,31 @@ const TermsOfService = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      const sectionElements = sections.map((section) => document.getElementById(section.id));
+      if (!sections || sections.length === 0) return;
+
+      const sectionElements = sections
+        .map((section) => document.getElementById(section.id))
+        .filter((element) => element !== null); // Filter out null elements
+
+      if (sectionElements.length === 0) return;
+
       const currentSection = sectionElements.find((element) => {
         const rect = element.getBoundingClientRect();
         return rect.top <= 100 && rect.bottom > 100;
       });
 
-      if (currentSection) {
+      if (currentSection && currentSection.id !== activeSection) {
         setActiveSection(currentSection.id);
       }
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [sections]);
+
+    // Clean up event listener on component unmount
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [sections, activeSection]);
 
   return (
     <div className="airqo-data">

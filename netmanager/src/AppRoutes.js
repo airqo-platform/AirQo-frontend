@@ -57,6 +57,7 @@ const SimRegistry = lazy(() => import('./views/components/SIM/SimRegistry'));
 const UserStats = lazy(() => import('./views/pages/UserStats/UserStats'));
 const ClientActivation = lazy(() => import('./views/pages/clients'));
 const DeployDevice = lazy(() => import('./views/pages/DeployDevice'));
+const Preferences = lazy(() => import('./views/pages/Preferences/Preferences'));
 
 
 const AppRoutes = ({ auth, logoutUser }) => {
@@ -121,6 +122,12 @@ const AppRoutes = ({ auth, logoutUser }) => {
               exact
               path="/admin/users/users-statistics"
               component={UserStats}
+              layout={MainLayout}
+            />
+            <PrivateRoute
+              exact
+              path="/admin/users/preferences"
+              component={Preferences}
               layout={MainLayout}
             />
             <PrivateRoute
@@ -241,6 +248,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
     </Router>
   );
 };
+
 const mapStateToProps = (state) => ({
   auth: state.auth
 });

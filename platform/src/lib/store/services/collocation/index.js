@@ -61,7 +61,9 @@ export const getInterSensorCorrelation = createAsyncThunk(
 export const getCollocationStatistics = createAsyncThunk(
   'collocation/collocationStatisticsData',
   async (addCollocationStatisticsInput) => {
-    const response = await getCollocationStatisticsApi(addCollocationStatisticsInput);
+    const response = await getCollocationStatisticsApi(
+      addCollocationStatisticsInput,
+    );
     return response;
   },
 );

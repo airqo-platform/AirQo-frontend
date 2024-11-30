@@ -114,7 +114,7 @@ const allMainPages = [
     title: 'Deploy Device',
     href: '/deploy-device',
     icon: <DeviceHubIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
+    permission: 'DEPLOY_AIRQO_DEVICES'
   },
   {
     title: 'Locate',
@@ -212,7 +212,8 @@ const allUserManagementPages = [
     nestItems: [
       { title: 'Assigned Users', href: '/admin/users/assigned-users' },
       { title: 'Available Users', href: '/admin/users/available-users' },
-      { title: 'User Statistics', href: '/admin/users/users-statistics' }
+      { title: 'User Statistics', href: '/admin/users/users-statistics' },
+      { title: 'Preferences', href: '/admin/users/preferences' }
     ]
   },
   {

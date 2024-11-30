@@ -9,7 +9,7 @@
       "@/icons/*": ["public/icons/*"],
       "@/components/*": ["src/common/components/*"],
       "@/pages/*": ["src/pages/*"],
-      "@/images/*":["public/images/*"]
+      "@/images/*": ["public/images/*"]
     }
   },
   "exclude": ["node_modules", ".next"],

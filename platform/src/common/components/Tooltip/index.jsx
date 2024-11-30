@@ -2,7 +2,7 @@ import React from 'react';
 
 const CustomTooltip = ({ children, tooltipsText, position }) => {
   return (
-    <div className='group relative inline-block'>
+    <div className="group relative inline-block">
       <div>{children}</div>
       <div
         className={`min-w-[10rem] max-w-[12rem] ${

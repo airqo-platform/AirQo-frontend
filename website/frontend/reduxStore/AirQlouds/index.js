@@ -9,37 +9,52 @@ export const loadAirQloudSummaryData = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const resData = await getAirQloudSummaryApi();
-      if (isEmpty(resData.grids || [])) return;
+      if (!resData || isEmpty(resData.grids)) {
+        return rejectWithValue('No data found.');
+      }
       return transformArray(resData.grids, 'long_name');
     } catch (err) {
-      return rejectWithValue(err.message);
+      console.log(err);
+      return rejectWithValue(err.message || 'An unknown error occurred.');
     }
   }
 );
 
+const initialState = {
+  summary: {},
+  currentAirqloud: 'Uganda',
+  error: null
+};
+
 const airqloudsSlice = createSlice({
   name: 'airqlouds',
-  initialState: {
-    summary: {},
-    currentAirqloud: 'Uganda',
-    error: null
-  },
+  initialState,
   reducers: {
     setCurrentAirQloudData: (state, action) => {
       state.currentAirqloud = action.payload;
+    },
+    clearError: (state) => {
+      state.error = null;
     }
   },
   extraReducers: (builder) => {
     builder
+      .addCase(loadAirQloudSummaryData.pending, (state) => {
+        state.error = null;
+      })
       .addCase(loadAirQloudSummaryData.fulfilled, (state, action) => {
-        state.summary = action.payload;
+        if (action.payload) {
+          state.summary = action.payload;
+        } else {
+          state.summary = {};
+        }
       })
       .addCase(loadAirQloudSummaryData.rejected, (state, action) => {
-        state.error = action.payload;
+        state.error = action.payload || 'Failed to load AirQloud summary data.';
       });
   }
 });
 
-export const { setCurrentAirQloudData } = airqloudsSlice.actions;
+export const { setCurrentAirQloudData, clearError } = airqloudsSlice.actions;
 
 export default airqloudsSlice.reducer;

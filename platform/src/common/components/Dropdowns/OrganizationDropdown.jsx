@@ -1,159 +1,178 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import CustomDropdown from './CustomDropdown';
-import CheckIcon from '@/icons/tickIcon';
-import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
+import ChevronDownIcon from '@/icons/Common/chevron_downIcon';
+import RadioIcon from '@/icons/SideBar/radioIcon';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  updateUserPreferences,
-  getIndividualUserPreferences,
-} from '@/lib/store/services/account/UserDefaultsSlice';
+import Button from '../Button';
+import { updateUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import Spinner from '@/components/Spinner';
+import { setOrganizationName } from '@/lib/store/services/charts/ChartSlice';
 
-export const formatString = (string) => {
-  return string
-    .replace(/_/g, ' ')
-    .replace(/\w\S*/g, (txt) => {
-      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-    })
-    .replace('Id', 'ID');
+// Format group name to display "AirQo" correctly and capitalize others
+export const formatGroupName = (name) => {
+  if (!name) return 'Unknown';
+  return name.toLowerCase() === 'airqo'
+    ? 'AirQo'
+    : name.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+// Get abbreviation for the group name
+export const getAbbreviation = (name) => {
+  if (!name) return 'NA';
+  return name.toLowerCase() === 'airqo' ? 'AQ' : name.slice(0, 2).toUpperCase();
 };
 
 const OrganizationDropdown = () => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
-  const [selectedGroup, setSelectedGroup] = useState({});
-  const preferences = useSelector((state) => state.defaults.individual_preferences);
-  const userInfo = useSelector((state) => state.login.userInfo);
-  const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
+  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [activeGroup, setActiveGroup] = useState(null);
 
-  const handleUpdatePreferences = async (group) => {
-    setLoading(true);
-    setSelectedGroup(group);
-    const userId = userInfo?._id;
-    const data = {
-      user_id: userId,
-      group_id: group._id,
-    };
+  const userInfo = useSelector((state) => state?.login?.userInfo);
+  const isCollapsed = useSelector((state) => state?.sidebar?.isCollapsed);
 
+  // Initialize activeGroup from localStorage or default to the first active group
+  useEffect(() => {
     try {
-      const response = await dispatch(updateUserPreferences(data));
-      if (response && response.payload && response.payload.success) {
-        localStorage.setItem('activeGroup', JSON.stringify(group));
-        // Refetch the preferences
-        await dispatch(getIndividualUserPreferences(userId));
-      } else {
-        throw new Error('Failed to update preferences');
+      const storedActiveGroup = localStorage.getItem('activeGroup');
+      if (storedActiveGroup) {
+        setActiveGroup(JSON.parse(storedActiveGroup));
+      } else if (userInfo?.groups?.length > 0) {
+        const defaultGroup =
+          userInfo.groups.find((group) => group.status === 'ACTIVE') ||
+          userInfo.groups[0];
+        setActiveGroup(defaultGroup);
+        localStorage.setItem('activeGroup', JSON.stringify(defaultGroup));
       }
     } catch (error) {
-      throw error;
-    } finally {
-      setLoading(false);
+      console.error('Error initializing active group:', error);
+    }
+  }, [userInfo]);
+
+  // Handle updating user preferences
+  const handleUpdatePreferences = useCallback(
+    async (group) => {
+      if (!userInfo?._id || !group) {
+        console.warn('Invalid user or group data.');
+        return;
+      }
+
+      setLoading(true);
+      setSelectedGroup(group);
+
+      try {
+        dispatch(setOrganizationName(group.grp_title || 'Unknown'));
+
+        const data = {
+          user_id: userInfo._id,
+          group_id: group._id,
+        };
+
+        const response = await dispatch(updateUserPreferences(data));
+        if (response?.payload?.success) {
+          setActiveGroup(group);
+          localStorage.setItem('activeGroup', JSON.stringify(group));
+        } else {
+          console.warn('Failed to update user preferences.');
+        }
+      } catch (error) {
+        console.error('Error updating user preferences:', error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [dispatch, userInfo],
+  );
+
+  // Handle dropdown selection
+  const handleDropdownSelect = (group) => {
+    if (activeGroup?.grp_title !== group?.grp_title) {
+      handleUpdatePreferences(group);
     }
   };
 
-  useEffect(() => {
-    const storedActiveGroup = JSON.parse(localStorage.getItem('activeGroup'));
-
-    if (storedActiveGroup && (!preferences || preferences[0]?.group_id === '')) {
-      handleUpdatePreferences(storedActiveGroup);
-    }
-  }, [userInfo, preferences]);
-
-  const handleDropdownSelect = (option) => {
-    const activeGroup = JSON.parse(localStorage.getItem('activeGroup'));
-    if (activeGroup?.grp_title !== option?.grp_title) {
-      handleUpdatePreferences(option);
-    }
-  };
-
-  // Don't render the component if there's no active group
-  const activeGroup = JSON.parse(localStorage.getItem('activeGroup'));
-  if (!activeGroup) {
+  // Don't render the component if there's no active group or user info
+  if (!activeGroup || !userInfo) {
     return null;
   }
 
-  const dropdown = useMemo(() => {
-    return (
-      <CustomDropdown
-        trigger={
-          <button className='w-full'>
-            <div className='w-full h-12 pl-2 pr-3 py-2 bg-white rounded-xl border border-gray-200 justify-between items-center inline-flex'>
-              <div className='justify-start items-center gap-3 flex'>
-                <div className='w-8 h-8 py-1.5 bg-gray-50 rounded-full justify-center items-center flex gap-3'>
-                  <div className='w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight'>
-                    {activeGroup?.grp_title ? activeGroup.grp_title[0] : ''}
-                  </div>
-                </div>
-                <div
-                  className={`pt-0.5 justify-start items-start gap-1 ${
-                    !isCollapsed ? 'flex' : 'hidden'
-                  }`}
-                >
-                  <div
-                    className='text-slate-500 text-sm font-medium uppercase leading-tight text-left'
-                    title={activeGroup?.grp_title}
-                  >
-                    {activeGroup?.grp_title?.length > 10
-                      ? `${activeGroup.grp_title.slice(0, 10)}...`
-                      : activeGroup?.grp_title}
-                  </div>
-                </div>
+  return (
+    <CustomDropdown
+      trigger={
+        <Button
+          paddingStyles="p-0 m-0"
+          className="w-full border-none"
+          variant="outlined"
+        >
+          <div
+            className={`w-full h-12 p-2 bg-white rounded-xl border border-gray-200 ${
+              isCollapsed
+                ? 'flex justify-center'
+                : 'inline-flex justify-between items-center'
+            } hover:bg-gray-100`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-yellow-200 flex items-center justify-center rounded-full">
+                <span className="text-slate-500 text-sm font-medium">
+                  {getAbbreviation(activeGroup.grp_title)}
+                </span>
               </div>
-              <span
-                className={`${
-                  userInfo && userInfo.groups && userInfo.groups.length > 1 ? 'block' : 'hidden'
-                } ${!isCollapsed ? 'flex' : 'hidden'}`}
-              >
-                <ChevronDownIcon />
+              {!isCollapsed && (
+                <div
+                  className="text-sm font-medium leading-tight"
+                  title={activeGroup?.grp_title || 'Unknown'}
+                >
+                  {activeGroup.grp_title?.length > 10
+                    ? `${formatGroupName(activeGroup.grp_title).slice(0, 10)}...`
+                    : formatGroupName(activeGroup.grp_title)}
+                </div>
+              )}
+            </div>
+            {userInfo?.groups?.length > 1 && !isCollapsed && (
+              <ChevronDownIcon />
+            )}
+          </div>
+        </Button>
+      }
+      sidebar={true}
+      id="organization-dropdown"
+    >
+      {userInfo?.groups?.map((group) => (
+        <button
+          key={group?._id || Math.random()} // Handle missing group IDs
+          onClick={() => handleDropdownSelect(group)}
+          className={`w-full h-11 px-3.5 rounded-xl py-2.5 mb-[0.5rem] inline-flex items-center justify-between ${
+            activeGroup?.grp_title === group?.grp_title
+              ? 'bg-[#EBF5FF] text-blue-600'
+              : 'hover:bg-gray-100'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-yellow-200 flex items-center justify-center rounded-full">
+              <span className="text-slate-500 text-sm font-medium">
+                {getAbbreviation(group.grp_title)}
               </span>
             </div>
-          </button>
-        }
-        sidebar={true}
-        id='options'
-      >
-        {userInfo &&
-          userInfo.groups &&
-          userInfo.groups.map((format) => (
-            <a
-              key={format._id}
-              href='#'
-              onClick={() => handleDropdownSelect(format)}
-              className={`w-full h-11 px-3.5 py-2.5 justify-between items-center inline-flex ${
-                activeGroup &&
-                activeGroup?.grp_title === format?.grp_title &&
-                'bg-secondary-neutral-light-50'
-              }`}
+            <div
+              className="max-w-[120px] text-left text-sm font-medium"
+              title={formatGroupName(group.grp_title)}
             >
-              <div className='grow shrink basis-0 h-6 justify-start items-center gap-2 flex'>
-                <div className='w-8 h-8 py-1.5 bg-gray-50 rounded-full justify-center items-center flex'>
-                  <div className='w-8 text-center text-slate-500 text-sm font-medium uppercase leading-tight'>
-                    {format?.grp_title ? format.grp_title[0] : ''}
-                  </div>
-                </div>
-                <div
-                  className='max-w-[120px] w-full text-gray-700 text-sm font-normal leading-tight uppercase'
-                  title={format.grp_title}
-                >
-                  {format && format.grp_title && format.grp_title.length > 10
-                    ? formatString(format.grp_title.slice(0, 10)) + '...'
-                    : formatString(format.grp_title)}
-                </div>
-              </div>
-              {loading && selectedGroup._id === format._id ? (
-                <span>
-                  <Spinner width={20} height={20} />
-                </span>
-              ) : activeGroup && activeGroup?.grp_title === format?.grp_title ? (
-                <CheckIcon fill='#145FFF' />
-              ) : null}
-            </a>
-          ))}
-      </CustomDropdown>
-    );
-  }, [activeGroup, userInfo?.groups, isCollapsed, loading, selectedGroup]);
-
-  return dropdown;
+              {group.grp_title?.length > 10
+                ? `${formatGroupName(group.grp_title).slice(0, 10)}...`
+                : formatGroupName(group.grp_title)}
+            </div>
+          </div>
+          {loading && selectedGroup?._id === group?._id ? (
+            <Spinner width={16} height={16} />
+          ) : activeGroup?.grp_title === group?.grp_title ? (
+            <RadioIcon />
+          ) : (
+            <input type="radio" className="border-[#C4C7CB]" />
+          )}
+        </button>
+      ))}
+    </CustomDropdown>
+  );
 };
 
 export default OrganizationDropdown;

@@ -1,70 +1,93 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { createWrapper } from 'next-redux-wrapper';
-import { persistReducer } from 'redux-persist';
+import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
-import { combineReducers } from 'redux';
+import thunk from 'redux-thunk';
+
+// Import your reducers
 import deviceRegistryReducer from './services/deviceRegistry';
 import selectedCollocateDevicesReducer from './services/collocation/selectedCollocateDevicesSlice';
 import collocationReducer from './services/collocation';
 import collocationDataReducer from './services/collocation/collocationDataSlice';
 import { createAccountSlice } from './services/account/CreationSlice';
 import { userLoginSlice } from './services/account/LoginSlice';
-import { chartSlice } from './services/charts/ChartSlice';
+import chartsReducer from './services/charts/ChartSlice';
 import { gridsSlice } from './services/deviceRegistry/GridsSlice';
-import { defaultsSlice } from './services/account/UserDefaultsSlice';
-import userDefaultsReducer from './services/charts/userDefaultsSlice';
-import { recentMeasurementsSlice } from './services/deviceRegistry/RecentMeasurementsSlice';
-import { cardSlice } from './services/checklists/CheckList';
+import defaultsReducer from './services/account/UserDefaultsSlice';
+import recentMeasurementReducer from './services/deviceRegistry/RecentMeasurementsSlice';
+import cardReducer from './services/checklists/CheckList';
 import checklistsReducer from './services/checklists/CheckData';
 import analyticsReducer from './services/charts/ChartData';
 import { groupInfoSlice } from './services/groups/GroupInfoSlice';
 import { mapSlice } from './services/map/MapSlice';
 import { locationSearchSlice } from './services/search/LocationSearchSlice';
-import { apiClientSlice } from './services/apiClient/index';
+import apiClientReducer from './services/apiClient/index';
 import sidebarReducer from './services/sideBar/SideBarSlice';
-import autoMergeLevel1 from 'redux-persist/lib/stateReconciler/autoMergeLevel1';
+import modalSlice from './services/downloadModal';
+import sitesSummaryReducer from './services/sitesSummarySlice';
 
-const persistConfig = {
-  key: 'root',
-  storage,
-  stateReconciler: autoMergeLevel1,
-};
-
+// Combine all the reducers
 const rootReducer = combineReducers({
   deviceRegistry: deviceRegistryReducer,
   sidebar: sidebarReducer,
   collocation: collocationReducer,
   selectedCollocateDevices: selectedCollocateDevicesReducer,
+  modal: modalSlice,
   collocationData: collocationDataReducer,
-  [createAccountSlice.name]: createAccountSlice.reducer,
-  [userLoginSlice.name]: userLoginSlice.reducer,
-  [chartSlice.name]: chartSlice.reducer,
-  [gridsSlice.name]: gridsSlice.reducer,
-  [defaultsSlice.name]: defaultsSlice.reducer,
-  [cardSlice.name]: cardSlice.reducer,
+  creation: createAccountSlice.reducer,
+  login: userLoginSlice.reducer,
+  chart: chartsReducer,
+  grids: gridsSlice.reducer,
+  defaults: defaultsReducer,
+  cardChecklist: cardReducer,
   map: mapSlice.reducer,
-  userDefaults: userDefaultsReducer,
-  [recentMeasurementsSlice.name]: recentMeasurementsSlice.reducer,
+  recentMeasurements: recentMeasurementReducer,
   checklists: checklistsReducer,
   analytics: analyticsReducer,
-  [groupInfoSlice.name]: groupInfoSlice.reducer,
-  [locationSearchSlice.name]: locationSearchSlice.reducer,
-  [apiClientSlice.name]: apiClientSlice.reducer,
+  groupInfo: groupInfoSlice.reducer,
+  locationSearch: locationSearchSlice.reducer,
+  apiClient: apiClientReducer,
+  sites: sitesSummaryReducer,
 });
 
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+// Root reducer wrapper to handle state reset on logout
+const appReducer = (state, action) => {
+  if (action.type === 'RESET_APP') {
+    state = undefined; // This will clear the persisted state
+  }
+  return rootReducer(state, action);
+};
 
-const store = () =>
-  configureStore({
+// Configuration for redux-persist
+const persistConfig = {
+  key: 'root',
+  storage,
+  whitelist: ['login', 'checklists'],
+};
+
+const persistedReducer = persistReducer(persistConfig, appReducer);
+
+// Configure store function
+const makeStore = () => {
+  const store = configureStore({
     reducer: persistedReducer,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
-        thunk: true,
-        immutableCheck: false,
-        serializableCheck: false,
-      }),
+        serializableCheck: {
+          ignoredActions: [
+            'persist/PERSIST',
+            'persist/REHYDRATE',
+            'persist/PURGE',
+            'persist/REGISTER',
+          ],
+        },
+      }).concat(thunk),
   });
 
-export const wrapper = createWrapper(store);
+  store.__persistor = persistStore(store);
+  return store;
+};
 
-export default store;
+// Export the store wrapper
+export const wrapper = createWrapper(makeStore);
+export default makeStore;

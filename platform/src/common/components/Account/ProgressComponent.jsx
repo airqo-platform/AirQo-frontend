@@ -1,8 +1,13 @@
 import React from 'react';
 
-const ProgressComponent = ({ colorFirst, colorSecond, colorThird, colorFourth }) => {
+const ProgressComponent = ({
+  colorFirst,
+  colorSecond,
+  colorThird,
+  colorFourth,
+}) => {
   return (
-    <div className='w-full flex flex-row items-center justify-start my-7'>
+    <div className="w-full flex flex-row items-center justify-start my-7">
       <div
         className={
           colorFirst

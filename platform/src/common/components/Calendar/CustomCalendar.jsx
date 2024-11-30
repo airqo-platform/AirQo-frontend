@@ -1,10 +1,6 @@
-import React, { useState, useRef } from 'react';
-import CalendarIcon from '@/icons/calendar.svg';
-import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
-import { useSelector, useDispatch } from 'react-redux';
-import { setChartDataRange } from '@/lib/store/services/charts/ChartSlice';
-import Calendar from './Calendar';
-import useOutsideClick from '@/core/utils/useOutsideClick';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import PropTypes from 'prop-types';
+import { Transition } from '@headlessui/react';
 import {
   differenceInDays,
   isSameDay,
@@ -19,53 +15,64 @@ import {
   format,
   getYear,
 } from 'date-fns';
+import CalendarIcon from '@/icons/Analytics/calendarIcon';
+import TabButtons from '../Button/TabButtons';
+import Calendar from './Calendar';
+import { useOutsideClick } from '@/core/hooks';
 
 /**
- * @param {Object} props
- * @param {Date} props.initialStartDate
- * @param {Date} props.initialEndDate
- *  @param {String} props.id
- * @param {Function} props.Icon
- * @param {Boolean} props.dropdown
- * @param {String} props.position
- * @param {String} props.className
- * @returns {JSX.Element}
- * @description CustomCalendar component
+ * Helper function to check if a value is a valid Date object.
+ *
+ * @param {any} date - The value to check.
+ * @returns {boolean} - True if valid Date, else false.
  */
-const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, className }) => {
+const isValidDate = (date) => {
+  return date instanceof Date && !isNaN(date);
+};
+
+/**
+ * CustomCalendar Component
+ */
+const CustomCalendar = ({
+  initialStartDate,
+  initialEndDate,
+  initial_label,
+  onChange,
+  className = '',
+  dropdown = false,
+  isLoading = false,
+}) => {
   const containerRef = useRef(null);
-  const dispatch = useDispatch();
   const [openDatePicker, setOpenDatePicker] = useState(false);
-  const chartData = useSelector((state) => state.chart);
   const [value, setValue] = useState({
     startDate: initialStartDate,
     endDate: initialEndDate,
+    label: initial_label,
   });
 
   /**
-   * @returns {void}
-   * @description Handles the value change
-   * @param {Object} newValue
-   * @param {Date} newValue.start
-   * @param {Date} newValue.end
-   * @returns {void}
+   * Computes the label based on the selected date range.
+   *
+   * @param {Date} startDate - Selected start date.
+   * @param {Date} endDate - Selected end date.
+   * @returns {Object} - Contains startDate, endDate, and label.
    */
-  const handleValueChange = (newValue) => {
-    if (!newValue || !newValue.start || !newValue.end) {
-      return;
+  const computeDateLabel = useCallback((startDate, endDate) => {
+    if (!isValidDate(startDate) || !isValidDate(endDate)) {
+      console.error('Invalid startDate or endDate provided.');
+      return {
+        startDate: new Date(),
+        endDate: new Date(),
+        label: 'Invalid Date Range',
+      };
     }
 
-    const handleDateChange = (newValue) => {
-      const startDate = new Date(newValue.start);
-      const endDate = new Date(newValue.end);
+    const today = new Date();
+    const yesterday = subDays(today, 1);
+    const computedValue = Math.abs(differenceInDays(startDate, endDate));
+    let label;
 
-      const today = new Date();
-      const yesterday = subDays(today, 1);
-
-      const computedValue = Math.abs(differenceInDays(startDate, endDate));
-
-      let label;
-
+    try {
       if (isSameDay(startDate, yesterday) && isSameDay(endDate, yesterday)) {
         label = 'Yesterday';
       } else if (isSameDay(startDate, endDate)) {
@@ -91,7 +98,10 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
         isSameDay(endDate, endOfMonth(today))
       ) {
         label = 'This month';
-      } else if (isSameDay(startDate, startOfYear(today)) && isSameDay(endDate, endOfYear(today))) {
+      } else if (
+        isSameDay(startDate, startOfYear(today)) &&
+        isSameDay(endDate, endOfYear(today))
+      ) {
         label = 'This year';
       } else if (
         isSameDay(startDate, startOfYear(subDays(today, 365))) &&
@@ -107,71 +117,162 @@ const CustomCalendar = ({ initialStartDate, initialEndDate, Icon, dropdown, clas
           label = `${format(startDate, 'MMM dd')} - ${format(endDate, 'MMM dd, yyyy')}`;
         }
       }
+    } catch (error) {
+      console.error('Error formatting dates:', error);
+      label = 'Invalid Date Range';
+    }
 
-      dispatch(setChartDataRange({ startDate, endDate, label }));
-      setValue(newValue);
-    };
-
-    handleDateChange(newValue);
-  };
+    return { startDate, endDate, label };
+  }, []);
 
   /**
-   * @returns {void}
-   * @description Renders the hidden input for the date picker
-   * @returns {JSX.Element}
-   * @description DatePickerHiddenInput component
+   * Handles the value change from the Calendar component.
+   *
+   * @param {Object} newValue - New date range values.
+   * @param {Date} newValue.start - New start date.
+   * @param {Date} newValue.end - New end date.
    */
-  const DatePickerHiddenInput = () => (
-    <Calendar
-      initialMonth1={new Date(new Date().getFullYear(), new Date().getMonth() - 1)}
-      initialMonth2={new Date()}
-      handleValueChange={handleValueChange}
-      closeDatePicker={() => setOpenDatePicker(false)}
-    />
+  const handleValueChange = useCallback(
+    (newValue) => {
+      if (
+        !newValue ||
+        !isValidDate(newValue.start) ||
+        !isValidDate(newValue.end)
+      ) {
+        console.warn('Invalid date range selected.');
+        return;
+      }
+
+      const { startDate, endDate, label } = computeDateLabel(
+        newValue.start,
+        newValue.end,
+      );
+
+      // Update local state
+      setValue({ startDate, endDate, label });
+
+      // Call the onChange prop if provided
+      if (onChange) {
+        onChange(startDate, endDate, label);
+      }
+
+      // Close the date picker after selection
+      setOpenDatePicker(false);
+    },
+    [computeDateLabel, onChange],
   );
 
   /**
-   * @returns {void}
-   * @description Handles the click event
-   * @param {Event} event
-   */
-  const handleClick = (event) => {
-    event.stopPropagation();
-    setOpenDatePicker(!openDatePicker);
-  };
-
-  /**
-   * @returns {void}
-   * @description Handles the outside click event
-   * @param {String} selector
-   * @param {Function} callback
+   * Closes the date picker when clicking outside the component.
    */
   useOutsideClick(containerRef, () => {
     setOpenDatePicker(false);
   });
 
-  return (
-    <div className='relative cursor-pointer date-picker-container' ref={containerRef}>
-      <button
-        onClick={handleClick}
-        type='button'
-        className='relative border border-grey-750 rounded-xl flex items-center justify-between gap-2 px-4 py-3'>
-        {Icon ? <Icon /> : <CalendarIcon />}
-        <span className='hidden sm:inline-block text-sm font-medium'>
-          {chartData.chartDataRange.label}
-        </span>
-        {dropdown && <ChevronDownIcon />}
-      </button>
-      <div
-        className={`absolute z-50 max-w-[350px] ${className} ${
-          openDatePicker
-            ? 'opacity-100 translate-y-0 visible'
-            : 'opacity-0 -translate-y-2 invisible'
-        } transition-all duration-400 ease-in-out transform`}>
-        <DatePickerHiddenInput />
+  /**
+   * Toggles the visibility of the date picker.
+   *
+   * @param {Event} event - Click event.
+   */
+  const handleToggleDatePicker = useCallback(
+    (event) => {
+      if (isLoading) return; // Prevent toggling if loading
+      event.stopPropagation();
+      setOpenDatePicker((prev) => !prev);
+    },
+    [isLoading],
+  );
+
+  /**
+   * Closes the date picker.
+   */
+  const handleCloseDatePicker = useCallback(() => {
+    setOpenDatePicker(false);
+  }, []);
+
+  /**
+   * Effect to update local state when initialStartDate or initialEndDate props change.
+   */
+  useEffect(() => {
+    if (!isValidDate(initialStartDate) || !isValidDate(initialEndDate)) {
+      console.error('Invalid initialStartDate or initialEndDate props.');
+      setValue({
+        startDate: new Date(),
+        endDate: new Date(),
+        label: 'Invalid Date Range',
+      });
+      return;
+    }
+
+    const { label } = computeDateLabel(initialStartDate, initialEndDate);
+    setValue({
+      startDate: initialStartDate,
+      endDate: initialEndDate,
+      label,
+    });
+  }, [initialStartDate, initialEndDate, computeDateLabel]);
+
+  /**
+   * Renders the Calendar component within a Transition for animation.
+   *
+   * @returns {JSX.Element}
+   */
+  const renderCalendar = () => (
+    <Transition
+      show={openDatePicker}
+      enter="transition ease-out duration-200"
+      enterFrom="transform opacity-0 scale-95"
+      enterTo="transform opacity-100 scale-100"
+      leave="transition ease-in duration-150"
+      leaveFrom="transform opacity-100 scale-100"
+      leaveTo="transform opacity-0 scale-95"
+    >
+      <div className={`absolute z-50 max-w-[350px] ${className}`}>
+        <Calendar
+          initialMonth1={
+            new Date(new Date().getFullYear(), new Date().getMonth() - 1)
+          }
+          initialMonth2={new Date()}
+          handleValueChange={handleValueChange}
+          closeDatePicker={handleCloseDatePicker}
+        />
       </div>
+    </Transition>
+  );
+
+  return (
+    <div
+      className="relative cursor-pointer date-picker-container"
+      ref={containerRef}
+    >
+      <TabButtons
+        Icon={<CalendarIcon />}
+        btnText={value.label || 'Select Date Range'}
+        dropdown={dropdown}
+        onClick={handleToggleDatePicker}
+        id="datePicker"
+        type="button"
+        disabled={isLoading}
+      />
+      {renderCalendar()}
     </div>
   );
+};
+
+CustomCalendar.propTypes = {
+  initialStartDate: PropTypes.instanceOf(Date).isRequired,
+  initialEndDate: PropTypes.instanceOf(Date).isRequired,
+  onChange: PropTypes.func,
+  className: PropTypes.string,
+  dropdown: PropTypes.bool,
+  isLoading: PropTypes.bool,
+};
+
+CustomCalendar.defaultProps = {
+  onChange: null,
+  className: '',
+  dropdown: false,
+  isLoading: false,
 };
 
 export default CustomCalendar;
