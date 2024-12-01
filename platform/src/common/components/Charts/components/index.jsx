@@ -250,16 +250,13 @@ const renderCustomizedLegend = ({ payload }) => {
 
           {/* Only truncate and add tooltip if shouldTruncate is true */}
 
-          <Tooltip
-            content={shouldTruncate ? entry.value : null}
-            className="w-auto"
-          >
-            <div
-              className={`${shouldTruncate ? 'truncate max-w-[100px] group' : ''}`}
-            >
-              {entry.value}
-            </div>
-          </Tooltip>
+          {shouldTruncate ? (
+            <Tooltip content={entry.value} className="w-auto">
+              <div className="truncate max-w-[100px] group">{entry.value}</div>
+            </Tooltip>
+          ) : (
+            <div>{entry.value}</div>
+          )}
         </div>
       ))}
     </div>
