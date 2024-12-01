@@ -4,6 +4,7 @@ import { pollutantRanges, categoryDetails } from '../constants';
 import { useSelector } from 'react-redux';
 import { format } from 'date-fns';
 import PropTypes from 'prop-types';
+import { Tooltip } from 'flowbite-react';
 
 export const colors = ['#11225A', '#0A46EB', '#297EFF', '#B8D9FF'];
 
@@ -137,12 +138,14 @@ const CustomGraphTooltip = ({
         </div>
 
         {/* Air Quality Details */}
-        <div className="flex justify-between items-center mt-4 p-2 border-t border-gray-300 pt-3">
-          <div className={`text-sm font-medium ${airQualityColor}`}>
-            {airQualityText}
+        {activeIndex !== null && payload[activeIndex] && (
+          <div className="flex justify-between items-center mt-4 p-2 border-t border-gray-300 pt-3">
+            <div className={`text-sm font-medium ${airQualityColor}`}>
+              {airQualityText}
+            </div>
+            {AirQualityIcon && <AirQualityIcon width={24} height={24} />}
           </div>
-          {AirQualityIcon && <AirQualityIcon width={24} height={24} />}
-        </div>
+        )}
       </div>
     );
   }
@@ -246,22 +249,17 @@ const renderCustomizedLegend = ({ payload }) => {
           ></span>
 
           {/* Only truncate and add tooltip if shouldTruncate is true */}
-          <span
-            className={`${shouldTruncate ? 'truncate max-w-[100px] group' : ''}`}
-            title={shouldTruncate ? entry.value : null}
-          >
-            {entry.value}
-          </span>
 
-          {/* Tooltip appears only if truncation is applied */}
-          {shouldTruncate && (
-            <div className="absolute bottom-full mb-1 hidden group-hover:flex flex-col items-center">
-              <span className="text-xs text-white bg-gray-700 px-2 py-1 rounded-md shadow-md">
-                {entry.value}
-              </span>
-              <span className="w-2 h-2 bg-gray-700 rotate-45 transform -translate-y-1/2"></span>
+          <Tooltip
+            content={shouldTruncate ? entry.value : null}
+            className="w-auto"
+          >
+            <div
+              className={`${shouldTruncate ? 'truncate max-w-[100px] group' : ''}`}
+            >
+              {entry.value}
             </div>
-          )}
+          </Tooltip>
         </div>
       ))}
     </div>

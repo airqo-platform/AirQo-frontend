@@ -27,8 +27,6 @@ const AQI_CATEGORY_MAP = {
 
 const MAX_CARDS = 4;
 
-// ====================== Helper Functions ====================== //
-
 /**
  * Generates trend data based on percentage difference
  * @param {Object} averages - The averages object containing percentageDifference

@@ -22,7 +22,10 @@ const Loading = () => {
             alt="AirQo Triangle"
             layout="fill"
             objectFit="contain"
-            className="text-blue-600 mix-blend-multiply"
+            className="text-blue-600 mix-blend-multiply transition-opacity"
+            priority
+            loading="eager"
+            aria-hidden="true"
           />
 
           {/* Text Overlay */}
