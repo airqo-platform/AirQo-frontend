@@ -4,14 +4,14 @@ import { makeStyles } from '@material-ui/styles';
 import MaterialTable from 'material-table';
 import PropTypes from 'prop-types';
 import PerfectScrollbar from 'react-perfect-scrollbar';
-import { useUserPreferencePaginationData } from 'reducer/UserPreference/selectors';
+import { useUserPreferencePaginationData } from '../../../reducer/UserPreference/selectors';
 import { connect } from 'react-redux';
 import {
   generatePaginateOptions,
   getPaginationOption,
   getPaginationOptionIndexMapper
-} from 'utils/pagination';
-import { updateUserPreferenceData } from 'reducer/UserPreference/operators';
+} from '../../../utils/pagination';
+import { updateUserPreferenceData } from '../../../reducer/UserPreference/operators';
 import { LargeCircularLoader } from '../Loader/CircularLoader';
 
 const useStyles = makeStyles((theme) => ({

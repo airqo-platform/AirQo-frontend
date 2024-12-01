@@ -36,7 +36,7 @@ import { Check, CheckCircleOutline } from '@material-ui/icons';
 import { connect } from 'react-redux';
 import { getInitials } from 'helpers';
 import { showEditDialog } from 'redux/Join/actions';
-import UserEditForm from 'views/components/Users/UserEditForm';
+import UserEditForm from '../../../../../../views/components/Users/UserEditForm';
 import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({

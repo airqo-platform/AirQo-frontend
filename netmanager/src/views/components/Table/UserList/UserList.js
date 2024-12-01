@@ -6,9 +6,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   connectedUsersTable as UsersTable,
   connectedUsersToolbar as UsersToolbar
-} from '../components/Users/containers/Users';
+} from '../../../components/Users/containers/Users';
 import { isEmpty } from 'underscore';
-import { fetchNetworkUsers } from 'redux/AccessControl/operations';
+import { fetchNetworkUsers } from '../../../../reducer/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {

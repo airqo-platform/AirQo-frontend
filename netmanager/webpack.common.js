@@ -63,7 +63,7 @@ module.exports = {
       favicon: path.resolve(__dirname, 'public', 'favicon.ico'),
     }),
     new SettingsGeneratorPlugin({
-      API_BASE_URL: process.env.API_BASE_URL || 'https://staging-platform.airqo.net/api/v1',
+      API_BASE_URL: process.env.API_BASE_URL,
     }),
 
   ],
