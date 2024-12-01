@@ -222,12 +222,12 @@ const MoreInsights = () => {
         startDateTime: startDate,
         endDateTime: endDate,
         sites: selectedSiteIds,
-        network: chartData.organisationName, // Ensure consistent spelling
+        network: chartData.organizationName,
         pollutants: [chartData.pollutionType],
         frequency: frequency,
         datatype: 'raw',
         downloadType: 'csv',
-        outputFormat: 'csv', // Set default format to CSV
+        outputFormat: 'airqo-standard',
         minimum: true,
       };
       const response = await exportDataApi(apiData);
