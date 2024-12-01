@@ -21,16 +21,16 @@ import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
 import StarIcon from '@material-ui/icons/Star';
 import StarBorderIcon from '@material-ui/icons/StarBorder';
-import { useSitesSummaryData } from 'redux/SiteRegistry/selectors';
+import { useSitesSummaryData } from '../../../reducer/SiteRegistry/selectors';
 import { Alert, Autocomplete } from '@material-ui/lab';
 import { useDispatch, useSelector } from 'react-redux';
-import { loadSitesSummary } from 'redux/SiteRegistry/operations';
+import { loadSitesSummary } from '../../../reducer/SiteRegistry/operations';
 import {
   loadDefaultSites,
   setDefaultSites,
   deleteDefaultSite,
   updateDefaultSite
-} from 'redux/DefaultSitePreferences/operations';
+} from '../../../reducer/DefaultSitePreferences/operations';
 import { withPermission } from '../../containers/PageAccess';
 
 const useStyles = makeStyles((theme) => ({
