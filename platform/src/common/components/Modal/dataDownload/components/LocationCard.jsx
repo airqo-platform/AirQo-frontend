@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 
 // Helper function to handle truncation logic
@@ -11,7 +12,13 @@ const truncateName = (name, maxLength = 13) => {
  * LocationCard Component
  * Displays information about a location with a checkbox to toggle selection.
  */
-const LocationCard = ({ site, onToggle, isSelected, isLoading }) => {
+const LocationCard = ({
+  site,
+  onToggle,
+  isSelected,
+  isLoading,
+  disableToggle,
+}) => {
   // Display loading skeleton while loading
   if (isLoading) {
     return (
@@ -29,13 +36,18 @@ const LocationCard = ({ site, onToggle, isSelected, isLoading }) => {
   const { name, search_name, country } = site;
 
   // Determine display name (search_name or fallback to name)
-  const displayName = truncateName(name || search_name?.split(',')[0] || '');
+  const displayName = truncateName(
+    name || (search_name && search_name.split(',')[0]) || '',
+  );
 
   return (
     <div
       className={`flex justify-between items-center p-3 bg-[#F6F6F7] border ${
         isSelected ? 'border-blue-300 ring-2 ring-blue-500' : 'border-gray-200'
-      } rounded-lg shadow-sm transition-all w-full`}
+      } rounded-lg shadow-sm transition-all w-full ${
+        disableToggle ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-blue-50'
+      }`}
+      aria-disabled={disableToggle}
     >
       <div className="flex items-center gap-2">
         <LocationIcon
@@ -57,14 +69,35 @@ const LocationCard = ({ site, onToggle, isSelected, isLoading }) => {
           checked={isSelected}
           onChange={(e) => {
             e.stopPropagation();
-            onToggle(site);
+            if (!disableToggle) {
+              onToggle(site);
+            }
           }}
           className="w-4 h-4 text-blue-600 bg-white cursor-pointer border-blue-300 rounded focus:ring-blue-500"
           aria-label={`Select ${displayName}`}
+          disabled={disableToggle}
         />
       </div>
     </div>
   );
+};
+
+LocationCard.propTypes = {
+  site: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    name: PropTypes.string,
+    search_name: PropTypes.string,
+    country: PropTypes.string,
+  }).isRequired,
+  onToggle: PropTypes.func.isRequired,
+  isSelected: PropTypes.bool.isRequired,
+  isLoading: PropTypes.bool,
+  disableToggle: PropTypes.bool, // New prop to disable toggle when needed
+};
+
+LocationCard.defaultProps = {
+  isLoading: false,
+  disableToggle: false,
 };
 
 export default LocationCard;

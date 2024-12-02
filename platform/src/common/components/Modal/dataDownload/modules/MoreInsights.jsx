@@ -1,17 +1,20 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-// import DownloadIcon from '@/icons/Analytics/downloadIcon';
+import DownloadIcon from '@/icons/Analytics/downloadIcon';
 import MoreInsightsChart from '@/components/Charts/MoreInsightsChart';
 import CustomCalendar from '@/components/Calendar/CustomCalendar';
 import CheckIcon from '@/icons/tickIcon';
-// import TabButtons from '@/components/Button/TabButtons';
+import TabButtons from '@/components/Button/TabButtons';
 import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
 import { TIME_OPTIONS, CHART_TYPE } from '@/lib/constants';
-// import AirQualityCard from '../components/AirQualityCard';
+import { exportDataApi } from '@/core/apis/Analytics';
+import AirQualityCard from '../components/AirQualityCard';
 import LocationCard from '../components/LocationCard';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 // import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { subDays } from 'date-fns';
+import { saveAs } from 'file-saver';
+import CustomToast from '../../../Toast/CustomToast';
 import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
 import SkeletonLoader from '@/components/Charts/components/SkeletonLoader';
@@ -33,16 +36,37 @@ const InSightsHeader = () => (
  */
 const MoreInsights = () => {
   // const dispatch = useDispatch();
-  const { data: modalData } = useSelector((state) => state.modal.modalType);
+
+  /**
+   * Selectors to retrieve data from Redux store.
+   * Assumption: state.modal.modalType.data contains the list of all available sites.
+   */
+  const modalData = useSelector((state) => state.modal.modalType?.data);
   const chartData = useSelector((state) => state.chart);
 
-  // Ensure modalData is always an array for consistency
-  const selectedSites = useMemo(() => {
-    if (!modalData) return [];
-    return Array.isArray(modalData) ? modalData : [modalData];
+  // Local state for download functionality
+  const [downloadLoading, setDownloadLoading] = useState(false);
+  const [downloadError, setDownloadError] = useState(null);
+
+  /**
+   * Ensure `allSites` is an array.
+   * If `modalData` is undefined, null, or not an array, default to an empty array.
+   */
+  const allSites = useMemo(() => {
+    if (Array.isArray(modalData)) return modalData;
+    if (modalData) return [modalData];
+    return [];
   }, [modalData]);
 
-  // Extract site IDs from selected sites for API requests
+  /**
+   * Local state to manage selected sites.
+   * Initializes with all sites selected by default.
+   */
+  const [selectedSites, setSelectedSites] = useState(() => [...allSites]);
+
+  /**
+   * Extract site IDs from selected sites for API requests.
+   */
   const selectedSiteIds = useMemo(
     () => selectedSites.map((site) => site._id),
     [selectedSites],
@@ -52,7 +76,9 @@ const MoreInsights = () => {
   const [frequency, setFrequency] = useState('daily');
   const [chartType, setChartType] = useState('line');
 
-  // Initialize date range to last 7 days
+  /**
+   * Initialize date range to last 7 days.
+   */
   const initialDateRange = useMemo(() => {
     const { startDateISO, endDateISO } = formatDateRangeToISO(
       subDays(new Date(), 7),
@@ -67,7 +93,10 @@ const MoreInsights = () => {
 
   const [dateRange, setDateRange] = useState(initialDateRange);
 
-  // Fetch analytics data using custom hook
+  /**
+   * Fetch analytics data using custom hook.
+   * Dependencies: selectedSiteIds, dateRange, chartType, frequency, pollutant, organisationName
+   */
   const { allSiteData, chartLoading, error, refetch } = useFetchAnalyticsData({
     selectedSiteIds,
     dateRange,
@@ -88,7 +117,50 @@ const MoreInsights = () => {
   }, [refetch]);
 
   /**
-   * Effect to manage SkeletonLoader visibility with delay
+   * Handles toggling of site selection.
+   * Adds or removes a site from the selectedSites state.
+   *
+   * @param {string} siteId - The ID of the site to toggle.
+   */
+  const toggleSiteSelection = useCallback(
+    (siteId) => {
+      setSelectedSites((prevSelected) => {
+        const isSelected = prevSelected.some((site) => site._id === siteId);
+        if (isSelected) {
+          return prevSelected.filter((site) => site._id !== siteId);
+        } else {
+          const siteToAdd = allSites.find((site) => site._id === siteId);
+          if (siteToAdd) {
+            return [...prevSelected, siteToAdd];
+          }
+          return prevSelected;
+        }
+      });
+    },
+    [allSites],
+  );
+
+  /**
+   * Effect to refetch data when selectedSites changes.
+   */
+  useEffect(() => {
+    handleParameterChange();
+  }, [selectedSites, handleParameterChange]);
+
+  /**
+   * Hide download error after 5 seconds.
+   */
+  useEffect(() => {
+    if (downloadError) {
+      const timer = setTimeout(() => {
+        setDownloadError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [downloadError]);
+
+  /**
+   * Effect to manage SkeletonLoader visibility with delay.
    */
   useEffect(() => {
     let timer;
@@ -97,7 +169,7 @@ const MoreInsights = () => {
     } else {
       timer = setTimeout(() => {
         setShowSkeleton(false);
-      }, 8000);
+      }, 4000);
     }
 
     return () => {
@@ -106,31 +178,84 @@ const MoreInsights = () => {
   }, [chartLoading]);
 
   /**
-   * Generates the content for the selected sites in the sidebar.
-   * Displays selected sites or a message when no sites are selected.
+   * Generates the content for all sites in the sidebar.
+   * Displays sites with their selection status.
    */
-  const selectedSitesContent = useMemo(() => {
-    if (selectedSites.length === 0) {
+  const allSitesContent = useMemo(() => {
+    if (!Array.isArray(allSites) || allSites.length === 0) {
       return (
         <div className="text-gray-500 w-full text-sm h-auto flex flex-col justify-center items-center">
           <span className="p-2 rounded-full bg-[#F6F6F7] mb-2">
             <LocationIcon width={20} height={20} fill="#9EA3AA" />
           </span>
-          No locations selected
+          No locations available
         </div>
       );
     }
 
-    return selectedSites.map((site) => (
+    return allSites.map((site) => (
       <LocationCard
         key={site._id}
         site={site}
-        onToggle={() => {}}
-        isSelected={true}
+        onToggle={() => toggleSiteSelection(site._id)}
+        isSelected={selectedSites.some((s) => s._id === site._id)}
         isLoading={false}
+        disableToggle={selectedSites.length === 1}
       />
     ));
-  }, [selectedSites]);
+  }, [allSites, selectedSites, toggleSiteSelection]);
+
+  /**
+   * Handles data download with default CSV format.
+   */
+  const handleDataDownload = async () => {
+    setDownloadLoading(true);
+    try {
+      const { startDate, endDate } = dateRange;
+
+      // Define MIME type and file name for CSV
+      const mimeType = 'text/csv;charset=utf-8;';
+      const fileName = `analytics_data_${new Date().toISOString()}.csv`;
+
+      // Prepare API request data with CSV as the default format
+      const apiData = {
+        startDateTime: startDate,
+        endDateTime: endDate,
+        sites: selectedSiteIds,
+        network: chartData.organizationName,
+        pollutants: [chartData.pollutionType],
+        frequency: frequency,
+        datatype: 'raw',
+        downloadType: 'csv',
+        outputFormat: 'airqo-standard',
+        minimum: true,
+      };
+      const response = await exportDataApi(apiData);
+
+      // Validate response data
+      if (typeof response.data !== 'string') {
+        throw new Error('Invalid CSV data format.');
+      }
+
+      // Create a Blob from the CSV data
+      const blob = new Blob([response.data], { type: mimeType });
+
+      // Trigger file download
+      saveAs(blob, fileName);
+
+      setDownloadLoading(false);
+
+      // Show success toast
+      CustomToast();
+    } catch (error) {
+      console.error(error);
+      // Set a user-friendly error message
+      setDownloadError(
+        'There was an error downloading the data. Please try again later.',
+      );
+      setDownloadLoading(false);
+    }
+  };
 
   /**
    * Handles opening the modal with the specified type, ids, and data.
@@ -146,9 +271,9 @@ const MoreInsights = () => {
 
   return (
     <>
-      {/* -------------------- Sidebar for Selected Sites -------------------- */}
+      {/* -------------------- Sidebar for Sites -------------------- */}
       <div className="w-auto h-auto md:w-[280px] md:h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-5 pb-14">
-        {selectedSitesContent}
+        {allSitesContent}
         {/* Add Location Button */}
         {/* {!chartLoading && (
           <button
@@ -172,7 +297,6 @@ const MoreInsights = () => {
                 dropdown
                 id="frequency"
                 className="left-0"
-                isLoading={chartLoading}
               >
                 {TIME_OPTIONS.map((option) => (
                   <span
@@ -211,7 +335,6 @@ const MoreInsights = () => {
                 }}
                 className="-left-10 md:left-16 top-11"
                 dropdown
-                isLoading={chartLoading}
               />
 
               {/* Chart Type Dropdown */}
@@ -219,7 +342,6 @@ const MoreInsights = () => {
                 btnText={chartType.charAt(0).toUpperCase() + chartType.slice(1)}
                 id="chartType"
                 className="left-0"
-                isLoading={chartLoading}
               >
                 {CHART_TYPE.map((option) => (
                   <span
@@ -243,17 +365,23 @@ const MoreInsights = () => {
 
             {/* Actions: Download Data */}
             <div className="space-x-2 flex">
-              {/* <TabButtons
+              <TabButtons
                 btnText="Download Data"
                 Icon={<DownloadIcon width={16} height={17} color="white" />}
-                onClick={() =>
-                  handleOpenModal('downloadData', selectedSiteIds, selectedSites)
-                }
+                onClick={handleDataDownload}
                 btnStyle="bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl"
-                isLoading={chartLoading}
-              /> */}
+                isLoading={downloadLoading}
+                disabled={downloadLoading || chartLoading}
+              />
             </div>
           </div>
+
+          {/* -------------------- Download Error -------------------- */}
+          {downloadError && (
+            <div className="w-full flex items-center justify-start h-auto">
+              <p className="text-red-500 font-semibold">{downloadError}</p>
+            </div>
+          )}
 
           {/* -------------------- Chart Display -------------------- */}
           <div className="w-full h-auto border rounded-xl border-grey-150 p-2">
@@ -286,12 +414,12 @@ const MoreInsights = () => {
           </div>
 
           {/* -------------------- Air Quality Card -------------------- */}
-          {/* <AirQualityCard
-            airQuality="Kampala’s Air Quality has been Good this month compared to last month."
-            pollutionSource="Factory, Dusty road"
-            pollutant="PM2_5"
+          <AirQualityCard
+            airQuality="--"
+            pollutionSource="--"
+            pollutant={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
             isLoading={chartLoading}
-          /> */}
+          />
         </div>
       </div>
     </>
