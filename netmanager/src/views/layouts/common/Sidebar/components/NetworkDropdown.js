@@ -81,6 +81,8 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
 
     setSelectedItem(networkToSet);
     dispatch(addActiveNetwork(networkToSet));
+    localStorage.setItem('activeNetwork', JSON.stringify(networkToSet));
+    localStorage.setItem('currentUserRole', JSON.stringify(networkToSet.role));
 
     loadNetworkData(networkToSet);
   }, [dispatch, userNetworks]);
@@ -114,6 +116,8 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
 
     dispatch(addActiveNetwork(item));
     dispatch(addCurrentUserRole(item.role));
+    localStorage.setItem('activeNetwork', JSON.stringify(item));
+    localStorage.setItem('currentUserRole', JSON.stringify(item.role));
 
     await loadNetworkData(item);
 

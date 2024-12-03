@@ -796,11 +796,9 @@ const DevicesTable = (props) => {
   useEffect(() => {
     if (!activeNetwork) return;
     setLoading(true);
-    if (isEmpty(devices)) {
-      if (!isEmpty(activeNetwork)) {
-        dispatch(loadDevicesData(activeNetwork.net_name));
-        dispatch(loadSitesData(activeNetwork.net_name));
-      }
+    if (!isEmpty(activeNetwork)) {
+      dispatch(loadDevicesData(activeNetwork.net_name));
+      dispatch(loadSitesData(activeNetwork.net_name));
     }
     dispatch(updateDeviceBackUrl(location.pathname));
     setDeviceList(Object.values(devices));

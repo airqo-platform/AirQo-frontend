@@ -239,59 +239,35 @@ const allUserManagementPages = [
 const Sidebar = (props) => {
   const { open, variant, onClose, className, ...rest } = props;
   const classes = useStyles();
-  const { mappedAuth } = props;
-  let { user } = mappedAuth;
+  const dispatch = useDispatch();
 
   const [userPages, setUserPages] = useState([]);
   const [adminPages, setAdminPages] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const dispatch = useDispatch();
   const currentRole = useSelector((state) => state.accessControl.currentRole);
-  const userNetworks = useSelector((state) => state.accessControl.userNetworks);
   const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
+  const userNetworks = useSelector((state) => state.accessControl.userNetworks);
   const groupData = useSelector((state) => state.accessControl.groupsSummary);
 
   useEffect(() => {
-    if (isEmpty(user)) {
-      return;
-    }
-
-    setLoading(true);
-    const fetchUserDetails = async () => {
-      try {
-        const res = await getUserDetails(user._id);
-        dispatch(addUserNetworks(res.users[0].networks));
-        dispatch(addUserGroupSummary(res.users[0].groups));
-        if (!isEmpty(user)) {
-          const airqoNetwork = res.users[0].networks.find(
-            (network) => network.net_name === 'airqo'
-          );
-
-          if (!activeNetwork) {
-            dispatch(addActiveNetwork(airqoNetwork));
-            dispatch(addCurrentUserRole(airqoNetwork.role));
-          }
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+    if (!userNetworks) {
+      const userNetworksStorage = JSON.parse(localStorage.getItem('userNetworks'));
+      if (userNetworksStorage) {
+        dispatch(addUserNetworks(userNetworksStorage));
       }
-    };
-
-    fetchUserDetails();
-  }, []);
-
-  useEffect(() => {
-    if (!isEmpty(activeNetwork)) {
-      dispatch(addCurrentUserRole(activeNetwork.role));
     }
   }, [activeNetwork]);
 
   useEffect(() => {
     // check whether user has a role
-    if (!isEmpty(user)) {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+    if (isEmpty(currentUser)) {
+      return;
+    }
+
+    if (!isEmpty(currentUser)) {
       if (!isEmpty(currentRole)) {
         if (currentRole.role_permissions) {
           // get pages that the user doesn't have access to
@@ -357,7 +333,7 @@ const Sidebar = (props) => {
       setAdminPages(selectedAdminPages);
       setLoading(false);
     }
-  }, [user, currentRole]);
+  }, [currentRole, activeNetwork, userNetworks]);
 
   return (
     <Drawer
