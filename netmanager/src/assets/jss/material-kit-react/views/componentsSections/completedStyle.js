@@ -1,4 +1,4 @@
-import { container } from "assets/jss/material-kit-react";
+import { container } from "../../../../../assets/jss/material-kit-react";
 
 const completedStyle = {
   section: {

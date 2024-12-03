@@ -10,7 +10,7 @@ import { Main as MainLayout, Minimal as MinimalLayout } from 'views/layouts/';
 import { NotFound as NotFoundView } from './views/pages/NotFound';
 import { LargeCircularLoader } from 'views/components/Loader/CircularLoader';
 import PermissionDenied from './views/pages/PermissionDenied';
-import { logoutUser } from './redux/Join/actions';
+import { logoutUser } from 'reducer/Join/actions';
 import { connect } from 'react-redux';
 import ConfirmDialog from './views/containers/ConfirmDialog';
 
@@ -24,7 +24,7 @@ const ManagerMap = lazy(() =>
 const ManagerStats = lazy(() =>
   import('./views/components/DataDisplay/DeviceManagement/ManagementStats')
 );
-const Map = lazy(() => import('./views/components/Map'));
+const MapsWithState = lazy(() => import('./views/components/Map'));
 const OverlayMap = lazy(() => import('./views/pages/Map'));
 const ForgotPassword = lazy(() => import('./views/pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./views/pages/ResetPassword'));
@@ -58,6 +58,7 @@ const UserStats = lazy(() => import('./views/pages/UserStats/UserStats'));
 const ClientActivation = lazy(() => import('./views/pages/clients'));
 const DeployDevice = lazy(() => import('./views/pages/DeployDevice'));
 const Preferences = lazy(() => import('./views/pages/Preferences/Preferences'));
+
 
 const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
@@ -103,6 +104,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <Route exact path="/login/:tenant?" component={Login} />
             <Route exact path="/forgot/:tenant?" component={ForgotPassword} />
             <Route exact path="/reset" component={ResetPassword} />
+            <Route exact path="/request-access/:tenant?" component={Register} />
             <PrivateRoute exact path="/analytics" component={Analytics} layout={MainLayout} />
             <PrivateRoute
               exact
@@ -141,7 +143,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <PrivateRoute exact path="/teams/:id" component={TeamsView} layout={MainLayout} />
 
             <PrivateRoute path="/device/:deviceName" component={DeviceView} layout={MainLayout} />
-            <PrivateRoute exact path="/locate" component={Map} layout={MainLayout} />
+            <PrivateRoute exact path="/locate" component={MapsWithState} layout={MainLayout} />
             <Route exact path="/map">
               <MainLayout>
                 <OverlayMap />
@@ -149,6 +151,12 @@ const AppRoutes = ({ auth, logoutUser }) => {
             </Route>
             <PrivateRoute component={Account} exact layout={MainLayout} path="/account" />
             <PrivateRoute exact path="/manager/map" component={ManagerMap} layout={MainLayout} />
+            {/* <PrivateRoute
+              exact
+              path="/manager/fault_detection"
+              component={FaultDetection}
+              layout={MainLayout}
+            /> */}
             <PrivateRoute
               exact
               path="/manager/stats"
@@ -221,8 +229,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
             right: 0,
             marginRight: '10px',
             marginBottom: '20px'
-          }}
-        >
+          }}>
           <div id="jira-help-desk" />
         </div>
 

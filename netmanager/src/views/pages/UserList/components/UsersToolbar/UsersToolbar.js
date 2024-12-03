@@ -12,18 +12,18 @@ import {
   Dialog,
   DialogActions
 } from '@material-ui/core';
-import { useOrgData } from 'redux/Join/selectors';
+import { useOrgData } from 'reducer/Join/selectors';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { addUserApi } from 'views/apis/authService';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { isEmpty } from 'underscore';
 import { assignUserNetworkApi, assignUserToRoleApi } from '../../../../apis/accessControl';
-import { fetchNetworkUsers } from 'redux/AccessControl/operations';
+import { fetchNetworkUsers } from 'reducer/AccessControl/operations';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 
-import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
+import { setLoading as loadStatus } from 'reducer/HorizontalLoader/index';
 
 countries.registerLocale(enLocale);
 

@@ -23,19 +23,19 @@ import clsx from 'clsx';
 import TextField from '@material-ui/core/TextField';
 import { isEmpty } from 'underscore';
 import Papa from 'papaparse';
-import { useDashboardSitesData } from 'redux/Dashboard/selectors';
-import { loadSites } from 'redux/Dashboard/operations';
+import { useDashboardSitesData } from 'reducer/Dashboard/selectors';
+import { loadSites } from 'reducer/Dashboard/operations';
 import { downloadDataApi } from 'views/apis/analytics';
 import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { useInitScrollTop, usePollutantsOptions } from 'utils/customHooks';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
-import { useDevicesData } from 'redux/DeviceRegistry/selectors';
-import { loadDevicesData } from 'redux/DeviceRegistry/operations';
-import { useDashboardAirqloudsData } from 'redux/AirQloud/selectors';
-import { fetchDashboardAirQloudsData } from 'redux/AirQloud/operations';
-import { loadSitesData } from 'redux/SiteRegistry/operations';
-import { useSitesData } from 'redux/SiteRegistry/selectors';
+import { useDevicesData } from 'reducer/DeviceRegistry/selectors';
+import { loadDevicesData } from 'reducer/DeviceRegistry/operations';
+import { useDashboardAirqloudsData } from 'reducer/AirQloud/selectors';
+import { fetchDashboardAirQloudsData } from 'reducer/AirQloud/operations';
+import { loadSitesData } from 'reducer/SiteRegistry/operations';
+import { useSitesData } from 'reducer/SiteRegistry/selectors';
 import { scheduleExportDataApi } from '../../apis/analytics';
 import ExportDataBreadCrumb from './components/BreadCrumb';
 import CloseIcon from '@material-ui/icons/Close';
@@ -666,24 +666,36 @@ const ExportData = (props) => {
                       <Grid item md={6} xs={12}>
                         <TextField
                           label="Start Date"
-                          className="step-1"
                           fullWidth
+                          margin="normal"
                           variant="outlined"
                           value={startDate}
                           InputLabelProps={{ shrink: true }}
                           type="date"
                           onChange={(event) => setStartDate(event.target.value)}
+                          sx={{
+                            marginBottom: 2, 
+                            backgroundColor: '#f5f5f5', 
+                            borderRadius: 2,
+                          }}
                         />
                       </Grid>
                       <Grid item md={6} xs={12}>
                         <TextField
+                          id="outlined-basic"
                           label="End Date"
                           fullWidth
+                          margin="normal"
                           variant="outlined"
                           value={endDate}
                           InputLabelProps={{ shrink: true }}
                           type="date"
                           onChange={(event) => setEndDate(event.target.value)}
+                          sx={{
+                            backgroundColor: '#f5f5f5',
+                            borderRadius: 2,
+                            height: 56,
+                          }}
                         />
                       </Grid>
 

@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Cancel } from '@material-ui/icons';
-import { updateFilteredDevicesData, updateActiveFilters } from 'redux/DeviceManagement/operations';
+import { updateFilteredDevicesData, updateActiveFilters } from 'reducer/DeviceManagement/operations';
 import {
   useManagementDevicesData,
   useManagementFilteredDevicesData,
   useActiveFiltersData
-} from 'redux/DeviceManagement/selectors';
+} from 'reducer/DeviceManagement/selectors';
 import { multiFilter } from 'utils/filters';
 import { mapObject, omit, isEmpty, isEqual } from 'underscore';
 

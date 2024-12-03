@@ -14,7 +14,7 @@ import {
 } from '@material-ui/core';
 import { activateUserClientApi, getClientsApi } from '../../apis/analytics';
 import { Close as CloseIcon } from '@material-ui/icons';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { useDispatch } from 'react-redux';
 import { withPermission } from '../../containers/PageAccess';
 

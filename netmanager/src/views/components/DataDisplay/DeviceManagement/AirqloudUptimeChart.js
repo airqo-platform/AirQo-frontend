@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import moment from 'moment';
 import { isEmpty } from 'underscore';
-import { useAirqloudUptimeData } from 'redux/DeviceManagement/selectors';
-import { loadAirqloudUptime } from 'redux/DeviceManagement/operations';
+import { useAirqloudUptimeData } from 'reducer/DeviceManagement/selectors';
+import { loadAirqloudUptime } from 'reducer/DeviceManagement/operations';
 import { ApexChart, createPieChartOptions } from 'views/charts';
 import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
 import { Box, Button, TextField, Typography } from '@material-ui/core';
 import ScheduleIcon from '@material-ui/icons/Schedule';
 import { useDispatch, useSelector } from 'react-redux';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
-import { fetchGridsSummary } from 'redux/Analytics/operations';
+import { fetchGridsSummary } from 'reducer/Analytics/operations';
 import Select from 'react-select';
 
 const gridOptions = (grids) => {

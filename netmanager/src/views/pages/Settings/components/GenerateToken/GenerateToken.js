@@ -12,7 +12,7 @@ import {
   activationRequestApi
 } from 'views/apis/analytics';
 import { useDispatch } from 'react-redux';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import DataTable from './Table';
 import {
   Card,
@@ -29,7 +29,7 @@ import {
   IconButton
 } from '@material-ui/core';
 import CheckIcon from '@material-ui/icons/Check';
-import { getUserDetails } from '../../../../../redux/Join/actions';
+import { getUserDetails } from '../../../../../reducer/Join/actions';
 import { isEmpty, isEqual } from 'underscore';
 import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';

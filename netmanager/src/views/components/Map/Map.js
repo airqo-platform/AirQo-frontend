@@ -1,11 +1,14 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { mapRenderDefaults } from 'redux/Maps/actions';
+import { mapRenderDefaults } from 'reducer/Maps/actions';
 import PropTypes from 'prop-types';
 import Select from 'react-select';
 
 import { Map, FeatureGroup, LayerGroup, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet-draw/dist/leaflet.draw.css';
 import { EditControl } from 'react-leaflet-draw';
+import 'leaflet-draw';
 import createAxiosInstance from '../../apis/axiosConfig';
 import L from 'leaflet';
 import FullscreenControl from 'react-leaflet-fullscreen';
@@ -718,8 +721,7 @@ class Maps extends React.Component {
               ref={(reactFGref) => {
                 this._onFeatureGroupReady(reactFGref);
               }}>
-              <EditControl
-                ref="edit"
+              {/* <EditControl
                 position="topright"
                 onEdited={this._onEdited}
                 onCreated={this._onCreated}
@@ -734,7 +736,7 @@ class Maps extends React.Component {
                   circle: false,
                   circlemarker: false
                 }}
-              />
+              /> */}
             </FeatureGroup>
           </Map>
         </div>

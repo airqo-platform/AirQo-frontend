@@ -20,7 +20,7 @@ import { useInitScrollTop } from 'utils/customHooks';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/styles';
-import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateMainAlert } from 'reducer/MainAlert/operations';
 import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
 import { generateAirQloudDataSummaryApi } from 'views/apis/analytics';
 import {

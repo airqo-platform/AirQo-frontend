@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
-import { useDeviceUptimeData } from 'redux/DeviceManagement/selectors';
-import { loadSingleDeviceUptime } from 'redux/DeviceManagement/operations';
+import { useDeviceUptimeData } from 'reducer/DeviceManagement/selectors';
+import { loadSingleDeviceUptime } from 'reducer/DeviceManagement/operations';
 import { roundToEndOfDay, roundToStartOfDay } from 'utils/dateTime';
 import moment from 'moment';
 import DeviceUptimeChart from './UptimeChart';
 import DeviceVoltageChart from './VoltageChart';
 import DeviceSensorChart from './SensorChart';
 import PropTypes from 'prop-types';
-import { loadDeviceBatteryVoltage } from 'redux/DeviceRegistry/operations';
+import { loadDeviceBatteryVoltage } from 'reducer/DeviceRegistry/operations';
 import { TextField } from '@material-ui/core';
 
 const DeviceOverviewCharts = ({ deviceName }) => {

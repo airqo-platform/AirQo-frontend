@@ -1,11 +1,11 @@
 /* eslint-disable */
 import { connect } from 'react-redux';
-import * as userActions from '../../../../redux/Join/actions';
-import UserList from '../../../UserList/UserList';
-import UsersTable from '../../../UserList/components/UsersTable/UsersTable';
-import UsersToolBar from '../../../UserList/components/UsersToolbar/UsersToolbar';
+import * as userActions from '../../../../../reducer/Join/actions';
+import UserList from '../../UserList/UserList';
+import UsersTable from '../../UserList/components/UsersTable/UsersTable';
+import UsersToolBar from '../../UserList/components/UsersToolbar/UsersToolbar';
 
-import SideBar from 'layouts/Main/components/Sidebar/Sidebar';
+import SideBar from '../../../../layouts/common/Sidebar/Sidebar';
 
 // map state from store to props
 const mapStateToProps = (state, ownProps) => {

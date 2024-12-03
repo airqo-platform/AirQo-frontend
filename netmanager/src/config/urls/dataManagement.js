@@ -1,9 +1,6 @@
 import { stripTrailingSlash } from "../utils";
 
-const BASE_DATA_MANAGEMENT_URL = stripTrailingSlash(
-  process.env.REACT_APP_BASE_DATA_MANAGEMENT_URL ||
-    process.env.REACT_APP_BASE_URL
-);
+const BASE_DATA_MANAGEMENT_URL = "https://staging-platform.airqo.net/api/v2";
 
 export const ADD_MAINTENANCE_URI = `${BASE_DATA_MANAGEMENT_URL}/data/channels/maintenance/add`;
 
