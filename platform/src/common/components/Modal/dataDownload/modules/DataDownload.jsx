@@ -15,7 +15,7 @@ import {
   FILE_TYPE_OPTIONS,
 } from '../constants';
 import Footer from '../components/Footer';
-import { exportDataApi } from '@/core/apis/Analytics';
+import useDataDownload from '@/core/hooks/useDataDownload';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { saveAs } from 'file-saver';
@@ -65,6 +65,9 @@ const DataDownload = ({ onClose }) => {
   const [clearSelected, setClearSelected] = useState(false);
   const [formError, setFormError] = useState('');
   const [downloadLoading, setDownloadLoading] = useState(false);
+
+  // Use the hook to fetch data
+  const fetchData = useDataDownload();
 
   // Extract selected site IDs from preferencesData
   const selectedSiteIds = useMemo(() => {
@@ -131,99 +134,87 @@ const DataDownload = ({ onClose }) => {
       setDownloadLoading(true);
       setFormError('');
 
-      // Validate form data
-      if (
-        !formData.duration ||
-        !formData.duration.name?.start ||
-        !formData.duration.name?.end
-      ) {
-        setFormError(
-          'Please select a valid duration with both start and end dates.',
-        );
-        setDownloadLoading(false);
-        return;
-      }
-
-      // Parse the start and end dates
-      const startDate = new Date(formData.duration.name.start);
-      const endDate = new Date(formData.duration.name.end);
-
-      // Frequency-based duration limit validation
-      const validateDuration = (frequency, startDate, endDate) => {
-        const sixMonthsInMs = 6 * 30 * 24 * 60 * 60 * 1000; // 6 months in milliseconds
-        const oneYearInMs = 12 * 30 * 24 * 60 * 60 * 1000; // 1 year in milliseconds
-        const durationMs = endDate - startDate;
-
-        if (frequency === 'hourly' && durationMs > sixMonthsInMs) {
-          return 'For hourly frequency, the duration cannot exceed 6 months.';
-        }
-        if (frequency === 'daily' && durationMs > oneYearInMs) {
-          return 'For daily frequency, the duration cannot exceed 1 year.';
-        }
-        return null;
-      };
-
-      const durationError = validateDuration(
-        formData.frequency.name.toLowerCase(),
-        startDate,
-        endDate,
-      );
-
-      if (durationError) {
-        setFormError(durationError);
-        setDownloadLoading(false);
-        return;
-      }
-
-      if (selectedSites.length === 0) {
-        setFormError('Please select at least one location.');
-        setDownloadLoading(false);
-        return;
-      }
-
-      // Prepare data for API
-      const apiData = {
-        startDateTime: format(startDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
-        endDateTime: format(endDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
-        sites: selectedSites.map((site) => site._id),
-        network: formData.network.name,
-        datatype:
-          formData.dataType.name.toLowerCase() === 'calibrated data'
-            ? 'calibrated'
-            : 'raw',
-        pollutants: [formData.pollutant.name.toLowerCase().replace('.', '_')],
-        frequency: formData.frequency.name.toLowerCase(),
-        downloadType: formData.fileType.name.toLowerCase(),
-        outputFormat: 'airqo-standard',
-        minimum: true,
-      };
-
       try {
-        const response = await exportDataApi(apiData);
+        // Validate form data
+        if (
+          !formData.duration ||
+          !formData.duration.name?.start ||
+          !formData.duration.name?.end
+        ) {
+          throw new Error(
+            'Please select a valid duration with both start and end dates.',
+          );
+        }
 
-        // Handle file download
+        // Parse the start and end dates
+        const startDate = new Date(formData.duration.name.start);
+        const endDate = new Date(formData.duration.name.end);
+
+        // Frequency-based duration limit validation
+        const validateDuration = (frequency, startDate, endDate) => {
+          const sixMonthsInMs = 6 * 30 * 24 * 60 * 60 * 1000; // 6 months in milliseconds
+          const oneYearInMs = 12 * 30 * 24 * 60 * 60 * 1000; // 1 year in milliseconds
+          const durationMs = endDate - startDate;
+
+          if (frequency === 'hourly' && durationMs > sixMonthsInMs) {
+            return 'For hourly frequency, the duration cannot exceed 6 months.';
+          }
+          if (frequency === 'daily' && durationMs > oneYearInMs) {
+            return 'For daily frequency, the duration cannot exceed 1 year.';
+          }
+          return null;
+        };
+
+        const durationError = validateDuration(
+          formData.frequency.name.toLowerCase(),
+          startDate,
+          endDate,
+        );
+
+        if (durationError) {
+          throw new Error(durationError);
+        }
+
+        if (selectedSites.length === 0) {
+          throw new Error('Please select at least one location.');
+        }
+
+        // Prepare data for API
+        const apiData = {
+          startDateTime: format(startDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
+          endDateTime: format(endDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
+          sites: selectedSites.map((site) => site._id),
+          network: formData.network.name,
+          datatype:
+            formData.dataType.name.toLowerCase() === 'calibrated data'
+              ? 'calibrated'
+              : 'raw',
+          pollutants: [formData.pollutant.name.toLowerCase().replace('.', '_')],
+          frequency: formData.frequency.name.toLowerCase(),
+          downloadType: formData.fileType.name.toLowerCase(),
+          outputFormat: 'airqo-standard',
+          minimum: true,
+        };
+
+        const response = await fetchData(apiData);
+
+        // Handle file download based on file type
         const fileExtension = formData.fileType.name.toLowerCase();
         const mimeType = getMimeType(fileExtension);
         const fileName = `${formData.title.name}.${fileExtension}`;
 
         if (fileExtension === 'csv') {
-          if (typeof response.data !== 'string') {
+          if (typeof response !== 'string') {
             throw new Error('Invalid CSV data format.');
           }
-          const blob = new Blob([response.data], { type: mimeType });
+          const blob = new Blob([response], { type: mimeType });
           saveAs(blob, fileName);
         } else if (fileExtension === 'json') {
-          if (!response.data || !Array.isArray(response.data.data)) {
-            throw new Error('Invalid JSON data format.');
-          }
-          const json = JSON.stringify(response.data.data, null, 2);
+          const json = JSON.stringify(response.data, null, 2);
           const blob = new Blob([json], { type: mimeType });
           saveAs(blob, fileName);
         } else if (fileExtension === 'pdf') {
-          if (!response.data || !Array.isArray(response.data.data)) {
-            throw new Error('Invalid PDF data format.');
-          }
-          const pdfData = response.data.data;
+          const pdfData = response.data || [];
           const doc = new jsPDF();
 
           if (pdfData.length === 0) {
@@ -232,9 +223,7 @@ const DataDownload = ({ onClose }) => {
             const tableColumn = Object.keys(pdfData[0]);
             const tableRows = pdfData.map((data) =>
               tableColumn.map((col) =>
-                data[col] !== undefined && data[col] !== null
-                  ? data[col]
-                  : '---',
+                data[col] !== undefined ? data[col] : '---',
               ),
             );
             doc.autoTable({

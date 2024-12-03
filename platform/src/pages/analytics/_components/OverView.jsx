@@ -20,7 +20,7 @@ import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { subDays } from 'date-fns';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
-import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
+import useFetchAnalyticsData from '@/core/hooks/useFetchAnalyticsData';
 
 const OverView = () => {
   const dispatch = useDispatch();
@@ -213,7 +213,7 @@ const OverView = () => {
           <ChartContainer
             chartType="line"
             chartTitle="Air Pollution Trends Over Time"
-            height={400}
+            height={380}
             id="air-pollution-line-chart"
             data={allSiteData}
             chartLoading={chartLoading}
@@ -224,7 +224,7 @@ const OverView = () => {
           <ChartContainer
             chartType="bar"
             chartTitle="Air Pollution Levels Distribution"
-            height={400}
+            height={380}
             id="air-pollution-bar-chart"
             data={allSiteData}
             chartLoading={chartLoading}

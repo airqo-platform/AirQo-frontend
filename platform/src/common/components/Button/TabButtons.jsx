@@ -34,9 +34,7 @@ const TabButtons = ({
       disabled={disabled || isLoading}
       aria-disabled={disabled || isLoading}
       className={`transition transform active:scale-95 border rounded-xl shadow-sm flex items-center justify-between cursor-pointer ${
-        disabled || isLoading
-          ? 'opacity-50 cursor-not-allowed'
-          : 'hover:scale-105'
+        disabled || isLoading ? 'opacity-50 cursor-not-allowed' : ''
       } ${btnStyle}`}
     >
       {/* Loading Spinner */}
