@@ -95,7 +95,9 @@ const Main = (props) => {
       dispatch(addUserNetworks(res.users[0].networks));
       localStorage.setItem('userNetworks', JSON.stringify(res.users[0].networks));
       dispatch(addUserGroupSummary(res.users[0].groups));
+
       if (!isEmpty(user)) {
+        console.log('E DEY WORK');
         const airqoNetwork = res.users[0].networks.find((network) => network.net_name === 'airqo');
 
         if (!activeNetwork) {

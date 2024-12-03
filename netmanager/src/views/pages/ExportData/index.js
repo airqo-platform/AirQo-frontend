@@ -6,14 +6,11 @@ import {
   Button,
   Card,
   CardContent,
-  CardHeader,
   CardActions,
   Divider,
-  CircularProgress,
   Tabs,
   Tab,
   Box,
-  Typography,
   Snackbar,
   IconButton
 } from '@material-ui/core';
@@ -36,7 +33,6 @@ import { useDashboardAirqloudsData } from 'redux/AirQloud/selectors';
 import { fetchDashboardAirQloudsData } from 'redux/AirQloud/operations';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { useSitesData } from 'redux/SiteRegistry/selectors';
-import { scheduleExportDataApi } from '../../apis/analytics';
 import ExportDataBreadCrumb from './components/BreadCrumb';
 import CloseIcon from '@material-ui/icons/Close';
 
@@ -181,6 +177,11 @@ function extractLabels(options) {
   return labels;
 }
 
+const dataTypeOptions = [
+  { value: 'calibrated', label: 'Calibrated' },
+  { value: 'raw', label: 'Raw' }
+];
+
 const ExportData = (props) => {
   useInitScrollTop();
   const { className, staticContext, ...rest } = props;
@@ -208,8 +209,8 @@ const ExportData = (props) => {
   const [selectedAirqlouds, setSelectedAirqlouds] = useState([]);
 
   const [loading, setLoading] = useState(false);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [pollutants, setPollutants] = useState([]);
   const [frequency, setFrequency] = useState(null);
   const [fileType, setFileType] = useState(null);
@@ -222,7 +223,8 @@ const ExportData = (props) => {
   const frequencyOptions = [
     { value: 'hourly', label: 'Hourly' },
     { value: 'daily', label: 'Daily' },
-    { value: 'raw', label: 'Raw' }
+    { value: 'weekly', label: 'Weekly' },
+    { value: 'monthly', label: 'Monthly' }
   ];
 
   const pollutantOptions = usePollutantsOptions();
@@ -237,6 +239,8 @@ const ExportData = (props) => {
     { value: 'aqcsv', label: 'AQCSV' },
     { value: 'airqo-standard', label: 'AirQo Standard' }
   ];
+
+  const [dataType, setDataType] = useState({ value: 'calibrated', label: 'Calibrated' });
 
   function TabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -322,8 +326,8 @@ const ExportData = (props) => {
   };
 
   const clearExportData = () => {
-    setStartDate(null);
-    setEndDate(null);
+    setStartDate('');
+    setEndDate('');
     setFileType(null);
     setSelectedAirqlouds([]);
     setSelectedDevices([]);
@@ -332,20 +336,22 @@ const ExportData = (props) => {
     setPollutants([]);
     setOutputFormat(null);
     setFrequency(null);
+    setDataType({ value: 'calibrated', label: 'Calibrated' });
   };
 
   const disableDownloadBtn = (exportType) => {
     if (exportType === 'sites') {
       return (
         !(
-          startDate &&
-          endDate &&
+          startDate !== '' &&
+          endDate !== '' &&
           !isEmpty(selectedSites) &&
           fileType &&
           fileType.value &&
           frequency &&
           frequency.value &&
-          outputFormat
+          outputFormat &&
+          dataType
         ) || loading
       );
     }
@@ -353,15 +359,16 @@ const ExportData = (props) => {
     if (exportType === 'devices') {
       return (
         !(
-          startDate &&
-          endDate &&
+          startDate !== '' &&
+          endDate !== '' &&
           !isEmpty(selectedDevices) &&
           !isEmpty(pollutants) &&
           fileType &&
           fileType.value &&
           frequency &&
           frequency.value &&
-          outputFormat
+          outputFormat &&
+          dataType
         ) || loading
       );
     }
@@ -369,15 +376,16 @@ const ExportData = (props) => {
     if (exportType === 'airqlouds') {
       return (
         !(
-          startDate &&
-          endDate &&
+          startDate !== '' &&
+          endDate !== '' &&
           !isEmpty(selectedAirqlouds) &&
           !isEmpty(pollutants) &&
           fileType &&
           fileType.value &&
           frequency &&
           frequency.value &&
-          outputFormat
+          outputFormat &&
+          dataType
         ) || loading
       );
     }
@@ -385,15 +393,16 @@ const ExportData = (props) => {
     if (exportType === 'regions') {
       return (
         !(
-          startDate &&
-          endDate &&
+          startDate !== '' &&
+          endDate !== '' &&
           !isEmpty(selectedRegions) &&
           !isEmpty(pollutants) &&
           fileType &&
           fileType.value &&
           frequency &&
           frequency.value &&
-          outputFormat
+          outputFormat &&
+          dataType
         ) || loading
       );
     }
@@ -496,97 +505,21 @@ const ExportData = (props) => {
     }
 
     let body = {
-      sites: sitesList,
-      airqlouds: getValues(selectedAirqlouds),
-      devices: getValues(selectedDevices),
       startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
       endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
-      frequency: frequency.value,
+      sites: sitesList,
+      device: getValues(selectedDevices),
+      airqlouds: getValues(selectedAirqlouds),
+      network: activeNetwork,
+      datatype: dataType.value,
       pollutants: getValues(pollutants),
-      downloadType: 'json',
+      frequency: frequency.value,
+      downloadType: fileType.value,
       outputFormat: outputFormat.value,
-      meta_data: {
-        sites: extractLabels(selectedSites),
-        airqlouds: extractLabels(selectedAirqlouds),
-        devices: extractLabels(selectedDevices),
-        regions: extractLabels(selectedRegions)
-      }
+      minimum: true
     };
 
     downloadDataFunc(body);
-  };
-
-  const scheduleExportData = async (e) => {
-    e.preventDefault();
-
-    setLoading(true);
-
-    let userId = JSON.parse(localStorage.getItem('currentUser'))._id;
-    let sitesList = [];
-
-    if (!isEmpty(selectedRegions)) {
-      sitesList = extractSiteIds(selectedRegions);
-    }
-
-    if (!isEmpty(selectedSites)) {
-      sitesList = getValues(selectedSites);
-    }
-
-    if (startDate > endDate) {
-      dispatch(
-        updateMainAlert({
-          message: 'Start date cannot be newer than the end date',
-          show: true,
-          severity: 'error'
-        })
-      );
-
-      setLoading(false);
-      return;
-    }
-
-    let body = {
-      sites: sitesList,
-      airqlouds: getValues(selectedAirqlouds),
-      devices: getValues(selectedDevices),
-      startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
-      endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
-      frequency: frequency.value,
-      pollutants: getValues(pollutants),
-      downloadType: 'json',
-      outputFormat: outputFormat.value,
-      userId: userId,
-      meta_data: {
-        sites: extractLabels(selectedSites),
-        airqlouds: extractLabels(selectedAirqlouds),
-        devices: extractLabels(selectedDevices),
-        regions: extractLabels(selectedRegions)
-      }
-    };
-
-    await scheduleExportDataApi(body)
-      .then((resData) => {
-        clearExportData();
-        setLoading(false);
-        dispatch(
-          updateMainAlert({
-            message: 'Data export ' + resData.data.status,
-            show: true,
-            severity: 'success'
-          })
-        );
-      })
-      .catch((err) => {
-        dispatch(
-          updateMainAlert({
-            message: err.response.data.message,
-            show: true,
-            severity: 'error'
-          })
-        );
-        clearExportData();
-        setLoading(false);
-      });
   };
 
   // this is an array of the title and description for the features to be explained
@@ -761,6 +694,22 @@ const ExportData = (props) => {
                           required
                         />
                       </Grid>
+
+                      <Grid item md={6} xs={12}>
+                        <Select
+                          fullWidth
+                          label="Data Type"
+                          className="reactSelect"
+                          name="data-type"
+                          placeholder="Data Type"
+                          value={dataType}
+                          options={dataTypeOptions}
+                          onChange={(options) => setDataType(options)}
+                          variant="outlined"
+                          margin="dense"
+                          required
+                        />
+                      </Grid>
                     </Grid>
                   </CardContent>
 
@@ -909,6 +858,22 @@ const ExportData = (props) => {
                           value={outputFormat}
                           options={typeOutputFormatOptions}
                           onChange={(options) => setOutputFormat(options)}
+                          variant="outlined"
+                          margin="dense"
+                          required
+                        />
+                      </Grid>
+
+                      <Grid item md={6} xs={12}>
+                        <Select
+                          fullWidth
+                          label="Data Type"
+                          className="reactSelect"
+                          name="data-type"
+                          placeholder="Data Type"
+                          value={dataType}
+                          options={dataTypeOptions}
+                          onChange={(options) => setDataType(options)}
                           variant="outlined"
                           margin="dense"
                           required
@@ -1066,6 +1031,22 @@ const ExportData = (props) => {
                           required
                         />
                       </Grid>
+
+                      <Grid item md={6} xs={12}>
+                        <Select
+                          fullWidth
+                          label="Data Type"
+                          className="reactSelect"
+                          name="data-type"
+                          placeholder="Data Type"
+                          value={dataType}
+                          options={dataTypeOptions}
+                          onChange={(options) => setDataType(options)}
+                          variant="outlined"
+                          margin="dense"
+                          required
+                        />
+                      </Grid>
                     </Grid>
                   </CardContent>
 
@@ -1213,6 +1194,22 @@ const ExportData = (props) => {
                           value={outputFormat}
                           options={typeOutputFormatOptions}
                           onChange={(options) => setOutputFormat(options)}
+                          variant="outlined"
+                          margin="dense"
+                          required
+                        />
+                      </Grid>
+
+                      <Grid item md={6} xs={12}>
+                        <Select
+                          fullWidth
+                          label="Data Type"
+                          className="reactSelect"
+                          name="data-type"
+                          placeholder="Data Type"
+                          value={dataType}
+                          options={dataTypeOptions}
+                          onChange={(options) => setDataType(options)}
                           variant="outlined"
                           margin="dense"
                           required

@@ -3,7 +3,6 @@ import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import { Divider, Drawer } from '@material-ui/core';
-import DashboardIcon from '@material-ui/icons/Dashboard';
 import PeopleIcon from '@material-ui/icons/People';
 import AccountBoxIcon from '@material-ui/icons/AccountBox';
 import MapIcon from '@material-ui/icons/Map';
@@ -15,31 +14,17 @@ import EditLocationIcon from '@material-ui/icons/EditLocation';
 import AspectRatioIcon from '@material-ui/icons/AspectRatio';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import TimelineIcon from '@material-ui/icons/Timeline';
-import AirQloudIcon from '@material-ui/icons/FilterDrama';
-import BubbleChartIcon from '@material-ui/icons/BubbleChart';
-import SupervisorAccountIcon from '@material-ui/icons/SupervisorAccount';
-import BusinessIcon from '@material-ui/icons/Business';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import { Profile, SidebarNav, SidebarWidgets } from './components';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
-import { getUserDetails } from 'redux/Join/actions';
 import { PeopleOutline } from '@material-ui/icons';
-import {
-  addCurrentUserRole,
-  addUserNetworks,
-  addActiveNetwork,
-  addUserGroupSummary
-} from 'redux/AccessControl/operations';
+import { addUserNetworks } from 'redux/AccessControl/operations';
 import NetworkDropdown from './components/NetworkDropdown';
-import { getRoleDetailsApi } from '../../../apis/accessControl';
-import { updateMainAlert } from 'redux/MainAlert/operations';
-import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import TapAndPlayIcon from '@material-ui/icons/TapAndPlay';
 import GroupWorkIcon from '@material-ui/icons/GroupWork';
 import SimCardIcon from '@material-ui/icons/SimCard';
-import GridOnIcon from '@material-ui/icons/GridOn';
 import GrainIcon from '@material-ui/icons/Grain';
 import GroupAddIcon from '@material-ui/icons/GroupAdd';
 import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';

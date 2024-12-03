@@ -3,17 +3,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import TextField from '@material-ui/core/TextField';
 import Paper from '@material-ui/core/Paper';
 import { Box, Button, Grid } from '@material-ui/core';
-import { isEmpty, isEqual, omit } from 'underscore';
+import { isEmpty, omit } from 'underscore';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { updateDeviceDetails, softUpdateDeviceDetails } from 'views/apis/deviceRegistry';
 import { loadDevicesData } from 'redux/DeviceRegistry/operations';
 import { useSiteOptionsData } from 'redux/SiteRegistry/selectors';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
 import DeviceDeployStatus from './DeviceDeployStatus';
-import { capitalize } from 'utils/string';
-import { getDateString } from 'utils/dateTime';
-
-import { filterSite } from 'utils/sites';
 import { setLoading } from 'redux/HorizontalLoader/index';
 import { getNetworkListSummaryApi } from '../../../apis/accessControl';
 import OutlinedSelect from '../../CustomSelects/OutlinedSelect';
