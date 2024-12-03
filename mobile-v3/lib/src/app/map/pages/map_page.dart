@@ -15,7 +15,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../../dashboard/bloc/countries/bloc/dashboard_countries_bloc.dart';
 import '../../dashboard/pages/dashboard_page.dart';
 
 class MapScreen extends StatefulWidget {
@@ -129,7 +128,6 @@ class _MapScreenState extends State<MapScreen>
     searchController.clear();
   }
 
-  DashboardCountriesBloc? bloc;
   GooglePlacesBloc? googlePlacesBloc;
 
   Future<void> addMarkers(AirQualityResponse response) async {
@@ -151,7 +149,6 @@ class _MapScreenState extends State<MapScreen>
 
   @override
   void initState() {
-    bloc = context.read<DashboardCountriesBloc>()..add(LoadCountries());
     googlePlacesBloc = context.read<GooglePlacesBloc>()
       ..add(ResetGooglePlaces());
     super.initState();
@@ -823,7 +820,7 @@ class _MapScreenState extends State<MapScreen>
                                                               clearGooglePlaces(),
                                                           child: Icon(
                                                             Icons.close,
-                                                            color: Colors.white,
+                                                            color: Theme.of(context).textTheme.headlineLarge!.color,
                                                           ));
                                                     }
                                                     return SizedBox();
@@ -863,6 +860,20 @@ class _MapScreenState extends State<MapScreen>
                                               );
                                             } else if (placesState
                                                 is SearchLoaded) {
+                                              if (placesState.response
+                                                  .predictions.isEmpty) {
+                                                return Center(
+                                                  child: Text(
+                                                    "No results found",
+                                                    style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        color: AppColors
+                                                            .boldHeadlineColor),
+                                                  ),
+                                                );
+                                              }
                                               return ListView.separated(
                                                   separatorBuilder:
                                                       (context, index) {
