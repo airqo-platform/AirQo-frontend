@@ -2,7 +2,8 @@ import 'dart:convert';
 
 import 'package:airqo/src/app/dashboard/models/forecast_response.dart';
 import 'package:airqo/src/app/shared/repository/base_repository.dart';
-import 'package:http/http.dart' as http;
+import 'package:airqo/src/meta/utils/api_utils.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart';
 
 abstract class ForecastRepository extends BaseRepository {
@@ -12,11 +13,8 @@ abstract class ForecastRepository extends BaseRepository {
 class ForecastImpl extends ForecastRepository {
   @override
   Future<ForecastResponse> loadForecasts(String siteId) async {
-    Response forecastResponse = await http.get(
-      Uri.parse(
-          "https://api.airqo.net/api/v2/predict/daily-forecast?site_id=64e070b07898ba0013018767&token=EKFCNPGPC4TSM9RK"),
-      headers: {"Accept": "*/*", "Content-Type": "application/json"},
-    );
+    Response forecastResponse = await createGetRequest(ApiUtils.fetchForecasts,
+        {"token": dotenv.env['AIRQO_API_TOKEN']!, "site_id": siteId});
 
     ForecastResponse response =
         ForecastResponse.fromJson(json.decode(forecastResponse.body));

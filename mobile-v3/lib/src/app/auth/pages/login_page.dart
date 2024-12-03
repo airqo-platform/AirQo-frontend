@@ -19,10 +19,10 @@ class _LoginPageState extends State<LoginPage> {
   String? error;
   AuthBloc? authBloc;
   TextEditingController emailController = TextEditingController(
-      text: "joxowo9726@godsigma.com",
+      // text: "joxowo9726@godsigma.com",
       );
   TextEditingController passwordController = TextEditingController(
-      text: "0134t34%Wer",
+      // text: "0134t34%Wer",
       );
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
 

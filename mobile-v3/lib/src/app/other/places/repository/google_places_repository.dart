@@ -18,7 +18,7 @@ class GooglePlacesImpl extends GooglePlacesRepository {
   Future<AutoCompleteResponse> searchPlaces(String term) async {
     Map<String, String> queryParams = {
       'input': term,
-      'components': "country:UG|country:KE",
+      'components': "country:UG|country:KE|country:BI|country:GH|country:NG|country:CM|country:ZA|country:MZ",
       "key": dotenv.env["GOOGLE_PLACES_API_KEY"]!
     };
     Uri url = Uri.https(

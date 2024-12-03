@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
-import 'package:airqo/src/app/dashboard/bloc/countries/bloc/dashboard_countries_bloc.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
 import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
@@ -81,9 +80,6 @@ class AirqoMobile extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => GooglePlacesBloc(googlePlacesRepository),
-        ),
-        BlocProvider(
-          create: (context) => DashboardCountriesBloc(dashboardRepository),
         ),
         BlocProvider(
           create: (context) => UserBloc(userRepository),

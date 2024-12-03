@@ -1,5 +1,3 @@
-Here's the AirQo mobile app README file in Markdown format:
-
 # AirQo Mobile App Version 3
 
 AirQo is a simple mobile application built with Flutter that provides air quality information to users.
