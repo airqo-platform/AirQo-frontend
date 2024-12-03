@@ -24,10 +24,12 @@ const GridsRegistry = () => {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const grids = useSelector((state) => state.analytics.gridsSummary);
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
+    if (!activeNetwork) return;
     setLoading(true);
-    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
+
     dispatch(fetchGridsSummary(activeNetwork.net_name)).then(() => {
       setLoading(false);
     });
@@ -49,7 +51,8 @@ const GridsRegistry = () => {
         color="blue"
         display={'flex'}
         justifyContent={'center'}
-        alignItems={'center'}>
+        alignItems={'center'}
+      >
         <LargeCircularLoader loading={loading} />
       </Box>
     );
@@ -73,7 +76,8 @@ const GridsRegistry = () => {
               textAlign={'center'}
               display={'flex'}
               justifyContent={'center'}
-              alignItems={'center'}>
+              alignItems={'center'}
+            >
               <Typography variant="body2" color="textSecondary">
                 No grids found
               </Typography>

@@ -24,7 +24,6 @@ const mapDispatchToProps = (dispatch) => {
     mappedHideDeleteDialog: () => dispatch(userActions.hideDeleteDialog()),
     mappedConfirmDeleteUser: (userToDelete) => {
       dispatch(userActions.deleteUser(userToDelete));
-      dispatch(fetchNetworkUsers(JSON.parse(localStorage.getItem('activeNetwork'))._id));
     },
 
     mappedShowConfirmDialog: (userToConfirm) =>

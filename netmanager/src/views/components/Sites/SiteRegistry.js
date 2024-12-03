@@ -7,6 +7,7 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import 'assets/css/location-registry.css';
 import { withPermission } from '../../containers/PageAccess';
 import UsersListBreadCrumb from '../../pages/UserList/components/Breadcrumb';
+import { useSelector } from 'react-redux';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -26,7 +27,7 @@ const useStyles = makeStyles((theme) => ({
 
 const SiteRegistry = () => {
   const classes = useStyles();
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   return (
     <ErrorBoundary>

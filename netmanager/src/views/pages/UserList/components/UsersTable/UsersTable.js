@@ -98,7 +98,7 @@ const UsersTable = (props) => {
   const [showEditPopup, setShowEditPopup] = useState(false);
   const [showMoreDetailsPopup, setShowMoreDetailsPopup] = useState(false);
   const userToDelete = mappeduserState.userToDelete;
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
   const [isLoading, setLoading] = useState(false);
   const classes = useStyles();
   const users = useSelector((state) => state.accessControl.networkUsers);
@@ -217,10 +217,9 @@ const UsersTable = (props) => {
   };
 
   useEffect(() => {
+    if (!activeNetwork) return;
     setLoading(true);
-    if (!isEmpty(activeNetwork)) {
-      dispatch(fetchNetworkUsers(activeNetwork._id));
-    }
+    dispatch(fetchNetworkUsers(activeNetwork._id));
     setLoading(false);
   }, []);
 
@@ -324,7 +323,8 @@ const UsersTable = (props) => {
           <Dialog
             open={showMoreDetailsPopup}
             onClose={hideMoreDetailsDialog}
-            aria-labelledby="form-dialog-title">
+            aria-labelledby="form-dialog-title"
+          >
             <DialogTitle>User request details</DialogTitle>
             <DialogContent>
               <div style={{ minWidth: 500 }}>
@@ -495,7 +495,8 @@ const UsersTable = (props) => {
                   style={{ margin: '0 15px' }}
                   onClick={submitEditUser}
                   color="primary"
-                  variant="contained">
+                  variant="contained"
+                >
                   Submit
                 </Button>
               </div>

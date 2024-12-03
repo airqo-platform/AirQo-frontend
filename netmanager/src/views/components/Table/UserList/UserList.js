@@ -7,7 +7,6 @@ import {
   connectedUsersTable as UsersTable,
   connectedUsersToolbar as UsersToolbar
 } from '../components/Users/containers/Users';
-import { isEmpty } from 'underscore';
 import { fetchNetworkUsers } from 'redux/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
@@ -24,12 +23,11 @@ const UserList = (props) => {
   const dispatch = useDispatch();
 
   const users = useSelector((state) => state.accessControl.networkUsers);
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
-    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-    if (!isEmpty(activeNetwork)) {
-      dispatch(fetchNetworkUsers(activeNetwork._id));
-    }
+    if (!activeNetwork) return;
+    dispatch(fetchNetworkUsers(activeNetwork._id));
   }, []);
 
   return (

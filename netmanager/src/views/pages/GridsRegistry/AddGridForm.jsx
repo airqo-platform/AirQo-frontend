@@ -17,9 +17,32 @@ import Alert from '@material-ui/lab/Alert';
 import { refreshGridApi } from '../../apis/deviceRegistry';
 import { fetchGridsSummary } from 'redux/Analytics/operations';
 
+const extractErrorMessage = (error) => {
+  if (!error.response || !error.response.data) {
+    return 'An unexpected error occurred';
+  }
+
+  const { data } = error.response;
+
+  // If errors object exists and has values
+  if (data.errors) {
+    // If errors is an object with nested messages
+    if (typeof data.errors === 'object') {
+      // Get first error message from the object
+      const firstError = Object.values(data.errors)[0];
+      return firstError;
+    }
+    // If errors is a string
+    return data.errors;
+  }
+
+  // Fallback to main message or default error
+  return data.message || 'An unexpected error occurred';
+};
+
 const AddGridToolbar = ({ open, handleClose }) => {
   const dispatch = useDispatch();
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
   const polygon = useSelector((state) => state.analytics.polygonShape);
   const initialState = {
     name: '',
@@ -62,7 +85,6 @@ const AddGridToolbar = ({ open, handleClose }) => {
               message: res.message,
               severity: 'success'
             });
-            const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
             dispatch(fetchGridsSummary(activeNetwork.net_name));
             setTimeout(() => {
               setErrorMessage(null);
@@ -73,7 +95,7 @@ const AddGridToolbar = ({ open, handleClose }) => {
           })
           .catch((error) => {
             setErrorMessage({
-              message: error.response.data.errors.message,
+              message: extractErrorMessage(error),
               severity: 'error'
             });
             setTimeout(() => {
@@ -84,7 +106,7 @@ const AddGridToolbar = ({ open, handleClose }) => {
       })
       .catch((error) => {
         setErrorMessage({
-          message: error.response.data.errors.message,
+          message: extractErrorMessage(error),
           severity: 'error'
         });
         setTimeout(() => {
@@ -182,7 +204,12 @@ const AddGridToolbar = ({ open, handleClose }) => {
         >
           Cancel
         </Button>
-        <Button onClick={onSubmit} color="primary" variant="contained" disabled={loading}>
+        <Button
+          onClick={onSubmit}
+          color="primary"
+          variant="contained"
+          disabled={loading || !polygon || !form.name || !form.admin_level || !form.network}
+        >
           {loading ? 'Loading...' : 'Submit'}
         </Button>
       </DialogActions>

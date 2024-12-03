@@ -27,36 +27,32 @@ const Roles = () => {
   const [permissions, setPermissions] = useState(null);
   const [loading, setLoading] = useState(false);
   const roles = useSelector((state) => state.accessControl.rolesSummary);
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
+    if (!activeNetwork) return;
     setLoading(true);
     if (isEmpty(roles)) {
-      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-      if (!isEmpty(activeNetwork)) {
-        dispatch(loadRolesSummary(activeNetwork._id));
-      }
+      dispatch(loadRolesSummary(activeNetwork._id));
     }
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-    if (!isEmpty(activeNetwork)) {
-      getNetworkPermissionsApi(activeNetwork._id)
-        .then((res) => {
-          setPermissions(res.permissions);
-        })
-        .catch((error) => {
-          dispatch(
-            updateMainAlert({
-              message: error.response && error.response.data && error.response.data.message,
-              show: true,
-              severity: 'error'
-            })
-          );
-        });
-    }
+    if (!activeNetwork) return;
+    getNetworkPermissionsApi(activeNetwork._id)
+      .then((res) => {
+        setPermissions(res.permissions);
+      })
+      .catch((error) => {
+        dispatch(
+          updateMainAlert({
+            message: error.response && error.response.data && error.response.data.message,
+            show: true,
+            severity: 'error'
+          })
+        );
+      });
   }, []);
 
   return (

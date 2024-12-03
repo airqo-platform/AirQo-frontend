@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import ListItemText from '@material-ui/core/ListItemText';
 import { Button, Menu, MenuItem, Tooltip } from '@material-ui/core';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   addActiveNetwork,
   fetchNetworkUsers,
@@ -69,19 +69,20 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
   const [selectedItem, setSelectedItem] = useState(null);
   const [view, setView] = useState('networks');
   const [open, setOpen] = useState(false);
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
-    if (!userNetworks.length) return;
+    if (!userNetworks.length || !activeNetwork) return;
 
-    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
     const networkToSet =
       activeNetwork && userNetworks.find((n) => n._id === activeNetwork._id)
         ? activeNetwork
         : userNetworks[0];
 
     setSelectedItem(networkToSet);
-    localStorage.setItem('activeNetwork', JSON.stringify(networkToSet));
     dispatch(addActiveNetwork(networkToSet));
+    localStorage.setItem('activeNetwork', JSON.stringify(networkToSet));
+    localStorage.setItem('currentUserRole', JSON.stringify(networkToSet.role));
 
     loadNetworkData(networkToSet);
   }, [dispatch, userNetworks]);
@@ -113,11 +114,10 @@ export default function NetworkDropdown({ userNetworks, groupData }) {
     setSelectedItem(item);
     setAnchorEl(null);
 
-    localStorage.setItem('activeNetwork', JSON.stringify(item));
-    localStorage.setItem('currentUserRole', JSON.stringify(item.role));
-
     dispatch(addActiveNetwork(item));
     dispatch(addCurrentUserRole(item.role));
+    localStorage.setItem('activeNetwork', JSON.stringify(item));
+    localStorage.setItem('currentUserRole', JSON.stringify(item.role));
 
     await loadNetworkData(item);
 

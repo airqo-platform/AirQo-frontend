@@ -9,7 +9,7 @@ import {
   Grid
 } from '@material-ui/core';
 import { useHistory } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import Alert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/styles';
@@ -146,7 +146,8 @@ const RegisterSim = ({ setCreateSimDialog, CreateSimDialog, setIsLoading, setRef
       onClose={handleClose}
       aria-labelledby="form-dialog-title"
       aria-describedby="form-dialog-description"
-      className={classes.modelWidth}>
+      className={classes.modelWidth}
+    >
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Register New SIM
       </DialogTitle>
@@ -162,10 +163,12 @@ const RegisterSim = ({ setCreateSimDialog, CreateSimDialog, setIsLoading, setRef
                 size="small"
                 onClick={() => {
                   setErrors({ ...errors, showError: false });
-                }}>
+                }}
+              >
                 <CloseIcon fontSize="inherit" />
               </IconButton>
-            }>
+            }
+          >
             {errors.errorMessage}
           </Alert>
         )}
@@ -192,7 +195,8 @@ const RegisterSim = ({ setCreateSimDialog, CreateSimDialog, setIsLoading, setRef
             color="primary"
             type="submit"
             onClick={handleRegisterSim}
-            style={{ margin: '0 15px' }}>
+            style={{ margin: '0 15px' }}
+          >
             Register SIM
           </Button>
         </Grid>
@@ -211,7 +215,7 @@ const SimRegistry = () => {
   const [refresh, setRefresh] = useState(false);
   const [CreateSimDialog, setCreateSimDialog] = useState(false);
   const [simData, setSimData] = useState([]);
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
     setLoading(true);
@@ -260,7 +264,8 @@ const SimRegistry = () => {
             justifyContent: 'flex-end',
             alignItems: 'center',
             marginBottom: 20
-          }}>
+          }}
+        >
           <Button variant="contained" color="primary" onClick={() => setCreateSimDialog(true)}>
             Register SIM
           </Button>
@@ -336,7 +341,8 @@ const SimRegistry = () => {
                     arrow
                     style={{
                       marginLeft: 10
-                    }}>
+                    }}
+                  >
                     <IconButton onClick={() => checkSimStatus(row._id)}>
                       <RefreshIcon />
                     </IconButton>
