@@ -170,7 +170,7 @@ const MoreInsightsChart = ({
    * Assume each label requires a minimum width
    */
   const calculateStep = useCallback(() => {
-    const minLabelWidth = 40;
+    const minLabelWidth = 25;
     if (containerWidth === 0) return 1;
     const maxLabels = Math.floor(containerWidth / minLabelWidth);
     const step = Math.ceil(chartData.length / maxLabels);
@@ -231,6 +231,7 @@ const MoreInsightsChart = ({
             )}
             axisLine={false}
             scale="auto"
+            interval={step}
             padding={{ left: 30, right: 30 }}
           />
 
