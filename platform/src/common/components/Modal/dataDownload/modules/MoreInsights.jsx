@@ -7,17 +7,18 @@ import CheckIcon from '@/icons/tickIcon';
 import TabButtons from '@/components/Button/TabButtons';
 import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
 import { TIME_OPTIONS, CHART_TYPE } from '@/lib/constants';
-import { exportDataApi } from '@/core/apis/Analytics';
+import useDataDownload from '@/core/hooks/useDataDownload';
 import AirQualityCard from '../components/AirQualityCard';
 import LocationCard from '../components/LocationCard';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 // import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
-import { subDays } from 'date-fns';
+import { subDays, format, parseISO } from 'date-fns';
 import { saveAs } from 'file-saver';
 import CustomToast from '../../../Toast/CustomToast';
-import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
+import useFetchAnalyticsData from '@/core/hooks/useFetchAnalyticsData';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
 import SkeletonLoader from '@/components/Charts/components/SkeletonLoader';
+import { Tooltip } from 'flowbite-react';
 
 /**
  * InSightsHeader Component
@@ -36,17 +37,15 @@ const InSightsHeader = () => (
  */
 const MoreInsights = () => {
   // const dispatch = useDispatch();
-
-  /**
-   * Selectors to retrieve data from Redux store.
-   * Assumption: state.modal.modalType.data contains the list of all available sites.
-   */
   const modalData = useSelector((state) => state.modal.modalType?.data);
   const chartData = useSelector((state) => state.chart);
 
   // Local state for download functionality
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [downloadError, setDownloadError] = useState(null);
+
+  // Use the hook to fetch data
+  const fetchData = useDataDownload();
 
   /**
    * Ensure `allSites` is an array.
@@ -210,17 +209,21 @@ const MoreInsights = () => {
    */
   const handleDataDownload = async () => {
     setDownloadLoading(true);
+
     try {
       const { startDate, endDate } = dateRange;
+      const formattedStartDate = format(
+        parseISO(startDate),
+        "yyyy-MM-dd'T'00:00:00.000'Z'",
+      );
+      const formattedEndDate = format(
+        parseISO(endDate),
+        "yyyy-MM-dd'T'00:00:00.000'Z'",
+      );
 
-      // Define MIME type and file name for CSV
-      const mimeType = 'text/csv;charset=utf-8;';
-      const fileName = `analytics_data_${new Date().toISOString()}.csv`;
-
-      // Prepare API request data with CSV as the default format
       const apiData = {
-        startDateTime: startDate,
-        endDateTime: endDate,
+        startDateTime: formattedStartDate,
+        endDateTime: formattedEndDate,
         sites: selectedSiteIds,
         network: chartData.organizationName,
         pollutants: [chartData.pollutionType],
@@ -230,29 +233,21 @@ const MoreInsights = () => {
         outputFormat: 'airqo-standard',
         minimum: true,
       };
-      const response = await exportDataApi(apiData);
 
-      // Validate response data
-      if (typeof response.data !== 'string') {
-        throw new Error('Invalid CSV data format.');
-      }
+      const data = await fetchData(apiData);
 
-      // Create a Blob from the CSV data
-      const blob = new Blob([response.data], { type: mimeType });
+      const mimeType = 'text/csv;charset=utf-8;';
+      const fileName = `analytics_data_${new Date().toISOString()}.csv`;
+      const blob = new Blob([data], { type: mimeType });
 
-      // Trigger file download
       saveAs(blob, fileName);
-
-      setDownloadLoading(false);
-
-      // Show success toast
       CustomToast();
     } catch (error) {
-      console.error(error);
-      // Set a user-friendly error message
+      console.error('Error during download:', error);
       setDownloadError(
         'There was an error downloading the data. Please try again later.',
       );
+    } finally {
       setDownloadLoading(false);
     }
   };
@@ -364,15 +359,20 @@ const MoreInsights = () => {
             </div>
 
             {/* Actions: Download Data */}
-            <div className="space-x-2 flex">
-              <TabButtons
-                btnText="Download Data"
-                Icon={<DownloadIcon width={16} height={17} color="white" />}
-                onClick={handleDataDownload}
-                btnStyle="bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl"
-                isLoading={downloadLoading}
-                disabled={downloadLoading || chartLoading}
-              />
+            <div>
+              <Tooltip
+                content={'Download data in CSV format'}
+                className="w-auto text-center"
+              >
+                <TabButtons
+                  btnText="Download Data"
+                  Icon={<DownloadIcon width={16} height={17} color="white" />}
+                  onClick={handleDataDownload}
+                  btnStyle="bg-blue-600 text-white border border-blue-600 px-3 py-2 rounded-xl"
+                  isLoading={downloadLoading}
+                  disabled={downloadLoading || chartLoading}
+                />
+              </Tooltip>
             </div>
           </div>
 

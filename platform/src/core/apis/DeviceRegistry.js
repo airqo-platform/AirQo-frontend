@@ -34,7 +34,7 @@ export const getGirdsSummaryDetails = async () => {
   return response.data;
 };
 
-export const getAnalyticsData = async ({ body, timeout = 150000, signal }) => {
+export const getAnalyticsData = async ({ body, timeout = 180000, signal }) => {
   try {
     const response = await createAxiosInstance().post(ANALYTICS_URL, body, {
       timeout: timeout,
@@ -55,7 +55,7 @@ export const getAnalyticsData = async ({ body, timeout = 150000, signal }) => {
 
 export const getRecentMeasurements = async ({
   params,
-  timeout = 150000,
+  timeout = 180000,
   signal,
 }) => {
   try {
