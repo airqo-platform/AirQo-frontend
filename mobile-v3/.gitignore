@@ -10,6 +10,7 @@
 .svn/
 migrate_working_dir/
 
+
 # IntelliJ related
 *.iml
 *.ipr
@@ -45,6 +46,7 @@ app.*.map.json
 # Android build and generated files
 /android/build/
 /android/.gradle/
+/android/.gradle/**
 /android/captures/
 /android/gradlew
 /android/gradlew.bat
