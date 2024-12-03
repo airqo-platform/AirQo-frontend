@@ -63,13 +63,12 @@ const AssignCohortDeviceForm = ({ cohortID, cohortDevices, open, handleClose }) 
   const [deviceOptions, setDeviceOptions] = useState([]);
   const allDevices = useDevicesData();
   const [loading, setLoading] = useState(false);
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
+    if (!activeNetwork) return;
     setLoading(true);
-    if (!isEmpty(activeNetwork)) {
-      dispatch(loadDevicesData(activeNetwork.net_name));
-    }
+    dispatch(loadDevicesData(activeNetwork.net_name));
     setTimeout(() => {
       setLoading(false);
     }, 3000);
@@ -131,7 +130,8 @@ const AssignCohortDeviceForm = ({ cohortID, cohortDevices, open, handleClose }) 
       fullWidth
       maxWidth="sm"
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description">
+      aria-describedby="form-dialog-description"
+    >
       <DialogTitle>Assign devices to cohort</DialogTitle>
       <DialogContent style={{ height: '20vh' }}>
         <OutlinedSelect
@@ -159,7 +159,8 @@ const AssignCohortDeviceForm = ({ cohortID, cohortDevices, open, handleClose }) 
           onClick={clearState}
           color="primary"
           style={{ marginLeft: '10px' }}
-          disabled={loading}>
+          disabled={loading}
+        >
           Cancel
         </Button>
         <Button
@@ -167,7 +168,8 @@ const AssignCohortDeviceForm = ({ cohortID, cohortDevices, open, handleClose }) 
           color="primary"
           onClick={handleSubmit}
           style={{ marginLeft: '10px' }}
-          disabled={loading}>
+          disabled={loading}
+        >
           {loading ? 'Loading..' : 'Save Changes'}
         </Button>
       </DialogActions>
@@ -178,7 +180,7 @@ const AssignCohortDeviceForm = ({ cohortID, cohortDevices, open, handleClose }) 
 const CohortForm = ({ cohort }) => {
   const history = useHistory();
   const dispatch = useDispatch();
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
   const [openDrawer, setOpenDrawer] = useState(false);
   const initialState = {
     name: '',
@@ -197,6 +199,7 @@ const CohortForm = ({ cohort }) => {
   };
 
   useEffect(() => {
+    if (!activeNetwork) return;
     if (cohort) {
       let cohortData = {
         name: cohort.name,
@@ -265,7 +268,8 @@ const CohortForm = ({ cohort }) => {
         margin: '0 auto',
         padding: '20px 20px',
         maxWidth: '1500px'
-      }}>
+      }}
+    >
       <Box display="flex" width="100%" justifyContent={'space-between'} alignItems={'center'}>
         <div
           style={{
@@ -275,13 +279,15 @@ const CohortForm = ({ cohort }) => {
             fontWeight: 'bold',
             margin: '20px 0',
             width: 'auto'
-          }}>
+          }}
+        >
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               padding: '5px'
-            }}>
+            }}
+          >
             <ArrowBackIosRounded
               style={{ color: '#3f51b5', cursor: 'pointer' }}
               onClick={() => {
@@ -296,7 +302,8 @@ const CohortForm = ({ cohort }) => {
           variant="outlined"
           color="primary"
           onClick={() => setOpenDrawer(true)}
-          disabled={loading}>
+          disabled={loading}
+        >
           Add new devices
         </Button>
       </Box>
@@ -348,7 +355,8 @@ const CohortForm = ({ cohort }) => {
             }}
             required
             InputLabelProps={{ shrink: true }}
-            onChange={handleSelectFieldChange('visibility')}>
+            onChange={handleSelectFieldChange('visibility')}
+          >
             <option value={true}>True</option>
             <option value={false}>False</option>
           </TextField>
@@ -362,7 +370,8 @@ const CohortForm = ({ cohort }) => {
                 padding: '5px',
                 borderRadius: '5px',
                 fontFamily: 'monospace'
-              }}>
+              }}
+            >
               <Copyable
                 width="100%"
                 value={`${stripTrailingSlash(BASE_ANALYTICS_URL)}/devices/measurements/cohorts/${
@@ -380,7 +389,8 @@ const CohortForm = ({ cohort }) => {
                 padding: '5px',
                 borderRadius: '5px',
                 fontFamily: 'monospace'
-              }}>
+              }}
+            >
               <Copyable
                 width="100%"
                 value={`${stripTrailingSlash(BASE_ANALYTICS_URL)}/devices/measurements/cohorts/${
@@ -398,7 +408,8 @@ const CohortForm = ({ cohort }) => {
           alignContent="center"
           justify="space-between"
           xs={12}
-          style={{ margin: '10px 0' }}>
+          style={{ margin: '10px 0' }}
+        >
           <Grid
             items
             xs={12}
@@ -409,7 +420,8 @@ const CohortForm = ({ cohort }) => {
               fontWeight: 'bold',
               cursor: 'pointer'
             }}
-            onClick={() => setOpenAPIModal(true)}>
+            onClick={() => setOpenAPIModal(true)}
+          >
             <p style={{ width: '100%', textAlign: 'left' }}>How to use the API</p>
           </Grid>
           <Grid
@@ -419,7 +431,8 @@ const CohortForm = ({ cohort }) => {
             style={{
               display: 'flex',
               justifyContent: 'flex-end'
-            }}>
+            }}
+          >
             <Button variant="contained" onClick={handleCancel} disabled={loading}>
               Reset
             </Button>
@@ -429,7 +442,8 @@ const CohortForm = ({ cohort }) => {
               color="primary"
               onClick={handleSubmit}
               style={{ marginLeft: '10px' }}
-              disabled={loading}>
+              disabled={loading}
+            >
               {loading ? 'Loading...' : 'Save Changes'}
             </Button>
           </Grid>
@@ -517,7 +531,8 @@ const CohortDetails = (props) => {
         style={{
           width: '96%',
           margin: ' 20px auto'
-        }}>
+        }}
+      >
         <CohortForm cohort={activeCohortDetails} />
 
         <div>
@@ -525,7 +540,8 @@ const CohortDetails = (props) => {
             style={{
               margin: '50px auto',
               maxWidth: '1500px'
-            }}>
+            }}
+          >
             {loading ? (
               <Box
                 height={'100px'}
@@ -533,7 +549,8 @@ const CohortDetails = (props) => {
                 color="blue"
                 display={'flex'}
                 justifyContent={'center'}
-                alignItems={'center'}>
+                alignItems={'center'}
+              >
                 <LargeCircularLoader loading={loading} />
               </Box>
             ) : (
@@ -556,7 +573,8 @@ const CohortDetails = (props) => {
                           onClick={() => {
                             dispatch(updateDeviceDetails(rowData));
                             history.push(`/device/${rowData.name}/overview`);
-                          }}>
+                          }}
+                        >
                           {rowData.name}
                         </Button>
                       )
@@ -580,7 +598,8 @@ const CohortDetails = (props) => {
                           style={{
                             color: rowData.status === 'deployed' ? 'green' : 'red',
                             textTransform: 'capitalize'
-                          }}>
+                          }}
+                        >
                           {rowData.status}
                         </span>
                       )

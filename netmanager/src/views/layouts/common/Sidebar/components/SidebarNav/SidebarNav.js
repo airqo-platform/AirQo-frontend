@@ -1,7 +1,7 @@
 /* eslint-disable react/no-multi-comp */
 /* eslint-disable react/display-name */
 import React, { forwardRef, useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { NavLink as RouterLink, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
@@ -12,6 +12,7 @@ import Switch from 'views/components/Switch';
 import { useUserPreferenceData } from 'redux/UserPreference/selectors';
 import { updateUserPreferenceData } from 'redux/UserPreference/operators';
 import { isEmpty } from 'underscore';
+import { getActiveNetwork } from '../../../../../../config/utils';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -244,7 +245,7 @@ const SidebarNavItem = ({ page }) => {
 const SidebarNav = (props) => {
   const classes = useStyles();
   const { pages, className, ...rest } = props;
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   return (
     <List {...rest} className={clsx(classes.root, className)}>

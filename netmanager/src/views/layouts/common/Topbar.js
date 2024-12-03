@@ -233,7 +233,6 @@ const Topbar = (props) => {
   }
 
   useEffect(() => {
-    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
     if (!isEmpty(activeNetwork)) {
       dispatch(addActiveNetwork(activeNetwork));
     }
@@ -286,7 +285,7 @@ const Topbar = (props) => {
             fontWeight: 'bold'
           }}
         >
-          {activeNetwork && activeNetwork.net_name}
+          {(activeNetwork && activeNetwork.net_name) || ''}
         </div>
 
         <Hidden mdDown>

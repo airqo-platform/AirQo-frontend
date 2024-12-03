@@ -12,13 +12,13 @@ import {
 import { assignDevicesToCohort, createCohortApi } from 'views/apis/deviceRegistry';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import Select from 'react-select';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { fetchCohortsSummary } from 'redux/Analytics/operations';
 
 const AddCohortToolbar = ({ open, handleClose, deviceOptions }) => {
   const dispatch = useDispatch();
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
   const [selectedDevices, setSelectedDevices] = useState([]);
   const initialState = {
     name: '',

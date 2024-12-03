@@ -2,16 +2,20 @@ import React, { useEffect, useState } from 'react';
 import CustomMaterialTable from '../../components/Table/CustomMaterialTable';
 import { useHistory } from 'react-router-dom';
 import { updateDeviceDetails } from 'redux/DeviceOverview/OverviewSlice';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'validate.js';
 
 const CohortsTable = ({ cohortsList }) => {
   const history = useHistory();
   const dispatch = useDispatch();
   const [devicesData, setDevicesData] = useState([]);
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
+    if (!activeNetwork) {
+      return;
+    }
+
     if (!isEmpty(cohortsList)) {
       let cohorts = [];
       cohortsList.map((cohort) => {

@@ -8,7 +8,6 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import UsersTable from './components/UsersTable';
 import UsersToolbar from './components/UsersToolbar';
 import { useDispatch, useSelector } from 'react-redux';
-import { isEmpty } from 'underscore';
 import { loadRolesSummary, fetchNetworkUsers } from 'redux/AccessControl/operations';
 import { withPermission } from '../../containers/PageAccess';
 
@@ -25,20 +24,16 @@ const UserList = (props) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const roles = useSelector((state) => state.accessControl.rolesSummary);
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
-    if (isEmpty(roles)) {
-      if (!isEmpty(activeNetwork)) {
-        dispatch(loadRolesSummary(activeNetwork._id));
-      }
-    }
+    if (!activeNetwork) return;
+    dispatch(loadRolesSummary(activeNetwork._id));
   }, []);
 
   useEffect(() => {
-    if (!isEmpty(activeNetwork)) {
-      dispatch(fetchNetworkUsers(activeNetwork._id));
-    }
+    if (!activeNetwork) return;
+    dispatch(fetchNetworkUsers(activeNetwork._id));
   }, []);
 
   return (

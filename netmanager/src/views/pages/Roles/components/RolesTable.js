@@ -24,7 +24,7 @@ import {
   updatePermissionsToRoleApi,
   updateRoleApi
 } from '../../../apis/accessControl';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { isEmpty } from 'underscore';
 import { RemoveRedEye } from '@material-ui/icons';
@@ -67,7 +67,7 @@ const RolesTable = (props) => {
   const [selectedPermissions, setSelectedPermissions] = useState(null);
   const [open, setOpen] = useState(false);
   const [isLoading, setLoading] = useState(false);
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   const handleClose = () => {
     setOpen(false);
