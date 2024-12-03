@@ -15,7 +15,7 @@ import LocationIcon from '@/icons/Analytics/LocationIcon';
 import { subDays, format, parseISO } from 'date-fns';
 import { saveAs } from 'file-saver';
 import CustomToast from '../../../Toast/CustomToast';
-import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
+import useFetchAnalyticsData from '@/core/hooks/useFetchAnalyticsData';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
 import SkeletonLoader from '@/components/Charts/components/SkeletonLoader';
 import { Tooltip } from 'flowbite-react';

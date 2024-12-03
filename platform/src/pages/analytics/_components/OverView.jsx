@@ -20,7 +20,7 @@ import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { subDays } from 'date-fns';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
-import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
+import useFetchAnalyticsData from '@/core/hooks/useFetchAnalyticsData';
 
 const OverView = () => {
   const dispatch = useDispatch();
