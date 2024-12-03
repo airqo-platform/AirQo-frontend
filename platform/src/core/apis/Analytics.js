@@ -22,7 +22,7 @@ export const shareReportApi = async (body) => {
 };
 
 // Getting site summary data
-export const getSitesSummaryApi = async ({ signal, timeout = 110000 }) => {
+export const getSitesSummaryApi = async ({ signal, timeout = 150000 }) => {
   try {
     const response = await createAxiosInstance().get(SITES_SUMMARY_URL, {
       signal,

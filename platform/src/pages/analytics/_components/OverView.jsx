@@ -213,7 +213,7 @@ const OverView = () => {
           <ChartContainer
             chartType="line"
             chartTitle="Air Pollution Trends Over Time"
-            height={400}
+            height={380}
             id="air-pollution-line-chart"
             data={allSiteData}
             chartLoading={chartLoading}
@@ -224,7 +224,7 @@ const OverView = () => {
           <ChartContainer
             chartType="bar"
             chartTitle="Air Pollution Levels Distribution"
-            height={400}
+            height={380}
             id="air-pollution-bar-chart"
             data={allSiteData}
             chartLoading={chartLoading}
