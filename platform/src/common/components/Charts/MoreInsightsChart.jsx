@@ -56,9 +56,20 @@ const MoreInsightsChart = ({
 
     data.forEach((dataPoint) => {
       const { site_id, name, value, time } = dataPoint;
-      if (!site_id || !name) return;
 
+      // Verify that site_id and name exist
+      if (!site_id || !name) {
+        console.warn(`Data point missing site_id or name:`, dataPoint);
+        return;
+      }
+
+      // Build site ID to name mapping
       siteIdToName[site_id] = name;
+
+      // Only include data points from selected sites
+      if (!selectedSiteIds.includes(site_id)) {
+        return;
+      }
 
       // Parse and validate the time using the utility function
       const date = parseAndValidateISODate(time);
@@ -67,17 +78,15 @@ const MoreInsightsChart = ({
         return;
       }
 
-      // Only include data points from selected sites
-      if (!selectedSiteIds.includes(site_id)) return;
+      // Use formatted time as key
+      const formattedTime = date.toISOString();
 
-      const rawTime = time;
-
-      if (!combinedData[rawTime]) {
-        combinedData[rawTime] = { time: rawTime };
+      if (!combinedData[formattedTime]) {
+        combinedData[formattedTime] = { time: formattedTime };
       }
 
       // Assign value to the corresponding site_id
-      combinedData[rawTime][site_id] = value;
+      combinedData[formattedTime][site_id] = value;
     });
 
     // Convert the combined data object to an array and sort it by time
@@ -89,12 +98,27 @@ const MoreInsightsChart = ({
   }, []);
 
   /**
+   * Ensure selectedSites is an array of site IDs
+   */
+  const selectedSiteIds = useMemo(() => {
+    if (selectedSites.length === 0) return [];
+    // If selectedSites is an array of objects, map to IDs
+    if (typeof selectedSites[0] === 'object') {
+      return selectedSites
+        .map((site) => site.site_id || site.id)
+        .filter(Boolean);
+    }
+    // Assume selectedSites is already an array of IDs
+    return selectedSites;
+  }, [selectedSites]);
+
+  /**
    * Memoized processed chart data
    */
   const { sortedData: chartData, siteIdToName } = useMemo(() => {
     if (!data || data.length === 0) return { sortedData: [], siteIdToName: {} };
-    return processChartData(data, selectedSites);
-  }, [data, selectedSites, processChartData]);
+    return processChartData(data, selectedSiteIds);
+  }, [data, selectedSiteIds, processChartData]);
 
   /**
    * Unique data keys for plotting, which are site IDs.
@@ -313,6 +337,7 @@ const MoreInsightsChart = ({
     frequency,
     siteIdToName,
     refreshChart,
+    selectedSiteIds.length,
   ]);
 
   return (
