@@ -7,7 +7,7 @@ export default async function handler(req, res) {
 
   // Set up the target URL
   const targetUrl =
-    'https://analytics.airqo.net/api/v2/analytics/dashboard/chart/d3/data?tenant=airqo';
+    'https://analytics.airqo.net/api/v2/analytics/dashboard/chart/d3/data';
 
   try {
     const response = await axios.post(targetUrl, req.body, {
