@@ -1,12 +1,16 @@
 import axios from 'axios';
-
 import { exportDataApi } from '../apis/Analytics';
 
 const useDataDownload = () => {
-  const isDev = process.env.NODE_ENV === 'development';
+  const isDev =
+    typeof window !== 'undefined' && process.env.NODE_ENV === 'development';
   const apiUrl = '/api/proxy/data-download';
 
   const fetchData = async (data) => {
+    if (typeof window === 'undefined') {
+      throw new Error('`localStorage` is not available in this environment');
+    }
+
     const token = localStorage.getItem('token');
 
     if (!token) {

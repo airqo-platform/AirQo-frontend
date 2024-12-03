@@ -4,7 +4,7 @@ import axios from 'axios';
 import { format } from 'date-fns';
 
 const CONFIG = {
-  API_TIMEOUT: 150000,
+  API_TIMEOUT: 90000,
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 2000,
   DATE_FORMAT: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",

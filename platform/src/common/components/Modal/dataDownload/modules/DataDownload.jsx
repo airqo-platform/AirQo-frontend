@@ -66,6 +66,9 @@ const DataDownload = ({ onClose }) => {
   const [formError, setFormError] = useState('');
   const [downloadLoading, setDownloadLoading] = useState(false);
 
+  // Use the hook to fetch data
+  const fetchData = useDataDownload();
+
   // Extract selected site IDs from preferencesData
   const selectedSiteIds = useMemo(() => {
     return preferencesData?.[0]?.selected_sites?.map((site) => site._id) || [];
@@ -193,8 +196,6 @@ const DataDownload = ({ onClose }) => {
           minimum: true,
         };
 
-        // Use the hook to fetch data
-        const fetchData = useDataDownload();
         const response = await fetchData(apiData);
 
         // Handle file download based on file type

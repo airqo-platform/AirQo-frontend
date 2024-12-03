@@ -37,17 +37,15 @@ const InSightsHeader = () => (
  */
 const MoreInsights = () => {
   // const dispatch = useDispatch();
-
-  /**
-   * Selectors to retrieve data from Redux store.
-   * Assumption: state.modal.modalType.data contains the list of all available sites.
-   */
   const modalData = useSelector((state) => state.modal.modalType?.data);
   const chartData = useSelector((state) => state.chart);
 
   // Local state for download functionality
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [downloadError, setDownloadError] = useState(null);
+
+  // Use the hook to fetch data
+  const fetchData = useDataDownload();
 
   /**
    * Ensure `allSites` is an array.
@@ -211,7 +209,6 @@ const MoreInsights = () => {
    */
   const handleDataDownload = async () => {
     setDownloadLoading(true);
-    const fetchData = useDataDownload();
 
     try {
       const { startDate, endDate } = dateRange;
