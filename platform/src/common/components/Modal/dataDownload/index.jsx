@@ -81,7 +81,7 @@ const Modal = ({ isOpen, onClose }) => {
           leaveFrom="opacity-100 translate-y-0 sm:scale-100"
           leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
         >
-          <div className="w-full max-w-[1020px] max-h-[90vh] bg-white rounded-lg shadow-xl overflow-y-auto transform transition-all mx-2 lg:mx-0">
+          <div className="w-full max-w-[1020px] max-h-[90vh] bg-white rounded-lg shadow-xl overflow-y-auto xl:overflow-hidden transform transition-all mx-2 lg:mx-0">
             {/* Header */}
             <div className="flex items-center justify-between py-4 px-5 border-b border-gray-300">
               {renderHeader()}
@@ -95,7 +95,7 @@ const Modal = ({ isOpen, onClose }) => {
               </button>
             </div>
             {/* Body */}
-            <div className="relative flex flex-col md:flex-row overflow-y-auto">
+            <div className="relative flex flex-col md:flex-row">
               {renderBody()}
             </div>
           </div>
