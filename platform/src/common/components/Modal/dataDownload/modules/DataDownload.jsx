@@ -248,10 +248,7 @@ const DataDownload = ({ onClose }) => {
         onClose();
       } catch (error) {
         console.error('Error downloading data:', error);
-        setFormError(
-          error.message ||
-            'An error occurred while downloading. Please try again.',
-        );
+        setFormError('An error occurred while downloading. Please try again.');
       } finally {
         setDownloadLoading(false);
       }
