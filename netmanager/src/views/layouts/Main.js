@@ -93,7 +93,7 @@ const Main = (props) => {
     const fetchUserDetails = async () => {
       try {
         const res = await getUserDetails(JSON.parse(user)._id);
-        if (res.success) {
+        if (res.success && res.users && res.users.length > 0) {
           dispatch(addUserNetworks(res.users[0].networks));
           localStorage.setItem('userNetworks', JSON.stringify(res.users[0].networks));
           dispatch(addUserGroupSummary(res.users[0].groups));
@@ -103,7 +103,7 @@ const Main = (props) => {
               (network) => network.net_name === 'airqo'
             );
 
-            if (!activeNetwork) {
+            if (!activeNetwork && airqoNetwork) {
               dispatch(addActiveNetwork(airqoNetwork));
               localStorage.setItem('activeNetwork', JSON.stringify(airqoNetwork));
               dispatch(addCurrentUserRole(airqoNetwork.role));

@@ -270,21 +270,17 @@ const ExportData = (props) => {
   };
 
   useEffect(() => {
-    if (isEmpty(sites)) dispatch(loadSites());
+    dispatch(loadSites());
   }, []);
 
   useEffect(() => {
-    if (isEmpty(deviceRegistrySites)) {
-      if (!activeNetwork) return;
-      dispatch(loadSitesData(activeNetwork.net_name));
-    }
+    if (!activeNetwork) return;
+    dispatch(loadSitesData(activeNetwork.net_name));
   }, []);
 
   useEffect(() => {
-    if (isEmpty(deviceList)) {
-      if (!activeNetwork) return;
-      dispatch(loadDevicesData(activeNetwork.net_name));
-    }
+    if (!activeNetwork) return;
+    dispatch(loadDevicesData(activeNetwork.net_name));
   }, []);
 
   useEffect(() => {
@@ -300,9 +296,7 @@ const ExportData = (props) => {
   }, [deviceRegistrySites]);
 
   useEffect(() => {
-    if (isEmpty(airqlouds)) {
-      dispatch(fetchDashboardAirQloudsData());
-    }
+    dispatch(fetchDashboardAirQloudsData());
   }, []);
 
   useEffect(() => {
@@ -510,7 +504,7 @@ const ExportData = (props) => {
       sites: sitesList,
       device: getValues(selectedDevices),
       airqlouds: getValues(selectedAirqlouds),
-      network: activeNetwork,
+      network: activeNetwork.net_name,
       datatype: dataType.value,
       pollutants: getValues(pollutants),
       frequency: frequency.value,
