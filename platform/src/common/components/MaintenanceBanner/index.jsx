@@ -1,6 +1,7 @@
 import React from 'react';
 import { IoWarningOutline } from 'react-icons/io5';
 import { format } from 'date-fns';
+import dayjs from 'dayjs';
 
 const MaintenanceBanner = ({ maintenance }) => {
   if (!maintenance?.isActive) return null;
@@ -22,7 +23,9 @@ const MaintenanceBanner = ({ maintenance }) => {
             <p className="ml-3 font-medium text-yellow-700">
               {maintenance.message}
               <span className="ml-2 text-yellow-600">
-                ({startTime} - {endTime})
+                (Estimated downtime:{' '}
+                {dayjs(startTime).format('DDD MM, YYYY HH:mm')} -{' '}
+                {dayjs(endTime).format('DDD MM, YYYY HH:mm')})
               </span>
             </p>
           </div>
