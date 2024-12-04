@@ -451,15 +451,12 @@ const ExportData = (props) => {
         );
       }
     } catch (err) {
-      // Safe error handling
-      let errorMessage = 'An error occurred while downloading data';
+      let errorMessage;
 
       if (err.response) {
-        // Server responded with error
-        if (err.response.data) {
-          errorMessage = err.response.data.message || 'Server error occurred';
-
-          // Check if it's a "no data" response
+        if (err.response.status >= 500) {
+          errorMessage = 'An error occurred. Please try again later';
+        } else if (err.response.data) {
           if (err.response.data.status === 'success') {
             dispatch(
               updateMainAlert({
@@ -470,10 +467,14 @@ const ExportData = (props) => {
             );
             return;
           }
+          errorMessage = err.response.data.message;
         }
       } else if (err.request) {
         // Request made but no response
         errorMessage = 'No response received from server';
+      } else {
+        // Something else went wrong
+        errorMessage = 'An error occurred while downloading data';
       }
 
       dispatch(
