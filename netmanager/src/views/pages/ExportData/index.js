@@ -414,23 +414,25 @@ const ExportData = (props) => {
   };
 
   const downloadDataFunc = async (body) => {
-    await downloadDataApi(body)
-      .then((response) => response.data)
-      .then((resData) => {
-        let filename = `airquality-data.${fileType.value}`;
+    try {
+      const response = await downloadDataApi(body);
 
+      // Handle successful response
+      let filename = `airquality-data.${fileType.value}`;
+
+      // Check if response has data
+      if (response && response.data) {
         if (fileType.value === 'json') {
-          const jsonString = JSON.stringify(resData);
+          const jsonString = JSON.stringify(response.data);
           exportData(jsonString, filename, 'application/json');
         }
 
         if (fileType.value === 'csv') {
           // Convert JSON data to CSV using Papa Parse
-          const csvData = Papa.unparse(resData);
+          const csvData = Papa.unparse(response.data);
           exportData(csvData, filename, 'text/csv;charset=utf-8;');
         }
 
-        setLoading(false);
         dispatch(
           updateMainAlert({
             message: 'Air quality data download successful',
@@ -438,28 +440,54 @@ const ExportData = (props) => {
             severity: 'success'
           })
         );
-      })
-      .catch((err) => {
-        if (err.response.data.status === 'success') {
-          dispatch(
-            updateMainAlert({
-              message: 'Uh-oh! No data found for the selected parameters.',
-              show: true,
-              severity: 'success'
-            })
-          );
-        } else {
-          dispatch(
-            updateMainAlert({
-              message: err.response.data.message,
-              show: true,
-              severity: 'error'
-            })
-          );
-        }
+      } else {
+        // Handle empty response
+        dispatch(
+          updateMainAlert({
+            message: 'No data found for the selected parameters',
+            show: true,
+            severity: 'info'
+          })
+        );
+      }
+    } catch (err) {
+      let errorMessage;
 
-        setLoading(false);
-      });
+      if (err.response) {
+        if (err.response.status >= 500) {
+          errorMessage = 'An error occurred. Please try again later';
+        } else if (err.response.data) {
+          if (err.response.data.status === 'success') {
+            dispatch(
+              updateMainAlert({
+                message: 'No data found for the selected parameters',
+                show: true,
+                severity: 'info'
+              })
+            );
+            return;
+          }
+          errorMessage = err.response.data.message;
+        }
+      } else if (err.request) {
+        // Request made but no response
+        errorMessage = 'No response received from server';
+      } else {
+        // Something else went wrong
+        errorMessage = 'An error occurred while downloading data';
+      }
+
+      dispatch(
+        updateMainAlert({
+          message: errorMessage,
+          show: true,
+          severity: 'error'
+        })
+      );
+    } finally {
+      // Always reset loading state
+      setLoading(false);
+    }
   };
 
   const submitExportData = (e) => {
