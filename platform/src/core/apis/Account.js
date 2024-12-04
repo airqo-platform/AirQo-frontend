@@ -12,6 +12,7 @@ import {
   USER_CHECKLISTS_URL,
   FORGOT_PWD_URL,
   RESET_PWD_URL,
+  MAINTENANCE_STATUS_URL,
 } from '../urls/authentication';
 import axios from 'axios';
 import createAxiosInstance from './axiosConfig';
@@ -220,4 +221,14 @@ export const updateGroupDetailsApi = async (groupID, data) => {
   return await createAxiosInstance()
     .put(`${GROUPS_URL}/${groupID}`, data)
     .then((response) => response.data);
+};
+
+export const getMaintenanceStatus = async () => {
+  try {
+    const response = await createAxiosInstance().get(MAINTENANCE_STATUS_URL);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching maintenance status:', error);
+    throw error;
+  }
 };
