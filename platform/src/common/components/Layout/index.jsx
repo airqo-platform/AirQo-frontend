@@ -52,9 +52,6 @@ const Layout = ({
         <meta property="og:title" content={pageTitle} key="title" />
       </Head>
 
-      {/* Maintenance Banner */}
-      <MaintenanceBanner maintenance={maintenance} />
-
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 z-50 text-[#1C1D20] transition-all duration-300 ease-in-out">
         <AuthenticatedSideBar />
@@ -81,6 +78,9 @@ const Layout = ({
               showSearch={showSearch}
             />
           )}
+
+          {/* Maintenance Banner */}
+          <MaintenanceBanner maintenance={maintenance} />
 
           {/* Children */}
           <div className="text-[#1C1D20] transition-all duration-300 ease-in-out overflow-hidden">
