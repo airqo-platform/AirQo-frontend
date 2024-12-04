@@ -433,7 +433,6 @@ const ExportData = (props) => {
           exportData(csvData, filename, 'text/csv;charset=utf-8;');
         }
 
-        setLoading(false);
         dispatch(
           updateMainAlert({
             message: 'Air quality data download successful',
@@ -450,7 +449,6 @@ const ExportData = (props) => {
             severity: 'info'
           })
         );
-        setLoading(false);
       }
     } catch (err) {
       // Safe error handling
@@ -470,7 +468,6 @@ const ExportData = (props) => {
                 severity: 'info'
               })
             );
-            setLoading(false);
             return;
           }
         }
@@ -486,6 +483,8 @@ const ExportData = (props) => {
           severity: 'error'
         })
       );
+    } finally {
+      // Always reset loading state
       setLoading(false);
     }
   };
