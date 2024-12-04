@@ -70,6 +70,9 @@ const Layout = ({
               : 'max-w-[1200px] mx-auto space-y-8 px-4 py-8 sm:px-6 lg:px-8'
           } overflow-hidden`}
         >
+          {/* Maintenance Banner */}
+          <MaintenanceBanner maintenance={maintenance} />
+
           {/* TopBar */}
           {noTopNav && (
             <TopBar
@@ -78,9 +81,6 @@ const Layout = ({
               showSearch={showSearch}
             />
           )}
-
-          {/* Maintenance Banner */}
-          <MaintenanceBanner maintenance={maintenance} />
 
           {/* Children */}
           <div className="text-[#1C1D20] transition-all duration-300 ease-in-out overflow-hidden">

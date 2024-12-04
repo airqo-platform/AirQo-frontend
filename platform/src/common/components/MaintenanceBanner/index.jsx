@@ -9,8 +9,8 @@ const MaintenanceBanner = ({ maintenance }) => {
   const endTime = format(new Date(maintenance.endDate), 'HH:mm');
 
   return (
-    <div className="bg-yellow-50 border-b border-yellow-200">
-      <div className="max-w-7xl mx-auto py-3 px-3 sm:px-6 lg:px-8">
+    <div className="bg-yellow-50 border-b border-yellow-200 mb-2">
+      <div className="py-3 px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center">
           <div className="flex items-center">
             <span className="flex">
