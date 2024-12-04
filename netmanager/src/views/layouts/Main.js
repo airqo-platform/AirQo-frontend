@@ -136,7 +136,19 @@ const Main = (props) => {
   }, [activeNetwork]);
 
   if (!activeNetwork || loading || !currentRole) {
-    return <LargeCircularLoader loading={loading} size={100} height={100} />;
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          width: '100vw'
+        }}
+      >
+        <LargeCircularLoader loading={loading} size={50} height={50} />
+      </div>
+    );
   }
 
   return (
