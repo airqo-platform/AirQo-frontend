@@ -9,12 +9,14 @@ import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import TopBar from '../TopBar';
 import SideBarDrawer from '../SideBar/SideBarDrawer';
 import Modal from '../Modal/dataDownload';
+import MaintenanceBanner from '../MaintenanceBanner';
 
 import { setOpenModal } from '@/lib/store/services/downloadModal';
 
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useUserChecklists from '@/core/hooks/useUserChecklists';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
+import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
 
 const Layout = ({
   pageTitle = 'AirQo Analytics',
@@ -35,6 +37,8 @@ const Layout = ({
 
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const isOpen = useSelector((state) => state.modal.openModal);
+
+  const { maintenance } = useMaintenanceStatus();
 
   // Handler to close the modal
   const handleCloseModal = () => {
@@ -66,6 +70,9 @@ const Layout = ({
               : 'max-w-[1200px] mx-auto space-y-8 px-4 py-8 sm:px-6 lg:px-8'
           } overflow-hidden`}
         >
+          {/* Maintenance Banner */}
+          <MaintenanceBanner maintenance={maintenance} />
+
           {/* TopBar */}
           {noTopNav && (
             <TopBar
