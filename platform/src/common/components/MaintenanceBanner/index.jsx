@@ -20,8 +20,8 @@ const MaintenanceBanner = ({ maintenance }) => {
               {maintenance.message}
               <span className="ml-2 text-yellow-600">
                 (Estimated downtime:{' '}
-                {dayjs(maintenance.startDate).format('DDD MM, YYYY HH:mm')} -{' '}
-                {dayjs(maintenance.endDate).format('DDD MM, YYYY HH:mm')})
+                {dayjs(maintenance.startDate).format('D MMM, YYYY HH:mm A')} -{' '}
+                {dayjs(maintenance.endDate).format('D MMM, YYYY HH:mm A')})
               </span>
             </p>
           </div>
