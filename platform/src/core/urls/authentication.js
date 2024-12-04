@@ -1,7 +1,4 @@
-import {
-  NEXT_PUBLIC_API_BASE_URL,
-  NEXT_PUBLIC_API_TOKEN,
-} from '../../lib/envConstants';
+import { NEXT_PUBLIC_API_BASE_URL } from '../../lib/envConstants';
 import { stripTrailingSlash } from '../utils/strings';
 
 const BASE_AUTH_URL = stripTrailingSlash(NEXT_PUBLIC_API_BASE_URL);
@@ -41,3 +38,5 @@ export const GENERATE_TOKEN_URI = `${AUTH_URL}/tokens`;
 export const ACTIVATE_USER_CLIENT = `${CLIENT_URI}/activate`;
 
 export const ACTIVATION_REQUEST_URI = `${CLIENT_URI}/activate-request`;
+
+export const MAINTENANCE_STATUS_URL = `${AUTH_URL}/maintenances/analytics`;
