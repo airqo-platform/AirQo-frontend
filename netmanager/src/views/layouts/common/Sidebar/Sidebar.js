@@ -248,10 +248,6 @@ const Sidebar = (props) => {
     // check whether user has a role
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
-    if (isEmpty(currentUser)) {
-      return;
-    }
-
     if (!isEmpty(currentUser)) {
       if (!isEmpty(currentRole)) {
         if (currentRole.role_permissions) {

@@ -15,9 +15,15 @@ const initialState = {
   currentRole: {},
   userNetworks: null,
   activeNetwork: {},
-  networkUsers: null,
+  networkUsers: {
+    users: null,
+    total: 0
+  },
   rolesSummary: null,
-  availableUsers: null,
+  availableUsers: {
+    users: null,
+    total: 0
+  },
   groupsSummary: null
 };
 
@@ -32,11 +38,23 @@ export default function accessControlReducer(state = initialState, action) {
     case LOAD_CURRENT_NETWORK_SUCCESS:
       return { ...state, activeNetwork: action.payload };
     case LOAD_NETWORK_USERS_SUCCESS:
-      return { ...state, networkUsers: action.payload };
+      return {
+        ...state,
+        networkUsers: {
+          users: action.payload.users,
+          total: action.payload.total
+        }
+      };
     case LOAD_ROLES_SUMMARY_SUCCESS:
       return { ...state, rolesSummary: action.payload };
     case LOAD_AVAILABLE_USERS_SUCCESS:
-      return { ...state, availableUsers: action.payload };
+      return {
+        ...state,
+        availableUsers: {
+          users: action.payload.users,
+          total: action.payload.total
+        }
+      };
     case LOAD_GROUPS_SUMMARY_SUCCESS:
       return { ...state, groupsSummary: action.payload };
     default:

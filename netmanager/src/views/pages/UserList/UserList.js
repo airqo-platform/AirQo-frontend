@@ -28,8 +28,8 @@ const UserList = (props) => {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [limit, setLimit] = useState(10);
+  const [skip, setSkip] = useState(0);
   const roles = useSelector((state) => state.accessControl.rolesSummary);
   const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
@@ -38,13 +38,13 @@ const UserList = (props) => {
     dispatch(loadRolesSummary(activeNetwork._id));
   }, []);
 
-  const fetchUsers = async (page, limit) => {
+  const fetchUsers = async (skipCount, limitCount) => {
     if (!activeNetwork) return;
     setLoading(true);
     try {
       const res = await getNetworkUsersListApi(activeNetwork._id, {
-        page: page + 1,
-        limit
+        skip: skipCount,
+        limit: limitCount
       });
       setUsers(res.assigned_users);
       setTotalCount(res.total || 0);
@@ -71,13 +71,14 @@ const UserList = (props) => {
 
   // Initial load
   useEffect(() => {
-    fetchUsers(currentPage, pageSize);
+    fetchUsers(skip, limit);
   }, [activeNetwork]);
 
-  const handlePageChange = (newPage, newPageSize) => {
-    setCurrentPage(newPage);
-    setPageSize(newPageSize);
-    fetchUsers(newPage, newPageSize);
+  const handlePageChange = (page, pageSize) => {
+    const newSkip = page * pageSize;
+    setSkip(newSkip);
+    setLimit(pageSize);
+    fetchUsers(newSkip, pageSize);
   };
 
   return (
@@ -90,8 +91,8 @@ const UserList = (props) => {
             users={users}
             loadData={loading}
             totalCount={totalCount}
-            pageSize={pageSize}
-            currentPage={currentPage}
+            pageSize={limit}
+            currentPage={skip / limit}
             onPageChange={handlePageChange}
           />
         </div>
