@@ -14,7 +14,6 @@ import {
   LOAD_CURRENT_USER_ROLE_SUCCESS,
   LOAD_NETWORK_USERS_FAILURE,
   LOAD_NETWORK_USERS_SUCCESS,
-  LOAD_ROLES_SUMMARY_FAILURE,
   LOAD_ROLES_SUMMARY_SUCCESS,
   LOAD_GROUPS_SUMMARY_SUCCESS
 } from './actions';
@@ -79,6 +78,7 @@ export const addActiveNetwork = (data) => (dispatch) => {
 
 export const fetchNetworkUsers = (networkId, params) => async (dispatch) => {
   try {
+    dispatch({ type: 'SET_NETWORK_USERS_LOADING', payload: true });
     const resData = await getNetworkUsersListApi(networkId, params);
     dispatch({
       type: LOAD_NETWORK_USERS_SUCCESS,
@@ -94,11 +94,14 @@ export const fetchNetworkUsers = (networkId, params) => async (dispatch) => {
       payload: err
     });
     throw err;
+  } finally {
+    dispatch({ type: 'SET_NETWORK_USERS_LOADING', payload: false });
   }
 };
 
 export const fetchAvailableNetworkUsers = (networkId, params) => async (dispatch) => {
   try {
+    dispatch({ type: 'SET_AVAILABLE_USERS_LOADING', payload: true });
     const resData = await getAvailableNetworkUsersListApi(networkId, params);
     dispatch({
       type: LOAD_AVAILABLE_USERS_SUCCESS,
@@ -114,6 +117,8 @@ export const fetchAvailableNetworkUsers = (networkId, params) => async (dispatch
       payload: err
     });
     throw err;
+  } finally {
+    dispatch({ type: 'SET_AVAILABLE_USERS_LOADING', payload: false });
   }
 };
 
