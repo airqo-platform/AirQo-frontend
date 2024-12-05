@@ -17,12 +17,14 @@ const initialState = {
   activeNetwork: {},
   networkUsers: {
     users: null,
-    total: 0
+    total: 0,
+    loading: false
   },
   rolesSummary: null,
   availableUsers: {
     users: null,
-    total: 0
+    total: 0,
+    loading: false
   },
   groupsSummary: null
 };
@@ -57,6 +59,22 @@ export default function accessControlReducer(state = initialState, action) {
       };
     case LOAD_GROUPS_SUMMARY_SUCCESS:
       return { ...state, groupsSummary: action.payload };
+    case 'SET_NETWORK_USERS_LOADING':
+      return {
+        ...state,
+        networkUsers: {
+          ...state.networkUsers,
+          loading: action.payload
+        }
+      };
+    case 'SET_AVAILABLE_USERS_LOADING':
+      return {
+        ...state,
+        availableUsers: {
+          ...state.availableUsers,
+          loading: action.payload
+        }
+      };
     default:
       return state;
   }
