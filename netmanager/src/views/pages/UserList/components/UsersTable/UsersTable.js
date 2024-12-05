@@ -89,7 +89,18 @@ const customStyles = {
 };
 
 const UsersTable = (props) => {
-  const { className, mappeduserState, roles, ...rest } = props;
+  const {
+    className,
+    mappeduserState,
+    roles,
+    users,
+    loadData,
+    totalCount,
+    pageSize,
+    currentPage,
+    onPageChange,
+    ...rest
+  } = props;
   const [userDelState, setUserDelState] = useState({ open: false, user: {} });
 
   const dispatch = useDispatch();
@@ -101,11 +112,6 @@ const UsersTable = (props) => {
   const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
   const [isLoading, setLoading] = useState(false);
   const classes = useStyles();
-  const users = useSelector((state) => state.accessControl.networkUsers);
-  // for horizontal loader
-  const [loading, setIsLoading] = useState(false);
-
-  //the methods:
 
   const handleUpdateUserChange = (field) => (event) => {
     event.preventDefault();
@@ -140,9 +146,8 @@ const UsersTable = (props) => {
   };
 
   const submitEditUser = (e) => {
-    setIsLoading(true);
-    dispatch(loadStatus(true));
     setLoading(true);
+    dispatch(loadStatus(true));
     e.preventDefault();
     if (updatedUser.userName !== '') {
       const data = {
@@ -157,7 +162,6 @@ const UsersTable = (props) => {
         })
           .then((res) => {
             dispatch(fetchNetworkUsers(activeNetwork._id));
-            setIsLoading(false);
             dispatch(loadStatus(false));
             dispatch(
               updateMainAlert({
@@ -176,7 +180,7 @@ const UsersTable = (props) => {
                 severity: 'error'
               })
             );
-            setIsLoading(false);
+            setLoading(false);
             dispatch(loadStatus(false));
           });
       }
@@ -184,10 +188,9 @@ const UsersTable = (props) => {
       props.mappedEditUser(data);
     }
     setTimeout(() => {
-      setIsLoading(false);
+      setLoading(false);
       dispatch(loadStatus(false));
     }, 2000);
-    setLoading(false);
   };
 
   const showDeleteDialog = (user) => {
@@ -201,7 +204,7 @@ const UsersTable = (props) => {
   // delete user function
   const deleteUser = async () => {
     // Set loading to true when deleting
-    setIsLoading(true);
+    setLoading(true);
     dispatch(loadStatus(true));
     try {
       await props.mappedConfirmDeleteUser(userDelState.user);
@@ -211,7 +214,7 @@ const UsersTable = (props) => {
       console.error(error);
     } finally {
       // Set loading to false when done
-      setIsLoading(false);
+      setLoading(false);
       dispatch(loadStatus(false));
     }
   };
@@ -250,6 +253,7 @@ const UsersTable = (props) => {
           title={'Users'}
           userPreferencePaginationKey={'users'}
           data={!isEmpty(users) ? users : []}
+          isLoading={loadData || isLoading}
           columns={[
             {
               title: 'Full Name',
@@ -314,7 +318,14 @@ const UsersTable = (props) => {
           options={{
             search: true,
             searchFieldAlignment: 'left',
-            showTitle: false
+            showTitle: false,
+            serverSide: true,
+            pageSize: pageSize,
+            page: currentPage,
+            totalCount: totalCount,
+            onPageChange: (page, pageSize) => {
+              onPageChange(page, pageSize);
+            }
           }}
         />
 

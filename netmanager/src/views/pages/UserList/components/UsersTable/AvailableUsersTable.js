@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
@@ -37,7 +37,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const AvailableUsersTable = (props) => {
-  const { className, mappeduserState, users, loadData, ...rest } = props;
+  const { className, users, loadData, totalCount, pageSize, currentPage, onPageChange, ...rest } =
+    props;
   const dispatch = useDispatch();
   const [isLoading, setLoading] = useState(false);
   const classes = useStyles();
@@ -137,7 +138,14 @@ const AvailableUsersTable = (props) => {
           options={{
             search: true,
             searchFieldAlignment: 'left',
-            showTitle: false
+            showTitle: false,
+            serverSide: true,
+            pageSize: pageSize,
+            page: currentPage,
+            totalCount: totalCount,
+            onPageChange: (page, pageSize) => {
+              onPageChange(page, pageSize);
+            }
           }}
         />
       </Card>

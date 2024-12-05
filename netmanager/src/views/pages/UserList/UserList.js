@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
 import usrsStateConnector from 'views/stateConnectors/usersStateConnector';
@@ -8,8 +8,10 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import UsersTable from './components/UsersTable';
 import UsersToolbar from './components/UsersToolbar';
 import { useDispatch, useSelector } from 'react-redux';
-import { loadRolesSummary, fetchNetworkUsers } from 'redux/AccessControl/operations';
+import { loadRolesSummary } from 'redux/AccessControl/operations';
 import { withPermission } from '../../containers/PageAccess';
+import { getNetworkUsersListApi } from 'views/apis/accessControl';
+import { updateMainAlert } from 'redux/MainAlert/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -23,6 +25,11 @@ const useStyles = makeStyles((theme) => ({
 const UserList = (props) => {
   const classes = useStyles();
   const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(0);
   const roles = useSelector((state) => state.accessControl.rolesSummary);
   const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
@@ -31,17 +38,62 @@ const UserList = (props) => {
     dispatch(loadRolesSummary(activeNetwork._id));
   }, []);
 
-  useEffect(() => {
+  const fetchUsers = async (page, limit) => {
     if (!activeNetwork) return;
-    dispatch(fetchNetworkUsers(activeNetwork._id));
-  }, []);
+    setLoading(true);
+    try {
+      const res = await getNetworkUsersListApi(activeNetwork._id, {
+        page: page + 1,
+        limit
+      });
+      setUsers(res.assigned_users);
+      setTotalCount(res.total || 0);
+    } catch (error) {
+      let errorMessage = 'An error occurred';
+      if (error.response && error.response.status >= 500) {
+        errorMessage = 'An error occurred. Please try again later';
+      } else if (error.response && error.response.data && error.response.data.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      dispatch(
+        updateMainAlert({
+          message: errorMessage,
+          show: true,
+          severity: 'error'
+        })
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initial load
+  useEffect(() => {
+    fetchUsers(currentPage, pageSize);
+  }, [activeNetwork]);
+
+  const handlePageChange = (newPage, newPageSize) => {
+    setCurrentPage(newPage);
+    setPageSize(newPageSize);
+    fetchUsers(newPage, newPageSize);
+  };
 
   return (
     <ErrorBoundary>
       <div className={classes.root}>
         <UsersToolbar roles={roles} />
         <div className={classes.content}>
-          <UsersTable roles={roles} />
+          <UsersTable
+            roles={roles}
+            users={users}
+            loadData={loading}
+            totalCount={totalCount}
+            pageSize={pageSize}
+            currentPage={currentPage}
+            onPageChange={handlePageChange}
+          />
         </div>
       </div>
     </ErrorBoundary>
