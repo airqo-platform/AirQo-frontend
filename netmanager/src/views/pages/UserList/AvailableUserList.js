@@ -25,11 +25,12 @@ const AvailableUserList = (props) => {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [limit, setLimit] = useState(10);
-  const [skip, setSkip] = useState(0);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(100);
   const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   const fetchUsers = async (skipCount, limitCount) => {
+    console.log('fetchUsers called with:', { skipCount, limitCount });
     if (!activeNetwork) return;
     setLoading(true);
     try {
@@ -37,9 +38,16 @@ const AvailableUserList = (props) => {
         skip: skipCount,
         limit: limitCount
       });
+      console.log('API Response:', {
+        users: res.available_users.length,
+        total: res.total_available_users,
+        skip: skipCount,
+        limit: limitCount
+      });
       setUsers(res.available_users);
-      setTotalCount(res.total || 0);
+      setTotalCount(res.total_available_users || 0);
     } catch (error) {
+      console.error('Error fetching users:', error);
       let errorMessage = 'An error occurred';
       if (error.response && error.response.status >= 500) {
         errorMessage = 'An error occurred. Please try again later';
@@ -61,14 +69,22 @@ const AvailableUserList = (props) => {
   };
 
   useEffect(() => {
-    fetchUsers(skip, limit);
+    fetchUsers(page * pageSize, pageSize);
   }, [activeNetwork]);
 
-  const handlePageChange = (page, pageSize) => {
-    const newSkip = page * pageSize;
-    setSkip(newSkip);
-    setLimit(pageSize);
-    fetchUsers(newSkip, pageSize);
+  const handlePageChange = (event, newPage) => {
+    console.log('AvailableUserList handlePageChange:', { currentPage: page, newPage });
+    setPage(newPage);
+
+    const skipCount = newPage * pageSize;
+    console.log('Fetching users with:', { skipCount, pageSize });
+    fetchUsers(skipCount, pageSize);
+  };
+
+  const handleRowsPerPageChange = (newPageSize) => {
+    setPageSize(newPageSize);
+    setPage(0);
+    fetchUsers(0, newPageSize);
   };
 
   return (
@@ -79,9 +95,10 @@ const AvailableUserList = (props) => {
             users={users}
             loadData={loading}
             totalCount={totalCount}
-            pageSize={limit}
-            currentPage={skip / limit}
+            pageSize={pageSize}
+            currentPage={page}
             onPageChange={handlePageChange}
+            onChangeRowsPerPage={handleRowsPerPageChange}
           />
         </div>
       </div>
