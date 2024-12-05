@@ -28,8 +28,7 @@ const MaintenanceBanner = () => {
 
   return (
     <Alert severity="warning" className={classes.banner}>
-      {maintenance.message ||
-        'System maintenance in progress. SoformatDate(me features may be unavailable.'}
+      {maintenance.message || 'System maintenance in progress. Some features may be unavailable.'}
       Estimated downtime: {formatDateString(maintenance.startDate)} -{' '}
       {formatDateString(maintenance.endDate)}
     </Alert>
