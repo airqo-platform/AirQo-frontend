@@ -308,7 +308,6 @@ const UsersToolbar = (props) => {
 
   return (
     <div className={clsx(classes.root, className)}>
-      \
       <div className={classes.row}>
         <span className={classes.spacer} />
         <div>

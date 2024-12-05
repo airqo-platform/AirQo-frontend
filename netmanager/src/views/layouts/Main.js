@@ -76,7 +76,7 @@ const Main = (props) => {
         dispatch(addActiveNetwork(JSON.parse(activeNetworkStorage)));
       }
       if (isEmpty(currentRole)) {
-        dispatch(addCurrentUserRole(currentUserRoleStorage));
+        dispatch(addCurrentUserRole(JSON.parse(currentUserRoleStorage)));
       }
       if (isEmpty(userNetworks)) {
         dispatch(addUserNetworks(JSON.parse(userNetworksStorage)));
@@ -94,20 +94,23 @@ const Main = (props) => {
       try {
         const res = await getUserDetails(JSON.parse(user)._id);
         if (res.success && res.users && res.users.length > 0) {
-          dispatch(addUserNetworks(res.users[0].networks));
-          localStorage.setItem('userNetworks', JSON.stringify(res.users[0].networks));
+          const userNetworks = res.users[0].networks;
+          dispatch(addUserNetworks(userNetworks));
+          localStorage.setItem('userNetworks', JSON.stringify(userNetworks));
           dispatch(addUserGroupSummary(res.users[0].groups));
 
-          if (!isEmpty(user)) {
-            const airqoNetwork = res.users[0].networks.find(
-              (network) => network.net_name === 'airqo'
-            );
+          if (!isEmpty(user) && !isEmpty(userNetworks)) {
+            let networkToUse = userNetworks.find((network) => network.net_name === 'airqo');
 
-            if (!activeNetwork && airqoNetwork) {
-              dispatch(addActiveNetwork(airqoNetwork));
-              localStorage.setItem('activeNetwork', JSON.stringify(airqoNetwork));
-              dispatch(addCurrentUserRole(airqoNetwork.role));
-              localStorage.setItem('currentUserRole', JSON.stringify(airqoNetwork.role));
+            if (!networkToUse && userNetworks.length > 0) {
+              networkToUse = userNetworks[0];
+            }
+
+            if (networkToUse) {
+              dispatch(addActiveNetwork(networkToUse));
+              localStorage.setItem('activeNetwork', JSON.stringify(networkToUse));
+              dispatch(addCurrentUserRole(networkToUse.role));
+              localStorage.setItem('currentUserRole', JSON.stringify(networkToUse.role));
             }
           }
         }
@@ -115,7 +118,10 @@ const Main = (props) => {
         console.error(err);
         dispatch(
           updateMainAlert({
-            message: err.message,
+            message:
+              err.response?.status >= 500
+                ? 'An error occurred. Please try again later'
+                : err.message,
             show: true,
             severity: 'error'
           })
