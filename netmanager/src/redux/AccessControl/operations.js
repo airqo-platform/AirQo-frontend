@@ -84,7 +84,7 @@ export const fetchNetworkUsers = (networkId, params) => async (dispatch) => {
       type: LOAD_NETWORK_USERS_SUCCESS,
       payload: {
         users: resData.assigned_users,
-        total: resData.total
+        total: resData.total_assigned_users
       }
     });
     return resData;
@@ -104,7 +104,7 @@ export const fetchAvailableNetworkUsers = (networkId, params) => async (dispatch
       type: LOAD_AVAILABLE_USERS_SUCCESS,
       payload: {
         users: resData.available_users,
-        total: resData.total
+        total: resData.total_available_users
       }
     });
     return resData;
