@@ -50,10 +50,12 @@ const UserList = (props) => {
       setTotalCount(res.total || 0);
     } catch (error) {
       let errorMessage = 'An error occurred';
-      if (error.response?.status >= 500) {
+      if (error.response && error.response.status >= 500) {
         errorMessage = 'An error occurred. Please try again later';
-      } else if (error.response?.data?.message) {
+      } else if (error.response && error.response.data && error.response.data.message) {
         errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
       }
       dispatch(
         updateMainAlert({
