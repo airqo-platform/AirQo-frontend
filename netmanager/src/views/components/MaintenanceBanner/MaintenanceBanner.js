@@ -3,7 +3,6 @@ import { makeStyles } from '@material-ui/styles';
 import { Paper, Typography, Box } from '@material-ui/core';
 import { Warning as WarningIcon } from '@material-ui/icons';
 import { useMaintenanceStatus } from 'utils/hooks/useMaintenanceStatus';
-import { formatDateString } from '../../../utils/dateTime';
 import { format } from 'date-fns';
 
 const useStyles = makeStyles((theme) => ({
@@ -55,8 +54,14 @@ const MaintenanceBanner = () => {
         </Typography>
       </Box>
       <Typography variant="body2" className={classes.timeInfo}>
-        Estimated downtime: {format(new Date(maintenance.startDate), 'MMM d, yyyy h:mm a')} -{' '}
-        {format(new Date(maintenance.endDate), 'MMM d, yyyy h:mm a')}
+        Estimated downtime:{' '}
+        {maintenance.startDate && !isNaN(new Date(maintenance.startDate))
+          ? format(new Date(maintenance.startDate), 'MMM d, yyyy h:mm a')
+          : 'Invalid start date'}{' '}
+        -{' '}
+        {maintenance.endDate && !isNaN(new Date(maintenance.endDate))
+          ? format(new Date(maintenance.endDate), 'MMM d, yyyy h:mm a')
+          : 'Invalid end date'}
       </Typography>
     </Paper>
   );
