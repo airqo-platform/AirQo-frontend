@@ -19,6 +19,7 @@ import {
 } from '../../redux/AccessControl/operations';
 import { LargeCircularLoader } from '../components/Loader/CircularLoader';
 import { updateMainAlert } from '../../redux/MainAlert/operations';
+import MaintenanceBanner from 'views/components/MaintenanceBanner/MaintenanceBanner';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -164,6 +165,7 @@ const Main = (props) => {
         [classes.shiftContent]: isDesktop
       })}
     >
+      <MaintenanceBanner />
       <Topbar toggleSidebar={toggleSidebar} />
       <div style={{ position: 'relative' }}>
         <HorizontalLoader loading={loaderStatus} />

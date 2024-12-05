@@ -5,7 +5,8 @@ import {
   REGISTER_USER_URI,
   CHART_DEFAULTS_URI,
   USER_FEEDBACK_URI,
-  GET_LOGS
+  GET_LOGS,
+  GET_MAINTENANCE_STATUS
 } from 'config/urls/authService';
 import createAxiosInstance from './axiosConfig';
 import { BASE_AUTH_SERVICE_URL_V2 } from '../../config/urls/authService';
@@ -107,5 +108,11 @@ export const deleteDefaultSelectedSiteApi = async (siteId) => {
 export const updateDefaultSelectedSiteApi = async (siteId, siteData) => {
   return await createAxiosInstance()
     .put(`${BASE_AUTH_SERVICE_URL_V2}/users/preferences/selected-sites/${siteId}`, siteData)
+    .then((response) => response.data);
+};
+
+export const getMaintenanceStatusApi = async () => {
+  return await createAxiosInstance()
+    .get(GET_MAINTENANCE_STATUS)
     .then((response) => response.data);
 };
