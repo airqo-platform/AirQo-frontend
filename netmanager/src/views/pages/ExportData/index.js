@@ -530,7 +530,7 @@ const ExportData = (props) => {
       startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
       endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
       sites: sitesList,
-      device_ids: getValues(selectedDevices),
+      devices: getValues(selectedDevices),
       airqlouds: getValues(selectedAirqlouds),
       network: activeNetwork.net_name,
       datatype: dataType.value,
