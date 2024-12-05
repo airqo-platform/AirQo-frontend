@@ -77,36 +77,44 @@ export const addActiveNetwork = (data) => (dispatch) => {
   });
 };
 
-export const fetchNetworkUsers = (networkId) => async (dispatch) => {
-  return await getNetworkUsersListApi(networkId)
-    .then((resData) => {
-      dispatch({
-        type: LOAD_NETWORK_USERS_SUCCESS,
-        payload: resData.assigned_users
-      });
-    })
-    .catch((err) => {
-      dispatch({
-        type: LOAD_NETWORK_USERS_FAILURE,
-        payload: err
-      });
+export const fetchNetworkUsers = (networkId, params) => async (dispatch) => {
+  try {
+    const resData = await getNetworkUsersListApi(networkId, params);
+    dispatch({
+      type: LOAD_NETWORK_USERS_SUCCESS,
+      payload: {
+        users: resData.assigned_users,
+        total: resData.total_assigned_users
+      }
     });
+    return resData;
+  } catch (err) {
+    dispatch({
+      type: LOAD_NETWORK_USERS_FAILURE,
+      payload: err
+    });
+    throw err;
+  }
 };
 
-export const fetchAvailableNetworkUsers = (networkId) => async (dispatch) => {
-  return await getAvailableNetworkUsersListApi(networkId)
-    .then((resData) => {
-      dispatch({
-        type: LOAD_AVAILABLE_USERS_SUCCESS,
-        payload: resData.available_users
-      });
-    })
-    .catch((err) => {
-      dispatch({
-        type: LOAD_AVAILABLE_USERS_FAILURE,
-        payload: err
-      });
+export const fetchAvailableNetworkUsers = (networkId, params) => async (dispatch) => {
+  try {
+    const resData = await getAvailableNetworkUsersListApi(networkId, params);
+    dispatch({
+      type: LOAD_AVAILABLE_USERS_SUCCESS,
+      payload: {
+        users: resData.available_users,
+        total: resData.total_available_users
+      }
     });
+    return resData;
+  } catch (err) {
+    dispatch({
+      type: LOAD_AVAILABLE_USERS_FAILURE,
+      payload: err
+    });
+    throw err;
+  }
 };
 
 export const addUserGroupSummary = (data) => (dispatch) => {

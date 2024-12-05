@@ -19,6 +19,7 @@ import {
 } from '../../redux/AccessControl/operations';
 import { LargeCircularLoader } from '../components/Loader/CircularLoader';
 import { updateMainAlert } from '../../redux/MainAlert/operations';
+import MaintenanceBanner from 'views/components/MaintenanceBanner/MaintenanceBanner';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -149,7 +150,7 @@ const Main = (props) => {
           justifyContent: 'center',
           alignItems: 'center',
           height: '100vh',
-          width: '100vw'
+          width: '100%'
         }}
       >
         <LargeCircularLoader loading={loading} size={50} height={50} />
@@ -174,7 +175,11 @@ const Main = (props) => {
         open={shouldOpenSidebar}
         variant={isDesktop ? 'persistent' : 'temporary'}
       />
-      <main className={classes.content}>{children}</main>
+
+      <main className={classes.content}>
+        <MaintenanceBanner />
+        {children}
+      </main>
       <Footer />
     </div>
   );

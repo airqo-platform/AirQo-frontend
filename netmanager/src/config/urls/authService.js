@@ -29,3 +29,5 @@ export const USER_FEEDBACK_URI = `${BASE_AUTH_SERVICE_URL_V2}/users/feedback`;
 export const GET_ACCESS_TOKEN = `${BASE_AUTH_SERVICE_URL_V2}/users/tokens`;
 
 export const GET_LOGS = `${BASE_AUTH_SERVICE_URL_V2}/users/logs`;
+
+export const GET_MAINTENANCE_STATUS = `${BASE_AUTH_SERVICE_URL_V2}/users/maintenances/analytics`;
