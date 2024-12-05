@@ -10,9 +10,16 @@ export const useMaintenanceStatus = () => {
     const checkMaintenanceStatus = async () => {
       try {
         const response = await getMaintenanceStatusApi();
-        setMaintenance(response.maintenance);
+        if (response.success && response.maintenance?.length > 0) {
+          // Get the first active maintenance
+          const activeMaintenance = response.maintenance.find((m) => m.isActive);
+          setMaintenance(activeMaintenance || null);
+        } else {
+          setMaintenance(null);
+        }
       } catch (err) {
         setError(err);
+        setMaintenance(null);
       } finally {
         setLoading(false);
       }

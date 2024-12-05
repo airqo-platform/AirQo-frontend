@@ -150,7 +150,7 @@ const Main = (props) => {
           justifyContent: 'center',
           alignItems: 'center',
           height: '100vh',
-          width: '100vw'
+          width: '100%'
         }}
       >
         <LargeCircularLoader loading={loading} size={50} height={50} />
