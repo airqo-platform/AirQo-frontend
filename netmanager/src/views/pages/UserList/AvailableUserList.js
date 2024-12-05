@@ -9,6 +9,7 @@ import { withPermission } from '../../containers/PageAccess';
 import AvailableUsersTable from './components/UsersTable/AvailableUsersTable';
 import { getAvailableNetworkUsersListApi } from 'views/apis/accessControl';
 import { updateMainAlert } from '../../../redux/MainAlert/operations';
+import { fetchAvailableNetworkUsers } from '../../../redux/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -22,53 +23,42 @@ const useStyles = makeStyles((theme) => ({
 const AvailableUserList = (props) => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [limit, setLimit] = useState(10);
-  const [skip, setSkip] = useState(0);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(100);
+
+  // Use Redux state instead of local state
+  const { users, total, loading } = useSelector((state) => state.accessControl.availableUsers);
   const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
-  const fetchUsers = async (skipCount, limitCount) => {
-    if (!activeNetwork) return;
-    setLoading(true);
-    try {
-      const res = await getAvailableNetworkUsersListApi(activeNetwork._id, {
-        skip: skipCount,
-        limit: limitCount
-      });
-      setUsers(res.available_users);
-      setTotalCount(res.total || 0);
-    } catch (error) {
-      let errorMessage = 'An error occurred';
-      if (error.response && error.response.status >= 500) {
-        errorMessage = 'An error occurred. Please try again later';
-      } else if (error.response && error.response.data && error.response.data.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      dispatch(
-        updateMainAlert({
-          message: errorMessage,
-          show: true,
-          severity: 'error'
-        })
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchUsers(skip, limit);
+    if (!activeNetwork) return;
+    dispatch(
+      fetchAvailableNetworkUsers(activeNetwork._id, {
+        skip: page * pageSize,
+        limit: pageSize
+      })
+    );
   }, [activeNetwork]);
 
-  const handlePageChange = (page, pageSize) => {
-    const newSkip = page * pageSize;
-    setSkip(newSkip);
-    setLimit(pageSize);
-    fetchUsers(newSkip, pageSize);
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
+    dispatch(
+      fetchAvailableNetworkUsers(activeNetwork._id, {
+        skip: newPage * pageSize,
+        limit: pageSize
+      })
+    );
+  };
+
+  const handleRowsPerPageChange = (newPageSize) => {
+    setPageSize(newPageSize);
+    setPage(0);
+    dispatch(
+      fetchAvailableNetworkUsers(activeNetwork._id, {
+        skip: 0,
+        limit: newPageSize
+      })
+    );
   };
 
   return (
@@ -76,12 +66,13 @@ const AvailableUserList = (props) => {
       <div className={classes.root}>
         <div className={classes.content}>
           <AvailableUsersTable
-            users={users}
+            users={users || []}
             loadData={loading}
-            totalCount={totalCount}
-            pageSize={limit}
-            currentPage={skip / limit}
+            totalCount={total || 0}
+            pageSize={pageSize || 100}
+            currentPage={page || 0}
             onPageChange={handlePageChange}
+            onChangeRowsPerPage={handleRowsPerPageChange}
           />
         </div>
       </div>
