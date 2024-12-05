@@ -22,7 +22,7 @@ const MaintenanceBanner = () => {
   const classes = useStyles();
   const { maintenance, loading } = useMaintenanceStatus();
 
-  if (loading || !maintenance || !maintenance.active) {
+  if (loading || !maintenance || !maintenance.isActive) {
     return null;
   }
 

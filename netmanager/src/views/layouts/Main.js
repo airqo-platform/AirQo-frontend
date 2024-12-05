@@ -165,7 +165,6 @@ const Main = (props) => {
         [classes.shiftContent]: isDesktop
       })}
     >
-      <MaintenanceBanner />
       <Topbar toggleSidebar={toggleSidebar} />
       <div style={{ position: 'relative' }}>
         <HorizontalLoader loading={loaderStatus} />
@@ -176,7 +175,11 @@ const Main = (props) => {
         open={shouldOpenSidebar}
         variant={isDesktop ? 'persistent' : 'temporary'}
       />
-      <main className={classes.content}>{children}</main>
+
+      <main className={classes.content}>
+        <MaintenanceBanner />
+        {children}
+      </main>
       <Footer />
     </div>
   );
