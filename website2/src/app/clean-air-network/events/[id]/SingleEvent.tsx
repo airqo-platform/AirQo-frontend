@@ -4,7 +4,12 @@ import { format, isSameMonth, parse } from 'date-fns';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { FiCalendar, FiClock } from 'react-icons/fi';
+import {
+  FiCalendar,
+  FiClock,
+  FiDownload,
+  FiExternalLink,
+} from 'react-icons/fi';
 
 import { Accordion, CustomButton } from '@/components/ui';
 import { getEventDetails } from '@/services/apiService';
@@ -338,33 +343,34 @@ const SingleEvent: React.FC<any> = ({ id }) => {
             {event.resources.map((resource: any) => (
               <div
                 key={resource.id}
-                className="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow duration-300 flex justify-between items-center"
+                className="flex justify-between items-center p-4 bg-gray-50 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200"
               >
                 <div>
-                  <h3 className="text-lg font-medium">{resource.title}</h3>
-                  {resource.link && (
-                    <a
-                      href={resource.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline"
-                    >
-                      View Link
-                    </a>
-                  )}
-                  {resource.resource && (
-                    <a
-                      href={resource.resource}
-                      download
-                      className="text-blue-500 hover:underline ml-4"
-                    >
-                      Download
-                    </a>
-                  )}
+                  <h3 className="text-xl font-semibold mb-2 text-gray-800">
+                    {resource.title}
+                  </h3>
+                  <div className="flex space-x-4">
+                    {resource.link && (
+                      <a
+                        href={resource.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center text-blue-600 hover:underline font-medium"
+                      >
+                        <FiExternalLink className="mr-2" /> View Link
+                      </a>
+                    )}
+                    {resource.resource_url && (
+                      <a
+                        href={resource.resource_url}
+                        download
+                        className="inline-flex items-center text-blue-600 hover:underline font-medium"
+                      >
+                        <FiDownload className="mr-2" /> Download
+                      </a>
+                    )}
+                  </div>
                 </div>
-                <span className="text-sm text-gray-500">
-                  Order: {resource.order}
-                </span>
               </div>
             ))}
           </div>

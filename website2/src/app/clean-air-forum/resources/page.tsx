@@ -6,8 +6,14 @@ import { Divider } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
 
 // Helper function to extract the file name from the URL
-const getFileNameFromUrl = (url: string) => {
-  return url.split('/').pop();
+const getFileNameFromUrl = (url: string | null | undefined): string | null => {
+  if (!url || typeof url !== 'string') {
+    console.error('Invalid URL:', url);
+    return null;
+  }
+
+  const segments = url.split('/');
+  return segments.pop() || null;
 };
 
 // Accordion Item Component (for each session inside a resource)

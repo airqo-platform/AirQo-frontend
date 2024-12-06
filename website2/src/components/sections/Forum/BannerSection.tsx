@@ -40,7 +40,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({ data }) => {
         {/* Image Section */}
         <div className="flex justify-center items-center md:w-1/2 h-[350px] w-full">
           <Image
-            src={data.background_image}
+            src={data.background_image_url}
             alt="Forum Image"
             width={600}
             height={350}
