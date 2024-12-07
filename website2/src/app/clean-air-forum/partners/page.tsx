@@ -18,7 +18,7 @@ const Page = () => {
     ?.filter((partner: any) => partner.category === 'Co-Convening Partner')
     .map((partner: any) => ({
       id: partner.id,
-      logoUrl: partner.partner_logo,
+      logoUrl: partner.partner_logo_url,
     }));
 
   // Filter Host Partners
@@ -26,14 +26,14 @@ const Page = () => {
     ?.filter((partner: any) => partner.category === 'Host Partner')
     .map((partner: any) => ({
       id: partner.id,
-      logoUrl: partner.partner_logo,
+      logoUrl: partner.partner_logo_url,
     }));
 
   const sponsorPartner = data.partners
     ?.filter((partner: any) => partner.category === 'Sponsor Partner')
     .map((partner: any) => ({
       id: partner.id,
-      logoUrl: partner.partner_logo,
+      logoUrl: partner.partner_logo_url,
     }));
 
   // Filter Funding Partners (if available)
@@ -41,7 +41,7 @@ const Page = () => {
     ?.filter((partner: any) => partner.category === 'Funding Partner')
     .map((partner: any) => ({
       id: partner.id,
-      logoUrl: partner.partner_logo,
+      logoUrl: partner.partner_logo_url,
     }));
 
   return (

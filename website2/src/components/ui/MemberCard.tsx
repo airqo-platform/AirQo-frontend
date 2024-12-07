@@ -56,7 +56,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
           {/* Image and hover effect with default placeholder */}
           <div className="w-auto h-[390px] overflow-hidden rounded-lg">
             <Image
-              src={member.picture_url || member.picture || PlaceholderImage}
+              src={member.picture_url || PlaceholderImage}
               alt={member.name}
               width={295}
               height={390}
