@@ -114,6 +114,7 @@ CustomFields.propTypes = {
   useCalendar: PropTypes.bool,
   handleOptionSelect: PropTypes.func,
   defaultOption: PropTypes.object,
+  textFormat: PropTypes.oneOf(['uppercase', 'lowercase']),
 };
 
 export default CustomFields;
