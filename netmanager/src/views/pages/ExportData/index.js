@@ -417,20 +417,23 @@ const ExportData = (props) => {
     try {
       const response = await downloadDataApi(body);
 
+      console.log(response);
+
       // Handle successful response
       let filename = `airquality-data.${fileType.value}`;
 
       // Check if response has data
-      if (response && response.data) {
+      if (response) {
+        if (fileType.value === 'csv') {
+          if (typeof response !== 'string') {
+            throw new Error('Invalid CSV data format.');
+          }
+          exportData(response, filename, 'text/csv;charset=utf-8;');
+        }
+
         if (fileType.value === 'json') {
           const jsonString = JSON.stringify(response.data);
           exportData(jsonString, filename, 'application/json');
-        }
-
-        if (fileType.value === 'csv') {
-          // Convert JSON data to CSV using Papa Parse
-          const csvData = Papa.unparse(response.data);
-          exportData(csvData, filename, 'text/csv;charset=utf-8;');
         }
 
         dispatch(
@@ -467,7 +470,10 @@ const ExportData = (props) => {
             );
             return;
           }
-          errorMessage = err.response.data.message;
+          errorMessage =
+            typeof err.response.data.message === 'string'
+              ? err.response.data.message
+              : 'An error occurred while downloading data';
         }
       } else if (err.request) {
         // Request made but no response
@@ -530,7 +536,7 @@ const ExportData = (props) => {
       startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
       endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
       sites: sitesList,
-      devices: getValues(selectedDevices),
+      device_names: getValues(selectedDevices),
       airqlouds: getValues(selectedAirqlouds),
       network: activeNetwork.net_name,
       datatype: dataType.value,
