@@ -27,26 +27,35 @@ const AQI_CATEGORY_MAP = {
 
 const MAX_CARDS = 4;
 
+// ====================== Utility Functions ====================== //
+
 /**
- * Generates trend data based on percentage difference
- * @param {Object} averages - The averages object containing percentageDifference
- * @returns {Object|null} - The trend data or null if not available
+ * Generates trend data based on percentage difference.
+ * @param {Object} averages - The averages object containing percentageDifference.
+ * @returns {Object|null} - The trend data or null if not available.
  */
-const getTrendData = (averages) => {
+const generateTrendData = (averages) => {
   if (!averages?.percentageDifference) return null;
 
   const percentageDifference = Math.abs(averages.percentageDifference);
   const isIncreasing = averages.percentageDifference > 0;
 
+  let trendTooltip =
+    'No significant change in air quality compared to the previous week.';
+
+  if (isIncreasing) {
+    trendTooltip = `AQI has increased by ${percentageDifference}% compared to the previous week, indicating deteriorating air quality.`;
+  } else if (averages.percentageDifference < 0) {
+    trendTooltip = `AQI has decreased by ${percentageDifference}% compared to the previous week, indicating improving air quality.`;
+  }
+
   return {
-    trendIcon: isIncreasing ? IconMap.trend2 : IconMap.trend1,
+    trendIcon: isIncreasing ? IconMap.trend2 : IconMap.trend1, // Reverted to existing icons
     trendColor: isIncreasing
       ? 'text-red-700 bg-red-100'
       : 'text-green-700 bg-green-100',
-    trendText: `${percentageDifference.toFixed(0)}%`,
-    trendTooltip: isIncreasing
-      ? `Air quality has worsened by ${percentageDifference.toFixed(0)}%`
-      : `Air quality has improved by ${percentageDifference.toFixed(0)}%`,
+    trendText: `${percentageDifference}%`,
+    trendTooltip,
     isIncreasing,
   };
 };
@@ -56,12 +65,20 @@ const getTrendData = (averages) => {
 const TrendIndicator = React.memo(({ trendData }) => (
   <Tooltip
     content={trendData?.trendTooltip || 'No trend data available'}
-    className="w-52"
+    placement="top"
+    className="w-64"
   >
     <div
       className={`shrink-0 px-2 py-1 rounded-xl text-xs flex items-center gap-1.5 ${
         trendData ? trendData.trendColor : 'bg-gray-100 text-gray-500'
       }`}
+      aria-label={
+        trendData
+          ? trendData.isIncreasing
+            ? 'Air quality has deteriorated compared to last week.'
+            : 'Air quality has improved compared to last week.'
+          : 'No trend data available.'
+      }
     >
       {trendData ? (
         <>
@@ -86,6 +103,7 @@ TrendIndicator.propTypes = {
     trendColor: PropTypes.string,
     trendText: PropTypes.string,
     trendTooltip: PropTypes.string,
+    isIncreasing: PropTypes.bool,
   }),
 };
 
@@ -123,7 +141,7 @@ const SiteCard = React.memo(
 
     const AirQualityIcon = IconMap[statusKey];
     const trendData = useMemo(
-      () => getTrendData(measurement?.averages),
+      () => generateTrendData(measurement?.averages),
       [measurement],
     );
 
@@ -134,7 +152,11 @@ const SiteCard = React.memo(
 
       if (isTruncated) {
         return (
-          <Tooltip content={site.name || 'No Location Data'} className="w-52">
+          <Tooltip
+            content={site.name || 'No Location Data'}
+            placement="top"
+            className="w-52"
+          >
             <span className={`${baseClasses} inline-block`} ref={nameRef}>
               {site.name || '---'}
             </span>
@@ -153,6 +175,7 @@ const SiteCard = React.memo(
       <button
         className="w-full h-auto"
         onClick={() => onOpenModal('inSights', [], site)}
+        aria-label={`View detailed insights for ${site.name || 'this location'}`}
       >
         <div className="w-full flex flex-col justify-between bg-white border border-gray-200 rounded-xl px-6 py-5 h-[220px] shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out cursor-pointer">
           {/* Header Section */}
@@ -172,7 +195,7 @@ const SiteCard = React.memo(
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <div className="p-1.5 bg-gray-100 rounded-full flex items-center justify-center">
-                  <IconMap.wind className="w-3.5 h-3.5" />
+                  <IconMap.wind className="text-gray-500" />
                 </div>
                 <div className="text-slate-400 text-sm font-medium">
                   {pollutantType === 'pm2_5' ? 'PM2.5' : 'PM10'}
@@ -194,7 +217,10 @@ const SiteCard = React.memo(
               >
                 <div className="w-16 h-16 flex items-center justify-center">
                   {AirQualityIcon && (
-                    <AirQualityIcon className="w-full h-full" />
+                    <AirQualityIcon
+                      className="w-full h-full"
+                      aria-hidden="true"
+                    />
                   )}
                 </div>
               </Tooltip>
@@ -224,10 +250,10 @@ SiteCard.propTypes = {
 const AddLocationCard = React.memo(({ onOpenModal }) => (
   <button
     onClick={() => onOpenModal('addLocation')}
-    className="border-dashed border-2 border-blue-400 bg-blue-50 rounded-xl px-4 py-6 h-[220px] flex justify-center items-center text-blue-500 transition-transform transform hover:scale-95"
-    aria-label="Add Location"
+    className="border-dashed border-2 border-blue-400 bg-blue-50 rounded-xl px-4 py-6 h-[220px] flex justify-center items-center text-blue-500 transition-transform transform hover:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    aria-label="Add a new location to monitor air quality"
   >
-    + Add location
+    + Add Location
   </button>
 ));
 
