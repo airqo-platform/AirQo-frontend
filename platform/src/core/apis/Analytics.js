@@ -22,11 +22,16 @@ export const shareReportApi = async (body) => {
 };
 
 // Getting site summary data
-export const getSitesSummaryApi = async ({ signal, timeout = 150000 }) => {
+export const getSitesSummaryApi = async ({
+  group,
+  signal,
+  timeout = 150000,
+}) => {
   try {
     const response = await createAxiosInstance().get(SITES_SUMMARY_URL, {
       signal,
       timeout,
+      params: { group },
     });
     return response.data;
   } catch (error) {

@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import CalibrateIcon from '@/icons/Analytics/calibrateIcon';
 import FileTypeIcon from '@/icons/Analytics/fileTypeIcon';
@@ -21,6 +21,7 @@ import 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import CustomToast from '../../../Toast/CustomToast';
 import { format } from 'date-fns';
+import { fetchSitesSummary } from '@/lib/store/services/sitesSummarySlice';
 
 /**
  * Header component for the Download Data modal.
@@ -51,6 +52,7 @@ const getMimeType = (fileType) => {
  * Allows users to select parameters and download air quality data accordingly.
  */
 const DataDownload = ({ onClose }) => {
+  const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.login.userInfo);
   const preferencesData = useSelector(
     (state) => state.defaults.individual_preferences,
@@ -75,16 +77,19 @@ const DataDownload = ({ onClose }) => {
   }, [preferencesData]);
 
   // Network options based on user groups
-  const NETWORK_OPTIONS =
-    userInfo?.groups?.map((network) => ({
-      id: network._id,
-      name: network.grp_title,
-    })) || [];
+  const NETWORK_OPTIONS = useMemo(
+    () =>
+      userInfo?.groups?.map((network) => ({
+        id: network._id,
+        name: network.grp_title,
+      })) || [],
+    [userInfo],
+  );
 
   // Form data state
   const [formData, setFormData] = useState({
     title: { name: 'Untitled Report' },
-    network: NETWORK_OPTIONS[0] || { id: '', name: 'Default Network' },
+    network: null, // Will be set in useEffect
     dataType: DATA_TYPE_OPTIONS[0],
     pollutant: POLLUTANT_OPTIONS[0],
     duration: null,
@@ -95,15 +100,44 @@ const DataDownload = ({ onClose }) => {
   const [edit, setEdit] = useState(false);
 
   /**
-   * Clears all selected sites.
+   * Initialize default network once NETWORK_OPTIONS are available.
+   * Defaults to "airqo" if available; otherwise, selects the first network.
+   */
+  useEffect(() => {
+    if (NETWORK_OPTIONS.length > 0 && !formData.network) {
+      const airqoNetwork = NETWORK_OPTIONS.find(
+        (network) => network.name.toLowerCase() === 'airqo',
+      );
+      setFormData((prevData) => ({
+        ...prevData,
+        network: airqoNetwork || NETWORK_OPTIONS[0],
+      }));
+    }
+  }, [NETWORK_OPTIONS, formData.network]);
+
+  /**
+   * Fetch sites summary whenever the selected organization changes.
+   */
+  useEffect(() => {
+    if (formData.network) {
+      dispatch(fetchSitesSummary({ group: formData.network.name }));
+    }
+  }, [dispatch, formData.network]);
+
+  /**
+   * Clears all selected sites and resets form data.
    */
   const handleClearSelection = useCallback(() => {
     setClearSelected(true);
     setSelectedSites([]);
     // Reset form data after submission
+    const airqoNetwork = NETWORK_OPTIONS.find(
+      (network) => network.name.toLowerCase() === 'airqo',
+    );
     setFormData({
       title: { name: 'Untitled Report' },
-      network: NETWORK_OPTIONS[0] || { id: '', name: 'Default Network' },
+      network: airqoNetwork ||
+        NETWORK_OPTIONS[0] || { id: '', name: 'Default Network' },
       dataType: DATA_TYPE_OPTIONS[0],
       pollutant: POLLUTANT_OPTIONS[0],
       duration: null,
@@ -112,7 +146,7 @@ const DataDownload = ({ onClose }) => {
     });
     // Reset clearSelected flag in the next tick
     setTimeout(() => setClearSelected(false), 0);
-  }, []);
+  }, [NETWORK_OPTIONS]);
 
   /**
    * Handles the selection of form options.
@@ -121,6 +155,19 @@ const DataDownload = ({ onClose }) => {
    */
   const handleOptionSelect = useCallback((id, option) => {
     setFormData((prevData) => ({ ...prevData, [id]: option }));
+  }, []);
+
+  /**
+   * Toggles the selection of a site.
+   * @param {object} site - The site to toggle.
+   */
+  const handleToggleSite = useCallback((site) => {
+    setSelectedSites((prev) => {
+      const isSelected = prev.some((s) => s._id === site._id);
+      return isSelected
+        ? prev.filter((s) => s._id !== site._id)
+        : [...prev, site];
+    });
   }, []);
 
   /**
@@ -165,8 +212,9 @@ const DataDownload = ({ onClose }) => {
           return null;
         };
 
+        const frequencyLower = formData.frequency.name.toLowerCase();
         const durationError = validateDuration(
-          formData.frequency.name.toLowerCase(),
+          frequencyLower,
           startDate,
           endDate,
         );
@@ -190,7 +238,7 @@ const DataDownload = ({ onClose }) => {
               ? 'calibrated'
               : 'raw',
           pollutants: [formData.pollutant.name.toLowerCase().replace('.', '_')],
-          frequency: formData.frequency.name.toLowerCase(),
+          frequency: frequencyLower,
           downloadType: formData.fileType.name.toLowerCase(),
           outputFormat: 'airqo-standard',
           minimum: true,
@@ -248,26 +296,16 @@ const DataDownload = ({ onClose }) => {
         onClose();
       } catch (error) {
         console.error('Error downloading data:', error);
-        setFormError('An error occurred while downloading. Please try again.');
+        setFormError(
+          error.message ||
+            'An error occurred while downloading. Please try again.',
+        );
       } finally {
         setDownloadLoading(false);
       }
     },
-    [formData, selectedSites, handleClearSelection, onClose],
+    [formData, selectedSites, handleClearSelection, fetchData, onClose],
   );
-
-  /**
-   * Toggles the selection of a site.
-   * @param {object} site - The site to toggle.
-   */
-  const handleToggleSite = useCallback((site) => {
-    setSelectedSites((prev) => {
-      const isSelected = prev.some((s) => s._id === site._id);
-      return isSelected
-        ? prev.filter((s) => s._id !== site._id)
-        : [...prev, site];
-    });
-  }, []);
 
   return (
     <>
