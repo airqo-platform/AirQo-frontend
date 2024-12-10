@@ -5,11 +5,12 @@ import CustomDropdown from '../../../Dropdowns/CustomDropdown';
 import DatePicker from '../../../Calendar/DatePicker';
 
 const capitalize = (name) => {
+  if (typeof name !== 'string' || !name) return name;
   return name.charAt(0).toUpperCase() + name.slice(1);
 };
 
 const formatName = (name, textFormat = 'lowercase') => {
-  if (!name) return '';
+  if (typeof name !== 'string' || !name) return name;
   return typeof name === 'string'
     ? textFormat === 'uppercase'
       ? name.toUpperCase().replace(/_/g, ' ').replace(/-/g, ' ')
