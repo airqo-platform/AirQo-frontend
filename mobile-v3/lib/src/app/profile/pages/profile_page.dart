@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
+import 'package:airqo/src/app/profile/pages/edit_profile.dart';
 import 'package:airqo/src/app/profile/pages/widgets/devices_widget.dart';
 import 'package:airqo/src/app/profile/pages/widgets/exposure_widget.dart';
 import 'package:airqo/src/app/profile/pages/widgets/settings_widget.dart';
@@ -76,7 +77,20 @@ class _ProfilePageState extends State<ProfilePage> {
                                         horizontal: 32),
                                     height: 50,
                                     child: Center(
-                                        child: Text("Edit your profile")),
+                                        //child: Text("Edit your profile")),
+                                        child: InkWell(
+                                      onTap: () => Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  EditProfile())),
+                                      child: Text(
+                                        "Edit your profile",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    )),
                                     decoration: BoxDecoration(
                                         color: Theme.of(context).highlightColor,
                                         borderRadius:
