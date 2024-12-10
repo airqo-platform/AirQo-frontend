@@ -37,7 +37,7 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> {
                         active: false,
                         date: DateFormat.d().format(e.time),
                         day: DateFormat.E().format(e.time)[0],
-                        imagePath: getAirQualityIcon(e.pm25),
+                        imagePath: getAirQualityIcon(e.measurement, e.pm25),
                       ))
                   .toList());
         } else if (state is ForecastLoading) {
