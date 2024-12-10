@@ -4,7 +4,6 @@ import Layout from '@/components/Layout';
 import { useDispatch, useSelector } from 'react-redux';
 import OverView from './_components/OverView';
 import AlertBox from '@/components/AlertBox';
-import { fetchSitesSummary } from '@/lib/store/services/sitesSummarySlice';
 import { useOutsideClick } from '@/core/hooks';
 import { setChartSites } from '@/lib/store/services/charts/ChartSlice';
 
@@ -20,11 +19,6 @@ const AuthenticatedHomePage = () => {
   useOutsideClick(customiseRef, () => {
     if (customise) setCustomise(false);
   });
-
-  // Fetch sites summary only once when the component mounts
-  useEffect(() => {
-    dispatch(fetchSitesSummary());
-  }, [dispatch]);
 
   /**
    * Sets chart details based on user preferences.

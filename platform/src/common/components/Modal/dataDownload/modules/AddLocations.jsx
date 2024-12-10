@@ -7,6 +7,7 @@ import LocationCard from '../components/LocationCard';
 import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
+import { fetchSitesSummary } from '@/lib/store/services/sitesSummarySlice';
 
 /**
  * Header component for the Add Location modal.
@@ -34,6 +35,7 @@ const AddLocations = ({ onClose }) => {
   const preferencesData = useSelector(
     (state) => state.defaults.individual_preferences,
   );
+  const chartData = useSelector((state) => state.chart);
 
   // Local state management
   const [selectedSites, setSelectedSites] = useState([]);
@@ -59,6 +61,15 @@ const AddLocations = ({ onClose }) => {
     const user = localStorage.getItem('loggedUser');
     return user ? JSON.parse(user)?._id : null;
   }, []);
+
+  /**
+   * Fetch sites summary whenever the selected organization changes.
+   */
+  useEffect(() => {
+    if (chartData.organizationName) {
+      dispatch(fetchSitesSummary({ group: chartData.organizationName }));
+    }
+  }, [dispatch, chartData.organizationName]);
 
   // Extract selected site IDs from user preferences
   const selectedSiteIds = useMemo(() => {
