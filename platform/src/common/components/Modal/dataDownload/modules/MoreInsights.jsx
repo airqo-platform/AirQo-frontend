@@ -228,7 +228,7 @@ const MoreInsights = () => {
         network: chartData.organizationName,
         pollutants: [chartData.pollutionType],
         frequency: frequency,
-        datatype: 'raw',
+        datatype: 'calibrated',
         downloadType: 'csv',
         outputFormat: 'airqo-standard',
         minimum: true,
@@ -361,7 +361,7 @@ const MoreInsights = () => {
             {/* Actions: Download Data */}
             <div>
               <Tooltip
-                content={'Download data in CSV format'}
+                content={'Download calibrated data in CSV format'}
                 className="w-auto text-center"
               >
                 <TabButtons

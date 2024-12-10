@@ -76,12 +76,12 @@ const DataDownload = ({ onClose }) => {
     return preferencesData?.[0]?.selected_sites?.map((site) => site._id) || [];
   }, [preferencesData]);
 
-  // Network options based on user groups
-  const NETWORK_OPTIONS = useMemo(
+  // Organization options based on user groups
+  const ORGANIZATION_OPTIONS = useMemo(
     () =>
-      userInfo?.groups?.map((network) => ({
-        id: network._id,
-        name: network.grp_title,
+      userInfo?.groups?.map((group) => ({
+        id: group._id,
+        name: group.grp_title,
       })) || [],
     [userInfo],
   );
@@ -89,7 +89,7 @@ const DataDownload = ({ onClose }) => {
   // Form data state
   const [formData, setFormData] = useState({
     title: { name: 'Untitled Report' },
-    network: null, // Will be set in useEffect
+    organization: null,
     dataType: DATA_TYPE_OPTIONS[0],
     pollutant: POLLUTANT_OPTIONS[0],
     duration: null,
@@ -100,29 +100,29 @@ const DataDownload = ({ onClose }) => {
   const [edit, setEdit] = useState(false);
 
   /**
-   * Initialize default network once NETWORK_OPTIONS are available.
-   * Defaults to "airqo" if available; otherwise, selects the first network.
+   * Initialize default organization once ORGANIZATION_OPTIONS are available.
+   * Defaults to "airqo" if available; otherwise, selects the first organization.
    */
   useEffect(() => {
-    if (NETWORK_OPTIONS.length > 0 && !formData.network) {
-      const airqoNetwork = NETWORK_OPTIONS.find(
-        (network) => network.name.toLowerCase() === 'airqo',
+    if (ORGANIZATION_OPTIONS.length > 0 && !formData.organization) {
+      const airqoNetwork = ORGANIZATION_OPTIONS.find(
+        (group) => group.name.toLowerCase() === 'airqo',
       );
       setFormData((prevData) => ({
         ...prevData,
-        network: airqoNetwork || NETWORK_OPTIONS[0],
+        organization: airqoNetwork || ORGANIZATION_OPTIONS[0],
       }));
     }
-  }, [NETWORK_OPTIONS, formData.network]);
+  }, [ORGANIZATION_OPTIONS, formData.organization]);
 
   /**
    * Fetch sites summary whenever the selected organization changes.
    */
   useEffect(() => {
-    if (formData.network) {
-      dispatch(fetchSitesSummary({ group: formData.network.name }));
+    if (formData.organization) {
+      dispatch(fetchSitesSummary({ group: formData.organization.name }));
     }
-  }, [dispatch, formData.network]);
+  }, [dispatch, formData.organization]);
 
   /**
    * Clears all selected sites and resets form data.
@@ -131,13 +131,13 @@ const DataDownload = ({ onClose }) => {
     setClearSelected(true);
     setSelectedSites([]);
     // Reset form data after submission
-    const airqoNetwork = NETWORK_OPTIONS.find(
-      (network) => network.name.toLowerCase() === 'airqo',
+    const airqoNetwork = ORGANIZATION_OPTIONS.find(
+      (group) => group.name.toLowerCase() === 'airqo',
     );
     setFormData({
       title: { name: 'Untitled Report' },
-      network: airqoNetwork ||
-        NETWORK_OPTIONS[0] || { id: '', name: 'Default Network' },
+      organization: airqoNetwork ||
+        ORGANIZATION_OPTIONS[0] || { id: '', name: 'Default Network' },
       dataType: DATA_TYPE_OPTIONS[0],
       pollutant: POLLUTANT_OPTIONS[0],
       duration: null,
@@ -146,7 +146,7 @@ const DataDownload = ({ onClose }) => {
     });
     // Reset clearSelected flag in the next tick
     setTimeout(() => setClearSelected(false), 0);
-  }, [NETWORK_OPTIONS]);
+  }, [ORGANIZATION_OPTIONS]);
 
   /**
    * Handles the selection of form options.
@@ -232,7 +232,7 @@ const DataDownload = ({ onClose }) => {
           startDateTime: format(startDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
           endDateTime: format(endDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
           sites: selectedSites.map((site) => site._id),
-          network: formData.network.name,
+          network: formData.organization.name,
           datatype:
             formData.dataType.name.toLowerCase() === 'calibrated data'
               ? 'calibrated'
@@ -333,11 +333,11 @@ const DataDownload = ({ onClose }) => {
           handleOptionSelect={handleOptionSelect}
         />
         <CustomFields
-          title="Network"
-          options={NETWORK_OPTIONS}
-          id="network"
+          title="Organization"
+          options={ORGANIZATION_OPTIONS}
+          id="organization"
           icon={<WorldIcon width={16} height={16} fill="#000" />}
-          defaultOption={formData.network}
+          defaultOption={formData.organization}
           handleOptionSelect={handleOptionSelect}
           textFormat="uppercase"
         />
