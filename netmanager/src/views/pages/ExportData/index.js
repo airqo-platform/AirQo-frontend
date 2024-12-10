@@ -417,8 +417,6 @@ const ExportData = (props) => {
     try {
       const response = await downloadDataApi(body);
 
-      console.log(response);
-
       // Handle successful response
       let filename = `airquality-data.${fileType.value}`;
 
