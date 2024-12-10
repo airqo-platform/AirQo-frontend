@@ -4,11 +4,18 @@ import CheckIcon from '@/icons/tickIcon';
 import CustomDropdown from '../../../Dropdowns/CustomDropdown';
 import DatePicker from '../../../Calendar/DatePicker';
 
-const formatName = (name) => {
-  if (typeof name === 'string' && name.toLowerCase() === 'airqo') {
-    return 'AirQo';
-  }
-  return name;
+const capitalize = (name) => {
+  if (typeof name !== 'string' || !name) return name;
+  return name.charAt(0).toUpperCase() + name.slice(1);
+};
+
+const formatName = (name, textFormat = 'lowercase') => {
+  if (typeof name !== 'string' || !name) return name;
+  return typeof name === 'string'
+    ? textFormat === 'uppercase'
+      ? name.toUpperCase().replace(/_/g, ' ').replace(/-/g, ' ')
+      : name.replace(/_/g, ' ').replace(/-/g, ' ')
+    : capitalize(name);
 };
 
 const CustomFields = ({
@@ -22,6 +29,7 @@ const CustomFields = ({
   useCalendar = false,
   handleOptionSelect,
   defaultOption,
+  textFormat = 'lowercase',
 }) => {
   const [selectedOption, setSelectedOption] = useState(
     defaultOption || options[0],
@@ -65,9 +73,13 @@ const CustomFields = ({
           tabStyle="w-full bg-white px-3 py-2"
           dropdown
           tabIcon={icon}
-          btnText={btnText || formatName(selectedOption.name)}
+          btnText={
+            formatName(btnText, textFormat) ||
+            formatName(selectedOption.name, textFormat)
+          }
           customPopperStyle={{ left: '-7px' }}
           dropDownClass="w-full"
+          textFormat={textFormat}
         >
           {options.map((option) => (
             <span
@@ -77,8 +89,8 @@ const CustomFields = ({
                 selectedOption.id === option.id ? 'bg-[#EBF5FF] rounded-md' : ''
               }`}
             >
-              <span className="flex items-center capitalize space-x-2">
-                <span>{formatName(option.name)}</span>
+              <span className="flex items-center space-x-2">
+                <span>{formatName(option.name, textFormat)}</span>
               </span>
               {selectedOption.id === option.id && (
                 <CheckIcon fill={'#145FFF'} />
@@ -102,6 +114,7 @@ CustomFields.propTypes = {
   useCalendar: PropTypes.bool,
   handleOptionSelect: PropTypes.func,
   defaultOption: PropTypes.object,
+  textFormat: PropTypes.oneOf(['uppercase', 'lowercase']),
 };
 
 export default CustomFields;
