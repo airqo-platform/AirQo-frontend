@@ -301,6 +301,7 @@ const DataDownload = ({ onClose }) => {
           icon={<WorldIcon width={16} height={16} fill="#000" />}
           defaultOption={formData.network}
           handleOptionSelect={handleOptionSelect}
+          textFormat="uppercase"
         />
         <CustomFields
           title="Data type"

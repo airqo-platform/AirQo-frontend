@@ -14,15 +14,8 @@ const formatGroupName = (name) => {
   const trimmedName = name.trim();
   if (!trimmedName) return 'Unknown';
 
-  return trimmedName.toLowerCase() === 'airqo'
-    ? 'AirQo'
-    : trimmedName
-        .replace(/_/g, ' ')
-        .split(' ')
-        .map(
-          (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
-        )
-        .join(' ');
+  // make name upper case and replace _ or - with space
+  return trimmedName.toUpperCase().replace(/_/g, ' ').replace(/-/g, ' ');
 };
 
 const getAbbreviation = (name) => {
