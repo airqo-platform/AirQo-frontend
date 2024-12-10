@@ -82,6 +82,10 @@ const AssignCohortDeviceForm = ({ cohortID, cohortDevices, open, handleClose }) 
       });
 
       setDeviceOptions(nonCohortDevices);
+    } else if (!isEmpty(allDevices)) {
+      setDeviceOptions(createDeviceOptions(Object.values(allDevices)));
+    } else {
+      setDeviceOptions([]);
     }
   }, [allDevices]);
 
