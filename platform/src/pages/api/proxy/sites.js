@@ -12,9 +12,9 @@ export default async function handler(req, res) {
     // Pass query parameters from the request to the target URL
     const response = await axios.get(targetUrl, {
       headers: {
-        Authorization: req.headers.authorization, // Pass the authorization header
+        Authorization: req.headers.authorization,
       },
-      params: req.query, // Include query parameters from the request
+      params: req.query,
     });
 
     // Forward the response back to the client
@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     // Handle errors and respond appropriately
     res.status(error.response?.status || 500).json({
       error: 'Error while proxying request',
-      message: error.response?.data?.message || error.message,
+      message: 'An unexpected error occurred. Please try again later.',
     });
   }
 }
