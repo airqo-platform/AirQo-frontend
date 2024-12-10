@@ -2,8 +2,8 @@ import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 
 String getAirQualityIcon(Measurement measurement, double value) {
   String category = measurement.aqiRanges != null 
-    ? _getDynamicAirQuality(measurement.aqiRanges!, value) 
-    : getAirQuality(value);
+    ? _getDynamicAirQuality(measurement.aqiRanges!, value)
+    : "No AQI Ranges";
 
   switch (category) {
     case "Good":
@@ -70,22 +70,4 @@ String _getDynamicAirQuality(AqiRanges aqiRanges, double value) {
   }
   
   return "Unavailable";
-}
-
-String getAirQuality(double value) {
-  if (value >= 0 && value <= 9) {
-    return "Good";
-  } else if (value >= 10 && value <= 35.4) {
-    return "Moderate";
-  } else if (value >= 35.5 && value <= 55.4) {
-    return "Unhealthy for Sensitive Groups";
-  } else if (value >= 55.5 && value <= 125.4) {
-    return "Unhealthy";
-  } else if (value >= 125.5 && value <= 225.4) {
-    return "Very Unhealthy";
-  } else if (value > 225.4) {
-    return "Hazardous";
-  } else {
-    return "Unavailable";
-  }
 }
