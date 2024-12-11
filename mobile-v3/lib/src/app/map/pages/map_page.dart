@@ -136,7 +136,7 @@ class _MapScreenState extends State<MapScreen>
         markers.add(Marker(
           onTap: () => viewDetails(measurement: measurement),
           icon: await bitmapDescriptorFromSvgAsset(
-              getAirQualityIcon(measurement.pm25!.value!)),
+              getAirQualityIcon(measurement, measurement.pm25!.value!)),
           position: LatLng(measurement.siteDetails!.approximateLatitude!,
               measurement.siteDetails!.approximateLongitude!),
           markerId: MarkerId(measurement.id!),
