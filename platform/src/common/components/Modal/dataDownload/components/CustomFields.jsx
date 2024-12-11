@@ -14,14 +14,26 @@ const formatName = (name, textFormat = 'lowercase') => {
 };
 
 /**
- * Handles the formatting logic for field values.
- * For the "organization" field ID, it retains hyphens in the selected value but displays without hyphens in uppercase.
+ * Defines the rules for formatting the field value based on the field id.
+ * Removes hyphens and formats in uppercase for display
+ * Retains hyphens in the stored value
  */
+const FIELD_FORMAT_RULES = {
+  organization: {
+    display: (value) => formatName(value.replace(/[_-]/g, ' '), 'uppercase'),
+    store: (value) => value,
+  },
+  default: {
+    display: (value, textFormat) => formatName(value, textFormat),
+    store: (value, textFormat) => formatName(value, textFormat),
+  },
+};
+
 const formatFieldValue = (value, fieldId, textFormat, display = false) => {
-  if (fieldId === 'organization') {
-    return display ? formatName(value, 'uppercase') : value;
-  }
-  return formatName(value, textFormat);
+  const rules = FIELD_FORMAT_RULES[fieldId] || FIELD_FORMAT_RULES.default;
+  return display
+    ? rules.display(value, textFormat)
+    : rules.store(value, textFormat);
 };
 
 /**
