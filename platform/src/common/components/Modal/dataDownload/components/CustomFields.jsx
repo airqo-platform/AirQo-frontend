@@ -7,9 +7,6 @@ import DatePicker from '../../../Calendar/DatePicker';
 /**
  * Formats the name based on the specified text format.
  * Replaces underscores and hyphens with spaces.
- * @param {string} name - The string to format.
- * @param {string} textFormat - The desired text format ('uppercase' or 'lowercase').
- * @returns {string} - The formatted string.
  */
 const formatName = (name, textFormat = 'lowercase') => {
   if (typeof name !== 'string' || !name) return name;
@@ -18,11 +15,20 @@ const formatName = (name, textFormat = 'lowercase') => {
 };
 
 /**
+ * Formats the field value based on the field ID.
+ * If the field ID is 'organization', it returns the value in uppercase without altering hyphens.
+ * Otherwise, it applies the formatName function.
+ */
+const formatFieldValue = (value, fieldId, textFormat) => {
+  if (fieldId === 'organization') {
+    return value.toUpperCase();
+  }
+  return formatName(value, textFormat);
+};
+
+/**
  * CustomFields Component
  * Renders different types of input fields based on props.
- *
- * @param {object} props - Component properties.
- * @returns {JSX.Element} - Rendered component.
  */
 const CustomFields = ({
   field = false,
@@ -38,22 +44,18 @@ const CustomFields = ({
   textFormat = 'lowercase',
 }) => {
   const [selectedOption, setSelectedOption] = useState(
-    defaultOption || options[0],
+    defaultOption || (options.length > 0 ? options[0] : { id: '', name: '' }),
   );
 
   /**
    * Handles the selection of an option.
    * Conditionally formats the name based on the field's ID.
-   *
-   * @param {object} option - The selected option object.
    */
   const handleSelect = useCallback(
     (option) => {
-      // Determine if formatting should be applied
-      const shouldFormat = id !== 'organization';
       const formattedOption = {
         ...option,
-        name: shouldFormat ? formatName(option.name, textFormat) : option.name,
+        name: formatFieldValue(option.name, id, textFormat),
       };
       setSelectedOption(formattedOption);
       handleOptionSelect(id, formattedOption);
@@ -69,12 +71,10 @@ const CustomFields = ({
         // Render a text input field
         <input
           className="bg-transparent text-[16px] font-medium leading-6 p-0 m-0 w-full h-auto border-none"
-          value={
-            id === 'organization'
-              ? selectedOption.name
-              : formatName(selectedOption.name, textFormat)
+          value={formatFieldValue(selectedOption.name, id, textFormat)}
+          onChange={(e) =>
+            handleSelect({ ...selectedOption, name: e.target.value })
           }
-          onChange={(e) => handleSelect({ name: e.target.value })}
           type="text"
           name={id}
           disabled={!edit}
@@ -98,7 +98,7 @@ const CustomFields = ({
           btnText={
             btnText
               ? formatName(btnText, textFormat)
-              : formatName(selectedOption.name, textFormat)
+              : formatFieldValue(selectedOption.name, id, textFormat)
           }
           customPopperStyle={{ left: '-7px' }}
           dropDownClass="w-full"
