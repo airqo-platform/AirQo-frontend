@@ -120,7 +120,9 @@ const DataDownload = ({ onClose }) => {
    */
   useEffect(() => {
     if (formData.organization) {
-      dispatch(fetchSitesSummary({ group: formData.organization.name }));
+      dispatch(
+        fetchSitesSummary({ group: formData.organization.name.toLowerCase() }),
+      );
     }
   }, [dispatch, formData.organization]);
 
