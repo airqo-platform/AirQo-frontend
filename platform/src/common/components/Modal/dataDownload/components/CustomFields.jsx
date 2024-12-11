@@ -5,8 +5,7 @@ import CustomDropdown from '../../../Dropdowns/CustomDropdown';
 import DatePicker from '../../../Calendar/DatePicker';
 
 /**
- * Formats the name based on the specified text format.
- * Replaces underscores and hyphens with spaces.
+ * Formats the name by replacing underscores and hyphens with spaces and adjusting case.
  */
 const formatName = (name, textFormat = 'lowercase') => {
   if (typeof name !== 'string' || !name) return name;
@@ -15,13 +14,12 @@ const formatName = (name, textFormat = 'lowercase') => {
 };
 
 /**
- * Formats the field value based on the field ID.
- * If the field ID is 'organization', it returns the value in uppercase without altering hyphens.
- * Otherwise, it applies the formatName function.
+ * Handles the formatting logic for field values.
+ * For the "organization" field ID, it retains hyphens in the selected value but displays without hyphens in uppercase.
  */
-const formatFieldValue = (value, fieldId, textFormat) => {
+const formatFieldValue = (value, fieldId, textFormat, display = false) => {
   if (fieldId === 'organization') {
-    return value.toUpperCase();
+    return display ? formatName(value, 'uppercase') : value;
   }
   return formatName(value, textFormat);
 };
@@ -49,7 +47,6 @@ const CustomFields = ({
 
   /**
    * Handles the selection of an option.
-   * Conditionally formats the name based on the field's ID.
    */
   const handleSelect = useCallback(
     (option) => {
@@ -68,10 +65,9 @@ const CustomFields = ({
       <label className="w-[280px] h-auto p-0 m-0 text-[#7A7F87]">{title}</label>
 
       {field ? (
-        // Render a text input field
         <input
           className="bg-transparent text-[16px] font-medium leading-6 p-0 m-0 w-full h-auto border-none"
-          value={formatFieldValue(selectedOption.name, id, textFormat)}
+          value={formatFieldValue(selectedOption.name, id, textFormat, true)}
           onChange={(e) =>
             handleSelect({ ...selectedOption, name: e.target.value })
           }
@@ -80,7 +76,6 @@ const CustomFields = ({
           disabled={!edit}
         />
       ) : useCalendar ? (
-        // Render a date picker
         <DatePicker
           customPopperStyle={{ left: '-7px' }}
           onChange={(date) => {
@@ -88,7 +83,6 @@ const CustomFields = ({
           }}
         />
       ) : (
-        // Render a custom dropdown
         <CustomDropdown
           tabID={id}
           isField={false}
@@ -98,7 +92,7 @@ const CustomFields = ({
           btnText={
             btnText
               ? formatName(btnText, textFormat)
-              : formatFieldValue(selectedOption.name, id, textFormat)
+              : formatFieldValue(selectedOption.name, id, textFormat, true)
           }
           customPopperStyle={{ left: '-7px' }}
           dropDownClass="w-full"
