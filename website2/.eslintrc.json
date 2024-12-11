@@ -1,0 +1,32 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "next/typescript",
+    "plugin:prettier/recommended"
+  ],
+  "plugins": ["prettier", "simple-import-sort", "unused-imports"],
+  "rules": {
+    // Prettier formatting rules
+    "prettier/prettier": "error",
+    "@typescript-eslint/no-explicit-any": "off",
+
+    // Import sorting rules
+    "simple-import-sort/imports": "error",
+    "simple-import-sort/exports": "error",
+
+    // Unused imports and variables
+    "unused-imports/no-unused-imports": "warn",
+    "unused-imports/no-unused-vars": [
+      "warn",
+      {
+        "vars": "all",
+        "varsIgnorePattern": "^_",
+        "args": "after-used",
+        "argsIgnorePattern": "^_"
+      }
+    ],
+
+    // Disable conflicting ESLint rule
+    "no-unused-vars": "off"
+  }
+}

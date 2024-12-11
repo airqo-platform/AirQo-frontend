@@ -3,7 +3,6 @@ import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import { Divider, Drawer } from '@material-ui/core';
-import DashboardIcon from '@material-ui/icons/Dashboard';
 import PeopleIcon from '@material-ui/icons/People';
 import AccountBoxIcon from '@material-ui/icons/AccountBox';
 import MapIcon from '@material-ui/icons/Map';
@@ -15,31 +14,17 @@ import EditLocationIcon from '@material-ui/icons/EditLocation';
 import AspectRatioIcon from '@material-ui/icons/AspectRatio';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import TimelineIcon from '@material-ui/icons/Timeline';
-import AirQloudIcon from '@material-ui/icons/FilterDrama';
-import BubbleChartIcon from '@material-ui/icons/BubbleChart';
-import SupervisorAccountIcon from '@material-ui/icons/SupervisorAccount';
-import BusinessIcon from '@material-ui/icons/Business';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import { Profile, SidebarNav, SidebarWidgets } from './components';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
-import { getUserDetails } from 'redux/Join/actions';
 import { PeopleOutline } from '@material-ui/icons';
-import {
-  addCurrentUserRole,
-  addUserNetworks,
-  addActiveNetwork,
-  addUserGroupSummary
-} from 'redux/AccessControl/operations';
+import { addUserNetworks } from 'redux/AccessControl/operations';
 import NetworkDropdown from './components/NetworkDropdown';
-import { getRoleDetailsApi } from '../../../apis/accessControl';
-import { updateMainAlert } from 'redux/MainAlert/operations';
-import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import TapAndPlayIcon from '@material-ui/icons/TapAndPlay';
 import GroupWorkIcon from '@material-ui/icons/GroupWork';
 import SimCardIcon from '@material-ui/icons/SimCard';
-import GridOnIcon from '@material-ui/icons/GridOn';
 import GrainIcon from '@material-ui/icons/Grain';
 import GroupAddIcon from '@material-ui/icons/GroupAdd';
 import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';
@@ -239,65 +224,31 @@ const allUserManagementPages = [
 const Sidebar = (props) => {
   const { open, variant, onClose, className, ...rest } = props;
   const classes = useStyles();
-  const { mappedAuth } = props;
-  let { user } = mappedAuth;
+  const dispatch = useDispatch();
 
   const [userPages, setUserPages] = useState([]);
   const [adminPages, setAdminPages] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const dispatch = useDispatch();
   const currentRole = useSelector((state) => state.accessControl.currentRole);
-  const userNetworks = useSelector((state) => state.accessControl.userNetworks);
   const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
+  const userNetworks = useSelector((state) => state.accessControl.userNetworks);
   const groupData = useSelector((state) => state.accessControl.groupsSummary);
 
   useEffect(() => {
-    if (isEmpty(user)) {
-      return;
-    }
-
-    setLoading(true);
-
-    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-    const fetchUserDetails = async () => {
-      try {
-        const res = await getUserDetails(user._id);
-        dispatch(addUserNetworks(res.users[0].networks));
-        dispatch(addUserGroupSummary(res.users[0].groups));
-        if (!isEmpty(user)) {
-          localStorage.setItem('userNetworks', JSON.stringify(res.users[0].networks));
-          const airqoNetwork = res.users[0].networks.find(
-            (network) => network.net_name === 'airqo'
-          );
-
-          if (!activeNetwork) {
-            localStorage.setItem('activeNetwork', JSON.stringify(airqoNetwork));
-            dispatch(addActiveNetwork(airqoNetwork));
-            dispatch(addCurrentUserRole(airqoNetwork.role));
-            localStorage.setItem('currentUserRole', JSON.stringify(airqoNetwork.role));
-          }
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+    if (!userNetworks) {
+      const userNetworksStorage = JSON.parse(localStorage.getItem('userNetworks'));
+      if (userNetworksStorage) {
+        dispatch(addUserNetworks(userNetworksStorage));
       }
-    };
-
-    fetchUserDetails();
-  }, []);
-
-  useEffect(() => {
-    if (!isEmpty(activeNetwork)) {
-      dispatch(addCurrentUserRole(activeNetwork.role));
-      localStorage.setItem('currentUserRole', JSON.stringify(activeNetwork.role));
     }
   }, [activeNetwork]);
 
   useEffect(() => {
     // check whether user has a role
-    if (!isEmpty(user)) {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+    if (!isEmpty(currentUser)) {
       if (!isEmpty(currentRole)) {
         if (currentRole.role_permissions) {
           // get pages that the user doesn't have access to
@@ -363,7 +314,7 @@ const Sidebar = (props) => {
       setAdminPages(selectedAdminPages);
       setLoading(false);
     }
-  }, [user, currentRole]);
+  }, [currentRole, activeNetwork, userNetworks]);
 
   return (
     <Drawer

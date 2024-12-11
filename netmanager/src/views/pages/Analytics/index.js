@@ -117,14 +117,6 @@ const Analytics = () => {
   };
 
   useEffect(() => {
-    if (isEmpty(activeNetwork)) {
-      const activeNtkString = localStorage.getItem('activeNetwork');
-      const activeNtk = activeNtkString ? JSON.parse(activeNtkString) : {};
-      dispatch(addActiveNetwork(activeNtk));
-    }
-  }, []);
-
-  useEffect(() => {
     const loadSummaryAsync = async () => {
       if (!activeNetwork || activeNetwork.net_name === '') {
         return;
@@ -145,11 +137,9 @@ const Analytics = () => {
     const cohortsList = combinedGridAndCohortsSummary.cohorts;
     if (!isEmpty(gridsList)) {
       dispatch(setActiveGrid(gridsList[0]));
-      localStorage.setItem('activeGrid', JSON.stringify(gridsList[0]));
     }
     if (!isEmpty(cohortsList)) {
       dispatch(setActiveCohort(cohortsList[0]));
-      localStorage.setItem('activeCohort', JSON.stringify(cohortsList[0]));
     }
   }, [combinedGridAndCohortsSummary]);
 

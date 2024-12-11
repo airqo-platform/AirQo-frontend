@@ -8,8 +8,8 @@ const Footer = ({
   handleClearSelection,
   handleSubmit,
   onClose,
-  btnText = 'Download', // Default to 'Download' if no btnText is provided
-  loading = false, // Default loading state
+  btnText = 'Download',
+  loading = false,
 }) => {
   // Clear the error message after 5 seconds
   useEffect(() => {
@@ -20,7 +20,7 @@ const Footer = ({
   }, [errorMessage, setError]);
 
   return (
-    <div className="bg-gray-50 absolute bottom-0 right-0 w-full px-4 py-3 sm:px-6 flex items-center justify-between">
+    <div className="bg-gray-50 absolute bottom-0 right-0 w-full px-4 py-3 sm:px-6 flex flex-col md:flex-row items-start md:items-center gap-2 justify-between">
       {/* Error message or selected locations info */}
       <div className="text-sm leading-5 font-normal">
         {errorMessage ? (
@@ -46,17 +46,17 @@ const Footer = ({
       </div>
 
       {/* Action buttons */}
-      <div className="sm:flex sm:flex-row-reverse gap-2">
+      <div className="flex sm:flex-row-reverse gap-2">
         <Button
           type="button"
           variant="filled"
           onClick={handleSubmit}
-          disabled={loading} // Disable button when loading
+          disabled={loading}
         >
           {loading ? (
             <div className="flex items-center gap-2">
               <span className="animate-spin w-4 h-4 border-2 border-t-transparent border-white rounded-full"></span>
-              <span>{btnText || 'Downloading...'}</span>{' '}
+              <span>{btnText}</span>{' '}
             </div>
           ) : (
             btnText
@@ -66,7 +66,7 @@ const Footer = ({
           type="button"
           variant="outlined"
           onClick={onClose}
-          disabled={loading} // Disable cancel button when loading
+          disabled={loading}
         >
           Cancel
         </Button>

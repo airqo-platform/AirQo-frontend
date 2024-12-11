@@ -152,11 +152,7 @@ const SideBarDrawer = () => {
                 Network
               </div>
               {renderCollocationSection()}
-              <SideBarItem
-                label="Pollution map"
-                Icon={WorldIcon}
-                navPath="/map"
-              />
+              <SideBarItem label="Map" Icon={WorldIcon} navPath="/map" />
               <SideBarItem
                 label="Settings"
                 Icon={SettingsIcon}

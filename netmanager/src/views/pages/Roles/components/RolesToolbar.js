@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/styles';
 import {
@@ -70,7 +70,7 @@ const RolesToolbar = (props) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedPermissions, setSelectedPermissions] = useState([]);
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   const permissionOptions =
     permissions &&

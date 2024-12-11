@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
 import usrsStateConnector from 'views/stateConnectors/usersStateConnector';
@@ -8,9 +8,11 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import UsersTable from './components/UsersTable';
 import UsersToolbar from './components/UsersToolbar';
 import { useDispatch, useSelector } from 'react-redux';
-import { isEmpty } from 'underscore';
-import { loadRolesSummary, fetchNetworkUsers } from 'redux/AccessControl/operations';
+import { loadRolesSummary } from 'redux/AccessControl/operations';
 import { withPermission } from '../../containers/PageAccess';
+import { getNetworkUsersListApi } from 'views/apis/accessControl';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import { fetchNetworkUsers } from '../../../redux/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -24,29 +26,73 @@ const useStyles = makeStyles((theme) => ({
 const UserList = (props) => {
   const classes = useStyles();
   const dispatch = useDispatch();
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(100);
+
+  // Use Redux state instead of local state
+  const { users, total, loading } = useSelector((state) => state.accessControl.networkUsers);
   const roles = useSelector((state) => state.accessControl.rolesSummary);
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
-    if (isEmpty(roles)) {
-      if (!isEmpty(activeNetwork)) {
-        dispatch(loadRolesSummary(activeNetwork._id));
-      }
+    if (!activeNetwork) return;
+    try {
+      dispatch(loadRolesSummary(activeNetwork._id));
+      dispatch(
+        fetchNetworkUsers(activeNetwork._id, {
+          skip: page * pageSize,
+          limit: pageSize
+        })
+      );
+    } catch (error) {
+      console.error('Error fetching network users:', error);
     }
-  }, []);
+  }, [activeNetwork]);
 
-  useEffect(() => {
-    if (!isEmpty(activeNetwork)) {
-      dispatch(fetchNetworkUsers(activeNetwork._id));
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
+    try {
+      dispatch(
+        fetchNetworkUsers(activeNetwork._id, {
+          skip: newPage * pageSize,
+          limit: pageSize
+        })
+      );
+    } catch (error) {
+      console.error('Error fetching network users:', error);
     }
-  }, []);
+  };
+
+  const handleRowsPerPageChange = (newPageSize) => {
+    setPageSize(newPageSize);
+    setPage(0);
+    try {
+      dispatch(
+        fetchNetworkUsers(activeNetwork._id, {
+          skip: 0,
+          limit: newPageSize
+        })
+      );
+    } catch (error) {
+      console.error('Error fetching network users:', error);
+    }
+  };
 
   return (
     <ErrorBoundary>
       <div className={classes.root}>
         <UsersToolbar roles={roles} />
         <div className={classes.content}>
-          <UsersTable roles={roles} />
+          <UsersTable
+            roles={roles}
+            users={users || []}
+            loadData={loading}
+            totalCount={total || 0}
+            pageSize={pageSize || 100}
+            currentPage={page || 0}
+            onPageChange={handlePageChange}
+            onChangeRowsPerPage={handleRowsPerPageChange}
+          />
         </div>
       </div>
     </ErrorBoundary>

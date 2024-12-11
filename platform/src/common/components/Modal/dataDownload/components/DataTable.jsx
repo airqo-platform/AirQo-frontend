@@ -50,7 +50,6 @@ const TableRowComponent = ({ item, isSelected, onToggleSite, index }) => (
   </tr>
 );
 
-// Wrap the named function with React.memo and assign displayName
 const TableRow = React.memo(TableRowComponent);
 TableRow.displayName = 'TableRow';
 
@@ -117,7 +116,7 @@ const DataTable = ({
   const filteredData = useMemo(() => {
     let filtered =
       activeButton === 'favorites'
-        ? uniqueData.filter((item) =>
+        ? uniqueData?.filter((item) =>
             selectedSiteIds.includes(String(item._id)),
           )
         : uniqueData;
@@ -216,7 +215,13 @@ const DataTable = ({
 
     // Handle edge case if filteredData is empty
     if (filteredData.length === 0) {
-      return <p>No data available</p>;
+      return (
+        <tr>
+          <td colSpan="5" className="p-4 text-center text-gray-500">
+            No data available
+          </td>
+        </tr>
+      );
     }
 
     return filteredData
@@ -233,7 +238,7 @@ const DataTable = ({
   }, [filteredData, currentPage, itemsPerPage, selectedSites, onToggleSite]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 mb-24 md:mb-0">
       {/* Header with Filters and Search */}
       <div className="flex justify-between items-center">
         {/* Filter Buttons */}

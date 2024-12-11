@@ -9,12 +9,14 @@ import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import TopBar from '../TopBar';
 import SideBarDrawer from '../SideBar/SideBarDrawer';
 import Modal from '../Modal/dataDownload';
+import MaintenanceBanner from '../MaintenanceBanner';
 
 import { setOpenModal } from '@/lib/store/services/downloadModal';
 
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useUserChecklists from '@/core/hooks/useUserChecklists';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
+import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
 
 const Layout = ({
   pageTitle = 'AirQo Analytics',
@@ -36,8 +38,7 @@ const Layout = ({
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const isOpen = useSelector((state) => state.modal.openModal);
 
-  // Error Handling (Assuming useUserChecklists returns error)
-  const { error } = useUserChecklists();
+  const { maintenance } = useMaintenanceStatus();
 
   // Handler to close the modal
   const handleCloseModal = () => {
@@ -69,6 +70,9 @@ const Layout = ({
               : 'max-w-[1200px] mx-auto space-y-8 px-4 py-8 sm:px-6 lg:px-8'
           } overflow-hidden`}
         >
+          {/* Maintenance Banner */}
+          <MaintenanceBanner maintenance={maintenance} />
+
           {/* TopBar */}
           {noTopNav && (
             <TopBar
@@ -76,13 +80,6 @@ const Layout = ({
               noBorderBottom={noBorderBottom}
               showSearch={showSearch}
             />
-          )}
-
-          {/* Error Message */}
-          {error && (
-            <div className="w-full p-4 bg-red-100 text-red-700 rounded-md">
-              {error}
-            </div>
           )}
 
           {/* Children */}

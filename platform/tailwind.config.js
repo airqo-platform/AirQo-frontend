@@ -9,6 +9,19 @@ module.exports = {
   ],
   theme: {
     extend: {
+      keyframes: {
+        'accordion-down': {
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
+        },
+        'accordion-up': {
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
+        },
+      },
+      animation: {
+        ping: 'ping 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
       gridTemplateColumns: {
         account: '1fr minmax(0, 1480px) 1fr',
       },

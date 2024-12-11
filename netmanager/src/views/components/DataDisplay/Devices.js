@@ -270,14 +270,14 @@ const categoriesOptions = CATEGORIES.map((category) => ({
   label: category.name
 }));
 
-const CreateDevice = ({ open, setOpen }) => {
-  const selectedNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
+const CreateDevice = ({ open, setOpen, network }) => {
+  const userNetworks = useSelector((state) => state.accessControl.userNetworks) || [];
   const classes = useStyles();
   const dispatch = useDispatch();
   const newDeviceInitState = {
     long_name: '',
     category: CATEGORIES[0].value,
-    network: selectedNetwork,
+    network: network,
     description: ''
   };
 
@@ -291,7 +291,6 @@ const CreateDevice = ({ open, setOpen }) => {
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
   const [errors, setErrors] = useState(initialErrors);
 
-  const userNetworks = JSON.parse(localStorage.getItem('userNetworks')) || [];
   const loaderStatus = useSelector((state) => state.HorizontalLoader.loading);
 
   const handleDeviceDataChange = (key) => (event) => {
@@ -323,7 +322,7 @@ const CreateDevice = ({ open, setOpen }) => {
     setNewDevice({
       long_name: '',
       category: CATEGORIES[0].value,
-      network: selectedNetwork,
+      network: network,
       description: ''
     });
     setErrors({ long_name: '', category: '', network: '', description: '' });
@@ -359,13 +358,13 @@ const CreateDevice = ({ open, setOpen }) => {
         .then((resData) => {
           handleRegisterClose();
           dispatch(loadStatus(false));
-          if (!isEmpty(selectedNetwork)) {
-            dispatch(loadDevicesData(selectedNetwork));
+          if (!isEmpty(network)) {
+            dispatch(loadDevicesData(network));
           }
           dispatch(
             updateMainAlert({
               message: `${resData.message}. ${
-                newDevice.network !== selectedNetwork
+                newDevice.network !== network
                   ? `Switch to the ${newDevice.network} organisation to see the new device.`
                   : ''
               }`,
@@ -490,13 +489,14 @@ const CreateDevice = ({ open, setOpen }) => {
 };
 
 const SoftCreateDevice = ({ open, setOpen, network }) => {
-  const selectedNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
+  const userNetworks = useSelector((state) => state.accessControl.userNetworks);
+
   const classes = useStyles();
   const dispatch = useDispatch();
   const newDeviceInitState = {
     long_name: '',
     category: CATEGORIES[0].value,
-    network: selectedNetwork,
+    network: network.net_name,
     device_number: '',
     writeKey: '',
     readKey: '',
@@ -517,7 +517,6 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
   const [errors, setErrors] = useState(initialErrors);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
-  const userNetworks = JSON.parse(localStorage.getItem('userNetworks')) || [];
   const loaderStatus = useSelector((state) => state.HorizontalLoader.loading);
 
   const handleDeviceDataChange = (key) => (event) => {
@@ -550,7 +549,7 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
     setNewDevice({
       long_name: '',
       category: CATEGORIES[0].value,
-      network: selectedNetwork,
+      network: network.net_name,
       device_number: '',
       writeKey: '',
       readKey: '',
@@ -606,14 +605,14 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             headers: { 'Content-Type': 'application/json' }
           });
 
-          if (!isEmpty(selectedNetwork)) {
-            dispatch(loadDevicesData(selectedNetwork));
+          if (!isEmpty(network)) {
+            dispatch(loadDevicesData(network));
           }
 
           dispatch(
             updateMainAlert({
               message: `${resData.message}. ${
-                newDevice.network !== selectedNetwork
+                newDevice.network !== network
                   ? `Switch to the ${newDevice.network} organisation to see the new device.`
                   : ''
               }`,
@@ -786,7 +785,7 @@ const DevicesTable = (props) => {
   const devices = useDevicesData();
   const sites = useSitesData();
   const [deviceList, setDeviceList] = useState(Object.values(devices));
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
   const [delDevice, setDelDevice] = useState({ open: false, name: '' });
   const deviceColumns = createDeviceColumns(history, setDelDevice);
   const [loading, setLoading] = useState(true);
@@ -795,12 +794,11 @@ const DevicesTable = (props) => {
   const refresh = useSelector((state) => state.HorizontalLoader.refresh);
 
   useEffect(() => {
+    if (!activeNetwork) return;
     setLoading(true);
-    if (isEmpty(devices)) {
-      if (!isEmpty(activeNetwork)) {
-        dispatch(loadDevicesData(activeNetwork.net_name));
-        dispatch(loadSitesData(activeNetwork.net_name));
-      }
+    if (!isEmpty(activeNetwork)) {
+      dispatch(loadDevicesData(activeNetwork.net_name));
+      dispatch(loadSitesData(activeNetwork.net_name));
     }
     dispatch(updateDeviceBackUrl(location.pathname));
     setDeviceList(Object.values(devices));
@@ -808,7 +806,7 @@ const DevicesTable = (props) => {
       setLoading(false);
     }, 3000);
     dispatch(setRefresh(false));
-  }, [devices, refresh]);
+  }, [refresh]);
 
   const handleDeleteDevice = async () => {
     if (delDevice.name) {

@@ -6,11 +6,9 @@ import { cloudinaryImageUpload } from 'views/apis/cloudinary';
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 import ClearIcon from '@material-ui/icons/Clear';
 import { updateMainAlert } from 'redux/MainAlert/operations';
-import { updateDeviceDetails } from 'views/apis/deviceRegistry';
 import BrokenImage from 'assets/img/BrokenImage';
 import ConfirmDialog from 'views/containers/ConfirmDialog';
 import { deleteDevicePhotos } from 'views/apis/deviceRegistry';
-import ImagePreview from 'views/containers/ImagePreview';
 import { getDevicePhotos, softCreateDevicePhoto } from '../../../apis/deviceRegistry';
 import { isEmpty } from 'underscore';
 
@@ -39,7 +37,8 @@ const ImgLoadStatus = ({ message, error, onClose }) => {
         lineHeight: '18px',
         letterSpacing: '-0.04px',
         ...moreStyles
-      }}>
+      }}
+    >
       {message}
       <ClearIcon className={'d-img'} onClick={onClose} />
     </div>
@@ -279,14 +278,16 @@ export default function DevicePhotos({ deviceData }) {
         value={[]}
         onChange={onChange}
         maxNumber={maxNumber}
-        dataURLKey="data_url">
+        dataURLKey="data_url"
+      >
         {({ onImageUpload }) => (
           <div
             style={{
               display: 'flex',
               justifyContent: 'flex-end',
               margin: '10px 0'
-            }}>
+            }}
+          >
             <Button variant="contained" color="primary" onClick={onImageUpload}>
               Add Photo(s)
             </Button>

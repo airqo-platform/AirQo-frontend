@@ -40,6 +40,7 @@ const MoreInsightsChart = ({
   height = '300px',
   id,
   pollutantType,
+  refreshChart,
 }) => {
   const [activeIndex, setActiveIndex] = useState(null);
 
@@ -52,41 +53,40 @@ const MoreInsightsChart = ({
   const processChartData = useCallback((data, selectedSiteIds) => {
     const combinedData = {};
     const siteIdToName = {};
-    const allSiteIds = new Set();
 
     data.forEach((dataPoint) => {
-      const { site_id, name } = dataPoint;
-      if (site_id && name) {
-        siteIdToName[site_id] = name;
-        allSiteIds.add(site_id);
+      const { site_id, name, value, time } = dataPoint;
+
+      // Verify that site_id and name exist
+      if (!site_id || !name) {
+        console.warn(`Data point missing site_id or name:`, dataPoint);
+        return;
       }
-    });
 
-    // If selectedSiteIds is empty, include all site_ids
-    const sitesToInclude =
-      selectedSiteIds.length > 0 ? selectedSiteIds : Array.from(allSiteIds);
+      // Build site ID to name mapping
+      siteIdToName[site_id] = name;
 
-    // Process each data point
-    data.forEach((dataPoint) => {
-      const { value, time, site_id } = dataPoint;
+      // Only include data points from selected sites
+      if (!selectedSiteIds.includes(site_id)) {
+        return;
+      }
 
       // Parse and validate the time using the utility function
       const date = parseAndValidateISODate(time);
       if (!date) {
+        console.warn(`Invalid date format for time: ${time}`);
         return;
       }
 
-      // Only include data points from selected sites
-      if (!sitesToInclude.includes(site_id)) return;
+      // Use formatted time as key
+      const formattedTime = date.toISOString();
 
-      const rawTime = time;
-
-      if (!combinedData[rawTime]) {
-        combinedData[rawTime] = { time: rawTime };
+      if (!combinedData[formattedTime]) {
+        combinedData[formattedTime] = { time: formattedTime };
       }
 
       // Assign value to the corresponding site_id
-      combinedData[rawTime][site_id] = value;
+      combinedData[formattedTime][site_id] = value;
     });
 
     // Convert the combined data object to an array and sort it by time
@@ -98,12 +98,27 @@ const MoreInsightsChart = ({
   }, []);
 
   /**
+   * Ensure selectedSites is an array of site IDs
+   */
+  const selectedSiteIds = useMemo(() => {
+    if (selectedSites.length === 0) return [];
+    // If selectedSites is an array of objects, map to IDs
+    if (typeof selectedSites[0] === 'object') {
+      return selectedSites
+        .map((site) => site.site_id || site.id)
+        .filter(Boolean);
+    }
+    // Assume selectedSites is already an array of IDs
+    return selectedSites;
+  }, [selectedSites]);
+
+  /**
    * Memoized processed chart data
    */
   const { sortedData: chartData, siteIdToName } = useMemo(() => {
     if (!data || data.length === 0) return { sortedData: [], siteIdToName: {} };
-    return processChartData(data, selectedSites);
-  }, [data, selectedSites, processChartData]);
+    return processChartData(data, selectedSiteIds);
+  }, [data, selectedSiteIds, processChartData]);
 
   /**
    * Unique data keys for plotting, which are site IDs.
@@ -155,7 +170,7 @@ const MoreInsightsChart = ({
    * Assume each label requires a minimum width
    */
   const calculateStep = useCallback(() => {
-    const minLabelWidth = 40;
+    const minLabelWidth = 25;
     if (containerWidth === 0) return 1;
     const maxLabels = Math.floor(containerWidth / minLabelWidth);
     const step = Math.ceil(chartData.length / maxLabels);
@@ -173,11 +188,18 @@ const MoreInsightsChart = ({
   const renderChart = useMemo(() => {
     if (chartData.length === 0) {
       return (
-        <div className="w-full flex flex-col justify-center items-center h-[380px] text-gray-500">
+        <div className="w-full flex flex-col justify-center items-center h-full text-gray-500">
           <p className="text-lg font-medium mb-2">No Data Available</p>
-          <p className="text-sm">
-            Please select at least one location to view the air quality data.
+          <p className="text-sm mb-4 text-center">
+            It seems there’s no data to display for the selected criteria. Try
+            refreshing the chart or adjusting your filters.
           </p>
+          <button
+            onClick={refreshChart}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Refresh Chart
+          </button>
         </div>
       );
     }
@@ -209,6 +231,7 @@ const MoreInsightsChart = ({
             )}
             axisLine={false}
             scale="auto"
+            interval={step}
             padding={{ left: 30, right: 30 }}
           />
 
@@ -246,7 +269,12 @@ const MoreInsightsChart = ({
 
           {/* Tooltip */}
           <Tooltip
-            content={<CustomGraphTooltip activeIndex={activeIndex} />}
+            content={
+              <CustomGraphTooltip
+                pollutionType={pollutantType}
+                activeIndex={activeIndex}
+              />
+            }
             cursor={
               chartType === 'line'
                 ? {
@@ -309,13 +337,15 @@ const MoreInsightsChart = ({
     renderCustomizedLegend,
     frequency,
     siteIdToName,
+    refreshChart,
+    selectedSiteIds.length,
   ]);
 
   return (
-    <div id={id} ref={containerRef} className="pt-4">
+    <div id={id} ref={containerRef} className="w-auto h-full pt-4">
       {renderChart}
     </div>
   );
 };
 
-export default MoreInsightsChart;
+export default React.memo(MoreInsightsChart);

@@ -18,7 +18,6 @@ import {
 import Collapse from '@material-ui/core/Collapse';
 import Link from '@material-ui/core/Link';
 import Hidden from '@material-ui/core/Hidden';
-import { useDeviceOverviewBackUrlsData } from 'redux/Urls/selectors';
 import { last } from 'underscore';
 
 const a11yProps = (index) => {
@@ -94,7 +93,6 @@ export const DeviceToolBar = ({ deviceName }) => {
   const classes = useStyles();
   const match = useRouteMatch();
   const history = useHistory();
-  const goBackUrl = useDeviceOverviewBackUrlsData();
   const [value, setValue] = React.useState(history.location.pathname);
   const [miniValue, setMiniValue] = React.useState(last(history.location.pathname.split('/')));
   const [show, setShow] = React.useState(false);

@@ -8,7 +8,6 @@ const getJwtToken = () => {
 
 // Access Token
 const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN;
-let tenant = 'airqo';
 
 const createAxiosInstance = (isJWT = true) => {
   const axiosInstance = axios.create();
@@ -19,7 +18,7 @@ const createAxiosInstance = (isJWT = true) => {
       if (isJWT) {
         // Set the JWT authentication header
         config.headers['Authorization'] = getJwtToken();
-        config.params = { tenant, ...config.params };
+        config.params = { ...config.params };
       } else {
         // Remove the JWT header and use a query parameter
         delete config.headers['Authorization'];

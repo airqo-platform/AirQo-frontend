@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ChartContainer from '@/components/Charts/ChartContainer';
 import AQNumberCard from '@/components/AQNumberCard';
@@ -11,7 +11,6 @@ import {
   setTimeFrame,
   setPollutant,
   setChartDataRange,
-  setRefreshChart,
 } from '@/lib/store/services/charts/ChartSlice';
 import SettingsIcon from '@/icons/settings.svg';
 import PlusIcon from '@/icons/map/plusIcon';
@@ -21,7 +20,7 @@ import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { subDays } from 'date-fns';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
-import useFetchAnalyticsData from '@/core/utils/useFetchAnalyticsData';
+import useFetchAnalyticsData from '@/core/hooks/useFetchAnalyticsData';
 
 const OverView = () => {
   const dispatch = useDispatch();
@@ -29,13 +28,25 @@ const OverView = () => {
   const chartData = useSelector((state) => state.chart);
 
   // Default date range for the last 7 days
-  const defaultDateRange = {
-    startDate: subDays(new Date(), 7),
-    endDate: new Date(),
-    label: 'Last 7 days',
-  };
+  const defaultDateRange = useMemo(
+    () => ({
+      startDate: subDays(new Date(), 7),
+      endDate: new Date(),
+      label: 'Last 7 days',
+    }),
+    [],
+  );
 
   const [dateRange, setDateRange] = useState(defaultDateRange);
+
+  // Fetch analytics data
+  const { allSiteData, chartLoading, error, refetch } = useFetchAnalyticsData({
+    selectedSiteIds: chartData.chartSites,
+    dateRange: chartData.chartDataRange,
+    frequency: chartData.timeFrame,
+    pollutant: chartData.pollutionType,
+    organisationName: chartData.organizationName,
+  });
 
   // Reset chart data range to default when the component is unmounted
   useEffect(() => {
@@ -54,7 +65,7 @@ const OverView = () => {
         }),
       );
     };
-  }, [dispatch]);
+  }, [dispatch, defaultDateRange]);
 
   const handleOpenModal = useCallback(
     (type, ids = []) => {
@@ -66,18 +77,22 @@ const OverView = () => {
 
   const handleTimeFrameChange = useCallback(
     (option) => {
-      dispatch(setTimeFrame(option));
-      dispatch(setRefreshChart(true));
+      if (chartData.timeFrame !== option) {
+        dispatch(setTimeFrame(option));
+        refetch();
+      }
     },
-    [dispatch],
+    [dispatch, chartData.timeFrame, refetch],
   );
 
   const handlePollutantChange = useCallback(
     (pollutantId) => {
-      dispatch(setPollutant(pollutantId));
-      dispatch(setRefreshChart(true));
+      if (chartData.pollutionType !== pollutantId) {
+        dispatch(setPollutant(pollutantId));
+        refetch();
+      }
     },
-    [dispatch],
+    [dispatch, chartData.pollutionType, refetch],
   );
 
   const handleDateChange = useCallback(
@@ -96,46 +111,18 @@ const OverView = () => {
           label,
         }),
       );
-      dispatch(setRefreshChart(true));
+      refetch();
     },
-    [dispatch],
+    [dispatch, refetch],
   );
-
-  // Fetch analytics data for Line Chart
-  const {
-    allSiteData: lineData,
-    chartLoading: lineLoading,
-    error: lineError,
-    refetch: refetchLine,
-  } = useFetchAnalyticsData({
-    selectedSiteIds: chartData.chartSites,
-    dateRange: chartData.chartDataRange,
-    chartType: 'line',
-    frequency: chartData.timeFrame,
-    pollutant: chartData.pollutionType,
-    organisationName: chartData.organizationName,
-  });
-
-  // Fetch analytics data for Bar Chart
-  const {
-    allSiteData: barData,
-    chartLoading: barLoading,
-    error: barError,
-    refetch: refetchBar,
-  } = useFetchAnalyticsData({
-    selectedSiteIds: chartData.chartSites,
-    dateRange: chartData.chartDataRange,
-    chartType: 'bar',
-    frequency: chartData.timeFrame,
-    pollutant: chartData.pollutionType,
-    organisationName: chartData.organizationName,
-  });
 
   return (
     <BorderlessContentBox>
       <div className="space-y-8">
+        {/* Controls Section */}
         <div className="w-full flex flex-wrap gap-2 justify-between">
           <div className="space-x-2 flex">
+            {/* Time Frame Dropdown */}
             <CustomDropdown
               btnText={chartData.timeFrame}
               dropdown
@@ -162,6 +149,7 @@ const OverView = () => {
               ))}
             </CustomDropdown>
 
+            {/* Custom Calendar */}
             <CustomCalendar
               initialStartDate={dateRange.startDate}
               initialEndDate={dateRange.endDate}
@@ -171,6 +159,7 @@ const OverView = () => {
               dropdown
             />
 
+            {/* Pollutant Dropdown */}
             <CustomDropdown
               tabIcon={<SettingsIcon />}
               btnText="Pollutant"
@@ -199,11 +188,13 @@ const OverView = () => {
           </div>
 
           <div className="space-x-2 flex">
+            {/* Add Location Button */}
             <TabButtons
               btnText="Add location"
               Icon={<PlusIcon width={16} height={16} />}
               onClick={() => handleOpenModal('addLocation')}
             />
+            {/* Download Data Button */}
             <TabButtons
               btnText="Download Data"
               Icon={<DownloadIcon width={16} height={17} color="white" />}
@@ -213,34 +204,37 @@ const OverView = () => {
           </div>
         </div>
 
+        {/* AQ Number Card */}
         <AQNumberCard />
 
+        {/* Charts Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Line Chart */}
           <ChartContainer
             chartType="line"
-            chartTitle="Air Pollution Data Over Time"
-            height={400}
+            chartTitle="Air Pollution Trends Over Time"
+            height={380}
             id="air-pollution-line-chart"
-            data={lineData}
-            chartLoading={lineLoading}
-            error={lineError}
-            refetch={refetchLine}
+            data={allSiteData}
+            chartLoading={chartLoading}
+            error={error}
+            refetch={refetch}
           />
           {/* Bar Chart */}
           <ChartContainer
             chartType="bar"
-            chartTitle="Air Pollution Data Over Time"
-            height={400}
+            chartTitle="Air Pollution Levels Distribution"
+            height={380}
             id="air-pollution-bar-chart"
-            data={barData}
-            chartLoading={barLoading}
-            error={barError}
-            refetch={refetchBar}
+            data={allSiteData}
+            chartLoading={chartLoading}
+            error={error}
+            refetch={refetch}
           />
         </div>
       </div>
 
+      {/* Data Download Modal */}
       <Modal isOpen={isOpen} onClose={() => dispatch(setOpenModal(false))} />
     </BorderlessContentBox>
   );

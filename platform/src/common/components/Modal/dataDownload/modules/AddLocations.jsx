@@ -7,6 +7,7 @@ import LocationCard from '../components/LocationCard';
 import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
+import { fetchSitesSummary } from '@/lib/store/services/sitesSummarySlice';
 
 /**
  * Header component for the Add Location modal.
@@ -34,9 +35,11 @@ const AddLocations = ({ onClose }) => {
   const preferencesData = useSelector(
     (state) => state.defaults.individual_preferences,
   );
+  const chartData = useSelector((state) => state.chart);
 
   // Local state management
   const [selectedSites, setSelectedSites] = useState([]);
+  const [sidebarSites, setSidebarSites] = useState([]);
   const [clearSelected, setClearSelected] = useState(false);
   const [error, setError] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -48,11 +51,25 @@ const AddLocations = ({ onClose }) => {
     error: fetchError,
   } = useSelector((state) => state.sites);
 
+  // filter out sites that are online online_status=online from sitesSummaryData use memo
+  const filteredSites = useMemo(() => {
+    return (sitesSummaryData || []).filter((site) => site.isOnline === true);
+  }, [sitesSummaryData]);
+
   // Retrieve user ID from localStorage and memoize it
   const userID = useMemo(() => {
     const user = localStorage.getItem('loggedUser');
     return user ? JSON.parse(user)?._id : null;
   }, []);
+
+  /**
+   * Fetch sites summary whenever the selected organization changes.
+   */
+  useEffect(() => {
+    if (chartData.organizationName) {
+      dispatch(fetchSitesSummary({ group: chartData.organizationName }));
+    }
+  }, [dispatch, chartData.organizationName]);
 
   // Extract selected site IDs from user preferences
   const selectedSiteIds = useMemo(() => {
@@ -61,16 +78,18 @@ const AddLocations = ({ onClose }) => {
   }, [preferencesData]);
 
   /**
-   * Populate selectedSites based on selectedSiteIds and fetched sitesSummaryData.
+   * Populate selectedSites based on selectedSiteIds and fetched filteredSites.
+   * Also initializes sidebarSites with the initially selected sites.
    */
   useEffect(() => {
-    if (sitesSummaryData && selectedSiteIds.length) {
-      const initialSelectedSites = sitesSummaryData.filter((site) =>
+    if (filteredSites && selectedSiteIds.length) {
+      const initialSelectedSites = filteredSites.filter((site) =>
         selectedSiteIds.includes(site._id),
       );
       setSelectedSites(initialSelectedSites);
+      setSidebarSites(initialSelectedSites);
     }
-  }, [sitesSummaryData, selectedSiteIds]);
+  }, [filteredSites, selectedSiteIds]);
 
   /**
    * Clears all selected sites.
@@ -84,16 +103,32 @@ const AddLocations = ({ onClose }) => {
 
   /**
    * Toggles the selection of a site.
-   * @param {Object} site - The site to toggle.
+   * Adds to selectedSites and sidebarSites if selected.
+   * Removes from selectedSites but retains in sidebarSites if unselected.
    */
-  const handleToggleSite = useCallback((site) => {
-    setSelectedSites((prev) => {
-      const isSelected = prev.some((s) => s._id === site._id);
-      return isSelected
-        ? prev.filter((s) => s._id !== site._id)
-        : [...prev, site];
-    });
-  }, []);
+  const handleToggleSite = useCallback(
+    (site) => {
+      setSelectedSites((prev) => {
+        const isSelected = prev.some((s) => s._id === site._id);
+        if (isSelected) {
+          // Remove from selectedSites
+          return prev.filter((s) => s._id !== site._id);
+        } else {
+          // Add to selectedSites
+          return [...prev, site];
+        }
+      });
+
+      setSidebarSites((prev) => {
+        const alreadyInSidebar = prev.some((s) => s._id === site._id);
+        if (!alreadyInSidebar) {
+          return [...prev, site];
+        }
+        return prev;
+      });
+    },
+    [setSelectedSites, setSidebarSites],
+  );
 
   /**
    * Handles the submission of selected sites.
@@ -149,9 +184,11 @@ const AddLocations = ({ onClose }) => {
   }, [selectedSites, userID, dispatch, onClose]);
 
   /**
-   * Generates the content for the selected sites panel.
+   * Generates the content for the sidebar.
+   * Displays only the sites that have been selected at least once.
+   * Each card reflects its current selection status.
    */
-  const selectedSitesContent = useMemo(() => {
+  const sidebarSitesContent = useMemo(() => {
     if (loading) {
       return (
         <div className="space-y-4">
@@ -168,7 +205,7 @@ const AddLocations = ({ onClose }) => {
       );
     }
 
-    if (selectedSites.length === 0) {
+    if (sidebarSites.length === 0) {
       return (
         <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-center items-center">
           <span className="p-2 rounded-full bg-[#F6F6F7] mb-2">
@@ -179,29 +216,29 @@ const AddLocations = ({ onClose }) => {
       );
     }
 
-    return selectedSites.map((site) => (
+    return sidebarSites.map((site) => (
       <LocationCard
         key={site._id}
         site={site}
         onToggle={handleToggleSite}
         isLoading={loading}
-        isSelected={true}
+        isSelected={selectedSites.some((s) => s._id === site._id)}
       />
     ));
-  }, [selectedSites, handleToggleSite, loading]);
+  }, [sidebarSites, selectedSites, handleToggleSite, loading]);
 
   return (
     <>
       {/* Selected Sites Sidebar */}
-      <div className="w-[280px] h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-5 pb-14">
-        {selectedSitesContent}
+      <div className="w-auto h-auto md:w-[280px] md:h-[658px] overflow-y-auto md:border-r relative space-y-3 px-4 pt-5 pb-14">
+        {sidebarSitesContent}
       </div>
 
       {/* Main Content Area */}
       <div className="bg-white relative w-full h-auto">
-        <div className="px-8 pt-6 pb-4 overflow-y-auto">
+        <div className="px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
           <DataTable
-            data={sitesSummaryData}
+            data={filteredSites}
             selectedSites={selectedSites}
             setSelectedSites={setSelectedSites}
             clearSites={clearSelected}

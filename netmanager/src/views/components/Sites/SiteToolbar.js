@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/styles';
@@ -98,7 +98,8 @@ const FormDialog = ({
       open={open}
       onBackdropClick={modelClose}
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description">
+      aria-describedby="form-dialog-description"
+    >
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         {title}
       </DialogTitle>
@@ -124,7 +125,8 @@ const FormDialog = ({
               color="primary"
               type="submit"
               onClick={handleConfirmation}
-              style={{ margin: '0 15px' }}>
+              style={{ margin: '0 15px' }}
+            >
               {loading ? <CircularProgress size={24} style={{ color: '#FFCC00' }} /> : CTA2}
             </Button>
           )}
@@ -142,7 +144,7 @@ const SiteToolbar = (props) => {
 
   const dispatch = useDispatch();
 
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork).net_name;
 
   const initSiteData = {
     latitude: '',
@@ -168,7 +170,7 @@ const SiteToolbar = (props) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [errors, setErrors] = useState(initErrorData);
   const [Fields, setFields] = useState(['Country', 'District', 'Region', 'Latitude', 'Longitude']);
-  const userNetworks = JSON.parse(localStorage.getItem('userNetworks')) || [];
+  const userNetworks = useSelector((state) => state.accessControl.userNetworks) || [];
   const mapview = process.env.REACT_APP_MAP_PREVIEW;
 
   const handleSiteClose = () => {
@@ -220,7 +222,6 @@ const SiteToolbar = (props) => {
 
     try {
       const resData = await createSiteApi(siteData);
-      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
       if (!isEmpty(activeNetwork)) {
         dispatch(loadSitesData(activeNetwork.net_name));
@@ -332,7 +333,8 @@ const SiteToolbar = (props) => {
             color="primary"
             type="submit"
             align="centre"
-            onClick={() => setOpen(!open)}>
+            onClick={() => setOpen(!open)}
+          >
             Add Site
           </Button>
         </div>
@@ -348,7 +350,8 @@ const SiteToolbar = (props) => {
           CTA1="Cancel"
           CTA2="Create site"
           showError={showError}
-          errorMessage={errorMessage}>
+          errorMessage={errorMessage}
+        >
           <form className={classes.modelWidth}>
             <TextField
               autoFocus
@@ -410,14 +413,16 @@ const SiteToolbar = (props) => {
           disabled={disabled}
           title="Site Confirmation"
           CTA1="Edit"
-          CTA2="Confirm">
+          CTA2="Confirm"
+        >
           <form className={classes.modelWidth}>
             <div className={classes.confirm_con}>
               <IconButton
                 style={{ position: 'absolute', right: 0, top: 0, margin: '10px' }}
                 onClick={() => {
                   openMap(siteMetaData);
-                }}>
+                }}
+              >
                 <LocationOnIcon />
               </IconButton>
 
@@ -427,7 +432,8 @@ const SiteToolbar = (props) => {
                   <span
                     style={{
                       color: field === 'Latitude' || field === 'Longitude' ? 'green' : 'black'
-                    }}>
+                    }}
+                  >
                     {siteMetaData[field.toLowerCase()]}
                   </span>
                 </div>

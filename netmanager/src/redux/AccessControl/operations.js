@@ -14,7 +14,6 @@ import {
   LOAD_CURRENT_USER_ROLE_SUCCESS,
   LOAD_NETWORK_USERS_FAILURE,
   LOAD_NETWORK_USERS_SUCCESS,
-  LOAD_ROLES_SUMMARY_FAILURE,
   LOAD_ROLES_SUMMARY_SUCCESS,
   LOAD_GROUPS_SUMMARY_SUCCESS
 } from './actions';
@@ -77,36 +76,50 @@ export const addActiveNetwork = (data) => (dispatch) => {
   });
 };
 
-export const fetchNetworkUsers = (networkId) => async (dispatch) => {
-  return await getNetworkUsersListApi(networkId)
-    .then((resData) => {
-      dispatch({
-        type: LOAD_NETWORK_USERS_SUCCESS,
-        payload: resData.assigned_users
-      });
-    })
-    .catch((err) => {
-      dispatch({
-        type: LOAD_NETWORK_USERS_FAILURE,
-        payload: err
-      });
+export const fetchNetworkUsers = (networkId, params) => async (dispatch) => {
+  try {
+    dispatch({ type: 'SET_NETWORK_USERS_LOADING', payload: true });
+    const resData = await getNetworkUsersListApi(networkId, params);
+    dispatch({
+      type: LOAD_NETWORK_USERS_SUCCESS,
+      payload: {
+        users: resData.assigned_users,
+        total: resData.total_assigned_users
+      }
     });
+    return resData;
+  } catch (err) {
+    dispatch({
+      type: LOAD_NETWORK_USERS_FAILURE,
+      payload: err
+    });
+    throw err;
+  } finally {
+    dispatch({ type: 'SET_NETWORK_USERS_LOADING', payload: false });
+  }
 };
 
-export const fetchAvailableNetworkUsers = (networkId) => async (dispatch) => {
-  return await getAvailableNetworkUsersListApi(networkId)
-    .then((resData) => {
-      dispatch({
-        type: LOAD_AVAILABLE_USERS_SUCCESS,
-        payload: resData.available_users
-      });
-    })
-    .catch((err) => {
-      dispatch({
-        type: LOAD_AVAILABLE_USERS_FAILURE,
-        payload: err
-      });
+export const fetchAvailableNetworkUsers = (networkId, params) => async (dispatch) => {
+  try {
+    dispatch({ type: 'SET_AVAILABLE_USERS_LOADING', payload: true });
+    const resData = await getAvailableNetworkUsersListApi(networkId, params);
+    dispatch({
+      type: LOAD_AVAILABLE_USERS_SUCCESS,
+      payload: {
+        users: resData.available_users,
+        total: resData.total_available_users
+      }
     });
+    return resData;
+  } catch (err) {
+    dispatch({
+      type: LOAD_AVAILABLE_USERS_FAILURE,
+      payload: err
+    });
+    throw err;
+  } finally {
+    dispatch({ type: 'SET_AVAILABLE_USERS_LOADING', payload: false });
+  }
 };
 
 export const addUserGroupSummary = (data) => (dispatch) => {

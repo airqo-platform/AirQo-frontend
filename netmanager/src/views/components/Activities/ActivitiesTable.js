@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import LoadingOverlay from 'react-loading-overlay';
 import { isEmpty } from 'underscore';
@@ -24,9 +24,10 @@ const ActivitiesTable = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [delState, setDelState] = useState({ open: false, name: '', id: '' });
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
+    if (!activeNetwork) return;
     //code to retrieve all site_activities data
     if (isEmpty(site_activities)) {
       setIsLoading(true);

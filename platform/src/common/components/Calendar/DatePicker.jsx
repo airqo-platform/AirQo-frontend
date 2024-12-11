@@ -1,7 +1,6 @@
 // DatePicker.js
 import React, { useState, useEffect, useRef } from 'react';
-import PropTypes from 'prop-types';
-import { format, subMonths } from 'date-fns';
+import { format } from 'date-fns';
 import { usePopper } from 'react-popper';
 import { Transition } from '@headlessui/react';
 import Calendar from './Calendar';
@@ -120,8 +119,6 @@ const DatePicker = ({ customPopperStyle, alignment, onChange }) => {
         >
           <Calendar
             showTwoCalendars={false}
-            initialMonth1={subMonths(new Date(), 1)}
-            initialMonth2={new Date()}
             handleValueChange={handleValueChange}
             closeDatePicker={() => setIsOpen(false)}
           />
@@ -129,17 +126,6 @@ const DatePicker = ({ customPopperStyle, alignment, onChange }) => {
       </Transition>
     </div>
   );
-};
-
-DatePicker.propTypes = {
-  customPopperStyle: PropTypes.object,
-  alignment: PropTypes.oneOf(['left', 'right']),
-  onChange: PropTypes.func.isRequired,
-};
-
-DatePicker.defaultProps = {
-  customPopperStyle: {},
-  alignment: 'left',
 };
 
 export default DatePicker;

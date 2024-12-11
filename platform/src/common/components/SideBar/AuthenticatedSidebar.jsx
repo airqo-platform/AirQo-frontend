@@ -189,7 +189,7 @@ const AuthenticatedSideBar = () => {
               {renderCollocationItem()}
 
               <SidebarItem
-                label="Pollution map"
+                label="Map"
                 Icon={WorldIcon}
                 navPath="/map"
                 iconOnly={isCollapsed}

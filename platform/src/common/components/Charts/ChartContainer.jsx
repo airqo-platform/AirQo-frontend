@@ -1,14 +1,20 @@
-import React, { useRef, useCallback, useEffect, useState } from 'react';
+import React, {
+  useRef,
+  useCallback,
+  useEffect,
+  useState,
+  useMemo,
+} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import CheckIcon from '@/icons/tickIcon';
 import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
-// import PrintReportModal from '@/components/Modal/PrintReportModal';
 import MoreInsightsChart from './MoreInsightsChart';
 import SkeletonLoader from './components/SkeletonLoader';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import CustomToast from '../Toast/CustomToast';
+import useOutsideClick from '@/core/hooks/useOutsideClick';
 
 const ChartContainer = ({
   chartType,
@@ -33,49 +39,42 @@ const ChartContainer = ({
   const preferencesData = useSelector(
     (state) => state.defaults.individual_preferences,
   );
-  const user_selected_sites = preferencesData?.[0]?.selected_sites || [];
+  const userSelectedSites = useMemo(
+    () => preferencesData?.[0]?.selected_sites || [],
+    [preferencesData],
+  );
 
   // State for handling sharing and exporting
   const [loadingFormat, setLoadingFormat] = useState(null);
   const [downloadComplete, setDownloadComplete] = useState(null);
 
-  // State to control skeleton loader display
+  // State for managing the SkeletonLoader visibility
   const [showSkeleton, setShowSkeleton] = useState(chartLoading);
 
   // Handle click outside for dropdown
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDownloadComplete(null);
-      }
-    };
+  useOutsideClick(dropdownRef, () => {
+    dropdownRef.current?.classList.remove('show');
+    setDownloadComplete(null);
+  });
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // TODO: TEMPORARY TO HANDLE LOADING ISSUE HAVE TO REMOVE LATER
+  // Effect to manage SkeletonLoader visibility with delay
   useEffect(() => {
     let timer;
-
     if (chartLoading) {
       setShowSkeleton(true);
     } else {
       timer = setTimeout(() => {
         setShowSkeleton(false);
-      }, 4000);
+      }, 5000);
     }
 
     return () => {
-      if (timer) {
-        clearTimeout(timer);
-      }
+      if (timer) clearTimeout(timer);
     };
   }, [chartLoading]);
 
   /**
    * Exports the chart in the specified format.
-   *
    * @param {string} format - The format to export the chart (png, jpg, pdf).
    */
   const exportChart = useCallback(async (format) => {
@@ -113,16 +112,23 @@ const ChartContainer = ({
       }
 
       setDownloadComplete(format);
-      CustomToast();
+      CustomToast({
+        message: `Chart exported as ${format.toUpperCase()} successfully!`,
+        type: 'success',
+      });
     } catch (error) {
       console.error('Error exporting chart:', error);
+      CustomToast({
+        message: `Failed to export chart as ${format.toUpperCase()}.`,
+        type: 'error',
+      });
     } finally {
       setLoadingFormat(null);
     }
   }, []);
 
   /**
-   * Refreshes the chart data by calling the refetch function from the hook.
+   * Refreshes the chart data by calling the refetch function from the parent.
    */
   const handleRefreshChart = useCallback(() => {
     refetch();
@@ -142,7 +148,7 @@ const ChartContainer = ({
   /**
    * Renders the content of the dropdown menu.
    */
-  const renderDropdownContent = useCallback(
+  const renderDropdownContent = useMemo(
     () => (
       <>
         <button
@@ -171,58 +177,50 @@ const ChartContainer = ({
         ))}
         <hr className="border-gray-200" />
         <button
-          onClick={() => handleOpenModal('inSights', [], user_selected_sites)}
+          onClick={() => handleOpenModal('inSights', [], userSelectedSites)}
           className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
         >
           More insights
         </button>
-        {/* 
-        {['csv', 'pdf'].map((format) => (
-          <button
-            key={format}
-            onClick={() => shareReport(format)}
-            className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-          >
-            <span>Share report as {format.toUpperCase()}</span>
-          </button>
-        ))} 
-        */}
       </>
     ),
     [
+      handleRefreshChart,
       exportChart,
       loadingFormat,
       downloadComplete,
-      handleRefreshChart,
       handleOpenModal,
-      user_selected_sites,
+      userSelectedSites,
     ],
   );
 
   /**
    * Renders the error overlay with a retry option.
    */
-  const ErrorOverlay = () => (
-    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-gray-300 bg-opacity-50 z-10">
-      <p className="text-red-500 font-semibold">
-        Something went wrong. Please try again.
-      </p>
-      <button
-        onClick={refetch}
-        className="ml-4 text-red-500 font-semibold underline"
-      >
-        Try again
-      </button>
-    </div>
+  const ErrorOverlay = useCallback(
+    () => (
+      <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-gray-300 bg-opacity-50 z-10 p-4">
+        <p className="text-red-500 font-semibold mb-2">
+          Something went wrong. Please try again.
+        </p>
+        <button
+          onClick={refetch}
+          className="mt-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+        >
+          Try Again
+        </button>
+      </div>
+    ),
+    [refetch],
   );
 
   return (
     <div
-      className="border bg-white rounded-xl border-gray-200 shadow-sm"
-      id="analytics-chart"
+      className="border bg-white rounded-xl border-gray-200 shadow-sm relative"
+      id={id}
     >
       <div className="flex flex-col items-start gap-1 w-full p-4">
-        {showTitle && !showSkeleton && (
+        {showTitle && (
           <div className="flex items-center justify-between w-full">
             <h3 className="text-lg font-medium">{chartTitle}</h3>
             <div ref={dropdownRef}>
@@ -234,16 +232,16 @@ const ChartContainer = ({
                 id={`options-${id}`}
                 alignment="right"
               >
-                {renderDropdownContent()}
+                {renderDropdownContent}
               </CustomDropdown>
             </div>
           </div>
         )}
         <div ref={chartRef} className="my-3 relative" style={{ width, height }}>
-          {showSkeleton ? (
-            <SkeletonLoader width={width} height={height} />
-          ) : error ? (
+          {error ? (
             <ErrorOverlay />
+          ) : showSkeleton ? (
+            <SkeletonLoader width={width} height={height} />
           ) : (
             <MoreInsightsChart
               data={data}
@@ -254,28 +252,13 @@ const ChartContainer = ({
               height={height}
               id={id}
               pollutantType={pollutionType}
+              refreshChart={handleRefreshChart}
             />
           )}
         </div>
       </div>
-
-      {/* 
-      <PrintReportModal
-        title="Share Report"
-        btnText="Send"
-        shareModel
-        open={openShare}
-        onClose={() => setOpenShare(false)}
-        format={shareFormat}
-        data={{
-          startDate: chartDataRange.startDate,
-          endDate: chartDataRange.endDate,
-          sites: chartSites,
-        }}
-      /> 
-      */}
     </div>
   );
 };
 
-export default ChartContainer;
+export default React.memo(ChartContainer);
