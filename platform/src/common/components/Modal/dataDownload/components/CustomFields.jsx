@@ -10,7 +10,7 @@ import DatePicker from '../../../Calendar/DatePicker';
  */
 const formatName = (name, textFormat = 'lowercase') => {
   if (typeof name !== 'string' || !name) return name;
-  const formatted = name.replace(/[_-]/g, ' '); // Replace underscores and hyphens with spaces
+  const formatted = name.replace(/[_-]/g, ' ');
   return textFormat === 'uppercase' ? formatted.toUpperCase() : formatted;
 };
 
