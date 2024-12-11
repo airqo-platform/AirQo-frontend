@@ -4,20 +4,26 @@ import CheckIcon from '@/icons/tickIcon';
 import CustomDropdown from '../../../Dropdowns/CustomDropdown';
 import DatePicker from '../../../Calendar/DatePicker';
 
-const capitalize = (name) => {
-  if (typeof name !== 'string' || !name) return name;
-  return name.charAt(0).toUpperCase() + name.slice(1);
-};
-
+/**
+ * Formats the name based on the specified text format.
+ * Replaces underscores and hyphens with spaces.
+ * @param {string} name - The string to format.
+ * @param {string} textFormat - The desired text format ('uppercase' or 'lowercase').
+ * @returns {string} - The formatted string.
+ */
 const formatName = (name, textFormat = 'lowercase') => {
   if (typeof name !== 'string' || !name) return name;
-  return typeof name === 'string'
-    ? textFormat === 'uppercase'
-      ? name.toUpperCase().replace(/_/g, ' ').replace(/-/g, ' ')
-      : name.replace(/_/g, ' ').replace(/-/g, ' ')
-    : capitalize(name);
+  const formatted = name.replace(/[_-]/g, ' '); // Replace underscores and hyphens with spaces
+  return textFormat === 'uppercase' ? formatted.toUpperCase() : formatted;
 };
 
+/**
+ * CustomFields Component
+ * Renders different types of input fields based on props.
+ *
+ * @param {object} props - Component properties.
+ * @returns {JSX.Element} - Rendered component.
+ */
 const CustomFields = ({
   field = false,
   title,
@@ -35,31 +41,46 @@ const CustomFields = ({
     defaultOption || options[0],
   );
 
+  /**
+   * Handles the selection of an option.
+   * Conditionally formats the name based on the field's ID.
+   *
+   * @param {object} option - The selected option object.
+   */
   const handleSelect = useCallback(
     (option) => {
+      // Determine if formatting should be applied
+      const shouldFormat = id !== 'organization';
       const formattedOption = {
         ...option,
-        name: formatName(option.name),
+        name: shouldFormat ? formatName(option.name, textFormat) : option.name,
       };
       setSelectedOption(formattedOption);
       handleOptionSelect(id, formattedOption);
     },
-    [id, handleOptionSelect],
+    [id, handleOptionSelect, textFormat],
   );
 
   return (
     <div className="w-full h-auto flex flex-col gap-2 justify-start">
       <label className="w-[280px] h-auto p-0 m-0 text-[#7A7F87]">{title}</label>
+
       {field ? (
+        // Render a text input field
         <input
           className="bg-transparent text-[16px] font-medium leading-6 p-0 m-0 w-full h-auto border-none"
-          value={formatName(selectedOption.name)}
+          value={
+            id === 'organization'
+              ? selectedOption.name
+              : formatName(selectedOption.name, textFormat)
+          }
           onChange={(e) => handleSelect({ name: e.target.value })}
           type="text"
           name={id}
           disabled={!edit}
         />
       ) : useCalendar ? (
+        // Render a date picker
         <DatePicker
           customPopperStyle={{ left: '-7px' }}
           onChange={(date) => {
@@ -67,6 +88,7 @@ const CustomFields = ({
           }}
         />
       ) : (
+        // Render a custom dropdown
         <CustomDropdown
           tabID={id}
           isField={false}
@@ -74,8 +96,9 @@ const CustomFields = ({
           dropdown
           tabIcon={icon}
           btnText={
-            formatName(btnText, textFormat) ||
-            formatName(selectedOption.name, textFormat)
+            btnText
+              ? formatName(btnText, textFormat)
+              : formatName(selectedOption.name, textFormat)
           }
           customPopperStyle={{ left: '-7px' }}
           dropDownClass="w-full"
@@ -105,15 +128,23 @@ const CustomFields = ({
 
 CustomFields.propTypes = {
   field: PropTypes.bool,
-  title: PropTypes.string,
-  options: PropTypes.array,
-  id: PropTypes.string,
+  title: PropTypes.string.isRequired,
+  options: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+    }),
+  ),
+  id: PropTypes.string.isRequired,
   icon: PropTypes.node,
   btnText: PropTypes.string,
   edit: PropTypes.bool,
   useCalendar: PropTypes.bool,
-  handleOptionSelect: PropTypes.func,
-  defaultOption: PropTypes.object,
+  handleOptionSelect: PropTypes.func.isRequired,
+  defaultOption: PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string,
+  }),
   textFormat: PropTypes.oneOf(['uppercase', 'lowercase']),
 };
 
