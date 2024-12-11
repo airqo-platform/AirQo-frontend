@@ -53,6 +53,7 @@ dependencies:
   google_maps_flutter: ^2.7.1
   flutter_card_swiper: ^7.0.1
   logger: ^2.5.0
+  connectivity_plus: ^6.1.0
 
 dev_dependencies:
   flutter_test:
