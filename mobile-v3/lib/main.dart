@@ -17,14 +17,17 @@ import 'package:airqo/src/app/other/theme/bloc/theme_bloc.dart';
 import 'package:airqo/src/app/other/theme/repository/theme_repository.dart';
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
 import 'package:airqo/src/app/profile/repository/user_repository.dart';
+import 'package:airqo/src/app/shared/bloc/connectivity_bloc.dart';
 import 'package:airqo/src/app/shared/pages/nav_page.dart';
 
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:airqo/src/app/shared/pages/no_internet_banner.dart';
 
 import 'src/app/shared/repository/hive_repository.dart';
 
@@ -67,6 +70,7 @@ class AirqoMobile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final connectivity = Connectivity();
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -93,7 +97,10 @@ class AirqoMobile extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => MapBloc(mapRepository)..add(LoadMap()),
-        )
+        ),
+        BlocProvider(
+          create: (context) => ConnectivityBloc(connectivity),
+        ),
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, state) {
@@ -131,18 +138,42 @@ class Decider extends StatefulWidget {
 class _DeciderState extends State<Decider> {
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: HiveRepository.getData('token', HiveBoxNames.authBox),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            if (!snapshot.hasData) {
-              return WelcomeScreen();
-            } else {
-              return NavPage();
-            }
-          } else {
-            return Scaffold(body: Center(child: Text('An Error occured.')));
-          }
-        });
+    return BlocBuilder<ConnectivityBloc, ConnectivityState>(
+      builder: (context, connectivityState) {
+        debugPrint('Current connectivity state: $connectivityState');
+        return Stack(
+          children: [
+            FutureBuilder(
+              future: HiveRepository.getData('token', HiveBoxNames.authBox),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  if (!snapshot.hasData) {
+                    return WelcomeScreen();
+                  } else {
+                    return NavPage();
+                  }
+                } else {
+                  return Scaffold(
+                      body: Center(child: Text('An Error occurred.')));
+                }
+              },
+            ),
+            if (connectivityState is ConnectivityOffline)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: NoInternetBanner(
+                  onClose: () {
+                    context
+                        .read<ConnectivityBloc>()
+                        .add(ConnectivityBannerDismissed());
+                  },
+                ),
+              ),
+          ],
+        );
+      },
+    );
   }
 }
