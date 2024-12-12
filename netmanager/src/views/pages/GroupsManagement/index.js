@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { ErrorBoundary } from '../../ErrorBoundary';
 import { Box, Button, Typography, makeStyles } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,6 +6,7 @@ import { isEmpty } from 'underscore';
 import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
 import CustomMaterialTable from '../../components/Table/CustomMaterialTable';
 import { useHistory } from 'react-router-dom';
+import { fetchGroupsSummary } from 'redux/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -19,27 +20,17 @@ const useStyles = makeStyles((theme) => ({
 const GroupsManagement = () => {
   const classes = useStyles();
   const history = useHistory();
-  const [loading, setLoading] = useState(false);
-  const [groups, setGroups] = useState([]);
+  const dispatch = useDispatch();
+  const { summary: groups, loading } = useSelector((state) => state.accessControl.groups);
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
-    // TODO: Load groups data
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      // Temporary mock data
-      setGroups([
-        {
-          _id: '1',
-          name: 'Test Group 1',
-          description: 'Test Description',
-          deviceCount: 5,
-          siteCount: 2,
-          userCount: 3
-        }
-      ]);
-    }, 1000);
-  }, []);
+    if (!activeNetwork) return;
+    dispatch(fetchGroupsSummary());
+  }, [dispatch, activeNetwork]);
+
+  // Add safety check for groups data
+  const safeGroups = Array.isArray(groups) ? groups : [];
 
   return (
     <ErrorBoundary>
@@ -62,46 +53,67 @@ const GroupsManagement = () => {
             >
               <LargeCircularLoader loading={loading} />
             </Box>
-          ) : groups && groups.length > 0 ? (
+          ) : safeGroups.length > 0 ? (
             <CustomMaterialTable
               title="Groups"
               columns={[
                 {
                   title: 'Name',
-                  field: 'name',
+                  field: 'grp_title',
                   render: (rowData) => (
                     <Button
                       variant="text"
                       color="primary"
-                      onClick={() => history.push(`/groups/${rowData._id}`)}
+                      onClick={() => history.push(`/groups/${rowData?._id}`)}
                     >
-                      {rowData.name}
+                      {rowData?.grp_title || 'N/A'}
                     </Button>
                   )
                 },
-                { title: 'Description', field: 'description' },
                 {
-                  title: 'Devices',
-                  field: 'deviceCount',
-                  render: (rowData) => rowData.deviceCount || 0
+                  title: 'Website',
+                  field: 'grp_website',
+                  render: (rowData) =>
+                    rowData?.grp_website ? (
+                      <a
+                        href={rowData.grp_website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#3f51b5', textDecoration: 'none' }}
+                      >
+                        {rowData.grp_website}
+                      </a>
+                    ) : (
+                      'N/A'
+                    )
                 },
                 {
-                  title: 'Sites',
-                  field: 'siteCount',
-                  render: (rowData) => rowData.siteCount || 0
+                  title: 'Status',
+                  field: 'grp_status',
+                  render: (rowData) => (
+                    <span
+                      style={{
+                        color: rowData?.grp_status === 'ACTIVE' ? 'green' : 'red',
+                        textTransform: 'capitalize'
+                      }}
+                    >
+                      {(rowData?.grp_status || 'N/A').toLowerCase()}
+                    </span>
+                  )
                 },
                 {
                   title: 'Users',
-                  field: 'userCount',
-                  render: (rowData) => rowData.userCount || 0
+                  field: 'numberOfGroupUsers',
+                  render: (rowData) => rowData?.numberOfGroupUsers || 0
                 }
               ]}
-              data={groups}
+              data={safeGroups}
               options={{
                 search: true,
                 exportButton: true,
                 searchFieldAlignment: 'right',
                 showTitle: true,
+                emptyRowsWhenPaging: false,
                 searchFieldStyle: {
                   fontFamily: 'Open Sans'
                 },

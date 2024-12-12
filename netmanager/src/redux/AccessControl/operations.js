@@ -2,7 +2,13 @@ import {
   getAvailableNetworkUsersListApi,
   getNetworkUsersListApi,
   getRolesApi,
-  getRolesSummaryApi
+  getRolesSummaryApi,
+  getGroupsSummaryApi,
+  getGroupDevicesApi,
+  getGroupSitesApi,
+  getGroupUsersApi,
+  getGroupDetailsApi,
+  getGroupCohortsApi
 } from '../../views/apis/accessControl';
 import {
   LOAD_ALL_USER_ROLES_FAILURE,
@@ -15,10 +21,19 @@ import {
   LOAD_NETWORK_USERS_FAILURE,
   LOAD_NETWORK_USERS_SUCCESS,
   LOAD_ROLES_SUMMARY_SUCCESS,
-  LOAD_GROUPS_SUMMARY_SUCCESS
+  LOAD_GROUPS_SUMMARY_SUCCESS,
+  loadGroupsSummary,
+  loadGroupDevices,
+  setGroupsLoading,
+  setGroupsError,
+  loadGroupSites,
+  loadGroupUsers,
+  setActiveGroup,
+  loadGroupCohorts
 } from './actions';
 import { isEmpty } from 'underscore';
 import { updateMainAlert } from 'redux/MainAlert/operations';
+import axios from 'axios';
 
 export const loadUserRoles = (networkID) => async (dispatch) => {
   return await getRolesApi(networkID)
@@ -127,4 +142,153 @@ export const addUserGroupSummary = (data) => (dispatch) => {
     type: LOAD_GROUPS_SUMMARY_SUCCESS,
     payload: data
   });
+};
+
+export const fetchGroupsSummary = () => async (dispatch) => {
+  dispatch(setGroupsLoading(true));
+  try {
+    const response = await getGroupsSummaryApi();
+    dispatch(loadGroupsSummary(response.groups));
+  } catch (error) {
+    dispatch(setGroupsError(error.message));
+    dispatch(
+      updateMainAlert({
+        message: error.response?.data?.message || 'Failed to load groups',
+        show: true,
+        severity: 'error'
+      })
+    );
+  } finally {
+    dispatch(setGroupsLoading(false));
+  }
+};
+
+export const fetchGroupDevices = (groupId) => async (dispatch) => {
+  dispatch(setGroupsLoading(true));
+  try {
+    const response = await getGroupDevicesApi(groupId);
+    dispatch(loadGroupDevices(response.devices));
+  } catch (error) {
+    dispatch(setGroupsError(error.message));
+    dispatch(
+      updateMainAlert({
+        message: error.response?.data?.message || 'Failed to load group devices',
+        show: true,
+        severity: 'error'
+      })
+    );
+  } finally {
+    dispatch(setGroupsLoading(false));
+  }
+};
+
+export const fetchGroupSites = (groupId) => async (dispatch) => {
+  dispatch(setGroupsLoading(true));
+  try {
+    const response = await getGroupSitesApi(groupId);
+    dispatch(loadGroupSites(response.sites));
+  } catch (error) {
+    dispatch(setGroupsError(error.message));
+    dispatch(
+      updateMainAlert({
+        message: error.response?.data?.message || 'Failed to load group sites',
+        show: true,
+        severity: 'error'
+      })
+    );
+  } finally {
+    dispatch(setGroupsLoading(false));
+  }
+};
+
+export const fetchGroupUsers = (groupId) => async (dispatch) => {
+  dispatch(setGroupsLoading(true));
+  try {
+    const response = await getGroupUsersApi(groupId);
+    dispatch(loadGroupUsers(response));
+  } catch (error) {
+    dispatch(setGroupsError(error.message));
+    dispatch(
+      updateMainAlert({
+        message: error.response?.data?.message || 'Failed to load group users',
+        show: true,
+        severity: 'error'
+      })
+    );
+  } finally {
+    dispatch(setGroupsLoading(false));
+  }
+};
+
+export const fetchGroupDetails = (groupId) => async (dispatch) => {
+  dispatch(setGroupsLoading(true));
+  try {
+    const response = await getGroupDetailsApi(groupId);
+    dispatch(setActiveGroup(response.group));
+  } catch (error) {
+    dispatch(setGroupsError(error.message));
+    dispatch(
+      updateMainAlert({
+        message: error.response?.data?.message || 'Failed to load group details',
+        show: true,
+        severity: 'error'
+      })
+    );
+  } finally {
+    dispatch(setGroupsLoading(false));
+  }
+};
+
+export const fetchGroupCohorts = (groupName) => async (dispatch) => {
+  dispatch(setGroupsLoading(true));
+  try {
+    const response = await getGroupCohortsApi(groupName);
+    dispatch(loadGroupCohorts(response.cohorts));
+  } catch (error) {
+    dispatch(setGroupsError(error.message));
+    dispatch(
+      updateMainAlert({
+        message: error.response?.data?.message || 'Failed to load group cohorts',
+        show: true,
+        severity: 'error'
+      })
+    );
+  } finally {
+    dispatch(setGroupsLoading(false));
+  }
+};
+
+export const loadGroupDetails = (groupId) => async (dispatch, getState) => {
+  dispatch(setGroupsLoading(true));
+  try {
+    // First fetch the group details
+    await dispatch(fetchGroupDetails(groupId));
+
+    // Get the active group from the state
+    const state = getState();
+    const activeGroup = state.accessControl.groups.activeGroup;
+
+    if (!activeGroup) {
+      throw new Error('Failed to load group details');
+    }
+
+    // Then fetch all assignments in parallel using the group title
+    await Promise.all([
+      dispatch(fetchGroupDevices(activeGroup.grp_title)),
+      dispatch(fetchGroupSites(activeGroup.grp_title)),
+      dispatch(fetchGroupUsers(groupId)),
+      dispatch(fetchGroupCohorts(activeGroup.grp_title))
+    ]);
+  } catch (error) {
+    dispatch(setGroupsError(error.message));
+    dispatch(
+      updateMainAlert({
+        message: error.response?.data?.message || 'Failed to load group information',
+        show: true,
+        severity: 'error'
+      })
+    );
+  } finally {
+    dispatch(setGroupsLoading(false));
+  }
 };

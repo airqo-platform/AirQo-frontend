@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useHistory, useParams } from 'react-router-dom';
-import { Button, Paper, TextField, Box, Tabs, Tab, Typography } from '@material-ui/core';
+import { Button, Paper, TextField, Box, Tabs, Tab, Typography, Grid } from '@material-ui/core';
 import { ArrowBackIosRounded } from '@material-ui/icons';
 import DeleteIcon from '@material-ui/icons/DeleteOutlineOutlined';
 import CustomMaterialTable from '../../components/Table/CustomMaterialTable';
 import { ErrorBoundary } from '../../ErrorBoundary';
 import { LargeCircularLoader } from '../../components/Loader/CircularLoader';
+import { loadGroupDetails } from 'redux/AccessControl/operations';
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -18,35 +19,42 @@ function TabPanel({ children, value, index, ...other }) {
 
 const GroupDetails = () => {
   const history = useHistory();
-  const { groupId } = useParams();
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const { id: groupId } = useParams();
   const [tabValue, setTabValue] = useState(0);
-  const [groupData, setGroupData] = useState({
-    name: '',
-    description: '',
-    devices: [],
-    sites: [],
-    users: []
-  });
+
+  const { activeGroup, groupDevices, groupSites, groupUsers, groupCohorts, loading, error } =
+    useSelector((state) => state.accessControl.groups);
 
   useEffect(() => {
-    // TODO: Load group details
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setGroupData({
-        name: 'Test Group',
-        description: 'Test Description',
-        devices: [],
-        sites: [],
-        users: []
-      });
-    }, 1000);
-  }, [groupId]);
+    if (groupId && (!activeGroup || activeGroup._id !== groupId)) {
+      dispatch(loadGroupDetails(groupId, activeGroup?.grp_name));
+    }
+  }, [dispatch, groupId, activeGroup]);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
+
+  // Update the safety check for users data
+  const safeGroupUsers = Array.isArray(groupUsers?.group_members) ? groupUsers.group_members : [];
+  const safeGroupDevices = Array.isArray(groupDevices) ? groupDevices : [];
+  const safeGroupSites = Array.isArray(groupSites) ? groupSites : [];
+  const safeGroupCohorts = Array.isArray(groupCohorts) ? groupCohorts : [];
+
+  if (loading) {
+    return (
+      <Box
+        height={'60vh'}
+        width={'100%'}
+        display={'flex'}
+        justifyContent={'center'}
+        alignItems={'center'}
+      >
+        <LargeCircularLoader loading={loading} />
+      </Box>
+    );
+  }
 
   return (
     <ErrorBoundary>
@@ -60,73 +68,238 @@ const GroupDetails = () => {
             <Typography variant="h5">Group Details</Typography>
           </Box>
 
-          <TextField
-            label="Group Name"
-            variant="outlined"
-            fullWidth
-            value={groupData.name}
-            style={{ marginBottom: '20px' }}
-          />
-
-          <TextField
-            label="Description"
-            variant="outlined"
-            fullWidth
-            value={groupData.description}
-            style={{ marginBottom: '20px' }}
-          />
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Group Name"
+                variant="outlined"
+                fullWidth
+                value={activeGroup?.grp_title || ''}
+                style={{ marginBottom: '20px' }}
+                InputProps={{ readOnly: true }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Website"
+                variant="outlined"
+                fullWidth
+                value={activeGroup?.grp_website || ''}
+                style={{ marginBottom: '20px' }}
+                InputProps={{ readOnly: true }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Status"
+                variant="outlined"
+                fullWidth
+                value={activeGroup?.grp_status || ''}
+                style={{ marginBottom: '20px' }}
+                InputProps={{
+                  readOnly: true,
+                  style: {
+                    color: activeGroup?.grp_status === 'ACTIVE' ? 'green' : 'red'
+                  }
+                }}
+              />
+            </Grid>
+          </Grid>
 
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="group tabs">
-            <Tab label="Users" />
-            <Tab label="Devices" />
-            <Tab label="Sites" />
+            <Tab label={`Users (${activeGroup?.numberOfGroupUsers || 0})`} />
+            <Tab label={`Devices (${activeGroup?.numberOfGroupDevices || 0})`} />
+            <Tab label={`Sites (${activeGroup?.numberOfGroupSites || 0})`} />
+            <Tab label="Cohorts" />
           </Tabs>
 
           <TabPanel value={tabValue} index={0}>
-            {/* Users Table */}
             <CustomMaterialTable
               title="Users"
               columns={[
-                { title: 'Name', field: 'name' },
+                {
+                  title: 'Name',
+                  render: (rowData) => `${rowData.firstName} ${rowData.lastName}`
+                },
                 { title: 'Email', field: 'email' },
+                { title: 'Username', field: 'userName' },
+                {
+                  title: 'Role',
+                  field: 'role_name',
+                  render: (rowData) => (
+                    <span style={{ textTransform: 'capitalize' }}>
+                      {rowData.role_name?.toLowerCase().replace(/_/g, ' ')}
+                    </span>
+                  )
+                },
+                {
+                  title: 'Status',
+                  field: 'isActive',
+                  render: (rowData) => (
+                    <span
+                      style={{
+                        color: rowData.isActive ? 'green' : 'red',
+                        textTransform: 'capitalize'
+                      }}
+                    >
+                      {rowData.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  )
+                },
+                {
+                  title: 'Last Login',
+                  field: 'lastLogin',
+                  render: (rowData) => new Date(rowData.lastLogin).toLocaleDateString()
+                },
                 {
                   title: 'Actions',
                   render: (rowData) => <DeleteIcon style={{ cursor: 'pointer', color: 'grey' }} />
                 }
               ]}
-              data={groupData.users}
+              data={safeGroupUsers}
+              options={{
+                search: true,
+                searchFieldAlignment: 'right',
+                showTitle: true,
+                emptyRowsWhenPaging: false,
+                searchFieldStyle: {
+                  fontFamily: 'Open Sans'
+                },
+                headerStyle: {
+                  fontFamily: 'Open Sans',
+                  fontSize: 16,
+                  fontWeight: 600
+                }
+              }}
             />
           </TabPanel>
 
           <TabPanel value={tabValue} index={1}>
-            {/* Devices Table */}
             <CustomMaterialTable
               title="Devices"
               columns={[
                 { title: 'Name', field: 'name' },
-                { title: 'Status', field: 'status' },
+                { title: 'Description', field: 'description' },
+                {
+                  title: 'Status',
+                  field: 'status',
+                  render: (rowData) => (
+                    <span
+                      style={{
+                        color: rowData?.status === 'active' ? 'green' : 'red',
+                        textTransform: 'capitalize'
+                      }}
+                    >
+                      {rowData?.status || 'N/A'}
+                    </span>
+                  )
+                },
                 {
                   title: 'Actions',
                   render: (rowData) => <DeleteIcon style={{ cursor: 'pointer', color: 'grey' }} />
                 }
               ]}
-              data={groupData.devices}
+              data={safeGroupDevices}
+              options={{
+                search: true,
+                searchFieldAlignment: 'right',
+                showTitle: true,
+                emptyRowsWhenPaging: false,
+                searchFieldStyle: {
+                  fontFamily: 'Open Sans'
+                },
+                headerStyle: {
+                  fontFamily: 'Open Sans',
+                  fontSize: 16,
+                  fontWeight: 600
+                }
+              }}
             />
           </TabPanel>
 
           <TabPanel value={tabValue} index={2}>
-            {/* Sites Table */}
             <CustomMaterialTable
               title="Sites"
               columns={[
                 { title: 'Name', field: 'name' },
-                { title: 'Location', field: 'location' },
+                { title: 'Description', field: 'description' },
+                { title: 'Latitude', field: 'latitude' },
+                { title: 'Longitude', field: 'longitude' },
                 {
                   title: 'Actions',
                   render: (rowData) => <DeleteIcon style={{ cursor: 'pointer', color: 'grey' }} />
                 }
               ]}
-              data={groupData.sites}
+              data={safeGroupSites}
+              options={{
+                search: true,
+                searchFieldAlignment: 'right',
+                showTitle: true,
+                emptyRowsWhenPaging: false,
+                searchFieldStyle: {
+                  fontFamily: 'Open Sans'
+                },
+                headerStyle: {
+                  fontFamily: 'Open Sans',
+                  fontSize: 16,
+                  fontWeight: 600
+                }
+              }}
+            />
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={3}>
+            <CustomMaterialTable
+              title="Cohorts"
+              columns={[
+                {
+                  title: 'Name',
+                  field: 'name',
+                  render: (rowData) => (
+                    <Button
+                      variant="text"
+                      color="primary"
+                      onClick={() => history.push(`/cohorts/${rowData._id}`)}
+                    >
+                      {rowData.name}
+                    </Button>
+                  )
+                },
+                { title: 'Description', field: 'description' },
+                {
+                  title: 'Status',
+                  field: 'status',
+                  render: (rowData) => (
+                    <span
+                      style={{
+                        color: rowData?.status === 'active' ? 'green' : 'red',
+                        textTransform: 'capitalize'
+                      }}
+                    >
+                      {rowData?.status || 'N/A'}
+                    </span>
+                  )
+                },
+                {
+                  title: 'Actions',
+                  render: (rowData) => <DeleteIcon style={{ cursor: 'pointer', color: 'grey' }} />
+                }
+              ]}
+              data={safeGroupCohorts}
+              options={{
+                search: true,
+                searchFieldAlignment: 'right',
+                showTitle: true,
+                emptyRowsWhenPaging: false,
+                searchFieldStyle: {
+                  fontFamily: 'Open Sans'
+                },
+                headerStyle: {
+                  fontFamily: 'Open Sans',
+                  fontSize: 16,
+                  fontWeight: 600
+                }
+              }}
             />
           </TabPanel>
         </Paper>

@@ -4,9 +4,11 @@ import {
   GET_ROLES_URI,
   GENERATE_ACCESS_TOKEN,
   CREATE_TEAM_URI,
-  GET_SIM_URI
+  GET_SIM_URI,
+  GET_GROUPS_URI
 } from '../../config/urls/analytics';
 import { GET_ACCESS_TOKEN } from '../../config/urls/authService';
+import { ALL_DEVICES_URI } from '../../config/urls/deviceRegistry';
 import createAxiosInstance from './axiosConfig';
 
 export const createAccessToken = async (data) => {
@@ -173,5 +175,42 @@ export const getSimsApi = async () => {
 export const checkSimStatusApi = async (simID) => {
   return await createAxiosInstance()
     .get(`${GET_SIM_URI}/${simID}/status`)
+    .then((response) => response.data);
+};
+
+// Groups Management APIs
+export const getGroupsSummaryApi = async () => {
+  return await createAxiosInstance()
+    .get(GET_GROUPS_URI)
+    .then((response) => response.data);
+};
+
+export const getGroupDetailsApi = async (groupId) => {
+  return await createAxiosInstance()
+    .get(`${GET_GROUPS_URI}/${groupId}`)
+    .then((response) => response.data);
+};
+
+export const getGroupDevicesApi = async (groupName) => {
+  return await createAxiosInstance()
+    .get(`${ALL_DEVICES_URI}/summary?group=${groupName}`)
+    .then((response) => response.data);
+};
+
+export const getGroupSitesApi = async (groupName) => {
+  return await createAxiosInstance()
+    .get(`${ALL_DEVICES_URI}/sites/summary?group=${groupName}`)
+    .then((response) => response.data);
+};
+
+export const getGroupUsersApi = async (groupId) => {
+  return await createAxiosInstance()
+    .get(`${GET_GROUPS_URI}/${groupId}/assigned-users`)
+    .then((response) => response.data);
+};
+
+export const getGroupCohortsApi = async (groupName) => {
+  return await createAxiosInstance()
+    .get(`${ALL_DEVICES_URI}/cohorts?group=${groupName}`)
     .then((response) => response.data);
 };
