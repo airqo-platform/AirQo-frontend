@@ -30,6 +30,7 @@ import GroupAddIcon from '@material-ui/icons/GroupAdd';
 import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';
 import AppsIcon from '@material-ui/icons/Apps';
 import DeviceHubIcon from '@material-ui/icons/DeviceHub';
+import GroupIcon from '@material-ui/icons/Group';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -181,6 +182,13 @@ const allUserManagementPages = [
     title: 'Teams',
     href: '/teams',
     icon: <GroupAddIcon />,
+    isNew: true
+  },
+  {
+    title: 'Groups',
+    href: '/groups',
+    icon: <GroupIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
     isNew: true
   },
   {

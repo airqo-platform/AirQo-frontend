@@ -55,6 +55,8 @@ const UserStats = lazy(() => import('./views/pages/UserStats/UserStats'));
 const ClientActivation = lazy(() => import('./views/pages/clients'));
 const DeployDevice = lazy(() => import('./views/pages/DeployDevice'));
 const Preferences = lazy(() => import('./views/pages/Preferences/Preferences'));
+const Groups = lazy(() => import('./views/pages/GroupsManagement'));
+const GroupsDetails = lazy(() => import('./views/pages/GroupsManagement/GroupDetails'));
 
 const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
@@ -193,6 +195,8 @@ const AppRoutes = ({ auth, logoutUser }) => {
               layout={MainLayout}
             />
             <PrivateRoute exact path="/grids" component={GridsRegistry} layout={MainLayout} />
+            <PrivateRoute exact path="/groups" component={Groups} layout={MainLayout} />
+            <PrivateRoute exact path="/groups/:id" component={GroupsDetails} layout={MainLayout} />
             <PrivateRoute
               exact
               path="/grids/:gridName"
