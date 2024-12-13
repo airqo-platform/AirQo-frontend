@@ -1,6 +1,9 @@
 name: deploy-android-to-play-store
 
 on:
+  push:
+    branches:
+      - android-build-playstore
   workflow_dispatch:
     inputs:
       android:
