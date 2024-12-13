@@ -22,6 +22,7 @@ import { saveAs } from 'file-saver';
 import CustomToast from '../../../Toast/CustomToast';
 import { format } from 'date-fns';
 import { fetchSitesSummary } from '@/lib/store/services/sitesSummarySlice';
+import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
 /**
  * Header component for the Download Data modal.
@@ -53,7 +54,11 @@ const getMimeType = (fileType) => {
  */
 const DataDownload = ({ onClose }) => {
   const dispatch = useDispatch();
-  const userInfo = useSelector((state) => state.login.userInfo);
+  const {
+    id: activeGroupId,
+    title: groupTitle,
+    groupList,
+  } = useGetActiveGroup();
   const preferencesData = useSelector(
     (state) => state.defaults.individual_preferences,
   );
@@ -71,6 +76,9 @@ const DataDownload = ({ onClose }) => {
   // Use the hook to fetch data
   const fetchData = useDataDownload();
 
+  // Active group data
+  const activeGroup = { id: activeGroupId, name: groupTitle };
+
   // Extract selected site IDs from preferencesData
   const selectedSiteIds = useMemo(() => {
     return preferencesData?.[0]?.selected_sites?.map((site) => site._id) || [];
@@ -79,17 +87,17 @@ const DataDownload = ({ onClose }) => {
   // Organization options based on user groups
   const ORGANIZATION_OPTIONS = useMemo(
     () =>
-      userInfo?.groups?.map((group) => ({
+      groupList?.map((group) => ({
         id: group._id,
         name: group.grp_title,
       })) || [],
-    [userInfo],
+    [groupList],
   );
 
   // Form data state
   const [formData, setFormData] = useState({
     title: { name: 'Untitled Report' },
-    organization: null,
+    organization: activeGroup || ORGANIZATION_OPTIONS[0],
     dataType: DATA_TYPE_OPTIONS[0],
     pollutant: POLLUTANT_OPTIONS[0],
     duration: null,
@@ -108,12 +116,13 @@ const DataDownload = ({ onClose }) => {
       const airqoNetwork = ORGANIZATION_OPTIONS.find(
         (group) => group.name.toLowerCase() === 'airqo',
       );
+
       setFormData((prevData) => ({
         ...prevData,
-        organization: airqoNetwork || ORGANIZATION_OPTIONS[0],
+        organization: activeGroup || airqoNetwork,
       }));
     }
-  }, [ORGANIZATION_OPTIONS, formData.organization]);
+  }, [ORGANIZATION_OPTIONS, formData.organization, activeGroupId, groupTitle]);
 
   /**
    * Fetch sites summary whenever the selected organization changes.
@@ -138,8 +147,7 @@ const DataDownload = ({ onClose }) => {
     );
     setFormData({
       title: { name: 'Untitled Report' },
-      organization: airqoNetwork ||
-        ORGANIZATION_OPTIONS[0] || { id: '', name: 'Default Network' },
+      organization: activeGroup || airqoNetwork,
       dataType: DATA_TYPE_OPTIONS[0],
       pollutant: POLLUTANT_OPTIONS[0],
       duration: null,

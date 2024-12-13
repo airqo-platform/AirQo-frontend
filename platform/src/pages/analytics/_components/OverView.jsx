@@ -21,11 +21,13 @@ import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { subDays } from 'date-fns';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
 import useFetchAnalyticsData from '@/core/hooks/useFetchAnalyticsData';
+import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
 const OverView = () => {
   const dispatch = useDispatch();
   const isOpen = useSelector((state) => state.modal.openModal);
   const chartData = useSelector((state) => state.chart);
+  const { title: groupTitle } = useGetActiveGroup();
 
   // Default date range for the last 7 days
   const defaultDateRange = useMemo(
@@ -45,7 +47,7 @@ const OverView = () => {
     dateRange: chartData.chartDataRange,
     frequency: chartData.timeFrame,
     pollutant: chartData.pollutionType,
-    organisationName: chartData.organizationName,
+    organisationName: chartData.organizationName || groupTitle,
   });
 
   // Reset chart data range to default when the component is unmounted

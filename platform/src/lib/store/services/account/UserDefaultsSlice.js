@@ -47,9 +47,9 @@ export const updateUserPreferences = createAsyncThunk(
 
 export const getIndividualUserPreferences = createAsyncThunk(
   'preferences/getIndividual',
-  async (identifier, { rejectWithValue }) => {
+  async ({ identifier, groupID = null }, { rejectWithValue }) => {
     try {
-      const response = await getUserPreferencesApi(identifier);
+      const response = await getUserPreferencesApi(identifier, groupID);
       return response;
     } catch (error) {
       return rejectWithValue(

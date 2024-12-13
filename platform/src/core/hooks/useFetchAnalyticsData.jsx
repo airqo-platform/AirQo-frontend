@@ -93,7 +93,7 @@ const useFetchAnalyticsData = ({
   chartType = 'line',
   frequency = 'daily',
   pollutant = 'pm2_5',
-  organisationName = 'airqo',
+  organisationName,
 }) => {
   const [state, setState] = useState({
     data: [],

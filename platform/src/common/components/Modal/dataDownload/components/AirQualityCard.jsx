@@ -10,7 +10,7 @@ const AirQualityCard = ({
   return (
     <div className="flex flex-col sm:flex-row bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm space-y-4 sm:space-y-0">
       {/* Air Quality Section */}
-      <div className="flex-2 sm:pr-4 w-2/4">
+      {/* <div className="flex-2 sm:pr-4 w-2/4">
         <h3 className="text-xs border-b font-semibold text-gray-500 pb-1">
           Air Quality
         </h3>
@@ -19,10 +19,10 @@ const AirQualityCard = ({
         ) : (
           <p className="text-sm text-gray-800 mt-1">{airQuality}</p>
         )}
-      </div>
+      </div> */}
 
       {/* Pollution Source Section */}
-      <div className="flex-1 sm:px-4">
+      {/* <div className="flex-1 sm:px-4">
         <h3 className="text-xs border-b font-semibold text-gray-500 pb-1">
           Pollution Source
         </h3>
@@ -31,7 +31,7 @@ const AirQualityCard = ({
         ) : (
           <p className="text-sm text-gray-800 mt-1">{pollutionSource}</p>
         )}
-      </div>
+      </div> */}
 
       {/* Pollutant Section */}
       <div className="flex-1 sm:pl-4">

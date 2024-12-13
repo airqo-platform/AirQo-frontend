@@ -164,11 +164,18 @@ export const updateUserPreferencesApi = async (data) => {
 };
 
 // Get Individual User preferences
-export const getUserPreferencesApi = async (identifier) => {
-  const response = await createAxiosInstance().get(
-    `${USER_PREFERENCES_URL}/${identifier}`,
-  );
-  return response.data;
+export const getUserPreferencesApi = async (identifier, groupID = null) => {
+  try {
+    const response = await createAxiosInstance().get(
+      `${USER_PREFERENCES_URL}/${identifier}`,
+      {
+        params: groupID ? { group_id: groupID } : {},
+      },
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || error.message);
+  }
 };
 
 // Patch/Replace User Preferences

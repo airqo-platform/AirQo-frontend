@@ -8,6 +8,7 @@ import { replaceUserPreferences } from '@/lib/store/services/account/UserDefault
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { fetchSitesSummary } from '@/lib/store/services/sitesSummarySlice';
+import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
 /**
  * Header component for the Add Location modal.
@@ -35,7 +36,6 @@ const AddLocations = ({ onClose }) => {
   const preferencesData = useSelector(
     (state) => state.defaults.individual_preferences,
   );
-  const chartData = useSelector((state) => state.chart);
 
   // Local state management
   const [selectedSites, setSelectedSites] = useState([]);
@@ -43,6 +43,8 @@ const AddLocations = ({ onClose }) => {
   const [clearSelected, setClearSelected] = useState(false);
   const [error, setError] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
+
+  const { id: activeGroupId, title: groupTitle } = useGetActiveGroup();
 
   // Fetch sites summary data using custom hook
   const {
@@ -66,10 +68,10 @@ const AddLocations = ({ onClose }) => {
    * Fetch sites summary whenever the selected organization changes.
    */
   useEffect(() => {
-    if (chartData.organizationName) {
-      dispatch(fetchSitesSummary({ group: chartData.organizationName }));
+    if (groupTitle) {
+      dispatch(fetchSitesSummary({ group: groupTitle }));
     }
-  }, [dispatch, chartData.organizationName]);
+  }, [dispatch, groupTitle]);
 
   // Extract selected site IDs from user preferences
   const selectedSiteIds = useMemo(() => {
@@ -162,6 +164,7 @@ const AddLocations = ({ onClose }) => {
 
     const payload = {
       user_id: userID,
+      group_id: activeGroupId,
       selected_sites: selectedSitesData,
     };
 
@@ -170,7 +173,12 @@ const AddLocations = ({ onClose }) => {
       .then(() => {
         onClose();
         if (userID) {
-          dispatch(getIndividualUserPreferences(userID));
+          dispatch(
+            getIndividualUserPreferences({
+              identifier: userID,
+              groupID: activeGroupId,
+            }),
+          );
         }
         dispatch(setRefreshChart(true));
       })

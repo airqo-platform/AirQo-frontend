@@ -1,85 +1,51 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import CustomDropdown from './CustomDropdown';
 import ChevronDownIcon from '@/icons/Common/chevron_downIcon';
 import RadioIcon from '@/icons/SideBar/radioIcon';
-import { useDispatch, useSelector } from 'react-redux';
+import Spinner from '@/components/Spinner';
 import Button from '../Button';
 import { updateUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
-import Spinner from '@/components/Spinner';
 import { setOrganizationName } from '@/lib/store/services/charts/ChartSlice';
+import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
-// Utility functions moved to separate helpers
-const formatGroupName = (name) => {
-  if (!name || typeof name !== 'string') return 'Unknown';
-  const trimmedName = name.trim();
-  if (!trimmedName) return 'Unknown';
-
-  // make name upper case and replace _ or - with space
-  return trimmedName.toUpperCase().replace(/_/g, ' ').replace(/-/g, ' ');
-};
-
-const getAbbreviation = (name) => {
-  if (!name || typeof name !== 'string') return 'NA';
-  const trimmedName = name.trim();
-  if (!trimmedName) return 'NA';
-
-  return trimmedName.toLowerCase() === 'airqo'
-    ? 'AQ'
-    : trimmedName.slice(0, 2).toUpperCase();
-};
-
-const truncateText = (text, maxLength = 10) => {
-  if (!text || typeof text !== 'string') return 'Unknown';
-  const formatted = formatGroupName(text);
-  return formatted.length > maxLength
-    ? `${formatted.slice(0, maxLength)}...`
-    : formatted;
+const cleanGroupName = (name) => {
+  if (!name) return '';
+  return name.replace(/-/g, ' ').toUpperCase();
 };
 
 const OrganizationDropdown = () => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState(null);
-  const [activeGroup, setActiveGroup] = useState(null);
 
-  const userInfo = useSelector((state) => state?.login?.userInfo);
+  const {
+    id: activeGroupId,
+    title: activeGroupTitle,
+    groupList,
+    userID,
+  } = useGetActiveGroup();
   const isCollapsed = useSelector((state) => state?.sidebar?.isCollapsed);
-  const groups = userInfo?.groups || [];
 
-  // Memoize filtered active groups
+  // Memoize active groups
   const activeGroups = useMemo(
-    () => groups.filter((group) => group && group.status === 'ACTIVE'),
-    [groups],
+    () => groupList.filter((group) => group && group.status === 'ACTIVE'),
+    [groupList],
   );
 
-  // Initialize activeGroup from localStorage or default to first active group
+  // Initialize active group if missing
   useEffect(() => {
-    const initializeActiveGroup = () => {
-      try {
-        const storedGroup = localStorage.getItem('activeGroup');
-        if (storedGroup) {
-          const parsedGroup = JSON.parse(storedGroup);
-          setActiveGroup(parsedGroup);
-          return;
-        }
-
-        if (activeGroups.length > 0) {
-          const defaultGroup = activeGroups[0];
-          setActiveGroup(defaultGroup);
-          localStorage.setItem('activeGroup', JSON.stringify(defaultGroup));
-        }
-      } catch (error) {
-        console.error('Error initializing active group:', error);
-      }
-    };
-
-    initializeActiveGroup();
-  }, [activeGroups]);
+    if (!activeGroupId && activeGroups.length > 0) {
+      const defaultGroup = activeGroups[0];
+      localStorage.setItem('activeGroup', JSON.stringify(defaultGroup));
+      dispatch(setOrganizationName(defaultGroup.grp_title));
+    }
+  }, [activeGroupId, activeGroups, dispatch]);
 
   const handleUpdatePreferences = useCallback(
     async (group) => {
-      if (!userInfo?._id || !group?._id) {
-        console.warn('Invalid user or group data');
+      if (!group?._id) {
+        console.warn('Invalid group data');
         return;
       }
 
@@ -87,21 +53,16 @@ const OrganizationDropdown = () => {
       setSelectedGroupId(group._id);
 
       try {
-        // Update organization name in store
-        const orgName = group.grp_title || 'Unknown';
-        dispatch(setOrganizationName(orgName));
-
-        // Update user preferences
         const response = await dispatch(
           updateUserPreferences({
-            user_id: userInfo._id,
+            user_id: userID,
             group_id: group._id,
           }),
         );
 
         if (response?.payload?.success) {
-          setActiveGroup(group);
           localStorage.setItem('activeGroup', JSON.stringify(group));
+          dispatch(setOrganizationName(group.grp_title));
         } else {
           console.warn('Failed to update user preferences');
         }
@@ -112,19 +73,19 @@ const OrganizationDropdown = () => {
         setSelectedGroupId(null);
       }
     },
-    [dispatch, userInfo],
+    [dispatch, userID],
   );
 
   const handleDropdownSelect = useCallback(
     (group) => {
-      if (group?._id && activeGroup?._id !== group._id) {
+      if (group?._id !== activeGroupId) {
         handleUpdatePreferences(group);
       }
     },
-    [activeGroup, handleUpdatePreferences],
+    [activeGroupId, handleUpdatePreferences],
   );
 
-  if (!activeGroup || !userInfo || groups.length === 0) {
+  if (!activeGroupId || groupList.length === 0) {
     return null;
   }
 
@@ -137,40 +98,40 @@ const OrganizationDropdown = () => {
           variant="outlined"
         >
           <div
-            className={`w-full h-12 p-2 bg-white rounded-xl border border-gray-200 ${
+            className={`w-full h-12 p-2 bg-white rounded-xl border border-gray-200 hover:bg-gray-100 ${
               isCollapsed
                 ? 'flex justify-center'
                 : 'inline-flex justify-between items-center'
-            } hover:bg-gray-100`}
+            }`}
           >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-yellow-200 flex items-center justify-center rounded-full">
                 <span className="text-slate-500 text-sm font-medium">
-                  {getAbbreviation(activeGroup.grp_title)}
+                  {activeGroupTitle.slice(0, 2).toUpperCase()}
                 </span>
               </div>
               {!isCollapsed && (
                 <div
-                  className="text-sm font-medium leading-tight"
-                  title={formatGroupName(activeGroup.grp_title)}
+                  className="text-sm font-medium leading-tight truncate max-w-[200px]"
+                  title={activeGroupTitle}
                 >
-                  {truncateText(activeGroup.grp_title)}
+                  {cleanGroupName(activeGroupTitle)}
                 </div>
               )}
             </div>
-            {groups.length > 1 && !isCollapsed && <ChevronDownIcon />}
+            {groupList.length > 1 && !isCollapsed && <ChevronDownIcon />}
           </div>
         </Button>
       }
       sidebar={true}
       id="organization-dropdown"
     >
-      {groups.map((group) => (
+      {groupList.map((group) => (
         <button
-          key={group?._id || `group-${Math.random()}`}
+          key={group?._id}
           onClick={() => handleDropdownSelect(group)}
           className={`w-full h-11 px-3.5 rounded-xl py-2.5 mb-[0.5rem] inline-flex items-center justify-between ${
-            activeGroup?._id === group?._id
+            activeGroupId === group._id
               ? 'bg-[#EBF5FF] text-blue-600'
               : 'hover:bg-gray-100'
           }`}
@@ -178,19 +139,19 @@ const OrganizationDropdown = () => {
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-yellow-200 flex items-center justify-center rounded-full">
               <span className="text-slate-500 text-sm font-medium">
-                {getAbbreviation(group.grp_title)}
+                {group.grp_title.slice(0, 2).toUpperCase()}
               </span>
             </div>
             <div
-              className="max-w-[120px] text-left text-sm font-medium"
-              title={formatGroupName(group.grp_title)}
+              className="text-sm font-medium truncate max-w-[150px]"
+              title={group.grp_title}
             >
-              {truncateText(group.grp_title)}
+              {cleanGroupName(group.grp_title)}
             </div>
           </div>
-          {loading && selectedGroupId === group?._id ? (
+          {loading && selectedGroupId === group._id ? (
             <Spinner width={16} height={16} />
-          ) : activeGroup?._id === group?._id ? (
+          ) : activeGroupId === group._id ? (
             <RadioIcon />
           ) : (
             <input type="radio" className="border-[#C4C7CB]" />

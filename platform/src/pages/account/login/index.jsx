@@ -71,7 +71,7 @@ const UserLogin = () => {
         localStorage.setItem('loggedUser', JSON.stringify(user));
 
         const preferencesResponse = await retryWithDelay(() =>
-          dispatch(getIndividualUserPreferences(user._id)),
+          dispatch(getIndividualUserPreferences({ identifier: user._id })),
         );
         if (preferencesResponse.payload.success) {
           const preferences = preferencesResponse.payload.preferences;
@@ -117,7 +117,7 @@ const UserLogin = () => {
     >
       <div className="w-full">
         <h2 className="text-3xl text-black-700 font-medium">
-          Let's get started
+          Let&apos;s get started
         </h2>
         <p className="text-xl text-black-700 font-normal mt-3">
           Get access to air quality analytics across Africa
@@ -186,7 +186,7 @@ const UserLogin = () => {
         <div className="mt-8 w-full flex justify-center">
           <div>
             <span className="text-sm text-grey-300">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
             </span>
             <span className="text-sm text-blue-900 font-medium">
               <Link href="/account/creation">Register here</Link>
