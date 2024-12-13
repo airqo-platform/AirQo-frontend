@@ -238,7 +238,7 @@ const ChartContainer = ({
           </div>
         )}
         <div ref={chartRef} className="my-3 relative" style={{ width, height }}>
-          {error ? (
+          {error && !chartSites.length === 0 ? (
             <ErrorOverlay />
           ) : showSkeleton ? (
             <SkeletonLoader width={width} height={height} />

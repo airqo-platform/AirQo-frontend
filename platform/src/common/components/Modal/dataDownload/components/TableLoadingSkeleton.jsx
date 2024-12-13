@@ -24,7 +24,6 @@ const TableLoadingSkeleton = ({ rows = 7 }) => {
           </tr>
         </thead>
         <tbody>
-          {' '}
           {Array.from({ length: rows }).map((_, index) => (
             <tr
               key={index}
