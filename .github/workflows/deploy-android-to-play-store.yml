@@ -80,6 +80,11 @@ jobs:
           bundle exec fastlane supply init
           mkdir -p fastlane/metadata/android/en-US/changelogs
           touch fastlane/metadata/android/en-US/changelogs/default.txt
+
+          if [ ! -f fastlane/release_notes.txt ]; then
+            echo "Initial release of version 2.1.3" > fastlane/release_notes.txt
+          fi
+
           cat fastlane/release_notes.txt > fastlane/metadata/android/en-US/changelogs/default.txt
           bundle exec fastlane android play_store
         env:
