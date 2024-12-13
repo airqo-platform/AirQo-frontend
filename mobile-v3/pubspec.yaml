@@ -89,7 +89,8 @@ flutter:
     - assets/data/data.json
     - assets/data/new_data.json
     - assets/images/shared/airquality_indicators/
-    - .env
+    - .env.prod
+    - .env.dev
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
