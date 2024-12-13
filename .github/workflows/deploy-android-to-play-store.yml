@@ -15,7 +15,7 @@ jobs:
     if: inputs.android == true
     defaults:
       run:
-        working-directory: mobile
+        working-directory: mobile-v3
     steps:
       - name: Checkout
         uses: "actions/checkout@v4"
@@ -64,8 +64,8 @@ jobs:
       - name: Setup Fastlane
         uses: ruby/setup-ruby@v1.123.0
         with:
-          ruby-version: "2.6"
-          working-directory: mobile/android
+          ruby-version: "3.1.0"
+          working-directory: mobile-v3/android
 
       - name: Install bundle
         run: |
@@ -78,6 +78,13 @@ jobs:
           cd android/
           echo $MOBILE_ANDROID_PLAYSTORE_SA > play-store-service-account.json
           bundle exec fastlane supply init
+          mkdir -p fastlane/metadata/android/en-US/changelogs
+          touch fastlane/metadata/android/en-US/changelogs/default.txt
+
+          if [ ! -f fastlane/release_notes.txt ]; then
+            echo "App release version 3.0.2" > fastlane/release_notes.txt
+          fi
+
           cat fastlane/release_notes.txt > fastlane/metadata/android/en-US/changelogs/default.txt
           bundle exec fastlane android play_store
         env:

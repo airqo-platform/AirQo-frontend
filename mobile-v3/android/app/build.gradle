@@ -22,12 +22,31 @@ secrets {
     ignoreList.add("sdk.*")       // Ignore all keys matching the regexp "sdk.*"
 }
 
+
+def appProperties = new Properties()
+def appPropertiesFile = rootProject.file('key.properties')
+if (appPropertiesFile.exists()) {
+    appPropertiesFile.withReader('UTF-8') { reader ->
+        appProperties.load(reader)
+    }
+}
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
     localPropertiesFile.withReader('UTF-8') { reader ->
         localProperties.load(reader)
     }
+}
+
+def googleMapApiKey = appProperties.getProperty('google.maps.key')
+if (googleMapApiKey == null) {
+    throw new GradleException("Google Maps Key not found. Define google.maps.key in the key.properties file.")
+}
+
+def googleMapApiKeyDev = appProperties.getProperty('google.maps.key.dev')
+if (googleMapApiKeyDev == null) {
+    throw new GradleException("Google Maps Key not found. Define google.maps.key_dev in the key.properties file.")
 }
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
@@ -38,6 +57,12 @@ if (flutterVersionCode == null) {
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
     flutterVersionName = '1.0'
+}
+
+def releaseKeystoreProperties = new Properties()
+def releaseKeystorePropertiesFile = rootProject.file('prod-key.properties')
+if (releaseKeystorePropertiesFile.exists()) {
+    releaseKeystoreProperties.load(new FileInputStream(releaseKeystorePropertiesFile))
 }
 
 android {
@@ -69,11 +94,35 @@ android {
         versionName flutterVersionName
     }
 
+    flavorDimensions "airqo"
+    productFlavors {
+        airqo {
+            dimension "airqo"
+            manifestPlaceholders = [googleMapsKey:googleMapApiKey]
+        }
+ 
+        airqodev {
+            dimension "airqo"
+            applicationIdSuffix ".dev"
+            manifestPlaceholders = [googleMapsKey:googleMapApiKeyDev]
+        }
+        
+    }
+    
+       signingConfigs {
+            release {
+            keyAlias releaseKeystoreProperties['keyAlias']
+            keyPassword releaseKeystoreProperties['keyPassword']
+            storeFile releaseKeystoreProperties['storeFile'] ? file(releaseKeystoreProperties['storeFile']) : null
+            storePassword releaseKeystoreProperties['storePassword']
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
         }
     }
 }

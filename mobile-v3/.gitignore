@@ -70,3 +70,7 @@ app.*.map.json
 .env
 .env.*
 *.env
+
+/android/google-services.json
+/android/play-store-service-account.json
+/android/fastlane/metadata
