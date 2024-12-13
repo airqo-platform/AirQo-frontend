@@ -40,6 +40,12 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+def releaseKeystoreProperties = new Properties()
+def releaseKeystorePropertiesFile = rootProject.file('prod-key.properties')
+if (releaseKeystorePropertiesFile.exists()) {
+    releaseKeystoreProperties.load(new FileInputStream(releaseKeystorePropertiesFile))
+}
+
 android {
     namespace "com.airqo.app"
     compileSdk 34
