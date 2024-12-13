@@ -15,7 +15,7 @@ jobs:
     if: inputs.android == true
     defaults:
       run:
-        working-directory: mobile
+        working-directory: mobile-v3
     steps:
       - name: Checkout
         uses: "actions/checkout@v4"
@@ -64,7 +64,7 @@ jobs:
       - name: Setup Fastlane
         uses: ruby/setup-ruby@v1.123.0
         with:
-          ruby-version: "2.6"
+          ruby-version: "3.3.6"
           working-directory: mobile/android
 
       - name: Install bundle
