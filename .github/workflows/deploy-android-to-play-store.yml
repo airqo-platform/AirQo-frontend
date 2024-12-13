@@ -1,9 +1,6 @@
 name: deploy-android-to-play-store
 
 on:
-  push:
-    branches:
-      - android-build-playstore
   workflow_dispatch:
     inputs:
       android:
@@ -67,7 +64,7 @@ jobs:
       - name: Setup Fastlane
         uses: ruby/setup-ruby@v1.123.0
         with:
-          ruby-version: "3.3.6"
+          ruby-version: "2.6"
           working-directory: mobile/android
 
       - name: Install bundle
