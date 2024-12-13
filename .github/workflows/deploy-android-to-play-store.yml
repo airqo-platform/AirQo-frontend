@@ -64,8 +64,8 @@ jobs:
       - name: Setup Fastlane
         uses: ruby/setup-ruby@v1.123.0
         with:
-          ruby-version: "2.6"
-          working-directory: mobile/android
+          ruby-version: "3.3.6"
+          working-directory: mobile-v3/android
 
       - name: Install bundle
         run: |
