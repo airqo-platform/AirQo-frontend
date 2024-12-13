@@ -78,6 +78,8 @@ jobs:
           cd android/
           echo $MOBILE_ANDROID_PLAYSTORE_SA > play-store-service-account.json
           bundle exec fastlane supply init
+          mkdir -p fastlane/metadata/android/en-US/changelogs
+          touch fastlane/metadata/android/en-US/changelogs/default.txt
           cat fastlane/release_notes.txt > fastlane/metadata/android/en-US/changelogs/default.txt
           bundle exec fastlane android play_store
         env:
