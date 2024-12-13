@@ -22,6 +22,15 @@ secrets {
     ignoreList.add("sdk.*")       // Ignore all keys matching the regexp "sdk.*"
 }
 
+
+def appProperties = new Properties()
+def appPropertiesFile = rootProject.file('key.properties')
+if (appPropertiesFile.exists()) {
+    appPropertiesFile.withReader('UTF-8') { reader ->
+        appProperties.load(reader)
+    }
+}
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
