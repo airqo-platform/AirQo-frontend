@@ -59,7 +59,6 @@ const DataDownload = ({ onClose }) => {
     title: groupTitle,
     groupList,
   } = useGetActiveGroup();
-  const userInfo = useSelector((state) => state.login.userInfo);
   const preferencesData = useSelector(
     (state) => state.defaults.individual_preferences,
   );
@@ -92,7 +91,7 @@ const DataDownload = ({ onClose }) => {
         id: group._id,
         name: group.grp_title,
       })) || [],
-    [userInfo],
+    [groupList],
   );
 
   // Form data state
