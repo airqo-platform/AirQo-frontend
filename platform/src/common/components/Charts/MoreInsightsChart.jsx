@@ -30,6 +30,20 @@ import useResizeObserver from '@/core/utils/useResizeObserver';
 
 /**
  * MoreInsightsChart Component
+ *
+ * Renders a responsive chart (line or bar) based on the provided data and configurations.
+ * Displays user-friendly messages when no sites are selected or when there's no data to display.
+ *
+ * @param {object} props - Component properties.
+ * @param {Array} props.data - Array of data points for the chart.
+ * @param {Array} props.selectedSites - Array of selected site IDs or site objects.
+ * @param {string} props.chartType - Type of chart ('line' or 'bar').
+ * @param {string} props.frequency - Frequency of data points (e.g., 'daily', 'weekly').
+ * @param {string|number} props.width - Width of the chart container.
+ * @param {string|number} props.height - Height of the chart container.
+ * @param {string} props.id - HTML ID for the chart container.
+ * @param {string} props.pollutantType - Type of pollutant (e.g., 'pm2_5', 'pm10').
+ * @param {Function} props.refreshChart - Function to refresh chart data.
  */
 const MoreInsightsChart = ({
   data = [],
@@ -49,6 +63,10 @@ const MoreInsightsChart = ({
 
   /**
    * Processes raw chart data by validating dates and organizing data by time and site.
+   *
+   * @param {Array} data - Raw data array.
+   * @param {Array} selectedSiteIds - Array of selected site IDs.
+   * @returns {object} Processed data including sorted data and site ID to name mapping.
    */
   const processChartData = useCallback((data, selectedSiteIds) => {
     const combinedData = {};
@@ -98,22 +116,27 @@ const MoreInsightsChart = ({
   }, []);
 
   /**
-   * Ensure selectedSites is an array of site IDs
+   * Ensures selectedSites is an array of site IDs.
+   * If selectedSites contains objects, it maps them to their respective IDs.
+   *
+   * @returns {Array} Array of selected site IDs.
    */
   const selectedSiteIds = useMemo(() => {
-    if (selectedSites.length === 0) return [];
+    if (!selectedSites || selectedSites.length === 0) return [];
+
     // If selectedSites is an array of objects, map to IDs
     if (typeof selectedSites[0] === 'object') {
       return selectedSites
         .map((site) => site.site_id || site.id)
         .filter(Boolean);
     }
+
     // Assume selectedSites is already an array of IDs
     return selectedSites;
   }, [selectedSites]);
 
   /**
-   * Memoized processed chart data
+   * Memoized processed chart data.
    */
   const { sortedData: chartData, siteIdToName } = useMemo(() => {
     if (!data || data.length === 0) return { sortedData: [], siteIdToName: {} };
@@ -136,7 +159,7 @@ const MoreInsightsChart = ({
   }, [chartData]);
 
   /**
-   * Memoized WHO standard value based on pollutant type
+   * Memoized WHO standard value based on pollutant type.
    */
   const WHO_STANDARD_VALUE = useMemo(
     () => WHO_STANDARD_VALUES[pollutantType] || 0,
@@ -150,6 +173,9 @@ const MoreInsightsChart = ({
 
   /**
    * Determines the color of the line or bar based on the active index.
+   *
+   * @param {number} index - Index of the data series.
+   * @returns {string} Color code.
    */
   const getColor = useCallback(
     (index) =>
@@ -167,7 +193,9 @@ const MoreInsightsChart = ({
 
   /**
    * Calculate step based on container width and number of ticks.
-   * Assume each label requires a minimum width
+   * Assumes each label requires a minimum width.
+   *
+   * @returns {number} Step value for X-axis labels.
    */
   const calculateStep = useCallback(() => {
     const minLabelWidth = 25;
@@ -178,21 +206,34 @@ const MoreInsightsChart = ({
   }, [containerWidth, chartData.length]);
 
   /**
-   * Memoized step for labels
+   * Memoized step for labels.
    */
   const step = useMemo(() => calculateStep(), [calculateStep]);
 
   /**
-   * Render the chart or appropriate messages based on state
+   * Render the chart or appropriate messages based on state.
    */
   const renderChart = useMemo(() => {
+    // If no sites are selected, prompt the user to select sites.
+    if (selectedSiteIds.length === 0) {
+      return (
+        <div className="w-full flex flex-col justify-center items-center h-full text-gray-500 p-4">
+          <p className="text-lg font-medium mb-2">No Sites Selected</p>
+          <p className="text-sm mb-4 text-center">
+            Please select one or more sites to view the chart.
+          </p>
+        </div>
+      );
+    }
+
+    // If there is no data to display for the selected sites, inform the user.
     if (chartData.length === 0) {
       return (
-        <div className="w-full flex flex-col justify-center items-center h-full text-gray-500">
+        <div className="w-full flex flex-col justify-center items-center h-full text-gray-500 p-4">
           <p className="text-lg font-medium mb-2">No Data Available</p>
           <p className="text-sm mb-4 text-center">
-            It seems there’s no data to display for the selected criteria. Try
-            refreshing the chart or adjusting your filters.
+            There’s no data to display for the selected criteria. Try adjusting
+            your filters or refreshing the chart.
           </p>
           <button
             onClick={refreshChart}
@@ -204,6 +245,7 @@ const MoreInsightsChart = ({
       );
     }
 
+    // If data is available, render the chart.
     return (
       <ResponsiveContainer width={width} height={height}>
         <ChartComponent
@@ -271,7 +313,7 @@ const MoreInsightsChart = ({
           <Tooltip
             content={
               <CustomGraphTooltip
-                pollutionType={pollutantType}
+                pollutantType={pollutantType}
                 activeIndex={activeIndex}
               />
             }
@@ -321,8 +363,8 @@ const MoreInsightsChart = ({
       </ResponsiveContainer>
     );
   }, [
-    ChartComponent,
-    DataComponent,
+    selectedSiteIds.length,
+    selectedSiteIds,
     chartData,
     chartType,
     width,
@@ -338,7 +380,6 @@ const MoreInsightsChart = ({
     frequency,
     siteIdToName,
     refreshChart,
-    selectedSiteIds.length,
   ]);
 
   return (

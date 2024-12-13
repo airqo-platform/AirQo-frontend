@@ -17,6 +17,7 @@ import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useUserChecklists from '@/core/hooks/useUserChecklists';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
+import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
 const Layout = ({
   pageTitle = 'AirQo Analytics',
@@ -28,12 +29,12 @@ const Layout = ({
 }) => {
   const router = useRouter();
   const dispatch = useDispatch();
+  const { userID } = useGetActiveGroup();
 
   // Custom Hooks
   useUserPreferences();
   useUserChecklists();
-  const userInfo = useSelector((state) => state.login.userInfo);
-  useInactivityLogout(userInfo?._id);
+  useInactivityLogout(userID);
 
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const isOpen = useSelector((state) => state.modal.openModal);
