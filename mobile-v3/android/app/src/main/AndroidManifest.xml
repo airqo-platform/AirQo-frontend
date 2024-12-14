@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <application
-        android:label="airqo"
+        android:label="AirQo"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
 
