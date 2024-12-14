@@ -28,24 +28,38 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:airqo/src/app/shared/pages/no_internet_banner.dart';
-
+import 'package:loggy/loggy.dart';
 import 'src/app/shared/repository/hive_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
-  Directory dir = await getApplicationDocumentsDirectory();
-  Hive.init(dir.path);
-  runApp(AirqoMobile(
-    authRepository: AuthImpl(),
-    userRepository: UserImpl(),
-    kyaRepository: KyaImpl(),
-    themeRepository: ThemeImpl(),
-    mapRepository: MapImpl(),
-    forecastRepository: ForecastImpl(),
-    googlePlacesRepository: GooglePlacesImpl(),
-    dashboardRepository: DashboardImpl(),
-  ));
+
+  Loggy.initLoggy(
+    logPrinter: const PrettyPrinter(),
+    logOptions: const LogOptions(
+      LogLevel.all,
+      stackTraceLevel: LogLevel.error,
+    ),
+  );
+  await dotenv.load(fileName: ".env.prod");
+
+  try {
+    Directory dir = await getApplicationDocumentsDirectory();
+    Hive.init(dir.path);
+
+    runApp(AirqoMobile(
+      authRepository: AuthImpl(),
+      userRepository: UserImpl(),
+      kyaRepository: KyaImpl(),
+      themeRepository: ThemeImpl(),
+      mapRepository: MapImpl(),
+      forecastRepository: ForecastImpl(),
+      googlePlacesRepository: GooglePlacesImpl(),
+      dashboardRepository: DashboardImpl(),
+    ));
+  } catch (e, stackTrace) {
+    logError('Failed to initialize application', e, stackTrace);
+  }
 }
 
 class AirqoMobile extends StatelessWidget {
@@ -106,7 +120,7 @@ class AirqoMobile extends StatelessWidget {
         builder: (context, state) {
           bool isLightTheme = state is ThemeLight;
 
-          print(state);
+          logDebug('Current theme state: $state');
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             theme: isLightTheme ? AppTheme.lightTheme : AppTheme.darkTheme,
@@ -140,7 +154,7 @@ class _DeciderState extends State<Decider> {
   Widget build(BuildContext context) {
     return BlocBuilder<ConnectivityBloc, ConnectivityState>(
       builder: (context, connectivityState) {
-        debugPrint('Current connectivity state: $connectivityState');
+        logDebug('Current connectivity state: $connectivityState');
         return Stack(
           children: [
             FutureBuilder(
@@ -148,11 +162,14 @@ class _DeciderState extends State<Decider> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   if (!snapshot.hasData) {
+                    logInfo('No authentication token found. Navigating to WelcomeScreen');
                     return WelcomeScreen();
                   } else {
+                    logInfo('Authentication token found. Navigating to NavPage');
                     return NavPage();
                   }
                 } else {
+                  logError('Error loading authentication state');
                   return Scaffold(
                       body: Center(child: Text('An Error occurred.')));
                 }
@@ -165,6 +182,7 @@ class _DeciderState extends State<Decider> {
                 right: 0,
                 child: NoInternetBanner(
                   onClose: () {
+                    logInfo('No internet connection banner dismissed');
                     context
                         .read<ConnectivityBloc>()
                         .add(ConnectivityBannerDismissed());
