@@ -41,7 +41,7 @@ void main() async {
       stackTraceLevel: LogLevel.error,
     ),
   );
-  await dotenv.load(fileName: ".env");
+  await dotenv.load(fileName: ".env.prod");
 
   try {
     Directory dir = await getApplicationDocumentsDirectory();
