@@ -7,6 +7,7 @@ import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:loggy/loggy.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -28,8 +29,12 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void initState() {
-    authBloc = context.read<AuthBloc>();
     super.initState();
+    try {
+      authBloc = context.read<AuthBloc>();
+    } catch (e) {
+      logError('Failed to initialize AuthBloc: $e');
+    }
   }
 
   @override
@@ -82,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                             validator: (value) {
-                              if (value!.length == 0) {
+                              if (value == null || value.isEmpty) {
                                 return "This field cannot be blank.";
                               }
                               return null;
@@ -100,7 +105,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                             validator: (value) {
-                              if (value!.length == 0) {
+                              if (value == null || value.isEmpty) {
                                 return "This field cannot be blank.";
                               }
                               return null;
@@ -130,8 +135,10 @@ class _LoginPageState extends State<LoginPage> {
                       onTap: loading
                           ? null
                           : () {
-                              if (formKey.currentState!.validate()) {
-                                authBloc!.add(LoginUser(
+                              final currentForm = formKey.currentState;
+                              if (currentForm != null &&
+                                  currentForm.validate()) {
+                                authBloc?.add(LoginUser(
                                     emailController.text.trim(),
                                     passwordController.text.trim()));
                               }
