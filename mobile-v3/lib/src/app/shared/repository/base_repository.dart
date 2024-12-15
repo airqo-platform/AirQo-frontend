@@ -67,7 +67,11 @@ class BaseRepository {
     print(response.statusCode);
 
     if (response.statusCode != 200) {
-      throw new Exception(json.decode(response.body));
+      final responseBody = json.decode(response.body);
+      final errorMessage = responseBody is Map && responseBody.containsKey('message')
+          ? responseBody['message']
+          : 'An error occurred';
+      throw new Exception(errorMessage);
     }
 
     return response;

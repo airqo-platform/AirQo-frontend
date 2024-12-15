@@ -30,6 +30,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:airqo/src/app/shared/pages/no_internet_banner.dart';
 import 'package:loggy/loggy.dart';
 import 'src/app/shared/repository/hive_repository.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -225,7 +226,10 @@ class _DeciderState extends State<Decider> {
 bool isValidToken(String? token) {
   if (token == null || token.isEmpty) return false;
   try {
-    // Add JWT validation if using JWT tokens
+    if (JwtDecoder.isExpired(token)) {
+      logInfo('Token has expired');
+      return false;
+    }
     return true;
   } catch (e) {
     logError('Token validation failed', e, StackTrace.current);
