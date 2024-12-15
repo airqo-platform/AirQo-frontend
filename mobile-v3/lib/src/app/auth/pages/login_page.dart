@@ -19,18 +19,30 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   String? error;
   late AuthBloc authBloc;
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
-  GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  late TextEditingController emailController = TextEditingController();
+  late TextEditingController passwordController = TextEditingController();
+  late GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
+    authBloc = context.read<AuthBloc>();
+    emailController = TextEditingController();
+    passwordController = TextEditingController();
+    
     try {
       authBloc = context.read<AuthBloc>();
+
     } catch (e) {
       logError('Failed to initialize AuthBloc: $e');
     }
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -133,7 +145,7 @@ class _LoginPageState extends State<LoginPage> {
                               final currentForm = formKey.currentState;
                               if (currentForm != null &&
                                   currentForm.validate()) {
-                                authBloc?.add(LoginUser(
+                                authBloc.add(LoginUser(
                                     emailController.text.trim(),
                                     passwordController.text.trim()));
                               }
