@@ -7,6 +7,7 @@ import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:loggy/loggy.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -17,7 +18,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   String? error;
-  late AuthBloc authBloc;
+  AuthBloc? authBloc;
   TextEditingController emailController = TextEditingController(
       // text: "joxowo9726@godsigma.com",
       );
@@ -29,7 +30,11 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    authBloc = context.read<AuthBloc>();
+    try {
+      authBloc = context.read<AuthBloc>();
+    } catch (e) {
+      logError('Failed to initialize AuthBloc: $e');
+    }
   }
 
   @override
@@ -133,7 +138,7 @@ class _LoginPageState extends State<LoginPage> {
                               final currentForm = formKey.currentState;
                               if (currentForm != null &&
                                   currentForm.validate()) {
-                                authBloc.add(LoginUser(
+                                authBloc?.add(LoginUser(
                                     emailController.text.trim(),
                                     passwordController.text.trim()));
                               }

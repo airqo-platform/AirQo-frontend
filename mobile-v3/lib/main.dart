@@ -173,14 +173,25 @@ class _DeciderState extends State<Decider> {
                   logError(
                       'Error loading authentication state: ${snapshot.error}');
                   return Scaffold(
-                    body:
-                        Center(child: Text('An error occurred while loading.')),
+                    body: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Unable to verify authentication status'),
+                          SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () => setState(() {}),
+                            child: Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
                   );
                 }
 
                 // Check if token exists and is not null
                 final token = snapshot.data;
-                if (token == null || token.isEmpty) {
+                if (!isValidToken(token)) {
                   logInfo(
                       'No authentication token found. Navigating to WelcomeScreen');
                   return WelcomeScreen();
@@ -208,5 +219,16 @@ class _DeciderState extends State<Decider> {
         );
       },
     );
+  }
+}
+
+bool isValidToken(String? token) {
+  if (token == null || token.isEmpty) return false;
+  try {
+    // Add JWT validation if using JWT tokens
+    return true;
+  } catch (e) {
+    logError('Token validation failed', e, StackTrace.current);
+    return false;
   }
 }

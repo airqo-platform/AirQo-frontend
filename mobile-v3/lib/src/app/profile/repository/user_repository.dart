@@ -10,15 +10,17 @@ abstract class UserRepository extends BaseRepository {
 class UserImpl extends UserRepository {
   @override
   Future<ProfileResponseModel> loadUserProfile() async {
-    String userId =
-        await HiveRepository.getData("userId", HiveBoxNames.authBox) as String;
+    final userId = await HiveRepository.getData("userId", HiveBoxNames.authBox);
+
+    if (userId == null) {
+      throw Exception("User ID not found");
+    }
 
     Response profileResponse =
         await createAuthenticatedGetRequest("/api/v2/users/${userId}", {});
 
     ProfileResponseModel model =
         profileResponseModelFromJson(profileResponse.body);
-
     return model;
   }
 }
