@@ -11,8 +11,6 @@ class BaseRepository {
 
     String url = ApiUtils.baseUrl + path;
 
-    print(url);
-
     Response response = await http.post(Uri.parse(url),
         body: json.encode(data),
         headers: {
@@ -20,8 +18,6 @@ class BaseRepository {
           "Accept": "*/*",
           "contentType": "application/json"
         });
-
-    print(response.statusCode);
 
     if (response.statusCode != 200) {
       throw new Exception(json.decode(response.body)['message']);
@@ -41,8 +37,6 @@ class BaseRepository {
       "Content-Type": "application/json",
     });
 
-    print(response.statusCode);
-
     if (response.statusCode != 200) {
       throw new Exception(json.decode(response.body)['message']);
     }
@@ -53,8 +47,6 @@ class BaseRepository {
   Future<Response> createAuthenticatedGetRequest(
       String path, Map<String, String> queryParams) async {
     String token = await HiveRepository.getData("token", HiveBoxNames.authBox);
-
-    print(token);
 
     String url = ApiUtils.baseUrl + path;
 

@@ -17,7 +17,6 @@ class MapBloc extends Bloc<MapEvent, MapState> {
 
           emit(MapLoaded(response));
         } catch (e) {
-          print(e);
           emit(MapLoadingError(e.toString()));
         }
       }

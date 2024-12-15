@@ -1,41 +1,45 @@
-import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+// To parse this JSON data, do
+//
+//     final forecastResponse = forecastResponseFromJson(jsonString);
+
+import 'dart:convert';
+
+ForecastResponse forecastResponseFromJson(String str) => ForecastResponse.fromJson(json.decode(str));
+
+String forecastResponseToJson(ForecastResponse data) => json.encode(data.toJson());
+
 class ForecastResponse {
-  List<Forecast> forecasts;
+    final List<Forecast> forecasts;
 
-  ForecastResponse({
-    required this.forecasts,
-  });
+    ForecastResponse({
+      required  this.forecasts,
+    });
 
-  factory ForecastResponse.fromJson(Map<String, dynamic> json) =>
-      ForecastResponse(
-        forecasts: List<Forecast>.from(
-            json["forecasts"].map((x) => Forecast.fromJson(x))),
-      );
+    factory ForecastResponse.fromJson(Map<String, dynamic> json) => ForecastResponse(
+        forecasts: json["forecasts"] == null ? [] : List<Forecast>.from(json["forecasts"]!.map((x) => Forecast.fromJson(x))),
+    );
 
-  Map<String, dynamic> toJson() => {
-        "forecasts": List<dynamic>.from(forecasts.map((x) => x.toJson())),
-      };
+    Map<String, dynamic> toJson() => {
+        "forecasts":  List<dynamic>.from(forecasts.map((x) => x.toJson())),
+    };
 }
 
 class Forecast {
-  Measurement measurement;
-  double pm25;
-  DateTime time;
+    final double? pm25;
+    final DateTime? time;
 
-  Forecast({
-    required this.measurement,
-    required this.pm25,
-    required this.time,
-  });
+    Forecast({
+        this.pm25,
+        this.time,
+    });
 
-  factory Forecast.fromJson(Map<String, dynamic> json) => Forecast(
-        measurement: Measurement.fromJson(json["measurement"]),
+    factory Forecast.fromJson(Map<String, dynamic> json) => Forecast(
         pm25: json["pm2_5"]?.toDouble(),
-        time: DateTime.parse(json["time"]),
-      );
+        time: json["time"] == null ? null : DateTime.parse(json["time"]),
+    );
 
-  Map<String, dynamic> toJson() => {
+    Map<String, dynamic> toJson() => {
         "pm2_5": pm25,
-        "time": time.toIso8601String(),
-      };
+        "time": time?.toIso8601String(),
+    };
 }

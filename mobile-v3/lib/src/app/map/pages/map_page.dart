@@ -45,15 +45,11 @@ class _MapScreenState extends State<MapScreen>
     setState(() {
       filteredMeasurements = measurements.where((measurement) {
         if (measurement.siteDetails != null) {
-          print(measurement.siteDetails!.country);
           return measurement.siteDetails!.country == country;
         }
         return false;
       }).toList();
 
-      for (var measurement in filteredMeasurements) {
-        print(measurement.siteDetails!.country!);
-      }
 
       currentFilter = country;
     });
@@ -233,7 +229,6 @@ class _MapScreenState extends State<MapScreen>
       },
       child: BlocListener<GooglePlacesBloc, GooglePlacesState>(
         listener: (context, state) {
-          print(state.toString());
           if (state is PlaceDetailsLoaded) {
             mapController.animateCamera(
               CameraUpdate.newLatLngZoom(
@@ -780,7 +775,6 @@ class _MapScreenState extends State<MapScreen>
                                             child: TextField(
                                               controller: searchController,
                                               onChanged: (value) {
-                                                print(value);
                                                 if (value == "") {
                                                   googlePlacesBloc!
                                                       .add(ResetGooglePlaces());

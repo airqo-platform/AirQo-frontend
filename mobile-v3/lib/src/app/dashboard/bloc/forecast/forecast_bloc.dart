@@ -18,8 +18,6 @@ class ForecastBloc extends Bloc<ForecastEvent, ForecastState> {
 
           emit(ForecastLoaded(response));
         } catch (e) {
-          print(e.toString());
-
           emit(
             ForecastLoadingError(
               e.toString(),
