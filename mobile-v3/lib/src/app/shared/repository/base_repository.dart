@@ -52,7 +52,8 @@ class BaseRepository {
 
   Future<Response> createAuthenticatedGetRequest(
       String path, Map<String, String> queryParams) async {
-    String token = await HiveRepository.getData("token", HiveBoxNames.authBox);
+    String token =
+        (await HiveRepository.getData("token", HiveBoxNames.authBox))!;
 
     print(token);
 
@@ -64,7 +65,6 @@ class BaseRepository {
       "Authorization": "${token}",
       "Content-Type": "application/json",
     });
-
 
     if (response.statusCode != 200) {
       throw new Exception(json.decode(response.body)['message']);

@@ -33,6 +33,7 @@ import 'src/app/shared/repository/hive_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
 
   Loggy.initLoggy(
     logPrinter: const PrettyPrinter(),
@@ -157,21 +158,35 @@ class _DeciderState extends State<Decider> {
         logDebug('Current connectivity state: $connectivityState');
         return Stack(
           children: [
-            FutureBuilder(
+            FutureBuilder<String?>(
               future: HiveRepository.getData('token', HiveBoxNames.authBox),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  if (!snapshot.hasData) {
-                    logInfo('No authentication token found. Navigating to WelcomeScreen');
-                    return WelcomeScreen();
-                  } else {
-                    logInfo('Authentication token found. Navigating to NavPage');
-                    return NavPage();
-                  }
-                } else {
-                  logError('Error loading authentication state');
+                // Handle loading state
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return Scaffold(
-                      body: Center(child: Text('An Error occurred.')));
+                    body: Center(child: CircularProgressIndicator()),
+                  );
+                }
+
+                // Handle errors
+                if (snapshot.hasError) {
+                  logError(
+                      'Error loading authentication state: ${snapshot.error}');
+                  return Scaffold(
+                    body:
+                        Center(child: Text('An error occurred while loading.')),
+                  );
+                }
+
+                // Check if token exists and is not null
+                final token = snapshot.data;
+                if (token == null || token.isEmpty) {
+                  logInfo(
+                      'No authentication token found. Navigating to WelcomeScreen');
+                  return WelcomeScreen();
+                } else {
+                  logInfo('Authentication token found. Navigating to NavPage');
+                  return NavPage();
                 }
               },
             ),

@@ -11,7 +11,7 @@ class UserImpl extends UserRepository {
   @override
   Future<ProfileResponseModel> loadUserProfile() async {
     String userId =
-        await HiveRepository.getData("userId", HiveBoxNames.authBox);
+        await HiveRepository.getData("userId", HiveBoxNames.authBox) as String;
 
     Response profileResponse =
         await createAuthenticatedGetRequest("/api/v2/users/${userId}", {});

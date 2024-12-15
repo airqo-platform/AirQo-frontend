@@ -17,7 +17,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   String? error;
-  AuthBloc? authBloc;
+  late AuthBloc authBloc;
   TextEditingController emailController = TextEditingController(
       // text: "joxowo9726@godsigma.com",
       );
@@ -28,8 +28,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void initState() {
-    authBloc = context.read<AuthBloc>();
     super.initState();
+    authBloc = context.read<AuthBloc>();
   }
 
   @override
@@ -82,7 +82,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                             validator: (value) {
-                              if (value!.length == 0) {
+                              if (value == null || value.isEmpty) {
                                 return "This field cannot be blank.";
                               }
                               return null;
@@ -100,7 +100,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                             validator: (value) {
-                              if (value!.length == 0) {
+                              if (value == null || value.isEmpty) {
                                 return "This field cannot be blank.";
                               }
                               return null;
@@ -130,8 +130,10 @@ class _LoginPageState extends State<LoginPage> {
                       onTap: loading
                           ? null
                           : () {
-                              if (formKey.currentState!.validate()) {
-                                authBloc!.add(LoginUser(
+                              final currentForm = formKey.currentState;
+                              if (currentForm != null &&
+                                  currentForm.validate()) {
+                                authBloc.add(LoginUser(
                                     emailController.text.trim(),
                                     passwordController.text.trim()));
                               }

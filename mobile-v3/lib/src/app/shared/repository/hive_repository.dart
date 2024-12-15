@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import 'package:loggy/loggy.dart';
 
 class HiveBoxNames {
   const HiveBoxNames._();
@@ -14,12 +15,15 @@ class HiveRepository {
     await box.put(key, value);
   }
 
-  static Future<dynamic>? getData(String key, String boxName) async {
-    var box = await Hive.openBox(boxName);
-
-    var value = box.get(key);
-
-    return value;
+  static Future<String?> getData(String key, String boxName) async {
+    try {
+      var box = await Hive.openBox(boxName);
+      var value = box.get(key);
+      return value is String ? value : null;
+    } catch (e) {
+      logError('Error retrieving data from Hive: $e');
+      return null;
+    }
   }
 
   static Future<void>? deleteData(String boxName, String key) async {
