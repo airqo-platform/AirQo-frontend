@@ -17,13 +17,9 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   String? error;
-  AuthBloc? authBloc;
-  TextEditingController emailController = TextEditingController(
-      // text: "joxowo9726@godsigma.com",
-      );
-  TextEditingController passwordController = TextEditingController(
-      // text: "0134t34%Wer",
-      );
+  late AuthBloc authBloc;
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   @override
@@ -46,8 +42,6 @@ class _LoginPageState extends State<LoginPage> {
           setState(() {
             error = state.message.replaceAll("Exception: ", "");
           });
-          // ScaffoldMessenger.of(context)
-          //     .showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: Scaffold(
@@ -82,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                             validator: (value) {
-                              if (value!.length == 0) {
+                              if (value!.isEmpty) {
                                 return "This field cannot be blank.";
                               }
                               return null;
@@ -100,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                             validator: (value) {
-                              if (value!.length == 0) {
+                              if (value!.isEmpty) {
                                 return "This field cannot be blank.";
                               }
                               return null;
@@ -130,8 +124,8 @@ class _LoginPageState extends State<LoginPage> {
                       onTap: loading
                           ? null
                           : () {
-                              if (formKey.currentState!.validate()) {
-                                authBloc!.add(LoginUser(
+                              if (formKey.currentState?.validate() ?? false) {
+                                authBloc.add(LoginUser(
                                     emailController.text.trim(),
                                     passwordController.text.trim()));
                               }
