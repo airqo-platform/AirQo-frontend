@@ -26,7 +26,6 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    authBloc = context.read<AuthBloc>();
     emailController = TextEditingController();
     passwordController = TextEditingController();
     
