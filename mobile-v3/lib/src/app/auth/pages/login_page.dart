@@ -18,23 +18,30 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   String? error;
-  AuthBloc? authBloc;
-  TextEditingController emailController = TextEditingController(
-      // text: "joxowo9726@godsigma.com",
-      );
-  TextEditingController passwordController = TextEditingController(
-      // text: "0134t34%Wer",
-      );
-  GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  late AuthBloc authBloc;
+  late TextEditingController emailController = TextEditingController();
+  late TextEditingController passwordController = TextEditingController();
+  late GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
+    emailController = TextEditingController();
+    passwordController = TextEditingController();
+    
     try {
       authBloc = context.read<AuthBloc>();
+
     } catch (e) {
       logError('Failed to initialize AuthBloc: $e');
     }
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -51,8 +58,6 @@ class _LoginPageState extends State<LoginPage> {
           setState(() {
             error = state.message.replaceAll("Exception: ", "");
           });
-          // ScaffoldMessenger.of(context)
-          //     .showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: Scaffold(
@@ -105,6 +110,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                             validator: (value) {
+
                               if (value == null || value.isEmpty) {
                                 return "This field cannot be blank.";
                               }
@@ -138,7 +144,7 @@ class _LoginPageState extends State<LoginPage> {
                               final currentForm = formKey.currentState;
                               if (currentForm != null &&
                                   currentForm.validate()) {
-                                authBloc?.add(LoginUser(
+                                authBloc.add(LoginUser(
                                     emailController.text.trim(),
                                     passwordController.text.trim()));
                               }
