@@ -16,7 +16,7 @@ class ThemeImpl extends ThemeRepository {
         await HiveRepository.saveData("themeBox", "theme", "light");
       }
 
-      String newTheme = await HiveRepository.getData("theme", "themeBox");
+      String newTheme = await HiveRepository.getData("theme", "themeBox") ?? "light";
       return newTheme;
     }
 
