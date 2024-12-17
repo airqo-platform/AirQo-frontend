@@ -97,13 +97,13 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               SizedBox(width: 8),
               GestureDetector(
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) {
-                      return ProfilePage();
-                    },
-                  ),
-                ),
+                // onTap: () => Navigator.of(context).push(
+                //   MaterialPageRoute(
+                //     builder: (context) {
+                //       return ProfilePage();
+                //     },
+                //   ),
+                // ),
                 child: BlocBuilder<UserBloc, UserState>(
                   builder: (context, state) {
                     if (state is UserLoaded) {
