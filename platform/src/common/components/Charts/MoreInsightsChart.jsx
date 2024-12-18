@@ -313,7 +313,7 @@ const MoreInsightsChart = ({
           <Tooltip
             content={
               <CustomGraphTooltip
-                pollutantType={pollutantType}
+                pollutionType={pollutantType}
                 activeIndex={activeIndex}
               />
             }
