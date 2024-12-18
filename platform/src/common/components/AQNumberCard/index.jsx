@@ -45,9 +45,9 @@ const generateTrendData = (averages) => {
     'No significant change in air quality compared to the previous week.';
 
   if (isIncreasing) {
-    trendTooltip = `The Air quality has increased by ${percentageDifference}% compared to the previous week, indicating deteriorating air quality.`;
+    trendTooltip = `The air quality has increased by ${percentageDifference}% compared to the previous week, indicating deteriorating air quality.`;
   } else if (averages.percentageDifference < 0) {
-    trendTooltip = `The Air quality has decreased by ${percentageDifference}% compared to the previous week, indicating improving air quality.`;
+    trendTooltip = `The air quality has decreased by ${percentageDifference}% compared to the previous week, indicating improving air quality.`;
   }
 
   return {
