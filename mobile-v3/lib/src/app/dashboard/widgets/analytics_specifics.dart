@@ -142,45 +142,45 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
               ],
             ),
           ),
-          SizedBox(height: 8 + 4),
-          InkWell(
-            onTap: () => toggleContainer(),
-            child: AnimatedContainer(
-                duration: Duration(milliseconds: 300),
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                height: containerHeight,
-                color: Theme.of(context).highlightColor,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            "🚨 Air Quality Alerts",
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600),
-                          ),
-                          Icon(
-                            expanded 
-                                ? Icons.arrow_drop_up 
-                                : Icons.arrow_drop_down
-                          )
-                        ],
-                      ),
-                      if (expanded) ...[
-                        SizedBox(height: 16),
-                        Text(""),
-                      ],
-                    ],
-                  ),
-                  decoration: BoxDecoration(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                      borderRadius: BorderRadius.circular(44)),
-                )),
-          )
+          // SizedBox(height: 8 + 4),
+          // InkWell(
+          //   onTap: () => toggleContainer(),
+          //   child: AnimatedContainer(
+          //       duration: Duration(milliseconds: 300),
+          //       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+          //       height: containerHeight,
+          //       color: Theme.of(context).highlightColor,
+          //       child: Container(
+          //         padding: const EdgeInsets.symmetric(horizontal: 16),
+          //         child: Column(
+          //           children: [
+          //             Row(
+          //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //               crossAxisAlignment: CrossAxisAlignment.center,
+          //               children: [
+          //                 Text(
+          //                   "🚨 Air Quality Alerts",
+          //                   style: TextStyle(
+          //                       fontSize: 16, fontWeight: FontWeight.w600),
+          //                 ),
+          //                 Icon(
+          //                   expanded 
+          //                       ? Icons.arrow_drop_up 
+          //                       : Icons.arrow_drop_down
+          //                 )
+          //               ],
+          //             ),
+          //             if (expanded) ...[
+          //               SizedBox(height: 16),
+          //               Text(""),
+          //             ],
+          //           ],
+          //         ),
+          //         decoration: BoxDecoration(
+          //             color: Theme.of(context).scaffoldBackgroundColor,
+          //             borderRadius: BorderRadius.circular(44)),
+          //       )),
+          // )
         ],
       ),
     );
