@@ -426,53 +426,53 @@ class _MapScreenState extends State<MapScreen>
                                                             color: AppColors
                                                                 .boldHeadlineColor)),
                                                     Row(children: [
-                                                      Container(
-                                                        decoration: BoxDecoration(
-                                                            color: AppColors
-                                                                .highlightColor,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        100)),
-                                                        height: 40,
-                                                        width: 52,
-                                                        child: Center(
-                                                          child: Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .only(
-                                                                    left: 8.0),
-                                                            child: Icon(
-                                                              size: 20,
-                                                              Icons
-                                                                  .arrow_back_ios,
-                                                              color: AppColors
-                                                                  .boldHeadlineColor,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
+                                                      // Container(
+                                                      //   decoration: BoxDecoration(
+                                                      //       color: AppColors
+                                                      //           .highlightColor,
+                                                      //       borderRadius:
+                                                      //           BorderRadius
+                                                      //               .circular(
+                                                      //                   100)),
+                                                      //   height: 40,
+                                                      //   width: 52,
+                                                      //   child: Center(
+                                                      //     child: Padding(
+                                                      //       padding:
+                                                      //           const EdgeInsets
+                                                      //               .only(
+                                                      //               left: 8.0),
+                                                      //       child: Icon(
+                                                      //         size: 20,
+                                                      //         Icons
+                                                      //             .arrow_back_ios,
+                                                      //         color: AppColors
+                                                      //             .boldHeadlineColor,
+                                                      //       ),
+                                                      //     ),
+                                                      //   ),
+                                                      // ),
                                                       SizedBox(width: 8),
-                                                      Container(
-                                                        decoration: BoxDecoration(
-                                                            color: AppColors
-                                                                .highlightColor,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        100)),
-                                                        height: 40,
-                                                        width: 52,
-                                                        child: Center(
-                                                          child: Icon(
-                                                            Icons
-                                                                .arrow_forward_ios,
-                                                            size: 20,
-                                                            color: AppColors
-                                                                .boldHeadlineColor,
-                                                          ),
-                                                        ),
-                                                      )
+                                                      // Container(
+                                                      //   decoration: BoxDecoration(
+                                                      //       color: AppColors
+                                                      //           .highlightColor,
+                                                      //       borderRadius:
+                                                      //           BorderRadius
+                                                      //               .circular(
+                                                      //                   100)),
+                                                      //   height: 40,
+                                                      //   width: 52,
+                                                      //   child: Center(
+                                                      //     child: Icon(
+                                                      //       Icons
+                                                      //           .arrow_forward_ios,
+                                                      //       size: 20,
+                                                      //       color: AppColors
+                                                      //           .boldHeadlineColor,
+                                                      //     ),
+                                                      //   ),
+                                                      // )
                                                     ])
                                                   ],
                                                 ),
