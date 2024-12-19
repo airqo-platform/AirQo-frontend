@@ -19,7 +19,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
 
           emit(DashboardLoaded(response));
         } catch (e) {
-          
           emit(DashboardLoadingError(e.toString()));
         }
       }

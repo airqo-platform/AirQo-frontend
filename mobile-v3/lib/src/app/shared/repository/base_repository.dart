@@ -23,8 +23,6 @@ class BaseRepository {
 
     String url = ApiUtils.baseUrl + path;
 
-    print(url);
-
     Response response = await http.post(Uri.parse(url),
         body: json.encode(data),
         headers: {
@@ -32,8 +30,6 @@ class BaseRepository {
           "Accept": "*/*",
           "contentType": "application/json"
         });
-
-    print(response.statusCode);
 
     if (response.statusCode != 200) {
       final responseBody = json.decode(response.body);
@@ -64,8 +60,6 @@ class BaseRepository {
         Uri.parse(url).replace(queryParameters: queryParams),
         headers: headers);
 
-    print(response.statusCode);
-
     if (response.statusCode != 200) {
       final responseBody = json.decode(response.body);
       final errorMessage = responseBody is Map && responseBody.containsKey('message')
@@ -83,8 +77,6 @@ class BaseRepository {
     if (token == null) {
       throw Exception('Authentication token not found');
     }
-
-    print(token);
 
     String url = ApiUtils.baseUrl + path;
 

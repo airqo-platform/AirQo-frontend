@@ -1,5 +1,7 @@
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
+import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
+import 'package:airqo/src/meta/constants/aqi_ranges.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -35,9 +37,10 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> {
               children: state.response.forecasts
                   .map((e) => ForeCastChip(
                         active: false,
-                        date: DateFormat.d().format(e.time),
-                        day: DateFormat.E().format(e.time)[0],
-                        imagePath: getAirQualityIcon(e.measurement, e.pm25),
+                        date: DateFormat.d().format(e.time!),
+                        day: DateFormat.E().format(e.time!)[0],
+                        imagePath: getAirQualityIcon(
+                            Measurement(aqiRanges: aqiRanges), e.pm25!),
                       ))
                   .toList());
         } else if (state is ForecastLoading) {
