@@ -104,44 +104,44 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                   ],
                 ),
                 SizedBox(height: 16),
-                AnalyticsForecastWidget(
-                  siteId: widget.measurement.siteDetails!.id!,
-                ),
+                // AnalyticsForecastWidget(
+                //   siteId: widget.measurement.siteDetails!.id!,
+                // ),
                 SizedBox(height: 16),
               ],
             ),
           ),
           AnalyticsCard(widget.measurement),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            height: 41,
-            color: Theme.of(context).highlightColor,
-            child: Row(
-              children: [
-                SizedBox(
-                  child: Row(
-                    children: [
-                      SvgPicture.asset("assets/icons/share-icon.svg"),
-                      SizedBox(width: 6),
-                      Text("Share"),
-                    ],
-                  ),
-                ),
-                SizedBox(width: 24),
-                SizedBox(
-                  child: Row(
-                    children: [
-                      SvgPicture.asset("assets/icons/save-icon.svg"),
-                      SizedBox(width: 6),
-                      Text("Save"),
-                    ],
-                  ),
-                ),
-                Spacer(),
-                Icon(Icons.more_vert)
-              ],
-            ),
-          ),
+          // Container(
+          //   padding: const EdgeInsets.symmetric(horizontal: 16),
+          //   height: 41,
+          //   color: Theme.of(context).highlightColor,
+          //   child: Row(
+          //     children: [
+          //       SizedBox(
+          //         child: Row(
+          //           children: [
+          //             SvgPicture.asset("assets/icons/share-icon.svg"),
+          //             SizedBox(width: 6),
+          //             Text("Share"),
+          //           ],
+          //         ),
+          //       ),
+          //       SizedBox(width: 24),
+          //       SizedBox(
+          //         child: Row(
+          //           children: [
+          //             SvgPicture.asset("assets/icons/save-icon.svg"),
+          //             SizedBox(width: 6),
+          //             Text("Save"),
+          //           ],
+          //         ),
+          //       ),
+          //       Spacer(),
+          //       Icon(Icons.more_vert)
+          //     ],
+          //   ),
+          // ),
           // SizedBox(height: 8 + 4),
           // InkWell(
           //   onTap: () => toggleContainer(),
