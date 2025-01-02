@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -40,11 +40,28 @@ import {
 const Sidebar = () => {
   const pathname = usePathname();
   const [selectedOrg, setSelectedOrg] = useState("AirQo");
+  const [userCollapsed, setUserCollapsed] = useState(false);
   const [isDevicesOpen, setIsDevicesOpen] = useState(false);
 
   const organizations = ["AirQo", "NEMA", "Permian Health"];
 
   const isActive = (path: string) => pathname?.startsWith(path);
+  const isDevicesActive = isActive("/devices");
+
+  useEffect(() => {
+    if (isDevicesActive && !userCollapsed) {
+      setIsDevicesOpen(true);
+    } else if (!isDevicesActive) {
+      setUserCollapsed(false);
+    }
+  }, [pathname, isDevicesActive, userCollapsed]);
+
+  const handleDevicesToggle = (open: boolean) => {
+    setIsDevicesOpen(open);
+    if (isDevicesActive) {
+      setUserCollapsed(!open);
+    }
+  };
 
   return (
     <div className="w-64 h-screen bg-card border-r flex flex-col">
@@ -186,7 +203,7 @@ const Sidebar = () => {
               <li>
                 <Collapsible
                   open={isDevicesOpen}
-                  onOpenChange={setIsDevicesOpen}
+                  onOpenChange={handleDevicesToggle}
                 >
                   <CollapsibleTrigger asChild>
                     <Button
