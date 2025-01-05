@@ -20,7 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { SiteForm } from "@/app/sites/site-form";
+import { SiteForm } from "@/app/(authenticated)/sites/site-form";
 import { useRouter } from "next/navigation";
 
 // Sample data

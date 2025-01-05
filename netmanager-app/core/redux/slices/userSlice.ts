@@ -1,6 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import type { Network, UserDetails, CurrentRole } from "@/app/types/users";
+import type {
+  Network,
+  UserDetails,
+  CurrentRole,
+  Group,
+} from "@/app/types/users";
 
 interface UserState {
   isAuthenticated: boolean;
@@ -8,6 +13,7 @@ interface UserState {
   activeNetwork: Network | null;
   availableNetworks: Network[];
   currentRole: CurrentRole | null;
+  userGroups: Group[];
 }
 
 const initialState: UserState = {
@@ -16,6 +22,7 @@ const initialState: UserState = {
   activeNetwork: null,
   availableNetworks: [],
   currentRole: null,
+  userGroups: [],
 };
 
 const userSlice = createSlice({
@@ -26,6 +33,7 @@ const userSlice = createSlice({
       state.userDetails = action.payload;
       state.isAuthenticated = true;
       state.availableNetworks = action.payload.networks || [];
+      state.userGroups = action.payload.groups || [];
     },
     setActiveNetwork(state: UserState, action: PayloadAction<Network>) {
       state.activeNetwork = action.payload;

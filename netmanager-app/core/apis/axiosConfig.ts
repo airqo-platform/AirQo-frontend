@@ -2,11 +2,12 @@ import axios from "axios";
 
 // Function to get JWT Token
 const getJwtToken = () => {
-  return localStorage.getItem("jwtToken");
+  return localStorage.getItem("token");
 };
 
 // Access Token
-const accessToken = process.env.REACT_APP_AUTH_TOKEN;
+const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN;
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const createAxiosInstance = (isJWT = true) => {
   const axiosInstance = axios.create();
@@ -21,12 +22,16 @@ const createAxiosInstance = (isJWT = true) => {
       } else {
         // Remove the JWT header and use a query parameter
         delete config.headers["Authorization"];
-        config.params = { ...config.params, token: accessToken };
+        config.params = {
+          ...config.params,
+          token: API_TOKEN?.replace(/[\u200B-\u200D\uFEFF]/g, "").trim(),
+        };
       }
+      // config.withCredentials = true;
+      config.baseURL = API_URL;
       return config;
     },
     (error) => {
-      // Do something with request error
       return Promise.reject(error);
     }
   );

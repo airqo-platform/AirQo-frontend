@@ -33,28 +33,52 @@ export const useAuth = () => {
       // 3. Decode token
       const decoded = jwtDecode<DecodedToken>(token);
 
-      // 4. Get user details
-      const userDetailsResponse = (await users.getUserDetails(
-        decoded.userId
-      )) as UserDetailsResponse;
-      const userDetails = userDetailsResponse.users[0];
+      // 4. Create userDetails from decoded token
+      const userDetails: UserDetails = {
+        _id: decoded._id,
+        firstName: decoded.firstName,
+        lastName: decoded.lastName,
+        userName: decoded.userName,
+        email: decoded.email,
+        organization: decoded.organization,
+        long_organization: decoded.long_organization,
+        privilege: decoded.privilege,
+        country: decoded.country,
+        profilePicture: decoded.profilePicture,
+        phoneNumber: decoded.phoneNumber,
+        createdAt: decoded.createdAt,
+        updatedAt: decoded.updatedAt,
+        rateLimit: decoded.rateLimit,
+        lastLogin: decoded.lastLogin,
+        iat: decoded.iat,
+      };
 
       // 5. Store user details
       localStorage.setItem("userDetails", JSON.stringify(userDetails));
 
-      // 6. Update Redux store
+      // 7. Get user info store in redux
+      const userDetailsResponse = (await users.getUserDetails(
+        loginResponse._id
+      )) as UserDetailsResponse;
+      const userInfo = userDetailsResponse.users[0];
       dispatch(setUserDetails(userDetails));
 
-      // 7. Set AirQo as default network
-      const airqoNetwork = userDetails.networks.find(
+      // 8. Set AirQo as default network
+      const airqoNetwork = userInfo.networks?.find(
         (network: Network) => network.net_name.toLowerCase() === "airqo"
       );
-
       if (airqoNetwork) {
         dispatch(setActiveNetwork(airqoNetwork));
+        localStorage.setItem("activeNetwork", JSON.stringify(airqoNetwork));
+      } else if (userInfo?.networks && userInfo.networks.length > 0) {
+        dispatch(setActiveNetwork(userInfo.networks[0]));
+        localStorage.setItem(
+          "activeNetwork",
+          JSON.stringify(userInfo.networks[0])
+        );
       }
 
-      return userDetails;
+      return userInfo;
     },
     onError: (error) => {
       console.error("Login failed:", error);
@@ -73,18 +97,19 @@ export const useAuth = () => {
   const restoreSession = () => {
     const token = localStorage.getItem("token");
     const storedUserDetails = localStorage.getItem("userDetails");
+    const storedActiveNetwork = localStorage.getItem("activeNetwork");
 
     if (token && storedUserDetails) {
       const userDetails = JSON.parse(storedUserDetails) as UserDetails;
       dispatch(setUserDetails(userDetails));
 
-      const airqoNetwork = userDetails.networks.find(
-        (network: Network) => network.net_name.toLowerCase() === "airqo"
-      );
-
-      if (airqoNetwork) {
-        dispatch(setActiveNetwork(airqoNetwork));
+      if (storedActiveNetwork) {
+        const activeNetwork = JSON.parse(storedActiveNetwork) as Network;
+        dispatch(setActiveNetwork(activeNetwork));
       }
+    } else {
+      // logout user
+      handleLogout();
     }
   };
 

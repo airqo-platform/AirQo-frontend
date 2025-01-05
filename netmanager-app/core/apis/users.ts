@@ -1,15 +1,16 @@
+import { LoginCredentials } from "@/app/types/users";
 import { USERS_MGT_URL } from "../urls";
 import createAxiosInstance from "./axiosConfig";
 
 export const users = {
-  loginUser: async (data: { password: string; email: string }) => {
+  loginUser: async (data: LoginCredentials) => {
     return await createAxiosInstance()
       .post(`${USERS_MGT_URL}/loginUser`, data)
       .then((response) => response.data);
   },
   getUserDetails: async (userID: string) => {
     return await createAxiosInstance()
-      .get(`${USERS_MGT_URL}/users/${userID}`)
+      .get(`${USERS_MGT_URL}/${userID}`)
       .then((response) => response.data);
   },
   // addRoleApi: async (data:any) => {
