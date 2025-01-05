@@ -15,9 +15,11 @@ import type {
   LoginResponse,
   UserDetailsResponse,
 } from "@/app/types/users";
+import { useRouter } from "next/navigation";
 
 export const useAuth = () => {
   const dispatch = useDispatch();
+  const router = useRouter();
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
@@ -90,7 +92,9 @@ export const useAuth = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userDetails");
+    localStorage.removeItem("activeNetwork");
     dispatch(logout());
+    router.push("/login");
   };
 
   // Restore session on page refresh

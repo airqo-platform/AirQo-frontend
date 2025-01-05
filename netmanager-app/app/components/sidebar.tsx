@@ -36,12 +36,14 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { useAuth } from "@/core/hooks/users";
 
 const Sidebar = () => {
   const pathname = usePathname();
   const [selectedOrg, setSelectedOrg] = useState("AirQo");
   const [userCollapsed, setUserCollapsed] = useState(false);
   const [isDevicesOpen, setIsDevicesOpen] = useState(false);
+  const { logout } = useAuth();
 
   const organizations = ["AirQo", "NEMA", "Permian Health"];
 
@@ -344,7 +346,7 @@ const Sidebar = () => {
           variant="ghost"
           className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
           onClick={() => {
-            /* Add logout logic */
+            logout();
           }}
         >
           <LogOut size={18} className="mr-2" />

@@ -19,9 +19,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/core/hooks/users";
 
 const Topbar = () => {
   const [darkMode, setDarkMode] = useState(false);
+  const { logout } = useAuth();
 
   useEffect(() => {
     if (darkMode) {
@@ -109,7 +111,7 @@ const Topbar = () => {
               {darkMode ? "Light Mode" : "Dark Mode"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem className="text-destructive" onClick={logout}>
               <LogOut size={18} />
               <span>Log out</span>
             </DropdownMenuItem>
