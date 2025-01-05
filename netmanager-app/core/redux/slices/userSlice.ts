@@ -44,6 +44,9 @@ const userSlice = createSlice({
         permissions: roleInNetwork.role_permissions.map((p) => p.permission),
       };
     },
+    setAvailableNetworks(state: UserState, action: PayloadAction<Network[]>) {
+      state.availableNetworks = action.payload;
+    },
     logout(state: UserState) {
       state.isAuthenticated = false;
       state.userDetails = null;
@@ -54,5 +57,10 @@ const userSlice = createSlice({
   },
 });
 
-export const { setUserDetails, setActiveNetwork, logout } = userSlice.actions;
+export const {
+  setUserDetails,
+  setActiveNetwork,
+  logout,
+  setAvailableNetworks,
+} = userSlice.actions;
 export default userSlice.reducer;

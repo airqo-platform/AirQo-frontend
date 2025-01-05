@@ -37,15 +37,23 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useAuth } from "@/core/hooks/users";
+import { useAppSelector, useAppDispatch } from "@/core/redux/hooks";
+import { setActiveNetwork } from "@/core/redux/slices/userSlice";
+import type { Network } from "@/app/types/users";
 
 const Sidebar = () => {
   const pathname = usePathname();
-  const [selectedOrg, setSelectedOrg] = useState("AirQo");
   const [userCollapsed, setUserCollapsed] = useState(false);
   const [isDevicesOpen, setIsDevicesOpen] = useState(false);
   const { logout } = useAuth();
+  const dispatch = useAppDispatch();
 
-  const organizations = ["AirQo", "NEMA", "Permian Health"];
+  // Get networks and active network from Redux
+  const availableNetworks = useAppSelector(
+    (state) => state.user.availableNetworks
+  );
+  console.log(availableNetworks);
+  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
   const isActive = (path: string) => pathname?.startsWith(path);
   const isDevicesActive = isActive("/devices");
@@ -65,31 +73,36 @@ const Sidebar = () => {
     }
   };
 
+  const handleNetworkChange = (network: Network) => {
+    dispatch(setActiveNetwork(network));
+    localStorage.setItem("activeNetwork", JSON.stringify(network));
+  };
+
   return (
     <div className="w-64 h-screen bg-card border-r flex flex-col">
-      {/* Organization Switcher */}
+      {/* Network Switcher */}
       <div className="p-4 border-b">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="w-full justify-between text-foreground"
+              className="w-full justify-between text-foreground uppercase"
             >
-              {selectedOrg}
+              {activeNetwork?.net_name || "Select Network"}
               <ChevronDown size={16} />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
-            <DropdownMenuLabel>Switch Organization</DropdownMenuLabel>
+            <DropdownMenuLabel>Switch Network</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {organizations.map((org) => (
+            {availableNetworks.map((network) => (
               <DropdownMenuItem
-                key={org}
-                onClick={() => setSelectedOrg(org)}
-                className="flex items-center justify-between"
+                key={network._id}
+                onClick={() => handleNetworkChange(network)}
+                className="flex items-center justify-between uppercase"
               >
-                {org}
-                {selectedOrg === org && <Check size={16} />}
+                {network.net_name}
+                {activeNetwork?._id === network._id && <Check size={16} />}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -107,7 +120,7 @@ const Sidebar = () => {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="/"
+                  href="/analytics"
                   className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md ${
                     isActive("/analytics")
                       ? "bg-accent text-accent-foreground"

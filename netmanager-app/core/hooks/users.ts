@@ -6,6 +6,7 @@ import {
   setUserDetails,
   setActiveNetwork,
   logout,
+  setAvailableNetworks,
 } from "../redux/slices/userSlice";
 import type {
   LoginCredentials,
@@ -64,6 +65,11 @@ export const useAuth = () => {
       )) as UserDetailsResponse;
       const userInfo = userDetailsResponse.users[0];
       dispatch(setUserDetails(userDetails));
+      localStorage.setItem(
+        "availableNetworks",
+        JSON.stringify(userInfo.networks)
+      );
+      console.log(userInfo.networks);
 
       // 8. Set AirQo as default network
       const airqoNetwork = userInfo.networks?.find(
@@ -86,6 +92,8 @@ export const useAuth = () => {
       console.error("Login failed:", error);
       localStorage.removeItem("token");
       localStorage.removeItem("userDetails");
+      localStorage.removeItem("activeNetwork");
+      localStorage.removeItem("availableNetworks");
     },
   });
 
@@ -93,6 +101,7 @@ export const useAuth = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userDetails");
     localStorage.removeItem("activeNetwork");
+    localStorage.removeItem("availableNetworks");
     dispatch(logout());
     router.push("/login");
   };
@@ -102,7 +111,7 @@ export const useAuth = () => {
     const token = localStorage.getItem("token");
     const storedUserDetails = localStorage.getItem("userDetails");
     const storedActiveNetwork = localStorage.getItem("activeNetwork");
-
+    const storedAvailableNetworks = localStorage.getItem("availableNetworks");
     if (token && storedUserDetails) {
       const userDetails = JSON.parse(storedUserDetails) as UserDetails;
       dispatch(setUserDetails(userDetails));
@@ -110,6 +119,12 @@ export const useAuth = () => {
       if (storedActiveNetwork) {
         const activeNetwork = JSON.parse(storedActiveNetwork) as Network;
         dispatch(setActiveNetwork(activeNetwork));
+      }
+      if (storedAvailableNetworks) {
+        const availableNetworks = JSON.parse(
+          storedAvailableNetworks
+        ) as Network[];
+        dispatch(setAvailableNetworks(availableNetworks));
       }
     } else {
       // logout user
