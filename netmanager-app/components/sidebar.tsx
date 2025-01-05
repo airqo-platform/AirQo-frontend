@@ -53,7 +53,6 @@ const Sidebar = () => {
   const availableNetworks = useAppSelector(
     (state) => state.user.availableNetworks
   );
-  console.log(availableNetworks);
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
   const isActive = (path: string) => pathname?.startsWith(path);
