@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "./sidebar";
 import Topbar from "./topbar";
-import { LayoutProps } from "../types/layout";
+import { LayoutProps } from "../app/types/layout";
 
 export default function Layout({ children }: LayoutProps) {
   const [darkMode, setDarkMode] = useState(false);

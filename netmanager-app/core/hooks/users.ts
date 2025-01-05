@@ -7,6 +7,7 @@ import {
   setActiveNetwork,
   logout,
   setAvailableNetworks,
+  setInitialized,
 } from "../redux/slices/userSlice";
 import type {
   LoginCredentials,
@@ -69,7 +70,6 @@ export const useAuth = () => {
         "availableNetworks",
         JSON.stringify(userInfo.networks)
       );
-      console.log(userInfo.networks);
 
       // 8. Set AirQo as default network
       const airqoNetwork = userInfo.networks?.find(
@@ -106,29 +106,35 @@ export const useAuth = () => {
     router.push("/login");
   };
 
-  // Restore session on page refresh
+  // Update restoreSession to handle initialization
   const restoreSession = () => {
-    const token = localStorage.getItem("token");
-    const storedUserDetails = localStorage.getItem("userDetails");
-    const storedActiveNetwork = localStorage.getItem("activeNetwork");
-    const storedAvailableNetworks = localStorage.getItem("availableNetworks");
-    if (token && storedUserDetails) {
-      const userDetails = JSON.parse(storedUserDetails) as UserDetails;
-      dispatch(setUserDetails(userDetails));
+    try {
+      const token = localStorage.getItem("token");
+      const storedUserDetails = localStorage.getItem("userDetails");
+      const storedActiveNetwork = localStorage.getItem("activeNetwork");
+      const storedAvailableNetworks = localStorage.getItem("availableNetworks");
 
-      if (storedActiveNetwork) {
-        const activeNetwork = JSON.parse(storedActiveNetwork) as Network;
-        dispatch(setActiveNetwork(activeNetwork));
+      if (token && storedUserDetails) {
+        const userDetails = JSON.parse(storedUserDetails) as UserDetails;
+        dispatch(setUserDetails(userDetails));
+
+        if (storedActiveNetwork) {
+          const activeNetwork = JSON.parse(storedActiveNetwork) as Network;
+          dispatch(setActiveNetwork(activeNetwork));
+        }
+        if (storedAvailableNetworks) {
+          const availableNetworks = JSON.parse(
+            storedAvailableNetworks
+          ) as Network[];
+          dispatch(setAvailableNetworks(availableNetworks));
+        }
+      } else {
+        // logout user
+        handleLogout();
       }
-      if (storedAvailableNetworks) {
-        const availableNetworks = JSON.parse(
-          storedAvailableNetworks
-        ) as Network[];
-        dispatch(setAvailableNetworks(availableNetworks));
-      }
-    } else {
-      // logout user
-      handleLogout();
+    } finally {
+      // Always set initialized to true when done
+      dispatch(setInitialized());
     }
   };
 

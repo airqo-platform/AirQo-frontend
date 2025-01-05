@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { SiteForm } from "@/app/(authenticated)/sites/site-form";
 import { useRouter } from "next/navigation";
+import { RouteGuard } from "@/components/route-guard";
 
 // Sample data
 const sites = [
@@ -62,80 +63,82 @@ export default function SitesPage() {
   );
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold">Site Registry for AirQo</h1>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Site
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Add New Site</DialogTitle>
-              <DialogDescription>
-                Fill in the details below to create a new monitoring site.
-              </DialogDescription>
-            </DialogHeader>
-            <SiteForm />
-          </DialogContent>
-        </Dialog>
-      </div>
+    <RouteGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_SITES">
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold">Site Registry for AirQo</h1>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Site
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle>Add New Site</DialogTitle>
+                <DialogDescription>
+                  Fill in the details below to create a new monitoring site.
+                </DialogDescription>
+              </DialogHeader>
+              <SiteForm />
+            </DialogContent>
+          </Dialog>
+        </div>
 
-      <div className="flex items-center mb-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search sites..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        <div className="flex items-center mb-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search sites..."
+              className="pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Site ID</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Country</TableHead>
+                <TableHead>District</TableHead>
+                <TableHead>Region</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredSites.map((site) => (
+                <TableRow
+                  key={site.id}
+                  className="cursor-pointer"
+                  onClick={() => router.push(`/sites/${site.id}`)}
+                >
+                  <TableCell>{site.name}</TableCell>
+                  <TableCell>{site.id}</TableCell>
+                  <TableCell>{site.description}</TableCell>
+                  <TableCell>{site.country}</TableCell>
+                  <TableCell>{site.district}</TableCell>
+                  <TableCell>{site.region}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </div>
-
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Site ID</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Country</TableHead>
-              <TableHead>District</TableHead>
-              <TableHead>Region</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredSites.map((site) => (
-              <TableRow
-                key={site.id}
-                className="cursor-pointer"
-                onClick={() => router.push(`/sites/${site.id}`)}
-              >
-                <TableCell>{site.name}</TableCell>
-                <TableCell>{site.id}</TableCell>
-                <TableCell>{site.description}</TableCell>
-                <TableCell>{site.country}</TableCell>
-                <TableCell>{site.district}</TableCell>
-                <TableCell>{site.region}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+    </RouteGuard>
   );
 }
