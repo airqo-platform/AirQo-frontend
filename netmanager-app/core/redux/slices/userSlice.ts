@@ -15,6 +15,7 @@ interface UserState {
   currentRole: CurrentRole | null;
   userGroups: Group[];
   isInitialized: boolean;
+  activeGroup: Group | null;
 }
 
 const initialState: UserState = {
@@ -25,6 +26,7 @@ const initialState: UserState = {
   currentRole: null,
   userGroups: [],
   isInitialized: false,
+  activeGroup: null,
 };
 
 const userSlice = createSlice({
@@ -59,6 +61,12 @@ const userSlice = createSlice({
     setInitialized(state) {
       state.isInitialized = true;
     },
+    setActiveGroup(state, action: PayloadAction<Group>) {
+      state.activeGroup = action.payload;
+    },
+    setUserGroups(state, action: PayloadAction<Group[]>) {
+      state.userGroups = action.payload;
+    },
   },
 });
 
@@ -68,5 +76,7 @@ export const {
   logout,
   setAvailableNetworks,
   setInitialized,
+  setActiveGroup,
+  setUserGroups,
 } = userSlice.actions;
 export default userSlice.reducer;

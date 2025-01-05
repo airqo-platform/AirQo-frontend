@@ -5,8 +5,10 @@ import { users } from "../apis/users";
 import {
   setUserDetails,
   setActiveNetwork,
+  setActiveGroup,
   logout,
   setAvailableNetworks,
+  setUserGroups,
   setInitialized,
 } from "../redux/slices/userSlice";
 import type {
@@ -14,6 +16,7 @@ import type {
   DecodedToken,
   UserDetails,
   Network,
+  Group,
   LoginResponse,
   UserDetailsResponse,
 } from "@/app/types/users";
@@ -60,30 +63,55 @@ export const useAuth = () => {
       // 5. Store user details
       localStorage.setItem("userDetails", JSON.stringify(userDetails));
 
-      // 7. Get user info store in redux
+      // 6. Get user info and store in redux
       const userDetailsResponse = (await users.getUserDetails(
         loginResponse._id
       )) as UserDetailsResponse;
       const userInfo = userDetailsResponse.users[0];
-      dispatch(setUserDetails(userDetails));
+
+      // 7. Store networks and groups
+      dispatch(setUserDetails(userInfo));
+      dispatch(setUserGroups(userInfo.groups || []));
       localStorage.setItem(
         "availableNetworks",
         JSON.stringify(userInfo.networks)
       );
+      localStorage.setItem("userGroups", JSON.stringify(userInfo.groups));
 
-      // 8. Set AirQo as default network
+      // 8. Set AirQo as default network and group if available
       const airqoNetwork = userInfo.networks?.find(
         (network: Network) => network.net_name.toLowerCase() === "airqo"
       );
+
       if (airqoNetwork) {
         dispatch(setActiveNetwork(airqoNetwork));
         localStorage.setItem("activeNetwork", JSON.stringify(airqoNetwork));
+
+        // Find and set AirQo group if it exists
+        const airqoGroup = userInfo.groups?.find(
+          (group: Group) => group.grp_title.toLowerCase() === "airqo"
+        );
+
+        if (airqoGroup) {
+          dispatch(setActiveGroup(airqoGroup));
+          localStorage.setItem("activeGroup", JSON.stringify(airqoGroup));
+        }
       } else if (userInfo?.networks && userInfo.networks.length > 0) {
+        // If AirQo network not found, set first available network
         dispatch(setActiveNetwork(userInfo.networks[0]));
         localStorage.setItem(
           "activeNetwork",
           JSON.stringify(userInfo.networks[0])
         );
+
+        // Set first available group in that network if any
+        if (userInfo.groups && userInfo.groups.length > 0) {
+          dispatch(setActiveGroup(userInfo.groups[0]));
+          localStorage.setItem(
+            "activeGroup",
+            JSON.stringify(userInfo.groups[0])
+          );
+        }
       }
 
       return userInfo;
@@ -94,6 +122,8 @@ export const useAuth = () => {
       localStorage.removeItem("userDetails");
       localStorage.removeItem("activeNetwork");
       localStorage.removeItem("availableNetworks");
+      localStorage.removeItem("activeGroup");
+      localStorage.removeItem("userGroups");
     },
   });
 
@@ -102,17 +132,20 @@ export const useAuth = () => {
     localStorage.removeItem("userDetails");
     localStorage.removeItem("activeNetwork");
     localStorage.removeItem("availableNetworks");
+    localStorage.removeItem("activeGroup");
+    localStorage.removeItem("userGroups");
     dispatch(logout());
     router.push("/login");
   };
 
-  // Update restoreSession to handle initialization
   const restoreSession = () => {
     try {
       const token = localStorage.getItem("token");
       const storedUserDetails = localStorage.getItem("userDetails");
       const storedActiveNetwork = localStorage.getItem("activeNetwork");
       const storedAvailableNetworks = localStorage.getItem("availableNetworks");
+      const storedActiveGroup = localStorage.getItem("activeGroup");
+      const storedUserGroups = localStorage.getItem("userGroups");
 
       if (token && storedUserDetails) {
         const userDetails = JSON.parse(storedUserDetails) as UserDetails;
@@ -128,12 +161,18 @@ export const useAuth = () => {
           ) as Network[];
           dispatch(setAvailableNetworks(availableNetworks));
         }
+        if (storedUserGroups) {
+          const userGroups = JSON.parse(storedUserGroups) as Group[];
+          dispatch(setUserGroups(userGroups));
+        }
+        if (storedActiveGroup) {
+          const activeGroup = JSON.parse(storedActiveGroup) as Group;
+          dispatch(setActiveGroup(activeGroup));
+        }
       } else {
-        // logout user
         handleLogout();
       }
     } finally {
-      // Always set initialized to true when done
       dispatch(setInitialized());
     }
   };
