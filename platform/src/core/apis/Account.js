@@ -13,6 +13,7 @@ import {
   FORGOT_PWD_URL,
   RESET_PWD_URL,
   MAINTENANCE_STATUS_URL,
+  GOOGLE_AUTH_CALLBACK_URL,
 } from '../urls/authentication';
 import axios from 'axios';
 import createAxiosInstance from './axiosConfig';
@@ -238,4 +239,11 @@ export const getMaintenanceStatus = async () => {
     console.error('Error fetching maintenance status:', error);
     throw error;
   }
+};
+
+export const handleGoogleCallback = async (params) => {
+  // params will contain any query parameters from the callback URL
+  return await createAxiosInstance()
+    .get(GOOGLE_AUTH_CALLBACK_URL, { params })
+    .then((response) => response.data);
 };

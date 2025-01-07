@@ -9,6 +9,7 @@ import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import VisibilityOffIcon from '@/icons/Account/visibility_off.svg';
 import VisibilityOnIcon from '@/icons/Account/visibility_on.svg';
+// import GoogleIcon from '@/icons/Account/google.svg';
 
 import {
   setUserData,
@@ -17,7 +18,11 @@ import {
   setError,
 } from '@/lib/store/services/account/LoginSlice';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
-import { postUserLoginDetails, getUserDetails } from '@/core/apis/Account';
+import {
+  postUserLoginDetails,
+  getUserDetails,
+  getGoogleAuthDetails,
+} from '@/core/apis/Account';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
@@ -110,6 +115,19 @@ const UserLogin = () => {
     dispatch(setUserData({ key, value }));
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      const response = await getGoogleAuthDetails();
+      if (response.data?.url) {
+        window.location.href = response.data.url;
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to initiate Google login';
+      setErrorState(errorMessage);
+    }
+  };
+
   return (
     <AccountPageLayout
       pageTitle="AirQo Analytics | Login"
@@ -183,6 +201,16 @@ const UserLogin = () => {
             </button>
           </div>
         </form>
+        <div className="mt-4">
+          <button
+            onClick={handleGoogleLogin}
+            className="w-full btn bg-white border border-gray-300 rounded-[12px] text-gray-700 text-sm hover:bg-gray-50 flex items-center justify-center py-3"
+            type="button"
+          >
+            {/* <GoogleIcon className="w-5 h-5 mr-2" /> */}
+            Login with Google
+          </button>
+        </div>
         <div className="mt-8 w-full flex justify-center">
           <div>
             <span className="text-sm text-grey-300">
