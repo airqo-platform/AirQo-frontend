@@ -3,7 +3,6 @@ import 'package:airqo/src/app/dashboard/widgets/analytics_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_forecast_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class AnalyticsSpecifics extends StatefulWidget {
   final Measurement measurement;
@@ -104,9 +103,9 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                   ],
                 ),
                 SizedBox(height: 16),
-                // AnalyticsForecastWidget(
-                //   siteId: widget.measurement.siteDetails!.id!,
-                // ),
+                AnalyticsForecastWidget(
+                  siteId: widget.measurement.siteDetails!.id!,
+                ),
                 SizedBox(height: 16),
               ],
             ),
