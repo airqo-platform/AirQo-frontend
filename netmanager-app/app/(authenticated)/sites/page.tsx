@@ -13,14 +13,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
   Pagination,
   PaginationContent,
   PaginationEllipsis,
@@ -42,18 +34,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Site } from "@/core/redux/slices/sitesSlice";
+import { CreateSiteForm } from "./create-site-form";
 
 const ITEMS_PER_PAGE = 8;
 
-type SortField = "name" | "description" | "region" | "isOnline";
+type SortField = "name" | "description" | "region" | "isOnline" | "createdAt";
 type SortOrder = "asc" | "desc";
 
 export default function SitesPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortField, setSortField] = useState<SortField>("name");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [sortField, setSortField] = useState<SortField>("createdAt");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const { sites, isLoading, error } = useSites();
 
   const handleSort = (field: SortField) => {
@@ -69,17 +62,23 @@ export default function SitesPage() {
 
   const sortSites = (sitesToSort: Site[]) => {
     return [...sitesToSort].sort((a, b) => {
+      // Handle createdAt sorting
+      if (sortField === "createdAt") {
+        const dateA = new Date(a.createdAt || 0).getTime();
+        const dateB = new Date(b.createdAt || 0).getTime();
+        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+      }
+
+      // Handle other fields as before
       let compareA = a[sortField].toString();
       let compareB = b[sortField].toString();
 
-      // Handle special cases
       if (sortField === "isOnline") {
         return sortOrder === "asc"
           ? Number(b.isOnline) - Number(a.isOnline)
           : Number(a.isOnline) - Number(b.isOnline);
       }
 
-      // Normal string comparison
       if (typeof compareA === "string") {
         compareA = compareA.toLowerCase();
         compareB = compareB.toLowerCase();
@@ -171,23 +170,7 @@ export default function SitesPage() {
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">Site Registry</h1>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Site
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle>Add New Site</DialogTitle>
-                <DialogDescription>
-                  Fill in the details below to create a new monitoring site.
-                </DialogDescription>
-              </DialogHeader>
-              <SiteForm />
-            </DialogContent>
-          </Dialog>
+          <CreateSiteForm />
         </div>
 
         <div className="flex items-center gap-2 mb-4">
@@ -207,6 +190,10 @@ export default function SitesPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleSort("createdAt")}>
+                Date Created{" "}
+                {sortField === "createdAt" && (sortOrder === "asc" ? "↑" : "↓")}
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleSort("name")}>
                 Name {sortField === "name" && (sortOrder === "asc" ? "↑" : "↓")}
               </DropdownMenuItem>

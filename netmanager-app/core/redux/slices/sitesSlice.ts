@@ -51,6 +51,8 @@ export interface Site {
   grids: Grid[];
   devices: Device[];
   airqlouds: unknown[];
+  createdAt: string;
+  updatedAt?: string;
 }
 
 interface SitesState {

@@ -16,4 +16,18 @@ export const sites = {
       );
     }
   },
+
+  createSite: async (data: {
+    name: string;
+    latitude: string;
+    longitude: string;
+    network: string;
+  }) => {
+    try {
+      const response = await axiosInstance.post(`${SITES_MGT_URL}`, data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Failed to create site");
+    }
+  },
 };
