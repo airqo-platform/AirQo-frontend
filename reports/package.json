@@ -47,6 +47,7 @@
     "recharts": "^2.12.6",
     "redux": "^5.0.1",
     "redux-persist": "^6.0.0",
+    "reports": "file:",
     "sharp": "^0.33.4",
     "sonner": "^1.4.41",
     "tailwind-merge": "^2.3.0",
