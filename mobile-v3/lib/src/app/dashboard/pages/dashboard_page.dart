@@ -4,7 +4,6 @@ import 'package:airqo/src/app/dashboard/widgets/countries_chip.dart';
 import 'package:airqo/src/app/dashboard/widgets/dashboard_loading.dart';
 import 'package:airqo/src/app/other/theme/bloc/theme_bloc.dart';
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
-import 'package:airqo/src/app/profile/pages/profile_page.dart';
 import 'package:airqo/src/app/shared/pages/error_page.dart';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
 import 'package:airqo/src/app/shared/widgets/page_padding.dart';
