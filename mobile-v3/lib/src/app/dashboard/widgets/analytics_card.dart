@@ -70,7 +70,7 @@ class AnalyticsCard extends StatelessWidget {
                       SizedBox(
                         child: Center(
                           child: SvgPicture.asset(
-                            getAirQualityIcon(measurement, measurement.pm25!.value ?? 10),
+                            getAirQualityIcon(measurement, measurement.pm25!.value!),
                             height: 96,
                             width: 96,
                           ),
