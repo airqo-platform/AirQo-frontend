@@ -69,7 +69,7 @@ const Tabs = ({ children, childrenRight, positionFixed }) => {
   return (
     <div
       data-testid="tabs"
-      className="relative w-full h-dvh transition-all duration-300 ease-in-out"
+      className="relative w-full transition-all duration-300 ease-in-out"
     >
       <div
         className={`${
