@@ -8,6 +8,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MultiSelect, Option } from "react-multi-select-component";
 import { useToast } from "@/components/ui/use-toast";
 import { ExportType, FormData } from "@/types/export";
+import { useSites } from "@/core/hooks/useSites";
+import { useCities } from "@/core/hooks/useCities";
+import { Site } from "@/core/redux/slices/sitesSlice";
+import { City } from "@/core/redux/slices/citiesSlice";
+import { Device } from "@/core/redux/slices/deviceSlice";
+import { useDevices } from "@/core/hooks/useDevices";
+
+const pollutantOptions = [
+    { value: "pm2.5", label: "PM2.5" },
+    { value: "pm10", label: "PM10" },
+    { value: "no2", label: "NO2" },
+];
 
 interface ExportFormProps {
   exportType: ExportType;
@@ -35,7 +47,11 @@ const options = {
 };
 
 export default function ExportForm({ exportType }: ExportFormProps) {
-  const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const { sites } = useSites();
+    const { cities } = useCities();
+    const { devices } = useDevices();
+
   const { control, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
     defaultValues: {
       startDate: "",
@@ -51,27 +67,36 @@ export default function ExportForm({ exportType }: ExportFormProps) {
   const { toast } = useToast();
 
   const [siteOptions, setSiteOptions] = useState<Option[]>([]);
-  const [pollutantOptions, setPollutantOptions] = useState<Option[]>([]);
+  const [cityOptions, setCityOptions] = useState<Option[]>([]);
+  const [deviceOptions, setDeviceOptions] = useState<Option[]>([]);
 
   useEffect(() => {
-    // Simulate fetching options from an API
-    setSiteOptions([
-      { value: "site1", label: "Site 1" },
-      { value: "site2", label: "Site 2" },
-      { value: "site3", label: "Site 3" },
-    ]);
+    if (sites?.length) {
+      const newSiteOptions = sites.map((site: Site) => ({ value: site._id, label: site.name }));
+      if (JSON.stringify(newSiteOptions) !== JSON.stringify(siteOptions)) {
+        setSiteOptions(newSiteOptions);
+      }
+      
+    }
+    if (cities?.length) {
+      const newCityOptions = cities.map((city: City) => ({ value: city._id, label: city.name }));
+      if (JSON.stringify(newCityOptions) !== JSON.stringify(cityOptions)) {
+        setCityOptions(newCityOptions);
+      }
+    }
+    if (devices?.length) {
+      const newDeviceOptions = devices.map((device: Device) => ({ value: device._id, label: device.name }));
+      if (JSON.stringify(newDeviceOptions) !== JSON.stringify(deviceOptions)) {
+        setDeviceOptions(newDeviceOptions);
+      }
+    }
 
-    setPollutantOptions([
-      { value: "pm2.5", label: "PM2.5" },
-      { value: "pm10", label: "PM10" },
-      { value: "no2", label: "NO2" },
-    ]);
-  }, []);
+  }, [sites, cities, devices, siteOptions, cityOptions, deviceOptions]);
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     console.log("Exporting data:", { ...data, exportType });
-    await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulating an async operation
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     setLoading(false);
     toast({
       title: "Data exported successfully",
@@ -133,6 +158,21 @@ export default function ExportForm({ exportType }: ExportFormProps) {
     />
   );
 
+  const renderFieldBasedOnTab = () => {
+    switch (exportType) {
+      case "sites":
+        return renderMultiSelect("sites", siteOptions, "Select sites", { required: "At least one site must be selected" });
+      case "devices":
+        return renderMultiSelect("devices", deviceOptions, "Select devices", { required: "At least one device must be selected" });
+      case "airqlouds":
+        return renderMultiSelect("cities", cityOptions, "Select airqlouds", { required: "At least one airqloud must be selected" });
+      case "regions":
+        return renderMultiSelect("regions", cityOptions, "Select regions", { required: "At least one region must be selected" });
+      default:
+        return null;
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4">
       <div className="grid grid-cols-2 gap-4">
@@ -155,7 +195,7 @@ export default function ExportForm({ exportType }: ExportFormProps) {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        {renderMultiSelect("sites", siteOptions, "Select sites", { required: "At least one site must be selected" })}
+        {renderFieldBasedOnTab()}
         {renderMultiSelect("pollutants", pollutantOptions, "Select pollutants", { required: "At least one pollutant must be selected" })}
       </div>
 
