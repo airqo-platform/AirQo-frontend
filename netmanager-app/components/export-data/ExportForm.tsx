@@ -220,7 +220,9 @@ export default function ExportForm({ exportType }: ExportFormProps) {
       </div>
 
       {Object.keys(errors).length > 0 && (
-        <p className="text-red-500 text-center">Please fill in all the required fields</p>
+        <div>
+          <p className="text-red-500 text-center">Please fill in all the required fields</p>
+        </div>
       )}
     </form>
   );
