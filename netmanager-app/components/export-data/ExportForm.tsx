@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MultiSelect, Option } from "react-multi-select-component";
 import { useToast } from "@/components/ui/use-toast";
@@ -14,6 +13,7 @@ import { Site } from "@/core/redux/slices/sitesSlice";
 import { City } from "@/core/redux/slices/citiesSlice";
 import { Device } from "@/core/redux/slices/deviceSlice";
 import { useDevices } from "@/core/hooks/useDevices";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const pollutantOptions = [
     { value: "pm2.5", label: "PM2.5" },
@@ -54,8 +54,8 @@ export default function ExportForm({ exportType }: ExportFormProps) {
 
   const { control, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
     defaultValues: {
-      startDate: "",
-      endDate: "",
+      startDate: undefined,
+      endDate: undefined,
       sites: [],
       pollutants: [],
       frequency: "",
@@ -182,7 +182,8 @@ export default function ExportForm({ exportType }: ExportFormProps) {
           control={control}
           rules={{ required: "Start date is required" }}
           render={({ field }) => (
-            <Input type="date" placeholder="Start Date" {...field} />
+            <DatePicker value={field.value ? new Date(field.value) : undefined} onChange={field.onChange} disabled={field.disabled} />
+
           )}
         />
         <Controller
@@ -190,7 +191,8 @@ export default function ExportForm({ exportType }: ExportFormProps) {
           control={control}
           rules={{ required: "End date is required" }}
           render={({ field }) => (
-            <Input type="date" placeholder="End Date" {...field} />
+            <DatePicker value={field.value ? new Date(field.value) : undefined} onChange={field.onChange} disabled={field.disabled} />
+
           )}
         />
       </div>
