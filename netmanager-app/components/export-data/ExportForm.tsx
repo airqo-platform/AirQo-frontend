@@ -84,6 +84,7 @@ export default function ExportForm({ exportType }: ExportFormProps) {
         setCityOptions(newCityOptions);
       }
     }
+    
     if (devices?.length) {
       const newDeviceOptions = devices.map((device: Device) => ({ value: device._id, label: device.name }));
       if (JSON.stringify(newDeviceOptions) !== JSON.stringify(deviceOptions)) {
