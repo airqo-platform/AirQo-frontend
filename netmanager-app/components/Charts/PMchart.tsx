@@ -5,7 +5,6 @@ import { Pie, PieChart } from "recharts"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -54,7 +53,6 @@ export function PMchart() {
     <Card className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-4">
       <CardHeader className="items-center pb-0">
         <CardTitle>Pie Chart - Legend</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer

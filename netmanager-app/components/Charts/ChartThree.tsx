@@ -6,7 +6,6 @@ import { CartesianGrid, Line, LineChart, XAxis } from "recharts"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -35,11 +34,11 @@ const chartData = [
 const chartConfig = {
   desktop: {
     label: "Desktop",
-    color: "hsl(var(--chart-1))",
+    color: "hsl(var(--chart-6))",
   },
   mobile: {
     label: "Mobile",
-    color: "hsl(var(--chart-2))",
+    color: "hsl(var(--chart-7))",
   },
 } satisfies ChartConfig
 
@@ -48,7 +47,6 @@ export function ChartThree() {
     <Card className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-6">
     <CardHeader>
         <CardTitle>Line Chart - Multiple</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
     </CardHeader>
     <CardContent>
         <ChartContainer config={chartConfig}>

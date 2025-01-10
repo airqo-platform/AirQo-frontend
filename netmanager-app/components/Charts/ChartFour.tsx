@@ -6,7 +6,6 @@ import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -23,17 +22,23 @@ const chartData = [
   { month: "March", desktop: 237, mobile: 120 },
   { month: "April", desktop: 73, mobile: 190 },
   { month: "May", desktop: 209, mobile: 130 },
+  { month: "July", desktop: 214, mobile: 140 },
   { month: "June", desktop: 214, mobile: 140 },
+  { month: "August", desktop: 186, mobile: 80 },
+  { month: "Sept", desktop: 305, mobile: 200 },
+  { month: "October", desktop: 237, mobile: 120 },
+  { month: "November", desktop: 73, mobile: 190 },
+  { month: "December", desktop: 209, mobile: 130 },
 ]
 
 const chartConfig = {
   desktop: {
     label: "Desktop",
-    color: "hsl(var(--chart-1))",
+    color: "hsl(var(--chart-6))",
   },
   mobile: {
     label: "Mobile",
-    color: "hsl(var(--chart-2))",
+    color: "hsl(var(--chart-7))",
   },
 } satisfies ChartConfig
 
@@ -42,7 +47,6 @@ export function ChartFour() {
     <Card className="col-span-12 p-4 rounded-sm border border-stroke bg-white p-7.5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-6">
       <CardHeader>
         <CardTitle>Bar Chart - Multiple</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
