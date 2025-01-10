@@ -4,7 +4,7 @@ import { FormData } from "@/types/export";
 
 const axiosInstance = createAxiosInstance();
 
-export const dataExport = async (data: FormData) => {
+export const dataExport = async (data: any) => {
     try {
         const headers = {
             service: 'data-export'

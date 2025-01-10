@@ -3,8 +3,8 @@ import { Option } from "@/components/ui/multi-select"
 export type ExportType = 'sites' | 'devices' | 'airqlouds' | 'regions'
 
 export interface FormData {
-  startDate: string;
-  endDate: string;
+  startDateTime: string;
+  endDateTime: string;
   sites?: Option[];
   devices?: Option[];
   cities?: Option[];
