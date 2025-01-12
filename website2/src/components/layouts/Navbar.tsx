@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { RiCloseFill } from 'react-icons/ri';
 import { TbChevronDown, TbMenu } from 'react-icons/tb';
 
-import TabNavigation from '@/components/sections/CleanAir/TabNavigation';
+import TabNavigation from '@/views/cleanairforum/TabNavigation';
 import { CustomButton } from '@/components/ui';
 import {
   NavigationMenu,

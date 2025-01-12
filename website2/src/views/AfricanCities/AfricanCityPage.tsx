@@ -3,8 +3,8 @@
 import { motion } from 'framer-motion';
 import React from 'react';
 
-import AfricanCities from '@/components/sections/AfricanCities/AfricanCities';
 import { CustomButton, Divider } from '@/components/ui';
+import AfricanCities from '@/views/AfricanCities/AfricanCities';
 
 // Define motion variants for different animations
 const containerVariants = {

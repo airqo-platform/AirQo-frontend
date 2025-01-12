@@ -4,7 +4,7 @@ import { ReactNode, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
-import { Pagination } from '../../ui';
+import { Pagination } from '../../components/ui';
 
 const logosPerPage = 8;
 

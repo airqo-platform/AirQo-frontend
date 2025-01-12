@@ -6,9 +6,9 @@ import React, { ReactNode, useEffect, useState } from 'react';
 import Footer from '@/components/layouts/Footer';
 import Navbar from '@/components/layouts/Navbar';
 import NewsLetter from '@/components/layouts/NewsLetter';
-import BannerSection from '@/components/sections/Forum/BannerSection';
 import { ForumDataProvider } from '@/context/ForumDataContext';
 import { getForumEvents } from '@/services/apiService';
+import BannerSection from '@/views/Forum/BannerSection';
 
 // export const metadata: Metadata = {
 //   title: 'Clean Air Forum | AirQo Africa',

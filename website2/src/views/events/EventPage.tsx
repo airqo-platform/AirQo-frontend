@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { FiCalendar, FiClock } from 'react-icons/fi';
 
-import EventCardsSection from '@/components/sections/Events/EventCardsSection';
 import { CustomButton } from '@/components/ui';
 import { useAirQoEvents } from '@/hooks/useApiHooks';
+import EventCardsSection from '@/views/events/EventCardsSection';
 
 const EventPage: React.FC = () => {
   const router = useRouter();

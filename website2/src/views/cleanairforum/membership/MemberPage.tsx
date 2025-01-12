@@ -3,8 +3,8 @@
 import Image from 'next/image';
 import React, { useMemo } from 'react';
 
-import PaginatedSection from '@/components/sections/CleanAir/PaginatedSection';
-import RegisterBanner from '@/components/sections/CleanAir/RegisterBanner';
+import PaginatedSection from '@/views/cleanairforum/PaginatedSection';
+import RegisterBanner from '@/views/cleanairforum/RegisterBanner';
 import { usePartners } from '@/hooks/useApiHooks';
 
 const SkeletonPaginatedSection: React.FC = () => {

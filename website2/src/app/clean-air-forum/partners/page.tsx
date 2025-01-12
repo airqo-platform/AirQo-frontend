@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 
-import PaginatedSection from '@/components/sections/CleanAir/PaginatedSection';
+import PaginatedSection from '@/views/cleanairforum/PaginatedSection';
 import { Divider } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
 import { renderContent } from '@/utils/quillUtils';

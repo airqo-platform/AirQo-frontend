@@ -5,7 +5,7 @@ import Link from 'next/link';
 import React from 'react';
 import { FaArrowRightLong } from 'react-icons/fa6';
 
-import PaginatedSection from '@/components/sections/CleanAir/PaginatedSection';
+import PaginatedSection from '@/views/cleanairforum/PaginatedSection';
 import { CustomButton, Divider, MemberCard } from '@/components/ui';
 import { useDispatch } from '@/hooks/reduxHooks';
 import {

@@ -5,9 +5,9 @@ import Image from 'next/image';
 import React, { useMemo, useState } from 'react';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
-import EventCard from '@/components/sections/CleanAir/EventCard';
-import EventSkeleton from '@/components/sections/CleanAir/EventSkeleton';
-import RegisterBanner from '@/components/sections/CleanAir/RegisterBanner';
+import EventCard from '@/views/cleanairforum/EventCard';
+import EventSkeleton from '@/views/cleanairforum/EventSkeleton';
+import RegisterBanner from '@/views/cleanairforum/RegisterBanner';
 import {
   DropdownMenu,
   DropdownMenuContent,
