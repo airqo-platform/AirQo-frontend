@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { GoOrganization } from 'react-icons/go';
 import CustomDropdown from './CustomDropdown';
 import ChevronDownIcon from '@/icons/Common/chevron_downIcon';
 import RadioIcon from '@/icons/SideBar/radioIcon';
@@ -25,9 +26,10 @@ const OrganizationDropdown = () => {
     groupList,
     userID,
   } = useGetActiveGroup();
+
   const isCollapsed = useSelector((state) => state?.sidebar?.isCollapsed);
 
-  // Memoize active groups
+  // Filter active groups
   const activeGroups = useMemo(
     () => groupList.filter((group) => group && group.status === 'ACTIVE'),
     [groupList],
@@ -48,10 +50,8 @@ const OrganizationDropdown = () => {
         console.warn('Invalid group data');
         return;
       }
-
       setLoading(true);
       setSelectedGroupId(group._id);
-
       try {
         const response = await dispatch(
           updateUserPreferences({
@@ -59,7 +59,6 @@ const OrganizationDropdown = () => {
             group_id: group._id,
           }),
         );
-
         if (response?.payload?.success) {
           localStorage.setItem('activeGroup', JSON.stringify(group));
           dispatch(setOrganizationName(group.grp_title));
@@ -105,10 +104,9 @@ const OrganizationDropdown = () => {
             }`}
           >
             <div className="flex items-center gap-3">
+              {/* Organization Icon in place of abbreviation */}
               <div className="w-8 h-8 bg-yellow-200 flex items-center justify-center rounded-full">
-                <span className="text-slate-500 text-sm font-medium">
-                  {activeGroupTitle.slice(0, 2).toUpperCase()}
-                </span>
+                <GoOrganization className="text-slate-600 text-lg" />
               </div>
               {!isCollapsed && (
                 <div
@@ -137,10 +135,9 @@ const OrganizationDropdown = () => {
           }`}
         >
           <div className="flex items-center gap-2">
+            {/* Organization Icon */}
             <div className="w-8 h-8 bg-yellow-200 flex items-center justify-center rounded-full">
-              <span className="text-slate-500 text-sm font-medium">
-                {group.grp_title.slice(0, 2).toUpperCase()}
-              </span>
+              <GoOrganization className="text-slate-600 text-lg" />
             </div>
             <div
               className="text-sm font-medium truncate max-w-[150px]"
@@ -154,7 +151,7 @@ const OrganizationDropdown = () => {
           ) : activeGroupId === group._id ? (
             <RadioIcon />
           ) : (
-            <input type="radio" className="border-[#C4C7CB]" />
+            <input type="radio" className="border-[#C4C7CB]" readOnly />
           )}
         </button>
       ))}
