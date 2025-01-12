@@ -1,5 +1,6 @@
 "use client"
 
+import React, { useEffect } from 'react'
 import {
   Label,
   PolarGrid,
@@ -7,12 +8,12 @@ import {
   RadialBar,
   RadialBarChart,
 } from "recharts"
+import { useSites } from "@/core/hooks/useSites"
 
 import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card"
 import { ChartConfig, ChartContainer } from "@/components/ui/chart"
 const chartData = [
@@ -30,10 +31,18 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function Speed() {
+
+  const { sites } = useSites()
+   useEffect(() => {
+      if (sites) {
+        console.log(sites)
+      }
+    }, [sites])
+
   return (
     <Card className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-4">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Radial Chart - Text</CardTitle>
+        <h4>Devices</h4>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
@@ -78,7 +87,7 @@ export function Speed() {
                           y={(viewBox.cy || 0) + 24}
                           className="fill-muted-foreground"
                         >
-                          Visitors
+                          Devices
                         </tspan>
                       </text>
                     )

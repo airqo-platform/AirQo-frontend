@@ -1,14 +1,14 @@
 "use client"
 
-import * as React from "react"
+import React, {useEffect} from "react"
 import { Label, Pie, PieChart, Sector } from "recharts"
 import { PieSectorDataItem } from "recharts/types/polar/Pie"
+import { useSites } from "@/core/hooks/useSites"
 
 import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card"
 import {
   ChartConfig,
@@ -65,6 +65,7 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function PieCharts() {
+  const { sites } = useSites()
   const id = "pie-interactive"
   const [activeMonth, setActiveMonth] = React.useState(desktopData[0].month)
 
@@ -74,12 +75,19 @@ export function PieCharts() {
   )
   const months = React.useMemo(() => desktopData.map((item) => item.month), [])
 
+  useEffect(() => {
+    if (sites) {
+      console.log(sites)
+    }
+  }, [sites])
+
+
   return (
     <Card data-chart={id} className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-4">
       <ChartStyle id={id} config={chartConfig} />
       <CardHeader className="flex-row items-start space-y-0 pb-0">
         <div className="grid gap-1">
-          <CardTitle>Pie Chart</CardTitle>
+          <h4>Sites</h4>
         </div>
         <Select value={activeMonth} onValueChange={setActiveMonth}>
           <SelectTrigger
@@ -172,7 +180,7 @@ export function PieCharts() {
                           y={(viewBox.cy || 0) + 24}
                           className="fill-muted-foreground"
                         >
-                          Visitors
+                          Sites
                         </tspan>
                       </text>
                     )

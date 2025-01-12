@@ -6,7 +6,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card"
 import {
   ChartConfig,
@@ -27,23 +26,23 @@ const chartConfig = {
     label: "Visitors",
   },
   chrome: {
-    label: "Chrome",
+    label: "Good",
     color: "hsl(var(--chart-1))",
   },
   safari: {
-    label: "Safari",
+    label: "Moderate",
     color: "hsl(var(--chart-2))",
   },
   firefox: {
-    label: "Firefox",
+    label: "UHFSG",
     color: "hsl(var(--chart-3))",
   },
   edge: {
-    label: "Edge",
+    label: "Unhealthy",
     color: "hsl(var(--chart-4))",
   },
   other: {
-    label: "Other",
+    label: "Very Unhealthy",
     color: "hsl(var(--chart-5))",
   },
 } satisfies ChartConfig
@@ -52,7 +51,7 @@ export function PMchart() {
   return (
     <Card className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-4">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Pie Chart - Legend</CardTitle>
+        <h4>AQ Exceedances</h4>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
