@@ -1,6 +1,4 @@
-import React from 'react';
-
-import ResearchPage from './ResearchPage';
+import ResearchPage from '@/views/solutions/research/ResearchPage';
 
 const page = () => {
   return (

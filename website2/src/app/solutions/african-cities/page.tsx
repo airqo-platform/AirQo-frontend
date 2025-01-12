@@ -1,4 +1,4 @@
-import AfricanCityPage from '@/views/AfricanCities/AfricanCityPage';
+import AfricanCityPage from '@/views/solutions/AfricanCities/AfricanCityPage';
 
 const page = () => {
   return (

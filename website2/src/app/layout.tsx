@@ -1,4 +1,4 @@
-import '@/styles/globals.scss';
+import './globals.css';
 
 import localFont from 'next/font/local';
 import { ReactNode, Suspense } from 'react';
