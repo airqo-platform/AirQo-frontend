@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import ExportForm from '@/components/export-data/ExportForm'
-import { ExportType } from '@/types/export'
+import { ExportType } from '@/app/types/export'
 
 export default function ExportData() {
   const [activeTab, setActiveTab] = useState<ExportType>('sites')
@@ -22,7 +22,6 @@ export default function ExportData() {
             <TabsTrigger value="sites">Sites</TabsTrigger>
             <TabsTrigger value="devices">Devices</TabsTrigger>
             <TabsTrigger value="airqlouds">AirQlouds</TabsTrigger>
-            <TabsTrigger value="regions">Regions</TabsTrigger>
           </TabsList>
           <TabsContent value={activeTab}>
             <ExportForm exportType={activeTab} />

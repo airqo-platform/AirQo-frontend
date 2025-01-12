@@ -311,8 +311,6 @@ export default function ExportForm({ exportType }: ExportFormProps) {
         return renderMultiSelect("devices", deviceOptions, "Select devices", { required: "At least one device must be selected" });
       case "airqlouds":
         return renderMultiSelect("cities", cityOptions, "Select airqlouds", { required: "At least one airqloud must be selected" });
-      case "regions":
-        return renderMultiSelect("regions", cityOptions, "Select regions", { required: "At least one region must be selected" });
       default:
         return null;
     }
