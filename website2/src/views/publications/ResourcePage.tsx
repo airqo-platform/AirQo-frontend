@@ -1,13 +1,14 @@
 'use client';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { FiDownload } from 'react-icons/fi';
 
 import { CustomButton, NoData, Pagination } from '@/components/ui';
-import { getPublications } from '@/services/apiService';
+import { usePublications } from '@/hooks/useApiHooks';
 
 const ResourcePage: React.FC = () => {
   const router = useRouter();
+  const { publications, isLoading, isError } = usePublications();
   const searchParams = useSearchParams();
 
   // Tabs mapped to categories from the Publication model
@@ -25,54 +26,28 @@ const ResourcePage: React.FC = () => {
     searchParams?.get('tab') || 'research',
   );
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [publications, setPublications] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   // Pagination logic
   const itemsPerPage = 4;
 
   // Filtering resources based on the selected tab
-  const filteredResources = publications.filter((resource) => {
-    if (Array.isArray(selectedTab)) {
-      // If "Guides and Manuals" is selected, show both "guide" and "manual"
-      return selectedTab.includes(resource.category);
-    } else {
-      return resource.category === selectedTab;
-    }
-  });
+  const filteredResources = useMemo(() => {
+    if (!publications) return [];
+    return publications.filter((resource: any) => {
+      if (Array.isArray(selectedTab)) {
+        // If "Guides and Manuals" is selected, show both "guide" and "manual"
+        return selectedTab.includes(resource.category);
+      } else {
+        return resource.category === selectedTab;
+      }
+    });
+  }, [publications, selectedTab]);
 
   const totalPages = Math.ceil(filteredResources.length / itemsPerPage);
   const displayedResources = filteredResources.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   );
-
-  // Fetch publications on mount
-  useEffect(() => {
-    const fetchPublications = async () => {
-      setLoading(true);
-      try {
-        const response = await getPublications(); // API call to fetch publications
-        setPublications(response);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching publications:', error);
-        setLoading(false);
-      }
-    };
-    fetchPublications();
-  }, []);
-
-  // Reset pagination when tab changes
-  useEffect(() => {
-    if (
-      tabs.some(
-        (tab) => Array.isArray(selectedTab) || tab.value === selectedTab,
-      )
-    ) {
-      setCurrentPage(1);
-    }
-  }, [selectedTab, tabs]);
 
   // Handle tab click
   const handleTabClick = (tabValue: string | string[]) => {
@@ -123,7 +98,7 @@ const ResourcePage: React.FC = () => {
 
       {/* Resources List Section */}
       <section className="max-w-5xl mx-auto w-full px-4 lg:px-8">
-        {loading ? (
+        {isLoading ? (
           // Skeleton Loader
           <div className="space-y-6">
             {[...Array(4)].map((_, idx) => (
@@ -138,12 +113,13 @@ const ResourcePage: React.FC = () => {
               </div>
             ))}
           </div>
+        ) : isError ? (
+          <NoData message="Failed to load resources. Please try again later." />
         ) : displayedResources.length === 0 ? (
-          // No resources message
-          <NoData />
+          <NoData message="No resources available for this category." />
         ) : (
           <div className="space-y-6">
-            {displayedResources.map((resource, idx) => (
+            {displayedResources.map((resource: any, idx: any) => (
               <div
                 key={idx}
                 className="bg-card-custom-gradient p-6 lg:p-16 rounded-lg"

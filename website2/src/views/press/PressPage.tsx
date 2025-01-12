@@ -1,39 +1,16 @@
 'use client';
+
 import { format } from 'date-fns';
 import Image from 'next/image';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { CustomButton, NoData, Pagination } from '@/components/ui';
-import { getPressArticles } from '@/services/apiService';
-import { PressArticle } from '@/types';
+import { usePressArticles } from '@/hooks/useApiHooks';
 
 const PressPage: React.FC = () => {
-  const [pressArticles, setPressArticles] = useState<PressArticle[]>([]);
+  const { pressArticles, isLoading, isError } = usePressArticles();
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const itemsPerPage = 4;
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true); // Set loading state to true
-      setError(false); // Reset any previous error
-      try {
-        const data = await getPressArticles();
-        const filteredData = data.filter(
-          (article: PressArticle) => article.website_category === 'airqo',
-        );
-        setPressArticles(filteredData);
-      } catch (error) {
-        console.error('Error fetching press articles:', error);
-        setError(true); // Set error state on fetch failure
-      } finally {
-        setLoading(false); // Stop loading when data is fetched or failed
-      }
-    };
-
-    fetchData();
-  }, []);
 
   const totalPages = Math.ceil(pressArticles.length / itemsPerPage);
   const displayedArticles = pressArticles.slice(
@@ -76,7 +53,7 @@ const PressPage: React.FC = () => {
 
       {/* Articles Section */}
       <section>
-        {loading ? (
+        {isLoading ? (
           // Display 4 skeletons when loading
           <div className="max-w-5xl mx-auto w-full px-4 lg:px-0 grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <ArticleSkeleton />
@@ -84,23 +61,21 @@ const PressPage: React.FC = () => {
             <ArticleSkeleton />
             <ArticleSkeleton />
           </div>
-        ) : error ? (
+        ) : isError ? (
           <NoData message="Failed to load articles. Please try again later." />
         ) : displayedArticles.length > 0 ? (
           <div className="max-w-5xl mx-auto w-full px-4 lg:px-0 grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            {displayedArticles.map((article, idx) => (
+            {displayedArticles.map((article: any) => (
               <div
                 key={article.id}
-                className={`p-8 lg:px-16 lg:py-12 space-y-6 rounded-lg shadow-sm transition-shadow hover:shadow-md bg-card-custom-gradient ${
-                  idx === itemsPerPage ? 'lg:col-span-2' : ''
-                }`}
+                className={`p-8 lg:px-16 lg:py-12 space-y-6 rounded-lg shadow-sm transition-shadow hover:shadow-md bg-card-custom-gradient`}
               >
                 <div className="flex items-center justify-between">
                   <div className="relative">
                     <div className="absolute inset-0 bg-card-custom-gradient opacity-70 pointer-events-none"></div>
                     <Image
                       src={article.publisher_logo_url || '/default-logo.png'}
-                      alt={`logo`}
+                      alt="logo"
                       width={100}
                       height={30}
                       className="object-contain mix-blend-multiply"

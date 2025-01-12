@@ -11,11 +11,11 @@ import Partners from '@public/assets/svgs/ImpactNumbers/Partners.svg';
 import Publications from '@public/assets/svgs/ImpactNumbers/Publications.svg';
 import Records from '@public/assets/svgs/ImpactNumbers/Records.svg';
 import Image from 'next/image';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
-import { getImpactNumbers } from '@/services/apiService';
+import { useImpactNumbers } from '@/hooks/useApiHooks';
 
-import { CustomButton } from '../../ui';
+import { CustomButton } from '../../components/ui';
 
 type AccordionItem = {
   title: string;
@@ -66,33 +66,10 @@ const Accordion: React.FC<AccordionProps> = ({ items }) => {
 };
 
 const HomeStatsSection: React.FC = () => {
+  const { impactNumbers, isLoading, isError } = useImpactNumbers();
   const [activeTab, setActiveTab] = useState<'cities' | 'communities'>(
     'cities',
   );
-  const [impactNumbers, setImpactNumbers] = useState({
-    african_cities: 0,
-    champions: 0,
-    deployed_monitors: 0,
-    data_records: 0,
-    research_papers: 0,
-    partners: 0,
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchImpactNumbers = async () => {
-      try {
-        const data = await getImpactNumbers();
-        setImpactNumbers(data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching impact numbers:', error);
-        setLoading(false);
-      }
-    };
-
-    fetchImpactNumbers();
-  }, []);
 
   const accordionItems: { [key: string]: AccordionItem[] } = {
     cities: [
@@ -149,6 +126,14 @@ const HomeStatsSection: React.FC = () => {
         ))}
     </div>
   );
+
+  if (isError) {
+    return (
+      <div className="text-red-500 text-lg text-center">
+        Something went wrong
+      </div>
+    );
+  }
 
   return (
     <section className="py-8 px-4 w-full space-y-20 bg-[#ECF2FF]">
@@ -245,7 +230,7 @@ const HomeStatsSection: React.FC = () => {
       </div>
 
       {/* Statistics Section */}
-      {loading ? (
+      {isLoading ? (
         skeletonLoader
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">

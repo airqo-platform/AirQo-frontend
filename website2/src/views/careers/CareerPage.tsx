@@ -1,41 +1,33 @@
 'use client';
+
 import { isBefore, parseISO } from 'date-fns';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { FiArrowRight } from 'react-icons/fi';
 
 import { CustomButton, NoData } from '@/components/ui';
-import { getCareers, getDepartments } from '@/services/apiService';
+import { useCareers, useDepartments } from '@/hooks/useApiHooks';
 
 const CareerPage: React.FC = () => {
   const router = useRouter();
-  const [departments, setDepartments] = useState<any[]>([]);
-  const [careers, setCareers] = useState<any[]>([]);
+  const {
+    departments,
+    isLoading: departmentsLoading,
+    isError: departmentsError,
+  } = useDepartments();
+  const {
+    careers,
+    isLoading: careersLoading,
+    isError: careersError,
+  } = useCareers();
   const [selectedDepartmentId, setSelectedDepartmentId] =
     useState<string>('all'); // Default to All
-  const [loading, setLoading] = useState(true); // Loading state
 
-  // Fetch departments and careers when the component mounts
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const departmentsResponse = await getDepartments();
-        const careersResponse = await getCareers();
-
-        setDepartments([
-          { id: 'all', name: 'Open positions' },
-          ...departmentsResponse,
-        ]);
-        setCareers(careersResponse);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+  // Add "Open Positions" to the departments list
+  const allDepartments = [
+    { id: 'all', name: 'Open Positions' },
+    ...(departments || []),
+  ];
 
   // Function to check if the position is still open (closing date in the future)
   const isJobOpen = (closingDate: string) => {
@@ -43,16 +35,18 @@ const CareerPage: React.FC = () => {
   };
 
   // Filter jobs based on the selected department ID and show only open positions
-  const filteredJobs = careers.filter((career) => {
+  const filteredJobs = careers?.filter((career: any) => {
     const isOpen = isJobOpen(career.closing_date);
     if (selectedDepartmentId === 'all') return isOpen;
     return isOpen && career.department === selectedDepartmentId;
   });
 
   // Group the jobs by department and filter only open jobs
-  const groupedJobsByDepartment = filteredJobs.reduce((acc: any, job: any) => {
-    const department = departments.find((dept) => dept.id === job.department);
-    const departmentName = department ? department.name : 'Open positions';
+  const groupedJobsByDepartment = filteredJobs?.reduce((acc: any, job: any) => {
+    const department = departments?.find(
+      (dept: any) => dept.id === job.department,
+    );
+    const departmentName = department ? department.name : 'Open Positions';
     if (!acc[departmentName]) {
       acc[departmentName] = { jobs: [], openCount: 0 };
     }
@@ -60,6 +54,9 @@ const CareerPage: React.FC = () => {
     acc[departmentName].jobs.push(job);
     return acc;
   }, {});
+
+  // Show loading skeletons
+  const isLoading = departmentsLoading || careersLoading;
 
   return (
     <div className="flex flex-col w-full space-y-16 bg-[#F2F1F6]">
@@ -87,15 +84,14 @@ const CareerPage: React.FC = () => {
       <section className="max-w-5xl mx-auto px-4 lg:px-8">
         <h2 className="text-3xl font-normal mb-8">Categories</h2>
         <div className="flex flex-wrap gap-4">
-          {/* Display loading skeleton for categories */}
-          {loading
+          {isLoading
             ? [...Array(5)].map((_, idx) => (
                 <div
                   key={idx}
                   className="w-32 h-10 bg-gray-300 rounded-full animate-pulse"
                 ></div>
               ))
-            : departments.map((department: any) => (
+            : allDepartments.map((department: any) => (
                 <button
                   key={department.id}
                   onClick={() => setSelectedDepartmentId(department.id)}
@@ -112,7 +108,7 @@ const CareerPage: React.FC = () => {
       </section>
 
       {/* Loading Skeleton for Job Listings */}
-      {loading && (
+      {isLoading && (
         <section className="max-w-5xl mx-auto w-full px-4 lg:px-8 space-y-12">
           <div className="space-y-4">
             {[...Array(3)].map((_, idx) => (
@@ -130,13 +126,14 @@ const CareerPage: React.FC = () => {
       )}
 
       {/* Job Listings Section */}
-      {!loading && (
+      {!isLoading && (
         <section className="max-w-5xl mx-auto w-full px-4 lg:px-8 space-y-12">
-          {/* Group by department and show number of open jobs */}
-          {Object.keys(groupedJobsByDepartment).length === 0 ? (
+          {careersError || departmentsError ? (
+            <NoData message="Failed to load careers or departments. Please try again later." />
+          ) : Object.keys(groupedJobsByDepartment || {}).length === 0 ? (
             <NoData message="No open positions found." />
           ) : (
-            Object.keys(groupedJobsByDepartment).map((departmentName) => (
+            Object.keys(groupedJobsByDepartment || {}).map((departmentName) => (
               <div key={departmentName} className="cursor-pointer">
                 <h3 className="text-2xl text-gray-400 font-semibold mb-4">
                   {departmentName} (
@@ -152,7 +149,6 @@ const CareerPage: React.FC = () => {
                       >
                         <div className="text-left">
                           <h4 className="text-lg font-semibold">{job.title}</h4>
-                          {/* Display if the job is open or closed */}
                           <p
                             className={`text-sm ${
                               isJobOpen(job.closing_date)

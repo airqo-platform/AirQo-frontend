@@ -2,52 +2,27 @@
 import { format, isSameMonth, parse } from 'date-fns';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { FiCalendar, FiClock } from 'react-icons/fi';
 
 import EventCardsSection from '@/components/sections/Events/EventCardsSection';
 import { CustomButton } from '@/components/ui';
-import { getAirQoEvents } from '@/services/apiService';
+import { useAirQoEvents } from '@/hooks/useApiHooks';
 
 const EventPage: React.FC = () => {
   const router = useRouter();
+  const { airQoEvents, isLoading, isError } = useAirQoEvents();
   const [selectedTab, setSelectedTab] = useState('upcoming');
-  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
-  const [pastEvents, setPastEvents] = useState<any[]>([]);
-  const [featuredEvents, setFeaturedEvents] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const events = await getAirQoEvents();
-
-        const upcoming = events.filter(
-          (event: any) => new Date(event.end_date) > new Date(),
-        );
-        const past = events.filter(
-          (event: any) => new Date(event.end_date) <= new Date(),
-        );
-        const featured = events.filter(
-          (event: any) => event.event_tag === 'Featured',
-        );
-
-        setUpcomingEvents(upcoming);
-        setPastEvents(past);
-        setFeaturedEvents(featured);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error fetching events:', error);
-        setIsLoading(false);
-      }
-    };
-
-    fetchEvents();
-  }, []);
-
-  const handleTabClick = (tab: string) => {
-    setSelectedTab(tab);
-  };
+  const upcomingEvents = airQoEvents.filter(
+    (event: any) => new Date(event.end_date) > new Date(),
+  );
+  const pastEvents = airQoEvents.filter(
+    (event: any) => new Date(event.end_date) <= new Date(),
+  );
+  const featuredEvents = airQoEvents.filter(
+    (event: any) => event.event_tag === 'Featured',
+  );
 
   const firstFeaturedEvent =
     featuredEvents.length > 0 ? featuredEvents[0] : null;
@@ -65,6 +40,10 @@ const EventPage: React.FC = () => {
         'MMMM do, yyyy',
       )}`;
     }
+  };
+
+  const handleTabClick = (tab: string) => {
+    setSelectedTab(tab);
   };
 
   return (
@@ -85,6 +64,16 @@ const EventPage: React.FC = () => {
             <div className="flex-1 w-full mb-6 lg:mb-0">
               <div className="w-full h-60 bg-gray-300 rounded-lg shadow-md animate-pulse"></div>
             </div>
+          </div>
+        </div>
+      ) : isError ? (
+        <div className="mb-12 bg-[#F2F1F6] py-4 lg:py-16">
+          <div className="max-w-5xl mx-auto w-full px-4 lg:px-0 text-center">
+            <h1 className="text-4xl font-bold mb-4">Error Loading Events</h1>
+            <p className="text-lg text-gray-600">
+              We couldn&apos;t fetch the events at this time. Please try again
+              later.
+            </p>
           </div>
         </div>
       ) : (
@@ -140,7 +129,7 @@ const EventPage: React.FC = () => {
               </div>
               <div className="flex justify-center items-center flex-1 w-full mb-6 lg:mb-0">
                 <Image
-                  src={firstFeaturedEvent.event_image_url} // Full URL for event image
+                  src={firstFeaturedEvent.event_image_url}
                   alt={firstFeaturedEvent.title}
                   width={800}
                   height={600}
@@ -184,7 +173,6 @@ const EventPage: React.FC = () => {
       {/* Event Cards Section */}
       {isLoading ? (
         <div className="max-w-5xl mx-auto w-full px-4 lg:px-0 mb-8">
-          {/* Skeleton for Event Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, idx) => (
               <div

@@ -2,18 +2,18 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { FaArrowRightLong } from 'react-icons/fa6';
 
 import PaginatedSection from '@/components/sections/CleanAir/PaginatedSection';
 import { CustomButton, Divider, MemberCard } from '@/components/ui';
 import { useDispatch } from '@/hooks/reduxHooks';
 import {
-  getBoardMembers,
-  getExternalTeamMembers,
-  getPartners,
-  getTeamMembers,
-} from '@/services/apiService';
+  useBoardMembers,
+  useExternalTeamMembers,
+  usePartners,
+  useTeamMembers,
+} from '@/hooks/useApiHooks';
 import { openModal } from '@/store/slices/modalSlice';
 
 /** Skeleton Loader Component **/
@@ -34,61 +34,13 @@ const SkeletonCard: React.FC = () => (
 /** Main AboutPage Component **/
 
 const AboutPage: React.FC = () => {
-  // State definitions with TypeScript types
+  const { boardMembers, isLoading: loadingBoard } = useBoardMembers();
+  const { teamMembers, isLoading: loadingTeam } = useTeamMembers();
+  const { externalTeamMembers, isLoading: loadingExternalTeam } =
+    useExternalTeamMembers();
+  const { partners } = usePartners();
 
   const dispatch = useDispatch();
-
-  const [boardMembers, setBoardMembers] = useState<any[]>([]);
-  const [teamMembers, setTeamMembers] = useState<any[]>([]);
-  const [externalTeamMembers, setExternalTeamMembers] = useState<any[]>([]);
-  const [partners, setPartners] = useState<any[]>([]);
-
-  const [loadingTeam, setLoadingTeam] = useState<boolean>(true);
-  const [loadingExternalTeam, setLoadingExternalTeam] = useState<boolean>(true);
-  const [loadingBoard, setLoadingBoard] = useState<boolean>(true);
-
-  useEffect(() => {
-    // Smooth scrolling
-    document.documentElement.style.scrollBehavior = 'smooth';
-
-    // Fetch data for board, team, and external team
-    const fetchData = async () => {
-      try {
-        const [boardData, teamData, externalTeamData, partnersData] =
-          await Promise.all([
-            getBoardMembers(),
-            getTeamMembers(),
-            getExternalTeamMembers(),
-            getPartners(),
-          ]);
-
-        const filteredPartners = partnersData.filter(
-          (partner: any) => partner.website_category === 'airqo',
-        );
-
-        setBoardMembers(boardData || []);
-        setTeamMembers(teamData || []);
-        setExternalTeamMembers(externalTeamData || []);
-        setPartners(filteredPartners || []);
-      } catch (error) {
-        console.error('Error fetching team data:', error);
-      } finally {
-        setLoadingBoard(false);
-        setLoadingTeam(false);
-        setLoadingExternalTeam(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  // filter out from partners to get an array of the image url links from partner_logo_url and also the id of the partner
-  const partnerLogoLinks = partners.map((partner: any) => {
-    return {
-      id: partner.id,
-      logoUrl: partner.partner_logo_url || partner.partner_logo || '',
-    };
-  });
 
   /** Helper Function to Render Member Sections **/
   const renderMembersSection = (
@@ -433,7 +385,12 @@ const AboutPage: React.FC = () => {
               </CustomButton>
             </div>
           </div>
-          <PaginatedSection logos={partnerLogoLinks} />
+          <PaginatedSection
+            logos={partners.map((partner: any) => ({
+              id: partner.id,
+              logoUrl: partner.partner_logo_url || '',
+            }))}
+          />
         </section>
       )}
     </div>

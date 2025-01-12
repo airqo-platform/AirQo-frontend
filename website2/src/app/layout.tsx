@@ -1,9 +1,10 @@
 import '@/styles/globals.scss';
 
 import localFont from 'next/font/local';
-import { ReactNode } from 'react';
+import { ReactNode, Suspense } from 'react';
 
 import EngagementDialog from '@/components/dialogs/EngagementDialog';
+import Loading from '@/components/loading';
 import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/context/ReduxDataProvider';
 import { checkMaintenance } from '@/lib/maintenance';
@@ -38,14 +39,16 @@ export default async function RootLayout({
       <body>
         <ErrorBoundary>
           <ReduxDataProvider>
-            {maintenance.isActive ? (
-              <MaintenancePage message={maintenance.message} />
-            ) : (
-              <>
-                <EngagementDialog />
-                {children}
-              </>
-            )}
+            <Suspense fallback={<Loading />}>
+              {maintenance.isActive ? (
+                <MaintenancePage message={maintenance.message} />
+              ) : (
+                <>
+                  <EngagementDialog />
+                  {children}
+                </>
+              )}
+            </Suspense>
           </ReduxDataProvider>
         </ErrorBoundary>
       </body>

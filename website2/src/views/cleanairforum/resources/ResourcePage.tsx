@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import {
   CustomButton,
@@ -12,36 +12,12 @@ import {
   NoData,
   Pagination,
 } from '@/components/ui';
-import { getCleanAirResources } from '@/services/apiService';
-
-// Define the structure of the fetched resource
-interface FetchedResource {
-  id: string;
-  resource_title: string;
-  resource_link: string | null;
-  resource_file: string;
-  author_title: string;
-  resource_category: string;
-  resource_authors: string;
-  order: number;
-}
-
-// Define the structure used in the component
-interface Resource {
-  category: string;
-  title: string;
-  createdBy: string;
-  link?: string;
-  file?: string;
-}
+import { useCleanAirResources } from '@/hooks/useApiHooks';
 
 const ResourcePage = () => {
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [filteredResources, setFilteredResources] = useState<Resource[]>([]);
+  const { cleanAirResources, isLoading, isError } = useCleanAirResources();
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 3;
 
   // Categories for the dropdown filter
@@ -53,66 +29,34 @@ const ResourcePage = () => {
     'Research Publications',
   ];
 
-  // Function to map API data to component structure
-  const mapResources = (fetchedResources: FetchedResource[]): Resource[] => {
-    return fetchedResources.map((res) => {
-      // Map the resource_category to match the dropdown categories
-      const categoryMap: { [key: string]: string } = {
-        toolkit: 'Toolkits',
-        technical_report: 'Technical Reports',
-        workshop_report: 'Workshop Reports',
-        research_publication: 'Research Publications',
-      };
+  // Map and filter resources based on the selected category
+  const filteredResources = useMemo(() => {
+    if (selectedCategory === 'All') return cleanAirResources || [];
 
-      return {
-        category: categoryMap[res.resource_category] || 'Others',
-        title: res.resource_title,
-        createdBy: res.resource_authors,
-        link: res.resource_link ?? undefined, // Convert null to undefined
-        file: res.resource_file || undefined, // Ensure file is undefined if empty
-      };
-    });
-  };
-
-  // Fetch resources from the API
-  useEffect(() => {
-    const fetchResources = async () => {
-      setLoading(true);
-      try {
-        const fetchedData: FetchedResource[] = await getCleanAirResources();
-        const mappedData = mapResources(fetchedData);
-        setResources(mappedData);
-        setFilteredResources(mappedData);
-      } catch (err) {
-        setError('Failed to fetch resources. Please try again later.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+    const categoryMap: { [key: string]: string } = {
+      Toolkits: 'toolkit',
+      'Technical Reports': 'technical_report',
+      'Workshop Reports': 'workshop_report',
+      'Research Publications': 'research_publication',
     };
 
-    fetchResources();
-  }, []);
-
-  // Handle category filter change
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-    setCurrentPage(1); // Reset to first page when filter changes
-
-    if (category === 'All') {
-      setFilteredResources(resources);
-    } else {
-      setFilteredResources(
-        resources.filter((resource) => resource.category === category),
-      );
-    }
-  };
+    return (
+      cleanAirResources?.filter(
+        (resource: any) =>
+          resource.resource_category === categoryMap[selectedCategory],
+      ) || []
+    );
+  }, [cleanAirResources, selectedCategory]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredResources.length / itemsPerPage);
-  const paginatedResources = filteredResources.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
+  const paginatedResources = useMemo(
+    () =>
+      filteredResources.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage,
+      ),
+    [filteredResources, currentPage, itemsPerPage],
   );
 
   // Loading Skeleton Component
@@ -168,7 +112,10 @@ const ResourcePage = () => {
                 {categories.map((category) => (
                   <DropdownMenuItem
                     key={category}
-                    onClick={() => handleCategoryChange(category)}
+                    onClick={() => {
+                      setSelectedCategory(category);
+                      setCurrentPage(1);
+                    }}
                   >
                     {category}
                   </DropdownMenuItem>
@@ -178,57 +125,57 @@ const ResourcePage = () => {
           </div>
 
           {/* Loading and Error States */}
-          {loading && <LoadingSkeleton />}
-          {error && <NoData message={error} />}
+          {isLoading && <LoadingSkeleton />}
+          {isError && (
+            <NoData message="Failed to load resources. Please try again later." />
+          )}
 
           {/* Resource Cards */}
-          {!loading && !error && paginatedResources.length === 0 && <NoData />}
+          {!isLoading && !isError && paginatedResources.length === 0 && (
+            <NoData />
+          )}
 
-          {!loading && !error && paginatedResources.length > 0 && (
+          {!isLoading && !isError && paginatedResources.length > 0 && (
             <div className="space-y-6">
-              {paginatedResources.map((resource, index) => (
+              {paginatedResources.map((resource: any, index: any) => (
                 <div
-                  key={`${resource.title}-${index}`}
+                  key={`${resource.resource_title}-${index}`}
                   className="bg-white rounded-lg p-5 lg:p-8 shadow"
                 >
                   <p className="text-blue-500 text-lg font-semibold mb-2">
-                    {resource.category.toUpperCase()}
+                    {resource.resource_category.toUpperCase()}
                   </p>
                   <h3 className="text-2xl lg:text-4xl font-semibold mb-2">
-                    {resource.title}
+                    {resource.resource_title}
                   </h3>
                   <div className="mb-4">
                     <p className="font-semibold text-lg">Created by</p>
-                    <p>{resource.createdBy}</p>
+                    <p>{resource.resource_authors}</p>
                   </div>
                   <div className="flex flex-wrap gap-4">
                     {/* Read Action Plan Button */}
-                    <CustomButton
-                      className="text-black bg-transparent border border-gray-800 hover:bg-gray-100"
-                      onClick={() =>
-                        resource.link
-                          ? window.open(
-                              resource.link,
-                              '_blank',
-                              'noopener,noreferrer',
-                            )
-                          : window.open(
-                              resource.file,
-                              '_blank',
-                              'noopener,noreferrer',
-                            )
-                      }
-                    >
-                      Read action plan →
-                    </CustomButton>
+                    {resource.resource_link && (
+                      <CustomButton
+                        className="text-black bg-transparent border border-gray-800 hover:bg-gray-100"
+                        onClick={() =>
+                          window.open(
+                            resource.resource_link,
+                            '_blank',
+                            'noopener,noreferrer',
+                          )
+                        }
+                      >
+                        Read action plan →
+                      </CustomButton>
+                    )}
 
                     {/* Download Button */}
-                    {resource.file && (
+                    {resource.resource_file && (
                       <CustomButton
                         className="text-white bg-blue-500 border border-blue-500 hover:bg-blue-600"
                         onClick={() =>
                           window.open(
-                            resource.file,
+                            resource.resource_file,
                             '_blank',
                             'noopener,noreferrer',
                           )
@@ -244,13 +191,15 @@ const ResourcePage = () => {
           )}
 
           {/* Pagination */}
-          {!loading && !error && filteredResources.length > itemsPerPage && (
-            <Pagination
-              totalPages={totalPages}
-              currentPage={currentPage}
-              onPageChange={setCurrentPage}
-            />
-          )}
+          {!isLoading &&
+            !isError &&
+            filteredResources.length > itemsPerPage && (
+              <Pagination
+                totalPages={totalPages}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+              />
+            )}
         </div>
       </section>
     </div>

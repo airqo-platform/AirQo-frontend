@@ -1,12 +1,11 @@
-// pages/members.tsx
 'use client';
 
 import Image from 'next/image';
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 
 import PaginatedSection from '@/components/sections/CleanAir/PaginatedSection';
 import RegisterBanner from '@/components/sections/CleanAir/RegisterBanner';
-import { getPartners } from '@/services/apiService';
+import { usePartners } from '@/hooks/useApiHooks';
 
 const SkeletonPaginatedSection: React.FC = () => {
   return (
@@ -33,75 +32,42 @@ const SkeletonPaginatedSection: React.FC = () => {
 };
 
 const MemberPage: React.FC = () => {
-  const [implementingPartners, setImplementingPartners] = useState<
-    { id: string; logoUrl: string }[]
-  >([]);
-  const [policyPartners, setPolicyPartners] = useState<
-    { id: string; logoUrl: string }[]
-  >([]);
-  const [supportingPartners, setSupportingPartners] = useState<
-    { id: string; logoUrl: string }[]
-  >([]);
-  const [privateSectorPartners, setPrivateSectorPartners] = useState<
-    { id: string; logoUrl: string }[]
-  >([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { partners, isLoading } = usePartners();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data: any[] = await getPartners();
+  // Categorize partners using useMemo for performance optimization
+  const {
+    implementingPartners,
+    policyPartners,
+    supportingPartners,
+    privateSectorPartners,
+  } = useMemo(() => {
+    if (!partners)
+      return {
+        implementingPartners: [],
+        policyPartners: [],
+        supportingPartners: [],
+        privateSectorPartners: [],
+      };
 
-        // Filter partners for 'cleanair' category
-        const cleanairPartners = data.filter(
-          (partner) => partner.website_category.toLowerCase() === 'cleanair',
-        );
+    const cleanairPartners = partners.filter(
+      (partner: any) => partner.website_category.toLowerCase() === 'cleanair',
+    );
 
-        // Categorize partners by type
-        const implementing = cleanairPartners
-          .filter((partner) => partner.type.toLowerCase() === 'ca-network')
-          .map((partner) => ({
-            id: partner.id,
-            logoUrl: partner.partner_logo_url || partner.partner_logo || '',
-          }));
+    const categorize = (type: string) =>
+      cleanairPartners
+        .filter((partner: any) => partner.type.toLowerCase() === type)
+        .map((partner: any) => ({
+          id: partner.id,
+          logoUrl: partner.partner_logo_url || partner.partner_logo || '',
+        }));
 
-        const policy = cleanairPartners
-          .filter((partner) => partner.type.toLowerCase() === 'ca-forum')
-          .map((partner) => ({
-            id: partner.id,
-            logoUrl: partner.partner_logo_url || partner.partner_logo || '',
-          }));
-
-        const supporting = cleanairPartners
-          .filter((partner) => partner.type.toLowerCase() === 'ca-support')
-          .map((partner) => ({
-            id: partner.id,
-            logoUrl: partner.partner_logo_url || partner.partner_logo || '',
-          }));
-
-        const privateSector = cleanairPartners
-          .filter(
-            (partner) => partner.type.toLowerCase() === 'ca-private-sector',
-          )
-          .map((partner) => ({
-            id: partner.id,
-            logoUrl: partner.partner_logo_url || partner.partner_logo || '',
-          }));
-
-        // Set state
-        setImplementingPartners(implementing);
-        setPolicyPartners(policy);
-        setSupportingPartners(supporting);
-        setPrivateSectorPartners(privateSector);
-      } catch (error) {
-        console.error('Error fetching partners:', error);
-      } finally {
-        setLoading(false);
-      }
+    return {
+      implementingPartners: categorize('ca-network'),
+      policyPartners: categorize('ca-forum'),
+      supportingPartners: categorize('ca-support'),
+      privateSectorPartners: categorize('ca-private-sector'),
     };
-
-    fetchData();
-  }, []);
+  }, [partners]);
 
   return (
     <div className="py-8 space-y-16 bg-white">
@@ -136,7 +102,7 @@ const MemberPage: React.FC = () => {
 
       {/* Implementing Partners Section */}
       <section className="w-full">
-        {loading ? (
+        {isLoading ? (
           <SkeletonPaginatedSection />
         ) : (
           <PaginatedSection
@@ -162,7 +128,7 @@ const MemberPage: React.FC = () => {
 
       {/* Policy Forum Section */}
       <section className="w-full">
-        {loading ? (
+        {isLoading ? (
           <SkeletonPaginatedSection />
         ) : (
           <PaginatedSection
@@ -185,14 +151,13 @@ const MemberPage: React.FC = () => {
 
       {/* Private Sector Forum Section */}
       <section className="w-full">
-        {loading ? (
+        {isLoading ? (
           <SkeletonPaginatedSection />
         ) : (
           <PaginatedSection
             title={
               <h3 className="text-4xl lg:text-5xl font-semibold">
-                Private Sector <br />
-                Forum
+                Private Sector <br /> Forum
               </h3>
             }
             description={
@@ -212,14 +177,13 @@ const MemberPage: React.FC = () => {
 
       {/* Supporting Partners Section */}
       <section className="w-full">
-        {loading ? (
+        {isLoading ? (
           <SkeletonPaginatedSection />
         ) : (
           <PaginatedSection
             title={
               <h3 className="text-4xl lg:text-5xl font-semibold">
-                Supporting <br />
-                Partners
+                Supporting <br /> Partners
               </h3>
             }
             description={
@@ -244,7 +208,7 @@ const MemberPage: React.FC = () => {
       </section>
 
       {/* Register Banner */}
-      {!loading && <RegisterBanner />}
+      {!isLoading && <RegisterBanner />}
     </div>
   );
 };

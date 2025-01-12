@@ -1,35 +1,18 @@
 'use client';
+
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { FiArrowLeft } from 'react-icons/fi';
 
 import { CustomButton, NoData } from '@/components/ui';
-import { getCareerDetails } from '@/services/apiService';
+import { useCareerDetails } from '@/hooks/useApiHooks';
 
-const DetailsPage: React.FC<any> = ({ id }) => {
-  const [career, setCareer] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+const DetailsPage: React.FC<{ id: string }> = ({ id }) => {
+  const { careerDetails, isLoading, isError } = useCareerDetails(id);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchCareerDetails = async () => {
-      try {
-        const careerData = await getCareerDetails(id);
-        setCareer(careerData);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching career details:', error);
-        setError('Unable to load career details');
-        setLoading(false);
-      }
-    };
-
-    fetchCareerDetails();
-  }, [id]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="max-w-5xl mx-auto p-8">
         {/* Skeleton for the Header */}
@@ -60,11 +43,15 @@ const DetailsPage: React.FC<any> = ({ id }) => {
     );
   }
 
-  if (error) {
-    return <div className="text-center text-xl text-red-500 p-8">{error}</div>;
+  if (isError) {
+    return (
+      <div className="text-center text-xl text-red-500 p-8">
+        Unable to load career details. Please try again later.
+      </div>
+    );
   }
 
-  if (!career) {
+  if (!careerDetails) {
     return <NoData />;
   }
 
@@ -84,12 +71,14 @@ const DetailsPage: React.FC<any> = ({ id }) => {
       {/* Header Section */}
       <header className="mb-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          {career.title}
+          {careerDetails.title}
         </h1>
         <div className="space-y-2">
-          <p className="text-lg text-gray-700">Job Type: {career.type}</p>
           <p className="text-lg text-gray-700">
-            Closing Date: {format(new Date(career.closing_date), 'PPP')}
+            Job Type: {careerDetails.type}
+          </p>
+          <p className="text-lg text-gray-700">
+            Closing Date: {format(new Date(careerDetails.closing_date), 'PPP')}
           </p>
         </div>
       </header>
@@ -98,20 +87,24 @@ const DetailsPage: React.FC<any> = ({ id }) => {
       <section>
         <div
           className="prose prose-lg max-w-none text-gray-700 leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: career.career_details }}
+          dangerouslySetInnerHTML={{
+            __html: careerDetails.career_details || 'No details available.',
+          }}
         />
       </section>
 
       {/* Apply Button */}
-      <footer className="mt-12 text-left">
-        <CustomButton
-          onClick={() => window.open(career.apply_url, '_blank')}
-          rel="noopener noreferrer"
-          className="bg-green-500 hover:bg-green-600 text-white font-semibold"
-        >
-          Apply Now
-        </CustomButton>
-      </footer>
+      {careerDetails.apply_url && (
+        <footer className="mt-12 text-left">
+          <CustomButton
+            onClick={() => window.open(careerDetails.apply_url, '_blank')}
+            rel="noopener noreferrer"
+            className="bg-green-500 hover:bg-green-600 text-white font-semibold"
+          >
+            Apply Now
+          </CustomButton>
+        </footer>
+      )}
     </div>
   );
 };

@@ -1,48 +1,29 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { HiArrowSmallLeft, HiArrowSmallRight } from 'react-icons/hi2';
 
-import { getHighlights } from '@/services/apiService';
+import { useHighlights } from '@/hooks/useApiHooks';
 
 const FeaturedCarousel = () => {
-  const [highlights, setHighlights] = useState<any[]>([]);
+  const { highlights, isLoading, isError } = useHighlights();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchHighlights = async () => {
-      try {
-        const data = await getHighlights();
-        if (data.length > 0) {
-          setHighlights(data);
-        } else {
-          setError('No highlights available.');
-        }
-      } catch (err) {
-        setError('Failed to load highlights.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchHighlights();
-  }, []);
 
   const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % highlights.length);
+    if (highlights?.length > 0) {
+      setCurrentIndex((prev) => (prev + 1) % highlights.length);
+    }
   };
 
   const prevSlide = () => {
-    setCurrentIndex(
-      (prev) => (prev - 1 + highlights.length) % highlights.length,
-    );
+    if (highlights?.length > 0) {
+      setCurrentIndex(
+        (prev) => (prev - 1 + highlights.length) % highlights.length,
+      );
+    }
   };
 
-  // Display the skeleton loader while loading
-  if (loading) {
+  if (isLoading) {
     return (
       <section className="w-full bg-[#F0F4FA] py-16 md:py-24 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -60,18 +41,18 @@ const FeaturedCarousel = () => {
     );
   }
 
-  // If no highlights, do not display the section
-  if (highlights.length === 0 && !loading) {
-    return null;
-  }
-
-  // Display error message if something goes wrong
-  if (error) {
+  if (isError) {
     return (
       <div className="flex justify-center items-center h-64">
-        <p className="text-red-500">{error}</p>
+        <p className="text-red-500">
+          Failed to load highlights. Please try again later.
+        </p>
       </div>
     );
+  }
+
+  if (!highlights || highlights.length === 0) {
+    return null; // Do not render if there are no highlights
   }
 
   return (
@@ -83,7 +64,7 @@ const FeaturedCarousel = () => {
             className="flex transition-transform duration-500 ease-in-out"
             style={{ transform: `translateX(-${currentIndex * 100}%)` }}
           >
-            {highlights.map((item) => (
+            {highlights.map((item: any) => (
               <div
                 key={item.id}
                 className="w-full flex-shrink-0 flex flex-col md:flex-row gap-8 md:gap-16"
@@ -95,7 +76,6 @@ const FeaturedCarousel = () => {
                       src={item.image_url}
                       alt={item.title}
                       fill
-                      // include a scaling as user hovers over the image
                       className="object-cover w-full h-full transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
                       priority
                     />

@@ -2,12 +2,13 @@
 import { motion, useInView } from 'framer-motion';
 import React, { useRef } from 'react';
 
-import AnalyticsContentSection from '@/components/sections/Home/AnalyticsContentSection';
-import AppDownloadSection from '@/components/sections/Home/AppDownloadSection';
-import FeaturedCarousel from '@/components/sections/Home/FeaturedCarousel';
-import HomePlayerSection from '@/components/sections/Home/HomePlayerSection';
-import StatisticsSection from '@/components/sections/Home/HomeStatsSection';
 import ReversibleContentSection from '@/components/sections/ReversibleContentSection';
+
+import AnalyticsContentSection from './AnalyticsContentSection';
+import AppDownloadSection from './AppDownloadSection';
+import FeaturedCarousel from './FeaturedCarousel';
+import HomePlayerSection from './HomePlayerSection';
+import StatisticsSection from './HomeStatsSection';
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 50 },

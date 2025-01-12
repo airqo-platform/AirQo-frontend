@@ -10,8 +10,6 @@ import BannerSection from '@/components/sections/Forum/BannerSection';
 import { ForumDataProvider } from '@/context/ForumDataContext';
 import { getForumEvents } from '@/services/apiService';
 
-import Loading from '../loading';
-
 // export const metadata: Metadata = {
 //   title: 'Clean Air Forum | AirQo Africa',
 //   description:
@@ -56,8 +54,7 @@ type CleanAirLayoutProps = {
 };
 
 const CleanAirLayout: React.FC<CleanAirLayoutProps> = ({ children }) => {
-  const [data, setData] = useState<any>(null); // Replace `any` with your actual data type
-  const [loading, setLoading] = useState<boolean>(true);
+  const [data, setData] = useState<any>(null);
 
   useEffect(() => {
     const fetchForumEvents = async () => {
@@ -67,17 +64,11 @@ const CleanAirLayout: React.FC<CleanAirLayoutProps> = ({ children }) => {
       } catch (error) {
         console.error('Failed to fetch forum events:', error);
         setData(null);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchForumEvents();
   }, []);
-
-  if (loading) {
-    return <Loading />;
-  }
 
   return (
     <ForumDataProvider data={data}>

@@ -3,7 +3,6 @@
 import { format, isSameMonth, parse } from 'date-fns';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import {
   FiCalendar,
   FiClock,
@@ -12,30 +11,12 @@ import {
 } from 'react-icons/fi';
 
 import { Accordion, CustomButton, NoData } from '@/components/ui';
-import { getEventDetails } from '@/services/apiService';
+import { useEventDetails } from '@/hooks/useApiHooks';
 import { convertDeltaToHtml } from '@/utils/quillUtils';
 
-const SingleEvent: React.FC<any> = ({ id }) => {
+const SingleEvent: React.FC<{ id: string }> = ({ id }) => {
   const router = useRouter();
-  const [event, setEvent] = useState<any | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchEventDetails = async () => {
-      try {
-        const response = await getEventDetails(id);
-        setEvent(response);
-      } catch (err) {
-        console.error('Error fetching event details:', err);
-        setError('Failed to load event details. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEventDetails();
-  }, [id]);
+  const { eventDetails, isLoading, isError } = useEventDetails(id);
 
   // Function to format the date range based on whether the months are the same
   const formatDateRange = (startDate: string, endDate: string) => {
@@ -52,10 +33,10 @@ const SingleEvent: React.FC<any> = ({ id }) => {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="w-full">
-        {/* Header Skeleton */}
+        {/* Loading Skeleton */}
         <section className="relative h-[400px] bg-gray-300 animate-pulse flex items-center justify-center">
           <div className="absolute inset-0 bg-gray-300"></div>
           <div className="relative z-10 max-w-5xl text-center px-4">
@@ -64,78 +45,26 @@ const SingleEvent: React.FC<any> = ({ id }) => {
             <div className="h-4 bg-gray-400 rounded w-1/4 mx-auto mt-4"></div>
           </div>
         </section>
-
-        {/* Partner Logos Skeleton */}
-        <section className="py-12 bg-gray-100">
-          <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[...Array(4)].map((_, index) => (
-              <div key={index} className="flex items-center justify-center">
-                <div className="w-36 h-24 bg-gray-300 rounded animate-pulse"></div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Event Details Skeleton */}
-        <section className="max-w-5xl mx-auto px-4 py-8">
-          <div className="h-6 bg-gray-300 rounded w-1/3 mb-6 animate-pulse"></div>
-          <div className="space-y-4">
-            {[...Array(5)].map((_, index) => (
-              <div
-                key={index}
-                className="h-4 bg-gray-300 rounded animate-pulse"
-              ></div>
-            ))}
-          </div>
-        </section>
-
-        {/* Event Program Skeleton */}
-        <section className="max-w-5xl mx-auto px-4 py-8">
-          <div className="h-6 bg-gray-300 rounded w-1/3 mb-6 animate-pulse"></div>
-          {[...Array(3)].map((_, index) => (
-            <div key={index} className="mb-4">
-              <div className="h-4 bg-gray-300 rounded w-1/4 mb-2 animate-pulse"></div>
-              <div className="space-y-2">
-                {[...Array(3)].map((_, idx) => (
-                  <div
-                    key={idx}
-                    className="h-4 bg-gray-300 rounded animate-pulse"
-                  ></div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </section>
-
-        {/* Inquiry Skeleton */}
-        <section className="max-w-5xl mx-auto px-4 py-8">
-          <div className="h-6 bg-gray-300 rounded w-1/3 mb-6 animate-pulse"></div>
-          {[...Array(2)].map((_, index) => (
-            <div key={index} className="mb-4 space-y-2">
-              <div className="h-4 bg-gray-300 rounded w-1/2 animate-pulse"></div>
-              <div className="h-3 bg-gray-300 rounded w-1/3 animate-pulse"></div>
-              <div className="h-3 bg-gray-300 rounded w-1/2 animate-pulse"></div>
-            </div>
-          ))}
-        </section>
       </div>
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="w-full flex items-center justify-center py-20">
-        <p className="text-red-500 text-lg">{error}</p>
+        <p className="text-red-500 text-lg">
+          Failed to load event details. Please try again later.
+        </p>
       </div>
     );
   }
 
-  if (!event) {
+  if (!eventDetails) {
     return <NoData />;
   }
 
-  // Use the utility function directly with the event details (JSON string)
-  const eventDetailsHtml = event?.event_details
+  const event = eventDetails;
+  const eventDetailsHtml = event.event_details
     ? convertDeltaToHtml(event.event_details)
     : '';
 
@@ -151,15 +80,13 @@ const SingleEvent: React.FC<any> = ({ id }) => {
         >
           <div className="absolute inset-0 bg-black opacity-50"></div>
           <div className="relative z-10 max-w-5xl mx-auto w-full space-y-6 text-start px-4">
-            {/* bread crumb */}
-
             <nav className="flex items-start text-sm">
               <button
                 type="button"
                 onClick={() => router.back()}
                 className="text-white hover:text-gray-200"
               >
-                Event
+                Events
               </button>
               <span className="mx-2">{'>'}</span>
               <button
@@ -180,10 +107,10 @@ const SingleEvent: React.FC<any> = ({ id }) => {
       )}
 
       {/* Partner Logos Section */}
-      {event?.partner_logos && event?.partner_logos?.length > 0 && (
+      {event.partner_logos?.length > 0 && (
         <section className="py-12 bg-gray-100">
           <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
-            {event?.partner_logos?.map((partner: any) => (
+            {event.partner_logos.map((partner: any) => (
               <div
                 key={partner.id}
                 className="flex items-center justify-center p-4 bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300"
@@ -211,8 +138,8 @@ const SingleEvent: React.FC<any> = ({ id }) => {
               <div className="flex items-center space-x-2">
                 <FiCalendar className="text-gray-500 w-5 h-5" />
                 <p className="text-gray-600">
-                  {event?.start_date && event?.end_date
-                    ? formatDateRange(event?.start_date, event?.end_date)
+                  {event.start_date && event.end_date
+                    ? formatDateRange(event.start_date, event.end_date)
                     : 'Date to be announced'}
                 </p>
               </div>
@@ -220,20 +147,19 @@ const SingleEvent: React.FC<any> = ({ id }) => {
               <div className="flex items-center space-x-2">
                 <FiClock className="text-gray-500 w-5 h-5" />
                 <p className="text-gray-600">
-                  {event?.start_time && event?.end_time
+                  {event.start_time && event.end_time
                     ? `${format(
-                        parse(event?.start_time, 'HH:mm:ss', new Date()),
+                        parse(event.start_time, 'HH:mm:ss', new Date()),
                         'HH:mm',
                       )} - ${format(
-                        parse(event?.end_time, 'HH:mm:ss', new Date()),
+                        parse(event.end_time, 'HH:mm:ss', new Date()),
                         'HH:mm',
                       )}`
                     : 'Time to be announced'}
                 </p>
               </div>
             </div>
-            {/* Registration Link Section */}
-            {event?.registration_link && (
+            {event.registration_link && (
               <CustomButton
                 type="button"
                 onClick={() => window.open(event.registration_link)}
@@ -253,7 +179,7 @@ const SingleEvent: React.FC<any> = ({ id }) => {
       )}
 
       {/* Event Program Section */}
-      {event.programs && event.programs.length > 0 && (
+      {event.programs?.length > 0 && (
         <section className="max-w-5xl mx-auto px-4 py-8">
           <h2 className="text-3xl font-semibold mb-6 border-b-2 pb-2">
             Event Schedule
@@ -264,7 +190,7 @@ const SingleEvent: React.FC<any> = ({ id }) => {
               title={format(new Date(program.date), 'MMMM do, yyyy')}
             >
               <div className="p-6 bg-blue-50 rounded-lg shadow-sm space-y-4">
-                {program.sessions && program.sessions.length > 0 ? (
+                {program.sessions?.length > 0 ? (
                   program.sessions.map((session: any) => (
                     <div
                       key={session.id}
@@ -310,7 +236,7 @@ const SingleEvent: React.FC<any> = ({ id }) => {
       )}
 
       {/* Inquiry Section */}
-      {event.inquiries && event.inquiries.length > 0 && (
+      {event.inquiries?.length > 0 && (
         <section className="max-w-5xl mx-auto px-4 py-8 bg-gray-50 rounded-lg shadow">
           <h2 className="text-3xl font-semibold mb-6 border-b-2 pb-2">
             For any inquiries and clarifications:
@@ -338,7 +264,7 @@ const SingleEvent: React.FC<any> = ({ id }) => {
       )}
 
       {/* Resources Section */}
-      {event.resources && event.resources.length > 0 && (
+      {event.resources?.length > 0 && (
         <section className="max-w-5xl mx-auto px-4 lg:px-0 py-8">
           <h2 className="text-3xl font-semibold mb-6 border-b-2 pb-2">
             Access the Event Resources here:

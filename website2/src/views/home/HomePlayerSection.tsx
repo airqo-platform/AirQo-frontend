@@ -10,7 +10,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch } from '@/hooks';
 import { openModal } from '@/store/slices/modalSlice';
 
-import { CustomButton } from '../../ui';
+import { CustomButton } from '../../components/ui';
 
 // Dynamically import ReactPlayer to avoid SSR issues
 const ReactPlayer = dynamic(() => import('react-player/lazy'), { ssr: false });

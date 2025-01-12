@@ -2,7 +2,7 @@
 
 import { format, isAfter, isBefore } from 'date-fns';
 import Image from 'next/image';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
 import EventCard from '@/components/sections/CleanAir/EventCard';
@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
   Pagination,
 } from '@/components/ui';
-import { getCleanAirEvents } from '@/services/apiService';
+import { useCleanAirEvents } from '@/hooks/useApiHooks';
 
 const months = [
   'January',
@@ -33,113 +33,52 @@ const months = [
 ];
 
 const categories = [
-  {
-    name: 'All Categories',
-    value: '',
-  },
-  {
-    name: 'Webinar',
-    value: 'webinar',
-  },
-  {
-    name: 'Workshop',
-    value: 'workshop',
-  },
-  {
-    name: 'Marathon',
-    value: 'marathon',
-  },
-  {
-    name: 'Conference',
-    value: 'conference',
-  },
-  {
-    name: 'Summit',
-    value: 'summit',
-  },
-  {
-    name: 'Commemoration',
-    value: 'commemoration',
-  },
-  {
-    name: 'In-Person',
-    value: 'in-person',
-  },
-  {
-    name: 'Hybrid',
-    value: 'hybrid',
-  },
+  { name: 'All Categories', value: '' },
+  { name: 'Webinar', value: 'webinar' },
+  { name: 'Workshop', value: 'workshop' },
+  { name: 'Marathon', value: 'marathon' },
+  { name: 'Conference', value: 'conference' },
+  { name: 'Summit', value: 'summit' },
+  { name: 'Commemoration', value: 'commemoration' },
+  { name: 'In-Person', value: 'in-person' },
+  { name: 'Hybrid', value: 'hybrid' },
 ];
 
 const EventsPage: React.FC = () => {
-  const [events, setEvents] = useState<any[]>([]);
-  const [filteredEvents, setFilteredEvents] = useState<any[]>([]);
+  const { cleanAirEvents, isLoading, isError } = useCleanAirEvents();
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showUpcoming, setShowUpcoming] = useState(true);
   const [showPast, setShowPast] = useState(true);
   const [currentUpcomingPage, setCurrentUpcomingPage] = useState(1);
   const [currentPastPage, setCurrentPastPage] = useState(1);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 4;
-  console.log(error);
 
   const currentDate = useMemo(() => new Date(), []);
 
-  // Fetch events on component mount
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const fetchedEvents = await getCleanAirEvents();
-        setEvents(fetchedEvents);
-        setFilteredEvents(fetchedEvents);
-      } catch (err) {
-        setError('Failed to load events. Please try again later.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Filter events based on selectedMonth and selectedCategory
+  const filteredEvents = useMemo(() => {
+    if (!cleanAirEvents) return [];
 
-    fetchEvents();
-  }, []);
+    let events = [...cleanAirEvents];
 
-  // Handle month selection
-  const handleMonthChange = (month: string) => {
-    setSelectedMonth(month);
-  };
-
-  // Handle category selection
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-  };
-
-  // Apply filters whenever selectedMonth or selectedCategory changes
-  useEffect(() => {
-    let tempEvents = [...events];
-
-    // Filter by month
     if (selectedMonth) {
-      tempEvents = tempEvents.filter((event) => {
+      events = events.filter((event) => {
         const eventDate = new Date(event.start_date);
         return format(eventDate, 'MMMM') === selectedMonth;
       });
     }
 
-    // Filter by category
     if (selectedCategory) {
-      tempEvents = tempEvents.filter(
+      events = events.filter(
         (event) => event.event_category === selectedCategory,
       );
     }
 
-    setFilteredEvents(tempEvents);
-    setCurrentUpcomingPage(1);
-    setCurrentPastPage(1);
-  }, [selectedMonth, selectedCategory, events]);
+    return events;
+  }, [cleanAirEvents, selectedMonth, selectedCategory]);
 
-  // Split events into upcoming and past based on date comparison
+  // Split events into upcoming and past
   const upcomingEvents = useMemo(
     () =>
       filteredEvents.filter((event) =>
@@ -187,7 +126,6 @@ const EventsPage: React.FC = () => {
       {/* Main banner section */}
       <section className="max-w-5xl mx-auto w-full">
         <div className="py-8 px-4 lg:px-0 flex flex-col items-center space-y-6 md:space-y-8">
-          {/* Image */}
           <div className="w-full">
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132391/website/cleanAirForum/images/events_gfnscv.webp"
@@ -197,8 +135,6 @@ const EventsPage: React.FC = () => {
               className="rounded-lg object-cover w-full"
             />
           </div>
-
-          {/* Text */}
           <div className="text-left">
             <p className="text-xl lg:text-[24px] text-gray-700 mb-4">
               The CLEAN-Air Network provides a platform for facilitating
@@ -219,7 +155,6 @@ const EventsPage: React.FC = () => {
           {/* Filter Section */}
           <div className="flex justify-end py-8 items-center">
             <div className="flex space-x-4">
-              {/* Date Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="px-4 py-2 bg-gray-200 rounded-lg focus:outline-none">
@@ -236,7 +171,7 @@ const EventsPage: React.FC = () => {
                   {months.map((month) => (
                     <DropdownMenuItem
                       key={month}
-                      onClick={() => handleMonthChange(month)}
+                      onClick={() => setSelectedMonth(month)}
                     >
                       {month}
                     </DropdownMenuItem>
@@ -244,7 +179,6 @@ const EventsPage: React.FC = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Category Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="px-4 py-2 bg-gray-200 rounded-lg focus:outline-none">
@@ -261,7 +195,7 @@ const EventsPage: React.FC = () => {
                   {categories.map((category) => (
                     <DropdownMenuItem
                       key={category.value}
-                      onClick={() => handleCategoryChange(category.value)}
+                      onClick={() => setSelectedCategory(category.value)}
                     >
                       {category.name}
                     </DropdownMenuItem>
@@ -282,11 +216,12 @@ const EventsPage: React.FC = () => {
             </div>
             {showUpcoming && (
               <div className="space-y-4 mt-4">
-                {loading ? (
-                  // Display skeletons
+                {isLoading ? (
                   Array.from({ length: itemsPerPage }).map((_, index) => (
                     <EventSkeleton key={index} />
                   ))
+                ) : isError ? (
+                  <p className="text-gray-600">Failed to load events.</p>
                 ) : paginatedUpcomingEvents.length > 0 ? (
                   paginatedUpcomingEvents.map((event) => (
                     <EventCard key={event.id} event={event} />
@@ -295,8 +230,7 @@ const EventsPage: React.FC = () => {
                   <p className="text-gray-600">No upcoming events</p>
                 )}
 
-                {/* Pagination for upcoming events */}
-                {!loading && upcomingEvents.length > itemsPerPage && (
+                {!isLoading && upcomingEvents.length > itemsPerPage && (
                   <Pagination
                     totalPages={totalUpcomingPages}
                     currentPage={currentUpcomingPage}
@@ -320,11 +254,12 @@ const EventsPage: React.FC = () => {
             </div>
             {showPast && (
               <div className="space-y-4 mt-4">
-                {loading ? (
-                  // Display skeletons
+                {isLoading ? (
                   Array.from({ length: itemsPerPage }).map((_, index) => (
                     <EventSkeleton key={index} />
                   ))
+                ) : isError ? (
+                  <p className="text-gray-600">Failed to load events.</p>
                 ) : paginatedPastEvents.length > 0 ? (
                   paginatedPastEvents.map((event) => (
                     <EventCard key={event.id} event={event} />
@@ -333,8 +268,7 @@ const EventsPage: React.FC = () => {
                   <p className="text-gray-600">No past events</p>
                 )}
 
-                {/* Pagination for past events */}
-                {!loading && pastEvents.length > itemsPerPage && (
+                {!isLoading && pastEvents.length > itemsPerPage && (
                   <Pagination
                     totalPages={totalPastPages}
                     currentPage={currentPastPage}
