@@ -1,44 +1,7 @@
-// types.ts
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
+import { Site } from "./sitesSlice";
 
-export interface SiteCategory {
-    tags: string[];
-    area_name: string;
-    category: string;
-    highway: string;
-    landuse: string;
-    latitude: number;
-    longitude: number;
-    natural: string;
-    search_radius: number;
-    waterway: string;
-  }
-  
-  export interface Site {
-    _id: string;
-    visibility: boolean;
-    images: string[];
-    land_use: string[];
-    isOnline: boolean;
-    formatted_name: string;
-    location_name: string;
-    search_name: string;
-    city: string;
-    district: string;
-    county: string;
-    region: string;
-    country: string;
-    name: string;
-    approximate_latitude: number;
-    approximate_longitude: number;
-    data_provider: string;
-    group: string;
-    site_category: SiteCategory;
-    groups: string[];
-    lastActive: string;
-  }
-  
   export interface Grid {
     _id: string;
     visibility: boolean;

@@ -1,16 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { cities } from "../apis/cities";
+import { grids } from "../apis/cities";
 import { setCities, setError } from "../redux/slices/citiesSlice";
 import { useAppSelector } from "../redux/hooks";
 
-export const useCities = () => {
+export const useGrids = () => {
   const dispatch = useDispatch();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["grids", activeNetwork?.net_name],
-    queryFn: () => cities.getCites(activeNetwork?.net_name || ""),
+    queryFn: () => grids.getGrids(activeNetwork?.net_name || ""),
     enabled: !!activeNetwork?.net_name,
     onSuccess: (data: any) => {
       dispatch(setCities(data.cities));

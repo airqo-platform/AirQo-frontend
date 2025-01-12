@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MultiSelect, Option } from "react-multi-select-component";
 import { useToast } from "@/components/ui/use-toast";
-import { ExportType, FormData } from "@/types/export";
+import { ExportType, FormData } from "@/app/types/export";
 import { useSites } from "@/core/hooks/useSites";
-import { useCities } from "@/core/hooks/useCities";
+import { useGrids } from "@/core/hooks/useGrids";
 import { Site } from "@/core/redux/slices/sitesSlice";
 import { City } from "@/core/redux/slices/citiesSlice";
 import { Device } from "@/core/redux/slices/deviceSlice";
@@ -70,17 +70,11 @@ export const roundToStartOfDay = (dateISOString: string): Date => {
   return start;
 };
 
-const toOptions = (values: string[]): Option[] => {
-  return values.map((value) => ({
-    label: value, // Adjust label logic if needed
-    value,
-  }));
-};
 
 export default function ExportForm({ exportType }: ExportFormProps) {
     const [loading, setLoading] = useState(false);
     const { sites } = useSites();
-    const { cities } = useCities();
+    const { cities } = useGrids();
     const { devices } = useDevices();
     const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
@@ -250,7 +244,6 @@ export default function ExportForm({ exportType }: ExportFormProps) {
       minimum: true,
     };
   
-    console.log("Exporting data", body);
     await downloadData(body);
   };
   

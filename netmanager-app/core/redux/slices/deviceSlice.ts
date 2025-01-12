@@ -1,19 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
-interface SiteCategory {
-  tags: string[];
-  area_name: string;
-  category: string;
-  highway: string;
-  landuse: string;
-  latitude: number;
-  longitude: number;
-  natural: string;
-  search_radius: number;
-  waterway: string;
-}
-
 export interface Device {
   _id: string;
   group: string;
@@ -24,37 +11,6 @@ export interface Device {
   groups: string[];
 }
 
-interface Grid {
-  _id: string;
-}
-
-export interface Site {
-  _id: string;
-  isOnline: boolean;
-  formatted_name: string;
-  location_name: string;
-  search_name: string;
-  city: string;
-  district: string;
-  county: string;
-  region: string;
-  country: string;
-  latitude: number;
-  longitude: number;
-  name: string;
-  approximate_latitude: number;
-  approximate_longitude: number;
-  generated_name: string;
-  data_provider: string;
-  description: string;
-  site_category: SiteCategory;
-  groups: string[];
-  grids: Grid[];
-  devices: Device[];
-  airqlouds: unknown[];
-  createdAt: string;
-  updatedAt?: string;
-}
 
 export interface DevicesState {
     devices: Device[];

@@ -1,6 +1,5 @@
 import createAxiosInstance from "./axiosConfig";
-import { EXPORT_DATA_URL } from "@/core/urls";
-import { FormData } from "@/types/export";
+import { ANALYTICS_MGT_URL } from "@/core/urls";
 
 const axiosInstance = createAxiosInstance();
 
@@ -9,7 +8,7 @@ export const dataExport = async (data: any) => {
         const headers = {
             service: 'data-export'
         }
-        const exportData =  axiosInstance.post(`${EXPORT_DATA_URL}`, data, { headers });
+        const exportData =  axiosInstance.post(`${ANALYTICS_MGT_URL}/data-download`, data, { headers });
         return exportData;
     } catch (error) {
         throw error;

@@ -3,8 +3,8 @@ import { DEVICES_MGT_URL } from "../urls";
 
 const axiosInstance = createAxiosInstance();
 
-export const cities = {
-  getCites: async (networkId: string) => {
+export const grids = {
+  getGrids: async (networkId: string) => { 
     try {
       const response = await axiosInstance.get(
         `${DEVICES_MGT_URL}/grids/summary?network=${networkId}`
