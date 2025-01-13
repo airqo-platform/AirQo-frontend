@@ -21,6 +21,7 @@ import {
   PlusCircle,
   MonitorSmartphone,
   LogOut,
+  Network as NetworkIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,9 +39,13 @@ import {
 } from "@/components/ui/collapsible";
 import { useAuth } from "@/core/hooks/users";
 import { useAppSelector, useAppDispatch } from "@/core/redux/hooks";
-import { setActiveNetwork } from "@/core/redux/slices/userSlice";
-import type { Network } from "@/app/types/users";
+import {
+  setActiveNetwork,
+  setActiveGroup,
+} from "@/core/redux/slices/userSlice";
+import type { Group, Network } from "@/app/types/users";
 import { PermissionGuard } from "@/components/permission-guard";
+import { Card, CardContent } from "@/components/ui/card";
 
 const Sidebar = () => {
   const pathname = usePathname();
@@ -54,6 +59,8 @@ const Sidebar = () => {
     (state) => state.user.availableNetworks
   );
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const activeGroup = useAppSelector((state) => state.user.activeGroup);
+  const userGroups = useAppSelector((state) => state.user.userGroups);
 
   const isActive = (path: string) => pathname?.startsWith(path);
   const isDevicesActive = isActive("/devices");
@@ -78,36 +85,44 @@ const Sidebar = () => {
     localStorage.setItem("activeNetwork", JSON.stringify(network));
   };
 
+  const handleOrganizationChange = (group: Group) => {
+    dispatch(setActiveGroup(group));
+    localStorage.setItem("activeGroup", JSON.stringify(group));
+  };
+
   return (
     <div className="w-64 h-screen bg-card border-r flex flex-col">
-      {/* Network Switcher */}
-      <div className="p-4 border-b">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-full justify-between text-foreground uppercase"
-            >
-              {activeNetwork?.net_name || "Select Network"}
-              <ChevronDown size={16} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56">
-            <DropdownMenuLabel>Switch Network</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {availableNetworks.map((network) => (
-              <DropdownMenuItem
-                key={network._id}
-                onClick={() => handleNetworkChange(network)}
-                className="flex items-center justify-between uppercase"
+      {/* Organization Switcher */}
+      <Card className="m-4 bg-primary text-primary-foreground">
+        <CardContent className="p-3">
+          <h2 className="text-sm font-semibold mb-2">Organization</h2>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="secondary"
+                className="w-full justify-between uppercase"
               >
-                {network.net_name}
-                {activeNetwork?._id === network._id && <Check size={16} />}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+                {activeGroup?.grp_title || "Select Organization"}
+                <ChevronDown size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuLabel>Switch Organization</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {userGroups.map((group) => (
+                <DropdownMenuItem
+                  key={group._id}
+                  onClick={() => handleOrganizationChange(group)}
+                  className="flex items-center justify-between uppercase"
+                >
+                  {group.grp_title}
+                  {activeGroup?._id === group._id && <Check size={16} />}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </CardContent>
+      </Card>
 
       {/* Main Navigation */}
       <div className="flex-1 p-4 overflow-y-auto">
@@ -217,6 +232,46 @@ const Sidebar = () => {
             <h2 className="text-sm font-semibold text-foreground/60 mb-2">
               Network
             </h2>
+
+            {/* Network Switcher */}
+            <div className="mb-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between text-foreground"
+                  >
+                    <div className="flex items-center gap-2">
+                      <NetworkIcon size={18} />
+                      <span className="uppercase">
+                        {activeNetwork?.net_name || "Select Network"}
+                      </span>
+                    </div>
+                    <ChevronDown size={16} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  <DropdownMenuLabel>Select Network</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {availableNetworks
+                    .filter((network) => network._id === activeNetwork?._id)
+                    .map((network) => (
+                      <DropdownMenuItem
+                        key={network._id}
+                        onClick={() => handleNetworkChange(network)}
+                        className="flex items-center justify-between uppercase"
+                      >
+                        {network.net_name}
+                        {activeNetwork?._id === network._id && (
+                          <Check size={16} />
+                        )}
+                      </DropdownMenuItem>
+                    ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Network Items */}
             <ul className="space-y-2">
               <PermissionGuard
                 permission={[

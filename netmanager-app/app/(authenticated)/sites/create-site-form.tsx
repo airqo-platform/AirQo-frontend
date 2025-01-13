@@ -34,6 +34,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { useApproximateCoordinates } from "@/core/hooks/useSites";
 
 const siteFormSchema = z.object({
   name: z.string().min(2, {
@@ -121,6 +122,7 @@ export function CreateSiteForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const { getApproximateCoordinates, isPending } = useApproximateCoordinates();
 
   const form = useForm<SiteFormValues>({
     resolver: zodResolver(siteFormSchema),
@@ -265,6 +267,51 @@ export function CreateSiteForm() {
                       )}
                     />
                   </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => {
+                      const lat = form.getValues("latitude");
+                      const lng = form.getValues("longitude");
+                      if (lat && lng) {
+                        getApproximateCoordinates(
+                          { latitude: lat, longitude: lng },
+                          {
+                            onSuccess: (data) => {
+                              const {
+                                approximate_latitude,
+                                approximate_longitude,
+                              } = data.approximate_coordinates;
+                              form.setValue(
+                                "latitude",
+                                approximate_latitude.toString()
+                              );
+                              form.setValue(
+                                "longitude",
+                                approximate_longitude.toString()
+                              );
+                            },
+                          }
+                        );
+                      }
+                    }}
+                    disabled={
+                      !form.getValues("latitude") ||
+                      !form.getValues("longitude") ||
+                      isPending
+                    }
+                  >
+                    {isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Optimizing...
+                      </>
+                    ) : (
+                      "⭐ Optimize Location"
+                    )}
+                  </Button>
                 </div>
               </>
             )}
