@@ -35,11 +35,31 @@ import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useApproximateCoordinates } from "@/core/hooks/useSites";
+import { AxiosError } from "axios";
+import Error from "next/error";
 
 const siteFormSchema = z.object({
   name: z.string().min(2, {
     message: "Site name must be at least 2 characters.",
   }),
+  latitude: z.string().refine(
+    (val) => {
+      const num = parseFloat(val);
+      return !isNaN(num) && num >= -90 && num <= 90;
+    },
+    {
+      message: "Latitude must be a valid number between -90 and 90",
+    }
+  ),
+  longitude: z.string().refine(
+    (val) => {
+      const num = parseFloat(val);
+      return !isNaN(num) && num >= -180 && num <= 180;
+    },
+    {
+      message: "Longitude must be a valid number between -180 and 180",
+    }
+  ),
 });
 
 type SiteFormValues = z.infer<typeof siteFormSchema>;
@@ -119,7 +139,6 @@ export function CreateSiteForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
-  const router = useRouter();
   const queryClient = useQueryClient();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const { getApproximateCoordinates, isPending } = useApproximateCoordinates();
@@ -309,7 +328,7 @@ export function CreateSiteForm() {
                         Optimizing...
                       </>
                     ) : (
-                      "⭐ Optimize Location"
+                      "⭐ Optimize Coordinates"
                     )}
                   </Button>
                 </div>
