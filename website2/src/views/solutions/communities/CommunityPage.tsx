@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 
+import HeroSection from '@/components/sections/solutions/HeroSection';
 import { CustomButton } from '@/components/ui';
 import { useDispatch } from '@/hooks';
 import { openModal } from '@/store/slices/modalSlice';
@@ -37,28 +38,14 @@ const CommunitiesPage = () => {
   return (
     <div className="pb-16 flex flex-col w-full space-y-20">
       {/* Hero Section */}
-      <motion.section
-        className="bg-yellow-50 py-16 px-4 h-full max-h-[416px]"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={containerVariants}
-      >
-        <div className="max-w-5xl mx-auto text-center">
-          {/* Text Content */}
-          <motion.div variants={itemVariants}>
-            <p className="text-gray-500 mb-2 text-sm">
-              Solutions {'>'} For Communities
-            </p>
-            <h1 className="text-4xl font-bold mb-6">For Communities</h1>
-            <p className="text-lg text-gray-700">
-              We harness the value that comes with bringing together community{' '}
-              <br />
-              members passionate about clean air and a healthy environment.
-            </p>
-          </motion.div>
-        </div>
-      </motion.section>
+      <HeroSection
+        bgColor="bg-yellow-50"
+        breadcrumbText="Solutions > For Communities"
+        title="For Communities"
+        description="We harness the value that comes with bringing together community members passionate about clean air and a healthy environment."
+        containerVariants={containerVariants}
+        itemVariants={itemVariants}
+      />
 
       {/* AirQo + Communities -> AirQommunities */}
       <motion.section

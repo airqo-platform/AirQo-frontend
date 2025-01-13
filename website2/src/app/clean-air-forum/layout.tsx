@@ -1,99 +1,53 @@
 'use client';
 
-// import { Metadata } from 'next';
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode } from 'react';
+import { Suspense } from 'react';
 
 import Footer from '@/components/layouts/Footer';
 import Navbar from '@/components/layouts/Navbar';
 import NewsLetter from '@/components/layouts/NewsLetter';
+import Loading from '@/components/loading';
 import { ForumDataProvider } from '@/context/ForumDataContext';
-import { getForumEvents } from '@/services/apiService';
+import { useForumEvents } from '@/hooks/useApiHooks';
 import BannerSection from '@/views/Forum/BannerSection';
-
-// export const metadata: Metadata = {
-//   title: 'Clean Air Forum | AirQo Africa',
-//   description:
-//     'Join the Clean Air Forum by AirQo to explore air quality initiatives, innovations, and discussions aimed at improving air quality in Africa.',
-//   keywords:
-//     'Clean Air Forum, AirQo Africa, air quality forum, air pollution, clean air Africa, environmental innovation, air quality initiatives',
-//   openGraph: {
-//     title: 'Clean Air Forum - AirQo Africa',
-//     description:
-//       'Discover AirQo’s Clean Air Forum, a platform to discuss innovations, strategies, and actions to improve air quality across Africa.',
-//     url: 'https://yourdomain.com/clean-air-forum',
-//     siteName: 'AirQo',
-//     images: [
-//       {
-//         url: 'https://yourdomain.com/static/clean-air-forum-og-image.jpg',
-//         width: 1200,
-//         height: 630,
-//         alt: 'AirQo Clean Air Forum - Improving Air Quality in Africa',
-//       },
-//     ],
-//     locale: 'en_US',
-//     type: 'website',
-//   },
-//   twitter: {
-//     card: 'summary_large_image',
-//     site: '@AirQo',
-//     title: 'Clean Air Forum - AirQo Africa',
-//     description:
-//       'Explore the Clean Air Forum by AirQo to participate in discussions about improving air quality in Africa.',
-//   },
-//   robots: {
-//     index: true,
-//     follow: true,
-//   },
-//   alternates: {
-//     canonical: 'https://yourdomain.com/clean-air-forum',
-//   },
-// };
 
 type CleanAirLayoutProps = {
   children: ReactNode;
 };
 
 const CleanAirLayout: React.FC<CleanAirLayoutProps> = ({ children }) => {
-  const [data, setData] = useState<any>(null);
+  // Using the `useForumEvents` hook
+  const { forumEvents } = useForumEvents();
 
-  useEffect(() => {
-    const fetchForumEvents = async () => {
-      try {
-        const res = await getForumEvents();
-        setData(res ? res[0] : null);
-      } catch (error) {
-        console.error('Failed to fetch forum events:', error);
-        setData(null);
-      }
-    };
-
-    fetchForumEvents();
-  }, []);
+  // Extract the first event (if available)
+  const eventData = forumEvents?.[0] || null;
 
   return (
-    <ForumDataProvider data={data}>
-      <div className="min-h-screen w-full flex flex-col">
-        {/* Navbar */}
-        <header className="sticky top-0 z-50">
-          <Navbar />
-        </header>
+    <ForumDataProvider data={eventData}>
+      <Suspense fallback={<Loading />}>
+        <div className="min-h-screen w-full flex flex-col">
+          {/* Navbar */}
+          <header className="sticky top-0 z-50">
+            <Navbar />
+          </header>
 
-        {/* Pass the fetched data to BannerSection */}
-        <BannerSection data={data} />
+          {/* Banner Section */}
+          <BannerSection data={eventData} />
 
-        {/* Main Content */}
-        <main className="flex-1 pb-8">{children}</main>
+          {/* Main Content */}
+          <main className="flex-1 pb-8">{children}</main>
 
-        {/* Action Buttons Section */}
-        <section className="my-16">
-          <NewsLetter />
-        </section>
+          {/* Newsletter Section */}
+          <section className="my-16">
+            <NewsLetter />
+          </section>
 
-        {/* Footer */}
-        <footer>
-          <Footer />
-        </footer>
-      </div>
+          {/* Footer */}
+          <footer>
+            <Footer />
+          </footer>
+        </div>
+      </Suspense>
     </ForumDataProvider>
   );
 };

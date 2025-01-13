@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import React from 'react';
 
+import HeroSection from '@/components/sections/solutions/HeroSection';
 import { CustomButton, Divider } from '@/components/ui';
 import AfricanCities from '@/views/solutions/AfricanCities/AfricanCities';
 
@@ -32,29 +33,15 @@ const AfricanCityPage = () => {
   return (
     <div className="pb-16 flex flex-col w-full space-y-20">
       {/* Hero Section */}
-      <motion.section
-        className="bg-blue-50 py-16 px-4 h-full max-h-[416px]"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={containerVariants}
-      >
-        <div className="max-w-5xl mx-auto text-center">
-          {/* Text Content */}
-          <motion.div variants={itemVariants}>
-            <p className="text-gray-500 mb-2 text-[14px]">
-              Solutions {'>'} For African Cities
-            </p>
-            <h1 className="text-[48px] leading-[56px] font-bold mb-6">
-              For African cities
-            </h1>
-            <p className="text-[18px] text-gray-700">
-              Leveraging a high-resolution air quality monitoring network to
-              advance air quality <br /> management in African cities.
-            </p>
-          </motion.div>
-        </div>
-      </motion.section>
+      <HeroSection
+        bgColor="bg-blue-50"
+        breadcrumbText="Solutions > For African Cities"
+        title="For African cities"
+        description="Leveraging a high-resolution air quality monitoring network to
+              advance air quality management in African cities."
+        containerVariants={containerVariants}
+        itemVariants={itemVariants}
+      />
 
       {/* Challenge Statement */}
       <motion.section
