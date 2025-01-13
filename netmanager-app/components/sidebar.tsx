@@ -289,7 +289,7 @@ const Sidebar = () => {
                       <Button
                         variant="ghost"
                         className={`w-full justify-between ${
-                          isActive("/devices")
+                          isActive("/devices/overview") && !isDevicesOpen
                             ? "bg-accent text-accent-foreground"
                             : ""
                         }`}
@@ -309,9 +309,9 @@ const Sidebar = () => {
                     <CollapsibleContent className="ml-6 space-y-2">
                       <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES">
                         <Link
-                          href="/devices"
+                          href="/devices/overview"
                           className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md ${
-                            pathname === "/devices"
+                            pathname === "/devices/overview"
                               ? "bg-accent text-accent-foreground"
                               : ""
                           }`}
