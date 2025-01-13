@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Label,
   PolarGrid,
@@ -16,28 +16,33 @@ import {
   CardHeader,
 } from "@/components/ui/card"
 import { ChartConfig, ChartContainer } from "@/components/ui/chart"
-const chartData = [
-  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-]
 
-const chartConfig = {
-  visitors: {
-    label: "Visitors",
-  },
-  safari: {
-    label: "Safari",
-    color: "hsl(var(--chart-2))",
-  },
-} satisfies ChartConfig
+
 
 export function Speed() {
 
+  const [siteCount, setSiteCount] = useState(0)
+
   const { sites } = useSites()
-   useEffect(() => {
-      if (sites) {
-        console.log(sites)
-      }
-    }, [sites])
+  useEffect(() => {
+    if (sites) {
+      setSiteCount(sites.length)
+    }
+  }, [sites])
+
+  const chartData = [
+    { name: "sites", count: siteCount, fill: "#45e50d" },
+  ]
+
+  const chartConfig = {
+    sites: {
+      label: "Sites",
+    },
+    name: {
+      label: "Sites",
+      color: "#45e50d",
+    },
+  } satisfies ChartConfig
 
   return (
     <Card className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-4">
@@ -63,7 +68,7 @@ export function Speed() {
               className="first:fill-muted last:fill-background"
               polarRadius={[86, 74]}
             />
-            <RadialBar dataKey="visitors" background cornerRadius={10} />
+            <RadialBar dataKey="sites" background cornerRadius={10} />
             <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
               <Label
                 content={({ viewBox }) => {
@@ -80,14 +85,14 @@ export function Speed() {
                           y={viewBox.cy}
                           className="fill-foreground text-4xl font-bold"
                         >
-                          {chartData[0].visitors.toLocaleString()}
+                          {chartData[0].count.toLocaleString()}
                         </tspan>
                         <tspan
                           x={viewBox.cx}
                           y={(viewBox.cy || 0) + 24}
                           className="fill-muted-foreground"
                         >
-                          Devices
+                          Sites
                         </tspan>
                       </text>
                     )
@@ -101,4 +106,3 @@ export function Speed() {
     </Card>
   )
 }
-

@@ -27,22 +27,22 @@ import { Site } from "./sitesSlice";
   }
   
   export interface CitiesState {
-    cities: City[];
+    grids: Grid[];
     isLoading: boolean;
     error: string | null;
   }
   const initialState: CitiesState = {
-    cities: [],
+    grids: [],
     isLoading: false,
     error: null,
   };
 
-  const citiesSlice = createSlice({
-    name: "cities",
+  const gridsSlice = createSlice({
+    name: "grids",
     initialState,
     reducers: {
-      setCities(state, action: PayloadAction<City[]>) {
-        state.cities = action.payload;
+      setGrids(state, action: PayloadAction<Grid[]>) {
+        state.grids = action.payload;
         state.isLoading = false;
         state.error = null;
       },
@@ -56,5 +56,5 @@ import { Site } from "./sitesSlice";
     },
   });
 
-export const { setCities, setLoading, setError } = citiesSlice.actions;
-export default citiesSlice.reducer;
+export const { setGrids, setLoading, setError } = gridsSlice.actions;
+export default gridsSlice.reducer;

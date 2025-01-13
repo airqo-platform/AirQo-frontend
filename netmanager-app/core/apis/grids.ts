@@ -15,6 +15,20 @@ export const grids = {
         error.response?.data?.message || "Failed to fetch sites summary"
       );
     }
-  }
+  },
+
+  getGridsApi: async (networkId: string) => {
+    try {
+      const response = await axiosInstance.get(
+        `${DEVICES_MGT_URL}/grids&network=${networkId}`
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error("Error fetching grid summary:", error);
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch grid summary"
+      );
+    }
+  },
 
 };

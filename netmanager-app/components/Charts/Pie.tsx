@@ -1,9 +1,8 @@
 "use client"
 
-import React, {useEffect} from "react"
+import React from "react"
 import { Label, Pie, PieChart, Sector } from "recharts"
 import { PieSectorDataItem } from "recharts/types/polar/Pie"
-import { useSites } from "@/core/hooks/useSites"
 
 import {
   Card,
@@ -65,7 +64,6 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function PieCharts() {
-  const { sites } = useSites()
   const id = "pie-interactive"
   const [activeMonth, setActiveMonth] = React.useState(desktopData[0].month)
 
@@ -74,13 +72,6 @@ export function PieCharts() {
     [activeMonth]
   )
   const months = React.useMemo(() => desktopData.map((item) => item.month), [])
-
-  useEffect(() => {
-    if (sites) {
-      console.log(sites)
-    }
-  }, [sites])
-
 
   return (
     <Card data-chart={id} className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-4">

@@ -1,4 +1,9 @@
-export interface Grid {
+export interface Cohort {
+    _id: string;
+    name: string;
+}
+
+interface Grid {
     _id: string;
     visibility: boolean;
     name: string;

@@ -10,7 +10,7 @@ import { ExportType, FormData } from "@/app/types/export";
 import { useSites } from "@/core/hooks/useSites";
 import { useGrids } from "@/core/hooks/useGrids";
 import { Site } from "@/core/redux/slices/sitesSlice";
-import { City } from "@/core/redux/slices/citiesSlice";
+import { City } from "@/core/redux/slices/gridsSlice";
 import { Device } from "@/core/redux/slices/deviceSlice";
 import { useDevices } from "@/core/hooks/useDevices";
 import { DatePicker } from "@/components/ui/date-picker";

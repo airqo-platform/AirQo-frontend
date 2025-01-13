@@ -1,19 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { grids } from "../apis/grids";
-import { setGrids, setError } from "../redux/slices/gridsSlice";
+import { cohorts } from "../apis/cohorts";
+import { setCohorts, setError } from "../redux/slices/cohortsSlice";
 import { useAppSelector } from "../redux/hooks";
 
-export const useGrids = () => {
+export const useCohorts = () => {
   const dispatch = useDispatch();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["grids", activeNetwork?.net_name],
-    queryFn: () => grids.getGrids(activeNetwork?.net_name || ""),
+    queryKey: ["cohorts", activeNetwork?.net_name],
+    queryFn: () => cohorts.getGrids(activeNetwork?.net_name || ""),
     enabled: !!activeNetwork?.net_name,
     onSuccess: (data: any) => {
-      dispatch(setGrids(data.grids));
+      dispatch(setCohorts(data.grids));
     },
     onError: (error: Error) => {
       dispatch(setError(error.message));
