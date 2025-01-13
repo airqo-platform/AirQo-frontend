@@ -50,7 +50,7 @@ const HomePlayerSection = () => {
         }
       }
     }
-  }, [isModalOpen]);
+  }, [isBackgroundVideoPlaying, isModalOpen]);
 
   const handlePlayButtonClick = () => {
     setIsModalOpen(true);

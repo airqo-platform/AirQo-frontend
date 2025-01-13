@@ -69,7 +69,7 @@ const Page = () => {
       {/* Keynote Speakers Section */}
       <h2 className="text-2xl font-bold">Keynote Speakers</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto px-4">
-        {displayedKeyNoteSpeakers.map((person: any) => (
+        {displayedKeyNoteSpeakers?.map((person: any) => (
           <MemberCard
             key={person.id}
             member={person}
@@ -95,7 +95,7 @@ const Page = () => {
       {/* Speakers Section */}
       <h2 className="text-2xl font-bold">Speakers</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto px-4">
-        {displayedSpeakers.map((person: any) => (
+        {displayedSpeakers?.map((person: any) => (
           <MemberCard
             key={person.id}
             member={person}

@@ -1,10 +1,10 @@
 'use client';
 import React from 'react';
 
-import PaginatedSection from '@/views/cleanairforum/PaginatedSection';
 import { Divider } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
 import { renderContent } from '@/utils/quillUtils';
+import PaginatedSection from '@/views/cleanairforum/PaginatedSection';
 
 const Page = () => {
   const data = useForumData();

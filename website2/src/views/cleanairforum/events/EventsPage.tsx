@@ -5,9 +5,6 @@ import Image from 'next/image';
 import React, { useMemo, useState } from 'react';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
-import EventCard from '@/views/cleanairforum/EventCard';
-import EventSkeleton from '@/views/cleanairforum/EventSkeleton';
-import RegisterBanner from '@/views/cleanairforum/RegisterBanner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +13,9 @@ import {
   Pagination,
 } from '@/components/ui';
 import { useCleanAirEvents } from '@/hooks/useApiHooks';
+import EventCard from '@/views/cleanairforum/EventCard';
+import EventSkeleton from '@/views/cleanairforum/EventSkeleton';
+import RegisterBanner from '@/views/cleanairforum/RegisterBanner';
 
 const months = [
   'January',
