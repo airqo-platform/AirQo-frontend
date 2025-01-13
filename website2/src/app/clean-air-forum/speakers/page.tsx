@@ -18,32 +18,32 @@ const Page = () => {
   }
 
   // Filter keynote speakers and speakers
-  const KeyNoteSpeakers = data.persons.filter(
+  const KeyNoteSpeakers = data?.persons?.filter(
     (person: any) =>
       person.category === 'Key Note Speaker' ||
       person.category === 'Committee Member and Key Note Speaker',
   );
 
-  const Speakers = data.persons.filter(
+  const Speakers = data?.persons?.filter(
     (person: any) =>
       person.category === 'Speaker' ||
       person.category === 'Speaker and Committee Member',
   );
 
   // Pagination calculations for keynote speakers
-  const totalKeyNotePages = Math.ceil(KeyNoteSpeakers.length / membersPerPage);
+  const totalKeyNotePages = Math.ceil(KeyNoteSpeakers?.length / membersPerPage);
   const startKeyNoteIdx = (currentKeyNotePage - 1) * membersPerPage;
   const endKeyNoteIdx = startKeyNoteIdx + membersPerPage;
-  const displayedKeyNoteSpeakers = KeyNoteSpeakers.slice(
+  const displayedKeyNoteSpeakers = KeyNoteSpeakers?.slice(
     startKeyNoteIdx,
     endKeyNoteIdx,
   );
 
   // Pagination calculations for speakers
-  const totalSpeakersPages = Math.ceil(Speakers.length / membersPerPage);
+  const totalSpeakersPages = Math.ceil(Speakers?.length / membersPerPage);
   const startSpeakersIdx = (currentSpeakersPage - 1) * membersPerPage;
   const endSpeakersIdx = startSpeakersIdx + membersPerPage;
-  const displayedSpeakers = Speakers.slice(startSpeakersIdx, endSpeakersIdx);
+  const displayedSpeakers = Speakers?.slice(startSpeakersIdx, endSpeakersIdx);
 
   // Handle page changes
   const handleKeyNotePageChange = (newPage: number) => {
