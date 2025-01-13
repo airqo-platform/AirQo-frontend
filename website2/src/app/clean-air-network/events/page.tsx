@@ -1,6 +1,4 @@
-import React from 'react';
-
-import EventsPage from './EventsPage';
+import EventsPage from '@/views/cleanairforum/events/EventsPage';
 
 const page = () => {
   return (
