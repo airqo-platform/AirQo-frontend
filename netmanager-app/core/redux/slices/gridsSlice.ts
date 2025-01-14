@@ -50,13 +50,6 @@ import { Site } from "./sitesSlice";
         state.isLoading = false;
         state.error = null;
       },
-      set
-      setActiveGrid(state, action: PayloadAction<Grid[]>) {
-        state.activeGrid = action.payload;
-      },
-      setActiveCohort(state, action: PayloadAction<City[]>) {
-        state.activeCohort = action.payload;
-      },
       setLoading(state, action: PayloadAction<boolean>) {
         state.isLoading = action.payload;
       },
@@ -67,5 +60,5 @@ import { Site } from "./sitesSlice";
     },
   });
 
-export const { setGrids, setActiveCohort, setActiveGrid, setLoading, setError } = gridsSlice.actions;
+export const { setGrids, setLoading, setError } = gridsSlice.actions;
 export default gridsSlice.reducer;
