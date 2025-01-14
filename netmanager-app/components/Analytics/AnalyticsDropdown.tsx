@@ -5,9 +5,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface AnalyticsAirqloudsDropDownProps {
   isCohort: boolean
-  airqloudsData: any[]
-  onSetActiveGrid?: (grid: any) => void // Optional prop for setting active grid
-  onSetActiveCohort?: (cohort: any) => void // Optional prop for setting active cohort
+  airqloudsData: { _id: string, name: string }[]
+  onSetActiveGrid?: (grid: { _id: string, name: string }) => void // Optional prop for setting active grid
+  onSetActiveCohort?: (cohort: { _id: string, name: string }) => void // Optional prop for setting active cohort
 }
 
 const AnalyticsAirqloudsDropDown: React.FC<AnalyticsAirqloudsDropDownProps> = ({ 
@@ -29,7 +29,7 @@ const AnalyticsAirqloudsDropDown: React.FC<AnalyticsAirqloudsDropDownProps> = ({
 
   return (
     <Select onValueChange={handleChange}>
-      <SelectTrigger className="w-[180px]">
+      <SelectTrigger className="w-[500px]">
         <SelectValue placeholder={`Select ${isCohort ? 'Cohort' : 'Grid'}`} />
       </SelectTrigger>
       <SelectContent>

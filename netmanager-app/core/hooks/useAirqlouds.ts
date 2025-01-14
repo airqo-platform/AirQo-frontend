@@ -1,19 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { grids } from "../apis/grids";
-import { , setError } from "../redux/slices/gridsSlice";
+import { getGrids } from "@/core/apis/grids";
+import { setAirqlouds, setError } from "../redux/slices/analyticsSlice";
 import { useAppSelector } from "../redux/hooks";
+import { Airqloud } from "@/redux/slices/analyticsSlice";
 
-export const useCohorts = () => {
+export const useAirqlouds = () => {
   const dispatch = useDispatch();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["cohorts", activeNetwork?.net_name],
-    queryFn: () => grids.getGrids(activeNetwork?.net_name || ""),
+    queryKey: ["airqlouds", activeNetwork?.net_name],
+    queryFn: () => airqlouds.getGri(activeNetwork?.net_name || ""),
     enabled: !!activeNetwork?.net_name,
-    onSuccess: (data: any) => {
-      dispatch(setCohorts(data.grids));
+    onSuccess: (data: { airqlouds: Airqloud[] }) => {
+      dispatch(setAirqlouds(data.airqlouds));
     },
     onError: (error: Error) => {
       dispatch(setError(error.message));
@@ -21,8 +22,9 @@ export const useCohorts = () => {
   });
 
   return {
-    grids: data?.grids || [],
+    airqlouds: data?.airqlouds || [],
     isLoading,
     error: error as Error | null,
   };
 };
+

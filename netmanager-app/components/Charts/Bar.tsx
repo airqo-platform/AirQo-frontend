@@ -3,11 +3,6 @@
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 
 import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card"
-import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
@@ -55,13 +50,9 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export function ChartFour() {
+export function BarCharts() {
   return (
-    <Card className="col-span-12 p-4 rounded-sm border border-stroke bg-white p-7.5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-6">
-      <CardHeader>
-        <h4>PM 2.5 Exceedances Over the Past 28 Days Based on AQI</h4>
-      </CardHeader>
-      <CardContent>
+    <div>
         <ChartContainer config={chartConfig}>
           <BarChart 
             accessibilityLayer 
@@ -87,8 +78,7 @@ export function ChartFour() {
             <Bar dataKey="hazadrous" fill="#81202e" radius={4} />
           </BarChart>
         </ChartContainer>
-      </CardContent>
-    </Card>
+    </div>
   )
 }
 

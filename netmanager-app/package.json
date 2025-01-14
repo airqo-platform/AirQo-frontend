@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
+    "@radix-ui/react-avatar": "^1.1.2",
     "@radix-ui/react-collapsible": "^1.1.2",
     "@radix-ui/react-dialog": "^1.1.4",
     "@radix-ui/react-dropdown-menu": "^2.1.4",
@@ -35,6 +36,7 @@
     "leaflet": "^1.9.4",
     "lucide-react": "^0.469.0",
     "next": "14.2.16",
+    "papaparse": "^5.5.1",
     "react": "^18",
     "react-apexcharts": "^1.7.0",
     "react-day-picker": "^8.10.1",

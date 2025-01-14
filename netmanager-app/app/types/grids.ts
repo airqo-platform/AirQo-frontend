@@ -50,7 +50,7 @@ interface SiteCategory {
     waterway: string;
   }
   
-  interface Device {
+export interface Device {
     _id: string;
     group: string;
     authRequired: boolean;

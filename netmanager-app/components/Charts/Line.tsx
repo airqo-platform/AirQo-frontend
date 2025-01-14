@@ -3,11 +3,6 @@
 import { CartesianGrid, Line, LineChart, XAxis } from "recharts"
 
 import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card"
-import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
@@ -55,13 +50,9 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export function ChartThree() {
+export function LineCharts() {
   return (
-    <Card className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-6">
-    <CardHeader>
-        <h4>Mean Daily PM 2.5 Over the Past 28 Days</h4>
-    </CardHeader>
-    <CardContent>
+    <div>
         <ChartContainer config={chartConfig}>
         <LineChart
             width={500}
@@ -126,8 +117,7 @@ export function ChartThree() {
             />
         </LineChart>
         </ChartContainer>
-    </CardContent>
-    </Card>
+    </div>
 
   )
 }
