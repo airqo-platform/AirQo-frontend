@@ -29,7 +29,7 @@ const Analytics = () => {
         </div>
         <div className='flex col-span-6 justify-items-end ml-20  p-4'>
           <div className='flex flex-row gap-4'>
-            <Button className='bg-blue-500 text-white w-[200px]'>Add Cohort</Button>
+            <Button className='bg-blue-500 text-white w-[200px]'>Dowload Data</Button>
             <Button 
               className='bg-blue-500 text-white w-[200px]'
               onClick={handleSwitchGridsCohort}
