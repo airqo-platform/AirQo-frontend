@@ -24,7 +24,7 @@ const Page: React.FC = () => {
 
   // Calculate the total number of pages
   const totalPages = useMemo(
-    () => Math.ceil(committeeMembers?.length / membersPerPage),
+    () => Math?.ceil(committeeMembers?.length / membersPerPage),
     [committeeMembers?.length],
   );
 
@@ -59,7 +59,7 @@ const Page: React.FC = () => {
 
       {/* Member Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto px-4">
-        {displayedMembers.map((person: any) => (
+        {displayedMembers?.map((person: any) => (
           <MemberCard
             key={person.id}
             member={person}

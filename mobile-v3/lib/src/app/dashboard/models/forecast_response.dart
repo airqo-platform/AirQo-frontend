@@ -1,15 +1,17 @@
-import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 class ForecastResponse {
+  Map<String, AqiRange> aqiRanges;
   List<Forecast> forecasts;
 
   ForecastResponse({
+    required this.aqiRanges,
     required this.forecasts,
   });
 
   factory ForecastResponse.fromJson(Map<String, dynamic> json) =>
       ForecastResponse(
-        forecasts: List<Forecast>.from(
-            json["forecasts"].map((x) => Forecast.fromJson(x))),
+        aqiRanges: Map<String, AqiRange>.from(json["aqi_ranges"].map((key, value) => MapEntry(key, AqiRange.fromJson(value)))),
+
+        forecasts: List<Forecast>.from(json["forecasts"].map((x) => Forecast.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
@@ -17,20 +19,55 @@ class ForecastResponse {
       };
 }
 
+class AqiRange {
+  final String aqiCategory;
+  final String aqiColor;
+  final String aqiColorName;
+  final String label;
+  final double? max;
+  final double min;
+
+  AqiRange({
+    required this.aqiCategory,
+    required this.aqiColor,
+    required this.aqiColorName,
+    required this.label,
+    required this.max,
+    required this.min,
+  });
+
+  factory AqiRange.fromJson(Map<String, dynamic> json) {
+    return AqiRange(
+      aqiCategory: json['aqi_category'],
+      aqiColor: json['aqi_color'],
+      aqiColorName: json['aqi_color_name'],
+      label: json['label'],
+      max: json['max'] != null ? json['max'].toDouble() : null,
+      min: json['min'].toDouble(),
+    );
+  }
+}
+
 class Forecast {
-  Measurement measurement;
-  double pm25;
-  DateTime time;
+  final String aqiCategory;
+  final String aqiColor;
+  final String aqiColorName;
+  final double pm25;
+  final DateTime time;
 
   Forecast({
-    required this.measurement,
+    required this.aqiCategory,
+    required this.aqiColor,
+    required this.aqiColorName,
     required this.pm25,
     required this.time,
   });
 
   factory Forecast.fromJson(Map<String, dynamic> json) => Forecast(
-        measurement: Measurement.fromJson(json["measurement"]),
-        pm25: json["pm2_5"]?.toDouble(),
+        aqiCategory: json["aqi_category"],  
+        aqiColor: json["aqi_color"],
+        aqiColorName: json["aqi_color_name"],
+        pm25: json["pm2_5"]?.toDouble(), 
         time: DateTime.parse(json["time"]),
       );
 

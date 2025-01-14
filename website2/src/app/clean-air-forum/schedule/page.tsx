@@ -41,7 +41,7 @@ const AccordionItem: React.FC<any> = ({
 
       {isOpen && (
         <div className="mt-4 pt-4">
-          {sessions.map((item: any, index: any) => (
+          {sessions?.map((item: any, index: any) => (
             <div className="flex flex-col gap-4" key={index}>
               <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
               <div className="grid grid-cols-12 gap-4 mb-4">
@@ -93,7 +93,7 @@ const Page = () => {
       </div>
 
       {/* Programs Accordion */}
-      {data?.programs.map((program: any) => (
+      {data?.programs?.map((program: any) => (
         <AccordionItem
           key={program.id}
           title={program.title}

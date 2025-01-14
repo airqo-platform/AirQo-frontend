@@ -1,6 +1,4 @@
-import React from 'react';
-
-import AfricanCityPage from './AfricanCityPage';
+import AfricanCityPage from '@/views/solutions/AfricanCities/AfricanCityPage';
 
 const page = () => {
   return (

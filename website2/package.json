@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
     "format": "prettier --write .",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -39,6 +40,7 @@
     "rimraf": "^4.4.1",
     "sass": "^1.79.4",
     "sharp": "^0.33.5",
+    "swr": "^2.3.0",
     "tailwind-merge": "^2.5.3",
     "tailwindcss-animate": "^1.0.7"
   },
