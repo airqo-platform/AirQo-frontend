@@ -15,12 +15,6 @@ const chartData = [
   { month: "April", good: 73, moderate: 190, uhfsg: 350, unhealthy: 100, veryunhealthy: 50, hazadrous: 200 },
   { month: "May", good: 209, moderate: 130, uhfsg: 170, unhealthy: 46, veryunhealthy: 70, hazadrous: 30 }, 
   { month: "June", good: 214, moderate: 140, uhfsg: 200, unhealthy: 100, veryunhealthy: 100, hazadrous: 50 },
-  // { month: "July", good: 186, moderate: 80, uhfsg: 200, unhealthy: 40, veryunhealthy: 70, hazadrous: 150 },
-  // { month: "August", good: 305, moderate: 200, uhfsg: 100, unhealthy: 350, veryunhealthy: 50, hazadrous: 100 },
-  // { month: "September", good: 237, moderate: 120, uhfsg: 230, unhealthy: 96, veryunhealthy: 89, hazadrous: 200 },
-  // { month: "October", good: 73, moderate: 190, uhfsg: 350, unhealthy: 100, veryunhealthy: 250, hazadrous: 95 },
-  // { month: "November", good: 209, moderate: 130, uhfsg: 76, unhealthy: 40, veryunhealthy: 200, hazadrous: 50 },
-  // { month: "December", good: 214, moderate: 140, uhfsg: 40, unhealthy: 200, veryunhealthy: 50, hazadrous: 170 },
 ]
 
 const chartConfig = {

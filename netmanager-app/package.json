@@ -44,6 +44,7 @@
     "react-leaflet": "^4.2.1",
     "react-multi-select-component": "^4.3.4",
     "react-redux": "^9.2.0",
+    "recharts": "^2.15.0",
     "sonner": "^1.7.1",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",

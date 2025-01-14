@@ -40,10 +40,14 @@ const Analytics = () => {
         </div>
       </div>
       {!isCohort && (
-        <GridDashboard />
+        <GridDashboard 
+          loading={false}
+        />
       )}
       {isCohort && (
-        <CohortDashboard />
+        <CohortDashboard 
+          loading={false}
+        />
       )}
     </div>
   )
