@@ -17,11 +17,11 @@ nodeSelector: {}
 torelations: {}
 resources:
   requests:
-    cpu: 5m
-    memory: 20Mi
+    cpu: 1m
+    memory: 100Mi
   limits:
-    cpu: 50m
-    memory: 80Mi
+    cpu: 10m
+    memory: 150Mi
 autoscaling:
   minReplicas: 1
   maxReplicas: 2
@@ -29,20 +29,12 @@ autoscaling:
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 10
-        preference:
-          matchExpressions:
-            - key: node-type
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: role
               operator: In
               values:
-                - general-purpose
-      - weight: 1
-        preference:
-          matchExpressions:
-            - key: node-type
-              operator: In
-              values:
-                - high-memory
+                - control-plane
 app:
   name: airqo-stage-inventory
   label: airqo-inventory
