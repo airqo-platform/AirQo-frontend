@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 
-import ResourcePage from './ResourcePage';
+import ResourcePage from '@/views/publications/ResourcePage';
 
 export const metadata: Metadata = {
   title: 'Resources | Air Quality Data and Tools by AirQo',

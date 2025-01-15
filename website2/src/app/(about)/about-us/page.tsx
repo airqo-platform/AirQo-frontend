@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 
-import AboutPage from './AboutPage';
+import AboutPage from '@/views/about/AboutPage';
 
 export const metadata: Metadata = {
   title: 'About Us | AirQo',

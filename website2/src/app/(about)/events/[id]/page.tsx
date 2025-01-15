@@ -1,6 +1,4 @@
-import React from 'react';
-
-import SingleEvent from './SingleEvent';
+import SingleEvent from '@/views/events/SingleEvent';
 
 const page = ({ params }: { params: any }) => {
   return (

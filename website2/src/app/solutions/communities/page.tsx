@@ -1,6 +1,4 @@
-import React from 'react';
-
-import CommunitiesPage from './CommunityPage';
+import CommunitiesPage from '@/views/solutions/communities/CommunityPage';
 
 const page = () => {
   return (

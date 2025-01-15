@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import React from 'react';
 
-import AppDownloadSection from '@/components/sections/Home/AppDownloadSection';
+import AppDownloadSection from '@/views/home/AppDownloadSection';
 
 // Define motion variants for different animations
 const containerVariants = {

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import AirQoDataPage from './AirQoDataPage';
+import AirQoDataPage from '@/views/legal/AirQoDataPage';
 
 const page = () => {
   return (

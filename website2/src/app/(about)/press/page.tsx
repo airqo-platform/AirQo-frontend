@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 
-import PressPage from './PressPage';
+import PressPage from '@/views/press/PressPage';
 
 export const metadata: Metadata = {
   title: 'Press | AirQo in the News',
