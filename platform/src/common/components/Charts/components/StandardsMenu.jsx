@@ -8,33 +8,17 @@ const aqStandards = [
   {
     name: 'WHO',
     value: {
-      pm2_5: 10,
-      pm10: 20,
-      no2: 40,
-    },
-  },
-  {
-    name: 'NEMA',
-    value: {
       pm2_5: 15,
       pm10: 45,
       no2: 25,
     },
   },
   {
-    name: 'KCCA',
-    value: {
-      pm2_5: 20,
-      pm10: 50,
-      no2: 30,
-    },
-  },
-  {
-    name: 'LASEPA',
+    name: 'NEMA',
     value: {
       pm2_5: 25,
-      pm10: 55,
-      no2: 35,
+      pm10: 40,
+      no2: 10,
     },
   },
 ];
@@ -88,7 +72,7 @@ const StandardsMenu = () => {
         aria-haspopup="true"
         aria-expanded={isOpen}
       >
-        <span>Air Quality Standard</span>
+        <span>Air Quality Standards</span>
         <span className="text-gray-400 ml-2 transition-transform duration-200">
           {isMobile ? (
             <MdKeyboardArrowDown
