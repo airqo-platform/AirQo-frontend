@@ -1,216 +1,271 @@
 "use client"
 
-import React, { useState, useEffect } from "react";
-import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
-import { EXCEEDANCES_DATA_URI, DEVICE_EXCEEDANCES_URI } from "@/core/urls";
-import { useCohorts } from "@/core/hooks/useCohorts";
-import createAxiosInstance from "@/core/apis/axiosConfig";
-
+import React, { useState, useEffect } from 'react';
 import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { MoreHorizontal } from 'lucide-react';
+import { EXCEEDANCES_DATA_URI, DEVICE_EXCEEDANCES_URI } from '@/core/urls';
+import createAxiosInstance from '@/core/apis/axiosConfig';
+import { Site } from '@/app/types/sites';
+import { Device } from '@/app/types/devices';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-import { Site } from "@/app/types/sites";
-import { Device } from "@/app/types/devices";
-const chartData = [
-  { month: "January", good: 186, moderate: 80, uhfsg: 200, unhealthy: 100, veryunhealthy: 150, hazadrous: 50 },
-  { month: "February", good: 305, moderate: 200, uhfsg: 100, unhealthy: 80, veryunhealthy: 50, hazadrous: 40 },
-  { month: "March", good: 237, moderate: 120, uhfsg: 300, unhealthy: 150, veryunhealthy: 60, hazadrous: 100 },
-  { month: "April", good: 73, moderate: 190, uhfsg: 350, unhealthy: 100, veryunhealthy: 50, hazadrous: 200 },
-  { month: "May", good: 209, moderate: 130, uhfsg: 170, unhealthy: 46, veryunhealthy: 70, hazadrous: 30 }, 
-  { month: "June", good: 214, moderate: 140, uhfsg: 200, unhealthy: 100, veryunhealthy: 100, hazadrous: 50 },
-  { month: "July", good: 186, moderate: 80, uhfsg: 200, unhealthy: 40, veryunhealthy: 70, hazadrous: 150 },
-  { month: "August", good: 305, moderate: 200, uhfsg: 100, unhealthy: 350, veryunhealthy: 50, hazadrous: 100 },
-  { month: "September", good: 237, moderate: 120, uhfsg: 230, unhealthy: 96, veryunhealthy: 89, hazadrous: 200 },
-  { month: "October", good: 73, moderate: 190, uhfsg: 350, unhealthy: 100, veryunhealthy: 250, hazadrous: 95 },
-  { month: "November", good: 209, moderate: 130, uhfsg: 76, unhealthy: 40, veryunhealthy: 200, hazadrous: 50 },
-  { month: "December", good: 214, moderate: 140, uhfsg: 40, unhealthy: 200, veryunhealthy: 50, hazadrous: 170 },
-]
-
-const chartConfig = {
-  good: {
-    label: "good",
-    color: "hsl(var(--chart-6))",
-  },
-  moderate: {
-    label: "moderate",
-    color: "hsl(var(--chart-7))",
-  },
-  uhfsg: {
-    label: "uhfsg",
-    color: "hsl(var(--chart-6))",
-  },
-  unhealthy: {
-    label: "unhealthy",
-    color: "hsl(var(--chart-7))",
-  },
-  veryunhealty: {
-    label: "veryunhealty",
-    color: "hsl(var(--chart-6))",
-  },
-  hazadrous: {
-    label: "hazadrous",
-    color: "hsl(var(--chart-6))",
-  },
-} satisfies ChartConfig
-
-interface Filters {
-  pollutant: string;
-  standard: string;
-  startDate: string;
-  endDate: string;
-}
-
-interface LineChartsProps {
-  analyticsSites: Site[];
+interface ExceedancesChartProps {
+  analyticsSites: any[];
   analyticsDevices: Device[];
   isGrids: boolean;
   isCohorts: boolean;
 }
+const chartConfig = {
+  Good: { label: "Good", color: "hsl(120, 100%, 25%)" },
+  Moderate: { label: "Moderate", color: "hsl(60, 100%, 50%)" },
+  UHFSG: { label: "Unhealthy for Sensitive Groups", color: "hsl(30, 100%, 50%)" },
+  Unhealthy: { label: "Unhealthy", color: "hsl(0, 100%, 50%)" },
+  VeryUnhealthy: { label: "Very Unhealthy", color: "hsl(300, 100%, 25%)" },
+  Hazardous: { label: "Hazardous", color: "hsl(0, 0%, 20%)" },
+};
 
-export function LineCharts({
+export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
   analyticsSites,
+  analyticsDevices,
   isGrids,
   isCohorts,
-  analyticsDevices,
-}: LineChartsProps) {
+}) => {
   const [loading, setLoading] = useState(false);
   const [averageSites, setAverageSites] = useState<string[]>([]);
   const [averageDevices, setAverageDevices] = useState<string[]>([]);
-  const { cohorts } = useCohorts();
-  const [dataset, setDataset] = useState([]);
-  const [pollutant, setPollutant] = useState({ value: "pm2_5", label: "PM 2.5" });
-  const [standard, setStandard] = useState({ value: "aqi", label: "AQI" });
+  const [dataset, setDataset] = useState<any[]>([]);
+  const [pollutant, setPollutant] = useState({ value: 'pm2_5', label: 'PM 2.5' });
+  const [standard, setStandard] = useState({ value: 'aqi', label: 'AQI' });
+  const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
+  const [allLocationsDialogOpen, setAllLocationsDialogOpen] = useState(false);
+  const [allLocationsData, setAllLocationsData] = useState<any[]>([]);
 
   useEffect(() => {
-    setLoading(true);
     if (isGrids) {
-      const siteOptions = analyticsSites.map((site) => site.id);
+      const siteOptions = analyticsSites.map((site) => site._id);
       setAverageSites(siteOptions);
     }
-    setLoading(false);
-  }, [analyticsSites, cohorts, isGrids]);
+  }, [analyticsSites, isGrids]);
 
   useEffect(() => {
-    setLoading(true);
     if (isCohorts) {
       const deviceOptions = analyticsDevices.map((device) => device.long_name);
       setAverageDevices(deviceOptions);
     }
-    setLoading(false);
   }, [analyticsDevices, isCohorts]);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const filter: Filters = {
+      const filter = {
         pollutant: pollutant.value,
         standard: standard.value,
-        startDate: roundToStartOfDay(new Date()).toISOString(),
-        endDate: roundToEndOfDay(new Date()).toISOString(),
+        startDate: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: new Date().toISOString(),
+        ...(isGrids ? { sites: averageSites } : { devices: averageDevices }),
       };
+
       try {
         const response = await createAxiosInstance().post(
           isCohorts ? DEVICE_EXCEEDANCES_URI : EXCEEDANCES_DATA_URI,
           filter
         );
         const data = response.data.data;
-        setDataset(data);
+        processChartData(data);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error('Error fetching data:', error);
+        setDataset([]);
       }
       setLoading(false);
     };
 
-    if (isGrids && averageSites.length) {
-      fetchData();
-    } else if (isCohorts && averageDevices.length) {
+    if ((isGrids && averageSites.length) || (isCohorts && averageDevices.length)) {
       fetchData();
     }
   }, [averageSites, averageDevices, isGrids, isCohorts, pollutant, standard]);
+
+  const processChartData = (data: any[]) => {
+    const processedData = data.slice(0, 10).map((item) => {
+      const location = isCohorts ? item.device_id : (item.site.name || item.site.description || item.site.generated_name);
+      const exceedances = isCohorts ? item.exceedances : item.exceedance;
+      
+      return {
+        name: location,
+        ...Object.keys(chartConfig).reduce((acc, key) => {
+          acc[key] = exceedances[key] || 0;
+          return acc;
+        }, {}),
+      };
+    });
+
+    setDataset(processedData);
+    setAllLocationsData(data);
+  };
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-4 border border-gray-200 rounded shadow-md">
+          <p className="font-bold">{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} style={{ color: entry.fill }}>
+              {entry.name}: {entry.value}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
-    <div>
-        <ChartContainer config={chartConfig}>
-        <LineChart
-            width={500}
-            height={200}
-            accessibilityLayer
-            data={chartData}
-            margin={{
-            left: 12,
-            right: 12,
-            }}
-        >
-            <CartesianGrid vertical={false} />
-            <XAxis
-            dataKey="month"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-            tickFormatter={(value) => value.slice(0, 3)}
-            />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            <Line
-            dataKey="good"
-            type="monotone"
-            stroke="#45e50d"
-            strokeWidth={2}
-            dot={false}
-            />
-            <Line
-            dataKey="moderate"
-            type="monotone"
-            stroke="#f8fe28"
-            strokeWidth={2}
-            dot={false}
-            />
-            <Line
-            dataKey="uhfsg"
-            type="monotone"
-            stroke="#ee8310"
-            strokeWidth={2}
-            dot={false}
-            />
-            <Line
-            dataKey="unhealthy"
-            type="monotone"
-            stroke="#fe0000"
-            strokeWidth={2}
-            dot={false}
-            />
-            <Line
-            dataKey="veryunhealthy"
-            type="monotone"
-            stroke="#808080"
-            strokeWidth={2}
-            dot={false}
-            />
-            <Line
-            dataKey="hazadrous"
-            type="monotone"
-            stroke="#81202e"
-            strokeWidth={2}
-            dot={false}
-            />
-        </LineChart>
-        </ChartContainer>
-    </div>
+    <Card className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-6">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <h5>{pollutant.label} Exceedances Over the Past 28 Days Based on {standard.label}</h5>
+        <Button variant="outline" size="icon" onClick={() => setCustomizeDialogOpen(true)}>
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="space-y-2">
+          <Skeleton className="h-[200px] w-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[250px]" />
+            <Skeleton className="h-4 w-[200px]" />
+          </div>
+        </div>
+        ) : dataset.length === 0 ? (
+          <div className="flex justify-center items-center h-64">No data available</div>
+        ) : (
+          <ResponsiveContainer width="100%" height={350}>
+            <BarChart data={dataset}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+              {Object.entries(chartConfig).map(([key, config]) => (
+                <Bar key={key} dataKey={key} fill={config.color} stackId="a" />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </CardContent>
+      {/* <div className="flex justify-end p-4">
+        <Button variant="link" onClick={() => setAllLocationsDialogOpen(true)}>
+          View all Exceedances <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div> */}
 
-  )
-}
+      <Dialog open={customizeDialogOpen} onOpenChange={setCustomizeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Customize Chart</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="pollutant" className="text-right">
+                Pollutant
+              </Label>
+              <Select
+                value={pollutant.value}
+                onValueChange={(value) => setPollutant({ value, label: value.toUpperCase() })}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select pollutant" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pm2_5">PM 2.5</SelectItem>
+                  <SelectItem value="pm10">PM 10</SelectItem>
+                  <SelectItem value="no2">NO2</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="standard" className="text-right">
+                Standard
+              </Label>
+              <Select
+                value={standard.value}
+                onValueChange={(value) => setStandard({ value, label: value.toUpperCase() })}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select standard" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="aqi">AQI</SelectItem>
+                  <SelectItem value="who">WHO</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setCustomizeDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => setCustomizeDialogOpen(false)}>Apply</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-function roundToStartOfDay(date: Date): Date {
-  const startOfDay = new Date(date);
-  startOfDay.setHours(0, 0, 0, 0); 
-  return startOfDay;
-}
-
-function roundToEndOfDay(date: Date): Date {
-  const endOfDay = new Date(date);
-  endOfDay.setHours(23, 59, 59, 999); 
-  return endOfDay;
-}
+      <Dialog open={allLocationsDialogOpen} onOpenChange={setAllLocationsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>All Locations Exceedances</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4">
+            {allLocationsData.map((location, index) => (
+              <Card key={index}>
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    {isCohorts
+                      ? location.device_id
+                      : location.site.name || location.site.description || location.site.generated_name}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={[location]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      {Object.entries(chartConfig).map(([key, config]) => (
+                        <Bar
+                          key={key}
+                          dataKey={isCohorts ? `exceedances.${key}` : `exceedance.${key}`}
+                          fill={config.color}
+                        />
+                      ))}
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={() => setAllLocationsDialogOpen(false)}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+};
 

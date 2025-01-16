@@ -2,31 +2,32 @@
 
 import React, { useState } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
-interface Airqloud {
-  _id: string
-  name: string
-  devices?: string[]
-  sites?: string[]
-}
+import { Grid } from '@/app/types/grids'
+import { Cohort } from '@/app/types/cohorts'
 
 interface AnalyticsAirqloudsDropDownProps {
   isCohort: boolean
-  airqloudsData?: Airqloud[]
+  airqloudsData?: Cohort[] | Grid[]
+  onSelect: (id: string) => void
+  selectedId: string | null
 }
 
-export function AnalyticsAirqloudsDropDown({ isCohort, airqloudsData = [] }: AnalyticsAirqloudsDropDownProps) {
-  const [currentValue, setCurrentValue] = useState<Airqloud | null>(null)
-  const [hoveredOption, setHoveredOption] = useState<Airqloud | null>(null)
+export function AnalyticsAirqloudsDropDown({ 
+  isCohort, 
+  airqloudsData = [], 
+  onSelect,
+  selectedId
+}: AnalyticsAirqloudsDropDownProps) {
+  const [hoveredOption, setHoveredOption] = useState<Cohort | Grid | null>(null)
 
-  const handleAirQloudChange = (value: string) => {
-    const selectedAirqloud = airqloudsData.find(airqloud => airqloud._id === value)
+  const handleAirqloudChange = (value: string) => {
+    const selectedAirqloud = airqloudsData.find((a) => a._id === value);
     if (selectedAirqloud) {
-      setCurrentValue(selectedAirqloud)
-      const storageKey = isCohort ? 'activeCohort' : 'activeGrid'
-      localStorage.setItem(storageKey, JSON.stringify(selectedAirqloud))
+      const storageKey = isCohort ? "activeCohort" : "activeGrid";
+      localStorage.setItem(storageKey, JSON.stringify(selectedAirqloud));
+      onSelect(value);
     }
-  }
+  };
 
   const formatString = (string: string) => {
     return string
@@ -40,12 +41,12 @@ export function AnalyticsAirqloudsDropDown({ isCohort, airqloudsData = [] }: Ana
   return (
     <div className="relative w-full">
       {airqloudsData.length === 0 ? (
-        <p className="text-gray-500">No Airqlouds data available</p>
+        <p className="text-gray-500">{isCohort ? 'No Cohorts' : 'No Grids'} data available</p>
       ) : (
-        <Select onValueChange={handleAirQloudChange} value={currentValue?._id}>
+        <Select onValueChange={handleAirqloudChange} value={selectedId || undefined}>
           <SelectTrigger className="w-full h-11 bg-white border-gray-200 text-blue-600 font-bold capitalize">
-            <SelectValue placeholder="Select an Airqloud">
-              {currentValue && formatString(currentValue.name)}
+            <SelectValue placeholder={`Select a ${isCohort ? 'Cohort' : 'Grid'}`}>
+              {selectedId && formatString(airqloudsData.find(a => a._id === selectedId)?.name || '')}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -61,8 +62,10 @@ export function AnalyticsAirqloudsDropDown({ isCohort, airqloudsData = [] }: Ana
                   <span className="font-medium">{formatString(airqloud.name)}</span>
                   <span className="text-sm text-gray-500">
                     {isCohort
-                      ? `${airqloud.devices?.length || 0} devices`
-                      : `${airqloud.sites?.length || 0} sites`}
+                      ? 'devices' in airqloud
+                        ? `${airqloud.devices?.length || 0} devices`
+                        : ''
+                      : 'sites' in airqloud ? `${airqloud.sites?.length || 0} sites` : ''}
                   </span>
                 </div>
               </SelectItem>
@@ -71,12 +74,12 @@ export function AnalyticsAirqloudsDropDown({ isCohort, airqloudsData = [] }: Ana
         </Select>
       )}
 
-      {hoveredOption && (hoveredOption.sites || hoveredOption.devices) && (
+      {hoveredOption && (
         <div className="absolute z-10 mt-2 p-2 bg-white border rounded-md shadow-lg max-w-xs">
           <h4 className="font-semibold mb-1">{isCohort ? 'Devices:' : 'Sites:'}</h4>
-          <ul className="text-sm">
-            {(isCohort ? hoveredOption.devices : hoveredOption.sites)?.map((item, index) => (
-              <li key={index} className="truncate">{item}</li>
+          <ul className="text-sm max-h-40 overflow-y-auto">
+            {(isCohort && 'devices' in hoveredOption ? hoveredOption.devices : 'sites' in hoveredOption ? hoveredOption.sites : [])?.map((item, index) => (
+              <li key={index} className="truncate">{JSON.stringify(item)}</li>
             ))}
           </ul>
         </div>

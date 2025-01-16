@@ -48,7 +48,7 @@ interface SiteCategory {
     natural: string;
     search_radius: number;
     waterway: string;
-  }
+}
   
 export interface Device {
     _id: string;

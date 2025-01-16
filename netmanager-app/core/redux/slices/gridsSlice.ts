@@ -13,30 +13,15 @@ import { Site } from "./sitesSlice";
     sites: Site[];
   }
   
-  export interface City {
-    _id: string;
-    visibility: boolean;
-    name: string;
-    region: string;
-    country: string;
-    latitude: number;
-    longitude: number;
-    grids: Grid[];
-    createdAt: string;
-    updatedAt?: string;
-  }
-  
-  export interface CitiesState {
+  export interface GridsState {
     grids: Grid[];
     activeGrid: Grid[] | null;
-    activeCohort: City[] | null;
     isLoading: boolean;
     error: string | null;
   }
-  const initialState: CitiesState = {
+  const initialState: GridsState = {
     grids: [],
     activeGrid: null,
-    activeCohort: null,
     isLoading: false,
     error: null,
   };
@@ -50,6 +35,9 @@ import { Site } from "./sitesSlice";
         state.isLoading = false;
         state.error = null;
       },
+      setActiveCohort(state: GridsState, action: PayloadAction<Grid[]>) {
+        state.activeGrid = action.payload;
+      },
       setLoading(state, action: PayloadAction<boolean>) {
         state.isLoading = action.payload;
       },
@@ -60,5 +48,5 @@ import { Site } from "./sitesSlice";
     },
   });
 
-export const { setGrids, setLoading, setError } = gridsSlice.actions;
+export const { setGrids, setActiveCohort, setLoading, setError } = gridsSlice.actions;
 export default gridsSlice.reducer;

@@ -3,15 +3,14 @@ import { useDispatch } from "react-redux";
 import { cohorts } from "../apis/cohorts";
 import { setCohorts, setError } from "../redux/slices/cohortsSlice";
 import { useAppSelector } from "../redux/hooks";
-import { Cohort } from "../redux/slices/cohortsSlice";
 
 export const useCohorts = () => {
   const dispatch = useDispatch();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
-  const { data, isLoading, error } = useQuery<Cohort[]>({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["cohorts", activeNetwork?.net_name],
-    queryFn: () => cohorts.getCohortsApi(activeNetwork?.net_name || ""),
+    queryFn: () => cohorts.getCohortsSummary(activeNetwork?.net_name || ""),
     enabled: !!activeNetwork?.net_name,
     onSuccess: (data: any) => {
       dispatch(setCohorts(data));
@@ -22,7 +21,7 @@ export const useCohorts = () => {
   });
 
   return {
-    cohorts: data || [],
+    cohorts: data?.cohorts || [],
     isLoading,
     error: error as Error | null,
   };

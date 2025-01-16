@@ -29,7 +29,7 @@ const AnalyticsAirqloudsDropDown: React.FC<AnalyticsAirqloudsDropDownProps> = ({
 
   return (
     <Select onValueChange={handleChange}>
-      <SelectTrigger className="w-[500px]">
+      <SelectTrigger>
         <SelectValue placeholder={`Select ${isCohort ? 'Cohort' : 'Grid'}`} />
       </SelectTrigger>
       <SelectContent>

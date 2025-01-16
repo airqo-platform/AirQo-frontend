@@ -64,7 +64,7 @@ export function PollutantCategory({ pm25level, iconClass, sites, devices }: Poll
             sortedData.map((data, index) => (
               <li key={index} className="p-2 hover:bg-gray-100">
                 {data.label} - <span className={`font-semibold text-${getPm25LevelColor(pm25level)}`}>
-                  {data.pm2_5.toFixed(2)}
+                  {data.pm2_5 && !isNaN(data.pm2_5) ? data.pm2_5.toFixed(2) : 'N/A'}
                 </span>
               </li>
             ))

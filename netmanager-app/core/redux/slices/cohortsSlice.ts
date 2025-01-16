@@ -47,6 +47,9 @@ const cohortSlice = createSlice({
       state.isLoading = false;
       state.error = null;
     },
+    setActiveCohort(state: CohortsState, action: PayloadAction<Cohort>) {
+      state.activeCohort = action.payload;
+    },
     setLoading(state, action: PayloadAction<boolean>) {
       state.isLoading = action.payload;
     },
@@ -60,6 +63,7 @@ const cohortSlice = createSlice({
 export const {
   setCohorts,
   setLoading,
+  setActiveCohort,
   setError,
 } = cohortSlice.actions;
 export default cohortSlice.reducer;
