@@ -110,7 +110,7 @@ const ResearchPage = () => {
       {/* Description Section */}
       <MotionSection className="text-center">
         <motion.p
-          className="text-2xl lg:text-[40px] leading-[48px] text-gray-800"
+          className="text-2xl lg:text-[40px] lg:leading-[48px] text-gray-800"
           variants={animations.item}
         >
           We actively collaborate with researchers across the world to jointly
@@ -144,7 +144,7 @@ const ResearchPage = () => {
           >
             Key Benefits
           </motion.h3>
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto px-4">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             {CONTENT.benefits.map((benefit, i) => (
               <motion.div
                 key={i}

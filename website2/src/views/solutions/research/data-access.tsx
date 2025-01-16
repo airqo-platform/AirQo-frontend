@@ -127,7 +127,7 @@ export default function DataAccessSection() {
 
         {/* Blob Overlay */}
         <motion.div
-          className="absolute top-52 -z-50 lg:top-[-8px] lg:left-[27rem] w-[650px] h-[300px] lg:max-w-[630px] lg:max-h-[400px] flex items-center justify-center"
+          className="absolute hidden md:flex top-52 -z-50 lg:top-[-8px] lg:left-[27rem] w-[650px] h-[300px] lg:max-w-[630px] lg:max-h-[400px] items-center justify-center"
           variants={animations.item}
         >
           <Image
