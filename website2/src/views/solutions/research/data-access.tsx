@@ -31,8 +31,6 @@ const CONTENT = {
   images: {
     blob: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248677/website/photos/Solutions/AirQo_blob_fill_ro37jv.svg',
     consultation: [
-      'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248679/website/photos/Solutions/AirQo_Web_IMG06_nvv5xu.webp',
-      'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728255497/website/photos/Solutions/consult-2_lnfllz.webp',
       'https://res.cloudinary.com/dbibjvyhm/image/upload/v1737011992/website/photos/Solutions/6T9B9239_ksveld.jpg',
     ],
   },
@@ -40,18 +38,18 @@ const CONTENT = {
 
 export default function DataAccessSection() {
   return (
-    <section className="max-w-5xl mx-auto px-4 lg:px-0 py-16">
+    <section className="max-w-7xl mx-auto px-4 lg:px-8 py-16">
       <motion.div
-        className="flex flex-col lg:flex-row gap-8 items-center relative"
+        className="grid lg:grid-cols-2 gap-12 items-center min-h-[600px]"
         variants={animations.container}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
       >
         {/* Text Content */}
-        <motion.div className="lg:w-1/2 space-y-4" variants={animations.item}>
+        <motion.div className="space-y-6" variants={animations.item}>
           <motion.h3
-            className="text-2xl lg:text-[32px]"
+            className="text-2xl lg:text-[32px] font-semibold"
             variants={animations.item}
           >
             Automating data access for reference grade monitors
@@ -67,7 +65,7 @@ export default function DataAccessSection() {
               href="https://documents-dds-ny.un.org/doc/UNDOC/GEN/K18/002/22/PDF/K1800222.pdf?OpenElement"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline text-blue-600"
+              className="underline text-blue-600 hover:text-blue-800"
             >
               UN resolution UNEA Res 3/8
             </a>
@@ -90,53 +88,36 @@ export default function DataAccessSection() {
           </motion.div>
         </motion.div>
 
-        {/* Images Grid */}
+        {/* Single Tall Image Container */}
         <motion.div
-          className="relative flex flex-col lg:flex-row gap-4 items-center lg:items-start"
+          className="relative flex items-center justify-center h-full min-h-[600px]"
           variants={animations.item}
         >
           <motion.div
-            className="flex flex-col gap-4"
-            variants={animations.item}
-          >
-            {CONTENT.images.consultation.slice(0, 2).map((src, index) => (
-              <motion.div key={index} variants={animations.item}>
-                <Image
-                  src={src || '/placeholder.svg'}
-                  alt={`Industrial Consultation ${index + 1}`}
-                  width={250}
-                  height={250}
-                  className="rounded-lg object-cover w-full lg:w-auto"
-                />
-              </motion.div>
-            ))}
-          </motion.div>
-          <motion.div
-            className="flex-1 h-full hidden lg:flex max-h-[450px]"
+            className="relative w-full h-[600px] rounded-xl overflow-hidden shadow-lg"
             variants={animations.item}
           >
             <Image
-              src={CONTENT.images.consultation[2] || '/placeholder.svg'}
-              alt="Industrial Consultation 3"
-              width={262}
-              height={450}
-              className="object-cover rounded-lg w-full lg:w-auto h-[410px]"
+              src={CONTENT.images.consultation[0] || '/placeholder.svg'}
+              alt="Air Quality Monitoring Equipment"
+              fill
+              className="object-cover hover:scale-105 transition-transform duration-300"
+              priority
             />
           </motion.div>
-        </motion.div>
 
-        {/* Blob Overlay */}
-        <motion.div
-          className="absolute hidden md:flex top-52 -z-50 lg:top-[-8px] lg:left-[27rem] w-[650px] h-[300px] lg:max-w-[630px] lg:max-h-[400px] items-center justify-center"
-          variants={animations.item}
-        >
-          <Image
-            src={CONTENT.images.blob || '/placeholder.svg'}
-            alt="Blob Overlay"
-            width={657}
-            height={360}
-            className="object-cover rounded-lg w-full h-full"
-          />
+          {/* Blob Overlay */}
+          <motion.div
+            className="absolute hidden md:block -z-10 top-1/4 left-1/4 transform -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%]"
+            variants={animations.item}
+          >
+            <Image
+              src={CONTENT.images.blob || '/placeholder.svg'}
+              alt="Blob Overlay"
+              fill
+              className="object-contain opacity-50"
+            />
+          </motion.div>
         </motion.div>
       </motion.div>
     </section>
