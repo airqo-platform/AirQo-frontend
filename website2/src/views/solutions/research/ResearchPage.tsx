@@ -102,7 +102,7 @@ const ResearchPage = () => {
         bgColor="bg-[#E9F7EF]"
         breadcrumbText="Solutions > For Research"
         title="For Research"
-        description="Advancing knowledge and evidence on air quality issues"
+        description="We actively collaborate with researchers across the world to jointly tackle air quality research challenges."
         containerVariants={animations.container}
         itemVariants={animations.item}
       />
@@ -113,9 +113,6 @@ const ResearchPage = () => {
           className="text-2xl lg:text-[40px] lg:leading-[48px] text-gray-800"
           variants={animations.item}
         >
-          We actively collaborate with researchers across the world to jointly
-          tackle air quality research challenges.
-          <br /> <br />
           We aim to advance the understanding of air quality issues in
           sub-Saharan Africa through a multidisciplinary approach. We leverage
           IoT and sensing technology, AI and Machine Learning, and temporal and

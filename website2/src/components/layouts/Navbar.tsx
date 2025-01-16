@@ -76,7 +76,7 @@ const menuItems: MenuItems = {
     },
     {
       title: 'For Research',
-      description: 'Free access to air quality analytics',
+      description: 'Advancing knowledge and evidence on air quality issues',
       href: '/solutions/research',
     },
   ],
