@@ -268,7 +268,7 @@ const renderCustomizedLegend = ({ payload }) => {
  * @param {Object} props
  */
 const CustomReferenceLabel = (props) => {
-  const { viewBox } = props;
+  const { viewBox, name } = props;
   const x = viewBox.width + viewBox.x - 10;
   const y = viewBox.y + 3;
 
@@ -280,7 +280,7 @@ const CustomReferenceLabel = (props) => {
           style={{ backgroundColor: 'red' }}
           className="rounded-[2px] py-[4px] px-[6px] flex justify-center text-center text-white text-[14px] tracking-[0.16px] font-normal leading-[16px]"
         >
-          WHO
+          {name}
         </div>
       </foreignObject>
     </g>

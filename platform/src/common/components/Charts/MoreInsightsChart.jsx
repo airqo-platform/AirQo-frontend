@@ -24,9 +24,9 @@ import {
 } from './components';
 
 import { parseAndValidateISODate } from '@/core/utils/dateUtils';
-import { WHO_STANDARD_VALUES } from './constants';
 import { formatYAxisTick, CustomizedAxisTick } from './utils';
 import useResizeObserver from '@/core/utils/useResizeObserver';
+import { useSelector } from 'react-redux';
 
 /**
  * MoreInsightsChart Component
@@ -60,6 +60,7 @@ const MoreInsightsChart = ({
 
   const containerRef = useRef(null);
   const { width: containerWidth } = useResizeObserver(containerRef);
+  const aqStandard = useSelector((state) => state.chart.aqStandard);
 
   /**
    * Processes raw chart data by validating dates and organizing data by time and site.
@@ -162,8 +163,8 @@ const MoreInsightsChart = ({
    * Memoized WHO standard value based on pollutant type.
    */
   const WHO_STANDARD_VALUE = useMemo(
-    () => WHO_STANDARD_VALUES[pollutantType] || 0,
-    [pollutantType],
+    () => aqStandard.value[pollutantType] || 0,
+    [pollutantType, aqStandard],
   );
 
   /**
@@ -352,7 +353,7 @@ const MoreInsightsChart = ({
           {WHO_STANDARD_VALUE && (
             <ReferenceLine
               y={WHO_STANDARD_VALUE}
-              label={<CustomReferenceLabel />}
+              label={<CustomReferenceLabel name={aqStandard.name} />}
               ifOverflow="extendDomain"
               stroke="red"
               strokeOpacity={1}
@@ -380,6 +381,7 @@ const MoreInsightsChart = ({
     frequency,
     siteIdToName,
     refreshChart,
+    aqStandard.name,
   ]);
 
   return (
