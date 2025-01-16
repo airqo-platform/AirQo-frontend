@@ -15,6 +15,7 @@ import SkeletonLoader from './components/SkeletonLoader';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import CustomToast from '../Toast/CustomToast';
 import useOutsideClick from '@/core/hooks/useOutsideClick';
+import StandardsMenu from './components/StandardsMenu';
 
 const ChartContainer = ({
   chartType,
@@ -155,7 +156,7 @@ const ChartContainer = ({
           onClick={handleRefreshChart}
           className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
         >
-          Refresh
+          <span>Refresh</span>
         </button>
         <hr className="border-gray-200" />
         {['png', 'jpg', 'pdf'].map((format) => (
@@ -166,12 +167,11 @@ const ChartContainer = ({
           >
             <span>Export as {format.toUpperCase()}</span>
             <span className="-mr-2 flex items-center">
-              {loadingFormat === format && (
+              {loadingFormat === format ? (
                 <div className="animate-spin h-4 w-4 border-2 border-t-blue-500 border-gray-300 rounded-full"></div>
-              )}
-              {downloadComplete === format && (
+              ) : downloadComplete === format ? (
                 <CheckIcon fill="#1E40AF" width={20} height={20} />
-              )}
+              ) : null}
             </span>
           </button>
         ))}
@@ -180,8 +180,9 @@ const ChartContainer = ({
           onClick={() => handleOpenModal('inSights', [], userSelectedSites)}
           className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
         >
-          More insights
+          <span>More insights</span>
         </button>
+        <StandardsMenu />
       </>
     ),
     [
