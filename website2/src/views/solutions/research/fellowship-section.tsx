@@ -48,7 +48,7 @@ export default function FellowshipSection() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
       >
-        <Card className="overflow-hidden border border-gray-100">
+        <Card className="overflow-hidden border-none">
           <CardHeader className="bg-[#E9F7EF] border-b border-green-200">
             <CardTitle className="text-3xl font-bold text-gray-800">
               Visiting Fellowship Program

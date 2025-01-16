@@ -96,7 +96,7 @@ const ResearchPage = () => {
   );
 
   return (
-    <div className="flex flex-col w-full space-y-32 overflow-hidden">
+    <div className="flex flex-col w-full space-y-20 overflow-hidden">
       {/* Hero Section */}
       <HeroSection
         bgColor="bg-[#E9F7EF]"
