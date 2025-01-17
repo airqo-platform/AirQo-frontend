@@ -17,11 +17,11 @@ nodeSelector: {}
 torelations: {}
 resources:
   requests:
-    cpu: 1m
+    cpu: 20m
     memory: 20Mi
   limits:
-    cpu: 10m
-    memory: 80Mi
+    cpu: 100m
+    memory: 200Mi
 autoscaling:
   minReplicas: 1
   maxReplicas: 3
