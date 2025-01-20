@@ -4,8 +4,7 @@ import { LineCharts } from "../Charts/Line";
 import { BarCharts } from "../Charts/Bar";
 import { ExceedancesChart } from "./ExceedeanceLine.tsx";
 import { PM_25_CATEGORY } from "@/core/hooks/categories";
-import { Grid } from "@/app/types/grids";
-import { Site } from "@/app/types/sites";
+import { Grid, Site } from "@/app/types/grids";
 
 import {
   Card,
@@ -60,7 +59,7 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ gridId, loading, grids, r
 
     const categorizeSite = (site: Site, pm2_5: number, categories: any) => {
       Object.keys(PM_25_CATEGORY).forEach((key) => {
-        const [min, max] = PM_25_CATEGORY[key];
+        const [min, max] = PM_25_CATEGORY[key as keyof typeof PM_25_CATEGORY];
         if (pm2_5 > min && pm2_5 <= max) {
           categories[key].push({ ...site, pm2_5 });
         }
@@ -94,12 +93,12 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ gridId, loading, grids, r
     setPm2_5SiteCount(initialCount);
   }, [activeGrid, recentEventsData]);
 
-  const categories = [
+  const categories: { pm25level: keyof typeof pm2_5SiteCount; iconClass: string }[] = [
     { pm25level: "Good", iconClass: "bg-green-500" },
     { pm25level: "Moderate", iconClass: "bg-yellow-500" },
-    { pm25level: "Unhealthy for Sensitive Groups", iconClass: "bg-orange-500" },
+    { pm25level: "UHFSG", iconClass: "bg-orange-500" },
     { pm25level: "Unhealthy", iconClass: "bg-red-500" },
-    { pm25level: "Very Unhealthy", iconClass: "bg-purple-500" },
+    { pm25level: "VeryUnhealthy", iconClass: "bg-purple-500" },
     { pm25level: "Hazardous", iconClass: "bg-rose-900" },
   ];
 
@@ -113,19 +112,19 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ gridId, loading, grids, r
         <div className="mb-5 grid grid-cols-1 gap-6 sm:grid-cols-3">
           <div className="p-4 border text-center rounded-lg shadow-md">
             <h3 className="text-sm font-semibold text-gray-600">Grid Name</h3>
-            <p className="text-2xl font-bold capitalize">
+            <p className="lg:text-2xl md:text-sm sm:text-sm font-bold capitalize">
               {loading ? "..." : activeGrid?.name || "N/A"}
             </p>
           </div>
           <div className="p-4 border text-center rounded-lg shadow-md">
             <h3 className="text-sm font-semibold text-gray-600">Admin Level</h3>
-            <p className="text-2xl font-bold capitalize">
+            <p className="lg:text-2xl md:text-sm sm:text-sm font-bold capitalize">
               {loading ? "..." : activeGrid?.admin_level || "N/A"}
             </p>
           </div>
           <div className="p-4 border text-center rounded-lg shadow-md">
             <h3 className="text-sm font-semibold text-gray-600">Number of Sites</h3>
-            <p className="text-2xl font-bold">{loading ? "..." : activeGrid?.sites.length || 0}</p>
+            <p className="lg:text-2xl md:text-sm sm:text-sm font-bold">{loading ? "..." : activeGrid?.sites.length || 0}</p>
           </div>
         </div>
       </div>

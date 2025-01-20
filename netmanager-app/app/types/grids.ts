@@ -9,7 +9,7 @@ export interface Grid {
     sites: Site[];
 }
 
-interface Site {
+export interface Site {
   _id: string;
   isOnline: boolean;
   formatted_name: string;
