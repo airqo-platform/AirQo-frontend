@@ -1,54 +1,42 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-/**
- * Calculates the ISO string for the date 7 days prior to today.
- * @returns {string} ISO string of the start date.
- */
 const getStartDate = () => {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - 7);
   return startDate.toISOString();
 };
 
-/**
- * Default chart data range representing the last 7 days.
- */
 const defaultChartDataRange = {
   startDate: getStartDate(),
   endDate: new Date().toISOString(),
   label: 'Last 7 days',
 };
 
-/**
- * Initial state for the chart slice.
- */
 const initialState = {
   chartType: 'line',
   timeFrame: 'daily',
   pollutionType: 'pm2_5',
   organizationName: 'airqo',
   chartDataRange: defaultChartDataRange,
-  chartSites: [], // Initialize as empty array
+  chartSites: [],
   userDefaultID: null,
   chartAnalyticsData: [],
   refreshChart: false,
   chartTab: 0,
+  aqStandard: {
+    name: 'WHO',
+    value: {
+      pm2_5: 15,
+      pm10: 45,
+      no2: 25,
+    },
+  },
 };
 
-/**
- * Chart slice using Redux Toolkit's createSlice.
- * Manages state related to charts, including type, data range, selected sites, etc.
- */
 const chartSlice = createSlice({
   name: 'chart',
   initialState,
   reducers: {
-    /**
-     * Sets the chart type ('line' or 'bar').
-     * Only updates if the new type differs from the current state to prevent unnecessary re-renders.
-     * @param {object} state - Current state.
-     * @param {object} action - Action containing the new chart type.
-     */
     setChartType: (state, action) => {
       const newChartType = action.payload;
       if (state.chartType !== newChartType) {
@@ -56,12 +44,6 @@ const chartSlice = createSlice({
       }
     },
 
-    /**
-     * Sets the current chart tab index.
-     * Prevents unnecessary state updates by checking for changes.
-     * @param {object} state - Current state.
-     * @param {object} action - Action containing the new chart tab index.
-     */
     setChartTab: (state, action) => {
       const newChartTab = action.payload;
       if (state.chartTab !== newChartTab) {
@@ -69,12 +51,6 @@ const chartSlice = createSlice({
       }
     },
 
-    /**
-     * Sets the time frame (e.g., 'daily', 'weekly').
-     * Ensures state updates only occur when necessary.
-     * @param {object} state - Current state.
-     * @param {object} action - Action containing the new time frame.
-     */
     setTimeFrame: (state, action) => {
       const newTimeFrame = action.payload;
       if (state.timeFrame !== newTimeFrame) {
@@ -82,13 +58,6 @@ const chartSlice = createSlice({
       }
     },
 
-    /**
-     * Sets the chart data range.
-     * Expects an object with 'startDate', 'endDate', and 'label'.
-     * Updates state only if any of these values change.
-     * @param {object} state - Current state.
-     * @param {object} action - Action containing the new chart data range.
-     */
     setChartDataRange: (state, action) => {
       const { startDate, endDate, label } = action.payload;
       if (
@@ -100,12 +69,6 @@ const chartSlice = createSlice({
       }
     },
 
-    /**
-     * Sets the selected chart sites.
-     * If the payload is empty or not provided, defaults to an empty array.
-     * @param {object} state - Current state.
-     * @param {object} action - Action containing the new chart sites array.
-     */
     setChartSites: (state, action) => {
       const newChartSites = action.payload;
 
@@ -126,12 +89,6 @@ const chartSlice = createSlice({
       }
     },
 
-    /**
-     * Sets the pollutant type (e.g., 'pm2_5', 'pm10').
-     * Avoids redundant updates by checking current state.
-     * @param {object} state - Current state.
-     * @param {object} action - Action containing the new pollutant type.
-     */
     setPollutant: (state, action) => {
       const newPollutant = action.payload;
       if (state.pollutionType !== newPollutant) {
@@ -139,12 +96,6 @@ const chartSlice = createSlice({
       }
     },
 
-    /**
-     * Sets the organization name.
-     * Ensures updates occur only when there's a change.
-     * @param {object} state - Current state.
-     * @param {object} action - Action containing the new organization name.
-     */
     setOrganizationName: (state, action) => {
       const newOrganizationName = action.payload;
       if (state.organizationName !== newOrganizationName) {
@@ -152,12 +103,6 @@ const chartSlice = createSlice({
       }
     },
 
-    /**
-     * Sets the user's default ID.
-     * Prevents unnecessary state changes by checking existing value.
-     * @param {object} state - Current state.
-     * @param {object} action - Action containing the new user default ID.
-     */
     setDefaultID: (state, action) => {
       const newDefaultID = action.payload;
       if (state.userDefaultID !== newDefaultID) {
@@ -165,22 +110,10 @@ const chartSlice = createSlice({
       }
     },
 
-    /**
-     * Sets the chart analytics data.
-     * Replaces the existing data with the new payload.
-     * @param {object} state - Current state.
-     * @param {object} action - Action containing the new analytics data array.
-     */
     setChartData: (state, action) => {
       state.chartAnalyticsData = action.payload;
     },
 
-    /**
-     * Sets the refreshChart flag.
-     * Only updates if the new value differs from the current state.
-     * @param {object} state - Current state.
-     * @param {object} action - Action containing the new refresh flag value.
-     */
     setRefreshChart: (state, action) => {
       const newRefreshFlag = action.payload;
       if (state.refreshChart !== newRefreshFlag) {
@@ -188,22 +121,10 @@ const chartSlice = createSlice({
       }
     },
 
-    /**
-     * Resets the chart store to the initial state.
-     * Useful for scenarios like user logout or resetting filters.
-     * @param {object} state - Current state.
-     */
     resetChartStore: (state) => {
       Object.assign(state, initialState);
     },
 
-    /**
-     * Sets multiple chart data properties at once.
-     * Accepts an object containing one or more chart slice properties.
-     * Only updates allowed properties and prevents invalid state mutations.
-     * @param {object} state - Current state.
-     * @param {object} action - Action containing the properties to update.
-     */
     setChartDataAtOnce: (state, action) => {
       const allowedKeys = Object.keys(initialState);
       Object.entries(action.payload).forEach(([key, value]) => {
@@ -222,6 +143,15 @@ const chartSlice = createSlice({
                 state.chartSites = value;
               }
             }
+          } else if (key === 'aqStandard') {
+            if (
+              state.aqStandard.name !== value.name ||
+              state.aqStandard.value.pm2_5 !== value.value.pm2_5 ||
+              state.aqStandard.value.pm10 !== value.value.pm10 ||
+              state.aqStandard.value.no2 !== value.value.no2
+            ) {
+              state.aqStandard = value;
+            }
           } else {
             if (state[key] !== value) {
               state[key] = value;
@@ -230,10 +160,20 @@ const chartSlice = createSlice({
         }
       });
     },
+    setAqStandard: (state, action) => {
+      const newStandard = action.payload;
+      if (
+        state.aqStandard.name !== newStandard.name ||
+        state.aqStandard.value.pm2_5 !== newStandard.value.pm2_5 ||
+        state.aqStandard.value.pm10 !== newStandard.value.pm10 ||
+        state.aqStandard.value.no2 !== newStandard.value.no2
+      ) {
+        state.aqStandard = newStandard;
+      }
+    },
   },
 });
 
-// Exporting actions for use in components
 export const {
   setChartType,
   setChartTab,
@@ -247,6 +187,7 @@ export const {
   setChartData,
   setRefreshChart,
   setChartDataAtOnce,
+  setAqStandard,
 } = chartSlice.actions;
 
 export default chartSlice.reducer;

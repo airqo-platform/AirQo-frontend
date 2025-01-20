@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import React from 'react';
 
+import CardWrapper from '@/components/sections/solutions/CardWrapper';
 import HeroSection from '@/components/sections/solutions/HeroSection';
 import { CustomButton, Divider } from '@/components/ui';
 import AfricanCities from '@/views/solutions/AfricanCities/AfricanCities';
@@ -145,42 +146,43 @@ const AfricanCityPage = () => {
 
       {/* Publications Section */}
       <motion.section
-        className="bg-blue-50 p-16 space-y-6 rounded-lg max-w-5xl mx-auto"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
         variants={containerVariants}
       >
-        <motion.h3
-          className="text-blue-700 text-2xl font-semibold mb-2"
-          variants={itemVariants}
-        >
-          PUBLICATIONS
-        </motion.h3>
-        <motion.h2
-          className="text-2xl lg:text-4xl font-normal mb-4"
-          variants={itemVariants}
-        >
-          Seeing the air in detail: Hyperlocal air quality dataset collected
-          from spatially distributed AirQo network.
-        </motion.h2>
-        <motion.div variants={itemVariants}>
-          <p className="text-gray-800 font-semibold mb-1">Published by</p>
-          <p className="text-gray-800 mb-6">AirQo</p>
-        </motion.div>
-        <motion.div variants={itemVariants}>
-          <CustomButton
-            onClick={() =>
-              window.open(
-                'https://www.sciencedirect.com/science/article/pii/S2352340922007065?via%3Dihub',
-                '_blank',
-              )
-            }
-            className="flex items-center bg-transparent px-4 w-full max-w-[200px] py-3 border text-gray-700 border-gray-700 hover:bg-gray-200"
+        <CardWrapper className="bg-blue-50 space-y-4">
+          <motion.h3
+            className="text-blue-700 text-2xl font-semibold mb-2"
+            variants={itemVariants}
           >
-            Read More →
-          </CustomButton>
-        </motion.div>
+            PUBLICATIONS
+          </motion.h3>
+          <motion.h2
+            className="text-2xl lg:text-4xl font-normal mb-4"
+            variants={itemVariants}
+          >
+            Seeing the air in detail: Hyperlocal air quality dataset collected
+            from spatially distributed AirQo network.
+          </motion.h2>
+          <motion.div variants={itemVariants}>
+            <p className="text-gray-800 font-semibold mb-1">Published by</p>
+            <p className="text-gray-800 mb-6">AirQo</p>
+          </motion.div>
+          <motion.div variants={itemVariants}>
+            <CustomButton
+              onClick={() =>
+                window.open(
+                  'https://www.sciencedirect.com/science/article/pii/S2352340922007065?via%3Dihub',
+                  '_blank',
+                )
+              }
+              className="flex items-center bg-transparent px-4 w-full max-w-[200px] py-3 border text-gray-700 border-gray-700 hover:bg-gray-200"
+            >
+              Read More →
+            </CustomButton>
+          </motion.div>
+        </CardWrapper>
       </motion.section>
     </div>
   );

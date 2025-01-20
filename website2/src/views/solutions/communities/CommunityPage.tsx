@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 
+import CardWrapper from '@/components/sections/solutions/CardWrapper';
 import HeroSection from '@/components/sections/solutions/HeroSection';
 import { CustomButton } from '@/components/ui';
 import { useDispatch } from '@/hooks';
@@ -276,29 +277,30 @@ const CommunitiesPage = () => {
 
       {/* Quote Section */}
       <motion.section
-        className="px-16 py-16 rounded-lg max-w-5xl mx-auto  bg-yellow-50"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
         variants={containerVariants}
       >
-        <motion.div className="text-left space-y-4" variants={itemVariants}>
-          <Image
-            src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248678/website/photos/Solutions/AirQo_quotes_odzokg.webp"
-            alt="Quote Icon"
-            width={60}
-            height={60}
-            className="mb-2"
-          />
-          <blockquote className="text-2xl lg:text-[40px] text-left leading-[48px] font-normal mb-4">
-            We advocate for road safety and environmental protection from
-            pollution associated with the transport industry, and depend a lot
-            on the AirQo platform to get air quality data in order to extend air
-            quality education to the communities.
-          </blockquote>
-          <p className="text-lg font-bold">Michael Wanyama</p>
-          <p className="text-gray-700">Team Lead on AutoSafety</p>
-        </motion.div>
+        <CardWrapper className="bg-yellow-50">
+          <motion.div className="text-left space-y-4" variants={itemVariants}>
+            <Image
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248678/website/photos/Solutions/AirQo_quotes_odzokg.webp"
+              alt="Quote Icon"
+              width={60}
+              height={60}
+              className="mb-2"
+            />
+            <blockquote className="text-2xl lg:text-[40px] text-left leading-[48px] font-normal mb-4">
+              We advocate for road safety and environmental protection from
+              pollution associated with the transport industry, and depend a lot
+              on the AirQo platform to get air quality data in order to extend
+              air quality education to the communities.
+            </blockquote>
+            <p className="text-lg font-bold">Michael Wanyama</p>
+            <p className="text-gray-700">Team Lead on AutoSafety</p>
+          </motion.div>
+        </CardWrapper>
       </motion.section>
 
       {/* CTA Section */}
