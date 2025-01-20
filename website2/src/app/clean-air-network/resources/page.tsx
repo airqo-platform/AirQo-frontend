@@ -1,6 +1,4 @@
-import React from 'react';
-
-import ResourcePage from './ResourcePage';
+import ResourcePage from '@/views/cleanairforum/resources/ResourcePage';
 
 const page = () => {
   return (

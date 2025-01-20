@@ -34,11 +34,32 @@ import { useQueryClient } from "@tanstack/react-query";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { useApproximateCoordinates } from "@/core/hooks/useSites";
+import { AxiosError } from "axios";
+import Error from "next/error";
 
 const siteFormSchema = z.object({
   name: z.string().min(2, {
     message: "Site name must be at least 2 characters.",
   }),
+  latitude: z.string().refine(
+    (val) => {
+      const num = parseFloat(val);
+      return !isNaN(num) && num >= -90 && num <= 90;
+    },
+    {
+      message: "Latitude must be a valid number between -90 and 90",
+    }
+  ),
+  longitude: z.string().refine(
+    (val) => {
+      const num = parseFloat(val);
+      return !isNaN(num) && num >= -180 && num <= 180;
+    },
+    {
+      message: "Longitude must be a valid number between -180 and 180",
+    }
+  ),
 });
 
 type SiteFormValues = z.infer<typeof siteFormSchema>;
@@ -118,9 +139,9 @@ export function CreateSiteForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
-  const router = useRouter();
   const queryClient = useQueryClient();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const { getApproximateCoordinates, isPending } = useApproximateCoordinates();
 
   const form = useForm<SiteFormValues>({
     resolver: zodResolver(siteFormSchema),
@@ -265,6 +286,51 @@ export function CreateSiteForm() {
                       )}
                     />
                   </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => {
+                      const lat = form.getValues("latitude");
+                      const lng = form.getValues("longitude");
+                      if (lat && lng) {
+                        getApproximateCoordinates(
+                          { latitude: lat, longitude: lng },
+                          {
+                            onSuccess: (data) => {
+                              const {
+                                approximate_latitude,
+                                approximate_longitude,
+                              } = data.approximate_coordinates;
+                              form.setValue(
+                                "latitude",
+                                approximate_latitude.toString()
+                              );
+                              form.setValue(
+                                "longitude",
+                                approximate_longitude.toString()
+                              );
+                            },
+                          }
+                        );
+                      }
+                    }}
+                    disabled={
+                      !form.getValues("latitude") ||
+                      !form.getValues("longitude") ||
+                      isPending
+                    }
+                  >
+                    {isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Optimizing...
+                      </>
+                    ) : (
+                      "⭐ Optimize Coordinates"
+                    )}
+                  </Button>
                 </div>
               </>
             )}

@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import React from 'react';
 
 import MainLayout from '@/components/layouts/MainLayout';
-import TabSection from '@/components/sections/legal/Tabsection';
+import TabSection from '@/views/legal/Tabsection';
 
 export const metadata: Metadata = {
   title: 'Legal Information | AirQo',

@@ -7,7 +7,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { RiCloseFill } from 'react-icons/ri';
 import { TbChevronDown, TbMenu } from 'react-icons/tb';
 
-import TabNavigation from '@/components/sections/CleanAir/TabNavigation';
 import { CustomButton } from '@/components/ui';
 import {
   NavigationMenu,
@@ -20,6 +19,7 @@ import {
 } from '@/components/ui';
 import { useDispatch } from '@/hooks';
 import { openModal } from '@/store/slices/modalSlice';
+import TabNavigation from '@/views/cleanairforum/TabNavigation';
 
 import NotificationBanner from './NotificationBanner';
 
@@ -76,7 +76,7 @@ const menuItems: MenuItems = {
     },
     {
       title: 'For Research',
-      description: 'Free access to air quality analytics',
+      description: 'Advancing knowledge and evidence on air quality issues',
       href: '/solutions/research',
     },
   ],
