@@ -136,14 +136,15 @@ const NewAnalytics: React.FC = () => {
             </div>
           </div>
         {!isCohort && activeGrid && (
-          <GridDashboard 
+          <GridDashboard
             loading={isGridsLoading}
             gridId={activeGrid._id}
+            recentEventsData={activeGrid.sites}
             grids={grids}
           />
         )}
         {isCohort && activeCohort && (
-          <CohortDashboard 
+          <CohortDashboard
             loading={isCohortsLoading}
             cohortId={activeCohort._id}
             cohorts={cohorts}
