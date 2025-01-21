@@ -19,10 +19,10 @@ service:
   nodePort: 31106
 resources:
   limits:
-    cpu: 50m
-    memory: 80Mi
+    cpu: 10m
+    memory: 100Mi
   requests:
-    cpu: 5m
+    cpu: 1m
     memory: 20Mi
 autoscaling:
   minReplicas: 1
@@ -33,20 +33,12 @@ tolerations: []
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 10
-        preference:
-          matchExpressions:
-            - key: node-type
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: role
               operator: In
               values:
-                - general-purpose
-      - weight: 1
-        preference:
-          matchExpressions:
-            - key: node-type
-              operator: In
-              values:
-                - high-memory
+                - control-plane
 app:
   name: airqo-stage-calibrate-app
   label: sta-calibrate-app
