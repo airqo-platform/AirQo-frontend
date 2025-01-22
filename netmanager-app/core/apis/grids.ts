@@ -10,7 +10,7 @@ interface ErrorResponse {
 }
 
 export const grids = {
-  getGridsSummary: async (networkId: string) => {
+  getGridsApi: async (networkId: string) => {
     try {
       const response = await axiosInstance.get(
         `${DEVICES_MGT_URL}/grids/summary?network=${networkId}`
@@ -23,7 +23,7 @@ export const grids = {
       );
     }
   },
-  getGridDetails: async (gridId: string) => {
+  getGridDetailsApi: async (gridId: string) => {
     try {
       const response = await axiosInstance.get(
         `${DEVICES_MGT_URL}/grids/${gridId}`
@@ -36,7 +36,7 @@ export const grids = {
       );
     }
   },
-  updateGridDetails: async (gridId: string) => {
+  updateGridDetailsApi: async (gridId: string) => {
     try {
       const response = await axiosInstance.put(
         `${DEVICES_MGT_URL}/grids/${gridId}`
@@ -49,7 +49,7 @@ export const grids = {
       );
     }
   },
-  createGrid: async (data: CreateGrid) => {
+  createGridApi: async (data: CreateGrid) => {
     try {
       const response = await axiosInstance.post(
         `${DEVICES_MGT_URL}/grids`,
