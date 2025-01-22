@@ -20,7 +20,7 @@ ingress:
 resources:
   limits:
     cpu: 200m
-    memory: 250Mi
+    memory: 350Mi
   requests:
     cpu: 20m
     memory: 150Mi
@@ -29,19 +29,17 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 3
   targetCPUUtilizationPercentage: 80
-nodeSelector: 
-  role: control-plane
+nodeSelector: {}
 tolerations: []
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-        - preference:
-            matchExpressions:
-            - key: role
-              operator: In
-              values:
-              - control-plane
-          weight: 1
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: role
+                operator: In
+                values:
+                  - control-plane
 app:
   name: airqo-stage-next-platform
   label: sta-next-platform

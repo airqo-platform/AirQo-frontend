@@ -13,13 +13,12 @@ service:
   port: 8000
 ingress:
   enabled: false
-nodeSelector: 
-  role: control-plane
+nodeSelector: {}
 torelations: {}
 resources:
   requests:
     cpu: 10m
-    memory: 20Mi
+    memory: 100Mi
   limits:
     cpu: 50m
     memory: 150Mi
@@ -30,13 +29,12 @@ autoscaling:
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-      - preference:
-          matchExpressions:
-          - key: role
-            operator: In
-            values:
-            - control-plane
-        weight: 1
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: role
+              operator: In
+              values:
+                - control-plane
 app:
   name: airqo-stage-inventory
   label: airqo-inventory

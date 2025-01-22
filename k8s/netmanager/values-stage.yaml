@@ -13,16 +13,15 @@ service:
   port: 80
 ingress:
   enabled: false
-nodeSelector: 
-  role: control-plane
+nodeSelector: {}
 torelations: {}
 resources:
   requests:
-    cpu: 5m
+    cpu: 20m
     memory: 20Mi
   limits:
-    cpu: 50m
-    memory: 80Mi
+    cpu: 100m
+    memory: 200Mi
 autoscaling:
   minReplicas: 1
   maxReplicas: 3
@@ -30,13 +29,12 @@ autoscaling:
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-      - preference:
-          matchExpressions:
-          - key: role
-            operator: In
-            values:
-            - control-plane
-        weight: 1
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: role
+              operator: In
+              values:
+                - control-plane
 app:
   name: airqo-stage-platform-frontend
   label: airqo-platform
