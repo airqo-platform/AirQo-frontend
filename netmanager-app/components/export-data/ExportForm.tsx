@@ -10,7 +10,6 @@ import { ExportType, FormData } from "@/app/types/export";
 import { useSites } from "@/core/hooks/useSites";
 import { useGrids } from "@/core/hooks/useGrids";
 import { Site } from "@/core/redux/slices/sitesSlice";
-import { City } from "@/core/redux/slices/gridsSlice";
 import { Device } from "@/core/redux/slices/deviceSlice";
 import { useDevices } from "@/core/hooks/useDevices";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -125,11 +124,13 @@ export default function ExportForm({ exportType }: ExportFormProps) {
   }, [sites, grids, devices]);
 
   const exportData = (data: string, filename: string, type: string) => {
+    const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
     const blob = new Blob([data], { type });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = filename;
+    a.download = sanitizedFilename;
+    a.rel = "noopener";
     a.click();
     window.URL.revokeObjectURL(url);
   };
