@@ -19,7 +19,7 @@ ingress:
   enabled: false
 resources:
   limits:
-    cpu: 10m
+    cpu: 50m
     memory: 100Mi
   requests:
     cpu: 1m
@@ -28,17 +28,19 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 2
   targetCPUUtilizationPercentage: 80
-nodeSelector: {}
+nodeSelector: 
+  role: control-plane
 tolerations: []
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-        - matchExpressions:
-            - key: role
-              operator: In
-              values:
-                - control-plane
+      - preference:
+          matchExpressions:
+          - key: role
+            operator: In
+            values:
+            - control-plane
+        weight: 1
 app:
   name: airqo-stage-docs
   label: sta-docs

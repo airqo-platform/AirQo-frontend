@@ -13,7 +13,6 @@ service:
   port: 3000
 ingress:
   enabled: false
-nodeSelector: {}
 torelations: {}
 resources:
   requests:
@@ -26,15 +25,18 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 3
   targetMemoryUtilizationPercentage: 80
+nodeSelector: 
+  role: control-plane
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-        - matchExpressions:
-            - key: role
-              operator: In
-              values:
-                - moderate-usage
+      - preference:
+          matchExpressions:
+          - key: role
+            operator: In
+            values:
+            - control-plane
+        weight: 1
 app:
   name: airqo-stage-reports
   label: airqo-reports
