@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { PollutantCategory } from "./PollutantCategory";
 import { LineCharts } from "../Charts/Line";
 import { BarCharts } from "../Charts/Bar";
-import { ExceedancesChart } from "./ExceedeanceLine.tsx";
+import { ExceedancesChart } from "./ExceedanceLine";
 import { PM_25_CATEGORY } from "@/core/hooks/categories";
 import { Grid, Site } from "@/app/types/grids";
 
@@ -19,6 +19,9 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 
+interface Categories {
+    [key: string]: Site[];
+}
 
 interface RecentEventFeature {
   properties: {
@@ -57,11 +60,11 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ gridId, loading, grids, r
   useEffect(() => {
     if (!activeGrid || !recentEventsData?.features) return;
 
-    const categorizeSite = (site: Site, pm2_5: number, categories: any) => {
+    const categorizeSite = (site: Site, pm2_5: number, categories: Categories) => {
       Object.keys(PM_25_CATEGORY).forEach((key) => {
         const [min, max] = PM_25_CATEGORY[key as keyof typeof PM_25_CATEGORY];
-        if (pm2_5 > min && pm2_5 <= max) {
-          categories[key].push({ ...site, pm2_5 });
+        if (pm2_5 >= 0 && pm2_5 > min && pm2_5 <= max) { 
+          categories[key].push({ ...site, pm2_5, label: site.label || "" });
         }
       });
     };
@@ -159,6 +162,8 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ gridId, loading, grids, r
                       viewBox="0 0 15 15"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
+                      role="img"  
+                      aria-label="Toggle chart type"  
                     >
                       <path
                         d="M8.625 2.5C8.625 3.12132 8.12132 3.625 7.5 3.625C6.87868 3.625 6.375 3.12132 6.375 2.5C6.375 1.87868 6.87868 1.375 7.5 1.375C8.12132 1.375 8.625 1.87868 8.625 2.5ZM8.625 7.5C8.625 8.12132 8.12132 8.625 7.5 8.625C6.87868 8.625 6.375 8.12132 6.375 7.5C6.375 6.87868 6.87868 6.375 7.5 6.375C8.12132 6.375 8.625 6.87868 8.625 7.5ZM7.5 13.625C8.12132 13.625 8.625 13.1213 8.625 12.5C8.625 11.8787 8.12132 11.375 7.5 11.375C6.87868 11.375 6.375 11.8787 6.375 12.5C6.375 13.1213 6.87868 13.625 7.5 13.625Z"

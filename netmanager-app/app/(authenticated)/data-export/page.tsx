@@ -18,7 +18,7 @@ export default function ExportData() {
       </p>
       <Card>
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ExportType)}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="sites">Sites</TabsTrigger>
             <TabsTrigger value="devices">Devices</TabsTrigger>
             <TabsTrigger value="airqlouds">AirQlouds</TabsTrigger>

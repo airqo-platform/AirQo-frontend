@@ -16,6 +16,7 @@ import { useDevices } from "@/core/hooks/useDevices";
 import { DatePicker } from "@/components/ui/date-picker";
 import { dataExport } from "@/core/apis/analytics";
 import { useAppSelector } from "@/core/redux/hooks";
+import { Grid } from "@/app/types/grids";
 
 const pollutantOptions = [
     { value: "pm2.5", label: "PM2.5" },
@@ -74,7 +75,7 @@ export const roundToStartOfDay = (dateISOString: string): Date => {
 export default function ExportForm({ exportType }: ExportFormProps) {
     const [loading, setLoading] = useState(false);
     const { sites } = useSites();
-    const { cities } = useGrids();
+    const { grids } = useGrids();
     const { devices } = useDevices();
     const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
@@ -97,28 +98,31 @@ export default function ExportForm({ exportType }: ExportFormProps) {
   const [deviceOptions, setDeviceOptions] = useState<Option[]>([]);
 
   useEffect(() => {
+    let isSubscribed = true;
     if (sites?.length) {
       const newSiteOptions = sites.map((site: Site) => ({ value: site._id, label: site.name }));
-      if (JSON.stringify(newSiteOptions) !== JSON.stringify(siteOptions)) {
+      if (isSubscribed && JSON.stringify(newSiteOptions) !== JSON.stringify(siteOptions)) {
         setSiteOptions(newSiteOptions);
       }
       
     }
-    if (cities?.length) {
-      const newCityOptions = cities.map((city: City) => ({ value: city._id, label: city.name }));
-      if (JSON.stringify(newCityOptions) !== JSON.stringify(cityOptions)) {
+    if (grids?.length) {
+      const newCityOptions = grids.map((grid: Grid) => ({ value: grid._id, label: grid.name }));
+      if (isSubscribed && JSON.stringify(newCityOptions) !== JSON.stringify(cityOptions)) {
         setCityOptions(newCityOptions);
       }
     }
     
     if (devices?.length) {
       const newDeviceOptions = devices.map((device: Device) => ({ value: device._id, label: device.name }));
-      if (JSON.stringify(newDeviceOptions) !== JSON.stringify(deviceOptions)) {
+      if (isSubscribed && JSON.stringify(newDeviceOptions) !== JSON.stringify(deviceOptions)) {
         setDeviceOptions(newDeviceOptions);
       }
     }
-
-  }, [sites, cities, devices, siteOptions, cityOptions, deviceOptions]);
+    return () => {
+          isSubscribed = false;
+    };
+  }, [sites, grids, devices]);
 
   const exportData = (data: string, filename: string, type: string) => {
     const blob = new Blob([data], { type });
@@ -310,7 +314,7 @@ export default function ExportForm({ exportType }: ExportFormProps) {
       case "devices":
         return renderMultiSelect("devices", deviceOptions, "Select devices", { required: "At least one device must be selected" });
       case "airqlouds":
-        return renderMultiSelect("cities", cityOptions, "Select airqlouds", { required: "At least one airqloud must be selected" });
+        return renderMultiSelect("cities", cityOptions, "Select Grids", { required: "At least one Grids must be selected" });
       default:
         return null;
     }

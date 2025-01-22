@@ -59,7 +59,7 @@ const NewAnalytics: React.FC = () => {
   const handleDownloadData = async () => {
     setDownloadingData(true)
     try {
-      const response = await dataExport({
+      await dataExport({
         sites: !isCohort ? activeGrid?.sites.map(site => site._id) : [],
         devices: isCohort ? activeCohort?.devices.map(device => device._id) : [],
         startDateTime: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),

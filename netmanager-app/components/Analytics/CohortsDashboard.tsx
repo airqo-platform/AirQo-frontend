@@ -8,7 +8,7 @@ import { MoreHorizontal } from 'lucide-react'
 import { PollutantCategory } from './PollutantCategory'
 import { LineCharts } from '../Charts/Line'
 import { BarCharts } from '../Charts/Bar'
-import { ExceedancesChart } from './ExceedeanceLine.tsx'
+import { ExceedancesChart } from './ExceedanceLine'
 import { Cohort} from '@/app/types/cohorts'
 
 interface CohortDashboardProps {
@@ -19,7 +19,6 @@ interface CohortDashboardProps {
 
 const CohortDashboard: React.FC<CohortDashboardProps> = ({ loading, cohortId, cohorts }) => {
   const [chartType, setChartType] = useState<'line' | 'bar'>('line')
-  // const [chartTypePM, setChartTypePM] = useState<'line' | 'bar'>('bar')
 
   const categories = [
     { pm25level: "Good", iconClass: "bg-green-500" },

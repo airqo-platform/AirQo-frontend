@@ -20,7 +20,6 @@ import { Label } from "@/components/ui/label";
 import { MoreHorizontal } from 'lucide-react';
 import { EXCEEDANCES_DATA_URI, DEVICE_EXCEEDANCES_URI } from '@/core/urls';
 import createAxiosInstance from '@/core/apis/axiosConfig';
-import { Site } from '@/app/types/sites';
 import { Device } from '@/app/types/devices';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 

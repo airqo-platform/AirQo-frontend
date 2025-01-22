@@ -76,27 +76,26 @@ export function PollutantCategory({ pm25level, iconClass, sites, devices }: Poll
   )
 }
 
-function getPm25LevelColor(level: string): string {
-  switch (level.toLowerCase()) {
-    case 'good': return 'green-500'
-    case 'moderate': return 'yellow-500'
-    case 'unhealthy for sensitive groups': return 'orange-500'
-    case 'unhealthy': return 'red-500'
-    case 'very unhealthy': return 'purple-500'
-    case 'hazardous': return 'rose-900'
-    default: return 'gray-500'
-  }
-}
 
-function getPm25LevelHexColor(level: string): string {
-  switch (level.toLowerCase()) {
-    case 'good': return '#10B981'; // green-500
-    case 'moderate': return '#FBBF24'; // yellow-500
-    case 'unhealthy for sensitive groups': return '#F97316'; // orange-500
-    case 'unhealthy': return '#EF4444'; // red-500
-    case 'very unhealthy': return '#8B5CF6'; // purple-500
-    case 'hazardous': return '#9B1C31'; // rose-900
-    default: return '#6B7280'; // gray-500
-  }
-}
+const PM25_LEVEL_COLORS = {  
+  good: { class: 'green-500', hex: '#10B981' },  
+  moderate: { class: 'yellow-500', hex: '#FBBF24' },  
+  'unhealthy for sensitive groups': { class: 'orange-500', hex: '#F97316' },  
+  unhealthy: { class: 'red-500', hex: '#EF4444' },  
+  'very unhealthy': { class: 'purple-500', hex: '#8B5CF6' },  
+  hazardous: { class: 'rose-900', hex: '#9B1C31' },  
+  default: { class: 'gray-500', hex: '#6B7280' }  
+} as const  
 
+function getPm25LevelColors(level: string) {  
+  const key = level.toLowerCase() as keyof typeof PM25_LEVEL_COLORS  
+  return PM25_LEVEL_COLORS[key] || PM25_LEVEL_COLORS.default  
+}  
+
+function getPm25LevelColor(level: string): string {  
+  return getPm25LevelColors(level).class  
+}  
+
+function getPm25LevelHexColor(level: string): string {  
+  return getPm25LevelColors(level).hex  
+} 

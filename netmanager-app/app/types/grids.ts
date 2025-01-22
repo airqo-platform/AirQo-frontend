@@ -35,6 +35,7 @@ export interface Site {
   airqlouds: unknown[];
   createdAt: string;
   updatedAt?: string;
+  pm2_5?: number;
 }
 
 interface SiteCategory {
