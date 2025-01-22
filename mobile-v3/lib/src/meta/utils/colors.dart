@@ -14,6 +14,10 @@ class AppColors {
   static Color highlightColor = Color(0xffF3F6F8);
   static Color boldHeadlineColor = Color(0xff6F87A1);
   static Color secondaryHeadlineColor = Color(0xff6F87A1);
+  static Color boldHeadlineColor2 = Color(0xff9EA3AA);
+  static Color secondaryHeadlineColor2 = Color(0xff60646C);
+  static Color secondaryHeadlineColor3 = Color(0xff7A7F87);
+
 }
 
 class AppTheme {
