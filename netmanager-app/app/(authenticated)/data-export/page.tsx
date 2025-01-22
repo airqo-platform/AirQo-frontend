@@ -21,7 +21,7 @@ export default function ExportData() {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="sites">Sites</TabsTrigger>
             <TabsTrigger value="devices">Devices</TabsTrigger>
-            <TabsTrigger value="airqlouds">AirQlouds</TabsTrigger>
+            <TabsTrigger value="airqlouds">Cities / Countries</TabsTrigger>
           </TabsList>
           <TabsContent value={activeTab}>
             <ExportForm exportType={activeTab} />
