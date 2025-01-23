@@ -4,13 +4,9 @@ import { LineCharts } from "../Charts/Line";
 import { BarCharts } from "../Charts/Bar";
 import { ExceedancesChart } from "./ExceedanceLine";
 import { PM_25_CATEGORY } from "@/core/hooks/categories";
-import { Grid, Site } from "@/app/types/grids";
+import { Grid } from "@/app/types/grids";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 import {
   DropdownMenu,
@@ -18,9 +14,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { Site } from "@/app/types/sites";
 
 interface Categories {
-    [key: string]: Site[];
+  [key: string]: Site[];
 }
 
 interface RecentEventFeature {
@@ -37,7 +34,12 @@ interface GridDashboardProps {
   recentEventsData: { features: RecentEventFeature[] };
 }
 
-const GridDashboard: React.FC<GridDashboardProps> = ({ gridId, loading, grids, recentEventsData }) => {
+const GridDashboard: React.FC<GridDashboardProps> = ({
+  gridId,
+  loading,
+  grids,
+  recentEventsData,
+}) => {
   const [chartType, setChartType] = useState<"line" | "bar">("line");
   const [pm2_5SiteCount, setPm2_5SiteCount] = useState<{
     Good: Site[];
@@ -55,15 +57,22 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ gridId, loading, grids, r
     Hazardous: [],
   });
 
-  const activeGrid = useMemo(() => grids.find((grid) => grid._id === gridId), [grids, gridId]);
+  const activeGrid = useMemo(
+    () => grids.find((grid) => grid._id === gridId),
+    [grids, gridId]
+  );
 
   useEffect(() => {
     if (!activeGrid || !recentEventsData?.features) return;
 
-    const categorizeSite = (site: Site, pm2_5: number, categories: Categories) => {
+    const categorizeSite = (
+      site: Site,
+      pm2_5: number,
+      categories: Categories
+    ) => {
       Object.keys(PM_25_CATEGORY).forEach((key) => {
         const [min, max] = PM_25_CATEGORY[key as keyof typeof PM_25_CATEGORY];
-        if (pm2_5 >= 0 && pm2_5 > min && pm2_5 <= max) { 
+        if (pm2_5 >= 0 && pm2_5 > min && pm2_5 <= max) {
           categories[key].push({ ...site, pm2_5, label: site.label || "" });
         }
       });
@@ -78,10 +87,13 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ gridId, loading, grids, r
       Hazardous: [],
     };
 
-    const gridSitesObj = activeGrid.sites.reduce((acc: Record<string, Site>, curr: Site) => {
-      acc[curr._id] = curr;
-      return acc;
-    }, {});
+    const gridSitesObj = activeGrid.sites.reduce(
+      (acc: Record<string, Site>, curr: Site) => {
+        acc[curr._id] = curr;
+        return acc;
+      },
+      {}
+    );
 
     recentEventsData.features.forEach((feature: RecentEventFeature) => {
       const siteId = feature.properties.site_id;
@@ -96,7 +108,10 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ gridId, loading, grids, r
     setPm2_5SiteCount(initialCount);
   }, [activeGrid, recentEventsData]);
 
-  const categories: { pm25level: keyof typeof pm2_5SiteCount; iconClass: string }[] = [
+  const categories: {
+    pm25level: keyof typeof pm2_5SiteCount;
+    iconClass: string;
+  }[] = [
     { pm25level: "Good", iconClass: "bg-green-500" },
     { pm25level: "Moderate", iconClass: "bg-yellow-500" },
     { pm25level: "UHFSG", iconClass: "bg-orange-500" },
@@ -126,8 +141,12 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ gridId, loading, grids, r
             </p>
           </div>
           <div className="p-4 border text-center rounded-lg shadow-md">
-            <h3 className="text-sm font-semibold text-gray-600">Number of Sites</h3>
-            <p className="lg:text-2xl md:text-sm sm:text-sm font-bold">{loading ? "..." : activeGrid?.sites.length || 0}</p>
+            <h3 className="text-sm font-semibold text-gray-600">
+              Number of Sites
+            </h3>
+            <p className="lg:text-2xl md:text-sm sm:text-sm font-bold">
+              {loading ? "..." : activeGrid?.sites.length || 0}
+            </p>
           </div>
         </div>
       </div>
@@ -162,8 +181,8 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ gridId, loading, grids, r
                       viewBox="0 0 15 15"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
-                      role="img"  
-                      aria-label="Toggle chart type"  
+                      role="img"
+                      aria-label="Toggle chart type"
                     >
                       <path
                         d="M8.625 2.5C8.625 3.12132 8.12132 3.625 7.5 3.625C6.87868 3.625 6.375 3.12132 6.375 2.5C6.375 1.87868 6.87868 1.375 7.5 1.375C8.12132 1.375 8.625 1.87868 8.625 2.5ZM8.625 7.5C8.625 8.12132 8.12132 8.625 7.5 8.625C6.87868 8.625 6.375 8.12132 6.375 7.5C6.375 6.87868 6.87868 6.375 7.5 6.375C8.12132 6.375 8.625 6.87868 8.625 7.5ZM7.5 13.625C8.12132 13.625 8.625 13.1213 8.625 12.5C8.625 11.8787 8.12132 11.375 7.5 11.375C6.87868 11.375 6.375 11.8787 6.375 12.5C6.375 13.1213 6.87868 13.625 7.5 13.625Z"
@@ -175,8 +194,12 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ gridId, loading, grids, r
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setChartType("line")}>Line</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setChartType("bar")}>Bar</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setChartType("line")}>
+                    Line
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setChartType("bar")}>
+                    Bar
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

@@ -35,7 +35,6 @@ export const sites = {
       );
     }
   },
-
   createSite: async (data: {
     name: string;
     latitude: string;

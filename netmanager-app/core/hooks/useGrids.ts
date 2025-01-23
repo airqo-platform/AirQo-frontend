@@ -1,31 +1,44 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  UseQueryOptions,
+} from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { grids } from "../apis/grids";
 import { CreateGrid } from "@/app/types/grids";
 import { GridsState, setError, setGrids } from "../redux/slices/gridsSlice";
 import { useDispatch } from "react-redux";
+import { useAppSelector } from "../redux/hooks";
 
 interface ErrorResponse {
   message: string;
 }
 
 // Hook to get the grid summary
-export const useGridSummary = (networkId: string) => {
+export const useGrids = (networkId: string) => {
   const dispatch = useDispatch();
-  const mutation = useMutation({
-    mutationFn: async () => await grids.getGridsApi(networkId),
+  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+
+  const { data, isLoading, error } = useQuery<
+    GridsState,
+    AxiosError<ErrorResponse>
+  >({
+    queryKey: ["grids", activeNetwork?.net_name],
+    queryFn: () => grids.getGridsApi(networkId),
+    enabled: !!activeNetwork?.net_name,
     onSuccess: (data: GridsState) => {
       dispatch(setGrids(data.grids));
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       dispatch(setError(error.message));
     },
-  });
+  } as UseQueryOptions<GridsState, AxiosError<ErrorResponse>>);
 
   return {
-    grids: mutation.mutate || [],
-    isLoading: mutation.isPending,
-    error: mutation.error as Error | null,
+    grids: data?.grids ?? [],
+    isLoading,
+    error,
   };
 };
 

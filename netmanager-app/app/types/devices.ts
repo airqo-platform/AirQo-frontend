@@ -1,3 +1,5 @@
+import { Site } from "./sites";
+
 export interface DeviceSite {
   _id: string;
   visibility: boolean;
@@ -59,4 +61,94 @@ export interface DevicesSummaryResponse {
   success: boolean;
   message: string;
   devices: Device[];
+}
+
+interface HealthTip {
+  title: string;
+  description: string;
+  image: string;
+}
+
+interface AQIRange {
+  min: number;
+  max?: number;
+}
+
+interface AQIRanges {
+  good: AQIRange;
+  moderate: AQIRange;
+  u4sg: AQIRange;
+  unhealthy: AQIRange;
+  very_unhealthy: AQIRange;
+  hazardous: AQIRange;
+}
+
+// Define the structure for the averages
+interface Averages {
+  dailyAverage: number;
+  percentageDifference: number;
+  weeklyAverages: {
+    currentWeek: number;
+    previousWeek: number;
+  };
+}
+
+// Define the structure for the site details
+// interface SiteDetails {
+//   _id: string;
+//   formatted_name: string;
+//   location_name: string;
+//   search_name: string;
+//   town: string;
+//   city: string;
+//   region: string;
+//   country: string;
+//   name: string;
+//   approximate_latitude: number;
+//   approximate_longitude: number;
+//   bearing_in_radians: number;
+//   data_provider: string;
+//   description: string;
+//   site_category: {
+//       tags: string[];
+//       area_name: string;
+//       category: string;
+//       highway: string;
+//       landuse: string;
+//       latitude: number;
+//       longitude: number;
+//       natural: string;
+//       search_radius: number;
+//       waterway: string;
+//   };
+// }
+
+export interface Measurement {
+  _id: string;
+  site_id: string;
+  time: string;
+  __v: number;
+  aqi_category: string;
+  aqi_color: string;
+  aqi_color_name: string;
+  aqi_ranges: AQIRanges;
+  averages: Averages;
+  createdAt: string;
+  device: string;
+  device_id: string;
+  frequency: string;
+  health_tips: HealthTip[];
+  is_reading_primary: boolean;
+  no2: Record<string, unknown>;
+  pm10: { value: number };
+  pm2_5: { value: number };
+  siteDetails: Site;
+  timeDifferenceHours: number;
+  updatedAt: string;
+}
+
+export interface ReadingsApiResponse {
+  success: boolean;
+  message: string;
+  measurements: Measurement[];
 }
