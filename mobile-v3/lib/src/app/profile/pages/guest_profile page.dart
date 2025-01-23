@@ -16,7 +16,24 @@ class GuestProfilePage extends StatefulWidget {
 }
 
 class _GuestProfilePageState extends State<GuestProfilePage> {
-  get loading => false;
+  // Declare a loading state variable
+  bool isLoading = false;
+
+  void handleCreateAccount() async {
+    setState(() {
+      isLoading = true; // Set loading to true
+    });
+
+    // Simulate a delay for account creation or call an API here
+    await Future.delayed(Duration(seconds: 2));
+
+    setState(() {
+      isLoading = false; // Set loading to false once done
+    });
+
+    // Navigate to CreateAccountScreen or handle success
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) => CreateAccountScreen()));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +122,7 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
                       borderRadius:
                       BorderRadius.circular(4)),
                   child: Center(
-                    child: loading
+                    child: isLoading
                         ? Spinner()
                         : Text(
                       "Create Account",

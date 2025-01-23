@@ -43,7 +43,11 @@ class _DashboardPageState extends State<DashboardPage> {
 
     userBloc = context.read<UserBloc>()..add(LoadUser());
 
-    authBloc = context.read<AuthBloc>()..add(UseAsGuest());
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthInitial || authState is GuestUser) {
+      // Only set guest mode if no user is authenticated
+      context.read<AuthBloc>().add(UseAsGuest());
+    }
     super.initState();
   }
 

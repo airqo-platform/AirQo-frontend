@@ -140,9 +140,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     SizedBox(height: 18),
 
                     InkWell(
-                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
-
-                          builder: (context) => NavPage())),
+                      onTap: () =>context.read<AuthBloc>().add(UseAsGuest()),
                       child: Center(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
