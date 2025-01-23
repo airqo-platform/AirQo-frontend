@@ -131,7 +131,10 @@ const NewAnalytics: React.FC = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: error,
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to download data. Please try again.",
         variant: "destructive",
       });
     } finally {
