@@ -1,6 +1,4 @@
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
-import 'package:airqo/src/app/profile/pages/widgets/devices_widget.dart';
-import 'package:airqo/src/app/profile/pages/widgets/exposure_widget.dart';
 import 'package:airqo/src/app/profile/pages/widgets/settings_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +27,7 @@ class _ProfilePageState extends State<ProfilePage> {
           String firstName = state.model.users[0].firstName;
           String lastName = state.model.users[0].lastName;
           return DefaultTabController(
-            length: 3,
+            length: 1,
             child: Scaffold(
                 appBar: AppBar(
                   automaticallyImplyLeading: false,
@@ -123,21 +121,21 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ? Colors.white
                                 : AppColors.primaryColor,
                         tabs: [
-                          Tab(
-                              height: 60,
-                              icon: TabIcon(
-                                  image: "assets/profile/exposure.svg",
-                                  label: "Exposure")),
+                          // Tab(
+                          //     height: 60,
+                          //     icon: TabIcon(
+                          //         image: "assets/profile/exposure.svg",
+                          //         label: "Exposure")),
                           // Tab(
                           //     height: 60,
                           //     icon: TabIcon(
                           //         image: "assets/profile/places.svg",
                           //         label: "Places")),
-                          Tab(
-                              height: 60,
-                              icon: TabIcon(
-                                  image: "assets/profile/devices.svg",
-                                  label: "Devices")),
+                          // Tab(
+                          //     height: 60,
+                          //     icon: TabIcon(
+                          //         image: "assets/profile/devices.svg",
+                          //         label: "Devices")),
                           Tab(
                               height: 60,
                               icon: TabIcon(
@@ -146,9 +144,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         ]),
                     Expanded(
                       child: TabBarView(children: [
-                        ExposureWidget(),
+                        // ExposureWidget(),
                         // Container(child: Text("devices")),
-                        DevicesWidget(),
+                        // DevicesWidget(),
                         SettingsWidget()
                       ]),
                     )
